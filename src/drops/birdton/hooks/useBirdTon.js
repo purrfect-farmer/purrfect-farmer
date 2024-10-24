@@ -6,9 +6,9 @@ import { useRef } from "react";
 import { useState } from "react";
 
 export default function useBirdTon(farmer) {
-  const user = farmer.userRequest.data;
   const [connected, setConnected] = useState(false);
   const socketRef = useRef();
+  const user = farmer.userRequest.data;
 
   const {
     map: messageHandlers,
@@ -94,7 +94,7 @@ export default function useBirdTon(farmer) {
 
     /** Create Socker */
     const socket = (socketRef.current = new WebSocket(
-      `wss://birdton.site/ws?auth=${encodeURIComponent(user["auth_key"])}`
+      `wss://birdton.site/ws?auth=${encodeURIComponent(user?.["auth_key"])}`
     ));
 
     /** Add Event Listener for Open */
@@ -107,6 +107,8 @@ export default function useBirdTon(farmer) {
 
     /** Add Event Listener for Close */
     socket.addEventListener("close", () => {
+      /** Reset Auth */
+      farmer.resetTelegramWebApp();
       setConnected(false);
     });
 

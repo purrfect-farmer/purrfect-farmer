@@ -9,14 +9,16 @@ export default function useNotPixelSocket(
   updateWorldPixels
 ) {
   const { userRequest } = useFarmerContext();
+  const user = userRequest.data;
+
   const [connected, setConnected] = useState(false);
   const [websocketToken, setWebsocketToken] = useState(null);
 
   useEffect(() => {
-    if (userRequest.data && !websocketToken) {
-      setWebsocketToken(userRequest.data.websocketToken);
+    if (user && !websocketToken) {
+      setWebsocketToken(user.websocketToken);
     }
-  }, [websocketToken, userRequest.data]);
+  }, [websocketToken, user]);
 
   useEffect(() => {
     const handleMessage = (ev) => {

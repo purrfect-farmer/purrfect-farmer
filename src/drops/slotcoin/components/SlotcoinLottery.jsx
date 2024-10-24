@@ -5,13 +5,13 @@ import { cn, delay } from "@/lib/utils";
 import { useCallback, useEffect, useMemo } from "react";
 
 import EnergyIcon from "../assets/images/energy.png?format=webp&w=80";
+import useSlotcoinInfoQuery from "../hooks/useSlotcoinInfoQuery";
 import useSlotcoinLotteryMutation from "../hooks/useSlotcoinLotteryMutation";
-import useFarmerContext from "@/hooks/useFarmerContext";
 
 export default function SlotcoinLottery() {
-  const { infoRequest } = useFarmerContext();
-  const energy = infoRequest.data?.user?.spins || 0;
-  const maxEnergy = infoRequest.data?.user?.["max_spins"] || 0;
+  const query = useSlotcoinInfoQuery();
+  const energy = query.data?.user?.spins || 0;
+  const maxEnergy = query.data?.user?.["max_spins"] || 0;
 
   const spinMutation = useSlotcoinLotteryMutation();
   const process = useProcessLock();
@@ -63,6 +63,11 @@ export default function SlotcoinLottery() {
         await spinMutation.mutateAsync();
       } catch {}
 
+      /** Refetch Balance */
+      try {
+        await query.refetch();
+      } catch {}
+
       /** Delay */
       await delay(10_000);
 
@@ -73,8 +78,13 @@ export default function SlotcoinLottery() {
 
   return (
     <div className="p-4">
-      {!query.data ? (
-        <div className="flex justify-center">Detecting Spins...</div>
+      {query.isPending ? (
+        <div className="flex justify-center">Fetching Spins...</div>
+      ) : // Error
+      query.isError ? (
+        <div className="flex justify-center text-red-500">
+          Failed to fetch lottery...
+        </div>
       ) : (
         // Success
         <div className="flex flex-col gap-2">

@@ -5,17 +5,19 @@ import { cn, delay } from "@/lib/utils";
 import { useCallback } from "react";
 import { useEffect } from "react";
 import { useMemo } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 
 import useAgent301CompleteTaskMutation from "../hooks/useAgent301CompleteTaskMutation";
-import useFarmerContext from "@/hooks/useFarmerContext";
+import useAgent301TasksQuery from "../hooks/useAgent301TasksQuery";
 
 export default function Agent301Tasks() {
-  const { tasksRequest } = useFarmerContext();
+  const client = useQueryClient();
+  const tasksQuery = useAgent301TasksQuery();
 
   const tasks = useMemo(
-    () => tasksRequest.data?.result?.data || [],
-    [tasksRequest.data]
+    () => tasksQuery.data?.result?.data || [],
+    [tasksQuery.data]
   );
 
   /** Partner Tasks */
@@ -122,6 +124,13 @@ export default function Agent301Tasks() {
         await delay(15_000);
       }
 
+      // Refetch Tasks List
+      try {
+        await client.refetchQueries({
+          queryKey: ["agent301", "tasks"],
+        });
+      } catch {}
+
       reset();
 
       /** Partners */
@@ -138,6 +147,13 @@ export default function Agent301Tasks() {
         /** Delay */
         await delay(10_000);
       }
+
+      // Refetch Tasks List
+      try {
+        await client.refetchQueries({
+          queryKey: ["agent301", "tasks"],
+        });
+      } catch {}
 
       reset();
 
@@ -156,6 +172,15 @@ export default function Agent301Tasks() {
         await delay(10_000);
       }
 
+      try {
+        await client.refetchQueries({
+          queryKey: ["agent301", "tasks"],
+        });
+        await client.refetchQueries({
+          queryKey: ["agent301", "balance"],
+        });
+      } catch {}
+
       reset();
       process.stop();
     })();
@@ -163,8 +188,13 @@ export default function Agent301Tasks() {
 
   return (
     <div className="p-4">
-      {!tasksRequest.data ? (
+      {tasksQuery.isPending ? (
         <div className="flex justify-center">Loading...</div>
+      ) : // Error
+      tasksQuery.isError ? (
+        <div className="flex justify-center text-red-500">
+          Failed to fetch tasks...
+        </div>
       ) : (
         // Success
         <div className="flex flex-col gap-2">

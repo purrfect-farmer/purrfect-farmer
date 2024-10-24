@@ -8,17 +8,17 @@ import GoatsBalanceDisplay from "./GoatsBalanceDisplay";
 import GoatsIcon from "../assets/images/icon.png?format=webp&w=80";
 import GoatsMissions from "./GoatsMissions";
 import useGoatsCheckInMutation from "../hooks/useGoatsCheckInMutation";
-import useFarmerContext from "@/hooks/useFarmerContext";
+import useGoatsCheckInQuery from "../hooks/useGoatsCheckInQuery";
 
 export default function GoatsFarmer() {
-  const { checkInRequest } = useFarmerContext();
+  const checkInQuery = useGoatsCheckInQuery();
   const checkInMutation = useGoatsCheckInMutation();
 
   useEffect(() => {
-    if (!checkInRequest.data) return;
+    if (!checkInQuery.data) return;
 
     (async function () {
-      const checkIn = checkInRequest.data;
+      const checkIn = checkInQuery.data;
       const result = checkIn.result;
 
       if (!isToday(new Date(checkIn.lastCheckinTime))) {
@@ -27,7 +27,7 @@ export default function GoatsFarmer() {
         toast.success("Goats Daily Check-In");
       }
     })();
-  }, [checkInRequest.data]);
+  }, [checkInQuery.data]);
   return (
     <div className="flex flex-col gap-2 py-4">
       {/* Header */}

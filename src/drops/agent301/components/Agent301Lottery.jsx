@@ -6,14 +6,14 @@ import { useCallback } from "react";
 import { useEffect } from "react";
 import { useMemo } from "react";
 
+import useAgent301BalanceQuery from "../hooks/useAgent301BalanceQuery";
 import useAgent301LotteryMutation from "../hooks/useAgent301LotteryMutation";
-import useFarmerContext from "@/hooks/useFarmerContext";
 
 export default function Agent301Lottery() {
   const process = useProcessLock();
 
-  const { balanceRequest } = useFarmerContext();
-  const result = balanceRequest.data?.result;
+  const balanceQuery = useAgent301BalanceQuery();
+  const result = balanceQuery.data?.result;
   const tickets = result?.tickets;
 
   const spinMutation = useAgent301LotteryMutation();
@@ -63,6 +63,11 @@ export default function Agent301Lottery() {
         await spinMutation.mutateAsync();
       } catch {}
 
+      /** Refetch Balance */
+      try {
+        await balanceQuery.refetch();
+      } catch {}
+
       /** Delay */
       await delay(15_000);
 
@@ -73,8 +78,13 @@ export default function Agent301Lottery() {
 
   return (
     <div className="p-4">
-      {!result ? (
-        <div className="flex justify-center">Detecting...</div>
+      {balanceQuery.isPending ? (
+        <div className="flex justify-center">Loading...</div>
+      ) : // Error
+      balanceQuery.isError ? (
+        <div className="flex justify-center text-red-500">
+          Failed to fetch tickets...
+        </div>
       ) : (
         // Success
         <div className="flex flex-col gap-2">

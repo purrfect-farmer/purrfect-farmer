@@ -7,11 +7,11 @@ import { useEffect } from "react";
 import { useMemo } from "react";
 
 import usePumpadLotteryMutation from "../hooks/usePumpadLotteryMutation";
-import useFarmerContext from "@/hooks/useFarmerContext";
+import usePumpadLotteryQuery from "../hooks/usePumpadLotteryQuery";
 
 export default function PumpadLottery() {
-  const { lotteryRequest } = useFarmerContext();
-  const drawCount = lotteryRequest.data?.["draw_count"] || 0;
+  const query = usePumpadLotteryQuery();
+  const drawCount = query.data?.["draw_count"] || 0;
 
   const spinMutation = usePumpadLotteryMutation();
 
@@ -65,6 +65,11 @@ export default function PumpadLottery() {
         await delay(2000);
       } catch {}
 
+      /** Refetch Balance */
+      try {
+        await query.refetch();
+      } catch {}
+
       /** Delay */
       await delay(10_000);
 
@@ -75,8 +80,13 @@ export default function PumpadLottery() {
 
   return (
     <div className="p-4">
-      {!lotteryRequest.data ? (
-        <div className="flex justify-center">Detecting Lottery...</div>
+      {query.isPending ? (
+        <div className="flex justify-center">Fetching Lottery...</div>
+      ) : // Error
+      query.isError ? (
+        <div className="flex justify-center text-red-500">
+          Failed to fetch lottery...
+        </div>
       ) : (
         // Success
         <div className="flex flex-col gap-2">

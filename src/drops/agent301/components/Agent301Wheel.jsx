@@ -6,15 +6,17 @@ import { formatRelative } from "date-fns";
 import { useCallback } from "react";
 import { useEffect } from "react";
 import { useMemo } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 
 import useAgent301CompleteWheelTaskMutation from "../hooks/useAgent301CompleteWheelTaskMutation";
-import useFarmerContext from "@/hooks/useFarmerContext";
+import useAgent301WheelQuery from "../hooks/useAgent301WheelQuery";
 
 export default function Agent301Wheel() {
-  const { wheelRequest } = useFarmerContext();
+  const client = useQueryClient();
+  const wheelQuery = useAgent301WheelQuery();
 
-  const result = wheelRequest.data?.result;
+  const result = wheelQuery.data?.result;
   const tasks = result?.tasks;
 
   const daily = tasks?.daily;
@@ -123,14 +125,26 @@ export default function Agent301Wheel() {
 
       reset();
 
+      try {
+        await wheelQuery.refetch();
+        await client.refetchQueries({
+          queryKey: ["agent301", "balance"],
+        });
+      } catch {}
+
       process.stop();
     })();
   }, [process]);
 
   return (
     <div className="p-4">
-      {!result ? (
+      {wheelQuery.isPending ? (
         <div className="flex justify-center">Loading...</div>
+      ) : // Error
+      wheelQuery.isError ? (
+        <div className="flex justify-center text-red-500">
+          Failed to fetch tasks...
+        </div>
       ) : (
         // Success
         <div className="flex flex-col gap-2">

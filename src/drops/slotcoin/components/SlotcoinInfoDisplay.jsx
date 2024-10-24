@@ -1,14 +1,16 @@
-import useFarmerContext from "@/hooks/useFarmerContext";
 import CoinIcon from "../assets/images/coin.png?format=webp&w=80";
+import useSlotcoinInfoQuery from "../hooks/useSlotcoinInfoQuery";
 
 export default function SlotcoinUsernameDisplay() {
-  const { infoRequest } = useFarmerContext();
-  const user = infoRequest.data?.user;
+  const query = useSlotcoinInfoQuery();
+  const user = query.data?.user;
 
   return (
     <>
-      {!user ? (
-        <h4 className="text-center">Detecting Info...</h4>
+      {query.isPending ? (
+        <h4 className="text-center">Fetching Info...</h4>
+      ) : query.isError ? (
+        <h4 className="text-center text-red-500">Error Fetching Info...</h4>
       ) : (
         <div className="flex flex-col gap-2">
           <h3 className="text-2xl font-bold text-center text-orange-500">

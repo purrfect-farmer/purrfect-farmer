@@ -1,13 +1,15 @@
-import useFarmerContext from "@/hooks/useFarmerContext";
+import useGoatsUserQuery from "../hooks/useGoatsUserQuery";
 
 export default function GoatsBalanceDisplay() {
-  const { userRequest } = useFarmerContext();
-  const result = userRequest.data;
+  const query = useGoatsUserQuery();
+  const result = query.data;
 
   return (
     <div className="flex flex-col gap-2 py-2">
-      {!result ? (
-        <h4 className="text-center">Detecting Balance...</h4>
+      {query.isPending ? (
+        <h4 className="text-center">Fetching Balance...</h4>
+      ) : query.isError ? (
+        <h4 className="text-center text-red-500">Failed to fetch Balance...</h4>
       ) : (
         <>
           <h3 className="text-2xl font-bold text-center">

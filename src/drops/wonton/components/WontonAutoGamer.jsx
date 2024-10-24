@@ -13,7 +13,7 @@ import WontonButton from "./WontonButton";
 import WontonInput from "./WontonInput";
 import useWontonClaimGameMutation from "../hooks/useWontonClaimGameMutation";
 import useWontonStartGameMutation from "../hooks/useWontonStartGameMutation";
-import useFarmerContext from "@/hooks/useFarmerContext";
+import useWontonUserQuery from "../hooks/useWontonUserQuery";
 
 const GAME_DURATION = 15_000;
 const EXTRA_DELAY = 3_000;
@@ -22,7 +22,7 @@ const INITIAL_POINT = 220;
 const MAX_POINT = 380;
 
 export default function Wonton() {
-  const { userRequest } = useFarmerContext();
+  const query = useWontonUserQuery();
 
   const process = useProcessLock();
 
@@ -30,7 +30,7 @@ export default function Wonton() {
   const [desiredPoint, setDesiredPoint, dispatchAndSetDesiredPoint] =
     useSocketState("wonton.game.desired-point", INITIAL_POINT);
 
-  const tickets = userRequest.data?.ticketCount || 0;
+  const tickets = query.data?.ticketCount || 0;
   const points = useMemo(
     () => Math.max(MIN_POINT, Math.min(MAX_POINT, desiredPoint)),
     [desiredPoint]
@@ -127,10 +127,15 @@ export default function Wonton() {
       /** Add a little delay */
       await delay(EXTRA_DELAY);
 
+      /** Reset Mutation */
+      try {
+        await query.refetch();
+      } catch {}
+
       /** Release Lock */
       process.unlock();
     })();
-  }, [tickets, process, userRequest.update]);
+  }, [tickets, process]);
 
   return (
     <div className="flex flex-col gap-2">

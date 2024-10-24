@@ -1,5 +1,4 @@
 import toast from "react-hot-toast";
-import useFarmerContext from "@/hooks/useFarmerContext";
 import useSocketDispatchCallback from "@/hooks/useSocketDispatchCallback";
 import useSocketHandlers from "@/hooks/useSocketHandlers";
 import { useCallback } from "react";
@@ -11,14 +10,10 @@ import RiddleIcon from "../assets/images/riddle.jpg?format=webp&w=80";
 import useHrumCheckQuestMutation from "../hooks/useHrumCheckQuestMutation";
 import useHrumClaimQuestMutation from "../hooks/useHrumClaimQuestMutation";
 
-export default function HrumRiddleTask() {
+export default function HrumRiddleTask({ queries }) {
   const checkRiddleMutation = useHrumCheckQuestMutation("riddle");
   const claimRiddleMutation = useHrumClaimQuestMutation("riddle");
-
-  const { allDataRequest, afterDataRequest } = useFarmerContext();
-
-  const allData = allDataRequest.data.data;
-  const afterData = afterDataRequest.data.data;
+  const [allData, afterData] = queries.data;
 
   /** Riddle */
   const riddle = useMemo(
@@ -48,21 +43,13 @@ export default function HrumRiddleTask() {
         /** Show Success Message */
         toast.success("Riddle Claimed Successfully!");
 
-        /** Update Request */
-        afterDataRequest.update((prev) => {
-          return {
-            ...prev,
-            data: {
-              ...prev.data,
-              quests: [...prev.data.quests, riddle],
-            },
-          };
-        });
+        /** Refetch Queries */
+        queries.query.forEach((query) => query.refetch());
       } catch {
         /** Show Error Message */
         toast.error("Failed to Claim Riddle!");
       }
-    }, [riddle, disabled, toast, afterDataRequest.update]),
+    }, [queries, riddle, disabled, toast]),
 
     /** Dispatch */
     useCallback(

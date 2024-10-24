@@ -1,6 +1,5 @@
 import * as Tabs from "@radix-ui/react-tabs";
 import toast from "react-hot-toast";
-import useFarmerContext from "@/hooks/useFarmerContext";
 import useSocketTabs from "@/hooks/useSocketTabs";
 import { cn, delay } from "@/lib/utils";
 import { useEffect } from "react";
@@ -8,81 +7,65 @@ import { useEffect } from "react";
 import BlumAutoTasks from "./BlumAutoTasks";
 import BlumBalanceDisplay from "./BlumBalanceDisplay";
 import BlumFarmerHeader from "./BlumFarmerHeader";
-import BlumGamer from "./BlumGamer";
 import BlumUsernameDisplay from "./BlumUsernameDisplay";
+import useBlumBalanceQuery from "../hooks/useBlumBalanceQuery";
 import useBlumClaimDailyRewardMutation from "../hooks/useBlumClaimDailyRewardMutation";
 import useBlumClaimFarmingMutation from "../hooks/useBlumClaimFarmingMutation";
+import useBlumDailyRewardQuery from "../hooks/useBlumDailyRewardQuery";
 import useBlumStartFarmingMutation from "../hooks/useBlumStartFarmingMutation";
+import BlumGamer from "./BlumGamer";
 
 export default function BlumFarmer() {
   const tabs = useSocketTabs("blum.farmer-tabs", "game");
-  const { balanceRequest, dailyRewardRequest } = useFarmerContext();
 
+  const dailyRewardQuery = useBlumDailyRewardQuery();
   const claimDailyRewardMutation = useBlumClaimDailyRewardMutation();
 
   const startFarmingMutation = useBlumStartFarmingMutation();
   const claimFarmingMutation = useBlumClaimFarmingMutation();
 
+  const balanceQuery = useBlumBalanceQuery();
+
   /** Daily Reward */
   useEffect(() => {
-    if (!dailyRewardRequest.data) return;
+    if (!dailyRewardQuery.data) return;
     (async function () {
       try {
         await delay(2000);
         await claimDailyRewardMutation.mutateAsync();
         toast.success("Blum Daily Check-In");
-
-        /** Update the Reward */
-        dailyRewardRequest.update(undefined);
       } catch {}
     })();
-  }, [dailyRewardRequest.data, dailyRewardRequest.update]);
+  }, [dailyRewardQuery.data]);
 
   /** Start and Claim Farming */
   useEffect(() => {
-    if (!balanceRequest.data) {
+    if (!balanceQuery.data) {
       return;
     }
 
     (async function () {
-      const { timestamp, farming, isFastFarmingEnabled } = balanceRequest.data;
+      const balance = balanceQuery.data;
+      const farming = balance.farming;
 
-      if (!isFastFarmingEnabled) {
+      if (!balance.isFastFarmingEnabled) {
         /** Delay */
         await delay(2000);
+
         await startFarmingMutation.mutateAsync();
         toast.success("Blum Started Farming");
-
-        /** Update Fast Farming */
-        balanceRequest.update((prev) => {
-          return {
-            ...prev,
-            isFastFarmingEnabled: true,
-          };
-        });
-      } else if (farming && farming.endTime <= timestamp) {
+      } else if (farming && balance.timestamp >= farming.endTime) {
         await claimFarmingMutation.mutateAsync();
         toast.success("Blum Claimed Previous Farming");
 
         /** Delay */
         await delay(2000);
+
         await startFarmingMutation.mutateAsync();
         toast.success("Blum Started Farming");
-
-        /** Update Farming */
-        balanceRequest.update((prev) => {
-          return {
-            ...prev,
-            farming: {
-              ...prev.farming,
-              startTime: timestamp,
-              endTime: timestamp + 60 * 60 * 8 * 1000,
-            },
-          };
-        });
       }
     })();
-  }, [balanceRequest.data, balanceRequest.update]);
+  }, [balanceQuery.data]);
 
   return (
     <div className="flex flex-col p-4">

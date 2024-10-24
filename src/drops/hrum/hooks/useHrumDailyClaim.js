@@ -1,17 +1,18 @@
 import toast from "react-hot-toast";
-import useFarmerContext from "@/hooks/useFarmerContext";
 import { useEffect } from "react";
 
 import useHrumDailyClaimMutation from "./useHrumDailyClaimMutation";
+import useHrumDailyQuery from "./useHrumDailyQuery";
 
 export default function useHrumDailyClaim() {
-  const { dailyQuestsRequest } = useFarmerContext();
+  const dailyQuery = useHrumDailyQuery();
   const dailyClaimMutation = useHrumDailyClaimMutation();
-  const dailyQuests = dailyQuestsRequest.data?.data;
 
   useEffect(() => {
-    if (dailyQuests) {
-      const day = Object.entries(dailyQuests).find(([k, v]) => v === "canTake");
+    if (dailyQuery.data) {
+      const day = Object.entries(dailyQuery.data).find(
+        ([k, v]) => v === "canTake"
+      );
 
       if (day) {
         toast.promise(dailyClaimMutation.mutateAsync(parseInt(day[0])), {
@@ -21,5 +22,5 @@ export default function useHrumDailyClaim() {
         });
       }
     }
-  }, [dailyQuests]);
+  }, [dailyQuery.data]);
 }

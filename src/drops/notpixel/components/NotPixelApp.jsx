@@ -13,15 +13,15 @@ import { useState } from "react";
 
 import NotPixelIcon from "../assets/images/icon.png?format=webp&w=80";
 import useNotPixelMiningClaimMutation from "../hooks/useNotPixelMiningClaimMutation";
+import useNotPixelMiningStatusQuery from "../hooks/useNotPixelMiningStatusQuery";
 import useNotPixelRepaintMutation from "../hooks/useNotPixelRepaintMutation";
-import useFarmerContext from "@/hooks/useFarmerContext";
 
 TimeAgo.addDefaultLocale(en);
 
 export default function NotPixelApp({ diff, updatedAt }) {
-  const { miningStatusRequest } = useFarmerContext();
+  const miningQuery = useNotPixelMiningStatusQuery();
+  const mining = miningQuery.data;
 
-  const mining = miningStatusRequest.data;
   const process = useProcessLock();
 
   const repaintMutation = useNotPixelRepaintMutation();
@@ -29,8 +29,10 @@ export default function NotPixelApp({ diff, updatedAt }) {
 
   const [pixel, setPixel] = useState(null);
 
-  const balance = useMemo(() => Math.floor(mining?.userBalance || 0), [mining]);
-  const charges = useMemo(() => mining?.charges || 0, [mining]);
+  const balance = useMemo(
+    () => Math.floor(mining?.userBalance || 0),
+    [mining?.userBalance]
+  );
 
   /** Start */
   const [startFarming, dispatchAndStartFarming] = useSocketDispatchCallback(
@@ -71,26 +73,16 @@ export default function NotPixelApp({ diff, updatedAt }) {
     (async function () {
       if (mining.fromStart >= mining.maxMiningTime) {
         await claimMiningMutation.mutateAsync();
-
-        /** Reset Mining */
-        miningStatusRequest.update((prev) => {
-          return {
-            ...prev,
-            fromStart: 0,
-          };
-        });
-
-        /** Toast Success Message */
         toast.success("Not Pixel - Claimed Mining");
       }
     })();
-  }, [mining, miningStatusRequest.update]);
+  }, [mining]);
 
   /** Farmer */
   useEffect(() => {
     if (!process.canExecute) return;
 
-    if (charges < 1) {
+    if (mining.charges < 1) {
       process.stop();
       return;
     }
@@ -106,22 +98,16 @@ export default function NotPixelApp({ diff, updatedAt }) {
           setPixel(pixel);
 
           if (!process.signal.aborted) {
-            const result = await repaintMutation.mutateAsync({
+            const data = await repaintMutation.mutateAsync({
               pixelId: pixel.pixelId,
               newColor: pixel.color,
             });
 
             /** Show Difference */
-            toast.success(`+${result.balance - balance}`);
+            toast.success(`+${data.balance - mining.userBalance}`);
 
-            /** Update the Mining Status*/
-            miningStatusRequest.update((prev) => {
-              return {
-                ...prev,
-                userBalance: result.balance,
-                charges: prev.charges - 1,
-              };
-            });
+            /** Update Balance */
+            await miningQuery.refetch();
           }
         }
       } catch {}
@@ -138,7 +124,7 @@ export default function NotPixelApp({ diff, updatedAt }) {
       /** Release Lock */
       process.unlock();
     })();
-  }, [process, diff, balance, charges, miningStatusRequest.update]);
+  }, [process, diff, mining]);
 
   /** Sync Handlers */
   useSocketHandlers(
@@ -171,12 +157,10 @@ export default function NotPixelApp({ diff, updatedAt }) {
         🛜 <ReactTimeAgo date={updatedAt} locale="en-US" timeStyle="twitter" />
       </p>
 
-      {mining ? (
+      {miningQuery.isSuccess ? (
         <>
-          <h1 className="text-3xl text-center">
-            {Intl.NumberFormat().format(balance)}
-          </h1>
-          <h2 className="text-center">Charges: {charges}</h2>
+          <h1 className="text-3xl text-center">{balance}</h1>
+          <h2 className="text-center">Charges: {mining.charges}</h2>
 
           <button
             onClick={
@@ -184,7 +168,7 @@ export default function NotPixelApp({ diff, updatedAt }) {
                 ? dispatchAndStartFarming
                 : dispatchAndStopFarming
             }
-            disabled={charges < 1}
+            disabled={mining.charges < 1}
             className={cn(
               "text-white px-4 py-2 rounded-lg disabled:opacity-50",
               !process.started ? "bg-black" : "bg-red-500"

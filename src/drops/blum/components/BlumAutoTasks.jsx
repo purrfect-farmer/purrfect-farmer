@@ -6,17 +6,19 @@ import { cn, delay } from "@/lib/utils";
 import { useCallback } from "react";
 import { useEffect } from "react";
 import { useMemo } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 
 import BlumButton from "./BlumButton";
 import BlumKeywordPrompt from "./BlumKeywordPrompt";
 import useBlumClaimTaskMutation from "../hooks/useBlumClaimTaskMutation";
 import useBlumStartTaskMutation from "../hooks/useBlumStartTaskMutation";
+import useBlumTasksQuery from "../hooks/useBlumTasksQuery";
 import useBlumValidateTaskMutation from "../hooks/useBlumValidateTaskMutation";
-import useFarmerContext from "@/hooks/useFarmerContext";
 
 export default function BlumAutoTasks() {
-  const { tasksRequest } = useFarmerContext();
+  const client = useQueryClient();
+  const query = useBlumTasksQuery();
 
   /** Concat sub tasks */
   const reduceTasks = useCallback(
@@ -34,7 +36,7 @@ export default function BlumAutoTasks() {
   /** Join all subsections */
   const rawTasks = useMemo(
     () =>
-      tasksRequest.data
+      query.data
         ?.reduce((all, section) => {
           return all
             .concat(reduceTasks(section.tasks))
@@ -51,7 +53,7 @@ export default function BlumAutoTasks() {
           }
           return tasks;
         }, []) || [],
-    [tasksRequest.data, reduceTasks]
+    [query.data, reduceTasks]
   );
 
   /** All Tasks */
@@ -134,6 +136,24 @@ export default function BlumAutoTasks() {
     setAction(null);
   }, [resetTask, setAction]);
 
+  /** Refetch Tasks */
+  const refetchTasks = useCallback(
+    () =>
+      client.refetchQueries({
+        queryKey: ["blum", "tasks"],
+      }),
+    [client]
+  );
+
+  /** Refetch Balance */
+  const refetchBalance = useCallback(
+    () =>
+      client.refetchQueries({
+        queryKey: ["blum", "balance"],
+      }),
+    [client]
+  );
+
   /** Handle button click */
   const [handleAutoClaimClick, dispatchAndHandleAutoClaimClick] =
     useSocketDispatchCallback(
@@ -170,6 +190,13 @@ export default function BlumAutoTasks() {
     }
 
     (async function () {
+      const refetch = async () => {
+        try {
+          await refetchTasks();
+          await refetchBalance();
+        } catch {}
+      };
+
       if (!action) {
         setAction("start");
         return;
@@ -192,7 +219,9 @@ export default function BlumAutoTasks() {
           }
 
           // Set Next Action
-
+          try {
+            await refetchTasks();
+          } catch {}
           resetTask();
           setAction("verify");
 
@@ -225,7 +254,9 @@ export default function BlumAutoTasks() {
           }
 
           // Set Next Action
-
+          try {
+            await refetchTasks();
+          } catch {}
           resetTask();
           setAction("claim");
           return;
@@ -246,6 +277,7 @@ export default function BlumAutoTasks() {
           break;
       }
 
+      await refetch();
       resetTask();
       process.stop();
     })();
@@ -260,8 +292,10 @@ export default function BlumAutoTasks() {
   return (
     <>
       <div className="flex flex-col py-2">
-        {!tasksRequest.data ? (
-          <h4 className="font-bold">Detecting Tasks...</h4>
+        {query.isPending ? (
+          <h4 className="font-bold">Fetching tasks...</h4>
+        ) : query.isError ? (
+          <h4 className="font-bold text-red-500">Failed to fetch tasks...</h4>
         ) : (
           <>
             {/* Tasks Info */}

@@ -5,20 +5,22 @@ import { cn, delay } from "@/lib/utils";
 import { useCallback } from "react";
 import { useEffect } from "react";
 import { useMemo } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 
 import WontonButton from "./WontonButton";
 import useWontonClaimTaskMutation from "../hooks/useWontonClaimTaskMutation";
 import useWontonStartTaskMutation from "../hooks/useWontonStartTaskMutation";
-import useFarmerContext from "@/hooks/useFarmerContext";
+import useWontonTasksQuery from "../hooks/useWontonTasksQuery";
 
 export default function WontonAutoTasks() {
-  const { tasksRequest } = useFarmerContext();
+  const client = useQueryClient();
+  const query = useWontonTasksQuery();
 
   /** All Tasks */
   const tasks = useMemo(
-    () => (tasksRequest.data ? tasksRequest.data.tasks : []),
-    [tasksRequest.data]
+    () => (query.data ? query.data.tasks : []),
+    [query.data]
   );
 
   /** Pending Tasks */
@@ -39,7 +41,6 @@ export default function WontonAutoTasks() {
     [tasks]
   );
 
-  /** Process */
   const process = useProcessLock();
 
   const [currentTask, setCurrentTask] = useState(null);
@@ -60,6 +61,24 @@ export default function WontonAutoTasks() {
     resetTask();
     setAction(null);
   }, [resetTask, setAction]);
+
+  /** Refetch Tasks */
+  const refetchTasks = useCallback(
+    () =>
+      client.refetchQueries({
+        queryKey: ["wonton", "tasks"],
+      }),
+    [client]
+  );
+
+  /** Refetch Balance */
+  const refetchBalance = useCallback(
+    () =>
+      client.refetchQueries({
+        queryKey: ["wonton", "user"],
+      }),
+    [client]
+  );
 
   /** Handle button click */
   const [handleAutoClaimClick, dispatchAndHandleAutoClaimClick] =
@@ -97,6 +116,13 @@ export default function WontonAutoTasks() {
     }
 
     (async function () {
+      const refetch = async () => {
+        try {
+          await refetchTasks();
+          await refetchBalance();
+        } catch {}
+      };
+
       if (!action) {
         setAction("start");
         return;
@@ -119,7 +145,9 @@ export default function WontonAutoTasks() {
           }
 
           // Set Next Action
-
+          try {
+            await refetchTasks();
+          } catch {}
           resetTask();
           setAction("claim");
 
@@ -141,6 +169,7 @@ export default function WontonAutoTasks() {
           break;
       }
 
+      await refetch();
       resetTask();
       process.stop();
     })();
@@ -149,8 +178,10 @@ export default function WontonAutoTasks() {
   return (
     <>
       <div className="flex flex-col py-2">
-        {!tasksRequest.data ? (
-          <h4 className="font-bold">Detecting tasks...</h4>
+        {query.isPending ? (
+          <h4 className="font-bold">Fetching tasks...</h4>
+        ) : query.isError ? (
+          <h4 className="font-bold text-red-500">Failed to fetch tasks...</h4>
         ) : (
           <>
             {/* Tasks Info */}

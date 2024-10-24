@@ -10,15 +10,19 @@ import { useMemo } from "react";
 
 import useYescoinCollectCoinMutation from "../hooks/useYescoinCollectCoinMutation";
 import useYescoinCollectSpecialBoxCoinMutation from "../hooks/useYescoinCollectSpecialBoxCoinMutation";
+import useYescoinGameInfoQuery from "../hooks/useYescoinGameInfoQuery";
+import useYescoinGameSpecialBoxInfoQuery from "../hooks/useYescoinGameSpecialBoxInfoQuery";
 import useYescoinSpecialBoxReloadMutation from "../hooks/useYescoinSpecialBoxReloadMutation";
-import useFarmerContext from "@/hooks/useFarmerContext";
 
 export default function YescoinGamer() {
   const process = useProcessLock();
-  const { gameInfoRequest, gameSpecialBoxInfoRequest } = useFarmerContext();
+  const gameInfoQuery = useYescoinGameInfoQuery();
+  const specialBoxInfoQuery = useYescoinGameSpecialBoxInfoQuery({
+    enabled: process.started,
+  });
 
-  const specialBox = gameSpecialBoxInfoRequest.data;
-  const coinLeft = gameInfoRequest.data?.coinPoolLeftCount;
+  const specialBox = specialBoxInfoQuery.data;
+  const coinLeft = gameInfoQuery.data?.coinPoolLeftCount;
 
   const collectCoinMutation = useYescoinCollectCoinMutation();
   const collectSpecialBoxMutation = useYescoinCollectSpecialBoxCoinMutation();
@@ -97,7 +101,7 @@ export default function YescoinGamer() {
 
   return (
     <div className="flex flex-col gap-2">
-      {gameInfoRequest.data ? (
+      {gameInfoQuery.isSuccess ? (
         <>
           <button
             onClick={dispatchAndHandleAutoGameClick}

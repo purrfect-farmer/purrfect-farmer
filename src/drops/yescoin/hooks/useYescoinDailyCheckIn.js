@@ -1,22 +1,23 @@
 import md5 from "md5";
 import toast from "react-hot-toast";
-import useFarmerContext from "@/hooks/useFarmerContext";
 import { delay } from "@/lib/utils";
 import { useEffect } from "react";
 
+import useYescoinAccountInfoQuery from "./useYescoinAccountInfoQuery";
 import useYescoinCheckDailyMissionMutation from "./useYescoinCheckDailyMissionMutation";
 import useYescoinClaimMissionMutation from "./useYescoinClaimMissionMutation";
 import useYescoinClaimSignInMutation from "./useYescoinClaimSignInMutation";
 import useYescoinClickDailyMissionMutation from "./useYescoinClickDailyMissionMutation";
+import useYescoinDailyMissionQuery from "./useYescoinDailyMissionQuery";
+import useYescoinSignInListQuery from "./useYescoinSignInListQuery";
+import useYescoinWalletQuery from "./useYescoinWalletQuery";
 import { getSignInKey } from "../lib/utils";
 
 export default function useYescoinDailyCheckIn() {
-  const {
-    dailyMissionRequest,
-    signInListRequest,
-    walletRequest,
-    accountInfoRequest,
-  } = useFarmerContext();
+  const dailyMissionQuery = useYescoinDailyMissionQuery();
+  const signInListQuery = useYescoinSignInListQuery();
+  const walletQuery = useYescoinWalletQuery();
+  const accountInfoQuery = useYescoinAccountInfoQuery();
 
   const clickDailyMissionMutation = useYescoinClickDailyMissionMutation();
   const checkDailyMissionMutation = useYescoinCheckDailyMissionMutation();
@@ -25,16 +26,14 @@ export default function useYescoinDailyCheckIn() {
 
   useEffect(() => {
     if (
-      ![
-        dailyMissionRequest.data,
-        signInListRequest.data,
-        walletRequest.data,
-      ].every(Boolean)
+      ![dailyMissionQuery.data, signInListQuery.data, walletQuery.data].every(
+        Boolean
+      )
     )
       return;
 
     (async function () {
-      const checkIn = dailyMissionRequest.data.find(
+      const checkIn = dailyMissionQuery.data.find(
         (item) => item.link === "CheckIn"
       );
 
@@ -52,15 +51,15 @@ export default function useYescoinDailyCheckIn() {
           await delay(3_000);
 
           /** Refetch Balance */
-          await accountInfoRequest.refetch();
+          await accountInfoQuery.refetch();
         };
 
         /** Yescoin Check In */
         const yescoinCheckIn = async function () {
-          const list = signInListRequest.data;
+          const list = signInListQuery.data;
           const address =
-            walletRequest.data?.[0]?.friendlyAddress ||
-            walletRequest.data?.[0]?.rawAddress;
+            walletQuery.data?.[0]?.friendlyAddress ||
+            walletQuery.data?.[0]?.rawAddress;
 
           let day = list.find((item) => item.status);
 
@@ -107,5 +106,5 @@ export default function useYescoinDailyCheckIn() {
         });
       }
     })();
-  }, [dailyMissionRequest.data, signInListRequest.data, walletRequest.data]);
+  }, [dailyMissionQuery.data, signInListQuery.data, walletQuery.data]);
 }

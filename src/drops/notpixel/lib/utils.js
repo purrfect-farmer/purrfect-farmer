@@ -46,8 +46,8 @@ export function rgbToHex(...args) {
 }
 
 export function getCoords(index, item) {
-  let x = index % item.imageSize;
-  let y = Math.floor(index / item.imageSize);
+  let x = index % item.size;
+  let y = Math.floor(index / item.size);
 
   let positionX = item.x + x;
   let positionY = item.y + y;
@@ -79,8 +79,8 @@ export async function getNotPixelGame() {
     // Y
     let y = match.match(/y:([^,]+),/)?.[1]?.replaceAll(/[^\d-]/g, "");
 
-    // Image Size
-    let imageSize = match
+    // Size
+    let size = match
       .match(/imageSize:([^,]+),/)?.[1]
       ?.replaceAll(/[^\d-]/g, "");
 
@@ -93,7 +93,7 @@ export async function getNotPixelGame() {
     let obj = {
       x: parseInt(x),
       y: parseInt(y),
-      imageSize: parseInt(imageSize),
+      size: parseInt(size),
       url: `https://app.notpx.app/assets/${url}`,
     };
 

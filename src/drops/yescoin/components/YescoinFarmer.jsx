@@ -7,15 +7,16 @@ import YescoinBalanceDisplay from "./YescoinBalanceDisplay";
 import YescoinDailyMission from "./YescoinDailyMission";
 import YescoinGamer from "./YescoinGamer";
 import YescoinIcon from "../assets/images/icon.png?format=webp&w=80";
+import useYescoinAccountInfoQuery from "../hooks/useYescoinAccountInfoQuery";
 import useYescoinDailyCheckIn from "../hooks/useYescoinDailyCheckIn";
-import useFarmerContext from "@/hooks/useFarmerContext";
+import useYescoinOfflineQuery from "../hooks/useYescoinOfflineQuery";
 
 export default function YescoinFarmer() {
-  const { accountInfoRequest } = useFarmerContext();
+  const accountInfoQuery = useYescoinAccountInfoQuery();
   const tabs = useSocketTabs("yescoin.farmer-tabs", "game");
 
-  /** Daily Check-In */
   useYescoinDailyCheckIn();
+  useYescoinOfflineQuery();
 
   return (
     <div className="flex flex-col gap-2 p-4">
@@ -29,7 +30,7 @@ export default function YescoinFarmer() {
         <h1 className="font-bold">Yescoin Farmer</h1>
       </div>
 
-      {accountInfoRequest.data ? (
+      {accountInfoQuery.isSuccess ? (
         <>
           <YescoinBalanceDisplay />
           <Tabs.Root {...tabs} className="flex flex-col gap-4">

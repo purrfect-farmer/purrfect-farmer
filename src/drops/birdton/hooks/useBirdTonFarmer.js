@@ -1,24 +1,18 @@
 import useDropFarmer from "@/hooks/useDropFarmer";
 import { useMemo } from "react";
+import BirdTonIcon from "../assets/images/icon.png?format=webp&w=80";
 import { useMultiRequestData } from "@/hooks/useMultiRequestData";
 
-import BirdTonIcon from "../assets/images/icon.png?format=webp&w=80";
-
 export default function useBirdTonFarmer() {
-  const farmer = useDropFarmer(
-    useMemo(
-      () => ({
-        id: "birdton",
-        host: "birdton.site",
-        notification: {
-          icon: BirdTonIcon,
-          title: "BirdTon Farmer",
-        },
-        domains: [],
-      }),
-      []
-    )
-  );
+  const farmer = useDropFarmer({
+    id: "birdton",
+    host: "birdton.site",
+    notification: {
+      icon: BirdTonIcon,
+      title: "BirdTon Farmer",
+    },
+    domains: ["birdton.site"],
+  });
 
   const requests = useMultiRequestData(
     farmer.port,

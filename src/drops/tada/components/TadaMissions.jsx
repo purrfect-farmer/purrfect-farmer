@@ -9,22 +9,22 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 
 import useTadaCompleteMissionMutation from "../hooks/useTadaCompleteMissionMutation";
+import useTadaMissionsQuery from "../hooks/useTadaMissionsQuery";
 import useTadaStartActivityMutation from "../hooks/useTadaStartActivityMutation";
-import useFarmerContext from "@/hooks/useFarmerContext";
 
 export default function TadaMissions() {
   const client = useQueryClient();
-  const { missionsRequest } = useFarmerContext();
+  const missionsQuery = useTadaMissionsQuery();
 
   const missions = useMemo(
     () =>
-      missionsRequest.data
-        ? Object.values(missionsRequest.data).reduce(
+      missionsQuery.data
+        ? Object.values(missionsQuery.data).reduce(
             (missions, item) => missions.concat(item),
             []
           )
         : [],
-    [missionsRequest.data]
+    [missionsQuery.data]
   );
 
   const completedMissions = useMemo(
@@ -98,6 +98,10 @@ export default function TadaMissions() {
         await delay(5_000);
       }
 
+      try {
+        missionsQuery.refetch();
+      } catch {}
+
       reset();
       process.stop();
     })();
@@ -105,8 +109,13 @@ export default function TadaMissions() {
 
   return (
     <div className="p-4">
-      {!missionsRequest.data ? (
-        <div className="flex justify-center">Detecting...</div>
+      {missionsQuery.isPending ? (
+        <div className="flex justify-center">Loading...</div>
+      ) : // Error
+      missionsQuery.isError ? (
+        <div className="flex justify-center text-red-500">
+          Failed to fetch missions...
+        </div>
       ) : (
         // Success
         <div className="flex flex-col gap-2">

@@ -5,23 +5,25 @@ import { cn, delay } from "@/lib/utils";
 import { useCallback } from "react";
 import { useEffect } from "react";
 import { useMemo } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 
 import useGoatsCompleteMissionMutation from "../hooks/useGoatsCompleteMissionMutation";
-import useFarmerContext from "@/hooks/useFarmerContext";
+import useGoatsMissionsQuery from "../hooks/useGoatsMissionsQuery";
 
 export default function GoatsMissions() {
-  const { missionsRequest } = useFarmerContext();
+  const client = useQueryClient();
+  const missionsQuery = useGoatsMissionsQuery();
 
   const missions = useMemo(
     () =>
-      missionsRequest.data
-        ? Object.values(missionsRequest.data).reduce(
+      missionsQuery.data
+        ? Object.values(missionsQuery.data).reduce(
             (missions, item) => missions.concat(item),
             []
           )
         : [],
-    [missionsRequest.data]
+    [missionsQuery.data]
   );
 
   const completedMissions = useMemo(
@@ -90,6 +92,15 @@ export default function GoatsMissions() {
         await delay(5_000);
       }
 
+      try {
+        await client.refetchQueries({
+          queryKey: ["goats", "missions"],
+        });
+        await client.refetchQueries({
+          queryKey: ["goats", "user"],
+        });
+      } catch {}
+
       reset();
       process.stop();
     })();
@@ -97,8 +108,13 @@ export default function GoatsMissions() {
 
   return (
     <div className="p-4">
-      {!missionsRequest.data ? (
-        <div className="flex justify-center">Detecting...</div>
+      {missionsQuery.isPending ? (
+        <div className="flex justify-center">Loading...</div>
+      ) : // Error
+      missionsQuery.isError ? (
+        <div className="flex justify-center text-red-500">
+          Failed to fetch missions...
+        </div>
       ) : (
         // Success
         <div className="flex flex-col gap-2">

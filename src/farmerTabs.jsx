@@ -89,6 +89,13 @@ const farmerTabs = [
   },
 
   {
+    id: "tomarket",
+    title: "Tomarket",
+    icon: farmerIcons["tomarket"],
+    component: <Farmer farmer="Tomarket" />,
+    telegramLink: "https://t.me/Tomarket_ai_bot/app?startapp=00003s0r",
+  },
+  {
     id: "pumpad",
     title: "Pumpad",
     icon: farmerIcons["pumpad"],
@@ -132,6 +139,21 @@ const farmerTabs = [
     icon: farmerIcons["birdton"],
     component: <Farmer farmer="BirdTon" />,
     telegramLink: "https://t.me/BIRDTonBot/app?startapp=1147265290",
+  },
+  {
+    id: "bits",
+    title: "Bits",
+    icon: farmerIcons["bits"],
+    component: <Farmer farmer="Bits" />,
+    telegramLink:
+      "https://t.me/BitsTonboxBot/BitsAirdrops?startapp=6nZB3W2eKhH118UoencBFE",
+  },
+  {
+    id: "major",
+    title: "Major",
+    icon: farmerIcons["major"],
+    component: <Farmer farmer="Major" />,
+    telegramLink: "https://t.me/major/start?startapp=1147265290",
   },
 ];
 

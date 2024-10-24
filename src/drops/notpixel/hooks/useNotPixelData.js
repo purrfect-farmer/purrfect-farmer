@@ -38,7 +38,7 @@ export default function useNotPixelData() {
       console.log("---NOT PIXEL---");
       console.log(data);
 
-      Promise.all(data.map(({ url }) => loadImage(`${url}?time=${Date.now()}`)))
+      Promise.all(data.map(({ url }) => loadImage(url)))
         .then((images) => {
           const offscreenCanvas = new OffscreenCanvas(1000, 1000);
           const offscreenCtx = offscreenCanvas.getContext("2d", {
@@ -73,8 +73,8 @@ export default function useNotPixelData() {
               const data = offscreenCtx.getImageData(
                 item.x,
                 item.y,
-                item.imageSize,
-                item.imageSize
+                item.size,
+                item.size
               ).data;
 
               for (let i = 0; i < data.length; i += 4) {
@@ -113,8 +113,8 @@ export default function useNotPixelData() {
               item.image,
               item.x,
               item.y,
-              item.imageSize,
-              item.imageSize
+              item.size,
+              item.size
             );
           });
 
@@ -130,10 +130,7 @@ export default function useNotPixelData() {
             setStarted(true);
           });
         })
-        .catch((e) => {
-          console.log("---NOT PIXEL ERROR---");
-          console.log(e);
-        });
+        .catch((e) => {});
     },
     [setPixels, setWorldPixels]
   );

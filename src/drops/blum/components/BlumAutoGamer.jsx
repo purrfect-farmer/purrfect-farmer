@@ -1,6 +1,5 @@
 import Countdown from "react-countdown";
 import toast from "react-hot-toast";
-import useFarmerContext from "@/hooks/useFarmerContext";
 import useProcessLock from "@/hooks/useProcessLock";
 import useSocketDispatchCallback from "@/hooks/useSocketDispatchCallback";
 import useSocketHandlers from "@/hooks/useSocketHandlers";
@@ -9,11 +8,14 @@ import { delay, uuid } from "@/lib/utils";
 import { useCallback } from "react";
 import { useEffect } from "react";
 import { useMemo } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 
 import BlumButton from "./BlumButton";
 import BlumInput from "./BlumInput";
+import useBlumBalanceQuery from "../hooks/useBlumBalanceQuery";
 import useBlumClaimGameMutation from "../hooks/useBlumClaimGameMutation";
+import useBlumDogsDropEligibilityQuery from "../hooks/useBlumDogsDropEligibilityQuery";
 import useBlumStartGameMutation from "../hooks/useBlumStartGameMutation";
 
 const GAME_DURATION = 30_000;
@@ -23,7 +25,9 @@ const INITIAL_POINT = 180;
 const MAX_POINT = 280;
 
 export default function BlumAutoGamer({ workerRef }) {
-  const { balanceRequest, dogsDropEligibilityRequest } = useFarmerContext();
+  const query = useBlumBalanceQuery();
+  const dogsDropEligibilityQuery = useBlumDogsDropEligibilityQuery();
+  const client = useQueryClient();
 
   const process = useProcessLock();
 
@@ -31,7 +35,7 @@ export default function BlumAutoGamer({ workerRef }) {
   const [desiredPoint, setDesiredPoint, dispatchAndSetDesiredPoint] =
     useSocketState("blum.game.desired-point", INITIAL_POINT);
 
-  const tickets = balanceRequest.data?.playPasses || 0;
+  const tickets = query.data?.playPasses || 0;
   const points = useMemo(
     () => Math.max(MIN_POINT, Math.min(MAX_POINT, desiredPoint)),
     [desiredPoint]
@@ -128,11 +132,6 @@ export default function BlumAutoGamer({ workerRef }) {
       try {
         const game = await startGameMutation.mutateAsync();
 
-        /** Update Tickets */
-        balanceRequest.update((prev) => {
-          return { ...prev, playPasses: prev.playPasses - 1 };
-        });
-
         /** Wait for countdown */
         setCountdown(Date.now() + GAME_DURATION);
         await delay(GAME_DURATION);
@@ -165,14 +164,6 @@ export default function BlumAutoGamer({ workerRef }) {
         /** Claim Game */
         await claimGameMutation.mutateAsync(pack.hash);
 
-        /** Update Balance */
-        balanceRequest.update((prev) => {
-          return {
-            ...prev,
-            availableBalance: parseFloat(prev.availableBalance) + finalPoints,
-          };
-        });
-
         /** Show Success */
         toast.success(`+${finalPoints} Blum Points`);
       } catch {}
@@ -180,21 +171,28 @@ export default function BlumAutoGamer({ workerRef }) {
       /** Add a little delay */
       await delay(EXTRA_DELAY);
 
+      /** Reset Mutation */
+      try {
+        await client.refetchQueries({
+          queryKey: ["blum", "balance"],
+        });
+      } catch {}
+
       /** Release Lock */
       process.unlock();
     })();
-  }, [tickets, process, points, postWorkerMessage, balanceRequest.update]);
+  }, [tickets, process, points, postWorkerMessage]);
 
   /** Toast Dogs Eligibility */
   useEffect(() => {
-    if (dogsDropEligibilityRequest.data) {
-      const { eligible } = dogsDropEligibilityRequest.data;
+    if (dogsDropEligibilityQuery.status === "success") {
+      const data = dogsDropEligibilityQuery.data;
 
-      if (eligible) {
+      if (data.eligible) {
         toast.success("You are eligible for Blum Dogs Bonus!");
       }
     }
-  }, [dogsDropEligibilityRequest.data]);
+  }, [dogsDropEligibilityQuery.status]);
 
   return (
     <div className="flex flex-col gap-2">

@@ -1,14 +1,16 @@
-import useFarmerContext from "@/hooks/useFarmerContext";
+import useBlumUserQuery from "../hooks/useBlumUserQuery";
 
 export default function BlumUsernameDisplay() {
-  const { userRequest } = useFarmerContext();
+  const query = useBlumUserQuery();
 
   return (
     <div className="py-2">
       <h4 className="text-center">
-        {!userRequest.data
-          ? "Detecting username..."
-          : userRequest.data.username}
+        {query.isPending
+          ? "Fetching username..."
+          : query.isSuccess
+          ? query.data.username
+          : "Error..."}
       </h4>
     </div>
   );

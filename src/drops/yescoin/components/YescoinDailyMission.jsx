@@ -7,19 +7,21 @@ import { useCallback } from "react";
 import { useMemo } from "react";
 
 import CoinIcon from "../assets/images/coin.png?format=webp&w=80";
+import useYescoinAccountInfoQuery from "../hooks/useYescoinAccountInfoQuery";
 import useYescoinCheckDailyMissionMutation from "../hooks/useYescoinCheckDailyMissionMutation";
 import useYescoinClaimMissionMutation from "../hooks/useYescoinClaimMissionMutation";
 import useYescoinClickDailyMissionMutation from "../hooks/useYescoinClickDailyMissionMutation";
-import useFarmerContext from "@/hooks/useFarmerContext";
+import useYescoinDailyMissionQuery from "../hooks/useYescoinDailyMissionQuery";
 
 export default function YescoinDailyMission() {
-  const { dailyMissionRequest } = useFarmerContext();
+  const accountInfoQuery = useYescoinAccountInfoQuery();
+  const missionsQuery = useYescoinDailyMissionQuery();
   const missions = useMemo(
     () =>
-      dailyMissionRequest.data?.filter(
+      missionsQuery.data?.filter(
         (mission) => !["CheckIn"].includes(mission.link)
       ) || [],
-    [dailyMissionRequest.data]
+    [missionsQuery.data]
   );
 
   const clickMissionMutation = useYescoinClickDailyMissionMutation();
@@ -53,6 +55,9 @@ export default function YescoinDailyMission() {
           success: "Successfully Claimed",
         }
       );
+
+      await missionsQuery.refetch();
+      await accountInfoQuery.refetch();
     }, []),
 
     /** Dispatch */
@@ -78,8 +83,10 @@ export default function YescoinDailyMission() {
     )
   );
 
-  return !dailyMissionRequest.data ? (
+  return missionsQuery.isPending ? (
     <CgSpinner className="w-5 h-5 mx-auto animate-spin" />
+  ) : missionsQuery.isError ? (
+    <div className="text-center">Error....</div>
   ) : (
     <div className="flex flex-col gap-2">
       {missions.map((mission) => (

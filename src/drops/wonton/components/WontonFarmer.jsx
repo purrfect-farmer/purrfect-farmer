@@ -12,16 +12,15 @@ import WontonFarmerHeader from "./WontonFarmerHeader";
 import WontonUsernameDisplay from "./WontonUsernameDisplay";
 import useWontonClaimFarmingMutation from "../hooks/useWontonClaimFarmingMutation";
 import useWontonDailyCheckInMutation from "../hooks/useWontonDailyCheckInMutation";
+import useWontonFarmingStatusQuery from "../hooks/useWontonFarmingStatusQuery";
 import useWontonStartFarmingMutation from "../hooks/useWontonStartFarmingMutation";
-import useFarmerContext from "@/hooks/useFarmerContext";
 
 export default function WontonFarmer() {
   const tabs = useSocketTabs("wonton.farmer-tabs", "game");
   const dailyCheckInMutation = useWontonDailyCheckInMutation();
   const startFarmingMutation = useWontonStartFarmingMutation();
   const claimFarmingMutation = useWontonClaimFarmingMutation();
-
-  const { farmingStatusRequest } = useFarmerContext();
+  const farmingStatusQuery = useWontonFarmingStatusQuery();
 
   useEffect(() => {
     (async function () {
@@ -35,13 +34,13 @@ export default function WontonFarmer() {
   }, []);
 
   useEffect(() => {
-    if (!farmingStatusRequest.data) {
+    if (!farmingStatusQuery.data) {
       return;
     }
 
     (async function () {
       // Check
-      const farming = farmingStatusRequest.data;
+      const farming = farmingStatusQuery.data;
 
       if (!farming.finishAt || farming.claimed) {
         await startFarmingMutation.mutateAsync();
@@ -54,7 +53,7 @@ export default function WontonFarmer() {
         toast.success("Wonton Started Farming");
       }
     })();
-  }, [farmingStatusRequest.data]);
+  }, [farmingStatusQuery.data]);
 
   return (
     <div className="flex flex-col p-4">

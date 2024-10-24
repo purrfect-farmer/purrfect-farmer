@@ -6,14 +6,10 @@ import { useMemo } from "react";
 
 import HrumFullscreenSpinner from "./HrumFullscreenSpinner";
 import useHrumOpenMutation from "../hooks/useHrumOpenMutation";
-import useFarmerContext from "@/hooks/useFarmerContext";
 
-export default function HrumOpenButton() {
-  const { allDataRequest } = useFarmerContext();
+export default function HrumOpenButton({ queries }) {
   const openMutation = useHrumOpenMutation();
-
-  /** All Data */
-  const allData = allDataRequest.data.data;
+  const [allData] = queries.data;
 
   /** Should Show? */
   const show = useMemo(() => {
@@ -31,24 +27,13 @@ export default function HrumOpenButton() {
         /** Show Success Message */
         toast.success("Opened Cookie Successfully!");
 
-        /** Update Data */
-        allDataRequest.update((prev) => {
-          return {
-            ...prev,
-            data: {
-              ...prev.data,
-              hero: {
-                ...prev.data.hero,
-                cookies: prev.data.hero.cookies - 1,
-              },
-            },
-          };
-        });
+        /** Refetch Queries */
+        queries.query.forEach((query) => query.refetch());
       } catch {
         /** Show Error Message */
         toast.error("Failed to Open Cookie!");
       }
-    }, [allDataRequest.update, show]),
+    }, [queries, show]),
 
     /** Dispatch */
     useCallback(

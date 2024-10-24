@@ -10,22 +10,24 @@ import HrumIcon from "../assets/images/icon.png?format=webp&w=80";
 import HrumOpenButton from "./HrumOpenButton";
 import HrumRiddleTask from "./HrumRiddleTask";
 import useHrumDailyClaim from "../hooks/useHrumDailyClaim";
-import useFarmerContext from "@/hooks/useFarmerContext";
+import useHrumDataQueries from "../hooks/useHrumDataQueries";
 
 export default function () {
-  const { allDataRequest, afterDataRequest } = useFarmerContext();
-  const isLoaded = allDataRequest.data && afterDataRequest.data;
+  const dataQueries = useHrumDataQueries();
 
-  const allData = allDataRequest.data?.data;
-  const hero = allData?.hero;
+  const hero = dataQueries.data?.[0]?.hero;
   const tabs = useSocketTabs("hrum.farmer-tabs", "daily");
 
   /** Run Daily Claim */
   useHrumDailyClaim();
 
-  return !isLoaded ? (
+  return dataQueries.isPending ? (
     <div className="flex items-center justify-center grow">
       <CgSpinner className="w-5 h-5 mx-auto animate-spin" />
+    </div>
+  ) : dataQueries.isError ? (
+    <div className="flex items-center justify-center text-red-500 grow">
+      Error...
     </div>
   ) : (
     <div className="flex flex-col gap-2 p-4">
@@ -45,7 +47,7 @@ export default function () {
       <img src={CookieIcon} className="w-20 h-20 mx-auto my-4" />
 
       {/* Open Button */}
-      <HrumOpenButton />
+      <HrumOpenButton queries={dataQueries} />
 
       <Tabs.Root {...tabs} className="flex flex-col gap-4">
         <Tabs.List className="grid grid-cols-2">
@@ -65,11 +67,11 @@ export default function () {
         </Tabs.List>
         <Tabs.Content value="daily">
           {/* Hrum Riddle */}
-          <HrumRiddleTask />
+          <HrumRiddleTask queries={dataQueries} />
         </Tabs.Content>
         <Tabs.Content value="tasks">
           {/* Hrum Tasks */}
-          <HrumAutoTasks />
+          <HrumAutoTasks queries={dataQueries} />
         </Tabs.Content>
       </Tabs.Root>
     </div>

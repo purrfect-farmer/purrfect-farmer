@@ -1,14 +1,16 @@
+import useAgent301BalanceQuery from "../hooks/useAgent301BalanceQuery";
 import TicketIcon from "../assets/images/ticket.webp";
-import useFarmerContext from "@/hooks/useFarmerContext";
 
 export default function Agent301BalanceDisplay() {
-  const { balanceRequest } = useFarmerContext();
-  const result = balanceRequest.data?.result;
+  const query = useAgent301BalanceQuery();
+  const result = query.data?.result;
 
   return (
     <div className="flex flex-col gap-2 py-2">
-      {!result ? (
-        <h4 className="text-center">Detecting Balance...</h4>
+      {query.isPending ? (
+        <h4 className="text-center">Fetching Balance...</h4>
+      ) : query.isError ? (
+        <h4 className="text-center text-red-500">Failed to fetch Balance...</h4>
       ) : (
         <>
           <h3 className="text-2xl font-bold text-center">

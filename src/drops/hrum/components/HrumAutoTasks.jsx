@@ -8,14 +8,11 @@ import { useMemo } from "react";
 import { useState } from "react";
 
 import useHrumClaimQuestMutation from "../hooks/useHrumClaimQuestMutation";
-import useFarmerContext from "@/hooks/useFarmerContext";
 
-export default function HrumAutoTasks() {
+export default function HrumAutoTasks({ queries }) {
   const process = useProcessLock();
   const claimTaskMutation = useHrumClaimQuestMutation();
-  const { allDataRequest, afterDataRequest } = useFarmerContext();
-  const allData = allDataRequest.data.data;
-  const afterData = afterDataRequest.data.data;
+  const [allData, afterData] = queries.data;
 
   /** All Tasks */
   const tasks = useMemo(
@@ -51,6 +48,12 @@ export default function HrumAutoTasks() {
   const reset = useCallback(() => {
     setCurrentTask(null);
   }, [setCurrentTask]);
+
+  /** Refetch Balance */
+  const refetchBalance = useCallback(
+    () => queries.query.forEach((query) => query.refetch()),
+    [queries]
+  );
 
   /** Handle button click */
   const [handleAutoClaimClick, dispatchAndHandleAutoClaimClick] =
@@ -106,11 +109,16 @@ export default function HrumAutoTasks() {
         await delay(5_000);
       }
 
+      /** Refetch Balance */
+      try {
+        await refetchBalance();
+      } catch {}
+
       /** Stop */
       process.stop();
       reset();
     })();
-  }, [process, pendingTasks, setCurrentTask, reset]);
+  }, [process, pendingTasks, setCurrentTask, reset, refetchBalance]);
 
   return (
     <>
