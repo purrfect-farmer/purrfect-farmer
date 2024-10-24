@@ -1,5 +1,6 @@
 import Countdown from "react-countdown";
 import toast from "react-hot-toast";
+import useFarmerContext from "@/hooks/useFarmerContext";
 import useProcessLock from "@/hooks/useProcessLock";
 import useSocketDispatchCallback from "@/hooks/useSocketDispatchCallback";
 import useSocketHandlers from "@/hooks/useSocketHandlers";
@@ -14,7 +15,6 @@ import BlumButton from "./BlumButton";
 import BlumInput from "./BlumInput";
 import useBlumClaimGameMutation from "../hooks/useBlumClaimGameMutation";
 import useBlumStartGameMutation from "../hooks/useBlumStartGameMutation";
-import useFarmerContext from "@/hooks/useFarmerContext";
 
 const GAME_DURATION = 30_000;
 const EXTRA_DELAY = 3_000;
@@ -164,6 +164,14 @@ export default function BlumAutoGamer({ workerRef }) {
 
         /** Claim Game */
         await claimGameMutation.mutateAsync(pack.hash);
+
+        /** Update Balance */
+        balanceRequest.update((prev) => {
+          return {
+            ...prev,
+            availableBalance: parseFloat(prev.availableBalance) + finalPoints,
+          };
+        });
 
         /** Show Success */
         toast.success(`+${finalPoints} Blum Points`);

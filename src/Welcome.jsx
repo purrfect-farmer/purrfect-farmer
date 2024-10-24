@@ -290,7 +290,7 @@ export default function Welcome() {
           </p>
           <p
             onClick={() => setShowSettings(true)}
-            className="font-bold text-center text-blue-500 cursor-pointer"
+            className="font-bold text-center text-orange-500 cursor-pointer"
           >
             {settings.farmerTitle || defaultSettings.farmerTitle}
           </p>
@@ -315,7 +315,7 @@ export default function Welcome() {
                   "p-2",
                   "rounded-full",
                   "bg-neutral-100",
-                  "hover:bg-blue-500",
+                  "hover:bg-orange-500",
                   "hover:text-white",
                   "inline-flex items-center justify-center gap-1"
                 )}
@@ -346,7 +346,7 @@ export default function Welcome() {
             <a
               href="https://t.me/purrfect_drop"
               target="_blank"
-              className="text-blue-500 hover:underline"
+              className="text-orange-500 hover:underline"
             >
               Channel
             </a>
@@ -354,7 +354,7 @@ export default function Welcome() {
             <a
               href="https://wa.me/2349018646163"
               target="_blank"
-              className="text-blue-500 hover:underline"
+              className="text-orange-500 hover:underline"
             >
               Dev
             </a>

@@ -1,5 +1,5 @@
-import { cn } from "@/lib/utils";
 import { HiCheck } from "react-icons/hi2";
+import { cn } from "@/lib/utils";
 
 export default function ConfirmButton(props) {
   return (
@@ -9,7 +9,7 @@ export default function ConfirmButton(props) {
       className={cn(
         "inline-flex items-center justify-center",
         "px-4 rounded-lg shrink-0",
-        "text-white bg-blue-500",
+        "text-white bg-orange-500",
         props.className
       )}
     >

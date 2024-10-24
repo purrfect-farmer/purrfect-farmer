@@ -71,10 +71,20 @@ export default function NotPixelApp({ diff, updatedAt }) {
     (async function () {
       if (mining.fromStart >= mining.maxMiningTime) {
         await claimMiningMutation.mutateAsync();
+
+        /** Reset Mining */
+        miningStatusRequest.update((prev) => {
+          return {
+            ...prev,
+            fromStart: 0,
+          };
+        });
+
+        /** Toast Success Message */
         toast.success("Not Pixel - Claimed Mining");
       }
     })();
-  }, [mining]);
+  }, [mining, miningStatusRequest.update]);
 
   /** Farmer */
   useEffect(() => {

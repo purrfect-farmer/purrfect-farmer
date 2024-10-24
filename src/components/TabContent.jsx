@@ -1,13 +1,14 @@
+import toast from "react-hot-toast";
 import useAppContext from "@/hooks/useAppContext";
 import useSocketDispatchCallback from "@/hooks/useSocketDispatchCallback";
 import useSocketHandlers from "@/hooks/useSocketHandlers";
-import { cn, postPortMessage } from "@/lib/utils";
-import { useMemo } from "react";
-import { Suspense } from "react";
-import { useCallback } from "react";
-import toast from "react-hot-toast";
-import FullSpinner from "./FullSpinner";
 import { ErrorBoundary } from "react-error-boundary";
+import { Suspense } from "react";
+import { cn, postPortMessage } from "@/lib/utils";
+import { useCallback } from "react";
+import { useMemo } from "react";
+
+import FullSpinner from "./FullSpinner";
 
 const fallbackRender = ({ error, resetErrorBoundary }) => {
   return (
@@ -104,7 +105,7 @@ export default function TabContent({ tab }) {
     >
       {tab.telegramLink ? (
         <button
-          className="p-3 font-bold text-blue-500 border-b"
+          className="p-3 font-bold text-orange-500 border-b"
           onClick={dispatchAndOpenBot}
         >
           Open Bot

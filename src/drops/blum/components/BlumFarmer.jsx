@@ -1,5 +1,6 @@
 import * as Tabs from "@radix-ui/react-tabs";
 import toast from "react-hot-toast";
+import useFarmerContext from "@/hooks/useFarmerContext";
 import useSocketTabs from "@/hooks/useSocketTabs";
 import { cn, delay } from "@/lib/utils";
 import { useEffect } from "react";
@@ -7,12 +8,11 @@ import { useEffect } from "react";
 import BlumAutoTasks from "./BlumAutoTasks";
 import BlumBalanceDisplay from "./BlumBalanceDisplay";
 import BlumFarmerHeader from "./BlumFarmerHeader";
+import BlumGamer from "./BlumGamer";
 import BlumUsernameDisplay from "./BlumUsernameDisplay";
 import useBlumClaimDailyRewardMutation from "../hooks/useBlumClaimDailyRewardMutation";
 import useBlumClaimFarmingMutation from "../hooks/useBlumClaimFarmingMutation";
 import useBlumStartFarmingMutation from "../hooks/useBlumStartFarmingMutation";
-import BlumGamer from "./BlumGamer";
-import useFarmerContext from "@/hooks/useFarmerContext";
 
 export default function BlumFarmer() {
   const tabs = useSocketTabs("blum.farmer-tabs", "game");
@@ -31,9 +31,12 @@ export default function BlumFarmer() {
         await delay(2000);
         await claimDailyRewardMutation.mutateAsync();
         toast.success("Blum Daily Check-In");
+
+        /** Update the Reward */
+        dailyRewardRequest.update(undefined);
       } catch {}
     })();
-  }, [dailyRewardRequest.data]);
+  }, [dailyRewardRequest.data, dailyRewardRequest.update]);
 
   /** Start and Claim Farming */
   useEffect(() => {
@@ -49,6 +52,14 @@ export default function BlumFarmer() {
         await delay(2000);
         await startFarmingMutation.mutateAsync();
         toast.success("Blum Started Farming");
+
+        /** Update Fast Farming */
+        balanceRequest.update((prev) => {
+          return {
+            ...prev,
+            isFastFarmingEnabled: true,
+          };
+        });
       } else if (farming && farming.endTime <= timestamp) {
         await claimFarmingMutation.mutateAsync();
         toast.success("Blum Claimed Previous Farming");
@@ -57,9 +68,21 @@ export default function BlumFarmer() {
         await delay(2000);
         await startFarmingMutation.mutateAsync();
         toast.success("Blum Started Farming");
+
+        /** Update Farming */
+        balanceRequest.update((prev) => {
+          return {
+            ...prev,
+            farming: {
+              ...prev.farming,
+              startTime: timestamp,
+              endTime: timestamp + 60 * 60 * 8 * 1000,
+            },
+          };
+        });
       }
     })();
-  }, [balanceRequest.data]);
+  }, [balanceRequest.data, balanceRequest.update]);
 
   return (
     <div className="flex flex-col p-4">
