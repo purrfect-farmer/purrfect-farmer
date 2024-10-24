@@ -100,14 +100,14 @@ if (location.hash.includes("tgWebAppData")) {
     let target;
 
     if ((target = shouldWatchRequest(url))) {
-      core.fetch(...args).then(
+      return core.fetch(...args).then(
         /**
          * @param {Response} response
          */
         (response) => {
           dispatchResponse(target, response.clone().json());
 
-          return response;
+          return Promise.resolve(response);
         }
       );
     } else {
