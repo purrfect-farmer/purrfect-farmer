@@ -184,7 +184,7 @@ export default function Settings() {
                   />
 
                   {/* Set Button */}
-                  <button onClick={handleSetSyncServer} />
+                  <ConfirmButton onClick={handleSetSyncServer} />
                 </div>
 
                 {/* PC Options */}
