@@ -1,0 +1,74 @@
+{
+  "manifest_version": 3,
+  "name": "Purrfect Farmer",
+  "description": "Purrfect Farmer",
+  "version": "0.0.1",
+  "icons": {
+    "16": "icon-16.png",
+    "32": "icon-32.png",
+    "48": "icon-48.png",
+    "128": "icon-128.png"
+  },
+  "permissions": [
+    "tabs",
+    "activeTab",
+    "storage",
+    "unlimitedStorage",
+    "sidePanel",
+    "notifications",
+    "webRequest",
+    "webNavigation",
+    "declarativeNetRequest"
+  ],
+  "action": {
+    "default_icon": "icon-48.png",
+    "default_title": "Open Purrfect Farmer",
+    "default_popup": "index.html"
+  },
+  "side_panel": {
+    "default_path": "index.html"
+  },
+  "background": {
+    "service_worker": "chrome-service-worker.js",
+    "type": "module"
+  },
+  "host_permissions": ["*://*/*", "wss://*/*"],
+  "content_scripts": [
+    {
+      "matches": ["*://*/*"],
+      "js": ["content-script-main.js"],
+      "run_at": "document_start",
+      "world": "MAIN",
+      "all_frames": true
+    },
+    {
+      "matches": ["*://*/*"],
+      "js": ["content-script-isolated.js"],
+      "run_at": "document_start",
+      "world": "ISOLATED",
+      "all_frames": true
+    }
+  ],
+
+  "declarative_net_request": {
+    "rule_resources": [
+      {
+        "id": "core",
+        "enabled": true,
+        "path": "rule_resources/core.json"
+      },
+      {
+        "id": "farmers",
+        "enabled": true,
+        "path": "rule_resources/farmers.json"
+      }
+    ]
+  },
+  "content_security_policy": {
+    "extension_pages": "script-src 'self' 'wasm-unsafe-eval'; object-src 'self';",
+    "sandbox": "sandbox allow-scripts allow-forms allow-popups allow-modals;"
+  },
+  "sandbox": {
+    "pages": ["notpixel-sandbox.html"]
+  }
+}

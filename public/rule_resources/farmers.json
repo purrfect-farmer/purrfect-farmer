@@ -1,0 +1,404 @@
+[
+  {
+    "id": 1,
+    "action": {
+      "type": "modifyHeaders",
+      "requestHeaders": [
+        {
+          "header": "x-requested-with",
+          "operation": "set",
+          "value": "org.telegram.messenger"
+        },
+        {
+          "header": "origin",
+          "operation": "set",
+          "value": "https://static.agent301.org"
+        },
+        {
+          "header": "referer",
+          "operation": "set",
+          "value": "https://static.agent301.org/"
+        }
+      ]
+    },
+    "condition": {
+      "requestDomains": ["agent301.org"]
+    }
+  },
+  {
+    "id": 2,
+    "action": {
+      "type": "modifyHeaders",
+      "requestHeaders": [
+        {
+          "header": "x-requested-with",
+          "operation": "set",
+          "value": "org.telegram.messenger"
+        },
+        {
+          "header": "origin",
+          "operation": "set",
+          "value": "https://birdton.site"
+        },
+        {
+          "header": "referer",
+          "operation": "set",
+          "value": "https://birdton.site/"
+        }
+      ]
+    },
+    "condition": {
+      "requestDomains": ["birdton.site"]
+    }
+  },
+  {
+    "id": 3,
+    "action": {
+      "type": "modifyHeaders",
+      "requestHeaders": [
+        {
+          "header": "x-requested-with",
+          "operation": "set",
+          "value": "org.telegram.messenger"
+        },
+        {
+          "header": "origin",
+          "operation": "set",
+          "value": "https://telegram.blum.codes"
+        },
+        {
+          "header": "referer",
+          "operation": "set",
+          "value": "https://telegram.blum.codes/"
+        }
+      ]
+    },
+    "condition": {
+      "requestDomains": ["blum.codes"]
+    }
+  },
+  {
+    "id": 4,
+    "action": {
+      "type": "modifyHeaders",
+      "requestHeaders": [
+        {
+          "header": "x-requested-with",
+          "operation": "set",
+          "value": "org.telegram.messenger"
+        },
+        {
+          "header": "origin",
+          "operation": "set",
+          "value": "https://dev.goatsbot.xyz"
+        },
+        {
+          "header": "referer",
+          "operation": "set",
+          "value": "https://dev.goatsbot.xyz/"
+        }
+      ]
+    },
+    "condition": {
+      "requestDomains": ["goatsbot.xyz"]
+    }
+  },
+  {
+    "id": 5,
+    "action": {
+      "type": "modifyHeaders",
+      "requestHeaders": [
+        {
+          "header": "x-requested-with",
+          "operation": "set",
+          "value": "org.telegram.messenger"
+        },
+        {
+          "header": "origin",
+          "operation": "set",
+          "value": "https://game.hrum.me"
+        },
+        {
+          "header": "referer",
+          "operation": "set",
+          "value": "https://game.hrum.me/"
+        }
+      ]
+    },
+    "condition": {
+      "requestDomains": ["hrum.me"]
+    }
+  },
+  {
+    "id": 6,
+    "action": {
+      "type": "modifyHeaders",
+      "requestHeaders": [
+        {
+          "header": "x-requested-with",
+          "operation": "set",
+          "value": "org.telegram.messenger"
+        },
+        {
+          "header": "origin",
+          "operation": "set",
+          "value": "https://major.bot"
+        },
+        {
+          "header": "referer",
+          "operation": "set",
+          "value": "https://major.bot/"
+        }
+      ]
+    },
+    "condition": {
+      "requestDomains": ["major.bot"]
+    }
+  },
+  {
+    "id": 7,
+    "action": {
+      "type": "modifyHeaders",
+      "requestHeaders": [
+        {
+          "header": "x-requested-with",
+          "operation": "set",
+          "value": "org.telegram.messenger"
+        },
+        {
+          "header": "origin",
+          "operation": "set",
+          "value": "https://tg.pumpad.io"
+        },
+        {
+          "header": "referer",
+          "operation": "set",
+          "value": "https://tg.pumpad.io/"
+        },
+        {
+          "header": "cookie",
+          "operation": "set",
+          "value": "cf_clearance=vRcyKo0A5ko2cSKC3KAPWIMWByRXSDjZUoS1rjtbvvM-1725531610-1.2.1.1-48RwIL6a3z_1KMTLS.AADKah6wPxpQ5go0803_bg0TzTAyG96Ja7cf2MMZEWjcjw8yTNgy_EpHlYwfePsaK48VKXCuRlXYzA0UqS21aYpUEtyLW8Otyo9Czwl6NYZxr7CtusW1XPRBvhNmnhGNUpQLdDbh9PER1pJLQFdBH.M3vsBIGBDngRLQCsY7nmukJLePtCFwaFZusmj8FmRMtli4UYDfIHRcrMSHGs6bLE0jv6a4Rd9oEzqJCT8GSu0_eox3KWomlWwYOkjrid8yfca16Ch7tceOZBA8kbpn20PonHmSiav5uQVUzv9yHBr65JFVrCG5mV.eeyXdyEIDqkg_4TQHZaoulFLNdx71zoxrCMH4h7helL2d.6cc_skhE.jNLveglxJsfPBINgaN_T25Qy2ojGpN_42nBqCoEBofVJbkXcre92e3JrFUXnGhfj"
+        }
+      ]
+    },
+    "condition": {
+      "requestDomains": ["pumpad.io"]
+    }
+  },
+  {
+    "id": 8,
+    "action": {
+      "type": "modifyHeaders",
+      "requestHeaders": [
+        {
+          "header": "x-requested-with",
+          "operation": "set",
+          "value": "org.telegram.messenger"
+        },
+        {
+          "header": "origin",
+          "operation": "set",
+          "value": "https://app.slotcoin.app"
+        },
+        {
+          "header": "referer",
+          "operation": "set",
+          "value": "https://app.slotcoin.app/"
+        }
+      ]
+    },
+    "condition": {
+      "requestDomains": ["slotcoin.app"]
+    }
+  },
+  {
+    "id": 9,
+    "action": {
+      "type": "modifyHeaders",
+      "requestHeaders": [
+        {
+          "header": "x-requested-with",
+          "operation": "set",
+          "value": "org.telegram.messenger"
+        },
+        {
+          "header": "origin",
+          "operation": "set",
+          "value": "https://mini-app.tomarket.ai"
+        },
+        {
+          "header": "referer",
+          "operation": "set",
+          "value": "https://mini-app.tomarket.ai/"
+        }
+      ],
+      "responseHeaders": [
+        {
+          "header": "access-control-allow-origin",
+          "operation": "set",
+          "value": "*"
+        }
+      ]
+    },
+    "condition": {
+      "requestDomains": ["tomarket.ai"]
+    }
+  },
+  {
+    "id": 10,
+    "action": {
+      "type": "modifyHeaders",
+      "requestHeaders": [
+        {
+          "header": "x-requested-with",
+          "operation": "set",
+          "value": "org.telegram.messenger"
+        },
+        {
+          "header": "origin",
+          "operation": "set",
+          "value": "https://bot.true.world"
+        },
+        {
+          "header": "referer",
+          "operation": "set",
+          "value": "https://bot.true.world/"
+        }
+      ]
+    },
+    "condition": {
+      "requestDomains": ["true.world"]
+    }
+  },
+  {
+    "id": 11,
+    "action": {
+      "type": "modifyHeaders",
+      "requestHeaders": [
+        {
+          "header": "x-requested-with",
+          "operation": "set",
+          "value": "org.telegram.messenger"
+        },
+        {
+          "header": "origin",
+          "operation": "set",
+          "value": "https://app.notpx.app"
+        },
+        {
+          "header": "referer",
+          "operation": "set",
+          "value": "https://app.notpx.app/"
+        }
+      ]
+    },
+    "condition": {
+      "requestDomains": ["notpx.app"]
+    }
+  },
+  {
+    "id": 12,
+    "action": {
+      "type": "modifyHeaders",
+      "requestHeaders": [
+        {
+          "header": "x-requested-with",
+          "operation": "set",
+          "value": "org.telegram.messenger"
+        },
+        {
+          "header": "origin",
+          "operation": "set",
+          "value": "https://www.yescoin.gold"
+        },
+        {
+          "header": "referer",
+          "operation": "set",
+          "value": "https://www.yescoin.gold/"
+        }
+      ]
+    },
+    "condition": {
+      "requestDomains": ["yescoin.gold"]
+    }
+  },
+  {
+    "id": 13,
+    "action": {
+      "type": "modifyHeaders",
+      "requestHeaders": [
+        {
+          "header": "x-requested-with",
+          "operation": "set",
+          "value": "org.telegram.messenger"
+        },
+        {
+          "header": "origin",
+          "operation": "set",
+          "value": "https://www.wonton.restaurant"
+        },
+        {
+          "header": "referer",
+          "operation": "set",
+          "value": "https://www.wonton.restaurant/"
+        }
+      ]
+    },
+    "condition": {
+      "requestDomains": ["wonton.restaurant", "wonton.food"]
+    }
+  },
+  {
+    "id": 14,
+    "action": {
+      "type": "modifyHeaders",
+      "requestHeaders": [
+        {
+          "header": "x-requested-with",
+          "operation": "set",
+          "value": "org.telegram.messenger"
+        },
+        {
+          "header": "origin",
+          "operation": "set",
+          "value": "https://tada-mini.mvlchain.io"
+        },
+        {
+          "header": "referer",
+          "operation": "set",
+          "value": "https://tada-mini.mvlchain.io/"
+        }
+      ]
+    },
+    "condition": {
+      "requestDomains": ["backend.clutchwalletserver.xyz"]
+    }
+  },
+  {
+    "id": 15,
+    "action": {
+      "type": "modifyHeaders",
+      "requestHeaders": [
+        {
+          "header": "x-requested-with",
+          "operation": "set",
+          "value": "org.telegram.messenger"
+        },
+        {
+          "header": "origin",
+          "operation": "set",
+          "value": "https://bits.apps-tonbox.me"
+        },
+        {
+          "header": "referer",
+          "operation": "set",
+          "value": "https://bits.apps-tonbox.me/"
+        }
+      ]
+    },
+    "condition": {
+      "requestDomains": ["api-bits.apps-tonbox.me", "bits.apps-tonbox.me"]
+    }
+  }
+]
