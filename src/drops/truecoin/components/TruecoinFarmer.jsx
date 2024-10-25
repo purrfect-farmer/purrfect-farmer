@@ -6,9 +6,9 @@ import TruecoinIcon from "../assets/images/icon.png?format=webp&w=80";
 import TruecoinLottery from "./TruecoinLottery";
 
 export default function TruecoinFarmer() {
-  const { userRequest } = useFarmerContext();
+  const { authQuery } = useFarmerContext();
 
-  const user = userRequest.data?.user;
+  const user = authQuery.data?.user;
 
   const coins = user?.coins || 0;
   const energy = user?.currentSpins || 0;

@@ -13,9 +13,9 @@ import useTruecoin50SpinsBoost from "../hooks/useTruecoin50SpinsBoostMutation";
 import useTruecoinLotteryMutation from "../hooks/useTruecoinLotteryMutation";
 
 export default function TruecoinLottery() {
-  const { userRequest } = useFarmerContext();
+  const { queryClient, authQuery, authQueryKey } = useFarmerContext();
 
-  const user = userRequest.data?.user;
+  const user = authQuery.data?.user;
 
   const spinMutation = useTruecoinLotteryMutation();
   const boostMutation = useTruecoin50SpinsBoost();
@@ -92,7 +92,7 @@ export default function TruecoinLottery() {
             process.stop();
           }
 
-          userRequest.update((prev) => {
+          queryClient.setQueryData(authQueryKey, (prev) => {
             return {
               ...prev,
               user: {
@@ -114,7 +114,7 @@ export default function TruecoinLottery() {
       // Release Lock
       process.unlock();
     })();
-  }, [process, user, userRequest.update]);
+  }, [process, user, authQueryKey, queryClient.setQueryData]);
 
   return (
     <div className="flex flex-col gap-2 p-4">

@@ -18,14 +18,20 @@ export default function useDropFarmer({
   fetchAuth,
   notification,
 }) {
-  /** TelegramWebApp */
-  const { port, telegramWebApp, resetTelegramWebApp } = useTelegramWebApp(host);
+  /** Domain Matches */
+  const domainMatches = useMemo(
+    () => domains.map((domain) => `*://${domain}/*`),
+    [domains]
+  );
 
   /** QueryClient */
   const queryClient = useQueryClient();
 
   /** Axios Instance */
   const api = useMemo(() => axios.create(), []);
+
+  /** TelegramWebApp */
+  const { port, telegramWebApp, resetTelegramWebApp } = useTelegramWebApp(host);
 
   /** Auth */
   const [auth, setAuth] = useState(false);
@@ -58,10 +64,10 @@ export default function useDropFarmer({
     [telegramWebApp]
   );
 
-  /** Domain Matches */
-  const domainMatches = useMemo(
-    () => domains.map((domain) => `*://${domain}/*`),
-    [domains]
+  /** Update Query Data */
+  const updateQueryData = useCallback(
+    (...args) => queryClient.setQueryData(...args),
+    [queryClient.setQueryData]
   );
 
   /** Reset Auth */
@@ -228,29 +234,31 @@ export default function useDropFarmer({
   return useMemo(
     () => ({
       id,
+      status,
+      port,
       api,
       auth,
       authQuery,
       authQueryKey,
       queryClient,
-      port,
       telegramWebApp,
       resetAuth,
       resetTelegramWebApp,
-      status,
+      updateQueryData,
     }),
     [
       id,
+      status,
+      port,
       api,
       auth,
       authQuery,
       authQueryKey,
       queryClient,
-      port,
       telegramWebApp,
       resetAuth,
       resetTelegramWebApp,
-      status,
+      updateQueryData,
     ]
   );
 }

@@ -11,9 +11,8 @@ export default function useBitsCollectPassiveFarmingMutation() {
     mutationKey: ["bits", "passive", "collect"],
     mutationFn: () =>
       api
-        .post(
-          `https://api-bits.apps-tonbox.me/api/v1/passive/collect?access_token=${token}`,
-          null
+        .get(
+          `https://api-bits.apps-tonbox.me/api/v1/passive/collect?access_token=${token}`
         )
         .then((res) => res.data),
   });

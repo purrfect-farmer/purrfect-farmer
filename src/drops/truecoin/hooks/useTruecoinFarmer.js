@@ -1,34 +1,42 @@
 import useDropFarmer from "@/hooks/useDropFarmer";
-import { useMemo } from "react";
+
 import TruecoinIcon from "../assets/images/icon.png?format=webp&w=80";
-import { useMultiRequestData } from "@/hooks/useMultiRequestData";
 
 export default function useTruecoinFarmer() {
-  const farmer = useDropFarmer({
+  return useDropFarmer({
     id: "truecoin",
     host: "bot.true.world",
     notification: {
       icon: TruecoinIcon,
       title: "Truecoin Farmer",
     },
-    domains: ["*.true.world"],
+    domains: [],
+    /**
+     * @param {import("axios").AxiosInstance} api
+     */
+    fetchAuth(api, telegramWebApp) {
+      return api
+        .post(
+          "https://api.true.world/api/auth/signIn",
+          {
+            tgWebAppStartParam: null,
+            tgPlatform: telegramWebApp.platform,
+            tgVersion: telegramWebApp.version,
+            lang: telegramWebApp.initDataUnsafe.user.language_code,
+            userId: telegramWebApp.initDataUnsafe.user.id,
+          },
+          {
+            headers: {
+              query: telegramWebApp.initData,
+            },
+          }
+        )
+        .then((res) => res.data);
+    },
+    configureAuthHeaders(api, telegramWebApp, data) {
+      api.defaults.headers.common[
+        "Authorization"
+      ] = `Bearer ${data?.["token"]}`;
+    },
   });
-
-  const requests = useMultiRequestData(
-    farmer.port,
-    useMemo(
-      () => ({
-        userRequest: "https://api.true.world/api/auth/signIn",
-      }),
-      []
-    )
-  );
-
-  return useMemo(
-    () => ({
-      ...farmer,
-      ...requests,
-    }),
-    [farmer, requests]
-  );
 }
