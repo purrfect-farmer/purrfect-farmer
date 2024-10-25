@@ -9,7 +9,7 @@ export default function ConfirmButton(props) {
       className={cn(
         "inline-flex items-center justify-center",
         "px-4 rounded-lg shrink-0",
-        "text-white bg-orange-500",
+        "text-white bg-blue-500",
         props.className
       )}
     >

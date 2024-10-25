@@ -105,7 +105,7 @@ export default function TabContent({ tab }) {
     >
       {tab.telegramLink ? (
         <button
-          className="p-3 font-bold text-orange-500 border-b"
+          className="p-3 font-bold text-blue-500 border-b"
           onClick={dispatchAndOpenBot}
         >
           Open Bot

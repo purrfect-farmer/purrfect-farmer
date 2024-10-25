@@ -159,7 +159,9 @@ export default function NotPixelApp({ diff, updatedAt }) {
 
       {miningQuery.isSuccess ? (
         <>
-          <h1 className="text-3xl text-center">{balance}</h1>
+          <h1 className="text-3xl text-center">
+            {Intl.NumberFormat().format(balance)}
+          </h1>
           <h2 className="text-center">Charges: {mining.charges}</h2>
 
           <button

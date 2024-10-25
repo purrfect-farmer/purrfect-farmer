@@ -261,7 +261,7 @@ export default function Settings() {
               </form>
             </div>
             <div className="flex flex-col p-4 font-bold shrink-0">
-              <Dialog.Close className="p-2.5 text-white bg-orange-500 rounded-xl">
+              <Dialog.Close className="p-2.5 text-white bg-blue-500 rounded-xl">
                 Close
               </Dialog.Close>
             </div>

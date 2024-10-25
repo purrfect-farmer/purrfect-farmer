@@ -9,7 +9,7 @@ export default function Toggle({ className, ...props }) {
           "shrink-0",
           "relative rounded-full",
           "inline-flex h-6 w-11 items-center",
-          "peer-checked:bg-orange-500 bg-neutral-200",
+          "peer-checked:bg-blue-500 bg-neutral-200",
 
           // Before
           "peer-checked:before:translate-x-6 before:translate-x-1",
