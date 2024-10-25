@@ -14,6 +14,7 @@ export default function useDropFarmer({
   domains = [],
   authHeaders = ["authorization"],
   extractAuthHeaders,
+  configureAuthHeaders,
   fetchAuth,
   notification,
 }) {
@@ -192,9 +193,13 @@ export default function useDropFarmer({
   /** Handle auth query */
   useEffect(() => {
     if (authQuery.status === "success") {
+      if (configureAuthHeaders) {
+        configureAuthHeaders(authQuery.data);
+      }
+
       setAuth(true);
     }
-  }, [authQuery.status, setAuth]);
+  }, [authQuery.status, configureAuthHeaders, setAuth]);
 
   /** Create Notification */
   useEffect(() => {
