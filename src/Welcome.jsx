@@ -271,7 +271,7 @@ export default function Welcome() {
         <div className="flex flex-col w-full gap-2 mx-auto my-auto max-w-96">
           <img
             src={AppIcon}
-            className="mx-auto w-28 h-28"
+            className="mx-auto rounded-full w-28 h-28"
             onDoubleClick={dispatchAndShowHiddenDrops}
           />
           <h3 className="text-xl font-bold text-center font-turret-road">
