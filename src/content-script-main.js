@@ -152,6 +152,7 @@ if (location.hash.includes("tgWebAppData")) {
             });
             break;
           case "open-telegram-link":
+            window.Telegram?.WebApp?.disableClosingConfirmation();
             window.Telegram?.WebApp?.openTelegramLink(data.url);
             window.postMessage(
               {
