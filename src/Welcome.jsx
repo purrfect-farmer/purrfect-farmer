@@ -1,5 +1,5 @@
 import * as Dialog from "@radix-ui/react-dialog";
-import AppIcon from "@/assets/images/icon.png?format=webp&w=224";
+import AppIcon from "@/assets/images/icon-unwrapped-cropped.png?format=webp&h=224";
 import Settings from "@/partials/Settings";
 import TelegramWebAIcon from "@/assets/images/telegram-web-a.png?format=webp&w=80";
 import TelegramWebKIcon from "@/assets/images/telegram-web-k.png?format=webp&w=80";
@@ -271,10 +271,10 @@ export default function Welcome() {
         <div className="flex flex-col w-full gap-2 mx-auto my-auto max-w-96">
           <img
             src={AppIcon}
-            className="mx-auto rounded-full w-28 h-28"
+            className="mx-auto h-28"
             onDoubleClick={dispatchAndShowHiddenDrops}
           />
-          <h3 className="text-xl font-bold text-center font-turret-road">
+          <h3 className="text-2xl text-center font-turret-road">
             Purrfect Farmer
           </h3>
           <p className="text-lg text-center">
