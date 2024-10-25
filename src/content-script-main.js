@@ -52,6 +52,43 @@ if (location.hash.includes("tgWebAppData")) {
     postMessage: window.postMessage.bind(window),
   };
 
+  /** Modified XMLHttpRequest */
+  const modifiedXMLHttpRequest = class extends XMLHttpRequest {
+    open(...args) {
+      const [, url] = args;
+      let target;
+
+      if ((target = shouldWatchRequest(url))) {
+        super.addEventListener("load", () => {
+          dispatchResponse(target, JSON.parse(this.responseText));
+        });
+      }
+
+      return super.open(...args);
+    }
+  };
+
+  /** Modified Fetch */
+  const modifiedFetch = function (...args) {
+    const url = typeof args[0] === "string" ? args[0] : args[0].url;
+    let target;
+
+    if ((target = shouldWatchRequest(url))) {
+      return core.fetch(...args).then(
+        /**
+         * @param {Response} response
+         */
+        (response) => {
+          dispatchResponse(target, response.clone().json());
+
+          return Promise.resolve(response);
+        }
+      );
+    } else {
+      return core.fetch(...args);
+    }
+  };
+
   /** Resolve URL */
   const resolveURL = (url) => new URL(url, location.href).toString();
 
@@ -78,43 +115,6 @@ if (location.hash.includes("tgWebAppData")) {
       }
     );
 
-  /** Override XMLHttpRequest */
-  window.XMLHttpRequest = class extends XMLHttpRequest {
-    open(...args) {
-      const [, url] = args;
-      let target;
-
-      if ((target = shouldWatchRequest(url))) {
-        super.addEventListener("load", () => {
-          dispatchResponse(target, JSON.parse(this.responseText));
-        });
-      }
-
-      return super.open(...args);
-    }
-  };
-
-  /** Override fetch */
-  window.fetch = function (...args) {
-    const url = typeof args[0] === "string" ? args[0] : args[0].url;
-    let target;
-
-    if ((target = shouldWatchRequest(url))) {
-      return core.fetch(...args).then(
-        /**
-         * @param {Response} response
-         */
-        (response) => {
-          dispatchResponse(target, response.clone().json());
-
-          return Promise.resolve(response);
-        }
-      );
-    } else {
-      return core.fetch(...args);
-    }
-  };
-
   /** Handle Messages */
   window.addEventListener("message", (ev) => {
     try {
@@ -135,6 +135,13 @@ if (location.hash.includes("tgWebAppData")) {
             break;
           case "get-request-data":
             Object.entries(data.items).forEach(([key, value]) => {
+              /** Override XMLHttpRequest */
+              window.XMLHttpRequest = modifiedXMLHttpRequest;
+
+              /** Override fetch */
+              window.fetch = modifiedFetch;
+
+              /** Watch the requests */
               requestsToWatch.set(
                 typeof value === "string" ? value : value.url,
                 Object.assign(
