@@ -148,13 +148,6 @@ const farmerTabs = [
     telegramLink:
       "https://t.me/BitsTonboxBot/BitsAirdrops?startapp=6nZB3W2eKhH118UoencBFE",
   },
-  {
-    id: "major",
-    title: "Major",
-    icon: farmerIcons["major"],
-    component: <Farmer farmer="Major" />,
-    telegramLink: "https://t.me/major/start?startapp=1147265290",
-  },
 ];
 
 export default farmerTabs;
