@@ -1,6 +1,4 @@
 import FarmerContext from "@/contexts/FarmerContext";
-import FullSpinner from "@/components/FullSpinner";
-
 import BirdTonAuthDetect from "./components/BirdTonAuthDetect";
 import BirdTonFarmer from "./components/BirdTonFarmer";
 import useBirdTon from "./hooks/useBirdTon";
@@ -11,10 +9,8 @@ export default function BirdTon() {
 
   return (
     <FarmerContext.Provider value={farmer}>
-      {farmer.userRequest.data ? (
+      {farmer.auth ? (
         <BirdTonFarmer />
-      ) : farmer.auth ? (
-        <FullSpinner />
       ) : (
         <BirdTonAuthDetect status={farmer.status} />
       )}

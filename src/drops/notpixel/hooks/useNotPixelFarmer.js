@@ -1,7 +1,8 @@
 import useDropFarmer from "@/hooks/useDropFarmer";
 import { useMemo } from "react";
+import { useQuery } from "@tanstack/react-query";
+
 import NotPixelIcon from "../assets/images/icon.png?format=webp&w=80";
-import { useMultiRequestData } from "@/hooks/useMultiRequestData";
 
 export default function useNotPixelFarmer() {
   const farmer = useDropFarmer({
@@ -14,21 +15,25 @@ export default function useNotPixelFarmer() {
     domains: ["notpx.app"],
   });
 
-  const requests = useMultiRequestData(
-    farmer.port,
-    useMemo(
-      () => ({
-        userRequest: "https://notpx.app/api/v1/users/me",
-      }),
-      []
-    )
-  );
+  const userQuery = useQuery({
+    refetchOnMount: false,
+    refetchOnReconnect: false,
+    refetchOnWindowFocus: false,
+    enabled: Boolean(farmer.auth),
+    queryKey: ["notpixel", "user"],
+    queryFn: () =>
+      farmer.api
+        .get("https://notpx.app/api/v1/users/me")
+        .then((res) => res.data),
+  });
+
+  const user = userQuery?.data;
 
   return useMemo(
     () => ({
       ...farmer,
-      ...requests,
+      user,
     }),
-    [farmer, requests]
+    [farmer, user]
   );
 }

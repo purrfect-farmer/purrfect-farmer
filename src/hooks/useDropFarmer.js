@@ -113,6 +113,12 @@ export default function useDropFarmer({
 
   /** Handle Web Request */
   useEffect(() => {
+    /** Don't watch requests without Telegram Web App  */
+    if (!telegramWebApp) {
+      setAuth(false);
+      return;
+    }
+
     const handleWebRequest = (details) => {
       const headers = extractAuthHeaders
         ? extractAuthHeaders(details.requestHeaders, telegramWebApp)
@@ -143,8 +149,12 @@ export default function useDropFarmer({
       setAuth(true);
     }
 
-    return () =>
-      chrome.webRequest.onSendHeaders.removeListener(handleWebRequest);
+    return () => {
+      if (telegramWebApp) {
+        chrome.webRequest.onSendHeaders.removeListener(handleWebRequest);
+        setAuth(false);
+      }
+    };
   }, [
     domainMatches,
     authHeaders,

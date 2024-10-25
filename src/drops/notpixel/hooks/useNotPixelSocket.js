@@ -8,8 +8,7 @@ export default function useNotPixelSocket(
   sandboxRef,
   updateWorldPixels
 ) {
-  const { userRequest } = useFarmerContext();
-  const user = userRequest.data;
+  const { user } = useFarmerContext();
 
   const [connected, setConnected] = useState(false);
   const [websocketToken, setWebsocketToken] = useState(null);

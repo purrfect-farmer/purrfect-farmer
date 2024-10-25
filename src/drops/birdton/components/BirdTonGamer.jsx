@@ -18,8 +18,7 @@ const MAX_POINT = 280;
 
 export default function BirdTonGamer() {
   const process = useProcessLock();
-  const { sendMessage, userRequest } = useFarmerContext();
-  const user = userRequest.data;
+  const { sendMessage, user, queryClient } = useFarmerContext();
   const [startGameCallback, setStartGameCallback] = useState(null);
 
   /** Game Points */
@@ -121,7 +120,7 @@ export default function BirdTonGamer() {
     ({ data }) => {
       const result = JSON.parse(data);
 
-      userRequest.update((prev) => {
+      queryClient.setQueryData(["birdton", "auth"], (prev) => {
         return {
           ...prev,
           balance: result.balance,
@@ -129,7 +128,7 @@ export default function BirdTonGamer() {
         };
       });
     },
-    [userRequest.update]
+    [queryClient.setQueryData]
   );
 
   /** Handlers */

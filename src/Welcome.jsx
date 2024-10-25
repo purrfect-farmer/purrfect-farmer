@@ -327,7 +327,7 @@ export default function Welcome() {
           </div>
 
           {/* Drops */}
-          <div className={cn("grid grid-cols-3", "gap-2 py-4")}>
+          <div className={cn("flex flex-wrap justify-center w-full", "py-4")}>
             {drops.map((drop, index) => (
               <DropButton
                 key={index}
@@ -340,7 +340,7 @@ export default function Welcome() {
           {/* Connect */}
           <div className="flex items-center justify-center gap-2 text-xs">
             <a
-              href="https://t.me/purrfect_drop"
+              href="https://t.me/purrfect_community"
               target="_blank"
               className="text-blue-500 hover:underline"
             >

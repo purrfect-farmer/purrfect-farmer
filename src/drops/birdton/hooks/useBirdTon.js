@@ -8,7 +8,7 @@ import { useState } from "react";
 export default function useBirdTon(farmer) {
   const [connected, setConnected] = useState(false);
   const socketRef = useRef();
-  const user = farmer.userRequest.data;
+  const user = farmer.user;
 
   const {
     map: messageHandlers,
@@ -107,8 +107,6 @@ export default function useBirdTon(farmer) {
 
     /** Add Event Listener for Close */
     socket.addEventListener("close", () => {
-      /** Reset Auth */
-      farmer.resetTelegramWebApp();
       setConnected(false);
     });
 
@@ -122,6 +120,7 @@ export default function useBirdTon(farmer) {
   return useMemo(
     () => ({
       ...farmer,
+      user,
       eventData,
       connected,
       sendAuth,
@@ -131,6 +130,7 @@ export default function useBirdTon(farmer) {
     }),
     [
       farmer,
+      user,
       eventData,
       connected,
       sendAuth,

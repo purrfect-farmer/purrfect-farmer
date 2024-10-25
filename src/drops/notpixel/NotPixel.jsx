@@ -18,7 +18,7 @@ function NotPixel() {
   return (
     <>
       <FarmerContext.Provider value={farmer}>
-        {farmer.userRequest.data ? (
+        {farmer.user ? (
           <NotPixelFarmer sandboxRef={sandboxRef} />
         ) : farmer.auth ? (
           <FullSpinner />

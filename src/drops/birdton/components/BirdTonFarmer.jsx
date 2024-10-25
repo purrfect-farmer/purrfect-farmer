@@ -14,8 +14,7 @@ import EnergyIcon from "../assets/images/energy.png?format=webp&w=80";
 import useBirdTonClaimDailyRewardMutation from "../hooks/useBirdTonClaimDailyRewardMutation";
 
 export default function BirdTonFarmer() {
-  const { connected, userRequest } = useFarmerContext();
-  const user = userRequest.data;
+  const { connected, user } = useFarmerContext();
 
   const energy = user?.["energy"] || 0;
   const maxEnergy = user?.["energy_capacity"] || 0;
@@ -32,7 +31,7 @@ export default function BirdTonFarmer() {
         toast.success("BirdTon - Daily Reward");
       }
     })();
-  }, [user]);
+  }, [user?.["can_claim_daily"]]);
 
   return user && connected ? (
     <div className="flex flex-col gap-2 p-4">
