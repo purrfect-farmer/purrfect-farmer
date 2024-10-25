@@ -369,6 +369,13 @@
           "operation": "set",
           "value": "https://tada-mini.mvlchain.io/"
         }
+      ],
+      "responseHeaders": [
+        {
+          "header": "access-control-allow-origin",
+          "operation": "set",
+          "value": "*"
+        }
       ]
     },
     "condition": {
