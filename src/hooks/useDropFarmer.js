@@ -194,12 +194,12 @@ export default function useDropFarmer({
   useEffect(() => {
     if (authQuery.data) {
       if (configureAuthHeaders) {
-        configureAuthHeaders(authQuery.data, telegramWebApp);
+        configureAuthHeaders(api, telegramWebApp, authQuery.data);
       }
 
       setAuth(true);
     }
-  }, [authQuery.data, configureAuthHeaders, telegramWebApp, setAuth]);
+  }, [api, telegramWebApp, authQuery.data, configureAuthHeaders, setAuth]);
 
   /** Create Notification */
   useEffect(() => {
