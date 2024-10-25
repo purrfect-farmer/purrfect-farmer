@@ -30,7 +30,12 @@ export function getSettings() {
   return new Promise((res, rej) => {
     chrome?.storage?.local
       .get("settings")
-      .then(({ settings = defaultSettings }) => res(settings))
+      .then(({ settings = defaultSettings }) =>
+        res({
+          ...defaultSettings,
+          ...settings,
+        })
+      )
       .catch(rej);
   });
 }

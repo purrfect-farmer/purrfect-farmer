@@ -169,6 +169,19 @@ export default function Settings() {
                   Launch Telegram Web within the Farmer
                 </LabelToggle>
 
+                {/* Open Telegram Web within the Farmer */}
+                <LabelToggle
+                  onChange={(ev) =>
+                    dispatchAndConfigureSettings(
+                      "closeOtherBots",
+                      ev.target.checked
+                    )
+                  }
+                  checked={settings?.closeOtherBots}
+                >
+                  Close Other Bots
+                </LabelToggle>
+
                 {/* Sync Server */}
                 <label className="text-neutral-500">Sync Server</label>
                 <div className="flex gap-2">

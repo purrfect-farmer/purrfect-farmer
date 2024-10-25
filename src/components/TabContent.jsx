@@ -35,11 +35,12 @@ export default function TabContent({ tab }) {
     openedTabs,
     setActiveTab,
     messaging: { ports },
+    settings,
   } = useAppContext();
 
   const [openBot, dispatchAndOpenBot] = useSocketDispatchCallback(
     /**Main */
-    useCallback(() => {
+    useCallback(async () => {
       const telegramWeb = openedTabs.find((tab) =>
         ["telegram-web-k", "telegram-web-a"].includes(tab.id)
       );
@@ -49,28 +50,39 @@ export default function TabContent({ tab }) {
         return toast.error("Please open Telegram Web");
       }
 
-      /** @type {chrome.runtime.Port} */
-      let port;
+      const miniApps = ports
+        .values()
+        .filter((port) => port.name.startsWith("mini-app:"))
+        .toArray();
 
-      for (let item of ports) {
-        if (item.name.startsWith("mini-app:")) {
-          port = item;
-          break;
-        }
-      }
-
-      if (!port) {
+      if (!miniApps.length) {
         toast.dismiss();
         return toast.error("No Telegram Bot Running..");
       }
 
-      postPortMessage(port, {
+      /** Post Message to First Port */
+      postPortMessage(miniApps[0], {
         action: "open-telegram-link",
         data: { url: tab.telegramLink },
       }).then(() => {
         setActiveTab(telegramWeb.id);
       });
-    }, [openedTabs, ports, tab.telegramLink, setActiveTab]),
+
+      /** Close Other Bots */
+      if (settings.closeOtherBots) {
+        miniApps.slice(1).forEach((port) => {
+          postPortMessage(port, {
+            action: "close-bot",
+          });
+        });
+      }
+    }, [
+      openedTabs,
+      ports,
+      tab.telegramLink,
+      setActiveTab,
+      settings.closeOtherBots,
+    ]),
 
     /** Dispatch */
     useCallback(

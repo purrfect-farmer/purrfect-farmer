@@ -58,6 +58,13 @@ if (location.hash.includes("tgWebAppData")) {
     });
   };
 
+  const closeBot = async ({ id }) => {
+    return await postWindowMessage({
+      id,
+      action: "close-bot",
+    });
+  };
+
   /** Get the Telegram Web App */
   const getTelegramWebApp = async () => {
     return await postWindowMessage({
@@ -102,6 +109,15 @@ if (location.hash.includes("tgWebAppData")) {
           id,
           data: true,
         });
+        break;
+
+      case "close-bot":
+        await closeBot({ id });
+        port.postMessage({
+          id,
+          data: true,
+        });
+        break;
     }
   });
 

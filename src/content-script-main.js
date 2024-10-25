@@ -162,6 +162,19 @@ if (location.hash.includes("tgWebAppData")) {
               "*"
             );
             break;
+
+          case "close-bot":
+            window.Telegram?.WebApp?.disableClosingConfirmation();
+            window.Telegram?.WebApp?.close();
+            window.postMessage(
+              {
+                id,
+                type: "response",
+                payload: encryptData(true),
+              },
+              "*"
+            );
+            break;
         }
       }
     } catch {}
