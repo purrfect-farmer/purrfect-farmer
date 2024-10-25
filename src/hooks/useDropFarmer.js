@@ -145,6 +145,7 @@ export default function useDropFarmer({
     }
 
     const handleWebRequest = (details) => {
+      let configured = false;
       const headers = extractAuthHeaders
         ? extractAuthHeaders(details.requestHeaders, telegramWebApp)
         : details.requestHeaders.filter((header) => {
@@ -156,10 +157,14 @@ export default function useDropFarmer({
           api.defaults.headers.common[header.name] = header.value;
 
           if (header.value) {
-            setAuth(true);
+            configured = true;
           }
         }
       });
+
+      if (configured) {
+        setAuth(true);
+      }
     };
 
     chrome.webRequest.onSendHeaders.addListener(
