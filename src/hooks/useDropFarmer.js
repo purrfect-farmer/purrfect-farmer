@@ -1,5 +1,6 @@
 import axios from "axios";
 import toast from "react-hot-toast";
+import { delay } from "@/lib/utils";
 import { useCallback } from "react";
 import { useEffect } from "react";
 import { useMemo } from "react";
@@ -89,11 +90,15 @@ export default function useDropFarmer({
         return;
       }
 
-      const { config, resolve } = requestQueue.shift();
-
+      /** Set in progress */
       isRequestInProgress = true;
 
-      resolve(config);
+      const { config, resolve } = requestQueue.shift();
+
+      /** Delay before sending request */
+      delay(500).then(() => {
+        resolve(config);
+      });
     };
 
     api.interceptors.request.use(

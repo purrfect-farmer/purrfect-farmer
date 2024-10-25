@@ -70,9 +70,6 @@ export default function PumpadLottery() {
         await query.refetch();
       } catch {}
 
-      /** Delay */
-      await delay(10_000);
-
       // Release Lock
       process.unlock();
     })();

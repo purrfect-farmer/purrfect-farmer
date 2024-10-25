@@ -7,13 +7,13 @@ import { useEffect } from "react";
 import BlumAutoTasks from "./BlumAutoTasks";
 import BlumBalanceDisplay from "./BlumBalanceDisplay";
 import BlumFarmerHeader from "./BlumFarmerHeader";
+import BlumGamer from "./BlumGamer";
 import BlumUsernameDisplay from "./BlumUsernameDisplay";
 import useBlumBalanceQuery from "../hooks/useBlumBalanceQuery";
 import useBlumClaimDailyRewardMutation from "../hooks/useBlumClaimDailyRewardMutation";
 import useBlumClaimFarmingMutation from "../hooks/useBlumClaimFarmingMutation";
 import useBlumDailyRewardQuery from "../hooks/useBlumDailyRewardQuery";
 import useBlumStartFarmingMutation from "../hooks/useBlumStartFarmingMutation";
-import BlumGamer from "./BlumGamer";
 
 export default function BlumFarmer() {
   const tabs = useSocketTabs("blum.farmer-tabs", "game");
@@ -31,7 +31,6 @@ export default function BlumFarmer() {
     if (!dailyRewardQuery.data) return;
     (async function () {
       try {
-        await delay(2000);
         await claimDailyRewardMutation.mutateAsync();
         toast.success("Blum Daily Check-In");
       } catch {}
@@ -49,9 +48,6 @@ export default function BlumFarmer() {
       const farming = balance.farming;
 
       if (!balance.isFastFarmingEnabled) {
-        /** Delay */
-        await delay(2000);
-
         await startFarmingMutation.mutateAsync();
         toast.success("Blum Started Farming");
       } else if (farming && balance.timestamp >= farming.endTime) {
