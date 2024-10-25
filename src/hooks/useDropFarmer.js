@@ -3,7 +3,7 @@ import toast from "react-hot-toast";
 import { useCallback } from "react";
 import { useEffect } from "react";
 import { useMemo } from "react";
-import { useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 
 import useTelegramWebApp from "./useTelegramWebApp";
@@ -14,19 +14,42 @@ export default function useDropFarmer({
   domains = [],
   authHeaders = ["authorization"],
   extractAuthHeaders,
+  fetchAuth,
   notification,
 }) {
   /** TelegramWebApp */
   const { port, telegramWebApp, resetTelegramWebApp } = useTelegramWebApp(host);
-
-  /** Auth */
-  const [auth, setAuth] = useState(false);
 
   /** QueryClient */
   const queryClient = useQueryClient();
 
   /** Axios Instance */
   const api = useMemo(() => axios.create(), []);
+
+  /** Auth */
+  const [auth, setAuth] = useState(false);
+
+  /** Query Key */
+  const authQueryKey = useMemo(
+    () => [id, "auth", telegramWebApp?.initDataUnsafe?.["auth_date"]],
+    [id, telegramWebApp]
+  );
+
+  /** QueryFn */
+  const authQueryFn = useCallback(
+    () => fetchAuth(api, telegramWebApp),
+    [api, telegramWebApp, fetchAuth]
+  );
+
+  /** Auth */
+  const authQuery = useQuery({
+    refetchOnMount: false,
+    refetchOnReconnect: false,
+    refetchOnWindowFocus: false,
+    enabled: typeof fetchAuth === "function" && Boolean(telegramWebApp),
+    queryKey: authQueryKey,
+    queryFn: authQueryFn,
+  });
 
   /** Status */
   const status = useMemo(
@@ -42,11 +65,13 @@ export default function useDropFarmer({
 
   /** Reset Auth */
   const resetAuth = useCallback(() => {
+    queryClient.resetQueries({
+      queryKey: authQueryKey,
+    });
     setAuth(false);
-  }, [setAuth]);
+  }, [queryClient, authQueryKey, setAuth]);
 
   /** Enforce only one request */
-
   useEffect(() => {
     let isRequestInProgress = false;
     let requestQueue = [];
@@ -113,9 +138,9 @@ export default function useDropFarmer({
 
   /** Handle Web Request */
   useEffect(() => {
+    /** Requires domain matches */
     /** Don't watch requests without Telegram Web App  */
-    if (!telegramWebApp) {
-      setAuth(false);
+    if (domainMatches.length < 1 || !telegramWebApp) {
       return;
     }
 
@@ -137,22 +162,17 @@ export default function useDropFarmer({
       });
     };
 
-    if (domainMatches.length) {
-      chrome.webRequest.onSendHeaders.addListener(
-        handleWebRequest,
-        {
-          urls: domainMatches,
-        },
-        ["requestHeaders"]
-      );
-    } else {
-      setAuth(true);
-    }
+    chrome.webRequest.onSendHeaders.addListener(
+      handleWebRequest,
+      {
+        urls: domainMatches,
+      },
+      ["requestHeaders"]
+    );
 
     return () => {
-      if (telegramWebApp) {
+      if (typeof handleWebRequest !== "undefined") {
         chrome.webRequest.onSendHeaders.removeListener(handleWebRequest);
-        setAuth(false);
       }
     };
   }, [
@@ -163,6 +183,13 @@ export default function useDropFarmer({
     api,
     setAuth,
   ]);
+
+  /** Handle auth query */
+  useEffect(() => {
+    if (authQuery.status === "success") {
+      setAuth(true);
+    }
+  }, [authQuery.status, setAuth]);
 
   /** Create Notification */
   useEffect(() => {
@@ -193,6 +220,8 @@ export default function useDropFarmer({
       id,
       api,
       auth,
+      authQuery,
+      authQueryKey,
       queryClient,
       port,
       telegramWebApp,
@@ -204,6 +233,8 @@ export default function useDropFarmer({
       id,
       api,
       auth,
+      authQuery,
+      authQueryKey,
       queryClient,
       port,
       telegramWebApp,

@@ -1,12 +1,10 @@
 import useFarmerApi from "@/hooks/useFarmerApi";
-import { useIsMutating, useQuery } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 
-export default function useNotPixelUserQuery(options) {
+export default function useNotPixelUserQuery() {
   const api = useFarmerApi();
-  const isMutating = useIsMutating({ mutationKey: ["notpixel"] });
 
   return useQuery({
-    refetchInterval: isMutating < 1 ? 10_000 : false,
     queryKey: ["notpixel", "user"],
     queryFn: ({ signal }) =>
       api
@@ -14,6 +12,5 @@ export default function useNotPixelUserQuery(options) {
           signal,
         })
         .then((res) => res.data),
-    ...options,
   });
 }

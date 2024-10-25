@@ -8,7 +8,7 @@ import { useState } from "react";
 export default function useBirdTon(farmer) {
   const [connected, setConnected] = useState(false);
   const socketRef = useRef();
-  const user = farmer.user;
+  const user = farmer.authQuery.data;
 
   const {
     map: messageHandlers,

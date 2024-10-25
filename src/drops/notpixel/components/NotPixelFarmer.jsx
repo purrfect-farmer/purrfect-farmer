@@ -1,7 +1,6 @@
 import useFarmerApi from "@/hooks/useFarmerApi";
 import { CgSpinner } from "react-icons/cg";
 import { useEffect } from "react";
-import { useState } from "react";
 
 import NotPixelApp from "./NotPixelApp";
 import NotPixelIcon from "../assets/images/icon.png?format=webp&w=128";
@@ -21,7 +20,6 @@ export default function NotPixelFarmer({ sandboxRef }) {
     configureNotPixel,
   } = useNotPixelData();
   const diff = useNotPixelDiff(pixels, worldPixels);
-  const [showNoTemplateError, setShowNoTemplateError] = useState(false);
 
   /** Initiate socket */
   const { connected } = useNotPixelSocket(
@@ -51,11 +49,9 @@ export default function NotPixelFarmer({ sandboxRef }) {
       if (items.length) {
         /** Configure the App */
         configureNotPixel(items);
-      } else {
-        setShowNoTemplateError(true);
       }
     })();
-  }, [configureNotPixel, setShowNoTemplateError]);
+  }, [configureNotPixel]);
 
   return (
     <>
@@ -63,17 +59,13 @@ export default function NotPixelFarmer({ sandboxRef }) {
         <NotPixelApp diff={diff} updatedAt={updatedAt} />
       ) : (
         <div className="flex flex-col items-center justify-center gap-4 p-4 grow">
-          {showNoTemplateError ? (
-            <>
-              <img src={NotPixelIcon} className="w-16 h-16 rounded-full" />
-              <p className="p-4 text-center text-white bg-red-500 rounded-lg">
-                Oops! Please select a template in Not Pixel before proceeding.
-              </p>
-              <img src={NotPixelTemplate} className="rounded-lg" />
-            </>
-          ) : (
-            <CgSpinner className="w-5 h-5 mx-auto animate-spin" />
-          )}
+          <img src={NotPixelIcon} className="w-16 h-16 rounded-full" />
+          <CgSpinner className="w-5 h-5 mx-auto animate-spin" />
+          <p className="p-4 text-center text-yellow-800 bg-yellow-100 rounded-lg">
+            Please ensure you have selected a template in Not Pixel before
+            proceeding.
+          </p>
+          <img src={NotPixelTemplate} className="rounded-lg" />
         </div>
       )}
     </>

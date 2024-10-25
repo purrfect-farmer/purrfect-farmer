@@ -1,14 +1,16 @@
-import useFarmerContext from "@/hooks/useFarmerContext";
 import { useEffect } from "react";
 import { useMemo } from "react";
 import { useState } from "react";
+import useNotPixelUserQuery from "./useNotPixelUserQuery";
 
 export default function useNotPixelSocket(
   enabled,
   sandboxRef,
   updateWorldPixels
 ) {
-  const { user } = useFarmerContext();
+  const { data: user } = useNotPixelUserQuery({
+    enabled,
+  });
 
   const [connected, setConnected] = useState(false);
   const [websocketToken, setWebsocketToken] = useState(null);

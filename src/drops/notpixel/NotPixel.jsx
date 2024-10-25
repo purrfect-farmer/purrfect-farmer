@@ -1,8 +1,6 @@
 import FarmerContext from "@/contexts/FarmerContext";
-import FullSpinner from "@/components/FullSpinner";
 import { useMemo } from "react";
 import { useRef } from "react";
-
 import NotPixelAuthDetect from "./components/NotPixelAuthDetect";
 import NotPixelFarmer from "./components/NotPixelFarmer";
 import useNotPixelFarmer from "./hooks/useNotPixelFarmer";
@@ -18,10 +16,8 @@ function NotPixel() {
   return (
     <>
       <FarmerContext.Provider value={farmer}>
-        {farmer.user ? (
+        {farmer.auth ? (
           <NotPixelFarmer sandboxRef={sandboxRef} />
-        ) : farmer.auth ? (
-          <FullSpinner />
         ) : (
           <NotPixelAuthDetect status={farmer.status} />
         )}
