@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "Purrfect Farmer",
   "description": "Purrfect Farmer",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "icons": {
     "16": "icon-16.png",
     "32": "icon-32.png",
@@ -44,6 +44,20 @@
     {
       "matches": ["*://*/*"],
       "js": ["content-script-isolated.js"],
+      "run_at": "document_start",
+      "world": "ISOLATED",
+      "all_frames": true
+    },
+    {
+      "matches": ["*://web.telegram.org/*"],
+      "js": ["telegram-web-main.js"],
+      "run_at": "document_start",
+      "world": "MAIN",
+      "all_frames": true
+    },
+    {
+      "matches": ["*://web.telegram.org/*"],
+      "js": ["telegram-web-isolated.js"],
       "run_at": "document_start",
       "world": "ISOLATED",
       "all_frames": true

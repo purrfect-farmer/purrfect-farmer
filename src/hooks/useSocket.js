@@ -4,18 +4,17 @@ import { useEffect } from "react";
 import { useMemo } from "react";
 import { useRef } from "react";
 import { useState } from "react";
-
-import useMapState from "./useMapState";
+import useEventEmitter from "./useEventEmitter";
 
 export default function useSocket(server = "127.0.0.1:7777") {
   const socketRef = useRef(null);
   const [connected, setConnected] = useState(false);
   const [syncing, setSyncing] = useState(true);
   const {
-    map: commandHandlers,
-    addMapItems: addCommandHandlers,
-    removeMapItems: removeCommandHandlers,
-  } = useMapState();
+    emitter: commandHandlers,
+    addListeners: addCommandHandlers,
+    removeListeners: removeCommandHandlers,
+  } = useEventEmitter();
 
   /** Dispatch */
   const dispatch = useCallback(
@@ -51,11 +50,7 @@ export default function useSocket(server = "127.0.0.1:7777") {
     const actionHandler = (arg) => {
       if (!syncing) return;
 
-      const callback = commandHandlers.get(arg.action);
-
-      if (callback) {
-        callback(arg);
-      }
+      commandHandlers.emit(arg.action, arg);
     };
 
     socketRef.current?.on("command", actionHandler);

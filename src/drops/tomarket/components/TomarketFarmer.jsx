@@ -18,6 +18,10 @@ export default function TomarketFarmer() {
   useEffect(() => {
     (async function () {
       const result = await getTomarketGame();
+
+      console.log("--- TOMARKET ---");
+      console.log(result);
+
       setTomarket(result);
     })();
   }, []);

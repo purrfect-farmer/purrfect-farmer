@@ -2,15 +2,15 @@ import { useCallback } from "react";
 import { useEffect } from "react";
 import { useMemo } from "react";
 
-import useMapState from "./useMapState";
+import useEventEmitter from "./useEventEmitter";
 
 export default function useMessagePort() {
   const ports = useMemo(() => new Set(), []);
   const {
-    map: messageHandlers,
-    addMapItems: addMessageHandlers,
-    removeMapItems: removeMessageHandlers,
-  } = useMapState();
+    emitter: messageHandlers,
+    addListeners: addMessageHandlers,
+    removeListeners: removeMessageHandlers,
+  } = useEventEmitter();
 
   /** Dispatch */
   const dispatch = useCallback(
@@ -25,9 +25,13 @@ export default function useMessagePort() {
   /** Add a Port */
   const addPort = useCallback(
     (port) => {
+      /** Add Port */
       ports.add(port);
+
+      /** Emit Event */
+      messageHandlers.emit("port-connected", port);
     },
-    [ports]
+    [messageHandlers, ports]
   );
 
   /** Remove a Port */
@@ -38,18 +42,17 @@ export default function useMessagePort() {
 
       /** Remove Port */
       ports.delete(port);
+
+      /** Emit Event */
+      messageHandlers.emit("port-disconnected", port);
     },
-    [ports]
+    [messageHandlers, ports]
   );
 
   /** Handle Port Message */
   const portMessageHandler = useCallback(
     (message, port) => {
-      const callback = messageHandlers.get(message.action);
-
-      if (callback) {
-        callback(message, port);
-      }
+      messageHandlers.emit(message.action, message, port);
     },
     [messageHandlers]
   );

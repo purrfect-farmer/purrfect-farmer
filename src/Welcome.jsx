@@ -1,8 +1,9 @@
 import * as Dialog from "@radix-ui/react-dialog";
-import AppIcon from "@/assets/images/icon-unwrapped-cropped.png?format=webp&h=224";
+import AppIcon from "@/assets/images/icon.png?format=webp&h=80";
 import Settings from "@/partials/Settings";
 import TelegramWebAIcon from "@/assets/images/telegram-web-a.png?format=webp&w=80";
 import TelegramWebKIcon from "@/assets/images/telegram-web-k.png?format=webp&w=80";
+import WelcomeIcon from "@/assets/images/icon-unwrapped-cropped.png?format=webp&h=224";
 import defaultSettings from "@/default-settings";
 import toast from "react-hot-toast";
 import useAppContext from "@/hooks/useAppContext";
@@ -15,7 +16,7 @@ import {
   HiOutlinePower,
   HiOutlinePuzzlePiece,
 } from "react-icons/hi2";
-import { cn } from "@/lib/utils";
+import { cn, postPortMessage } from "@/lib/utils";
 import { useCallback } from "react";
 import { useEffect } from "react";
 import { useMemo } from "react";
@@ -29,7 +30,8 @@ export default function Welcome() {
   const [showSettings, setShowSettings, dispatchAndSetShowSettings] =
     useSocketState("app.toggle-settings", false);
 
-  const { settings, socket, pushTab, closeTab } = useAppContext();
+  const { settings, messaging, socket, openedTabs, pushTab, closeTab } =
+    useAppContext();
 
   /** Hidden Toggle */
   const [showHidden, setShowHidden] = useState(import.meta.env.DEV);
@@ -172,12 +174,71 @@ export default function Welcome() {
     )
   );
 
+  const [openFarmerBot, dispatchAndOpenFarmerBot] = useSocketDispatchCallback(
+    /** Main */
+    useCallback(() => {
+      let port = messaging.ports
+        .values()
+        .find((port) =>
+          ["telegram-web:k", "telegram-web:a"].includes(port.name)
+        );
+
+      /** Push Telegram Tab */
+      findAndPushTab(
+        port && port.name === "telegram-web:a"
+          ? "telegram-web-a"
+          : "telegram-web-k"
+      );
+
+      if (port) {
+        postPortMessage(port, {
+          action: "open-farmer-bot",
+        });
+      } else {
+        async function capturePort(message, port) {
+          messaging.removeMessageHandlers({
+            "set-port:telegram-web-k": capturePort,
+            "set-port:telegram-web-a": capturePort,
+          });
+
+          postPortMessage(port, {
+            action: "open-farmer-bot",
+          });
+        }
+
+        messaging.addMessageHandlers({
+          "set-port:telegram-web-k": capturePort,
+          "set-port:telegram-web-a": capturePort,
+        });
+      }
+    }, [
+      openedTabs,
+      findAndPushTab,
+      messaging.ports,
+      messaging.addMessageHandlers,
+      messaging.removeMessageHandlers,
+    ]),
+
+    /** Dispatch */
+    useCallback(
+      (socket) =>
+        socket.dispatch({
+          action: "app.open-farmer-bot",
+        }),
+      []
+    )
+  );
+
   /** Handlers */
   useSocketHandlers(
     useMemo(
       () => ({
         "app.reload": () => {
           reload();
+        },
+
+        "app.open-farmer-bot": () => {
+          openFarmerBot();
         },
 
         "app.show-hidden-drops": () => {
@@ -199,7 +260,14 @@ export default function Welcome() {
           navigateToTelegramWeb(command.data.version);
         },
       }),
-      [reload, showHiddenDrops, findAndPushTab, closeTab, navigateToTelegramWeb]
+      [
+        reload,
+        openFarmerBot,
+        showHiddenDrops,
+        findAndPushTab,
+        closeTab,
+        navigateToTelegramWeb,
+      ]
     )
   );
 
@@ -270,7 +338,7 @@ export default function Welcome() {
       <div className="flex flex-col p-4 overflow-auto grow">
         <div className="flex flex-col w-full gap-2 mx-auto my-auto max-w-96">
           <img
-            src={AppIcon}
+            src={WelcomeIcon}
             className="mx-auto h-28"
             onDoubleClick={dispatchAndShowHiddenDrops}
           />
@@ -302,32 +370,55 @@ export default function Welcome() {
           >
             {socket.connected ? "Connected" : "Disconnected"}
           </p>
-          <div className="flex justify-center gap-1">
-            {["k", "a"].map((v, index) => (
+
+          <div className="flex flex-col gap-1">
+            {/* TelegramWeb */}
+            <div className="flex justify-center gap-1">
+              {["k", "a"].map((v, index) => (
+                <button
+                  key={index}
+                  onClick={() => openTelegramWeb(v)}
+                  className={cn(
+                    "p-2",
+                    "rounded-full",
+                    "bg-neutral-100",
+                    "hover:bg-blue-500",
+                    "hover:text-white",
+                    "inline-flex items-center justify-center gap-1"
+                  )}
+                  title={`Switch to Web${v.toUpperCase()}`}
+                >
+                  <img
+                    src={v === "k" ? TelegramWebKIcon : TelegramWebAIcon}
+                    className="w-6 h-6"
+                  />
+                  {`Web${v.toUpperCase()}`}
+                </button>
+              ))}
+            </div>
+            {/* Open Farmer Bot */}
+            <div className="flex justify-center">
               <button
-                key={index}
-                onClick={() => openTelegramWeb(v)}
+                onClick={dispatchAndOpenFarmerBot}
                 className={cn(
                   "p-2",
                   "rounded-full",
-                  "bg-neutral-100",
-                  "hover:bg-blue-500",
+                  "bg-orange-100",
+                  "hover:bg-orange-500",
                   "hover:text-white",
                   "inline-flex items-center justify-center gap-1"
                 )}
-                title={`Switch to Web${v.toUpperCase()}`}
+                title={"Open Purrfect"}
               >
-                <img
-                  src={v === "k" ? TelegramWebKIcon : TelegramWebAIcon}
-                  className="w-6 h-6"
-                />
-                {`Web${v.toUpperCase()}`}
+                <img src={AppIcon} className="w-6 h-6" />
+                Purrfect
               </button>
-            ))}
+            </div>
           </div>
 
           {/* Drops */}
           <div className={cn("flex flex-wrap justify-center w-full", "py-4")}>
+            {/* Drops */}
             {drops.map((drop, index) => (
               <DropButton
                 key={index}

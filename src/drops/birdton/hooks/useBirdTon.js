@@ -1,4 +1,4 @@
-import useMapState from "@/hooks/useMapState";
+import useEventEmitter from "@/hooks/useEventEmitter";
 import { useCallback } from "react";
 import { useEffect } from "react";
 import { useMemo } from "react";
@@ -11,10 +11,10 @@ export default function useBirdTon(farmer) {
   const user = farmer.authQuery.data;
 
   const {
-    map: messageHandlers,
-    addMapItems: addMessageHandlers,
-    removeMapItems: removeMessageHandlers,
-  } = useMapState();
+    emitter: messageHandlers,
+    addListeners: addMessageHandlers,
+    removeListeners: removeMessageHandlers,
+  } = useEventEmitter();
 
   /** Event Data */
   const [eventData, setEventData] = useState(() => new Map());
@@ -57,11 +57,8 @@ export default function useBirdTon(farmer) {
       /** Message */
       const data = JSON.parse(message.data);
 
-      /** Get Message Handler */
-      const callback = messageHandlers.get(data["event_type"]);
-
-      if (callback) {
-        callback(data);
+      if (messageHandlers.listeners(data["event_type"]).length) {
+        messageHandlers.emit(data["event_type"], data);
       } else {
         setEventData((prev) => {
           const newMap = new Map(prev);

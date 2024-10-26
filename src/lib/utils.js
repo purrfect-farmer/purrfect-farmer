@@ -40,6 +40,18 @@ export function getSettings() {
   });
 }
 
+export function isElementVisible(element) {
+  if (!element) return false;
+
+  const style = window.getComputedStyle(element);
+
+  const isDisplayed = style.display !== "none";
+  const hasOpacity = style.opacity !== "0";
+  const isVisible = style.visibility !== "hidden";
+
+  return isDisplayed && hasOpacity && isVisible;
+}
+
 /**
  *
  * @param {chrome.runtime.Port} port

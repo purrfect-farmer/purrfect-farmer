@@ -35,6 +35,9 @@ importers:
       date-fns:
         specifier: ^3.6.0
         version: 3.6.0
+      events:
+        specifier: ^3.3.0
+        version: 3.3.0
       fflate:
         specifier: ^0.8.2
         version: 0.8.2
