@@ -28,6 +28,13 @@ import { isElementVisible } from "./lib/utils";
   let hasClickedBotLaunchButton = false;
 
   const dispatchClickEventOnElement = (element) => {
+    const isTouchDevice =
+      "ontouchstart" in window || navigator.maxTouchPoints > 0;
+
+    if (isTouchDevice) {
+      return element.click();
+    }
+
     const event =
       webVersion === "k"
         ? new MouseEvent("click", {

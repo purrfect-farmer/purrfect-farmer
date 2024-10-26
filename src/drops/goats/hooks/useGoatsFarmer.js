@@ -11,5 +11,6 @@ export default function useGoatsFarmer() {
       title: "Goats Farmer",
     },
     domains: ["*.goatsbot.xyz"],
+    apiDelay: 2000,
   });
 }

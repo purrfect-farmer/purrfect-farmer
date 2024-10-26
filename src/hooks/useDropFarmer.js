@@ -1,5 +1,6 @@
 import axios from "axios";
 import toast from "react-hot-toast";
+import { delay } from "@/lib/utils";
 import { useCallback } from "react";
 import { useEffect } from "react";
 import { useMemo } from "react";
@@ -11,6 +12,7 @@ import useTelegramWebApp from "./useTelegramWebApp";
 export default function useDropFarmer({
   id,
   host,
+  apiDelay = 500,
   domains = [],
   authHeaders = ["authorization"],
   extractAuthHeaders,
@@ -89,11 +91,17 @@ export default function useDropFarmer({
         return;
       }
 
-      const { config, resolve } = requestQueue.shift();
-
       isRequestInProgress = true;
 
-      resolve(config);
+      const { config, resolve } = requestQueue.shift();
+
+      if (apiDelay > 0) {
+        delay(apiDelay).then(() => {
+          resolve(config);
+        });
+      } else {
+        resolve(config);
+      }
     };
 
     api.interceptors.request.use(
@@ -122,7 +130,7 @@ export default function useDropFarmer({
         return Promise.reject(error);
       }
     );
-  }, [api]);
+  }, [api, apiDelay]);
 
   /** Response Interceptor */
   useEffect(() => {
