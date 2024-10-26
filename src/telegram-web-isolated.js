@@ -31,23 +31,21 @@ import { isElementVisible } from "./lib/utils";
     const isTouchDevice =
       "ontouchstart" in window || navigator.maxTouchPoints > 0;
 
+    let eventType;
+
     if (isTouchDevice) {
-      return element.click();
+      eventType = webVersion === "k" ? "mousedown" : "click";
+    } else {
+      eventType = webVersion === "k" ? "click" : "mousedown";
     }
 
-    const event =
-      webVersion === "k"
-        ? new MouseEvent("click", {
-            bubbles: true,
-            cancelable: true,
-          })
-        : new MouseEvent("mousedown", {
-            bubbles: true,
-            cancelable: true,
-          });
-
     /** Dispatch the event */
-    element.dispatchEvent(event);
+    element.dispatchEvent(
+      new MouseEvent(eventType, {
+        bubbles: true,
+        cancelable: true,
+      })
+    );
   };
 
   /** Confirm Popup */
@@ -115,7 +113,9 @@ import { isElementVisible } from "./lib/utils";
 
   const openFarmerBot = () => {
     /** Change Location Hash */
-    location.hash = botLocationHash;
+    if (location.hash !== botLocationHash) {
+      location.hash = botLocationHash;
+    }
 
     if (botIsRunning()) {
       return;
