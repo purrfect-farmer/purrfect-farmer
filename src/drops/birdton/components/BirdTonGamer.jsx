@@ -4,13 +4,15 @@ import useProcessLock from "@/hooks/useProcessLock";
 import useSocketDispatchCallback from "@/hooks/useSocketDispatchCallback";
 import useSocketHandlers from "@/hooks/useSocketHandlers";
 import useSocketState from "@/hooks/useSocketState";
-import { cn, delay } from "@/lib/utils";
+import { cn, delay, delayForSeconds } from "@/lib/utils";
 import { useCallback } from "react";
 import { useEffect } from "react";
 import { useMemo } from "react";
 import { useState } from "react";
 
 import useBirdTonHandlers from "../hooks/useBirdTonHandlers";
+import Slider from "@/components/Slider";
+import useSyncedRef from "@/hooks/useSyncedRef";
 
 const MIN_POINT = 1;
 const INITIAL_POINT = 120;
@@ -20,6 +22,14 @@ export default function BirdTonGamer() {
   const process = useProcessLock();
   const { sendMessage, user, queryClient } = useFarmerContext();
   const [startGameCallback, setStartGameCallback] = useState(null);
+
+  const [farmingSpeed, , dispatchAndSetFarmingSpeed] = useSocketState(
+    "birdton.farming-speed",
+    3
+  );
+
+  /** Game Speed Ref */
+  const gameSpeedRef = useSyncedRef(farmingSpeed);
 
   /** Game Points */
   const [points, setPoints] = useState(0);
@@ -186,8 +196,8 @@ export default function BirdTonGamer() {
         }
 
         /** Delay */
-        const duration = 3 + Math.floor(Math.random() * 2);
-        await delay(duration * 1000);
+        const duration = gameSpeedRef.current + Math.floor(Math.random() * 2);
+        await delayForSeconds(duration);
 
         if (!process.signal.aborted) {
           /** Claim Point */
@@ -202,7 +212,7 @@ export default function BirdTonGamer() {
       /** Stop */
       process.stop();
     })();
-  }, [process, reset]);
+  }, [process, reset, gameSpeedRef]);
 
   return (
     <div className="flex flex-col gap-4">
@@ -238,6 +248,27 @@ export default function BirdTonGamer() {
       >
         {!process.started ? "Start" : "Stop"}
       </button>
+
+      {/* Farming Speed */}
+      <div className="flex flex-col gap-1">
+        {/* Speed Control */}
+        <Slider
+          value={[farmingSpeed]}
+          min={0}
+          max={5}
+          onValueChange={([value]) =>
+            dispatchAndSetFarmingSpeed(Math.max(1, value))
+          }
+          trackClassName="bg-sky-200"
+          rangeClassName="bg-sky-500"
+          thumbClassName="bg-sky-500"
+        />
+
+        {/* Speed Display */}
+        <div className="text-center">
+          Flying Speed: <span className="text-sky-500">{farmingSpeed}s</span>
+        </div>
+      </div>
     </div>
   );
 }

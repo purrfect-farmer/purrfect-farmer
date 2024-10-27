@@ -4,13 +4,15 @@ import useProcessLock from "@/hooks/useProcessLock";
 import useSocketDispatchCallback from "@/hooks/useSocketDispatchCallback";
 import useSocketHandlers from "@/hooks/useSocketHandlers";
 import { HiOutlineArrowPath } from "react-icons/hi2";
-import { cn, delay } from "@/lib/utils";
+import { cn, delayForSeconds } from "@/lib/utils";
 import { useCallback } from "react";
 import { useEffect } from "react";
 import { useMemo } from "react";
 
 import useTruecoin50SpinsBoost from "../hooks/useTruecoin50SpinsBoostMutation";
 import useTruecoinLotteryMutation from "../hooks/useTruecoinLotteryMutation";
+import useSocketState from "@/hooks/useSocketState";
+import Slider from "@/components/Slider";
 
 export default function TruecoinLottery() {
   const { queryClient, authQuery, authQueryKey } = useFarmerContext();
@@ -19,6 +21,11 @@ export default function TruecoinLottery() {
 
   const spinMutation = useTruecoinLotteryMutation();
   const boostMutation = useTruecoin50SpinsBoost();
+
+  const [farmingSpeed, , dispatchAndSetFarmingSpeed] = useSocketState(
+    "truecoin.farming-speed",
+    2
+  );
 
   const process = useProcessLock();
 
@@ -109,12 +116,12 @@ export default function TruecoinLottery() {
       }
 
       /** Delay */
-      await delay(5_000);
+      await delayForSeconds(farmingSpeed);
 
       // Release Lock
       process.unlock();
     })();
-  }, [process, user, authQueryKey, queryClient.setQueryData]);
+  }, [process, user, farmingSpeed, authQueryKey, queryClient.setQueryData]);
 
   return (
     <div className="flex flex-col gap-2 p-4">
@@ -144,6 +151,28 @@ export default function TruecoinLottery() {
         >
           <HiOutlineArrowPath className="w-4 h-4" />
         </button>
+      </div>
+
+      {/* Farming Speed */}
+      <div className="flex flex-col gap-1">
+        {/* Speed Control */}
+        <Slider
+          value={[farmingSpeed]}
+          min={0}
+          max={5}
+          onValueChange={([value]) =>
+            dispatchAndSetFarmingSpeed(Math.max(1, value))
+          }
+          trackClassName="bg-purple-200"
+          rangeClassName="bg-purple-500"
+          thumbClassName="bg-purple-500"
+        />
+
+        {/* Speed Display */}
+        <div className="text-center">
+          Spinning Speed:{" "}
+          <span className="text-purple-500">{farmingSpeed}s</span>
+        </div>
       </div>
 
       {process.started ? <div className="text-center">Working....</div> : null}

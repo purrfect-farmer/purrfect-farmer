@@ -1,12 +1,14 @@
 import useProcessLock from "@/hooks/useProcessLock";
 import useSocketDispatchCallback from "@/hooks/useSocketDispatchCallback";
 import useSocketHandlers from "@/hooks/useSocketHandlers";
-import { cn, delay } from "@/lib/utils";
+import { cn, delayForSeconds } from "@/lib/utils";
 import { useCallback, useEffect, useMemo } from "react";
 
 import EnergyIcon from "../assets/images/energy.png?format=webp&w=80";
 import useSlotcoinInfoQuery from "../hooks/useSlotcoinInfoQuery";
 import useSlotcoinLotteryMutation from "../hooks/useSlotcoinLotteryMutation";
+import Slider from "@/components/Slider";
+import useSocketState from "@/hooks/useSocketState";
 
 export default function SlotcoinLottery() {
   const query = useSlotcoinInfoQuery();
@@ -15,6 +17,11 @@ export default function SlotcoinLottery() {
 
   const spinMutation = useSlotcoinLotteryMutation();
   const process = useProcessLock();
+
+  const [farmingSpeed, , dispatchAndSetFarmingSpeed] = useSocketState(
+    "slotcoin.farming-speed",
+    2
+  );
 
   /** Handle button click */
   const [handleAutoSpinClick, dispatchAndHandleAutoSpinClick] =
@@ -69,12 +76,12 @@ export default function SlotcoinLottery() {
       } catch {}
 
       /** Delay */
-      await delay(10_000);
+      await delayForSeconds(farmingSpeed);
 
       // Release Lock
       process.unlock();
     })();
-  }, [process, energy]);
+  }, [process, energy, farmingSpeed]);
 
   return (
     <div className="p-4">
@@ -105,6 +112,28 @@ export default function SlotcoinLottery() {
           >
             {process.started ? "Stop" : "Start"}
           </button>
+
+          {/* Farming Speed */}
+          <div className="flex flex-col gap-1">
+            {/* Speed Control */}
+            <Slider
+              value={[farmingSpeed]}
+              min={0}
+              max={5}
+              onValueChange={([value]) =>
+                dispatchAndSetFarmingSpeed(Math.max(1, value))
+              }
+              trackClassName="bg-purple-200"
+              rangeClassName="bg-purple-500"
+              thumbClassName="bg-purple-500"
+            />
+
+            {/* Speed Display */}
+            <div className="text-center">
+              Spinning Speed:{" "}
+              <span className="text-purple-500">{farmingSpeed}s</span>
+            </div>
+          </div>
 
           {process.started ? (
             <div className="text-center">Working....</div>

@@ -113,7 +113,8 @@ export default function useDropFarmer({
         }
 
         isRequestInProgress = true;
-        return config;
+
+        return delay(apiDelay).then(() => Promise.resolve(config));
       },
       (error) => {
         return Promise.reject(error);

@@ -7,7 +7,7 @@ import App from "./App.jsx";
 
 const defaultOptions = {
   retry(failureCount, error) {
-    return !error?.response;
+    return !error?.response || failureCount > 5;
   },
 };
 const queryClient = new QueryClient({

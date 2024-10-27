@@ -7,6 +7,19 @@ const removeActionPopup = async () => {
   }
 };
 
+const closePreviousPopups = async () => {
+  const windows = await chrome.windows.getAll({
+    populate: true,
+    windowTypes: ["popup"],
+  });
+
+  for (const window of windows) {
+    if (window.tabs.some((tab) => tab.url === "chrome://newtab/")) {
+      await chrome.windows.remove(window.id);
+    }
+  }
+};
+
 /** Open Farmer */
 const openFarmerWindow = async () => {
   chrome.windows.create({
@@ -47,6 +60,7 @@ chrome.runtime.onInstalled.addListener(async () => {
   /** Open Farmer Window */
   const settings = await getSettings();
   if (settings.openFarmerInNewWindow) {
+    await closePreviousPopups();
     await openFarmerWindow();
   }
 });

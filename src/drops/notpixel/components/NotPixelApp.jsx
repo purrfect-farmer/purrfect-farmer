@@ -6,7 +6,7 @@ import useProcessLock from "@/hooks/useProcessLock";
 import useSocketDispatchCallback from "@/hooks/useSocketDispatchCallback";
 import useSocketHandlers from "@/hooks/useSocketHandlers";
 import { CgSpinner } from "react-icons/cg";
-import { cn, delay } from "@/lib/utils";
+import { cn, delayForSeconds } from "@/lib/utils";
 import { useCallback, useMemo } from "react";
 import { useEffect } from "react";
 import { useState } from "react";
@@ -15,6 +15,8 @@ import NotPixelIcon from "../assets/images/icon.png?format=webp&w=80";
 import useNotPixelMiningClaimMutation from "../hooks/useNotPixelMiningClaimMutation";
 import useNotPixelMiningStatusQuery from "../hooks/useNotPixelMiningStatusQuery";
 import useNotPixelRepaintMutation from "../hooks/useNotPixelRepaintMutation";
+import useSocketState from "@/hooks/useSocketState";
+import Slider from "@/components/Slider";
 
 TimeAgo.addDefaultLocale(en);
 
@@ -26,6 +28,11 @@ export default function NotPixelApp({ diff, updatedAt }) {
 
   const repaintMutation = useNotPixelRepaintMutation();
   const claimMiningMutation = useNotPixelMiningClaimMutation();
+
+  const [farmingSpeed, , dispatchAndSetFarmingSpeed] = useSocketState(
+    "notpixel.farming-speed",
+    10
+  );
 
   const [pixel, setPixel] = useState(null);
 
@@ -113,7 +120,7 @@ export default function NotPixelApp({ diff, updatedAt }) {
       } catch {}
 
       /** Delay */
-      await delay(10_000);
+      await delayForSeconds(farmingSpeed);
 
       /** Reset Color */
       setPixel(null);
@@ -124,7 +131,7 @@ export default function NotPixelApp({ diff, updatedAt }) {
       /** Release Lock */
       process.unlock();
     })();
-  }, [process, diff, mining]);
+  }, [process, diff, farmingSpeed, mining]);
 
   /** Sync Handlers */
   useSocketHandlers(
@@ -178,6 +185,27 @@ export default function NotPixelApp({ diff, updatedAt }) {
           >
             {!process.started ? "Start Farming" : "Stop Farming"}
           </button>
+
+          {/* Farming Speed */}
+          <div className="flex flex-col gap-1">
+            {/* Speed Control */}
+            <Slider
+              value={[farmingSpeed]}
+              min={0}
+              max={15}
+              onValueChange={([value]) =>
+                dispatchAndSetFarmingSpeed(Math.max(1, value))
+              }
+              trackClassName="bg-neutral-200"
+              rangeClassName="bg-neutral-900"
+              thumbClassName="bg-neutral-900"
+            />
+
+            {/* Speed Display */}
+            <div className="text-center">
+              Painting Speed: <span className="font-bold">{farmingSpeed}s</span>
+            </div>
+          </div>
 
           {process.started ? (
             <>

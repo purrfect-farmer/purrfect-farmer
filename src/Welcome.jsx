@@ -342,6 +342,7 @@ export default function Welcome() {
             className="mx-auto h-28"
             onDoubleClick={dispatchAndShowHiddenDrops}
           />
+
           <h3 className="text-2xl text-center font-turret-road">
             Purrfect Farmer
           </h3>

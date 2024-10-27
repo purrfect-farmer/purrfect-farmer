@@ -1,7 +1,7 @@
 {
   "name": "purrfect-farmer",
   "private": true,
-  "version": "0.0.2",
+  "version": "0.0.3",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -18,6 +18,7 @@
   "dependencies": {
     "@fontsource/turret-road": "^5.1.0",
     "@radix-ui/react-dialog": "^1.1.1",
+    "@radix-ui/react-slider": "^1.2.1",
     "@radix-ui/react-tabs": "^1.1.0",
     "@tanstack/react-query": "^5.54.1",
     "axios": "^1.7.7",
