@@ -12,7 +12,7 @@ import useTelegramWebApp from "./useTelegramWebApp";
 export default function useDropFarmer({
   id,
   host,
-  apiDelay = 500,
+  apiDelay = 0,
   domains = [],
   authHeaders = ["authorization"],
   extractAuthHeaders,
@@ -95,13 +95,9 @@ export default function useDropFarmer({
 
       const { config, resolve } = requestQueue.shift();
 
-      if (apiDelay > 0) {
-        delay(apiDelay).then(() => {
-          resolve(config);
-        });
-      } else {
+      delay(apiDelay).then(() => {
         resolve(config);
-      }
+      });
     };
 
     api.interceptors.request.use(
@@ -231,6 +227,13 @@ export default function useDropFarmer({
       chrome?.notifications?.clear(`${id}-farmer`);
     };
   }, [id, auth]);
+
+  /** Missing Telegram Web App*/
+  useEffect(() => {
+    if (!telegramWebApp) {
+      resetAuth();
+    }
+  }, [telegramWebApp, resetAuth]);
 
   /** Remove Queries */
   useEffect(() => {
