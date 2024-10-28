@@ -199,11 +199,14 @@ export default function Welcome() {
         });
 
         /** Push the tab */
-        pushTab({
-          ...tab,
-          component: <TelegramWeb version={version} hash="#7592929753" />,
-          reloadedAt: Date.now(),
-        });
+        pushTab(
+          {
+            ...tab,
+            component: <TelegramWeb version={version} hash="#7592929753" />,
+            reloadedAt: Date.now(),
+          },
+          true
+        );
       },
       [
         farmerTabs,

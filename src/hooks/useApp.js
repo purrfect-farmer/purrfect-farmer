@@ -31,13 +31,13 @@ export default function useApp() {
   );
 
   const pushTab = useCallback(
-    (tab) => {
+    (tab, override = false) => {
       if (openedTabs.find((item) => item.id === tab.id)) {
         /** Push Update */
         setOpenedTabs((previous) =>
           previous.map((item) =>
             item.id === tab.id
-              ? { ...tab, active: true }
+              ? { ...(override ? tab : item), active: true }
               : { ...item, active: false }
           )
         );
