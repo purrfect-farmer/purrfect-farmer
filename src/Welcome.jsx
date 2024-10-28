@@ -219,7 +219,9 @@ export default function Welcome() {
       (socket, version) =>
         socket.dispatch({
           action: "app.open-farmer-bot",
-          version,
+          data: {
+            version,
+          },
         }),
       []
     )
