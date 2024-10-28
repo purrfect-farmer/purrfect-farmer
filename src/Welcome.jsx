@@ -200,7 +200,16 @@ export default function Welcome() {
         pushTab(
           {
             ...tab,
-            component: <TelegramWeb version={version} hash="#7592929753" />,
+            component: (
+              <TelegramWeb
+                version={version}
+                hash={`#${
+                  version === "k"
+                    ? import.meta.env.VITE_APP_BOT_USERNAME
+                    : import.meta.env.VITE_APP_BOT_CHAT_ID
+                }`}
+              />
+            ),
             reloadedAt: Date.now(),
           },
           true
