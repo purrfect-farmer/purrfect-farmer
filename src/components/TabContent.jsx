@@ -1,10 +1,9 @@
-import toast from "react-hot-toast";
 import useAppContext from "@/hooks/useAppContext";
 import useSocketDispatchCallback from "@/hooks/useSocketDispatchCallback";
 import useSocketHandlers from "@/hooks/useSocketHandlers";
 import { ErrorBoundary } from "react-error-boundary";
 import { Suspense } from "react";
-import { cn, postPortMessage } from "@/lib/utils";
+import { cn } from "@/lib/utils";
 import { useCallback } from "react";
 import { useMemo } from "react";
 
@@ -31,60 +30,13 @@ const fallbackRender = ({ error, resetErrorBoundary }) => {
 };
 
 export default function TabContent({ tab }) {
-  const {
-    openedTabs,
-    setActiveTab,
-    messaging: { ports },
-    settings,
-  } = useAppContext();
+  const { openTelegramLink } = useAppContext();
 
   const [openBot, dispatchAndOpenBot] = useSocketDispatchCallback(
     /**Main */
     useCallback(async () => {
-      const telegramWeb = openedTabs.find((tab) =>
-        ["telegram-web-k", "telegram-web-a"].includes(tab.id)
-      );
-
-      if (!telegramWeb) {
-        toast.dismiss();
-        return toast.error("Please open Telegram Web");
-      }
-
-      const miniApps = ports
-        .values()
-        .filter((port) => port.name.startsWith("mini-app:"))
-        .toArray();
-
-      if (!miniApps.length) {
-        toast.dismiss();
-        return toast.error("No Telegram Bot Running..");
-      }
-
-      /** Post Message to First Port */
-      postPortMessage(miniApps[0], {
-        action: "open-telegram-link",
-        data: { url: tab.telegramLink },
-      }).then(() => {
-        setActiveTab(telegramWeb.id);
-      });
-
-      /** Close Other Bots */
-      if (settings.closeOtherBots) {
-        miniApps.slice(1).forEach((port) => {
-          if (port.name !== `mini-app:${import.meta.env.VITE_APP_BOT_HOST}`) {
-            postPortMessage(port, {
-              action: "close-bot",
-            });
-          }
-        });
-      }
-    }, [
-      openedTabs,
-      ports,
-      tab.telegramLink,
-      setActiveTab,
-      settings.closeOtherBots,
-    ]),
+      openTelegramLink(tab.telegramLink);
+    }, [openTelegramLink, tab.telegramLink]),
 
     /** Dispatch */
     useCallback(
@@ -100,7 +52,7 @@ export default function TabContent({ tab }) {
   useSocketHandlers(
     useMemo(
       () => ({
-        [`open-bot:${tab.id}`]: (command) => {
+        [`open-bot:${tab.id}`]: () => {
           openBot();
         },
       }),

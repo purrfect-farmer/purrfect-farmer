@@ -13,7 +13,7 @@ export default function ConfirmButton(props) {
         props.className
       )}
     >
-      <HiCheck className="w-4 h-4 " />
+      {props.children || <HiCheck className="w-4 h-4 " />}
     </button>
   );
 }

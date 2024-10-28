@@ -6,6 +6,7 @@ export default function Input(props) {
       {...props}
       className={cn(
         "p-2.5 rounded-lg bg-neutral-100 font-bold grow min-h-0 min-w-0",
+        "focus:outline-none focus:ring focus:ring-blue-300",
         props.className
       )}
     />

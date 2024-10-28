@@ -46,9 +46,10 @@ const confirmPopup = () => {
   for (let element of document.querySelectorAll(
     buttonSelectors.confirmButton
   )) {
+    const elementTextContent = element.textContent.trim().toUpperCase();
     if (
       [confirmButtonTextContent, closeButtonTextContent].includes(
-        element.textContent.trim().toUpperCase()
+        elementTextContent
       )
     ) {
       dispatchClickEventOnElement(element);

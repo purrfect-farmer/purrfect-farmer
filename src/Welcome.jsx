@@ -336,11 +336,7 @@ export default function Welcome() {
 
       <div className="flex flex-col p-4 overflow-auto grow">
         <div className="flex flex-col w-full gap-2 mx-auto my-auto max-w-96">
-          <img
-            src={WelcomeIcon}
-            className="mx-auto h-28"
-            onDoubleClick={dispatchAndShowHiddenDrops}
-          />
+          <img src={WelcomeIcon} className="mx-auto h-28" />
 
           <h3 className="text-2xl text-center font-turret-road">
             {import.meta.env.VITE_APP_NAME}
@@ -382,6 +378,7 @@ export default function Welcome() {
                     "p-2",
                     "rounded-full",
                     "bg-orange-100",
+                    "text-orange-800",
                     "hover:bg-orange-500",
                     "hover:text-white",
                     "inline-flex items-center justify-center gap-1"

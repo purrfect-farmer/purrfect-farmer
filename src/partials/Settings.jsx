@@ -137,8 +137,16 @@ export default function Settings() {
                   Settings
                 </span>
               </Dialog.Title>
-              <Dialog.Description className="text-center text-neutral-500">
-                Configure the Farmer
+              <Dialog.Description className="text-center">
+                <span
+                  className={cn(
+                    "text-transparent font-bold",
+                    "bg-clip-text",
+                    "bg-gradient-to-r from-green-500 to-blue-500"
+                  )}
+                >
+                  Configure the Farmer
+                </span>
               </Dialog.Description>
 
               <form

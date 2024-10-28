@@ -1,4 +1,6 @@
 import farmerTabs from "@/farmerTabs";
+import toast from "react-hot-toast";
+import { postPortMessage } from "@/lib/utils";
 import { useCallback } from "react";
 import { useMemo } from "react";
 import { useState } from "react";
@@ -83,10 +85,55 @@ export default function useApp() {
     [setOpenedTabs]
   );
 
+  const openTelegramLink = useCallback(
+    async (url) => {
+      if (!url) {
+        return;
+      }
+      const telegramWeb = openedTabs.find((tab) =>
+        ["telegram-web-k", "telegram-web-a"].includes(tab.id)
+      );
+
+      if (!telegramWeb) {
+        toast.dismiss();
+        return toast.error("Please open Telegram Web");
+      }
+
+      const miniApps = messaging.ports
+        .values()
+        .filter((port) => port.name.startsWith("mini-app:"))
+        .toArray();
+
+      if (!miniApps.length) {
+        toast.dismiss();
+        return toast.error("No Telegram Bot Running..");
+      }
+
+      /** Post Message to First Port */
+      postPortMessage(miniApps[0], {
+        action: "open-telegram-link",
+        data: { url },
+      }).then(() => {
+        setActiveTab(telegramWeb.id);
+      });
+
+      /** Close Other Bots */
+      if (settings.closeOtherBots) {
+        miniApps.slice(1).forEach((port) => {
+          if (port.name !== `mini-app:${import.meta.env.VITE_APP_BOT_HOST}`) {
+            postPortMessage(port, {
+              action: "close-bot",
+            });
+          }
+        });
+      }
+    },
+    [openedTabs, messaging.ports, setActiveTab, settings.closeOtherBots]
+  );
+
   return useMemo(
     () => ({
       settings,
-      configureSettings,
       socket,
       messaging,
       openedTabs,
@@ -94,10 +141,11 @@ export default function useApp() {
       closeTab,
       pushTab,
       reloadTab,
+      configureSettings,
+      openTelegramLink,
     }),
     [
       settings,
-      configureSettings,
       socket,
       messaging,
       openedTabs,
@@ -105,6 +153,8 @@ export default function useApp() {
       closeTab,
       pushTab,
       reloadTab,
+      configureSettings,
+      openTelegramLink,
     ]
   );
 }
