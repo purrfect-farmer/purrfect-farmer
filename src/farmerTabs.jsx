@@ -6,19 +6,22 @@ import { lazy } from "react";
 
 import Farmer from "./Farmer";
 
-const Welcome = lazy(() => import("@/Welcome"));
-const TelegramWeb = lazy(() => import("@/TelegramWeb"));
+export const Welcome = lazy(() => import("@/Welcome"));
+export const TelegramWeb = lazy(() => import("@/TelegramWeb"));
 
-const farmerIconsGlob = import.meta.glob("@/drops/*/assets/images/icon.png", {
-  eager: true,
-  import: "default",
-  query: {
-    format: "webp",
-    w: "80",
-    h: "80",
-  },
-});
-const farmerIcons = Object.fromEntries(
+export const farmerIconsGlob = import.meta.glob(
+  "@/drops/*/assets/images/icon.png",
+  {
+    eager: true,
+    import: "default",
+    query: {
+      format: "webp",
+      w: "80",
+      h: "80",
+    },
+  }
+);
+export const farmerIcons = Object.fromEntries(
   Object.entries(farmerIconsGlob).map(([k, v]) => {
     return [path.basename(k.replace("/assets/images/icon.png", "")), v];
   })

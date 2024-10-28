@@ -32,7 +32,16 @@ export default function useApp() {
 
   const pushTab = useCallback(
     (tab) => {
-      if (!setActiveTab(tab.id)) {
+      if (openedTabs.find((item) => item.id === tab.id)) {
+        /** Push Update */
+        setOpenedTabs((previous) =>
+          previous.map((item) =>
+            item.id === tab.id
+              ? { ...tab, active: true }
+              : { ...item, active: false }
+          )
+        );
+      } else {
         /** Push a new Tab */
         setOpenedTabs((previous) => [
           ...previous.map((item) => ({ ...item, active: false })),

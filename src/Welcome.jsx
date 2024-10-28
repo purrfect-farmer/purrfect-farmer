@@ -1,5 +1,6 @@
 import * as Dialog from "@radix-ui/react-dialog";
-import AppIcon from "@/assets/images/icon.png?format=webp&h=80";
+import BotWebAIcon from "@/assets/images/bot-web-a.png?format=webp&w=80";
+import BotWebKIcon from "@/assets/images/bot-web-k.png?format=webp&w=80";
 import Settings from "@/partials/Settings";
 import TelegramWebAIcon from "@/assets/images/telegram-web-a.png?format=webp&w=80";
 import TelegramWebKIcon from "@/assets/images/telegram-web-k.png?format=webp&w=80";
@@ -24,7 +25,7 @@ import { useState } from "react";
 
 import DropButton from "./components/DropButton";
 import Shutdown from "./partials/Shutdown";
-import farmerTabs from "./farmerTabs";
+import farmerTabs, { TelegramWeb } from "./farmerTabs";
 
 export default function Welcome() {
   const [showSettings, setShowSettings, dispatchAndSetShowSettings] =
@@ -176,29 +177,16 @@ export default function Welcome() {
 
   const [openFarmerBot, dispatchAndOpenFarmerBot] = useSocketDispatchCallback(
     /** Main */
-    useCallback(() => {
-      let port = messaging.ports
-        .values()
-        .find((port) =>
-          ["telegram-web:k", "telegram-web:a"].includes(port.name)
+    useCallback(
+      (version) => {
+        const tab = farmerTabs.find(
+          (item) => item.id === `telegram-web-${version}`
         );
 
-      /** Push Telegram Tab */
-      findAndPushTab(
-        port && port.name === "telegram-web:a"
-          ? "telegram-web-a"
-          : "telegram-web-k"
-      );
-
-      if (port) {
-        postPortMessage(port, {
-          action: "open-farmer-bot",
-        });
-      } else {
+        /** Capture Port */
         async function capturePort(message, port) {
           messaging.removeMessageHandlers({
-            "set-port:telegram-web-k": capturePort,
-            "set-port:telegram-web-a": capturePort,
+            [`set-port:telegram-web-${version}`]: capturePort,
           });
 
           postPortMessage(port, {
@@ -207,23 +195,31 @@ export default function Welcome() {
         }
 
         messaging.addMessageHandlers({
-          "set-port:telegram-web-k": capturePort,
-          "set-port:telegram-web-a": capturePort,
+          [`set-port:telegram-web-${version}`]: capturePort,
         });
-      }
-    }, [
-      openedTabs,
-      findAndPushTab,
-      messaging.ports,
-      messaging.addMessageHandlers,
-      messaging.removeMessageHandlers,
-    ]),
+
+        /** Push the tab */
+        pushTab({
+          ...tab,
+          component: <TelegramWeb version={version} hash="#7592929753" />,
+          reloadedAt: Date.now(),
+        });
+      },
+      [
+        farmerTabs,
+        pushTab,
+        messaging.ports,
+        messaging.addMessageHandlers,
+        messaging.removeMessageHandlers,
+      ]
+    ),
 
     /** Dispatch */
     useCallback(
-      (socket) =>
+      (socket, version) =>
         socket.dispatch({
           action: "app.open-farmer-bot",
+          version,
         }),
       []
     )
@@ -237,8 +233,8 @@ export default function Welcome() {
           reload();
         },
 
-        "app.open-farmer-bot": () => {
-          openFarmerBot();
+        "app.open-farmer-bot": (command) => {
+          openFarmerBot(command.data.version);
         },
 
         "app.show-hidden-drops": () => {
@@ -373,11 +369,36 @@ export default function Welcome() {
           </p>
 
           <div className="flex flex-col gap-1">
+            {/* Open Farmer Bot */}
+            <div className="flex justify-center gap-1">
+              {["k", "a"].map((v) => (
+                <button
+                  key={v}
+                  onClick={() => dispatchAndOpenFarmerBot(v)}
+                  className={cn(
+                    "p-2",
+                    "rounded-full",
+                    "bg-orange-100",
+                    "hover:bg-orange-500",
+                    "hover:text-white",
+                    "inline-flex items-center justify-center gap-1"
+                  )}
+                  title={`Open Purrfect in Telegram Web${v.toUpperCase()}`}
+                >
+                  <img
+                    src={v === "k" ? BotWebKIcon : BotWebAIcon}
+                    className="w-6 h-6"
+                  />
+                  Purrfect-{v.toUpperCase()}
+                </button>
+              ))}
+            </div>
+
             {/* TelegramWeb */}
             <div className="flex justify-center gap-1">
-              {["k", "a"].map((v, index) => (
+              {["k", "a"].map((v) => (
                 <button
-                  key={index}
+                  key={v}
                   onClick={() => openTelegramWeb(v)}
                   className={cn(
                     "p-2",
@@ -396,24 +417,6 @@ export default function Welcome() {
                   {`Web${v.toUpperCase()}`}
                 </button>
               ))}
-            </div>
-            {/* Open Farmer Bot */}
-            <div className="flex justify-center">
-              <button
-                onClick={dispatchAndOpenFarmerBot}
-                className={cn(
-                  "p-2",
-                  "rounded-full",
-                  "bg-orange-100",
-                  "hover:bg-orange-500",
-                  "hover:text-white",
-                  "inline-flex items-center justify-center gap-1"
-                )}
-                title={"Open Purrfect"}
-              >
-                <img src={AppIcon} className="w-6 h-6" />
-                Purrfect
-              </button>
             </div>
           </div>
 

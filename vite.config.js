@@ -44,9 +44,12 @@ export default defineConfig(() => {
       emptyOutDir: process.env.VITE_ENTRY === "index",
       rollupOptions: {
         input,
-        output: {
-          entryFileNames: "[name].js",
-        },
+        output: Object.assign(
+          {
+            entryFileNames: "[name].js",
+          },
+          process.env.VITE_ENTRY !== "index" ? { format: "iife" } : null
+        ),
       },
     },
     plugins: [react(), imagetools()],
