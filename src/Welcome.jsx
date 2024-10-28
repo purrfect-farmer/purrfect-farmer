@@ -42,9 +42,7 @@ export default function Welcome() {
     () =>
       farmerTabs.filter(
         (item) =>
-          !["purrfect-farmer", "telegram-web-k", "telegram-web-a"].includes(
-            item.id
-          ) &&
+          !["app", "telegram-web-k", "telegram-web-a"].includes(item.id) &&
           (showHidden || !item.hidden)
       ),
     [showHidden, farmerTabs]
@@ -276,7 +274,7 @@ export default function Welcome() {
   useEffect(() => {
     document.title = `${
       settings.farmerTitle || defaultSettings.farmerTitle
-    } - Purrfect Farmer`;
+    } - ${import.meta.env.VITE_APP_NAME}`;
   }, [settings]);
 
   return (
@@ -345,7 +343,7 @@ export default function Welcome() {
           />
 
           <h3 className="text-2xl text-center font-turret-road">
-            Purrfect Farmer
+            {import.meta.env.VITE_APP_NAME}
           </h3>
           <p className="text-lg text-center">
             <span
@@ -388,13 +386,15 @@ export default function Welcome() {
                     "hover:text-white",
                     "inline-flex items-center justify-center gap-1"
                   )}
-                  title={`Open Purrfect in Telegram Web${v.toUpperCase()}`}
+                  title={`Open ${
+                    import.meta.env.VITE_APP_BOT_NAME
+                  } in Telegram Web${v.toUpperCase()}`}
                 >
                   <img
                     src={v === "k" ? BotWebKIcon : BotWebAIcon}
                     className="w-6 h-6"
                   />
-                  Purrfect-{v.toUpperCase()}
+                  {import.meta.env.VITE_APP_BOT_NAME}-{v.toUpperCase()}
                 </button>
               ))}
             </div>
@@ -440,7 +440,7 @@ export default function Welcome() {
           {/* Connect */}
           <div className="flex items-center justify-center gap-2 text-xs">
             <a
-              href="https://t.me/purrfect_community"
+              href={import.meta.env.VITE_APP_TELEGRAM_CHANNEL}
               target="_blank"
               className="text-blue-500 hover:underline"
             >
@@ -448,7 +448,7 @@ export default function Welcome() {
             </a>
             &bull;
             <a
-              href="https://wa.me/2349018646163"
+              href={import.meta.env.VITE_APP_DEV_CONTACT}
               target="_blank"
               className="text-blue-500 hover:underline"
             >

@@ -2,7 +2,7 @@ import useFarmerContext from "@/hooks/useFarmerContext";
 import useProcessLock from "@/hooks/useProcessLock";
 import useSocketDispatchCallback from "@/hooks/useSocketDispatchCallback";
 import useSocketHandlers from "@/hooks/useSocketHandlers";
-import { cn, delay } from "@/lib/utils";
+import { cn, delayForSeconds } from "@/lib/utils";
 import { useCallback } from "react";
 import { useEffect } from "react";
 import { useMemo } from "react";
@@ -146,7 +146,7 @@ export default function BirdTonTasks() {
           });
 
           /** Delay */
-          await delay(5_000);
+          await delayForSeconds(1);
         }
       }
 
@@ -166,7 +166,7 @@ export default function BirdTonTasks() {
           });
 
           /** Delay */
-          await delay(5000);
+          await delayForSeconds(1);
         }
 
         /** Collect Task */
@@ -176,7 +176,7 @@ export default function BirdTonTasks() {
         });
 
         /** Delay */
-        await delay(5_000);
+        await delayForSeconds(1);
       }
 
       reset();

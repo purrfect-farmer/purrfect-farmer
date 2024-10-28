@@ -71,9 +71,11 @@ export default function TabContent({ tab }) {
       /** Close Other Bots */
       if (settings.closeOtherBots) {
         miniApps.slice(1).forEach((port) => {
-          postPortMessage(port, {
-            action: "close-bot",
-          });
+          if (port.name !== `mini-app:${import.meta.env.VITE_APP_BOT_HOST}`) {
+            postPortMessage(port, {
+              action: "close-bot",
+            });
+          }
         });
       }
     }, [

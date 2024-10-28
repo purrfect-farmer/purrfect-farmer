@@ -53,7 +53,7 @@ export default function Shutdown() {
             )}
           >
             <img src={AppIcon} className="w-8 h-8 rounded-full" />
-            Purrfect Farmer
+            {import.meta.env.VITE_APP_NAME}
           </Dialog.Title>
 
           {/* Description */}

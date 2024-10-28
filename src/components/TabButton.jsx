@@ -118,7 +118,7 @@ export default function TabButton({ tab, connected }) {
         {tab.title}
       </span>
 
-      {tab.active && tab.id !== "purrfect-farmer" ? (
+      {tab.active && tab.id !== "app" ? (
         <>
           {/* Reload Button */}
           <button

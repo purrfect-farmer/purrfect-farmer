@@ -1,14 +1,19 @@
 import path from "path";
 import react from "@vitejs/plugin-react";
+import { ViteEjsPlugin } from "vite-plugin-ejs";
 import { defineConfig } from "vite";
 import { fileURLToPath } from "url";
 import { imagetools } from "vite-imagetools";
+import { loadEnv } from "vite";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 // https://vitejs.dev/config/
-export default defineConfig(() => {
+export default defineConfig(({ mode }) => {
+  /** Env */
+  const env = loadEnv(mode, process.cwd());
+
   let input;
 
   switch (process.env.VITE_ENTRY) {
@@ -52,7 +57,7 @@ export default defineConfig(() => {
         ),
       },
     },
-    plugins: [react(), imagetools()],
+    plugins: [ViteEjsPlugin(env), react(), imagetools()],
     esbuild: {
       supported: {
         "top-level-await": true,

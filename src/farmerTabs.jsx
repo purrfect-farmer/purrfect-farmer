@@ -29,8 +29,8 @@ export const farmerIcons = Object.fromEntries(
 
 const farmerTabs = [
   {
-    id: "purrfect-farmer",
-    title: "Purrfect Farmer",
+    id: "app",
+    title: import.meta.env.VITE_APP_NAME,
     icon: AppIcon,
     component: <Welcome />,
   },

@@ -2,7 +2,7 @@ import { isElementVisible } from "./lib/utils";
 
 const webVersion = location.pathname.startsWith("/k/") ? "k" : "a";
 
-const botURL = "https://purrfect-farmer.github.io/purrfect-mini-app";
+const botURL = import.meta.env.VITE_APP_BOT_URL;
 
 const confirmButtonTextContent = webVersion === "k" ? "LAUNCH" : "CONFIRM";
 const closeButtonTextContent = "CLOSE ANYWAY";

@@ -96,6 +96,7 @@ export default function useBirdTon(farmer) {
 
     /** Add Event Listener for Open */
     socket.addEventListener("open", () => {
+      /** Set Connected True */
       setConnected(true);
 
       /** Send Auth */
@@ -104,7 +105,11 @@ export default function useBirdTon(farmer) {
 
     /** Add Event Listener for Close */
     socket.addEventListener("close", () => {
+      /** Set Connected False */
       setConnected(false);
+
+      /** Reset Telegram Web */
+      farmer.resetTelegramWebApp();
     });
 
     return () => {
@@ -112,7 +117,7 @@ export default function useBirdTon(farmer) {
       socketRef.current = null;
       setConnected(false);
     };
-  }, [user?.["auth_key"]]);
+  }, [user?.["auth_key"], farmer.resetTelegramWebApp]);
 
   return useMemo(
     () => ({
