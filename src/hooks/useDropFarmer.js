@@ -136,8 +136,7 @@ export default function useDropFarmer({
       (error) => {
         if ([401, 403, 418].includes(error?.response?.status)) {
           toast.dismiss();
-          toast.error("Unauthenticated - Please reload the Farmer");
-          resetAuth();
+          toast.error("Unauthenticated - Please reload the Bot or Farmer");
         }
         return Promise.reject(error);
       }
@@ -146,7 +145,7 @@ export default function useDropFarmer({
     return () => {
       api.interceptors.response.eject(interceptor);
     };
-  }, [queryClient, api, resetAuth]);
+  }, [queryClient, api]);
 
   /** Handle Web Request */
   useEffect(() => {
