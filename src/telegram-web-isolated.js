@@ -1,5 +1,3 @@
-import isMobile from "is-mobile";
-
 import { isElementVisible } from "./lib/utils";
 
 const webVersion = location.pathname.startsWith("/k/") ? "k" : "a";
@@ -23,25 +21,15 @@ const buttonSelectors =
       };
 
 const dispatchClickEventOnElement = (element) => {
-  const isMobileDevice = isMobile();
-  const isTouchDevice =
-    "ontouchstart" in window || navigator.maxTouchPoints > 0;
-
-  let eventType;
-
-  if (isMobileDevice && isTouchDevice) {
-    eventType = webVersion === "k" ? "mousedown" : "click";
-  } else {
-    eventType = webVersion === "k" ? "click" : "mousedown";
-  }
-
-  /** Dispatch the event */
-  element.dispatchEvent(
-    new MouseEvent(eventType, {
-      bubbles: true,
-      cancelable: true,
-    })
-  );
+  ["mousedown", "click"].forEach((eventType) => {
+    /** Dispatch the event */
+    element.dispatchEvent(
+      new MouseEvent(eventType, {
+        bubbles: true,
+        cancelable: true,
+      })
+    );
+  });
 };
 
 /** Confirm Popup */
