@@ -109,14 +109,6 @@ export default function useApp() {
         return toast.error("No Telegram Bot Running..");
       }
 
-      /** Post Message to First Port */
-      postPortMessage(miniApps[0], {
-        action: "open-telegram-link",
-        data: { url },
-      }).then(() => {
-        setActiveTab(telegramWeb.id);
-      });
-
       /** Close Other Bots */
       if (settings.closeOtherBots) {
         miniApps.slice(1).forEach((port) => {
@@ -127,6 +119,14 @@ export default function useApp() {
           }
         });
       }
+
+      /** Post Message to First Port */
+      postPortMessage(miniApps[0], {
+        action: "open-telegram-link",
+        data: { url },
+      }).then(() => {
+        setActiveTab(telegramWeb.id);
+      });
     },
     [openedTabs, messaging.ports, setActiveTab, settings.closeOtherBots]
   );
