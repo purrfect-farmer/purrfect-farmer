@@ -1,7 +1,7 @@
 {
   "name": "purrfect-farmer",
   "private": true,
-  "version": "0.0.4",
+  "version": "0.0.5",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -29,6 +29,7 @@
     "events": "^3.3.0",
     "fflate": "^0.8.2",
     "hex-rgb": "^5.0.0",
+    "is-mobile": "^5.0.0",
     "javascript-time-ago": "^2.5.11",
     "md5": "^2.3.0",
     "moment": "^2.30.1",
