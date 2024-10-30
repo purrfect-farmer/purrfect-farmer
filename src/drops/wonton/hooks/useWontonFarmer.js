@@ -11,5 +11,6 @@ export default function useWontonFarmer() {
       title: "Wonton Farmer",
     },
     domains: ["*.wonton.food"],
+    apiDelay: 3000,
   });
 }

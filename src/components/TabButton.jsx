@@ -1,66 +1,41 @@
 import useAppContext from "@/hooks/useAppContext";
-import useSocketDispatchCallback from "@/hooks/useSocketDispatchCallback";
 import { HiOutlineArrowPath, HiOutlineXMark } from "react-icons/hi2";
 import { cn } from "@/lib/utils";
 import { useCallback, useRef } from "react";
 import { useEffect } from "react";
 
 export default function TabButton({ tab, connected }) {
-  const { setActiveTab, closeTab, reloadTab } = useAppContext();
+  const { dispatchAndCloseTab, dispatchAndSetActiveTab, reloadTab } =
+    useAppContext();
   const buttonRef = useRef();
 
-  /** Reload Tab */
-  const handleReloadTab = useCallback(() => {
-    reloadTab(tab.id);
-  }, [tab, reloadTab]);
-
   /** Button Click Handler */
-  const [, dispatchAndHandleTabClick] = useSocketDispatchCallback(
-    /** Main */
-    useCallback(() => {
-      setActiveTab(tab.id);
-    }, [tab, setActiveTab]),
+  const handleTabButtonClick = useCallback(() => {
+    dispatchAndSetActiveTab(tab.id);
+  }, [tab.id, dispatchAndSetActiveTab]);
 
-    /** Dispatch */
-    useCallback(
-      (socket) => {
-        socket.dispatch({
-          action: "app.set-active-tab",
-          data: {
-            id: tab.id,
-          },
-        });
-      },
-      [tab]
-    )
+  /** Reload Tab */
+  const handleReloadButtonClick = useCallback(
+    (ev) => {
+      /** Stop Propagation */
+      ev.stopPropagation();
+
+      /** Reload Tab */
+      reloadTab(tab.id);
+    },
+    [tab.id, reloadTab]
   );
 
   /** Close Button Click Handler */
-  const [, dispatchAndHandleCloseButtonClick] = useSocketDispatchCallback(
-    /** Main */
-    useCallback(
-      (ev) => {
-        /** Stop Propagation */
-        ev.stopPropagation();
+  const handleCloseButtonClick = useCallback(
+    (ev) => {
+      /** Stop Propagation */
+      ev.stopPropagation();
 
-        /** Close Tab */
-        closeTab(tab.id);
-      },
-      [tab, closeTab]
-    ),
-
-    /** Dispatch */
-    useCallback(
-      (socket) => {
-        socket.dispatch({
-          action: "app.close-tab",
-          data: {
-            id: tab.id,
-          },
-        });
-      },
-      [tab]
-    )
+      /** Close Tab */
+      dispatchAndCloseTab(tab.id);
+    },
+    [tab.id, dispatchAndCloseTab]
   );
 
   /** Scroll into View */
@@ -71,12 +46,12 @@ export default function TabButton({ tab, connected }) {
         behavior: "smooth",
       });
     }
-  }, [tab, buttonRef]);
+  }, [tab.active, buttonRef]);
 
   return (
     <div
       ref={buttonRef}
-      onClick={dispatchAndHandleTabClick}
+      onClick={handleTabButtonClick}
       title={tab.title}
       className={cn(
         "cursor-pointer",
@@ -126,7 +101,7 @@ export default function TabButton({ tab, connected }) {
               "inline-flex items-center justify-center",
               "rounded-full w-7 h-7 shrink-0 hover:bg-neutral-200"
             )}
-            onClick={handleReloadTab}
+            onClick={handleReloadButtonClick}
           >
             <HiOutlineArrowPath className="w-5 h-5" />
           </button>
@@ -137,7 +112,7 @@ export default function TabButton({ tab, connected }) {
               "inline-flex items-center justify-center",
               "rounded-full w-7 h-7 shrink-0 hover:bg-neutral-200"
             )}
-            onClick={dispatchAndHandleCloseButtonClick}
+            onClick={handleCloseButtonClick}
           >
             <HiOutlineXMark className="w-5 h-5" />
           </button>

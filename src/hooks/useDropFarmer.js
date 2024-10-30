@@ -1,7 +1,8 @@
+import FarmerNotification from "@/components/FarmerNotification";
 import axios from "axios";
 import toast from "react-hot-toast";
+import { createElement, useCallback } from "react";
 import { delay } from "@/lib/utils";
-import { useCallback } from "react";
 import { useEffect } from "react";
 import { useMemo } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -137,6 +138,7 @@ export default function useDropFarmer({
         if ([401, 403, 418].includes(error?.response?.status)) {
           toast.dismiss();
           toast.error("Unauthenticated - Please reload the Bot or Farmer");
+          resetAuth();
         }
         return Promise.reject(error);
       }
@@ -145,7 +147,7 @@ export default function useDropFarmer({
     return () => {
       api.interceptors.response.eject(interceptor);
     };
-  }, [queryClient, api]);
+  }, [queryClient, api, resetAuth]);
 
   /** Handle Web Request */
   useEffect(() => {
@@ -214,16 +216,25 @@ export default function useDropFarmer({
   /** Create Notification */
   useEffect(() => {
     if (auth) {
-      chrome?.notifications?.create(`${id}-farmer`, {
-        iconUrl: notification.icon,
-        title: notification.title,
-        message: "Farmer Started",
-        type: "basic",
-      });
+      toast.success(
+        (t) =>
+          createElement(FarmerNotification, {
+            t,
+            id,
+            notification,
+          }),
+        {
+          icon: createElement("img", {
+            src: notification.icon,
+            className: "w-6 h-6 rounded-full",
+          }),
+          id: `${id}-farmer`,
+        }
+      );
     }
 
     return () => {
-      chrome?.notifications?.clear(`${id}-farmer`);
+      toast.dismiss(`${id}-farmer`);
     };
   }, [id, auth]);
 

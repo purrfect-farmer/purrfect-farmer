@@ -5,15 +5,13 @@ import LabelToggle from "@/components/LabelToggle";
 import ResetButton from "@/components/ResetButton";
 import defaultSettings from "@/default-settings";
 import useAppContext from "@/hooks/useAppContext";
-import useSocketDispatchCallback from "@/hooks/useSocketDispatchCallback";
-import useSocketHandlers from "@/hooks/useSocketHandlers";
 import { CgSpinner } from "react-icons/cg";
 import { cn, maximizeFarmerWindow, resizeFarmerWindow } from "@/lib/utils";
 import { useCallback, useEffect, useState } from "react";
-import { useMemo } from "react";
 
 export default function Settings() {
-  const { settings, configureSettings } = useAppContext();
+  const { settings, configureSettings, dispatchAndConfigureSettings } =
+    useAppContext();
 
   /** Sync Server */
   const [syncServer, setSyncServer] = useState(
@@ -28,25 +26,6 @@ export default function Settings() {
   /** Farmer Position */
   const [farmerPosition, setFarmerPosition] = useState(
     settings.farmerPosition || defaultSettings.farmerPosition
-  );
-
-  /** Dispatcher */
-  const [, dispatchAndConfigureSettings] = useSocketDispatchCallback(
-    /** Configure Settings */
-    configureSettings,
-
-    /** Dispatch */
-    useCallback(
-      (socket, k, v) =>
-        socket.dispatch({
-          action: "settings.set-value",
-          data: {
-            key: k,
-            value: v,
-          },
-        }),
-      []
-    )
   );
 
   /** Resize Page */
@@ -84,18 +63,6 @@ export default function Settings() {
 
     resizeSettingsPage();
   }, [resizeSettingsPage, farmersPerWindow, farmerPosition, configureSettings]);
-
-  /** Handlers */
-  useSocketHandlers(
-    useMemo(
-      () => ({
-        "settings.set-value": (command) => {
-          configureSettings(command.data.key, command.data.value);
-        },
-      }),
-      [configureSettings]
-    )
-  );
 
   /** Update Settings */
   useEffect(() => {
@@ -155,8 +122,7 @@ export default function Settings() {
               >
                 {/* Farmer Title */}
                 <label className="text-neutral-500">Farmer Title</label>
-                <input
-                  className="p-2.5 rounded-lg bg-neutral-100 font-bold"
+                <Input
                   value={settings?.farmerTitle}
                   onChange={(ev) =>
                     configureSettings("farmerTitle", ev.target.value)

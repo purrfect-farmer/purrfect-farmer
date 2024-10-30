@@ -1,39 +1,10 @@
 import * as Dialog from "@radix-ui/react-dialog";
 import AppIcon from "@/assets/images/icon.png?format=webp&w=80";
-import useSocketDispatchCallback from "@/hooks/useSocketDispatchCallback";
-import useSocketHandlers from "@/hooks/useSocketHandlers";
+import useAppContext from "@/hooks/useAppContext";
 import { cn } from "@/lib/utils";
-import { useCallback } from "react";
-import { useMemo } from "react";
 
 export default function Shutdown() {
-  const [shutdown, dispatchAndShutdown] = useSocketDispatchCallback(
-    /** Main */
-    useCallback(() => {
-      window.close();
-    }, []),
-
-    /** Dispatch */
-    useCallback(
-      (socket) =>
-        socket.dispatch({
-          action: "app.shutdown",
-        }),
-      []
-    )
-  );
-
-  /** Handlers */
-  useSocketHandlers(
-    useMemo(
-      () => ({
-        "app.shutdown": () => {
-          shutdown();
-        },
-      }),
-      [shutdown]
-    )
-  );
+  const { dispatchAndShutdown } = useAppContext();
 
   return (
     <Dialog.Portal>

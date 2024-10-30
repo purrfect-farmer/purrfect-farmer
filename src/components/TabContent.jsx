@@ -1,11 +1,7 @@
 import useAppContext from "@/hooks/useAppContext";
-import useSocketDispatchCallback from "@/hooks/useSocketDispatchCallback";
-import useSocketHandlers from "@/hooks/useSocketHandlers";
 import { ErrorBoundary } from "react-error-boundary";
 import { Suspense } from "react";
 import { cn } from "@/lib/utils";
-import { useCallback } from "react";
-import { useMemo } from "react";
 
 import FullSpinner from "./FullSpinner";
 
@@ -30,35 +26,7 @@ const fallbackRender = ({ error, resetErrorBoundary }) => {
 };
 
 export default function TabContent({ tab }) {
-  const { openTelegramLink } = useAppContext();
-
-  const [openBot, dispatchAndOpenBot] = useSocketDispatchCallback(
-    /**Main */
-    useCallback(async () => {
-      openTelegramLink(tab.telegramLink);
-    }, [openTelegramLink, tab.telegramLink]),
-
-    /** Dispatch */
-    useCallback(
-      (socket) =>
-        socket.dispatch({
-          action: `open-bot:${tab.id}`,
-        }),
-      [tab.id]
-    )
-  );
-
-  /** Handlers */
-  useSocketHandlers(
-    useMemo(
-      () => ({
-        [`open-bot:${tab.id}`]: () => {
-          openBot();
-        },
-      }),
-      [tab.id, openBot]
-    )
-  );
+  const { dispatchAndOpenTelegramLink } = useAppContext();
 
   return (
     <div
@@ -72,7 +40,7 @@ export default function TabContent({ tab }) {
       {tab.telegramLink ? (
         <button
           className="p-3 font-bold text-blue-500 border-b"
-          onClick={dispatchAndOpenBot}
+          onClick={() => dispatchAndOpenTelegramLink(tab.telegramLink)}
         >
           Open Bot
         </button>

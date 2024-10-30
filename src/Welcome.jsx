@@ -17,7 +17,7 @@ import {
   HiOutlinePower,
   HiOutlinePuzzlePiece,
 } from "react-icons/hi2";
-import { cn, postPortMessage } from "@/lib/utils";
+import { cn } from "@/lib/utils";
 import { useCallback } from "react";
 import { useEffect } from "react";
 import { useMemo } from "react";
@@ -25,14 +25,42 @@ import { useState } from "react";
 
 import DropButton from "./components/DropButton";
 import Shutdown from "./partials/Shutdown";
-import farmerTabs, { TelegramWeb } from "./farmerTabs";
+import farmerTabs from "./farmerTabs";
+
+const TelegramWebButton = ({ icon, children, ...props }) => (
+  <button
+    {...props}
+    className={cn(
+      "p-2",
+      "rounded-full",
+      "bg-neutral-100",
+      "hover:bg-blue-500",
+      "hover:text-white",
+      "inline-flex items-center justify-center gap-1",
+      props.className
+    )}
+  >
+    <img src={icon} className="w-6 h-6" />
+    {children}
+  </button>
+);
 
 export default function Welcome() {
-  const [showSettings, setShowSettings, dispatchAndSetShowSettings] =
-    useSocketState("app.toggle-settings", false);
+  const [
+    showSettingsPanel,
+    setShowSettingsPanel,
+    dispatchAndSetShowSettingsPanel,
+  ] = useSocketState("app.toggle-settings-panel", false);
 
-  const { settings, messaging, socket, openedTabs, pushTab, closeTab } =
-    useAppContext();
+  const {
+    settings,
+    socket,
+    openExtensionsPage,
+    openTelegramWeb,
+    dispatchAndSetActiveTab,
+    dispatchAndReloadApp,
+    dispatchAndOpenFarmerBot,
+  } = useAppContext();
 
   /** Hidden Toggle */
   const [showHidden, setShowHidden] = useState(import.meta.env.DEV);
@@ -67,215 +95,15 @@ export default function Welcome() {
       )
     );
 
-  const [, dispatchAndPushTab] = useSocketDispatchCallback(
-    /** Main */
-    pushTab,
-
-    /** Dispatch */
-    useCallback(
-      (socket, drop) =>
-        socket.dispatch({
-          action: "app.push-tab",
-          data: {
-            id: drop.id,
-          },
-        }),
-      []
-    )
-  );
-
-  /** Find And Push Tab */
-  const [findAndPushTab, dispatchThenFindAndPushTab] =
-    useSocketDispatchCallback(
-      /** Main */
-      useCallback(
-        (id) => {
-          pushTab(farmerTabs.find((item) => item.id === id));
-        },
-        [farmerTabs, pushTab]
-      ),
-
-      /** Dispatch */
-      useCallback(
-        (socket, id) =>
-          socket.dispatch({
-            action: "app.push-tab",
-            data: {
-              id,
-            },
-          }),
-        []
-      )
-    );
-  /** Navigate to Telegram Web */
-  const [navigateToTelegramWeb, dispatchAndNavigateToTelegramWeb] =
-    useSocketDispatchCallback(
-      /** Main */
-      useCallback(
-        (v) =>
-          chrome?.tabs?.query({ active: true, currentWindow: true }, (tabs) => {
-            chrome?.tabs?.update(tabs[0].id, {
-              url: `https://web.telegram.org/${v}`,
-              active: true,
-            });
-          }),
-        []
-      ),
-
-      /** Dispatch */
-      useCallback(
-        (socket, v) =>
-          socket.dispatch({
-            action: "app.navigate-to-telegram-web",
-            data: {
-              version: v,
-            },
-          }),
-        []
-      )
-    );
-
-  /** Open Telegram Web */
-  const openTelegramWeb = useCallback(
-    (v) => {
-      if (settings.openTelegramWebWithinFarmer) {
-        dispatchThenFindAndPushTab(`telegram-web-${v}`);
-      } else {
-        dispatchAndNavigateToTelegramWeb(v);
-      }
-    },
-    [settings, dispatchThenFindAndPushTab, dispatchAndNavigateToTelegramWeb]
-  );
-
-  /** Open Extensions Page */
-  const openExtensionsPage = useCallback(async () => {
-    await chrome?.windows?.create({
-      url: "chrome://extensions",
-      state: "maximized",
-      focused: true,
-    });
-  }, []);
-
-  /** Open Farmer in Separate Window */
-  const [reload, dispatchAndReload] = useSocketDispatchCallback(
-    /** Main */
-    useCallback(() => {
-      window.location.reload();
-    }, []),
-
-    /** Dispatch */
-    useCallback(
-      (socket) =>
-        socket.dispatch({
-          action: "app.reload",
-        }),
-      []
-    )
-  );
-
-  const [openFarmerBot, dispatchAndOpenFarmerBot] = useSocketDispatchCallback(
-    /** Main */
-    useCallback(
-      (version) => {
-        const tab = farmerTabs.find(
-          (item) => item.id === `telegram-web-${version}`
-        );
-
-        /** Capture Port */
-        async function capturePort(message, port) {
-          messaging.removeMessageHandlers({
-            [`set-port:telegram-web-${version}`]: capturePort,
-          });
-
-          postPortMessage(port, {
-            action: "open-farmer-bot",
-          });
-        }
-
-        messaging.addMessageHandlers({
-          [`set-port:telegram-web-${version}`]: capturePort,
-        });
-
-        /** Push the tab */
-        pushTab(
-          {
-            ...tab,
-            component: (
-              <TelegramWeb
-                version={version}
-                hash={`#${
-                  version === "k"
-                    ? import.meta.env.VITE_APP_BOT_USERNAME
-                    : import.meta.env.VITE_APP_BOT_CHAT_ID
-                }`}
-              />
-            ),
-            reloadedAt: Date.now(),
-          },
-          true
-        );
-      },
-      [
-        farmerTabs,
-        pushTab,
-        messaging.ports,
-        messaging.addMessageHandlers,
-        messaging.removeMessageHandlers,
-      ]
-    ),
-
-    /** Dispatch */
-    useCallback(
-      (socket, version) =>
-        socket.dispatch({
-          action: "app.open-farmer-bot",
-          data: {
-            version,
-          },
-        }),
-      []
-    )
-  );
-
   /** Handlers */
   useSocketHandlers(
     useMemo(
       () => ({
-        "app.reload": () => {
-          reload();
-        },
-
-        "app.open-farmer-bot": (command) => {
-          openFarmerBot(command.data.version);
-        },
-
         "app.show-hidden-drops": () => {
           showHiddenDrops();
         },
-        "app.set-active-tab": (command) => {
-          findAndPushTab(command.data.id);
-        },
-
-        "app.push-tab": (command) => {
-          findAndPushTab(command.data.id);
-        },
-
-        "app.close-tab": (command) => {
-          closeTab(command.data.id);
-        },
-
-        "app.navigate-to-telegram-web": (command) => {
-          navigateToTelegramWeb(command.data.version);
-        },
       }),
-      [
-        reload,
-        openFarmerBot,
-        showHiddenDrops,
-        findAndPushTab,
-        closeTab,
-        navigateToTelegramWeb,
-      ]
+      [showHiddenDrops]
     )
   );
 
@@ -308,7 +136,7 @@ export default function Welcome() {
             {/* Reload Window */}
             <button
               title="Reload Farmer"
-              onClick={dispatchAndReload}
+              onClick={dispatchAndReloadApp}
               className="p-2.5 rounded-full bg-neutral-50 hover:bg-neutral-100 shrink-0"
             >
               <HiOutlineArrowPath className="w-5 h-5" />
@@ -327,8 +155,8 @@ export default function Welcome() {
 
             {/* Settings */}
             <Dialog.Root
-              open={showSettings}
-              onOpenChange={dispatchAndSetShowSettings}
+              open={showSettingsPanel}
+              onOpenChange={dispatchAndSetShowSettingsPanel}
             >
               <Dialog.Trigger
                 title="Settings"
@@ -362,7 +190,7 @@ export default function Welcome() {
             </span>
           </p>
           <p
-            onClick={() => setShowSettings(true)}
+            onClick={() => setShowSettingsPanel(true)}
             className="font-bold text-center text-blue-500 cursor-pointer"
           >
             {settings.farmerTitle || defaultSettings.farmerTitle}
@@ -380,53 +208,35 @@ export default function Welcome() {
             {/* Open Farmer Bot */}
             <div className="flex justify-center gap-1">
               {["k", "a"].map((v) => (
-                <button
+                <TelegramWebButton
                   key={v}
                   onClick={() => dispatchAndOpenFarmerBot(v)}
                   className={cn(
-                    "p-2",
-                    "rounded-full",
                     "bg-orange-100",
                     "text-orange-800",
-                    "hover:bg-orange-500",
-                    "hover:text-white",
-                    "inline-flex items-center justify-center gap-1"
+                    "hover:bg-orange-500"
                   )}
                   title={`Open ${
                     import.meta.env.VITE_APP_BOT_NAME
                   } in Telegram Web${v.toUpperCase()}`}
+                  icon={v === "k" ? BotWebKIcon : BotWebAIcon}
                 >
-                  <img
-                    src={v === "k" ? BotWebKIcon : BotWebAIcon}
-                    className="w-6 h-6"
-                  />
                   {import.meta.env.VITE_APP_BOT_NAME}-{v.toUpperCase()}
-                </button>
+                </TelegramWebButton>
               ))}
             </div>
 
             {/* TelegramWeb */}
             <div className="flex justify-center gap-1">
               {["k", "a"].map((v) => (
-                <button
+                <TelegramWebButton
                   key={v}
                   onClick={() => openTelegramWeb(v)}
-                  className={cn(
-                    "p-2",
-                    "rounded-full",
-                    "bg-neutral-100",
-                    "hover:bg-blue-500",
-                    "hover:text-white",
-                    "inline-flex items-center justify-center gap-1"
-                  )}
-                  title={`Switch to Web${v.toUpperCase()}`}
+                  title={`Open Telegram Web-${v.toUpperCase()}`}
+                  icon={v === "k" ? TelegramWebKIcon : TelegramWebAIcon}
                 >
-                  <img
-                    src={v === "k" ? TelegramWebKIcon : TelegramWebAIcon}
-                    className="w-6 h-6"
-                  />
-                  {`Web${v.toUpperCase()}`}
-                </button>
+                  {`Web-${v.toUpperCase()}`}
+                </TelegramWebButton>
               ))}
             </div>
           </div>
@@ -434,11 +244,11 @@ export default function Welcome() {
           {/* Drops */}
           <div className={cn("flex flex-wrap justify-center w-full", "py-4")}>
             {/* Drops */}
-            {drops.map((drop, index) => (
+            {drops.map((drop) => (
               <DropButton
-                key={index}
+                key={drop.id}
                 drop={drop}
-                onClick={() => dispatchAndPushTab(drop)}
+                onClick={() => dispatchAndSetActiveTab(drop.id)}
               />
             ))}
           </div>

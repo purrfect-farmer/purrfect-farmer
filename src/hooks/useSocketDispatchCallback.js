@@ -3,16 +3,17 @@ import { useMemo } from "react";
 
 import useAppContext from "./useAppContext";
 
-export default function useSocketDispatchCallback(main, dispatch) {
-  const { socket } = useAppContext();
+export default function useSocketDispatchCallback(main, dispatch, socket) {
+  const app = useAppContext();
+  const socketToUse = socket || app?.socket;
 
   /** Callback that dispatch and calls main */
   const dispatchAndCallMain = useCallback(
     (...args) => {
-      dispatch(socket, ...args);
+      dispatch(socketToUse, ...args);
       return main(...args);
     },
-    [main, dispatch, socket]
+    [main, dispatch, socketToUse]
   );
 
   return useMemo(

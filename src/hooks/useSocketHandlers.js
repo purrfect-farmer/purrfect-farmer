@@ -2,14 +2,16 @@ import { useEffect } from "react";
 
 import useAppContext from "./useAppContext";
 
-export default function useSocketHandlers(handlers) {
-  const { socket } = useAppContext();
+export default function useSocketHandlers(handlers, socket) {
+  const app = useAppContext();
+
+  const socketToUse = socket || app?.socket;
 
   return useEffect(() => {
-    socket.addCommandHandlers(handlers);
+    socketToUse.addCommandHandlers(handlers);
 
     return () => {
-      socket.removeCommandHandlers(handlers);
+      socketToUse.removeCommandHandlers(handlers);
     };
-  }, [socket, handlers]);
+  }, [socketToUse, handlers]);
 }

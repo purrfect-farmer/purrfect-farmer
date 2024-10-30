@@ -1,50 +1,17 @@
 import * as Dialog from "@radix-ui/react-dialog";
 import ConfirmButton from "@/components/ConfirmButton";
+import CoreSystemIcon from "@/assets/images/core-system.png?format=webp&w=128";
 import Input from "@/components/Input";
 import useAppContext from "@/hooks/useAppContext";
-import useSocketDispatchCallback from "@/hooks/useSocketDispatchCallback";
-import useSocketHandlers from "@/hooks/useSocketHandlers";
-import { cn } from "@/lib/utils";
-import { useCallback, useState } from "react";
-import { useMemo } from "react";
 import { HiArrowTopRightOnSquare } from "react-icons/hi2";
-import CoreSystemIcon from "@/assets/images/core-system.png?format=webp&w=128";
+import { cn } from "@/lib/utils";
+import { useState } from "react";
 
 export default function UtilsPanel({ open, onOpenChange }) {
-  const { openTelegramLink } = useAppContext();
+  const { dispatchAndOpenTelegramLink } = useAppContext();
 
   /** Sync Server */
   const [telegramLink, setTelegramLink] = useState("");
-
-  /** Dispatcher */
-  const [, dispatchAndOpenTelegramLink] = useSocketDispatchCallback(
-    /** Configure Settings */
-    openTelegramLink,
-
-    /** Dispatch */
-    useCallback(
-      (socket, url) =>
-        socket.dispatch({
-          action: "core.open-telegram-link",
-          data: {
-            url,
-          },
-        }),
-      []
-    )
-  );
-
-  /** Handlers */
-  useSocketHandlers(
-    useMemo(
-      () => ({
-        "core.open-telegram-link": (command) => {
-          openTelegramLink(command.data.url);
-        },
-      }),
-      [openTelegramLink]
-    )
-  );
 
   return (
     <Dialog.Root open={open} onOpenChange={onOpenChange}>
