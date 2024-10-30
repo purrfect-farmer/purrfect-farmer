@@ -106,7 +106,7 @@ export default function PumpadLottery() {
             onClick={() => dispatchAndToggleAutoSpin(!process.started)}
             className={cn(
               "p-2 text-black rounded-lg disabled:opacity-50",
-              process.started ? "bg-red-500" : "bg-green-500",
+              process.started ? "bg-red-500" : "bg-pumpad-green-500",
               "font-bold"
             )}
           >
@@ -123,15 +123,15 @@ export default function PumpadLottery() {
               onValueChange={([value]) =>
                 dispatchAndSetFarmingSpeed(Math.max(1, value))
               }
-              trackClassName="bg-green-200"
-              rangeClassName="bg-green-500"
-              thumbClassName="bg-green-500"
+              trackClassName="bg-pumpad-green-400"
+              rangeClassName="bg-pumpad-green-700"
+              thumbClassName="bg-pumpad-green-700"
             />
 
             {/* Speed Display */}
             <div className="text-center">
               Spinning Speed:{" "}
-              <span className="text-green-500">{farmingSpeed}s</span>
+              <span className="text-pumpad-green-800">{farmingSpeed}s</span>
             </div>
           </div>
 

@@ -111,7 +111,7 @@ export default function NotPixelApp({ diff, updatedAt }) {
             });
 
             /** Show Difference */
-            toast.success(`+${data.balance - mining.userBalance}`);
+            toast.success(`+${Math.floor(data.balance - mining.userBalance)}`);
 
             /** Update Balance */
             await miningQuery.refetch();
