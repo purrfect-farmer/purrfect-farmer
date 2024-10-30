@@ -27,22 +27,21 @@ export default function useApp() {
     /** Main */
     useCallback(
       (tab, override = false) => {
-        if (openedTabs.some((item) => item.id === tab.id)) {
-          /** Push Update */
-          setOpenedTabs((previous) =>
-            previous.map((item) =>
+        setOpenedTabs((previous) => {
+          if (previous.some((item) => item.id === tab.id)) {
+            /** Push Update */
+            return previous.map((item) =>
               item.id === tab.id
                 ? { ...(override ? tab : item), active: true }
                 : { ...item, active: false }
-            )
-          );
-        } else {
-          /** Push a new Tab */
-          setOpenedTabs((previous) => [
-            ...previous.map((item) => ({ ...item, active: false })),
-            { ...tab, active: true },
-          ]);
-        }
+            );
+          } else {
+            return [
+              ...previous.map((item) => ({ ...item, active: false })),
+              { ...tab, active: true },
+            ];
+          }
+        });
       },
       [setOpenedTabs]
     ),
@@ -177,45 +176,63 @@ export default function useApp() {
           if (!url) {
             return;
           }
-          const telegramWeb = openedTabs.some((tab) =>
+          const telegramWeb = openedTabs.find((tab) =>
             ["telegram-web-k", "telegram-web-a"].includes(tab.id)
           );
 
-          if (!telegramWeb) {
-            toast.dismiss();
-            return toast.error("Please open Telegram Web");
-          }
-
-          const miniApps = messaging.ports
+          let miniApps = messaging.ports
             .values()
             .filter((port) => port.name.startsWith("mini-app:"))
             .toArray();
 
-          if (!miniApps.length) {
+          if (!telegramWeb || !miniApps.length) {
             toast.dismiss();
-            return toast.error("No Telegram Bot Running..");
+            toast.error(`Please open ${import.meta.env.VITE_APP_BOT_NAME}`);
+            return;
           }
 
           /** Close Other Bots */
           if (settings.closeOtherBots) {
-            miniApps.slice(1).forEach((port) => {
-              if (
-                port.name !== `mini-app:${import.meta.env.VITE_APP_BOT_HOST}`
-              ) {
+            const farmerBotPortName = `mini-app:${
+              import.meta.env.VITE_APP_BOT_HOST
+            }`;
+            const farmerBotPort = miniApps.find(
+              (port) => port.name === farmerBotPortName
+            );
+
+            if (farmerBotPort) {
+              miniApps
+                .filter((port) => port.name !== farmerBotPortName)
+                .forEach((port) => {
+                  postPortMessage(port, {
+                    action: "close-bot",
+                  });
+                });
+
+              /** Reset Port List */
+              miniApps = [farmerBotPort];
+            } else {
+              /** Remove Previous Ports */
+              miniApps.slice(0, -1).forEach((port) => {
                 postPortMessage(port, {
                   action: "close-bot",
                 });
-              }
-            });
+              });
+
+              /** Reset Port List */
+              miniApps = miniApps.slice(-1);
+            }
           }
 
           /** Post Message to First Port */
-          postPortMessage(miniApps[0], {
-            action: "open-telegram-link",
-            data: { url },
-          }).then(() => {
-            setActiveTab(telegramWeb.id);
-          });
+          if (miniApps.length) {
+            postPortMessage(miniApps[0], {
+              action: "open-telegram-link",
+              data: { url },
+            }).then(() => {
+              setActiveTab(telegramWeb.id);
+            });
+          }
         },
         [openedTabs, messaging.ports, setActiveTab, settings.closeOtherBots]
       ),

@@ -13,7 +13,7 @@ import useTelegramWebApp from "./useTelegramWebApp";
 export default function useDropFarmer({
   id,
   host,
-  apiDelay = 0,
+  apiDelay = 200,
   domains = [],
   authHeaders = ["authorization"],
   extractAuthHeaders,

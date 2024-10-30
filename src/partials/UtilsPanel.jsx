@@ -71,6 +71,10 @@ export default function UtilsPanel({ open, onOpenChange }) {
                     <HiArrowTopRightOnSquare className="w-4 h-4 " />
                   </ConfirmButton>
                 </div>
+                <p className="p-4 text-center text-yellow-800 bg-yellow-100 rounded-lg">
+                  You can paste any valid telegram link e.g your referral link,
+                  a channel etc.
+                </p>
               </div>
             </div>
             <div className="flex flex-col p-4 font-bold shrink-0">
