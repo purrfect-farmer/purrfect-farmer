@@ -75,18 +75,23 @@ export default function Agent301Tasks() {
   }, [setAction, setCurrentTask, setTaskOffset]);
 
   /** Handle button click */
-  const [handleAutoTaskClick, dispatchAndHandleAutoTaskClick] =
+  const [toggleAutoTaskClaim, dispatchAndToggleAutoTaskClaim] =
     useSocketDispatchCallback(
       /** Main */
-      useCallback(() => {
-        reset();
-        process.toggle();
-      }, [reset, process]),
+      useCallback(
+        (status) => {
+          process.toggle(status);
+        },
+        [process.toggle]
+      ),
 
       /** Dispatch */
-      useCallback((socket) => {
+      useCallback((socket, status) => {
         socket.dispatch({
           action: "agent301.tasks.claim",
+          data: {
+            status,
+          },
         });
       }, [])
     );
@@ -95,14 +100,18 @@ export default function Agent301Tasks() {
   useSocketHandlers(
     useMemo(
       () => ({
-        "agent301.tasks.claim": () => {
-          handleAutoTaskClick();
+        "agent301.tasks.claim": (command) => {
+          toggleAutoTaskClaim(command.data.status);
         },
       }),
-      [handleAutoTaskClick]
+      [toggleAutoTaskClaim]
     )
   );
 
+  /** Reset */
+  useEffect(reset, [process.started, reset]);
+
+  /** Run Process */
   useEffect(() => {
     if (!process.canExecute) {
       return;
@@ -217,7 +226,7 @@ export default function Agent301Tasks() {
           </div>
           <button
             disabled={process.started}
-            onClick={dispatchAndHandleAutoTaskClick}
+            onClick={() => dispatchAndToggleAutoTaskClaim(!process.started)}
             className={cn(
               "p-2 rounded-lg disabled:opacity-50",
               process.started ? "bg-red-500 text-black" : "bg-white text-black"

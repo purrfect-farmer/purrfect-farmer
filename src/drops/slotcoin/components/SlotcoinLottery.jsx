@@ -24,30 +24,35 @@ export default function SlotcoinLottery() {
   );
 
   /** Handle button click */
-  const [handleAutoSpinClick, dispatchAndHandleAutoSpinClick] =
-    useSocketDispatchCallback(
-      /** Main */
-      useCallback(() => {
-        process.toggle();
-      }, [process]),
+  const [toggleAutoSpin, dispatchAndToggleAutoSpin] = useSocketDispatchCallback(
+    /** Main */
+    useCallback(
+      (status) => {
+        process.toggle(status);
+      },
+      [process.toggle]
+    ),
 
-      /** Dispatch */
-      useCallback((socket) => {
-        socket.dispatch({
-          action: "slotcoin.spin",
-        });
-      }, [])
-    );
+    /** Dispatch */
+    useCallback((socket, status) => {
+      socket.dispatch({
+        action: "slotcoin.spin",
+        data: {
+          status,
+        },
+      });
+    }, [])
+  );
 
   /** Handlers */
   useSocketHandlers(
     useMemo(
       () => ({
-        "slotcoin.spin": () => {
-          handleAutoSpinClick();
+        "slotcoin.spin": (command) => {
+          toggleAutoSpin(command.data.status);
         },
       }),
-      [handleAutoSpinClick]
+      [toggleAutoSpin]
     )
   );
 
@@ -103,7 +108,7 @@ export default function SlotcoinLottery() {
           {/* Auto Spin Button */}
           <button
             disabled={energy < 1}
-            onClick={dispatchAndHandleAutoSpinClick}
+            onClick={() => dispatchAndToggleAutoSpin(!process.started)}
             className={cn(
               "p-2 text-white rounded-lg disabled:opacity-50",
               process.started ? "bg-red-500" : "bg-purple-500",

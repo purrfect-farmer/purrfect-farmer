@@ -33,7 +33,11 @@ export default function TadaFarmer() {
             </Tabs.Trigger>
           ))}
         </Tabs.List>
-        <Tabs.Content value="missions">
+        <Tabs.Content
+          forceMount
+          className="data-[state=inactive]:hidden"
+          value="missions"
+        >
           <TadaMissions />
         </Tabs.Content>
       </Tabs.Root>

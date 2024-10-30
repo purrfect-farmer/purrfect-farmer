@@ -55,7 +55,11 @@ export default function GoatsFarmer() {
             </Tabs.Trigger>
           ))}
         </Tabs.List>
-        <Tabs.Content value="missions">
+        <Tabs.Content
+          forceMount
+          className="data-[state=inactive]:hidden"
+          value="missions"
+        >
           <GoatsMissions />
         </Tabs.Content>
       </Tabs.Root>

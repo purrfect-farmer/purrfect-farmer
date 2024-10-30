@@ -29,30 +29,35 @@ export default function YescoinGamer() {
   const reloadSpecialBoxMutation = useYescoinSpecialBoxReloadMutation();
 
   /** Handle button click */
-  const [handleAutoGameClick, dispatchAndHandleAutoGameClick] =
-    useSocketDispatchCallback(
-      /** Main */
-      useCallback(() => {
-        process.toggle();
-      }, [process]),
+  const [toggleAutoGame, dispatchAndToggleAutoGame] = useSocketDispatchCallback(
+    /** Main */
+    useCallback(
+      (status) => {
+        process.toggle(status);
+      },
+      [process.toggle]
+    ),
 
-      /** Dispatch */
-      useCallback((socket) => {
-        socket.dispatch({
-          action: "yescoin.game",
-        });
-      }, [])
-    );
+    /** Dispatch */
+    useCallback((socket, status) => {
+      socket.dispatch({
+        action: "yescoin.game",
+        data: {
+          status,
+        },
+      });
+    }, [])
+  );
 
   /** Handlers */
   useSocketHandlers(
     useMemo(
       () => ({
-        "yescoin.game": () => {
-          handleAutoGameClick();
+        "yescoin.game": (command) => {
+          toggleAutoGame(command.data.status);
         },
       }),
-      [handleAutoGameClick]
+      [toggleAutoGame]
     )
   );
 
@@ -104,7 +109,7 @@ export default function YescoinGamer() {
       {gameInfoQuery.isSuccess ? (
         <>
           <button
-            onClick={dispatchAndHandleAutoGameClick}
+            onClick={() => dispatchAndToggleAutoGame(!process.started)}
             className={cn(
               "px-4 py-2 rounded-lg text-white font-bold",
               !process.started ? "bg-purple-500" : "bg-red-500"

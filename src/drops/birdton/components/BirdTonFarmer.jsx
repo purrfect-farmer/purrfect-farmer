@@ -74,12 +74,20 @@ export default function BirdTonFarmer() {
           ))}
         </Tabs.List>
         {/* Game */}
-        <Tabs.Content value="game">
+        <Tabs.Content
+          forceMount
+          className="data-[state=inactive]:hidden"
+          value="game"
+        >
           <BirdTonGamer />
         </Tabs.Content>
 
         {/* Tasks */}
-        <Tabs.Content value="tasks">
+        <Tabs.Content
+          forceMount
+          className="data-[state=inactive]:hidden"
+          value="tasks"
+        >
           <BirdTonTasks />
         </Tabs.Content>
       </Tabs.Root>

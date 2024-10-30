@@ -77,10 +77,18 @@ export default function WontonFarmer() {
             </Tabs.Trigger>
           ))}
         </Tabs.List>
-        <Tabs.Content value="game">
+        <Tabs.Content
+          forceMount
+          className="data-[state=inactive]:hidden"
+          value="game"
+        >
           <WontonAutoGamer />
         </Tabs.Content>
-        <Tabs.Content value="tasks">
+        <Tabs.Content
+          forceMount
+          className="data-[state=inactive]:hidden"
+          value="tasks"
+        >
           <WontonAutoTasks />
         </Tabs.Content>
       </Tabs.Root>

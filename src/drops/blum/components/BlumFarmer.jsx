@@ -85,10 +85,18 @@ export default function BlumFarmer() {
             </Tabs.Trigger>
           ))}
         </Tabs.List>
-        <Tabs.Content value="game">
+        <Tabs.Content
+          forceMount
+          className="data-[state=inactive]:hidden"
+          value="game"
+        >
           <BlumGamer />
         </Tabs.Content>
-        <Tabs.Content value="tasks">
+        <Tabs.Content
+          forceMount
+          className="data-[state=inactive]:hidden"
+          value="tasks"
+        >
           <BlumAutoTasks />
         </Tabs.Content>
       </Tabs.Root>

@@ -23,30 +23,35 @@ export default function PumpadLottery() {
   const process = useProcessLock();
 
   /** Handle button click */
-  const [handleAutoSpinClick, dispatchAndHandleAutoSpinClick] =
-    useSocketDispatchCallback(
-      /** Main */
-      useCallback(() => {
-        process.toggle();
-      }, [process]),
+  const [toggleAutoSpin, dispatchAndToggleAutoSpin] = useSocketDispatchCallback(
+    /** Main */
+    useCallback(
+      (status) => {
+        process.toggle(status);
+      },
+      [process.toggle]
+    ),
 
-      /** Dispatch */
-      useCallback((socket) => {
-        socket.dispatch({
-          action: "pumpad.spin",
-        });
-      }, [])
-    );
+    /** Dispatch */
+    useCallback((socket, status) => {
+      socket.dispatch({
+        action: "pumpad.spin",
+        data: {
+          status,
+        },
+      });
+    }, [])
+  );
 
   /** Handlers */
   useSocketHandlers(
     useMemo(
       () => ({
-        "pumpad.spin": () => {
-          handleAutoSpinClick();
+        "pumpad.spin": (command) => {
+          toggleAutoSpin(command.data.status);
         },
       }),
-      [handleAutoSpinClick]
+      [toggleAutoSpin]
     )
   );
 
@@ -98,7 +103,7 @@ export default function PumpadLottery() {
           {/* Auto Spin Button */}
           <button
             disabled={!drawCount}
-            onClick={dispatchAndHandleAutoSpinClick}
+            onClick={() => dispatchAndToggleAutoSpin(!process.started)}
             className={cn(
               "p-2 text-black rounded-lg disabled:opacity-50",
               process.started ? "bg-red-500" : "bg-green-500",

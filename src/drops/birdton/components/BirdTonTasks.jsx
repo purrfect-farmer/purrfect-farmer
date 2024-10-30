@@ -79,18 +79,23 @@ export default function BirdTonTasks() {
   }, [setAction, setCurrentTask, setTaskOffset]);
 
   /** Handle button click */
-  const [handleAutoTaskClick, dispatchAndHandleAutoTaskClick] =
+  const [toggleAutoTaskClaim, dispatchAndToggleAutoTaskClaim] =
     useSocketDispatchCallback(
       /** Main */
-      useCallback(() => {
-        reset();
-        process.toggle();
-      }, [reset, process]),
+      useCallback(
+        (status) => {
+          process.toggle(status);
+        },
+        [process.toggle]
+      ),
 
       /** Dispatch */
-      useCallback((socket) => {
+      useCallback((socket, status) => {
         socket.dispatch({
           action: "birdton.tasks.claim",
+          data: {
+            status,
+          },
         });
       }, [])
     );
@@ -99,11 +104,11 @@ export default function BirdTonTasks() {
   useSocketHandlers(
     useMemo(
       () => ({
-        "birdton.tasks.claim": () => {
-          handleAutoTaskClick();
+        "birdton.tasks.claim": (command) => {
+          toggleAutoTaskClaim(command.data.status);
         },
       }),
-      [handleAutoTaskClick]
+      [toggleAutoTaskClaim]
     )
   );
 
@@ -121,6 +126,9 @@ export default function BirdTonTasks() {
       []
     )
   );
+
+  /** Reset */
+  useEffect(reset, [process.started, reset]);
 
   /** Run Process */
   useEffect(() => {
@@ -203,7 +211,7 @@ export default function BirdTonTasks() {
       <div className="flex flex-col gap-2 py-2">
         {/* Start or Stop Button */}
         <button
-          onClick={dispatchAndHandleAutoTaskClick}
+          onClick={() => dispatchAndToggleAutoTaskClaim(!process.started)}
           disabled={process.started}
           className={cn(
             "w-full px-4 py-2 uppercase rounded-lg font-bold disabled:opacity-50 text-white",

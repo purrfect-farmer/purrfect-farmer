@@ -47,18 +47,23 @@ export default function GoatsMissions() {
   }, [setCurrentMission, setMissionOffset]);
 
   /** Handle button click */
-  const [handleAutoMissionClick, dispatchAndHandleAutoMissionClick] =
+  const [toggleAutoMissionClaim, dispatchAndToggleAutoMissionClaim] =
     useSocketDispatchCallback(
       /** Main */
-      useCallback(() => {
-        reset();
-        process.toggle();
-      }, [reset, process]),
+      useCallback(
+        (status) => {
+          process.toggle(status);
+        },
+        [process.toggle]
+      ),
 
       /** Dispatch */
-      useCallback((socket) => {
+      useCallback((socket, status) => {
         socket.dispatch({
           action: "goats.missions.claim",
+          data: {
+            status,
+          },
         });
       }, [])
     );
@@ -67,14 +72,18 @@ export default function GoatsMissions() {
   useSocketHandlers(
     useMemo(
       () => ({
-        "goats.missions.claim": () => {
-          handleAutoMissionClick();
+        "goats.missions.claim": (command) => {
+          toggleAutoMissionClaim(command.data.status);
         },
       }),
-      [handleAutoMissionClick]
+      [toggleAutoMissionClaim]
     )
   );
 
+  /** Reset */
+  useEffect(reset, [process.started, reset]);
+
+  /** Run Process */
   useEffect(() => {
     if (!process.canExecute) {
       return;
@@ -127,7 +136,7 @@ export default function GoatsMissions() {
           </div>
           <button
             disabled={process.started}
-            onClick={dispatchAndHandleAutoMissionClick}
+            onClick={() => dispatchAndToggleAutoMissionClaim(!process.started)}
             className={cn(
               "p-2 rounded-lg disabled:opacity-50",
               process.started ? "bg-red-500 text-black" : "bg-white text-black"

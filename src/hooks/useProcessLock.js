@@ -21,6 +21,8 @@ export default function useProcessLock() {
   /** Start Process */
   const start = useCallback(() => {
     setProcess((prev) => {
+      if (prev.started) return prev;
+
       prev?.controller?.abort();
       const controller = (controllerRef.current = new AbortController());
       return {
@@ -35,6 +37,8 @@ export default function useProcessLock() {
   /** Stop Process */
   const stop = useCallback(() => {
     setProcess((prev) => {
+      if (!prev.started) return prev;
+
       prev?.controller?.abort();
       controllerRef.current = null;
 
@@ -48,13 +52,18 @@ export default function useProcessLock() {
   }, [setProcess]);
 
   /** Toggle */
-  const toggle = useCallback(() => {
-    if (!process.started) {
-      start();
-    } else {
-      stop();
-    }
-  }, [process, start, stop]);
+  const toggle = useCallback(
+    (status) => {
+      if (typeof status === "boolean") {
+        return status ? start() : stop();
+      } else if (!process.started) {
+        start();
+      } else {
+        stop();
+      }
+    },
+    [process.started, start, stop]
+  );
 
   /** Lock Process */
   const lock = useCallback(() => {

@@ -49,10 +49,18 @@ export default function YescoinFarmer() {
                 </Tabs.Trigger>
               ))}
             </Tabs.List>
-            <Tabs.Content value="game">
+            <Tabs.Content
+              forceMount
+              className="data-[state=inactive]:hidden"
+              value="game"
+            >
               <YescoinGamer />
             </Tabs.Content>
-            <Tabs.Content value="daily-mission">
+            <Tabs.Content
+              forceMount
+              className="data-[state=inactive]:hidden"
+              value="daily-mission"
+            >
               <YescoinDailyMission />
             </Tabs.Content>
           </Tabs.Root>

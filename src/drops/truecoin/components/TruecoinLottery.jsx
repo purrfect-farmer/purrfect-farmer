@@ -50,33 +50,38 @@ export default function TruecoinLottery() {
     );
 
   /** Handle button click */
-  const [handleAutoSpinClick, dispatchAndHandleAutoSpinClick] =
-    useSocketDispatchCallback(
-      /** Main */
-      useCallback(() => {
-        process.toggle();
-      }, [process]),
+  const [toggleAutoSpin, dispatchAndToggleAutoSpin] = useSocketDispatchCallback(
+    /** Main */
+    useCallback(
+      (status) => {
+        process.toggle(status);
+      },
+      [process.toggle]
+    ),
 
-      /** Dispatch */
-      useCallback((socket) => {
-        socket.dispatch({
-          action: "truecoin.spin",
-        });
-      }, [])
-    );
+    /** Dispatch */
+    useCallback((socket, status) => {
+      socket.dispatch({
+        action: "truecoin.spin",
+        data: {
+          status,
+        },
+      });
+    }, [])
+  );
 
   /** Handlers */
   useSocketHandlers(
     useMemo(
       () => ({
-        "truecoin.spin": () => {
-          handleAutoSpinClick();
+        "truecoin.spin": (command) => {
+          toggleAutoSpin(command.data.status);
         },
         "truecoin.50-boost": () => {
           handle50BoostClick();
         },
       }),
-      [handleAutoSpinClick, handle50BoostClick]
+      [toggleAutoSpin, handle50BoostClick]
     )
   );
 
@@ -129,7 +134,7 @@ export default function TruecoinLottery() {
       <div className="flex gap-2">
         <button
           disabled={user.currentSpins < 1}
-          onClick={dispatchAndHandleAutoSpinClick}
+          onClick={() => dispatchAndToggleAutoSpin(!process.started)}
           className={cn(
             "grow min-h-0 min-w-0 p-2 text-white rounded-lg disabled:opacity-50",
             process.started ? "bg-red-500" : "bg-purple-500",

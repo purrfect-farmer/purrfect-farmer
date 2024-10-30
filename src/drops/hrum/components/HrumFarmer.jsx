@@ -65,11 +65,19 @@ export default function () {
             </Tabs.Trigger>
           ))}
         </Tabs.List>
-        <Tabs.Content value="daily">
+        <Tabs.Content
+          forceMount
+          className="data-[state=inactive]:hidden"
+          value="daily"
+        >
           {/* Hrum Riddle */}
           <HrumRiddleTask queries={dataQueries} />
         </Tabs.Content>
-        <Tabs.Content value="tasks">
+        <Tabs.Content
+          forceMount
+          className="data-[state=inactive]:hidden"
+          value="tasks"
+        >
           {/* Hrum Tasks */}
           <HrumAutoTasks queries={dataQueries} />
         </Tabs.Content>

@@ -40,38 +40,48 @@ export default function Tomarket({ tomarket }) {
   );
 
   /** Countdown renderer */
-  const countdownRenderer = ({ seconds }) => (
-    <span className="text-xl font-bold">{seconds}</span>
+  const countdownRenderer = useCallback(
+    ({ seconds }) => <span className="text-xl font-bold">{seconds}</span>,
+    []
   );
 
   /** Handle button click */
-  const [handleAutoPlayClick, dispatchAndHandleAutoPlayClick] =
-    useSocketDispatchCallback(
-      /** Main */
-      useCallback(() => {
-        setDesiredPoint(points);
-        process.toggle();
-      }, [points, setDesiredPoint, process]),
+  const [toggleAutoPlay, dispatchAndToggleAutoPlay] = useSocketDispatchCallback(
+    /** Main */
+    useCallback(
+      (status) => {
+        process.toggle(status);
+      },
+      [process.toggle]
+    ),
 
-      /** Dispatch */
-      useCallback((socket) => {
-        socket.dispatch({
-          action: "tomarket.autoplay",
-        });
-      }, [])
-    );
+    /** Dispatch */
+    useCallback((socket, status) => {
+      socket.dispatch({
+        action: "tomarket.autoplay",
+        data: {
+          status,
+        },
+      });
+    }, [])
+  );
 
   /** Handlers */
   useSocketHandlers(
     useMemo(
       () => ({
-        "tomarket.autoplay": () => {
-          handleAutoPlayClick();
+        "tomarket.autoplay": (command) => {
+          toggleAutoPlay(command.data.status);
         },
       }),
-      [handleAutoPlayClick]
+      [toggleAutoPlay]
     )
   );
+
+  /** Override Points */
+  useEffect(() => {
+    setDesiredPoint(points);
+  }, [process.started, points, setDesiredPoint]);
 
   /** Auto Play */
   useEffect(() => {
@@ -140,7 +150,7 @@ export default function Tomarket({ tomarket }) {
       <TomarketButton
         color={process.started ? "danger" : "primary"}
         disabled={tickets < 1}
-        onClick={dispatchAndHandleAutoPlayClick}
+        onClick={() => dispatchAndToggleAutoPlay(!process.started)}
       >
         {process.started ? "Stop" : "Start"}
       </TomarketButton>

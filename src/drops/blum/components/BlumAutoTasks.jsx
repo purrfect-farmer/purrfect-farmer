@@ -155,18 +155,23 @@ export default function BlumAutoTasks() {
   );
 
   /** Handle button click */
-  const [handleAutoClaimClick, dispatchAndHandleAutoClaimClick] =
+  const [toggleAutoClaim, dispatchAndToggleAutoClaim] =
     useSocketDispatchCallback(
       /** Main */
-      useCallback(() => {
-        reset();
-        process.toggle();
-      }, [reset, process]),
+      useCallback(
+        (status) => {
+          process.toggle(status);
+        },
+        [process.toggle]
+      ),
 
       /** Dispatch */
-      useCallback((socket) => {
+      useCallback((socket, status) => {
         socket.dispatch({
           action: "blum.tasks.claim",
+          data: {
+            status,
+          },
         });
       }, [])
     );
@@ -175,13 +180,16 @@ export default function BlumAutoTasks() {
   useSocketHandlers(
     useMemo(
       () => ({
-        "blum.tasks.claim": () => {
-          handleAutoClaimClick();
+        "blum.tasks.claim": (command) => {
+          toggleAutoClaim(command.data.status);
         },
       }),
-      [handleAutoClaimClick]
+      [toggleAutoClaim]
     )
   );
+
+  /** Reset */
+  useEffect(reset, [process.started, reset]);
 
   /** Run Tasks */
   useEffect(() => {
@@ -318,7 +326,7 @@ export default function BlumAutoTasks() {
               {/* Start Button */}
               <BlumButton
                 color={process.started ? "danger" : "primary"}
-                onClick={dispatchAndHandleAutoClaimClick}
+                onClick={() => dispatchAndToggleAutoClaim(!process.started)}
                 disabled={
                   (pendingTasks.length === 0 && unclaimedTasks.length === 0) ||
                   process.started

@@ -5,7 +5,6 @@ import { cn, delay } from "@/lib/utils";
 import { useCallback } from "react";
 import { useEffect } from "react";
 import { useMemo } from "react";
-import { useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 
 import useTadaCompleteMissionMutation from "../hooks/useTadaCompleteMissionMutation";
@@ -13,7 +12,6 @@ import useTadaMissionsQuery from "../hooks/useTadaMissionsQuery";
 import useTadaStartActivityMutation from "../hooks/useTadaStartActivityMutation";
 
 export default function TadaMissions() {
-  const client = useQueryClient();
   const missionsQuery = useTadaMissionsQuery();
 
   const missions = useMemo(
@@ -49,18 +47,23 @@ export default function TadaMissions() {
   }, [setCurrentMission, setMissionOffset]);
 
   /** Handle button click */
-  const [handleAutoMissionClick, dispatchAndHandleAutoMissionClick] =
+  const [toggleAutoMissionClaim, dispatchAndToggleAutoMissionClaim] =
     useSocketDispatchCallback(
       /** Main */
-      useCallback(() => {
-        reset();
-        process.toggle();
-      }, [reset, process]),
+      useCallback(
+        (status) => {
+          process.toggle(status);
+        },
+        [process.toggle]
+      ),
 
       /** Dispatch */
-      useCallback((socket) => {
+      useCallback((socket, status) => {
         socket.dispatch({
           action: "tada.missions.claim",
+          data: {
+            status,
+          },
         });
       }, [])
     );
@@ -69,14 +72,18 @@ export default function TadaMissions() {
   useSocketHandlers(
     useMemo(
       () => ({
-        "tada.missions.claim": () => {
-          handleAutoMissionClick();
+        "tada.missions.claim": (command) => {
+          toggleAutoMissionClaim(command.data.status);
         },
       }),
-      [handleAutoMissionClick]
+      [toggleAutoMissionClaim]
     )
   );
 
+  /** Reset */
+  useEffect(reset, [process.started, reset]);
+
+  /** Run Process */
   useEffect(() => {
     if (!process.canExecute) {
       return;
@@ -128,7 +135,7 @@ export default function TadaMissions() {
           </div>
           <button
             disabled={process.started}
-            onClick={dispatchAndHandleAutoMissionClick}
+            onClick={() => dispatchAndToggleAutoMissionClaim(!process.started)}
             className={cn(
               "p-2 rounded-lg disabled:opacity-50",
               process.started

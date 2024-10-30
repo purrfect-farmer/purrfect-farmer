@@ -56,18 +56,23 @@ export default function HrumAutoTasks({ queries }) {
   );
 
   /** Handle button click */
-  const [handleAutoClaimClick, dispatchAndHandleAutoClaimClick] =
+  const [toggleAutoClaim, dispatchAndToggleAutoClaim] =
     useSocketDispatchCallback(
       /** Main */
-      useCallback(() => {
-        process.toggle();
-        reset();
-      }, [reset, process]),
+      useCallback(
+        (status) => {
+          process.toggle(status);
+        },
+        [process.toggle]
+      ),
 
       /** Dispatch */
-      useCallback((socket) => {
+      useCallback((socket, status) => {
         socket.dispatch({
           action: "hrum.tasks.claim",
+          data: {
+            status,
+          },
         });
       }, [])
     );
@@ -76,13 +81,16 @@ export default function HrumAutoTasks({ queries }) {
   useSocketHandlers(
     useMemo(
       () => ({
-        "hrum.tasks.claim": () => {
-          handleAutoClaimClick();
+        "hrum.tasks.claim": (command) => {
+          toggleAutoClaim(command.data.status);
         },
       }),
-      [handleAutoClaimClick]
+      [toggleAutoClaim]
     )
   );
+
+  /** Reset */
+  useEffect(reset, [process.started, reset]);
 
   /** Run Tasks */
   useEffect(() => {
@@ -138,7 +146,7 @@ export default function HrumAutoTasks({ queries }) {
           <div className="flex flex-col gap-2 py-2">
             {/* Start Button */}
             <button
-              onClick={dispatchAndHandleAutoClaimClick}
+              onClick={() => dispatchAndToggleAutoClaim(!process.started)}
               disabled={pendingTasks.length === 0}
               className={cn(
                 "w-full px-4 py-2 uppercase rounded-full",

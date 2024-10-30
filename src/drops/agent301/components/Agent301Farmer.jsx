@@ -38,13 +38,25 @@ export default function Agent301Farmer() {
             </Tabs.Trigger>
           ))}
         </Tabs.List>
-        <Tabs.Content value="tickets">
+        <Tabs.Content
+          forceMount
+          className="data-[state=inactive]:hidden"
+          value="tickets"
+        >
           <Agent301Lottery />
         </Tabs.Content>
-        <Tabs.Content value="wheel">
+        <Tabs.Content
+          forceMount
+          className="data-[state=inactive]:hidden"
+          value="wheel"
+        >
           <Agent301Wheel />
         </Tabs.Content>
-        <Tabs.Content value="tasks">
+        <Tabs.Content
+          forceMount
+          className="data-[state=inactive]:hidden"
+          value="tasks"
+        >
           <Agent301Tasks />
         </Tabs.Content>
       </Tabs.Root>

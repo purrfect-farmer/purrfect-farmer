@@ -127,7 +127,11 @@ export default function BitsFarmer() {
             </Tabs.Trigger>
           ))}
         </Tabs.List>
-        <Tabs.Content value="tasks">
+        <Tabs.Content
+          forceMount
+          className="data-[state=inactive]:hidden"
+          value="tasks"
+        >
           <BitsSocialTasks />
         </Tabs.Content>
       </Tabs.Root>

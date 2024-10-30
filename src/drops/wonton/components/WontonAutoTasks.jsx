@@ -81,18 +81,23 @@ export default function WontonAutoTasks() {
   );
 
   /** Handle button click */
-  const [handleAutoClaimClick, dispatchAndHandleAutoClaimClick] =
+  const [toggleAutoClaim, dispatchAndToggleAutoClaim] =
     useSocketDispatchCallback(
       /** Main */
-      useCallback(() => {
-        reset();
-        process.toggle();
-      }, [reset, process]),
+      useCallback(
+        (status) => {
+          process.toggle(status);
+        },
+        [process.toggle]
+      ),
 
       /** Dispatch */
-      useCallback((socket) => {
+      useCallback((socket, status) => {
         socket.dispatch({
           action: "wonton.tasks.claim",
+          data: {
+            status,
+          },
         });
       }, [])
     );
@@ -101,13 +106,16 @@ export default function WontonAutoTasks() {
   useSocketHandlers(
     useMemo(
       () => ({
-        "wonton.tasks.claim": () => {
-          handleAutoClaimClick();
+        "wonton.tasks.claim": (command) => {
+          toggleAutoClaim(command.data.status);
         },
       }),
-      [handleAutoClaimClick]
+      [toggleAutoClaim]
     )
   );
+
+  /** Reset */
+  useEffect(reset, [process.started, reset]);
 
   /** Run Tasks */
   useEffect(() => {
@@ -201,7 +209,7 @@ export default function WontonAutoTasks() {
               {/* Start Button */}
               <WontonButton
                 color={process.started ? "danger" : "primary"}
-                onClick={dispatchAndHandleAutoClaimClick}
+                onClick={() => dispatchAndToggleAutoClaim(!process.started)}
                 disabled={
                   (pendingTasks.length === 0 && unclaimedTasks.length === 0) ||
                   process.started

@@ -44,18 +44,23 @@ export default function Agent301Wheel() {
   }, [setAction, setTaskOffset]);
 
   /** Handle button click */
-  const [handleAutoTaskClick, dispatchAndHandleAutoTaskClick] =
+  const [toggleAutoWheelClaim, dispatchAndToggleAutoWheelClaim] =
     useSocketDispatchCallback(
       /** Main */
-      useCallback(() => {
-        reset();
-        process.toggle();
-      }, [reset, process]),
+      useCallback(
+        (status) => {
+          process.toggle(status);
+        },
+        [process.toggle]
+      ),
 
       /** Dispatch */
-      useCallback((socket) => {
+      useCallback((socket, status) => {
         socket.dispatch({
           action: "agent301.wheel.claim",
+          data: {
+            status,
+          },
         });
       }, [])
     );
@@ -64,14 +69,18 @@ export default function Agent301Wheel() {
   useSocketHandlers(
     useMemo(
       () => ({
-        "agent301.wheel.claim": () => {
-          handleAutoTaskClick();
+        "agent301.wheel.claim": (command) => {
+          toggleAutoWheelClaim(command.data.status);
         },
       }),
-      [handleAutoTaskClick]
+      [toggleAutoWheelClaim]
     )
   );
 
+  /** Reset */
+  useEffect(reset, [process.started, reset]);
+
+  /** Run Process */
   useEffect(() => {
     if (!process.canExecute) {
       return;
@@ -169,7 +178,7 @@ export default function Agent301Wheel() {
           </div>
           <button
             disabled={process.started}
-            onClick={dispatchAndHandleAutoTaskClick}
+            onClick={() => dispatchAndToggleAutoWheelClaim(!process.started)}
             className={cn(
               "p-2 rounded-lg disabled:opacity-50",
               process.started ? "bg-red-500 text-black" : "bg-white text-black"

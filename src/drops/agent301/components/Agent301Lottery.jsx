@@ -19,29 +19,34 @@ export default function Agent301Lottery() {
   const spinMutation = useAgent301LotteryMutation();
 
   /** Handle button click */
-  const [handleAutoSpinClick, dispatchAndHandleAutoSpinClick] =
-    useSocketDispatchCallback(
-      /** Main */
-      useCallback(() => {
-        process.toggle();
-      }, [process]),
+  const [toggleAutoSpin, dispatchAndToggleAutoSpin] = useSocketDispatchCallback(
+    /** Main */
+    useCallback(
+      (status) => {
+        process.toggle(status);
+      },
+      [process.toggle]
+    ),
 
-      /** Dispatch */
-      useCallback((socket) => {
-        socket.dispatch({
-          action: "agent301.wheel.lottery",
-        });
-      }, [])
-    );
+    /** Dispatch */
+    useCallback((socket, status) => {
+      socket.dispatch({
+        action: "agent301.wheel.lottery",
+        data: {
+          status,
+        },
+      });
+    }, [])
+  );
   /** Handlers */
   useSocketHandlers(
     useMemo(
       () => ({
-        "agent301.wheel.lottery": () => {
-          handleAutoSpinClick();
+        "agent301.wheel.lottery": (command) => {
+          toggleAutoSpin(command.data.status);
         },
       }),
-      [handleAutoSpinClick]
+      [toggleAutoSpin]
     )
   );
 
@@ -69,7 +74,7 @@ export default function Agent301Lottery() {
       } catch {}
 
       /** Delay */
-      await delay(15_000);
+      await delay(10_000);
 
       // Release Lock
       process.unlock();
@@ -90,7 +95,7 @@ export default function Agent301Lottery() {
         <div className="flex flex-col gap-2">
           <button
             disabled={tickets < 1}
-            onClick={dispatchAndHandleAutoSpinClick}
+            onClick={() => dispatchAndToggleAutoSpin(!process.started)}
             className={cn(
               "p-2 rounded-lg disabled:opacity-50",
               process.started ? "bg-red-500 text-black" : "bg-white text-black"

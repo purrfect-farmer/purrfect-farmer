@@ -70,18 +70,21 @@ export default function BitsSocialTasks() {
   );
 
   /** Handle button click */
-  const [handleAutoClaimClick, dispatchAndHandleAutoClaimClick] =
+  const [toggleAutoClaim, dispatchAndToggleAutoClaim] =
     useSocketDispatchCallback(
       /** Main */
-      useCallback(() => {
-        reset();
-        process.toggle();
-      }, [reset, process]),
+      useCallback(
+        (status) => {
+          process.toggle(status);
+        },
+        [process.toggle]
+      ),
 
       /** Dispatch */
-      useCallback((socket) => {
+      useCallback((socket, status) => {
         socket.dispatch({
           action: "bits.tasks.claim",
+          data: { status },
         });
       }, [])
     );
@@ -90,13 +93,16 @@ export default function BitsSocialTasks() {
   useSocketHandlers(
     useMemo(
       () => ({
-        "bits.tasks.claim": () => {
-          handleAutoClaimClick();
+        "bits.tasks.claim": (command) => {
+          toggleAutoClaim(command.data.status);
         },
       }),
-      [handleAutoClaimClick]
+      [toggleAutoClaim]
     )
   );
+
+  /** Reset */
+  useEffect(reset, [process.started, reset]);
 
   /** Run Tasks */
   useEffect(() => {
@@ -197,7 +203,7 @@ export default function BitsSocialTasks() {
                   "px-4 py-2 rounded-lg text-black",
                   process.started ? "bg-red-500" : "bg-green-500"
                 )}
-                onClick={dispatchAndHandleAutoClaimClick}
+                onClick={() => dispatchAndToggleAutoClaim(!process.started)}
                 disabled={
                   (pendingTasks.length === 0 && unclaimedTasks.length === 0) ||
                   process.started
