@@ -37,7 +37,15 @@ function App() {
 
         <ControlArea />
       </div>
-      <Toaster position="top-center" />
+      <Toaster
+        position="top-center"
+        toastOptions={{
+          duration: 2000,
+          loading: {
+            duration: Infinity,
+          },
+        }}
+      />
     </AppContext.Provider>
   );
 }
