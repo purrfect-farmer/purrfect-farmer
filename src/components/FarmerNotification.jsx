@@ -11,7 +11,7 @@ export default function FarmerNotification({ t, id, notification }) {
 
   return (
     <span className="cursor-pointer" onClick={handleClick}>
-      {notification.title} Farmer Started
+      {notification.title} Started
     </span>
   );
 }
