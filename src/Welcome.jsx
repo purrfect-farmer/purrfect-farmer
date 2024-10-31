@@ -1,4 +1,5 @@
 import * as Dialog from "@radix-ui/react-dialog";
+import * as Tabs from "@radix-ui/react-tabs";
 import BotWebAIcon from "@/assets/images/bot-web-a.png?format=webp&w=80";
 import BotWebKIcon from "@/assets/images/bot-web-k.png?format=webp&w=80";
 import Settings from "@/partials/Settings";
@@ -26,6 +27,8 @@ import { useState } from "react";
 import DropButton from "./components/DropButton";
 import Shutdown from "./partials/Shutdown";
 import farmerTabs from "./farmerTabs";
+import useSocketTabs from "./hooks/useSocketTabs";
+import bots from "./bots";
 
 const TelegramWebButton = ({ icon, children, ...props }) => (
   <button
@@ -60,7 +63,10 @@ export default function Welcome() {
     dispatchAndSetActiveTab,
     dispatchAndReloadApp,
     dispatchAndOpenFarmerBot,
+    dispatchAndOpenTelegramLink,
   } = useAppContext();
+
+  const tabs = useSocketTabs("app", "farmers");
 
   /** Hidden Toggle */
   const [showHidden, setShowHidden] = useState(import.meta.env.DEV);
@@ -117,7 +123,7 @@ export default function Welcome() {
   return (
     <>
       {/* Settings and New Window Button */}
-      <div className="p-4 shrink-0">
+      <div className="p-2 shrink-0">
         <div className="flex justify-between w-full gap-2 mx-auto max-w-96">
           <div className="flex gap-2">
             {/* Shutdown */}
@@ -171,13 +177,17 @@ export default function Welcome() {
         </div>
       </div>
 
-      <div className="flex flex-col p-4 overflow-auto grow">
+      <div className="flex flex-col p-2 overflow-auto grow scrollbar-thin">
         <div className="flex flex-col w-full gap-2 mx-auto my-auto max-w-96">
+          {/* App Icon */}
           <img src={WelcomeIcon} className="mx-auto h-28" />
 
+          {/* App Title */}
           <h3 className="text-2xl text-center font-turret-road">
             {import.meta.env.VITE_APP_NAME}
           </h3>
+
+          {/* App Version */}
           <p className="text-lg text-center">
             <span
               className={cn(
@@ -189,12 +199,16 @@ export default function Welcome() {
               v{chrome?.runtime?.getManifest().version}
             </span>
           </p>
+
+          {/* Farmer Title */}
           <p
             onClick={() => setShowSettingsPanel(true)}
             className="font-bold text-center text-blue-500 cursor-pointer"
           >
             {settings.farmerTitle || defaultSettings.farmerTitle}
           </p>
+
+          {/* Sync Status */}
           <p
             className={cn(
               "text-center",
@@ -241,17 +255,52 @@ export default function Welcome() {
             </div>
           </div>
 
-          {/* Drops */}
-          <div className={cn("flex flex-wrap justify-center w-full", "py-4")}>
-            {/* Drops */}
-            {drops.map((drop) => (
-              <DropButton
-                key={drop.id}
-                drop={drop}
-                onClick={() => dispatchAndSetActiveTab(drop.id)}
-              />
-            ))}
-          </div>
+          <Tabs.Root {...tabs} className="flex flex-col gap-2 py-2">
+            <Tabs.List className="grid grid-cols-2">
+              {["farmers", "bots"].map((value, index) => (
+                <Tabs.Trigger
+                  key={index}
+                  value={value}
+                  className={cn(
+                    "p-2 rounded-full",
+                    "border-b-2 border-transparent",
+                    "data-[state=active]:bg-orange-500",
+                    "data-[state=active]:text-white"
+                  )}
+                >
+                  {value.toUpperCase()}
+                </Tabs.Trigger>
+              ))}
+            </Tabs.List>
+            <Tabs.Content value="farmers">
+              {/* Drops */}
+              <div className={cn("flex flex-wrap justify-center w-full")}>
+                {/* Drops */}
+                {drops.map((drop) => (
+                  <DropButton
+                    key={drop.id}
+                    drop={drop}
+                    onClick={() => open(drop.id)}
+                  />
+                ))}
+              </div>
+            </Tabs.Content>
+            <Tabs.Content value="bots">
+              {/* Bots */}
+              <div className={cn("flex flex-wrap justify-center w-full")}>
+                {/* Drops */}
+                {bots.map((bot, index) => (
+                  <DropButton
+                    key={index}
+                    drop={bot}
+                    onClick={() =>
+                      dispatchAndOpenTelegramLink(bot.telegramLink)
+                    }
+                  />
+                ))}
+              </div>
+            </Tabs.Content>
+          </Tabs.Root>
 
           {/* Connect */}
           <div className="flex items-center justify-center gap-2 text-xs">
