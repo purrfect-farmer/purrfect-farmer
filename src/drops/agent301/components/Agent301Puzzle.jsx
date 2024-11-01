@@ -1,15 +1,15 @@
+import toast from "react-hot-toast";
+import useSocketDispatchCallback from "@/hooks/useSocketDispatchCallback";
 import useSocketHandlers from "@/hooks/useSocketHandlers";
-import PuzzleIcon from "../assets/images/puzzle.png?format=webp&w=80";
-import useAgent301CardsQuery from "../hooks/useAgent301CardsQuery";
-import Agent301PuzzleDialog from "./Agent301PuzzleDialog";
+import useSocketState from "@/hooks/useSocketState";
 import { useCallback } from "react";
 import { useMemo } from "react";
-import useSocketDispatchCallback from "@/hooks/useSocketDispatchCallback";
-import useSocketState from "@/hooks/useSocketState";
-import useAgent301PuzzleMutation from "../hooks/useAgent301PuzzleMutation";
-import toast from "react-hot-toast";
+
+import Agent301PuzzleDialog from "./Agent301PuzzleDialog";
+import PuzzleIcon from "../assets/images/puzzle.png?format=webp&w=80";
 import useAgent301BalanceQuery from "../hooks/useAgent301BalanceQuery";
-import Agent301FullscreenSpinner from "./Agent301FullscreenSpinner";
+import useAgent301CardsQuery from "../hooks/useAgent301CardsQuery";
+import useAgent301PuzzleMutation from "../hooks/useAgent301PuzzleMutation";
 
 export default function Agent301Puzzle() {
   const cardsQuery = useAgent301CardsQuery();
@@ -29,26 +29,35 @@ export default function Agent301Puzzle() {
     (choices) => {
       setShowModal(false);
 
-      claimMutation.mutateAsync(choices).then((data) => {
-        const isCorrect = data.result.isCorrect;
+      toast
+        .promise(claimMutation.mutateAsync(choices), {
+          loading: "Checking...",
+          success: "Done...",
+          error: "Error!",
+        })
+        .then(async (data) => {
+          const isCorrect = data.result.isCorrect;
 
-        if (isCorrect) {
-          /** Correct */
-          toast.success("Claimed Successfully!", {
-            className: "font-bold font-sans",
-          });
-        } else {
-          /** Failed */
-          toast.error("Incorrect choices!", {
-            className: "font-bold font-sans",
-          });
-        }
+          if (isCorrect) {
+            /** Correct */
+            toast.success("Claimed Successfully!", {
+              className: "font-bold font-sans",
+            });
+          } else {
+            /** Failed */
+            toast.error("Incorrect choices!", {
+              className: "font-bold font-sans",
+            });
+          }
 
-        /** Refetch Balance */
-        balanceQuery.refetch();
-      });
+          /** Refetch Cards */
+          await cardsQuery.refetch();
+
+          /** Refetch Balance */
+          await balanceQuery.refetch();
+        });
     },
-    [toast, balanceQuery.refetch, setShowModal]
+    [toast, cardsQuery.refetch, balanceQuery.refetch, setShowModal]
   );
 
   const [handleButtonClick, dispatchAndHandleButtonClick] =
@@ -89,8 +98,6 @@ export default function Agent301Puzzle() {
       >
         <img src={PuzzleIcon} className="w-6 h-6" /> Puzzle
       </button>
-
-      {claimMutation.isPending ? <Agent301FullscreenSpinner /> : null}
 
       {showModal ? (
         <Agent301PuzzleDialog

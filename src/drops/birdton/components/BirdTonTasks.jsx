@@ -1,7 +1,9 @@
+import toast from "react-hot-toast";
 import useFarmerContext from "@/hooks/useFarmerContext";
 import useProcessLock from "@/hooks/useProcessLock";
 import useSocketDispatchCallback from "@/hooks/useSocketDispatchCallback";
 import useSocketHandlers from "@/hooks/useSocketHandlers";
+import { HiOutlineArrowPath } from "react-icons/hi2";
 import { cn, delayForSeconds } from "@/lib/utils";
 import { useCallback } from "react";
 import { useEffect } from "react";
@@ -11,7 +13,31 @@ import { useState } from "react";
 import useBirdTonHandlers from "../hooks/useBirdTonHandlers";
 
 export default function BirdTonTasks() {
-  const { eventData, sendAuth, sendMessage } = useFarmerContext();
+  const { eventData, sendMessage } = useFarmerContext();
+
+  const refreshTasks = useCallback(() => {
+    sendMessage({
+      event_type: "refresh_tasks",
+      data: "",
+    });
+  }, [sendMessage]);
+
+  const [reloadTasks, dispatchAndReloadTasks] = useSocketDispatchCallback(
+    useCallback(() => {
+      /** Refresh */
+      refreshTasks();
+
+      /** Toast */
+      toast.success("Refreshed Tasks");
+    }, [refreshTasks]),
+
+    /** Dispatch */
+    useCallback((socket) => {
+      socket.dispatch({
+        action: "birdton.tasks.reload",
+      });
+    }, [])
+  );
 
   const taskProgress = useMemo(
     () => eventData.get("user_task_progress") || [],
@@ -107,8 +133,11 @@ export default function BirdTonTasks() {
         "birdton.tasks.claim": (command) => {
           toggleAutoTaskClaim(command.data.status);
         },
+        "birdton.tasks.reload": (command) => {
+          reloadTasks();
+        },
       }),
-      [toggleAutoTaskClaim]
+      [toggleAutoTaskClaim, reloadTasks]
     )
   );
 
@@ -187,16 +216,11 @@ export default function BirdTonTasks() {
         await delayForSeconds(1);
       }
 
+      refreshTasks();
       reset();
-      sendAuth();
       process.stop();
     })();
   }, [process]);
-
-  /** Reload Tasks */
-  useEffect(() => {
-    sendAuth();
-  }, []);
 
   return (
     <div className="flex flex-col">
@@ -210,16 +234,31 @@ export default function BirdTonTasks() {
 
       <div className="flex flex-col gap-2 py-2">
         {/* Start or Stop Button */}
-        <button
-          onClick={() => dispatchAndToggleAutoTaskClaim(!process.started)}
-          disabled={process.started}
-          className={cn(
-            "w-full px-4 py-2 uppercase rounded-lg font-bold disabled:opacity-50 text-white",
-            !process.started ? "bg-sky-500" : "bg-red-500"
-          )}
-        >
-          {!process.started ? "Start" : "Stop"}
-        </button>
+        <div className="flex gap-2">
+          <button
+            onClick={() => dispatchAndToggleAutoTaskClaim(!process.started)}
+            disabled={process.started}
+            className={cn(
+              "grow min-h-0 min-w-0",
+              "w-full px-4 py-2 uppercase rounded-lg font-bold disabled:opacity-50 text-white",
+              !process.started ? "bg-sky-500" : "bg-red-500"
+            )}
+          >
+            {!process.started ? "Start" : "Stop"}
+          </button>
+
+          <button
+            onClick={dispatchAndReloadTasks}
+            className={cn(
+              "p-2 text-black rounded-lg disabled:opacity-50",
+              "bg-sky-100",
+              "font-bold",
+              "shrink-0"
+            )}
+          >
+            <HiOutlineArrowPath className="w-4 h-4" />
+          </button>
+        </div>
 
         {process.started && currentTask ? (
           <div className="flex flex-col gap-2 p-4 text-white rounded-lg bg-neutral-800">

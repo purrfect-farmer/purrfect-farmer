@@ -1,9 +1,11 @@
+import Slider from "@/components/Slider";
 import toast from "react-hot-toast";
 import useFarmerContext from "@/hooks/useFarmerContext";
 import useProcessLock from "@/hooks/useProcessLock";
 import useSocketDispatchCallback from "@/hooks/useSocketDispatchCallback";
 import useSocketHandlers from "@/hooks/useSocketHandlers";
 import useSocketState from "@/hooks/useSocketState";
+import useSyncedRef from "@/hooks/useSyncedRef";
 import { cn, delay, delayForSeconds } from "@/lib/utils";
 import { useCallback } from "react";
 import { useEffect } from "react";
@@ -11,16 +13,14 @@ import { useMemo } from "react";
 import { useState } from "react";
 
 import useBirdTonHandlers from "../hooks/useBirdTonHandlers";
-import Slider from "@/components/Slider";
-import useSyncedRef from "@/hooks/useSyncedRef";
 
-const MIN_POINT = 1;
+const MIN_POINT = 100;
 const INITIAL_POINT = 120;
-const MAX_POINT = 280;
+const MAX_POINT = 10_000;
 
 export default function BirdTonGamer() {
   const process = useProcessLock();
-  const { sendMessage, user, queryClient } = useFarmerContext();
+  const { sendMessage, user, queryClient, authQueryKey } = useFarmerContext();
   const [startGameCallback, setStartGameCallback] = useState(null);
 
   const [farmingSpeed, , dispatchAndSetFarmingSpeed] = useSocketState(
@@ -130,15 +130,17 @@ export default function BirdTonGamer() {
     ({ data }) => {
       const result = JSON.parse(data);
 
-      queryClient.setQueryData(["birdton", "auth"], (prev) => {
+      /** Set Balance */
+      queryClient.setQueryData(authQueryKey, (prev) => {
         return {
           ...prev,
+          energy: prev?.["energy"] - 1,
           balance: result.balance,
           high_score: result.high_score,
         };
       });
     },
-    [queryClient.setQueryData]
+    [queryClient.setQueryData, authQueryKey]
   );
 
   /** Handlers */

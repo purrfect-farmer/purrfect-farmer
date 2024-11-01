@@ -215,8 +215,17 @@ export default function useDropFarmer({
       }
 
       setAuth(true);
+    } else if (typeof fetchAuth !== "undefined") {
+      setAuth(false);
     }
-  }, [api, telegramWebApp, authQuery.data, configureAuthHeaders, setAuth]);
+  }, [
+    api,
+    telegramWebApp,
+    authQuery.data,
+    configureAuthHeaders,
+    setAuth,
+    fetchAuth,
+  ]);
 
   /** Create Notification */
   useEffect(() => {
