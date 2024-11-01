@@ -21,13 +21,29 @@ function App() {
 
   /** Acquire WakeLock */
   useEffect(() => {
-    (async function () {
+    const requestWakeLock = async () => {
       try {
         wakeLockRef.current = await navigator.wakeLock.request("screen");
       } catch {}
-    })();
+    };
+
+    const handleVisibilityChange = async () => {
+      if (
+        wakeLockRef.current !== null &&
+        document.visibilityState === "visible"
+      ) {
+        await requestWakeLock();
+      }
+    };
+
+    /** Watch Visibility Change */
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+
+    /** Request initial WakeLock */
+    requestWakeLock();
 
     return () => {
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
       wakeLockRef.current?.release();
       wakeLockRef.current = null;
     };
