@@ -1,5 +1,5 @@
 import { Toaster } from "react-hot-toast";
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 
 import AppContext from "./contexts/AppContext";
 import TabButtonList from "./components/TabButtonList";
@@ -10,12 +10,27 @@ import ControlArea from "./ControlArea";
 
 function App() {
   const app = useApp();
+  const wakeLockRef = useRef(null);
 
   /** Resize window */
   useEffect(() => {
     (async function () {
       await resizeFarmerWindow();
     })();
+  }, []);
+
+  /** Acquire WakeLock */
+  useEffect(() => {
+    (async function () {
+      try {
+        wakeLockRef.current = await navigator.wakeLock.request("screen");
+      } catch {}
+    })();
+
+    return () => {
+      wakeLockRef.current?.release();
+      wakeLockRef.current = null;
+    };
   }, []);
 
   return (
