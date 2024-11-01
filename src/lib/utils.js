@@ -12,18 +12,23 @@ export function uuid() {
   return uuidv4();
 }
 
-export function delay(length, value) {
+export function delay(length, precised = false) {
   return new Promise((res) => {
-    setTimeout(() => res(value), length);
+    setTimeout(
+      () => res(),
+      precised
+        ? length
+        : (length * (Math.floor(Math.random() * 20) + 100)) / 100
+    );
   });
 }
 
-export function delayForSeconds(length, value) {
-  return delay(length * 1000, value);
+export function delayForSeconds(length, precised = false) {
+  return delay(length * 1000, precised);
 }
 
-export function delayForMinutes(length, value) {
-  return delay(length * 60 * 1000, value);
+export function delayForMinutes(length, precised = false) {
+  return delay(length * 60 * 1000, precised);
 }
 
 export function getSettings() {

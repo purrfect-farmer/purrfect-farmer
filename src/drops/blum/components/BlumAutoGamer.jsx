@@ -134,7 +134,7 @@ export default function BlumAutoGamer({ workerRef }) {
 
         /** Wait for countdown */
         setCountdown(Date.now() + GAME_DURATION);
-        await delay(GAME_DURATION);
+        await delay(GAME_DURATION, true);
 
         /** Reset countdown */
         setCountdown(null);

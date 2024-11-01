@@ -18,8 +18,8 @@ import useWontonUserQuery from "../hooks/useWontonUserQuery";
 const GAME_DURATION = 15_000;
 const EXTRA_DELAY = 3_000;
 const MIN_POINT = 100;
-const INITIAL_POINT = 220;
-const MAX_POINT = 380;
+const INITIAL_POINT = 320;
+const MAX_POINT = 580;
 
 export default function Wonton() {
   const query = useWontonUserQuery();
@@ -115,7 +115,7 @@ export default function Wonton() {
         const stopTime = GAME_DURATION + Math.floor(Math.random() * 5);
 
         setCountdown(Date.now() + stopTime);
-        await delay(stopTime);
+        await delay(stopTime, true);
 
         /** Reset countdown */
         setCountdown(null);
