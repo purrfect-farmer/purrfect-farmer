@@ -262,10 +262,10 @@ export default function Welcome() {
                   key={index}
                   value={value}
                   className={cn(
-                    "p-2 rounded-full",
+                    "p-2 rounded-lg",
                     "border-b-2 border-transparent",
-                    "data-[state=active]:bg-orange-500",
-                    "data-[state=active]:text-white"
+                    "data-[state=active]:bg-blue-100",
+                    "data-[state=active]:text-blue-800"
                   )}
                 >
                   {value.toUpperCase()}
@@ -280,7 +280,7 @@ export default function Welcome() {
                   <DropButton
                     key={drop.id}
                     drop={drop}
-                    onClick={() => open(drop.id)}
+                    onClick={() => dispatchAndSetActiveTab(drop.id)}
                   />
                 ))}
               </div>
