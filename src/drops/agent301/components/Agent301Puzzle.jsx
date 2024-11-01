@@ -14,7 +14,7 @@ import Agent301FullscreenSpinner from "./Agent301FullscreenSpinner";
 export default function Agent301Puzzle() {
   const cardsQuery = useAgent301CardsQuery();
   const result = cardsQuery.data?.result;
-  const attemptsLeft = result?.attemptsLeft;
+  const attemptsLeft = result?.attemptsLeft || 0;
 
   const balanceQuery = useAgent301BalanceQuery();
   const claimMutation = useAgent301PuzzleMutation();
