@@ -76,13 +76,6 @@ const farmerTabs = [
     telegramLink: "https://t.me/theYescoin_bot/Yescoin?startapp=bH7bto",
   },
   {
-    id: "tada",
-    title: "Tada",
-    icon: farmerIcons["tada"],
-    component: <Farmer farmer="Tada" />,
-    telegramLink: "https://t.me/TADA_Ride_Bot/join?startapp=ref_lUIJ4eM-AV",
-  },
-  {
     id: "wonton",
     title: "Wonton",
     icon: farmerIcons["wonton"],
@@ -90,7 +83,6 @@ const farmerTabs = [
     telegramLink:
       "https://t.me/WontonOrgBot/gameapp?startapp=referralCode=K45JQRG7",
   },
-
   {
     id: "tomarket",
     title: "Tomarket",

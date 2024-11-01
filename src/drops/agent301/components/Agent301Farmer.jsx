@@ -7,6 +7,7 @@ import Agent301Icon from "../assets/images/icon.png?format=webp&w=80";
 import Agent301Lottery from "./Agent301Lottery";
 import Agent301Tasks from "./Agent301Tasks";
 import Agent301Wheel from "./Agent301Wheel";
+import Agent301Puzzle from "./Agent301Puzzle";
 
 export default function Agent301Farmer() {
   const tabs = useSocketTabs("agent301.farmer-tabs", "tickets");
@@ -21,6 +22,9 @@ export default function Agent301Farmer() {
 
       {/* Balance Display */}
       <Agent301BalanceDisplay />
+
+      {/* Puzzle */}
+      <Agent301Puzzle />
 
       <Tabs.Root {...tabs} className="flex flex-col gap-4">
         <Tabs.List className="grid grid-cols-3">

@@ -4,8 +4,8 @@ import toast from "react-hot-toast";
 import { createElement, useCallback } from "react";
 import { delay } from "@/lib/utils";
 import { useEffect } from "react";
+import { useIsMutating, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useMemo } from "react";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 
 import useTelegramWebApp from "./useTelegramWebApp";
@@ -29,6 +29,11 @@ export default function useDropFarmer({
 
   /** QueryClient */
   const queryClient = useQueryClient();
+
+  /** IsMutating */
+  const isMutating = useIsMutating({
+    mutationKey: [id],
+  });
 
   /** Axios Instance */
   const api = useMemo(() => axios.create(), []);
@@ -264,6 +269,7 @@ export default function useDropFarmer({
       authQueryKey,
       queryClient,
       telegramWebApp,
+      isMutating,
       resetAuth,
       resetTelegramWebApp,
       updateQueryData,
@@ -278,6 +284,7 @@ export default function useDropFarmer({
       authQueryKey,
       queryClient,
       telegramWebApp,
+      isMutating,
       resetAuth,
       resetTelegramWebApp,
       updateQueryData,

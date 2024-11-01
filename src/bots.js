@@ -48,6 +48,11 @@ const bots = [
     icon: botIcons["seed"],
     telegramLink: "https://t.me/seed_coin_bot/app?startapp=1147265290",
   },
+  {
+    title: "Tada",
+    icon: botIcons["tada"],
+    telegramLink: "https://t.me/TADA_Ride_Bot/join?startapp=ref_lUIJ4eM-AV",
+  },
 ];
 
 export default bots;
