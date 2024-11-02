@@ -1,7 +1,5 @@
 import Countdown from "react-countdown";
 import useProcessLock from "@/hooks/useProcessLock";
-import useSocketDispatchCallback from "@/hooks/useSocketDispatchCallback";
-import useSocketHandlers from "@/hooks/useSocketHandlers";
 import useSocketState from "@/hooks/useSocketState";
 import { delay } from "@/lib/utils";
 import { useCallback } from "react";
@@ -24,7 +22,7 @@ const MAX_POINT = 580;
 export default function Wonton() {
   const query = useWontonUserQuery();
 
-  const process = useProcessLock();
+  const process = useProcessLock("wonton.autoplay");
 
   const [countdown, setCountdown] = useState(null);
   const [desiredPoint, setDesiredPoint, dispatchAndSetDesiredPoint] =
@@ -45,53 +43,12 @@ export default function Wonton() {
     []
   );
 
-  /** Handle start button click */
-  const [startPlaying, dispatchAndStartPlaying] = useSocketDispatchCallback(
-    /** Main */
-    useCallback(() => {
-      setDesiredPoint(points);
-      process.start();
-    }, [points, setDesiredPoint, process]),
+  /** Reset Desired Points */
+  useEffect(() => {
+    setDesiredPoint(points);
+  }, [process.started]);
 
-    /** Dispatch */
-    useCallback((socket) => {
-      socket.dispatch({
-        action: "wonton.autoplay.start",
-      });
-    }, [])
-  );
-
-  /** Handle stop button click */
-  const [stopPlaying, dispatchAndStopPlaying] = useSocketDispatchCallback(
-    /** Main */
-    useCallback(() => {
-      setDesiredPoint(points);
-      process.stop();
-    }, [points, setDesiredPoint, process]),
-
-    /** Dispatch */
-    useCallback((socket) => {
-      socket.dispatch({
-        action: "wonton.autoplay.stop",
-      });
-    }, [])
-  );
-
-  /** Handlers */
-  useSocketHandlers(
-    useMemo(
-      () => ({
-        "wonton.autoplay.start": () => {
-          startPlaying();
-        },
-        "wonton.autoplay.stop": () => {
-          stopPlaying();
-        },
-      }),
-      [startPlaying, stopPlaying]
-    )
-  );
-
+  /** Run Process */
   useEffect(() => {
     if (!process.canExecute) {
       return;
@@ -160,9 +117,7 @@ export default function Wonton() {
       <WontonButton
         color={process.started ? "danger" : "primary"}
         disabled={tickets < 1}
-        onClick={
-          !process.started ? dispatchAndStartPlaying : dispatchAndStopPlaying
-        }
+        onClick={() => process.dispatchAndToggle(!process.started)}
       >
         {process.started ? "Stop" : "Start"}
       </WontonButton>

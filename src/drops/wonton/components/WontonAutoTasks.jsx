@@ -1,6 +1,4 @@
 import useProcessLock from "@/hooks/useProcessLock";
-import useSocketDispatchCallback from "@/hooks/useSocketDispatchCallback";
-import useSocketHandlers from "@/hooks/useSocketHandlers";
 import { cn, delay } from "@/lib/utils";
 import { useCallback } from "react";
 import { useEffect } from "react";
@@ -41,7 +39,7 @@ export default function WontonAutoTasks() {
     [tasks]
   );
 
-  const process = useProcessLock();
+  const process = useProcessLock("wonton.tasks.claim");
 
   const [currentTask, setCurrentTask] = useState(null);
   const [taskOffset, setTaskOffset] = useState(null);
@@ -78,40 +76,6 @@ export default function WontonAutoTasks() {
         queryKey: ["wonton", "user"],
       }),
     [client]
-  );
-
-  /** Handle button click */
-  const [toggleAutoClaim, dispatchAndToggleAutoClaim] =
-    useSocketDispatchCallback(
-      /** Main */
-      useCallback(
-        (status) => {
-          process.toggle(status);
-        },
-        [process.toggle]
-      ),
-
-      /** Dispatch */
-      useCallback((socket, status) => {
-        socket.dispatch({
-          action: "wonton.tasks.claim",
-          data: {
-            status,
-          },
-        });
-      }, [])
-    );
-
-  /** Handlers */
-  useSocketHandlers(
-    useMemo(
-      () => ({
-        "wonton.tasks.claim": (command) => {
-          toggleAutoClaim(command.data.status);
-        },
-      }),
-      [toggleAutoClaim]
-    )
   );
 
   /** Reset */
@@ -209,7 +173,7 @@ export default function WontonAutoTasks() {
               {/* Start Button */}
               <WontonButton
                 color={process.started ? "danger" : "primary"}
-                onClick={() => dispatchAndToggleAutoClaim(!process.started)}
+                onClick={() => process.dispatchAndToggle(!process.started)}
                 disabled={
                   (pendingTasks.length === 0 && unclaimedTasks.length === 0) ||
                   process.started

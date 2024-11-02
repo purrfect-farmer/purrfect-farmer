@@ -1,10 +1,6 @@
 import useProcessLock from "@/hooks/useProcessLock";
-import useSocketDispatchCallback from "@/hooks/useSocketDispatchCallback";
-import useSocketHandlers from "@/hooks/useSocketHandlers";
 import { cn, delayForSeconds } from "@/lib/utils";
-import { useCallback } from "react";
 import { useEffect } from "react";
-import { useMemo } from "react";
 
 import usePumpadLotteryMutation from "../hooks/usePumpadLotteryMutation";
 import usePumpadLotteryQuery from "../hooks/usePumpadLotteryQuery";
@@ -20,40 +16,7 @@ export default function PumpadLottery() {
     "pumpad.farming-speed",
     2
   );
-  const process = useProcessLock();
-
-  /** Handle button click */
-  const [toggleAutoSpin, dispatchAndToggleAutoSpin] = useSocketDispatchCallback(
-    /** Main */
-    useCallback(
-      (status) => {
-        process.toggle(status);
-      },
-      [process.toggle]
-    ),
-
-    /** Dispatch */
-    useCallback((socket, status) => {
-      socket.dispatch({
-        action: "pumpad.spin",
-        data: {
-          status,
-        },
-      });
-    }, [])
-  );
-
-  /** Handlers */
-  useSocketHandlers(
-    useMemo(
-      () => ({
-        "pumpad.spin": (command) => {
-          toggleAutoSpin(command.data.status);
-        },
-      }),
-      [toggleAutoSpin]
-    )
-  );
+  const process = useProcessLock("pumpad.spin");
 
   useEffect(() => {
     if (!process.canExecute) {
@@ -103,7 +66,7 @@ export default function PumpadLottery() {
           {/* Auto Spin Button */}
           <button
             disabled={!drawCount}
-            onClick={() => dispatchAndToggleAutoSpin(!process.started)}
+            onClick={() => process.dispatchAndToggle(!process.started)}
             className={cn(
               "p-2 text-black rounded-lg disabled:opacity-50",
               process.started ? "bg-red-500" : "bg-pumpad-green-500",

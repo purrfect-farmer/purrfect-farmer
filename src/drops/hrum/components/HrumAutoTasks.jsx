@@ -1,6 +1,4 @@
 import useProcessLock from "@/hooks/useProcessLock";
-import useSocketDispatchCallback from "@/hooks/useSocketDispatchCallback";
-import useSocketHandlers from "@/hooks/useSocketHandlers";
 import { cn, delay } from "@/lib/utils";
 import { useCallback } from "react";
 import { useEffect } from "react";
@@ -10,7 +8,7 @@ import { useState } from "react";
 import useHrumClaimQuestMutation from "../hooks/useHrumClaimQuestMutation";
 
 export default function HrumAutoTasks({ queries }) {
-  const process = useProcessLock();
+  const process = useProcessLock("hrum.tasks.claim");
   const claimTaskMutation = useHrumClaimQuestMutation();
   const [allData, afterData] = queries.data;
 
@@ -53,40 +51,6 @@ export default function HrumAutoTasks({ queries }) {
   const refetchBalance = useCallback(
     () => queries.query.forEach((query) => query.refetch()),
     [queries]
-  );
-
-  /** Handle button click */
-  const [toggleAutoClaim, dispatchAndToggleAutoClaim] =
-    useSocketDispatchCallback(
-      /** Main */
-      useCallback(
-        (status) => {
-          process.toggle(status);
-        },
-        [process.toggle]
-      ),
-
-      /** Dispatch */
-      useCallback((socket, status) => {
-        socket.dispatch({
-          action: "hrum.tasks.claim",
-          data: {
-            status,
-          },
-        });
-      }, [])
-    );
-
-  /** Handlers */
-  useSocketHandlers(
-    useMemo(
-      () => ({
-        "hrum.tasks.claim": (command) => {
-          toggleAutoClaim(command.data.status);
-        },
-      }),
-      [toggleAutoClaim]
-    )
   );
 
   /** Reset */
@@ -146,7 +110,7 @@ export default function HrumAutoTasks({ queries }) {
           <div className="flex flex-col gap-2 py-2">
             {/* Start Button */}
             <button
-              onClick={() => dispatchAndToggleAutoClaim(!process.started)}
+              onClick={() => process.dispatchAndToggle(!process.started)}
               disabled={pendingTasks.length === 0}
               className={cn(
                 "w-full px-4 py-2 uppercase rounded-full",

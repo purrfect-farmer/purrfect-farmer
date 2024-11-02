@@ -19,7 +19,7 @@ const INITIAL_POINT = 120;
 const MAX_POINT = 10_000;
 
 export default function BirdTonGamer() {
-  const process = useProcessLock();
+  const process = useProcessLock("birdton.game.autoplay");
   const { sendMessage, user, queryClient, authQueryKey } = useFarmerContext();
   const [startGameCallback, setStartGameCallback] = useState(null);
 
@@ -98,21 +98,6 @@ export default function BirdTonGamer() {
     }, [])
   );
 
-  /** Stop Game */
-  const [stopGame, dispatchAndStopGame] = useSocketDispatchCallback(
-    /** Main */
-    useCallback(() => {
-      process.stop();
-    }, [process]),
-
-    /** Dispatch */
-    useCallback((socket) => {
-      socket.dispatch({
-        action: "birdton.autoplay.stop",
-      });
-    }, [])
-  );
-
   /** Handle Game Start */
   const handleGameStart = useCallback(
     ({ data }) => {
@@ -165,11 +150,8 @@ export default function BirdTonGamer() {
         "birdton.autoplay.start": () => {
           startGame();
         },
-        "birdton.autoplay.stop": () => {
-          stopGame();
-        },
       }),
-      [startGame, stopGame]
+      [startGame]
     )
   );
 
@@ -198,8 +180,7 @@ export default function BirdTonGamer() {
         }
 
         /** Delay */
-        const duration = gameSpeedRef.current + Math.floor(Math.random() * 2);
-        await delayForSeconds(duration);
+        await delayForSeconds(gameSpeedRef.current);
 
         if (!process.signal.aborted) {
           /** Claim Point */
@@ -241,7 +222,9 @@ export default function BirdTonGamer() {
 
       {/* Start or Stop Button */}
       <button
-        onClick={!process.started ? dispatchAndStartGame : dispatchAndStopGame}
+        onClick={
+          !process.started ? dispatchAndStartGame : process.dispatchAndStop
+        }
         disabled={energy < 1}
         className={cn(
           "w-full px-4 py-2 uppercase rounded-lg font-bold disabled:opacity-50 text-white",

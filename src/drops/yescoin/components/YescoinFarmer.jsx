@@ -10,6 +10,7 @@ import YescoinIcon from "../assets/images/icon.png?format=webp&w=80";
 import useYescoinAccountInfoQuery from "../hooks/useYescoinAccountInfoQuery";
 import useYescoinDailyCheckIn from "../hooks/useYescoinDailyCheckIn";
 import useYescoinOfflineQuery from "../hooks/useYescoinOfflineQuery";
+import YescoinTasks from "./YescoinTasks";
 
 export default function YescoinFarmer() {
   const accountInfoQuery = useYescoinAccountInfoQuery();
@@ -34,8 +35,8 @@ export default function YescoinFarmer() {
         <>
           <YescoinBalanceDisplay />
           <Tabs.Root {...tabs} className="flex flex-col gap-4">
-            <Tabs.List className="grid grid-cols-2">
-              {["game", "daily-mission"].map((value, index) => (
+            <Tabs.List className="grid grid-cols-3">
+              {["game", "daily-mission", "tasks"].map((value, index) => (
                 <Tabs.Trigger
                   key={index}
                   value={value}
@@ -49,6 +50,8 @@ export default function YescoinFarmer() {
                 </Tabs.Trigger>
               ))}
             </Tabs.List>
+
+            {/* Game */}
             <Tabs.Content
               forceMount
               className="data-[state=inactive]:hidden"
@@ -56,12 +59,23 @@ export default function YescoinFarmer() {
             >
               <YescoinGamer />
             </Tabs.Content>
+
+            {/* Daily Mission */}
             <Tabs.Content
               forceMount
               className="data-[state=inactive]:hidden"
               value="daily-mission"
             >
               <YescoinDailyMission />
+            </Tabs.Content>
+
+            {/* Tasks */}
+            <Tabs.Content
+              forceMount
+              className="data-[state=inactive]:hidden"
+              value="tasks"
+            >
+              <YescoinTasks />
             </Tabs.Content>
           </Tabs.Root>
         </>

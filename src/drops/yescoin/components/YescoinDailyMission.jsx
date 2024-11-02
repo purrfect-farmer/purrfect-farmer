@@ -30,35 +30,45 @@ export default function YescoinDailyMission() {
 
   const [claimTask, dispatchAndClaimTask] = useSocketDispatchCallback(
     /** Main */
-    useCallback(async (id) => {
-      /** Click */
-      await toast.promise(
-        (async function () {
-          /** Click */
-          await clickMissionMutation.mutateAsync(id);
-          await delay(5000);
+    useCallback(
+      async (id) => {
+        if (
+          !missions.some(
+            (mission) => mission.missionId === id && !mission.missionStatus
+          )
+        )
+          return;
 
-          /** Check */
-          const result = await checkMissionMutation.mutateAsync(id);
-          await delay(5000);
+        /** Click */
+        await toast.promise(
+          (async function () {
+            /** Click */
+            await clickMissionMutation.mutateAsync(id);
+            await delay(5000);
 
-          if (!result) {
-            throw "Not Completed!";
-          } else {
-            /** Claim */
-            await claimMissionMutation.mutateAsync(id);
+            /** Check */
+            const result = await checkMissionMutation.mutateAsync(id);
+            await delay(5000);
+
+            if (!result) {
+              throw "Not Completed!";
+            } else {
+              /** Claim */
+              await claimMissionMutation.mutateAsync(id);
+            }
+          })(),
+          {
+            loading: "Working...",
+            error: "Error!",
+            success: "Successfully Claimed",
           }
-        })(),
-        {
-          loading: "Working...",
-          error: "Error!",
-          success: "Successfully Claimed",
-        }
-      );
+        );
 
-      await missionsQuery.refetch();
-      await accountInfoQuery.refetch();
-    }, []),
+        await missionsQuery.refetch();
+        await accountInfoQuery.refetch();
+      },
+      [missions]
+    ),
 
     /** Dispatch */
     useCallback((socket, id) => {

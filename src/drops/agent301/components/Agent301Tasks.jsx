@@ -1,6 +1,4 @@
 import useProcessLock from "@/hooks/useProcessLock";
-import useSocketDispatchCallback from "@/hooks/useSocketDispatchCallback";
-import useSocketHandlers from "@/hooks/useSocketHandlers";
 import { cn, delay } from "@/lib/utils";
 import { useCallback } from "react";
 import { useEffect } from "react";
@@ -63,7 +61,7 @@ export default function Agent301Tasks() {
 
   const completeTaskMutation = useAgent301CompleteTaskMutation();
 
-  const process = useProcessLock();
+  const process = useProcessLock("agent301.tasks.claim");
   const [currentTask, setCurrentTask] = useState(null);
   const [taskOffset, setTaskOffset] = useState(null);
   const [action, setAction] = useState(null);
@@ -73,40 +71,6 @@ export default function Agent301Tasks() {
     setCurrentTask(null);
     setTaskOffset(null);
   }, [setAction, setCurrentTask, setTaskOffset]);
-
-  /** Handle button click */
-  const [toggleAutoTaskClaim, dispatchAndToggleAutoTaskClaim] =
-    useSocketDispatchCallback(
-      /** Main */
-      useCallback(
-        (status) => {
-          process.toggle(status);
-        },
-        [process.toggle]
-      ),
-
-      /** Dispatch */
-      useCallback((socket, status) => {
-        socket.dispatch({
-          action: "agent301.tasks.claim",
-          data: {
-            status,
-          },
-        });
-      }, [])
-    );
-
-  /** Handlers */
-  useSocketHandlers(
-    useMemo(
-      () => ({
-        "agent301.tasks.claim": (command) => {
-          toggleAutoTaskClaim(command.data.status);
-        },
-      }),
-      [toggleAutoTaskClaim]
-    )
-  );
 
   /** Reset */
   useEffect(reset, [process.started, reset]);
@@ -226,7 +190,7 @@ export default function Agent301Tasks() {
           </div>
           <button
             disabled={process.started}
-            onClick={() => dispatchAndToggleAutoTaskClaim(!process.started)}
+            onClick={() => process.dispatchAndToggle(!process.started)}
             className={cn(
               "p-2 rounded-lg disabled:opacity-50",
               process.started ? "bg-red-500 text-black" : "bg-white text-black"

@@ -1,8 +1,6 @@
 import useProcessLock from "@/hooks/useProcessLock";
-import useSocketDispatchCallback from "@/hooks/useSocketDispatchCallback";
-import useSocketHandlers from "@/hooks/useSocketHandlers";
 import { cn, delayForSeconds } from "@/lib/utils";
-import { useCallback, useEffect, useMemo } from "react";
+import { useEffect } from "react";
 
 import EnergyIcon from "../assets/images/energy.png?format=webp&w=80";
 import useSlotcoinInfoQuery from "../hooks/useSlotcoinInfoQuery";
@@ -16,44 +14,11 @@ export default function SlotcoinLottery() {
   const maxEnergy = query.data?.user?.["max_spins"] || 0;
 
   const spinMutation = useSlotcoinLotteryMutation();
-  const process = useProcessLock();
+  const process = useProcessLock("slotcoin.spin");
 
   const [farmingSpeed, , dispatchAndSetFarmingSpeed] = useSocketState(
     "slotcoin.farming-speed",
     2
-  );
-
-  /** Handle button click */
-  const [toggleAutoSpin, dispatchAndToggleAutoSpin] = useSocketDispatchCallback(
-    /** Main */
-    useCallback(
-      (status) => {
-        process.toggle(status);
-      },
-      [process.toggle]
-    ),
-
-    /** Dispatch */
-    useCallback((socket, status) => {
-      socket.dispatch({
-        action: "slotcoin.spin",
-        data: {
-          status,
-        },
-      });
-    }, [])
-  );
-
-  /** Handlers */
-  useSocketHandlers(
-    useMemo(
-      () => ({
-        "slotcoin.spin": (command) => {
-          toggleAutoSpin(command.data.status);
-        },
-      }),
-      [toggleAutoSpin]
-    )
   );
 
   useEffect(() => {
@@ -108,7 +73,7 @@ export default function SlotcoinLottery() {
           {/* Auto Spin Button */}
           <button
             disabled={energy < 1}
-            onClick={() => dispatchAndToggleAutoSpin(!process.started)}
+            onClick={() => process.dispatchAndToggle(!process.started)}
             className={cn(
               "p-2 text-white rounded-lg disabled:opacity-50",
               process.started ? "bg-red-500" : "bg-purple-500",

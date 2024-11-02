@@ -1,7 +1,5 @@
 import Countdown from "react-countdown";
 import useProcessLock from "@/hooks/useProcessLock";
-import useSocketDispatchCallback from "@/hooks/useSocketDispatchCallback";
-import useSocketHandlers from "@/hooks/useSocketHandlers";
 import useSocketState from "@/hooks/useSocketState";
 import { delay } from "@/lib/utils";
 import { useCallback, useEffect, useMemo } from "react";
@@ -22,7 +20,7 @@ const MAX_POINT = 390;
 export default function Tomarket({ tomarket }) {
   const query = useTomarketBalanceQuery();
 
-  const process = useProcessLock();
+  const process = useProcessLock("tomarket.autoplay");
   const [countdown, setCountdown] = useState(null);
   const [desiredPoint, setDesiredPoint, dispatchAndSetDesiredPoint] =
     useSocketState("tomarket.game.desired-point", INITIAL_POINT);
@@ -45,43 +43,10 @@ export default function Tomarket({ tomarket }) {
     []
   );
 
-  /** Handle button click */
-  const [toggleAutoPlay, dispatchAndToggleAutoPlay] = useSocketDispatchCallback(
-    /** Main */
-    useCallback(
-      (status) => {
-        process.toggle(status);
-      },
-      [process.toggle]
-    ),
-
-    /** Dispatch */
-    useCallback((socket, status) => {
-      socket.dispatch({
-        action: "tomarket.autoplay",
-        data: {
-          status,
-        },
-      });
-    }, [])
-  );
-
-  /** Handlers */
-  useSocketHandlers(
-    useMemo(
-      () => ({
-        "tomarket.autoplay": (command) => {
-          toggleAutoPlay(command.data.status);
-        },
-      }),
-      [toggleAutoPlay]
-    )
-  );
-
   /** Override Points */
   useEffect(() => {
     setDesiredPoint(points);
-  }, [process.started, points, setDesiredPoint]);
+  }, [process.started]);
 
   /** Auto Play */
   useEffect(() => {
@@ -150,7 +115,7 @@ export default function Tomarket({ tomarket }) {
       <TomarketButton
         color={process.started ? "danger" : "primary"}
         disabled={tickets < 1}
-        onClick={() => dispatchAndToggleAutoPlay(!process.started)}
+        onClick={() => process.dispatchAndToggle(!process.started)}
       >
         {process.started ? "Stop" : "Start"}
       </TomarketButton>

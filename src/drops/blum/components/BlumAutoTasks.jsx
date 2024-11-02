@@ -1,6 +1,4 @@
 import useProcessLock from "@/hooks/useProcessLock";
-import useSocketDispatchCallback from "@/hooks/useSocketDispatchCallback";
-import useSocketHandlers from "@/hooks/useSocketHandlers";
 import useValueTasks from "@/hooks/useValueTasks";
 import { cn, delay } from "@/lib/utils";
 import { useCallback } from "react";
@@ -96,7 +94,7 @@ export default function BlumAutoTasks() {
     [tasks]
   );
 
-  const process = useProcessLock();
+  const process = useProcessLock("blum.tasks.claim");
 
   const [currentTask, setCurrentTask] = useState(null);
   const [taskOffset, setTaskOffset] = useState(null);
@@ -152,40 +150,6 @@ export default function BlumAutoTasks() {
         queryKey: ["blum", "balance"],
       }),
     [client]
-  );
-
-  /** Handle button click */
-  const [toggleAutoClaim, dispatchAndToggleAutoClaim] =
-    useSocketDispatchCallback(
-      /** Main */
-      useCallback(
-        (status) => {
-          process.toggle(status);
-        },
-        [process.toggle]
-      ),
-
-      /** Dispatch */
-      useCallback((socket, status) => {
-        socket.dispatch({
-          action: "blum.tasks.claim",
-          data: {
-            status,
-          },
-        });
-      }, [])
-    );
-
-  /** Handlers */
-  useSocketHandlers(
-    useMemo(
-      () => ({
-        "blum.tasks.claim": (command) => {
-          toggleAutoClaim(command.data.status);
-        },
-      }),
-      [toggleAutoClaim]
-    )
   );
 
   /** Reset */
@@ -326,7 +290,7 @@ export default function BlumAutoTasks() {
               {/* Start Button */}
               <BlumButton
                 color={process.started ? "danger" : "primary"}
-                onClick={() => dispatchAndToggleAutoClaim(!process.started)}
+                onClick={() => process.dispatchAndToggle(!process.started)}
                 disabled={
                   (pendingTasks.length === 0 && unclaimedTasks.length === 0) ||
                   process.started

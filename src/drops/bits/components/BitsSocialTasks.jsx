@@ -1,6 +1,4 @@
 import useProcessLock from "@/hooks/useProcessLock";
-import useSocketDispatchCallback from "@/hooks/useSocketDispatchCallback";
-import useSocketHandlers from "@/hooks/useSocketHandlers";
 import { cn, delay } from "@/lib/utils";
 import { useCallback } from "react";
 import { useEffect } from "react";
@@ -36,7 +34,7 @@ export default function BitsSocialTasks() {
     [tasks]
   );
 
-  const process = useProcessLock();
+  const process = useProcessLock("bits.tasks.claim");
 
   const [currentTask, setCurrentTask] = useState(null);
   const [taskOffset, setTaskOffset] = useState(null);
@@ -67,38 +65,6 @@ export default function BitsSocialTasks() {
         queryKey: ["bits", "user"],
       }),
     [client]
-  );
-
-  /** Handle button click */
-  const [toggleAutoClaim, dispatchAndToggleAutoClaim] =
-    useSocketDispatchCallback(
-      /** Main */
-      useCallback(
-        (status) => {
-          process.toggle(status);
-        },
-        [process.toggle]
-      ),
-
-      /** Dispatch */
-      useCallback((socket, status) => {
-        socket.dispatch({
-          action: "bits.tasks.claim",
-          data: { status },
-        });
-      }, [])
-    );
-
-  /** Handlers */
-  useSocketHandlers(
-    useMemo(
-      () => ({
-        "bits.tasks.claim": (command) => {
-          toggleAutoClaim(command.data.status);
-        },
-      }),
-      [toggleAutoClaim]
-    )
   );
 
   /** Reset */
@@ -203,7 +169,7 @@ export default function BitsSocialTasks() {
                   "px-4 py-2 rounded-lg text-black",
                   process.started ? "bg-red-500" : "bg-green-500"
                 )}
-                onClick={() => dispatchAndToggleAutoClaim(!process.started)}
+                onClick={() => process.dispatchAndToggle(!process.started)}
                 disabled={
                   (pendingTasks.length === 0 && unclaimedTasks.length === 0) ||
                   process.started

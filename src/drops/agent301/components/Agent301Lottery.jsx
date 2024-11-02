@@ -1,54 +1,18 @@
 import useProcessLock from "@/hooks/useProcessLock";
-import useSocketDispatchCallback from "@/hooks/useSocketDispatchCallback";
-import useSocketHandlers from "@/hooks/useSocketHandlers";
 import { cn, delay } from "@/lib/utils";
-import { useCallback } from "react";
 import { useEffect } from "react";
-import { useMemo } from "react";
 
 import useAgent301BalanceQuery from "../hooks/useAgent301BalanceQuery";
 import useAgent301LotteryMutation from "../hooks/useAgent301LotteryMutation";
 
 export default function Agent301Lottery() {
-  const process = useProcessLock();
+  const process = useProcessLock("agent301.wheel.lottery");
 
   const balanceQuery = useAgent301BalanceQuery();
   const result = balanceQuery.data?.result;
   const tickets = result?.tickets;
 
   const spinMutation = useAgent301LotteryMutation();
-
-  /** Handle button click */
-  const [toggleAutoSpin, dispatchAndToggleAutoSpin] = useSocketDispatchCallback(
-    /** Main */
-    useCallback(
-      (status) => {
-        process.toggle(status);
-      },
-      [process.toggle]
-    ),
-
-    /** Dispatch */
-    useCallback((socket, status) => {
-      socket.dispatch({
-        action: "agent301.wheel.lottery",
-        data: {
-          status,
-        },
-      });
-    }, [])
-  );
-  /** Handlers */
-  useSocketHandlers(
-    useMemo(
-      () => ({
-        "agent301.wheel.lottery": (command) => {
-          toggleAutoSpin(command.data.status);
-        },
-      }),
-      [toggleAutoSpin]
-    )
-  );
 
   /** Use Effect */
   useEffect(() => {
@@ -95,7 +59,7 @@ export default function Agent301Lottery() {
         <div className="flex flex-col gap-2">
           <button
             disabled={tickets < 1}
-            onClick={() => dispatchAndToggleAutoSpin(!process.started)}
+            onClick={() => process.dispatchAndToggle(!process.started)}
             className={cn(
               "p-2 rounded-lg disabled:opacity-50",
               process.started ? "bg-red-500 text-black" : "bg-white text-black"

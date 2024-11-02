@@ -1,6 +1,4 @@
 import useProcessLock from "@/hooks/useProcessLock";
-import useSocketDispatchCallback from "@/hooks/useSocketDispatchCallback";
-import useSocketHandlers from "@/hooks/useSocketHandlers";
 import { cn, delay } from "@/lib/utils";
 import { formatRelative } from "date-fns";
 import { useCallback } from "react";
@@ -34,7 +32,7 @@ export default function Agent301Wheel() {
 
   const completeWheelTaskMutation = useAgent301CompleteWheelTaskMutation();
 
-  const process = useProcessLock();
+  const process = useProcessLock("agent301.wheel.claim");
   const [taskOffset, setTaskOffset] = useState(null);
   const [action, setAction] = useState(null);
 
@@ -42,40 +40,6 @@ export default function Agent301Wheel() {
     setAction(null);
     setTaskOffset(null);
   }, [setAction, setTaskOffset]);
-
-  /** Handle button click */
-  const [toggleAutoWheelClaim, dispatchAndToggleAutoWheelClaim] =
-    useSocketDispatchCallback(
-      /** Main */
-      useCallback(
-        (status) => {
-          process.toggle(status);
-        },
-        [process.toggle]
-      ),
-
-      /** Dispatch */
-      useCallback((socket, status) => {
-        socket.dispatch({
-          action: "agent301.wheel.claim",
-          data: {
-            status,
-          },
-        });
-      }, [])
-    );
-
-  /** Handlers */
-  useSocketHandlers(
-    useMemo(
-      () => ({
-        "agent301.wheel.claim": (command) => {
-          toggleAutoWheelClaim(command.data.status);
-        },
-      }),
-      [toggleAutoWheelClaim]
-    )
-  );
 
   /** Reset */
   useEffect(reset, [process.started, reset]);
@@ -178,7 +142,7 @@ export default function Agent301Wheel() {
           </div>
           <button
             disabled={process.started}
-            onClick={() => dispatchAndToggleAutoWheelClaim(!process.started)}
+            onClick={() => process.dispatchAndToggle(!process.started)}
             className={cn(
               "p-2 rounded-lg disabled:opacity-50",
               process.started ? "bg-red-500 text-black" : "bg-white text-black"

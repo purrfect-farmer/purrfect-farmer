@@ -1,8 +1,6 @@
 import Countdown from "react-countdown";
 import toast from "react-hot-toast";
 import useProcessLock from "@/hooks/useProcessLock";
-import useSocketDispatchCallback from "@/hooks/useSocketDispatchCallback";
-import useSocketHandlers from "@/hooks/useSocketHandlers";
 import useSocketState from "@/hooks/useSocketState";
 import { delay, uuid } from "@/lib/utils";
 import { useCallback } from "react";
@@ -29,7 +27,7 @@ export default function BlumAutoGamer({ workerRef }) {
   const dogsDropEligibilityQuery = useBlumDogsDropEligibilityQuery();
   const client = useQueryClient();
 
-  const process = useProcessLock();
+  const process = useProcessLock("blum.game.autoplay");
 
   const [countdown, setCountdown] = useState(null);
   const [desiredPoint, setDesiredPoint, dispatchAndSetDesiredPoint] =
@@ -50,38 +48,6 @@ export default function BlumAutoGamer({ workerRef }) {
     []
   );
 
-  /** Handle start button click */
-  const [startPlaying, dispatchAndStartPlaying] = useSocketDispatchCallback(
-    /** Main */
-    useCallback(() => {
-      setDesiredPoint(points);
-      process.start();
-    }, [points, setDesiredPoint, process]),
-
-    /** Dispatch */
-    useCallback((socket) => {
-      socket.dispatch({
-        action: "blum.autoplay.start",
-      });
-    }, [])
-  );
-
-  /** Handle stop button click */
-  const [stopPlaying, dispatchAndStopPlaying] = useSocketDispatchCallback(
-    /** Main */
-    useCallback(() => {
-      setDesiredPoint(points);
-      process.stop();
-    }, [points, setDesiredPoint, process]),
-
-    /** Dispatch */
-    useCallback((socket) => {
-      socket.dispatch({
-        action: "blum.autoplay.stop",
-      });
-    }, [])
-  );
-
   const postWorkerMessage = useCallback(
     (data) => {
       return new Promise((resolve) => {
@@ -100,20 +66,10 @@ export default function BlumAutoGamer({ workerRef }) {
     [workerRef]
   );
 
-  /** Handlers */
-  useSocketHandlers(
-    useMemo(
-      () => ({
-        "blum.autoplay.start": () => {
-          startPlaying();
-        },
-        "blum.autoplay.stop": () => {
-          stopPlaying();
-        },
-      }),
-      [startPlaying, stopPlaying]
-    )
-  );
+  /** Reset Desired Points */
+  useEffect(() => {
+    setDesiredPoint(points);
+  }, [process.started]);
 
   useEffect(() => {
     if (!process.canExecute) {
@@ -217,9 +173,7 @@ export default function BlumAutoGamer({ workerRef }) {
       <BlumButton
         color={process.started ? "danger" : "primary"}
         disabled={tickets < 1}
-        onClick={
-          !process.started ? dispatchAndStartPlaying : dispatchAndStopPlaying
-        }
+        onClick={() => process.dispatchAndToggle(!process.started)}
       >
         {process.started ? "Stop" : "Start"}
       </BlumButton>

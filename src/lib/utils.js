@@ -18,7 +18,7 @@ export function delay(length, precised = false) {
       () => res(),
       precised
         ? length
-        : (length * (Math.floor(Math.random() * 20) + 100)) / 100
+        : (length * (Math.floor(Math.random() * 50) + 100)) / 100
     );
   });
 }

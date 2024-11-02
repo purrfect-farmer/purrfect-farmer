@@ -1,21 +1,16 @@
 import toast from "react-hot-toast";
 import useProcessLock from "@/hooks/useProcessLock";
-import useSocketDispatchCallback from "@/hooks/useSocketDispatchCallback";
-import useSocketHandlers from "@/hooks/useSocketHandlers";
 import { CgSpinner } from "react-icons/cg";
 import { cn, delay } from "@/lib/utils";
-import { useCallback } from "react";
 import { useEffect } from "react";
-import { useMemo } from "react";
 
 import useYescoinCollectCoinMutation from "../hooks/useYescoinCollectCoinMutation";
 import useYescoinCollectSpecialBoxCoinMutation from "../hooks/useYescoinCollectSpecialBoxCoinMutation";
 import useYescoinGameInfoQuery from "../hooks/useYescoinGameInfoQuery";
 import useYescoinGameSpecialBoxInfoQuery from "../hooks/useYescoinGameSpecialBoxInfoQuery";
-import useYescoinSpecialBoxReloadMutation from "../hooks/useYescoinSpecialBoxReloadMutation";
 
 export default function YescoinGamer() {
-  const process = useProcessLock();
+  const process = useProcessLock("yescoin.game");
   const gameInfoQuery = useYescoinGameInfoQuery();
   const specialBoxInfoQuery = useYescoinGameSpecialBoxInfoQuery({
     enabled: process.started,
@@ -26,40 +21,6 @@ export default function YescoinGamer() {
 
   const collectCoinMutation = useYescoinCollectCoinMutation();
   const collectSpecialBoxMutation = useYescoinCollectSpecialBoxCoinMutation();
-  const reloadSpecialBoxMutation = useYescoinSpecialBoxReloadMutation();
-
-  /** Handle button click */
-  const [toggleAutoGame, dispatchAndToggleAutoGame] = useSocketDispatchCallback(
-    /** Main */
-    useCallback(
-      (status) => {
-        process.toggle(status);
-      },
-      [process.toggle]
-    ),
-
-    /** Dispatch */
-    useCallback((socket, status) => {
-      socket.dispatch({
-        action: "yescoin.game",
-        data: {
-          status,
-        },
-      });
-    }, [])
-  );
-
-  /** Handlers */
-  useSocketHandlers(
-    useMemo(
-      () => ({
-        "yescoin.game": (command) => {
-          toggleAutoGame(command.data.status);
-        },
-      }),
-      [toggleAutoGame]
-    )
-  );
 
   /** Auto Game */
   useEffect(() => {
@@ -82,18 +43,14 @@ export default function YescoinGamer() {
 
         /** Special Box */
         if (specialBox?.autoBox) {
-          if (!specialBox.autoBox.boxStatus) {
-            await reloadSpecialBoxMutation.mutateAsync();
-          } else {
-            const { boxType, specialBoxTotalCount } = specialBox.autoBox;
-            const coinCount = Math.floor((90 * specialBoxTotalCount) / 100);
-            await collectSpecialBoxMutation.mutateAsync({
-              boxType,
-              coinCount,
-            });
+          const { boxType, specialBoxTotalCount } = specialBox.autoBox;
+          const coinCount = Math.floor((90 * specialBoxTotalCount) / 100);
+          await collectSpecialBoxMutation.mutateAsync({
+            boxType,
+            coinCount,
+          });
 
-            toast.success(`Special - collected ${coinCount} coins!`);
-          }
+          toast.success(`Special - collected ${coinCount} coins!`);
         }
 
         await delay(10_000);
@@ -109,7 +66,7 @@ export default function YescoinGamer() {
       {gameInfoQuery.isSuccess ? (
         <>
           <button
-            onClick={() => dispatchAndToggleAutoGame(!process.started)}
+            onClick={() => process.dispatchAndToggle(!process.started)}
             className={cn(
               "px-4 py-2 rounded-lg text-white font-bold",
               !process.started ? "bg-purple-500" : "bg-red-500"

@@ -3,11 +3,9 @@ import TimeAgo from "javascript-time-ago";
 import en from "javascript-time-ago/locale/en";
 import toast from "react-hot-toast";
 import useProcessLock from "@/hooks/useProcessLock";
-import useSocketDispatchCallback from "@/hooks/useSocketDispatchCallback";
-import useSocketHandlers from "@/hooks/useSocketHandlers";
 import { CgSpinner } from "react-icons/cg";
 import { cn, delayForSeconds } from "@/lib/utils";
-import { useCallback, useMemo } from "react";
+import { useMemo } from "react";
 import { useEffect } from "react";
 import { useState } from "react";
 
@@ -24,7 +22,7 @@ export default function NotPixelApp({ diff, updatedAt }) {
   const miningQuery = useNotPixelMiningStatusQuery();
   const mining = miningQuery.data;
 
-  const process = useProcessLock();
+  const process = useProcessLock("notpixel.repaint.auto");
 
   const repaintMutation = useNotPixelRepaintMutation();
   const claimMiningMutation = useNotPixelMiningClaimMutation();
@@ -41,37 +39,9 @@ export default function NotPixelApp({ diff, updatedAt }) {
     [mining?.userBalance]
   );
 
-  /** Start */
-  const [startFarming, dispatchAndStartFarming] = useSocketDispatchCallback(
-    /** Main */
-    useCallback(() => {
-      process.start();
-      setPixel(null);
-    }, [process, setPixel]),
-
-    /** Dispatch */
-    useCallback((socket) => {
-      socket.dispatch({
-        action: "notpixel.repaint.start",
-      });
-    }, [])
-  );
-
-  /** Stop */
-  const [stopFarming, dispatchAndStopFarming] = useSocketDispatchCallback(
-    /** Main */
-    useCallback(() => {
-      process.stop();
-      setPixel(null);
-    }, [process, setPixel]),
-
-    /** Dispatch */
-    useCallback((socket) => {
-      socket.dispatch({
-        action: "notpixel.repaint.stop",
-      });
-    }, [])
-  );
+  useEffect(() => {
+    setPixel(null);
+  }, [process.started, setPixel]);
 
   /** Claim Mining */
   useEffect(() => {
@@ -133,21 +103,6 @@ export default function NotPixelApp({ diff, updatedAt }) {
     })();
   }, [process, diff, farmingSpeed, mining]);
 
-  /** Sync Handlers */
-  useSocketHandlers(
-    useMemo(
-      () => ({
-        "notpixel.repaint.start": () => {
-          startFarming();
-        },
-        "notpixel.repaint.stop": () => {
-          stopFarming();
-        },
-      }),
-      [startFarming, stopFarming]
-    )
-  );
-
   return (
     <div className="flex flex-col gap-2 p-4">
       {/* Header */}
@@ -172,11 +127,7 @@ export default function NotPixelApp({ diff, updatedAt }) {
           <h2 className="text-center">Charges: {mining.charges}</h2>
 
           <button
-            onClick={
-              !process.started
-                ? dispatchAndStartFarming
-                : dispatchAndStopFarming
-            }
+            onClick={() => process.dispatchAndToggle(!process.started)}
             disabled={mining.charges < 1}
             className={cn(
               "text-white px-4 py-2 rounded-lg disabled:opacity-50",

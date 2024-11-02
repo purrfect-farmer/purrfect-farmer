@@ -1,6 +1,4 @@
 import useProcessLock from "@/hooks/useProcessLock";
-import useSocketDispatchCallback from "@/hooks/useSocketDispatchCallback";
-import useSocketHandlers from "@/hooks/useSocketHandlers";
 import { cn, delay } from "@/lib/utils";
 import { useCallback } from "react";
 import { useEffect } from "react";
@@ -37,7 +35,7 @@ export default function GoatsMissions() {
   );
 
   const completeMissionMutation = useGoatsCompleteMissionMutation();
-  const process = useProcessLock();
+  const process = useProcessLock("goats.missions.claim");
   const [currentMission, setCurrentMission] = useState(null);
   const [missionOffset, setMissionOffset] = useState(null);
 
@@ -45,40 +43,6 @@ export default function GoatsMissions() {
     setCurrentMission(null);
     setMissionOffset(null);
   }, [setCurrentMission, setMissionOffset]);
-
-  /** Handle button click */
-  const [toggleAutoMissionClaim, dispatchAndToggleAutoMissionClaim] =
-    useSocketDispatchCallback(
-      /** Main */
-      useCallback(
-        (status) => {
-          process.toggle(status);
-        },
-        [process.toggle]
-      ),
-
-      /** Dispatch */
-      useCallback((socket, status) => {
-        socket.dispatch({
-          action: "goats.missions.claim",
-          data: {
-            status,
-          },
-        });
-      }, [])
-    );
-
-  /** Handlers */
-  useSocketHandlers(
-    useMemo(
-      () => ({
-        "goats.missions.claim": (command) => {
-          toggleAutoMissionClaim(command.data.status);
-        },
-      }),
-      [toggleAutoMissionClaim]
-    )
-  );
 
   /** Reset */
   useEffect(reset, [process.started, reset]);
@@ -136,7 +100,7 @@ export default function GoatsMissions() {
           </div>
           <button
             disabled={process.started}
-            onClick={() => dispatchAndToggleAutoMissionClaim(!process.started)}
+            onClick={() => process.dispatchAndToggle(!process.started)}
             className={cn(
               "p-2 rounded-lg disabled:opacity-50",
               process.started ? "bg-red-500 text-black" : "bg-white text-black"
