@@ -81,10 +81,12 @@ export default function Agent301Tasks() {
       return;
     }
 
-    (async function name() {
+    (async function () {
       /** Beginning of Video Task */
       setAction("video");
       for (let i = videoTask["count"]; i < videoTask["max_count"]; i++) {
+        if (process.signal.aborted) break;
+
         setTaskOffset(i);
         setCurrentTask(videoTask);
         try {
@@ -109,6 +111,8 @@ export default function Agent301Tasks() {
       /** Partners */
       setAction("partners");
       for (let [index, task] of Object.entries(unClaimedPartnerTasks)) {
+        if (process.signal.aborted) break;
+
         setTaskOffset(index);
         setCurrentTask(task);
         try {
@@ -133,6 +137,8 @@ export default function Agent301Tasks() {
       /** In Game */
       setAction("in-game");
       for (let [index, task] of Object.entries(unClaimedInGameTasks)) {
+        if (process.signal.aborted) break;
+
         setTaskOffset(index);
         setCurrentTask(task);
         try {
@@ -189,7 +195,6 @@ export default function Agent301Tasks() {
             </p>
           </div>
           <button
-            disabled={process.started}
             onClick={() => process.dispatchAndToggle(!process.started)}
             className={cn(
               "p-2 rounded-lg disabled:opacity-50",

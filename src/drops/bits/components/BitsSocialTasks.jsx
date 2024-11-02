@@ -171,8 +171,7 @@ export default function BitsSocialTasks() {
                 )}
                 onClick={() => process.dispatchAndToggle(!process.started)}
                 disabled={
-                  (pendingTasks.length === 0 && unclaimedTasks.length === 0) ||
-                  process.started
+                  pendingTasks.length === 0 && unclaimedTasks.length === 0
                 }
               >
                 {process.started ? "Stop" : "Start"}

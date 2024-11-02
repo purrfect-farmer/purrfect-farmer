@@ -55,6 +55,7 @@ export default function GoatsMissions() {
 
     (async function name() {
       for (let [index, mission] of Object.entries(uncompletedMissions)) {
+        if (process.signal.aborted) break;
         setMissionOffset(index);
         setCurrentMission(mission);
         try {
@@ -99,7 +100,6 @@ export default function GoatsMissions() {
             </p>
           </div>
           <button
-            disabled={process.started}
             onClick={() => process.dispatchAndToggle(!process.started)}
             className={cn(
               "p-2 rounded-lg disabled:opacity-50",

@@ -55,6 +55,7 @@ export default function Agent301Wheel() {
       if (Date.now() >= hourly["timestamp"] * 1000) {
         setAction("hourly");
         for (let i = hourly["count"]; i < 5; i++) {
+          if (process.signal.aborted) break;
           setTaskOffset(i);
           try {
             await completeWheelTaskMutation.mutateAsync({
@@ -85,6 +86,8 @@ export default function Agent301Wheel() {
 
       /* Other Tasks */
       for (let k of Object.keys(otherTasks)) {
+        if (process.signal.aborted) break;
+
         setAction(k);
         try {
           await completeWheelTaskMutation.mutateAsync({
@@ -141,7 +144,6 @@ export default function Agent301Wheel() {
             </p>
           </div>
           <button
-            disabled={process.started}
             onClick={() => process.dispatchAndToggle(!process.started)}
             className={cn(
               "p-2 rounded-lg disabled:opacity-50",

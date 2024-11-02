@@ -144,6 +144,7 @@ export default function BirdTonTasks() {
       /** Beginning Daily Tasks */
       setAction("daily");
       for (let [index, task] of Object.entries(unclaimedDailyTasks)) {
+        if (process.signal.aborted) break;
         setTaskOffset(index);
         setCurrentTask(task);
 
@@ -168,6 +169,7 @@ export default function BirdTonTasks() {
       /** Sub Tasks */
       setAction("sub");
       for (let [index, task] of Object.entries(unclaimedSubTasks)) {
+        if (process.signal.aborted) break;
         setTaskOffset(index);
         setCurrentTask(task);
 
@@ -212,7 +214,6 @@ export default function BirdTonTasks() {
         <div className="flex gap-2">
           <button
             onClick={() => process.dispatchAndToggle(!process.started)}
-            disabled={process.started}
             className={cn(
               "grow min-h-0 min-w-0",
               "w-full px-4 py-2 uppercase rounded-lg font-bold disabled:opacity-50 text-white",

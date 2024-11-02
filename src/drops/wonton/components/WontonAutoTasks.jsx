@@ -175,8 +175,7 @@ export default function WontonAutoTasks() {
                 color={process.started ? "danger" : "primary"}
                 onClick={() => process.dispatchAndToggle(!process.started)}
                 disabled={
-                  (pendingTasks.length === 0 && unclaimedTasks.length === 0) ||
-                  process.started
+                  pendingTasks.length === 0 && unclaimedTasks.length === 0
                 }
               >
                 {process.started ? "Stop" : "Start"}
