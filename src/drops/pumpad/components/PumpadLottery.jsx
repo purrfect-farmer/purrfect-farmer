@@ -120,8 +120,9 @@ export default function PumpadLottery() {
               value={[farmingSpeed]}
               min={0}
               max={5}
+              step={0.5}
               onValueChange={([value]) =>
-                dispatchAndSetFarmingSpeed(Math.max(1, value))
+                dispatchAndSetFarmingSpeed(Math.max(0.5, value))
               }
               trackClassName="bg-pumpad-green-400"
               rangeClassName="bg-pumpad-green-700"

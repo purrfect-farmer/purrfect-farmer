@@ -165,8 +165,9 @@ export default function TruecoinLottery() {
           value={[farmingSpeed]}
           min={0}
           max={5}
+          step={0.5}
           onValueChange={([value]) =>
-            dispatchAndSetFarmingSpeed(Math.max(1, value))
+            dispatchAndSetFarmingSpeed(Math.max(0.5, value))
           }
           trackClassName="bg-purple-200"
           rangeClassName="bg-purple-500"

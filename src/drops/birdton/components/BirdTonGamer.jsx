@@ -258,8 +258,9 @@ export default function BirdTonGamer() {
           value={[farmingSpeed]}
           min={0}
           max={5}
+          step={0.5}
           onValueChange={([value]) =>
-            dispatchAndSetFarmingSpeed(Math.max(1, value))
+            dispatchAndSetFarmingSpeed(Math.max(0.5, value))
           }
           trackClassName="bg-sky-200"
           rangeClassName="bg-sky-500"

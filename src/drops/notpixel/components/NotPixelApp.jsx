@@ -193,8 +193,9 @@ export default function NotPixelApp({ diff, updatedAt }) {
               value={[farmingSpeed]}
               min={0}
               max={15}
+              step={0.5}
               onValueChange={([value]) =>
-                dispatchAndSetFarmingSpeed(Math.max(1, value))
+                dispatchAndSetFarmingSpeed(Math.max(0.5, value))
               }
               trackClassName="bg-neutral-200"
               rangeClassName="bg-neutral-900"
