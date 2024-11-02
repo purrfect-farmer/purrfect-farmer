@@ -36,7 +36,7 @@ export default function YescoinFarmer() {
           <YescoinBalanceDisplay />
           <Tabs.Root {...tabs} className="flex flex-col gap-4">
             <Tabs.List className="grid grid-cols-3">
-              {["game", "daily-mission", "tasks"].map((value, index) => (
+              {["game", "missions", "tasks"].map((value, index) => (
                 <Tabs.Trigger
                   key={index}
                   value={value}
@@ -64,7 +64,7 @@ export default function YescoinFarmer() {
             <Tabs.Content
               forceMount
               className="data-[state=inactive]:hidden"
-              value="daily-mission"
+              value="missions"
             >
               <YescoinDailyMission />
             </Tabs.Content>

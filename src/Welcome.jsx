@@ -191,6 +191,7 @@ export default function Welcome() {
           <p className="text-lg text-center">
             <span
               className={cn(
+                "font-turret-road",
                 "text-transparent font-bold",
                 "bg-clip-text",
                 "bg-gradient-to-r from-pink-500 to-violet-500"

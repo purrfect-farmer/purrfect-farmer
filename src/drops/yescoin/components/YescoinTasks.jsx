@@ -44,46 +44,44 @@ export default function YescoinTasks() {
   }, [setTaskOffset, setCurrentTask]);
 
   const runTask = useCallback(async (id) => {
-    /** Click */
-    await clickTaskMutation.mutateAsync(id);
-    await delay(5000);
+    await toast.promise(
+      (async function () {
+        /** Click */
+        await clickTaskMutation.mutateAsync(id);
+        await delay(5000);
 
-    /** Check */
-    const result = await checkTaskMutation.mutateAsync(id);
-    await delay(5000);
+        /** Check */
+        const result = await checkTaskMutation.mutateAsync(id);
+        await delay(5000);
 
-    if (!result) {
-      throw "Not Completed!";
-    } else {
-      /** Claim */
-      await claimTaskMutation.mutateAsync(id);
-    }
+        if (!result) {
+          throw "Not Completed!";
+        } else {
+          /** Claim */
+          await claimTaskMutation.mutateAsync(id);
+        }
+      })(),
+      {
+        loading: "Working...",
+        error: "Error!",
+        success: "Successfully Claimed",
+      }
+    );
   }, []);
 
   const [claimTask, dispatchAndClaimTask] = useSocketDispatchCallback(
     /** Main */
     useCallback(
       async (id) => {
-        /** Click */
-        await toast.promise(
-          (async function () {
-            if (!tasks.some((task) => task.taskId === id && !task.taskStatus))
-              return;
+        if (!tasks.some((task) => task.taskId === id && !task.taskStatus))
+          return;
 
-            /** Run the task */
-            await runTask(id);
-          })(),
-          {
-            loading: "Working...",
-            error: "Error!",
-            success: "Successfully Claimed",
-          }
-        );
+        await runTask(id);
 
         await tasksQuery.refetch();
         await accountInfoQuery.refetch();
       },
-      [tasks]
+      [tasks, runTask]
     ),
 
     /** Dispatch */
@@ -165,7 +163,7 @@ export default function YescoinTasks() {
             </span>
           </h4>
           <h5 className="font-bold text-purple-500">
-            {currentTask.taskDescription}
+            {currentTask.taskDescription}...
           </h5>
         </div>
       ) : null}
