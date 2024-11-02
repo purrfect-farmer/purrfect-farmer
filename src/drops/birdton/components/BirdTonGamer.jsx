@@ -2,7 +2,6 @@ import Slider from "@/components/Slider";
 import toast from "react-hot-toast";
 import useFarmerContext from "@/hooks/useFarmerContext";
 import useProcessLock from "@/hooks/useProcessLock";
-import useSocketDispatchCallback from "@/hooks/useSocketDispatchCallback";
 import useSocketHandlers from "@/hooks/useSocketHandlers";
 import useSocketState from "@/hooks/useSocketState";
 import useSyncedRef from "@/hooks/useSyncedRef";
@@ -54,49 +53,38 @@ export default function BirdTonGamer() {
   }, [setGameId, setPoints, setStopPoint]);
 
   /** Start Game */
-  const [startGame, dispatchAndStartGame] = useSocketDispatchCallback(
-    /** Main */
-    useCallback(() => {
-      return toast
-        .promise(
-          new Promise((resolve, reject) => {
-            /** Set Game Callback */
-            setStartGameCallback(() => resolve);
+  const startGame = useCallback(() => {
+    return toast
+      .promise(
+        new Promise((resolve, reject) => {
+          /** Set Game Callback */
+          setStartGameCallback(() => resolve);
 
-            /** Emit Message */
-            sendMessage({ event_type: "game_id", data: "std" });
-          }),
-          {
-            loading: "Starting...",
-            success: "Started!",
-            error: "Error!",
-          }
-        )
-        .then((id) => {
-          setStartGameCallback(null);
-          setPoints(0);
-          setDesiredPoint(perGamePoin);
-          setStopPoint(perGamePoin + Math.floor(Math.random() * 20));
-          setGameId(id);
-          process.start();
-        });
-    }, [
-      perGamePoin,
-      sendMessage,
-      setStartGameCallback,
-      setGameId,
-      setPoints,
-      setStopPoint,
-      setDesiredPoint,
-    ]),
-
-    /** Dispatch */
-    useCallback((socket) => {
-      socket.dispatch({
-        action: "birdton.autoplay.start",
+          /** Emit Message */
+          sendMessage({ event_type: "game_id", data: "std" });
+        }),
+        {
+          loading: "Starting...",
+          success: "Started!",
+          error: "Error!",
+        }
+      )
+      .then((id) => {
+        setStartGameCallback(null);
+        setPoints(0);
+        setDesiredPoint(perGamePoin);
+        setStopPoint(perGamePoin + Math.floor(Math.random() * 20));
+        setGameId(id);
       });
-    }, [])
-  );
+  }, [
+    perGamePoin,
+    sendMessage,
+    setStartGameCallback,
+    setGameId,
+    setPoints,
+    setStopPoint,
+    setDesiredPoint,
+  ]);
 
   /** Handle Game Start */
   const handleGameStart = useCallback(
@@ -155,9 +143,18 @@ export default function BirdTonGamer() {
     )
   );
 
+  /** Start or Stop */
+  useEffect(() => {
+    if (process.started) {
+      startGame();
+    } else {
+      reset();
+    }
+  }, [process.started, startGame, reset]);
+
   /** Play Game */
   useEffect(() => {
-    if (!process.started || process.locked) {
+    if (!gameId || !process.canExecute) {
       return;
     }
 
@@ -195,11 +192,11 @@ export default function BirdTonGamer() {
       /** Stop */
       process.stop();
     })();
-  }, [process, reset, gameSpeedRef]);
+  }, [gameId, process, reset, gameSpeedRef]);
 
   return (
     <div className="flex flex-col gap-4">
-      {process.started ? (
+      {gameId ? (
         <div className="flex items-center justify-center gap-2 text-3xl font-bold text-center">
           {points} <sub className="text-base"> / {stopPoint}</sub>
         </div>
@@ -222,16 +219,14 @@ export default function BirdTonGamer() {
 
       {/* Start or Stop Button */}
       <button
-        onClick={
-          !process.started ? dispatchAndStartGame : process.dispatchAndStop
-        }
+        onClick={() => process.dispatchAndToggle(!process.started)}
         disabled={energy < 1}
         className={cn(
           "w-full px-4 py-2 uppercase rounded-lg font-bold disabled:opacity-50 text-white",
-          !process.started ? "bg-sky-500" : "bg-red-500"
+          !gameId ? "bg-sky-500" : "bg-red-500"
         )}
       >
-        {!process.started ? "Start" : "Stop"}
+        {!gameId ? "Start" : "Stop"}
       </button>
 
       {/* Farming Speed */}
