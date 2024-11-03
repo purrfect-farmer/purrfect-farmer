@@ -1,6 +1,10 @@
 import { decryptData, encryptData } from "./content-script-utils";
 
 if (location.hash.includes("tgWebAppData")) {
+  /** Telegram Web Script */
+  const TG_WEB_SCRIPT_SRC = "https://telegram.org/js/telegram-web-app.js";
+
+  /** Requests to Watch */
   const requestsToWatch = new Map();
 
   /** Dispatch Response */
@@ -181,22 +185,48 @@ if (location.hash.includes("tgWebAppData")) {
     } catch {}
   });
 
-  /** Add Telegram Web Script */
-  document.addEventListener("readystatechange", (ev) => {
-    if (document.readyState === "interactive") {
-      const tgWebScriptSrc = "https://telegram.org/js/telegram-web-app.js";
-      let tgWebScript = Array.prototype.find.call(
-        document.scripts,
-        (script) => script.src === tgWebScriptSrc
-      );
+  /** Dispatch TelegramWebApp */
+  const dispatchTelegramWebApp = async () => {
+    window.postMessage(
+      {
+        type: "init",
+        payload: encryptData(window.Telegram?.WebApp),
+      },
+      "*"
+    );
+  };
 
-      /** Add Telegram Web */
-      if (!tgWebScript) {
-        tgWebScript = document.createElement("script");
-        tgWebScript.src = tgWebScriptSrc;
+  /** Observe Scripts */
+  const observer = new MutationObserver((mutations) => {
+    for (const mutation of mutations) {
+      if (mutation.type === "childList") {
+        mutation.addedNodes.forEach((node) => {
+          if (node.tagName === "HEAD") {
+            /** Add Telegram Web */
+            const script = document.createElement("script");
+            script.src = TG_WEB_SCRIPT_SRC;
+            script.dataset.init = true;
 
-        document.head.appendChild(tgWebScript);
+            script.addEventListener("load", async (ev) => {
+              dispatchTelegramWebApp();
+            });
+            node.appendChild(script);
+          } else if (node.tagName === "SCRIPT") {
+            /** Remove Duplicate Telegram Web Script */
+            if (node.src === TG_WEB_SCRIPT_SRC && !node.dataset.init) {
+              node.remove();
+            }
+          } else if (node.tagName === "BODY") {
+            /** Disconnect */
+            observer.disconnect();
+          }
+        });
       }
     }
+  });
+
+  observer.observe(document.documentElement, {
+    childList: true,
+    subtree: true,
   });
 }

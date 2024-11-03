@@ -185,7 +185,7 @@ export default function useDropFarmer({
       }
     };
 
-    chrome.webRequest.onSendHeaders.addListener(
+    chrome.webRequest.onBeforeSendHeaders.addListener(
       handleWebRequest,
       {
         urls: domainMatches,
@@ -195,7 +195,7 @@ export default function useDropFarmer({
 
     return () => {
       if (typeof handleWebRequest !== "undefined") {
-        chrome.webRequest.onSendHeaders.removeListener(handleWebRequest);
+        chrome.webRequest.onBeforeSendHeaders.removeListener(handleWebRequest);
       }
     };
   }, [

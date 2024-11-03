@@ -18,6 +18,25 @@ export default function Agent301Tasks() {
     [tasksQuery.data]
   );
 
+  /** Daily Tasks */
+  const dailyTasks = useMemo(
+    () =>
+      tasks.filter(
+        (item) => item.category === "daily" && item.type !== "video"
+      ),
+    [tasks]
+  );
+
+  const claimedDailyTasks = useMemo(
+    () => dailyTasks.filter((item) => item["is_claimed"]),
+    [dailyTasks]
+  );
+
+  const unClaimedDailyTasks = useMemo(
+    () => dailyTasks.filter((item) => !item["is_claimed"]),
+    [dailyTasks]
+  );
+
   /** Partner Tasks */
   const partnerTasks = useMemo(
     () => tasks.filter((item) => item.category === "partners"),
@@ -82,6 +101,23 @@ export default function Agent301Tasks() {
     }
 
     (async function () {
+      /** Daily */
+      setAction("daily");
+      for (let [index, task] of Object.entries(unClaimedDailyTasks)) {
+        if (process.signal.aborted) break;
+
+        setTaskOffset(index);
+        setCurrentTask(task);
+        try {
+          await completeTaskMutation.mutateAsync({
+            type: task["type"],
+          });
+        } catch {}
+
+        /** Delay */
+        await delay(10_000);
+      }
+
       /** Beginning of Video Task */
       setAction("video");
       for (let i = videoTask["count"]; i < videoTask["max_count"]; i++) {
@@ -98,13 +134,6 @@ export default function Agent301Tasks() {
         /** Delay */
         await delay(15_000);
       }
-
-      // Refetch Tasks List
-      try {
-        await client.refetchQueries({
-          queryKey: ["agent301", "tasks"],
-        });
-      } catch {}
 
       reset();
 
@@ -124,13 +153,6 @@ export default function Agent301Tasks() {
         /** Delay */
         await delay(10_000);
       }
-
-      // Refetch Tasks List
-      try {
-        await client.refetchQueries({
-          queryKey: ["agent301", "tasks"],
-        });
-      } catch {}
 
       reset();
 
@@ -179,6 +201,11 @@ export default function Agent301Tasks() {
         <div className="flex flex-col gap-2">
           <div className="flex flex-col p-2 text-black bg-white rounded-lg">
             <p>
+              <span className="font-bold text-orange-700">Daily Tasks</span>:{" "}
+              <span className="font-bold">{claimedDailyTasks.length}</span> /{" "}
+              <span className="font-bold">{dailyTasks.length}</span>
+            </p>
+            <p>
               <span className="font-bold text-purple-500">Video Tasks</span>:{" "}
               <span className="font-bold">{videoTask["count"]}</span> /{" "}
               <span className="font-bold">{videoTask["max_count"]}</span>
@@ -206,19 +233,14 @@ export default function Agent301Tasks() {
 
           {process.started && currentTask ? (
             <div className="flex flex-col gap-2 p-4 rounded-lg bg-neutral-800">
-              <h4 className="font-bold">
+              <h4 className="font-bold capitalize">
                 Current Mode:{" "}
                 <span
                   className={
                     action === "video" ? "text-yellow-500" : "text-green-500"
                   }
                 >
-                  {action === "video"
-                    ? "Video Task"
-                    : action === "partner"
-                    ? "Partner Tasks"
-                    : "In-Game Tasks"}{" "}
-                  {taskOffset !== null ? +taskOffset + 1 : null}
+                  {action} Tasks {taskOffset !== null ? +taskOffset + 1 : null}
                 </span>
               </h4>
               <h5 className="font-bold">{currentTask.title}</h5>

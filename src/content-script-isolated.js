@@ -2,6 +2,8 @@ import { decryptData, encryptData } from "./content-script-utils";
 import { uuid } from "./lib/utils";
 
 if (location.hash.includes("tgWebAppData")) {
+  const TG_WEB_SCRIPT_SRC = "https://telegram.org/js/telegram-web-app.js";
+
   const connectWindowMessage = (data, callback, once = true) => {
     /** Generate ID */
     const id = data.id || uuid();
@@ -65,17 +67,29 @@ if (location.hash.includes("tgWebAppData")) {
     });
   };
 
-  /** Get the Telegram Web App */
-  const getTelegramWebApp = async () => {
-    return await postWindowMessage({
-      action: "get-telegram-web-app",
-    });
-  };
-
   /** Connect to Messaging */
   const port = chrome.runtime.connect(chrome.runtime.id, {
     name: `mini-app:${location.host}`,
   });
+
+  /** Dispatch TelegramWebApp */
+  const dispatchTelegramWebApp = async (telegramWebApp) => {
+    port.postMessage({
+      action: `set-telegram-web-app:${location.host}`,
+      data: {
+        host: location.host,
+        telegramWebApp,
+      },
+    });
+  };
+
+  /** Listen for TelegramWebApp */
+  const listenForTelegramWeb = (ev) => {
+    if (ev.data?.type === "init") {
+      window.removeEventListener("message", listenForTelegramWeb);
+      dispatchTelegramWebApp(decryptData(ev.data?.payload));
+    }
+  };
 
   /** Set Port */
   port.onMessage.addListener(async (message) => {
@@ -126,46 +140,6 @@ if (location.hash.includes("tgWebAppData")) {
     action: `set-port:${location.host}`,
   });
 
-  document.addEventListener("readystatechange", () => {
-    if (document.readyState === "complete") {
-      let timeout;
-      let telegramWebApp;
-
-      /** Dispatch the TelegramWebApp */
-      const dispatchTelegramWebApp = async () => {
-        if (!telegramWebApp) {
-          telegramWebApp = await getTelegramWebApp();
-        }
-
-        try {
-          if (telegramWebApp) {
-            port.postMessage({
-              action: `set-telegram-web-app:${location.host}`,
-              data: {
-                host: location.host,
-                telegramWebApp,
-              },
-            });
-          }
-        } catch {}
-
-        /** Dispatch again... */
-        timeout = setTimeout(dispatchTelegramWebApp, 500);
-      };
-
-      /** Terminate Web App Dispatch */
-      const terminateWebAppDispatch = (message) => {
-        if (message.action === "terminate-web-app-dispatch") {
-          clearTimeout(timeout);
-          port.onMessage.removeListener(terminateWebAppDispatch);
-        }
-      };
-
-      /** Add Listener to Stop Dispatching */
-      port.onMessage.addListener(terminateWebAppDispatch);
-
-      /** Send the WebApp Data */
-      dispatchTelegramWebApp();
-    }
-  });
+  /** Listen for TelegramWebApp */
+  window.addEventListener("message", listenForTelegramWeb);
 }
