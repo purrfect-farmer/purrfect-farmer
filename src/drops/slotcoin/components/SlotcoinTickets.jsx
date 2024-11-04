@@ -2,14 +2,17 @@ import Slider from "@/components/Slider";
 import useProcessLock from "@/hooks/useProcessLock";
 import useSocketState from "@/hooks/useSocketState";
 import { cn, delayForSeconds } from "@/lib/utils";
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
 
 import useSlotcoinInfoQuery from "../hooks/useSlotcoinInfoQuery";
 import useSlotcoinDailySpinMutation from "../hooks/useSlotcoinDailySpinMutation";
 
 export default function SlotcoinTickets() {
   const query = useSlotcoinInfoQuery();
-  const ticketsCount = query.data?.["user"]?.["daily_roulette_count"] || 0;
+  const ticketsCount = useMemo(
+    () => Number(query.data?.["user"]?.["daily_roulette_count"] || 0),
+    [query.data]
+  );
 
   const spinMutation = useSlotcoinDailySpinMutation();
   const [farmingSpeed, , dispatchAndSetFarmingSpeed] = useSocketState(

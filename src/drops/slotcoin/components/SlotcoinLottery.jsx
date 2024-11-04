@@ -1,6 +1,6 @@
 import useProcessLock from "@/hooks/useProcessLock";
 import { cn, delayForSeconds } from "@/lib/utils";
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
 
 import EnergyIcon from "../assets/images/energy.png?format=webp&w=80";
 import useSlotcoinInfoQuery from "../hooks/useSlotcoinInfoQuery";
@@ -10,9 +10,17 @@ import useSocketState from "@/hooks/useSocketState";
 
 export default function SlotcoinLottery() {
   const query = useSlotcoinInfoQuery();
-  const bid = query.data?.user?.bid || 0;
-  const energy = query.data?.user?.spins || 0;
-  const maxEnergy = query.data?.user?.["max_spins"] || 0;
+  const bid = useMemo(() => Number(query.data?.user?.bid || 0), [query.data]);
+
+  const energy = useMemo(
+    () => Number(query.data?.user?.spins || 0),
+    [query.data]
+  );
+
+  const maxEnergy = useMemo(
+    () => Number(query.data?.user?.["max_spins"] || 0),
+    [query.data]
+  );
 
   const spinMutation = useSlotcoinLotteryMutation();
   const process = useProcessLock("slotcoin.spin");
