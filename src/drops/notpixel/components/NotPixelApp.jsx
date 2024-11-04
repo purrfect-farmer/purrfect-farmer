@@ -1,20 +1,20 @@
 import ReactTimeAgo from "react-time-ago";
+import Slider from "@/components/Slider";
 import TimeAgo from "javascript-time-ago";
 import en from "javascript-time-ago/locale/en";
 import toast from "react-hot-toast";
 import useProcessLock from "@/hooks/useProcessLock";
+import useSocketState from "@/hooks/useSocketState";
 import { CgSpinner } from "react-icons/cg";
 import { cn, delayForSeconds } from "@/lib/utils";
-import { useMemo } from "react";
 import { useEffect } from "react";
+import { useMemo } from "react";
 import { useState } from "react";
 
 import NotPixelIcon from "../assets/images/icon.png?format=webp&w=80";
 import useNotPixelMiningClaimMutation from "../hooks/useNotPixelMiningClaimMutation";
 import useNotPixelMiningStatusQuery from "../hooks/useNotPixelMiningStatusQuery";
 import useNotPixelRepaintMutation from "../hooks/useNotPixelRepaintMutation";
-import useSocketState from "@/hooks/useSocketState";
-import Slider from "@/components/Slider";
 
 TimeAgo.addDefaultLocale(en);
 
@@ -52,13 +52,19 @@ export default function NotPixelApp({ diff, updatedAt }) {
         const data = await claimMiningMutation.mutateAsync();
 
         /** Update Balance */
-        await miningQuery.refetch();
+        miningQuery.updateQueryData((prev) => {
+          return {
+            ...prev,
+            fromStart: 0,
+            userBalance: prev.userBalance + data.claimed,
+          };
+        });
 
         /** Toast Message */
         toast.success(`Not Pixel - Claimed Mining +${data.claimed}`);
       }
     })();
-  }, [mining, miningQuery.refetch]);
+  }, [mining, miningQuery.updateQueryData]);
 
   /** Farmer */
   useEffect(() => {
@@ -86,7 +92,11 @@ export default function NotPixelApp({ diff, updatedAt }) {
             });
 
             /** Update Balance */
-            await miningQuery.refetch();
+            miningQuery.updateQueryData((prev) => ({
+              ...prev,
+              charges: prev.charges - 1,
+              userBalance: data.balance,
+            }));
 
             /** Show Difference */
             toast.success(
@@ -94,7 +104,12 @@ export default function NotPixelApp({ diff, updatedAt }) {
             );
           }
         }
-      } catch {}
+      } catch {
+        try {
+          /** Update Balance */
+          await miningQuery.refetch();
+        } catch {}
+      }
 
       /** Delay */
       await delayForSeconds(farmingSpeed);
@@ -108,7 +123,7 @@ export default function NotPixelApp({ diff, updatedAt }) {
       /** Release Lock */
       process.unlock();
     })();
-  }, [process, diff, farmingSpeed, mining, miningQuery.refetch]);
+  }, [process, diff, farmingSpeed, mining]);
 
   return (
     <div className="flex flex-col gap-2 p-4">

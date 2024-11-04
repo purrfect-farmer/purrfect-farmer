@@ -5,7 +5,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 export default function useAppQuery(options) {
   const queryClient = useQueryClient();
 
-  const queryKey = options.queryKey;
+  const queryKey = useMemo(() => options.queryKey, options.queryKey);
   const query = useQuery(options);
 
   const updateQueryData = useCallback(

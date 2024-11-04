@@ -1,4 +1,4 @@
-import useFarmerApi from "@/hooks/useFarmerApi";
+import useFarmerContext from "@/hooks/useFarmerContext";
 import { CgSpinner } from "react-icons/cg";
 import { useEffect } from "react";
 
@@ -10,7 +10,7 @@ import useNotPixelDiff from "../hooks/useNotPixelDiff";
 import useNotPixelSocket from "../hooks/useNotPixelSocket";
 
 export default function NotPixelFarmer({ sandboxRef }) {
-  const api = useFarmerApi();
+  const { api, telegramWebApp } = useFarmerContext();
   const {
     started,
     pixels,
@@ -51,7 +51,7 @@ export default function NotPixelFarmer({ sandboxRef }) {
         configureNotPixel(items);
       }
     })();
-  }, [configureNotPixel]);
+  }, [telegramWebApp, configureNotPixel]);
 
   return (
     <>
