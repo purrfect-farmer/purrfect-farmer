@@ -23,7 +23,7 @@ export default function PumpadLottery() {
       return;
     }
 
-    if (!drawCount) {
+    if (drawCount < 1) {
       process.stop();
       return;
     }
@@ -64,7 +64,7 @@ export default function PumpadLottery() {
 
           {/* Auto Spin Button */}
           <button
-            disabled={!drawCount}
+            disabled={drawCount < 1}
             onClick={() => process.dispatchAndToggle(!process.started)}
             className={cn(
               "p-2 text-black rounded-lg disabled:opacity-50",

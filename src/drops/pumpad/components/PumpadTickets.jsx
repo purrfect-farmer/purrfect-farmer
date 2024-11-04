@@ -23,7 +23,7 @@ export default function PumpadTickets() {
       return;
     }
 
-    if (!ticketsCount) {
+    if (ticketsCount < 1) {
       process.stop();
       return;
     }
@@ -64,7 +64,7 @@ export default function PumpadTickets() {
 
           {/* Auto Spin Button */}
           <button
-            disabled={!ticketsCount}
+            disabled={ticketsCount < 1}
             onClick={() => process.dispatchAndToggle(!process.started)}
             className={cn(
               "p-2 text-black rounded-lg disabled:opacity-50",
