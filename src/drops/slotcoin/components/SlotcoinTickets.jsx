@@ -1,33 +1,29 @@
+import Slider from "@/components/Slider";
 import useProcessLock from "@/hooks/useProcessLock";
+import useSocketState from "@/hooks/useSocketState";
 import { cn, delayForSeconds } from "@/lib/utils";
 import { useEffect } from "react";
 
-import EnergyIcon from "../assets/images/energy.png?format=webp&w=80";
 import useSlotcoinInfoQuery from "../hooks/useSlotcoinInfoQuery";
-import useSlotcoinLotteryMutation from "../hooks/useSlotcoinLotteryMutation";
-import Slider from "@/components/Slider";
-import useSocketState from "@/hooks/useSocketState";
+import useSlotcoinDailySpinMutation from "../hooks/useSlotcoinDailySpinMutation";
 
-export default function SlotcoinLottery() {
+export default function SlotcoinTickets() {
   const query = useSlotcoinInfoQuery();
-  const bid = query.data?.user?.bid || 0;
-  const energy = query.data?.user?.spins || 0;
-  const maxEnergy = query.data?.user?.["max_spins"] || 0;
+  const ticketsCount = query.data?.["user"]?.["daily_roulette_count"] || 0;
 
-  const spinMutation = useSlotcoinLotteryMutation();
-  const process = useProcessLock("slotcoin.spin");
-
+  const spinMutation = useSlotcoinDailySpinMutation();
   const [farmingSpeed, , dispatchAndSetFarmingSpeed] = useSocketState(
-    "slotcoin.farming-speed",
+    "slotcoin.tickets.farming-speed",
     2
   );
+  const process = useProcessLock("slotcoin.tickets.spin");
 
   useEffect(() => {
     if (!process.canExecute) {
       return;
     }
 
-    if (energy < bid) {
+    if (!ticketsCount) {
       process.stop();
       return;
     }
@@ -39,6 +35,7 @@ export default function SlotcoinLottery() {
       /** Spin */
       try {
         await spinMutation.mutateAsync();
+        await delayForSeconds(farmingSpeed);
       } catch {}
 
       /** Refetch Balance */
@@ -46,34 +43,30 @@ export default function SlotcoinLottery() {
         await query.refetch();
       } catch {}
 
-      /** Delay */
-      await delayForSeconds(farmingSpeed);
-
       // Release Lock
       process.unlock();
     })();
-  }, [process, energy, bid, farmingSpeed]);
+  }, [process, ticketsCount, farmingSpeed]);
 
   return (
     <div className="p-4">
       {query.isPending ? (
-        <div className="flex justify-center">Fetching Spins...</div>
+        <div className="flex justify-center">Fetching Tickets...</div>
       ) : // Error
       query.isError ? (
         <div className="flex justify-center text-red-500">
-          Failed to fetch lottery...
+          Failed to fetch tickets...
         </div>
       ) : (
         // Success
         <div className="flex flex-col gap-2">
-          <h3 className="text-lg font-bold text-center text-purple-500">
-            <img src={EnergyIcon} className="inline w-5" /> {energy} /{" "}
-            {maxEnergy}
+          <h3 className="text-xl font-bold text-center text-purple-500">
+            {ticketsCount}
           </h3>
 
           {/* Auto Spin Button */}
           <button
-            disabled={energy < 1}
+            disabled={!ticketsCount}
             onClick={() => process.dispatchAndToggle(!process.started)}
             className={cn(
               "p-2 text-white rounded-lg disabled:opacity-50",
@@ -102,7 +95,7 @@ export default function SlotcoinLottery() {
 
             {/* Speed Display */}
             <div className="text-center">
-              Spinning Speed:{" "}
+              Spin Speed:{" "}
               <span className="text-purple-500">{farmingSpeed}s</span>
             </div>
           </div>

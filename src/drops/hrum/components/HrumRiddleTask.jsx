@@ -74,7 +74,7 @@ export default function HrumRiddleTask({ queries }) {
   );
 
   return (
-    <>
+    <div className="flex flex-col gap-2">
       <HrumTaskButton
         disabled={disabled}
         onClick={dispatchAndClaimRiddle}
@@ -82,9 +82,13 @@ export default function HrumRiddleTask({ queries }) {
         title={"Riddle Of The Day"}
         reward={150}
       />
+
+      <p className="p-4 text-white bg-purple-800 rounded-lg">
+        <q>{riddle.desc}</q> - {riddle.checkData}
+      </p>
       {checkRiddleMutation.isPending || claimRiddleMutation.isPending ? (
         <HrumFullscreenSpinner />
       ) : null}
-    </>
+    </div>
   );
 }

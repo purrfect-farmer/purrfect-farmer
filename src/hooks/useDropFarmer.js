@@ -46,8 +46,8 @@ export default function useDropFarmer({
 
   /** Query Key */
   const authQueryKey = useMemo(
-    () => [id, "auth", telegramWebApp?.initDataUnsafe?.["auth_date"]],
-    [id, telegramWebApp]
+    () => [id, "auth", telegramWebApp?.initData],
+    [id, telegramWebApp?.initData]
   );
 
   /** QueryFn */

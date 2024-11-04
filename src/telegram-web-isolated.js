@@ -86,31 +86,28 @@ const botIsRunning = () => {
 };
 
 const openFarmerBot = () => {
+  /** Observer Timeout */
+  let timeout;
+
   /** Start Button */
-  let hasClickedStartButton = clickBotStartButton();
+  clickBotStartButton();
 
   /** Click Launch Button */
-  let hasClickedLaunchButton = clickBotLaunchButton();
-
-  if (hasClickedLaunchButton) {
-    return true;
-  }
+  clickBotLaunchButton();
 
   /** Start Observing */
   const observer = new MutationObserver(function (mutationList, observer) {
-    if (botIsRunning()) {
-      observer.disconnect();
-    } else {
-      /** Click the Start Button */
-      if (!hasClickedStartButton) {
-        hasClickedStartButton = clickBotStartButton();
-      }
+    clearTimeout(timeout);
 
-      /** Click the Launch Button */
-      if (!hasClickedLaunchButton) {
-        hasClickedLaunchButton = clickBotLaunchButton();
+    timeout = setTimeout(() => {
+      if (botIsRunning()) {
+        observer.disconnect();
+      } else {
+        /** Click the Start Button */
+        clickBotStartButton();
+        clickBotLaunchButton();
       }
-    }
+    }, 300);
   });
 
   observer.observe(document, { childList: true, subtree: true });
@@ -118,9 +115,16 @@ const openFarmerBot = () => {
 
 /** Auto Confirm Dialog */
 const autoConfirm = () => {
+  /** Observer Timeout */
+  let timeout;
+
   /** Start Observing */
   const observer = new MutationObserver(function (mutationList, observer) {
-    confirmPopup();
+    clearTimeout(timeout);
+
+    timeout = setTimeout(() => {
+      confirmPopup();
+    }, 300);
   });
 
   observer.observe(document, { childList: true, subtree: true });

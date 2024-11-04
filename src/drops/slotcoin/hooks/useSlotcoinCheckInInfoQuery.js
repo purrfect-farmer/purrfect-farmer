@@ -1,9 +1,10 @@
-import useFarmerApi from "@/hooks/useFarmerApi";
+import useFarmerContext from "@/hooks/useFarmerContext";
 import { useQuery } from "@tanstack/react-query";
 
 export default function useSlotcoinCheckInInfoQuery() {
-  const api = useFarmerApi();
+  const { api, isMutating } = useFarmerContext();
   return useQuery({
+    refetchInterval: isMutating < 1 ? 20000 : false,
     queryKey: ["slotcoin", "check-in", "info"],
     queryFn: ({ signal }) =>
       api

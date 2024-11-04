@@ -14,6 +14,7 @@ import useSocketHandlers from "@/hooks/useSocketHandlers";
 import useSocketState from "@/hooks/useSocketState";
 import {
   HiOutlineArrowPath,
+  HiOutlineArrowUpRight,
   HiOutlineCog6Tooth,
   HiOutlinePower,
   HiOutlinePuzzlePiece,
@@ -48,6 +49,20 @@ const TelegramWebButton = ({ icon, children, ...props }) => (
   </button>
 );
 
+const ToolbarButton = ({ icon: Icon, children, ...props }) => (
+  <button
+    {...props}
+    className={cn(
+      "p-2.5 rounded-full shrink-0",
+      "bg-neutral-50 hover:bg-neutral-100",
+      props.className
+    )}
+  >
+    <Icon className="w-5 h-5" />
+    {children}
+  </button>
+);
+
 export default function Welcome() {
   const [
     showSettingsPanel,
@@ -58,6 +73,7 @@ export default function Welcome() {
   const {
     settings,
     socket,
+    openNewTab,
     openExtensionsPage,
     openTelegramWeb,
     dispatchAndSetActiveTab,
@@ -129,46 +145,41 @@ export default function Welcome() {
             {/* Shutdown */}
             <Dialog.Root>
               <Dialog.Trigger asChild>
-                <button
-                  title="Shutdown Farmer"
-                  className="p-2.5 rounded-full bg-neutral-50 hover:bg-neutral-100 shrink-0"
-                >
-                  <HiOutlinePower className="w-5 h-5" />
-                </button>
+                <ToolbarButton icon={HiOutlinePower} title="Shutdown Farmer" />
               </Dialog.Trigger>
               <Shutdown />
             </Dialog.Root>
 
             {/* Reload Window */}
-            <button
+            <ToolbarButton
               title="Reload Farmer"
+              icon={HiOutlineArrowPath}
               onClick={dispatchAndReloadApp}
-              className="p-2.5 rounded-full bg-neutral-50 hover:bg-neutral-100 shrink-0"
-            >
-              <HiOutlineArrowPath className="w-5 h-5" />
-            </button>
+            />
           </div>
 
           <div className="flex gap-2">
+            {/* Open New Tab */}
+            <ToolbarButton
+              title="Open New Tab"
+              onClick={openNewTab}
+              icon={HiOutlineArrowUpRight}
+            />
+
             {/* Open Extensions Page */}
-            <button
+            <ToolbarButton
               title="Open Extensions Page"
               onClick={openExtensionsPage}
-              className="p-2.5 rounded-full bg-neutral-50 hover:bg-neutral-100 shrink-0"
-            >
-              <HiOutlinePuzzlePiece className="w-5 h-5" />
-            </button>
+              icon={HiOutlinePuzzlePiece}
+            />
 
             {/* Settings */}
             <Dialog.Root
               open={showSettingsPanel}
               onOpenChange={dispatchAndSetShowSettingsPanel}
             >
-              <Dialog.Trigger
-                title="Settings"
-                className="p-2.5 rounded-full bg-neutral-50 hover:bg-neutral-100 shrink-0"
-              >
-                <HiOutlineCog6Tooth className="w-5 h-5" />
+              <Dialog.Trigger asChild>
+                <ToolbarButton icon={HiOutlineCog6Tooth} title="Settings" />
               </Dialog.Trigger>
 
               <Settings />

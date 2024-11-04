@@ -104,16 +104,18 @@ export default function useBirdTon(farmer) {
     });
 
     /** Add Event Listener for Close */
-    socket.addEventListener("close", () => {
+    socket.addEventListener("close", (ev) => {
       /** Set Connected False */
       setConnected(false);
 
       /** Reset Telegram Web */
-      farmer.resetTelegramWebApp();
+      if (ev.reason !== "USE_EFFECT_DEPS") {
+        farmer.resetTelegramWebApp();
+      }
     });
 
     return () => {
-      socketRef.current?.close();
+      socketRef.current?.close(3000, "USE_EFFECT_DEPS");
       socketRef.current = null;
       setConnected(false);
     };

@@ -294,6 +294,14 @@ export default function useApp() {
     [settings, dispatchAndSetActiveTab, dispatchAndNavigateToTelegramWeb]
   );
 
+  /** Open New Tab */
+  const openNewTab = useCallback(async () => {
+    await chrome?.windows?.create({
+      state: "maximized",
+      focused: true,
+    });
+  }, []);
+
   /** Open Extensions Page */
   const openExtensionsPage = useCallback(async () => {
     await chrome?.windows?.create({
@@ -472,6 +480,7 @@ export default function useApp() {
       shutdown,
       reloadApp,
       configureSettings,
+      openNewTab,
       openExtensionsPage,
       dispatchAndShutdown,
       dispatchAndReloadApp,
@@ -507,6 +516,7 @@ export default function useApp() {
       shutdown,
       reloadApp,
       configureSettings,
+      openNewTab,
       openExtensionsPage,
       dispatchAndShutdown,
       dispatchAndReloadApp,
