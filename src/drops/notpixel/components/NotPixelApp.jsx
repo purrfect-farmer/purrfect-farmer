@@ -49,11 +49,19 @@ export default function NotPixelApp({ diff, updatedAt }) {
 
     (async function () {
       if (mining.fromStart >= mining.maxMiningTime) {
-        await claimMiningMutation.mutateAsync();
-        toast.success("Not Pixel - Claimed Mining");
+        const data = await claimMiningMutation.mutateAsync();
+
+        /** Update Balance */
+        miningQuery.updateQueryData((prev) => ({
+          ...prev,
+          userBalance: prev.userBalance + data.claimed,
+        }));
+
+        /** Toast Message */
+        toast.success(`Not Pixel - Claimed Mining +${data.claimed}`);
       }
     })();
-  }, [mining]);
+  }, [mining, miningQuery.updateQueryData]);
 
   /** Farmer */
   useEffect(() => {
@@ -80,14 +88,25 @@ export default function NotPixelApp({ diff, updatedAt }) {
               newColor: pixel.color,
             });
 
-            /** Show Difference */
-            toast.success(`+${Math.floor(data.balance - mining.userBalance)}`);
-
             /** Update Balance */
-            await miningQuery.refetch();
+            miningQuery.updateQueryData((prev) => ({
+              ...prev,
+              charges: prev.charges - 1,
+              userBalance: data.balance,
+            }));
+
+            /** Show Difference */
+            toast.success(
+              `+${Math.floor(data.balance - mining.userBalance)} - Not Pixel`
+            );
           }
         }
-      } catch {}
+      } catch {
+        try {
+          /** Update Balance */
+          await miningQuery.refetch();
+        } catch {}
+      }
 
       /** Delay */
       await delayForSeconds(farmingSpeed);

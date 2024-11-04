@@ -1,8 +1,8 @@
-import useFarmerApi from "@/hooks/useFarmerApi";
+import useFarmerContext from "@/hooks/useFarmerContext";
 import { useMutation } from "@tanstack/react-query";
 
 export default function useNotPixelMiningClaimMutation() {
-  const api = useFarmerApi();
+  const { api } = useFarmerContext();
   return useMutation({
     mutationKey: ["notpixel", "mining", "claim"],
     mutationFn: () =>

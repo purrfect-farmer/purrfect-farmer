@@ -1,13 +1,15 @@
 import toast from "react-hot-toast";
 import useProcessLock from "@/hooks/useProcessLock";
 import { CgSpinner } from "react-icons/cg";
-import { cn, delay } from "@/lib/utils";
+import { cn, delayForSeconds } from "@/lib/utils";
 import { useEffect } from "react";
 
 import useYescoinCollectCoinMutation from "../hooks/useYescoinCollectCoinMutation";
 import useYescoinCollectSpecialBoxCoinMutation from "../hooks/useYescoinCollectSpecialBoxCoinMutation";
 import useYescoinGameInfoQuery from "../hooks/useYescoinGameInfoQuery";
 import useYescoinGameSpecialBoxInfoQuery from "../hooks/useYescoinGameSpecialBoxInfoQuery";
+import useSocketState from "@/hooks/useSocketState";
+import Slider from "@/components/Slider";
 
 export default function YescoinGamer() {
   const process = useProcessLock("yescoin.game");
@@ -21,6 +23,11 @@ export default function YescoinGamer() {
 
   const collectCoinMutation = useYescoinCollectCoinMutation();
   const collectSpecialBoxMutation = useYescoinCollectSpecialBoxCoinMutation();
+
+  const [farmingSpeed, , dispatchAndSetFarmingSpeed] = useSocketState(
+    "yescoin.farming-speed",
+    10
+  );
 
   /** Auto Game */
   useEffect(() => {
@@ -53,13 +60,13 @@ export default function YescoinGamer() {
           toast.success(`Special - collected ${coinCount} coins!`);
         }
 
-        await delay(10_000);
+        await delayForSeconds(farmingSpeed);
       }
 
       /** Unlock */
       process.unlock();
     })();
-  }, [process, coinLeft, specialBox]);
+  }, [process, coinLeft, specialBox, farmingSpeed]);
 
   return (
     <div className="flex flex-col gap-2">
@@ -74,6 +81,29 @@ export default function YescoinGamer() {
           >
             {!process.started ? "Start Playing" : "Stop Playing"}
           </button>
+
+          {/* Farming Speed */}
+          <div className="flex flex-col gap-1">
+            {/* Speed Control */}
+            <Slider
+              value={[farmingSpeed]}
+              min={0}
+              max={15}
+              step={0.5}
+              onValueChange={([value]) =>
+                dispatchAndSetFarmingSpeed(Math.max(0.5, value))
+              }
+              trackClassName="bg-purple-200"
+              rangeClassName="bg-purple-500"
+              thumbClassName="bg-purple-500"
+            />
+
+            {/* Speed Display */}
+            <div className="text-center">
+              Game Speed:{" "}
+              <span className="text-purple-500">{farmingSpeed}s</span>
+            </div>
+          </div>
 
           <div className="font-bold text-center text-orange-500">
             Left: {coinLeft}

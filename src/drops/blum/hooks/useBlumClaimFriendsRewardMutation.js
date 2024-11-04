@@ -1,13 +1,13 @@
 import useFarmerContext from "@/hooks/useFarmerContext";
 import { useMutation } from "@tanstack/react-query";
 
-export default function useNotPixelRepaintMutation() {
+export default function useBlumClaimFriendsRewardMutation() {
   const { api } = useFarmerContext();
   return useMutation({
-    mutationKey: ["notpixel", "repaint"],
-    mutationFn: (data = { newColor: null, pixelId: null }) =>
+    mutationKey: ["blum", "friends-reward", "claim"],
+    mutationFn: () =>
       api
-        .post("https://notpx.app/api/v1/repaint/start", data)
+        .post("https://user-domain.blum.codes/api/v1/friends/claim", null)
         .then((res) => res.data),
   });
 }

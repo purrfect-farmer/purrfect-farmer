@@ -175,10 +175,7 @@ export default function Agent301Tasks() {
 
       try {
         await client.refetchQueries({
-          queryKey: ["agent301", "tasks"],
-        });
-        await client.refetchQueries({
-          queryKey: ["agent301", "balance"],
+          queryKey: ["agent301"],
         });
       } catch {}
 

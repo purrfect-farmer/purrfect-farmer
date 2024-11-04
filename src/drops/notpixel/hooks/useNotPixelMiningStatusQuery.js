@@ -1,11 +1,10 @@
-import useFarmerApi from "@/hooks/useFarmerApi";
-import { useIsMutating, useQuery } from "@tanstack/react-query";
+import useAppQuery from "@/hooks/useAppQuery";
+import useFarmerContext from "@/hooks/useFarmerContext";
 
 export default function useNotPixelMiningStatusQuery() {
-  const api = useFarmerApi();
-  const isMutating = useIsMutating({ mutationKey: ["notpixel"] });
+  const { api, isMutating } = useFarmerContext();
 
-  return useQuery({
+  return useAppQuery({
     refetchInterval: isMutating < 1 ? 10_000 : false,
     queryKey: ["notpixel", "mining", "status"],
     queryFn: ({ signal }) =>

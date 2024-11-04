@@ -53,7 +53,7 @@ export default function TadaMissions() {
       return;
     }
 
-    (async function name() {
+    (async function () {
       for (let [index, mission] of Object.entries(uncompletedMissions)) {
         if (process.signal.aborted) break;
         setMissionOffset(index);

@@ -121,7 +121,7 @@ export default function BlumAutoGamer({ workerRef }) {
         await claimGameMutation.mutateAsync(pack.hash);
 
         /** Show Success */
-        toast.success(`+${finalPoints} Blum Points`);
+        toast.success(`+${finalPoints} - Blum Points`);
       } catch {}
 
       /** Add a little delay */

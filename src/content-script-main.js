@@ -54,6 +54,9 @@ if (location.hash.includes("tgWebAppData")) {
     fetch: window.fetch.bind(window),
     XMLHttpRequest: window.XMLHttpRequest.bind(window),
     postMessage: window.postMessage.bind(window),
+    Promise: {
+      race: Promise.race.bind(Promise),
+    },
   };
 
   /** Modified XMLHttpRequest */
@@ -118,6 +121,17 @@ if (location.hash.includes("tgWebAppData")) {
         return resolvedUrl.match(pattern);
       }
     );
+
+  /** Modify Race */
+  Promise.race = function (...args) {
+    return core.Promise.race(...args).catch((err) => {
+      if (err.type === "ERR_TIMED_OUT") {
+        return Promise.resolve({});
+      } else {
+        return Promise.reject(err);
+      }
+    });
+  };
 
   /** Handle Messages */
   window.addEventListener("message", (ev) => {

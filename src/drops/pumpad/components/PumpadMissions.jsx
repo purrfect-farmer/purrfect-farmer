@@ -1,41 +1,32 @@
 import useProcessLock from "@/hooks/useProcessLock";
 import { cn, delay } from "@/lib/utils";
 import { useCallback } from "react";
-import { useEffect } from "react";
 import { useMemo } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 
-import useGoatsCompleteMissionMutation from "../hooks/useGoatsCompleteMissionMutation";
-import useGoatsMissionsQuery from "../hooks/useGoatsMissionsQuery";
+import usePumpadCheckMissionMutation from "../hooks/usePumpadCheckMissionMutation";
+import usePumpadMissionsQuery from "../hooks/usePumpadMissionsQuery";
+import { useEffect } from "react";
+import usePumpadGetChannelMutation from "../hooks/usePumpadGetChannelMutation";
 
-export default function GoatsMissions() {
-  const client = useQueryClient();
-  const missionsQuery = useGoatsMissionsQuery();
-
+export default function PumpadMissions() {
+  const queryClient = useQueryClient();
+  const missionsQuery = usePumpadMissionsQuery();
   const missions = useMemo(
     () =>
       missionsQuery.data
-        ? Object.values(missionsQuery.data).reduce(
-            (missions, item) => missions.concat(item),
-            []
-          )
+        ? missionsQuery.data["mission_list"].map((item) => ({
+            ...item["mission"],
+            ["done_time"]: item["done_time"],
+          }))
         : [],
     [missionsQuery.data]
   );
 
-  const completedMissions = useMemo(
-    () => missions.filter((item) => item.status),
-    [missions]
-  );
-
-  const uncompletedMissions = useMemo(
-    () => missions.filter((item) => !item.status),
-    [missions]
-  );
-
-  const completeMissionMutation = useGoatsCompleteMissionMutation();
-  const process = useProcessLock("goats.missions.claim");
+  const process = useProcessLock("pumpad.missions.check");
+  const getChannelMutation = usePumpadGetChannelMutation();
+  const checkMissionMutation = usePumpadCheckMissionMutation();
   const [currentMission, setCurrentMission] = useState(null);
   const [missionOffset, setMissionOffset] = useState(null);
 
@@ -54,12 +45,25 @@ export default function GoatsMissions() {
     }
 
     (async function () {
-      for (let [index, mission] of Object.entries(uncompletedMissions)) {
+      for (let [index, mission] of Object.entries(missions)) {
         if (process.signal.aborted) break;
         setMissionOffset(index);
         setCurrentMission(mission);
         try {
-          await completeMissionMutation.mutateAsync(mission["_id"]);
+          if (mission["sub_type"] === "PUMPAD_CHANNEL") {
+            const channelId = await getChannelMutation.mutateAsync(mission.id);
+
+            await checkMissionMutation.mutateAsync({
+              id: mission.id,
+              data: {
+                ["tg_channel_id"]: channelId,
+              },
+            });
+          } else {
+            await checkMissionMutation.mutateAsync({
+              id: mission.id,
+            });
+          }
         } catch {}
 
         /** Delay */
@@ -67,15 +71,11 @@ export default function GoatsMissions() {
       }
 
       try {
-        await client.refetchQueries({
-          queryKey: ["goats", "missions"],
-        });
-        await client.refetchQueries({
-          queryKey: ["goats", "user"],
+        await queryClient.refetchQueries({
+          queryKey: ["pumpad"],
         });
       } catch {}
 
-      reset();
       process.stop();
     })();
   }, [process]);
@@ -92,10 +92,9 @@ export default function GoatsMissions() {
       ) : (
         // Success
         <div className="flex flex-col gap-2">
-          <div className="flex flex-col p-2 text-black bg-white rounded-lg">
+          <div className="flex flex-col p-2 text-black rounded-lg bg-neutral-100">
             <p>
-              <span className="font-bold text-blue-500">Missions</span>:{" "}
-              <span className="font-bold">{completedMissions.length}</span> /{" "}
+              <span className="font-bold text-orange-700">Missions</span>:{" "}
               <span className="font-bold">{missions.length}</span>
             </p>
           </div>
@@ -103,14 +102,16 @@ export default function GoatsMissions() {
             onClick={() => process.dispatchAndToggle(!process.started)}
             className={cn(
               "p-2 rounded-lg disabled:opacity-50",
-              process.started ? "bg-red-500 text-black" : "bg-white text-black"
+              process.started
+                ? "bg-red-500 text-black"
+                : "bg-pumpad-green-500 text-black"
             )}
           >
             {process.started ? "Stop" : "Start"}
           </button>
 
           {process.started && currentMission ? (
-            <div className="flex flex-col gap-2 p-4 rounded-lg bg-neutral-800">
+            <div className="flex flex-col gap-2 p-4 text-white rounded-lg bg-neutral-800">
               <h4 className="font-bold">
                 <span className="text-yellow-500">
                   Running Mission{" "}
@@ -124,10 +125,10 @@ export default function GoatsMissions() {
                   {
                     success: "text-green-500",
                     error: "text-red-500",
-                  }[completeMissionMutation.status]
+                  }[checkMissionMutation.status]
                 )}
               >
-                {completeMissionMutation.status}
+                {checkMissionMutation.status}
               </p>
             </div>
           ) : null}

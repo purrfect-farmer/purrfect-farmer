@@ -1,29 +1,29 @@
+import Slider from "@/components/Slider";
 import useProcessLock from "@/hooks/useProcessLock";
+import useSocketState from "@/hooks/useSocketState";
 import { cn, delayForSeconds } from "@/lib/utils";
 import { useEffect } from "react";
 
-import usePumpadLotteryMutation from "../hooks/usePumpadLotteryMutation";
-import usePumpadLotteryQuery from "../hooks/usePumpadLotteryQuery";
-import useSocketState from "@/hooks/useSocketState";
-import Slider from "@/components/Slider";
+import usePumpadTicketsQuery from "../hooks/usePumpadTicketsQuery";
+import usePumpadBetMutation from "../hooks/usePumpadBetMutation";
 
-export default function PumpadLottery() {
-  const query = usePumpadLotteryQuery();
-  const drawCount = query.data?.["draw_count"] || 0;
+export default function PumpadTickets() {
+  const query = usePumpadTicketsQuery();
+  const ticketsCount = query.data?.["number_of_tickets"] || 0;
 
-  const spinMutation = usePumpadLotteryMutation();
+  const betMutation = usePumpadBetMutation();
   const [farmingSpeed, , dispatchAndSetFarmingSpeed] = useSocketState(
-    "pumpad.lottery.farming-speed",
+    "pumpad.tickets.farming-speed",
     2
   );
-  const process = useProcessLock("pumpad.lottery.spin");
+  const process = useProcessLock("pumpad.tickets.spin");
 
   useEffect(() => {
     if (!process.canExecute) {
       return;
     }
 
-    if (!drawCount) {
+    if (!ticketsCount) {
       process.stop();
       return;
     }
@@ -34,7 +34,7 @@ export default function PumpadLottery() {
 
       /** Spin */
       try {
-        await spinMutation.mutateAsync();
+        await betMutation.mutateAsync();
         await delayForSeconds(farmingSpeed);
       } catch {}
 
@@ -46,25 +46,25 @@ export default function PumpadLottery() {
       // Release Lock
       process.unlock();
     })();
-  }, [process, drawCount, farmingSpeed]);
+  }, [process, ticketsCount, farmingSpeed]);
 
   return (
     <div className="p-4">
       {query.isPending ? (
-        <div className="flex justify-center">Fetching Lottery...</div>
+        <div className="flex justify-center">Fetching Tickets...</div>
       ) : // Error
       query.isError ? (
         <div className="flex justify-center text-red-500">
-          Failed to fetch lottery...
+          Failed to fetch tickets...
         </div>
       ) : (
         // Success
         <div className="flex flex-col gap-2">
-          <h3 className="text-xl font-bold text-center">{drawCount}</h3>
+          <h3 className="text-xl font-bold text-center">{ticketsCount}</h3>
 
           {/* Auto Spin Button */}
           <button
-            disabled={!drawCount}
+            disabled={!ticketsCount}
             onClick={() => process.dispatchAndToggle(!process.started)}
             className={cn(
               "p-2 text-black rounded-lg disabled:opacity-50",
@@ -93,7 +93,7 @@ export default function PumpadLottery() {
 
             {/* Speed Display */}
             <div className="text-center">
-              Spinning Speed:{" "}
+              Bet Speed:{" "}
               <span className="text-pumpad-green-800">{farmingSpeed}s</span>
             </div>
           </div>

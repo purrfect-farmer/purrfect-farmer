@@ -1,14 +1,13 @@
 import useFarmerContext from "@/hooks/useFarmerContext";
 import { useQuery } from "@tanstack/react-query";
 
-export default function useNotPixelUserQuery() {
+export default function usePumpadMissionsQuery() {
   const { api } = useFarmerContext();
-
   return useQuery({
-    queryKey: ["notpixel", "user"],
+    queryKey: ["pumpad", "missions", "list"],
     queryFn: ({ signal }) =>
       api
-        .get("https://notpx.app/api/v1/users/me", {
+        .get("https://tg.pumpad.io/referral/api/v1/tg/missions", {
           signal,
         })
         .then((res) => res.data),

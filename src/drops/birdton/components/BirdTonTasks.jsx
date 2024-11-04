@@ -140,7 +140,7 @@ export default function BirdTonTasks() {
       return;
     }
 
-    (async function name() {
+    (async function () {
       /** Beginning Daily Tasks */
       setAction("daily");
       for (let [index, task] of Object.entries(unclaimedDailyTasks)) {

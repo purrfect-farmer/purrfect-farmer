@@ -50,7 +50,7 @@ export default function Agent301Wheel() {
       return;
     }
 
-    (async function name() {
+    (async function () {
       /** Beginning of Hourly Task */
       if (Date.now() >= hourly["timestamp"] * 1000) {
         setAction("hourly");

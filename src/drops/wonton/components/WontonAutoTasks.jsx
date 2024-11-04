@@ -10,15 +10,25 @@ import WontonButton from "./WontonButton";
 import useWontonClaimTaskMutation from "../hooks/useWontonClaimTaskMutation";
 import useWontonStartTaskMutation from "../hooks/useWontonStartTaskMutation";
 import useWontonTasksQuery from "../hooks/useWontonTasksQuery";
+import useWontonClaimTaskProgressMutation from "../hooks/useWontonClaimTaskProgressMutation";
+import toast from "react-hot-toast";
+import useWontonUserQuery from "../hooks/useWontonUserQuery";
+import useWontonClaimTaskGiftMutation from "../hooks/useWontonClaimTaskGiftMutation";
 
 export default function WontonAutoTasks() {
   const client = useQueryClient();
-  const query = useWontonTasksQuery();
+  const taskQuery = useWontonTasksQuery();
+  const userQuery = useWontonUserQuery();
+
+  const user = userQuery.data;
+
+  /** Task Progress */
+  const taskProgress = taskQuery.data?.taskProgress || 0;
 
   /** All Tasks */
   const tasks = useMemo(
-    () => (query.data ? query.data.tasks : []),
-    [query.data]
+    () => (taskQuery.data ? taskQuery.data.tasks : []),
+    [taskQuery.data]
   );
 
   /** Pending Tasks */
@@ -47,6 +57,8 @@ export default function WontonAutoTasks() {
 
   const startTaskMutation = useWontonStartTaskMutation();
   const claimTaskMutation = useWontonClaimTaskMutation();
+  const claimProgressMutation = useWontonClaimTaskProgressMutation();
+  const claimGiftMutation = useWontonClaimTaskGiftMutation();
 
   /** Reset Task */
   const resetTask = useCallback(() => {
@@ -147,12 +159,46 @@ export default function WontonAutoTasks() {
     })();
   }, [process, action]);
 
+  /** Claim Progress */
+  useEffect(() => {
+    (async function () {
+      if (taskProgress > 0) {
+        await claimProgressMutation.mutateAsync();
+        toast.success("Wonton - Claimed Progress");
+      }
+    })();
+  }, [taskProgress, taskQuery.refetch]);
+
+  /** Claim Gifts */
+  useEffect(() => {
+    (async function () {
+      if (
+        !user ||
+        [user?.hasClaimedBitMart, user?.hasClaimedHackerLeague].every(Boolean)
+      ) {
+        return;
+      }
+
+      if (!user.hasClaimedBitMart) {
+        await claimGiftMutation.mutate("BITMART_SIGN_UP");
+        toast.success("Wonton - Claimed Bitmart Gift");
+        await delay(2000);
+      }
+
+      if (!user.hasClaimedHackerLeague) {
+        await claimGiftMutation.mutate("HACKER_LEAGUE");
+        toast.success("Wonton - Claimed Hacker League");
+        await delay(2000);
+      }
+    })();
+  }, [user]);
+
   return (
     <>
       <div className="flex flex-col py-2">
-        {query.isPending ? (
+        {taskQuery.isPending ? (
           <h4 className="font-bold">Fetching tasks...</h4>
-        ) : query.isError ? (
+        ) : taskQuery.isError ? (
           <h4 className="font-bold text-red-500">Failed to fetch tasks...</h4>
         ) : (
           <>
