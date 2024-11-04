@@ -52,16 +52,13 @@ export default function NotPixelApp({ diff, updatedAt }) {
         const data = await claimMiningMutation.mutateAsync();
 
         /** Update Balance */
-        miningQuery.updateQueryData((prev) => ({
-          ...prev,
-          userBalance: prev.userBalance + data.claimed,
-        }));
+        await miningQuery.refetch();
 
         /** Toast Message */
         toast.success(`Not Pixel - Claimed Mining +${data.claimed}`);
       }
     })();
-  }, [mining, miningQuery.updateQueryData]);
+  }, [mining, miningQuery.refetch]);
 
   /** Farmer */
   useEffect(() => {
@@ -89,11 +86,7 @@ export default function NotPixelApp({ diff, updatedAt }) {
             });
 
             /** Update Balance */
-            miningQuery.updateQueryData((prev) => ({
-              ...prev,
-              charges: prev.charges - 1,
-              userBalance: data.balance,
-            }));
+            await miningQuery.refetch();
 
             /** Show Difference */
             toast.success(
@@ -101,12 +94,7 @@ export default function NotPixelApp({ diff, updatedAt }) {
             );
           }
         }
-      } catch {
-        try {
-          /** Update Balance */
-          await miningQuery.refetch();
-        } catch {}
-      }
+      } catch {}
 
       /** Delay */
       await delayForSeconds(farmingSpeed);
@@ -120,7 +108,7 @@ export default function NotPixelApp({ diff, updatedAt }) {
       /** Release Lock */
       process.unlock();
     })();
-  }, [process, diff, farmingSpeed, mining]);
+  }, [process, diff, farmingSpeed, mining, miningQuery.refetch]);
 
   return (
     <div className="flex flex-col gap-2 p-4">
