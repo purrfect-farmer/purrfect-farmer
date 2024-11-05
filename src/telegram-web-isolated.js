@@ -1,12 +1,16 @@
 import { isElementVisible } from "./lib/utils";
 
+/** Web Version */
 const webVersion = location.pathname.startsWith("/k/") ? "k" : "a";
 
+/** Bot URL */
 const botURL = import.meta.env.VITE_APP_BOT_URL;
 
+/** Button Text */
 const confirmButtonTextContent = webVersion === "k" ? "LAUNCH" : "CONFIRM";
 const closeButtonTextContent = "CLOSE ANYWAY";
 
+/** Button Selectors */
 const buttonSelectors =
   webVersion === "k"
     ? {
@@ -20,6 +24,7 @@ const buttonSelectors =
         startButton: ".join-subscribe-button",
       };
 
+/** Dispatch Click Event on Element */
 const dispatchClickEventOnElement = (element) => {
   ["mousedown", "click"].forEach((eventType) => {
     /** Dispatch the event */
@@ -57,6 +62,7 @@ const getStartButton = () => {
   }
 };
 
+/** Click Bot Launch Button */
 const clickBotLaunchButton = () => {
   const launchButton = document.querySelector(buttonSelectors.launchButton);
 
@@ -66,6 +72,7 @@ const clickBotLaunchButton = () => {
   }
 };
 
+/** Click Bot Start Button */
 const clickBotStartButton = () => {
   const startButton = getStartButton();
   if (startButton && isElementVisible(startButton)) {
@@ -78,36 +85,37 @@ const clickBotStartButton = () => {
 const botIsRunning = () => {
   const iframes = document.querySelectorAll("iframe");
 
-  for (let iframe of iframes) {
+  for (const iframe of iframes) {
     if (iframe.src.startsWith(botURL)) {
       return true;
     }
   }
 };
 
+/** Open Farmer Bot */
 const openFarmerBot = () => {
-  /** Observer Timeout */
-  let timeout;
-
   /** Start Button */
-  clickBotStartButton();
+  let hasClickedStartButton = clickBotStartButton();
 
   /** Click Launch Button */
-  clickBotLaunchButton();
+  let hasClickedLaunchButton = clickBotLaunchButton();
 
   /** Start Observing */
-  const observer = new MutationObserver(function (mutationList, observer) {
-    clearTimeout(timeout);
-
-    timeout = setTimeout(() => {
-      if (botIsRunning()) {
-        observer.disconnect();
-      } else {
-        /** Click the Start Button */
-        clickBotStartButton();
-        clickBotLaunchButton();
+  const observer = new MutationObserver(function () {
+    /** Bot is Running */
+    if (botIsRunning()) {
+      observer.disconnect();
+    } else {
+      /** Click the Start Button */
+      if (!hasClickedStartButton) {
+        hasClickedStartButton = clickBotStartButton();
       }
-    }, 100);
+
+      /** Click Launch Button */
+      if (!hasClickedLaunchButton) {
+        hasClickedLaunchButton = clickBotLaunchButton();
+      }
+    }
   });
 
   observer.observe(document, { childList: true, subtree: true });
