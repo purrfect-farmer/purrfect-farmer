@@ -118,7 +118,10 @@ const openFarmerBot = () => {
     }
   });
 
-  observer.observe(document, { childList: true, subtree: true });
+  observer.observe(document.documentElement, {
+    childList: true,
+    subtree: true,
+  });
 };
 
 /** Auto Confirm Dialog */
@@ -128,7 +131,10 @@ const autoConfirm = () => {
     confirmPopup();
   });
 
-  observer.observe(document, { childList: true, subtree: true });
+  observer.observe(document.documentElement, {
+    childList: true,
+    subtree: true,
+  });
 };
 
 /** Connect to Messaging */
