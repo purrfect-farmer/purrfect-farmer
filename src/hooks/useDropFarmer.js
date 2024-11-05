@@ -22,11 +22,20 @@ export default function useDropFarmer({
   fetchAuth,
   notification,
 }) {
+  /** Auth */
+  const [auth, setAuth] = useState(false);
+
   /** Domain Matches */
   const domainMatches = useMemo(
     () => domains.map((domain) => `*://${domain}/*`),
     [domains]
   );
+
+  /** TelegramWebApp */
+  const { port, telegramWebApp, resetTelegramWebApp } = useTelegramWebApp(host);
+
+  /** Axios Instance */
+  const api = useMemo(() => axios.create(), [telegramWebApp]);
 
   /** QueryClient */
   const queryClient = useQueryClient();
@@ -36,19 +45,10 @@ export default function useDropFarmer({
     mutationKey: [id],
   });
 
-  /** Axios Instance */
-  const api = useMemo(() => axios.create(), []);
-
-  /** TelegramWebApp */
-  const { port, telegramWebApp, resetTelegramWebApp } = useTelegramWebApp(host);
-
-  /** Auth */
-  const [auth, setAuth] = useState(false);
-
   /** Query Key */
   const authQueryKey = useMemo(
-    () => [id, "auth", telegramWebApp?.initData],
-    [id, telegramWebApp?.initData]
+    () => [id, "auth", telegramWebApp?.initDataUnsafe?.hash],
+    [id, telegramWebApp]
   );
 
   /** QueryFn */
@@ -79,13 +79,16 @@ export default function useDropFarmer({
     [queryClient.setQueryData]
   );
 
+  /** Remove Queries */
+  const removeQueries = useCallback(() => {
+    queryClient.removeQueries({ queryKey: [id] });
+  }, [id, queryClient.removeQueries]);
+
   /** Reset Auth */
   const resetAuth = useCallback(() => {
-    queryClient.resetQueries({
-      queryKey: authQueryKey,
-    });
     setAuth(false);
-  }, [queryClient, authQueryKey, setAuth]);
+    removeQueries();
+  }, [setAuth, removeQueries]);
 
   /** Enforce only one request */
   useEffect(() => {
@@ -158,7 +161,7 @@ export default function useDropFarmer({
     return () => {
       api.interceptors.response.eject(interceptor);
     };
-  }, [queryClient, api, resetAuth]);
+  }, [api, resetAuth]);
 
   /** Handle Web Request */
   useEffect(() => {
@@ -168,15 +171,17 @@ export default function useDropFarmer({
       return;
     }
 
-    const handleWebRequest = (details) => {
-      let configured = false;
-      const headers = extractAuthHeaders
+    const getRequestHeaders = (details) =>
+      extractAuthHeaders
         ? extractAuthHeaders(details.requestHeaders, telegramWebApp)
         : details.requestHeaders.filter((header) => {
             return authHeaders.includes(header.name.toLowerCase());
           });
 
-      headers.forEach((header) => {
+    const handleWebRequest = (details) => {
+      let configured = false;
+
+      getRequestHeaders(details).forEach((header) => {
         if (header.value !== api.defaults.headers.common[header.name]) {
           api.defaults.headers.common[header.name] = header.value;
 
@@ -200,9 +205,7 @@ export default function useDropFarmer({
     );
 
     return () => {
-      if (typeof handleWebRequest !== "undefined") {
-        chrome.webRequest.onBeforeSendHeaders.removeListener(handleWebRequest);
-      }
+      chrome.webRequest.onBeforeSendHeaders.removeListener(handleWebRequest);
     };
   }, [
     domainMatches,
@@ -224,10 +227,6 @@ export default function useDropFarmer({
     } else if (typeof fetchAuth !== "undefined") {
       setAuth(false);
     }
-
-    return () => {
-      resetAuth();
-    };
   }, [
     api,
     telegramWebApp,
@@ -235,7 +234,6 @@ export default function useDropFarmer({
     configureAuthHeaders,
     setAuth,
     fetchAuth,
-    resetAuth,
   ]);
 
   /** Create Notification */
@@ -263,19 +261,8 @@ export default function useDropFarmer({
     };
   }, [id, auth]);
 
-  /** Missing Telegram Web App*/
-  useEffect(() => {
-    if (!telegramWebApp) {
-      resetAuth();
-    }
-  }, [telegramWebApp, resetAuth]);
-
-  /** Remove Queries */
-  useEffect(() => {
-    return () => {
-      queryClient.removeQueries({ queryKey: [id] });
-    };
-  }, [id, queryClient]);
+  /** Clean Up */
+  useEffect(() => () => resetAuth(), [telegramWebApp, resetAuth]);
 
   /** Return API and Auth */
   return useMemo(
@@ -290,6 +277,7 @@ export default function useDropFarmer({
       queryClient,
       telegramWebApp,
       isMutating,
+      removeQueries,
       resetAuth,
       resetTelegramWebApp,
       updateQueryData,
@@ -305,6 +293,7 @@ export default function useDropFarmer({
       queryClient,
       telegramWebApp,
       isMutating,
+      removeQueries,
       resetAuth,
       resetTelegramWebApp,
       updateQueryData,
