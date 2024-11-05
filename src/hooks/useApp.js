@@ -297,6 +297,7 @@ export default function useApp() {
   /** Open New Tab */
   const openNewTab = useCallback(async () => {
     await chrome?.windows?.create({
+      url: "chrome://newtab",
       state: "maximized",
       focused: true,
     });
