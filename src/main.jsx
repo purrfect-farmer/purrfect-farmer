@@ -9,7 +9,11 @@ const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
       refetchInterval: (query) => {
-        return query.meta?.defaultRefetchInterval ?? 10000;
+        return !queryClient.isMutating({
+          mutationKey: query.queryKey.slice(0, 1),
+        })
+          ? query.meta?.defaultRefetchInterval ?? 10000
+          : false;
       },
     },
   },
