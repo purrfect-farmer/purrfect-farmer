@@ -12,7 +12,7 @@ const queryClient = new QueryClient({
         return !queryClient.isMutating({
           mutationKey: query.queryKey.slice(0, 1),
         })
-          ? query.meta?.defaultRefetchInterval ?? 10000
+          ? query.meta?.defaultRefetchInterval ?? 20_000
           : false;
       },
     },
