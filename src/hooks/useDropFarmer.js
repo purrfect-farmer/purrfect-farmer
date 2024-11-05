@@ -21,6 +21,7 @@ export default function useDropFarmer({
   configureAuthHeaders,
   fetchAuth,
   notification,
+  authQueryOptions,
 }) {
   /** Auth */
   const [auth, setAuth] = useState(false);
@@ -62,6 +63,8 @@ export default function useDropFarmer({
     refetchOnMount: false,
     refetchOnReconnect: false,
     refetchOnWindowFocus: false,
+    refetchInterval: false,
+    ...authQueryOptions,
     enabled: typeof fetchAuth === "function" && Boolean(telegramWebApp),
     queryKey: authQueryKey,
     queryFn: authQueryFn,
