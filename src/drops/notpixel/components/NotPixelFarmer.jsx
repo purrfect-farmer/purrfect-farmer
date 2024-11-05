@@ -10,7 +10,7 @@ import useNotPixelDiff from "../hooks/useNotPixelDiff";
 import useNotPixelSocket from "../hooks/useNotPixelSocket";
 
 export default function NotPixelFarmer({ sandboxRef }) {
-  const { api, telegramWebApp } = useFarmerContext();
+  const { api } = useFarmerContext();
   const {
     started,
     pixels,
@@ -51,7 +51,7 @@ export default function NotPixelFarmer({ sandboxRef }) {
         configureNotPixel(items);
       }
     })();
-  }, [telegramWebApp, configureNotPixel]);
+  }, [configureNotPixel]);
 
   return (
     <>
