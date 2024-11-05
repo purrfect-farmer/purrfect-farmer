@@ -1,12 +1,10 @@
-import useFarmerApi from "@/hooks/useFarmerApi";
-import { useIsMutating, useQuery } from "@tanstack/react-query";
+import useAppQuery from "@/hooks/useAppQuery";
+import useFarmerContext from "@/hooks/useFarmerContext";
 
 export default function useBlumBalanceQuery() {
-  const api = useFarmerApi();
-  const isMutating = useIsMutating({ mutationKey: ["blum"] });
+  const { api } = useFarmerContext();
 
-  return useQuery({
-    refetchInterval: isMutating < 1 ? 10000 : false,
+  return useAppQuery({
     queryKey: ["blum", "balance"],
     queryFn: ({ signal }) =>
       api

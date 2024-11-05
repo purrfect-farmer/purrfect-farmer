@@ -1,10 +1,9 @@
 import useFarmerApi from "@/hooks/useFarmerApi";
 import { useCallback } from "react";
-import { useIsMutating, useQueries } from "@tanstack/react-query";
+import { useQueries } from "@tanstack/react-query";
 
 export default function useTadaBalanceQueries() {
   const api = useFarmerApi();
-  const isMutating = useIsMutating({ mutationKey: ["tada"] });
 
   const combine = useCallback((results) => {
     return {
@@ -20,7 +19,6 @@ export default function useTadaBalanceQueries() {
     combine,
     queries: [
       {
-        refetchInterval: isMutating < 1 ? 10_000 : false,
         queryKey: ["tada", "point-passive"],
         queryFn: ({ signal }) => {
           return api
@@ -34,7 +32,6 @@ export default function useTadaBalanceQueries() {
         },
       },
       {
-        refetchInterval: isMutating < 1 ? 10_000 : false,
         queryKey: ["tada", "point-active"],
         queryFn: ({ signal }) => {
           return api

@@ -107,7 +107,7 @@ const openFarmerBot = () => {
         clickBotStartButton();
         clickBotLaunchButton();
       }
-    }, 300);
+    }, 100);
   });
 
   observer.observe(document, { childList: true, subtree: true });
@@ -115,16 +115,9 @@ const openFarmerBot = () => {
 
 /** Auto Confirm Dialog */
 const autoConfirm = () => {
-  /** Observer Timeout */
-  let timeout;
-
   /** Start Observing */
   const observer = new MutationObserver(function (mutationList, observer) {
-    clearTimeout(timeout);
-
-    timeout = setTimeout(() => {
-      confirmPopup();
-    }, 300);
+    confirmPopup();
   });
 
   observer.observe(document, { childList: true, subtree: true });

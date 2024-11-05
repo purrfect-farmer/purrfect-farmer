@@ -2,10 +2,9 @@ import useAppQuery from "@/hooks/useAppQuery";
 import useFarmerContext from "@/hooks/useFarmerContext";
 
 export default function useNotPixelMiningStatusQuery() {
-  const { api, isMutating } = useFarmerContext();
+  const { api } = useFarmerContext();
 
   return useAppQuery({
-    refetchInterval: isMutating < 1 ? 10_000 : false,
     queryKey: ["notpixel", "mining", "status"],
     queryFn: ({ signal }) =>
       api

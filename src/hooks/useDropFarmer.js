@@ -4,10 +4,10 @@ import toast from "react-hot-toast";
 import { createElement, useCallback } from "react";
 import { delay } from "@/lib/utils";
 import { useEffect } from "react";
-import { useIsMutating, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useIsMutating, useQueryClient } from "@tanstack/react-query";
 import { useMemo } from "react";
 import { useState } from "react";
-
+import useAppQuery from "./useAppQuery";
 import useTelegramWebApp from "./useTelegramWebApp";
 
 export default function useDropFarmer({
@@ -57,7 +57,7 @@ export default function useDropFarmer({
   );
 
   /** Auth */
-  const authQuery = useQuery({
+  const authQuery = useAppQuery({
     refetchOnMount: false,
     refetchOnReconnect: false,
     refetchOnWindowFocus: false,

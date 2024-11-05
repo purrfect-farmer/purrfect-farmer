@@ -1,9 +1,9 @@
+import useFarmerContext from "@/hooks/useFarmerContext";
 import { useCallback } from "react";
 import { useQueries } from "@tanstack/react-query";
-import useFarmerContext from "@/hooks/useFarmerContext";
 
 export default function useNotPixelDataQueries() {
-  const { api, isMutating } = useFarmerContext();
+  const { api } = useFarmerContext();
 
   const combine = useCallback((results) => {
     return {
@@ -19,7 +19,6 @@ export default function useNotPixelDataQueries() {
     combine,
     queries: [
       {
-        refetchInterval: isMutating < 1 ? 10_000 : false,
         queryKey: ["notpixel", "user"],
         queryFn: ({ signal }) =>
           api
@@ -29,7 +28,6 @@ export default function useNotPixelDataQueries() {
             .then((res) => res.data),
       },
       {
-        refetchInterval: isMutating < 1 ? 10_000 : false,
         queryKey: ["notpixel", "mining", "status"],
         queryFn: ({ signal }) =>
           api

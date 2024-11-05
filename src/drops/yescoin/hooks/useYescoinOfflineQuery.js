@@ -1,12 +1,13 @@
 import useFarmerApi from "@/hooks/useFarmerApi";
-import { useIsMutating, useQuery } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 
 export default function useYescoinOfflineQuery() {
   const api = useFarmerApi();
-  const isMutating = useIsMutating({ mutationKey: ["yescoin"] });
 
   return useQuery({
-    refetchInterval: isMutating < 1 ? 5000 : false,
+    meta: {
+      defaultRefetchInterval: 5000,
+    },
     queryKey: ["yescoin", "offline"],
     queryFn: ({ signal }) =>
       api
