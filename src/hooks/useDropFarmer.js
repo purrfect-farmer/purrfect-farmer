@@ -7,6 +7,7 @@ import { useEffect } from "react";
 import { useIsMutating, useQueryClient } from "@tanstack/react-query";
 import { useMemo } from "react";
 import { useState } from "react";
+
 import useAppQuery from "./useAppQuery";
 import useTelegramWebApp from "./useTelegramWebApp";
 
@@ -106,7 +107,7 @@ export default function useDropFarmer({
       });
     };
 
-    api.interceptors.request.use(
+    const requestInterceptor = api.interceptors.request.use(
       (config) => {
         if (isRequestInProgress) {
           return new Promise((resolve, reject) => {
@@ -123,7 +124,7 @@ export default function useDropFarmer({
       }
     );
 
-    api.interceptors.response.use(
+    const responseInterceptor = api.interceptors.response.use(
       (response) => {
         processNextRequest();
         return response;
@@ -133,6 +134,11 @@ export default function useDropFarmer({
         return Promise.reject(error);
       }
     );
+
+    return () => {
+      api.interceptors.request.eject(requestInterceptor);
+      api.interceptors.response.eject(responseInterceptor);
+    };
   }, [api, apiDelay]);
 
   /** Response Interceptor */
