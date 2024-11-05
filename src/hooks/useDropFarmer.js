@@ -224,6 +224,10 @@ export default function useDropFarmer({
     } else if (typeof fetchAuth !== "undefined") {
       setAuth(false);
     }
+
+    return () => {
+      resetAuth();
+    };
   }, [
     api,
     telegramWebApp,
@@ -231,6 +235,7 @@ export default function useDropFarmer({
     configureAuthHeaders,
     setAuth,
     fetchAuth,
+    resetAuth,
   ]);
 
   /** Create Notification */

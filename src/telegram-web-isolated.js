@@ -94,28 +94,38 @@ const botIsRunning = () => {
 
 /** Open Farmer Bot */
 const openFarmerBot = () => {
+  /** Observer Interval */
+  let interval;
+
   /** Start Button */
   let hasClickedStartButton = clickBotStartButton();
 
   /** Click Launch Button */
-  let hasClickedLaunchButton = clickBotLaunchButton();
+  clickBotLaunchButton();
 
   /** Start Observing */
   const observer = new MutationObserver(function () {
-    /** Bot is Running */
-    if (botIsRunning()) {
-      observer.disconnect();
-    } else {
-      /** Click the Start Button */
-      if (!hasClickedStartButton) {
-        hasClickedStartButton = clickBotStartButton();
-      }
+    /** Clear Interval */
+    clearInterval(interval);
 
-      /** Click Launch Button */
-      if (!hasClickedLaunchButton) {
-        hasClickedLaunchButton = clickBotLaunchButton();
+    interval = setInterval(() => {
+      /** Bot is Running */
+      if (botIsRunning()) {
+        /** Clear Interval */
+        clearInterval(interval);
+
+        /** Disconnect Observer */
+        observer.disconnect();
+      } else {
+        /** Click the Start Button */
+        if (!hasClickedStartButton) {
+          hasClickedStartButton = clickBotStartButton();
+        }
+
+        /** Click Launch Button */
+        clickBotLaunchButton();
       }
-    }
+    }, 100);
   });
 
   observer.observe(document.documentElement, {
