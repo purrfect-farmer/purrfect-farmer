@@ -60,6 +60,12 @@ if (location.hash.includes("tgWebAppData")) {
     });
   };
 
+  const getTelegramWebApp = async () => {
+    return await postWindowMessage({
+      action: "get-telegram-web-app",
+    });
+  };
+
   const closeBot = async ({ id }) => {
     return await postWindowMessage({
       id,
@@ -99,6 +105,11 @@ if (location.hash.includes("tgWebAppData")) {
         port.postMessage({
           action: `set-port:${location.host}`,
         });
+        break;
+
+      case `get-telegram-web-app:${location.host}`:
+        const telegramWebApp = await getTelegramWebApp();
+        dispatchTelegramWebApp(telegramWebApp);
         break;
 
       case "get-request-data":

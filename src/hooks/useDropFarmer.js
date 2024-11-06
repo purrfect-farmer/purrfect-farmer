@@ -36,7 +36,7 @@ export default function useDropFarmer({
   const { port, telegramWebApp, resetTelegramWebApp } = useTelegramWebApp(host);
 
   /** Axios Instance */
-  const api = useMemo(() => axios.create(), [telegramWebApp]);
+  const api = useMemo(() => axios.create(), []);
 
   /** QueryClient */
   const queryClient = useQueryClient();
@@ -255,6 +255,7 @@ export default function useDropFarmer({
             className: "w-6 h-6 rounded-full",
           }),
           id: `${id}-farmer`,
+          duration: 2000,
         }
       );
     }
@@ -265,7 +266,7 @@ export default function useDropFarmer({
   }, [id, auth]);
 
   /** Clean Up */
-  useEffect(() => () => resetAuth(), [telegramWebApp, resetAuth]);
+  useEffect(() => () => resetAuth(), [resetAuth]);
 
   /** Return API and Auth */
   return useMemo(

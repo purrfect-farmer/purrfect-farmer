@@ -4,6 +4,7 @@ import { Suspense } from "react";
 import { cn } from "@/lib/utils";
 
 import FullSpinner from "./FullSpinner";
+import ShockedCat from "@/assets/images/shocked-cat.png?format=webp";
 
 const fallbackRender = ({ error, resetErrorBoundary }) => {
   return (
@@ -11,13 +12,12 @@ const fallbackRender = ({ error, resetErrorBoundary }) => {
       role="alert"
       className="flex flex-col items-center justify-center gap-3 p-4 grow"
     >
-      <h4 className="text-3xl">Oops</h4>
-      <p className="font-bold text-center text-neutral-500">
-        Something went wrong
-      </p>
+      <img src={ShockedCat} className="h-28" />
+      <h4 className="text-3xl font-turret-road">Oops</h4>
+      <p className="text-center text-neutral-500">Something went wrong</p>
       <button
         onClick={resetErrorBoundary}
-        className="w-full max-w-xs px-4 py-2 text-white bg-black rounded-lg"
+        className="w-full max-w-xs px-4 py-2 text-white bg-orange-500 rounded-lg"
       >
         Reset
       </button>

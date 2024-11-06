@@ -1,11 +1,13 @@
-import { useCallback, useMemo } from "react";
+import { postPortMessage } from "@/lib/utils";
+import { useCallback, useEffect, useMemo } from "react";
 import { useState } from "react";
-
+import useAppContext from "./useAppContext";
 import useMessageHandlers from "./useMessageHandlers";
 
 export default function useTelegramWebApp(host) {
   const [telegramWebApp, setTelegramWebApp] = useState(null);
   const [port, setPort] = useState(null);
+  const { messaging } = useAppContext();
 
   /** Reset TelegramWebApp */
   const resetTelegramWebApp = useCallback(() => {
@@ -41,6 +43,20 @@ export default function useTelegramWebApp(host) {
       [host, configureTelegramWebApp, setPort]
     )
   );
+
+  /** Get TelegramWebApp from Bot */
+  useEffect(() => {
+    const port = messaging.ports
+      .values()
+      .find((port) => port.name === `mini-app:${host}`);
+
+    if (port) {
+      setPort(port);
+      postPortMessage(port, {
+        action: `get-telegram-web-app:${host}`,
+      });
+    }
+  }, [setPort, host]);
 
   return useMemo(
     () => ({ port, telegramWebApp, resetTelegramWebApp }),

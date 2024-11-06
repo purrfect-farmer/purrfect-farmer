@@ -268,7 +268,7 @@ export default function Welcome() {
           </div>
 
           <Tabs.Root {...tabs} className="flex flex-col gap-2 px-1 py-2">
-            <Tabs.List className="grid grid-cols-2">
+            <Tabs.List className="grid grid-cols-2 px-1">
               {["farmers", "bots"].map((value, index) => (
                 <Tabs.Trigger
                   key={index}
