@@ -29,7 +29,7 @@ export default function PumpadBalanceDisplay() {
           {/* Star */}
           <h3 className="flex items-center justify-center gap-2 text-xl font-bold">
             <img src={StarIcon} className="h-4" />
-            {Intl.NumberFormat().format(star.amount)}
+            {Intl.NumberFormat().format(star?.amount || 0)}
           </h3>
 
           {/* Other Assets */}

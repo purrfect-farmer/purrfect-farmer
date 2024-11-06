@@ -15,7 +15,7 @@ export default function SlotcoinUsernameDisplay() {
         <div className="flex flex-col gap-2">
           <h3 className="text-2xl font-bold text-center text-orange-500">
             <img src={CoinIcon} className="inline w-5 h-5" />{" "}
-            {Intl.NumberFormat().format(user.balance)}
+            {Intl.NumberFormat().format(user?.balance || 0)}
           </h3>
         </div>
       )}

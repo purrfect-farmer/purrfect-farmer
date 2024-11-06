@@ -13,7 +13,7 @@ export default function GoatsBalanceDisplay() {
       ) : (
         <>
           <h3 className="text-2xl font-bold text-center">
-            {Intl.NumberFormat().format(result.balance)}
+            {Intl.NumberFormat().format(result?.balance || 0)}
           </h3>
           <p
             className="flex items-center justify-center gap-2 text-neutral-500"
