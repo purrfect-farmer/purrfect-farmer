@@ -10,6 +10,8 @@ export default function useBirdTon(farmer) {
   const socketRef = useRef();
   const user = farmer.authQuery.data;
 
+  const [websocketAuthKey, setWebsocketAuthKey] = useState(null);
+
   const {
     emitter: messageHandlers,
     addListeners: addMessageHandlers,
@@ -41,6 +43,13 @@ export default function useBirdTon(farmer) {
       socketRef.current?.send("ping");
     }
   }, [socketRef]);
+
+  /** Set Auth Key */
+  useEffect(() => {
+    if (user && !websocketAuthKey) {
+      setWebsocketAuthKey(user?.["auth_key"]);
+    }
+  }, [user, websocketAuthKey, setWebsocketAuthKey]);
 
   /** Handle Messages */
   useEffect(() => {
@@ -87,11 +96,11 @@ export default function useBirdTon(farmer) {
 
   /** Instantiate the Socket */
   useEffect(() => {
-    if (!user?.["auth_key"]) return;
+    if (!websocketAuthKey) return;
 
     /** Create Socker */
     const socket = (socketRef.current = new WebSocket(
-      `wss://birdton.site/ws?auth=${encodeURIComponent(user?.["auth_key"])}`
+      `wss://birdton.site/ws?auth=${encodeURIComponent(websocketAuthKey)}`
     ));
 
     /** Add Event Listener for Open */
@@ -121,7 +130,7 @@ export default function useBirdTon(farmer) {
       socketRef.current = null;
       setConnected(false);
     };
-  }, [user?.["auth_key"], farmer.resetTelegramWebApp]);
+  }, [websocketAuthKey, farmer.resetTelegramWebApp]);
 
   return useMemo(
     () => ({
