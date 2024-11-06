@@ -12,6 +12,14 @@ export function uuid() {
   return uuidv4();
 }
 
+export function logNicely(...args) {
+  console.log("==== FARMER LOGGING ====");
+  args.forEach((item, index) => {
+    console.log(index === 0 ? `<<<<${item}>>>>` : item);
+  });
+  console.log("==== FARMER ENDED ====");
+}
+
 export function delay(length, precised = false) {
   return new Promise((res) => {
     setTimeout(

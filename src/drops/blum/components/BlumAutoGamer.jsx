@@ -2,7 +2,7 @@ import Countdown from "react-countdown";
 import toast from "react-hot-toast";
 import useProcessLock from "@/hooks/useProcessLock";
 import useSocketState from "@/hooks/useSocketState";
-import { delay, uuid } from "@/lib/utils";
+import { delay, logNicely, uuid } from "@/lib/utils";
 import { useCallback } from "react";
 import { useEffect } from "react";
 import { useMemo } from "react";
@@ -87,6 +87,64 @@ export default function BlumAutoGamer({ workerRef }) {
 
       try {
         const game = await startGameMutation.mutateAsync();
+        const assets = game.assets;
+
+        /** Calculate */
+        const finalPoints = points + Math.floor(Math.random() * 20);
+        const bombsClicked = Math.floor(Math.random() * 3);
+        const freezeClicked = Math.floor(Math.random() * 3);
+
+        const otherAssets = Object.fromEntries(
+          Object.entries(assets).filter(
+            ([k]) => !["BOMB", "FREEZE", "CLOVER"].includes(k)
+          )
+        );
+
+        const otherAssetsPercent = Math.floor(Math.random() * 20) + 20;
+        const maxOtherAssetsPoints = Math.floor(
+          (otherAssetsPercent * finalPoints) / 100
+        );
+
+        let otherAssetsPoints = 0;
+        let otherAssetsClicks = {};
+
+        for (const name in otherAssets) {
+          const probability = otherAssets[name]["probability"];
+          const perClick = otherAssets[name]["perClick"];
+
+          const clicks = Math.floor(Math.random() * 100 * probability);
+          const totalPoints = clicks * perClick;
+          const newOtherAssetsPoints = otherAssetsPoints + totalPoints;
+
+          if (newOtherAssetsPoints <= maxOtherAssetsPoints) {
+            otherAssetsPoints = newOtherAssetsPoints;
+            otherAssetsClicks[name] = clicks;
+          } else {
+            otherAssetsClicks[name] = 0;
+          }
+        }
+
+        const extraCloverPoints = bombsClicked
+          ? 10 + Math.floor(Math.random() * 10)
+          : 0;
+
+        const cloverPoints =
+          finalPoints - otherAssetsPoints + extraCloverPoints;
+
+        const getClicks = (name) => {
+          switch (name) {
+            case "BOMB":
+              return bombsClicked;
+            case "FREEZE":
+              return freezeClicked;
+
+            case "CLOVER":
+              return cloverPoints;
+
+            default:
+              return otherAssetsClicks[name];
+          }
+        };
 
         /** Wait for countdown */
         setCountdown(Date.now() + GAME_DURATION);
@@ -95,27 +153,36 @@ export default function BlumAutoGamer({ workerRef }) {
         /** Reset countdown */
         setCountdown(null);
 
-        /** Calculate */
-        const finalPoints = points + Math.floor(Math.random() * 20);
         const challenge = await postWorkerMessage({
           id: uuid(),
           method: "proof",
           payload: game.gameId,
         });
 
+        const payload = {
+          gameId: game.gameId,
+          challenge,
+          assetClicks: Object.fromEntries(
+            Object.entries(assets).map(([k, v]) => [
+              k,
+              { clicks: getClicks(k) },
+            ])
+          ),
+          earnedPoints: {
+            BP: {
+              amount: finalPoints,
+            },
+          },
+        };
+
         const pack = await postWorkerMessage({
           id: uuid(),
           method: "pack",
-          payload: {
-            gameId: game.gameId,
-            challenge,
-            earnedAssets: {
-              CLOVER: {
-                amount: finalPoints.toString(),
-              },
-            },
-          },
+          payload,
         });
+
+        /** Log */
+        logNicely("BLUM GAME", payload);
 
         /** Claim Game */
         await claimGameMutation.mutateAsync(pack.hash);
@@ -132,7 +199,10 @@ export default function BlumAutoGamer({ workerRef }) {
         await client.refetchQueries({
           queryKey: ["blum", "balance"],
         });
-      } catch {}
+      } catch (e) {
+        /** Log it */
+        logNicely("BLUM ERROR", e);
+      }
 
       /** Release Lock */
       process.unlock();

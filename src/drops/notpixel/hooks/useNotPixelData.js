@@ -1,3 +1,4 @@
+import { logNicely } from "@/lib/utils";
 import { useCallback } from "react";
 import { useMemo } from "react";
 import { useState } from "react";
@@ -35,8 +36,8 @@ export default function useNotPixelData() {
   /** Configure Not Pixel Images */
   const configureNotPixel = useCallback(
     (data) => {
-      console.log("---NOT PIXEL---");
-      console.log(data);
+      /** Log it */
+      logNicely("NOT PIXEL", data);
 
       Promise.all(data.map(({ url }) => loadImage(url)))
         .then((images) => {

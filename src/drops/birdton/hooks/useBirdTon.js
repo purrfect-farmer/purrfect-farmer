@@ -115,7 +115,9 @@ export default function useBirdTon(farmer) {
     });
 
     return () => {
-      socketRef.current?.close(3000, "USE_EFFECT_DEPS");
+      try {
+        socketRef.current?.close(3000, "USE_EFFECT_DEPS");
+      } catch {}
       socketRef.current = null;
       setConnected(false);
     };

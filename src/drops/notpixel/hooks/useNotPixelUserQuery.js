@@ -1,10 +1,12 @@
+import useAppQuery from "@/hooks/useAppQuery";
 import useFarmerContext from "@/hooks/useFarmerContext";
-import { useQuery } from "@tanstack/react-query";
 
-export default function useNotPixelUserQuery() {
+export default function useNotPixelUserQuery(options) {
   const { api } = useFarmerContext();
 
-  return useQuery({
+  return useAppQuery({
+    ...options,
+    refetchInterval: false,
     queryKey: ["notpixel", "user"],
     queryFn: ({ signal }) =>
       api

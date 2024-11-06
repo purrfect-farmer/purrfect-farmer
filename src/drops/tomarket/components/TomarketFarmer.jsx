@@ -9,6 +9,7 @@ import TomarketFarmerHeader from "./TomarketFarmerHeader";
 import useTomarketDailyCheckInMutation from "../hooks/useTomarketDailyCheckInMutation";
 import useTomarketDailyCombo from "../hooks/useTomarketDailyCombo";
 import { getTomarketGame } from "../lib/utils";
+import { logNicely } from "@/lib/utils";
 
 export default function TomarketFarmer() {
   const [tomarket, setTomarket] = useState(null);
@@ -19,8 +20,8 @@ export default function TomarketFarmer() {
     (async function () {
       const result = await getTomarketGame();
 
-      console.log("--- TOMARKET ---");
-      console.log(result);
+      /** Log it */
+      logNicely("TOMARKET", result);
 
       setTomarket(result);
     })();

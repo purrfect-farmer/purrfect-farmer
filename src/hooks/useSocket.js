@@ -4,6 +4,7 @@ import { useEffect } from "react";
 import { useMemo } from "react";
 import { useRef } from "react";
 import { useState } from "react";
+
 import useEventEmitter from "./useEventEmitter";
 
 export default function useSocket(server = "127.0.0.1:7777") {
@@ -39,8 +40,10 @@ export default function useSocket(server = "127.0.0.1:7777") {
     });
 
     return () => {
-      socket.removeAllListeners();
-      socket.close();
+      try {
+        socket.removeAllListeners();
+        socket.close();
+      } catch {}
       socketRef.current = null;
     };
   }, [server]);
