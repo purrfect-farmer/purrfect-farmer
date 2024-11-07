@@ -6,12 +6,10 @@ export default function useFarmerAutoTask(task, callback, deps = []) {
 
   useEffect(() => {
     if (
-      zoomies.enabled !== true ||
-      zoomies.currentDrop?.id !== id ||
-      zoomies.currentTask !== task
+      zoomies.enabled &&
+      zoomies.currentDrop?.id === id &&
+      zoomies.currentTask === task
     ) {
-      return;
-    } else {
       return callback(zoomies);
     }
   }, [

@@ -1,13 +1,12 @@
-import { useEffect } from "react";
-
 import useAppContext from "./useAppContext";
+import { useLayoutEffect } from "react";
 
 export default function useSocketHandlers(handlers, socket) {
   const app = useAppContext();
 
   const socketToUse = socket || app?.socket;
 
-  return useEffect(() => {
+  return useLayoutEffect(() => {
     socketToUse.addCommandHandlers(handlers);
 
     return () => {

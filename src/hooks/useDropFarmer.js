@@ -39,12 +39,6 @@ export default function useDropFarmer({
     [domains]
   );
 
-  /** Domain Matches */
-  const currentTaskIndex = useMemo(
-    () => autoTasks.findIndex((item) => item === zoomies.currentTask),
-    [zoomies.currentTask, autoTasks]
-  );
-
   /** TelegramWebApp */
   const { port, telegramWebApp, resetTelegramWebApp } = useTelegramWebApp(host);
 
@@ -112,14 +106,18 @@ export default function useDropFarmer({
     else if (zoomies.currentTask === autoTasks.at(-1)) {
       zoomies.processNextDrop();
     } else {
-      zoomies.setCurrentTask(autoTasks[currentTaskIndex + 1]);
+      zoomies.setCurrentTask((prev) => {
+        const currentTaskIndex = autoTasks.findIndex((item) => item === prev);
+        const nextTask = autoTasks[currentTaskIndex + 1];
+
+        return nextTask;
+      });
     }
   }, [
     zoomies.enabled,
     zoomies.currentTask,
     zoomies.setCurrentTask,
     zoomies.processNextDrop,
-    currentTaskIndex,
     autoTasks,
   ]);
 

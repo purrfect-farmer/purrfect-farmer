@@ -1,5 +1,5 @@
 import { useCallback } from "react";
-import { useEffect } from "react";
+import { useLayoutEffect } from "react";
 import { useRef } from "react";
 
 export default function useRefCallback(...args) {
@@ -10,7 +10,7 @@ export default function useRefCallback(...args) {
     ref.current(...args);
   }, []);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     ref.current = callback;
   }, [callback]);
 
