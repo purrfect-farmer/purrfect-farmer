@@ -298,7 +298,7 @@ export default function useDropFarmer({
 
   /** Zoomies */
   useEffect(() => {
-    if (zoomies.enabled && zoomies.currentDrop.id === id) {
+    if (zoomies.enabled && zoomies.currentDrop?.id === id) {
       zoomies.setAuth(auth);
 
       if (auth) {
@@ -309,7 +309,7 @@ export default function useDropFarmer({
     id,
     auth,
     zoomies.enabled,
-    zoomies.currentDrop.id,
+    zoomies.currentDrop?.id,
     zoomies.setAuth,
     zoomies.setCurrentTask,
     autoTasks,

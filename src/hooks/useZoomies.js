@@ -27,7 +27,9 @@ export default function useZoomies(core) {
   const resetZoomies = useCallback(() => {
     setAuth(false);
     core.resetTabs();
-    core.setActiveTab(currentDrop.id);
+    if (currentDrop) {
+      core.setActiveTab(currentDrop.id);
+    }
   }, [currentDrop, setAuth, core.resetTabs, core.setActiveTab]);
 
   const closeTelegramWeb = useCallback(() => {
@@ -40,10 +42,24 @@ export default function useZoomies(core) {
 
     if (currentDrop === drops.at(-1)) {
       setCurrentPosition(0);
+
+      if (drops.length === 1) {
+        core.resetTabs();
+        core.setActiveTab(drops[0]);
+        setAuth(false);
+      }
     } else {
       setCurrentPosition((prev) => prev + 1);
     }
-  }, [drops, currentDrop, setCurrentPosition, setCurrentTask]);
+  }, [
+    drops,
+    currentDrop,
+    setAuth,
+    setCurrentTask,
+    setCurrentPosition,
+    core.resetTabs,
+    core.setActiveTab,
+  ]);
 
   /** Reset Zoomies */
   useEffect(() => {
@@ -73,7 +89,9 @@ export default function useZoomies(core) {
 
     if (auth) {
       core.closeTab("telegram-web-k");
-      core.setActiveTab(currentDrop.id);
+      if (currentDrop) {
+        core.setActiveTab(currentDrop.id);
+      }
     }
   }, [process.started, auth, currentDrop, core.closeTab, core.setActiveTab]);
 

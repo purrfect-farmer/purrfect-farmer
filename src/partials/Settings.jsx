@@ -287,6 +287,10 @@ export default function Settings() {
 
                 <Tabs.Content value="zoomies">
                   <div className="flex flex-col gap-2">
+                    <p className="p-4 text-center text-blue-800 bg-blue-100 rounded-lg">
+                      Enable the farmers you would like to include in Zoomies
+                    </p>
+
                     {drops.map((drop) => (
                       <LabelToggle
                         onChange={(ev) =>
