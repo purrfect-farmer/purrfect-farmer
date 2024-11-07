@@ -15,6 +15,7 @@ export default function useWontonFarmer() {
         },
         domains: ["*.wonton.food"],
         apiDelay: 3000,
+        autoTasks: ["tasks", "game"],
       }),
       []
     )

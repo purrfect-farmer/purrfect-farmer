@@ -22,6 +22,8 @@ export default function useBirdTonFarmer() {
             .post("https://birdton.site/auth", telegramWebApp)
             .then((res) => res.data);
         },
+
+        autoTasks: ["game", "tasks"],
       }),
       []
     )

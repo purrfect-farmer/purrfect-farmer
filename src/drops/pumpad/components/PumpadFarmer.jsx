@@ -11,6 +11,7 @@ import * as Tabs from "@radix-ui/react-tabs";
 import { cn } from "@/lib/utils";
 import PumpadBalanceDisplay from "./PumpadBalanceDisplay";
 import PumpadTickets from "./PumpadTickets";
+import useFarmerAutoTab from "@/hooks/useFarmerAutoTab";
 
 export default function PumpadFarmer() {
   const checkInQuery = usePumpadCheckInQuery();
@@ -30,6 +31,10 @@ export default function PumpadFarmer() {
       }
     })();
   }, [checkInQuery.data]);
+
+  /** Switch Tab Automatically */
+  useFarmerAutoTab(tabs.onValueChange);
+
   return (
     <div className="flex flex-col gap-2 py-4">
       {/* Header */}

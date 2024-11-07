@@ -12,6 +12,7 @@ import SlotcoinQuests from "./SlotcoinQuests";
 import * as Tabs from "@radix-ui/react-tabs";
 import { cn } from "@/lib/utils";
 import SlotcoinTickets from "./SlotcoinTickets";
+import useFarmerAutoTab from "@/hooks/useFarmerAutoTab";
 
 export default function SlotcoinFarmer() {
   const checkInQuery = useSlotcoinCheckInInfoQuery();
@@ -30,6 +31,10 @@ export default function SlotcoinFarmer() {
       }
     })();
   }, [checkInQuery.data]);
+
+  /** Switch Tab Automatically */
+  useFarmerAutoTab(tabs.onValueChange);
+
   return (
     <div className="flex flex-col gap-2 py-4">
       {/* Header */}

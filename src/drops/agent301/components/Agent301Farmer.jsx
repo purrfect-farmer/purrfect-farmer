@@ -8,9 +8,13 @@ import Agent301Lottery from "./Agent301Lottery";
 import Agent301Tasks from "./Agent301Tasks";
 import Agent301Wheel from "./Agent301Wheel";
 import Agent301Puzzle from "./Agent301Puzzle";
+import useFarmerAutoTab from "@/hooks/useFarmerAutoTab";
 
 export default function Agent301Farmer() {
   const tabs = useSocketTabs("agent301.farmer-tabs", "tickets");
+
+  /** Switch Tab Automatically */
+  useFarmerAutoTab(tabs.onValueChange);
 
   return (
     <div className="flex flex-col gap-2 py-4">

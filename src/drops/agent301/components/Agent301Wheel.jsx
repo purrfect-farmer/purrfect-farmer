@@ -9,8 +9,11 @@ import { useState } from "react";
 
 import useAgent301CompleteWheelTaskMutation from "../hooks/useAgent301CompleteWheelTaskMutation";
 import useAgent301WheelQuery from "../hooks/useAgent301WheelQuery";
+import useFarmerAutoTask from "@/drops/notpixel/hooks/useFarmerAutoTask";
+import useFarmerContext from "@/hooks/useFarmerContext";
 
 export default function Agent301Wheel() {
+  const { processNextTask } = useFarmerContext();
   const client = useQueryClient();
   const wheelQuery = useAgent301WheelQuery();
 
@@ -109,8 +112,20 @@ export default function Agent301Wheel() {
       } catch {}
 
       process.stop();
+      processNextTask();
     })();
-  }, [process]);
+  }, [process, processNextTask]);
+
+  /** Auto-Complete */
+  useFarmerAutoTask(
+    "wheel",
+    () => {
+      if (wheelQuery.isSuccess) {
+        process.start();
+      }
+    },
+    [wheelQuery.isSuccess, process.start]
+  );
 
   return (
     <div className="p-4">

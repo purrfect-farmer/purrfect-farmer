@@ -8,8 +8,11 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useCallback } from "react";
 import { useEffect } from "react";
 import { cn, delay } from "@/lib/utils";
+import useFarmerContext from "@/hooks/useFarmerContext";
+import useFarmerAutoTask from "@/drops/notpixel/hooks/useFarmerAutoTask";
 
 export default function SlotcoinQuests() {
+  const { processNextTask } = useFarmerContext();
   const process = useProcessLock("slotcoin.quests.check");
   const queryClient = useQueryClient();
 
@@ -73,8 +76,20 @@ export default function SlotcoinQuests() {
       } catch {}
 
       process.stop();
+      processNextTask();
     })();
-  }, [process]);
+  }, [process, processNextTask]);
+
+  /** Auto-Complete Quests */
+  useFarmerAutoTask(
+    "quests",
+    () => {
+      if (questsQuery.isSuccess) {
+        process.start();
+      }
+    },
+    [questsQuery.isSuccess, process.start]
+  );
 
   return (
     <div className="p-4">

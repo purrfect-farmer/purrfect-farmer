@@ -11,16 +11,11 @@ import { useMemo } from "react";
 import { useState } from "react";
 
 import useBirdTonHandlers from "../hooks/useBirdTonHandlers";
+import useFarmerAutoTask from "@/drops/notpixel/hooks/useFarmerAutoTask";
 
 export default function BirdTonTasks() {
-  const { eventData, sendMessage } = useFarmerContext();
-
-  const refreshTasks = useCallback(() => {
-    sendMessage({
-      event_type: "refresh_tasks",
-      data: "",
-    });
-  }, [sendMessage]);
+  const { eventData, sendMessage, refreshTasks, processNextTask } =
+    useFarmerContext();
 
   const [reloadTasks, dispatchAndReloadTasks] = useSocketDispatchCallback(
     useCallback(() => {
@@ -196,8 +191,18 @@ export default function BirdTonTasks() {
       refreshTasks();
       reset();
       process.stop();
+      processNextTask();
     })();
-  }, [process]);
+  }, [process, processNextTask]);
+
+  /** Auto-Complete */
+  useFarmerAutoTask(
+    "tasks",
+    () => {
+      process.start();
+    },
+    []
+  );
 
   return (
     <div className="flex flex-col">

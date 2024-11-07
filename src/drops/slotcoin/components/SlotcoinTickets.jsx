@@ -6,8 +6,11 @@ import { useEffect, useMemo } from "react";
 
 import useSlotcoinInfoQuery from "../hooks/useSlotcoinInfoQuery";
 import useSlotcoinDailySpinMutation from "../hooks/useSlotcoinDailySpinMutation";
+import useFarmerAutoTask from "@/drops/notpixel/hooks/useFarmerAutoTask";
+import useFarmerContext from "@/hooks/useFarmerContext";
 
 export default function SlotcoinTickets() {
+  const { processNextTask } = useFarmerContext();
   const query = useSlotcoinInfoQuery();
   const ticketsCount = useMemo(
     () => Number(query.data?.["user"]?.["daily_roulette_count"] || 0),
@@ -28,6 +31,7 @@ export default function SlotcoinTickets() {
 
     if (ticketsCount < 1) {
       process.stop();
+      processNextTask();
       return;
     }
 
@@ -49,7 +53,18 @@ export default function SlotcoinTickets() {
       // Release Lock
       process.unlock();
     })();
-  }, [process, ticketsCount, farmingSpeed]);
+  }, [process, ticketsCount, farmingSpeed, processNextTask]);
+
+  /** Auto-Spin */
+  useFarmerAutoTask(
+    "tickets",
+    () => {
+      if (query.isSuccess) {
+        process.start();
+      }
+    },
+    [query.isSuccess, process.start]
+  );
 
   return (
     <div className="p-4">

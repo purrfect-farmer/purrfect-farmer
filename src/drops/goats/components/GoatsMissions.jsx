@@ -8,10 +8,13 @@ import { useState } from "react";
 
 import useGoatsCompleteMissionMutation from "../hooks/useGoatsCompleteMissionMutation";
 import useGoatsMissionsQuery from "../hooks/useGoatsMissionsQuery";
+import useFarmerAutoTask from "@/drops/notpixel/hooks/useFarmerAutoTask";
+import useFarmerContext from "@/hooks/useFarmerContext";
 
 export default function GoatsMissions() {
   const client = useQueryClient();
   const missionsQuery = useGoatsMissionsQuery();
+  const { processNextTask } = useFarmerContext();
 
   const missions = useMemo(
     () =>
@@ -77,8 +80,20 @@ export default function GoatsMissions() {
 
       reset();
       process.stop();
+      processNextTask();
     })();
-  }, [process]);
+  }, [process, processNextTask]);
+
+  /** Auto-Complete */
+  useFarmerAutoTask(
+    "missions",
+    () => {
+      if (missionsQuery.isSuccess) {
+        process.start();
+      }
+    },
+    [missionsQuery.isSuccess, process.start]
+  );
 
   return (
     <div className="p-4">

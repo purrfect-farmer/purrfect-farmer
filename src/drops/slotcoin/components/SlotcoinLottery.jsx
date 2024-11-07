@@ -7,11 +7,13 @@ import useSlotcoinInfoQuery from "../hooks/useSlotcoinInfoQuery";
 import useSlotcoinLotteryMutation from "../hooks/useSlotcoinLotteryMutation";
 import Slider from "@/components/Slider";
 import useSocketState from "@/hooks/useSocketState";
+import useFarmerAutoTask from "@/drops/notpixel/hooks/useFarmerAutoTask";
+import useFarmerContext from "@/hooks/useFarmerContext";
 
 export default function SlotcoinLottery() {
   const query = useSlotcoinInfoQuery();
   const bid = useMemo(() => Number(query.data?.user?.bid || 0), [query.data]);
-
+  const { processNextTask } = useFarmerContext();
   const energy = useMemo(
     () => Number(query.data?.user?.spins || 0),
     [query.data]
@@ -37,6 +39,7 @@ export default function SlotcoinLottery() {
 
     if (energy < bid) {
       process.stop();
+      processNextTask();
       return;
     }
 
@@ -60,7 +63,18 @@ export default function SlotcoinLottery() {
       // Release Lock
       process.unlock();
     })();
-  }, [process, energy, bid, farmingSpeed]);
+  }, [process, energy, bid, farmingSpeed, processNextTask]);
+
+  /** Auto-Spin */
+  useFarmerAutoTask(
+    "lottery",
+    () => {
+      if (query.isSuccess) {
+        process.start();
+      }
+    },
+    [query.isSuccess, process.start]
+  );
 
   return (
     <div className="p-4">

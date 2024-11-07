@@ -7,6 +7,8 @@ import { useState } from "react";
 import useProcessLock from "./useProcessLock";
 import useValuesMemo from "./useValuesMemo";
 
+const INITIAL_POSITION = 0;
+
 export default function useZoomies(core) {
   /** Drops List */
   const drops = useMemo(
@@ -19,7 +21,9 @@ export default function useZoomies(core) {
 
   const process = useProcessLock("app.zoomies", core.socket);
   const [auth, setAuth] = useState(false);
-  const [currentPosition, setCurrentPosition] = useState(3);
+
+  /** PATCH */
+  const [currentPosition, setCurrentPosition] = useState(INITIAL_POSITION);
   const [currentTask, setCurrentTask] = useState(null);
   const currentDrop = drops[currentPosition];
 
@@ -50,6 +54,7 @@ export default function useZoomies(core) {
   /** Open Bot */
   useEffect(() => {
     if (process.started && !auth) {
+      resetZoomies();
       core.openTelegramLink(currentDrop.telegramLink);
     }
   }, [process.started, auth, currentDrop]);

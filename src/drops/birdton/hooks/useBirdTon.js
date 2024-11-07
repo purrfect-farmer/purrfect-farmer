@@ -1,7 +1,7 @@
 import useEventEmitter from "@/hooks/useEventEmitter";
+import useValuesMemo from "@/hooks/useValuesMemo";
 import { useCallback } from "react";
 import { useEffect } from "react";
-import { useMemo } from "react";
 import { useRef } from "react";
 import { useState } from "react";
 
@@ -43,6 +43,13 @@ export default function useBirdTon(farmer) {
       socketRef.current?.send("ping");
     }
   }, [socketRef]);
+
+  const refreshTasks = useCallback(() => {
+    sendMessage({
+      event_type: "refresh_tasks",
+      data: "",
+    });
+  }, [sendMessage]);
 
   /** Set Auth Key */
   useEffect(() => {
@@ -132,28 +139,16 @@ export default function useBirdTon(farmer) {
     };
   }, [websocketAuthKey, farmer.resetTelegramWebApp]);
 
-  return useMemo(
-    () => ({
-      ...farmer,
-      user,
-      eventData,
-      connected,
-      setEventData,
-      sendAuth,
-      sendMessage,
-      addMessageHandlers,
-      removeMessageHandlers,
-    }),
-    [
-      farmer,
-      user,
-      eventData,
-      connected,
-      setEventData,
-      sendAuth,
-      sendMessage,
-      addMessageHandlers,
-      removeMessageHandlers,
-    ]
-  );
+  return useValuesMemo({
+    ...farmer,
+    user,
+    eventData,
+    connected,
+    setEventData,
+    sendAuth,
+    sendMessage,
+    addMessageHandlers,
+    removeMessageHandlers,
+    refreshTasks,
+  });
 }

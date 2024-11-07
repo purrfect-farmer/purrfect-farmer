@@ -9,8 +9,11 @@ import { useState } from "react";
 import useBitsClaimSocialTaskMutation from "../hooks/useBitsClaimSocialTaskMutation";
 import useBitsSocialTasksQuery from "../hooks/useBitsSocialTasksQuery";
 import useBitsStartSocialTaskMutation from "../hooks/useBitsStartSocialTaskMutation";
+import useFarmerContext from "@/hooks/useFarmerContext";
+import useFarmerAutoTask from "@/drops/notpixel/hooks/useFarmerAutoTask";
 
 export default function BitsSocialTasks() {
+  const { processNextTask } = useFarmerContext();
   const client = useQueryClient();
   const query = useBitsSocialTasksQuery();
 
@@ -137,8 +140,20 @@ export default function BitsSocialTasks() {
       await refetch();
       resetTask();
       process.stop();
+      processNextTask();
     })();
-  }, [process, action]);
+  }, [process, action, processNextTask]);
+
+  /** Auto-Complete Tasks */
+  useFarmerAutoTask(
+    "tasks",
+    () => {
+      if (query.isSuccess) {
+        process.start();
+      }
+    },
+    [query.isSuccess, process.start]
+  );
 
   return (
     <>

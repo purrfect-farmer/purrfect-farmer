@@ -14,6 +14,7 @@ export default function usePumpadFarmer() {
           title: "Pumpad Farmer",
         },
         domains: ["tg.pumpad.io"],
+        autoTasks: ["missions", "tickets", "lottery"],
       }),
       []
     )

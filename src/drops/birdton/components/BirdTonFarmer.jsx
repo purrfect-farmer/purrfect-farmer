@@ -12,6 +12,7 @@ import BirdTonTasks from "./BirdTonTasks";
 import CoinIcon from "../assets/images/coin.png?format=webp&w=80";
 import EnergyIcon from "../assets/images/energy.png?format=webp&w=80";
 import useBirdTonClaimDailyRewardMutation from "../hooks/useBirdTonClaimDailyRewardMutation";
+import useFarmerAutoTab from "@/hooks/useFarmerAutoTab";
 
 export default function BirdTonFarmer() {
   const { connected, user } = useFarmerContext();
@@ -32,6 +33,9 @@ export default function BirdTonFarmer() {
       }
     })();
   }, [user?.["can_claim_daily"]]);
+
+  /** Switch Tab Automatically */
+  useFarmerAutoTab(tabs.onValueChange);
 
   return user && connected ? (
     <div className="flex flex-col gap-2 p-4">

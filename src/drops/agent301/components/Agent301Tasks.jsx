@@ -8,8 +8,11 @@ import { useState } from "react";
 
 import useAgent301CompleteTaskMutation from "../hooks/useAgent301CompleteTaskMutation";
 import useAgent301TasksQuery from "../hooks/useAgent301TasksQuery";
+import useFarmerAutoTask from "@/drops/notpixel/hooks/useFarmerAutoTask";
+import useFarmerContext from "@/hooks/useFarmerContext";
 
 export default function Agent301Tasks() {
+  const { processNextTask } = useFarmerContext();
   const client = useQueryClient();
   const tasksQuery = useAgent301TasksQuery();
 
@@ -181,8 +184,20 @@ export default function Agent301Tasks() {
 
       reset();
       process.stop();
+      processNextTask();
     })();
-  }, [process]);
+  }, [process, processNextTask]);
+
+  /** Auto-Complete */
+  useFarmerAutoTask(
+    "tasks",
+    () => {
+      if (tasksQuery.isSuccess) {
+        process.start();
+      }
+    },
+    [tasksQuery.isSuccess, process.start]
+  );
 
   return (
     <div className="p-4">

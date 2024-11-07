@@ -14,6 +14,7 @@ export default function useTomarketFarmer() {
           title: "Tomarket Farmer",
         },
         domains: ["*.tomarket.ai"],
+        autoTasks: ["game"],
       }),
       []
     )

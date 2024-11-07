@@ -6,8 +6,11 @@ import { useEffect } from "react";
 
 import usePumpadTicketsQuery from "../hooks/usePumpadTicketsQuery";
 import usePumpadBetMutation from "../hooks/usePumpadBetMutation";
+import useFarmerContext from "@/hooks/useFarmerContext";
+import useFarmerAutoTask from "@/drops/notpixel/hooks/useFarmerAutoTask";
 
 export default function PumpadTickets() {
+  const { processNextTask } = useFarmerContext();
   const query = usePumpadTicketsQuery();
   const ticketsCount = query.data?.["number_of_tickets"] || 0;
 
@@ -25,6 +28,7 @@ export default function PumpadTickets() {
 
     if (ticketsCount < 1) {
       process.stop();
+      processNextTask();
       return;
     }
 
@@ -46,7 +50,18 @@ export default function PumpadTickets() {
       // Release Lock
       process.unlock();
     })();
-  }, [process, ticketsCount, farmingSpeed]);
+  }, [process, ticketsCount, farmingSpeed, processNextTask]);
+
+  /** Auto-Spin */
+  useFarmerAutoTask(
+    "tickets",
+    () => {
+      if (query.isSuccess) {
+        process.start();
+      }
+    },
+    [query.isSuccess, process.start]
+  );
 
   return (
     <div className="p-4">

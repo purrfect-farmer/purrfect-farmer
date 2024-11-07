@@ -13,9 +13,11 @@ import useTruecoin50SpinsBoost from "../hooks/useTruecoin50SpinsBoostMutation";
 import useTruecoinLotteryMutation from "../hooks/useTruecoinLotteryMutation";
 import useSocketState from "@/hooks/useSocketState";
 import Slider from "@/components/Slider";
+import useFarmerAutoTask from "@/drops/notpixel/hooks/useFarmerAutoTask";
 
 export default function TruecoinLottery() {
-  const { queryClient, authQuery, authQueryKey } = useFarmerContext();
+  const { queryClient, authQuery, authQueryKey, processNextTask } =
+    useFarmerContext();
 
   const user = authQuery.data?.user;
 
@@ -67,7 +69,9 @@ export default function TruecoinLottery() {
     }
 
     if (user.currentSpins < 1) {
-      return process.stop();
+      process.stop();
+      processNextTask();
+      return;
     }
 
     (async function () {
@@ -102,7 +106,25 @@ export default function TruecoinLottery() {
       // Release Lock
       process.unlock();
     })();
-  }, [process, user, farmingSpeed, authQueryKey, queryClient.setQueryData]);
+  }, [
+    process,
+    user,
+    farmingSpeed,
+    authQueryKey,
+    queryClient.setQueryData,
+    processNextTask,
+  ]);
+
+  /** Auto-Spin */
+  useFarmerAutoTask(
+    "lottery",
+    () => {
+      if (authQuery.isSuccess) {
+        process.start();
+      }
+    },
+    [authQuery.isSuccess, process.start]
+  );
 
   return (
     <div className="flex flex-col gap-2 p-4">

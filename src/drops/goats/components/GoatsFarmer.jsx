@@ -28,6 +28,7 @@ export default function GoatsFarmer() {
       }
     })();
   }, [checkInQuery.data]);
+
   return (
     <div className="flex flex-col gap-2 py-4">
       {/* Header */}

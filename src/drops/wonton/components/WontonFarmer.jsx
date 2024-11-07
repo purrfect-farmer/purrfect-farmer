@@ -14,6 +14,7 @@ import useWontonClaimFarmingMutation from "../hooks/useWontonClaimFarmingMutatio
 import useWontonDailyCheckInMutation from "../hooks/useWontonDailyCheckInMutation";
 import useWontonFarmingStatusQuery from "../hooks/useWontonFarmingStatusQuery";
 import useWontonStartFarmingMutation from "../hooks/useWontonStartFarmingMutation";
+import useFarmerAutoTab from "@/hooks/useFarmerAutoTab";
 
 export default function WontonFarmer() {
   const tabs = useSocketTabs("wonton.farmer-tabs", "game");
@@ -54,6 +55,9 @@ export default function WontonFarmer() {
       }
     })();
   }, [farmingStatusQuery.data]);
+
+  /** Automatically Switch Tab */
+  useFarmerAutoTab(tabs.onValueChange);
 
   return (
     <div className="flex flex-col p-4">

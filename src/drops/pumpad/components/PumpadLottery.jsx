@@ -6,8 +6,11 @@ import usePumpadLotteryMutation from "../hooks/usePumpadLotteryMutation";
 import usePumpadLotteryQuery from "../hooks/usePumpadLotteryQuery";
 import useSocketState from "@/hooks/useSocketState";
 import Slider from "@/components/Slider";
+import useFarmerAutoTask from "@/drops/notpixel/hooks/useFarmerAutoTask";
+import useFarmerContext from "@/hooks/useFarmerContext";
 
 export default function PumpadLottery() {
+  const { processNextTask } = useFarmerContext();
   const query = usePumpadLotteryQuery();
   const drawCount = query.data?.["draw_count"] || 0;
 
@@ -25,6 +28,7 @@ export default function PumpadLottery() {
 
     if (drawCount < 1) {
       process.stop();
+      processNextTask();
       return;
     }
 
@@ -46,7 +50,18 @@ export default function PumpadLottery() {
       // Release Lock
       process.unlock();
     })();
-  }, [process, drawCount, farmingSpeed]);
+  }, [process, drawCount, farmingSpeed, processNextTask]);
+
+  /** Auto-Spin */
+  useFarmerAutoTask(
+    "lottery",
+    () => {
+      if (query.isSuccess) {
+        process.start();
+      }
+    },
+    [query.isSuccess, process.start]
+  );
 
   return (
     <div className="p-4">

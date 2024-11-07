@@ -4,8 +4,11 @@ import { useEffect } from "react";
 
 import useAgent301BalanceQuery from "../hooks/useAgent301BalanceQuery";
 import useAgent301LotteryMutation from "../hooks/useAgent301LotteryMutation";
+import useFarmerAutoTask from "@/drops/notpixel/hooks/useFarmerAutoTask";
+import useFarmerContext from "@/hooks/useFarmerContext";
 
 export default function Agent301Lottery() {
+  const { processNextTask } = useFarmerContext();
   const process = useProcessLock("agent301.wheel.lottery");
 
   const balanceQuery = useAgent301BalanceQuery();
@@ -20,6 +23,7 @@ export default function Agent301Lottery() {
 
     if (tickets < 1) {
       process.stop();
+      processNextTask();
       return;
     }
 
@@ -43,7 +47,18 @@ export default function Agent301Lottery() {
       // Release Lock
       process.unlock();
     })();
-  }, [process, tickets]);
+  }, [process, tickets, processNextTask]);
+
+  /** Auto-Spin */
+  useFarmerAutoTask(
+    "tickets",
+    () => {
+      if (balanceQuery.isSuccess) {
+        process.start();
+      }
+    },
+    [balanceQuery.isSuccess, process.start]
+  );
 
   return (
     <div className="p-4">

@@ -41,6 +41,7 @@ export default function useTruecoinFarmer() {
             "Authorization"
           ] = `Bearer ${data?.["token"]}`;
         },
+        autoTasks: ["lottery"],
       }),
       []
     )

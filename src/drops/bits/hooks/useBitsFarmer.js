@@ -25,6 +25,7 @@ export default function useBitsFarmer() {
             })
             .then((res) => res.data);
         },
+        autoTasks: ["tasks"],
       }),
       []
     )

@@ -14,11 +14,15 @@ import useWontonClaimTaskProgressMutation from "../hooks/useWontonClaimTaskProgr
 import toast from "react-hot-toast";
 import useWontonUserQuery from "../hooks/useWontonUserQuery";
 import useWontonClaimTaskGiftMutation from "../hooks/useWontonClaimTaskGiftMutation";
+import useFarmerAutoTask from "@/drops/notpixel/hooks/useFarmerAutoTask";
+import useFarmerContext from "@/hooks/useFarmerContext";
 
 export default function WontonAutoTasks() {
   const client = useQueryClient();
   const taskQuery = useWontonTasksQuery();
   const userQuery = useWontonUserQuery();
+
+  const { processNextTask } = useFarmerContext();
 
   const user = userQuery.data;
 
@@ -156,8 +160,9 @@ export default function WontonAutoTasks() {
       await refetch();
       resetTask();
       process.stop();
+      processNextTask();
     })();
-  }, [process, action]);
+  }, [process, action, processNextTask]);
 
   /** Claim Progress */
   useEffect(() => {
@@ -192,6 +197,17 @@ export default function WontonAutoTasks() {
       }
     })();
   }, [user]);
+
+  /** Auto-Complete Tasks */
+  useFarmerAutoTask(
+    "tasks",
+    () => {
+      if (taskQuery.isSuccess) {
+        process.start();
+      }
+    },
+    [taskQuery.isSuccess, process.start]
+  );
 
   return (
     <>

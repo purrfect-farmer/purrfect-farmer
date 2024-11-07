@@ -12,6 +12,7 @@ import { useMemo } from "react";
 import { useState } from "react";
 
 import useBirdTonHandlers from "../hooks/useBirdTonHandlers";
+import useFarmerAutoTask from "@/drops/notpixel/hooks/useFarmerAutoTask";
 
 const MIN_POINT = 100;
 const INITIAL_POINT = 120;
@@ -19,8 +20,15 @@ const MAX_POINT = 10_000;
 
 export default function BirdTonGamer() {
   const process = useProcessLock("birdton.game.autoplay");
-  const { sendMessage, user, queryClient, authQueryKey } = useFarmerContext();
-  const [startGameCallback, setStartGameCallback] = useState(null);
+  const {
+    sendMessage,
+    user,
+    queryClient,
+    authQueryKey,
+    processNextTask,
+    refreshTasks,
+  } = useFarmerContext();
+  const [createGameCallback, setCreateGameCallback] = useState(null);
 
   const [farmingSpeed, , dispatchAndSetFarmingSpeed] = useSocketState(
     "birdton.farming-speed",
@@ -38,7 +46,7 @@ export default function BirdTonGamer() {
   const [desiredPoint, setDesiredPoint, dispatchAndSetDesiredPoint] =
     useSocketState("birdton.game.desired-point", INITIAL_POINT);
 
-  const perGamePoin = useMemo(
+  const perGamePoints = useMemo(
     () => Math.max(MIN_POINT, Math.min(MAX_POINT, desiredPoint)),
     [desiredPoint]
   );
@@ -52,13 +60,12 @@ export default function BirdTonGamer() {
     setStopPoint(null);
   }, [setGameId, setPoints, setStopPoint]);
 
-  /** Start Game */
-  const startGame = useCallback(() => {
+  const createGame = useCallback(() => {
     return toast
       .promise(
         new Promise((resolve, reject) => {
-          /** Set Game Callback */
-          setStartGameCallback(() => resolve);
+          /** Create Game Callback */
+          setCreateGameCallback(() => resolve);
 
           /** Emit Message */
           sendMessage({ event_type: "game_id", data: "std" });
@@ -70,32 +77,38 @@ export default function BirdTonGamer() {
         }
       )
       .then((id) => {
-        setStartGameCallback(null);
-        setPoints(0);
-        setDesiredPoint(perGamePoin);
-        setStopPoint(perGamePoin + Math.floor(Math.random() * 20));
-        setGameId(id);
+        setCreateGameCallback(null);
+        return Promise.resolve(id);
       });
+  }, [sendMessage, setCreateGameCallback]);
+
+  /** Start Game */
+  const startGame = useCallback(() => {
+    return createGame().then((id) => {
+      setPoints(0);
+      setDesiredPoint(perGamePoints);
+      setStopPoint(perGamePoints + Math.floor(Math.random() * 20));
+      setGameId(id);
+    });
   }, [
-    perGamePoin,
-    sendMessage,
-    setStartGameCallback,
+    createGame,
+    perGamePoints,
     setGameId,
     setPoints,
-    setStopPoint,
     setDesiredPoint,
+    setStopPoint,
   ]);
 
-  /** Handle Game Start */
-  const handleGameStart = useCallback(
+  /** Handle Game Created */
+  const handleGameCreated = useCallback(
     ({ data }) => {
-      if (!startGameCallback) {
+      if (!createGameCallback) {
         return;
       }
 
-      startGameCallback(data);
+      createGameCallback(data);
     },
-    [startGameCallback]
+    [createGameCallback]
   );
 
   /** Handle Game Saved */
@@ -112,8 +125,23 @@ export default function BirdTonGamer() {
           high_score: result.high_score,
         };
       });
+
+      /** Reset */
+      reset();
+
+      /** Unlock the process */
+      process.unlock();
+
+      /** Refresh Tasks */
+      refreshTasks();
     },
-    [queryClient.setQueryData, authQueryKey]
+    [
+      queryClient.setQueryData,
+      process.unlock,
+      authQueryKey,
+      reset,
+      refreshTasks,
+    ]
   );
 
   /** Handlers */
@@ -121,13 +149,13 @@ export default function BirdTonGamer() {
     useMemo(
       () => ({
         ["game_id"]: (message) => {
-          handleGameStart(message);
+          handleGameCreated(message);
         },
         ["game_saved"]: (message) => {
           handleGameSaved(message);
         },
       }),
-      [handleGameStart]
+      [handleGameCreated, handleGameSaved]
     )
   );
 
@@ -143,18 +171,28 @@ export default function BirdTonGamer() {
     )
   );
 
-  /** Start or Stop */
+  /** Reset */
   useEffect(() => {
-    if (process.started) {
-      startGame();
-    } else {
-      reset();
-    }
-  }, [process.started, startGame, reset]);
+    reset();
+  }, [process.started, reset]);
 
   /** Play Game */
   useEffect(() => {
-    if (!gameId || !process.canExecute) {
+    if (!process.canExecute) {
+      return;
+    }
+
+    /** Energy is low */
+    if (energy < 1) {
+      process.stop();
+
+      processNextTask();
+      return;
+    }
+
+    /** No Game ID */
+    if (!gameId) {
+      startGame();
       return;
     }
 
@@ -165,7 +203,6 @@ export default function BirdTonGamer() {
       /** End Game */
       const endGame = () => {
         sendMessage({ event_type: "game_end", data: gameId });
-        reset();
       };
 
       /** Add Abort Listener */
@@ -187,12 +224,29 @@ export default function BirdTonGamer() {
       }
 
       /** Delay for 2 Sec */
-      await delay(2000);
+      await delay(1000);
 
-      /** Stop */
-      process.stop();
+      /** End Game */
+      endGame();
     })();
-  }, [gameId, process, reset, gameSpeedRef]);
+  }, [
+    process,
+    energy,
+    gameId,
+    startGame,
+    reset,
+    gameSpeedRef,
+    processNextTask,
+  ]);
+
+  /** Auto-Play */
+  useFarmerAutoTask(
+    "game",
+    () => {
+      process.start();
+    },
+    []
+  );
 
   return (
     <div className="flex flex-col gap-4">

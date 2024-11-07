@@ -12,6 +12,8 @@ import WontonInput from "./WontonInput";
 import useWontonClaimGameMutation from "../hooks/useWontonClaimGameMutation";
 import useWontonStartGameMutation from "../hooks/useWontonStartGameMutation";
 import useWontonUserQuery from "../hooks/useWontonUserQuery";
+import useFarmerContext from "@/hooks/useFarmerContext";
+import useFarmerAutoTask from "@/drops/notpixel/hooks/useFarmerAutoTask";
 
 const GAME_DURATION = 15_000;
 const EXTRA_DELAY = 3_000;
@@ -21,6 +23,8 @@ const MAX_POINT = 580;
 
 export default function Wonton() {
   const query = useWontonUserQuery();
+
+  const { processNextTask } = useFarmerContext();
 
   const process = useProcessLock("wonton.autoplay");
 
@@ -56,6 +60,7 @@ export default function Wonton() {
 
     if (tickets < 1) {
       process.stop();
+      processNextTask();
       return;
     }
 
@@ -92,7 +97,18 @@ export default function Wonton() {
       /** Release Lock */
       process.unlock();
     })();
-  }, [tickets, process]);
+  }, [tickets, process, processNextTask]);
+
+  /** Auto-Game */
+  useFarmerAutoTask(
+    "game",
+    () => {
+      if (query.isSuccess) {
+        process.start();
+      }
+    },
+    [query.isSuccess, process.start]
+  );
 
   return (
     <div className="flex flex-col gap-2">

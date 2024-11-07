@@ -10,6 +10,8 @@ import TomarketInput from "./TomarketInput";
 import useTomarketBalanceQuery from "../hooks/useTomarketBalanceQuery";
 import useTomarketClaimGameMutation from "../hooks/useTomarketClaimGameMutation";
 import useTomarketStartGameMutation from "../hooks/useTomarketStartGameMutation";
+import useFarmerAutoTask from "@/drops/notpixel/hooks/useFarmerAutoTask";
+import useFarmerContext from "@/hooks/useFarmerContext";
 
 const GAME_DURATION = 30_000;
 const EXTRA_DELAY = 3_000;
@@ -19,7 +21,7 @@ const MAX_POINT = 390;
 
 export default function Tomarket({ tomarket }) {
   const query = useTomarketBalanceQuery();
-
+  const { processNextTask } = useFarmerContext();
   const process = useProcessLock("tomarket.autoplay");
   const [countdown, setCountdown] = useState(null);
   const [desiredPoint, setDesiredPoint, dispatchAndSetDesiredPoint] =
@@ -56,6 +58,7 @@ export default function Tomarket({ tomarket }) {
 
     if (tickets < 1) {
       process.stop();
+      processNextTask();
       return;
     }
 
@@ -88,7 +91,18 @@ export default function Tomarket({ tomarket }) {
       /** Release Lock */
       process.unlock();
     })();
-  }, [process, tickets]);
+  }, [process, tickets, processNextTask]);
+
+  /** Auto-Game */
+  useFarmerAutoTask(
+    "game",
+    () => {
+      if (query.isSuccess) {
+        process.start();
+      }
+    },
+    [query.isSuccess, process.start]
+  );
 
   return (
     <div className="flex flex-col gap-2">

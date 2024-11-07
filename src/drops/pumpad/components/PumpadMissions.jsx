@@ -9,8 +9,11 @@ import usePumpadCheckMissionMutation from "../hooks/usePumpadCheckMissionMutatio
 import usePumpadMissionsQuery from "../hooks/usePumpadMissionsQuery";
 import { useEffect } from "react";
 import usePumpadGetChannelMutation from "../hooks/usePumpadGetChannelMutation";
+import useFarmerContext from "@/hooks/useFarmerContext";
+import useFarmerAutoTask from "@/drops/notpixel/hooks/useFarmerAutoTask";
 
 export default function PumpadMissions() {
+  const { processNextTask } = useFarmerContext();
   const queryClient = useQueryClient();
   const missionsQuery = usePumpadMissionsQuery();
   const missions = useMemo(
@@ -77,8 +80,20 @@ export default function PumpadMissions() {
       } catch {}
 
       process.stop();
+      processNextTask();
     })();
-  }, [process]);
+  }, [process, processNextTask]);
+
+  /** Auto-Complete Missions */
+  useFarmerAutoTask(
+    "missions",
+    () => {
+      if (missionsQuery.isSuccess) {
+        process.start();
+      }
+    },
+    [missionsQuery.isSuccess, process.start]
+  );
 
   return (
     <div className="p-4">
