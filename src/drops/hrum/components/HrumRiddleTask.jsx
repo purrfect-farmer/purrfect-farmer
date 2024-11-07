@@ -75,7 +75,7 @@ export default function HrumRiddleTask({ queries }) {
           claimRiddle();
         },
       }),
-      []
+      [claimRiddle]
     )
   );
 
@@ -85,7 +85,7 @@ export default function HrumRiddleTask({ queries }) {
     () => {
       claimRiddle();
     },
-    [claimRiddle]
+    []
   );
 
   return (

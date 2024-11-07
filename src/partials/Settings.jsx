@@ -286,7 +286,7 @@ export default function Settings() {
                 </Tabs.Content>
 
                 <Tabs.Content value="zoomies">
-                  <div className="flex flex-col gap-1">
+                  <div className="flex flex-col gap-2">
                     {drops.map((drop) => (
                       <LabelToggle
                         onChange={(ev) =>
