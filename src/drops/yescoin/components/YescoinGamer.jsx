@@ -28,7 +28,7 @@ export default function YescoinGamer() {
 
   const [farmingSpeed, , dispatchAndSetFarmingSpeed] = useSocketState(
     "yescoin.farming-speed",
-    10
+    5
   );
 
   const { processNextTask } = useFarmerContext();
@@ -37,7 +37,7 @@ export default function YescoinGamer() {
   useEffect(() => {
     if (!process.canExecute) return;
 
-    if (coinLeft < 100) {
+    if (coinLeft <= 150) {
       processNextTask();
       process.stop();
 
