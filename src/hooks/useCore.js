@@ -1,3 +1,4 @@
+import toast from "react-hot-toast";
 import farmerTabs, { TelegramWeb } from "@/farmerTabs";
 import { createElement } from "react";
 import { postPortMessage } from "@/lib/utils";
@@ -382,10 +383,15 @@ export default function useCore() {
             .toArray();
 
           if (!telegramWeb || !miniApps.length) {
+            let timeout;
+
             /** Open Farmer Bot */
             openFarmerBot("k");
 
             const handleFarmerBotWebApp = (message, port) => {
+              /** Clear Timeout */
+              clearTimeout(timeout);
+
               /** Remove Handler */
               messaging.removeMessageHandlers({
                 [`set-telegram-web-app:${import.meta.env.VITE_APP_BOT_HOST}`]:
@@ -401,6 +407,14 @@ export default function useCore() {
               [`set-telegram-web-app:${import.meta.env.VITE_APP_BOT_HOST}`]:
                 handleFarmerBotWebApp,
             });
+
+            /** Reopen the bot */
+            timeout = setTimeout(() => {
+              toast.success(
+                `Re-opening ${import.meta.env.VITE_APP_BOT_NAME}...`
+              );
+              openFarmerBot("k");
+            }, 30000);
 
             return;
           }
