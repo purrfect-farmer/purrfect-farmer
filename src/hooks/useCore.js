@@ -383,14 +383,22 @@ export default function useCore() {
             .toArray();
 
           if (!telegramWeb || !miniApps.length) {
-            let timeout;
+            let interval;
 
             /** Open Farmer Bot */
             openFarmerBot("k");
 
+            /** Re-Open Bot */
+            const reOpenFarmerBot = () => {
+              toast.success(
+                `Re-Opening ${import.meta.env.VITE_APP_BOT_NAME}...`
+              );
+              openFarmerBot("k");
+            };
+
             const handleFarmerBotWebApp = (message, port) => {
-              /** Clear Timeout */
-              clearTimeout(timeout);
+              /** Clear Interval */
+              clearInterval(interval);
 
               /** Remove Handler */
               messaging.removeMessageHandlers({
@@ -409,12 +417,7 @@ export default function useCore() {
             });
 
             /** Reopen the bot */
-            timeout = setTimeout(() => {
-              toast.success(
-                `Re-opening ${import.meta.env.VITE_APP_BOT_NAME}...`
-              );
-              openFarmerBot("k");
-            }, 30000);
+            interval = setInterval(reOpenFarmerBot, 30000);
 
             return;
           }
