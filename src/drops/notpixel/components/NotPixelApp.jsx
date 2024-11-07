@@ -33,7 +33,7 @@ export default function NotPixelApp({ diff, updatedAt }) {
 
   const [farmingSpeed, , dispatchAndSetFarmingSpeed] = useSocketState(
     "notpixel.farming-speed",
-    10
+    3
   );
 
   const [pixel, setPixel] = useState(null);
