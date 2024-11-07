@@ -146,8 +146,8 @@ export default function YescoinDailyMission() {
         await accountInfoQuery.refetch();
       } catch {}
 
-      process.stop();
       processNextTask();
+      process.stop();
     })();
   }, [process, processNextTask]);
 

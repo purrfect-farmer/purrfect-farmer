@@ -184,9 +184,9 @@ export default function BirdTonGamer() {
 
     /** Energy is low */
     if (energy < 1) {
+      processNextTask();
       process.stop();
 
-      processNextTask();
       return;
     }
 

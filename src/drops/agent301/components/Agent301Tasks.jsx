@@ -183,8 +183,8 @@ export default function Agent301Tasks() {
       } catch {}
 
       reset();
-      process.stop();
       processNextTask();
+      process.stop();
     })();
   }, [process, processNextTask]);
 

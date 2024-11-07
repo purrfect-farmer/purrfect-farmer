@@ -139,8 +139,8 @@ export default function YescoinTasks() {
         await accountInfoQuery.refetch();
       } catch {}
 
-      process.stop();
       processNextTask();
+      process.stop();
     })();
   }, [process, processNextTask]);
 

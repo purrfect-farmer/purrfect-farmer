@@ -59,8 +59,8 @@ export default function Wonton() {
     }
 
     if (tickets < 1) {
-      process.stop();
       processNextTask();
+      process.stop();
       return;
     }
 

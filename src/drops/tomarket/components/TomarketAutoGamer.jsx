@@ -57,8 +57,8 @@ export default function Tomarket({ tomarket }) {
     }
 
     if (tickets < 1) {
-      process.stop();
       processNextTask();
+      process.stop();
       return;
     }
 

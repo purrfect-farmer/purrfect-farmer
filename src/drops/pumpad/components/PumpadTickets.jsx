@@ -27,8 +27,8 @@ export default function PumpadTickets() {
     }
 
     if (ticketsCount < 1) {
-      process.stop();
       processNextTask();
+      process.stop();
       return;
     }
 

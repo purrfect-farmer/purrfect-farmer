@@ -38,8 +38,8 @@ export default function SlotcoinLottery() {
     }
 
     if (energy < bid) {
-      process.stop();
       processNextTask();
+      process.stop();
       return;
     }
 

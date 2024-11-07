@@ -75,8 +75,8 @@ export default function NotPixelApp({ diff, updatedAt }) {
     if (!process.canExecute) return;
 
     if (mining.charges < 1) {
-      process.stop();
       processNextTask();
+      process.stop();
       return;
     }
 

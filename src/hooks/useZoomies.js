@@ -43,7 +43,7 @@ export default function useZoomies(core) {
     } else {
       setCurrentPosition((prev) => prev + 1);
     }
-  }, [process.stop, drops, currentDrop, setCurrentPosition, setCurrentTask]);
+  }, [drops, currentDrop, setCurrentPosition, setCurrentTask]);
 
   /** Reset Zoomies */
   useEffect(() => {

@@ -79,8 +79,8 @@ export default function PumpadMissions() {
         });
       } catch {}
 
-      process.stop();
       processNextTask();
+      process.stop();
     })();
   }, [process, processNextTask]);
 

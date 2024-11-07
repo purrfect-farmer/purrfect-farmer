@@ -139,8 +139,8 @@ export default function BitsSocialTasks() {
 
       await refetch();
       resetTask();
-      process.stop();
       processNextTask();
+      process.stop();
     })();
   }, [process, action, processNextTask]);
 

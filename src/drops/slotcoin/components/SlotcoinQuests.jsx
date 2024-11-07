@@ -75,8 +75,8 @@ export default function SlotcoinQuests() {
         });
       } catch {}
 
-      process.stop();
       processNextTask();
+      process.stop();
     })();
   }, [process, processNextTask]);
 

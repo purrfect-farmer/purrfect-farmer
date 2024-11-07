@@ -258,9 +258,9 @@ export default function BlumAutoTasks() {
       }
 
       await refetch();
+      processNextTask();
       resetTask();
       process.stop();
-      processNextTask();
     })();
   }, [
     zoomies.enabled,

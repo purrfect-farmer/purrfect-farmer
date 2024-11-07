@@ -22,8 +22,8 @@ export default function Agent301Lottery() {
     if (!process.canExecute) return;
 
     if (tickets < 1) {
-      process.stop();
       processNextTask();
+      process.stop();
       return;
     }
 

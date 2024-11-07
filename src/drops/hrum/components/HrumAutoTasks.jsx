@@ -91,9 +91,9 @@ export default function HrumAutoTasks({ queries }) {
       } catch {}
 
       /** Stop */
+      processNextTask();
       process.stop();
       reset();
-      processNextTask();
     })();
   }, [
     process,

@@ -159,8 +159,8 @@ export default function WontonAutoTasks() {
 
       await refetch();
       resetTask();
-      process.stop();
       processNextTask();
+      process.stop();
     })();
   }, [process, action, processNextTask]);
 

@@ -38,8 +38,8 @@ export default function YescoinGamer() {
     if (!process.canExecute) return;
 
     if (coinLeft < 100) {
-      process.stop();
       processNextTask();
+      process.stop();
 
       return;
     }

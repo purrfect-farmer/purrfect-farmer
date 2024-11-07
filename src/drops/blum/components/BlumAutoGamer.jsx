@@ -80,8 +80,8 @@ export default function BlumAutoGamer({ workerRef }) {
     }
 
     if (tickets < 1) {
-      process.stop();
       processNextTask();
+      process.stop();
       return;
     }
 

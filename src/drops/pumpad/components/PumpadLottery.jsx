@@ -27,8 +27,8 @@ export default function PumpadLottery() {
     }
 
     if (drawCount < 1) {
-      process.stop();
       processNextTask();
+      process.stop();
       return;
     }
 

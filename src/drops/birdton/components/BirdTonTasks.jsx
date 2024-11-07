@@ -190,8 +190,8 @@ export default function BirdTonTasks() {
 
       refreshTasks();
       reset();
-      process.stop();
       processNextTask();
+      process.stop();
     })();
   }, [process, processNextTask]);
 

@@ -69,8 +69,8 @@ export default function TruecoinLottery() {
     }
 
     if (user.currentSpins < 1) {
-      process.stop();
       processNextTask();
+      process.stop();
       return;
     }
 
@@ -81,6 +81,7 @@ export default function TruecoinLottery() {
       try {
         await spinMutation.mutateAsync(null).then((data) => {
           if (data.user.currentSpins < 1) {
+            processNextTask();
             process.stop();
           }
 
@@ -96,6 +97,7 @@ export default function TruecoinLottery() {
         });
       } catch (e) {
         if (e?.response?.status === 400) {
+          processNextTask();
           process.stop();
         }
       }

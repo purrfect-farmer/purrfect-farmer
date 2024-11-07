@@ -111,8 +111,8 @@ export default function Agent301Wheel() {
         });
       } catch {}
 
-      process.stop();
       processNextTask();
+      process.stop();
     })();
   }, [process, processNextTask]);
 
