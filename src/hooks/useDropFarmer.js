@@ -10,6 +10,7 @@ import { useState } from "react";
 
 import useAppContext from "./useAppContext";
 import useAppQuery from "./useAppQuery";
+import useRefCallback from "./useRefCallback";
 import useTelegramWebApp from "./useTelegramWebApp";
 import useValuesMemo from "./useValuesMemo";
 
@@ -106,7 +107,7 @@ export default function useDropFarmer({
   }, [setAuth, removeQueries]);
 
   /** Run the next task */
-  const processNextTask = useCallback(() => {
+  const processNextTask = useRefCallback(() => {
     if (!zoomies.enabled) return;
     else if (zoomies.currentTask === autoTasks.at(-1)) {
       zoomies.processNextDrop();
