@@ -54,9 +54,17 @@ export default function useZoomies(core) {
 
   /** Open Bot */
   useEffect(() => {
+    let interval;
     if (process.started && !auth) {
       core.openTelegramLink(currentDrop.telegramLink);
+
+      interval = setInterval(() => {
+        core.openTelegramLink(currentDrop.telegramLink);
+      }, 60000);
     }
+    return () => {
+      clearInterval(interval);
+    };
   }, [process.started, auth, currentDrop]);
 
   /** Handle Auth */

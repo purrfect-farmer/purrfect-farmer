@@ -4,6 +4,7 @@ import { createElement } from "react";
 import { postPortMessage } from "@/lib/utils";
 import { useCallback } from "react";
 import { useMemo } from "react";
+import { useRef } from "react";
 import { useState } from "react";
 
 import useMessagePort from "./useMessagePort";
@@ -21,6 +22,9 @@ export default function useCore() {
   const messaging = useMessagePort();
 
   const [openedTabs, setOpenedTabs] = useState(defaultOpenedTabs);
+
+  /** Telegram Link Ref */
+  const telegramLinkRef = useRef({ interval: null, handler: null });
 
   /** Drops List */
   const drops = useMemo(
@@ -383,10 +387,18 @@ export default function useCore() {
             .toArray();
 
           if (!telegramWeb || !miniApps.length) {
-            let interval;
+            /** Bot TelegramWeb Action */
+            const botTelegramWebAppAction = `set-telegram-web-app:${
+              import.meta.env.VITE_APP_BOT_HOST
+            }`;
 
-            /** Open Farmer Bot */
-            openFarmerBot("k");
+            /** Clear Previous Interval */
+            clearInterval(telegramLinkRef.current.interval);
+
+            /** Remove Previous Handler */
+            messaging.removeMessageHandlers({
+              [botTelegramWebAppAction]: telegramLinkRef.current.handler,
+            });
 
             /** Re-Open Bot */
             const reOpenFarmerBot = () => {
@@ -396,28 +408,35 @@ export default function useCore() {
               openFarmerBot("k");
             };
 
-            const handleFarmerBotWebApp = (message, port) => {
+            const handleFarmerBotWebApp = (telegramLinkRef.current.handler = (
+              message,
+              port
+            ) => {
               /** Clear Interval */
-              clearInterval(interval);
+              clearInterval(telegramLinkRef.current.interval);
 
               /** Remove Handler */
               messaging.removeMessageHandlers({
-                [`set-telegram-web-app:${import.meta.env.VITE_APP_BOT_HOST}`]:
-                  handleFarmerBotWebApp,
+                [botTelegramWebAppAction]: handleFarmerBotWebApp,
               });
 
               /** Post the Link */
               postTelegramLink(port, "telegram-web-k");
-            };
+            });
 
             /** Add Handler */
             messaging.addMessageHandlers({
-              [`set-telegram-web-app:${import.meta.env.VITE_APP_BOT_HOST}`]:
-                handleFarmerBotWebApp,
+              [botTelegramWebAppAction]: handleFarmerBotWebApp,
             });
 
             /** Reopen the bot */
-            interval = setInterval(reOpenFarmerBot, 30000);
+            telegramLinkRef.current.interval = setInterval(
+              reOpenFarmerBot,
+              30000
+            );
+
+            /** Open Farmer Bot */
+            openFarmerBot("k");
 
             return;
           }
