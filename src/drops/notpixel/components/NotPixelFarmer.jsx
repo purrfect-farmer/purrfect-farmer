@@ -8,6 +8,7 @@ import NotPixelTemplate from "../assets/images/notpixel-template.png?format=webp
 import useNotPixelData from "../hooks/useNotPixelData";
 import useNotPixelDiff from "../hooks/useNotPixelDiff";
 import useNotPixelSocket from "../hooks/useNotPixelSocket";
+import { delay } from "@/lib/utils";
 
 export default function NotPixelFarmer({ sandboxRef }) {
   const { api } = useFarmerContext();
@@ -33,18 +34,22 @@ export default function NotPixelFarmer({ sandboxRef }) {
     (async function () {
       let items = [];
 
-      try {
-        const myTemplate = await api
-          .get("https://notpx.app/api/v1/image/template/my")
-          .then((res) => res.data);
+      while (!items.length) {
+        try {
+          const myTemplate = await api
+            .get("https://notpx.app/api/v1/image/template/my")
+            .then((res) => res.data);
 
-        items.unshift({
-          x: myTemplate.x,
-          y: myTemplate.y,
-          size: myTemplate.imageSize,
-          url: myTemplate.url,
-        });
-      } catch {}
+          items.unshift({
+            x: myTemplate.x,
+            y: myTemplate.y,
+            size: myTemplate.imageSize,
+            url: myTemplate.url,
+          });
+        } catch {
+          await delay(5000);
+        }
+      }
 
       if (items.length) {
         /** Configure the App */
