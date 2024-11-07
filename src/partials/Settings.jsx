@@ -1,17 +1,21 @@
 import * as Dialog from "@radix-ui/react-dialog";
+import * as Tabs from "@radix-ui/react-tabs";
 import ConfirmButton from "@/components/ConfirmButton";
 import Input from "@/components/Input";
 import LabelToggle from "@/components/LabelToggle";
 import ResetButton from "@/components/ResetButton";
 import defaultSettings from "@/default-settings";
 import useAppContext from "@/hooks/useAppContext";
+import useSocketTabs from "@/hooks/useSocketTabs";
 import { CgSpinner } from "react-icons/cg";
 import { cn, maximizeFarmerWindow, resizeFarmerWindow } from "@/lib/utils";
 import { useCallback, useEffect, useState } from "react";
 
 export default function Settings() {
-  const { settings, configureSettings, dispatchAndConfigureSettings } =
+  const { settings, configureSettings, dispatchAndConfigureSettings, drops } =
     useAppContext();
+
+  const tabs = useSocketTabs("app.settings-tabs", "settings");
 
   /** Sync Server */
   const [syncServer, setSyncServer] = useState(
@@ -63,6 +67,20 @@ export default function Settings() {
 
     resizeSettingsPage();
   }, [resizeSettingsPage, farmersPerWindow, farmerPosition, configureSettings]);
+
+  /** Toggle Zoomies */
+  const toggleZoomies = useCallback(
+    (id, enabled) => {
+      let entries = new Set([...settings.zoomies, id]);
+
+      if (!enabled) {
+        entries.delete(id);
+      }
+
+      dispatchAndConfigureSettings("zoomies", entries.values().toArray());
+    },
+    [settings.zoomies, dispatchAndConfigureSettings]
+  );
 
   /** Update Settings */
   useEffect(() => {
@@ -116,136 +134,178 @@ export default function Settings() {
                 </span>
               </Dialog.Description>
 
-              <form
-                onSubmit={(ev) => ev.preventDefault()}
-                className="flex flex-col gap-2 py-4"
-              >
-                {/* Farmer Title */}
-                <label className="text-neutral-500">Farmer Title</label>
-                <Input
-                  value={settings?.farmerTitle}
-                  onChange={(ev) =>
-                    configureSettings("farmerTitle", ev.target.value)
-                  }
-                  placeholder="Farmer Title"
-                />
+              <Tabs.Root {...tabs} className="flex flex-col gap-4">
+                <Tabs.List className="grid grid-cols-2">
+                  {["settings", "zoomies"].map((value, index) => (
+                    <Tabs.Trigger
+                      key={index}
+                      value={value}
+                      className={cn(
+                        "p-2",
+                        "border-b-2 border-transparent",
+                        "data-[state=active]:border-blue-500"
+                      )}
+                    >
+                      {value.toUpperCase()}
+                    </Tabs.Trigger>
+                  ))}
+                </Tabs.List>
+                <Tabs.Content value="settings">
+                  <form
+                    onSubmit={(ev) => ev.preventDefault()}
+                    className="flex flex-col gap-2 py-4"
+                  >
+                    {/* Farmer Title */}
+                    <label className="text-neutral-500">Farmer Title</label>
+                    <Input
+                      value={settings?.farmerTitle}
+                      onChange={(ev) =>
+                        configureSettings("farmerTitle", ev.target.value)
+                      }
+                      placeholder="Farmer Title"
+                    />
 
-                {/* Open Telegram Web within the Farmer */}
-                <LabelToggle
-                  onChange={(ev) =>
-                    dispatchAndConfigureSettings(
-                      "openTelegramWebWithinFarmer",
-                      ev.target.checked
-                    )
-                  }
-                  checked={settings?.openTelegramWebWithinFarmer}
-                >
-                  Launch Telegram Web within the Farmer
-                </LabelToggle>
+                    {/* Open Telegram Web within the Farmer */}
+                    <LabelToggle
+                      onChange={(ev) =>
+                        dispatchAndConfigureSettings(
+                          "openTelegramWebWithinFarmer",
+                          ev.target.checked
+                        )
+                      }
+                      checked={settings?.openTelegramWebWithinFarmer}
+                    >
+                      Launch Telegram Web within the Farmer
+                    </LabelToggle>
 
-                {/* Open Telegram Web within the Farmer */}
-                <LabelToggle
-                  onChange={(ev) =>
-                    dispatchAndConfigureSettings(
-                      "closeOtherBots",
-                      ev.target.checked
-                    )
-                  }
-                  checked={settings?.closeOtherBots}
-                >
-                  Close Other Bots
-                </LabelToggle>
+                    {/* Open Telegram Web within the Farmer */}
+                    <LabelToggle
+                      onChange={(ev) =>
+                        dispatchAndConfigureSettings(
+                          "closeOtherBots",
+                          ev.target.checked
+                        )
+                      }
+                      checked={settings?.closeOtherBots}
+                    >
+                      Close Other Bots
+                    </LabelToggle>
 
-                {/* Sync Server */}
-                <label className="text-neutral-500">Sync Server</label>
-                <div className="flex gap-2">
-                  <Input
-                    value={syncServer}
-                    onChange={(ev) => setSyncServer(ev.target.value)}
-                    placeholder="Sync Server"
-                  />
+                    {/* Sync Server */}
+                    <label className="text-neutral-500">Sync Server</label>
+                    <div className="flex gap-2">
+                      <Input
+                        value={syncServer}
+                        onChange={(ev) => setSyncServer(ev.target.value)}
+                        placeholder="Sync Server"
+                      />
 
-                  {/* Reset Button */}
-                  <ResetButton
-                    onClick={() => setSyncServer(defaultSettings.syncServer)}
-                  />
+                      {/* Reset Button */}
+                      <ResetButton
+                        onClick={() =>
+                          setSyncServer(defaultSettings.syncServer)
+                        }
+                      />
 
-                  {/* Set Button */}
-                  <ConfirmButton onClick={handleSetSyncServer} />
-                </div>
+                      {/* Set Button */}
+                      <ConfirmButton onClick={handleSetSyncServer} />
+                    </div>
 
-                {/* PC Options */}
-                <h4 className="mt-4 text-neutral-500">PC Options</h4>
+                    {/* PC Options */}
+                    <h4 className="mt-4 text-neutral-500">PC Options</h4>
 
-                {/* Open Farmer in new Window */}
-                <LabelToggle
-                  onChange={(ev) =>
-                    dispatchAndConfigureSettings(
-                      "openFarmerInNewWindow",
-                      ev.target.checked
-                    )
-                  }
-                  checked={settings?.openFarmerInNewWindow}
-                >
-                  Open Farmer in new Window
-                </LabelToggle>
+                    {/* Open Farmer in new Window */}
+                    <LabelToggle
+                      onChange={(ev) =>
+                        dispatchAndConfigureSettings(
+                          "openFarmerInNewWindow",
+                          ev.target.checked
+                        )
+                      }
+                      checked={settings?.openFarmerInNewWindow}
+                    >
+                      Open Farmer in new Window
+                    </LabelToggle>
 
-                {/* Open Farmer on StartUp */}
-                <LabelToggle
-                  onChange={(ev) =>
-                    dispatchAndConfigureSettings(
-                      "openFarmerOnStartup",
-                      ev.target.checked
-                    )
-                  }
-                  checked={settings?.openFarmerOnStartup}
-                >
-                  Open Farmer on Startup
-                </LabelToggle>
+                    {/* Open Farmer on StartUp */}
+                    <LabelToggle
+                      onChange={(ev) =>
+                        dispatchAndConfigureSettings(
+                          "openFarmerOnStartup",
+                          ev.target.checked
+                        )
+                      }
+                      checked={settings?.openFarmerOnStartup}
+                    >
+                      Open Farmer on Startup
+                    </LabelToggle>
 
-                {/* Close Main Window on Startup */}
-                <LabelToggle
-                  onChange={(ev) =>
-                    dispatchAndConfigureSettings(
-                      "closeMainWindowOnStartup",
-                      ev.target.checked
-                    )
-                  }
-                  checked={settings?.closeMainWindowOnStartup}
-                >
-                  Close Main Window on Startup
-                </LabelToggle>
+                    {/* Close Main Window on Startup */}
+                    <LabelToggle
+                      onChange={(ev) =>
+                        dispatchAndConfigureSettings(
+                          "closeMainWindowOnStartup",
+                          ev.target.checked
+                        )
+                      }
+                      checked={settings?.closeMainWindowOnStartup}
+                    >
+                      Close Main Window on Startup
+                    </LabelToggle>
 
-                {/* Farmers Per Windows */}
-                <label className="text-neutral-500">
-                  Farmers Per Window (Min - 3)
-                </label>
-                <div className="flex gap-2">
-                  <Input
-                    value={farmersPerWindow}
-                    type="number"
-                    onChange={(ev) => setFarmersPerWindow(ev.target.value)}
-                    placeholder="Farmers Per Window"
-                  />
+                    {/* Farmers Per Windows */}
+                    <label className="text-neutral-500">
+                      Farmers Per Window (Min - 3)
+                    </label>
+                    <div className="flex gap-2">
+                      <Input
+                        value={farmersPerWindow}
+                        type="number"
+                        onChange={(ev) => setFarmersPerWindow(ev.target.value)}
+                        placeholder="Farmers Per Window"
+                      />
 
-                  {/* Set Button */}
-                  <ConfirmButton onClick={handleSetFarmersPerWindow} />
-                </div>
+                      {/* Set Button */}
+                      <ConfirmButton onClick={handleSetFarmersPerWindow} />
+                    </div>
 
-                {/* Farmer Postion */}
-                <label className="text-neutral-500">Farmer Position</label>
-                <div className="flex gap-2">
-                  <Input
-                    value={farmerPosition}
-                    type="number"
-                    onChange={(ev) => setFarmerPosition(ev.target.value)}
-                    placeholder="Farmer Position"
-                  />
+                    {/* Farmer Postion */}
+                    <label className="text-neutral-500">Farmer Position</label>
+                    <div className="flex gap-2">
+                      <Input
+                        value={farmerPosition}
+                        type="number"
+                        onChange={(ev) => setFarmerPosition(ev.target.value)}
+                        placeholder="Farmer Position"
+                      />
 
-                  {/* Set Button */}
-                  <ConfirmButton onClick={handleSetFarmerPosition} />
-                </div>
-              </form>
+                      {/* Set Button */}
+                      <ConfirmButton onClick={handleSetFarmerPosition} />
+                    </div>
+                  </form>
+                </Tabs.Content>
+
+                <Tabs.Content value="zoomies">
+                  <div className="flex flex-col gap-1">
+                    {drops.map((drop) => (
+                      <LabelToggle
+                        onChange={(ev) =>
+                          toggleZoomies(drop.id, ev.target.checked)
+                        }
+                        checked={settings?.zoomies.includes(drop.id)}
+                      >
+                        <div className="flex items-center gap-1">
+                          <img
+                            src={drop.icon}
+                            className="w-6 h-6 rounded-full"
+                          />
+                          <h5>{drop.title}</h5>
+                        </div>
+                      </LabelToggle>
+                    ))}
+                  </div>
+                </Tabs.Content>
+              </Tabs.Root>
             </div>
             <div className="flex flex-col p-4 font-bold shrink-0">
               <Dialog.Close className="p-2.5 text-white bg-blue-500 rounded-xl">

@@ -8,6 +8,21 @@ const defaultSettings = {
   openFarmerInNewWindow: true,
   openFarmerOnStartup: false,
   closeMainWindowOnStartup: false,
+  zoomies: [
+    "notpixel",
+    "blum",
+    "hrum",
+    "yescoin",
+    "wonton",
+    "tomarket",
+    "pumpad",
+    "slotcoin",
+    "agent301",
+    "goats",
+    "truecoin",
+    "birdton",
+    "bits",
+  ],
 };
 
 export default defaultSettings;

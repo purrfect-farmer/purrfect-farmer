@@ -12,11 +12,8 @@ const INITIAL_POSITION = 0;
 export default function useZoomies(core) {
   /** Drops List */
   const drops = useMemo(
-    () =>
-      farmerTabs.filter(
-        (item) => !["app", "telegram-web-k", "telegram-web-a"].includes(item.id)
-      ),
-    [farmerTabs]
+    () => farmerTabs.filter((item) => core.settings.zoomies.includes(item.id)),
+    [farmerTabs, core.settings.zoomies]
   );
 
   const process = useProcessLock("app.zoomies", core.socket);

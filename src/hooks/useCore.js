@@ -21,6 +21,15 @@ export default function useCore() {
 
   const [openedTabs, setOpenedTabs] = useState(defaultOpenedTabs);
 
+  /** Drops List */
+  const drops = useMemo(
+    () =>
+      farmerTabs.filter(
+        (item) => !["app", "telegram-web-k", "telegram-web-a"].includes(item.id)
+      ),
+    [farmerTabs]
+  );
+
   /* ===== HELPERS ===== */
 
   const [pushTab, dispatchAndPushTab] = useSocketDispatchCallback(
@@ -523,6 +532,7 @@ export default function useCore() {
 
   return useValuesMemo({
     /** Data */
+    drops,
     settings,
     socket,
     messaging,
