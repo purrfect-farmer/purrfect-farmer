@@ -2,14 +2,16 @@ import { useEffect } from "react";
 
 import useAppContext from "./useAppContext";
 
-export default function useMessageHandlers(handlers) {
-  const { messaging } = useAppContext();
+export default function useMessageHandlers(handlers, messaging) {
+  const app = useAppContext();
+
+  const messagingToUse = messaging || app.messaging;
 
   return useEffect(() => {
-    messaging.addMessageHandlers(handlers);
+    messagingToUse.addMessageHandlers(handlers);
 
     return () => {
-      messaging.removeMessageHandlers(handlers);
+      messagingToUse.removeMessageHandlers(handlers);
     };
-  }, [messaging, handlers]);
+  }, [messagingToUse, handlers]);
 }

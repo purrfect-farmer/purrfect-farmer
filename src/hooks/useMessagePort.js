@@ -34,10 +34,19 @@ export default function useMessagePort() {
     [messageHandlers, ports]
   );
 
+  /** Handle Port Message */
+  const portMessageHandler = useCallback(
+    (message, port) => {
+      messageHandlers.emit(message.action, message, port);
+    },
+    [messageHandlers]
+  );
+
   /** Remove a Port */
   const removePort = useCallback(
     (port) => {
-      /** Remove Listener */
+      /** Remove Listeners */
+      port.onMessage.removeListener(portMessageHandler);
       port.onDisconnect.removeListener(removePort);
 
       /** Remove Port */
@@ -46,15 +55,7 @@ export default function useMessagePort() {
       /** Emit Event */
       messageHandlers.emit("port-disconnected", port);
     },
-    [messageHandlers, ports]
-  );
-
-  /** Handle Port Message */
-  const portMessageHandler = useCallback(
-    (message, port) => {
-      messageHandlers.emit(message.action, message, port);
-    },
-    [messageHandlers]
+    [messageHandlers, ports, portMessageHandler]
   );
 
   /** Instantiate Port Listener */
@@ -81,27 +82,6 @@ export default function useMessagePort() {
       chrome?.runtime?.onConnect.removeListener(portConnectHandler);
     };
   }, [portMessageHandler, addPort, removePort]);
-
-  /** Handle Messages */
-  useEffect(() => {
-    const messageHandler = (message, port) => {
-      const callback = messageHandlers.get(message.action);
-
-      if (callback) {
-        callback(message, port);
-      }
-    };
-
-    ports.forEach((port) => {
-      port.onMessage.addListener(messageHandler);
-    });
-
-    return () => {
-      ports.forEach((port) => {
-        port.onMessage.removeListener(messageHandler);
-      });
-    };
-  }, [messageHandlers, ports]);
 
   return useMemo(
     () => ({

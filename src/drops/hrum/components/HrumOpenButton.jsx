@@ -6,10 +6,13 @@ import { useMemo } from "react";
 
 import HrumFullscreenSpinner from "./HrumFullscreenSpinner";
 import useHrumOpenMutation from "../hooks/useHrumOpenMutation";
+import useFarmerAutoTask from "@/drops/notpixel/hooks/useFarmerAutoTask";
+import useFarmerContext from "@/hooks/useFarmerContext";
 
 export default function HrumOpenButton({ queries }) {
   const openMutation = useHrumOpenMutation();
   const [allData] = queries.data;
+  const { processNextTask } = useFarmerContext();
 
   /** Should Show? */
   const show = useMemo(() => {
@@ -19,21 +22,24 @@ export default function HrumOpenButton({ queries }) {
   const [openCookie, dispatchAndOpenCookie] = useSocketDispatchCallback(
     /** Configure Settings */
     useCallback(async () => {
-      if (!show) return;
+      if (show) {
+        try {
+          await openMutation.mutateAsync();
 
-      try {
-        await openMutation.mutateAsync();
+          /** Show Success Message */
+          toast.success("Opened Cookie Successfully!");
 
-        /** Show Success Message */
-        toast.success("Opened Cookie Successfully!");
-
-        /** Refetch Queries */
-        queries.query.forEach((query) => query.refetch());
-      } catch {
-        /** Show Error Message */
-        toast.error("Failed to Open Cookie!");
+          /** Refetch Queries */
+          queries.query.forEach((query) => query.refetch());
+        } catch {
+          /** Show Error Message */
+          toast.error("Failed to Open Cookie!");
+        }
       }
-    }, [queries, show]),
+
+      /** Process Next Task */
+      processNextTask();
+    }, [queries, show, processNextTask]),
 
     /** Dispatch */
     useCallback(
@@ -55,6 +61,15 @@ export default function HrumOpenButton({ queries }) {
       }),
       [openCookie]
     )
+  );
+
+  /** Auto-Claim */
+  useFarmerAutoTask(
+    "daily.cookie",
+    () => {
+      openCookie();
+    },
+    []
   );
 
   return (

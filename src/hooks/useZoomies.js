@@ -1,0 +1,78 @@
+import farmerTabs from "@/farmerTabs";
+import { useCallback } from "react";
+import { useEffect } from "react";
+import { useMemo } from "react";
+import { useState } from "react";
+
+import useProcessLock from "./useProcessLock";
+import useValuesMemo from "./useValuesMemo";
+
+export default function useZoomies(core) {
+  /** Drops List */
+  const drops = useMemo(
+    () =>
+      farmerTabs.filter(
+        (item) => !["app", "telegram-web-k", "telegram-web-a"].includes(item.id)
+      ),
+    [farmerTabs]
+  );
+
+  const process = useProcessLock("app.zoomies", core.socket);
+  const [auth, setAuth] = useState(false);
+  const [currentPosition, setCurrentPosition] = useState(3);
+  const [currentTask, setCurrentTask] = useState(null);
+  const currentDrop = drops[currentPosition];
+
+  const resetZoomies = useCallback(() => {
+    setAuth(false);
+    core.resetTabs();
+    core.setActiveTab(currentDrop.id);
+  }, [currentDrop, setAuth, core.resetTabs, core.setActiveTab]);
+
+  const processNextDrop = useCallback(() => {
+    /** Reset Task */
+    setCurrentTask(null);
+
+    if (currentDrop === drops.at(-1)) {
+      setCurrentPosition(0);
+    } else {
+      setCurrentPosition((prev) => prev + 1);
+    }
+  }, [process.stop, drops, currentDrop, setCurrentPosition, setCurrentTask]);
+
+  /** Reset Zoomies */
+  useEffect(() => {
+    if (process.started) {
+      resetZoomies();
+    }
+  }, [process.started, currentPosition]);
+
+  /** Open Bot */
+  useEffect(() => {
+    if (process.started && !auth) {
+      core.openTelegramLink(currentDrop.telegramLink);
+    }
+  }, [process.started, auth, currentDrop]);
+
+  /** Handle Auth */
+  useEffect(() => {
+    if (!process.started) return;
+
+    if (auth) {
+      core.closeTab("telegram-web-k");
+      core.setActiveTab(currentDrop.id);
+    }
+  }, [process.started, auth, currentDrop, core.closeTab, core.setActiveTab]);
+
+  return useValuesMemo({
+    enabled: process.started,
+    toggle: process.toggle,
+    dispatchAndToggle: process.dispatchAndToggle,
+    currentPosition,
+    currentDrop,
+    currentTask,
+    setAuth,
+    setCurrentTask,
+    processNextDrop,
+  });
+}

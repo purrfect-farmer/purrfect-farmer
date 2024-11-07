@@ -16,6 +16,7 @@ import useBlumDailyRewardQuery from "../hooks/useBlumDailyRewardQuery";
 import useBlumStartFarmingMutation from "../hooks/useBlumStartFarmingMutation";
 import useBlumFriendsBalanceQuery from "../hooks/useBlumFriendsBalanceQuery";
 import useBlumClaimFriendsRewardMutation from "../hooks/useBlumClaimFriendsRewardMutation";
+import useFarmerAutoTab from "@/hooks/useFarmerAutoTab";
 
 export default function BlumFarmer() {
   const tabs = useSocketTabs("blum.farmer-tabs", "game");
@@ -85,6 +86,9 @@ export default function BlumFarmer() {
       }
     })();
   }, [balanceQuery.data]);
+
+  /** Switch Tab Automatically */
+  useFarmerAutoTab(tabs.onValueChange);
 
   return (
     <div className="flex flex-col p-4">

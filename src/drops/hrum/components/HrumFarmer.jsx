@@ -11,6 +11,7 @@ import HrumOpenButton from "./HrumOpenButton";
 import HrumRiddleTask from "./HrumRiddleTask";
 import useHrumDailyClaim from "../hooks/useHrumDailyClaim";
 import useHrumDataQueries from "../hooks/useHrumDataQueries";
+import useFarmerAutoTab from "@/hooks/useFarmerAutoTab";
 
 export default function () {
   const dataQueries = useHrumDataQueries();
@@ -20,6 +21,9 @@ export default function () {
 
   /** Run Daily Claim */
   useHrumDailyClaim();
+
+  /** Switch Tab Automatically */
+  useFarmerAutoTab(tabs.onValueChange);
 
   return dataQueries.isPending ? (
     <div className="flex items-center justify-center grow">

@@ -13,10 +13,14 @@ import useBlumClaimTaskMutation from "../hooks/useBlumClaimTaskMutation";
 import useBlumStartTaskMutation from "../hooks/useBlumStartTaskMutation";
 import useBlumTasksQuery from "../hooks/useBlumTasksQuery";
 import useBlumValidateTaskMutation from "../hooks/useBlumValidateTaskMutation";
+import useFarmerContext from "@/hooks/useFarmerContext";
+import useFarmerAutoTask from "@/drops/notpixel/hooks/useFarmerAutoTask";
 
 export default function BlumAutoTasks() {
   const client = useQueryClient();
   const query = useBlumTasksQuery();
+
+  const { zoomies, processNextTask } = useFarmerContext();
 
   /** Concat sub tasks */
   const reduceTasks = useCallback(
@@ -204,6 +208,10 @@ export default function BlumAutoTasks() {
             if (process.signal.aborted) return;
             setTaskOffset(index);
             setCurrentTask(task);
+
+            /** Skip during zoomies */
+            if (zoomies.enabled) continue;
+
             try {
               let keyword =
                 (await getResolvedValue(task.id)) ||
@@ -252,14 +260,28 @@ export default function BlumAutoTasks() {
       await refetch();
       resetTask();
       process.stop();
+      processNextTask();
     })();
   }, [
+    zoomies.enabled,
     process,
     action,
     getResolvedValue,
     removeResolvedValue,
     dispatchAndPrompt,
+    processNextTask,
   ]);
+
+  /** Auto-Complete Tasks */
+  useFarmerAutoTask(
+    "tasks",
+    () => {
+      if (query.isSuccess) {
+        process.start();
+      }
+    },
+    [query.isSuccess, process.start]
+  );
 
   return (
     <>

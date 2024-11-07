@@ -7,7 +7,7 @@ import { useState } from "react";
 import useSocketDispatchCallback from "./useSocketDispatchCallback";
 import useSocketHandlers from "./useSocketHandlers";
 
-export default function useProcessLock(id) {
+export default function useProcessLock(id, socket) {
   const controllerRef = useRef();
   const [process, setProcess] = useState({
     started: false,
@@ -47,7 +47,10 @@ export default function useProcessLock(id) {
         });
       },
       [id]
-    )
+    ),
+
+    /** Socket */
+    socket
   );
 
   /** Stop Process */
@@ -77,7 +80,10 @@ export default function useProcessLock(id) {
         });
       },
       [id]
-    )
+    ),
+
+    /** Socket */
+    socket
   );
 
   /** Toggle */
@@ -107,7 +113,10 @@ export default function useProcessLock(id) {
         });
       },
       [id]
-    )
+    ),
+
+    /** Socket */
+    socket
   );
 
   /** Lock Process */
@@ -148,7 +157,10 @@ export default function useProcessLock(id) {
         },
       }),
       [id, start, stop, toggle]
-    )
+    ),
+
+    /** Socket */
+    socket
   );
 
   return useMemo(

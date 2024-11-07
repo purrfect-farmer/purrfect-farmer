@@ -11,6 +11,7 @@ import useYescoinAccountInfoQuery from "../hooks/useYescoinAccountInfoQuery";
 import useYescoinDailyCheckIn from "../hooks/useYescoinDailyCheckIn";
 import useYescoinOfflineQuery from "../hooks/useYescoinOfflineQuery";
 import YescoinTasks from "./YescoinTasks";
+import useFarmerAutoTab from "@/hooks/useFarmerAutoTab";
 
 export default function YescoinFarmer() {
   const accountInfoQuery = useYescoinAccountInfoQuery();
@@ -18,6 +19,9 @@ export default function YescoinFarmer() {
 
   useYescoinDailyCheckIn();
   useYescoinOfflineQuery();
+
+  /** Automatically Switch Tab */
+  useFarmerAutoTab(tabs.onValueChange);
 
   return (
     <div className="flex flex-col gap-2 p-4">

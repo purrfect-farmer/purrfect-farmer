@@ -15,6 +15,8 @@ import useBlumBalanceQuery from "../hooks/useBlumBalanceQuery";
 import useBlumClaimGameMutation from "../hooks/useBlumClaimGameMutation";
 import useBlumDogsDropEligibilityQuery from "../hooks/useBlumDogsDropEligibilityQuery";
 import useBlumStartGameMutation from "../hooks/useBlumStartGameMutation";
+import useFarmerContext from "@/hooks/useFarmerContext";
+import useFarmerAutoTask from "@/drops/notpixel/hooks/useFarmerAutoTask";
 
 const GAME_DURATION = 30_000;
 const EXTRA_DELAY = 3_000;
@@ -27,6 +29,7 @@ export default function BlumAutoGamer({ workerRef }) {
   const dogsDropEligibilityQuery = useBlumDogsDropEligibilityQuery();
   const client = useQueryClient();
 
+  const { processNextTask } = useFarmerContext();
   const process = useProcessLock("blum.game.autoplay");
 
   const [countdown, setCountdown] = useState(null);
@@ -78,6 +81,7 @@ export default function BlumAutoGamer({ workerRef }) {
 
     if (tickets < 1) {
       process.stop();
+      processNextTask();
       return;
     }
 
@@ -207,7 +211,7 @@ export default function BlumAutoGamer({ workerRef }) {
       /** Release Lock */
       process.unlock();
     })();
-  }, [tickets, process, points, postWorkerMessage]);
+  }, [tickets, process, points, postWorkerMessage, processNextTask]);
 
   /** Toast Dogs Eligibility */
   useEffect(() => {
@@ -219,6 +223,17 @@ export default function BlumAutoGamer({ workerRef }) {
       }
     }
   }, [dogsDropEligibilityQuery.status]);
+
+  /** Auto-Play Games */
+  useFarmerAutoTask(
+    "game",
+    () => {
+      if (query.isSuccess) {
+        process.start();
+      }
+    },
+    [query.isSuccess, process.start]
+  );
 
   return (
     <div className="flex flex-col gap-2">

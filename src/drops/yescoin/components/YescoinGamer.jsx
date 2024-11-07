@@ -10,6 +10,8 @@ import useYescoinGameInfoQuery from "../hooks/useYescoinGameInfoQuery";
 import useYescoinGameSpecialBoxInfoQuery from "../hooks/useYescoinGameSpecialBoxInfoQuery";
 import useSocketState from "@/hooks/useSocketState";
 import Slider from "@/components/Slider";
+import useFarmerAutoTask from "@/drops/notpixel/hooks/useFarmerAutoTask";
+import useFarmerContext from "@/hooks/useFarmerContext";
 
 export default function YescoinGamer() {
   const process = useProcessLock("yescoin.game");
@@ -29,12 +31,17 @@ export default function YescoinGamer() {
     10
   );
 
+  const { processNextTask } = useFarmerContext();
+
   /** Auto Game */
   useEffect(() => {
     if (!process.canExecute) return;
 
     if (coinLeft < 100) {
-      return process.stop();
+      process.stop();
+      processNextTask();
+
+      return;
     }
 
     (async function () {
@@ -66,7 +73,18 @@ export default function YescoinGamer() {
       /** Unlock */
       process.unlock();
     })();
-  }, [process, coinLeft, specialBox, farmingSpeed]);
+  }, [process, coinLeft, specialBox, farmingSpeed, processNextTask]);
+
+  /** Auto-Game */
+  useFarmerAutoTask(
+    "game",
+    () => {
+      if (gameInfoQuery.isSuccess) {
+        process.start();
+      }
+    },
+    [gameInfoQuery.isSuccess, process.start]
+  );
 
   return (
     <div className="flex flex-col gap-2">

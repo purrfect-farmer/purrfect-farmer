@@ -14,6 +14,7 @@ export default function useBlumFarmer() {
           title: "Blum Farmer",
         },
         domains: ["*.blum.codes"],
+        autoTasks: ["tasks", "game"],
       }),
       []
     )

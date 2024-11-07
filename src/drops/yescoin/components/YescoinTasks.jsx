@@ -15,6 +15,8 @@ import useYescoinClickTaskMutation from "../hooks/useYescoinClickTaskMutation";
 import useProcessLock from "@/hooks/useProcessLock";
 import { useState } from "react";
 import { useEffect } from "react";
+import useFarmerAutoTask from "@/drops/notpixel/hooks/useFarmerAutoTask";
+import useFarmerContext from "@/hooks/useFarmerContext";
 
 export default function YescoinTasks() {
   const accountInfoQuery = useYescoinAccountInfoQuery();
@@ -37,6 +39,8 @@ export default function YescoinTasks() {
   const process = useProcessLock("yescoin.tasks.auto");
   const [taskOffset, setTaskOffset] = useState(null);
   const [currentTask, setCurrentTask] = useState(null);
+
+  const { processNextTask } = useFarmerContext();
 
   const reset = useCallback(() => {
     setTaskOffset(null);
@@ -136,8 +140,20 @@ export default function YescoinTasks() {
       } catch {}
 
       process.stop();
+      processNextTask();
     })();
-  }, [process]);
+  }, [process, processNextTask]);
+
+  /** Auto-Complete Tasks */
+  useFarmerAutoTask(
+    "tasks",
+    () => {
+      if (tasksQuery.isSuccess) {
+        process.start();
+      }
+    },
+    [tasksQuery.isSuccess, process.start]
+  );
 
   return tasksQuery.isPending ? (
     <CgSpinner className="w-5 h-5 mx-auto animate-spin" />

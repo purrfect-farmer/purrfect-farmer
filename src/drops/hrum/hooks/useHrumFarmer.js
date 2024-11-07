@@ -21,6 +21,7 @@ export default function useHrumFarmer() {
               header.value !== "empty"
           );
         },
+        autoTasks: ["tasks", "daily.riddle", "daily.cookie"],
       }),
       []
     )

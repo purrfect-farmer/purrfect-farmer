@@ -30,10 +30,12 @@ import Shutdown from "./partials/Shutdown";
 import farmerTabs from "./farmerTabs";
 import useSocketTabs from "./hooks/useSocketTabs";
 import bots from "./bots";
+import { forwardRef } from "react";
 
-const TelegramWebButton = ({ icon, children, ...props }) => (
+const TelegramWebButton = forwardRef(({ icon, children, ...props }, ref) => (
   <button
     {...props}
+    ref={ref}
     className={cn(
       "p-2",
       "rounded-full",
@@ -47,11 +49,12 @@ const TelegramWebButton = ({ icon, children, ...props }) => (
     <img src={icon} className="w-6 h-6" />
     {children}
   </button>
-);
+));
 
-const ToolbarButton = ({ icon: Icon, children, ...props }) => (
+const ToolbarButton = forwardRef(({ icon: Icon, children, ...props }, ref) => (
   <button
     {...props}
+    ref={ref}
     className={cn(
       "p-2.5 rounded-full shrink-0",
       "bg-neutral-50 hover:bg-neutral-100",
@@ -61,7 +64,7 @@ const ToolbarButton = ({ icon: Icon, children, ...props }) => (
     <Icon className="w-5 h-5" />
     {children}
   </button>
-);
+));
 
 export default function Welcome() {
   const [

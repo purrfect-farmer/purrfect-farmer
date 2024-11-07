@@ -15,6 +15,8 @@ import useYescoinDailyMissionQuery from "../hooks/useYescoinDailyMissionQuery";
 import useProcessLock from "@/hooks/useProcessLock";
 import { useState } from "react";
 import { useEffect } from "react";
+import useFarmerContext from "@/hooks/useFarmerContext";
+import useFarmerAutoTask from "@/drops/notpixel/hooks/useFarmerAutoTask";
 
 export default function YescoinDailyMission() {
   const accountInfoQuery = useYescoinAccountInfoQuery();
@@ -39,6 +41,8 @@ export default function YescoinDailyMission() {
   const process = useProcessLock("yescoin.missions.auto");
   const [missionOffset, setMissionOffset] = useState(null);
   const [currentMission, setCurrentMission] = useState(null);
+
+  const { processNextTask } = useFarmerContext();
 
   const reset = useCallback(() => {
     setMissionOffset(null);
@@ -143,8 +147,20 @@ export default function YescoinDailyMission() {
       } catch {}
 
       process.stop();
+      processNextTask();
     })();
-  }, [process]);
+  }, [process, processNextTask]);
+
+  /** Auto-Complete Missions */
+  useFarmerAutoTask(
+    "missions",
+    () => {
+      if (missionsQuery.isSuccess) {
+        process.start();
+      }
+    },
+    [missionsQuery.isSuccess, process.start]
+  );
 
   return missionsQuery.isPending ? (
     <CgSpinner className="w-5 h-5 mx-auto animate-spin" />

@@ -3,6 +3,7 @@ import Slider from "@/components/Slider";
 import TimeAgo from "javascript-time-ago";
 import en from "javascript-time-ago/locale/en";
 import toast from "react-hot-toast";
+import useFarmerContext from "@/hooks/useFarmerContext";
 import useProcessLock from "@/hooks/useProcessLock";
 import useSocketState from "@/hooks/useSocketState";
 import { CgSpinner } from "react-icons/cg";
@@ -12,6 +13,7 @@ import { useMemo } from "react";
 import { useState } from "react";
 
 import NotPixelIcon from "../assets/images/icon.png?format=webp&w=80";
+import useFarmerAutoTask from "../hooks/useFarmerAutoTask";
 import useNotPixelMiningClaimMutation from "../hooks/useNotPixelMiningClaimMutation";
 import useNotPixelMiningStatusQuery from "../hooks/useNotPixelMiningStatusQuery";
 import useNotPixelRepaintMutation from "../hooks/useNotPixelRepaintMutation";
@@ -19,6 +21,8 @@ import useNotPixelRepaintMutation from "../hooks/useNotPixelRepaintMutation";
 TimeAgo.addDefaultLocale(en);
 
 export default function NotPixelApp({ diff, updatedAt }) {
+  const { processNextTask } = useFarmerContext();
+
   const miningQuery = useNotPixelMiningStatusQuery();
   const mining = miningQuery.data;
 
@@ -72,6 +76,7 @@ export default function NotPixelApp({ diff, updatedAt }) {
 
     if (mining.charges < 1) {
       process.stop();
+      processNextTask();
       return;
     }
 
@@ -123,7 +128,18 @@ export default function NotPixelApp({ diff, updatedAt }) {
       /** Release Lock */
       process.unlock();
     })();
-  }, [process, diff, farmingSpeed, mining]);
+  }, [process, diff, farmingSpeed, mining, processNextTask]);
+
+  /** AutoPaint */
+  useFarmerAutoTask(
+    "paint",
+    () => {
+      if (miningQuery.isSuccess) {
+        process.start();
+      }
+    },
+    [miningQuery.isSuccess, process.start]
+  );
 
   return (
     <div className="flex flex-col gap-2 p-4">

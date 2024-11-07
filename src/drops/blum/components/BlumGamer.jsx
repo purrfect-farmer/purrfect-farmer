@@ -11,12 +11,14 @@ export default function BlumGamer() {
   const [game, setGame] = useState(null);
   const workerRef = useRef();
 
+  /** Get Blum Game */
   useEffect(() => {
     (async function () {
       setGame(await getBlumGame());
     })();
   }, []);
 
+  /** Get Worker */
   useEffect(() => {
     if (game) {
       workerRef.current = new Worker(game.workerBlobURL);

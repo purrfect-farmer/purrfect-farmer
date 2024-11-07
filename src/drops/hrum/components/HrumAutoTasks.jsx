@@ -6,11 +6,15 @@ import { useMemo } from "react";
 import { useState } from "react";
 
 import useHrumClaimQuestMutation from "../hooks/useHrumClaimQuestMutation";
+import useFarmerContext from "@/hooks/useFarmerContext";
+import useFarmerAutoTask from "@/drops/notpixel/hooks/useFarmerAutoTask";
 
 export default function HrumAutoTasks({ queries }) {
   const process = useProcessLock("hrum.tasks.claim");
   const claimTaskMutation = useHrumClaimQuestMutation();
   const [allData, afterData] = queries.data;
+
+  const { processNextTask } = useFarmerContext();
 
   /** All Tasks */
   const tasks = useMemo(
@@ -58,7 +62,7 @@ export default function HrumAutoTasks({ queries }) {
 
   /** Run Tasks */
   useEffect(() => {
-    if (!process.started || process.locked) {
+    if (!process.canExecute) {
       return;
     }
 
@@ -89,8 +93,25 @@ export default function HrumAutoTasks({ queries }) {
       /** Stop */
       process.stop();
       reset();
+      processNextTask();
     })();
-  }, [process, pendingTasks, setCurrentTask, reset, refetchBalance]);
+  }, [
+    process,
+    pendingTasks,
+    setCurrentTask,
+    reset,
+    refetchBalance,
+    processNextTask,
+  ]);
+
+  /** Auto-Complete Tasks */
+  useFarmerAutoTask(
+    "tasks",
+    () => {
+      process.start();
+    },
+    []
+  );
 
   return (
     <>

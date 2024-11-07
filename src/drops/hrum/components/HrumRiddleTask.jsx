@@ -9,11 +9,14 @@ import HrumTaskButton from "./HrumTaskButton";
 import RiddleIcon from "../assets/images/riddle.jpg?format=webp&w=80";
 import useHrumCheckQuestMutation from "../hooks/useHrumCheckQuestMutation";
 import useHrumClaimQuestMutation from "../hooks/useHrumClaimQuestMutation";
+import useFarmerAutoTask from "@/drops/notpixel/hooks/useFarmerAutoTask";
+import useFarmerContext from "@/hooks/useFarmerContext";
 
 export default function HrumRiddleTask({ queries }) {
   const checkRiddleMutation = useHrumCheckQuestMutation("riddle");
   const claimRiddleMutation = useHrumClaimQuestMutation("riddle");
   const [allData, afterData] = queries.data;
+  const { processNextTask } = useFarmerContext();
 
   /** Riddle */
   const riddle = useMemo(
@@ -34,22 +37,25 @@ export default function HrumRiddleTask({ queries }) {
   const [claimRiddle, dispatchAndClaimRiddle] = useSocketDispatchCallback(
     /** Configure Settings */
     useCallback(async () => {
-      if (!riddle || disabled) return;
+      if (riddle && !disabled) {
+        try {
+          await checkRiddleMutation.mutateAsync([riddle.key, riddle.checkData]);
+          await claimRiddleMutation.mutateAsync([riddle.key, riddle.checkData]);
 
-      try {
-        await checkRiddleMutation.mutateAsync([riddle.key, riddle.checkData]);
-        await claimRiddleMutation.mutateAsync([riddle.key, riddle.checkData]);
+          /** Show Success Message */
+          toast.success("Riddle Claimed Successfully!");
 
-        /** Show Success Message */
-        toast.success("Riddle Claimed Successfully!");
-
-        /** Refetch Queries */
-        queries.query.forEach((query) => query.refetch());
-      } catch {
-        /** Show Error Message */
-        toast.error("Failed to Claim Riddle!");
+          /** Refetch Queries */
+          queries.query.forEach((query) => query.refetch());
+        } catch {
+          /** Show Error Message */
+          toast.error("Failed to Claim Riddle!");
+        }
       }
-    }, [queries, riddle, disabled, toast]),
+
+      /** Process Next Task */
+      processNextTask();
+    }, [queries, riddle, disabled, toast, processNextTask]),
 
     /** Dispatch */
     useCallback(
@@ -69,8 +75,17 @@ export default function HrumRiddleTask({ queries }) {
           claimRiddle();
         },
       }),
-      [claimRiddle]
+      []
     )
+  );
+
+  /** Auto-Claim */
+  useFarmerAutoTask(
+    "daily.riddle",
+    () => {
+      claimRiddle();
+    },
+    [claimRiddle]
   );
 
   return (

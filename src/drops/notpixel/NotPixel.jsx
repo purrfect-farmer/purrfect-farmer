@@ -10,7 +10,7 @@ function NotPixel() {
   const farmer = useNotPixelFarmer();
   const sandboxRef = useRef();
   const sandboxSrc = useMemo(
-    () => chrome.runtime.getURL("notpixel-sandbox.html"),
+    () => chrome?.runtime?.getURL("notpixel-sandbox.html"),
     []
   );
 

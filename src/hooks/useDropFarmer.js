@@ -8,8 +8,10 @@ import { useIsMutating, useQueryClient } from "@tanstack/react-query";
 import { useMemo } from "react";
 import { useState } from "react";
 
+import useAppContext from "./useAppContext";
 import useAppQuery from "./useAppQuery";
 import useTelegramWebApp from "./useTelegramWebApp";
+import useValuesMemo from "./useValuesMemo";
 
 export default function useDropFarmer({
   id,
@@ -22,7 +24,11 @@ export default function useDropFarmer({
   fetchAuth,
   notification,
   authQueryOptions,
+  autoTasks = [],
 }) {
+  /** Zoomies */
+  const { zoomies } = useAppContext();
+
   /** Auth */
   const [auth, setAuth] = useState(false);
 
@@ -30,6 +36,12 @@ export default function useDropFarmer({
   const domainMatches = useMemo(
     () => domains.map((domain) => `*://${domain}/*`),
     [domains]
+  );
+
+  /** Domain Matches */
+  const currentTaskIndex = useMemo(
+    () => autoTasks.findIndex((item) => item === zoomies.currentTask),
+    [zoomies.currentTask, autoTasks]
   );
 
   /** TelegramWebApp */
@@ -92,6 +104,23 @@ export default function useDropFarmer({
     setAuth(false);
     removeQueries();
   }, [setAuth, removeQueries]);
+
+  /** Run the next task */
+  const processNextTask = useCallback(() => {
+    if (!zoomies.enabled) return;
+    else if (zoomies.currentTask === autoTasks.at(-1)) {
+      zoomies.processNextDrop();
+    } else {
+      zoomies.setCurrentTask(autoTasks[currentTaskIndex + 1]);
+    }
+  }, [
+    zoomies.enabled,
+    zoomies.currentTask,
+    zoomies.setCurrentTask,
+    zoomies.processNextDrop,
+    currentTaskIndex,
+    autoTasks,
+  ]);
 
   /** Enforce only one request */
   useEffect(() => {
@@ -268,39 +297,43 @@ export default function useDropFarmer({
   /** Clean Up */
   useEffect(() => () => resetAuth(), [resetAuth]);
 
+  /** Zoomies */
+  useEffect(() => {
+    if (zoomies.enabled && zoomies.currentDrop.id === id) {
+      zoomies.setAuth(auth);
+
+      if (auth) {
+        zoomies.setCurrentTask((prev) => prev || autoTasks[0]);
+      }
+    }
+  }, [
+    id,
+    auth,
+    zoomies.enabled,
+    zoomies.currentDrop.id,
+    zoomies.setAuth,
+    zoomies.setCurrentTask,
+    autoTasks,
+  ]);
+
   /** Return API and Auth */
-  return useMemo(
-    () => ({
-      id,
-      status,
-      port,
-      api,
-      auth,
-      authQuery,
-      authQueryKey,
-      queryClient,
-      telegramWebApp,
-      isMutating,
-      removeQueries,
-      resetAuth,
-      resetTelegramWebApp,
-      updateQueryData,
-    }),
-    [
-      id,
-      status,
-      port,
-      api,
-      auth,
-      authQuery,
-      authQueryKey,
-      queryClient,
-      telegramWebApp,
-      isMutating,
-      removeQueries,
-      resetAuth,
-      resetTelegramWebApp,
-      updateQueryData,
-    ]
-  );
+  return useValuesMemo({
+    id,
+    status,
+    autoTasks,
+    port,
+    api,
+    auth,
+    authQuery,
+    authQueryKey,
+    queryClient,
+    telegramWebApp,
+    isMutating,
+    zoomies,
+    removeQueries,
+    resetAuth,
+    resetTelegramWebApp,
+    updateQueryData,
+    processNextTask,
+  });
 }
