@@ -368,7 +368,22 @@ export default function useCore() {
           if (!url) {
             return;
           }
+          /** Bot TelegramWeb Action */
+          const botTelegramWebAppAction = `set-telegram-web-app:${
+            import.meta.env.VITE_APP_BOT_HOST
+          }`;
 
+          /** Clear Previous Interval */
+          clearInterval(telegramLinkRef.current.interval);
+
+          /** Remove Previous Handler */
+          if (telegramLinkRef.current.handler) {
+            messaging.removeMessageHandlers({
+              [botTelegramWebAppAction]: telegramLinkRef.current.handler,
+            });
+          }
+
+          /** Post Telegram Link */
           const postTelegramLink = (port, tabId) =>
             postPortMessage(port, {
               action: "open-telegram-link",
@@ -377,31 +392,18 @@ export default function useCore() {
               setActiveTab(tabId);
             });
 
+          /** Telegram Web */
           const telegramWeb = openedTabs.find((tab) =>
             ["telegram-web-k", "telegram-web-a"].includes(tab.id)
           );
 
+          /** Mini Apps */
           let miniApps = messaging.ports
             .values()
             .filter((port) => port.name.startsWith("mini-app:"))
             .toArray();
 
           if (!telegramWeb || !miniApps.length) {
-            /** Bot TelegramWeb Action */
-            const botTelegramWebAppAction = `set-telegram-web-app:${
-              import.meta.env.VITE_APP_BOT_HOST
-            }`;
-
-            /** Clear Previous Interval */
-            clearInterval(telegramLinkRef.current.interval);
-
-            /** Remove Previous Handler */
-            if (telegramLinkRef.current.handler) {
-              messaging.removeMessageHandlers({
-                [botTelegramWebAppAction]: telegramLinkRef.current.handler,
-              });
-            }
-
             /** Re-Open Bot */
             const reOpenFarmerBot = () => {
               toast.success(
@@ -410,6 +412,7 @@ export default function useCore() {
               openFarmerBot("k");
             };
 
+            /** Handle Farmer Bot Web App */
             const handleFarmerBotWebApp = (telegramLinkRef.current.handler = (
               message,
               port
