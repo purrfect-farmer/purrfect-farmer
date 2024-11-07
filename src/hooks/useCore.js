@@ -396,9 +396,11 @@ export default function useCore() {
             clearInterval(telegramLinkRef.current.interval);
 
             /** Remove Previous Handler */
-            messaging.removeMessageHandlers({
-              [botTelegramWebAppAction]: telegramLinkRef.current.handler,
-            });
+            if (telegramLinkRef.current.handler) {
+              messaging.removeMessageHandlers({
+                [botTelegramWebAppAction]: telegramLinkRef.current.handler,
+              });
+            }
 
             /** Re-Open Bot */
             const reOpenFarmerBot = () => {
@@ -412,9 +414,6 @@ export default function useCore() {
               message,
               port
             ) => {
-              /** Clear Interval */
-              clearInterval(telegramLinkRef.current.interval);
-
               /** Remove Handler */
               messaging.removeMessageHandlers({
                 [botTelegramWebAppAction]: handleFarmerBotWebApp,
@@ -422,6 +421,13 @@ export default function useCore() {
 
               /** Post the Link */
               postTelegramLink(port, "telegram-web-k");
+
+              /** Clear Interval */
+              clearInterval(telegramLinkRef.current.interval);
+
+              /** Reset */
+              telegramLinkRef.current.interval = null;
+              telegramLinkRef.current.handler = null;
             });
 
             /** Add Handler */
