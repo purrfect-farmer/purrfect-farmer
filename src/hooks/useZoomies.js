@@ -64,10 +64,9 @@ export default function useZoomies(core) {
     if (!process.started) return;
 
     if (auth) {
-      core.closeTab("telegram-web-k");
       core.setActiveTab(currentDrop.id);
     }
-  }, [process.started, auth, currentDrop, core.closeTab, core.setActiveTab]);
+  }, [process.started, auth, currentDrop, core.setActiveTab]);
 
   return useValuesMemo({
     enabled: process.started,
