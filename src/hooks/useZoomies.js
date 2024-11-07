@@ -33,6 +33,10 @@ export default function useZoomies(core) {
     core.setActiveTab(currentDrop.id);
   }, [currentDrop, setAuth, core.resetTabs, core.setActiveTab]);
 
+  const closeTelegramWeb = useCallback(() => {
+    core.closeTab("telegram-web-k");
+  }, [core.closeTab]);
+
   const processNextDrop = useCallback(() => {
     /** Reset Task */
     setCurrentTask(null);
@@ -54,7 +58,6 @@ export default function useZoomies(core) {
   /** Open Bot */
   useEffect(() => {
     if (process.started && !auth) {
-      resetZoomies();
       core.openTelegramLink(currentDrop.telegramLink);
     }
   }, [process.started, auth, currentDrop]);
@@ -64,9 +67,10 @@ export default function useZoomies(core) {
     if (!process.started) return;
 
     if (auth) {
+      core.closeTab("telegram-web-k");
       core.setActiveTab(currentDrop.id);
     }
-  }, [process.started, auth, currentDrop, core.setActiveTab]);
+  }, [process.started, auth, currentDrop, core.closeTab, core.setActiveTab]);
 
   return useValuesMemo({
     enabled: process.started,
@@ -78,5 +82,6 @@ export default function useZoomies(core) {
     setAuth,
     setCurrentTask,
     processNextDrop,
+    closeTelegramWeb,
   });
 }
