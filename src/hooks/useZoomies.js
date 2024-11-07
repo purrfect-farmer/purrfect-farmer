@@ -45,7 +45,7 @@ export default function useZoomies(core) {
 
       if (drops.length === 1) {
         core.resetTabs();
-        core.setActiveTab(drops[0]);
+        core.setActiveTab(drops[0].id);
         setAuth(false);
       }
     } else {
