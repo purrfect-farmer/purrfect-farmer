@@ -3,7 +3,6 @@ import Slider from "@/components/Slider";
 import TimeAgo from "javascript-time-ago";
 import en from "javascript-time-ago/locale/en";
 import toast from "react-hot-toast";
-import useFarmerContext from "@/hooks/useFarmerContext";
 import useProcessLock from "@/hooks/useProcessLock";
 import useSocketState from "@/hooks/useSocketState";
 import { CgSpinner } from "react-icons/cg";
@@ -13,7 +12,7 @@ import { useMemo } from "react";
 import { useState } from "react";
 
 import NotPixelIcon from "../assets/images/icon.png?format=webp&w=80";
-import useFarmerAutoTask from "../hooks/useFarmerAutoTask";
+import useFarmerAutoProcess from "../hooks/useFarmerAutoProcess";
 import useNotPixelMiningClaimMutation from "../hooks/useNotPixelMiningClaimMutation";
 import useNotPixelMiningStatusQuery from "../hooks/useNotPixelMiningStatusQuery";
 import useNotPixelRepaintMutation from "../hooks/useNotPixelRepaintMutation";
@@ -21,8 +20,6 @@ import useNotPixelRepaintMutation from "../hooks/useNotPixelRepaintMutation";
 TimeAgo.addDefaultLocale(en);
 
 export default function NotPixelApp({ diff, updatedAt }) {
-  const { processNextTask } = useFarmerContext();
-
   const miningQuery = useNotPixelMiningStatusQuery();
   const mining = miningQuery.data;
 
@@ -75,7 +72,6 @@ export default function NotPixelApp({ diff, updatedAt }) {
     if (!process.canExecute) return;
 
     if (mining.charges < 1) {
-      processNextTask();
       process.stop();
       return;
     }
@@ -90,7 +86,7 @@ export default function NotPixelApp({ diff, updatedAt }) {
         if (pixel) {
           setPixel(pixel);
 
-          if (!process.signal.aborted) {
+          if (!process.controller.signal.aborted) {
             const data = await repaintMutation.mutateAsync({
               pixelId: pixel.pixelId,
               newColor: pixel.color,
@@ -128,18 +124,10 @@ export default function NotPixelApp({ diff, updatedAt }) {
       /** Release Lock */
       process.unlock();
     })();
-  }, [process, diff, farmingSpeed, mining, processNextTask]);
+  }, [process, diff, farmingSpeed, mining]);
 
   /** AutoPaint */
-  useFarmerAutoTask(
-    "paint",
-    () => {
-      if (miningQuery.isSuccess) {
-        process.start();
-      }
-    },
-    [miningQuery.isSuccess, process.start]
-  );
+  useFarmerAutoProcess("paint", miningQuery.isSuccess, process.start);
 
   return (
     <div className="flex flex-col gap-2 p-4">

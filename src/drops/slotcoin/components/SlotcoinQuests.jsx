@@ -1,18 +1,16 @@
+import useFarmerAutoProcess from "@/drops/notpixel/hooks/useFarmerAutoProcess";
+import useProcessLock from "@/hooks/useProcessLock";
+import { cn, delay } from "@/lib/utils";
+import { useCallback } from "react";
+import { useEffect } from "react";
 import { useMemo } from "react";
+import { useQueryClient } from "@tanstack/react-query";
+import { useState } from "react";
 
 import useSlotcoinCheckTaskMutation from "../hooks/useSlotcoinCheckTaskMutation";
 import useSlotcoinQuestsQuery from "../hooks/useSlotcoinQuestsQuery";
-import { useState } from "react";
-import useProcessLock from "@/hooks/useProcessLock";
-import { useQueryClient } from "@tanstack/react-query";
-import { useCallback } from "react";
-import { useEffect } from "react";
-import { cn, delay } from "@/lib/utils";
-import useFarmerContext from "@/hooks/useFarmerContext";
-import useFarmerAutoTask from "@/drops/notpixel/hooks/useFarmerAutoTask";
 
 export default function SlotcoinQuests() {
-  const { processNextTask } = useFarmerContext();
   const process = useProcessLock("slotcoin.quests.check");
   const queryClient = useQueryClient();
 
@@ -57,8 +55,11 @@ export default function SlotcoinQuests() {
     }
 
     (async function () {
+      /** Lock the process */
+      process.lock();
+
       for (let [index, task] of Object.entries(uncompletedTasks)) {
-        if (process.signal.aborted) break;
+        if (process.controller.signal.aborted) return;
         setTaskOffset(index);
         setCurrentTask(task);
         try {
@@ -75,21 +76,12 @@ export default function SlotcoinQuests() {
         });
       } catch {}
 
-      processNextTask();
       process.stop();
     })();
-  }, [process, processNextTask]);
+  }, [process]);
 
   /** Auto-Complete Quests */
-  useFarmerAutoTask(
-    "quests",
-    () => {
-      if (questsQuery.isSuccess) {
-        process.start();
-      }
-    },
-    [questsQuery.isSuccess, process.start]
-  );
+  useFarmerAutoProcess("quests", questsQuery.isSuccess, process.start);
 
   return (
     <div className="p-4">

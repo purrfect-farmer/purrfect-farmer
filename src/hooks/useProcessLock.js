@@ -13,7 +13,6 @@ export default function useProcessLock(id, socket) {
     started: false,
     locked: false,
     controller: null,
-    signal: null,
   });
 
   const canExecute = useMemo(
@@ -24,20 +23,34 @@ export default function useProcessLock(id, socket) {
   /** Start Process */
   const [start, dispatchAndStart] = useSocketDispatchCallback(
     /** Main */
-    useCallback(() => {
-      setProcess((prev) => {
-        if (prev.started) return prev;
+    useCallback(
+      (callback) => {
+        setProcess((prev) => {
+          if (prev.started) {
+            if (callback) {
+              callback(prev);
+            }
+            return prev;
+          }
 
-        prev?.controller?.abort();
-        const controller = (controllerRef.current = new AbortController());
-        return {
-          started: true,
-          locked: false,
-          controller,
-          signal: controller.signal,
-        };
-      });
-    }, [setProcess]),
+          prev?.controller?.abort();
+          const controller = (controllerRef.current = new AbortController());
+
+          const newState = {
+            started: true,
+            locked: false,
+            controller,
+          };
+
+          if (callback) {
+            callback(newState);
+          }
+
+          return newState;
+        });
+      },
+      [setProcess]
+    ),
 
     /** Dispatch */
     useCallback(
@@ -56,21 +69,34 @@ export default function useProcessLock(id, socket) {
   /** Stop Process */
   const [stop, dispatchAndStop] = useSocketDispatchCallback(
     /** Main */
-    useCallback(() => {
-      setProcess((prev) => {
-        if (!prev.started) return prev;
+    useCallback(
+      (callback) => {
+        setProcess((prev) => {
+          if (!prev.started) {
+            if (callback) {
+              callback(prev);
+            }
+            return prev;
+          }
 
-        prev?.controller?.abort();
-        controllerRef.current = null;
+          prev?.controller?.abort();
+          controllerRef.current = null;
 
-        return {
-          started: false,
-          locked: false,
-          controller: null,
-          signal: null,
-        };
-      });
-    }, [setProcess]),
+          const newState = {
+            started: false,
+            locked: false,
+            controller: null,
+          };
+
+          if (callback) {
+            callback(newState);
+          }
+
+          return newState;
+        });
+      },
+      [setProcess]
+    ),
 
     /** Dispatch */
     useCallback(
@@ -94,9 +120,9 @@ export default function useProcessLock(id, socket) {
         if (typeof status === "boolean") {
           return status ? start() : stop();
         } else if (!process.started) {
-          start();
+          return start();
         } else {
-          stop();
+          return stop();
         }
       },
       [process.started, start, stop]

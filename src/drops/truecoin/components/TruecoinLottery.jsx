@@ -1,8 +1,11 @@
+import Slider from "@/components/Slider";
 import toast from "react-hot-toast";
+import useFarmerAutoProcess from "@/drops/notpixel/hooks/useFarmerAutoProcess";
 import useFarmerContext from "@/hooks/useFarmerContext";
 import useProcessLock from "@/hooks/useProcessLock";
 import useSocketDispatchCallback from "@/hooks/useSocketDispatchCallback";
 import useSocketHandlers from "@/hooks/useSocketHandlers";
+import useSocketState from "@/hooks/useSocketState";
 import { HiOutlineArrowPath } from "react-icons/hi2";
 import { cn, delayForSeconds } from "@/lib/utils";
 import { useCallback } from "react";
@@ -11,13 +14,9 @@ import { useMemo } from "react";
 
 import useTruecoin50SpinsBoost from "../hooks/useTruecoin50SpinsBoostMutation";
 import useTruecoinLotteryMutation from "../hooks/useTruecoinLotteryMutation";
-import useSocketState from "@/hooks/useSocketState";
-import Slider from "@/components/Slider";
-import useFarmerAutoTask from "@/drops/notpixel/hooks/useFarmerAutoTask";
 
 export default function TruecoinLottery() {
-  const { queryClient, authQuery, authQueryKey, processNextTask } =
-    useFarmerContext();
+  const { queryClient, authQuery, authQueryKey } = useFarmerContext();
 
   const user = authQuery.data?.user;
 
@@ -69,7 +68,6 @@ export default function TruecoinLottery() {
     }
 
     if (user.currentSpins < 1) {
-      processNextTask();
       process.stop();
       return;
     }
@@ -81,7 +79,6 @@ export default function TruecoinLottery() {
       try {
         await spinMutation.mutateAsync(null).then((data) => {
           if (data.user.currentSpins < 1) {
-            processNextTask();
             process.stop();
           }
 
@@ -97,7 +94,6 @@ export default function TruecoinLottery() {
         });
       } catch (e) {
         if (e?.response?.status === 400) {
-          processNextTask();
           process.stop();
         }
       }
@@ -108,25 +104,10 @@ export default function TruecoinLottery() {
       // Release Lock
       process.unlock();
     })();
-  }, [
-    process,
-    user,
-    farmingSpeed,
-    authQueryKey,
-    queryClient.setQueryData,
-    processNextTask,
-  ]);
+  }, [process, user, farmingSpeed, authQueryKey, queryClient.setQueryData]);
 
   /** Auto-Spin */
-  useFarmerAutoTask(
-    "lottery",
-    () => {
-      if (authQuery.isSuccess) {
-        process.start();
-      }
-    },
-    [authQuery.isSuccess, process.start]
-  );
+  useFarmerAutoProcess("lottery", authQuery.isSuccess, process.start);
 
   return (
     <div className="flex flex-col gap-2 p-4">

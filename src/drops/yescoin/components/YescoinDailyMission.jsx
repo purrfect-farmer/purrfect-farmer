@@ -1,10 +1,14 @@
 import toast from "react-hot-toast";
+import useFarmerAutoProcess from "@/drops/notpixel/hooks/useFarmerAutoProcess";
+import useProcessLock from "@/hooks/useProcessLock";
 import useSocketDispatchCallback from "@/hooks/useSocketDispatchCallback";
 import useSocketHandlers from "@/hooks/useSocketHandlers";
 import { CgSpinner } from "react-icons/cg";
 import { cn, delay } from "@/lib/utils";
 import { useCallback } from "react";
+import { useEffect } from "react";
 import { useMemo } from "react";
+import { useState } from "react";
 
 import CoinIcon from "../assets/images/coin.png?format=webp&w=80";
 import useYescoinAccountInfoQuery from "../hooks/useYescoinAccountInfoQuery";
@@ -12,11 +16,6 @@ import useYescoinCheckDailyMissionMutation from "../hooks/useYescoinCheckDailyMi
 import useYescoinClaimMissionMutation from "../hooks/useYescoinClaimMissionMutation";
 import useYescoinClickDailyMissionMutation from "../hooks/useYescoinClickDailyMissionMutation";
 import useYescoinDailyMissionQuery from "../hooks/useYescoinDailyMissionQuery";
-import useProcessLock from "@/hooks/useProcessLock";
-import { useState } from "react";
-import { useEffect } from "react";
-import useFarmerContext from "@/hooks/useFarmerContext";
-import useFarmerAutoTask from "@/drops/notpixel/hooks/useFarmerAutoTask";
 
 export default function YescoinDailyMission() {
   const accountInfoQuery = useYescoinAccountInfoQuery();
@@ -41,8 +40,6 @@ export default function YescoinDailyMission() {
   const process = useProcessLock("yescoin.missions.auto");
   const [missionOffset, setMissionOffset] = useState(null);
   const [currentMission, setCurrentMission] = useState(null);
-
-  const { processNextTask } = useFarmerContext();
 
   const reset = useCallback(() => {
     setMissionOffset(null);
@@ -128,8 +125,11 @@ export default function YescoinDailyMission() {
     }
 
     (async function () {
+      /** Lock the process */
+      process.lock();
+
       for (let [index, mission] of Object.entries(uncompletedMissions)) {
-        if (process.signal.aborted) break;
+        if (process.controller.signal.aborted) return;
         setMissionOffset(index);
         setCurrentMission(mission);
 
@@ -146,21 +146,12 @@ export default function YescoinDailyMission() {
         await accountInfoQuery.refetch();
       } catch {}
 
-      processNextTask();
       process.stop();
     })();
-  }, [process, processNextTask]);
+  }, [process]);
 
   /** Auto-Complete Missions */
-  useFarmerAutoTask(
-    "missions",
-    () => {
-      if (missionsQuery.isSuccess) {
-        process.start();
-      }
-    },
-    [missionsQuery.isSuccess, process.start]
-  );
+  useFarmerAutoProcess("missions", missionsQuery.isSuccess, process.start);
 
   return missionsQuery.isPending ? (
     <CgSpinner className="w-5 h-5 mx-auto animate-spin" />

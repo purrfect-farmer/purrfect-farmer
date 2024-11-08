@@ -1,3 +1,4 @@
+import useFarmerAutoProcess from "@/drops/notpixel/hooks/useFarmerAutoProcess";
 import useProcessLock from "@/hooks/useProcessLock";
 import { cn, delay } from "@/lib/utils";
 import { formatRelative } from "date-fns";
@@ -9,11 +10,8 @@ import { useState } from "react";
 
 import useAgent301CompleteWheelTaskMutation from "../hooks/useAgent301CompleteWheelTaskMutation";
 import useAgent301WheelQuery from "../hooks/useAgent301WheelQuery";
-import useFarmerAutoTask from "@/drops/notpixel/hooks/useFarmerAutoTask";
-import useFarmerContext from "@/hooks/useFarmerContext";
 
 export default function Agent301Wheel() {
-  const { processNextTask } = useFarmerContext();
   const client = useQueryClient();
   const wheelQuery = useAgent301WheelQuery();
 
@@ -54,11 +52,14 @@ export default function Agent301Wheel() {
     }
 
     (async function () {
+      /** Lock the process */
+      process.lock();
+
       /** Beginning of Hourly Task */
       if (Date.now() >= hourly["timestamp"] * 1000) {
         setAction("hourly");
         for (let i = hourly["count"]; i < 5; i++) {
-          if (process.signal.aborted) break;
+          if (process.controller.signal.aborted) return;
           setTaskOffset(i);
           try {
             await completeWheelTaskMutation.mutateAsync({
@@ -89,7 +90,7 @@ export default function Agent301Wheel() {
 
       /* Other Tasks */
       for (let k of Object.keys(otherTasks)) {
-        if (process.signal.aborted) break;
+        if (process.controller.signal.aborted) return;
 
         setAction(k);
         try {
@@ -111,21 +112,13 @@ export default function Agent301Wheel() {
         });
       } catch {}
 
-      processNextTask();
+      /** Stop the Process */
       process.stop();
     })();
-  }, [process, processNextTask]);
+  }, [process]);
 
   /** Auto-Complete */
-  useFarmerAutoTask(
-    "wheel",
-    () => {
-      if (wheelQuery.isSuccess) {
-        process.start();
-      }
-    },
-    [wheelQuery.isSuccess, process.start]
-  );
+  useFarmerAutoProcess("wheel", wheelQuery.isSuccess, process.start);
 
   return (
     <div className="p-4">

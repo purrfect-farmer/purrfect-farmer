@@ -1,16 +1,14 @@
 import Slider from "@/components/Slider";
+import useFarmerAutoProcess from "@/drops/notpixel/hooks/useFarmerAutoProcess";
 import useProcessLock from "@/hooks/useProcessLock";
 import useSocketState from "@/hooks/useSocketState";
 import { cn, delayForSeconds } from "@/lib/utils";
 import { useEffect, useMemo } from "react";
 
-import useSlotcoinInfoQuery from "../hooks/useSlotcoinInfoQuery";
 import useSlotcoinDailySpinMutation from "../hooks/useSlotcoinDailySpinMutation";
-import useFarmerAutoTask from "@/drops/notpixel/hooks/useFarmerAutoTask";
-import useFarmerContext from "@/hooks/useFarmerContext";
+import useSlotcoinInfoQuery from "../hooks/useSlotcoinInfoQuery";
 
 export default function SlotcoinTickets() {
-  const { processNextTask } = useFarmerContext();
   const query = useSlotcoinInfoQuery();
   const ticketsCount = useMemo(
     () => Number(query.data?.["user"]?.["daily_roulette_count"] || 0),
@@ -30,7 +28,6 @@ export default function SlotcoinTickets() {
     }
 
     if (ticketsCount < 1) {
-      processNextTask();
       process.stop();
       return;
     }
@@ -53,18 +50,10 @@ export default function SlotcoinTickets() {
       // Release Lock
       process.unlock();
     })();
-  }, [process, ticketsCount, farmingSpeed, processNextTask]);
+  }, [process, ticketsCount, farmingSpeed]);
 
   /** Auto-Spin */
-  useFarmerAutoTask(
-    "tickets",
-    () => {
-      if (query.isSuccess) {
-        process.start();
-      }
-    },
-    [query.isSuccess, process.start]
-  );
+  useFarmerAutoProcess("tickets", query.isSuccess, process.start);
 
   return (
     <div className="p-4">

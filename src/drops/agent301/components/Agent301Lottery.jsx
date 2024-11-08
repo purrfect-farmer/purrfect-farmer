@@ -1,14 +1,12 @@
+import useFarmerAutoProcess from "@/drops/notpixel/hooks/useFarmerAutoProcess";
 import useProcessLock from "@/hooks/useProcessLock";
 import { cn, delay } from "@/lib/utils";
 import { useEffect } from "react";
 
 import useAgent301BalanceQuery from "../hooks/useAgent301BalanceQuery";
 import useAgent301LotteryMutation from "../hooks/useAgent301LotteryMutation";
-import useFarmerAutoTask from "@/drops/notpixel/hooks/useFarmerAutoTask";
-import useFarmerContext from "@/hooks/useFarmerContext";
 
 export default function Agent301Lottery() {
-  const { processNextTask } = useFarmerContext();
   const process = useProcessLock("agent301.wheel.lottery");
 
   const balanceQuery = useAgent301BalanceQuery();
@@ -22,13 +20,13 @@ export default function Agent301Lottery() {
     if (!process.canExecute) return;
 
     if (tickets < 1) {
-      processNextTask();
+      /** Stop the Process */
       process.stop();
       return;
     }
 
     (async function () {
-      // Lock Process
+      /** Lock Process */
       process.lock();
 
       /** Spin */
@@ -47,18 +45,10 @@ export default function Agent301Lottery() {
       // Release Lock
       process.unlock();
     })();
-  }, [process, tickets, processNextTask]);
+  }, [process, tickets]);
 
   /** Auto-Spin */
-  useFarmerAutoTask(
-    "tickets",
-    () => {
-      if (balanceQuery.isSuccess) {
-        process.start();
-      }
-    },
-    [balanceQuery.isSuccess, process.start]
-  );
+  useFarmerAutoProcess("tickets", balanceQuery.isSuccess, process.start);
 
   return (
     <div className="p-4">

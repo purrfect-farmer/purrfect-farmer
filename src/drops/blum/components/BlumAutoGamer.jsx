@@ -1,5 +1,6 @@
 import Countdown from "react-countdown";
 import toast from "react-hot-toast";
+import useFarmerAutoProcess from "@/drops/notpixel/hooks/useFarmerAutoProcess";
 import useProcessLock from "@/hooks/useProcessLock";
 import useSocketState from "@/hooks/useSocketState";
 import { delay, logNicely, uuid } from "@/lib/utils";
@@ -15,8 +16,6 @@ import useBlumBalanceQuery from "../hooks/useBlumBalanceQuery";
 import useBlumClaimGameMutation from "../hooks/useBlumClaimGameMutation";
 import useBlumDogsDropEligibilityQuery from "../hooks/useBlumDogsDropEligibilityQuery";
 import useBlumStartGameMutation from "../hooks/useBlumStartGameMutation";
-import useFarmerContext from "@/hooks/useFarmerContext";
-import useFarmerAutoTask from "@/drops/notpixel/hooks/useFarmerAutoTask";
 
 const GAME_DURATION = 30_000;
 const EXTRA_DELAY = 3_000;
@@ -29,7 +28,6 @@ export default function BlumAutoGamer({ workerRef }) {
   const dogsDropEligibilityQuery = useBlumDogsDropEligibilityQuery();
   const client = useQueryClient();
 
-  const { processNextTask } = useFarmerContext();
   const process = useProcessLock("blum.game.autoplay");
 
   const [countdown, setCountdown] = useState(null);
@@ -69,18 +67,22 @@ export default function BlumAutoGamer({ workerRef }) {
     [workerRef]
   );
 
+  /** Auto-Play Games */
+  useFarmerAutoProcess("game", query.isSuccess, process.start);
+
   /** Reset Desired Points */
   useEffect(() => {
     setDesiredPoint(points);
   }, [process.started]);
 
+  /** Run Process */
   useEffect(() => {
     if (!process.canExecute) {
       return;
     }
 
     if (tickets < 1) {
-      processNextTask();
+      /** Stop the process */
       process.stop();
       return;
     }
@@ -211,7 +213,7 @@ export default function BlumAutoGamer({ workerRef }) {
       /** Release Lock */
       process.unlock();
     })();
-  }, [tickets, process, points, postWorkerMessage, processNextTask]);
+  }, [tickets, process, points, postWorkerMessage]);
 
   /** Toast Dogs Eligibility */
   useEffect(() => {
@@ -223,17 +225,6 @@ export default function BlumAutoGamer({ workerRef }) {
       }
     }
   }, [dogsDropEligibilityQuery.status]);
-
-  /** Auto-Play Games */
-  useFarmerAutoTask(
-    "game",
-    () => {
-      if (query.isSuccess) {
-        process.start();
-      }
-    },
-    [query.isSuccess, process.start]
-  );
 
   return (
     <div className="flex flex-col gap-2">

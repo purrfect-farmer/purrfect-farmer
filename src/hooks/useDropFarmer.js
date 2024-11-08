@@ -100,18 +100,17 @@ export default function useDropFarmer({
     removeQueries();
   }, [setAuth, removeQueries]);
 
-  /** Run the next task */
+  /**  Next task callback */
   const processNextTask = useRefCallback(() => {
-    if (!zoomies.enabled) return;
-    else if (zoomies.currentTask === autoTasks.at(-1)) {
+    if (!zoomies.enabled) {
+      return;
+    } else if (zoomies.currentTask === autoTasks.at(-1)) {
       zoomies.processNextDrop();
     } else {
-      zoomies.setCurrentTask((prev) => {
-        const currentTaskIndex = autoTasks.findIndex((item) => item === prev);
-        const nextTask = autoTasks[currentTaskIndex + 1];
+      const index = autoTasks.findIndex((item) => item === zoomies.currentTask);
+      const task = autoTasks[index + 1];
 
-        return nextTask;
-      });
+      zoomies.setCurrentTask(task);
     }
   }, [
     zoomies.enabled,

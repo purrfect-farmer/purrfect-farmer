@@ -1,3 +1,4 @@
+import useFarmerAutoProcess from "@/drops/notpixel/hooks/useFarmerAutoProcess";
 import useProcessLock from "@/hooks/useProcessLock";
 import { cn, delay } from "@/lib/utils";
 import { useCallback } from "react";
@@ -6,15 +7,11 @@ import { useMemo } from "react";
 import { useState } from "react";
 
 import useHrumClaimQuestMutation from "../hooks/useHrumClaimQuestMutation";
-import useFarmerContext from "@/hooks/useFarmerContext";
-import useFarmerAutoTask from "@/drops/notpixel/hooks/useFarmerAutoTask";
 
 export default function HrumAutoTasks({ queries }) {
   const process = useProcessLock("hrum.tasks.claim");
   const claimTaskMutation = useHrumClaimQuestMutation();
   const [allData, afterData] = queries.data;
-
-  const { processNextTask } = useFarmerContext();
 
   /** All Tasks */
   const tasks = useMemo(
@@ -71,7 +68,7 @@ export default function HrumAutoTasks({ queries }) {
       process.lock();
 
       for (let [index, task] of Object.entries(pendingTasks)) {
-        if (process.signal.aborted) return;
+        if (process.controller.signal.aborted) return;
 
         /** Set Current Task */
         setCurrentTask(task);
@@ -91,27 +88,13 @@ export default function HrumAutoTasks({ queries }) {
       } catch {}
 
       /** Stop */
-      processNextTask();
-      process.stop();
       reset();
+      process.stop();
     })();
-  }, [
-    process,
-    pendingTasks,
-    setCurrentTask,
-    reset,
-    refetchBalance,
-    processNextTask,
-  ]);
+  }, [process, pendingTasks, setCurrentTask, reset, refetchBalance]);
 
   /** Auto-Complete Tasks */
-  useFarmerAutoTask(
-    "tasks",
-    () => {
-      process.start();
-    },
-    []
-  );
+  useFarmerAutoProcess("tasks", true, process.start);
 
   return (
     <>

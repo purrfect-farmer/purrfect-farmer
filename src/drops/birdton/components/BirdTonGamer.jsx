@@ -1,5 +1,6 @@
 import Slider from "@/components/Slider";
 import toast from "react-hot-toast";
+import useFarmerAutoProcess from "@/drops/notpixel/hooks/useFarmerAutoProcess";
 import useFarmerContext from "@/hooks/useFarmerContext";
 import useProcessLock from "@/hooks/useProcessLock";
 import useSocketHandlers from "@/hooks/useSocketHandlers";
@@ -12,7 +13,6 @@ import { useMemo } from "react";
 import { useState } from "react";
 
 import useBirdTonHandlers from "../hooks/useBirdTonHandlers";
-import useFarmerAutoTask from "@/drops/notpixel/hooks/useFarmerAutoTask";
 
 const MIN_POINT = 100;
 const INITIAL_POINT = 120;
@@ -21,18 +21,18 @@ const MAX_POINT = 10_000;
 export default function BirdTonGamer() {
   const process = useProcessLock("birdton.game.autoplay");
   const {
+    zoomies,
     sendMessage,
     user,
     queryClient,
     authQueryKey,
-    processNextTask,
     refreshTasks,
   } = useFarmerContext();
   const [createGameCallback, setCreateGameCallback] = useState(null);
 
   const [farmingSpeed, , dispatchAndSetFarmingSpeed] = useSocketState(
     "birdton.farming-speed",
-    3
+    2
   );
 
   /** Game Speed Ref */
@@ -113,7 +113,7 @@ export default function BirdTonGamer() {
 
   /** Handle Game Saved */
   const handleGameSaved = useCallback(
-    ({ data }) => {
+    async ({ data }) => {
       const result = JSON.parse(data);
 
       /** Set Balance */
@@ -129,15 +129,25 @@ export default function BirdTonGamer() {
       /** Reset */
       reset();
 
-      /** Unlock the process */
-      process.unlock();
-
       /** Refresh Tasks */
       refreshTasks();
+
+      /** Delay */
+      await delay(1000);
+
+      if (zoomies.enabled) {
+        /** Stop the Process */
+        process.stop();
+      } else {
+        /** Unlock the process */
+        process.unlock();
+      }
     },
     [
+      zoomies.enabled,
       queryClient.setQueryData,
       process.unlock,
+      process.stop,
       authQueryKey,
       reset,
       refreshTasks,
@@ -184,7 +194,7 @@ export default function BirdTonGamer() {
 
     /** Energy is low */
     if (energy < 1) {
-      processNextTask();
+      /** Stop the Process */
       process.stop();
 
       return;
@@ -206,47 +216,35 @@ export default function BirdTonGamer() {
       };
 
       /** Add Abort Listener */
-      process.signal.addEventListener("abort", endGame);
+      process.controller.signal.addEventListener("abort", endGame);
 
       for (let i = 0; i < stopPoint; i++) {
-        if (process.signal.aborted) {
+        if (process.controller.signal.aborted) {
           return;
         }
 
         /** Delay */
         await delayForSeconds(gameSpeedRef.current);
 
-        if (!process.signal.aborted) {
+        if (!process.controller.signal.aborted) {
           /** Claim Point */
           sendMessage({ event_type: "рiрe", data: gameId });
           setPoints(i + 1);
         }
       }
 
-      /** Delay for 2 Sec */
-      await delay(1000);
+      if (!process.controller.signal.aborted) {
+        /** Delay */
+        await delay(1000);
 
-      /** End Game */
-      endGame();
+        /** End Game */
+        endGame();
+      }
     })();
-  }, [
-    process,
-    energy,
-    gameId,
-    startGame,
-    reset,
-    gameSpeedRef,
-    processNextTask,
-  ]);
+  }, [process, energy, gameId, startGame, reset, gameSpeedRef]);
 
   /** Auto-Play */
-  useFarmerAutoTask(
-    "game",
-    () => {
-      process.start();
-    },
-    []
-  );
+  useFarmerAutoProcess("game", true, process.start);
 
   return (
     <div className="flex flex-col gap-4">

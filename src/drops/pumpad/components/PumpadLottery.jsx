@@ -1,16 +1,14 @@
+import Slider from "@/components/Slider";
+import useFarmerAutoProcess from "@/drops/notpixel/hooks/useFarmerAutoProcess";
 import useProcessLock from "@/hooks/useProcessLock";
+import useSocketState from "@/hooks/useSocketState";
 import { cn, delayForSeconds } from "@/lib/utils";
 import { useEffect } from "react";
 
 import usePumpadLotteryMutation from "../hooks/usePumpadLotteryMutation";
 import usePumpadLotteryQuery from "../hooks/usePumpadLotteryQuery";
-import useSocketState from "@/hooks/useSocketState";
-import Slider from "@/components/Slider";
-import useFarmerAutoTask from "@/drops/notpixel/hooks/useFarmerAutoTask";
-import useFarmerContext from "@/hooks/useFarmerContext";
 
 export default function PumpadLottery() {
-  const { processNextTask } = useFarmerContext();
   const query = usePumpadLotteryQuery();
   const drawCount = query.data?.["draw_count"] || 0;
 
@@ -27,7 +25,6 @@ export default function PumpadLottery() {
     }
 
     if (drawCount < 1) {
-      processNextTask();
       process.stop();
       return;
     }
@@ -50,18 +47,10 @@ export default function PumpadLottery() {
       // Release Lock
       process.unlock();
     })();
-  }, [process, drawCount, farmingSpeed, processNextTask]);
+  }, [process, drawCount, farmingSpeed]);
 
   /** Auto-Spin */
-  useFarmerAutoTask(
-    "lottery",
-    () => {
-      if (query.isSuccess) {
-        process.start();
-      }
-    },
-    [query.isSuccess, process.start]
-  );
+  useFarmerAutoProcess("lottery", query.isSuccess, process.start);
 
   return (
     <div className="p-4">

@@ -1,3 +1,4 @@
+import useFarmerAutoProcess from "@/drops/notpixel/hooks/useFarmerAutoProcess";
 import useProcessLock from "@/hooks/useProcessLock";
 import { cn, delay } from "@/lib/utils";
 import { useCallback } from "react";
@@ -9,11 +10,8 @@ import { useState } from "react";
 import useBitsClaimSocialTaskMutation from "../hooks/useBitsClaimSocialTaskMutation";
 import useBitsSocialTasksQuery from "../hooks/useBitsSocialTasksQuery";
 import useBitsStartSocialTaskMutation from "../hooks/useBitsStartSocialTaskMutation";
-import useFarmerContext from "@/hooks/useFarmerContext";
-import useFarmerAutoTask from "@/drops/notpixel/hooks/useFarmerAutoTask";
 
 export default function BitsSocialTasks() {
-  const { processNextTask } = useFarmerContext();
   const client = useQueryClient();
   const query = useBitsSocialTasksQuery();
 
@@ -80,6 +78,9 @@ export default function BitsSocialTasks() {
     }
 
     (async function () {
+      /** Lock the Process */
+      process.lock();
+
       const refetch = async () => {
         try {
           await refetchTasks();
@@ -89,14 +90,14 @@ export default function BitsSocialTasks() {
 
       if (!action) {
         setAction("start");
-        return;
+        return process.unlock();
       }
       switch (action) {
         case "start":
           /** Beginning of Start Action */
           setAction("start");
           for (let [index, task] of Object.entries(pendingTasks)) {
-            if (process.signal.aborted) return;
+            if (process.controller.signal.aborted) return;
 
             setTaskOffset(index);
             setCurrentTask(task);
@@ -117,12 +118,12 @@ export default function BitsSocialTasks() {
           resetTask();
           setAction("claim");
 
-          return;
+          return process.unlock();
 
         case "claim":
           /** Claim */
           for (let [index, task] of Object.entries(unclaimedTasks)) {
-            if (process.signal.aborted) return;
+            if (process.controller.signal.aborted) return;
             setTaskOffset(index);
             setCurrentTask(task);
             try {
@@ -137,23 +138,19 @@ export default function BitsSocialTasks() {
           break;
       }
 
+      /** Refetch Queries */
       await refetch();
+
+      /** Reset Task */
       resetTask();
-      processNextTask();
+
+      /** Stop the Process */
       process.stop();
     })();
-  }, [process, action, processNextTask]);
+  }, [process, action]);
 
   /** Auto-Complete Tasks */
-  useFarmerAutoTask(
-    "tasks",
-    () => {
-      if (query.isSuccess) {
-        process.start();
-      }
-    },
-    [query.isSuccess, process.start]
-  );
+  useFarmerAutoProcess("tasks", query.isSuccess, process.start);
 
   return (
     <>

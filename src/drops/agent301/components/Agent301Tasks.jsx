@@ -1,3 +1,4 @@
+import useFarmerAutoProcess from "@/drops/notpixel/hooks/useFarmerAutoProcess";
 import useProcessLock from "@/hooks/useProcessLock";
 import { cn, delay } from "@/lib/utils";
 import { useCallback } from "react";
@@ -8,11 +9,8 @@ import { useState } from "react";
 
 import useAgent301CompleteTaskMutation from "../hooks/useAgent301CompleteTaskMutation";
 import useAgent301TasksQuery from "../hooks/useAgent301TasksQuery";
-import useFarmerAutoTask from "@/drops/notpixel/hooks/useFarmerAutoTask";
-import useFarmerContext from "@/hooks/useFarmerContext";
 
 export default function Agent301Tasks() {
-  const { processNextTask } = useFarmerContext();
   const client = useQueryClient();
   const tasksQuery = useAgent301TasksQuery();
 
@@ -104,10 +102,13 @@ export default function Agent301Tasks() {
     }
 
     (async function () {
+      /** Lock the Process */
+      process.lock();
+
       /** Daily */
       setAction("daily");
       for (let [index, task] of Object.entries(unClaimedDailyTasks)) {
-        if (process.signal.aborted) break;
+        if (process.controller.signal.aborted) return;
 
         setTaskOffset(index);
         setCurrentTask(task);
@@ -124,7 +125,7 @@ export default function Agent301Tasks() {
       /** Beginning of Video Task */
       setAction("video");
       for (let i = videoTask["count"]; i < videoTask["max_count"]; i++) {
-        if (process.signal.aborted) break;
+        if (process.controller.signal.aborted) return;
 
         setTaskOffset(i);
         setCurrentTask(videoTask);
@@ -138,12 +139,13 @@ export default function Agent301Tasks() {
         await delay(15_000);
       }
 
+      /** Reset */
       reset();
 
       /** Partners */
       setAction("partners");
       for (let [index, task] of Object.entries(unClaimedPartnerTasks)) {
-        if (process.signal.aborted) break;
+        if (process.controller.signal.aborted) return;
 
         setTaskOffset(index);
         setCurrentTask(task);
@@ -157,12 +159,13 @@ export default function Agent301Tasks() {
         await delay(10_000);
       }
 
+      /** Reset */
       reset();
 
       /** In Game */
       setAction("in-game");
       for (let [index, task] of Object.entries(unClaimedInGameTasks)) {
-        if (process.signal.aborted) break;
+        if (process.controller.signal.aborted) return;
 
         setTaskOffset(index);
         setCurrentTask(task);
@@ -182,22 +185,16 @@ export default function Agent301Tasks() {
         });
       } catch {}
 
+      /** Reset */
       reset();
-      processNextTask();
+
+      /** Stop the Process */
       process.stop();
     })();
-  }, [process, processNextTask]);
+  }, [process]);
 
   /** Auto-Complete */
-  useFarmerAutoTask(
-    "tasks",
-    () => {
-      if (tasksQuery.isSuccess) {
-        process.start();
-      }
-    },
-    [tasksQuery.isSuccess, process.start]
-  );
+  useFarmerAutoProcess("tasks", tasksQuery.isSuccess, process.start);
 
   return (
     <div className="p-4">

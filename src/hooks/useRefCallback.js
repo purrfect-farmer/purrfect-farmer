@@ -7,7 +7,7 @@ export default function useRefCallback(...args) {
   const ref = useRef(callback);
 
   const staticCallback = useCallback((...args) => {
-    ref.current(...args);
+    return ref.current(...args);
   }, []);
 
   useLayoutEffect(() => {

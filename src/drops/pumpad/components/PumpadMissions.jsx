@@ -1,19 +1,17 @@
+import useFarmerAutoProcess from "@/drops/notpixel/hooks/useFarmerAutoProcess";
 import useProcessLock from "@/hooks/useProcessLock";
 import { cn, delay } from "@/lib/utils";
 import { useCallback } from "react";
+import { useEffect } from "react";
 import { useMemo } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 
 import usePumpadCheckMissionMutation from "../hooks/usePumpadCheckMissionMutation";
-import usePumpadMissionsQuery from "../hooks/usePumpadMissionsQuery";
-import { useEffect } from "react";
 import usePumpadGetChannelMutation from "../hooks/usePumpadGetChannelMutation";
-import useFarmerContext from "@/hooks/useFarmerContext";
-import useFarmerAutoTask from "@/drops/notpixel/hooks/useFarmerAutoTask";
+import usePumpadMissionsQuery from "../hooks/usePumpadMissionsQuery";
 
 export default function PumpadMissions() {
-  const { processNextTask } = useFarmerContext();
   const queryClient = useQueryClient();
   const missionsQuery = usePumpadMissionsQuery();
   const missions = useMemo(
@@ -48,8 +46,11 @@ export default function PumpadMissions() {
     }
 
     (async function () {
+      /** Lock the Process */
+      process.lock();
+
       for (let [index, mission] of Object.entries(missions)) {
-        if (process.signal.aborted) break;
+        if (process.controller.signal.aborted) return;
         setMissionOffset(index);
         setCurrentMission(mission);
         try {
@@ -79,21 +80,12 @@ export default function PumpadMissions() {
         });
       } catch {}
 
-      processNextTask();
       process.stop();
     })();
-  }, [process, processNextTask]);
+  }, [process]);
 
   /** Auto-Complete Missions */
-  useFarmerAutoTask(
-    "missions",
-    () => {
-      if (missionsQuery.isSuccess) {
-        process.start();
-      }
-    },
-    [missionsQuery.isSuccess, process.start]
-  );
+  useFarmerAutoProcess("missions", missionsQuery.isSuccess, process.start);
 
   return (
     <div className="p-4">

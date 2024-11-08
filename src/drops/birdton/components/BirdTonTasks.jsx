@@ -1,4 +1,5 @@
 import toast from "react-hot-toast";
+import useFarmerAutoProcess from "@/drops/notpixel/hooks/useFarmerAutoProcess";
 import useFarmerContext from "@/hooks/useFarmerContext";
 import useProcessLock from "@/hooks/useProcessLock";
 import useSocketDispatchCallback from "@/hooks/useSocketDispatchCallback";
@@ -11,11 +12,9 @@ import { useMemo } from "react";
 import { useState } from "react";
 
 import useBirdTonHandlers from "../hooks/useBirdTonHandlers";
-import useFarmerAutoTask from "@/drops/notpixel/hooks/useFarmerAutoTask";
 
 export default function BirdTonTasks() {
-  const { eventData, sendMessage, refreshTasks, processNextTask } =
-    useFarmerContext();
+  const { eventData, sendMessage, refreshTasks } = useFarmerContext();
 
   const [reloadTasks, dispatchAndReloadTasks] = useSocketDispatchCallback(
     useCallback(() => {
@@ -136,10 +135,13 @@ export default function BirdTonTasks() {
     }
 
     (async function () {
+      /** Lock the Process */
+      process.lock();
+
       /** Beginning Daily Tasks */
       setAction("daily");
       for (let [index, task] of Object.entries(unclaimedDailyTasks)) {
-        if (process.signal.aborted) break;
+        if (process.controller.signal.aborted) return;
         setTaskOffset(index);
         setCurrentTask(task);
 
@@ -164,7 +166,7 @@ export default function BirdTonTasks() {
       /** Sub Tasks */
       setAction("sub");
       for (let [index, task] of Object.entries(unclaimedSubTasks)) {
-        if (process.signal.aborted) break;
+        if (process.controller.signal.aborted) return;
         setTaskOffset(index);
         setCurrentTask(task);
 
@@ -188,21 +190,19 @@ export default function BirdTonTasks() {
         await delayForSeconds(1);
       }
 
+      /** Refresh the tasks */
       refreshTasks();
+
+      /** Reset */
       reset();
-      processNextTask();
+
+      /** Stop the process */
       process.stop();
     })();
-  }, [process, processNextTask]);
+  }, [process]);
 
   /** Auto-Complete */
-  useFarmerAutoTask(
-    "tasks",
-    () => {
-      process.start();
-    },
-    []
-  );
+  useFarmerAutoProcess("tasks", true, process.start);
 
   return (
     <div className="flex flex-col">

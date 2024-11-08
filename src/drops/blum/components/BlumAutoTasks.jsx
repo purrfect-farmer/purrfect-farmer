@@ -1,3 +1,5 @@
+import useFarmerAutoProcess from "@/drops/notpixel/hooks/useFarmerAutoProcess";
+import useFarmerContext from "@/hooks/useFarmerContext";
 import useProcessLock from "@/hooks/useProcessLock";
 import useValueTasks from "@/hooks/useValueTasks";
 import { cn, delay } from "@/lib/utils";
@@ -13,14 +15,12 @@ import useBlumClaimTaskMutation from "../hooks/useBlumClaimTaskMutation";
 import useBlumStartTaskMutation from "../hooks/useBlumStartTaskMutation";
 import useBlumTasksQuery from "../hooks/useBlumTasksQuery";
 import useBlumValidateTaskMutation from "../hooks/useBlumValidateTaskMutation";
-import useFarmerContext from "@/hooks/useFarmerContext";
-import useFarmerAutoTask from "@/drops/notpixel/hooks/useFarmerAutoTask";
 
 export default function BlumAutoTasks() {
   const client = useQueryClient();
   const query = useBlumTasksQuery();
 
-  const { zoomies, processNextTask } = useFarmerContext();
+  const { zoomies } = useFarmerContext();
 
   /** Concat sub tasks */
   const reduceTasks = useCallback(
@@ -166,6 +166,9 @@ export default function BlumAutoTasks() {
     }
 
     (async function () {
+      /** Lock the Process */
+      process.lock();
+
       const refetch = async () => {
         try {
           await refetchTasks();
@@ -175,14 +178,14 @@ export default function BlumAutoTasks() {
 
       if (!action) {
         setAction("start");
-        return;
+        return process.unlock();
       }
       switch (action) {
         case "start":
           /** Beginning of Start Action */
           setAction("start");
           for (let [index, task] of Object.entries(pendingTasks)) {
-            if (process.signal.aborted) return;
+            if (process.controller.signal.aborted) return;
 
             setTaskOffset(index);
             setCurrentTask(task);
@@ -201,11 +204,12 @@ export default function BlumAutoTasks() {
           resetTask();
           setAction("verify");
 
-          return;
+          return process.unlock();
+
         case "verify":
           /** Verify */
           for (let [index, task] of Object.entries(unverifiedTasks)) {
-            if (process.signal.aborted) return;
+            if (process.controller.signal.aborted) return;
             setTaskOffset(index);
             setCurrentTask(task);
 
@@ -233,18 +237,19 @@ export default function BlumAutoTasks() {
             await delay(5_000);
           }
 
-          // Set Next Action
+          /** Set Next Action */
           try {
             await refetchTasks();
           } catch {}
           resetTask();
           setAction("claim");
-          return;
+
+          return process.unlock();
 
         case "claim":
           /** Claim */
           for (let [index, task] of Object.entries(unclaimedTasks)) {
-            if (process.signal.aborted) return;
+            if (process.controller.signal.aborted) return;
             setTaskOffset(index);
             setCurrentTask(task);
             try {
@@ -257,9 +262,13 @@ export default function BlumAutoTasks() {
           break;
       }
 
+      /** Refetch */
       await refetch();
-      processNextTask();
+
+      /** Reset Task */
       resetTask();
+
+      /** Stop Process */
       process.stop();
     })();
   }, [
@@ -269,19 +278,10 @@ export default function BlumAutoTasks() {
     getResolvedValue,
     removeResolvedValue,
     dispatchAndPrompt,
-    processNextTask,
   ]);
 
   /** Auto-Complete Tasks */
-  useFarmerAutoTask(
-    "tasks",
-    () => {
-      if (query.isSuccess) {
-        process.start();
-      }
-    },
-    [query.isSuccess, process.start]
-  );
+  useFarmerAutoProcess("tasks", query.isSuccess, process.start);
 
   return (
     <>

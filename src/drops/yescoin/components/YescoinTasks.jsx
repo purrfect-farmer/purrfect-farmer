@@ -1,22 +1,21 @@
 import toast from "react-hot-toast";
+import useFarmerAutoProcess from "@/drops/notpixel/hooks/useFarmerAutoProcess";
+import useProcessLock from "@/hooks/useProcessLock";
 import useSocketDispatchCallback from "@/hooks/useSocketDispatchCallback";
 import useSocketHandlers from "@/hooks/useSocketHandlers";
 import { CgSpinner } from "react-icons/cg";
 import { cn, delay } from "@/lib/utils";
 import { useCallback } from "react";
+import { useEffect } from "react";
 import { useMemo } from "react";
+import { useState } from "react";
 
 import CoinIcon from "../assets/images/coin.png?format=webp&w=80";
 import useYescoinAccountInfoQuery from "../hooks/useYescoinAccountInfoQuery";
-import useYescoinClaimTaskMutation from "../hooks/useYescoinClaimTaskMutation";
-import useYescoinTaskListQuery from "../hooks/useYescoinTaskListQuery";
 import useYescoinCheckTaskMutation from "../hooks/useYescoinCheckTaskMutation";
+import useYescoinClaimTaskMutation from "../hooks/useYescoinClaimTaskMutation";
 import useYescoinClickTaskMutation from "../hooks/useYescoinClickTaskMutation";
-import useProcessLock from "@/hooks/useProcessLock";
-import { useState } from "react";
-import { useEffect } from "react";
-import useFarmerAutoTask from "@/drops/notpixel/hooks/useFarmerAutoTask";
-import useFarmerContext from "@/hooks/useFarmerContext";
+import useYescoinTaskListQuery from "../hooks/useYescoinTaskListQuery";
 
 export default function YescoinTasks() {
   const accountInfoQuery = useYescoinAccountInfoQuery();
@@ -39,8 +38,6 @@ export default function YescoinTasks() {
   const process = useProcessLock("yescoin.tasks.auto");
   const [taskOffset, setTaskOffset] = useState(null);
   const [currentTask, setCurrentTask] = useState(null);
-
-  const { processNextTask } = useFarmerContext();
 
   const reset = useCallback(() => {
     setTaskOffset(null);
@@ -121,8 +118,11 @@ export default function YescoinTasks() {
     }
 
     (async function () {
+      /** Lock the process */
+      process.lock();
+
       for (let [index, task] of Object.entries(uncompletedTasks)) {
-        if (process.signal.aborted) break;
+        if (process.controller.signal.aborted) return;
         setTaskOffset(index);
         setCurrentTask(task);
 
@@ -139,21 +139,12 @@ export default function YescoinTasks() {
         await accountInfoQuery.refetch();
       } catch {}
 
-      processNextTask();
       process.stop();
     })();
-  }, [process, processNextTask]);
+  }, [process]);
 
   /** Auto-Complete Tasks */
-  useFarmerAutoTask(
-    "tasks",
-    () => {
-      if (tasksQuery.isSuccess) {
-        process.start();
-      }
-    },
-    [tasksQuery.isSuccess, process.start]
-  );
+  useFarmerAutoProcess("tasks", tasksQuery.isSuccess, process.start);
 
   return tasksQuery.isPending ? (
     <CgSpinner className="w-5 h-5 mx-auto animate-spin" />

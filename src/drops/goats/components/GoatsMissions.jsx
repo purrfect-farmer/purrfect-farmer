@@ -1,3 +1,4 @@
+import useFarmerAutoProcess from "@/drops/notpixel/hooks/useFarmerAutoProcess";
 import useProcessLock from "@/hooks/useProcessLock";
 import { cn, delay } from "@/lib/utils";
 import { useCallback } from "react";
@@ -8,13 +9,10 @@ import { useState } from "react";
 
 import useGoatsCompleteMissionMutation from "../hooks/useGoatsCompleteMissionMutation";
 import useGoatsMissionsQuery from "../hooks/useGoatsMissionsQuery";
-import useFarmerAutoTask from "@/drops/notpixel/hooks/useFarmerAutoTask";
-import useFarmerContext from "@/hooks/useFarmerContext";
 
 export default function GoatsMissions() {
   const client = useQueryClient();
   const missionsQuery = useGoatsMissionsQuery();
-  const { processNextTask } = useFarmerContext();
 
   const missions = useMemo(
     () =>
@@ -57,8 +55,11 @@ export default function GoatsMissions() {
     }
 
     (async function () {
+      /** Lock the Process */
+      process.lock();
+
       for (let [index, mission] of Object.entries(uncompletedMissions)) {
-        if (process.signal.aborted) break;
+        if (process.controller.signal.aborted) return;
         setMissionOffset(index);
         setCurrentMission(mission);
         try {
@@ -78,22 +79,16 @@ export default function GoatsMissions() {
         });
       } catch {}
 
+      /** Reset */
       reset();
+
+      /** Stop the Process */
       process.stop();
-      processNextTask();
     })();
-  }, [process, processNextTask]);
+  }, [process]);
 
   /** Auto-Complete */
-  useFarmerAutoTask(
-    "missions",
-    () => {
-      if (missionsQuery.isSuccess) {
-        process.start();
-      }
-    },
-    [missionsQuery.isSuccess, process.start]
-  );
+  useFarmerAutoProcess("missions", missionsQuery.isSuccess, process.start);
 
   return (
     <div className="p-4">

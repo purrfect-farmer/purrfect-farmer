@@ -5,6 +5,7 @@ export default function useBlumDailyRewardQuery() {
   const api = useFarmerApi();
 
   return useQuery({
+    refetchInterval: false,
     queryKey: ["blum", "daily-reward", "get"],
     queryFn: ({ signal }) =>
       api

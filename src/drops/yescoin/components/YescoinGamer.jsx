@@ -1,5 +1,8 @@
+import Slider from "@/components/Slider";
 import toast from "react-hot-toast";
+import useFarmerAutoProcess from "@/drops/notpixel/hooks/useFarmerAutoProcess";
 import useProcessLock from "@/hooks/useProcessLock";
+import useSocketState from "@/hooks/useSocketState";
 import { CgSpinner } from "react-icons/cg";
 import { cn, delayForSeconds } from "@/lib/utils";
 import { useEffect } from "react";
@@ -8,10 +11,6 @@ import useYescoinCollectCoinMutation from "../hooks/useYescoinCollectCoinMutatio
 import useYescoinCollectSpecialBoxCoinMutation from "../hooks/useYescoinCollectSpecialBoxCoinMutation";
 import useYescoinGameInfoQuery from "../hooks/useYescoinGameInfoQuery";
 import useYescoinGameSpecialBoxInfoQuery from "../hooks/useYescoinGameSpecialBoxInfoQuery";
-import useSocketState from "@/hooks/useSocketState";
-import Slider from "@/components/Slider";
-import useFarmerAutoTask from "@/drops/notpixel/hooks/useFarmerAutoTask";
-import useFarmerContext from "@/hooks/useFarmerContext";
 
 export default function YescoinGamer() {
   const process = useProcessLock("yescoin.game");
@@ -31,14 +30,11 @@ export default function YescoinGamer() {
     5
   );
 
-  const { processNextTask } = useFarmerContext();
-
   /** Auto Game */
   useEffect(() => {
     if (!process.canExecute) return;
 
     if (coinLeft <= 150) {
-      processNextTask();
       process.stop();
 
       return;
@@ -50,7 +46,7 @@ export default function YescoinGamer() {
 
       const toCollect = Math.min(coinLeft, 80 + Math.floor(Math.random() * 10));
 
-      if (!process.signal.aborted) {
+      if (!process.controller.signal.aborted) {
         /** Main Coins */
         await collectCoinMutation.mutateAsync(toCollect);
         toast.success(`Collected ${toCollect} coins!`);
@@ -67,24 +63,18 @@ export default function YescoinGamer() {
           toast.success(`Special - collected ${coinCount} coins!`);
         }
 
+        await gameInfoQuery.refetch();
+        await specialBoxInfoQuery.refetch();
         await delayForSeconds(farmingSpeed);
       }
 
       /** Unlock */
       process.unlock();
     })();
-  }, [process, coinLeft, specialBox, farmingSpeed, processNextTask]);
+  }, [process, coinLeft, specialBox, farmingSpeed]);
 
   /** Auto-Game */
-  useFarmerAutoTask(
-    "game",
-    () => {
-      if (gameInfoQuery.isSuccess) {
-        process.start();
-      }
-    },
-    [gameInfoQuery.isSuccess, process.start]
-  );
+  useFarmerAutoProcess("game", gameInfoQuery.isSuccess, process.start);
 
   return (
     <div className="flex flex-col gap-2">

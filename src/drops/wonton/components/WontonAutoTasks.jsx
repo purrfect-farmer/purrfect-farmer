@@ -1,3 +1,5 @@
+import toast from "react-hot-toast";
+import useFarmerAutoProcess from "@/drops/notpixel/hooks/useFarmerAutoProcess";
 import useProcessLock from "@/hooks/useProcessLock";
 import { cn, delay } from "@/lib/utils";
 import { useCallback } from "react";
@@ -7,22 +9,17 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 
 import WontonButton from "./WontonButton";
+import useWontonClaimTaskGiftMutation from "../hooks/useWontonClaimTaskGiftMutation";
 import useWontonClaimTaskMutation from "../hooks/useWontonClaimTaskMutation";
+import useWontonClaimTaskProgressMutation from "../hooks/useWontonClaimTaskProgressMutation";
 import useWontonStartTaskMutation from "../hooks/useWontonStartTaskMutation";
 import useWontonTasksQuery from "../hooks/useWontonTasksQuery";
-import useWontonClaimTaskProgressMutation from "../hooks/useWontonClaimTaskProgressMutation";
-import toast from "react-hot-toast";
 import useWontonUserQuery from "../hooks/useWontonUserQuery";
-import useWontonClaimTaskGiftMutation from "../hooks/useWontonClaimTaskGiftMutation";
-import useFarmerAutoTask from "@/drops/notpixel/hooks/useFarmerAutoTask";
-import useFarmerContext from "@/hooks/useFarmerContext";
 
 export default function WontonAutoTasks() {
   const client = useQueryClient();
   const taskQuery = useWontonTasksQuery();
   const userQuery = useWontonUserQuery();
-
-  const { processNextTask } = useFarmerContext();
 
   const user = userQuery.data;
 
@@ -104,6 +101,9 @@ export default function WontonAutoTasks() {
     }
 
     (async function () {
+      /** Lock the process */
+      process.lock();
+
       const refetch = async () => {
         try {
           await refetchTasks();
@@ -113,14 +113,14 @@ export default function WontonAutoTasks() {
 
       if (!action) {
         setAction("start");
-        return;
+        return process.unlock();
       }
       switch (action) {
         case "start":
           /** Beginning of Start Action */
           setAction("start");
           for (let [index, task] of Object.entries(pendingTasks)) {
-            if (process.signal.aborted) return;
+            if (process.controller.signal.aborted) return;
 
             setTaskOffset(index);
             setCurrentTask(task);
@@ -139,12 +139,12 @@ export default function WontonAutoTasks() {
           resetTask();
           setAction("claim");
 
-          return;
+          return process.unlock();
 
         case "claim":
           /** Claim */
           for (let [index, task] of Object.entries(unclaimedTasks)) {
-            if (process.signal.aborted) return;
+            if (process.controller.signal.aborted) return;
             setTaskOffset(index);
             setCurrentTask(task);
             try {
@@ -159,10 +159,9 @@ export default function WontonAutoTasks() {
 
       await refetch();
       resetTask();
-      processNextTask();
       process.stop();
     })();
-  }, [process, action, processNextTask]);
+  }, [process, action]);
 
   /** Claim Progress */
   useEffect(() => {
@@ -199,15 +198,7 @@ export default function WontonAutoTasks() {
   }, [user]);
 
   /** Auto-Complete Tasks */
-  useFarmerAutoTask(
-    "tasks",
-    () => {
-      if (taskQuery.isSuccess) {
-        process.start();
-      }
-    },
-    [taskQuery.isSuccess, process.start]
-  );
+  useFarmerAutoProcess("tasks", taskQuery.isSuccess, process.start);
 
   return (
     <>
