@@ -2,8 +2,6 @@ import { decryptData, encryptData } from "./content-script-utils";
 import { uuid } from "./lib/utils";
 
 if (location.hash.includes("tgWebAppData")) {
-  const TG_WEB_SCRIPT_SRC = "https://telegram.org/js/telegram-web-app.js";
-
   const connectWindowMessage = (data, callback, once = true) => {
     /** Generate ID */
     const id = data.id || uuid();

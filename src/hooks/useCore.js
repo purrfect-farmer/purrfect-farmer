@@ -1,6 +1,7 @@
 import toast from "react-hot-toast";
 import farmerTabs, { TelegramWeb } from "@/farmerTabs";
 import { createElement } from "react";
+import { createOffscreenDocument } from "@/offscreen";
 import { postPortMessage } from "@/lib/utils";
 import { useCallback } from "react";
 import { useMemo } from "react";
@@ -298,42 +299,57 @@ export default function useCore() {
   const [openFarmerBot, dispatchAndOpenFarmerBot] = useSocketDispatchCallback(
     /** Main */
     useCallback(
-      (version) => {
-        const tab = farmerTabs.find(
-          (item) => item.id === `telegram-web-${version}`
-        );
-
+      async (version, offscreen = false) => {
         /** Capture Port */
         async function capturePort(message, port) {
-          messaging.removeMessageHandlers({
-            [`set-port:telegram-web-${version}`]: capturePort,
-          });
-
           postPortMessage(port, {
             action: "open-farmer-bot",
           });
         }
 
-        messaging.addMessageHandlers({
-          [`set-port:telegram-web-${version}`]: capturePort,
-        });
-
-        /** Push the tab */
-        pushTab(
+        messaging.addMessageHandlers(
           {
-            ...tab,
-            component: createElement(TelegramWeb, {
-              version,
-              hash: `#${
-                version === "k"
-                  ? import.meta.env.VITE_APP_BOT_USERNAME
-                  : import.meta.env.VITE_APP_BOT_CHAT_ID
-              }`,
-            }),
-            reloadedAt: Date.now(),
+            [`set-port:telegram-web-${version}`]: capturePort,
           },
           true
         );
+
+        if (offscreen) {
+          await createOffscreenDocument();
+
+          const offscreenPort = messaging.ports
+            .values()
+            .find((port) => port.name === "offscreen");
+
+          if (offscreenPort) {
+            postPortMessage(offscreenPort, {
+              action: "open-telegram-web",
+            }).then(() => {
+              toast.success("Running Offscreen Telegram Web");
+            });
+          }
+        } else {
+          const tab = farmerTabs.find(
+            (item) => item.id === `telegram-web-${version}`
+          );
+
+          /** Push the tab */
+          pushTab(
+            {
+              ...tab,
+              component: createElement(TelegramWeb, {
+                version,
+                hash: `#${
+                  version === "k"
+                    ? import.meta.env.VITE_APP_BOT_USERNAME
+                    : import.meta.env.VITE_APP_BOT_CHAT_ID
+                }`,
+              }),
+              reloadedAt: Date.now(),
+            },
+            true
+          );
+        }
       },
       [
         farmerTabs,
@@ -364,7 +380,7 @@ export default function useCore() {
     useSocketDispatchCallback(
       /** Main */
       useCallback(
-        async (url) => {
+        async (url, offscreen = false) => {
           if (!url) {
             return;
           }
@@ -383,6 +399,22 @@ export default function useCore() {
             });
           }
 
+          /** Handle Farmer Bot Web App */
+          const handleFarmerBotWebApp = (telegramLinkRef.current.handler = (
+            message,
+            port
+          ) => {
+            /** Post the Link */
+            postTelegramLink(port, "telegram-web-k");
+
+            /** Clear Interval */
+            clearInterval(telegramLinkRef.current.interval);
+
+            /** Reset */
+            telegramLinkRef.current.interval = null;
+            telegramLinkRef.current.handler = null;
+          });
+
           /** Post Telegram Link */
           const postTelegramLink = (port, tabId) =>
             postPortMessage(port, {
@@ -391,6 +423,37 @@ export default function useCore() {
             }).then(() => {
               setActiveTab(tabId);
             });
+
+          const openNewTelegramWeb = () => {
+            /** Re-Open Bot */
+            const reOpenFarmerBot = () => {
+              toast.success(
+                `Re-Opening ${import.meta.env.VITE_APP_BOT_NAME}...`
+              );
+              openFarmerBot("k", offscreen);
+            };
+
+            /** Add Handler */
+            messaging.addMessageHandlers(
+              {
+                [botTelegramWebAppAction]: handleFarmerBotWebApp,
+              },
+              true
+            );
+
+            /** Reopen the bot */
+            telegramLinkRef.current.interval = setInterval(
+              reOpenFarmerBot,
+              30000
+            );
+
+            /** Open Farmer Bot */
+            openFarmerBot("k", offscreen);
+          };
+
+          if (offscreen) {
+            return openNewTelegramWeb();
+          }
 
           /** Telegram Web */
           const telegramWeb = openedTabs.find((tab) =>
@@ -404,50 +467,7 @@ export default function useCore() {
             .toArray();
 
           if (!telegramWeb || !miniApps.length) {
-            /** Re-Open Bot */
-            const reOpenFarmerBot = () => {
-              toast.success(
-                `Re-Opening ${import.meta.env.VITE_APP_BOT_NAME}...`
-              );
-              openFarmerBot("k");
-            };
-
-            /** Handle Farmer Bot Web App */
-            const handleFarmerBotWebApp = (telegramLinkRef.current.handler = (
-              message,
-              port
-            ) => {
-              /** Remove Handler */
-              messaging.removeMessageHandlers({
-                [botTelegramWebAppAction]: handleFarmerBotWebApp,
-              });
-
-              /** Post the Link */
-              postTelegramLink(port, "telegram-web-k");
-
-              /** Clear Interval */
-              clearInterval(telegramLinkRef.current.interval);
-
-              /** Reset */
-              telegramLinkRef.current.interval = null;
-              telegramLinkRef.current.handler = null;
-            });
-
-            /** Add Handler */
-            messaging.addMessageHandlers({
-              [botTelegramWebAppAction]: handleFarmerBotWebApp,
-            });
-
-            /** Reopen the bot */
-            telegramLinkRef.current.interval = setInterval(
-              reOpenFarmerBot,
-              30000
-            );
-
-            /** Open Farmer Bot */
-            openFarmerBot("k");
-
-            return;
+            return openNewTelegramWeb();
           }
 
           /** Close Other Bots */

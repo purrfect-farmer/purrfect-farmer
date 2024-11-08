@@ -10,6 +10,7 @@
     "128": "icon-128.png"
   },
   "permissions": [
+    "offscreen",
     "tabs",
     "activeTab",
     "storage",

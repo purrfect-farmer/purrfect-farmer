@@ -73,11 +73,11 @@ export default function useZoomies(core) {
     let interval;
     if (process.started && !auth) {
       core.setActiveTab(currentDrop?.id);
-      core.openTelegramLink(currentDrop.telegramLink);
+      core.openTelegramLink(currentDrop.telegramLink, true);
 
       interval = setInterval(() => {
         core.setActiveTab(currentDrop?.id);
-        core.openTelegramLink(currentDrop.telegramLink);
+        core.openTelegramLink(currentDrop.telegramLink, true);
       }, 60000);
     }
     return () => {

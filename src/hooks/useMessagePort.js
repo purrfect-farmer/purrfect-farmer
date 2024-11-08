@@ -7,7 +7,7 @@ import useEventEmitter from "./useEventEmitter";
 export default function useMessagePort() {
   const ports = useMemo(() => new Set(), []);
   const {
-    emitter: messageHandlers,
+    emitter: handler,
     addListeners: addMessageHandlers,
     removeListeners: removeMessageHandlers,
   } = useEventEmitter();
@@ -29,17 +29,17 @@ export default function useMessagePort() {
       ports.add(port);
 
       /** Emit Event */
-      messageHandlers.emit("port-connected", port);
+      handler.emit(`port-connected:${port.name}`, port);
     },
-    [messageHandlers, ports]
+    [handler, ports]
   );
 
   /** Handle Port Message */
   const portMessageHandler = useCallback(
     (message, port) => {
-      messageHandlers.emit(message.action, message, port);
+      handler.emit(message.action, message, port);
     },
-    [messageHandlers]
+    [handler]
   );
 
   /** Remove a Port */
@@ -53,9 +53,9 @@ export default function useMessagePort() {
       ports.delete(port);
 
       /** Emit Event */
-      messageHandlers.emit("port-disconnected", port);
+      handler.emit(`port-disconnected:${port.name}`, port);
     },
-    [messageHandlers, ports, portMessageHandler]
+    [handler, ports, portMessageHandler]
   );
 
   /** Instantiate Port Listener */
@@ -87,6 +87,7 @@ export default function useMessagePort() {
     () => ({
       ports,
       dispatch,
+      handler,
       addMessageHandlers,
       removeMessageHandlers,
     }),
