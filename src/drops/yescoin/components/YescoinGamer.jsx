@@ -27,7 +27,7 @@ export default function YescoinGamer() {
 
   const [farmingSpeed, , dispatchAndSetFarmingSpeed] = useSocketState(
     "yescoin.farming-speed",
-    5
+    3
   );
 
   /** Auto Game */
@@ -44,7 +44,10 @@ export default function YescoinGamer() {
       /** Lock */
       process.lock();
 
-      const toCollect = Math.min(coinLeft, 80 + Math.floor(Math.random() * 10));
+      const toCollect = Math.min(
+        coinLeft,
+        150 + Math.floor(Math.random() * 50)
+      );
 
       if (!process.controller.signal.aborted) {
         /** Main Coins */
@@ -63,9 +66,10 @@ export default function YescoinGamer() {
           toast.success(`Special - collected ${coinCount} coins!`);
         }
 
+        await delayForSeconds(farmingSpeed);
+
         await gameInfoQuery.refetch();
         await specialBoxInfoQuery.refetch();
-        await delayForSeconds(farmingSpeed);
       }
 
       /** Unlock */
