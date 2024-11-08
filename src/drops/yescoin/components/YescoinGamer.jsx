@@ -11,8 +11,10 @@ import useYescoinCollectCoinMutation from "../hooks/useYescoinCollectCoinMutatio
 import useYescoinCollectSpecialBoxCoinMutation from "../hooks/useYescoinCollectSpecialBoxCoinMutation";
 import useYescoinGameInfoQuery from "../hooks/useYescoinGameInfoQuery";
 import useYescoinGameSpecialBoxInfoQuery from "../hooks/useYescoinGameSpecialBoxInfoQuery";
+import useFarmerContext from "@/hooks/useFarmerContext";
 
 export default function YescoinGamer() {
+  const { zoomies } = useFarmerContext();
   const process = useProcessLock("yescoin.game");
   const gameInfoQuery = useYescoinGameInfoQuery();
   const specialBoxInfoQuery = useYescoinGameSpecialBoxInfoQuery({
@@ -72,10 +74,15 @@ export default function YescoinGamer() {
         await specialBoxInfoQuery.refetch();
       }
 
-      /** Unlock */
-      process.unlock();
+      if (zoomies.enabled) {
+        /** Stop Process */
+        process.stop();
+      } else {
+        /** Unlock */
+        process.unlock();
+      }
     })();
-  }, [process, coinLeft, specialBox, farmingSpeed]);
+  }, [process, zoomies.enabled, coinLeft, specialBox, farmingSpeed]);
 
   /** Auto-Game */
   useFarmerAutoProcess("game", gameInfoQuery.isSuccess, process.start);
