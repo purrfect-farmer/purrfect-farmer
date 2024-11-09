@@ -85,7 +85,7 @@ export default function PumpadMissions() {
   }, [process]);
 
   /** Auto-Complete Missions */
-  useFarmerAutoProcess("missions", missionsQuery.isSuccess, process.start);
+  useFarmerAutoProcess("missions", !missionsQuery.isLoading, process.start);
 
   return (
     <div className="p-4">

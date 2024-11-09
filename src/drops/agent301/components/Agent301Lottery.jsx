@@ -48,7 +48,7 @@ export default function Agent301Lottery() {
   }, [process, tickets]);
 
   /** Auto-Spin */
-  useFarmerAutoProcess("tickets", balanceQuery.isSuccess, process.start);
+  useFarmerAutoProcess("tickets", !balanceQuery.isLoading, process.start);
 
   return (
     <div className="p-4">

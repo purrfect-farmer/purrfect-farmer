@@ -88,7 +88,7 @@ export default function GoatsMissions() {
   }, [process]);
 
   /** Auto-Complete */
-  useFarmerAutoProcess("missions", missionsQuery.isSuccess, process.start);
+  useFarmerAutoProcess("missions", !missionsQuery.isLoading, process.start);
 
   return (
     <div className="p-4">

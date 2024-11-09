@@ -81,7 +81,7 @@ export default function SlotcoinQuests() {
   }, [process]);
 
   /** Auto-Complete Quests */
-  useFarmerAutoProcess("quests", questsQuery.isSuccess, process.start);
+  useFarmerAutoProcess("quests", !questsQuery.isLoading, process.start);
 
   return (
     <div className="p-4">

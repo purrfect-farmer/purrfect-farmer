@@ -286,7 +286,7 @@ export default function BlumAutoTasks() {
   ]);
 
   /** Auto-Complete Tasks */
-  useFarmerAutoProcess("tasks", query.isSuccess, process.start);
+  useFarmerAutoProcess("tasks", !query.isLoading, process.start);
 
   return (
     <>

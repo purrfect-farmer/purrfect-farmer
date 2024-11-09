@@ -151,7 +151,7 @@ export default function YescoinDailyMission() {
   }, [process]);
 
   /** Auto-Complete Missions */
-  useFarmerAutoProcess("missions", missionsQuery.isSuccess, process.start);
+  useFarmerAutoProcess("missions", !missionsQuery.isLoading, process.start);
 
   return missionsQuery.isPending ? (
     <CgSpinner className="w-5 h-5 mx-auto animate-spin" />

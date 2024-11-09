@@ -150,7 +150,7 @@ export default function BitsSocialTasks() {
   }, [process, action]);
 
   /** Auto-Complete Tasks */
-  useFarmerAutoProcess("tasks", query.isSuccess, process.start);
+  useFarmerAutoProcess("tasks", !query.isLoading, process.start);
 
   return (
     <>

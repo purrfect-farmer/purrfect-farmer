@@ -1,6 +1,7 @@
 import Slider from "@/components/Slider";
 import toast from "react-hot-toast";
 import useFarmerAutoProcess from "@/drops/notpixel/hooks/useFarmerAutoProcess";
+import useFarmerContext from "@/hooks/useFarmerContext";
 import useProcessLock from "@/hooks/useProcessLock";
 import useSocketState from "@/hooks/useSocketState";
 import { CgSpinner } from "react-icons/cg";
@@ -11,7 +12,6 @@ import useYescoinCollectCoinMutation from "../hooks/useYescoinCollectCoinMutatio
 import useYescoinCollectSpecialBoxCoinMutation from "../hooks/useYescoinCollectSpecialBoxCoinMutation";
 import useYescoinGameInfoQuery from "../hooks/useYescoinGameInfoQuery";
 import useYescoinGameSpecialBoxInfoQuery from "../hooks/useYescoinGameSpecialBoxInfoQuery";
-import useFarmerContext from "@/hooks/useFarmerContext";
 
 export default function YescoinGamer() {
   const { zoomies } = useFarmerContext();
@@ -85,7 +85,7 @@ export default function YescoinGamer() {
   }, [process, zoomies.enabled, coinLeft, specialBox, farmingSpeed]);
 
   /** Auto-Game */
-  useFarmerAutoProcess("game", gameInfoQuery.isSuccess, process.start);
+  useFarmerAutoProcess("game", !gameInfoQuery.isLoading, process.start);
 
   return (
     <div className="flex flex-col gap-2">

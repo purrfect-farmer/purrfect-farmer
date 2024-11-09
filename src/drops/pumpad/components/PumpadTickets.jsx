@@ -50,7 +50,7 @@ export default function PumpadTickets() {
   }, [process, ticketsCount, farmingSpeed]);
 
   /** Auto-Spin */
-  useFarmerAutoProcess("tickets", query.isSuccess, process.start);
+  useFarmerAutoProcess("tickets", !query.isLoading, process.start);
 
   return (
     <div className="p-4">
