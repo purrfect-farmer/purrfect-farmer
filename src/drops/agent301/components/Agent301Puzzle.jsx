@@ -95,7 +95,7 @@ export default function Agent301Puzzle() {
 
   /** Complete Puzzle */
   useFarmerAutoTask(
-    "puzzle",
+    "wheel.puzzle",
     () => {
       if (cardsQuery.isSuccess) {
         const day = new Date().toISOString().split("T")[0];
