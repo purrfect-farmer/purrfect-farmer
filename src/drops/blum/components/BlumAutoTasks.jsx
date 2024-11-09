@@ -2,7 +2,7 @@ import useFarmerAutoProcess from "@/drops/notpixel/hooks/useFarmerAutoProcess";
 import useFarmerContext from "@/hooks/useFarmerContext";
 import useProcessLock from "@/hooks/useProcessLock";
 import useValueTasks from "@/hooks/useValueTasks";
-import { cn, delay } from "@/lib/utils";
+import { cn, delay, logNicely } from "@/lib/utils";
 import { useCallback } from "react";
 import { useEffect } from "react";
 import { useMemo } from "react";
@@ -20,7 +20,7 @@ export default function BlumAutoTasks() {
   const client = useQueryClient();
   const query = useBlumTasksQuery();
 
-  const { zoomies } = useFarmerContext();
+  const { zoomies, dataQuery } = useFarmerContext();
 
   /** Concat sub tasks */
   const reduceTasks = useCallback(
@@ -156,6 +156,11 @@ export default function BlumAutoTasks() {
     [client]
   );
 
+  /** Log the Tasks */
+  useEffect(() => {
+    logNicely("BLUM TASKS", tasks);
+  }, [tasks]);
+
   /** Reset */
   useEffect(reset, [process.started, reset]);
 
@@ -213,13 +218,12 @@ export default function BlumAutoTasks() {
             setTaskOffset(index);
             setCurrentTask(task);
 
-            /** Skip during zoomies */
-            if (zoomies.enabled) continue;
-
             try {
-              let keyword =
-                (await getResolvedValue(task.id)) ||
-                (await dispatchAndPrompt(task.id));
+              let keyword = zoomies.enabled
+                ? dataQuery.data?.blum?.keywords?.[task.id] ||
+                  dataQuery.data?.blum?.keywords?.[task.title.toUpperCase()]
+                : (await getResolvedValue(task.id)) ||
+                  (await dispatchAndPrompt(task.id));
 
               if (keyword) {
                 try {
@@ -275,6 +279,7 @@ export default function BlumAutoTasks() {
     zoomies.enabled,
     process,
     action,
+    dataQuery.data,
     getResolvedValue,
     removeResolvedValue,
     dispatchAndPrompt,

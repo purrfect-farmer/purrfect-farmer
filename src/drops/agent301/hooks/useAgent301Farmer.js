@@ -14,7 +14,7 @@ export default function useAgent301Farmer() {
           title: "Agent301 Farmer",
         },
         domains: ["*.agent301.org"],
-        autoTasks: ["tasks", "wheel", "tickets"],
+        autoTasks: ["tasks", "wheel", "puzzle", "tickets"],
       }),
       []
     )

@@ -1,7 +1,10 @@
 import toast from "react-hot-toast";
+import useFarmerAutoTask from "@/drops/notpixel/hooks/useFarmerAutoTask";
+import useFarmerContext from "@/hooks/useFarmerContext";
 import useSocketDispatchCallback from "@/hooks/useSocketDispatchCallback";
 import useSocketHandlers from "@/hooks/useSocketHandlers";
 import useSocketState from "@/hooks/useSocketState";
+import { logNicely } from "@/lib/utils";
 import { useCallback } from "react";
 import { useMemo } from "react";
 
@@ -15,6 +18,7 @@ export default function Agent301Puzzle() {
   const cardsQuery = useAgent301CardsQuery();
   const result = cardsQuery.data?.result;
   const attemptsLeft = result?.attemptsLeft || 0;
+  const { dataQuery, processNextTask } = useFarmerContext();
 
   const balanceQuery = useAgent301BalanceQuery();
   const claimMutation = useAgent301PuzzleMutation();
@@ -29,7 +33,7 @@ export default function Agent301Puzzle() {
     (choices) => {
       setShowModal(false);
 
-      toast
+      return toast
         .promise(claimMutation.mutateAsync(choices), {
           loading: "Checking...",
           success: "Done...",
@@ -87,6 +91,35 @@ export default function Agent301Puzzle() {
       }),
       [handleButtonClick]
     )
+  );
+
+  /** Complete Puzzle */
+  useFarmerAutoTask(
+    "puzzle",
+    () => {
+      if (cardsQuery.isSuccess) {
+        const day = new Date().toISOString().split("T")[0];
+        const answer = dataQuery.data?.agent301?.puzzle?.[day];
+
+        /** Log It */
+        logNicely("AGENT 301 PUZZLE", day, answer);
+
+        if (attemptsLeft && answer) {
+          handleChoiceSubmit(answer).finally(() => {
+            processNextTask();
+          });
+        } else {
+          processNextTask();
+        }
+      }
+    },
+    [
+      attemptsLeft,
+      cardsQuery.isSuccess,
+      dataQuery.isSuccess,
+      handleChoiceSubmit,
+      processNextTask,
+    ]
   );
 
   return (

@@ -77,6 +77,21 @@ export default function useDropFarmer({
     queryFn: authQueryFn,
   });
 
+  /** Data Query */
+  const dataQuery = useAppQuery({
+    refetchOnMount: false,
+    refetchOnWindowFocus: false,
+    refetchInterval: 5 * 60 * 1000,
+
+    queryKey: ["app", "farmer", "data"],
+    queryFn: ({ signal }) =>
+      axios
+        .get(import.meta.env.VITE_APP_FARMER_DATA_URL, {
+          signal,
+        })
+        .then((res) => res.data),
+  });
+
   /** Status */
   const status = useMemo(
     () => (!telegramWebApp ? "pending-webapp" : "pending-auth"),
@@ -324,6 +339,7 @@ export default function useDropFarmer({
     auth,
     authQuery,
     authQueryKey,
+    dataQuery,
     queryClient,
     telegramWebApp,
     isMutating,
