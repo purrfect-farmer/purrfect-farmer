@@ -19,7 +19,7 @@ export default defineConfig(({ mode }) => {
   switch (process.env.VITE_ENTRY) {
     case "index":
       input = Object.fromEntries(
-        ["index", "notpixel-sandbox", "offscreen"].map((item) => [
+        ["index", "notpixel-sandbox"].map((item) => [
           item,
           path.resolve(__dirname, `./${item}.html`),
         ])

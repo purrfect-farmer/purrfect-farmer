@@ -67,13 +67,11 @@ export default function useMessagePort() {
       /** Add Port */
       addPort(port);
 
-      /** Message Handler */
-      if (port.name !== "telegram-web") {
-        port.onMessage.addListener(portMessageHandler);
-      }
-
       /** Register Disconnect */
       port.onDisconnect.addListener(removePort);
+
+      /** Message Handler */
+      port.onMessage.addListener(portMessageHandler);
     };
 
     chrome?.runtime?.onConnect.addListener(portConnectHandler);

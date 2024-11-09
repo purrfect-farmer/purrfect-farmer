@@ -6,13 +6,12 @@ export default function useRefCallback(...args) {
   const callback = useCallback(...args);
   const ref = useRef(callback);
 
-  const staticCallback = useCallback((...args) => {
-    return ref.current(...args);
-  }, []);
-
+  /** Update Ref */
   useLayoutEffect(() => {
     ref.current = callback;
   }, [callback]);
 
-  return staticCallback;
+  return useCallback((...args) => {
+    return ref.current(...args);
+  }, []);
 }

@@ -8,10 +8,8 @@ export default function useEventEmitter() {
 
   /** Set listeners */
   const addListeners = useCallback(
-    (items, once = false) => {
-      Object.entries(items).forEach(([k, v]) =>
-        once ? emitter.once(k, v) : emitter.on(k, v)
-      );
+    (items) => {
+      Object.entries(items).forEach(([k, v]) => emitter.on(k, v));
     },
     [emitter]
   );

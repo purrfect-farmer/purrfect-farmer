@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "Purrfect Farmer",
   "description": "Purrfect Farmer",
-  "version": "0.2.5",
+  "version": "0.2.6",
   "icons": {
     "16": "icon-16.png",
     "32": "icon-32.png",
@@ -10,7 +10,6 @@
     "128": "icon-128.png"
   },
   "permissions": [
-    "offscreen",
     "tabs",
     "activeTab",
     "storage",

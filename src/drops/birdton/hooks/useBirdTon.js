@@ -13,7 +13,7 @@ export default function useBirdTon(farmer) {
   const [websocketAuthKey, setWebsocketAuthKey] = useState(null);
 
   const {
-    emitter: messageHandlers,
+    emitter: handler,
     addListeners: addMessageHandlers,
     removeListeners: removeMessageHandlers,
   } = useEventEmitter();
@@ -73,8 +73,8 @@ export default function useBirdTon(farmer) {
       /** Message */
       const data = JSON.parse(message.data);
 
-      if (messageHandlers.listeners(data["event_type"]).length) {
-        messageHandlers.emit(data["event_type"], data);
+      if (handler.listeners(data["event_type"]).length) {
+        handler.emit(data["event_type"], data);
       } else {
         setEventData((prev) => {
           const newMap = new Map(prev);
@@ -99,7 +99,7 @@ export default function useBirdTon(farmer) {
       /** Remove Message Listener */
       socketRef.current?.removeEventListener("message", messageController);
     };
-  }, [connected, messageHandlers, ping, setEventData]);
+  }, [connected, handler, ping, setEventData]);
 
   /** Instantiate the Socket */
   useEffect(() => {

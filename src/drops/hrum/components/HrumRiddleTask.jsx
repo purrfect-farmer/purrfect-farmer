@@ -1,6 +1,9 @@
 import toast from "react-hot-toast";
+import useFarmerAutoTask from "@/drops/notpixel/hooks/useFarmerAutoTask";
+import useFarmerContext from "@/hooks/useFarmerContext";
 import useSocketDispatchCallback from "@/hooks/useSocketDispatchCallback";
 import useSocketHandlers from "@/hooks/useSocketHandlers";
+import { delay } from "@/lib/utils";
 import { useCallback } from "react";
 import { useMemo } from "react";
 
@@ -9,8 +12,6 @@ import HrumTaskButton from "./HrumTaskButton";
 import RiddleIcon from "../assets/images/riddle.jpg?format=webp&w=80";
 import useHrumCheckQuestMutation from "../hooks/useHrumCheckQuestMutation";
 import useHrumClaimQuestMutation from "../hooks/useHrumClaimQuestMutation";
-import useFarmerAutoTask from "@/drops/notpixel/hooks/useFarmerAutoTask";
-import useFarmerContext from "@/hooks/useFarmerContext";
 
 export default function HrumRiddleTask({ queries }) {
   const checkRiddleMutation = useHrumCheckQuestMutation("riddle");
@@ -52,6 +53,9 @@ export default function HrumRiddleTask({ queries }) {
           toast.error("Failed to Claim Riddle!");
         }
       }
+
+      /** Little Delay */
+      await delay(500);
 
       /** Process Next Task */
       processNextTask();

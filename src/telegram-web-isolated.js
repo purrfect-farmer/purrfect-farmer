@@ -92,10 +92,19 @@ const botIsRunning = () => {
   }
 };
 
+/** Farmer Bot Interval */
+let farmerBotInterval;
+
+/** Farmer Bot Observer */
+let farmerBotObserver;
+
 /** Open Farmer Bot */
 const openFarmerBot = () => {
-  /** Observer Interval */
-  let interval;
+  /** Clear Previous Interval */
+  clearInterval(farmerBotInterval);
+
+  /** Clear Previous Observer */
+  farmerBotObserver?.disconnect();
 
   /** Start Button */
   let hasClickedStartButton = clickBotStartButton();
@@ -104,18 +113,18 @@ const openFarmerBot = () => {
   clickBotLaunchButton();
 
   /** Start Observing */
-  const observer = new MutationObserver(function () {
+  farmerBotObserver = new MutationObserver(function () {
     /** Clear Interval */
-    clearInterval(interval);
+    clearInterval(farmerBotInterval);
 
-    interval = setInterval(() => {
+    farmerBotInterval = setInterval(() => {
       /** Bot is Running */
       if (botIsRunning()) {
         /** Clear Interval */
-        clearInterval(interval);
+        clearInterval(farmerBotInterval);
 
         /** Disconnect Observer */
-        observer.disconnect();
+        farmerBotObserver.disconnect();
       } else {
         /** Click the Start Button */
         if (!hasClickedStartButton) {
@@ -128,7 +137,7 @@ const openFarmerBot = () => {
     }, 100);
   });
 
-  observer.observe(document.documentElement, {
+  farmerBotObserver.observe(document.documentElement, {
     childList: true,
     subtree: true,
   });
@@ -149,7 +158,7 @@ const autoConfirm = () => {
 
 /** Connect to Messaging */
 const port = chrome.runtime.connect(chrome.runtime.id, {
-  name: `telegram-web:${webVersion}`,
+  name: `telegram-web-${webVersion}`,
 });
 
 /** Listen for Port Message */
@@ -164,11 +173,6 @@ port.onMessage.addListener(async (message) => {
       });
       break;
   }
-});
-
-/** Set Port */
-port.postMessage({
-  action: `set-port:telegram-web-${webVersion}`,
 });
 
 /** Enable auto confirm */

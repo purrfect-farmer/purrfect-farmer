@@ -12,7 +12,7 @@ export default function useSocket(server = "127.0.0.1:7777") {
   const [connected, setConnected] = useState(false);
   const [syncing, setSyncing] = useState(true);
   const {
-    emitter: commandHandlers,
+    emitter: handler,
     addListeners: addCommandHandlers,
     removeListeners: removeCommandHandlers,
   } = useEventEmitter();
@@ -53,7 +53,7 @@ export default function useSocket(server = "127.0.0.1:7777") {
     const actionHandler = (arg) => {
       if (!syncing) return;
 
-      commandHandlers.emit(arg.action, arg);
+      handler.emit(arg.action, arg);
     };
 
     socketRef.current?.on("command", actionHandler);
@@ -61,7 +61,7 @@ export default function useSocket(server = "127.0.0.1:7777") {
     return () => {
       socketRef.current?.off("command", actionHandler);
     };
-  }, [commandHandlers, syncing]);
+  }, [handler, syncing]);
 
   return useMemo(
     () => ({

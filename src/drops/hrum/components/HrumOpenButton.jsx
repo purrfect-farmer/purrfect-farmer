@@ -1,13 +1,14 @@
 import toast from "react-hot-toast";
+import useFarmerAutoTask from "@/drops/notpixel/hooks/useFarmerAutoTask";
+import useFarmerContext from "@/hooks/useFarmerContext";
 import useSocketDispatchCallback from "@/hooks/useSocketDispatchCallback";
 import useSocketHandlers from "@/hooks/useSocketHandlers";
+import { delay } from "@/lib/utils";
 import { useCallback } from "react";
 import { useMemo } from "react";
 
 import HrumFullscreenSpinner from "./HrumFullscreenSpinner";
 import useHrumOpenMutation from "../hooks/useHrumOpenMutation";
-import useFarmerAutoTask from "@/drops/notpixel/hooks/useFarmerAutoTask";
-import useFarmerContext from "@/hooks/useFarmerContext";
 
 export default function HrumOpenButton({ queries }) {
   const openMutation = useHrumOpenMutation();
@@ -36,6 +37,9 @@ export default function HrumOpenButton({ queries }) {
           toast.error("Failed to Open Cookie!");
         }
       }
+
+      /** Little Delay */
+      await delay(500);
 
       /** Process Next Task */
       processNextTask();

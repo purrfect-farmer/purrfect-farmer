@@ -2,12 +2,11 @@ import { Toaster } from "react-hot-toast";
 import { useEffect, useRef } from "react";
 
 import AppContext from "./contexts/AppContext";
+import ControlArea from "./ControlArea";
 import TabButtonList from "./components/TabButtonList";
 import TabContent from "./components/TabContent";
 import useApp from "./hooks/useApp";
 import { resizeFarmerWindow } from "./lib/utils";
-import ControlArea from "./ControlArea";
-import { closeOffscreenDocument } from "./offscreen";
 
 function App() {
   const app = useApp();
@@ -48,13 +47,6 @@ function App() {
       wakeLockRef.current?.release();
       wakeLockRef.current = null;
     };
-  }, []);
-
-  /** Close Offscreen Document */
-  useEffect(() => {
-    (async () => {
-      await closeOffscreenDocument();
-    })();
   }, []);
 
   return (

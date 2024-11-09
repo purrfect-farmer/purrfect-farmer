@@ -99,12 +99,6 @@ if (location.hash.includes("tgWebAppData")) {
   port.onMessage.addListener(async (message) => {
     const { id, action, data } = message;
     switch (action) {
-      case `get-port:${location.host}`:
-        port.postMessage({
-          action: `set-port:${location.host}`,
-        });
-        break;
-
       case `get-telegram-web-app:${location.host}`:
         const telegramWebApp = await getTelegramWebApp();
         dispatchTelegramWebApp(telegramWebApp);
@@ -142,11 +136,6 @@ if (location.hash.includes("tgWebAppData")) {
         });
         break;
     }
-  });
-
-  /** Set Port */
-  port.postMessage({
-    action: `set-port:${location.host}`,
   });
 
   /** Listen for TelegramWebApp */
