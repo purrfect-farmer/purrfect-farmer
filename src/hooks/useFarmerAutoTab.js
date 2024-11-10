@@ -1,9 +1,11 @@
 import useFarmerAutoTask from "@/drops/notpixel/hooks/useFarmerAutoTask";
+import { useMemo } from "react";
 
 import useFarmerContext from "./useFarmerContext";
 
 export default function useFarmerAutoTab(onValueChange) {
-  const { tasks } = useFarmerContext();
+  const { zoomies } = useFarmerContext();
+  const tasks = useMemo(() => zoomies.current.drop.tasks, []);
 
   /** Auto-Tab */
   tasks.forEach((task) => {

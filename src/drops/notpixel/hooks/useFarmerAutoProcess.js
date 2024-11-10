@@ -8,9 +8,20 @@ export default function useFarmerAutoProcess(task, check, start) {
     task,
     () => {
       if (check) {
+        /** @type {AbortController} */
+        let controller;
+
+        /** Start the Process */
         start((process) => {
-          process.controller.signal.addEventListener("abort", processNextTask);
+          controller = process.controller;
+          controller.signal.addEventListener("abort", processNextTask);
         });
+
+        /** Abort on Skip */
+        return () => {
+          controller.signal.removeEventListener("abort", processNextTask);
+          controller.abort();
+        };
       }
     },
     [check, start, processNextTask]

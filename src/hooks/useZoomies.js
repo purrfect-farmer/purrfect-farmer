@@ -26,7 +26,7 @@ export default function useZoomies(core) {
   /** Current State */
   const [current, setCurrent] = useState({
     drop: drops[INITIAL_POSITION],
-    task: null,
+    task: drops[INITIAL_POSITION]?.tasks?.[0],
   });
 
   /** Reset Zoomies */
@@ -46,19 +46,43 @@ export default function useZoomies(core) {
   /** Skip to Next Drop */
   const skipToNextDrop = useCallback(() => {
     setCurrent((prev) => {
+      const drop = drops[(drops.indexOf(prev.drop) + 1) % drops.length];
       return {
-        drop: drops[(drops.indexOf(prev.drop) + 1) % drops.length],
-        task: null,
+        drop,
+        task: drop?.tasks?.[0],
       };
     });
   }, [drops, setCurrent]);
 
+  /** Process the next task */
+  const processNextTask = useCallback(() => {
+    if (process.started) {
+      setCurrent((prev) => {
+        if (prev.task === prev.drop.tasks.at(-1)) {
+          const drop = drops[(drops.indexOf(prev.drop) + 1) % drops.length];
+
+          return {
+            drop,
+            task: drop?.tasks?.[0],
+          };
+        } else {
+          const tasks = prev.drop.tasks;
+
+          return {
+            ...prev,
+            task: tasks[(tasks.indexOf(prev.task) + 1) % tasks.length],
+          };
+        }
+      });
+    }
+  }, [process.started, drops, setCurrent]);
+
   /** Reset Zoomies */
   useEffect(() => {
-    if (process.started && !current.task) {
+    if (process.started && current.drop) {
       resetZoomies();
     }
-  }, [process.started, current.task]);
+  }, [process.started, current.drop]);
 
   /** Open Bot */
   useEffect(() => {
@@ -105,7 +129,7 @@ export default function useZoomies(core) {
       } else {
         return {
           drop: drops[0],
-          task: null,
+          task: drops[0]?.tasks?.[0],
         };
       }
     });
@@ -113,7 +137,7 @@ export default function useZoomies(core) {
 
   /** Stop When There's no Drop */
   useEffect(() => {
-    if (!current.drop && process.started) {
+    if (process.started && !current.drop) {
       process.stop();
       toast.error("No Farmer enabled in the Zoomies");
     }
@@ -128,5 +152,6 @@ export default function useZoomies(core) {
     setAuth,
     setCurrent,
     skipToNextDrop,
+    processNextTask,
   });
 }

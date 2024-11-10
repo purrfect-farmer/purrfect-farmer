@@ -15,7 +15,6 @@ export default function useYescoinFarmer() {
         },
         domains: ["*.yescoin.gold"],
         authHeaders: ["token"],
-        tasks: ["tasks", "missions", "game"],
       }),
       []
     )

@@ -25,7 +25,6 @@ export default function useBitsFarmer() {
             })
             .then((res) => res.data);
         },
-        tasks: ["tasks"],
       }),
       []
     )

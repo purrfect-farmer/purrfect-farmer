@@ -25,7 +25,6 @@ export default function useDropFarmer({
   fetchAuth,
   notification,
   authQueryOptions,
-  tasks = [],
 }) {
   /** Zoomies */
   const { zoomies } = useAppContext();
@@ -125,25 +124,9 @@ export default function useDropFarmer({
   }, [resetTelegramWebApp, resetAuth]);
 
   /**  Next task callback */
-  const processNextTask = useRefCallback(() => {
-    if (zoomies.enabled) {
-      zoomies.setCurrent((prev) => {
-        if (prev.drop?.id !== id || prev.task === tasks.at(-1)) {
-          return {
-            drop: zoomies.drops[
-              (zoomies.drops.indexOf(prev.drop) + 1) % zoomies.drops.length
-            ],
-            task: null,
-          };
-        } else {
-          return {
-            ...prev,
-            task: tasks[(tasks.indexOf(prev.task) + 1) % tasks.length],
-          };
-        }
-      });
-    }
-  }, [id, tasks, zoomies.enabled, zoomies.drops, zoomies.setCurrent]);
+  const processNextTask = useRefCallback(zoomies.processNextTask, [
+    zoomies.processNextTask,
+  ]);
 
   /** Enforce only one request */
   useEffect(() => {
@@ -317,22 +300,7 @@ export default function useDropFarmer({
     };
   }, [id, auth]);
 
-  /** Clean Up */
-  useEffect(() => () => resetAuth(), [resetAuth]);
-
   /** ========= Zoomies =========== */
-  /** Set Initial Task */
-  useEffect(() => {
-    if (isZooming && zoomies.current.task === null) {
-      zoomies.setCurrent((prev) => {
-        return {
-          ...prev,
-          task: tasks[0],
-        };
-      });
-    }
-  }, [id, tasks, isZooming, zoomies.current.task, zoomies.setCurrent]);
-
   /** Set Auth */
   useEffect(() => {
     if (isZooming) {
@@ -354,11 +322,13 @@ export default function useDropFarmer({
     }
   }, [auth, telegramWebApp, isZooming, zoomies.skipToNextDrop]);
 
+  /** Clean Up */
+  useEffect(() => () => resetAuth(), [resetAuth]);
+
   /** Return API and Auth */
   return useValuesMemo({
     id,
     status,
-    tasks,
     port,
     api,
     auth,
