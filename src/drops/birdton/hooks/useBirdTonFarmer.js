@@ -23,7 +23,7 @@ export default function useBirdTonFarmer() {
             .then((res) => res.data);
         },
 
-        autoTasks: ["game", "tasks"],
+        tasks: ["game", "tasks"],
       }),
       []
     )

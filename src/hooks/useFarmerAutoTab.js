@@ -3,14 +3,14 @@ import useFarmerAutoTask from "@/drops/notpixel/hooks/useFarmerAutoTask";
 import useFarmerContext from "./useFarmerContext";
 
 export default function useFarmerAutoTab(onValueChange) {
-  const { autoTasks } = useFarmerContext();
+  const { tasks } = useFarmerContext();
 
   /** Auto-Tab */
-  autoTasks.forEach((task) => {
+  tasks.forEach((task) => {
     useFarmerAutoTask(
       task,
       (zoomies) => {
-        onValueChange(zoomies.currentTask.split(".")[0]);
+        onValueChange(zoomies.current.task.split(".")[0]);
       },
       [onValueChange]
     );

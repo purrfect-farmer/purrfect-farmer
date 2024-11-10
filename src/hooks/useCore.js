@@ -443,69 +443,9 @@ export default function useCore() {
             openFarmerBot("k");
           };
 
-          /** Telegram Web */
-          const telegramWeb = openedTabs.find((tab) =>
-            ["telegram-web-k", "telegram-web-a"].includes(tab.id)
-          );
-
-          /** Mini App Ports */
-          const miniAppPorts = messaging.ports
-            .values()
-            .filter((port) => port.name.startsWith("mini-app:"))
-            .toArray();
-
-          if (!telegramWeb || !miniAppPorts.length) {
-            return openNewTelegramWeb();
-          }
-
-          /** Close Other Bots */
-          let portToPostMessage;
-
-          if (settings.closeOtherBots) {
-            const farmerBotPortName = `mini-app:${
-              import.meta.env.VITE_APP_BOT_HOST
-            }`;
-            const farmerBotPort = miniAppPorts.find(
-              (port) => port.name === farmerBotPortName
-            );
-
-            if (farmerBotPort) {
-              miniAppPorts
-                .filter((port) => port.name !== farmerBotPortName)
-                .forEach((port) => {
-                  postPortMessage(port, {
-                    action: "close-bot",
-                  });
-                });
-
-              /** Reset Port List */
-              portToPostMessage = farmerBotPort;
-            } else {
-              /** Remove Previous Ports */
-              miniAppPorts.slice(0, -1).forEach((port) => {
-                postPortMessage(port, {
-                  action: "close-bot",
-                });
-              });
-
-              /** Reset Port List */
-              portToPostMessage = miniAppPorts.at(-1);
-            }
-          }
-
-          /** Post Message to First Port */
-          if (portToPostMessage) {
-            postTelegramLink(portToPostMessage, telegramWeb.id);
-          }
+          return openNewTelegramWeb();
         },
-        [
-          openedTabs,
-          openFarmerBot,
-          setActiveTab,
-          messaging.ports,
-          messaging.handler,
-          settings.closeOtherBots,
-        ]
+        [openedTabs, openFarmerBot, setActiveTab, messaging.handler]
       ),
 
       /** Dispatch */

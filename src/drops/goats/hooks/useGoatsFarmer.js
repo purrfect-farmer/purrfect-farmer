@@ -15,7 +15,7 @@ export default function useGoatsFarmer() {
         },
         domains: ["*.goatsbot.xyz"],
         apiDelay: 5000,
-        autoTasks: ["missions"],
+        tasks: ["missions"],
       }),
       []
     )

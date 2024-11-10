@@ -14,7 +14,7 @@ export default function useSlotcoinFarmer() {
           title: "Slotcoin Farmer",
         },
         domains: ["*.slotcoin.app"],
-        autoTasks: ["quests", "tickets", "lottery"],
+        tasks: ["quests", "tickets", "lottery"],
       }),
       []
     )

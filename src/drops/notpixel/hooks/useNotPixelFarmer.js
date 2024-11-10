@@ -14,7 +14,7 @@ export default function useNotPixelFarmer() {
           title: "NotPixel Farmer",
         },
         domains: ["notpx.app"],
-        autoTasks: ["paint"],
+        tasks: ["paint"],
       }),
       []
     )

@@ -1,4 +1,5 @@
 import farmerTabs from "@/farmerTabs";
+import toast from "react-hot-toast";
 import { useCallback } from "react";
 import { useEffect } from "react";
 import { useMemo } from "react";
@@ -16,97 +17,105 @@ export default function useZoomies(core) {
     [farmerTabs, core.settings.zoomies]
   );
 
+  /** Process */
   const process = useProcessLock("app.zoomies", core.socket);
+
+  /** Auth */
   const [auth, setAuth] = useState(false);
 
-  /** PATCH */
-  const [currentPosition, setCurrentPosition] = useState(INITIAL_POSITION);
-  const [currentTask, setCurrentTask] = useState(null);
-  const currentDrop = drops[currentPosition];
+  /** Current State */
+  const [current, setCurrent] = useState({
+    drop: drops[INITIAL_POSITION],
+    task: null,
+  });
 
+  /** Reset Zoomies */
   const resetZoomies = useCallback(() => {
+    /** Reset Auth */
     setAuth(false);
+
+    /** Reset Tabs */
     core.resetTabs();
-    if (currentDrop) {
-      core.setActiveTab(currentDrop.id);
+
+    /** Set Active Tab */
+    if (current.drop) {
+      core.setActiveTab(current.drop.id);
     }
-  }, [currentDrop, setAuth, core.resetTabs, core.setActiveTab]);
-
-  const closeTelegramWeb = useCallback(() => {
-    core.closeTab("telegram-web-k");
-  }, [core.closeTab]);
-
-  const processNextDrop = useCallback(() => {
-    /** Reset Task */
-    setCurrentTask(null);
-
-    if (currentDrop === drops.at(-1)) {
-      setCurrentPosition(0);
-
-      if (drops.length === 1) {
-        core.resetTabs();
-        core.setActiveTab(drops[0].id);
-        setAuth(false);
-      }
-    } else {
-      setCurrentPosition((prev) => prev + 1);
-    }
-  }, [
-    drops,
-    currentDrop,
-    setAuth,
-    setCurrentTask,
-    setCurrentPosition,
-    core.resetTabs,
-    core.setActiveTab,
-  ]);
+  }, [current.drop, setAuth, core.resetTabs, core.setActiveTab]);
 
   /** Reset Zoomies */
   useEffect(() => {
     if (process.started) {
       resetZoomies();
     }
-  }, [process.started, currentPosition]);
+  }, [process.started, current.drop]);
 
   /** Open Bot */
   useEffect(() => {
-    let interval;
-    if (process.started && !auth) {
-      core.setActiveTab(currentDrop?.id);
-      core.openTelegramLink(currentDrop.telegramLink);
+    if (process.started && current.drop && !auth) {
+      /** Open Bot */
+      const openBot = () => {
+        core.setActiveTab(current.drop?.id);
+        core.openTelegramLink(current.drop.telegramLink);
+      };
 
-      interval = setInterval(() => {
-        core.setActiveTab(currentDrop?.id);
-        core.openTelegramLink(currentDrop.telegramLink);
-      }, 60000);
+      /** First Time */
+      openBot();
+
+      /** Interval */
+      const interval = setInterval(openBot, 60000);
+
+      /** Clear Interval */
+      return () => {
+        clearInterval(interval);
+      };
     }
-    return () => {
-      clearInterval(interval);
-    };
-  }, [process.started, auth, currentDrop]);
+  }, [process.started, auth, current.drop]);
 
   /** Handle Auth */
   useEffect(() => {
     if (!process.started) return;
 
     if (auth) {
+      /** Close Telegram Web */
       core.closeTab("telegram-web-k");
-      if (currentDrop) {
-        core.setActiveTab(currentDrop.id);
+
+      /** Set Active Tab */
+      if (current.drop) {
+        core.setActiveTab(current.drop.id);
       }
     }
-  }, [process.started, auth, currentDrop, core.closeTab, core.setActiveTab]);
+  }, [process.started, auth, current.drop, core.closeTab, core.setActiveTab]);
+
+  /** Reset the drops */
+  useEffect(() => {
+    setCurrent((prev) => {
+      if (drops.includes(prev.drop)) {
+        return prev;
+      } else {
+        return {
+          drop: drops[0],
+          task: null,
+        };
+      }
+    });
+  }, [drops, setCurrent]);
+
+  /** Stop When There's no Drop */
+  useEffect(() => {
+    if (!current.drop && process.started) {
+      process.stop();
+      toast.error("No Farmer enabled in the Zoomies");
+    }
+  }, [process.started, process.stop, current.drop]);
 
   return useValuesMemo({
+    drops,
     enabled: process.started,
     toggle: process.toggle,
     dispatchAndToggle: process.dispatchAndToggle,
-    currentPosition,
-    currentDrop,
-    currentTask,
+    current,
     setAuth,
-    setCurrentTask,
-    processNextDrop,
-    closeTelegramWeb,
+    setCurrent,
   });
 }

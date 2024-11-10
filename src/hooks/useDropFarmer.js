@@ -25,7 +25,7 @@ export default function useDropFarmer({
   fetchAuth,
   notification,
   authQueryOptions,
-  autoTasks = [],
+  tasks = [],
 }) {
   /** Zoomies */
   const { zoomies } = useAppContext();
@@ -44,6 +44,9 @@ export default function useDropFarmer({
 
   /** Axios Instance */
   const api = useMemo(() => axios.create(), []);
+
+  /** Is It Zooming? */
+  const isZooming = zoomies.enabled && zoomies.current.drop?.id === id;
 
   /** QueryClient */
   const queryClient = useQueryClient();
@@ -117,23 +120,24 @@ export default function useDropFarmer({
 
   /**  Next task callback */
   const processNextTask = useRefCallback(() => {
-    if (!zoomies.enabled) {
-      return;
-    } else if (zoomies.currentTask === autoTasks.at(-1)) {
-      zoomies.processNextDrop();
-    } else {
-      const index = autoTasks.findIndex((item) => item === zoomies.currentTask);
-      const task = autoTasks[index + 1];
-
-      zoomies.setCurrentTask(task);
+    if (zoomies.enabled) {
+      zoomies.setCurrent((prev) => {
+        if (prev.drop?.id !== id || prev.task === tasks.at(-1)) {
+          return {
+            drop: zoomies.drops[
+              (zoomies.drops.indexOf(prev.drop) + 1) % zoomies.drops.length
+            ],
+            task: null,
+          };
+        } else {
+          return {
+            ...prev,
+            task: tasks[(tasks.indexOf(prev.task) + 1) % tasks.length],
+          };
+        }
+      });
     }
-  }, [
-    zoomies.enabled,
-    zoomies.currentTask,
-    zoomies.setCurrentTask,
-    zoomies.processNextDrop,
-    autoTasks,
-  ]);
+  }, [id, tasks, zoomies.enabled, zoomies.drops, zoomies.setCurrent]);
 
   /** Enforce only one request */
   useEffect(() => {
@@ -310,30 +314,45 @@ export default function useDropFarmer({
   /** Clean Up */
   useEffect(() => () => resetAuth(), [resetAuth]);
 
-  /** Zoomies */
+  /** ========= Zoomies =========== */
+  /** Set Initial Task */
   useEffect(() => {
-    if (zoomies.enabled && zoomies.currentDrop?.id === id) {
-      zoomies.setAuth(auth);
+    if (isZooming && zoomies.current.task === null) {
+      zoomies.setCurrent((prev) => {
+        return {
+          ...prev,
+          task: tasks[0],
+        };
+      });
+    }
+  }, [id, tasks, isZooming, zoomies.current.task, zoomies.setCurrent]);
 
-      if (auth) {
-        zoomies.setCurrentTask((prev) => prev || autoTasks[0]);
+  /** Set Auth */
+  useEffect(() => {
+    if (isZooming) {
+      zoomies.setAuth(auth);
+    }
+  }, [auth, isZooming, zoomies.setAuth]);
+
+  /** Process Next Task if Unable to Obtain Auth within 15sec */
+  useEffect(() => {
+    if (isZooming) {
+      if (telegramWebApp && !auth) {
+        /** Set Timeout */
+        const timeout = setTimeout(processNextTask, 15_000);
+
+        return () => {
+          clearTimeout(timeout);
+        };
       }
     }
-  }, [
-    id,
-    auth,
-    zoomies.enabled,
-    zoomies.currentDrop?.id,
-    zoomies.setAuth,
-    zoomies.setCurrentTask,
-    autoTasks,
-  ]);
+  }, [auth, telegramWebApp, isZooming, processNextTask]);
 
   /** Return API and Auth */
   return useValuesMemo({
     id,
     status,
-    autoTasks,
+    tasks,
     port,
     api,
     auth,
@@ -344,6 +363,7 @@ export default function useDropFarmer({
     telegramWebApp,
     isMutating,
     zoomies,
+    isZooming,
     removeQueries,
     resetAuth,
     resetTelegramWebApp,
