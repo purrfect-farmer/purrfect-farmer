@@ -8,19 +8,12 @@ export default function ErrorFallback({ error, resetErrorBoundary }) {
   useEffect(() => {
     if (zoomies.enabled) {
       /** Process to Next Drop */
-      zoomies.setCurrent((prev) => {
-        return {
-          drop: zoomies.drops[
-            (zoomies.drops.indexOf(prev.drop) + 1) % zoomies.drops.length
-          ],
-          task: null,
-        };
-      });
+      zoomies.skipToNextDrop();
 
       /** Reset the Error */
       resetErrorBoundary();
     }
-  }, [zoomies.enabled, zoomies.drops, zoomies.setCurrent, resetErrorBoundary]);
+  }, [zoomies.enabled, zoomies.skipToNextDrop, resetErrorBoundary]);
 
   return (
     <div
