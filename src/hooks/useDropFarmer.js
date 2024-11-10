@@ -118,6 +118,12 @@ export default function useDropFarmer({
     removeQueries();
   }, [setAuth, removeQueries]);
 
+  /** Reset Farmer  */
+  const reset = useCallback(() => {
+    resetTelegramWebApp();
+    resetAuth();
+  }, [resetTelegramWebApp, resetAuth]);
+
   /**  Next task callback */
   const processNextTask = useRefCallback(() => {
     if (zoomies.enabled) {
@@ -367,6 +373,7 @@ export default function useDropFarmer({
     removeQueries,
     resetAuth,
     resetTelegramWebApp,
+    reset,
     updateQueryData,
     processNextTask,
   });

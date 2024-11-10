@@ -53,10 +53,10 @@ export default function useBirdTon(farmer) {
 
   /** Set Auth Key */
   useEffect(() => {
-    if (user && !websocketAuthKey) {
+    if (user) {
       setWebsocketAuthKey(user?.["auth_key"]);
     }
-  }, [user, websocketAuthKey, setWebsocketAuthKey]);
+  }, [user, setWebsocketAuthKey]);
 
   /** Handle Messages */
   useEffect(() => {
@@ -121,23 +121,20 @@ export default function useBirdTon(farmer) {
 
     /** Add Event Listener for Close */
     socket.addEventListener("close", (ev) => {
-      /** Set Connected False */
-      setConnected(false);
-
-      /** Reset Telegram Web */
-      if (ev.reason !== "USE_EFFECT_DEPS") {
-        farmer.resetTelegramWebApp();
+      /** Reset Farmer */
+      if (ev.code !== 3000) {
+        farmer.reset();
       }
     });
 
     return () => {
       try {
-        socketRef.current?.close(3000, "USE_EFFECT_DEPS");
+        socketRef.current?.close(3000);
       } catch {}
       socketRef.current = null;
       setConnected(false);
     };
-  }, [websocketAuthKey, farmer.resetTelegramWebApp]);
+  }, [websocketAuthKey, farmer.reset]);
 
   return useValuesMemo({
     ...farmer,
