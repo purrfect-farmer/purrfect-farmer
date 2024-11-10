@@ -45,10 +45,10 @@ export default function useZoomies(core) {
 
   /** Reset Zoomies */
   useEffect(() => {
-    if (process.started) {
+    if (process.started && current.task === null) {
       resetZoomies();
     }
-  }, [process.started, current.drop]);
+  }, [process.started, current.task]);
 
   /** Open Bot */
   useEffect(() => {
