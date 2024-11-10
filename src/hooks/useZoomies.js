@@ -58,7 +58,7 @@ export default function useZoomies(core) {
   const processNextTask = useCallback(() => {
     if (process.started) {
       setCurrent((prev) => {
-        if (prev.task === prev.drop.tasks.at(-1)) {
+        if (prev.task === prev.drop?.tasks?.at(-1)) {
           const drop = drops[(drops.indexOf(prev.drop) + 1) % drops.length];
 
           return {
