@@ -24,7 +24,9 @@ export default function useBirdTon(farmer) {
   /** Send Message */
   const sendMessage = useCallback(
     (message) => {
-      socketRef.current?.send(JSON.stringify(message));
+      if (socketRef.current?.readyState === WebSocket.OPEN) {
+        socketRef.current?.send(JSON.stringify(message));
+      }
     },
     [socketRef]
   );
