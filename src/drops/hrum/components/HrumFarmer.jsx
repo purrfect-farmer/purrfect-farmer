@@ -1,4 +1,5 @@
 import * as Tabs from "@radix-ui/react-tabs";
+import useFarmerAutoTab from "@/hooks/useFarmerAutoTab";
 import useSocketTabs from "@/hooks/useSocketTabs";
 import { CgSpinner } from "react-icons/cg";
 import { cn } from "@/lib/utils";
@@ -11,7 +12,6 @@ import HrumOpenButton from "./HrumOpenButton";
 import HrumRiddleTask from "./HrumRiddleTask";
 import useHrumDailyClaim from "../hooks/useHrumDailyClaim";
 import useHrumDataQueries from "../hooks/useHrumDataQueries";
-import useFarmerAutoTab from "@/hooks/useFarmerAutoTab";
 
 export default function () {
   const dataQueries = useHrumDataQueries();
@@ -23,7 +23,7 @@ export default function () {
   useHrumDailyClaim();
 
   /** Switch Tab Automatically */
-  useFarmerAutoTab(tabs.onValueChange);
+  useFarmerAutoTab(tabs);
 
   return dataQueries.isPending ? (
     <div className="flex items-center justify-center grow">
@@ -53,7 +53,7 @@ export default function () {
       {/* Open Button */}
       <HrumOpenButton queries={dataQueries} />
 
-      <Tabs.Root {...tabs} className="flex flex-col gap-4">
+      <Tabs.Root {...tabs.root} className="flex flex-col gap-4">
         <Tabs.List className="grid grid-cols-2">
           {["daily", "tasks"].map((value, index) => (
             <Tabs.Trigger

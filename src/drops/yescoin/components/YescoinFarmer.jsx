@@ -1,4 +1,5 @@
 import * as Tabs from "@radix-ui/react-tabs";
+import useFarmerAutoTab from "@/hooks/useFarmerAutoTab";
 import useSocketTabs from "@/hooks/useSocketTabs";
 import { CgSpinner } from "react-icons/cg";
 import { cn } from "@/lib/utils";
@@ -7,11 +8,10 @@ import YescoinBalanceDisplay from "./YescoinBalanceDisplay";
 import YescoinDailyMission from "./YescoinDailyMission";
 import YescoinGamer from "./YescoinGamer";
 import YescoinIcon from "../assets/images/icon.png?format=webp&w=80";
+import YescoinTasks from "./YescoinTasks";
 import useYescoinAccountInfoQuery from "../hooks/useYescoinAccountInfoQuery";
 import useYescoinDailyCheckIn from "../hooks/useYescoinDailyCheckIn";
 import useYescoinOfflineQuery from "../hooks/useYescoinOfflineQuery";
-import YescoinTasks from "./YescoinTasks";
-import useFarmerAutoTab from "@/hooks/useFarmerAutoTab";
 
 export default function YescoinFarmer() {
   const accountInfoQuery = useYescoinAccountInfoQuery();
@@ -21,7 +21,7 @@ export default function YescoinFarmer() {
   useYescoinOfflineQuery();
 
   /** Automatically Switch Tab */
-  useFarmerAutoTab(tabs.onValueChange);
+  useFarmerAutoTab(tabs);
 
   return (
     <div className="flex flex-col gap-2 p-4">
@@ -38,7 +38,7 @@ export default function YescoinFarmer() {
       {accountInfoQuery.isSuccess ? (
         <>
           <YescoinBalanceDisplay />
-          <Tabs.Root {...tabs} className="flex flex-col gap-4">
+          <Tabs.Root {...tabs.root} className="flex flex-col gap-4">
             <Tabs.List className="grid grid-cols-3">
               {["game", "missions", "tasks"].map((value, index) => (
                 <Tabs.Trigger

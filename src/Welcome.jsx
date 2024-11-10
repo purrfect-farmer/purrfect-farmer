@@ -20,6 +20,7 @@ import {
   HiOutlinePuzzlePiece,
 } from "react-icons/hi2";
 import { cn } from "@/lib/utils";
+import { forwardRef } from "react";
 import { useCallback } from "react";
 import { useEffect } from "react";
 import { useMemo } from "react";
@@ -27,10 +28,9 @@ import { useState } from "react";
 
 import DropButton from "./components/DropButton";
 import Shutdown from "./partials/Shutdown";
+import bots from "./bots";
 import farmerTabs from "./farmerTabs";
 import useSocketTabs from "./hooks/useSocketTabs";
-import bots from "./bots";
-import { forwardRef } from "react";
 
 const TelegramWebButton = forwardRef(({ icon, children, ...props }, ref) => (
   <button
@@ -270,7 +270,7 @@ export default function Welcome() {
             </div>
           </div>
 
-          <Tabs.Root {...tabs} className="flex flex-col gap-2 px-1 py-2">
+          <Tabs.Root {...tabs.root} className="flex flex-col gap-2 px-1 py-2">
             <Tabs.List className="grid grid-cols-2 px-1">
               {["farmers", "bots"].map((value, index) => (
                 <Tabs.Trigger

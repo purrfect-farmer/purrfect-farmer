@@ -1,17 +1,18 @@
+import * as Tabs from "@radix-ui/react-tabs";
+import toast from "react-hot-toast";
+import useFarmerAutoTab from "@/hooks/useFarmerAutoTab";
+import useSocketTabs from "@/hooks/useSocketTabs";
+import { cn } from "@/lib/utils";
 import { useEffect } from "react";
+
+import PumpadBalanceDisplay from "./PumpadBalanceDisplay";
 import PumpadIcon from "../assets/images/icon.png?format=webp&w=80";
-import usePumpadCheckInQuery from "../hooks/usePumpadCheckInQuery";
 import PumpadLottery from "./PumpadLottery";
+import PumpadMissions from "./PumpadMissions";
+import PumpadTickets from "./PumpadTickets";
 import PumpadUsernameDisplay from "./PumpadUsernameDisplay";
 import usePumpadCheckInMutation from "../hooks/usePumpadCheckInMutation";
-import toast from "react-hot-toast";
-import useSocketTabs from "@/hooks/useSocketTabs";
-import PumpadMissions from "./PumpadMissions";
-import * as Tabs from "@radix-ui/react-tabs";
-import { cn } from "@/lib/utils";
-import PumpadBalanceDisplay from "./PumpadBalanceDisplay";
-import PumpadTickets from "./PumpadTickets";
-import useFarmerAutoTab from "@/hooks/useFarmerAutoTab";
+import usePumpadCheckInQuery from "../hooks/usePumpadCheckInQuery";
 
 export default function PumpadFarmer() {
   const checkInQuery = usePumpadCheckInQuery();
@@ -33,7 +34,7 @@ export default function PumpadFarmer() {
   }, [checkInQuery.data]);
 
   /** Switch Tab Automatically */
-  useFarmerAutoTab(tabs.onValueChange);
+  useFarmerAutoTab(tabs);
 
   return (
     <div className="flex flex-col gap-2 py-4">
@@ -53,7 +54,7 @@ export default function PumpadFarmer() {
       {/* Balance */}
       <PumpadBalanceDisplay />
 
-      <Tabs.Root {...tabs} className="flex flex-col">
+      <Tabs.Root {...tabs.root} className="flex flex-col">
         <Tabs.List className="grid grid-cols-3">
           {["lottery", "tickets", "missions"].map((value, index) => (
             <Tabs.Trigger

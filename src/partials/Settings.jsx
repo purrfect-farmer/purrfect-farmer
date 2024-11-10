@@ -134,7 +134,7 @@ export default function Settings() {
                 </span>
               </Dialog.Description>
 
-              <Tabs.Root {...tabs} className="flex flex-col gap-4">
+              <Tabs.Root {...tabs.root} className="flex flex-col gap-4">
                 <Tabs.List className="grid grid-cols-2">
                   {["settings", "zoomies"].map((value, index) => (
                     <Tabs.Trigger

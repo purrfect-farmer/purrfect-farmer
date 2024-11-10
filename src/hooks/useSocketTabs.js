@@ -1,6 +1,5 @@
-import { useMemo } from "react";
-
 import useSocketState from "./useSocketState";
+import useValuesMemo from "./useValuesMemo";
 
 export default function useSocketTabs(key = "", defaultValue) {
   /** Tab Value */
@@ -9,8 +8,10 @@ export default function useSocketTabs(key = "", defaultValue) {
     defaultValue
   );
 
-  return useMemo(
-    () => ({ value, onValueChange: dispatchAndSetValue }),
-    [value, dispatchAndSetValue]
-  );
+  return useValuesMemo({
+    value,
+    setValue,
+    dispatchAndSetValue,
+    root: useValuesMemo({ value, onValueChange: dispatchAndSetValue }),
+  });
 }

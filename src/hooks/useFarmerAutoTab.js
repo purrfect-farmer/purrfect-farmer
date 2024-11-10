@@ -3,7 +3,7 @@ import { useMemo } from "react";
 
 import useFarmerContext from "./useFarmerContext";
 
-export default function useFarmerAutoTab(onValueChange) {
+export default function useFarmerAutoTab(tabs) {
   const { zoomies } = useFarmerContext();
   const tasks = useMemo(() => zoomies.current.drop?.tasks || [], []);
 
@@ -12,9 +12,9 @@ export default function useFarmerAutoTab(onValueChange) {
     useFarmerAutoTask(
       task,
       (zoomies) => {
-        onValueChange(zoomies.current.task?.split(".")[0]);
+        tabs.setValue(zoomies.current.task?.split(".")[0]);
       },
-      [onValueChange]
+      [tabs.setValue]
     );
   });
 }

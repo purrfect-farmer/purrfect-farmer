@@ -1,20 +1,20 @@
 import * as Tabs from "@radix-ui/react-tabs";
+import useFarmerAutoTab from "@/hooks/useFarmerAutoTab";
 import useSocketTabs from "@/hooks/useSocketTabs";
 import { cn } from "@/lib/utils";
 
 import Agent301BalanceDisplay from "./Agent301BalanceDisplay";
 import Agent301Icon from "../assets/images/icon.png?format=webp&w=80";
 import Agent301Lottery from "./Agent301Lottery";
+import Agent301Puzzle from "./Agent301Puzzle";
 import Agent301Tasks from "./Agent301Tasks";
 import Agent301Wheel from "./Agent301Wheel";
-import Agent301Puzzle from "./Agent301Puzzle";
-import useFarmerAutoTab from "@/hooks/useFarmerAutoTab";
 
 export default function Agent301Farmer() {
   const tabs = useSocketTabs("agent301.farmer-tabs", "tickets");
 
   /** Switch Tab Automatically */
-  useFarmerAutoTab(tabs.onValueChange);
+  useFarmerAutoTab(tabs);
 
   return (
     <div className="flex flex-col gap-2 py-4">
@@ -30,7 +30,7 @@ export default function Agent301Farmer() {
       {/* Puzzle */}
       <Agent301Puzzle />
 
-      <Tabs.Root {...tabs} className="flex flex-col gap-4">
+      <Tabs.Root {...tabs.root} className="flex flex-col gap-4">
         <Tabs.List className="grid grid-cols-3">
           {["tickets", "wheel", "tasks"].map((value, index) => (
             <Tabs.Trigger

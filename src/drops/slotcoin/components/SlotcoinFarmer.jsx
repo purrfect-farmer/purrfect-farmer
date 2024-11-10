@@ -1,18 +1,17 @@
+import * as Tabs from "@radix-ui/react-tabs";
 import toast from "react-hot-toast";
+import useFarmerAutoTab from "@/hooks/useFarmerAutoTab";
+import useSocketTabs from "@/hooks/useSocketTabs";
+import { cn } from "@/lib/utils";
 import { useEffect } from "react";
 
 import SlotcoinIcon from "../assets/images/icon.png?format=webp&w=80";
 import SlotcoinInfoDisplay from "./SlotcoinInfoDisplay";
 import SlotcoinLottery from "./SlotcoinLottery";
+import SlotcoinQuests from "./SlotcoinQuests";
+import SlotcoinTickets from "./SlotcoinTickets";
 import useSlotcoinCheckInInfoQuery from "../hooks/useSlotcoinCheckInInfoQuery";
 import useSlotcoinCheckInMutation from "../hooks/useSlotcoinCheckInMutation";
-import useSocketTabs from "@/hooks/useSocketTabs";
-import SlotcoinQuests from "./SlotcoinQuests";
-
-import * as Tabs from "@radix-ui/react-tabs";
-import { cn } from "@/lib/utils";
-import SlotcoinTickets from "./SlotcoinTickets";
-import useFarmerAutoTab from "@/hooks/useFarmerAutoTab";
 
 export default function SlotcoinFarmer() {
   const checkInQuery = useSlotcoinCheckInInfoQuery();
@@ -33,7 +32,7 @@ export default function SlotcoinFarmer() {
   }, [checkInQuery.data]);
 
   /** Switch Tab Automatically */
-  useFarmerAutoTab(tabs.onValueChange);
+  useFarmerAutoTab(tabs);
 
   return (
     <div className="flex flex-col gap-2 py-4">
@@ -50,7 +49,7 @@ export default function SlotcoinFarmer() {
       {/* Info */}
       <SlotcoinInfoDisplay />
 
-      <Tabs.Root {...tabs} className="flex flex-col">
+      <Tabs.Root {...tabs.root} className="flex flex-col">
         <Tabs.List className="grid grid-cols-3">
           {["lottery", "tickets", "quests"].map((value, index) => (
             <Tabs.Trigger

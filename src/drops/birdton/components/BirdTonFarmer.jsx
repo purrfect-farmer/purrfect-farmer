@@ -1,6 +1,7 @@
 import * as Tabs from "@radix-ui/react-tabs";
 import FullSpinner from "@/components/FullSpinner";
 import toast from "react-hot-toast";
+import useFarmerAutoTab from "@/hooks/useFarmerAutoTab";
 import useFarmerContext from "@/hooks/useFarmerContext";
 import useSocketTabs from "@/hooks/useSocketTabs";
 import { cn } from "@/lib/utils";
@@ -12,7 +13,6 @@ import BirdTonTasks from "./BirdTonTasks";
 import CoinIcon from "../assets/images/coin.png?format=webp&w=80";
 import EnergyIcon from "../assets/images/energy.png?format=webp&w=80";
 import useBirdTonClaimDailyRewardMutation from "../hooks/useBirdTonClaimDailyRewardMutation";
-import useFarmerAutoTab from "@/hooks/useFarmerAutoTab";
 
 export default function BirdTonFarmer() {
   const { connected, user } = useFarmerContext();
@@ -35,7 +35,7 @@ export default function BirdTonFarmer() {
   }, [user?.["can_claim_daily"]]);
 
   /** Switch Tab Automatically */
-  useFarmerAutoTab(tabs.onValueChange);
+  useFarmerAutoTab(tabs);
 
   return user && connected ? (
     <div className="flex flex-col gap-2 p-4">
@@ -61,7 +61,7 @@ export default function BirdTonFarmer() {
         </span>
       </h4>
 
-      <Tabs.Root {...tabs} className="flex flex-col gap-4">
+      <Tabs.Root {...tabs.root} className="flex flex-col gap-4">
         <Tabs.List className="grid grid-cols-2">
           {["game", "tasks"].map((value, index) => (
             <Tabs.Trigger

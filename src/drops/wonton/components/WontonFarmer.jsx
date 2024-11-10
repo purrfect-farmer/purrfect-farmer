@@ -1,5 +1,6 @@
 import * as Tabs from "@radix-ui/react-tabs";
 import toast from "react-hot-toast";
+import useFarmerAutoTab from "@/hooks/useFarmerAutoTab";
 import useSocketTabs from "@/hooks/useSocketTabs";
 import { cn } from "@/lib/utils";
 import { isAfter } from "date-fns";
@@ -14,7 +15,6 @@ import useWontonClaimFarmingMutation from "../hooks/useWontonClaimFarmingMutatio
 import useWontonDailyCheckInMutation from "../hooks/useWontonDailyCheckInMutation";
 import useWontonFarmingStatusQuery from "../hooks/useWontonFarmingStatusQuery";
 import useWontonStartFarmingMutation from "../hooks/useWontonStartFarmingMutation";
-import useFarmerAutoTab from "@/hooks/useFarmerAutoTab";
 
 export default function WontonFarmer() {
   const tabs = useSocketTabs("wonton.farmer-tabs", "game");
@@ -57,7 +57,7 @@ export default function WontonFarmer() {
   }, [farmingStatusQuery.data]);
 
   /** Automatically Switch Tab */
-  useFarmerAutoTab(tabs.onValueChange);
+  useFarmerAutoTab(tabs);
 
   return (
     <div className="flex flex-col p-4">
@@ -65,7 +65,7 @@ export default function WontonFarmer() {
       <WontonUsernameDisplay />
       <WontonBalanceDisplay />
 
-      <Tabs.Root {...tabs} className="flex flex-col gap-4">
+      <Tabs.Root {...tabs.root} className="flex flex-col gap-4">
         <Tabs.List className="grid grid-cols-2">
           {["game", "tasks"].map((value, index) => (
             <Tabs.Trigger

@@ -1,5 +1,6 @@
 import * as Tabs from "@radix-ui/react-tabs";
 import toast from "react-hot-toast";
+import useFarmerAutoTab from "@/hooks/useFarmerAutoTab";
 import useSocketTabs from "@/hooks/useSocketTabs";
 import { cn, delay } from "@/lib/utils";
 import { useEffect } from "react";
@@ -12,11 +13,10 @@ import BlumUsernameDisplay from "./BlumUsernameDisplay";
 import useBlumBalanceQuery from "../hooks/useBlumBalanceQuery";
 import useBlumClaimDailyRewardMutation from "../hooks/useBlumClaimDailyRewardMutation";
 import useBlumClaimFarmingMutation from "../hooks/useBlumClaimFarmingMutation";
-import useBlumDailyRewardQuery from "../hooks/useBlumDailyRewardQuery";
-import useBlumStartFarmingMutation from "../hooks/useBlumStartFarmingMutation";
-import useBlumFriendsBalanceQuery from "../hooks/useBlumFriendsBalanceQuery";
 import useBlumClaimFriendsRewardMutation from "../hooks/useBlumClaimFriendsRewardMutation";
-import useFarmerAutoTab from "@/hooks/useFarmerAutoTab";
+import useBlumDailyRewardQuery from "../hooks/useBlumDailyRewardQuery";
+import useBlumFriendsBalanceQuery from "../hooks/useBlumFriendsBalanceQuery";
+import useBlumStartFarmingMutation from "../hooks/useBlumStartFarmingMutation";
 
 export default function BlumFarmer() {
   const tabs = useSocketTabs("blum.farmer-tabs", "game");
@@ -88,7 +88,7 @@ export default function BlumFarmer() {
   }, [balanceQuery.data]);
 
   /** Switch Tab Automatically */
-  useFarmerAutoTab(tabs.onValueChange);
+  useFarmerAutoTab(tabs);
 
   return (
     <div className="flex flex-col p-4">
@@ -96,7 +96,7 @@ export default function BlumFarmer() {
       <BlumUsernameDisplay />
       <BlumBalanceDisplay />
 
-      <Tabs.Root {...tabs} className="flex flex-col gap-4">
+      <Tabs.Root {...tabs.root} className="flex flex-col gap-4">
         <Tabs.List className="grid grid-cols-2">
           {["game", "tasks"].map((value, index) => (
             <Tabs.Trigger
