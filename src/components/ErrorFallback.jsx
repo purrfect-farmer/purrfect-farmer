@@ -5,9 +5,9 @@ import { useEffect } from "react";
 export default function ErrorFallback({ error, resetErrorBoundary }) {
   const { zoomies } = useAppContext();
 
-  /** Proceed to Next Drop Zoomies */
   useEffect(() => {
     if (zoomies.enabled) {
+      /** Process to Next Drop */
       zoomies.setCurrent((prev) => {
         return {
           drop: zoomies.drops[
@@ -16,8 +16,11 @@ export default function ErrorFallback({ error, resetErrorBoundary }) {
           task: null,
         };
       });
+
+      /** Reset the Error */
+      resetErrorBoundary();
     }
-  }, [zoomies.enabled, zoomies.drops, zoomies.setCurrent]);
+  }, [zoomies.enabled, zoomies.drops, zoomies.setCurrent, resetErrorBoundary]);
 
   return (
     <div
