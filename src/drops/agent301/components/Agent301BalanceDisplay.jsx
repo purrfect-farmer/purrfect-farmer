@@ -17,7 +17,7 @@ export default function Agent301BalanceDisplay() {
             {Intl.NumberFormat().format(result?.balance || 0)}
           </h3>
           <p className="flex items-center justify-center gap-2" title="Tickets">
-            <img src={TicketIcon} className="h-5" /> {result.tickets}
+            <img src={TicketIcon} className="h-5" /> {result?.tickets}
           </p>
         </>
       )}

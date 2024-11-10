@@ -1,10 +1,10 @@
 import useFarmerContext from "@/hooks/useFarmerContext";
-import { useLayoutEffect } from "react";
+import { useEffect } from "react";
 
 export default function useFarmerAutoTask(task, callback, deps = []) {
   const { isZooming, zoomies } = useFarmerContext();
 
-  useLayoutEffect(() => {
+  useEffect(() => {
     if (isZooming && zoomies.current.task === task) {
       return callback(zoomies);
     }
