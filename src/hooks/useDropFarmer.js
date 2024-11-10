@@ -345,14 +345,14 @@ export default function useDropFarmer({
     if (isZooming) {
       if (telegramWebApp && !auth) {
         /** Set Timeout */
-        const timeout = setTimeout(processNextTask, 15_000);
+        const timeout = setTimeout(zoomies.skipToNextDrop, 15_000);
 
         return () => {
           clearTimeout(timeout);
         };
       }
     }
-  }, [auth, telegramWebApp, isZooming, processNextTask]);
+  }, [auth, telegramWebApp, isZooming, zoomies.skipToNextDrop]);
 
   /** Return API and Auth */
   return useValuesMemo({

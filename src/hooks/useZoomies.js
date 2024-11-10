@@ -43,6 +43,16 @@ export default function useZoomies(core) {
     }
   }, [current.drop, setAuth, core.resetTabs, core.setActiveTab]);
 
+  /** Skip to Next Drop */
+  const skipToNextDrop = useCallback(() => {
+    setCurrent((prev) => {
+      return {
+        drop: drops[(drops.indexOf(prev.drop) + 1) % drops.length],
+        task: null,
+      };
+    });
+  }, [drops, setCurrent]);
+
   /** Reset Zoomies */
   useEffect(() => {
     if (process.started && current.task === null) {
@@ -117,5 +127,6 @@ export default function useZoomies(core) {
     current,
     setAuth,
     setCurrent,
+    skipToNextDrop,
   });
 }
