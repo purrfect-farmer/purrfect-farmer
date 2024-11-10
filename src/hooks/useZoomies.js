@@ -55,7 +55,7 @@ export default function useZoomies(core) {
 
   /** Reset Zoomies */
   useEffect(() => {
-    if (process.started && current.task === null) {
+    if (process.started && !current.task) {
       resetZoomies();
     }
   }, [process.started, current.task]);
