@@ -24,5 +24,5 @@ dist-ssr
 *.sw?
 
 # Extension files
-dist.crx
-dist.pem
+*.crx
+*.pem
