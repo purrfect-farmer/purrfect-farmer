@@ -25,6 +25,7 @@ export default function useZoomies(core) {
     core.settings.zoomies
   );
 
+  /** Drops To Enable */
   const drops = useMemo(
     () => farmerTabs.filter((item) => enabledFarmers.includes(item.id)),
     [farmerTabs, enabledFarmers]
