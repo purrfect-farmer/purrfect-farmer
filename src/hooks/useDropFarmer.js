@@ -5,6 +5,7 @@ import { createElement, useCallback } from "react";
 import { delay } from "@/lib/utils";
 import { useEffect } from "react";
 import { useIsMutating, useQueryClient } from "@tanstack/react-query";
+import { useLayoutEffect } from "react";
 import { useMemo } from "react";
 import { useState } from "react";
 
@@ -30,7 +31,7 @@ export default function useDropFarmer({
   const { zoomies } = useAppContext();
 
   /** Auth */
-  const [auth, setAuth] = useState(false);
+  const [authState, setAuthState] = useState(false);
 
   /** Domain Matches */
   const domainMatches = useMemo(
@@ -94,6 +95,10 @@ export default function useDropFarmer({
         .then((res) => res.data),
   });
 
+  /** Auth */
+  const auth =
+    typeof fetchAuth === "function" ? authQuery.isSuccess : authState;
+
   /** Status */
   const status = useMemo(
     () => (!telegramWebApp ? "pending-webapp" : "pending-auth"),
@@ -113,9 +118,9 @@ export default function useDropFarmer({
 
   /** Reset Auth */
   const resetAuth = useCallback(() => {
-    setAuth(false);
+    setAuthState(false);
     removeQueries();
-  }, [setAuth, removeQueries]);
+  }, [setAuthState, removeQueries]);
 
   /** Reset Farmer  */
   const reset = useCallback(() => {
@@ -230,7 +235,7 @@ export default function useDropFarmer({
       });
 
       if (configured) {
-        setAuth(true);
+        setAuthState(true);
       }
     };
 
@@ -251,28 +256,15 @@ export default function useDropFarmer({
     extractAuthHeaders,
     telegramWebApp,
     api,
-    setAuth,
+    setAuthState,
   ]);
 
-  /** Handle auth query */
-  useEffect(() => {
-    if (authQuery.data) {
-      if (configureAuthHeaders) {
-        configureAuthHeaders(api, telegramWebApp, authQuery.data);
-      }
-
-      setAuth(true);
-    } else if (typeof fetchAuth !== "undefined") {
-      setAuth(false);
+  /** Handle Auth Data  */
+  useLayoutEffect(() => {
+    if (authQuery.data && configureAuthHeaders) {
+      configureAuthHeaders(api, telegramWebApp, authQuery.data);
     }
-  }, [
-    api,
-    telegramWebApp,
-    authQuery.data,
-    configureAuthHeaders,
-    setAuth,
-    fetchAuth,
-  ]);
+  }, [api, telegramWebApp, authQuery.data, configureAuthHeaders]);
 
   /** Create Notification */
   useEffect(() => {

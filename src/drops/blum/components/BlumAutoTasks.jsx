@@ -197,12 +197,12 @@ export default function BlumAutoTasks() {
 
             setTaskOffset(index);
             setCurrentTask(task);
+            if (task.socialSubscription?.openInTelegram) {
+              await joinTelegramLink(task.socialSubscription.url);
+            }
+
             try {
               await startTaskMutation.mutateAsync(task.id);
-
-              if (task.socialSubscription?.openInTelegram) {
-                await joinTelegramLink(task.socialSubscription.url);
-              }
             } catch {}
 
             /** Delay */

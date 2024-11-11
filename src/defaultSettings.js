@@ -23,10 +23,6 @@ const defaultSettings = {
     "birdton",
     "bits",
   ],
-  zoomiesState: {
-    dropId: null,
-    task: null,
-  },
 };
 
 export default defaultSettings;

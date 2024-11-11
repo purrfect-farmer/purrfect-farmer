@@ -126,12 +126,13 @@ export default function WontonAutoTasks() {
 
             setTaskOffset(index);
             setCurrentTask(task);
+
+            if (task.telegramChatId) {
+              await joinTelegramLink(task.taskUrl);
+            }
+
             try {
               await startTaskMutation.mutateAsync(task.id);
-
-              if (task.telegramChatId) {
-                await joinTelegramLink(task.taskUrl);
-              }
             } catch {}
 
             /** Delay */

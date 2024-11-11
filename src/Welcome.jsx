@@ -6,7 +6,7 @@ import Settings from "@/partials/Settings";
 import TelegramWebAIcon from "@/assets/images/telegram-web-a.png?format=webp&w=80";
 import TelegramWebKIcon from "@/assets/images/telegram-web-k.png?format=webp&w=80";
 import WelcomeIcon from "@/assets/images/icon-unwrapped-cropped.png?format=webp&h=224";
-import defaultSettings from "@/default-settings";
+import defaultSettings from "@/defaultSettings";
 import toast from "react-hot-toast";
 import useAppContext from "@/hooks/useAppContext";
 import useSocketDispatchCallback from "@/hooks/useSocketDispatchCallback";

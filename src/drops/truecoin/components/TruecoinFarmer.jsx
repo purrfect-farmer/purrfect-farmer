@@ -1,9 +1,18 @@
 import useFarmerContext from "@/hooks/useFarmerContext";
-
+import * as Tabs from "@radix-ui/react-tabs";
 import CoinIcon from "../assets/images/coin.png?format=webp&w=80";
 import EnergyIcon from "../assets/images/energy.png?format=webp&w=80";
 import TruecoinIcon from "../assets/images/icon.png?format=webp&w=80";
 import TruecoinLottery from "./TruecoinLottery";
+import { useEffect } from "react";
+import useTruecoinLastDailyRewardQuery from "../hooks/useTruecoinLastDailyRewardQuery";
+import useTruecoinCollectDailyRewardMutation from "../hooks/useTruecoinCollectDailyRewardMutation";
+import toast from "react-hot-toast";
+import { isToday } from "date-fns";
+import useSocketTabs from "@/hooks/useSocketTabs";
+import useFarmerAutoTab from "@/hooks/useFarmerAutoTab";
+import { cn } from "@/lib/utils";
+import TruecoinTasks from "./TruecoinTasks";
 
 export default function TruecoinFarmer() {
   const { authQuery } = useFarmerContext();
@@ -12,6 +21,29 @@ export default function TruecoinFarmer() {
 
   const coins = user?.coins || 0;
   const energy = user?.currentSpins || 0;
+
+  const lastDailyRewardQuery = useTruecoinLastDailyRewardQuery();
+  const collectDailyRewardMutation = useTruecoinCollectDailyRewardMutation();
+
+  const tabs = useSocketTabs("truecoin.farmer-tabs", "lottery");
+
+  /** Daily-Check-In */
+  useEffect(() => {
+    if (!lastDailyRewardQuery.data) return;
+    (async function () {
+      try {
+        const { createdDate } = lastDailyRewardQuery.data;
+
+        if (!createdDate || !isToday(new Date(createdDate))) {
+          await collectDailyRewardMutation.mutateAsync();
+          toast.success("Truecoin - Daily Reward");
+        }
+      } catch {}
+    })();
+  }, [lastDailyRewardQuery.data]);
+
+  /** Switch Tab Automatically */
+  useFarmerAutoTab(tabs);
 
   return (
     <div className="flex flex-col gap-2 py-4">
@@ -38,8 +70,41 @@ export default function TruecoinFarmer() {
         ) : null}
       </>
 
-      {/* Lottery */}
-      <TruecoinLottery />
+      <Tabs.Root {...tabs.root} className="flex flex-col">
+        <Tabs.List className="grid grid-cols-2">
+          {["lottery", "tasks"].map((value, index) => (
+            <Tabs.Trigger
+              key={index}
+              value={value}
+              className={cn(
+                "p-2",
+                "border-b-4 border-transparent",
+                "data-[state=active]:border-purple-500"
+              )}
+            >
+              {value.toUpperCase()}
+            </Tabs.Trigger>
+          ))}
+        </Tabs.List>
+
+        {/* Lottery */}
+        <Tabs.Content
+          forceMount
+          className="data-[state=inactive]:hidden"
+          value="lottery"
+        >
+          <TruecoinLottery />
+        </Tabs.Content>
+
+        {/* Tasks */}
+        <Tabs.Content
+          forceMount
+          className="data-[state=inactive]:hidden"
+          value="tasks"
+        >
+          <TruecoinTasks />
+        </Tabs.Content>
+      </Tabs.Root>
     </div>
   );
 }

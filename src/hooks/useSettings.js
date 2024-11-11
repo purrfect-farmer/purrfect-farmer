@@ -1,14 +1,16 @@
-import defaultSettings from "@/default-settings";
+import defaultSettings from "@/defaultSettings";
 import toast from "react-hot-toast";
-import { getSettings } from "@/lib/utils";
 import { useCallback } from "react";
-import { useEffect } from "react";
-import { useMemo } from "react";
-import { useState } from "react";
+
+import useStorageState from "./useStorageState";
+import useValuesMemo from "./useValuesMemo";
 
 export default function useSettings() {
-  const [hasRestoredSettings, setHasRestoredSettings] = useState(false);
-  const [settings, setSettings] = useState(defaultSettings);
+  const {
+    value: settings,
+    hasRestoredValue: hasRestoredSettings,
+    storeValue,
+  } = useStorageState("settings", defaultSettings);
 
   /** Configure Settings */
   const configureSettings = useCallback(
@@ -18,44 +20,17 @@ export default function useSettings() {
         [k]: v,
       };
 
-      await chrome?.storage?.local.set({
-        settings: newSettings,
-      });
+      /** Update Value */
+      await storeValue(newSettings);
 
-      setSettings(newSettings);
-
+      /** Toast */
       if (shouldToast) {
         toast.dismiss();
         toast.success("Settings Updated");
       }
     },
-    [settings, setSettings]
+    [settings, storeValue]
   );
 
-  /** Set initial settings */
-  useEffect(() => {
-    getSettings().then((settings) => {
-      setSettings(settings);
-      setHasRestoredSettings(true);
-    });
-
-    const watchStorage = ({ settings }) => {
-      if (settings) {
-        setSettings(settings.newValue);
-      }
-    };
-
-    /** Listen for change */
-    chrome?.storage?.local?.onChanged.addListener(watchStorage);
-
-    return () => {
-      /** Remove Listener */
-      chrome?.storage?.local?.onChanged.removeListener(watchStorage);
-    };
-  }, [getSettings, setSettings, setHasRestoredSettings]);
-
-  return useMemo(
-    () => ({ settings, hasRestoredSettings, configureSettings }),
-    [settings, configureSettings]
-  );
+  return useValuesMemo({ settings, hasRestoredSettings, configureSettings });
 }

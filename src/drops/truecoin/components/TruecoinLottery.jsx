@@ -7,17 +7,21 @@ import useSocketDispatchCallback from "@/hooks/useSocketDispatchCallback";
 import useSocketHandlers from "@/hooks/useSocketHandlers";
 import useSocketState from "@/hooks/useSocketState";
 import { HiOutlineArrowPath } from "react-icons/hi2";
-import { cn, delayForSeconds } from "@/lib/utils";
+import { cn, delay, delayForSeconds } from "@/lib/utils";
 import { useCallback } from "react";
 import { useEffect } from "react";
 import { useMemo } from "react";
 
 import useTruecoin50SpinsBoost from "../hooks/useTruecoin50SpinsBoostMutation";
 import useTruecoinLotteryMutation from "../hooks/useTruecoinLotteryMutation";
+import useFarmerAutoTask from "@/drops/notpixel/hooks/useFarmerAutoTask";
+import { isToday } from "date-fns";
 
 export default function TruecoinLottery() {
-  const { queryClient, authQuery, authQueryKey } = useFarmerContext();
+  const { queryClient, authQuery, authQueryKey, processNextTask } =
+    useFarmerContext();
 
+  const userBoosts = authQuery.data?.userBoosts;
   const user = authQuery.data?.user;
 
   const spinMutation = useTruecoinLotteryMutation();
@@ -31,37 +35,54 @@ export default function TruecoinLottery() {
   const process = useProcessLock("truecoin.spin");
 
   /** Handle button click */
-  const [handle50BoostClick, dispatchAndHandle50BoostClick] =
-    useSocketDispatchCallback(
-      /** Main */
-      useCallback(() => {
-        toast.promise(boostMutation.mutateAsync(), {
-          loading: "Please wait",
-          error: "Failed to Claim 50 Spins",
-          success: "50 Spins Claimed",
-        });
-      }, []),
+  const [claim50Boost, dispatchAndClaim50Boost] = useSocketDispatchCallback(
+    /** Main */
+    useCallback(() => {
+      return toast.promise(boostMutation.mutateAsync(), {
+        loading: "Please wait",
+        error: "Failed to Claim 50 Spins",
+        success: "50 Spins Claimed",
+      });
+    }, []),
 
-      /** Dispatch */
-      useCallback((socket) => {
-        socket.dispatch({
-          action: "truecoin.50-boost",
-        });
-      }, [])
-    );
+    /** Dispatch */
+    useCallback((socket) => {
+      socket.dispatch({
+        action: "truecoin.50-boost",
+      });
+    }, [])
+  );
+
+  /** Claim All 50 Boost */
+  const claimAll50Boost = useCallback(async () => {
+    try {
+      const todayBoosts = userBoosts.filter((item) =>
+        isToday(new Date(item.createdDate))
+      );
+
+      for (let i = todayBoosts.length; i < 3; i++) {
+        await claim50Boost();
+        await delay(1000);
+      }
+    } catch {}
+
+    /** Process Next Task */
+    processNextTask();
+  }, [claim50Boost, userBoosts, processNextTask]);
 
   /** Handlers */
   useSocketHandlers(
     useMemo(
       () => ({
         "truecoin.50-boost": () => {
-          handle50BoostClick();
+          claim50Boost();
         },
       }),
-      [handle50BoostClick]
+      [claim50Boost]
     )
   );
 
+  /** Play Lottery */
   useEffect(() => {
     if (!process.canExecute) {
       return;
@@ -106,6 +127,15 @@ export default function TruecoinLottery() {
     })();
   }, [process, user, farmingSpeed, authQueryKey, queryClient.setQueryData]);
 
+  /** Auto Claim All 50-Boost */
+  useFarmerAutoTask(
+    "lottery.50-boost",
+    () => {
+      claimAll50Boost();
+    },
+    [claimAll50Boost]
+  );
+
   /** Auto-Spin */
   useFarmerAutoProcess("lottery", !authQuery.isLoading, process.start);
 
@@ -127,7 +157,7 @@ export default function TruecoinLottery() {
 
         {/* 50 Boost Click */}
         <button
-          onClick={dispatchAndHandle50BoostClick}
+          onClick={dispatchAndClaim50Boost}
           className={cn(
             "p-2 text-black rounded-lg disabled:opacity-50",
             "bg-purple-100",

@@ -1,5 +1,5 @@
 import axios from "axios";
-import defaultSettings from "@/default-settings";
+import defaultSettings from "@/defaultSettings";
 import { clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
 import { v4 as uuidv4 } from "uuid";
@@ -39,18 +39,16 @@ export function delayForMinutes(length, precised = false) {
   return delay(length * 60 * 1000, precised);
 }
 
-export function getSettings() {
-  return new Promise((res, rej) => {
-    chrome?.storage?.local
-      .get("settings")
-      .then(({ settings = defaultSettings }) =>
-        res({
-          ...defaultSettings,
-          ...settings,
-        })
-      )
-      .catch(rej);
-  });
+export async function getStorage(key, defaultValue) {
+  const { [key]: value } = await chrome?.storage?.local.get(key);
+  return value || defaultValue;
+}
+
+export async function getSettings() {
+  return {
+    ...defaultSettings,
+    ...(await getStorage("settings", defaultSettings)),
+  };
 }
 
 export function isElementVisible(element) {

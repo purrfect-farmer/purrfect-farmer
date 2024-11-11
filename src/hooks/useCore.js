@@ -479,29 +479,31 @@ export default function useCore() {
   /** Join Telegram Link */
   const joinTelegramLink = useCallback(
     async (url, close = true, version = preferredTelegramWebVersion) => {
-      /** Open Telegram Link */
-      await openTelegramLink(url, version);
+      try {
+        /** Open Telegram Link */
+        await openTelegramLink(url, version);
 
-      /** Little Delay */
-      await delay(1000);
+        /** Little Delay */
+        await delay(1000);
 
-      /** Get Port */
-      const telegramWebPort = messaging.ports
-        .values()
-        .find((port) => port.name === `telegram-web-${version}`);
+        /** Get Port */
+        const telegramWebPort = messaging.ports
+          .values()
+          .find((port) => port.name === `telegram-web-${version}`);
 
-      /** Join Conversation */
-      postPortMessage(telegramWebPort, {
-        action: "join-conversation",
-      });
+        /** Join Conversation */
+        postPortMessage(telegramWebPort, {
+          action: "join-conversation",
+        });
 
-      /** Extra Delay */
-      await delay(5000);
+        /** Extra Delay */
+        await delay(5000);
 
-      if (close) {
-        /** Close Telegram Web */
-        closeTab(`telegram-web-${version}`);
-      }
+        if (close) {
+          /** Close Telegram Web */
+          closeTab(`telegram-web-${version}`);
+        }
+      } catch {}
     },
     [messaging.ports, preferredTelegramWebVersion, openTelegramLink, closeTab]
   );

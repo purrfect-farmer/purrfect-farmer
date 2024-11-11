@@ -1,3 +1,4 @@
+import defaultZoomiesState from "@/defaultZoomiesState";
 import farmerTabs from "@/farmerTabs";
 import toast from "react-hot-toast";
 import { useCallback } from "react";
@@ -6,15 +7,27 @@ import { useMemo } from "react";
 import { useState } from "react";
 
 import useProcessLock from "./useProcessLock";
+import useStorageState from "./useStorageState";
 import useValuesMemo from "./useValuesMemo";
 
 const INITIAL_POSITION = 0;
 
 export default function useZoomies(core) {
+  const {
+    value: zoomiesState,
+    hasRestoredValue: hasRestoredZoomiesState,
+    storeValue: storeZoomiesState,
+  } = useStorageState("zoomiesState", defaultZoomiesState);
+
   /** Drops List */
+  const enabledFarmers = useMemo(
+    () => core.settings.zoomies,
+    core.settings.zoomies
+  );
+
   const drops = useMemo(
-    () => farmerTabs.filter((item) => core.settings.zoomies.includes(item.id)),
-    [farmerTabs, core.settings.zoomies]
+    () => farmerTabs.filter((item) => enabledFarmers.includes(item.id)),
+    [farmerTabs, enabledFarmers]
   );
 
   /** Process */
@@ -47,8 +60,8 @@ export default function useZoomies(core) {
   const refresh = useCallback(() => {
     setCurrent(() => {
       return {
-        drop: drops[0],
-        task: drops[0]?.tasks?.[0],
+        drop: drops[INITIAL_POSITION],
+        task: drops[INITIAL_POSITION]?.tasks?.[0],
       };
     });
   }, [drops, setCurrent]);
@@ -70,10 +83,10 @@ export default function useZoomies(core) {
       setCurrent((prev) => {
         if (prev.task === prev.drop?.tasks?.at(-1)) {
           const drop = drops[(drops.indexOf(prev.drop) + 1) % drops.length];
-
+          const task = drop?.tasks?.[0];
           return {
             drop,
-            task: drop?.tasks?.[0],
+            task,
           };
         } else {
           const tasks = prev.drop.tasks;
@@ -133,21 +146,18 @@ export default function useZoomies(core) {
 
   /** Reset the drops */
   useEffect(() => {
-    /** Stop the Process */
-    process.stop();
-
     /** Update current drop */
     setCurrent((prev) => {
       if (drops.includes(prev.drop)) {
         return prev;
       } else {
         return {
-          drop: drops[0],
-          task: drops[0]?.tasks?.[0],
+          drop: drops[INITIAL_POSITION],
+          task: drops[INITIAL_POSITION]?.tasks?.[0],
         };
       }
     });
-  }, [drops, setCurrent, process.stop]);
+  }, [drops, setCurrent]);
 
   /** Stop When There's no Drop */
   useEffect(() => {
@@ -159,8 +169,8 @@ export default function useZoomies(core) {
 
   /** Restore State */
   useEffect(() => {
-    if (core.hasRestoredSettings) {
-      const prevState = core.settings.zoomiesState;
+    if (hasRestoredZoomiesState) {
+      const prevState = zoomiesState;
       const drop = drops.find((item) => item.id === prevState.dropId);
       const task = prevState.task;
 
@@ -171,21 +181,17 @@ export default function useZoomies(core) {
         });
       }
     }
-  }, [core.hasRestoredSettings, setCurrent]);
+  }, [hasRestoredZoomiesState, setCurrent]);
 
   /** Store in Settings */
   useEffect(() => {
-    if (core.hasRestoredSettings) {
-      core.configureSettings(
-        "zoomiesState",
-        {
-          dropId: current?.drop?.id,
-          task: current?.task,
-        },
-        false
-      );
+    if (hasRestoredZoomiesState) {
+      storeZoomiesState({
+        dropId: current?.drop?.id,
+        task: current?.task,
+      });
     }
-  }, [core.hasRestoredSettings, core.configureSettings, current]);
+  }, [hasRestoredZoomiesState, storeZoomiesState, current]);
 
   return useValuesMemo({
     drops,
