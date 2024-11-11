@@ -5,7 +5,7 @@ import useProcessLock from "@/hooks/useProcessLock";
 import useSocketDispatchCallback from "@/hooks/useSocketDispatchCallback";
 import useSocketHandlers from "@/hooks/useSocketHandlers";
 import { HiOutlineArrowPath } from "react-icons/hi2";
-import { cn, delayForSeconds } from "@/lib/utils";
+import { cn, delayForSeconds, logNicely } from "@/lib/utils";
 import { useCallback } from "react";
 import { useEffect } from "react";
 import { useMemo } from "react";
@@ -124,6 +124,11 @@ export default function BirdTonTasks() {
       []
     )
   );
+
+  /** Log Tasks */
+  useEffect(() => {
+    logNicely("BirdTON Tasks", subTasks);
+  }, [subTasks]);
 
   /** Reset */
   useEffect(reset, [process.started, reset]);
