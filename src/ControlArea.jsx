@@ -6,7 +6,7 @@ import SyncControl from "./partials/SyncControl";
 import UtilsPanel from "./partials/UtilsPanel";
 import useAppContext from "./hooks/useAppContext";
 import { cn } from "./lib/utils";
-import { HiOutlineForward } from "react-icons/hi2";
+import { HiOutlineArrowPath, HiOutlineForward } from "react-icons/hi2";
 
 export default function ControlArea() {
   const [showUtils, setShowUtils] = useState(false);
@@ -34,6 +34,9 @@ export default function ControlArea() {
           </div>
 
           {/* Control Button */}
+          <button className="shrink-0" onClick={zoomies.refresh}>
+            <HiOutlineArrowPath className="w-6 h-6 text-orange-500" />
+          </button>
           <button className="shrink-0" onClick={zoomies.processNextTask}>
             <HiOutlineForward className="w-6 h-6 text-orange-500" />
           </button>

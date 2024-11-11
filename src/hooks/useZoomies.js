@@ -43,6 +43,16 @@ export default function useZoomies(core) {
     }
   }, [current.drop, setAuth, core.resetTabs, core.setActiveTab]);
 
+  /** Refresh Zoomies */
+  const refresh = useCallback(() => {
+    setCurrent(() => {
+      return {
+        drop: drops[0],
+        task: drops[0]?.tasks?.[0],
+      };
+    });
+  }, [drops, setCurrent]);
+
   /** Skip to Next Drop */
   const skipToNextDrop = useCallback(() => {
     setCurrent((prev) => {
@@ -147,6 +157,36 @@ export default function useZoomies(core) {
     }
   }, [process.started, process.stop, current.drop]);
 
+  /** Restore State */
+  useEffect(() => {
+    if (core.hasRestoredSettings) {
+      const prevState = core.settings.zoomiesState;
+      const drop = drops.find((item) => item.id === prevState.dropId);
+      const task = prevState.task;
+
+      if (drop) {
+        setCurrent({
+          drop,
+          task,
+        });
+      }
+    }
+  }, [core.hasRestoredSettings, setCurrent]);
+
+  /** Store in Settings */
+  useEffect(() => {
+    if (core.hasRestoredSettings) {
+      core.configureSettings(
+        "zoomiesState",
+        {
+          dropId: current?.drop?.id,
+          task: current?.task,
+        },
+        false
+      );
+    }
+  }, [core.hasRestoredSettings, core.configureSettings, current]);
+
   return useValuesMemo({
     drops,
     enabled: process.started,
@@ -157,5 +197,6 @@ export default function useZoomies(core) {
     setCurrent,
     skipToNextDrop,
     processNextTask,
+    refresh,
   });
 }

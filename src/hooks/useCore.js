@@ -17,7 +17,7 @@ import useValuesMemo from "./useValuesMemo";
 export const defaultOpenedTabs = () => [{ ...farmerTabs[0], active: true }];
 
 export default function useCore() {
-  const { settings, configureSettings } = useSettings();
+  const { settings, hasRestoredSettings, configureSettings } = useSettings();
   const socket = useSocket(settings.syncServer);
   const messaging = useMessagePort();
 
@@ -571,6 +571,7 @@ export default function useCore() {
     /** Data */
     drops,
     settings,
+    hasRestoredSettings,
     socket,
     messaging,
 

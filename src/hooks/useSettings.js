@@ -7,11 +7,12 @@ import { useMemo } from "react";
 import { useState } from "react";
 
 export default function useSettings() {
+  const [hasRestoredSettings, setHasRestoredSettings] = useState(false);
   const [settings, setSettings] = useState(defaultSettings);
 
   /** Configure Settings */
   const configureSettings = useCallback(
-    async (k, v) => {
+    async (k, v, shouldToast = true) => {
       const newSettings = {
         ...settings,
         [k]: v,
@@ -23,8 +24,10 @@ export default function useSettings() {
 
       setSettings(newSettings);
 
-      toast.dismiss();
-      toast.success("Settings Updated");
+      if (shouldToast) {
+        toast.dismiss();
+        toast.success("Settings Updated");
+      }
     },
     [settings, setSettings]
   );
@@ -33,6 +36,7 @@ export default function useSettings() {
   useEffect(() => {
     getSettings().then((settings) => {
       setSettings(settings);
+      setHasRestoredSettings(true);
     });
 
     const watchStorage = ({ settings }) => {
@@ -48,10 +52,10 @@ export default function useSettings() {
       /** Remove Listener */
       chrome?.storage?.local?.onChanged.removeListener(watchStorage);
     };
-  }, [getSettings, setSettings]);
+  }, [getSettings, setSettings, setHasRestoredSettings]);
 
   return useMemo(
-    () => ({ settings, configureSettings }),
+    () => ({ settings, hasRestoredSettings, configureSettings }),
     [settings, configureSettings]
   );
 }
