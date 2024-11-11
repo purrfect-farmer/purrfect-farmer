@@ -123,6 +123,10 @@ export default function useZoomies(core) {
 
   /** Reset the drops */
   useEffect(() => {
+    /** Stop the Process */
+    process.stop();
+
+    /** Update current drop */
     setCurrent((prev) => {
       if (drops.includes(prev.drop)) {
         return prev;
@@ -133,7 +137,7 @@ export default function useZoomies(core) {
         };
       }
     });
-  }, [drops, setCurrent]);
+  }, [drops, setCurrent, process.stop]);
 
   /** Stop When There's no Drop */
   useEffect(() => {

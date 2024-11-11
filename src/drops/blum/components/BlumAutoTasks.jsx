@@ -15,10 +15,13 @@ import useBlumClaimTaskMutation from "../hooks/useBlumClaimTaskMutation";
 import useBlumStartTaskMutation from "../hooks/useBlumStartTaskMutation";
 import useBlumTasksQuery from "../hooks/useBlumTasksQuery";
 import useBlumValidateTaskMutation from "../hooks/useBlumValidateTaskMutation";
+import useAppContext from "@/hooks/useAppContext";
 
 export default function BlumAutoTasks() {
   const client = useQueryClient();
   const query = useBlumTasksQuery();
+
+  const { joinTelegramLink } = useAppContext();
 
   const { zoomies, dataQuery } = useFarmerContext();
 
@@ -196,6 +199,10 @@ export default function BlumAutoTasks() {
             setCurrentTask(task);
             try {
               await startTaskMutation.mutateAsync(task.id);
+
+              if (task.socialSubscription?.openInTelegram) {
+                await joinTelegramLink(task.socialSubscription.url);
+              }
             } catch {}
 
             /** Delay */
@@ -283,6 +290,7 @@ export default function BlumAutoTasks() {
     getResolvedValue,
     removeResolvedValue,
     dispatchAndPrompt,
+    joinTelegramLink,
   ]);
 
   /** Auto-Complete Tasks */

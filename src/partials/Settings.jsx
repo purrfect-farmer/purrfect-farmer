@@ -7,6 +7,8 @@ import ResetButton from "@/components/ResetButton";
 import defaultSettings from "@/default-settings";
 import useAppContext from "@/hooks/useAppContext";
 import useSocketTabs from "@/hooks/useSocketTabs";
+import TelegramWebAIcon from "@/assets/images/telegram-web-a.png?format=webp&w=80";
+import TelegramWebKIcon from "@/assets/images/telegram-web-k.png?format=webp&w=80";
 import { CgSpinner } from "react-icons/cg";
 import { cn, maximizeFarmerWindow, resizeFarmerWindow } from "@/lib/utils";
 import { useCallback, useEffect, useState } from "react";
@@ -177,6 +179,42 @@ export default function Settings() {
                     >
                       Launch Telegram Web within the Farmer
                     </LabelToggle>
+
+                    {/* Preferred Telegram Web Version */}
+                    <label className="text-neutral-500">
+                      Preferred Telegram Web Version
+                    </label>
+
+                    <div className="grid grid-cols-2 gap-2">
+                      {["k", "a"].map((version) => (
+                        <button
+                          onClick={() =>
+                            dispatchAndConfigureSettings(
+                              "preferredTelegramWebVersion",
+                              version
+                            )
+                          }
+                          key={version}
+                          className={cn(
+                            settings.preferredTelegramWebVersion === version
+                              ? "bg-blue-200"
+                              : "bg-neutral-100",
+                            "p-2 rounded-lg",
+                            "flex gap-1 items-center justify-center"
+                          )}
+                        >
+                          <img
+                            src={
+                              version === "k"
+                                ? TelegramWebKIcon
+                                : TelegramWebAIcon
+                            }
+                            className="w-6 h-6"
+                          />
+                          {`Web-${version.toUpperCase()}`}
+                        </button>
+                      ))}
+                    </div>
 
                     {/* Sync Server */}
                     <label className="text-neutral-500">Sync Server</label>

@@ -79,6 +79,7 @@ export default function Welcome() {
     openNewTab,
     openExtensionsPage,
     openTelegramWeb,
+    joinTelegramLink,
     dispatchAndSetActiveTab,
     dispatchAndReloadApp,
     dispatchAndOpenFarmerBot,

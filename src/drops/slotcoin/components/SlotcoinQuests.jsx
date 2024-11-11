@@ -9,8 +9,10 @@ import { useState } from "react";
 
 import useSlotcoinCheckTaskMutation from "../hooks/useSlotcoinCheckTaskMutation";
 import useSlotcoinQuestsQuery from "../hooks/useSlotcoinQuestsQuery";
+import useAppContext from "@/hooks/useAppContext";
 
 export default function SlotcoinQuests() {
+  const { joinTelegramLink } = useAppContext();
   const process = useProcessLock("slotcoin.quests.check");
   const queryClient = useQueryClient();
 
@@ -63,6 +65,9 @@ export default function SlotcoinQuests() {
         setTaskOffset(index);
         setCurrentTask(task);
         try {
+          if (task["task_data"]?.["channel"]) {
+            await joinTelegramLink(task["task_data"]?.["channel"]);
+          }
           await checkTaskMutation.mutateAsync(task.id);
         } catch {}
 
@@ -78,7 +83,7 @@ export default function SlotcoinQuests() {
 
       process.stop();
     })();
-  }, [process]);
+  }, [process, joinTelegramLink]);
 
   /** Auto-Complete Quests */
   useFarmerAutoProcess("quests", !questsQuery.isLoading, process.start);

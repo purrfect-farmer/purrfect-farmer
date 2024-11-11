@@ -1,7 +1,7 @@
 import toast from "react-hot-toast";
 import farmerTabs, { TelegramWeb } from "@/farmerTabs";
 import { createElement } from "react";
-import { postPortMessage } from "@/lib/utils";
+import { delay, postPortMessage } from "@/lib/utils";
 import { useCallback } from "react";
 import { useMemo } from "react";
 import { useRef } from "react";
@@ -21,6 +21,7 @@ export default function useCore() {
   const socket = useSocket(settings.syncServer);
   const messaging = useMessagePort();
 
+  const preferredTelegramWebVersion = settings.preferredTelegramWebVersion;
   const [openedTabs, setOpenedTabs] = useState(defaultOpenedTabs);
 
   /** Open Farmer Bot State Ref */
@@ -375,77 +376,89 @@ export default function useCore() {
     useSocketDispatchCallback(
       /** Main */
       useCallback(
-        async (url) => {
+        (url, version = preferredTelegramWebVersion) => {
           if (!url) {
             return;
           }
-          /** Bot TelegramWeb Action */
-          const botTelegramWebAppAction = `set-telegram-web-app:${
-            import.meta.env.VITE_APP_BOT_HOST
-          }`;
 
-          /** Clear Previous Interval */
-          clearInterval(openTelegramLinkStateRef.current.interval);
+          return new Promise((resolve, reject) => {
+            /** Bot TelegramWeb Action */
+            const botTelegramWebAppAction = `set-telegram-web-app:${
+              import.meta.env.VITE_APP_BOT_HOST
+            }`;
 
-          /** Remove Previous Handler */
-          if (openTelegramLinkStateRef.current.handler) {
-            messaging.handler.off(
-              botTelegramWebAppAction,
-              openTelegramLinkStateRef.current.handler
-            );
-          }
+            /** Clear Previous Interval */
+            clearInterval(openTelegramLinkStateRef.current.interval);
 
-          /** Handle Farmer Bot Web App */
-          const handleFarmerBotWebApp =
-            (openTelegramLinkStateRef.current.handler = (message, port) => {
-              /** Clear Interval */
-              clearInterval(openTelegramLinkStateRef.current.interval);
-
-              /** Reset */
-              openTelegramLinkStateRef.current.interval = null;
-              openTelegramLinkStateRef.current.handler = null;
-
-              /** Post the Link */
-              postTelegramLink(port, "telegram-web-k");
-            });
-
-          /** Post Telegram Link */
-          const postTelegramLink = (port, tabId) =>
-            postPortMessage(port, {
-              action: "open-telegram-link",
-              data: { url },
-            }).then(() => {
-              setActiveTab(tabId);
-            });
-
-          const openNewTelegramWeb = () => {
-            /** Re-Open Bot */
-            const reOpenFarmerBot = () => {
-              toast.success(
-                `Re-Opening ${import.meta.env.VITE_APP_BOT_NAME}...`
+            /** Remove Previous Handler */
+            if (openTelegramLinkStateRef.current.handler) {
+              messaging.handler.off(
+                botTelegramWebAppAction,
+                openTelegramLinkStateRef.current.handler
               );
-              openFarmerBot("k");
+            }
+
+            /** Handle Farmer Bot Web App */
+            const handleFarmerBotWebApp =
+              (openTelegramLinkStateRef.current.handler = (message, port) => {
+                /** Clear Interval */
+                clearInterval(openTelegramLinkStateRef.current.interval);
+
+                /** Reset */
+                openTelegramLinkStateRef.current.interval = null;
+                openTelegramLinkStateRef.current.handler = null;
+
+                /** Post the Link */
+                postTelegramLink(port, `telegram-web-${version}`);
+
+                /** Resolve the Promise */
+                resolve(true);
+              });
+
+            /** Post Telegram Link */
+            const postTelegramLink = (port, tabId) =>
+              postPortMessage(port, {
+                action: "open-telegram-link",
+                data: { url },
+              }).then(() => {
+                setActiveTab(tabId);
+              });
+
+            const openNewTelegramWeb = () => {
+              /** Re-Open Bot */
+              const reOpenFarmerBot = () => {
+                toast.success(
+                  `Re-Opening ${import.meta.env.VITE_APP_BOT_NAME}...`
+                );
+                openFarmerBot(version);
+              };
+
+              /** Add Handler */
+              messaging.handler.once(
+                botTelegramWebAppAction,
+                handleFarmerBotWebApp
+              );
+
+              /** Reopen the bot */
+              openTelegramLinkStateRef.current.interval = setInterval(
+                reOpenFarmerBot,
+                30000
+              );
+
+              /** Open Farmer Bot */
+              openFarmerBot(version);
             };
 
-            /** Add Handler */
-            messaging.handler.once(
-              botTelegramWebAppAction,
-              handleFarmerBotWebApp
-            );
-
-            /** Reopen the bot */
-            openTelegramLinkStateRef.current.interval = setInterval(
-              reOpenFarmerBot,
-              30000
-            );
-
-            /** Open Farmer Bot */
-            openFarmerBot("k");
-          };
-
-          return openNewTelegramWeb();
+            openNewTelegramWeb();
+          });
         },
-        [openedTabs, openFarmerBot, setActiveTab, messaging.handler]
+        [
+          openedTabs,
+          openFarmerBot,
+          setActiveTab,
+          preferredTelegramWebVersion,
+          messaging.handler,
+        ]
       ),
 
       /** Dispatch */
@@ -462,6 +475,36 @@ export default function useCore() {
       /** Socket */
       socket
     );
+
+  /** Join Telegram Link */
+  const joinTelegramLink = useCallback(
+    async (url, close = true, version = preferredTelegramWebVersion) => {
+      /** Open Telegram Link */
+      await openTelegramLink(url, version);
+
+      /** Little Delay */
+      await delay(1000);
+
+      /** Get Port */
+      const telegramWebPort = messaging.ports
+        .values()
+        .find((port) => port.name === `telegram-web-${version}`);
+
+      /** Join Conversation */
+      postPortMessage(telegramWebPort, {
+        action: "join-conversation",
+      });
+
+      /** Extra Delay */
+      await delay(5000);
+
+      if (close) {
+        /** Close Telegram Web */
+        closeTab(`telegram-web-${version}`);
+      }
+    },
+    [messaging.ports, preferredTelegramWebVersion, openTelegramLink, closeTab]
+  );
 
   /** Handlers */
   useSocketHandlers(
@@ -545,6 +588,7 @@ export default function useCore() {
     openFarmerBot,
     openTelegramLink,
     openTelegramWeb,
+    joinTelegramLink,
     navigateToTelegramWeb,
     dispatchAndOpenFarmerBot,
     dispatchAndOpenTelegramLink,

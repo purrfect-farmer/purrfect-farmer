@@ -15,8 +15,10 @@ import useWontonClaimTaskProgressMutation from "../hooks/useWontonClaimTaskProgr
 import useWontonStartTaskMutation from "../hooks/useWontonStartTaskMutation";
 import useWontonTasksQuery from "../hooks/useWontonTasksQuery";
 import useWontonUserQuery from "../hooks/useWontonUserQuery";
+import useAppContext from "@/hooks/useAppContext";
 
 export default function WontonAutoTasks() {
+  const { joinTelegramLink } = useAppContext();
   const client = useQueryClient();
   const taskQuery = useWontonTasksQuery();
   const userQuery = useWontonUserQuery();
@@ -126,6 +128,10 @@ export default function WontonAutoTasks() {
             setCurrentTask(task);
             try {
               await startTaskMutation.mutateAsync(task.id);
+
+              if (task.telegramChatId) {
+                await joinTelegramLink(task.taskUrl);
+              }
             } catch {}
 
             /** Delay */
@@ -161,7 +167,7 @@ export default function WontonAutoTasks() {
       resetTask();
       process.stop();
     })();
-  }, [process, action]);
+  }, [process, action, joinTelegramLink]);
 
   /** Claim Progress */
   useEffect(() => {

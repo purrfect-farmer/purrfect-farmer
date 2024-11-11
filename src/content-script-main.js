@@ -222,6 +222,7 @@ if (location.hash.includes("tgWebAppData")) {
             script.dataset.init = true;
 
             script.addEventListener("load", async (ev) => {
+              /** Dispatch App */
               dispatchTelegramWebApp();
             });
             node.appendChild(script);

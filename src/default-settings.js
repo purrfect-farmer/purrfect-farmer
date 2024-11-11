@@ -7,6 +7,7 @@ const defaultSettings = {
   openFarmerInNewWindow: true,
   openFarmerOnStartup: false,
   closeMainWindowOnStartup: false,
+  preferredTelegramWebVersion: "k",
   zoomies: [
     "notpixel",
     "blum",

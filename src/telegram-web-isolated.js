@@ -7,6 +7,8 @@ const webVersion = location.pathname.startsWith("/k/") ? "k" : "a";
 const botURL = import.meta.env.VITE_APP_BOT_URL;
 
 /** Button Text */
+const joinButtonTextContent =
+  webVersion === "k" ? ["SUBSCRIBE", "JOIN"] : ["JOIN CHANNEL", "JOIN GROUP"];
 const confirmButtonTextContent = webVersion === "k" ? "LAUNCH" : "CONFIRM";
 const closeButtonTextContent = "CLOSE ANYWAY";
 
@@ -17,11 +19,13 @@ const buttonSelectors =
         launchButton: ".new-message-bot-commands",
         confirmButton: ".popup-button",
         startButton: ".chat-input-control-button",
+        joinButton: ".chat-join, .chat-input-control-button",
       }
     : {
         launchButton: ".bot-menu.open",
         confirmButton: ".confirm-dialog-button",
         startButton: ".join-subscribe-button",
+        joinButton: ".join-subscribe-button",
       };
 
 /** Dispatch Click Event on Element */
@@ -39,7 +43,7 @@ const dispatchClickEventOnElement = (element) => {
 
 /** Confirm Popup */
 const confirmPopup = () => {
-  for (let element of document.querySelectorAll(
+  for (const element of document.querySelectorAll(
     buttonSelectors.confirmButton
   )) {
     const elementTextContent = element.textContent.trim().toUpperCase();
@@ -56,29 +60,56 @@ const confirmPopup = () => {
 /** Get Start Button */
 const getStartButton = () => {
   for (let element of document.querySelectorAll(buttonSelectors.startButton)) {
-    if (element.textContent.trim().toLowerCase() === "start") {
+    if (
+      element.textContent.trim().toUpperCase() === "START" &&
+      isElementVisible(element)
+    ) {
       return element;
     }
   }
 };
 
+/** Is it a join Button */
+const isJoinButton = (element) =>
+  joinButtonTextContent.includes(element.textContent.trim().toUpperCase()) &&
+  isElementVisible(element);
+
+/** Get Join Button */
+const getJoinButton = () => {
+  for (const element of document.querySelectorAll(buttonSelectors.joinButton)) {
+    if (isJoinButton(element)) {
+      return element;
+    }
+  }
+};
+
+/** Click Telegram Web Button */
+const clickTelegramWebButton = (button, skip = false) => {
+  if (skip && !button) {
+    return true;
+  } else if (isElementVisible(button)) {
+    dispatchClickEventOnElement(button);
+    return true;
+  } else {
+    return false;
+  }
+};
+
+/** Click Join Button */
+const clickJoinButton = () => {
+  return clickTelegramWebButton(getJoinButton());
+};
+
 /** Click Bot Launch Button */
 const clickBotLaunchButton = () => {
-  const launchButton = document.querySelector(buttonSelectors.launchButton);
-
-  if (launchButton && isElementVisible(launchButton)) {
-    dispatchClickEventOnElement(launchButton);
-    return true;
-  }
+  return clickTelegramWebButton(
+    document.querySelector(buttonSelectors.launchButton)
+  );
 };
 
 /** Click Bot Start Button */
 const clickBotStartButton = () => {
-  const startButton = getStartButton();
-  if (startButton && isElementVisible(startButton)) {
-    dispatchClickEventOnElement(startButton);
-    return true;
-  }
+  return clickTelegramWebButton(getStartButton(), true);
 };
 
 /** Is the Bot running */
@@ -92,17 +123,41 @@ const botIsRunning = () => {
   }
 };
 
-/** Farmer Bot Interval */
-let farmerBotInterval;
+/** Join Interval */
+let joinObserver;
+
+/** Join Conversation */
+const joinConversation = () => {
+  /** Clear Previous Observer */
+  joinObserver?.disconnect();
+
+  /** Click Join Button */
+  let hasClickedJoinButton = clickJoinButton();
+
+  /** Don't click again */
+  if (hasClickedJoinButton) return;
+
+  /** Create Observer */
+  joinObserver = new MutationObserver(function () {
+    if (!hasClickedJoinButton) {
+      hasClickedJoinButton = clickJoinButton();
+    } else {
+      joinObserver.disconnect();
+    }
+  });
+
+  /** Observe */
+  joinObserver.observe(document.documentElement, {
+    childList: true,
+    subtree: true,
+  });
+};
 
 /** Farmer Bot Observer */
 let farmerBotObserver;
 
 /** Open Farmer Bot */
 const openFarmerBot = () => {
-  /** Clear Previous Interval */
-  clearInterval(farmerBotInterval);
-
   /** Clear Previous Observer */
   farmerBotObserver?.disconnect();
 
@@ -110,33 +165,28 @@ const openFarmerBot = () => {
   let hasClickedStartButton = clickBotStartButton();
 
   /** Click Launch Button */
-  clickBotLaunchButton();
+  let hasClickedLaunchButton = clickBotLaunchButton();
 
-  /** Start Observing */
+  /** Create Observer */
   farmerBotObserver = new MutationObserver(function () {
-    /** Clear Interval */
-    clearInterval(farmerBotInterval);
-
-    farmerBotInterval = setInterval(() => {
-      /** Bot is Running */
-      if (botIsRunning()) {
-        /** Clear Interval */
-        clearInterval(farmerBotInterval);
-
-        /** Disconnect Observer */
-        farmerBotObserver.disconnect();
-      } else {
-        /** Click the Start Button */
-        if (!hasClickedStartButton) {
-          hasClickedStartButton = clickBotStartButton();
-        }
-
-        /** Click Launch Button */
-        clickBotLaunchButton();
+    /** Bot is Running */
+    if (botIsRunning()) {
+      /** Disconnect Observer */
+      farmerBotObserver.disconnect();
+    } else {
+      /** Click the Start Button */
+      if (!hasClickedStartButton) {
+        hasClickedStartButton = clickBotStartButton();
       }
-    }, 100);
+
+      if (!hasClickedLaunchButton) {
+        /** Click Launch Button */
+        hasClickedLaunchButton = clickBotLaunchButton();
+      }
+    }
   });
 
+  /** Observe */
   farmerBotObserver.observe(document.documentElement, {
     childList: true,
     subtree: true,
@@ -167,6 +217,14 @@ port.onMessage.addListener(async (message) => {
   switch (action) {
     case "open-farmer-bot":
       await openFarmerBot();
+      port.postMessage({
+        id,
+        data: true,
+      });
+      break;
+
+    case "join-conversation":
+      await joinConversation();
       port.postMessage({
         id,
         data: true,

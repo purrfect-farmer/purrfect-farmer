@@ -59,10 +59,10 @@ export function isElementVisible(element) {
   const style = window.getComputedStyle(element);
 
   const isDisplayed = style.display !== "none";
-  const hasOpacity = style.opacity !== "0";
   const isVisible = style.visibility !== "hidden";
+  const hasOpacity = style.opacity !== "0";
 
-  return isDisplayed && hasOpacity && isVisible;
+  return isDisplayed && isVisible && hasOpacity;
 }
 
 /**

@@ -10,8 +10,10 @@ import { useState } from "react";
 import usePumpadCheckMissionMutation from "../hooks/usePumpadCheckMissionMutation";
 import usePumpadGetChannelMutation from "../hooks/usePumpadGetChannelMutation";
 import usePumpadMissionsQuery from "../hooks/usePumpadMissionsQuery";
+import useAppContext from "@/hooks/useAppContext";
 
 export default function PumpadMissions() {
+  const { joinTelegramLink } = useAppContext();
   const queryClient = useQueryClient();
   const missionsQuery = usePumpadMissionsQuery();
   const missions = useMemo(
@@ -55,6 +57,9 @@ export default function PumpadMissions() {
         setCurrentMission(mission);
         try {
           if (mission["sub_type"] === "PUMPAD_CHANNEL") {
+            /** Join Link */
+            await joinTelegramLink(mission.url);
+
             const channelId = await getChannelMutation.mutateAsync(mission.id);
 
             await checkMissionMutation.mutateAsync({
@@ -82,7 +87,7 @@ export default function PumpadMissions() {
 
       process.stop();
     })();
-  }, [process]);
+  }, [process, joinTelegramLink]);
 
   /** Auto-Complete Missions */
   useFarmerAutoProcess("missions", !missionsQuery.isLoading, process.start);
