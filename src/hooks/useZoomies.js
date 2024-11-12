@@ -112,13 +112,13 @@ export default function useZoomies(core) {
   useEffect(() => {
     if (process.started && current.drop && !auth) {
       /** Open Bot */
-      const openBot = () => {
+      const openBot = (force = true) => {
         core.setActiveTab(current.drop?.id);
-        core.openTelegramLink(current.drop.telegramLink);
+        core.openTelegramLink(current.drop.telegramLink, undefined, force);
       };
 
       /** First Time */
-      openBot();
+      openBot(false);
 
       /** Interval */
       const interval = setInterval(openBot, 60000);

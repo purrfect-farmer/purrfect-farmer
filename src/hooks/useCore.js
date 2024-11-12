@@ -362,7 +362,7 @@ export default function useCore() {
   const [openFarmerBot, dispatchAndOpenFarmerBot] = useSocketDispatchCallback(
     /** Main */
     useCallback(
-      async (version) => {
+      async (version, force = false) => {
         /** Remove Previous Handler */
         if (openFarmerBotStateRef.current.handler) {
           ["k", "a"].map((item) => {
@@ -373,23 +373,26 @@ export default function useCore() {
           });
         }
 
-        /** Farmer Bot is Running? */
-        const farmerBotPort = getFarmerBotPort();
-        if (farmerBotPort) {
-          setActiveTab(`telegram-web-${version}`);
-          return;
-        }
+        /** When Not Force */
+        if (!force) {
+          /** Farmer Bot is Running? */
+          const farmerBotPort = getFarmerBotPort();
+          if (farmerBotPort) {
+            setActiveTab(`telegram-web-${version}`);
+            return;
+          }
 
-        /** Other Mini App */
-        const miniAppPorts = getMiniAppPorts();
-        if (miniAppPorts.length) {
-          setActiveTab(`telegram-web-${version}`);
-          postPortMessage(miniAppPorts.at(0), {
-            action: "open-telegram-link",
-            data: { url: import.meta.env.VITE_APP_BOT_MINI_APP },
-          });
+          /** Other Mini App */
+          const miniAppPorts = getMiniAppPorts();
+          if (miniAppPorts.length) {
+            setActiveTab(`telegram-web-${version}`);
+            postPortMessage(miniAppPorts.at(0), {
+              action: "open-telegram-link",
+              data: { url: import.meta.env.VITE_APP_BOT_MINI_APP },
+            });
 
-          return;
+            return;
+          }
         }
 
         /** Capture Port */
@@ -464,7 +467,7 @@ export default function useCore() {
     useSocketDispatchCallback(
       /** Main */
       useCallback(
-        (url, version = preferredTelegramWebVersion) => {
+        (url, version = preferredTelegramWebVersion, force = false) => {
           if (!url) {
             return;
           }
@@ -518,7 +521,7 @@ export default function useCore() {
                 toast.success(
                   `Re-Opening ${import.meta.env.VITE_APP_BOT_NAME}...`
                 );
-                openFarmerBot(version);
+                openFarmerBot(version, force);
               };
 
               /** Add Handler */
@@ -534,12 +537,15 @@ export default function useCore() {
               );
 
               /** Open Farmer Bot */
-              openFarmerBot(version);
+              openFarmerBot(version, force);
 
-              /** Is it running?... */
-              const farmerBotPort = getFarmerBotPort();
-              if (farmerBotPort) {
-                handleFarmerBotWebApp(null, farmerBotPort);
+              /** Not Forced */
+              if (!force) {
+                /** Is it running?... */
+                const farmerBotPort = getFarmerBotPort();
+                if (farmerBotPort) {
+                  handleFarmerBotWebApp(null, farmerBotPort);
+                }
               }
             };
 
@@ -574,10 +580,10 @@ export default function useCore() {
 
   /** Join Telegram Link */
   const joinTelegramLink = useCallback(
-    async (url, version = preferredTelegramWebVersion) => {
+    async (url, version = preferredTelegramWebVersion, force = false) => {
       try {
         /** Open Telegram Link */
-        await openTelegramLink(url, version);
+        await openTelegramLink(url, version, force);
 
         /** Little Delay */
         await delay(1000);
