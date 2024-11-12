@@ -7,6 +7,8 @@ export default function useNotPixelUserQuery(options) {
   return useAppQuery({
     ...options,
     refetchInterval: false,
+    refetchOnMount: false,
+    refetchOnWindowFocus: false,
     queryKey: ["notpixel", "user"],
     queryFn: ({ signal }) =>
       api
