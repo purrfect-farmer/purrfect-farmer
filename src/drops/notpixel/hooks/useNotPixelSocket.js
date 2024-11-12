@@ -1,15 +1,17 @@
 import { useEffect } from "react";
 import { useMemo } from "react";
 import { useState } from "react";
+
 import useNotPixelUserQuery from "./useNotPixelUserQuery";
 
-export default function useNotPixelSocket(
-  enabled,
+export default function useNotPixelSocket({
+  initiated,
   sandboxRef,
-  updateWorldPixels
-) {
+  updateWorldPixels,
+  connectedCallbackRef,
+}) {
   const { data: user } = useNotPixelUserQuery({
-    enabled,
+    enabled: initiated,
   });
 
   const [connected, setConnected] = useState(false);
@@ -26,6 +28,12 @@ export default function useNotPixelSocket(
       const message = ev.data;
 
       switch (message.action) {
+        case "set-world-data":
+          if (connectedCallbackRef.current) {
+            connectedCallbackRef.current(message.data);
+          }
+          break;
+
         case "set-socket-status":
           setConnected(message.data);
           break;
@@ -36,7 +44,7 @@ export default function useNotPixelSocket(
       }
     };
 
-    if (enabled && websocketToken) {
+    if (initiated && websocketToken) {
       const sandbox = sandboxRef.current;
 
       window.addEventListener("message", handleMessage);
@@ -53,7 +61,7 @@ export default function useNotPixelSocket(
     return () => {
       window.removeEventListener("message", handleMessage);
     };
-  }, [enabled, websocketToken, updateWorldPixels, setConnected]);
+  }, [initiated, websocketToken, updateWorldPixels, setConnected]);
 
   return useMemo(() => ({ connected }), [connected]);
 }

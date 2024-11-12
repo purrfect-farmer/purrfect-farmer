@@ -1,15 +1,17 @@
+import useValuesMemo from "@/hooks/useValuesMemo";
 import { logNicely } from "@/lib/utils";
-import { useCallback } from "react";
-import { useMemo } from "react";
+import { useCallback, useRef } from "react";
 import { useState } from "react";
 
 import { getCoords, loadImage, rgbToHex } from "../lib/utils";
 
 export default function useNotPixelData() {
   const [started, setStarted] = useState(false);
+  const [initiated, setInitiated] = useState(false);
   const [pixels, setPixels] = useState({});
   const [worldPixels, setWorldPixels] = useState({});
   const [updatedAt, setUpdatedAt] = useState(() => Date.now());
+  const connectedCallbackRef = useRef(null);
 
   const updateWorldPixels = useCallback(
     (updates) => {
@@ -122,36 +124,48 @@ export default function useNotPixelData() {
           /** Set Items */
           setPixels(getPixels());
 
-          /** Load Current World */
-          loadImage("https://image.notpx.app/api/v2/image").then((image) => {
-            /** Draw current world */
-            offscreenCtx.drawImage(image, 0, 0);
+          /** Connected Callback */
+          connectedCallbackRef.current = (data) => {
+            const blob = new Blob([data], {
+              type: "image/webp",
+            });
+            const src = URL.createObjectURL(blob);
 
-            setWorldPixels(getPixels());
-            setStarted(true);
-          });
+            /** Load Current World */
+            loadImage(src).then((image) => {
+              /** Reset Callback */
+              connectedCallbackRef.current = null;
+
+              /** Revoke URL */
+              URL.revokeObjectURL(src);
+
+              /** Draw current world */
+              offscreenCtx.drawImage(image, 0, 0);
+
+              /** Set World Pixels */
+              setWorldPixels(getPixels());
+
+              /** Set Started */
+              setStarted(true);
+            });
+          };
+
+          /** Initiate */
+          setInitiated(true);
         })
         .catch((e) => {});
     },
-    [setPixels, setWorldPixels]
+    [setStarted, setInitiated, setPixels, setWorldPixels]
   );
 
-  return useMemo(
-    () => ({
-      started,
-      pixels,
-      worldPixels,
-      updatedAt,
-      updateWorldPixels,
-      configureNotPixel,
-    }),
-    [
-      started,
-      pixels,
-      worldPixels,
-      updatedAt,
-      updateWorldPixels,
-      configureNotPixel,
-    ]
-  );
+  return useValuesMemo({
+    started,
+    initiated,
+    pixels,
+    worldPixels,
+    updatedAt,
+    updateWorldPixels,
+    configureNotPixel,
+    connectedCallbackRef,
+  });
 }

@@ -5,7 +5,7 @@ import { useState } from "react";
 
 import useValuesMemo from "./useValuesMemo";
 
-export default function useStorageState(key, defaultValue) {
+export default function useStorageState(key, defaultValue, options) {
   const [hasRestoredValue, setHasRestoredValue] = useState(false);
   const [value, setValue] = useState(defaultValue);
 

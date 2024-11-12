@@ -1,16 +1,20 @@
 import defaultSettings from "@/defaultSettings";
 import toast from "react-hot-toast";
 import { useCallback } from "react";
+import { useMemo } from "react";
 
 import useStorageState from "./useStorageState";
 import useValuesMemo from "./useValuesMemo";
 
 export default function useSettings() {
   const {
-    value: settings,
+    value,
     hasRestoredValue: hasRestoredSettings,
     storeValue,
   } = useStorageState("settings", defaultSettings);
+
+  /** Transform Value */
+  const settings = useMemo(() => ({ ...defaultSettings, ...value }), [value]);
 
   /** Configure Settings */
   const configureSettings = useCallback(

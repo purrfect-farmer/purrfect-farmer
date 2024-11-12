@@ -13,21 +13,24 @@ import { delay } from "@/lib/utils";
 export default function NotPixelFarmer({ sandboxRef }) {
   const { api } = useFarmerContext();
   const {
+    initiated,
     started,
     pixels,
     worldPixels,
     updatedAt,
     updateWorldPixels,
     configureNotPixel,
+    connectedCallbackRef,
   } = useNotPixelData();
   const diff = useNotPixelDiff(pixels, worldPixels);
 
   /** Initiate socket */
-  const { connected } = useNotPixelSocket(
-    started,
+  const { connected } = useNotPixelSocket({
+    initiated,
     sandboxRef,
-    updateWorldPixels
-  );
+    updateWorldPixels,
+    connectedCallbackRef,
+  });
 
   /** Get NotPixel */
   useEffect(() => {
@@ -60,7 +63,7 @@ export default function NotPixelFarmer({ sandboxRef }) {
 
   return (
     <>
-      {connected ? (
+      {started && connected ? (
         <NotPixelApp diff={diff} updatedAt={updatedAt} />
       ) : (
         <div className="flex flex-col items-center justify-center gap-4 p-4 grow">

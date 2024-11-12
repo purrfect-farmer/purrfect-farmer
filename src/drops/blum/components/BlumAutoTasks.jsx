@@ -101,6 +101,12 @@ export default function BlumAutoTasks() {
     [tasks]
   );
 
+  /** Unverified Tasks */
+  const keywordTasks = useMemo(
+    () => tasks.filter((item) => item.validationType === "KEYWORD"),
+    [tasks]
+  );
+
   const process = useProcessLock("blum.tasks.claim");
 
   const [currentTask, setCurrentTask] = useState(null);
@@ -159,10 +165,28 @@ export default function BlumAutoTasks() {
     [client]
   );
 
+  /** Get Keyword */
+  const getKeyword = useCallback(
+    (task) =>
+      dataQuery.data?.blum?.keywords?.[task.id] ||
+      dataQuery.data?.blum?.keywords?.[task.title.toUpperCase()],
+    [dataQuery.data]
+  );
+
   /** Log the Tasks */
   useEffect(() => {
     logNicely("BLUM TASKS", tasks);
   }, [tasks]);
+
+  /** Log the Keyword Tasks */
+  useEffect(() => {
+    logNicely(
+      "BLUM KEYWORD TASKS",
+      Object.fromEntries(
+        keywordTasks.map((task) => [task.title.toUpperCase(), getKeyword(task)])
+      )
+    );
+  }, [keywordTasks, dataQuery.data]);
 
   /** Reset */
   useEffect(reset, [process.started, reset]);
@@ -225,12 +249,15 @@ export default function BlumAutoTasks() {
             setTaskOffset(index);
             setCurrentTask(task);
 
+            let keyword = getKeyword(task);
+
             try {
-              let keyword = zoomies.enabled
-                ? dataQuery.data?.blum?.keywords?.[task.id] ||
-                  dataQuery.data?.blum?.keywords?.[task.title.toUpperCase()]
-                : (await getResolvedValue(task.id)) ||
-                  (await dispatchAndPrompt(task.id));
+              if (!keyword) {
+                keyword = zoomies.enabled
+                  ? keyword
+                  : (await getResolvedValue(task.id)) ||
+                    (await dispatchAndPrompt(task.id));
+              }
 
               if (keyword) {
                 try {
@@ -287,6 +314,7 @@ export default function BlumAutoTasks() {
     process,
     action,
     dataQuery.data,
+    getKeyword,
     getResolvedValue,
     removeResolvedValue,
     dispatchAndPrompt,

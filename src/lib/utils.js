@@ -45,9 +45,11 @@ export async function getStorage(key, defaultValue) {
 }
 
 export async function getSettings() {
+  const settings = await getStorage("settings", defaultSettings);
+
   return {
     ...defaultSettings,
-    ...(await getStorage("settings", defaultSettings)),
+    ...settings,
   };
 }
 

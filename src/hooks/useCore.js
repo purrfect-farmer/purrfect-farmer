@@ -1,3 +1,4 @@
+import defaultSettings from "@/defaultSettings";
 import toast from "react-hot-toast";
 import farmerTabs, { TelegramWeb } from "@/farmerTabs";
 import { createElement } from "react";
@@ -21,7 +22,9 @@ export default function useCore() {
   const socket = useSocket(settings.syncServer);
   const messaging = useMessagePort();
 
-  const preferredTelegramWebVersion = settings.preferredTelegramWebVersion;
+  const preferredTelegramWebVersion =
+    settings.preferredTelegramWebVersion ||
+    defaultSettings.preferredTelegramWebVersion;
   const [openedTabs, setOpenedTabs] = useState(defaultOpenedTabs);
 
   /** Open Farmer Bot State Ref */

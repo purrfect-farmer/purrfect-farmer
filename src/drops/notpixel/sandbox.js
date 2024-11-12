@@ -3,6 +3,8 @@ import { decompress } from "fflate";
 
 import { getCoords } from "./lib/utils";
 
+const WS_WORLD_IMAGE = true;
+
 /** Polyfill Local Storage */
 Object.defineProperty(window, "localStorage", {
   get: () => ({
@@ -88,12 +90,30 @@ const publicationHandler = (message) => {
 };
 
 const connectSocket = (token) => {
-  centrifuge = new Centrifuge("wss://notpx.app/connection/websocket", {
-    token,
-  });
+  const options = WS_WORLD_IMAGE
+    ? {
+        data: new TextEncoder().encode(
+          JSON.stringify({
+            token,
+          })
+        ),
+      }
+    : {
+        token,
+      };
+
+  centrifuge = new Centrifuge("wss://notpx.app/connection/websocket", options);
 
   /** Connected */
-  centrifuge.on("connected", () => {
+  centrifuge.on("connected", (message) => {
+    window.parent.postMessage(
+      {
+        action: "set-world-data",
+        data: message.data,
+      },
+      "*"
+    );
+
     window.parent.postMessage(
       {
         action: "set-socket-status",
