@@ -28,7 +28,11 @@ export default function useDropFarmer({
   authQueryOptions,
 }) {
   /** Zoomies */
-  const { zoomies } = useAppContext();
+  const {
+    zoomies,
+    joinTelegramLink: coreJoinTelegramLink,
+    setActiveTab,
+  } = useAppContext();
 
   /** Auth */
   const [authState, setAuthState] = useState(false);
@@ -132,6 +136,19 @@ export default function useDropFarmer({
   const processNextTask = useRefCallback(zoomies.processNextTask, [
     zoomies.processNextTask,
   ]);
+
+  /** Join Telegram Link */
+  const joinTelegramLink = useCallback(
+    async (...args) => {
+      try {
+        await coreJoinTelegramLink(...args);
+      } catch {}
+
+      /** Restore Tab */
+      setActiveTab(id);
+    },
+    [id, coreJoinTelegramLink, setActiveTab]
+  );
 
   /** Enforce only one request */
   useEffect(() => {
@@ -338,5 +355,6 @@ export default function useDropFarmer({
     reset,
     updateQueryData,
     processNextTask,
+    joinTelegramLink,
   });
 }

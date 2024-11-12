@@ -9,10 +9,10 @@ import { useState } from "react";
 
 import useSlotcoinCheckTaskMutation from "../hooks/useSlotcoinCheckTaskMutation";
 import useSlotcoinQuestsQuery from "../hooks/useSlotcoinQuestsQuery";
-import useAppContext from "@/hooks/useAppContext";
+import useFarmerContext from "@/hooks/useFarmerContext";
 
 export default function SlotcoinQuests() {
-  const { joinTelegramLink } = useAppContext();
+  const { joinTelegramLink } = useFarmerContext();
   const process = useProcessLock("slotcoin.quests.check");
   const queryClient = useQueryClient();
 

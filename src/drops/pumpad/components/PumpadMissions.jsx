@@ -10,10 +10,10 @@ import { useState } from "react";
 import usePumpadCheckMissionMutation from "../hooks/usePumpadCheckMissionMutation";
 import usePumpadGetChannelMutation from "../hooks/usePumpadGetChannelMutation";
 import usePumpadMissionsQuery from "../hooks/usePumpadMissionsQuery";
-import useAppContext from "@/hooks/useAppContext";
+import useFarmerContext from "@/hooks/useFarmerContext";
 
 export default function PumpadMissions() {
-  const { joinTelegramLink } = useAppContext();
+  const { joinTelegramLink } = useFarmerContext();
   const queryClient = useQueryClient();
   const missionsQuery = usePumpadMissionsQuery();
   const missions = useMemo(

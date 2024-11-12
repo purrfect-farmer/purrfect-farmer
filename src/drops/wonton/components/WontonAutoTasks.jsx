@@ -15,10 +15,10 @@ import useWontonClaimTaskProgressMutation from "../hooks/useWontonClaimTaskProgr
 import useWontonStartTaskMutation from "../hooks/useWontonStartTaskMutation";
 import useWontonTasksQuery from "../hooks/useWontonTasksQuery";
 import useWontonUserQuery from "../hooks/useWontonUserQuery";
-import useAppContext from "@/hooks/useAppContext";
+import useFarmerContext from "@/hooks/useFarmerContext";
 
 export default function WontonAutoTasks() {
-  const { joinTelegramLink } = useAppContext();
+  const { joinTelegramLink } = useFarmerContext();
   const client = useQueryClient();
   const taskQuery = useWontonTasksQuery();
   const userQuery = useWontonUserQuery();

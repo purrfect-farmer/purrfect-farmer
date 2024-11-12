@@ -15,15 +15,12 @@ import useBlumClaimTaskMutation from "../hooks/useBlumClaimTaskMutation";
 import useBlumStartTaskMutation from "../hooks/useBlumStartTaskMutation";
 import useBlumTasksQuery from "../hooks/useBlumTasksQuery";
 import useBlumValidateTaskMutation from "../hooks/useBlumValidateTaskMutation";
-import useAppContext from "@/hooks/useAppContext";
 
 export default function BlumAutoTasks() {
   const client = useQueryClient();
   const query = useBlumTasksQuery();
 
-  const { joinTelegramLink } = useAppContext();
-
-  const { zoomies, dataQuery } = useFarmerContext();
+  const { zoomies, dataQuery, joinTelegramLink } = useFarmerContext();
 
   /** Concat sub tasks */
   const reduceTasks = useCallback(
