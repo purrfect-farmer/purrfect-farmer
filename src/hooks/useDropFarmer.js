@@ -89,7 +89,7 @@ export default function useDropFarmer({
     queryKey: ["app", "farmer", "data"],
     queryFn: ({ signal }) =>
       axios
-        .get(import.meta.env.VITE_APP_FARMER_DATA_URL, {
+        .get(`${import.meta.env.VITE_APP_FARMER_DATA_URL}?time=${Date.now()}`, {
           signal,
         })
         .then((res) => res.data),
