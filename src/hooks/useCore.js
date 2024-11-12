@@ -123,6 +123,27 @@ export default function useCore() {
     socket
   );
 
+  const [closeFarmerTabs, dispatchAndCloseFarmerTabs] =
+    useSocketDispatchCallback(
+      /** Main */
+      useCallback(() => {
+        setOpenedTabs((prev) =>
+          prev.filter((item) =>
+            ["app", "telegram-web-k", "telegram-web-a"].includes(item.id)
+          )
+        );
+      }, [setOpenedTabs]),
+
+      /** Dispatch */
+      useCallback((socket) => {
+        socket.dispatch({
+          action: "app.close-farmer-tabs",
+        });
+      }, []),
+      /** Socket */
+      socket
+    );
+
   const [reloadTab, dispatchAndReloadTab] = useSocketDispatchCallback(
     /** Main */
     useCallback(
@@ -302,6 +323,42 @@ export default function useCore() {
     [settings, dispatchAndSetActiveTab, dispatchAndNavigateToTelegramWeb]
   );
 
+  const getFarmerBotPort = useCallback(
+    () =>
+      messaging.ports
+        .values()
+        .find(
+          (port) =>
+            port.name === `mini-app:${import.meta.env.VITE_APP_BOT_HOST}`
+        ),
+    [messaging.ports]
+  );
+
+  const getMiniAppPorts = useCallback(
+    () =>
+      messaging.ports
+        .values()
+        .filter((port) => port.name.startsWith("mini-app:"))
+        .toArray(),
+    [messaging.ports]
+  );
+
+  const closeOtherBots = useCallback(
+    () =>
+      messaging.ports
+        .values()
+        .filter(
+          (port) =>
+            port.name !== `mini-app:${import.meta.env.VITE_APP_BOT_HOST}`
+        )
+        .forEach((port) => {
+          postPortMessage(port, {
+            action: "close-bot",
+          });
+        }),
+    [messaging.ports]
+  );
+
   const [openFarmerBot, dispatchAndOpenFarmerBot] = useSocketDispatchCallback(
     /** Main */
     useCallback(
@@ -314,6 +371,25 @@ export default function useCore() {
               openFarmerBotStateRef.current.handler
             );
           });
+        }
+
+        /** Farmer Bot is Running? */
+        const farmerBotPort = getFarmerBotPort();
+        if (farmerBotPort) {
+          setActiveTab(`telegram-web-${version}`);
+          return;
+        }
+
+        /** Other Mini App */
+        const miniAppPorts = getMiniAppPorts();
+        if (miniAppPorts.length) {
+          setActiveTab(`telegram-web-${version}`);
+          postPortMessage(miniAppPorts.at(0), {
+            action: "open-telegram-link",
+            data: { url: import.meta.env.VITE_APP_BOT_MINI_APP },
+          });
+
+          return;
         }
 
         /** Capture Port */
@@ -356,7 +432,16 @@ export default function useCore() {
           true
         );
       },
-      [farmerTabs, pushTab, messaging.handler, messaging.removeMessageHandlers]
+      [
+        farmerTabs,
+        setActiveTab,
+        pushTab,
+        getFarmerBotPort,
+        getMiniAppPorts,
+        messaging.handler,
+        messaging.ports,
+        messaging.removeMessageHandlers,
+      ]
     ),
 
     /** Dispatch */
@@ -450,6 +535,12 @@ export default function useCore() {
 
               /** Open Farmer Bot */
               openFarmerBot(version);
+
+              /** Is it running?... */
+              const farmerBotPort = getFarmerBotPort();
+              if (farmerBotPort) {
+                handleFarmerBotWebApp(null, farmerBotPort);
+              }
             };
 
             openNewTelegramWeb();
@@ -460,6 +551,8 @@ export default function useCore() {
           openFarmerBot,
           setActiveTab,
           preferredTelegramWebVersion,
+          getFarmerBotPort,
+          messaging.ports,
           messaging.handler,
         ]
       ),
@@ -481,7 +574,7 @@ export default function useCore() {
 
   /** Join Telegram Link */
   const joinTelegramLink = useCallback(
-    async (url, close = true, version = preferredTelegramWebVersion) => {
+    async (url, version = preferredTelegramWebVersion) => {
       try {
         /** Open Telegram Link */
         await openTelegramLink(url, version);
@@ -501,14 +594,9 @@ export default function useCore() {
 
         /** Extra Delay */
         await delay(5000);
-
-        if (close) {
-          /** Close Telegram Web */
-          closeTab(`telegram-web-${version}`);
-        }
       } catch {}
     },
-    [messaging.ports, preferredTelegramWebVersion, openTelegramLink, closeTab]
+    [messaging.ports, preferredTelegramWebVersion, openTelegramLink]
   );
 
   /** Handlers */
@@ -586,6 +674,9 @@ export default function useCore() {
     configureSettings,
     openNewTab,
     openExtensionsPage,
+    getFarmerBotPort,
+    closeOtherBots,
+    getMiniAppPorts,
     dispatchAndShutdown,
     dispatchAndReloadApp,
     dispatchAndConfigureSettings,
@@ -607,10 +698,12 @@ export default function useCore() {
     reloadTab,
     resetTabs,
     closeTab,
+    closeFarmerTabs,
     dispatchAndPushTab,
     dispatchAndSetActiveTab,
     dispatchAndReloadTab,
     dispatchAndCloseTab,
     dispatchAndResetTabs,
+    dispatchAndCloseFarmerTabs,
   });
 }

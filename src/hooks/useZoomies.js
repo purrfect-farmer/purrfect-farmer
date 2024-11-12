@@ -48,14 +48,14 @@ export default function useZoomies(core) {
     /** Reset Auth */
     setAuth(false);
 
-    /** Reset Tabs */
-    core.resetTabs();
+    /** Close Farmer Tabs */
+    core.closeFarmerTabs();
 
     /** Set Active Tab */
     if (current.drop) {
       core.setActiveTab(current.drop.id);
     }
-  }, [current.drop, setAuth, core.resetTabs, core.setActiveTab]);
+  }, [current.drop, setAuth, core.closeFarmerTabs, core.setActiveTab]);
 
   /** Refresh Zoomies */
   const refresh = useCallback(() => {
@@ -135,15 +135,21 @@ export default function useZoomies(core) {
     if (!process.started) return;
 
     if (auth) {
-      /** Close Telegram Web */
-      core.closeTab("telegram-web-k");
+      /** Close Other Bots */
+      core.closeOtherBots();
 
       /** Set Active Tab */
       if (current.drop) {
         core.setActiveTab(current.drop.id);
       }
     }
-  }, [process.started, auth, current.drop, core.closeTab, core.setActiveTab]);
+  }, [
+    process.started,
+    auth,
+    current.drop,
+    core.closeOtherBots,
+    core.setActiveTab,
+  ]);
 
   /** Reset the drops */
   useEffect(() => {
