@@ -4,13 +4,11 @@ import useFarmerAutoProcess from "@/drops/notpixel/hooks/useFarmerAutoProcess";
 import useFarmerContext from "@/hooks/useFarmerContext";
 import useProcessLock from "@/hooks/useProcessLock";
 import useSocketDispatchCallback from "@/hooks/useSocketDispatchCallback";
-import useSocketHandlers from "@/hooks/useSocketHandlers";
 import useSocketState from "@/hooks/useSocketState";
 import { HiOutlineArrowPath } from "react-icons/hi2";
 import { cn, delay, delayForSeconds } from "@/lib/utils";
 import { useCallback } from "react";
 import { useEffect } from "react";
-import { useMemo } from "react";
 
 import useTruecoin50SpinsBoost from "../hooks/useTruecoin50SpinsBoostMutation";
 import useTruecoinLotteryMutation from "../hooks/useTruecoinLotteryMutation";
@@ -35,23 +33,14 @@ export default function TruecoinLottery() {
   const process = useProcessLock("truecoin.spin");
 
   /** Handle button click */
-  const [claim50Boost, dispatchAndClaim50Boost] = useSocketDispatchCallback(
-    /** Main */
-    useCallback(() => {
+  const [claim50Boost, dispatchAndClaim50Boost] =
+    useSocketDispatchCallback(() => {
       return toast.promise(boostMutation.mutateAsync(), {
         loading: "Please wait",
         error: "Failed to Claim 50 Spins",
         success: "50 Spins Claimed",
       });
-    }, []),
-
-    /** Dispatch */
-    useCallback((socket) => {
-      socket.dispatch({
-        action: "truecoin.50-boost",
-      });
-    }, [])
-  );
+    }, []);
 
   /** Claim All 50 Boost */
   const claimAll50Boost = useCallback(async () => {
@@ -69,18 +58,6 @@ export default function TruecoinLottery() {
     /** Process Next Task */
     processNextTask();
   }, [claim50Boost, userBoosts, processNextTask]);
-
-  /** Handlers */
-  useSocketHandlers(
-    useMemo(
-      () => ({
-        "truecoin.50-boost": () => {
-          claim50Boost();
-        },
-      }),
-      [claim50Boost]
-    )
-  );
 
   /** Play Lottery */
   useEffect(() => {
@@ -157,7 +134,7 @@ export default function TruecoinLottery() {
 
         {/* 50 Boost Click */}
         <button
-          onClick={dispatchAndClaim50Boost}
+          onClick={() => dispatchAndClaim50Boost()}
           className={cn(
             "p-2 text-black rounded-lg disabled:opacity-50",
             "bg-purple-100",

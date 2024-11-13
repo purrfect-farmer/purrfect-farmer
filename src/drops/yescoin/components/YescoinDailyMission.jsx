@@ -2,7 +2,6 @@ import toast from "react-hot-toast";
 import useFarmerAutoProcess from "@/drops/notpixel/hooks/useFarmerAutoProcess";
 import useProcessLock from "@/hooks/useProcessLock";
 import useSocketDispatchCallback from "@/hooks/useSocketDispatchCallback";
-import useSocketHandlers from "@/hooks/useSocketHandlers";
 import { CgSpinner } from "react-icons/cg";
 import { cn, delay } from "@/lib/utils";
 import { useCallback } from "react";
@@ -74,45 +73,20 @@ export default function YescoinDailyMission() {
   }, []);
 
   const [claimTask, dispatchAndClaimTask] = useSocketDispatchCallback(
-    /** Main */
-    useCallback(
-      async (id) => {
-        if (
-          !missions.some(
-            (mission) => mission.missionId === id && !mission.missionStatus
-          )
+    async (id) => {
+      if (
+        !missions.some(
+          (mission) => mission.missionId === id && !mission.missionStatus
         )
-          return;
+      )
+        return;
 
-        await runMission(id);
+      await runMission(id);
 
-        await missionsQuery.refetch();
-        await accountInfoQuery.refetch();
-      },
-      [missions, runMission]
-    ),
-
-    /** Dispatch */
-    useCallback((socket, id) => {
-      socket.dispatch({
-        action: "yescoin.missions.claim",
-        data: {
-          id,
-        },
-      });
-    }, [])
-  );
-
-  /** Handlers */
-  useSocketHandlers(
-    useMemo(
-      () => ({
-        "yescoin.missions.claim": (command) => {
-          claimTask(command.data.id);
-        },
-      }),
-      [claimTask]
-    )
+      await missionsQuery.refetch();
+      await accountInfoQuery.refetch();
+    },
+    [missions, runMission]
   );
 
   /** Reset */

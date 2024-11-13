@@ -2,9 +2,7 @@ import useSocketDispatchCallback from "@/hooks/useSocketDispatchCallback";
 import { useCallback } from "react";
 import { useMemo } from "react";
 import { useState } from "react";
-
 import useAppContext from "./useAppContext";
-import useSocketHandlers from "./useSocketHandlers";
 
 export default function useValueTasks(key) {
   const { socket } = useAppContext();
@@ -84,65 +82,27 @@ export default function useValueTasks(key) {
 
   /** Prompt Value */
   const [, dispatchAndPrompt] = useSocketDispatchCallback(
-    /** Main */
-    useCallback(
-      (id) =>
-        new Promise((resolve, reject) => {
-          setValuePrompt({
-            id,
-            callback: resolve,
-          });
-        }),
-      [setValuePrompt]
-    ),
-
-    /** Dispatch to Retrieve it from Others */
-    useCallback(
-      (socket, id) => {
-        socket.dispatch({
-          action: `${key}.get`,
-          data: {
-            id,
-          },
+    (id) =>
+      new Promise((resolve, reject) => {
+        setValuePrompt({
+          id,
+          callback: resolve,
         });
-      },
-      [key]
-    )
+      }),
+    [setValuePrompt]
   );
 
   /** Handle value Prompt Submit */
   const [submitPrompt, dispatchAndSubmitPrompt] = useSocketDispatchCallback(
-    /** Main */
-    useCallback(
-      (value) => {
-        if (!valuePrompt) return;
+    (value) => {
+      if (!valuePrompt) return;
 
-        const { callback } = valuePrompt;
+      const { callback } = valuePrompt;
 
-        setValuePrompt(null);
-        callback(value);
-      },
-      [valuePrompt, setValuePrompt]
-    ),
-
-    /** Dispatch */
-    useCallback(
-      (socket, value) => {
-        if (!valuePrompt) return;
-
-        const { id } = valuePrompt;
-
-        /** Dispatch for others to store */
-        socket.dispatch({
-          action: `${key}.store`,
-          data: {
-            id,
-            value,
-          },
-        });
-      },
-      [key, valuePrompt]
-    )
+      setValuePrompt(null);
+      callback(value);
+    },
+    [valuePrompt, setValuePrompt]
   );
 
   /** Get Value Request */
@@ -176,21 +136,6 @@ export default function useValueTasks(key) {
       }
     },
     [valuePrompt, storeResolvedValue, submitPrompt]
-  );
-
-  /** Handlers */
-  useSocketHandlers(
-    useMemo(
-      () => ({
-        [`${key}.get`]: (command) => {
-          handleGetValueRequest(command.data.id);
-        },
-        [`${key}.store`]: (command) => {
-          handleStoreValueRequest(command.data.id, command.data.value);
-        },
-      }),
-      [key, handleGetValueRequest, handleStoreValueRequest]
-    )
   );
 
   return useMemo(

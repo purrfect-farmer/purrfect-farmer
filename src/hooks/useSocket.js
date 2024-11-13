@@ -67,6 +67,7 @@ export default function useSocket(server = "127.0.0.1:7777") {
     () => ({
       connected,
       syncing,
+      handler,
       dispatch,
       setSyncing,
       addCommandHandlers,

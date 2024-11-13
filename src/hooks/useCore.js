@@ -12,7 +12,6 @@ import useMessagePort from "./useMessagePort";
 import useSettings from "./useSettings";
 import useSocket from "./useSocket";
 import useSocketDispatchCallback from "./useSocketDispatchCallback";
-import useSocketHandlers from "./useSocketHandlers";
 import useValuesMemo from "./useValuesMemo";
 
 export const defaultOpenedTabs = () => [{ ...farmerTabs[0], active: true }];
@@ -42,161 +41,92 @@ export default function useCore() {
   /* ===== HELPERS ===== */
 
   const [pushTab, dispatchAndPushTab] = useSocketDispatchCallback(
-    /** Main */
-    useCallback(
-      (tab, override = false) => {
-        setOpenedTabs((previous) => {
-          if (previous.some((item) => item.id === tab.id)) {
-            /** Push Update */
-            return previous.map((item) =>
-              item.id === tab.id
-                ? { ...(override ? tab : item), active: true }
-                : { ...item, active: false }
-            );
-          } else {
-            return [
-              ...previous.map((item) => ({ ...item, active: false })),
-              { ...tab, active: true, reloadedAt: Date.now() },
-            ];
-          }
-        });
-      },
-      [setOpenedTabs]
-    ),
-
-    /** Dispatch */
-    useCallback(
-      (socket, drop) =>
-        socket.dispatch({
-          action: "app.set-active-tab",
-          data: {
-            id: drop.id,
-          },
-        }),
-      []
-    ),
+    (tab, override = false) => {
+      setOpenedTabs((previous) => {
+        if (previous.some((item) => item.id === tab.id)) {
+          /** Push Update */
+          return previous.map((item) =>
+            item.id === tab.id
+              ? { ...(override ? tab : item), active: true }
+              : { ...item, active: false }
+          );
+        } else {
+          return [
+            ...previous.map((item) => ({ ...item, active: false })),
+            { ...tab, active: true, reloadedAt: Date.now() },
+          ];
+        }
+      });
+    },
+    [setOpenedTabs],
     /** Socket */
     socket
   );
 
   /** Set Active Tab */
   const [setActiveTab, dispatchAndSetActiveTab] = useSocketDispatchCallback(
-    /** Main */
-    useCallback(
-      (id) => {
-        pushTab(farmerTabs.find((item) => item.id === id));
-      },
-      [farmerTabs, pushTab]
-    ),
-
-    /** Dispatch */
-    useCallback(
-      (socket, id) =>
-        socket.dispatch({
-          action: "app.set-active-tab",
-          data: {
-            id,
-          },
-        }),
-      []
-    ),
+    (id) => {
+      pushTab(farmerTabs.find((item) => item.id === id));
+    },
+    [farmerTabs, pushTab],
     /** Socket */
     socket
   );
 
   const [resetTabs, dispatchAndResetTabs] = useSocketDispatchCallback(
-    /** Main */
-    useCallback(() => {
+    () => {
       setOpenedTabs(defaultOpenedTabs);
-    }, [setOpenedTabs]),
-
-    /** Dispatch */
-    useCallback((socket) => {
-      socket.dispatch({
-        action: "app.reset-tabs",
-      });
-    }, []),
+    },
+    [setOpenedTabs],
     /** Socket */
     socket
   );
 
   const [closeFarmerTabs, dispatchAndCloseFarmerTabs] =
     useSocketDispatchCallback(
-      /** Main */
-      useCallback(() => {
+      () => {
         setOpenedTabs((prev) =>
           prev.filter((item) =>
             ["app", "telegram-web-k", "telegram-web-a"].includes(item.id)
           )
         );
-      }, [setOpenedTabs]),
-
-      /** Dispatch */
-      useCallback((socket) => {
-        socket.dispatch({
-          action: "app.close-farmer-tabs",
-        });
-      }, []),
+      },
+      [setOpenedTabs],
       /** Socket */
       socket
     );
 
   const [reloadTab, dispatchAndReloadTab] = useSocketDispatchCallback(
-    /** Main */
-    useCallback(
-      (id) => {
-        setOpenedTabs((previous) => {
-          const newTabs = previous.map((item) =>
-            item.id === id ? { ...item, reloadedAt: Date.now() } : item
-          );
+    (id) => {
+      setOpenedTabs((previous) => {
+        const newTabs = previous.map((item) =>
+          item.id === id ? { ...item, reloadedAt: Date.now() } : item
+        );
 
-          return newTabs;
-        });
-      },
-      [setOpenedTabs]
-    ),
-
-    /** Dispatch */
-    useCallback((socket, id) => {
-      socket.dispatch({
-        action: "app.reload-tab",
-        data: {
-          id,
-        },
+        return newTabs;
       });
-    }, []),
+    },
+    [setOpenedTabs],
     /** Socket */
     socket
   );
 
   const [closeTab, dispatchAndCloseTab] = useSocketDispatchCallback(
-    /** Main */
-    useCallback(
-      (id) => {
-        setOpenedTabs((previous) => {
-          const previousIndex = previous.findIndex((tab) => tab.id === id);
+    (id) => {
+      setOpenedTabs((previous) => {
+        const previousIndex = previous.findIndex((tab) => tab.id === id);
 
-          const newTabs = previous
-            .filter((item) => item.id !== id)
-            .map((item, index) => ({
-              ...item,
-              active: index === Math.max(previousIndex - 1, 0),
-            }));
+        const newTabs = previous
+          .filter((item) => item.id !== id)
+          .map((item, index) => ({
+            ...item,
+            active: index === Math.max(previousIndex - 1, 0),
+          }));
 
-          return newTabs;
-        });
-      },
-      [setOpenedTabs]
-    ),
-    /** Dispatch */
-    useCallback((socket, id) => {
-      socket.dispatch({
-        action: "app.close-tab",
-        data: {
-          id,
-        },
+        return newTabs;
       });
-    }, []),
+    },
+    [setOpenedTabs],
     /** Socket */
     socket
   );
@@ -221,38 +151,20 @@ export default function useCore() {
 
   /** Shutdown */
   const [shutdown, dispatchAndShutdown] = useSocketDispatchCallback(
-    /** Main */
-    useCallback(() => {
+    () => {
       window.close();
-    }, []),
-
-    /** Dispatch */
-    useCallback(
-      (socket) =>
-        socket.dispatch({
-          action: "app.shutdown",
-        }),
-      []
-    ),
+    },
+    [],
     /** Socket */
     socket
   );
 
-  /** Open Farmer in Separate Window */
+  /** Reload App */
   const [reloadApp, dispatchAndReloadApp] = useSocketDispatchCallback(
-    /** Main */
-    useCallback(() => {
+    () => {
       window.location.reload();
-    }, []),
-
-    /** Dispatch */
-    useCallback(
-      (socket) =>
-        socket.dispatch({
-          action: "app.reload-app",
-        }),
-      []
-    ),
+    },
+    [],
     /** Socket */
     socket
   );
@@ -261,19 +173,7 @@ export default function useCore() {
   const [, dispatchAndConfigureSettings] = useSocketDispatchCallback(
     /** Configure Settings */
     configureSettings,
-
-    /** Dispatch */
-    useCallback(
-      (socket, k, v) =>
-        socket.dispatch({
-          action: "app.configure-settings",
-          data: {
-            key: k,
-            value: v,
-          },
-        }),
-      []
-    ),
+    [configureSettings],
     /** Socket */
     socket
   );
@@ -281,29 +181,14 @@ export default function useCore() {
   /** Navigate to Telegram Web */
   const [navigateToTelegramWeb, dispatchAndNavigateToTelegramWeb] =
     useSocketDispatchCallback(
-      /** Main */
-      useCallback(
-        (v) =>
-          chrome?.tabs?.query({ active: true, currentWindow: true }, (tabs) => {
-            chrome?.tabs?.update(tabs[0].id, {
-              url: `https://web.telegram.org/${v}`,
-              active: true,
-            });
-          }),
-        []
-      ),
-
-      /** Dispatch */
-      useCallback(
-        (socket, v) =>
-          socket.dispatch({
-            action: "app.navigate-to-telegram-web",
-            data: {
-              version: v,
-            },
-          }),
-        []
-      ),
+      (v) =>
+        chrome?.tabs?.query({ active: true, currentWindow: true }, (tabs) => {
+          chrome?.tabs?.update(tabs[0].id, {
+            url: `https://web.telegram.org/${v}`,
+            active: true,
+          });
+        }),
+      [],
       /** Socket */
       socket
     );
@@ -362,105 +247,88 @@ export default function useCore() {
   }, [getMiniAppPorts]);
 
   const [openFarmerBot, dispatchAndOpenFarmerBot] = useSocketDispatchCallback(
-    /** Main */
-    useCallback(
-      async (version, force = false) => {
-        /** Event Names */
-        const eventNames = ["k", "a"].map(
-          (item) => `port-connected:telegram-web-${item}`
-        );
+    async (version, force = false) => {
+      /** Event Names */
+      const eventNames = ["k", "a"].map(
+        (item) => `port-connected:telegram-web-${item}`
+      );
 
+      /** Remove All Listeners */
+      eventNames.forEach((name) => messaging.handler.removeAllListeners(name));
+
+      /** When Not Force */
+      if (!force) {
+        /** Farmer Bot is Running? */
+        const farmerBotPort = getFarmerBotPort();
+        if (farmerBotPort) {
+          setActiveTab(`telegram-web-${version}`);
+          return;
+        }
+
+        /** Other Mini App */
+        const miniAppPorts = getMiniAppPorts();
+        if (miniAppPorts.length) {
+          setActiveTab(`telegram-web-${version}`);
+          postPortMessage(miniAppPorts.at(0), {
+            action: "open-telegram-link",
+            data: { url: import.meta.env.VITE_APP_BOT_MINI_APP },
+          });
+
+          return;
+        }
+      }
+
+      /** Capture Port */
+      const capturePort = async function (port) {
         /** Remove All Listeners */
         eventNames.forEach((name) =>
           messaging.handler.removeAllListeners(name)
         );
 
-        /** When Not Force */
-        if (!force) {
-          /** Farmer Bot is Running? */
-          const farmerBotPort = getFarmerBotPort();
-          if (farmerBotPort) {
-            setActiveTab(`telegram-web-${version}`);
-            return;
-          }
+        /** Post Message */
+        postPortMessage(port, {
+          action: "open-farmer-bot",
+        });
+      };
 
-          /** Other Mini App */
-          const miniAppPorts = getMiniAppPorts();
-          if (miniAppPorts.length) {
-            setActiveTab(`telegram-web-${version}`);
-            postPortMessage(miniAppPorts.at(0), {
-              action: "open-telegram-link",
-              data: { url: import.meta.env.VITE_APP_BOT_MINI_APP },
-            });
+      /** Add Handler */
+      messaging.handler.once(
+        `port-connected:telegram-web-${version}`,
+        capturePort
+      );
 
-            return;
-          }
-        }
+      /** Find Telegram Web Tab */
+      const tab = farmerTabs.find(
+        (item) => item.id === `telegram-web-${version}`
+      );
 
-        /** Capture Port */
-        const capturePort = async function (port) {
-          /** Remove All Listeners */
-          eventNames.forEach((name) =>
-            messaging.handler.removeAllListeners(name)
-          );
-
-          /** Post Message */
-          postPortMessage(port, {
-            action: "open-farmer-bot",
-          });
-        };
-
-        /** Add Handler */
-        messaging.handler.once(
-          `port-connected:telegram-web-${version}`,
-          capturePort
-        );
-
-        /** Find Telegram Web Tab */
-        const tab = farmerTabs.find(
-          (item) => item.id === `telegram-web-${version}`
-        );
-
-        /** Push the tab */
-        pushTab(
-          {
-            ...tab,
-            component: createElement(TelegramWeb, {
-              version,
-              hash: `#${
-                version === "k"
-                  ? import.meta.env.VITE_APP_BOT_USERNAME
-                  : import.meta.env.VITE_APP_BOT_CHAT_ID
-              }`,
-            }),
-            reloadedAt: Date.now(),
-          },
-          true
-        );
-      },
-      [
-        farmerTabs,
-        setActiveTab,
-        pushTab,
-        getFarmerBotPort,
-        getMiniAppPorts,
-        messaging.handler,
-        messaging.ports,
-        messaging.removeMessageHandlers,
-      ]
-    ),
-
-    /** Dispatch */
-    useCallback(
-      (socket, version) =>
-        socket.dispatch({
-          action: "app.open-farmer-bot",
-          data: {
+      /** Push the tab */
+      pushTab(
+        {
+          ...tab,
+          component: createElement(TelegramWeb, {
             version,
-          },
-        }),
-      []
-    ),
+            hash: `#${
+              version === "k"
+                ? import.meta.env.VITE_APP_BOT_USERNAME
+                : import.meta.env.VITE_APP_BOT_CHAT_ID
+            }`,
+          }),
+          reloadedAt: Date.now(),
+        },
+        true
+      );
+    },
+    [
+      farmerTabs,
+      setActiveTab,
+      pushTab,
+      getFarmerBotPort,
+      getMiniAppPorts,
+      messaging.handler,
+      messaging.ports,
+      messaging.removeMessageHandlers,
+    ],
     /** Socket */
     socket
   );
@@ -468,112 +336,97 @@ export default function useCore() {
   /** Open Telegram Link */
   const [openTelegramLink, dispatchAndOpenTelegramLink] =
     useSocketDispatchCallback(
-      /** Main */
-      useCallback(
-        (url, version = preferredTelegramWebVersion, force = false) => {
-          if (!url) {
-            return;
-          }
+      (url, version = preferredTelegramWebVersion, force = false) => {
+        if (!url) {
+          return;
+        }
 
-          return new Promise((resolve, reject) => {
-            /** Bot TelegramWeb Action */
-            const botTelegramWebAppAction = `set-telegram-web-app:${
-              import.meta.env.VITE_APP_BOT_HOST
-            }`;
+        return new Promise((resolve, reject) => {
+          /** Bot TelegramWeb Action */
+          const botTelegramWebAppAction = `set-telegram-web-app:${
+            import.meta.env.VITE_APP_BOT_HOST
+          }`;
 
-            /** Clear Previous Interval */
+          /** Clear Previous Interval */
+          clearInterval(openTelegramLinkIntervalRef.current);
+
+          /** Remove Previous Handler */
+          messaging.handler.removeAllListeners(botTelegramWebAppAction);
+
+          /** Handle Farmer Bot Web App */
+          const handleFarmerBotWebApp = (message, port) => {
+            /** Clear Interval */
             clearInterval(openTelegramLinkIntervalRef.current);
 
-            /** Remove Previous Handler */
+            /** Off Listener */
             messaging.handler.removeAllListeners(botTelegramWebAppAction);
 
-            /** Handle Farmer Bot Web App */
-            const handleFarmerBotWebApp = (message, port) => {
-              /** Clear Interval */
-              clearInterval(openTelegramLinkIntervalRef.current);
+            /** Reset */
+            openTelegramLinkIntervalRef.current = null;
 
-              /** Off Listener */
-              messaging.handler.removeAllListeners(botTelegramWebAppAction);
+            /** Post the Link */
+            postTelegramLink(port, `telegram-web-${version}`);
 
-              /** Reset */
-              openTelegramLinkIntervalRef.current = null;
+            /** Resolve the Promise */
+            resolve(true);
+          };
 
-              /** Post the Link */
-              postTelegramLink(port, `telegram-web-${version}`);
+          /** Post Telegram Link */
+          const postTelegramLink = (port, tabId) =>
+            postPortMessage(port, {
+              action: "open-telegram-link",
+              data: { url },
+            }).then(() => {
+              setActiveTab(tabId);
+            });
 
-              /** Resolve the Promise */
-              resolve(true);
-            };
-
-            /** Post Telegram Link */
-            const postTelegramLink = (port, tabId) =>
-              postPortMessage(port, {
-                action: "open-telegram-link",
-                data: { url },
-              }).then(() => {
-                setActiveTab(tabId);
-              });
-
-            const openNewTelegramWeb = () => {
-              /** Re-Open Bot */
-              const reOpenFarmerBot = () => {
-                toast.success(
-                  `Re-Opening ${import.meta.env.VITE_APP_BOT_NAME}...`
-                );
-                openFarmerBot(version, force);
-              };
-
-              /** Add Handler */
-              messaging.handler.once(
-                botTelegramWebAppAction,
-                handleFarmerBotWebApp
+          const openNewTelegramWeb = () => {
+            /** Re-Open Bot */
+            const reOpenFarmerBot = () => {
+              toast.success(
+                `Re-Opening ${import.meta.env.VITE_APP_BOT_NAME}...`
               );
-
-              /** Reopen the bot */
-              openTelegramLinkIntervalRef.current = setInterval(
-                reOpenFarmerBot,
-                30000
-              );
-
-              /** Open Farmer Bot */
               openFarmerBot(version, force);
-
-              /** Not Forced */
-              if (!force) {
-                /** Is it running?... */
-                const farmerBotPort = getFarmerBotPort();
-                if (farmerBotPort) {
-                  handleFarmerBotWebApp(null, farmerBotPort);
-                }
-              }
             };
 
-            /** Open Telegram Web */
-            openNewTelegramWeb();
-          });
-        },
-        [
-          openedTabs,
-          openFarmerBot,
-          setActiveTab,
-          preferredTelegramWebVersion,
-          getFarmerBotPort,
-          messaging.ports,
-          messaging.handler,
-        ]
-      ),
+            /** Add Handler */
+            messaging.handler.once(
+              botTelegramWebAppAction,
+              handleFarmerBotWebApp
+            );
 
-      /** Dispatch */
-      useCallback(
-        (socket, url) =>
-          socket.dispatch({
-            action: "app.open-telegram-link",
-            data: {
-              url,
-            },
-          }),
-        []
-      ),
+            /** Reopen the bot */
+            openTelegramLinkIntervalRef.current = setInterval(
+              reOpenFarmerBot,
+              30000
+            );
+
+            /** Open Farmer Bot */
+            openFarmerBot(version, force);
+
+            /** Not Forced */
+            if (!force) {
+              /** Is it running?... */
+              const farmerBotPort = getFarmerBotPort();
+              if (farmerBotPort) {
+                handleFarmerBotWebApp(null, farmerBotPort);
+              }
+            }
+          };
+
+          /** Open Telegram Web */
+          openNewTelegramWeb();
+        });
+      },
+      [
+        openedTabs,
+        openFarmerBot,
+        setActiveTab,
+        preferredTelegramWebVersion,
+        getFarmerBotPort,
+        messaging.ports,
+        messaging.handler,
+      ],
       /** Socket */
       socket
     );
@@ -603,67 +456,6 @@ export default function useCore() {
       } catch {}
     },
     [messaging.ports, preferredTelegramWebVersion, openTelegramLink]
-  );
-
-  /** Handlers */
-  useSocketHandlers(
-    useMemo(
-      () => ({
-        "app.shutdown": () => {
-          shutdown();
-        },
-
-        "app.reload-app": () => {
-          reloadApp();
-        },
-
-        "app.open-farmer-bot": (command) => {
-          openFarmerBot(command.data.version);
-        },
-
-        "app.open-telegram-link": (command) => {
-          openTelegramLink(command.data.url);
-        },
-
-        "app.configure-settings": (command) => {
-          configureSettings(command.data.key, command.data.value);
-        },
-
-        "app.set-active-tab": (command) => {
-          setActiveTab(command.data.id);
-        },
-
-        "app.reset-tabs": () => {
-          resetTabs();
-        },
-
-        "app.reload-tab": (command) => {
-          reloadTab(command.data.id);
-        },
-
-        "app.close-tab": (command) => {
-          closeTab(command.data.id);
-        },
-
-        "app.navigate-to-telegram-web": (command) => {
-          navigateToTelegramWeb(command.data.version);
-        },
-      }),
-      [
-        shutdown,
-        reloadApp,
-        openFarmerBot,
-        openTelegramLink,
-        setActiveTab,
-        reloadTab,
-        resetTabs,
-        closeTab,
-        configureSettings,
-        navigateToTelegramWeb,
-      ]
-    ),
-    /** Socket */
-    socket
   );
 
   return useValuesMemo({

@@ -1,23 +1,44 @@
 import { useCallback } from "react";
+import { useId } from "react";
 import { useMemo } from "react";
 
 import useAppContext from "./useAppContext";
+import useSocketHandlers from "./useSocketHandlers";
 
-export default function useSocketDispatchCallback(main, dispatch, socket) {
+export default function useSocketDispatchCallback(callback, deps = [], socket) {
   const app = useAppContext();
   const socketToUse = socket || app?.socket;
 
-  /** Callback that dispatch and calls main */
-  const dispatchAndCallMain = useCallback(
+  const id = useId();
+  const callbackAction = "dispatch-callback-" + id;
+
+  /** Main Callback */
+  const main = useCallback(callback, deps);
+
+  /** Dispatch Callback */
+  const dispatch = useCallback(
     (...args) => {
-      dispatch(socketToUse, ...args);
+      socketToUse.dispatch({
+        action: callbackAction,
+        data: args,
+      });
+
       return main(...args);
     },
-    [main, dispatch, socketToUse]
+    [socketToUse, callbackAction, main]
   );
 
-  return useMemo(
-    () => [main, dispatchAndCallMain],
-    [main, dispatchAndCallMain]
+  /** Add Handler */
+  useSocketHandlers(
+    useMemo(
+      () => ({
+        [callbackAction]: (command) => main(...command.data),
+      }),
+      [callbackAction, main]
+    ),
+    /** Socket */
+    socketToUse
   );
+
+  return useMemo(() => [main, dispatch], [main, dispatch]);
 }

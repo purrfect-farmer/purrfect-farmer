@@ -3,9 +3,7 @@ import { useEffect } from "react";
 import { useMemo } from "react";
 import { useRef } from "react";
 import { useState } from "react";
-
 import useSocketDispatchCallback from "./useSocketDispatchCallback";
-import useSocketHandlers from "./useSocketHandlers";
 
 export default function useProcessLock(id, socket) {
   const controllerRef = useRef();
@@ -22,45 +20,32 @@ export default function useProcessLock(id, socket) {
 
   /** Start Process */
   const [start, dispatchAndStart] = useSocketDispatchCallback(
-    /** Main */
-    useCallback(
-      (callback) => {
-        setProcess((prev) => {
-          if (prev.started) {
-            if (callback) {
-              callback(prev);
-            }
-            return prev;
-          }
-
-          prev?.controller?.abort();
-          const controller = (controllerRef.current = new AbortController());
-
-          const newState = {
-            started: true,
-            locked: false,
-            controller,
-          };
-
+    (callback) => {
+      setProcess((prev) => {
+        if (prev.started) {
           if (callback) {
-            callback(newState);
+            callback(prev);
           }
+          return prev;
+        }
 
-          return newState;
-        });
-      },
-      [setProcess]
-    ),
+        prev?.controller?.abort();
+        const controller = (controllerRef.current = new AbortController());
 
-    /** Dispatch */
-    useCallback(
-      (socket) => {
-        socket.dispatch({
-          action: `${id}:start`,
-        });
-      },
-      [id]
-    ),
+        const newState = {
+          started: true,
+          locked: false,
+          controller,
+        };
+
+        if (callback) {
+          callback(newState);
+        }
+
+        return newState;
+      });
+    },
+    [setProcess],
 
     /** Socket */
     socket
@@ -68,45 +53,32 @@ export default function useProcessLock(id, socket) {
 
   /** Stop Process */
   const [stop, dispatchAndStop] = useSocketDispatchCallback(
-    /** Main */
-    useCallback(
-      (callback) => {
-        setProcess((prev) => {
-          if (!prev.started) {
-            if (callback) {
-              callback(prev);
-            }
-            return prev;
-          }
-
-          prev?.controller?.abort();
-          controllerRef.current = null;
-
-          const newState = {
-            started: false,
-            locked: false,
-            controller: null,
-          };
-
+    (callback) => {
+      setProcess((prev) => {
+        if (!prev.started) {
           if (callback) {
-            callback(newState);
+            callback(prev);
           }
+          return prev;
+        }
 
-          return newState;
-        });
-      },
-      [setProcess]
-    ),
+        prev?.controller?.abort();
+        controllerRef.current = null;
 
-    /** Dispatch */
-    useCallback(
-      (socket) => {
-        socket.dispatch({
-          action: `${id}:stop`,
-        });
-      },
-      [id]
-    ),
+        const newState = {
+          started: false,
+          locked: false,
+          controller: null,
+        };
+
+        if (callback) {
+          callback(newState);
+        }
+
+        return newState;
+      });
+    },
+    [setProcess],
 
     /** Socket */
     socket
@@ -114,32 +86,16 @@ export default function useProcessLock(id, socket) {
 
   /** Toggle */
   const [toggle, dispatchAndToggle] = useSocketDispatchCallback(
-    /** Main */
-    useCallback(
-      (status) => {
-        if (typeof status === "boolean") {
-          return status ? start() : stop();
-        } else if (!process.started) {
-          return start();
-        } else {
-          return stop();
-        }
-      },
-      [process.started, start, stop]
-    ),
-
-    /** Dispatch */
-    useCallback(
-      (socket, status) => {
-        socket.dispatch({
-          action: `${id}:toggle`,
-          data: {
-            status,
-          },
-        });
-      },
-      [id]
-    ),
+    (status) => {
+      if (typeof status === "boolean") {
+        return status ? start() : stop();
+      } else if (!process.started) {
+        return start();
+      } else {
+        return stop();
+      }
+    },
+    [process.started, start, stop],
 
     /** Socket */
     socket
@@ -167,27 +123,6 @@ export default function useProcessLock(id, socket) {
       controllerRef.current?.abort();
     };
   }, []);
-
-  /** Handlers */
-  useSocketHandlers(
-    useMemo(
-      () => ({
-        [`${id}:start`]: () => {
-          start();
-        },
-        [`${id}:stop`]: () => {
-          stop();
-        },
-        [`${id}:toggle`]: (command) => {
-          toggle(command.data.status);
-        },
-      }),
-      [id, start, stop, toggle]
-    ),
-
-    /** Socket */
-    socket
-  );
 
   return useMemo(
     () => ({

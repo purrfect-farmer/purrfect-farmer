@@ -3,7 +3,6 @@ import toast from "react-hot-toast";
 import useFarmerAutoProcess from "@/drops/notpixel/hooks/useFarmerAutoProcess";
 import useFarmerContext from "@/hooks/useFarmerContext";
 import useProcessLock from "@/hooks/useProcessLock";
-import useSocketHandlers from "@/hooks/useSocketHandlers";
 import useSocketState from "@/hooks/useSocketState";
 import useSyncedRef from "@/hooks/useSyncedRef";
 import { cn, delay, delayForSeconds } from "@/lib/utils";
@@ -166,18 +165,6 @@ export default function BirdTonGamer() {
         },
       }),
       [handleGameCreated, handleGameSaved]
-    )
-  );
-
-  /** Sync Handlers */
-  useSocketHandlers(
-    useMemo(
-      () => ({
-        "birdton.autoplay.start": () => {
-          startGame();
-        },
-      }),
-      [startGame]
     )
   );
 

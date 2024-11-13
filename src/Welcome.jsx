@@ -10,7 +10,6 @@ import defaultSettings from "@/defaultSettings";
 import toast from "react-hot-toast";
 import useAppContext from "@/hooks/useAppContext";
 import useSocketDispatchCallback from "@/hooks/useSocketDispatchCallback";
-import useSocketHandlers from "@/hooks/useSocketHandlers";
 import useSocketState from "@/hooks/useSocketState";
 import {
   HiOutlineArrowPath,
@@ -21,7 +20,6 @@ import {
 } from "react-icons/hi2";
 import { cn } from "@/lib/utils";
 import { forwardRef } from "react";
-import { useCallback } from "react";
 import { useEffect } from "react";
 import { useMemo } from "react";
 import { useState } from "react";
@@ -104,34 +102,10 @@ export default function Welcome() {
 
   /** Show Hidden Drops */
   const [showHiddenDrops, dispatchAndShowHiddenDrops] =
-    useSocketDispatchCallback(
-      /** Main */
-      useCallback(() => {
-        setShowHidden(true);
-        toast.success("Unlocked hidden farmer!");
-      }, [setShowHidden]),
-
-      /** Dispatch */
-      useCallback(
-        (socket, drop) =>
-          socket.dispatch({
-            action: "app.show-hidden-drops",
-          }),
-        []
-      )
-    );
-
-  /** Handlers */
-  useSocketHandlers(
-    useMemo(
-      () => ({
-        "app.show-hidden-drops": () => {
-          showHiddenDrops();
-        },
-      }),
-      [showHiddenDrops]
-    )
-  );
+    useSocketDispatchCallback(() => {
+      setShowHidden(true);
+      toast.success("Unlocked hidden farmer!");
+    }, [setShowHidden]);
 
   /** Update Title */
   useEffect(() => {
@@ -158,7 +132,7 @@ export default function Welcome() {
             <ToolbarButton
               title="Reload Farmer"
               icon={HiOutlineArrowPath}
-              onClick={dispatchAndReloadApp}
+              onClick={() => dispatchAndReloadApp()}
             />
           </div>
 

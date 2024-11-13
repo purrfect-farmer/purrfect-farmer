@@ -1,10 +1,7 @@
 import * as Dialog from "@radix-ui/react-dialog";
 import toast from "react-hot-toast";
 import useSocketDispatchCallback from "@/hooks/useSocketDispatchCallback";
-import useSocketHandlers from "@/hooks/useSocketHandlers";
 import { cn } from "@/lib/utils";
-import { useCallback } from "react";
-import { useMemo } from "react";
 import { useState } from "react";
 
 import Agent301Icon from "../assets/images/icon.png?format=webp&w=80";
@@ -16,73 +13,29 @@ export default function Agent301PuzzleDialog({ onSubmit, onOpenChange }) {
 
   const [handleChoiceInput, dispatchAndHandleChoiceInput] =
     useSocketDispatchCallback(
-      /** Main */
-      useCallback(
-        (index, value) => {
-          if (value && (value < 1 || value > 16)) {
-            return;
-          }
-          setChoices((previous) =>
-            previous.map((choice, choiceIndex) =>
-              index === choiceIndex ? value && parseInt(value) : choice
-            )
-          );
-        },
-        [setChoices]
-      ),
-
-      /** Dispatch */
-      useCallback((socket, index, value) => {
-        socket.dispatch({
-          action: "agent301.puzzle.input",
-          data: {
-            index,
-            value,
-          },
-        });
-      }, [])
+      (index, value) => {
+        if (value && (value < 1 || value > 16)) {
+          return;
+        }
+        setChoices((previous) =>
+          previous.map((choice, choiceIndex) =>
+            index === choiceIndex ? value && parseInt(value) : choice
+          )
+        );
+      },
+      [setChoices]
     );
 
   const [handleFormSubmit, dispatchAndHandleFormSubmit] =
-    useSocketDispatchCallback(
-      /** Main */
-      useCallback(
-        (ev) => {
-          ev?.preventDefault();
-
-          if (choices.some((choice) => !choice)) {
-            toast.error("Please enter all choice.", {
-              className: "font-bold font-sans",
-            });
-          } else {
-            onSubmit(choices);
-          }
-        },
-        [choices, onSubmit]
-      ),
-
-      /** Dispatch */
-      useCallback((socket) => {
-        socket.dispatch({
-          action: "agent301.puzzle.submit",
+    useSocketDispatchCallback(() => {
+      if (choices.some((choice) => !choice)) {
+        toast.error("Please enter all choice.", {
+          className: "font-bold font-sans",
         });
-      }, [])
-    );
-
-  /** Handlers */
-  useSocketHandlers(
-    useMemo(
-      () => ({
-        "agent301.puzzle.input": (command) => {
-          handleChoiceInput(command.data.index, command.data.value);
-        },
-        "agent301.puzzle.submit": () => {
-          handleFormSubmit();
-        },
-      }),
-      [handleChoiceInput, handleFormSubmit]
-    )
-  );
+      } else {
+        onSubmit(choices);
+      }
+    }, [choices, onSubmit]);
 
   return (
     <>
@@ -115,7 +68,10 @@ export default function Agent301PuzzleDialog({ onSubmit, onOpenChange }) {
               </Dialog.Description>
 
               <form
-                onSubmit={dispatchAndHandleFormSubmit}
+                onSubmit={(ev) => {
+                  ev.preventDefault();
+                  dispatchAndHandleFormSubmit();
+                }}
                 className="flex flex-col gap-2"
               >
                 <div className="grid grid-cols-4 gap-2 my-2">

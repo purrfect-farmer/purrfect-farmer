@@ -2,9 +2,7 @@ import toast from "react-hot-toast";
 import useFarmerAutoTask from "@/drops/notpixel/hooks/useFarmerAutoTask";
 import useFarmerContext from "@/hooks/useFarmerContext";
 import useSocketDispatchCallback from "@/hooks/useSocketDispatchCallback";
-import useSocketHandlers from "@/hooks/useSocketHandlers";
 import { delay } from "@/lib/utils";
-import { useCallback } from "react";
 import { useMemo } from "react";
 
 import HrumFullscreenSpinner from "./HrumFullscreenSpinner";
@@ -20,9 +18,8 @@ export default function HrumOpenButton({ queries }) {
     return allData.hero.cookies > 0;
   }, [allData]);
 
-  const [openCookie, dispatchAndOpenCookie] = useSocketDispatchCallback(
-    /** Configure Settings */
-    useCallback(async () => {
+  const [openCookie, dispatchAndOpenCookie] =
+    useSocketDispatchCallback(async () => {
       if (show) {
         try {
           await openMutation.mutateAsync();
@@ -43,29 +40,7 @@ export default function HrumOpenButton({ queries }) {
 
       /** Process Next Task */
       processNextTask();
-    }, [queries, show, processNextTask]),
-
-    /** Dispatch */
-    useCallback(
-      (socket) =>
-        socket.dispatch({
-          action: "hrum.fortune-cookie",
-        }),
-      []
-    )
-  );
-
-  /** Handlers */
-  useSocketHandlers(
-    useMemo(
-      () => ({
-        "hrum.fortune-cookie": () => {
-          openCookie();
-        },
-      }),
-      [openCookie]
-    )
-  );
+    }, [queries, show, processNextTask]);
 
   /** Auto-Claim */
   useFarmerAutoTask(
@@ -80,7 +55,7 @@ export default function HrumOpenButton({ queries }) {
     <>
       {show ? (
         <button
-          onClick={dispatchAndOpenCookie}
+          onClick={() => dispatchAndOpenCookie()}
           className="w-full px-4 py-2 uppercase bg-yellow-500 rounded-full"
         >
           Get A Prediction

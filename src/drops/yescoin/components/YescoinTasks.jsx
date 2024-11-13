@@ -2,7 +2,6 @@ import toast from "react-hot-toast";
 import useFarmerAutoProcess from "@/drops/notpixel/hooks/useFarmerAutoProcess";
 import useProcessLock from "@/hooks/useProcessLock";
 import useSocketDispatchCallback from "@/hooks/useSocketDispatchCallback";
-import useSocketHandlers from "@/hooks/useSocketHandlers";
 import { CgSpinner } from "react-icons/cg";
 import { cn, delay } from "@/lib/utils";
 import { useCallback } from "react";
@@ -71,41 +70,15 @@ export default function YescoinTasks() {
   }, []);
 
   const [claimTask, dispatchAndClaimTask] = useSocketDispatchCallback(
-    /** Main */
-    useCallback(
-      async (id) => {
-        if (!tasks.some((task) => task.taskId === id && !task.taskStatus))
-          return;
+    async (id) => {
+      if (!tasks.some((task) => task.taskId === id && !task.taskStatus)) return;
 
-        await runTask(id);
+      await runTask(id);
 
-        await tasksQuery.refetch();
-        await accountInfoQuery.refetch();
-      },
-      [tasks, runTask]
-    ),
-
-    /** Dispatch */
-    useCallback((socket, id) => {
-      socket.dispatch({
-        action: "yescoin.tasks.claim",
-        data: {
-          id,
-        },
-      });
-    }, [])
-  );
-
-  /** Handlers */
-  useSocketHandlers(
-    useMemo(
-      () => ({
-        "yescoin.tasks.claim": (command) => {
-          claimTask(command.data.id);
-        },
-      }),
-      [claimTask]
-    )
+      await tasksQuery.refetch();
+      await accountInfoQuery.refetch();
+    },
+    [tasks, runTask]
   );
 
   /** Reset */

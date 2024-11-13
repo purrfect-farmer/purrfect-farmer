@@ -2,9 +2,7 @@ import toast from "react-hot-toast";
 import useFarmerAutoTask from "@/drops/notpixel/hooks/useFarmerAutoTask";
 import useFarmerContext from "@/hooks/useFarmerContext";
 import useSocketDispatchCallback from "@/hooks/useSocketDispatchCallback";
-import useSocketHandlers from "@/hooks/useSocketHandlers";
 import { delay } from "@/lib/utils";
-import { useCallback } from "react";
 import { useMemo } from "react";
 
 import HrumFullscreenSpinner from "./HrumFullscreenSpinner";
@@ -35,9 +33,8 @@ export default function HrumRiddleTask({ queries }) {
   /** No Riddle or Completed */
   const disabled = !riddle || riddleCompletion;
 
-  const [claimRiddle, dispatchAndClaimRiddle] = useSocketDispatchCallback(
-    /** Configure Settings */
-    useCallback(async () => {
+  const [claimRiddle, dispatchAndClaimRiddle] =
+    useSocketDispatchCallback(async () => {
       if (riddle && !disabled) {
         try {
           await checkRiddleMutation.mutateAsync([riddle.key, riddle.checkData]);
@@ -59,29 +56,7 @@ export default function HrumRiddleTask({ queries }) {
 
       /** Process Next Task */
       processNextTask();
-    }, [queries, riddle, disabled, toast, processNextTask]),
-
-    /** Dispatch */
-    useCallback(
-      (socket) =>
-        socket.dispatch({
-          action: "hrum.riddle",
-        }),
-      []
-    )
-  );
-
-  /** Handlers */
-  useSocketHandlers(
-    useMemo(
-      () => ({
-        "hrum.riddle": () => {
-          claimRiddle();
-        },
-      }),
-      [claimRiddle]
-    )
-  );
+    }, [queries, riddle, disabled, toast, processNextTask]);
 
   /** Auto-Claim */
   useFarmerAutoTask(
@@ -96,7 +71,7 @@ export default function HrumRiddleTask({ queries }) {
     <div className="flex flex-col gap-2">
       <HrumTaskButton
         disabled={disabled}
-        onClick={dispatchAndClaimRiddle}
+        onClick={() => dispatchAndClaimRiddle()}
         icon={RiddleIcon}
         title={"Riddle Of The Day"}
         reward={150}

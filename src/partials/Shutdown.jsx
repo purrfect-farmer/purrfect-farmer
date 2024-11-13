@@ -34,7 +34,7 @@ export default function Shutdown() {
 
           {/* Shutdown Button */}
           <button
-            onClick={dispatchAndShutdown}
+            onClick={() => dispatchAndShutdown()}
             className={cn("px-4 py-2 bg-red-500 text-white rounded-lg")}
           >
             Shutdown

@@ -2,11 +2,9 @@ import toast from "react-hot-toast";
 import useFarmerAutoTask from "@/drops/notpixel/hooks/useFarmerAutoTask";
 import useFarmerContext from "@/hooks/useFarmerContext";
 import useSocketDispatchCallback from "@/hooks/useSocketDispatchCallback";
-import useSocketHandlers from "@/hooks/useSocketHandlers";
 import useSocketState from "@/hooks/useSocketState";
 import { logNicely } from "@/lib/utils";
 import { useCallback } from "react";
-import { useMemo } from "react";
 
 import Agent301PuzzleDialog from "./Agent301PuzzleDialog";
 import PuzzleIcon from "../assets/images/puzzle.png?format=webp&w=80";
@@ -65,33 +63,11 @@ export default function Agent301Puzzle() {
   );
 
   const [handleButtonClick, dispatchAndHandleButtonClick] =
-    useSocketDispatchCallback(
-      /** Main */
-      useCallback(() => {
-        if (attemptsLeft >= 1) {
-          setShowModal(true);
-        }
-      }, [attemptsLeft, setShowModal]),
-
-      /** Dispatch */
-      useCallback((socket) => {
-        socket.dispatch({
-          action: "agent301.puzzle.start",
-        });
-      }, [])
-    );
-
-  /** Handlers */
-  useSocketHandlers(
-    useMemo(
-      () => ({
-        "agent301.puzzle.start": () => {
-          handleButtonClick();
-        },
-      }),
-      [handleButtonClick]
-    )
-  );
+    useSocketDispatchCallback(() => {
+      if (attemptsLeft >= 1) {
+        setShowModal(true);
+      }
+    }, [attemptsLeft, setShowModal]);
 
   /** Complete Puzzle */
   useFarmerAutoTask(
@@ -127,7 +103,7 @@ export default function Agent301Puzzle() {
       <button
         disabled={attemptsLeft < 1}
         className="flex items-center justify-center w-full gap-2 p-2 disabled:opacity-50"
-        onClick={dispatchAndHandleButtonClick}
+        onClick={() => dispatchAndHandleButtonClick()}
       >
         <img src={PuzzleIcon} className="w-6 h-6" /> Puzzle
       </button>

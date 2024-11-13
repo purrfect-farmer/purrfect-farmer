@@ -3,7 +3,6 @@ import useFarmerAutoProcess from "@/drops/notpixel/hooks/useFarmerAutoProcess";
 import useFarmerContext from "@/hooks/useFarmerContext";
 import useProcessLock from "@/hooks/useProcessLock";
 import useSocketDispatchCallback from "@/hooks/useSocketDispatchCallback";
-import useSocketHandlers from "@/hooks/useSocketHandlers";
 import { HiOutlineArrowPath } from "react-icons/hi2";
 import { cn, delayForSeconds, logNicely } from "@/lib/utils";
 import { useCallback } from "react";
@@ -16,22 +15,14 @@ import useBirdTonHandlers from "../hooks/useBirdTonHandlers";
 export default function BirdTonTasks() {
   const { eventData, sendMessage, refreshTasks } = useFarmerContext();
 
-  const [reloadTasks, dispatchAndReloadTasks] = useSocketDispatchCallback(
-    useCallback(() => {
+  const [reloadTasks, dispatchAndReloadTasks] =
+    useSocketDispatchCallback(() => {
       /** Refresh */
       refreshTasks();
 
       /** Toast */
       toast.success("Refreshed Tasks");
-    }, [refreshTasks]),
-
-    /** Dispatch */
-    useCallback((socket) => {
-      socket.dispatch({
-        action: "birdton.tasks.reload",
-      });
-    }, [])
-  );
+    }, [refreshTasks]);
 
   const taskProgress = useMemo(
     () => eventData.get("user_task_progress") || [],
@@ -97,18 +88,6 @@ export default function BirdTonTasks() {
     setCurrentTask(null);
     setTaskOffset(null);
   }, [setAction, setCurrentTask, setTaskOffset]);
-
-  /** Handlers */
-  useSocketHandlers(
-    useMemo(
-      () => ({
-        "birdton.tasks.reload": () => {
-          reloadTasks();
-        },
-      }),
-      [reloadTasks]
-    )
-  );
 
   /** Handlers */
   useBirdTonHandlers(
@@ -234,7 +213,7 @@ export default function BirdTonTasks() {
           </button>
 
           <button
-            onClick={dispatchAndReloadTasks}
+            onClick={() => dispatchAndReloadTasks()}
             className={cn(
               "p-2 text-black rounded-lg disabled:opacity-50",
               "bg-sky-100",
