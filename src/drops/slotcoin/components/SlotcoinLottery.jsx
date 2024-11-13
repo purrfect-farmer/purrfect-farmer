@@ -27,7 +27,7 @@ export default function SlotcoinLottery() {
 
   const [farmingSpeed, , dispatchAndSetFarmingSpeed] = useSocketState(
     "slotcoin.farming-speed",
-    2
+    1
   );
 
   useEffect(() => {

@@ -343,21 +343,26 @@ export default function useCore() {
     [messaging.ports]
   );
 
-  const closeOtherBots = useCallback(
-    () =>
-      messaging.ports
-        .values()
-        .filter(
-          (port) =>
-            port.name !== `mini-app:${import.meta.env.VITE_APP_BOT_HOST}`
-        )
+  const closeOtherBots = useCallback(() => {
+    const ports = getMiniAppPorts();
+    const farmerBotPortName = `mini-app:${import.meta.env.VITE_APP_BOT_HOST}`;
+
+    if (ports.some((port) => port.name === farmerBotPortName)) {
+      ports
+        .filter((port) => port.name !== farmerBotPortName)
         .forEach((port) => {
           postPortMessage(port, {
             action: "close-bot",
           });
-        }),
-    [messaging.ports]
-  );
+        });
+    } else {
+      ports.slice(0, -1).forEach((port) => {
+        postPortMessage(port, {
+          action: "close-bot",
+        });
+      });
+    }
+  }, [getMiniAppPorts]);
 
   const [openFarmerBot, dispatchAndOpenFarmerBot] = useSocketDispatchCallback(
     /** Main */

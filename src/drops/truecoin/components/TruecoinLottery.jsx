@@ -29,7 +29,7 @@ export default function TruecoinLottery() {
 
   const [farmingSpeed, , dispatchAndSetFarmingSpeed] = useSocketState(
     "truecoin.farming-speed",
-    2
+    1
   );
 
   const process = useProcessLock("truecoin.spin");

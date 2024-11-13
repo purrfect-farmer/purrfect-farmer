@@ -3,6 +3,7 @@ import farmerTabs from "@/farmerTabs";
 import toast from "react-hot-toast";
 import { useCallback } from "react";
 import { useEffect } from "react";
+import { useLayoutEffect } from "react";
 import { useMemo } from "react";
 import { useState } from "react";
 
@@ -19,16 +20,10 @@ export default function useZoomies(core) {
     storeValue: storeZoomiesState,
   } = useStorageState("zoomiesState", defaultZoomiesState);
 
-  /** Drops List */
-  const enabledFarmers = useMemo(
-    () => core.settings.zoomies,
-    core.settings.zoomies
-  );
-
   /** Drops To Enable */
   const drops = useMemo(
-    () => farmerTabs.filter((item) => enabledFarmers.includes(item.id)),
-    [farmerTabs, enabledFarmers]
+    () => farmerTabs.filter((item) => core.settings.zoomies.includes(item.id)),
+    [farmerTabs, core.settings.zoomies]
   );
 
   /** Process */
@@ -78,28 +73,45 @@ export default function useZoomies(core) {
     });
   }, [drops, setCurrent]);
 
-  /** Process the next task */
-  const processNextTask = useCallback(() => {
-    if (process.started) {
-      setCurrent((prev) => {
-        if (prev.task === prev.drop?.tasks?.at(-1)) {
-          const drop = drops[(drops.indexOf(prev.drop) + 1) % drops.length];
-          const task = drop?.tasks?.[0];
-          return {
-            drop,
-            task,
-          };
-        } else {
-          const tasks = prev.drop.tasks;
+  /** Process task Offset */
+  const processTaskOffset = useCallback(
+    (direction) => {
+      if (process.started) {
+        setCurrent((prev) => {
+          if (prev.task === prev.drop?.tasks?.at(direction === 1 ? -1 : 0)) {
+            const index = (drops.indexOf(prev.drop) + direction) % drops.length;
+            const drop = drops.at(index);
+            const task = drop?.tasks?.at(direction === 1 ? 0 : -1);
+            return {
+              drop,
+              task,
+            };
+          } else {
+            const tasks = prev.drop.tasks;
+            const index = (tasks.indexOf(prev.task) + direction) % tasks.length;
 
-          return {
-            ...prev,
-            task: tasks[(tasks.indexOf(prev.task) + 1) % tasks.length],
-          };
-        }
-      });
-    }
-  }, [process.started, drops, setCurrent]);
+            return {
+              ...prev,
+              task: tasks.at(index),
+            };
+          }
+        });
+      }
+    },
+    [process.started, drops, setCurrent]
+  );
+
+  /** Process the next task */
+  const processPreviousTask = useCallback(
+    () => processTaskOffset(-1),
+    [processTaskOffset]
+  );
+
+  /** Process the next task */
+  const processNextTask = useCallback(
+    () => processTaskOffset(+1),
+    [processTaskOffset]
+  );
 
   /** Reset Zoomies */
   useEffect(() => {
@@ -114,6 +126,7 @@ export default function useZoomies(core) {
       /** Open Bot */
       const openBot = (force = true) => {
         core.setActiveTab(current.drop?.id);
+        core.closeOtherBots();
         core.openTelegramLink(current.drop.telegramLink, undefined, force);
       };
 
@@ -135,24 +148,15 @@ export default function useZoomies(core) {
     if (!process.started) return;
 
     if (auth) {
-      /** Close Other Bots */
-      core.closeOtherBots();
-
       /** Set Active Tab */
       if (current.drop) {
         core.setActiveTab(current.drop.id);
       }
     }
-  }, [
-    process.started,
-    auth,
-    current.drop,
-    core.closeOtherBots,
-    core.setActiveTab,
-  ]);
+  }, [process.started, auth, current.drop, core.setActiveTab]);
 
   /** Reset the drops */
-  useEffect(() => {
+  useLayoutEffect(() => {
     /** Update current drop */
     setCurrent((prev) => {
       if (drops.includes(prev.drop)) {
@@ -209,6 +213,7 @@ export default function useZoomies(core) {
     setAuth,
     setCurrent,
     skipToNextDrop,
+    processPreviousTask,
     processNextTask,
     refresh,
   });
