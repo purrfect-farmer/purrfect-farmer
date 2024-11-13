@@ -27,11 +27,8 @@ export default function useCore() {
     defaultSettings.preferredTelegramWebVersion;
   const [openedTabs, setOpenedTabs] = useState(defaultOpenedTabs);
 
-  /** Open Farmer Bot State Ref */
-  const openFarmerBotStateRef = useRef({ handler: null });
-
-  /** Open Telegram Link State Ref */
-  const openTelegramLinkStateRef = useRef({ interval: null, handler: null });
+  /** Open Telegram Link Interval Ref */
+  const openTelegramLinkIntervalRef = useRef(null);
 
   /** Drops List */
   const drops = useMemo(
@@ -368,15 +365,15 @@ export default function useCore() {
     /** Main */
     useCallback(
       async (version, force = false) => {
-        /** Remove Previous Handler */
-        if (openFarmerBotStateRef.current.handler) {
-          ["k", "a"].map((item) => {
-            messaging.handler.off(
-              `port-connected:telegram-web-${item}`,
-              openFarmerBotStateRef.current.handler
-            );
-          });
-        }
+        /** Event Names */
+        const eventNames = ["k", "a"].map(
+          (item) => `port-connected:telegram-web-${item}`
+        );
+
+        /** Remove All Listeners */
+        eventNames.forEach((name) =>
+          messaging.handler.removeAllListeners(name)
+        );
 
         /** When Not Force */
         if (!force) {
@@ -401,16 +398,17 @@ export default function useCore() {
         }
 
         /** Capture Port */
-        const capturePort = (openFarmerBotStateRef.current.handler =
-          async function (port) {
-            /** Reset Handler */
-            openFarmerBotStateRef.current.handler = null;
+        const capturePort = async function (port) {
+          /** Remove All Listeners */
+          eventNames.forEach((name) =>
+            messaging.handler.removeAllListeners(name)
+          );
 
-            /** Post Message */
-            postPortMessage(port, {
-              action: "open-farmer-bot",
-            });
+          /** Post Message */
+          postPortMessage(port, {
+            action: "open-farmer-bot",
           });
+        };
 
         /** Add Handler */
         messaging.handler.once(
@@ -484,32 +482,28 @@ export default function useCore() {
             }`;
 
             /** Clear Previous Interval */
-            clearInterval(openTelegramLinkStateRef.current.interval);
+            clearInterval(openTelegramLinkIntervalRef.current);
 
             /** Remove Previous Handler */
-            if (openTelegramLinkStateRef.current.handler) {
-              messaging.handler.off(
-                botTelegramWebAppAction,
-                openTelegramLinkStateRef.current.handler
-              );
-            }
+            messaging.handler.removeAllListeners(botTelegramWebAppAction);
 
             /** Handle Farmer Bot Web App */
-            const handleFarmerBotWebApp =
-              (openTelegramLinkStateRef.current.handler = (message, port) => {
-                /** Clear Interval */
-                clearInterval(openTelegramLinkStateRef.current.interval);
+            const handleFarmerBotWebApp = (message, port) => {
+              /** Clear Interval */
+              clearInterval(openTelegramLinkIntervalRef.current);
 
-                /** Reset */
-                openTelegramLinkStateRef.current.interval = null;
-                openTelegramLinkStateRef.current.handler = null;
+              /** Off Listener */
+              messaging.handler.removeAllListeners(botTelegramWebAppAction);
 
-                /** Post the Link */
-                postTelegramLink(port, `telegram-web-${version}`);
+              /** Reset */
+              openTelegramLinkIntervalRef.current = null;
 
-                /** Resolve the Promise */
-                resolve(true);
-              });
+              /** Post the Link */
+              postTelegramLink(port, `telegram-web-${version}`);
+
+              /** Resolve the Promise */
+              resolve(true);
+            };
 
             /** Post Telegram Link */
             const postTelegramLink = (port, tabId) =>
@@ -536,7 +530,7 @@ export default function useCore() {
               );
 
               /** Reopen the bot */
-              openTelegramLinkStateRef.current.interval = setInterval(
+              openTelegramLinkIntervalRef.current = setInterval(
                 reOpenFarmerBot,
                 30000
               );
@@ -554,6 +548,7 @@ export default function useCore() {
               }
             };
 
+            /** Open Telegram Web */
             openNewTelegramWeb();
           });
         },
