@@ -120,11 +120,16 @@ export default function useDropFarmer({
     queryClient.removeQueries({ queryKey: [id] });
   }, [id, queryClient.removeQueries]);
 
+  /** Reset Queries */
+  const resetQueries = useCallback(() => {
+    queryClient.resetQueries({ queryKey: [id] });
+  }, [id, queryClient.resetQueries]);
+
   /** Reset Auth */
   const resetAuth = useCallback(() => {
     setAuthState(false);
-    removeQueries();
-  }, [setAuthState, removeQueries]);
+    resetQueries();
+  }, [setAuthState, resetQueries]);
 
   /** Reset Farmer  */
   const reset = useCallback(() => {
@@ -209,7 +214,11 @@ export default function useDropFarmer({
     const interceptor = api.interceptors.response.use(
       (response) => Promise.resolve(response),
       (error) => {
-        if ([401, 403, 418].includes(error?.response?.status)) {
+        console.log(error);
+        if (
+          !error.config.ignoreUnauthenticatedError &&
+          [401, 403, 418].includes(error?.response?.status)
+        ) {
           toast.dismiss();
           toast.error("Unauthenticated - Please reload the Bot or Farmer");
           resetAuth();
@@ -332,7 +341,7 @@ export default function useDropFarmer({
   }, [auth, telegramWebApp, isZooming, zoomies.skipToNextDrop]);
 
   /** Clean Up */
-  useEffect(() => () => resetAuth(), [resetAuth]);
+  useEffect(() => () => removeQueries(), [removeQueries]);
 
   /** Return API and Auth */
   return useValuesMemo({
