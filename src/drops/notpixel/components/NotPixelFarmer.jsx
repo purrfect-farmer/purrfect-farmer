@@ -11,7 +11,7 @@ import useNotPixelSocket from "../hooks/useNotPixelSocket";
 import { delay } from "@/lib/utils";
 
 export default function NotPixelFarmer({ sandboxRef }) {
-  const { api } = useFarmerContext();
+  const { api, zoomies, processNextTask } = useFarmerContext();
   const {
     initiated,
     started,
@@ -36,8 +36,10 @@ export default function NotPixelFarmer({ sandboxRef }) {
   useEffect(() => {
     (async function () {
       let items = [];
+      let attempts = 0;
+      let maxAttempts = zoomies.enabled ? 3 : Infinity;
 
-      while (!items.length) {
+      while (attempts++ < maxAttempts && !items.length) {
         try {
           const myTemplate = await api
             .get("https://notpx.app/api/v1/image/template/my")
@@ -57,6 +59,8 @@ export default function NotPixelFarmer({ sandboxRef }) {
       if (items.length) {
         /** Configure the App */
         configureNotPixel(items);
+      } else {
+        processNextTask();
       }
     })();
   }, [configureNotPixel]);
