@@ -147,15 +147,6 @@ const farmerTabs = [
     telegramLink: "https://t.me/BIRDTonBot/app?startapp=1147265290",
     tasks: ["game", "tasks"],
   },
-  {
-    id: "bits",
-    title: "Bits",
-    icon: farmerIcons["bits"],
-    component: <Farmer farmer="Bits" />,
-    telegramLink:
-      "https://t.me/BitsTonboxBot/BitsAirdrops?startapp=6nZB3W2eKhH118UoencBFE",
-    tasks: ["tasks"],
-  },
 ];
 
 export default farmerTabs;
