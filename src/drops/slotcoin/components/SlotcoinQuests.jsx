@@ -13,7 +13,7 @@ import useSlotcoinQuestsQuery from "../hooks/useSlotcoinQuestsQuery";
 
 export default function SlotcoinQuests() {
   const { joinTelegramLink } = useFarmerContext();
-  const process = useProcessLock();
+  const process = useProcessLock("slotcoin.quests");
   const queryClient = useQueryClient();
 
   const questsQuery = useSlotcoinQuestsQuery();

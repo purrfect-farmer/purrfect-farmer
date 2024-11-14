@@ -27,7 +27,7 @@ export default function PumpadMissions() {
     [missionsQuery.data]
   );
 
-  const process = useProcessLock();
+  const process = useProcessLock("pumpad.missions");
   const getChannelMutation = usePumpadGetChannelMutation();
   const checkMissionMutation = usePumpadCheckMissionMutation();
   const [currentMission, setCurrentMission] = useState(null);

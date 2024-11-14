@@ -2,6 +2,7 @@ import useSocketDispatchCallback from "@/hooks/useSocketDispatchCallback";
 import { useCallback } from "react";
 import { useMemo } from "react";
 import { useState } from "react";
+
 import useAppContext from "./useAppContext";
 
 export default function useValueTasks(key) {
@@ -82,6 +83,7 @@ export default function useValueTasks(key) {
 
   /** Prompt Value */
   const [, dispatchAndPrompt] = useSocketDispatchCallback(
+    id + ":prompt",
     (id) =>
       new Promise((resolve, reject) => {
         setValuePrompt({
@@ -94,6 +96,7 @@ export default function useValueTasks(key) {
 
   /** Handle value Prompt Submit */
   const [submitPrompt, dispatchAndSubmitPrompt] = useSocketDispatchCallback(
+    id + ":submit",
     (value) => {
       if (!valuePrompt) return;
 

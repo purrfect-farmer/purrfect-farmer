@@ -1,5 +1,6 @@
 import { useMemo } from "react";
 import { useState } from "react";
+
 import useSocketDispatchCallback from "./useSocketDispatchCallback";
 
 export default function useSocketState(key = "", initialState) {
@@ -7,6 +8,7 @@ export default function useSocketState(key = "", initialState) {
 
   /** Change State Handler */
   const [, dispatchAndSetState] = useSocketDispatchCallback(
+    key + ":set",
     /** Main */
     setState,
     [setState]

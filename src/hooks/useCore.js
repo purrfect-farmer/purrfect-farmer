@@ -41,6 +41,7 @@ export default function useCore() {
   /* ===== HELPERS ===== */
 
   const [pushTab, dispatchAndPushTab] = useSocketDispatchCallback(
+    "core.push-tab",
     (tab, override = false) => {
       setOpenedTabs((previous) => {
         if (previous.some((item) => item.id === tab.id)) {
@@ -65,6 +66,7 @@ export default function useCore() {
 
   /** Set Active Tab */
   const [setActiveTab, dispatchAndSetActiveTab] = useSocketDispatchCallback(
+    "core.set-active-tab",
     (id) => {
       pushTab(farmerTabs.find((item) => item.id === id));
     },
@@ -74,6 +76,7 @@ export default function useCore() {
   );
 
   const [resetTabs, dispatchAndResetTabs] = useSocketDispatchCallback(
+    "core.reset-tabs",
     () => {
       setOpenedTabs(defaultOpenedTabs);
     },
@@ -84,6 +87,7 @@ export default function useCore() {
 
   const [closeFarmerTabs, dispatchAndCloseFarmerTabs] =
     useSocketDispatchCallback(
+      "core.close-farmer-tabs",
       () => {
         setOpenedTabs((prev) =>
           prev.filter((item) =>
@@ -97,6 +101,7 @@ export default function useCore() {
     );
 
   const [reloadTab, dispatchAndReloadTab] = useSocketDispatchCallback(
+    "core.reload-tab",
     (id) => {
       setOpenedTabs((previous) => {
         const newTabs = previous.map((item) =>
@@ -112,6 +117,7 @@ export default function useCore() {
   );
 
   const [closeTab, dispatchAndCloseTab] = useSocketDispatchCallback(
+    "core.close-tab",
     (id) => {
       setOpenedTabs((previous) => {
         const previousIndex = previous.findIndex((tab) => tab.id === id);
@@ -151,6 +157,7 @@ export default function useCore() {
 
   /** Shutdown */
   const [shutdown, dispatchAndShutdown] = useSocketDispatchCallback(
+    "core.shutdown",
     () => {
       window.close();
     },
@@ -161,6 +168,7 @@ export default function useCore() {
 
   /** Reload App */
   const [reloadApp, dispatchAndReloadApp] = useSocketDispatchCallback(
+    "core.reload-app",
     () => {
       window.location.reload();
     },
@@ -171,6 +179,7 @@ export default function useCore() {
 
   /** Configure Settings */
   const [, dispatchAndConfigureSettings] = useSocketDispatchCallback(
+    "core.configure-settings",
     /** Configure Settings */
     configureSettings,
     [configureSettings],
@@ -181,6 +190,7 @@ export default function useCore() {
   /** Navigate to Telegram Web */
   const [navigateToTelegramWeb, dispatchAndNavigateToTelegramWeb] =
     useSocketDispatchCallback(
+      "core.navigate-to-telegram-web",
       (v) =>
         chrome?.tabs?.query({ active: true, currentWindow: true }, (tabs) => {
           chrome?.tabs?.update(tabs[0].id, {
@@ -247,6 +257,7 @@ export default function useCore() {
   }, [getMiniAppPorts]);
 
   const [openFarmerBot, dispatchAndOpenFarmerBot] = useSocketDispatchCallback(
+    "core.open-farmer-bot",
     async (version, force = false) => {
       /** Event Names */
       const eventNames = ["k", "a"].map(
@@ -336,6 +347,7 @@ export default function useCore() {
   /** Open Telegram Link */
   const [openTelegramLink, dispatchAndOpenTelegramLink] =
     useSocketDispatchCallback(
+      "core.open-telegram-link",
       (url, version = preferredTelegramWebVersion, force = false) => {
         if (!url) {
           return;

@@ -33,8 +33,9 @@ export default function HrumRiddleTask({ queries }) {
   /** No Riddle or Completed */
   const disabled = !riddle || riddleCompletion;
 
-  const [claimRiddle, dispatchAndClaimRiddle] =
-    useSocketDispatchCallback(async () => {
+  const [claimRiddle, dispatchAndClaimRiddle] = useSocketDispatchCallback(
+    "hrum.claim-riddle",
+    async () => {
       if (riddle && !disabled) {
         try {
           await checkRiddleMutation.mutateAsync([riddle.key, riddle.checkData]);
@@ -56,7 +57,9 @@ export default function HrumRiddleTask({ queries }) {
 
       /** Process Next Task */
       processNextTask();
-    }, [queries, riddle, disabled, toast, processNextTask]);
+    },
+    [queries, riddle, disabled, toast, processNextTask]
+  );
 
   /** Auto-Claim */
   useFarmerAutoTask(

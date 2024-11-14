@@ -18,7 +18,7 @@ const INITIAL_POINT = 120;
 const MAX_POINT = 10_000;
 
 export default function BirdTonGamer() {
-  const process = useProcessLock();
+  const process = useProcessLock("birdton.game");
   const {
     zoomies,
     sendMessage,

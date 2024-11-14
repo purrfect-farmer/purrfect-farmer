@@ -33,7 +33,7 @@ export default function Agent301Wheel() {
 
   const completeWheelTaskMutation = useAgent301CompleteWheelTaskMutation();
 
-  const process = useProcessLock();
+  const process = useProcessLock("agent301.wheel");
   const [taskOffset, setTaskOffset] = useState(null);
   const [action, setAction] = useState(null);
 

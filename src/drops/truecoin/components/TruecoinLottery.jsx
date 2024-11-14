@@ -27,20 +27,23 @@ export default function TruecoinLottery() {
 
   const [farmingSpeed, , dispatchAndSetFarmingSpeed] = useSocketState(
     "truecoin.farming-speed",
-    1
+    0.5
   );
 
-  const process = useProcessLock();
+  const process = useProcessLock("truecoin.lottery");
 
   /** Handle button click */
-  const [claim50Boost, dispatchAndClaim50Boost] =
-    useSocketDispatchCallback(() => {
+  const [claim50Boost, dispatchAndClaim50Boost] = useSocketDispatchCallback(
+    "truecoin.claim-50-boost",
+    () => {
       return toast.promise(boostMutation.mutateAsync(), {
         loading: "Please wait",
         error: "Failed to Claim 50 Spins",
         success: "50 Spins Claimed",
       });
-    }, []);
+    },
+    []
+  );
 
   /** Claim All 50 Boost */
   const claimAll50Boost = useCallback(async () => {

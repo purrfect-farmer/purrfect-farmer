@@ -12,7 +12,7 @@ import useTruecoinPartnerTasksQuery from "../hooks/useTruecoinPartnerTasksQuery"
 import useTruecoinUserArchivesQuery from "../hooks/useTruecoinUserArchivesQuery";
 
 export default function TruecoinTasks() {
-  const process = useProcessLock();
+  const process = useProcessLock("truecoin.tasks");
   const { authQuery, authQueryKey, queryClient } = useFarmerContext();
 
   const partnerAchives = authQuery.data.partnerAchives;

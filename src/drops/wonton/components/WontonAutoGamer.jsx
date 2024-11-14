@@ -23,7 +23,7 @@ const MAX_POINT = 580;
 export default function Wonton() {
   const query = useWontonUserQuery();
 
-  const process = useProcessLock();
+  const process = useProcessLock("wonton.game");
 
   const [countdown, setCountdown] = useState(null);
   const [desiredPoint, setDesiredPoint, dispatchAndSetDesiredPoint] =

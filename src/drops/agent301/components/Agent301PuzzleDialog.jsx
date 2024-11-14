@@ -13,6 +13,7 @@ export default function Agent301PuzzleDialog({ onSubmit, onOpenChange }) {
 
   const [handleChoiceInput, dispatchAndHandleChoiceInput] =
     useSocketDispatchCallback(
+      "agent301.puzzle.input",
       (index, value) => {
         if (value && (value < 1 || value > 16)) {
           return;
@@ -27,15 +28,19 @@ export default function Agent301PuzzleDialog({ onSubmit, onOpenChange }) {
     );
 
   const [handleFormSubmit, dispatchAndHandleFormSubmit] =
-    useSocketDispatchCallback(() => {
-      if (choices.some((choice) => !choice)) {
-        toast.error("Please enter all choice.", {
-          className: "font-bold font-sans",
-        });
-      } else {
-        onSubmit(choices);
-      }
-    }, [choices, onSubmit]);
+    useSocketDispatchCallback(
+      "agent301.puzzle.submit",
+      () => {
+        if (choices.some((choice) => !choice)) {
+          toast.error("Please enter all choice.", {
+            className: "font-bold font-sans",
+          });
+        } else {
+          onSubmit(choices);
+        }
+      },
+      [choices, onSubmit]
+    );
 
   return (
     <>

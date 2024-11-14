@@ -6,7 +6,7 @@ import { useState } from "react";
 
 import useSocketDispatchCallback from "./useSocketDispatchCallback";
 
-export default function useProcessLock(socket) {
+export default function useProcessLock(key, socket) {
   const controllerRef = useRef();
   const [process, setProcess] = useState({
     started: false,
@@ -21,6 +21,7 @@ export default function useProcessLock(socket) {
 
   /** Start Process */
   const [start, dispatchAndStart] = useSocketDispatchCallback(
+    key + ":start",
     (callback) => {
       setProcess((prev) => {
         if (prev.started) {
@@ -54,6 +55,7 @@ export default function useProcessLock(socket) {
 
   /** Stop Process */
   const [stop, dispatchAndStop] = useSocketDispatchCallback(
+    key + ":stop",
     (callback) => {
       setProcess((prev) => {
         if (!prev.started) {
@@ -87,6 +89,7 @@ export default function useProcessLock(socket) {
 
   /** Toggle */
   const [toggle, dispatchAndToggle] = useSocketDispatchCallback(
+    key + ":toggle",
     (status) => {
       if (typeof status === "boolean") {
         return status ? start() : stop();

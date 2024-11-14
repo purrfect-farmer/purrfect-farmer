@@ -15,14 +15,17 @@ import useBirdTonHandlers from "../hooks/useBirdTonHandlers";
 export default function BirdTonTasks() {
   const { eventData, sendMessage, refreshTasks } = useFarmerContext();
 
-  const [reloadTasks, dispatchAndReloadTasks] =
-    useSocketDispatchCallback(() => {
+  const [reloadTasks, dispatchAndReloadTasks] = useSocketDispatchCallback(
+    "birdton.reload-tasks",
+    () => {
       /** Refresh */
       refreshTasks();
 
       /** Toast */
       toast.success("Refreshed Tasks");
-    }, [refreshTasks]);
+    },
+    [refreshTasks]
+  );
 
   const taskProgress = useMemo(
     () => eventData.get("user_task_progress") || [],
@@ -77,7 +80,7 @@ export default function BirdTonTasks() {
     [subTasks]
   );
 
-  const process = useProcessLock();
+  const process = useProcessLock("birdton.tasks");
   const [currentTask, setCurrentTask] = useState(null);
   const [taskOffset, setTaskOffset] = useState(null);
   const [action, setAction] = useState(null);

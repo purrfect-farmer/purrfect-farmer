@@ -15,7 +15,7 @@ import useYescoinGameSpecialBoxInfoQuery from "../hooks/useYescoinGameSpecialBox
 
 export default function YescoinGamer() {
   const { zoomies } = useFarmerContext();
-  const process = useProcessLock();
+  const process = useProcessLock("yescoin.game");
   const gameInfoQuery = useYescoinGameInfoQuery();
   const specialBoxInfoQuery = useYescoinGameSpecialBoxInfoQuery({
     enabled: process.started,

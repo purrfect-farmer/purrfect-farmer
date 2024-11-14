@@ -18,8 +18,9 @@ export default function HrumOpenButton({ queries }) {
     return allData.hero.cookies > 0;
   }, [allData]);
 
-  const [openCookie, dispatchAndOpenCookie] =
-    useSocketDispatchCallback(async () => {
+  const [openCookie, dispatchAndOpenCookie] = useSocketDispatchCallback(
+    "hrum.open-cookie",
+    async () => {
       if (show) {
         try {
           await openMutation.mutateAsync();
@@ -40,7 +41,9 @@ export default function HrumOpenButton({ queries }) {
 
       /** Process Next Task */
       processNextTask();
-    }, [queries, show, processNextTask]);
+    },
+    [queries, show, processNextTask]
+  );
 
   /** Auto-Claim */
   useFarmerAutoTask(

@@ -34,7 +34,7 @@ export default function YescoinTasks() {
   const checkTaskMutation = useYescoinCheckTaskMutation();
   const claimTaskMutation = useYescoinClaimTaskMutation();
 
-  const process = useProcessLock();
+  const process = useProcessLock("yescoin.tasks");
   const [taskOffset, setTaskOffset] = useState(null);
   const [currentTask, setCurrentTask] = useState(null);
 
@@ -70,6 +70,7 @@ export default function YescoinTasks() {
   }, []);
 
   const [claimTask, dispatchAndClaimTask] = useSocketDispatchCallback(
+    "yescoin.claim-task",
     async (id) => {
       if (!tasks.some((task) => task.taskId === id && !task.taskStatus)) return;
 

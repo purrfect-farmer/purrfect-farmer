@@ -17,7 +17,7 @@ export default function PumpadLottery() {
     "pumpad.lottery.farming-speed",
     2
   );
-  const process = useProcessLock();
+  const process = useProcessLock("pumpad.lottery");
 
   useEffect(() => {
     if (!process.canExecute) {

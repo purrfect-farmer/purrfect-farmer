@@ -20,7 +20,7 @@ const MAX_POINT = 390;
 
 export default function Tomarket({ tomarket }) {
   const query = useTomarketBalanceQuery();
-  const process = useProcessLock();
+  const process = useProcessLock("tomarket.game");
   const [countdown, setCountdown] = useState(null);
   const [desiredPoint, setDesiredPoint, dispatchAndSetDesiredPoint] =
     useSocketState("tomarket.game.desired-point", INITIAL_POINT);

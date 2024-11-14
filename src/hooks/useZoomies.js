@@ -27,7 +27,7 @@ export default function useZoomies(core) {
   );
 
   /** Process */
-  const process = useProcessLock(core.socket);
+  const process = useProcessLock("zoomies", core.socket);
 
   /** Auth */
   const [auth, setAuth] = useState(false);

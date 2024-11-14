@@ -9,7 +9,7 @@ import { useState } from "react";
 import useHrumClaimQuestMutation from "../hooks/useHrumClaimQuestMutation";
 
 export default function HrumAutoTasks({ queries }) {
-  const process = useProcessLock();
+  const process = useProcessLock("hrum.tasks");
   const claimTaskMutation = useHrumClaimQuestMutation();
   const [allData, afterData] = queries.data;
 

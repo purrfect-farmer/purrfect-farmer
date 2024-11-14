@@ -36,7 +36,7 @@ export default function YescoinDailyMission() {
   const checkMissionMutation = useYescoinCheckDailyMissionMutation();
   const claimMissionMutation = useYescoinClaimMissionMutation();
 
-  const process = useProcessLock();
+  const process = useProcessLock("yescoin.daily-missions");
   const [missionOffset, setMissionOffset] = useState(null);
   const [currentMission, setCurrentMission] = useState(null);
 
@@ -72,7 +72,8 @@ export default function YescoinDailyMission() {
     );
   }, []);
 
-  const [claimTask, dispatchAndClaimTask] = useSocketDispatchCallback(
+  const [claimMission, dispatchAndClaimMission] = useSocketDispatchCallback(
+    "yescoin.claim-mission",
     async (id) => {
       if (
         !missions.some(
@@ -161,7 +162,7 @@ export default function YescoinDailyMission() {
         {missions.map((mission) => (
           <button
             key={mission.missionId}
-            onClick={() => dispatchAndClaimTask(mission.missionId)}
+            onClick={() => dispatchAndClaimMission(mission.missionId)}
             disabled={mission["missionStatus"]}
             className={cn(
               "flex items-center gap-2 p-2 rounded-lg bg-neutral-50",

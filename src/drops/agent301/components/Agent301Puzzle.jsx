@@ -63,11 +63,15 @@ export default function Agent301Puzzle() {
   );
 
   const [handleButtonClick, dispatchAndHandleButtonClick] =
-    useSocketDispatchCallback(() => {
-      if (attemptsLeft >= 1) {
-        setShowModal(true);
-      }
-    }, [attemptsLeft, setShowModal]);
+    useSocketDispatchCallback(
+      "agent301.puzzle.show-modal",
+      () => {
+        if (attemptsLeft >= 1) {
+          setShowModal(true);
+        }
+      },
+      [attemptsLeft, setShowModal]
+    );
 
   /** Complete Puzzle */
   useFarmerAutoTask(

@@ -23,7 +23,7 @@ export default function SlotcoinLottery() {
   );
 
   const spinMutation = useSlotcoinLotteryMutation();
-  const process = useProcessLock();
+  const process = useProcessLock("slotcoin.lottery");
 
   const [farmingSpeed, , dispatchAndSetFarmingSpeed] = useSocketState(
     "slotcoin.farming-speed",

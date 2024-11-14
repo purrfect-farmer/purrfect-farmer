@@ -102,10 +102,14 @@ export default function Welcome() {
 
   /** Show Hidden Drops */
   const [showHiddenDrops, dispatchAndShowHiddenDrops] =
-    useSocketDispatchCallback(() => {
-      setShowHidden(true);
-      toast.success("Unlocked hidden farmer!");
-    }, [setShowHidden]);
+    useSocketDispatchCallback(
+      "app.show-hidden-drops",
+      () => {
+        setShowHidden(true);
+        toast.success("Unlocked hidden farmer!");
+      },
+      [setShowHidden]
+    );
 
   /** Update Title */
   useEffect(() => {

@@ -52,7 +52,7 @@ export default function WontonAutoTasks() {
     [tasks]
   );
 
-  const process = useProcessLock();
+  const process = useProcessLock("wonton.tasks");
 
   const [currentTask, setCurrentTask] = useState(null);
   const [taskOffset, setTaskOffset] = useState(null);

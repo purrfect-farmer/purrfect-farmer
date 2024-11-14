@@ -1,14 +1,16 @@
 import { useCallback } from "react";
-import { useId } from "react";
 import { useLayoutEffect } from "react";
 import { useMemo } from "react";
-
 import useAppContext from "./useAppContext";
 
-export default function useSocketDispatchCallback(callback, deps = [], socket) {
+export default function useSocketDispatchCallback(
+  action,
+  callback,
+  deps = [],
+  socket
+) {
   const app = useAppContext();
   const socketToUse = socket || app?.socket;
-  const callbackAction = "dispatch-callback-" + useId();
 
   /** Main Callback */
   const main = useCallback(callback, deps);
@@ -17,13 +19,13 @@ export default function useSocketDispatchCallback(callback, deps = [], socket) {
   const dispatch = useCallback(
     (...args) => {
       socketToUse.dispatch({
-        action: callbackAction,
+        action,
         data: args,
       });
 
       return main(...args);
     },
-    [socketToUse, callbackAction, main]
+    [socketToUse, action, main]
   );
 
   /** Add Handler */
@@ -32,11 +34,11 @@ export default function useSocketDispatchCallback(callback, deps = [], socket) {
     const handler = (command) => main(...command.data);
 
     /** Add Handler */
-    socketToUse.handler.on(callbackAction, handler);
+    socketToUse.handler.on(action, handler);
 
     /** Remove Handler */
-    return () => socketToUse.handler.off(callbackAction, handler);
-  }, [socketToUse.handler, callbackAction, main]);
+    return () => socketToUse.handler.off(action, handler);
+  }, [socketToUse.handler, action, main]);
 
   return useMemo(() => [main, dispatch], [main, dispatch]);
 }
