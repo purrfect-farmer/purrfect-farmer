@@ -34,7 +34,7 @@ export default function YescoinTasks() {
   const checkTaskMutation = useYescoinCheckTaskMutation();
   const claimTaskMutation = useYescoinClaimTaskMutation();
 
-  const process = useProcessLock("yescoin.tasks.auto");
+  const process = useProcessLock();
   const [taskOffset, setTaskOffset] = useState(null);
   const [currentTask, setCurrentTask] = useState(null);
 

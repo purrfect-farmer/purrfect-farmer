@@ -35,7 +35,7 @@ export default function BitsSocialTasks() {
     [tasks]
   );
 
-  const process = useProcessLock("bits.tasks.claim");
+  const process = useProcessLock();
 
   const [currentTask, setCurrentTask] = useState(null);
   const [taskOffset, setTaskOffset] = useState(null);

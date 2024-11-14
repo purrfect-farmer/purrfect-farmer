@@ -17,7 +17,7 @@ export default function PumpadTickets() {
     "pumpad.tickets.farming-speed",
     2
   );
-  const process = useProcessLock("pumpad.tickets.spin");
+  const process = useProcessLock();
 
   useEffect(() => {
     if (!process.canExecute) {

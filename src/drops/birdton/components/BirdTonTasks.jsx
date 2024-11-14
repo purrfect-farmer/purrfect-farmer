@@ -77,7 +77,7 @@ export default function BirdTonTasks() {
     [subTasks]
   );
 
-  const process = useProcessLock("birdton.tasks.claim");
+  const process = useProcessLock();
   const [currentTask, setCurrentTask] = useState(null);
   const [taskOffset, setTaskOffset] = useState(null);
   const [action, setAction] = useState(null);

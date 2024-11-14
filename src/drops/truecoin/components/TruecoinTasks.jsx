@@ -1,4 +1,5 @@
 import useFarmerAutoProcess from "@/drops/notpixel/hooks/useFarmerAutoProcess";
+import useFarmerContext from "@/hooks/useFarmerContext";
 import useProcessLock from "@/hooks/useProcessLock";
 import { cn, delay } from "@/lib/utils";
 import { useCallback } from "react";
@@ -6,13 +7,12 @@ import { useEffect } from "react";
 import { useMemo } from "react";
 import { useState } from "react";
 
+import useTruecoinEarnPartnerTaskMutation from "../hooks/useTruecoinEarnPartnerTaskMutation";
 import useTruecoinPartnerTasksQuery from "../hooks/useTruecoinPartnerTasksQuery";
 import useTruecoinUserArchivesQuery from "../hooks/useTruecoinUserArchivesQuery";
-import useFarmerContext from "@/hooks/useFarmerContext";
-import useTruecoinEarnPartnerTaskMutation from "../hooks/useTruecoinEarnPartnerTaskMutation";
 
 export default function TruecoinTasks() {
-  const process = useProcessLock("truecoin.tasks");
+  const process = useProcessLock();
   const { authQuery, authQueryKey, queryClient } = useFarmerContext();
 
   const partnerAchives = authQuery.data.partnerAchives;

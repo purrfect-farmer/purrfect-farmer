@@ -1,4 +1,5 @@
 import useFarmerAutoProcess from "@/drops/notpixel/hooks/useFarmerAutoProcess";
+import useFarmerContext from "@/hooks/useFarmerContext";
 import useProcessLock from "@/hooks/useProcessLock";
 import { cn, delay } from "@/lib/utils";
 import { useCallback } from "react";
@@ -9,11 +10,10 @@ import { useState } from "react";
 
 import useSlotcoinCheckTaskMutation from "../hooks/useSlotcoinCheckTaskMutation";
 import useSlotcoinQuestsQuery from "../hooks/useSlotcoinQuestsQuery";
-import useFarmerContext from "@/hooks/useFarmerContext";
 
 export default function SlotcoinQuests() {
   const { joinTelegramLink } = useFarmerContext();
-  const process = useProcessLock("slotcoin.quests.check");
+  const process = useProcessLock();
   const queryClient = useQueryClient();
 
   const questsQuery = useSlotcoinQuestsQuery();

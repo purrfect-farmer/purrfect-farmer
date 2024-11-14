@@ -7,7 +7,7 @@ import useAgent301BalanceQuery from "../hooks/useAgent301BalanceQuery";
 import useAgent301LotteryMutation from "../hooks/useAgent301LotteryMutation";
 
 export default function Agent301Lottery() {
-  const process = useProcessLock("agent301.wheel.lottery");
+  const process = useProcessLock();
 
   const balanceQuery = useAgent301BalanceQuery();
   const result = balanceQuery.data?.result;

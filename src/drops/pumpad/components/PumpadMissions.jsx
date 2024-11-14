@@ -1,4 +1,5 @@
 import useFarmerAutoProcess from "@/drops/notpixel/hooks/useFarmerAutoProcess";
+import useFarmerContext from "@/hooks/useFarmerContext";
 import useProcessLock from "@/hooks/useProcessLock";
 import { cn, delay } from "@/lib/utils";
 import { useCallback } from "react";
@@ -10,7 +11,6 @@ import { useState } from "react";
 import usePumpadCheckMissionMutation from "../hooks/usePumpadCheckMissionMutation";
 import usePumpadGetChannelMutation from "../hooks/usePumpadGetChannelMutation";
 import usePumpadMissionsQuery from "../hooks/usePumpadMissionsQuery";
-import useFarmerContext from "@/hooks/useFarmerContext";
 
 export default function PumpadMissions() {
   const { joinTelegramLink } = useFarmerContext();
@@ -27,7 +27,7 @@ export default function PumpadMissions() {
     [missionsQuery.data]
   );
 
-  const process = useProcessLock("pumpad.missions.check");
+  const process = useProcessLock();
   const getChannelMutation = usePumpadGetChannelMutation();
   const checkMissionMutation = usePumpadCheckMissionMutation();
   const [currentMission, setCurrentMission] = useState(null);

@@ -23,7 +23,7 @@ export default function NotPixelApp({ diff, updatedAt }) {
   const miningQuery = useNotPixelMiningStatusQuery();
   const mining = miningQuery.data;
 
-  const process = useProcessLock("notpixel.repaint.auto");
+  const process = useProcessLock();
 
   const repaintMutation = useNotPixelRepaintMutation();
   const claimMiningMutation = useNotPixelMiningClaimMutation();

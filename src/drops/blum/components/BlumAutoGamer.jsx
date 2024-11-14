@@ -28,7 +28,7 @@ export default function BlumAutoGamer({ workerRef }) {
   const dogsDropEligibilityQuery = useBlumDogsDropEligibilityQuery();
   const client = useQueryClient();
 
-  const process = useProcessLock("blum.game.autoplay");
+  const process = useProcessLock();
 
   const [countdown, setCountdown] = useState(null);
   const [desiredPoint, setDesiredPoint, dispatchAndSetDesiredPoint] =

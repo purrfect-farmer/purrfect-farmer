@@ -36,7 +36,7 @@ export default function GoatsMissions() {
   );
 
   const completeMissionMutation = useGoatsCompleteMissionMutation();
-  const process = useProcessLock("goats.missions.claim");
+  const process = useProcessLock();
   const [currentMission, setCurrentMission] = useState(null);
   const [missionOffset, setMissionOffset] = useState(null);
 

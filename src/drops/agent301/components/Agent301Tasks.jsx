@@ -81,7 +81,7 @@ export default function Agent301Tasks() {
 
   const completeTaskMutation = useAgent301CompleteTaskMutation();
 
-  const process = useProcessLock("agent301.tasks.claim");
+  const process = useProcessLock();
   const [currentTask, setCurrentTask] = useState(null);
   const [taskOffset, setTaskOffset] = useState(null);
   const [action, setAction] = useState(null);

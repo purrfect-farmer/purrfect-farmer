@@ -3,9 +3,10 @@ import { useEffect } from "react";
 import { useMemo } from "react";
 import { useRef } from "react";
 import { useState } from "react";
+
 import useSocketDispatchCallback from "./useSocketDispatchCallback";
 
-export default function useProcessLock(id, socket) {
+export default function useProcessLock(socket) {
   const controllerRef = useRef();
   const [process, setProcess] = useState({
     started: false,
@@ -23,7 +24,7 @@ export default function useProcessLock(id, socket) {
     (callback) => {
       setProcess((prev) => {
         if (prev.started) {
-          if (callback) {
+          if (typeof callback === "function") {
             callback(prev);
           }
           return prev;
@@ -38,7 +39,7 @@ export default function useProcessLock(id, socket) {
           controller,
         };
 
-        if (callback) {
+        if (typeof callback === "function") {
           callback(newState);
         }
 
@@ -56,7 +57,7 @@ export default function useProcessLock(id, socket) {
     (callback) => {
       setProcess((prev) => {
         if (!prev.started) {
-          if (callback) {
+          if (typeof callback === "function") {
             callback(prev);
           }
           return prev;
@@ -71,7 +72,7 @@ export default function useProcessLock(id, socket) {
           controller: null,
         };
 
-        if (callback) {
+        if (typeof callback === "function") {
           callback(newState);
         }
 

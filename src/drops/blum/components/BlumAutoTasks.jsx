@@ -114,7 +114,7 @@ export default function BlumAutoTasks() {
     [tasks]
   );
 
-  const process = useProcessLock("blum.tasks.claim");
+  const process = useProcessLock();
 
   const [currentTask, setCurrentTask] = useState(null);
   const [taskOffset, setTaskOffset] = useState(null);

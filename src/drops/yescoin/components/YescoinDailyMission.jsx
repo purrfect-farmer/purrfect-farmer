@@ -36,7 +36,7 @@ export default function YescoinDailyMission() {
   const checkMissionMutation = useYescoinCheckDailyMissionMutation();
   const claimMissionMutation = useYescoinClaimMissionMutation();
 
-  const process = useProcessLock("yescoin.missions.auto");
+  const process = useProcessLock();
   const [missionOffset, setMissionOffset] = useState(null);
   const [currentMission, setCurrentMission] = useState(null);
 

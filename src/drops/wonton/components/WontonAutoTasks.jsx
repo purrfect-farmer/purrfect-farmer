@@ -1,5 +1,6 @@
 import toast from "react-hot-toast";
 import useFarmerAutoProcess from "@/drops/notpixel/hooks/useFarmerAutoProcess";
+import useFarmerContext from "@/hooks/useFarmerContext";
 import useProcessLock from "@/hooks/useProcessLock";
 import { cn, delay } from "@/lib/utils";
 import { useCallback } from "react";
@@ -15,7 +16,6 @@ import useWontonClaimTaskProgressMutation from "../hooks/useWontonClaimTaskProgr
 import useWontonStartTaskMutation from "../hooks/useWontonStartTaskMutation";
 import useWontonTasksQuery from "../hooks/useWontonTasksQuery";
 import useWontonUserQuery from "../hooks/useWontonUserQuery";
-import useFarmerContext from "@/hooks/useFarmerContext";
 
 export default function WontonAutoTasks() {
   const { joinTelegramLink } = useFarmerContext();
@@ -52,7 +52,7 @@ export default function WontonAutoTasks() {
     [tasks]
   );
 
-  const process = useProcessLock("wonton.tasks.claim");
+  const process = useProcessLock();
 
   const [currentTask, setCurrentTask] = useState(null);
   const [taskOffset, setTaskOffset] = useState(null);

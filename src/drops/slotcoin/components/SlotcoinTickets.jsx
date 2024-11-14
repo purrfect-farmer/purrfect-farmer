@@ -20,7 +20,7 @@ export default function SlotcoinTickets() {
     "slotcoin.tickets.farming-speed",
     2
   );
-  const process = useProcessLock("slotcoin.tickets.spin");
+  const process = useProcessLock();
 
   useEffect(() => {
     if (!process.canExecute) {

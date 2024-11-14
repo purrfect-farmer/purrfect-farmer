@@ -1,19 +1,19 @@
 import Slider from "@/components/Slider";
 import toast from "react-hot-toast";
 import useFarmerAutoProcess from "@/drops/notpixel/hooks/useFarmerAutoProcess";
+import useFarmerAutoTask from "@/drops/notpixel/hooks/useFarmerAutoTask";
 import useFarmerContext from "@/hooks/useFarmerContext";
 import useProcessLock from "@/hooks/useProcessLock";
 import useSocketDispatchCallback from "@/hooks/useSocketDispatchCallback";
 import useSocketState from "@/hooks/useSocketState";
 import { HiOutlineArrowPath } from "react-icons/hi2";
 import { cn, delay, delayForSeconds } from "@/lib/utils";
+import { isToday } from "date-fns";
 import { useCallback } from "react";
 import { useEffect } from "react";
 
 import useTruecoin50SpinsBoost from "../hooks/useTruecoin50SpinsBoostMutation";
 import useTruecoinLotteryMutation from "../hooks/useTruecoinLotteryMutation";
-import useFarmerAutoTask from "@/drops/notpixel/hooks/useFarmerAutoTask";
-import { isToday } from "date-fns";
 
 export default function TruecoinLottery() {
   const { queryClient, authQuery, authQueryKey, processNextTask } =
@@ -30,7 +30,7 @@ export default function TruecoinLottery() {
     1
   );
 
-  const process = useProcessLock("truecoin.spin");
+  const process = useProcessLock();
 
   /** Handle button click */
   const [claim50Boost, dispatchAndClaim50Boost] =
