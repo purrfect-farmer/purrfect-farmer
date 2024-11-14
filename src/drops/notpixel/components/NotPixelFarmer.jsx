@@ -34,12 +34,21 @@ export default function NotPixelFarmer({ sandboxRef }) {
 
   /** Get NotPixel */
   useEffect(() => {
-    (async function () {
-      let items = [];
-      let attempts = 0;
-      let maxAttempts = zoomies.enabled ? 3 : Infinity;
+    let items = [];
+    let controller = new AbortController();
+    let timeout;
 
-      while (attempts++ < maxAttempts && !items.length) {
+    /** Clear the Controller */
+    const clearController = () => {
+      /** Clear the Timeout */
+      clearTimeout(timeout);
+
+      /** Abort the controller */
+      controller.abort();
+    };
+
+    (async function () {
+      while (!items.length && !controller.signal.aborted) {
         try {
           const myTemplate = await api
             .get("https://notpx.app/api/v1/image/template/my")
@@ -56,13 +65,32 @@ export default function NotPixelFarmer({ sandboxRef }) {
         }
       }
 
-      if (items.length) {
+      if (items.length && !controller.signal.aborted) {
+        /** Clear the Controller */
+        clearController();
+
         /** Configure the App */
         configureNotPixel(items);
-      } else {
-        processNextTask();
       }
     })();
+
+    /** Abort after 15 Secs */
+    if (zoomies.enabled) {
+      timeout = setTimeout(() => {
+        if (!controller.signal.aborted) {
+          /** Abort */
+          controller.abort();
+
+          /** Process Next Task */
+          processNextTask();
+        }
+      }, 15_000);
+    }
+
+    return () => {
+      /** Clear the Controller */
+      clearController();
+    };
   }, [configureNotPixel]);
 
   return (
