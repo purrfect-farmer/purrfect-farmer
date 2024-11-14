@@ -65,8 +65,8 @@ export default function SlotcoinQuests() {
         setTaskOffset(index);
         setCurrentTask(task);
         try {
-          if (task["task_data"]?.["channel"]) {
-            await joinTelegramLink(task["task_data"]?.["channel"]);
+          if (task["task_data"]?.["channel_url"]) {
+            await joinTelegramLink(task["task_data"]?.["channel_url"]);
           }
           await checkTaskMutation.mutateAsync(task.id);
         } catch {}
