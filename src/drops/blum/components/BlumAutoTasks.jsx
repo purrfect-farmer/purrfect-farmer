@@ -61,12 +61,22 @@ export default function BlumAutoTasks() {
   /** All Tasks */
   const tasks = useMemo(
     () =>
-      rawTasks.reduce((tasks, item) => {
-        if (!tasks.some((task) => task.id === item.id)) {
-          tasks.push(item);
-        }
-        return tasks;
-      }, []),
+      rawTasks
+        .reduce((tasks, item) => {
+          if (!tasks.some((task) => task.id === item.id)) {
+            tasks.push(item);
+          }
+          return tasks;
+        }, [])
+        .filter(
+          (task) =>
+            ![
+              "INTERNAL",
+              "APPLICATION_LAUNCH",
+              "ONCHAIN_TRANSACTION",
+              "WALLET_CONNECTION",
+            ].includes(task.type)
+        ),
     [rawTasks]
   );
 
