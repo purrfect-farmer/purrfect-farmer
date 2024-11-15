@@ -33,11 +33,15 @@ const bots = [
     title: "W-Coin",
     icon: botIcons["w-coin"],
     telegramLink: "https://t.me/wcoin_tapbot?start=MTE0NzI2NTI5MA==",
+    miniAppUrl: "https://app.w-coin.io",
+    shouldClickLaunchButton: true,
   },
   {
     title: "Sidekick Fans",
     icon: botIcons["sidekick"],
     telegramLink: "https://t.me/sidekick_fans_bot?start=1147265290",
+    miniAppUrl: "https://game.sidekick.fans",
+    shouldClickLaunchButton: true,
   },
   {
     title: "Units Wallet",
