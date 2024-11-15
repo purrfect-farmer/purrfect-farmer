@@ -37,7 +37,7 @@ export default function useNotPixelData() {
 
   /** Configure Not Pixel Images */
   const configureNotPixel = useCallback(
-    (data) => {
+    (data, onStarted) => {
       /** Log it */
       logNicely("NOT PIXEL", data);
 
@@ -147,6 +147,11 @@ export default function useNotPixelData() {
 
               /** Set Started */
               setStarted(true);
+
+              /** Call on-Started */
+              if (typeof onStarted === "function") {
+                onStarted();
+              }
             });
           };
 

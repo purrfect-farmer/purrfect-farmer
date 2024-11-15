@@ -66,11 +66,8 @@ export default function NotPixelFarmer({ sandboxRef }) {
       }
 
       if (items.length && !controller.signal.aborted) {
-        /** Clear the Controller */
-        clearController();
-
         /** Configure the App */
-        configureNotPixel(items);
+        configureNotPixel(items, clearController);
       }
     })();
 
