@@ -127,7 +127,12 @@ export default function useZoomies(core) {
       const openBot = (force = true) => {
         core.setActiveTab(current.drop?.id);
         core.closeOtherBots();
-        core.openTelegramLink(current.drop.telegramLink, undefined, force);
+        core.openTelegramBot({
+          url: current.drop.telegramLink,
+          miniAppUrl: current.drop.miniAppUrl,
+          shouldClickLaunchButton: current.drop.shouldClickLaunchButton,
+          force,
+        });
       };
 
       /** First Time */

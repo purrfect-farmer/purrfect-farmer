@@ -3,8 +3,8 @@ import { isElementVisible } from "./lib/utils";
 /** Web Version */
 const webVersion = location.pathname.startsWith("/k/") ? "k" : "a";
 
-/** Bot URL */
-const botURL = import.meta.env.VITE_APP_BOT_URL;
+/** Farmer Bot URL */
+const farmerBotUrl = import.meta.env.VITE_APP_BOT_URL;
 
 /** Button Text */
 const joinButtonTextContent =
@@ -16,17 +16,25 @@ const closeButtonTextContent = "CLOSE ANYWAY";
 const buttonSelectors =
   webVersion === "k"
     ? {
-        launchButton: ".new-message-bot-commands",
+        launchButton: ".new-message-bot-commands.is-view",
         confirmButton: ".popup-button",
         startButton: ".chat-input-control-button",
         joinButton: ".chat-join, .chat-input-control-button",
+        webViewButton: ".is-web-view",
       }
     : {
         launchButton: ".bot-menu.open",
         confirmButton: ".confirm-dialog-button",
         startButton: ".join-subscribe-button",
         joinButton: ".join-subscribe-button",
+        webViewButton: "button:has(.icon.icon-webapp)",
       };
+
+/** Join Observer */
+let joinObserver;
+
+/** Bot Observer */
+let botObserver;
 
 /** Dispatch Click Event on Element */
 const dispatchClickEventOnElement = (element) => {
@@ -41,53 +49,9 @@ const dispatchClickEventOnElement = (element) => {
   });
 };
 
-/** Confirm Popup */
-const confirmPopup = () => {
-  for (const element of document.querySelectorAll(
-    buttonSelectors.confirmButton
-  )) {
-    const elementTextContent = element.textContent.trim().toUpperCase();
-    if (
-      [confirmButtonTextContent, closeButtonTextContent].includes(
-        elementTextContent
-      )
-    ) {
-      dispatchClickEventOnElement(element);
-    }
-  }
-};
-
-/** Get Start Button */
-const getStartButton = () => {
-  for (let element of document.querySelectorAll(buttonSelectors.startButton)) {
-    if (
-      element.textContent.trim().toUpperCase() === "START" &&
-      isElementVisible(element)
-    ) {
-      return element;
-    }
-  }
-};
-
-/** Is it a join Button */
-const isJoinButton = (element) =>
-  joinButtonTextContent.includes(element.textContent.trim().toUpperCase()) &&
-  isElementVisible(element);
-
-/** Get Join Button */
-const getJoinButton = () => {
-  for (const element of document.querySelectorAll(buttonSelectors.joinButton)) {
-    if (isJoinButton(element)) {
-      return element;
-    }
-  }
-};
-
 /** Click Telegram Web Button */
-const clickTelegramWebButton = (button, skip = false) => {
-  if (skip && !button) {
-    return true;
-  } else if (isElementVisible(button)) {
+const clickTelegramWebButton = (button) => {
+  if (isElementVisible(button)) {
     dispatchClickEventOnElement(button);
     return true;
   } else {
@@ -95,36 +59,121 @@ const clickTelegramWebButton = (button, skip = false) => {
   }
 };
 
-/** Click Join Button */
-const clickJoinButton = () => {
-  return clickTelegramWebButton(getJoinButton());
-};
-
-/** Click Bot Launch Button */
-const clickBotLaunchButton = () => {
-  return clickTelegramWebButton(
-    document.querySelector(buttonSelectors.launchButton)
+/** Is Popup Button */
+const isPopupButton = (element) =>
+  [confirmButtonTextContent, closeButtonTextContent].includes(
+    element.textContent.trim().toUpperCase()
   );
-};
 
-/** Click Bot Start Button */
-const clickBotStartButton = () => {
-  return clickTelegramWebButton(getStartButton(), true);
-};
+/** Is it a Start Button */
+const isStartButton = (element) =>
+  element.textContent.trim().toUpperCase() === "START";
+
+/** Is it a Join Button */
+const isJoinButton = (element) =>
+  joinButtonTextContent.includes(element.textContent.trim().toUpperCase());
 
 /** Is the Bot running */
-const botIsRunning = () => {
-  const iframes = document.querySelectorAll("iframe");
+const botIsRunning = (url, node) => {
+  /** An Iframe */
+  if (node.tagName === "IFRAME" && node.src.startsWith(url)) {
+    return true;
+  }
 
-  for (const iframe of iframes) {
-    if (iframe.src.startsWith(botURL)) {
+  /** Check Descendant Iframe */
+  for (const iframe of node.querySelectorAll("iframe")) {
+    if (iframe.src.startsWith(url)) {
       return true;
     }
   }
 };
 
-/** Join Interval */
-let joinObserver;
+/** Find And Confirm Popup */
+const findAndConfirmPopup = (node) => {
+  /** Matches Start Button */
+  if (node.matches(buttonSelectors.confirmButton) && isPopupButton(node)) {
+    return dispatchClickEventOnElement(node);
+  }
+
+  /** Click Status */
+  let status = false;
+
+  /** Descendant Start Button */
+  for (const element of node.querySelectorAll(buttonSelectors.confirmButton)) {
+    if (isPopupButton(element)) {
+      dispatchClickEventOnElement(element);
+
+      if (status) {
+        return status;
+      }
+    }
+  }
+};
+
+/** Find And Click Join Button */
+const findAndClickJoinButton = (node) => {
+  /** Matches Join Button */
+  if (node.matches(buttonSelectors.joinButton) && isJoinButton(node)) {
+    clickTelegramWebButton(node);
+    return true;
+  }
+
+  /** Descendant Join Button */
+  for (const element of node.querySelectorAll(buttonSelectors.joinButton)) {
+    if (isJoinButton(element)) {
+      clickTelegramWebButton(element);
+      return true;
+    }
+  }
+};
+
+/** Find And Click Start Button */
+const findAndClickStartButton = (node) => {
+  /** Matches Start Button */
+  if (node.matches(buttonSelectors.startButton) && isStartButton(node)) {
+    return clickTelegramWebButton(node);
+  }
+
+  /** Click Status */
+  let status = false;
+
+  /** Descendant Start Button */
+  for (const element of node.querySelectorAll(buttonSelectors.startButton)) {
+    if (isStartButton(element)) {
+      clickTelegramWebButton(element);
+
+      if (status) {
+        return status;
+      }
+    }
+  }
+};
+
+/** Find And Click Launch Button */
+const findAndClickLaunchButton = (node, isWebView) => {
+  /** Matches Launch Button */
+  if (
+    node.matches(
+      isWebView ? buttonSelectors.webViewButton : buttonSelectors.launchButton
+    )
+  ) {
+    return clickTelegramWebButton(node);
+  }
+
+  /** Click Status */
+  let status = false;
+
+  /** Descendant Launch Button */
+  for (const element of node.querySelectorAll(
+    isWebView ? buttonSelectors.webViewButton : buttonSelectors.launchButton
+  )) {
+    status = clickTelegramWebButton(element);
+
+    if (status) {
+      return status;
+    }
+  }
+};
 
 /** Join Conversation */
 const joinConversation = () => {
@@ -132,17 +181,28 @@ const joinConversation = () => {
   joinObserver?.disconnect();
 
   /** Click Join Button */
-  let hasClickedJoinButton = clickJoinButton();
-
-  /** Don't click again */
-  if (hasClickedJoinButton) return;
+  let hasClickedJoinButton = false;
 
   /** Create Observer */
-  joinObserver = new MutationObserver(function () {
-    if (!hasClickedJoinButton) {
-      hasClickedJoinButton = clickJoinButton();
-    } else {
-      joinObserver.disconnect();
+  joinObserver = new MutationObserver(function (mutationList) {
+    for (const mutation of mutationList) {
+      if (mutation.type === "childList") {
+        mutation.addedNodes.forEach((node) => {
+          if (node.nodeType === Node.ELEMENT_NODE) {
+            if (!hasClickedJoinButton) {
+              hasClickedJoinButton = findAndClickJoinButton(node);
+            } else {
+              joinObserver.disconnect();
+            }
+          }
+        });
+      } else if (mutation.type == "attributes") {
+        if (!hasClickedJoinButton) {
+          hasClickedJoinButton = findAndClickJoinButton(mutation.target);
+        } else {
+          joinObserver.disconnect();
+        }
+      }
     }
   });
 
@@ -150,54 +210,91 @@ const joinConversation = () => {
   joinObserver.observe(document.documentElement, {
     childList: true,
     subtree: true,
+    attributeFilter: ["class", "style"],
+    attributes: true,
   });
 };
 
-/** Farmer Bot Observer */
-let farmerBotObserver;
-
-/** Open Farmer Bot */
-const openFarmerBot = () => {
+/** Open Bot */
+const openBot = (url, isWebView) => {
   /** Clear Previous Observer */
-  farmerBotObserver?.disconnect();
+  botObserver?.disconnect();
 
-  /** Start Button */
-  let hasClickedStartButton = clickBotStartButton();
+  /** Has clicked Start Button? */
+  let hasClickedStartButton = false;
 
-  /** Click Launch Button */
-  let hasClickedLaunchButton = clickBotLaunchButton();
+  /** Has clicked Launch Button? */
+  let hasClickedLaunchButton = false;
 
   /** Create Observer */
-  farmerBotObserver = new MutationObserver(function () {
-    /** Bot is Running */
-    if (botIsRunning()) {
-      /** Disconnect Observer */
-      farmerBotObserver.disconnect();
-    } else {
-      /** Click the Start Button */
-      if (!hasClickedStartButton) {
-        hasClickedStartButton = clickBotStartButton();
-      }
+  botObserver = new MutationObserver(function (mutationList) {
+    for (const mutation of mutationList) {
+      if (mutation.type === "childList") {
+        mutation.addedNodes.forEach((node) => {
+          if (node.nodeType === Node.ELEMENT_NODE) {
+            /** Bot Is Running */
+            if (botIsRunning(url, node)) {
+              return botObserver.disconnect();
+            }
 
-      if (!hasClickedLaunchButton) {
+            /** Click Start Button */
+            if (!hasClickedStartButton) {
+              hasClickedStartButton = findAndClickStartButton(node);
+            }
+
+            /** Click Launch Button */
+            if (!hasClickedLaunchButton) {
+              hasClickedLaunchButton = findAndClickLaunchButton(
+                node,
+                isWebView
+              );
+            }
+          }
+        });
+      } else if (mutation.type == "attributes") {
+        /** Click Start Button */
+        if (!hasClickedStartButton) {
+          hasClickedStartButton = findAndClickStartButton(mutation.target);
+        }
+
         /** Click Launch Button */
-        hasClickedLaunchButton = clickBotLaunchButton();
+        if (!hasClickedLaunchButton) {
+          hasClickedLaunchButton = findAndClickLaunchButton(
+            mutation.target,
+            isWebView
+          );
+        }
       }
     }
   });
 
   /** Observe */
-  farmerBotObserver.observe(document.documentElement, {
+  botObserver.observe(document.documentElement, {
     childList: true,
     subtree: true,
+    attributeFilter: ["class", "style"],
+    attributes: true,
   });
+};
+
+/** Open Farmer Bot */
+const openFarmerBot = () => {
+  return openBot(farmerBotUrl);
 };
 
 /** Auto Confirm Dialog */
 const autoConfirm = () => {
   /** Start Observing */
   const observer = new MutationObserver(function (mutationList, observer) {
-    confirmPopup();
+    for (const mutation of mutationList) {
+      if (mutation.type === "childList") {
+        mutation.addedNodes.forEach((node) => {
+          if (node.nodeType === Node.ELEMENT_NODE) {
+            findAndConfirmPopup(node);
+          }
+        });
+      }
+    }
   });
 
   observer.observe(document.documentElement, {
@@ -215,6 +312,14 @@ const port = chrome.runtime.connect(chrome.runtime.id, {
 port.onMessage.addListener(async (message) => {
   const { id, action, data } = message;
   switch (action) {
+    case "open-bot":
+      await openBot(data.url, true);
+      port.postMessage({
+        id,
+        data: true,
+      });
+      break;
+
     case "open-farmer-bot":
       await openFarmerBot();
       port.postMessage({

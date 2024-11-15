@@ -7,7 +7,7 @@ import FullSpinner from "./FullSpinner";
 import ErrorFallback from "./ErrorFallback";
 
 export default function TabContent({ tab }) {
-  const { dispatchAndOpenTelegramLink } = useAppContext();
+  const { dispatchAndOpenTelegramBot } = useAppContext();
 
   return (
     <div
@@ -22,7 +22,13 @@ export default function TabContent({ tab }) {
       {tab.telegramLink ? (
         <button
           className="p-3 font-bold text-blue-500 border-b"
-          onClick={() => dispatchAndOpenTelegramLink(tab.telegramLink)}
+          onClick={() =>
+            dispatchAndOpenTelegramBot({
+              url: tab.telegramLink,
+              miniAppUrl: tab.miniAppUrl,
+              shouldClickLaunchButton: tab.shouldClickLaunchButton,
+            })
+          }
         >
           Open Bot
         </button>

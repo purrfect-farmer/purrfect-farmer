@@ -444,31 +444,68 @@ export default function useCore() {
     );
 
   /** Join Telegram Link */
-  const joinTelegramLink = useCallback(
-    async (url, version = preferredTelegramWebVersion, force = false) => {
-      try {
-        /** Open Telegram Link */
-        await openTelegramLink(url, version, force);
+  const [joinTelegramLink, dispatchAndJoinTelegramLink] =
+    useSocketDispatchCallback(
+      "core.join-telegram-link",
+      async (url, version = preferredTelegramWebVersion, force = false) => {
+        try {
+          /** Open Telegram Link */
+          await openTelegramLink(url, version, force);
 
-        /** Little Delay */
-        await delay(1000);
+          /** Get Port */
+          const telegramWebPort = messaging.ports
+            .values()
+            .find((port) => port.name === `telegram-web-${version}`);
 
-        /** Get Port */
-        const telegramWebPort = messaging.ports
-          .values()
-          .find((port) => port.name === `telegram-web-${version}`);
+          /** Join Conversation */
+          postPortMessage(telegramWebPort, {
+            action: "join-conversation",
+          });
 
-        /** Join Conversation */
-        postPortMessage(telegramWebPort, {
-          action: "join-conversation",
-        });
+          /** Extra Delay */
+          await delay(5000);
+        } catch {}
+      },
+      [messaging.ports, preferredTelegramWebVersion, openTelegramLink],
+      /** Socket */
+      socket
+    );
 
-        /** Extra Delay */
-        await delay(5000);
-      } catch {}
-    },
-    [messaging.ports, preferredTelegramWebVersion, openTelegramLink]
-  );
+  /** Open Telegram Bot */
+  const [openTelegramBot, dispatchAndOpenTelegramBot] =
+    useSocketDispatchCallback(
+      "core.open-telegram-bot",
+      async ({
+        url,
+        miniAppUrl,
+        shouldClickLaunchButton = false,
+        version = preferredTelegramWebVersion,
+        force = false,
+      }) => {
+        try {
+          /** Open Telegram Link */
+          await openTelegramLink(url, version, force);
+
+          if (shouldClickLaunchButton) {
+            /** Get Port */
+            const telegramWebPort = messaging.ports
+              .values()
+              .find((port) => port.name === `telegram-web-${version}`);
+
+            /** Open Bot */
+            postPortMessage(telegramWebPort, {
+              action: "open-bot",
+              data: {
+                url: miniAppUrl,
+              },
+            });
+          }
+        } catch {}
+      },
+      [messaging.ports, preferredTelegramWebVersion, openTelegramLink],
+      /** Socket */
+      socket
+    );
 
   return useValuesMemo({
     /** Data */
@@ -496,8 +533,10 @@ export default function useCore() {
     openTelegramLink,
     openTelegramWeb,
     joinTelegramLink,
+    openTelegramBot,
     navigateToTelegramWeb,
     dispatchAndOpenFarmerBot,
+    dispatchAndOpenTelegramBot,
     dispatchAndOpenTelegramLink,
     dispatchAndNavigateToTelegramWeb,
 
