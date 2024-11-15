@@ -82,6 +82,7 @@ export default function Welcome() {
     dispatchAndReloadApp,
     dispatchAndOpenFarmerBot,
     dispatchAndOpenTelegramLink,
+    dispatchAndOpenTelegramBot,
   } = useAppContext();
 
   const tabs = useSocketTabs("app", "farmers");
@@ -288,7 +289,11 @@ export default function Welcome() {
                     key={index}
                     drop={bot}
                     onClick={() =>
-                      dispatchAndOpenTelegramLink(bot.telegramLink)
+                      dispatchAndOpenTelegramBot({
+                        url: bot.telegramLink,
+                        miniAppUrl: bot.miniAppUrl,
+                        shouldClickLaunchButton: bot.shouldClickLaunchButton,
+                      })
                     }
                   />
                 ))}
