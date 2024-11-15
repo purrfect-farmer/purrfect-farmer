@@ -18,6 +18,11 @@ export const botIcons = Object.fromEntries(
 
 const bots = [
   {
+    title: "Notgram",
+    icon: botIcons["notgram"],
+    telegramLink: "https://t.me/notgram_game_bot?start=r1147265290",
+  },
+  {
     title: "Paws",
     icon: botIcons["paws"],
     telegramLink: "https://t.me/PAWSOG_bot/PAWS?startapp=5MwPEyav",
