@@ -65,6 +65,28 @@ export function isElementVisible(element) {
   return isDisplayed && isVisible && hasOpacity;
 }
 
+/** Dispatch Click Event on Element */
+export function dispatchClickEventOnElement(element) {
+  if (element) {
+    ["mousedown", "click"].forEach((eventType) => {
+      /** Dispatch the event */
+      element.dispatchEvent(
+        new MouseEvent(eventType, {
+          bubbles: true,
+          cancelable: true,
+        })
+      );
+    });
+  }
+}
+
+export function scrollElementIntoView(element) {
+  element.scrollIntoView({
+    inline: "center",
+    behavior: "smooth",
+  });
+}
+
 /**
  *
  * @param {chrome.runtime.Port} port
