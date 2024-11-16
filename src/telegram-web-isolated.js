@@ -1,4 +1,4 @@
-import { isElementVisible } from "./lib/utils";
+import { dispatchClickEventOnElement, isElementVisible } from "./lib/utils";
 
 /** Web Version */
 const webVersion = location.pathname.startsWith("/k/") ? "k" : "a";
@@ -35,19 +35,6 @@ let joinObserver;
 
 /** Bot Observer */
 let botObserver;
-
-/** Dispatch Click Event on Element */
-const dispatchClickEventOnElement = (element) => {
-  ["mousedown", "click"].forEach((eventType) => {
-    /** Dispatch the event */
-    element.dispatchEvent(
-      new MouseEvent(eventType, {
-        bubbles: true,
-        cancelable: true,
-      })
-    );
-  });
-};
 
 /** Click Telegram Web Button */
 const clickTelegramWebButton = (button) => {
@@ -95,17 +82,10 @@ const findAndConfirmPopup = (node) => {
     return dispatchClickEventOnElement(node);
   }
 
-  /** Click Status */
-  let status = false;
-
   /** Descendant Start Button */
   for (const element of node.querySelectorAll(buttonSelectors.confirmButton)) {
     if (isPopupButton(element)) {
       dispatchClickEventOnElement(element);
-
-      if (status) {
-        return status;
-      }
     }
   }
 };
@@ -114,15 +94,20 @@ const findAndConfirmPopup = (node) => {
 const findAndClickJoinButton = (node) => {
   /** Matches Join Button */
   if (node.matches(buttonSelectors.joinButton) && isJoinButton(node)) {
-    clickTelegramWebButton(node);
-    return true;
+    return clickTelegramWebButton(node);
   }
+
+  /** Click Status */
+  let status = false;
 
   /** Descendant Join Button */
   for (const element of node.querySelectorAll(buttonSelectors.joinButton)) {
     if (isJoinButton(element)) {
-      clickTelegramWebButton(element);
-      return true;
+      status = clickTelegramWebButton(element);
+
+      if (status) {
+        return status;
+      }
     }
   }
 };
