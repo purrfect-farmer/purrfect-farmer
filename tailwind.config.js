@@ -11,6 +11,20 @@ export default {
         "turret-road": "Turret Road",
       },
       colors: {
+        "notgram-gold": {
+          DEFAULT: "#F5BB5F",
+          50: "#FFFFFF",
+          100: "#FFFCF9",
+          200: "#FCECD2",
+          300: "#FADCAC",
+          400: "#F7CB85",
+          500: "#F5BB5F",
+          600: "#F2A52A",
+          700: "#D6890D",
+          800: "#A2670A",
+          900: "#6D4507",
+          950: "#523505",
+        },
         "birdton-blue": {
           DEFAULT: "#4DC5FF",
           50: "#FFFFFF",
