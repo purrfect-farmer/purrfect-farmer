@@ -142,32 +142,6 @@
         {
           "header": "origin",
           "operation": "set",
-          "value": "https://major.bot"
-        },
-        {
-          "header": "referer",
-          "operation": "set",
-          "value": "https://major.bot/"
-        }
-      ]
-    },
-    "condition": {
-      "requestDomains": ["major.bot"]
-    }
-  },
-  {
-    "id": 7,
-    "action": {
-      "type": "modifyHeaders",
-      "requestHeaders": [
-        {
-          "header": "x-requested-with",
-          "operation": "set",
-          "value": "org.telegram.messenger"
-        },
-        {
-          "header": "origin",
-          "operation": "set",
           "value": "https://tg.pumpad.io"
         },
         {
@@ -187,7 +161,7 @@
     }
   },
   {
-    "id": 8,
+    "id": 7,
     "action": {
       "type": "modifyHeaders",
       "requestHeaders": [
@@ -213,7 +187,7 @@
     }
   },
   {
-    "id": 9,
+    "id": 8,
     "action": {
       "type": "modifyHeaders",
       "requestHeaders": [
@@ -246,7 +220,7 @@
     }
   },
   {
-    "id": 10,
+    "id": 9,
     "action": {
       "type": "modifyHeaders",
       "requestHeaders": [
@@ -272,7 +246,7 @@
     }
   },
   {
-    "id": 11,
+    "id": 10,
     "action": {
       "type": "modifyHeaders",
       "requestHeaders": [
@@ -298,7 +272,7 @@
     }
   },
   {
-    "id": 12,
+    "id": 11,
     "action": {
       "type": "modifyHeaders",
       "requestHeaders": [
@@ -324,7 +298,7 @@
     }
   },
   {
-    "id": 13,
+    "id": 12,
     "action": {
       "type": "modifyHeaders",
       "requestHeaders": [
@@ -347,65 +321,6 @@
     },
     "condition": {
       "requestDomains": ["wonton.restaurant", "wonton.food"]
-    }
-  },
-  {
-    "id": 14,
-    "action": {
-      "type": "modifyHeaders",
-      "requestHeaders": [
-        {
-          "header": "x-requested-with",
-          "operation": "set",
-          "value": "org.telegram.messenger"
-        },
-        {
-          "header": "origin",
-          "operation": "set",
-          "value": "https://tada-mini.mvlchain.io"
-        },
-        {
-          "header": "referer",
-          "operation": "set",
-          "value": "https://tada-mini.mvlchain.io/"
-        }
-      ],
-      "responseHeaders": [
-        {
-          "header": "access-control-allow-origin",
-          "operation": "set",
-          "value": "*"
-        }
-      ]
-    },
-    "condition": {
-      "requestDomains": ["backend.clutchwalletserver.xyz"]
-    }
-  },
-  {
-    "id": 15,
-    "action": {
-      "type": "modifyHeaders",
-      "requestHeaders": [
-        {
-          "header": "x-requested-with",
-          "operation": "set",
-          "value": "org.telegram.messenger"
-        },
-        {
-          "header": "origin",
-          "operation": "set",
-          "value": "https://bits.apps-tonbox.me"
-        },
-        {
-          "header": "referer",
-          "operation": "set",
-          "value": "https://bits.apps-tonbox.me/"
-        }
-      ]
-    },
-    "condition": {
-      "requestDomains": ["api-bits.apps-tonbox.me", "bits.apps-tonbox.me"]
     }
   }
 ]
