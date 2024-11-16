@@ -11,7 +11,11 @@ if (location.hash.includes("tgWebAppData")) {
      */
     const respond = (ev) => {
       try {
-        if (ev.data?.id === id && ev.data?.type === "response") {
+        if (
+          ev.source === window &&
+          ev.data?.id === id &&
+          ev.data?.type === "response"
+        ) {
           if (once) {
             window.removeEventListener("message", respond);
           }
@@ -24,6 +28,7 @@ if (location.hash.includes("tgWebAppData")) {
     window.postMessage(
       {
         id,
+        type: "request",
         payload: encryptData(data),
       },
       "*"
@@ -89,9 +94,19 @@ if (location.hash.includes("tgWebAppData")) {
 
   /** Listen for TelegramWebApp */
   const listenForTelegramWeb = (ev) => {
-    if (ev.data?.type === "init") {
+    if (ev.source === window && ev.data?.type === "init") {
       window.removeEventListener("message", listenForTelegramWeb);
       dispatchTelegramWebApp(decryptData(ev.data?.payload));
+    }
+  };
+
+  /** Listen for Port Message */
+  const listenForPortMessage = (ev) => {
+    if (ev.source === window && ev.data?.type === "port") {
+      port.postMessage({
+        action: `custom-message:${location.host}`,
+        data: decryptData(ev.data?.payload),
+      });
     }
   };
 
@@ -135,9 +150,25 @@ if (location.hash.includes("tgWebAppData")) {
           data: true,
         });
         break;
+
+      default:
+        connectWindowMessage(
+          message,
+          (response) => {
+            return port.postMessage({
+              id,
+              data: response,
+            });
+          },
+          false
+        );
+        break;
     }
   });
 
   /** Listen for TelegramWebApp */
   window.addEventListener("message", listenForTelegramWeb);
+
+  /** Listen for Port Message */
+  window.addEventListener("message", listenForPortMessage);
 }
