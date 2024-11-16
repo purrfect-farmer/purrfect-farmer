@@ -214,7 +214,6 @@ export default function useDropFarmer({
     const interceptor = api.interceptors.response.use(
       (response) => Promise.resolve(response),
       (error) => {
-        console.log(error);
         if (
           !error.config.ignoreUnauthenticatedError &&
           [401, 403, 418].includes(error?.response?.status)
@@ -346,6 +345,7 @@ export default function useDropFarmer({
   /** Return API and Auth */
   return useValuesMemo({
     id,
+    host,
     status,
     port,
     api,
