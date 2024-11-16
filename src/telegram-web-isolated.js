@@ -36,10 +36,29 @@ let joinObserver;
 /** Bot Observer */
 let botObserver;
 
+/** Click Timeout Map */
+const clickTimeoutMap = new Map();
+
 /** Click Telegram Web Button */
 const clickTelegramWebButton = (button) => {
+  /** Clear Previous Timeout */
+  clearTimeout(clickTimeoutMap.get(button));
+
+  /** Delete Timeout */
+  clickTimeoutMap.delete(button);
+
   if (isElementVisible(button)) {
-    dispatchClickEventOnElement(button);
+    /** Delay to Click */
+    clickTimeoutMap.set(
+      button,
+      setTimeout(() => {
+        /** Delete Timeout */
+        clickTimeoutMap.delete(button);
+
+        /** Dispatch the Click Event */
+        dispatchClickEventOnElement(button);
+      }, 1000)
+    );
     return true;
   } else {
     return false;
