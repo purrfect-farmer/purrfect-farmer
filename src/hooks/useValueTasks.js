@@ -83,7 +83,7 @@ export default function useValueTasks(key) {
 
   /** Prompt Value */
   const [, dispatchAndPrompt] = useSocketDispatchCallback(
-    id + ":prompt",
+    key + ":prompt",
     (id) =>
       new Promise((resolve, reject) => {
         setValuePrompt({
@@ -96,7 +96,7 @@ export default function useValueTasks(key) {
 
   /** Handle value Prompt Submit */
   const [submitPrompt, dispatchAndSubmitPrompt] = useSocketDispatchCallback(
-    id + ":submit",
+    key + ":submit",
     (value) => {
       if (!valuePrompt) return;
 
