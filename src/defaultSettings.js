@@ -9,6 +9,7 @@ const defaultSettings = {
   closeMainWindowOnStartup: false,
   preferredTelegramWebVersion: "k",
   zoomies: [
+    "notgram",
     "notpixel",
     "blum",
     "hrum",
@@ -21,7 +22,6 @@ const defaultSettings = {
     "goats",
     "truecoin",
     "birdton",
-    "bits",
   ],
 };
 
