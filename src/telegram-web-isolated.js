@@ -57,7 +57,7 @@ const clickTelegramWebButton = (button) => {
 
         /** Dispatch the Click Event */
         dispatchClickEventOnElement(button);
-      }, 1000)
+      }, 2000)
     );
     return true;
   } else {
