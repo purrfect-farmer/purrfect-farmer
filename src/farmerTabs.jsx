@@ -47,6 +47,16 @@ const farmerTabs = [
     component: <TelegramWeb version="a" />,
   },
   {
+    id: "notgram",
+    title: "Notgram",
+    icon: farmerIcons["notgram"],
+    component: <Farmer farmer="Notgram" />,
+    telegramLink: "https://t.me/notgram_game_bot?start=r1147265290",
+    miniAppUrl: "https://notgramgame.fun",
+    shouldClickLaunchButton: true,
+    tasks: ["tasks"],
+  },
+  {
     id: "notpixel",
     title: "Not Pixel",
     icon: farmerIcons["notpixel"],
