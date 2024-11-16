@@ -1,7 +1,7 @@
 {
   "name": "purrfect-farmer",
   "private": true,
-  "version": "0.4.4",
+  "version": "0.4.5",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -12,6 +12,7 @@
     "build:telegram-web-isolated": "VITE_ENTRY=telegram-web-isolated vite build",
     "build:content-script-main": "VITE_ENTRY=content-script-main vite build",
     "build:content-script-isolated": "VITE_ENTRY=content-script-isolated vite build",
+    "build:notgram-main": "VITE_ENTRY=notgram-main vite build",
     "lint": "eslint .",
     "preview": "vite preview"
   },
