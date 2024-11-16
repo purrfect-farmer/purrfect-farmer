@@ -325,12 +325,12 @@ export default function useDropFarmer({
     }
   }, [auth, isZooming, zoomies.setAuth]);
 
-  /** Process Next Task if Unable to Obtain Auth within 15sec */
+  /** Process Next Task if Unable to Obtain Auth within 30sec */
   useEffect(() => {
     if (isZooming) {
       if (telegramWebApp && !auth) {
         /** Set Timeout */
-        const timeout = setTimeout(zoomies.skipToNextDrop, 15_000);
+        const timeout = setTimeout(zoomies.skipToNextDrop, 30_000);
 
         return () => {
           clearTimeout(timeout);
