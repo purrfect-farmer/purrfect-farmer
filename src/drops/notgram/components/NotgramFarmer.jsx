@@ -14,19 +14,6 @@ export default function NotgramFarmer() {
   const { id, port, host } = useFarmerContext();
   const process = useProcessLock("notgram.tasks");
 
-  /** Send Message to Port */
-  useEffect(() => {
-    setActiveTab(`telegram-web-${settings.preferredTelegramWebVersion}`);
-    postPortMessage(port, {
-      action: process.started ? "custom:start-tasks" : "custom:stop-tasks",
-    });
-  }, [
-    process.started,
-    port,
-    setActiveTab,
-    settings.preferredTelegramWebVersion,
-  ]);
-
   /** Handle Message */
   useMessageHandlers(
     useMemo(
@@ -59,6 +46,25 @@ export default function NotgramFarmer() {
 
   /** Auto-Start  */
   useFarmerAutoProcess("tasks", true, process.start);
+
+  /** Send Message to Port */
+  useEffect(() => {
+    postPortMessage(port, {
+      action: process.started ? "custom:start-tasks" : "custom:stop-tasks",
+    }).then(() => {
+      setActiveTab(
+        process.started
+          ? `telegram-web-${settings.preferredTelegramWebVersion}`
+          : id
+      );
+    });
+  }, [
+    id,
+    process.started,
+    port,
+    setActiveTab,
+    settings.preferredTelegramWebVersion,
+  ]);
 
   return (
     <div className="flex flex-col gap-4 p-4">
