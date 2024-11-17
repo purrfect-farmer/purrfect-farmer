@@ -36,29 +36,11 @@ let joinObserver;
 /** Bot Observer */
 let botObserver;
 
-/** Click Timeout Map */
-const clickTimeoutMap = new Map();
-
 /** Click Telegram Web Button */
 const clickTelegramWebButton = (button) => {
-  /** Clear Previous Timeout */
-  clearTimeout(clickTimeoutMap.get(button));
-
-  /** Delete Timeout */
-  clickTimeoutMap.delete(button);
-
   if (isElementVisible(button)) {
-    /** Delay to Click */
-    clickTimeoutMap.set(
-      button,
-      setTimeout(() => {
-        /** Delete Timeout */
-        clickTimeoutMap.delete(button);
-
-        /** Dispatch the Click Event */
-        dispatchClickEventOnElement(button);
-      }, 3000)
-    );
+    /** Dispatch the Click Event */
+    dispatchClickEventOnElement(button);
     return true;
   } else {
     return false;
@@ -104,7 +86,7 @@ const findAndConfirmPopup = (node) => {
   /** Descendant Start Button */
   for (const element of node.querySelectorAll(buttonSelectors.confirmButton)) {
     if (isPopupButton(element)) {
-      dispatchClickEventOnElement(element);
+      return dispatchClickEventOnElement(element);
     }
   }
 };
@@ -144,7 +126,7 @@ const findAndClickStartButton = (node) => {
   /** Descendant Start Button */
   for (const element of node.querySelectorAll(buttonSelectors.startButton)) {
     if (isStartButton(element)) {
-      clickTelegramWebButton(element);
+      status = clickTelegramWebButton(element);
 
       if (status) {
         return status;
@@ -214,7 +196,6 @@ const joinConversation = () => {
   joinObserver.observe(document.documentElement, {
     childList: true,
     subtree: true,
-    attributeFilter: ["class", "style"],
     attributes: true,
   });
 };
@@ -276,7 +257,6 @@ const openBot = (url, isWebView) => {
   botObserver.observe(document.documentElement, {
     childList: true,
     subtree: true,
-    attributeFilter: ["class", "style"],
     attributes: true,
   });
 };
