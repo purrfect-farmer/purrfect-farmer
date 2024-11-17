@@ -56,13 +56,15 @@ export async function getSettings() {
 export function isElementVisible(element) {
   if (!element) return false;
 
+  /** Get computed Styles */
   const style = window.getComputedStyle(element);
 
+  const isEnabled = element.disabled !== true;
   const isDisplayed = style.display !== "none";
   const isVisible = style.visibility !== "hidden";
-  const hasOpacity = style.opacity !== "0";
+  const hasOpacity = parseFloat(style.opacity) > 0;
 
-  return isDisplayed && isVisible && hasOpacity;
+  return isEnabled && isDisplayed && isVisible && hasOpacity;
 }
 
 /** Dispatch Click Event on Element */
