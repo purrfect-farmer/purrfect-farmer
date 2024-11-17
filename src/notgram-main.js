@@ -175,7 +175,10 @@ const getButtonsTabs = () => {
 
 const getTasks = () => {
   return document.querySelectorAll(
-    "#refer > .block > div.bg-gradient-to-r > div"
+    [
+      "#refer > .block > div.bg-cards",
+      "#refer > .block > div.bg-gradient-to-r > div",
+    ].join(",")
   );
 };
 
