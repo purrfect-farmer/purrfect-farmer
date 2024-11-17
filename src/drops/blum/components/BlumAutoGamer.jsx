@@ -95,6 +95,9 @@ export default function BlumAutoGamer({ workerRef }) {
         const game = await startGameMutation.mutateAsync();
         const assets = game.assets;
 
+        /** Log */
+        logNicely("BLUM GAME", game);
+
         /** Calculate */
         const finalPoints = points + Math.floor(Math.random() * 20);
         const bombsClicked = Math.floor(Math.random() * 3);
@@ -188,7 +191,7 @@ export default function BlumAutoGamer({ workerRef }) {
         });
 
         /** Log */
-        logNicely("BLUM GAME", payload);
+        logNicely("BLUM GAME PAYLOAD", payload);
 
         /** Claim Game */
         await claimGameMutation.mutateAsync(pack.hash);
