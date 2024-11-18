@@ -12,21 +12,22 @@ export default function useMatchQuestClaimTaskMutation() {
     mutationFn: (type) =>
       api
         .post(
-          "https://tgapp-api.matchain.io/api/tgapp/v1/point/task/claim",
-          Object.assign(
-            {
-              type,
-              uid,
-            },
-            type === "create_dmail_account"
-              ? {
-                  ["dmail_wallet_addr"]: "1",
-                  ["dmail_addr"]: "1",
-                  ["dmail_id"]: "1",
-                  ["dmail_nft"]: "1",
-                }
-              : {}
-          )
+          type === "create_dmail_account"
+            ? "https://tgapp-api.matchain.io/api/tgapp/v1/point/task/dmail/claim"
+            : "https://tgapp-api.matchain.io/api/tgapp/v1/point/task/claim",
+
+          type === "create_dmail_account"
+            ? {
+                ["dmail_wallet_addr"]: "1",
+                ["dmail_addr"]: "1",
+                ["dmail_id"]: "1",
+                ["dmail_nft"]: "1",
+                type,
+              }
+            : {
+                type,
+                uid,
+              }
         )
         .then((res) => res.data.data),
   });
