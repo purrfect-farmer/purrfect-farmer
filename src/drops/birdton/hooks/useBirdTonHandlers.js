@@ -1,10 +1,10 @@
 import useFarmerContext from "@/hooks/useFarmerContext";
-import { useLayoutEffect } from "react";
+import { useEffect } from "react";
 
 export default function useBirdTonHandlers(handlers) {
   const { addMessageHandlers, removeMessageHandlers } = useFarmerContext();
 
-  return useLayoutEffect(() => {
+  return useEffect(() => {
     /** Add Handlers */
     addMessageHandlers(handlers);
 
