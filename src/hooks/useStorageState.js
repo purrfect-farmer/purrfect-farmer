@@ -5,7 +5,7 @@ import { useState } from "react";
 
 import useValuesMemo from "./useValuesMemo";
 
-export default function useStorageState(key, defaultValue, options) {
+export default function useStorageState(key, defaultValue) {
   const [hasRestoredValue, setHasRestoredValue] = useState(false);
   const [value, setValue] = useState(defaultValue);
 
@@ -41,7 +41,7 @@ export default function useStorageState(key, defaultValue, options) {
       /** Remove Listener */
       chrome?.storage?.local?.onChanged.removeListener(watchStorage);
     };
-  }, [key, defaultValue, getStorage, setValue, setHasRestoredValue]);
+  }, [key, getStorage, setValue, setHasRestoredValue]);
 
   return useValuesMemo({ value, hasRestoredValue, setValue, storeValue });
 }
