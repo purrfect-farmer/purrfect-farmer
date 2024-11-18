@@ -31,6 +31,7 @@ import farmerTabs from "./farmerTabs";
 import useSocketTabs from "./hooks/useSocketTabs";
 import useAppQuery from "./hooks/useAppQuery";
 import axios from "axios";
+import FarmerLinks from "./partials/FarmerLinks";
 
 /** Telegram Web Button */
 const TelegramWebButton = forwardRef(({ icon, children, ...props }, ref) => (
@@ -274,7 +275,7 @@ export default function Welcome() {
           </div>
 
           <Tabs.Root {...tabs.root} className="flex flex-col gap-2 px-1 py-2">
-            <Tabs.List className="grid grid-cols-2 px-1">
+            <Tabs.List className="grid grid-cols-3 px-1">
               {["farmers", "bots"].map((value, index) => (
                 <Tabs.Trigger
                   key={index}
@@ -283,12 +284,29 @@ export default function Welcome() {
                     "p-2 rounded-lg",
                     "border-b-2 border-transparent",
                     "data-[state=active]:bg-blue-100",
-                    "data-[state=active]:text-blue-800"
+                    "data-[state=active]:text-blue-800",
+                    "uppercase"
                   )}
                 >
-                  {value.toUpperCase()}
+                  {value}
                 </Tabs.Trigger>
               ))}
+
+              {/* Links */}
+              <Dialog.Root>
+                <Dialog.Trigger
+                  className={cn(
+                    "p-2 rounded-lg",
+                    "border-b-2 border-transparent",
+                    "data-[state=active]:bg-blue-100",
+                    "data-[state=active]:text-blue-800",
+                    "uppercase"
+                  )}
+                >
+                  Links
+                </Dialog.Trigger>
+                <FarmerLinks />
+              </Dialog.Root>
             </Tabs.List>
             <Tabs.Content value="farmers">
               {/* Drops */}
