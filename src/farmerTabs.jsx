@@ -146,7 +146,9 @@ const farmerTabs = [
     title: "Truecoin",
     icon: farmerIcons["truecoin"],
     component: <Farmer farmer="Truecoin" />,
-    telegramLink: "https://t.me/true_coin_bot/app?start=1147265290",
+    telegramLink: "https://t.me/true_coin_bot?start=1147265290",
+    miniAppUrl: "https://bot.true.world",
+    shouldClickLaunchButton: true,
     tasks: ["tasks", "lottery.50-boost", "lottery"],
   },
   {
