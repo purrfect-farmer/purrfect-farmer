@@ -83,13 +83,15 @@ if (location.hash.includes("tgWebAppData")) {
 
   /** Dispatch TelegramWebApp */
   const dispatchTelegramWebApp = async (telegramWebApp) => {
-    port.postMessage({
-      action: `set-telegram-web-app:${location.host}`,
-      data: {
-        host: location.host,
-        telegramWebApp,
-      },
-    });
+    try {
+      port.postMessage({
+        action: `set-telegram-web-app:${location.host}`,
+        data: {
+          host: location.host,
+          telegramWebApp,
+        },
+      });
+    } catch {}
   };
 
   /** Listen for TelegramWebApp */
@@ -103,10 +105,12 @@ if (location.hash.includes("tgWebAppData")) {
   /** Listen for Port Message */
   const listenForPortMessage = (ev) => {
     if (ev.source === window && ev.data?.type === "port") {
-      port.postMessage({
-        action: `custom-message:${location.host}`,
-        data: decryptData(ev.data?.payload),
-      });
+      try {
+        port.postMessage({
+          action: `custom-message:${location.host}`,
+          data: decryptData(ev.data?.payload),
+        });
+      } catch {}
     }
   };
 
@@ -126,10 +130,12 @@ if (location.hash.includes("tgWebAppData")) {
             ...data,
           },
           (response) => {
-            port.postMessage({
-              id,
-              data: response,
-            });
+            try {
+              port.postMessage({
+                id,
+                data: response,
+              });
+            } catch {}
           }
         );
 
@@ -137,28 +143,34 @@ if (location.hash.includes("tgWebAppData")) {
 
       case "open-telegram-link":
         await openTelegramLink({ id, ...data });
-        port.postMessage({
-          id,
-          data: true,
-        });
+        try {
+          port.postMessage({
+            id,
+            data: true,
+          });
+        } catch {}
         break;
 
       case "close-bot":
         await closeBot({ id });
-        port.postMessage({
-          id,
-          data: true,
-        });
+        try {
+          port.postMessage({
+            id,
+            data: true,
+          });
+        } catch {}
         break;
 
       default:
         connectWindowMessage(
           message,
           (response) => {
-            return port.postMessage({
-              id,
-              data: response,
-            });
+            try {
+              return port.postMessage({
+                id,
+                data: response,
+              });
+            } catch {}
           },
           false
         );

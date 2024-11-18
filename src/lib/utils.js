@@ -109,11 +109,13 @@ export function connectPortMessage(port, message, callback, once = true) {
   };
 
   port.onMessage.addListener(respond);
-  port.postMessage({
-    ...message,
-    id,
-    once,
-  });
+  try {
+    port.postMessage({
+      ...message,
+      id,
+      once,
+    });
+  } catch {}
 }
 
 /**

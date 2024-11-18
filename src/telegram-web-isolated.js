@@ -335,26 +335,32 @@ port.onMessage.addListener(async (message) => {
   switch (action) {
     case "open-bot":
       await openBot(data.url, true);
-      port.postMessage({
-        id,
-        data: true,
-      });
+      try {
+        port.postMessage({
+          id,
+          data: true,
+        });
+      } catch {}
       break;
 
     case "open-farmer-bot":
       await openFarmerBot();
-      port.postMessage({
-        id,
-        data: true,
-      });
+      try {
+        port.postMessage({
+          id,
+          data: true,
+        });
+      } catch {}
       break;
 
     case "join-conversation":
       await joinConversation();
-      port.postMessage({
-        id,
-        data: true,
-      });
+      try {
+        port.postMessage({
+          id,
+          data: true,
+        });
+      } catch {}
       break;
   }
 });
