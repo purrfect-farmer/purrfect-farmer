@@ -1,7 +1,7 @@
 {
   "name": "purrfect-farmer",
   "private": true,
-  "version": "0.4.6",
+  "version": "0.4.7",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -18,6 +18,7 @@
   },
   "dependencies": {
     "@fontsource/turret-road": "^5.1.0",
+    "@hookform/resolvers": "^3.9.1",
     "@radix-ui/react-dialog": "^1.1.2",
     "@radix-ui/react-slider": "^1.2.1",
     "@radix-ui/react-tabs": "^1.1.1",
@@ -41,6 +42,7 @@
     "react-countdown": "^2.3.6",
     "react-dom": "^18.3.1",
     "react-error-boundary": "^4.1.2",
+    "react-hook-form": "^7.53.2",
     "react-hot-toast": "^2.4.1",
     "react-icons": "^5.3.0",
     "react-time-ago": "^7.3.3",
@@ -50,7 +52,8 @@
     "tailwind-merge": "^2.5.4",
     "uuid": "^11.0.3",
     "vite-plugin-ejs": "^1.7.0",
-    "vite-plugin-node-polyfills": "^0.22.0"
+    "vite-plugin-node-polyfills": "^0.22.0",
+    "yup": "^1.4.0"
   },
   "devDependencies": {
     "@eslint/js": "^9.15.0",
