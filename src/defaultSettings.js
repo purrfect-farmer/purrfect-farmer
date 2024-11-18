@@ -9,6 +9,7 @@ const defaultSettings = {
   closeMainWindowOnStartup: false,
   preferredTelegramWebVersion: "k",
   zoomies: [
+    "matchquest",
     "notgram",
     "notpixel",
     "blum",

@@ -47,6 +47,15 @@ const farmerTabs = [
     component: <TelegramWeb version="a" />,
   },
   {
+    id: "matchquest",
+    title: "MatchQuest",
+    icon: farmerIcons["matchquest"],
+    component: <Farmer farmer="MatchQuest" />,
+    telegramLink:
+      "https://t.me/MatchQuestBot/start?startapp=775f1cc48a46ce5221f1d9476233dc33",
+    tasks: ["tasks", "game"],
+  },
+  {
     id: "notgram",
     title: "Notgram",
     icon: farmerIcons["notgram"],
