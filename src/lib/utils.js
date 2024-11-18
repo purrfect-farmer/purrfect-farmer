@@ -127,6 +127,10 @@ export function postPortMessage(port, data) {
   });
 }
 
+export function isBotURL(url) {
+  return /_bot|startapp=|start=/i.test(url);
+}
+
 export function fetchContent(url, ...options) {
   return axios.get(url, ...options).then((res) => res.data);
 }
