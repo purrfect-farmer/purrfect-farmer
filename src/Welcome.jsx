@@ -29,7 +29,9 @@ import Shutdown from "./partials/Shutdown";
 import bots from "./bots";
 import farmerTabs from "./farmerTabs";
 import useSocketTabs from "./hooks/useSocketTabs";
+import useAppQuery from "./hooks/useAppQuery";
 
+/** Telegram Web Button */
 const TelegramWebButton = forwardRef(({ icon, children, ...props }, ref) => (
   <button
     {...props}
@@ -49,6 +51,7 @@ const TelegramWebButton = forwardRef(({ icon, children, ...props }, ref) => (
   </button>
 ));
 
+/** Toolbar Button */
 const ToolbarButton = forwardRef(({ icon: Icon, children, ...props }, ref) => (
   <button
     {...props}
@@ -77,11 +80,9 @@ export default function Welcome() {
     openNewTab,
     openExtensionsPage,
     openTelegramWeb,
-    joinTelegramLink,
     dispatchAndSetActiveTab,
     dispatchAndReloadApp,
     dispatchAndOpenFarmerBot,
-    dispatchAndOpenTelegramLink,
     dispatchAndOpenTelegramBot,
   } = useAppContext();
 
@@ -111,6 +112,27 @@ export default function Welcome() {
       },
       [setShowHidden]
     );
+
+  /** Bots Query */
+  const botsQuery = useAppQuery({
+    refetchOnMount: false,
+    refetchOnWindowFocus: false,
+    refetchInterval: 5 * 60 * 1000,
+
+    queryKey: ["app", "farmer", "bots"],
+    queryFn: ({ signal }) =>
+      axios
+        .get(`${import.meta.env.VITE_APP_FARMER_BOTS_URL}?time=${Date.now()}`, {
+          signal,
+        })
+        .then((res) => res.data),
+  });
+
+  /** Bot List */
+  const botList = useMemo(
+    () => bots.concat(botsQuery.data || []),
+    [bots, botsQuery.data]
+  );
 
   /** Update Title */
   useEffect(() => {
@@ -284,7 +306,7 @@ export default function Welcome() {
               {/* Bots */}
               <div className={cn("flex flex-wrap justify-center w-full")}>
                 {/* Drops */}
-                {bots.map((bot, index) => (
+                {botList.map((bot, index) => (
                   <DropButton
                     key={index}
                     drop={bot}
