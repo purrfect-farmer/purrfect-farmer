@@ -26,12 +26,12 @@ import { useState } from "react";
 
 import DropButton from "./components/DropButton";
 import Shutdown from "./partials/Shutdown";
-import bots from "./bots";
 import farmerTabs from "./farmerTabs";
 import useSocketTabs from "./hooks/useSocketTabs";
 import useAppQuery from "./hooks/useAppQuery";
 import axios from "axios";
 import FarmerLinks from "./partials/FarmerLinks";
+import { CgSpinner } from "react-icons/cg";
 
 /** Telegram Web Button */
 const TelegramWebButton = forwardRef(({ icon, children, ...props }, ref) => (
@@ -120,7 +120,7 @@ export default function Welcome() {
     refetchOnMount: false,
     refetchOnWindowFocus: false,
     refetchInterval: 5 * 60 * 1000,
-
+    retry: true,
     queryKey: ["app", "farmer", "bots"],
     queryFn: ({ signal }) =>
       axios
@@ -131,9 +131,16 @@ export default function Welcome() {
   });
 
   /** Bot List */
-  const botList = useMemo(
-    () => bots.concat(botsQuery.data || []),
-    [bots, botsQuery.data]
+  const bots = useMemo(
+    () =>
+      botsQuery.data?.map((bot) => ({
+        ...bot,
+        icon: new URL(
+          bot.icon + ".png",
+          import.meta.env.VITE_APP_FARMER_BOTS_ICON_BASE_URL
+        ).toString(),
+      })),
+    [botsQuery.data]
   );
 
   /** Update Title */
@@ -323,22 +330,28 @@ export default function Welcome() {
             </Tabs.Content>
             <Tabs.Content value="bots">
               {/* Bots */}
-              <div className={cn("flex flex-wrap justify-center w-full")}>
-                {/* Drops */}
-                {botList.map((bot, index) => (
-                  <DropButton
-                    key={index}
-                    drop={bot}
-                    onClick={() =>
-                      dispatchAndOpenTelegramBot({
-                        url: bot.telegramLink,
-                        miniAppUrl: bot.miniAppUrl,
-                        shouldClickLaunchButton: bot.shouldClickLaunchButton,
-                      })
-                    }
-                  />
-                ))}
-              </div>
+              {botsQuery.isSuccess ? (
+                <div className={cn("flex flex-wrap justify-center w-full")}>
+                  {/* Drops */}
+                  {bots.map((bot, index) => (
+                    <DropButton
+                      key={index}
+                      drop={bot}
+                      onClick={() =>
+                        dispatchAndOpenTelegramBot({
+                          url: bot.telegramLink,
+                          miniAppUrl: bot.miniAppUrl,
+                          shouldClickLaunchButton: bot.shouldClickLaunchButton,
+                        })
+                      }
+                    />
+                  ))}
+                </div>
+              ) : (
+                <div className="flex items-center justify-center p-4">
+                  <CgSpinner className="w-5 h-5 mx-auto animate-spin" />
+                </div>
+              )}
             </Tabs.Content>
           </Tabs.Root>
 
