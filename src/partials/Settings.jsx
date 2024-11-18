@@ -167,19 +167,6 @@ export default function Settings() {
                       placeholder="Farmer Title"
                     />
 
-                    {/* Open Telegram Web within the Farmer */}
-                    <LabelToggle
-                      onChange={(ev) =>
-                        dispatchAndConfigureSettings(
-                          "openTelegramWebWithinFarmer",
-                          ev.target.checked
-                        )
-                      }
-                      checked={settings?.openTelegramWebWithinFarmer}
-                    >
-                      Launch Telegram Web within the Farmer
-                    </LabelToggle>
-
                     {/* Preferred Telegram Web Version */}
                     <label className="text-neutral-500">
                       Preferred Telegram Web Version
@@ -215,6 +202,19 @@ export default function Settings() {
                         </button>
                       ))}
                     </div>
+
+                    {/* Close Other Bots */}
+                    <LabelToggle
+                      onChange={(ev) =>
+                        dispatchAndConfigureSettings(
+                          "closeOtherBots",
+                          ev.target.checked
+                        )
+                      }
+                      checked={settings?.closeOtherBots}
+                    >
+                      Close Other Bots
+                    </LabelToggle>
 
                     {/* Sync Server */}
                     <label className="text-neutral-500">Sync Server</label>
