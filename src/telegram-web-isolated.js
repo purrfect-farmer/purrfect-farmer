@@ -33,8 +33,14 @@ const buttonSelectors =
 /** Join Observer */
 let joinObserver;
 
+/** Join Observer Timeout */
+let joinObserverTimeout;
+
 /** Bot Observer */
 let botObserver;
+
+/** Bot Observer Timeout */
+let botObserverTimeout;
 
 /** Click Telegram Web Button */
 const clickTelegramWebButton = (button) => {
@@ -163,6 +169,9 @@ const findAndClickLaunchButton = (node, isWebView) => {
 
 /** Join Conversation */
 const joinConversation = () => {
+  /** Clear Previous Timeout */
+  clearTimeout(joinObserverTimeout);
+
   /** Clear Previous Observer */
   joinObserver?.disconnect();
 
@@ -170,27 +179,37 @@ const joinConversation = () => {
   let hasClickedJoinButton = false;
 
   /** Create Observer */
-  joinObserver = new MutationObserver(function (mutationList) {
-    for (const mutation of mutationList) {
-      if (mutation.type === "childList") {
-        mutation.addedNodes.forEach((node) => {
-          if (node.nodeType === Node.ELEMENT_NODE) {
-            if (!hasClickedJoinButton) {
-              hasClickedJoinButton = findAndClickJoinButton(node);
-            } else {
-              joinObserver.disconnect();
+  joinObserver =
+    joinObserver ||
+    new MutationObserver(function (mutationList) {
+      for (const mutation of mutationList) {
+        if (mutation.type === "childList") {
+          mutation.addedNodes.forEach((node) => {
+            if (node.nodeType === Node.ELEMENT_NODE) {
+              if (!hasClickedJoinButton) {
+                hasClickedJoinButton = findAndClickJoinButton(node);
+              } else {
+                /** Clear Timeout */
+                clearTimeout(joinObserverTimeout);
+
+                /** Disconnect */
+                joinObserver.disconnect();
+              }
             }
+          });
+        } else if (mutation.type == "attributes") {
+          if (!hasClickedJoinButton) {
+            hasClickedJoinButton = findAndClickJoinButton(mutation.target);
+          } else {
+            /** Clear Timeout */
+            clearTimeout(joinObserverTimeout);
+
+            /** Disconnect */
+            joinObserver.disconnect();
           }
-        });
-      } else if (mutation.type == "attributes") {
-        if (!hasClickedJoinButton) {
-          hasClickedJoinButton = findAndClickJoinButton(mutation.target);
-        } else {
-          joinObserver.disconnect();
         }
       }
-    }
-  });
+    });
 
   /** Observe */
   joinObserver.observe(document.documentElement, {
@@ -198,10 +217,18 @@ const joinConversation = () => {
     subtree: true,
     attributes: true,
   });
+
+  /** Set Timeout to Stop Observing */
+  joinObserverTimeout = setTimeout(() => {
+    joinObserver.disconnect();
+  }, 30_000);
 };
 
 /** Open Bot */
 const openBot = (url, isWebView) => {
+  /** Clear Previous Timeout */
+  clearTimeout(botObserverTimeout);
+
   /** Clear Previous Observer */
   botObserver?.disconnect();
 
@@ -212,46 +239,53 @@ const openBot = (url, isWebView) => {
   let hasClickedLaunchButton = false;
 
   /** Create Observer */
-  botObserver = new MutationObserver(function (mutationList) {
-    for (const mutation of mutationList) {
-      if (mutation.type === "childList") {
-        mutation.addedNodes.forEach((node) => {
-          if (node.nodeType === Node.ELEMENT_NODE) {
-            /** Bot Is Running */
-            if (botIsRunning(url, node)) {
-              return botObserver.disconnect();
-            }
+  botObserver =
+    botObserver ||
+    new MutationObserver(function (mutationList) {
+      for (const mutation of mutationList) {
+        if (mutation.type === "childList") {
+          mutation.addedNodes.forEach((node) => {
+            if (node.nodeType === Node.ELEMENT_NODE) {
+              /** Bot Is Running */
+              if (botIsRunning(url, node)) {
+                /** Clear Timeout */
+                clearTimeout(botObserverTimeout);
 
-            /** Click Start Button */
-            if (!hasClickedStartButton) {
-              hasClickedStartButton = findAndClickStartButton(node);
-            }
+                /** Disconnect */
+                botObserver.disconnect();
+                return;
+              }
 
-            /** Click Launch Button */
-            if (!hasClickedLaunchButton) {
-              hasClickedLaunchButton = findAndClickLaunchButton(
-                node,
-                isWebView
-              );
+              /** Click Start Button */
+              if (!hasClickedStartButton) {
+                hasClickedStartButton = findAndClickStartButton(node);
+              }
+
+              /** Click Launch Button */
+              if (!hasClickedLaunchButton) {
+                hasClickedLaunchButton = findAndClickLaunchButton(
+                  node,
+                  isWebView
+                );
+              }
             }
+          });
+        } else if (mutation.type == "attributes") {
+          /** Click Start Button */
+          if (!hasClickedStartButton) {
+            hasClickedStartButton = findAndClickStartButton(mutation.target);
           }
-        });
-      } else if (mutation.type == "attributes") {
-        /** Click Start Button */
-        if (!hasClickedStartButton) {
-          hasClickedStartButton = findAndClickStartButton(mutation.target);
-        }
 
-        /** Click Launch Button */
-        if (!hasClickedLaunchButton) {
-          hasClickedLaunchButton = findAndClickLaunchButton(
-            mutation.target,
-            isWebView
-          );
+          /** Click Launch Button */
+          if (!hasClickedLaunchButton) {
+            hasClickedLaunchButton = findAndClickLaunchButton(
+              mutation.target,
+              isWebView
+            );
+          }
         }
       }
-    }
-  });
+    });
 
   /** Observe */
   botObserver.observe(document.documentElement, {
@@ -259,6 +293,11 @@ const openBot = (url, isWebView) => {
     subtree: true,
     attributes: true,
   });
+
+  /** Set Timeout to Stop Observing */
+  botObserverTimeout = setTimeout(() => {
+    botObserver.disconnect();
+  }, 30_000);
 };
 
 /** Open Farmer Bot */
