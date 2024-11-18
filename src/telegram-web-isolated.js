@@ -179,49 +179,49 @@ const joinConversation = () => {
   let hasClickedJoinButton = false;
 
   /** Create Observer */
-  joinObserver =
-    joinObserver ||
-    new MutationObserver(function (mutationList) {
-      for (const mutation of mutationList) {
-        if (mutation.type === "childList") {
-          mutation.addedNodes.forEach((node) => {
-            if (node.nodeType === Node.ELEMENT_NODE) {
-              if (!hasClickedJoinButton) {
-                hasClickedJoinButton = findAndClickJoinButton(node);
-              } else {
-                /** Clear Timeout */
-                clearTimeout(joinObserverTimeout);
+  const observer = (joinObserver = new MutationObserver(function (
+    mutationList
+  ) {
+    for (const mutation of mutationList) {
+      if (mutation.type === "childList") {
+        mutation.addedNodes.forEach((node) => {
+          if (node.nodeType === Node.ELEMENT_NODE) {
+            if (!hasClickedJoinButton) {
+              hasClickedJoinButton = findAndClickJoinButton(node);
+            } else {
+              /** Clear Timeout */
+              clearTimeout(timeout);
 
-                /** Disconnect */
-                joinObserver.disconnect();
-              }
+              /** Disconnect */
+              observer.disconnect();
             }
-          });
-        } else if (mutation.type == "attributes") {
-          if (!hasClickedJoinButton) {
-            hasClickedJoinButton = findAndClickJoinButton(mutation.target);
-          } else {
-            /** Clear Timeout */
-            clearTimeout(joinObserverTimeout);
-
-            /** Disconnect */
-            joinObserver.disconnect();
           }
+        });
+      } else if (mutation.type == "attributes") {
+        if (!hasClickedJoinButton) {
+          hasClickedJoinButton = findAndClickJoinButton(mutation.target);
+        } else {
+          /** Clear Timeout */
+          clearTimeout(timeout);
+
+          /** Disconnect */
+          observer.disconnect();
         }
       }
-    });
+    }
+  }));
+
+  /** Set Timeout to Stop Observing */
+  const timeout = (joinObserverTimeout = setTimeout(() => {
+    observer.disconnect();
+  }, 30_000));
 
   /** Observe */
-  joinObserver.observe(document.documentElement, {
+  observer.observe(document.documentElement, {
     childList: true,
     subtree: true,
     attributes: true,
   });
-
-  /** Set Timeout to Stop Observing */
-  joinObserverTimeout = setTimeout(() => {
-    joinObserver.disconnect();
-  }, 30_000);
 };
 
 /** Open Bot */
@@ -239,65 +239,63 @@ const openBot = (url, isWebView) => {
   let hasClickedLaunchButton = false;
 
   /** Create Observer */
-  botObserver =
-    botObserver ||
-    new MutationObserver(function (mutationList) {
-      for (const mutation of mutationList) {
-        if (mutation.type === "childList") {
-          mutation.addedNodes.forEach((node) => {
-            if (node.nodeType === Node.ELEMENT_NODE) {
-              /** Bot Is Running */
-              if (botIsRunning(url, node)) {
-                /** Clear Timeout */
-                clearTimeout(botObserverTimeout);
+  const observer = (botObserver = new MutationObserver(function (mutationList) {
+    for (const mutation of mutationList) {
+      if (mutation.type === "childList") {
+        mutation.addedNodes.forEach((node) => {
+          if (node.nodeType === Node.ELEMENT_NODE) {
+            /** Bot Is Running */
+            if (botIsRunning(url, node)) {
+              /** Clear Timeout */
+              clearTimeout(timeout);
 
-                /** Disconnect */
-                botObserver.disconnect();
-                return;
-              }
-
-              /** Click Start Button */
-              if (!hasClickedStartButton) {
-                hasClickedStartButton = findAndClickStartButton(node);
-              }
-
-              /** Click Launch Button */
-              if (!hasClickedLaunchButton) {
-                hasClickedLaunchButton = findAndClickLaunchButton(
-                  node,
-                  isWebView
-                );
-              }
+              /** Disconnect */
+              observer.disconnect();
+              return;
             }
-          });
-        } else if (mutation.type == "attributes") {
-          /** Click Start Button */
-          if (!hasClickedStartButton) {
-            hasClickedStartButton = findAndClickStartButton(mutation.target);
-          }
 
-          /** Click Launch Button */
-          if (!hasClickedLaunchButton) {
-            hasClickedLaunchButton = findAndClickLaunchButton(
-              mutation.target,
-              isWebView
-            );
+            /** Click Start Button */
+            if (!hasClickedStartButton) {
+              hasClickedStartButton = findAndClickStartButton(node);
+            }
+
+            /** Click Launch Button */
+            if (!hasClickedLaunchButton) {
+              hasClickedLaunchButton = findAndClickLaunchButton(
+                node,
+                isWebView
+              );
+            }
           }
+        });
+      } else if (mutation.type == "attributes") {
+        /** Click Start Button */
+        if (!hasClickedStartButton) {
+          hasClickedStartButton = findAndClickStartButton(mutation.target);
+        }
+
+        /** Click Launch Button */
+        if (!hasClickedLaunchButton) {
+          hasClickedLaunchButton = findAndClickLaunchButton(
+            mutation.target,
+            isWebView
+          );
         }
       }
-    });
+    }
+  }));
+
+  /** Set Timeout to Stop Observing */
+  const timeout = (botObserverTimeout = setTimeout(() => {
+    observer.disconnect();
+  }, 30_000));
 
   /** Observe */
-  botObserver.observe(document.documentElement, {
+  observer.observe(document.documentElement, {
     childList: true,
     subtree: true,
     attributes: true,
   });
-
-  /** Set Timeout to Stop Observing */
-  botObserverTimeout = setTimeout(() => {
-    botObserver.disconnect();
-  }, 30_000);
 };
 
 /** Open Farmer Bot */
