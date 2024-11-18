@@ -2,7 +2,7 @@ import defaultSettings from "@/defaultSettings";
 import toast from "react-hot-toast";
 import farmerTabs, { TelegramWeb } from "@/farmerTabs";
 import { createElement } from "react";
-import { delay, postPortMessage } from "@/lib/utils";
+import { delay, isBotURL, postPortMessage } from "@/lib/utils";
 import { useCallback } from "react";
 import { useMemo } from "react";
 import { useRef } from "react";
@@ -206,13 +206,9 @@ export default function useCore() {
   /** Open Telegram Web */
   const openTelegramWeb = useCallback(
     (v) => {
-      if (settings.openTelegramWebWithinFarmer) {
-        dispatchAndSetActiveTab(`telegram-web-${v}`);
-      } else {
-        dispatchAndNavigateToTelegramWeb(v);
-      }
+      dispatchAndSetActiveTab(`telegram-web-${v}`);
     },
-    [settings, dispatchAndSetActiveTab, dispatchAndNavigateToTelegramWeb]
+    [dispatchAndSetActiveTab]
   );
 
   const getFarmerBotPort = useCallback(
@@ -426,6 +422,11 @@ export default function useCore() {
             }
           };
 
+          /** Close Other Bots */
+          if (settings.closeOtherBots && isBotURL(url)) {
+            closeOtherBots();
+          }
+
           /** Open Telegram Web */
           openNewTelegramWeb();
         });
@@ -436,8 +437,10 @@ export default function useCore() {
         setActiveTab,
         preferredTelegramWebVersion,
         getFarmerBotPort,
+        closeOtherBots,
         messaging.ports,
         messaging.handler,
+        settings.closeOtherBots,
       ],
       /** Socket */
       socket

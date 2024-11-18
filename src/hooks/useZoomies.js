@@ -3,10 +3,8 @@ import farmerTabs from "@/farmerTabs";
 import toast from "react-hot-toast";
 import { useCallback } from "react";
 import { useEffect } from "react";
-import { useLayoutEffect } from "react";
 import { useMemo } from "react";
 import { useState } from "react";
-
 import useProcessLock from "./useProcessLock";
 import useStorageState from "./useStorageState";
 import useValuesMemo from "./useValuesMemo";
@@ -161,7 +159,7 @@ export default function useZoomies(core) {
   }, [process.started, auth, current.drop, core.setActiveTab]);
 
   /** Reset the drops */
-  useLayoutEffect(() => {
+  useEffect(() => {
     /** Update current drop */
     setCurrent((prev) => {
       if (drops.includes(prev.drop)) {
