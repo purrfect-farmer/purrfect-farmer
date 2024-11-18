@@ -30,6 +30,7 @@ import bots from "./bots";
 import farmerTabs from "./farmerTabs";
 import useSocketTabs from "./hooks/useSocketTabs";
 import useAppQuery from "./hooks/useAppQuery";
+import axios from "axios";
 
 /** Telegram Web Button */
 const TelegramWebButton = forwardRef(({ icon, children, ...props }, ref) => (
