@@ -24,6 +24,7 @@ const defaultSettings = {
     "truecoin",
     "birdton",
   ],
+  repeatZoomiesCycle: true,
 };
 
 export default defaultSettings;

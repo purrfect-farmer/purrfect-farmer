@@ -14,6 +14,10 @@ import useSocket from "./useSocket";
 import useSocketDispatchCallback from "./useSocketDispatchCallback";
 import useValuesMemo from "./useValuesMemo";
 
+const BOT_TELEGRAM_WEB_APP_ACTION = `set-telegram-web-app:${
+  import.meta.env.VITE_APP_BOT_HOST
+}`;
+
 export const defaultOpenedTabs = () => [{ ...farmerTabs[0], active: true }];
 
 export default function useCore() {
@@ -252,6 +256,20 @@ export default function useCore() {
     }
   }, [getMiniAppPorts]);
 
+  /** Cancel Telegram Handlers */
+  const cancelTelegramHandlers = useCallback(() => {
+    /** Clear Interval */
+    clearInterval(openTelegramLinkIntervalRef.current);
+
+    /** Remove Telegram Web Port Handlers */
+    ["k", "a"]
+      .map((item) => `port-connected:telegram-web-${item}`)
+      .forEach((name) => messaging.handler.removeAllListeners(name));
+
+    /** Remove Bot Web App Action */
+    messaging.handler.removeAllListeners(BOT_TELEGRAM_WEB_APP_ACTION);
+  }, [messaging.handler]);
+
   const [openFarmerBot, dispatchAndOpenFarmerBot] = useSocketDispatchCallback(
     "core.open-farmer-bot",
     async (version, force = false) => {
@@ -350,16 +368,11 @@ export default function useCore() {
         }
 
         return new Promise((resolve, reject) => {
-          /** Bot TelegramWeb Action */
-          const botTelegramWebAppAction = `set-telegram-web-app:${
-            import.meta.env.VITE_APP_BOT_HOST
-          }`;
-
           /** Clear Previous Interval */
           clearInterval(openTelegramLinkIntervalRef.current);
 
           /** Remove Previous Handler */
-          messaging.handler.removeAllListeners(botTelegramWebAppAction);
+          messaging.handler.removeAllListeners(BOT_TELEGRAM_WEB_APP_ACTION);
 
           /** Handle Farmer Bot Web App */
           const handleFarmerBotWebApp = (message, port) => {
@@ -367,7 +380,7 @@ export default function useCore() {
             clearInterval(openTelegramLinkIntervalRef.current);
 
             /** Off Listener */
-            messaging.handler.removeAllListeners(botTelegramWebAppAction);
+            messaging.handler.removeAllListeners(BOT_TELEGRAM_WEB_APP_ACTION);
 
             /** Reset */
             openTelegramLinkIntervalRef.current = null;
@@ -399,7 +412,7 @@ export default function useCore() {
 
             /** Add Handler */
             messaging.handler.once(
-              botTelegramWebAppAction,
+              BOT_TELEGRAM_WEB_APP_ACTION,
               handleFarmerBotWebApp
             );
 
@@ -478,18 +491,15 @@ export default function useCore() {
   const [openTelegramBot, dispatchAndOpenTelegramBot] =
     useSocketDispatchCallback(
       "core.open-telegram-bot",
-      async ({
-        url,
-        miniAppUrl,
-        shouldClickLaunchButton = false,
-        version = preferredTelegramWebVersion,
-        force = false,
-      }) => {
+      async (url, version = preferredTelegramWebVersion, force = false) => {
         try {
           /** Open Telegram Link */
           await openTelegramLink(url, version, force);
 
-          if (shouldClickLaunchButton) {
+          /** Is Direct Mini App Link */
+          const isDirectLink = /https:\/\/t\.me\/[^\/]+\/.+/.test(url);
+
+          if (!isDirectLink) {
             /** Get Port */
             const telegramWebPort = messaging.ports
               .values()
@@ -498,9 +508,6 @@ export default function useCore() {
             /** Open Bot */
             postPortMessage(telegramWebPort, {
               action: "open-bot",
-              data: {
-                url: miniAppUrl,
-              },
             });
           }
         } catch {}
@@ -538,6 +545,7 @@ export default function useCore() {
     joinTelegramLink,
     openTelegramBot,
     navigateToTelegramWeb,
+    cancelTelegramHandlers,
     dispatchAndOpenFarmerBot,
     dispatchAndOpenTelegramBot,
     dispatchAndOpenTelegramLink,

@@ -67,21 +67,6 @@ const isStartButton = (element) =>
 const isJoinButton = (element) =>
   joinButtonTextContent.includes(element.textContent.trim().toUpperCase());
 
-/** Is the Bot running */
-const botIsRunning = (url, node) => {
-  /** An Iframe */
-  if (node.tagName === "IFRAME" && node.src.startsWith(url)) {
-    return true;
-  }
-
-  /** Check Descendant Iframe */
-  for (const iframe of node.querySelectorAll("iframe")) {
-    if (iframe.src.startsWith(url)) {
-      return true;
-    }
-  }
-};
-
 /** Find And Confirm Popup */
 const findAndConfirmPopup = (node) => {
   /** Matches Start Button */
@@ -225,7 +210,7 @@ const joinConversation = () => {
 };
 
 /** Open Bot */
-const openBot = (url, isWebView) => {
+const openBot = (isWebView) => {
   /** Clear Previous Timeout */
   clearTimeout(botObserverTimeout);
 
@@ -244,16 +229,6 @@ const openBot = (url, isWebView) => {
       if (mutation.type === "childList") {
         mutation.addedNodes.forEach((node) => {
           if (node.nodeType === Node.ELEMENT_NODE) {
-            /** Bot Is Running */
-            if (botIsRunning(url, node)) {
-              /** Clear Timeout */
-              clearTimeout(timeout);
-
-              /** Disconnect */
-              observer.disconnect();
-              return;
-            }
-
             /** Click Start Button */
             if (!hasClickedStartButton) {
               hasClickedStartButton = findAndClickStartButton(node);
@@ -265,6 +240,12 @@ const openBot = (url, isWebView) => {
                 node,
                 isWebView
               );
+            } else {
+              /** Clear Timeout */
+              clearTimeout(timeout);
+
+              /** Disconnect */
+              observer.disconnect();
             }
           }
         });
@@ -280,6 +261,12 @@ const openBot = (url, isWebView) => {
             mutation.target,
             isWebView
           );
+        } else {
+          /** Clear Timeout */
+          clearTimeout(timeout);
+
+          /** Disconnect */
+          observer.disconnect();
         }
       }
     }
@@ -300,7 +287,7 @@ const openBot = (url, isWebView) => {
 
 /** Open Farmer Bot */
 const openFarmerBot = () => {
-  return openBot(farmerBotUrl);
+  return openBot();
 };
 
 /** Auto Confirm Dialog */
@@ -334,7 +321,7 @@ port.onMessage.addListener(async (message) => {
   const { id, action, data } = message;
   switch (action) {
     case "open-bot":
-      await openBot(data.url, true);
+      await openBot(true);
       try {
         port.postMessage({
           id,

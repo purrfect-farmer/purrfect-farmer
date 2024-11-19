@@ -61,8 +61,6 @@ const farmerTabs = [
     icon: farmerIcons["notgram"],
     component: <Farmer farmer="Notgram" />,
     telegramLink: "https://t.me/notgram_game_bot?start=r1147265290",
-    miniAppUrl: "https://notgramgame.fun",
-    shouldClickLaunchButton: true,
     tasks: ["tasks"],
   },
   {
@@ -156,8 +154,6 @@ const farmerTabs = [
     icon: farmerIcons["truecoin"],
     component: <Farmer farmer="Truecoin" />,
     telegramLink: "https://t.me/true_coin_bot?start=1147265290",
-    miniAppUrl: "https://bot.true.world",
-    shouldClickLaunchButton: true,
     tasks: ["tasks", "lottery.50-boost", "lottery"],
   },
   {

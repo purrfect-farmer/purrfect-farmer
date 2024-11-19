@@ -22,13 +22,7 @@ export default function TabContent({ tab }) {
       {tab.telegramLink ? (
         <button
           className="p-3 font-bold text-blue-500 border-b"
-          onClick={() =>
-            dispatchAndOpenTelegramBot({
-              url: tab.telegramLink,
-              miniAppUrl: tab.miniAppUrl,
-              shouldClickLaunchButton: tab.shouldClickLaunchButton,
-            })
-          }
+          onClick={() => dispatchAndOpenTelegramBot(tab.telegramLink)}
         >
           Open Bot
         </button>

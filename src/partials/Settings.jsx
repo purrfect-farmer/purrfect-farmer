@@ -312,6 +312,19 @@ export default function Settings() {
 
                 <Tabs.Content value="zoomies">
                   <div className="flex flex-col gap-2">
+                    {/* Repeat Cycle */}
+                    <LabelToggle
+                      onChange={(ev) =>
+                        dispatchAndConfigureSettings(
+                          "repeatZoomiesCycle",
+                          ev.target.checked
+                        )
+                      }
+                      checked={settings?.repeatZoomiesCycle}
+                    >
+                      Repeat Zoomies Cycle
+                    </LabelToggle>
+
                     <p className="p-4 text-center text-blue-800 bg-blue-100 rounded-lg">
                       Enable the farmers you would like to include in the
                       Zoomies

@@ -338,11 +338,7 @@ export default function Welcome() {
                       key={index}
                       drop={bot}
                       onClick={() =>
-                        dispatchAndOpenTelegramBot({
-                          url: bot.telegramLink,
-                          miniAppUrl: bot.miniAppUrl,
-                          shouldClickLaunchButton: bot.shouldClickLaunchButton,
-                        })
+                        dispatchAndOpenTelegramBot(bot.telegramLink)
                       }
                     />
                   ))}

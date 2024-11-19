@@ -25,7 +25,7 @@ export default function ControlArea() {
       {zoomies.enabled && zoomies.current.drop ? (
         <div className="flex items-center gap-2 px-2 bg-white border-t shrink-0">
           <button
-            className="shrink-0"
+            className="relative shrink-0"
             onClick={() => setActiveTab(zoomies.current.drop.id)}
           >
             <img
@@ -42,25 +42,45 @@ export default function ControlArea() {
             </p>
           </div>
 
-          {/* Control Button */}
+          {/* Refresh Button */}
           <button
             className="flex items-center justify-center w-10 h-10 shrink-0"
             onClick={zoomies.refresh}
           >
             <HiOutlineArrowPath className="w-6 h-6 text-orange-500" />
           </button>
+
+          {/* Backward Button */}
           <button
             className="flex items-center justify-center w-10 h-10 shrink-0"
             onClick={zoomies.processPreviousTask}
           >
             <HiOutlineBackward className="w-6 h-6 text-orange-500" />
           </button>
+
+          {/* Forward Button */}
           <button
             className="flex items-center justify-center w-10 h-10 shrink-0"
             onClick={zoomies.processNextTask}
           >
             <HiOutlineForward className="w-6 h-6 text-orange-500" />
           </button>
+
+          {/* Cycles */}
+          <span
+            className={cn(
+              "shrink-0",
+              "bg-gradient-to-br",
+              "from-red-500 to-purple-500",
+              "text-white font-bold",
+              "rounded-full",
+              "text-xs",
+              "flex items-center justify-center",
+              "w-5 h-5"
+            )}
+          >
+            {zoomies.current.cycles > 9 ? "9+" : zoomies.current.cycles}
+          </span>
         </div>
       ) : null}
 

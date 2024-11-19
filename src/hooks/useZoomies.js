@@ -5,6 +5,7 @@ import { useCallback } from "react";
 import { useEffect } from "react";
 import { useMemo } from "react";
 import { useState } from "react";
+
 import useProcessLock from "./useProcessLock";
 import useStorageState from "./useStorageState";
 import useValuesMemo from "./useValuesMemo";
@@ -34,7 +35,16 @@ export default function useZoomies(core) {
   const [current, setCurrent] = useState({
     drop: drops[INITIAL_POSITION],
     task: drops[INITIAL_POSITION]?.tasks?.[0],
+    cycles: 0,
   });
+
+  /** Repeat Zoomies Cycle */
+  const repeatZoomiesCycle =
+    core.settings.repeatZoomiesCycle || current.cycles === 0;
+
+  /** Can Process Zoomies */
+  const canProcessZoomies =
+    process.started && current.drop && repeatZoomiesCycle;
 
   /** Reset Zoomies */
   const resetZoomies = useCallback(() => {
@@ -56,6 +66,7 @@ export default function useZoomies(core) {
       return {
         drop: drops[INITIAL_POSITION],
         task: drops[INITIAL_POSITION]?.tasks?.[0],
+        cycles: 0,
       };
     });
   }, [drops, setCurrent]);
@@ -64,7 +75,10 @@ export default function useZoomies(core) {
   const skipToNextDrop = useCallback(() => {
     setCurrent((prev) => {
       const drop = drops[(drops.indexOf(prev.drop) + 1) % drops.length];
+      const cycles = prev.cycles + (drop === drops.at(0) ? 1 : 0);
+
       return {
+        cycles,
         drop,
         task: drop?.tasks?.[0],
       };
@@ -80,9 +94,13 @@ export default function useZoomies(core) {
             const index = (drops.indexOf(prev.drop) + direction) % drops.length;
             const drop = drops.at(index);
             const task = drop?.tasks?.at(direction === 1 ? 0 : -1);
+            const cycles =
+              prev.cycles + (direction === 1 && drop === drops.at(0) ? 1 : 0);
+
             return {
               drop,
               task,
+              cycles,
             };
           } else {
             const tasks = prev.drop.tasks;
@@ -111,26 +129,40 @@ export default function useZoomies(core) {
     [processTaskOffset]
   );
 
+  /** Stop Zoomies after first cycle */
+  useEffect(() => {
+    if (process.started && !repeatZoomiesCycle) {
+      process.stop();
+      core.cancelTelegramHandlers();
+      core.resetTabs();
+      setCurrent((prev) => ({
+        ...prev,
+        cycles: 0,
+      }));
+    }
+  }, [
+    process.started,
+    repeatZoomiesCycle,
+    core.cancelTelegramHandlers,
+    core.resetTabs,
+    setCurrent,
+  ]);
+
   /** Reset Zoomies */
   useEffect(() => {
-    if (process.started && current.drop) {
+    if (canProcessZoomies) {
       resetZoomies();
     }
-  }, [process.started, current.drop]);
+  }, [canProcessZoomies, resetZoomies]);
 
   /** Open Bot */
   useEffect(() => {
-    if (process.started && current.drop && !auth) {
+    if (canProcessZoomies && !auth) {
       /** Open Bot */
       const openBot = (force = true) => {
         core.setActiveTab(current.drop?.id);
         core.closeOtherBots();
-        core.openTelegramBot({
-          url: current.drop.telegramLink,
-          miniAppUrl: current.drop.miniAppUrl,
-          shouldClickLaunchButton: current.drop.shouldClickLaunchButton,
-          force,
-        });
+        core.openTelegramBot(current.drop.telegramLink, undefined, force);
       };
 
       /** First Time */
@@ -144,11 +176,11 @@ export default function useZoomies(core) {
         clearInterval(interval);
       };
     }
-  }, [process.started, auth, current.drop]);
+  }, [canProcessZoomies, auth, current.drop]);
 
   /** Handle Auth */
   useEffect(() => {
-    if (!process.started) return;
+    if (!canProcessZoomies) return;
 
     if (auth) {
       /** Set Active Tab */
@@ -156,7 +188,7 @@ export default function useZoomies(core) {
         core.setActiveTab(current.drop.id);
       }
     }
-  }, [process.started, auth, current.drop, core.setActiveTab]);
+  }, [canProcessZoomies, auth, current.drop, core.setActiveTab]);
 
   /** Reset the drops */
   useEffect(() => {
@@ -166,6 +198,7 @@ export default function useZoomies(core) {
         return prev;
       } else {
         return {
+          ...prev,
           drop: drops[INITIAL_POSITION],
           task: drops[INITIAL_POSITION]?.tasks?.[0],
         };
@@ -189,10 +222,11 @@ export default function useZoomies(core) {
       const task = prevState.task;
 
       if (drop) {
-        setCurrent({
+        setCurrent((prev) => ({
+          ...prev,
           drop,
           task,
-        });
+        }));
       }
     }
   }, [hasRestoredZoomiesState, setCurrent]);

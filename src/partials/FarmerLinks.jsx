@@ -26,7 +26,7 @@ const schema = yup
     telegramLink: yup
       .string()
       .url()
-      .matches(/^https:\/\/t.me\/.+/, {
+      .matches(/^https:\/\/t\.me\/.+/, {
         message: "Not a Valid Telegram Link",
       })
       .required()
