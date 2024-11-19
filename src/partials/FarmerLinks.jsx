@@ -58,7 +58,7 @@ export default function FarmerLinks() {
 
         return {
           ...data,
-          title: titleMeta.getAttribute("content"),
+          title: data.title || titleMeta.getAttribute("content"),
           icon: imageMeta.getAttribute("content"),
         };
       } catch {}
