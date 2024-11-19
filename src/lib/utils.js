@@ -129,14 +129,17 @@ export function postPortMessage(port, data) {
   });
 }
 
+/** Check if it's a bot URL */
 export function isBotURL(url) {
   return /_bot|startapp=|start=/i.test(url);
 }
 
+/** Fetch Content */
 export function fetchContent(url, ...options) {
   return axios.get(url, ...options).then((res) => res.data);
 }
 
+/** Get Main Script */
 export async function getDropMainScript(url, name = "index") {
   const htmlResponse = await fetchContent(url);
 
@@ -158,6 +161,7 @@ export async function getDropMainScript(url, name = "index") {
   return scriptResponse;
 }
 
+/** Resize Farmer Window */
 export async function resizeFarmerWindow() {
   const currentWindow = await chrome?.windows?.getCurrent();
 
@@ -186,6 +190,7 @@ export async function resizeFarmerWindow() {
   }
 }
 
+/** Maximize Farmer Window */
 export async function maximizeFarmerWindow() {
   const currentWindow = await chrome?.windows?.getCurrent();
 

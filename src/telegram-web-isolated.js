@@ -4,7 +4,7 @@ import { dispatchClickEventOnElement, isElementVisible } from "./lib/utils";
 const webVersion = location.pathname.startsWith("/k/") ? "k" : "a";
 
 /** Farmer Bot URL */
-const farmerBotUrl = import.meta.env.VITE_APP_BOT_URL;
+const FARMER_BOT_URL = import.meta.env.VITE_APP_BOT_URL;
 
 /** Button Text */
 const joinButtonTextContent =
@@ -311,6 +311,43 @@ const autoConfirm = () => {
   });
 };
 
+/** Farmer Bot Is Running */
+const farmerBotIsRunning = (iframes) => {
+  for (const iframe of iframes) {
+    if (iframe.src.startsWith(FARMER_BOT_URL)) {
+      return true;
+    }
+  }
+};
+
+/** Close Popup */
+const closePopup = (iframe) => {
+  dispatchClickEventOnElement(
+    iframe.parentElement.previousElementSibling.querySelector(".popup-close")
+  );
+};
+
+/** Close Other Popups */
+const closeOtherPopups = () => {
+  const iframes = document.querySelectorAll(".popup-body.web-app-body iframe");
+  if (iframes.length <= 1) return;
+
+  if (farmerBotIsRunning(iframes)) {
+    Object.values(iframes)
+      .filter((iframe) => !iframe.src.startsWith(FARMER_BOT_URL))
+      .forEach((iframe) => {
+        closePopup(iframe);
+      });
+  } else {
+    Object.values(iframes)
+      .slice(1)
+      .reverse()
+      .forEach((iframe) => {
+        closePopup(iframe);
+      });
+  }
+};
+
 /** Connect to Messaging */
 const port = chrome.runtime.connect(chrome.runtime.id, {
   name: `telegram-web-${webVersion}`,
@@ -320,6 +357,14 @@ const port = chrome.runtime.connect(chrome.runtime.id, {
 port.onMessage.addListener(async (message) => {
   const { id, action, data } = message;
   switch (action) {
+    case "close-other-popups":
+      await closeOtherPopups();
+      try {
+        port.postMessage({
+          id,
+          data: true,
+        });
+      } catch {}
     case "open-bot":
       await openBot(true);
       try {

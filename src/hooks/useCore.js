@@ -248,13 +248,27 @@ export default function useCore() {
           });
         });
     } else {
-      ports.slice(0, -1).forEach((port) => {
-        postPortMessage(port, {
-          action: "close-bot",
+      ports
+        .slice(1)
+        .reverse()
+        .forEach((port) => {
+          postPortMessage(port, {
+            action: "close-bot",
+          });
         });
+    }
+
+    /** Close Telegram WebK Popups */
+    const telegramWebKPort = messaging.ports
+      .values()
+      .find((port) => port.name === "telegram-web-k");
+
+    if (telegramWebKPort) {
+      postPortMessage(telegramWebKPort, {
+        action: "close-other-popups",
       });
     }
-  }, [getMiniAppPorts]);
+  }, [getMiniAppPorts, messaging.ports]);
 
   /** Cancel Telegram Handlers */
   const cancelTelegramHandlers = useCallback(() => {
