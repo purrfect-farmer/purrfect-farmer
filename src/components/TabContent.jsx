@@ -8,17 +8,20 @@ import ErrorFallback from "./ErrorFallback";
 import { useEffect } from "react";
 
 export default function TabContent({ tab }) {
-  const { cancelTelegramHandlers, dispatchAndOpenTelegramBot } =
+  const { zoomies, cancelTelegramHandlers, dispatchAndOpenTelegramBot } =
     useAppContext();
 
   /** Cancel Handlers */
   useEffect(() => {
     return () => {
-      if (["telegram-web-k", "telegram-web-a"].includes(tab.id)) {
+      if (
+        zoomies.enabled === false &&
+        ["telegram-web-k", "telegram-web-a"].includes(tab.id)
+      ) {
         cancelTelegramHandlers();
       }
     };
-  }, [tab.id, cancelTelegramHandlers]);
+  }, [tab.id, zoomies.enabled, cancelTelegramHandlers]);
 
   return (
     <div
