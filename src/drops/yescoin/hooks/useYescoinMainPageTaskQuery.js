@@ -7,7 +7,7 @@ export default function useYescoinMainPageTaskQuery() {
     queryKey: ["yescoin", "main-page", "task"],
     queryFn: ({ signal }) =>
       api
-        .get("https://api-backend.yescoin.gold/task/mainPage", {
+        .get("https://bi.yescoin.gold/task/mainPage", {
           signal,
         })
         .then((res) => res.data.data),

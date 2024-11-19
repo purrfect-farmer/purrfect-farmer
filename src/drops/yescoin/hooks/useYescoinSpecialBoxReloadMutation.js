@@ -7,13 +7,9 @@ export default function useYescoinSpecialBoxReloadMutation() {
     mutationKey: ["yescoin", "special-box", "reload"],
     mutationFn: () =>
       api
-        .post(
-          "https://api-backend.yescoin.gold/game/specialBoxReloadPage",
-          null,
-          {
-            headers: { "content-type": "application/json" },
-          }
-        )
+        .post("https://bi.yescoin.gold/game/specialBoxReloadPage", null, {
+          headers: { "content-type": "application/json" },
+        })
         .then((res) => res.data.data),
   });
 }

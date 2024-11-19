@@ -7,7 +7,7 @@ export default function useYescoinCollectCoinMutation() {
     mutationKey: ["yescoin", "coin", "collect"],
     mutationFn: (amount) =>
       api
-        .post("https://api-backend.yescoin.gold/game/collectCoin", amount, {
+        .post("https://bi.yescoin.gold/game/collectCoin", amount, {
           headers: { "content-type": "application/json" },
         })
         .then((res) => res.data.data),

@@ -7,13 +7,9 @@ export default function useYescoinCheckDailyMissionMutation() {
     mutationKey: ["yescoin", "mission", "daily", "check"],
     mutationFn: (id) =>
       api
-        .post(
-          "https://api-backend.yescoin.gold/mission/checkDailyMission",
-          id,
-          {
-            headers: { "content-type": "application/json" },
-          }
-        )
+        .post("https://bi.yescoin.gold/mission/checkDailyMission", id, {
+          headers: { "content-type": "application/json" },
+        })
         .then((res) => res.data.data),
   });
 }

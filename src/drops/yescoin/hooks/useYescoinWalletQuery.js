@@ -7,7 +7,7 @@ export default function useYescoinWalletQuery() {
     queryKey: ["yescoin", "wallet"],
     queryFn: ({ signal }) =>
       api
-        .get("https://api-backend.yescoin.gold/wallet/getWallet", {
+        .get("https://bi.yescoin.gold/wallet/getWallet", {
           signal,
         })
         .then((res) => res.data.data),

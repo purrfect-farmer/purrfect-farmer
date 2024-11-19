@@ -7,7 +7,7 @@ export default function useYescoinClaimSignInMutation() {
     mutationKey: ["yescoin", "sign-in", "claim"],
     mutationFn: ({ headers, body }) =>
       api
-        .post("https://api-backend.yescoin.gold/signIn/claim", body, {
+        .post("https://bi.yescoin.gold/signIn/claim", body, {
           headers,
         })
         .then((res) => res.data.data),

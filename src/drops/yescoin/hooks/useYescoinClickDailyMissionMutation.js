@@ -7,13 +7,9 @@ export default function useYescoinClickDailyMissionMutation() {
     mutationKey: ["yescoin", "mission", "daily", "click"],
     mutationFn: (id) =>
       api
-        .post(
-          "https://api-backend.yescoin.gold/mission/clickDailyMission",
-          id,
-          {
-            headers: { "content-type": "application/json" },
-          }
-        )
+        .post("https://bi.yescoin.gold/mission/clickDailyMission", id, {
+          headers: { "content-type": "application/json" },
+        })
         .then((res) => res.data.data),
   });
 }

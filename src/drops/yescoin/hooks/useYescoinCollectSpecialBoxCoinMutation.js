@@ -8,7 +8,7 @@ export default function useYescoinCollectSpecialBoxCoinMutation() {
     mutationFn: ({ boxType, coinCount }) =>
       api
         .post(
-          "https://api-backend.yescoin.gold/game/collectSpecialBoxCoin",
+          "https://bi.yescoin.gold/game/collectSpecialBoxCoin",
           { boxType, coinCount },
           {
             headers: { "content-type": "application/json" },

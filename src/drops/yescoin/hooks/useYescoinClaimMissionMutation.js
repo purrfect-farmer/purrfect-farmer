@@ -7,7 +7,7 @@ export default function useYescoinClaimMissionMutation() {
     mutationKey: ["yescoin", "mission", "claim"],
     mutationFn: (id) =>
       api
-        .post("https://api-backend.yescoin.gold/mission/claimReward", id, {
+        .post("https://bi.yescoin.gold/mission/claimReward", id, {
           headers: { "content-type": "application/json" },
         })
         .then((res) => res.data.data),

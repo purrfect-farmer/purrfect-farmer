@@ -11,7 +11,7 @@ export default function useYescoinGameInfoQuery() {
     queryKey: ["yescoin", "game", "info"],
     queryFn: ({ signal }) =>
       api
-        .get("https://api-backend.yescoin.gold/game/getGameInfo", {
+        .get("https://bi.yescoin.gold/game/getGameInfo", {
           signal,
         })
         .then((res) => res.data.data),

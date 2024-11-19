@@ -7,7 +7,7 @@ export default function useYescoinDailyMissionQuery() {
     queryKey: ["yescoin", "mission", "daily"],
     queryFn: ({ signal }) =>
       api
-        .get("https://api-backend.yescoin.gold/mission/getDailyMission", {
+        .get("https://bi.yescoin.gold/mission/getDailyMission", {
           signal,
         })
         .then((res) => res.data.data),

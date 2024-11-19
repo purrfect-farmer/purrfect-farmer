@@ -7,7 +7,7 @@ export default function useYescoinUserUpgradeTaskListQuery() {
     queryKey: ["yescoin", "user-upgrade", "task", "list"],
     queryFn: ({ signal }) =>
       api
-        .get("https://api-backend.yescoin.gold/task/getUserUpgradeTaskList", {
+        .get("https://bi.yescoin.gold/task/getUserUpgradeTaskList", {
           signal,
         })
         .then((res) => res.data.data),

@@ -12,7 +12,7 @@ export default function useYescoinGameSpecialBoxInfoQuery(options) {
     queryKey: ["yescoin", "game", "special-box-info"],
     queryFn: ({ signal }) =>
       api
-        .get("https://api-backend.yescoin.gold/game/getSpecialBoxInfo", {
+        .get("https://bi.yescoin.gold/game/getSpecialBoxInfo", {
           signal,
         })
         .then((res) => res.data.data),

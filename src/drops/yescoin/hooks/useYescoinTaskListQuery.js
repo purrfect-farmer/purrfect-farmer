@@ -7,7 +7,7 @@ export default function useYescoinTaskListQuery() {
     queryKey: ["yescoin", "task", "list"],
     queryFn: ({ signal }) =>
       api
-        .get("https://api-backend.yescoin.gold/task/getTaskList", {
+        .get("https://bi.yescoin.gold/task/getTaskList", {
           signal,
         })
         .then((res) => res.data.data),

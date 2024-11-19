@@ -7,7 +7,7 @@ export default function useYescoinCheckTaskMutation() {
     mutationKey: ["yescoin", "task", "check"],
     mutationFn: (id) =>
       api
-        .post("https://api-backend.yescoin.gold/task/checkTask", id, {
+        .post("https://bi.yescoin.gold/task/checkTask", id, {
           headers: { "content-type": "application/json" },
         })
         .then((res) => res.data.data),

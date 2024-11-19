@@ -11,7 +11,7 @@ export default function useYescoinOfflineQuery() {
     queryKey: ["yescoin", "offline"],
     queryFn: ({ signal }) =>
       api
-        .post("https://api-backend.yescoin.gold/user/offline", null, {
+        .post("https://bi.yescoin.gold/user/offline", null, {
           signal,
         })
         .then((res) => res.data.data),
