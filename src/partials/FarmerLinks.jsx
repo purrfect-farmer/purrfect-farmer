@@ -41,7 +41,7 @@ const schema = yup
 export default function FarmerLinks() {
   const {
     settings,
-    configureSettings,
+    dispatchAndConfigureSettings,
     dispatchAndOpenTelegramBot,
     dispatchAndOpenTelegramLink,
   } = useAppContext();
@@ -152,7 +152,11 @@ export default function FarmerLinks() {
           <button
             title="Toggle View"
             onClick={() =>
-              configureSettings("showLinksAsGrid", !showAsGrid, false)
+              dispatchAndConfigureSettings(
+                "showLinksAsGrid",
+                !showAsGrid,
+                false
+              )
             }
             className={cn(
               "flex items-center justify-center w-10 h-10",
