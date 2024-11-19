@@ -258,12 +258,13 @@ export default function FarmerLinks() {
 
                       <ContextMenu.Portal>
                         <ContextMenu.Content
-                          sideOffset={5}
-                          align="end"
+                          collisionPadding={5}
+                          alignOffset={5}
                           className={cn(
                             "flex flex-col gap-2 p-2",
                             "text-white rounded-lg bg-neutral-900",
-                            "min-w-48",
+                            "w-[var(--radix-context-menu-content-available-width)]",
+                            "max-w-48",
                             "z-50"
                           )}
                         >
