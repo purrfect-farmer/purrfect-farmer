@@ -9,8 +9,10 @@ import { Controller, FormProvider, useForm } from "react-hook-form";
 import Input from "@/components/Input";
 import useSocketDispatchCallback from "@/hooks/useSocketDispatchCallback";
 import {
+  HiOutlineListBullet,
   HiOutlinePencil,
   HiOutlinePlusCircle,
+  HiOutlineSquares2X2,
   HiOutlineTrash,
 } from "react-icons/hi2";
 import useAppContext from "@/hooks/useAppContext";
@@ -19,28 +21,35 @@ import { useEffect } from "react";
 import TelegramLogo from "../assets/images/telegram-logo.svg";
 import toast from "react-hot-toast";
 import { useMutation } from "@tanstack/react-query";
+import * as ContextMenu from "@radix-ui/react-context-menu";
 
 const schema = yup
   .object({
-    title: yup.string().trim().label("Title"),
     telegramLink: yup
       .string()
       .trim()
       .url()
-      .matches(/^https:\/\/t\.me\/.+/, {
+      .matches(/^http(s)*:\/\/t\.me\/.+/, {
         message: "Not a Valid Telegram Link",
       })
       .required()
       .label("Telegram Link"),
+    title: yup.string().trim().label("Title"),
   })
   .required();
 
 export default function FarmerLinks() {
-  const { dispatchAndOpenTelegramBot, dispatchAndOpenTelegramLink } =
-    useAppContext();
+  const {
+    settings,
+    configureSettings,
+    dispatchAndOpenTelegramBot,
+    dispatchAndOpenTelegramLink,
+  } = useAppContext();
   const { value: links, storeValue: storeLinks } = useStorageState("links", []);
   const [openModal, setOpenModal] = useState(false);
   const [currentLink, setCurrentLink] = useState(null);
+
+  const showAsGrid = settings.showLinksAsGrid;
 
   const form = useForm({
     resolver: yupResolver(schema),
@@ -55,11 +64,15 @@ export default function FarmerLinks() {
         const dom = parser.parseFromString(html, "text/html");
         const titleMeta = dom.querySelector('meta[property="og:title"]');
         const imageMeta = dom.querySelector('meta[property="og:image"]');
+        const descriptionMeta = dom.querySelector(
+          'meta[property="og:description"]'
+        );
 
         return {
           ...data,
           title: data.title || titleMeta.getAttribute("content"),
           icon: imageMeta.getAttribute("content"),
+          description: descriptionMeta.getAttribute("content"),
         };
       } catch {}
       return data;
@@ -134,8 +147,28 @@ export default function FarmerLinks() {
         )}
         onOpenAutoFocus={(ev) => ev.preventDefault()}
       >
-        <div className="flex items-center gap-2">
-          <Dialog.Title className="min-w-0 min-h-0 pl-12 text-lg text-center grow">
+        <div className="flex items-center gap-2 shrink-0">
+          {/* Toggle View */}
+          <button
+            title="Toggle View"
+            onClick={() =>
+              configureSettings("showLinksAsGrid", !showAsGrid, false)
+            }
+            className={cn(
+              "flex items-center justify-center w-10 h-10",
+              "rounded-lg shrink-0",
+              "text-blue-800 bg-blue-100"
+            )}
+          >
+            {showAsGrid ? (
+              <HiOutlineSquares2X2 className="w-4 h-4" />
+            ) : (
+              <HiOutlineListBullet className="w-4 h-4" />
+            )}
+          </button>
+
+          {/* Title */}
+          <Dialog.Title className="min-w-0 min-h-0 text-lg text-center grow">
             <span
               className={cn(
                 "text-transparent font-turret-road font-bold",
@@ -150,7 +183,9 @@ export default function FarmerLinks() {
             Farmer Telegram Links
           </Dialog.Description>
 
+          {/* Add Link Button */}
           <button
+            title="Add Telegram Link"
             onClick={() => createOrEditLink()}
             className={cn(
               "flex items-center justify-center w-10 h-10",
@@ -165,57 +200,90 @@ export default function FarmerLinks() {
         <div className="flex flex-col min-w-0 min-h-0 gap-2 overflow-auto grow overscroll-none">
           {links.length ? (
             <>
-              <div className="flex flex-col gap-2">
+              <div
+                className={cn(
+                  "flex w-full",
+                  showAsGrid ? "flex-wrap" : "flex-col gap-2"
+                )}
+              >
                 {links.map((link, index) => (
-                  <div key={index} className="flex gap-2">
-                    {/* Link Button */}
-                    <Dialog.Close
-                      className={cn(
-                        "min-w-0 min-h-0 px-2 h-10 grow bg-neutral-100",
-                        "text-left rounded-lg",
-                        "flex items-center truncate gap-2"
-                      )}
-                      onClick={() =>
-                        isBotURL(link.telegramLink)
-                          ? dispatchAndOpenTelegramBot(link.telegramLink)
-                          : dispatchAndOpenTelegramLink(link.telegramLink)
-                      }
-                    >
-                      {/* Icon */}
-                      <img
-                        src={link.icon || TelegramLogo}
-                        className="w-8 h-8 rounded-full shrink-0 bg-neutral-200"
-                      />
+                  <div
+                    key={index}
+                    className={cn("flex flex-col", showAsGrid && "w-1/3 p-1")}
+                  >
+                    <ContextMenu.Root>
+                      <ContextMenu.Trigger asChild>
+                        <Dialog.Close
+                          title={link.title}
+                          className={cn(
+                            "flex items-center",
+                            "gap-2 p-2 rounded-lg",
+                            "bg-neutral-100 hover:bg-neutral-200",
+                            showAsGrid ? "flex-col justify-center" : "text-left"
+                          )}
+                          onClick={() =>
+                            isBotURL(link.telegramLink)
+                              ? dispatchAndOpenTelegramBot(link.telegramLink)
+                              : dispatchAndOpenTelegramLink(link.telegramLink)
+                          }
+                        >
+                          {/* Icon */}
+                          <img
+                            src={link.icon || TelegramLogo}
+                            className={cn(
+                              "rounded-full shrink-0 bg-neutral-200",
+                              showAsGrid ? "w-10 h-10" : "w-8 h-8"
+                            )}
+                          />
 
-                      {/* Title */}
-                      <h4 className="min-w-0 min-h-0 truncate grow">
-                        {link.title}
-                      </h4>
-                    </Dialog.Close>
+                          <div className="flex flex-col w-full min-w-0 min-h-0 grow">
+                            {/* Title */}
+                            <h4 className="min-w-0 font-bold truncate">
+                              {link.title}
+                            </h4>
 
-                    {/* Edit Button */}
-                    <button
-                      className={cn(
-                        "flex items-center justify-center",
-                        "w-10 h-10 rounded-lg shrink-0",
-                        "bg-neutral-100 hover:bg-blue-500 hover:text-white"
-                      )}
-                      onClick={() => createOrEditLink(link)}
-                    >
-                      <HiOutlinePencil className="w-4 h-4" />
-                    </button>
+                            {/* Description */}
+                            {link.description ? (
+                              <p className="min-w-0 truncate text-neutral-500">
+                                {link.description}
+                              </p>
+                            ) : null}
+                          </div>
+                        </Dialog.Close>
+                      </ContextMenu.Trigger>
 
-                    {/* Delete Button */}
-                    <button
-                      className={cn(
-                        "flex items-center justify-center",
-                        "w-10 h-10 rounded-lg shrink-0",
-                        "bg-neutral-100 hover:bg-red-500 hover:text-white"
-                      )}
-                      onClick={() => deleteLink(link)}
-                    >
-                      <HiOutlineTrash className="w-4 h-4" />
-                    </button>
+                      <ContextMenu.Content
+                        sideOffset={5}
+                        align="end"
+                        className={cn(
+                          "flex flex-col gap-2 p-2",
+                          "text-white rounded-lg bg-neutral-900",
+                          "min-w-48"
+                        )}
+                      >
+                        <ContextMenu.Item
+                          onClick={() => createOrEditLink(link)}
+                          className={cn(
+                            "flex items-center gap-2 p-2",
+                            "rounded-lg cursor-pointer",
+                            "bg-neutral-800 hover:bg-blue-500"
+                          )}
+                        >
+                          <HiOutlinePencil className="w-4 h-4" /> Edit
+                        </ContextMenu.Item>
+
+                        <ContextMenu.Item
+                          onClick={() => deleteLink(link)}
+                          className={cn(
+                            "flex items-center gap-2 p-2",
+                            "rounded-lg cursor-pointer",
+                            "bg-neutral-800 hover:bg-red-500"
+                          )}
+                        >
+                          <HiOutlineTrash className="w-4 h-4" /> Delete
+                        </ContextMenu.Item>
+                      </ContextMenu.Content>
+                    </ContextMenu.Root>
                   </div>
                 ))}
               </div>
@@ -273,27 +341,6 @@ export default function FarmerLinks() {
                   onSubmit={form.handleSubmit(handleFormSubmit)}
                   className="flex flex-col gap-2"
                 >
-                  {/* Title */}
-                  <Controller
-                    name="title"
-                    defaultValue={currentLink?.title || ""}
-                    render={({ field, fieldState }) => (
-                      <>
-                        <label className="text-neutral-500">Title</label>
-                        <Input
-                          {...field}
-                          autoComplete="off"
-                          placeholder="Title (Optional)"
-                        />
-                        {fieldState.error?.message ? (
-                          <p className="text-red-500">
-                            {fieldState.error?.message}
-                          </p>
-                        ) : null}
-                      </>
-                    )}
-                  />
-
                   {/* Telegram Link */}
                   <Controller
                     name="telegramLink"
@@ -307,6 +354,27 @@ export default function FarmerLinks() {
                           {...field}
                           autoComplete="off"
                           placeholder="Telegram Link"
+                        />
+                        {fieldState.error?.message ? (
+                          <p className="text-red-500">
+                            {fieldState.error?.message}
+                          </p>
+                        ) : null}
+                      </>
+                    )}
+                  />
+
+                  {/* Title */}
+                  <Controller
+                    name="title"
+                    defaultValue={currentLink?.title || ""}
+                    render={({ field, fieldState }) => (
+                      <>
+                        <label className="text-neutral-500">Title</label>
+                        <Input
+                          {...field}
+                          autoComplete="off"
+                          placeholder="Title (Optional)"
                         />
                         {fieldState.error?.message ? (
                           <p className="text-red-500">
