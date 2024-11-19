@@ -256,37 +256,40 @@ export default function FarmerLinks() {
                         </Dialog.Close>
                       </ContextMenu.Trigger>
 
-                      <ContextMenu.Content
-                        sideOffset={5}
-                        align="end"
-                        className={cn(
-                          "flex flex-col gap-2 p-2",
-                          "text-white rounded-lg bg-neutral-900",
-                          "min-w-48"
-                        )}
-                      >
-                        <ContextMenu.Item
-                          onClick={() => createOrEditLink(link)}
+                      <ContextMenu.Portal>
+                        <ContextMenu.Content
+                          sideOffset={5}
+                          align="end"
                           className={cn(
-                            "flex items-center gap-2 p-2",
-                            "rounded-lg cursor-pointer",
-                            "bg-neutral-800 hover:bg-blue-500"
+                            "flex flex-col gap-2 p-2",
+                            "text-white rounded-lg bg-neutral-900",
+                            "min-w-48",
+                            "z-50"
                           )}
                         >
-                          <HiOutlinePencil className="w-4 h-4" /> Edit
-                        </ContextMenu.Item>
+                          <ContextMenu.Item
+                            onClick={() => createOrEditLink(link)}
+                            className={cn(
+                              "flex items-center gap-2 p-2",
+                              "rounded-lg cursor-pointer",
+                              "bg-neutral-800 hover:bg-blue-500"
+                            )}
+                          >
+                            <HiOutlinePencil className="w-4 h-4" /> Edit
+                          </ContextMenu.Item>
 
-                        <ContextMenu.Item
-                          onClick={() => deleteLink(link)}
-                          className={cn(
-                            "flex items-center gap-2 p-2",
-                            "rounded-lg cursor-pointer",
-                            "bg-neutral-800 hover:bg-red-500"
-                          )}
-                        >
-                          <HiOutlineTrash className="w-4 h-4" /> Delete
-                        </ContextMenu.Item>
-                      </ContextMenu.Content>
+                          <ContextMenu.Item
+                            onClick={() => deleteLink(link)}
+                            className={cn(
+                              "flex items-center gap-2 p-2",
+                              "rounded-lg cursor-pointer",
+                              "bg-neutral-800 hover:bg-red-500"
+                            )}
+                          >
+                            <HiOutlineTrash className="w-4 h-4" /> Delete
+                          </ContextMenu.Item>
+                        </ContextMenu.Content>
+                      </ContextMenu.Portal>
                     </ContextMenu.Root>
                   </div>
                 ))}
