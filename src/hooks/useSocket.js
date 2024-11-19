@@ -29,6 +29,8 @@ export default function useSocket(server = "127.0.0.1:7777") {
 
   /** Instantiate Socket */
   useEffect(() => {
+    if (!server) return;
+
     const socket = (socketRef.current = io(`ws://${server}`));
 
     socket.on("connect", () => {
@@ -50,6 +52,8 @@ export default function useSocket(server = "127.0.0.1:7777") {
 
   /** Handle Commands */
   useEffect(() => {
+    if (!server) return;
+
     const actionHandler = (arg) => {
       if (!syncing) return;
 
@@ -61,7 +65,7 @@ export default function useSocket(server = "127.0.0.1:7777") {
     return () => {
       socketRef.current?.off("command", actionHandler);
     };
-  }, [handler, syncing]);
+  }, [server, handler, syncing]);
 
   return useMemo(
     () => ({
