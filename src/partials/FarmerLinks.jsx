@@ -1,7 +1,7 @@
 import * as yup from "yup";
 import * as Dialog from "@radix-ui/react-dialog";
 import useStorageState from "@/hooks/useStorageState";
-import { cn, fetchContent } from "@/lib/utils";
+import { cn, fetchContent, isBotURL } from "@/lib/utils";
 import { useCallback } from "react";
 import { useState } from "react";
 import { yupResolver } from "@hookform/resolvers/yup";
@@ -22,9 +22,10 @@ import { useMutation } from "@tanstack/react-query";
 
 const schema = yup
   .object({
-    title: yup.string().required().label("Title"),
+    title: yup.string().trim().label("Title"),
     telegramLink: yup
       .string()
+      .trim()
       .url()
       .matches(/^https:\/\/t\.me\/.+/, {
         message: "Not a Valid Telegram Link",
@@ -35,7 +36,8 @@ const schema = yup
   .required();
 
 export default function FarmerLinks() {
-  const { dispatchAndOpenTelegramLink } = useAppContext();
+  const { dispatchAndOpenTelegramBot, dispatchAndOpenTelegramLink } =
+    useAppContext();
   const { value: links, storeValue: storeLinks } = useStorageState("links", []);
   const [openModal, setOpenModal] = useState(false);
   const [currentLink, setCurrentLink] = useState(null);
@@ -174,7 +176,9 @@ export default function FarmerLinks() {
                         "flex items-center truncate gap-2"
                       )}
                       onClick={() =>
-                        dispatchAndOpenTelegramLink(link.telegramLink)
+                        isBotURL(link.telegramLink)
+                          ? dispatchAndOpenTelegramBot(link.telegramLink)
+                          : dispatchAndOpenTelegramLink(link.telegramLink)
                       }
                     >
                       {/* Icon */}
@@ -279,7 +283,7 @@ export default function FarmerLinks() {
                         <Input
                           {...field}
                           autoComplete="off"
-                          placeholder="Title"
+                          placeholder="Title (Optional)"
                         />
                         {fieldState.error?.message ? (
                           <p className="text-red-500">
