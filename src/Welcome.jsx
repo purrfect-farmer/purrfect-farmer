@@ -76,6 +76,9 @@ export default function Welcome() {
     dispatchAndSetShowSettingsPanel,
   ] = useSocketState("app.toggle-settings-panel", false);
 
+  const [showLinksPanel, setShowLinksPanel, dispatchAndSetShowLinksPanel] =
+    useSocketState("app.toggle-links-panel", false);
+
   const {
     settings,
     socket,
@@ -300,7 +303,10 @@ export default function Welcome() {
               ))}
 
               {/* Links */}
-              <Dialog.Root>
+              <Dialog.Root
+                open={showLinksPanel}
+                onOpenChange={dispatchAndSetShowLinksPanel}
+              >
                 <Dialog.Trigger
                   className={cn(
                     "p-2 rounded-lg",
