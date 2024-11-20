@@ -1,4 +1,4 @@
-import useFarmerAutoProcess from "@/drops/notpixel/hooks/useFarmerAutoProcess";
+import useFarmerAutoProcess from "@/hooks/useFarmerAutoProcess";
 import useFarmerContext from "@/hooks/useFarmerContext";
 import useProcessLock from "@/hooks/useProcessLock";
 import { delay, isBotURL, logNicely } from "@/lib/utils";
@@ -10,9 +10,9 @@ import { useState } from "react";
 
 import MatchQuestButton from "./MatchQuestButton";
 import useMatchQuestClaimTaskMutation from "../hooks/useMatchQuestClaimTaskMutation";
+import useMatchQuestCompleteTaskMutation from "../hooks/useMatchQuestCompleteTaskMutation";
 import useMatchQuestTasksQuery from "../hooks/useMatchQuestTasksQuery";
 import useMatchQuestUserQuery from "../hooks/useMatchQuestUserQuery";
-import useMatchQuestCompleteTaskMutation from "../hooks/useMatchQuestCompleteTaskMutation";
 
 export default function MatchQuestAutoTasks() {
   const { joinTelegramLink } = useFarmerContext();

@@ -1,7 +1,7 @@
 import Slider from "@/components/Slider";
 import toast from "react-hot-toast";
-import useFarmerAutoProcess from "@/drops/notpixel/hooks/useFarmerAutoProcess";
-import useFarmerAutoTask from "@/drops/notpixel/hooks/useFarmerAutoTask";
+import useFarmerAutoProcess from "@/hooks/useFarmerAutoProcess";
+import useFarmerAutoTask from "@/hooks/useFarmerAutoTask";
 import useFarmerContext from "@/hooks/useFarmerContext";
 import useProcessLock from "@/hooks/useProcessLock";
 import useSocketDispatchCallback from "@/hooks/useSocketDispatchCallback";
@@ -109,7 +109,7 @@ export default function TruecoinLottery() {
 
   /** Auto Claim All 50-Boost */
   useFarmerAutoTask(
-    "lottery.50-boost",
+    "lottery.claim-all-50-boost",
     () => {
       claimAll50Boost();
     },

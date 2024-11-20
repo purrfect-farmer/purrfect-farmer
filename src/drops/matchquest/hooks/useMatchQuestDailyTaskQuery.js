@@ -4,7 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 export default function useMatchQuestDailyTaskQuery() {
   const api = useFarmerApi();
   return useQuery({
-    queryKey: ["matchquest", "daily-task"],
+    queryKey: ["matchquest", "daily-task", "status"],
     queryFn: ({ signal }) =>
       api
         .get("https://tgapp-api.matchain.io/api/tgapp/v1/daily/task/status", {

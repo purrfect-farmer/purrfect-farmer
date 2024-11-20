@@ -3,7 +3,6 @@ import toast from "react-hot-toast";
 import useFarmerAutoTab from "@/hooks/useFarmerAutoTab";
 import useSocketTabs from "@/hooks/useSocketTabs";
 import { cn } from "@/lib/utils";
-import { useEffect } from "react";
 
 import SlotcoinIcon from "../assets/images/icon.png?format=webp&w=80";
 import SlotcoinInfoDisplay from "./SlotcoinInfoDisplay";
@@ -12,24 +11,33 @@ import SlotcoinQuests from "./SlotcoinQuests";
 import SlotcoinTickets from "./SlotcoinTickets";
 import useSlotcoinCheckInInfoQuery from "../hooks/useSlotcoinCheckInInfoQuery";
 import useSlotcoinCheckInMutation from "../hooks/useSlotcoinCheckInMutation";
+import useFarmerAsyncTask from "@/hooks/useFarmerAsyncTask";
 
 export default function SlotcoinFarmer() {
   const checkInQuery = useSlotcoinCheckInInfoQuery();
   const checkInMutation = useSlotcoinCheckInMutation();
 
-  const tabs = useSocketTabs("slotcoin.farmer-tabs", "lottery");
+  const tabs = useSocketTabs("slotcoin.farmer-tabs", [
+    "lottery",
+    "tickets",
+    "quests",
+  ]);
 
-  useEffect(() => {
-    if (!checkInQuery.data) return;
-    (async function () {
-      const checkIn = checkInQuery.data;
+  useFarmerAsyncTask(
+    "daily-check-in",
+    () => {
+      if (checkInQuery.data)
+        return (async function () {
+          const checkIn = checkInQuery.data;
 
-      if (checkIn["time_to_claim"] <= 0) {
-        await checkInMutation.mutateAsync();
-        toast.success("Slotcoin - Check-In");
-      }
-    })();
-  }, [checkInQuery.data]);
+          if (checkIn["time_to_claim"] <= 0) {
+            await checkInMutation.mutateAsync();
+            toast.success("Slotcoin - Check-In");
+          }
+        })();
+    },
+    [checkInQuery.data]
+  );
 
   /** Switch Tab Automatically */
   useFarmerAutoTab(tabs);
@@ -49,9 +57,9 @@ export default function SlotcoinFarmer() {
       {/* Info */}
       <SlotcoinInfoDisplay />
 
-      <Tabs.Root {...tabs.root} className="flex flex-col">
+      <Tabs.Root {...tabs.rootProps} className="flex flex-col">
         <Tabs.List className="grid grid-cols-3">
-          {["lottery", "tickets", "quests"].map((value, index) => (
+          {tabs.list.map((value, index) => (
             <Tabs.Trigger
               key={index}
               value={value}

@@ -15,7 +15,11 @@ import useYescoinOfflineQuery from "../hooks/useYescoinOfflineQuery";
 
 export default function YescoinFarmer() {
   const accountInfoQuery = useYescoinAccountInfoQuery();
-  const tabs = useSocketTabs("yescoin.farmer-tabs", "game");
+  const tabs = useSocketTabs("yescoin.farmer-tabs", [
+    "game",
+    "missions",
+    "tasks",
+  ]);
 
   useYescoinDailyCheckIn();
   useYescoinOfflineQuery();
@@ -38,9 +42,9 @@ export default function YescoinFarmer() {
       {accountInfoQuery.isSuccess ? (
         <>
           <YescoinBalanceDisplay />
-          <Tabs.Root {...tabs.root} className="flex flex-col gap-4">
+          <Tabs.Root {...tabs.rootProps} className="flex flex-col gap-4">
             <Tabs.List className="grid grid-cols-3">
-              {["game", "missions", "tasks"].map((value, index) => (
+              {tabs.list.map((value, index) => (
                 <Tabs.Trigger
                   key={index}
                   value={value}

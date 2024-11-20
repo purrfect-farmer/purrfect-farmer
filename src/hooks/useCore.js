@@ -42,6 +42,20 @@ export default function useCore() {
     [farmerTabs]
   );
 
+  /** Cancel Telegram Handlers */
+  const cancelTelegramHandlers = useCallback(() => {
+    /** Clear Interval */
+    clearInterval(openTelegramLinkIntervalRef.current);
+
+    /** Remove Telegram Web Port Handlers */
+    ["k", "a"]
+      .map((item) => `port-connected:telegram-web-${item}`)
+      .forEach((name) => messaging.handler.removeAllListeners(name));
+
+    /** Remove Bot Web App Action */
+    messaging.handler.removeAllListeners(BOT_TELEGRAM_WEB_APP_ACTION);
+  }, [messaging.handler]);
+
   /* ===== HELPERS ===== */
 
   const [pushTab, dispatchAndPushTab] = useSocketDispatchCallback(
@@ -83,8 +97,9 @@ export default function useCore() {
     "core.reset-tabs",
     () => {
       setOpenedTabs(defaultOpenedTabs);
+      cancelTelegramHandlers();
     },
-    [setOpenedTabs],
+    [setOpenedTabs, cancelTelegramHandlers],
     /** Socket */
     socket
   );
@@ -135,8 +150,13 @@ export default function useCore() {
 
         return newTabs;
       });
+
+      /** Cancel Telegram Handlers When Closed */
+      if (["telegram-web-k", "telegram-web-a"].includes(id)) {
+        cancelTelegramHandlers();
+      }
     },
-    [setOpenedTabs],
+    [setOpenedTabs, cancelTelegramHandlers],
     /** Socket */
     socket
   );
@@ -269,20 +289,6 @@ export default function useCore() {
       });
     }
   }, [getMiniAppPorts, messaging.ports]);
-
-  /** Cancel Telegram Handlers */
-  const cancelTelegramHandlers = useCallback(() => {
-    /** Clear Interval */
-    clearInterval(openTelegramLinkIntervalRef.current);
-
-    /** Remove Telegram Web Port Handlers */
-    ["k", "a"]
-      .map((item) => `port-connected:telegram-web-${item}`)
-      .forEach((name) => messaging.handler.removeAllListeners(name));
-
-    /** Remove Bot Web App Action */
-    messaging.handler.removeAllListeners(BOT_TELEGRAM_WEB_APP_ACTION);
-  }, [messaging.handler]);
 
   const [openFarmerBot, dispatchAndOpenFarmerBot] = useSocketDispatchCallback(
     "core.open-farmer-bot",

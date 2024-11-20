@@ -17,7 +17,7 @@ export default function Settings() {
   const { settings, configureSettings, dispatchAndConfigureSettings, drops } =
     useAppContext();
 
-  const tabs = useSocketTabs("app.settings-tabs", "settings");
+  const tabs = useSocketTabs("app.settings-tabs", ["settings", "zoomies"]);
 
   /** Sync Server */
   const [syncServer, setSyncServer] = useState(
@@ -136,9 +136,9 @@ export default function Settings() {
                 </span>
               </Dialog.Description>
 
-              <Tabs.Root {...tabs.root} className="flex flex-col gap-4">
+              <Tabs.Root {...tabs.rootProps} className="flex flex-col gap-4">
                 <Tabs.List className="grid grid-cols-2">
-                  {["settings", "zoomies"].map((value, index) => (
+                  {tabs.list.map((value, index) => (
                     <Tabs.Trigger
                       key={index}
                       value={value}

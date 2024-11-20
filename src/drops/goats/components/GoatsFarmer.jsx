@@ -2,32 +2,35 @@ import * as Tabs from "@radix-ui/react-tabs";
 import toast from "react-hot-toast";
 import { cn } from "@/lib/utils";
 import { isToday } from "date-fns";
-import { useEffect } from "react";
 
 import GoatsBalanceDisplay from "./GoatsBalanceDisplay";
 import GoatsIcon from "../assets/images/icon.png?format=webp&w=80";
 import GoatsMissions from "./GoatsMissions";
 import useGoatsCheckInMutation from "../hooks/useGoatsCheckInMutation";
 import useGoatsCheckInQuery from "../hooks/useGoatsCheckInQuery";
+import useFarmerAsyncTask from "@/hooks/useFarmerAsyncTask";
 
 export default function GoatsFarmer() {
   const checkInQuery = useGoatsCheckInQuery();
   const checkInMutation = useGoatsCheckInMutation();
 
-  useEffect(() => {
-    if (!checkInQuery.data) return;
+  useFarmerAsyncTask(
+    "daily-check-in",
+    () => {
+      if (checkInQuery.data)
+        return (async function () {
+          const checkIn = checkInQuery.data;
+          const result = checkIn.result;
 
-    (async function () {
-      const checkIn = checkInQuery.data;
-      const result = checkIn.result;
-
-      if (!isToday(new Date(checkIn.lastCheckinTime))) {
-        const day = result.find((item) => !item.status);
-        await checkInMutation.mutateAsync(day["_id"]);
-        toast.success("Goats Daily Check-In");
-      }
-    })();
-  }, [checkInQuery.data]);
+          if (!isToday(new Date(checkIn.lastCheckinTime))) {
+            const day = result.find((item) => !item.status);
+            await checkInMutation.mutateAsync(day["_id"]);
+            toast.success("Goats Daily Check-In");
+          }
+        })();
+    },
+    [checkInQuery.data]
+  );
 
   return (
     <div className="flex flex-col gap-2 py-4">

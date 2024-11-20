@@ -6,11 +6,13 @@ import Settings from "@/partials/Settings";
 import TelegramWebAIcon from "@/assets/images/telegram-web-a.png?format=webp&w=80";
 import TelegramWebKIcon from "@/assets/images/telegram-web-k.png?format=webp&w=80";
 import WelcomeIcon from "@/assets/images/icon-unwrapped-cropped.png?format=webp&h=224";
+import axios from "axios";
 import defaultSettings from "@/defaultSettings";
 import toast from "react-hot-toast";
 import useAppContext from "@/hooks/useAppContext";
 import useSocketDispatchCallback from "@/hooks/useSocketDispatchCallback";
 import useSocketState from "@/hooks/useSocketState";
+import { CgSpinner } from "react-icons/cg";
 import {
   HiOutlineArrowPath,
   HiOutlineArrowUpRight,
@@ -25,13 +27,11 @@ import { useMemo } from "react";
 import { useState } from "react";
 
 import DropButton from "./components/DropButton";
+import FarmerLinks from "./partials/FarmerLinks";
 import Shutdown from "./partials/Shutdown";
 import farmerTabs from "./farmerTabs";
-import useSocketTabs from "./hooks/useSocketTabs";
 import useAppQuery from "./hooks/useAppQuery";
-import axios from "axios";
-import FarmerLinks from "./partials/FarmerLinks";
-import { CgSpinner } from "react-icons/cg";
+import useSocketTabs from "./hooks/useSocketTabs";
 
 /** Telegram Web Button */
 const TelegramWebButton = forwardRef(({ icon, children, ...props }, ref) => (
@@ -91,7 +91,7 @@ export default function Welcome() {
     dispatchAndOpenTelegramBot,
   } = useAppContext();
 
-  const tabs = useSocketTabs("app", "farmers");
+  const tabs = useSocketTabs("app", ["farmers", "bots"]);
 
   /** Hidden Toggle */
   const [showHidden, setShowHidden] = useState(import.meta.env.DEV);
@@ -284,9 +284,12 @@ export default function Welcome() {
             </div>
           </div>
 
-          <Tabs.Root {...tabs.root} className="flex flex-col gap-2 px-1 py-2">
+          <Tabs.Root
+            {...tabs.rootProps}
+            className="flex flex-col gap-2 px-1 py-2"
+          >
             <Tabs.List className="grid grid-cols-3 px-1">
-              {["farmers", "bots"].map((value, index) => (
+              {tabs.list.map((value, index) => (
                 <Tabs.Trigger
                   key={index}
                   value={value}

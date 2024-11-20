@@ -5,7 +5,6 @@ import useFarmerAutoTab from "@/hooks/useFarmerAutoTab";
 import useFarmerContext from "@/hooks/useFarmerContext";
 import useSocketTabs from "@/hooks/useSocketTabs";
 import { cn } from "@/lib/utils";
-import { useEffect } from "react";
 
 import BirdTonGamer from "./BirdTonGamer";
 import BirdTonIcon from "../assets/images/icon.png?format=webp&w=80";
@@ -13,26 +12,31 @@ import BirdTonTasks from "./BirdTonTasks";
 import CoinIcon from "../assets/images/coin.png?format=webp&w=80";
 import EnergyIcon from "../assets/images/energy.png?format=webp&w=80";
 import useBirdTonClaimDailyRewardMutation from "../hooks/useBirdTonClaimDailyRewardMutation";
+import useFarmerAsyncTask from "@/hooks/useFarmerAsyncTask";
 
 export default function BirdTonFarmer() {
   const { connected, user } = useFarmerContext();
 
   const energy = user?.["energy"] || 0;
   const maxEnergy = user?.["energy_capacity"] || 0;
-  const tabs = useSocketTabs("birdton.farmer-tabs", "game");
+  const tabs = useSocketTabs("birdton.farmer-tabs", ["game", "tasks"]);
 
   const claimDailyRewardMutation = useBirdTonClaimDailyRewardMutation();
 
   /** Claim Daily Reward */
-  useEffect(() => {
-    (async function () {
-      if (user?.["can_claim_daily"]) {
-        await claimDailyRewardMutation.mutateAsync();
+  useFarmerAsyncTask(
+    "daily-check-in",
+    () => {
+      return (async function () {
+        if (user?.["can_claim_daily"]) {
+          await claimDailyRewardMutation.mutateAsync();
 
-        toast.success("BirdTon - Daily Reward");
-      }
-    })();
-  }, [user?.["can_claim_daily"]]);
+          toast.success("BirdTon - Daily Reward");
+        }
+      })();
+    },
+    [user?.["can_claim_daily"]]
+  );
 
   /** Switch Tab Automatically */
   useFarmerAutoTab(tabs);
@@ -61,9 +65,9 @@ export default function BirdTonFarmer() {
         </span>
       </h4>
 
-      <Tabs.Root {...tabs.root} className="flex flex-col gap-4">
+      <Tabs.Root {...tabs.rootProps} className="flex flex-col gap-4">
         <Tabs.List className="grid grid-cols-2">
-          {["game", "tasks"].map((value, index) => (
+          {tabs.list.map((value, index) => (
             <Tabs.Trigger
               key={index}
               value={value}

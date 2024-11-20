@@ -4,6 +4,8 @@ import Slider from "@/components/Slider";
 import TimeAgo from "javascript-time-ago";
 import en from "javascript-time-ago/locale/en";
 import toast from "react-hot-toast";
+import useFarmerAsyncTask from "@/hooks/useFarmerAsyncTask";
+import useFarmerAutoProcess from "@/hooks/useFarmerAutoProcess";
 import useProcessLock from "@/hooks/useProcessLock";
 import useSocketDispatchCallback from "@/hooks/useSocketDispatchCallback";
 import useSocketState from "@/hooks/useSocketState";
@@ -15,7 +17,6 @@ import { useMemo } from "react";
 import { useState } from "react";
 
 import NotPixelIcon from "../assets/images/icon.png?format=webp&w=80";
-import useFarmerAutoProcess from "../hooks/useFarmerAutoProcess";
 import useNotPixelMiningClaimMutation from "../hooks/useNotPixelMiningClaimMutation";
 import useNotPixelMiningStatusQuery from "../hooks/useNotPixelMiningStatusQuery";
 import useNotPixelRepaintMutation from "../hooks/useNotPixelRepaintMutation";
@@ -24,7 +25,7 @@ import useNotPixelSecretWordMutation from "../hooks/useNotSecretWordMutation";
 TimeAgo.addDefaultLocale(en);
 
 export default function NotPixelApp({ diff, updatedAt }) {
-  const tabs = useSocketTabs("notpixel.farmer-tabs", "paint");
+  const tabs = useSocketTabs("notpixel.farmer-tabs", ["paint", "secrets"]);
   const miningQuery = useNotPixelMiningStatusQuery();
   const mining = miningQuery.data;
 
@@ -78,27 +79,30 @@ export default function NotPixelApp({ diff, updatedAt }) {
   }, [process.started, setPixel]);
 
   /** Claim Mining */
-  useEffect(() => {
-    if (!mining) return;
+  useFarmerAsyncTask(
+    "mining",
+    () => {
+      if (mining)
+        return (async function () {
+          if (mining.fromStart >= mining.maxMiningTime) {
+            const data = await claimMiningMutation.mutateAsync();
 
-    (async function () {
-      if (mining.fromStart >= mining.maxMiningTime) {
-        const data = await claimMiningMutation.mutateAsync();
+            /** Update Balance */
+            miningQuery.updateQueryData((prev) => {
+              return {
+                ...prev,
+                fromStart: 0,
+                userBalance: prev.userBalance + data.claimed,
+              };
+            });
 
-        /** Update Balance */
-        miningQuery.updateQueryData((prev) => {
-          return {
-            ...prev,
-            fromStart: 0,
-            userBalance: prev.userBalance + data.claimed,
-          };
-        });
-
-        /** Toast Message */
-        toast.success(`Not Pixel - Claimed Mining +${data.claimed}`);
-      }
-    })();
-  }, [mining, miningQuery.updateQueryData]);
+            /** Toast Message */
+            toast.success(`Not Pixel - Claimed Mining +${data.claimed}`);
+          }
+        })();
+    },
+    [mining, miningQuery.updateQueryData]
+  );
 
   /** Farmer */
   useEffect(() => {
@@ -185,9 +189,9 @@ export default function NotPixelApp({ diff, updatedAt }) {
           </h1>
           <h2 className="text-center">Charges: {mining.charges}</h2>
 
-          <Tabs.Root {...tabs.root} className="flex flex-col gap-4">
+          <Tabs.Root {...tabs.rootProps} className="flex flex-col gap-4">
             <Tabs.List className="grid grid-cols-2">
-              {["paint", "secrets"].map((value, index) => (
+              {tabs.list.map((value, index) => (
                 <Tabs.Trigger
                   key={index}
                   value={value}

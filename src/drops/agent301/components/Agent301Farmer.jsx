@@ -11,7 +11,11 @@ import Agent301Tasks from "./Agent301Tasks";
 import Agent301Wheel from "./Agent301Wheel";
 
 export default function Agent301Farmer() {
-  const tabs = useSocketTabs("agent301.farmer-tabs", "tickets");
+  const tabs = useSocketTabs("agent301.farmer-tabs", [
+    "tickets",
+    "wheel",
+    "tasks",
+  ]);
 
   /** Switch Tab Automatically */
   useFarmerAutoTab(tabs);
@@ -30,9 +34,9 @@ export default function Agent301Farmer() {
       {/* Puzzle */}
       <Agent301Puzzle />
 
-      <Tabs.Root {...tabs.root} className="flex flex-col gap-4">
+      <Tabs.Root {...tabs.rootProps} className="flex flex-col gap-4">
         <Tabs.List className="grid grid-cols-3">
-          {["tickets", "wheel", "tasks"].map((value, index) => (
+          {tabs.list.map((value, index) => (
             <Tabs.Trigger
               key={index}
               value={value}

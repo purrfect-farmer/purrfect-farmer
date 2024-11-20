@@ -3,7 +3,6 @@ import toast from "react-hot-toast";
 import useFarmerAutoTab from "@/hooks/useFarmerAutoTab";
 import useSocketTabs from "@/hooks/useSocketTabs";
 import { cn } from "@/lib/utils";
-import { useEffect } from "react";
 
 import PumpadBalanceDisplay from "./PumpadBalanceDisplay";
 import PumpadIcon from "../assets/images/icon.png?format=webp&w=80";
@@ -13,25 +12,34 @@ import PumpadTickets from "./PumpadTickets";
 import PumpadUsernameDisplay from "./PumpadUsernameDisplay";
 import usePumpadCheckInMutation from "../hooks/usePumpadCheckInMutation";
 import usePumpadCheckInQuery from "../hooks/usePumpadCheckInQuery";
+import useFarmerAsyncTask from "@/hooks/useFarmerAsyncTask";
 
 export default function PumpadFarmer() {
   const checkInQuery = usePumpadCheckInQuery();
   const claimCheckInMutation = usePumpadCheckInMutation();
 
-  const tabs = useSocketTabs("pumpad.farmer-tabs", "lottery");
+  const tabs = useSocketTabs("pumpad.farmer-tabs", [
+    "lottery",
+    "tickets",
+    "missions",
+  ]);
 
   /** Daily Check-In */
-  useEffect(() => {
-    if (!checkInQuery.data) return;
-    (async function () {
-      const hasClaimed = checkInQuery.data["is_check_in"];
+  useFarmerAsyncTask(
+    "daily-check-in",
+    () => {
+      if (checkInQuery.data)
+        return (async function () {
+          const hasClaimed = checkInQuery.data["is_check_in"];
 
-      if (!hasClaimed) {
-        await claimCheckInMutation.mutateAsync();
-        toast.success("Pumpad - Check-In");
-      }
-    })();
-  }, [checkInQuery.data]);
+          if (!hasClaimed) {
+            await claimCheckInMutation.mutateAsync();
+            toast.success("Pumpad - Check-In");
+          }
+        })();
+    },
+    [checkInQuery.data]
+  );
 
   /** Switch Tab Automatically */
   useFarmerAutoTab(tabs);
@@ -54,9 +62,9 @@ export default function PumpadFarmer() {
       {/* Balance */}
       <PumpadBalanceDisplay />
 
-      <Tabs.Root {...tabs.root} className="flex flex-col">
+      <Tabs.Root {...tabs.rootProps} className="flex flex-col">
         <Tabs.List className="grid grid-cols-3">
-          {["lottery", "tickets", "missions"].map((value, index) => (
+          {tabs.list.map((value, index) => (
             <Tabs.Trigger
               key={index}
               value={value}

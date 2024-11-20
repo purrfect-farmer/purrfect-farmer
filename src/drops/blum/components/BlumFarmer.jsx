@@ -1,9 +1,9 @@
 import * as Tabs from "@radix-ui/react-tabs";
 import toast from "react-hot-toast";
+import useFarmerAsyncTask from "@/hooks/useFarmerAsyncTask";
 import useFarmerAutoTab from "@/hooks/useFarmerAutoTab";
 import useSocketTabs from "@/hooks/useSocketTabs";
 import { cn, delay } from "@/lib/utils";
-import { useEffect } from "react";
 
 import BlumAutoTasks from "./BlumAutoTasks";
 import BlumBalanceDisplay from "./BlumBalanceDisplay";
@@ -19,7 +19,7 @@ import useBlumFriendsBalanceQuery from "../hooks/useBlumFriendsBalanceQuery";
 import useBlumStartFarmingMutation from "../hooks/useBlumStartFarmingMutation";
 
 export default function BlumFarmer() {
-  const tabs = useSocketTabs("blum.farmer-tabs", "game");
+  const tabs = useSocketTabs("blum.farmer-tabs", ["game", "tasks"]);
   const balanceQuery = useBlumBalanceQuery();
 
   const dailyRewardQuery = useBlumDailyRewardQuery();
@@ -32,60 +32,82 @@ export default function BlumFarmer() {
   const claimFriendsRewardMutation = useBlumClaimFriendsRewardMutation();
 
   /** Daily Reward */
-  useEffect(() => {
-    if (!dailyRewardQuery.data) return;
-    (async function () {
-      try {
-        await claimDailyRewardMutation.mutateAsync();
-        toast.success("Blum - Daily Check-In");
-      } catch {}
-    })();
-  }, [dailyRewardQuery.data]);
+  useFarmerAsyncTask(
+    "daily-check-in",
+    () => {
+      if (dailyRewardQuery.isLoading === false)
+        return (async function () {
+          if (dailyRewardQuery.isSuccess) {
+            /** Claim Daily Check-In */
+            try {
+              await claimDailyRewardMutation.mutateAsync();
+              toast.success("Blum - Daily Check-In");
+            } catch {}
+          }
+        })();
+    },
+    [dailyRewardQuery.isLoading]
+  );
 
   /** Friends Reward */
-  useEffect(() => {
-    if (!friendsBalanceQuery.data) return;
-    (async function () {
-      try {
-        const amountForClaim = friendsBalanceQuery.data.amountForClaim;
-        const canClaim = friendsBalanceQuery.data.canClaim;
+  useFarmerAsyncTask(
+    "friends-reward",
+    () => {
+      if (friendsBalanceQuery.data)
+        return (async function () {
+          try {
+            const amountForClaim = friendsBalanceQuery.data.amountForClaim;
+            const canClaim = friendsBalanceQuery.data.canClaim;
 
-        if (canClaim && amountForClaim > 0) {
-          await claimFriendsRewardMutation.mutateAsync();
-          toast.success("Blum - Friends Reward");
-        }
-      } catch {}
-    })();
-  }, [friendsBalanceQuery.data]);
+            if (canClaim && amountForClaim > 0) {
+              /** Claim Friends Reward */
+              await claimFriendsRewardMutation.mutateAsync();
+              toast.success("Blum - Friends Reward");
+
+              /** Refetch */
+              await friendsBalanceQuery.refetch();
+            }
+          } catch {}
+        })();
+    },
+    [friendsBalanceQuery.data]
+  );
 
   /** Start and Claim Farming */
-  useEffect(() => {
-    if (!balanceQuery.data) {
-      return;
-    }
+  useFarmerAsyncTask(
+    "farming",
+    () => {
+      if (balanceQuery.data)
+        return (async function () {
+          const balance = balanceQuery.data;
+          const farming = balance.farming;
 
-    (async function () {
-      const balance = balanceQuery.data;
-      const farming = balance.farming;
+          if (!balance.isFastFarmingEnabled) {
+            /** Start New Farming */
+            await startFarmingMutation.mutateAsync();
+            toast.success("Blum - Started Farming");
 
-      if (!balance.isFastFarmingEnabled) {
-        /** Start New Farming */
-        await startFarmingMutation.mutateAsync();
-        toast.success("Blum - Started Farming");
-      } else if (farming && balance.timestamp >= farming.endTime) {
-        /** Claim Previous Farming */
-        await claimFarmingMutation.mutateAsync();
-        toast.success("Blum - Claimed Previous Farming");
+            /** Refetch */
+            await balanceQuery.refetch();
+          } else if (farming && balance.timestamp >= farming.endTime) {
+            /** Claim Previous Farming */
+            await claimFarmingMutation.mutateAsync();
+            toast.success("Blum - Claimed Previous Farming");
 
-        /** Delay */
-        await delay(1000);
+            /** Delay */
+            await delay(1000);
 
-        /** Start New Farming */
-        await startFarmingMutation.mutateAsync();
-        toast.success("Blum - Started Farming");
-      }
-    })();
-  }, [balanceQuery.data]);
+            /** Start New Farming */
+            await startFarmingMutation.mutateAsync();
+            toast.success("Blum - Started Farming");
+
+            /** Refetch */
+            await balanceQuery.refetch();
+          }
+        })();
+    },
+    [balanceQuery.data]
+  );
 
   /** Switch Tab Automatically */
   useFarmerAutoTab(tabs);
@@ -96,9 +118,9 @@ export default function BlumFarmer() {
       <BlumUsernameDisplay />
       <BlumBalanceDisplay />
 
-      <Tabs.Root {...tabs.root} className="flex flex-col gap-4">
+      <Tabs.Root {...tabs.rootProps} className="flex flex-col gap-4">
         <Tabs.List className="grid grid-cols-2">
-          {["game", "tasks"].map((value, index) => (
+          {tabs.list.map((value, index) => (
             <Tabs.Trigger
               key={index}
               value={value}

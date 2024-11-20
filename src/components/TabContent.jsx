@@ -5,23 +5,9 @@ import { cn } from "@/lib/utils";
 
 import FullSpinner from "./FullSpinner";
 import ErrorFallback from "./ErrorFallback";
-import { useEffect } from "react";
 
 export default function TabContent({ tab }) {
-  const { zoomies, cancelTelegramHandlers, dispatchAndOpenTelegramBot } =
-    useAppContext();
-
-  /** Cancel Handlers */
-  useEffect(() => {
-    return () => {
-      if (
-        zoomies.enabled === false &&
-        ["telegram-web-k", "telegram-web-a"].includes(tab.id)
-      ) {
-        cancelTelegramHandlers();
-      }
-    };
-  }, [tab.id, zoomies.enabled, cancelTelegramHandlers]);
+  const { dispatchAndOpenTelegramBot } = useAppContext();
 
   return (
     <div

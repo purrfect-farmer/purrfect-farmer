@@ -1,5 +1,5 @@
 import Countdown from "react-countdown";
-import useFarmerAutoProcess from "@/drops/notpixel/hooks/useFarmerAutoProcess";
+import useFarmerAutoProcess from "@/hooks/useFarmerAutoProcess";
 import useProcessLock from "@/hooks/useProcessLock";
 import useSocketState from "@/hooks/useSocketState";
 import { delay } from "@/lib/utils";
@@ -11,8 +11,8 @@ import { useState } from "react";
 import MatchQuestButton from "./MatchQuestButton";
 import MatchQuestInput from "./MatchQuestInput";
 import useMatchQuestClaimGameMutation from "../hooks/useMatchQuestClaimGameMutation";
-import useMatchQuestStartGameMutation from "../hooks/useMatchQuestStartGameMutation";
 import useMatchQuestGameRuleQuery from "../hooks/useMatchQuestGameRuleQuery";
+import useMatchQuestStartGameMutation from "../hooks/useMatchQuestStartGameMutation";
 import useMatchQuestUserQuery from "../hooks/useMatchQuestUserQuery";
 
 const GAME_DURATION = 30_000;

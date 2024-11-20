@@ -1,17 +1,27 @@
+import { useMemo } from "react";
+
 import useSocketState from "./useSocketState";
 import useValuesMemo from "./useValuesMemo";
 
-export default function useSocketTabs(key = "", defaultValue) {
+export default function useSocketTabs(
+  key = "",
+  defaultList = [],
+  defaultValue
+) {
+  /** List */
+  const list = useMemo(() => defaultList, [...defaultList]);
+
   /** Tab Value */
   const [value, setValue, dispatchAndSetValue] = useSocketState(
     key,
-    defaultValue
+    defaultValue || list[0]
   );
 
   return useValuesMemo({
     value,
+    list,
     setValue,
     dispatchAndSetValue,
-    root: useValuesMemo({ value, onValueChange: dispatchAndSetValue }),
+    rootProps: useValuesMemo({ value, onValueChange: dispatchAndSetValue }),
   });
 }

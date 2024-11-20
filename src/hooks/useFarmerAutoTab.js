@@ -1,4 +1,4 @@
-import useFarmerAutoTask from "@/drops/notpixel/hooks/useFarmerAutoTask";
+import useFarmerAutoTask from "@/hooks/useFarmerAutoTask";
 import { useMemo } from "react";
 
 import useFarmerContext from "./useFarmerContext";
@@ -12,9 +12,15 @@ export default function useFarmerAutoTab(tabs) {
     useFarmerAutoTask(
       task,
       (zoomies) => {
-        tabs.setValue(zoomies.current.task?.split(".")[0]);
+        /** Split to Get Tab */
+        const tab = zoomies.current.task?.split(".")[0];
+
+        /** Set the Tab */
+        if (tabs.list.includes(tab)) {
+          tabs.setValue(tab);
+        }
       },
-      [tabs.setValue]
+      [tabs.list, tabs.setValue]
     );
   });
 }

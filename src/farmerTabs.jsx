@@ -53,7 +53,7 @@ const farmerTabs = [
     component: <Farmer farmer="MatchQuest" />,
     telegramLink:
       "https://t.me/MatchQuestBot/start?startapp=775f1cc48a46ce5221f1d9476233dc33",
-    tasks: ["tasks", "game"],
+    tasks: ["farming", "tasks", "daily-task-purchase", "game"],
   },
   {
     id: "notgram",
@@ -69,7 +69,7 @@ const farmerTabs = [
     icon: farmerIcons["notpixel"],
     component: <Farmer farmer="NotPixel" />,
     telegramLink: "https://t.me/notpixel/app?startapp=f1147265290_s664035",
-    tasks: ["paint"],
+    tasks: ["mining", "paint"],
   },
 
   {
@@ -78,7 +78,7 @@ const farmerTabs = [
     icon: farmerIcons["blum"],
     component: <Farmer farmer="Blum" />,
     telegramLink: "https://t.me/blum/app?startapp=ref_3AIqvLlFFK",
-    tasks: ["tasks", "game"],
+    tasks: ["daily-check-in", "farming", "friends-reward", "tasks", "game"],
   },
   {
     id: "hrum",
@@ -86,7 +86,7 @@ const farmerTabs = [
     icon: farmerIcons["hrum"],
     component: <Farmer farmer="Hrum" />,
     telegramLink: "http://t.me/hrummebot/game?startapp=ref1147265290",
-    tasks: ["tasks", "daily.riddle", "daily.cookie"],
+    tasks: ["daily.check-in", "tasks", "daily.riddle", "daily.cookie"],
   },
   {
     id: "yescoin",
@@ -94,7 +94,7 @@ const farmerTabs = [
     icon: farmerIcons["yescoin"],
     component: <Farmer farmer="Yescoin" />,
     telegramLink: "https://t.me/theYescoin_bot/Yescoin?startapp=bH7bto",
-    tasks: ["tasks", "missions", "game"],
+    tasks: ["daily-check-in", "tasks", "missions", "game"],
   },
   {
     id: "wonton",
@@ -103,7 +103,7 @@ const farmerTabs = [
     component: <Farmer farmer="Wonton" />,
     telegramLink:
       "https://t.me/WontonOrgBot/gameapp?startapp=referralCode=K45JQRG7",
-    tasks: ["tasks", "game"],
+    tasks: ["daily-check-in", "farming", "tasks", "game"],
   },
   {
     id: "tomarket",
@@ -119,7 +119,7 @@ const farmerTabs = [
     icon: farmerIcons["pumpad"],
     component: <Farmer farmer="Pumpad" />,
     telegramLink: "https://t.me/Pumpad_Bot/Lucky?startapp=52458255372295027",
-    tasks: ["missions", "tickets", "lottery"],
+    tasks: ["daily-check-in", "missions", "tickets", "lottery"],
   },
   {
     id: "slotcoin",
@@ -128,7 +128,7 @@ const farmerTabs = [
     component: <Farmer farmer="Slotcoin" />,
     telegramLink:
       "https://t.me/SlotCoinApp_bot/app?startapp=eyJyZWZfY29kZSI6ImEyZGQtNjBmNyIsInV0bV9pZCI6InJlZmZlcmFsX2xpbmtfc2hhcmUifQ==",
-    tasks: ["quests", "tickets", "lottery"],
+    tasks: ["daily-check-in", "quests", "tickets", "lottery"],
   },
   {
     id: "agent301",
@@ -136,7 +136,7 @@ const farmerTabs = [
     icon: farmerIcons["agent301"],
     component: <Farmer farmer="Agent301" />,
     telegramLink: "https://t.me/Agent301Bot/app?startapp=onetime1147265290",
-    tasks: ["tasks", "wheel.puzzle", "wheel", "tickets"],
+    tasks: ["tasks", "puzzle", "wheel", "tickets"],
   },
 
   {
@@ -146,7 +146,7 @@ const farmerTabs = [
     component: <Farmer farmer="Goats" />,
     telegramLink:
       "https://t.me/realgoats_bot/run?startapp=f0a65866-9ab8-4f40-af15-7dcd196d3af7",
-    tasks: ["missions"],
+    tasks: ["daily-check-in", "missions"],
   },
   {
     id: "truecoin",
@@ -154,7 +154,7 @@ const farmerTabs = [
     icon: farmerIcons["truecoin"],
     component: <Farmer farmer="Truecoin" />,
     telegramLink: "https://t.me/true_coin_bot?start=1147265290",
-    tasks: ["tasks", "lottery.50-boost", "lottery"],
+    tasks: ["daily-check-in", "tasks", "lottery.claim-all-50-boost", "lottery"],
   },
   {
     id: "birdton",
@@ -162,7 +162,7 @@ const farmerTabs = [
     icon: farmerIcons["birdton"],
     component: <Farmer farmer="BirdTon" />,
     telegramLink: "https://t.me/BIRDTonBot/app?startapp=1147265290",
-    tasks: ["game", "tasks"],
+    tasks: ["daily-check-in", "game", "tasks"],
   },
 ];
 

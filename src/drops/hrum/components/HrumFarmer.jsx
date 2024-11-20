@@ -17,7 +17,7 @@ export default function () {
   const dataQueries = useHrumDataQueries();
 
   const hero = dataQueries.data?.[0]?.hero;
-  const tabs = useSocketTabs("hrum.farmer-tabs", "daily");
+  const tabs = useSocketTabs("hrum.farmer-tabs", ["daily", "tasks"]);
 
   /** Run Daily Claim */
   useHrumDailyClaim();
@@ -53,9 +53,9 @@ export default function () {
       {/* Open Button */}
       <HrumOpenButton queries={dataQueries} />
 
-      <Tabs.Root {...tabs.root} className="flex flex-col gap-4">
+      <Tabs.Root {...tabs.rootProps} className="flex flex-col gap-4">
         <Tabs.List className="grid grid-cols-2">
-          {["daily", "tasks"].map((value, index) => (
+          {tabs.list.map((value, index) => (
             <Tabs.Trigger
               key={index}
               value={value}

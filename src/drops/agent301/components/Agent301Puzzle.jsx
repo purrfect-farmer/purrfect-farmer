@@ -1,5 +1,5 @@
 import toast from "react-hot-toast";
-import useFarmerAutoTask from "@/drops/notpixel/hooks/useFarmerAutoTask";
+import useFarmerAutoTask from "@/hooks/useFarmerAutoTask";
 import useFarmerContext from "@/hooks/useFarmerContext";
 import useSocketDispatchCallback from "@/hooks/useSocketDispatchCallback";
 import useSocketState from "@/hooks/useSocketState";
@@ -75,7 +75,7 @@ export default function Agent301Puzzle() {
 
   /** Complete Puzzle */
   useFarmerAutoTask(
-    "wheel.puzzle",
+    "puzzle",
     () => {
       if (cardsQuery.isSuccess) {
         const day = new Date().toISOString().split("T")[0];

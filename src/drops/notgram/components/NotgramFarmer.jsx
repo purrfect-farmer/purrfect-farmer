@@ -1,5 +1,5 @@
 import useAppContext from "@/hooks/useAppContext";
-import useFarmerAutoProcess from "@/drops/notpixel/hooks/useFarmerAutoProcess";
+import useFarmerAutoProcess from "@/hooks/useFarmerAutoProcess";
 import useFarmerContext from "@/hooks/useFarmerContext";
 import useMessageHandlers from "@/hooks/useMessageHandlers";
 import useProcessLock from "@/hooks/useProcessLock";
