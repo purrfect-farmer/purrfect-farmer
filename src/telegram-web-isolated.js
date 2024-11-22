@@ -20,14 +20,15 @@ const buttonSelectors =
         confirmButton: ".popup-button",
         startButton: ".chat-input-control-button",
         joinButton: ".chat-join, .chat-input-control-button",
-        webViewButton: ".is-web-view",
+        webViewButton: ".is-web-view, .reply-markup-button.anchor-url.is-link",
       }
     : {
         launchButton: ".bot-menu.open",
         confirmButton: ".confirm-dialog-button",
         startButton: ".join-subscribe-button",
         joinButton: ".join-subscribe-button",
-        webViewButton: "button:has(.icon.icon-webapp)",
+        webViewButton:
+          "button:has(.icon.icon-webapp), .Button:has(.inline-button-text)",
       };
 
 /** Join Observer */

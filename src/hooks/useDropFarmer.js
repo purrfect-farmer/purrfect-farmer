@@ -247,17 +247,27 @@ export default function useDropFarmer({
           });
 
     const handleWebRequest = (details) => {
-      let configured = false;
+      const headers = getRequestHeaders(details);
+      const requiredHeadersLength = extractAuthHeaders
+        ? headers.length
+        : authHeaders.length;
 
-      getRequestHeaders(details).forEach((header) => {
-        if (header.value !== api.defaults.headers.common[header.name]) {
-          api.defaults.headers.common[header.name] = header.value;
+      const configured =
+        headers.length &&
+        headers.length === requiredHeadersLength &&
+        headers
+          .map((header) => {
+            if (header.value !== api.defaults.headers.common[header.name]) {
+              api.defaults.headers.common[header.name] = header.value;
 
-          if (header.value) {
-            configured = true;
-          }
-        }
-      });
+              if (header.value) {
+                return true;
+              }
+            }
+
+            return false;
+          })
+          .every(Boolean);
 
       if (configured) {
         setAuthState(true);

@@ -12,12 +12,40 @@ import useSocketTabs from "@/hooks/useSocketTabs";
 import { CgSpinner } from "react-icons/cg";
 import { cn, maximizeFarmerWindow, resizeFarmerWindow } from "@/lib/utils";
 import { useCallback, useEffect, useState } from "react";
+import { Reorder, useDragControls } from "motion/react";
+import { HiOutlineSquares2X2 } from "react-icons/hi2";
+
+const DropReorderItem = ({ children, ...props }) => {
+  const dragControls = useDragControls();
+  return (
+    <Reorder.Item {...props} dragListener={false} dragControls={dragControls}>
+      <div className="flex gap-2">
+        <div className="min-w-0 min-h-0 grow">{children}</div>
+        <button
+          className={cn(
+            "flex items-center justify-center",
+            "px-2 rounded-lg bg-neutral-100 shrink-0"
+          )}
+          onPointerDown={(event) => dragControls.start(event)}
+        >
+          <HiOutlineSquares2X2 className="w-4 h-4" />
+        </button>
+      </div>
+    </Reorder.Item>
+  );
+};
 
 export default function Settings() {
-  const { settings, configureSettings, dispatchAndConfigureSettings, drops } =
-    useAppContext();
+  const {
+    settings,
+    configureSettings,
+    dispatchAndConfigureSettings,
+    dropsOrder,
+    enabledDrops,
+    orderedDrops,
+  } = useAppContext();
 
-  const tabs = useSocketTabs("app.settings-tabs", ["settings", "zoomies"]);
+  const tabs = useSocketTabs("app.settings-tabs", ["farmers", "settings"]);
 
   /** Sync Server */
   const [syncServer, setSyncServer] = useState(
@@ -70,18 +98,18 @@ export default function Settings() {
     resizeSettingsPage();
   }, [resizeSettingsPage, farmersPerWindow, farmerPosition, configureSettings]);
 
-  /** Toggle Zoomies */
-  const toggleZoomies = useCallback(
+  /** Toggle Drop */
+  const toggleDrop = useCallback(
     (id, enabled) => {
-      let entries = new Set([...settings.zoomies, id]);
+      const entries = new Set([...settings.enabledDrops, id]);
 
       if (!enabled) {
         entries.delete(id);
       }
 
-      dispatchAndConfigureSettings("zoomies", entries.values().toArray());
+      dispatchAndConfigureSettings("enabledDrops", entries.values().toArray());
     },
-    [settings.zoomies, dispatchAndConfigureSettings]
+    [settings.enabledDrops, dispatchAndConfigureSettings]
   );
 
   /** Update Settings */
@@ -152,6 +180,58 @@ export default function Settings() {
                     </Tabs.Trigger>
                   ))}
                 </Tabs.List>
+                <Tabs.Content value="farmers">
+                  <div className="flex flex-col gap-2">
+                    {/* Repeat Cycle */}
+                    <LabelToggle
+                      onChange={(ev) =>
+                        dispatchAndConfigureSettings(
+                          "repeatZoomiesCycle",
+                          ev.target.checked
+                        )
+                      }
+                      checked={settings?.repeatZoomiesCycle}
+                    >
+                      Repeat Zoomies Cycle
+                    </LabelToggle>
+
+                    <p className="p-4 text-center text-blue-800 bg-blue-100 rounded-lg">
+                      Enable the farmers you would like to include.
+                    </p>
+
+                    <Reorder.Group
+                      values={dropsOrder}
+                      className="flex flex-col gap-2"
+                      onReorder={(newOrder) =>
+                        dispatchAndConfigureSettings(
+                          "dropsOrder",
+                          newOrder,
+                          false
+                        )
+                      }
+                    >
+                      {orderedDrops.map((drop) => (
+                        <DropReorderItem key={drop.id} value={drop.id}>
+                          <LabelToggle
+                            onChange={(ev) =>
+                              toggleDrop(drop.id, ev.target.checked)
+                            }
+                            checked={enabledDrops.includes(drop.id)}
+                          >
+                            <div className="flex items-center gap-1">
+                              <img
+                                src={drop.icon}
+                                className="w-6 h-6 rounded-full"
+                              />
+                              <h5>{drop.title}</h5>
+                            </div>
+                          </LabelToggle>
+                        </DropReorderItem>
+                      ))}
+                    </Reorder.Group>
+                  </div>
+                </Tabs.Content>
+
                 <Tabs.Content value="settings">
                   <form
                     onSubmit={(ev) => ev.preventDefault()}
@@ -308,45 +388,6 @@ export default function Settings() {
                       <ConfirmButton onClick={handleSetFarmerPosition} />
                     </div>
                   </form>
-                </Tabs.Content>
-
-                <Tabs.Content value="zoomies">
-                  <div className="flex flex-col gap-2">
-                    {/* Repeat Cycle */}
-                    <LabelToggle
-                      onChange={(ev) =>
-                        dispatchAndConfigureSettings(
-                          "repeatZoomiesCycle",
-                          ev.target.checked
-                        )
-                      }
-                      checked={settings?.repeatZoomiesCycle}
-                    >
-                      Repeat Zoomies Cycle
-                    </LabelToggle>
-
-                    <p className="p-4 text-center text-blue-800 bg-blue-100 rounded-lg">
-                      Enable the farmers you would like to include in the
-                      Zoomies
-                    </p>
-
-                    {drops.map((drop) => (
-                      <LabelToggle
-                        onChange={(ev) =>
-                          toggleZoomies(drop.id, ev.target.checked)
-                        }
-                        checked={settings?.zoomies.includes(drop.id)}
-                      >
-                        <div className="flex items-center gap-1">
-                          <img
-                            src={drop.icon}
-                            className="w-6 h-6 rounded-full"
-                          />
-                          <h5>{drop.title}</h5>
-                        </div>
-                      </LabelToggle>
-                    ))}
-                  </div>
                 </Tabs.Content>
               </Tabs.Root>
             </div>

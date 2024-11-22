@@ -1,11 +1,8 @@
 import defaultZoomiesState from "@/defaultZoomiesState";
-import farmerTabs from "@/farmerTabs";
 import toast from "react-hot-toast";
 import { useCallback } from "react";
 import { useEffect } from "react";
-import { useMemo } from "react";
 import { useState } from "react";
-
 import useProcessLock from "./useProcessLock";
 import useStorageState from "./useStorageState";
 import useValuesMemo from "./useValuesMemo";
@@ -19,11 +16,8 @@ export default function useZoomies(core) {
     storeValue: storeZoomiesState,
   } = useStorageState("zoomiesState", defaultZoomiesState);
 
-  /** Drops To Enable */
-  const drops = useMemo(
-    () => farmerTabs.filter((item) => core.settings.zoomies.includes(item.id)),
-    [farmerTabs, core.settings.zoomies]
-  );
+  /** Drops */
+  const drops = core.drops;
 
   /** Process */
   const process = useProcessLock("zoomies", core.socket);

@@ -33,13 +33,43 @@ export default function useCore() {
   /** Open Telegram Link Interval Ref */
   const openTelegramLinkIntervalRef = useRef(null);
 
-  /** Drops List */
-  const drops = useMemo(
+  /** Farmers */
+  const farmers = useMemo(
     () =>
       farmerTabs.filter(
         (item) => !["app", "telegram-web-k", "telegram-web-a"].includes(item.id)
       ),
     [farmerTabs]
+  );
+
+  /** Enabled Drops */
+  const enabledDrops = settings.enabledDrops;
+
+  /** Drops Order */
+  const dropsOrder = useMemo(
+    () =>
+      new Set([
+        ...settings.dropsOrder,
+        ...farmers.reduce((result, item) => result.concat(item.id), []),
+      ])
+        .values()
+        .toArray(),
+    [farmers, settings.dropsOrder]
+  );
+
+  /** Ordered Drops */
+  const orderedDrops = useMemo(
+    () =>
+      farmers
+        .slice()
+        .sort((a, b) => dropsOrder.indexOf(a.id) - dropsOrder.indexOf(b.id)),
+    [farmers, dropsOrder]
+  );
+
+  /** Drops */
+  const drops = useMemo(
+    () => orderedDrops.filter((item) => enabledDrops.includes(item.id)),
+    [orderedDrops, enabledDrops]
   );
 
   /** Cancel Telegram Handlers */
@@ -325,11 +355,6 @@ export default function useCore() {
 
       /** Capture Port */
       const capturePort = async function (port) {
-        /** Remove All Listeners */
-        eventNames.forEach((name) =>
-          messaging.handler.removeAllListeners(name)
-        );
-
         /** Post Message */
         postPortMessage(port, {
           action: "open-farmer-bot",
@@ -337,10 +362,17 @@ export default function useCore() {
       };
 
       /** Add Handler */
-      messaging.handler.once(
+      messaging.handler.on(
         `port-connected:telegram-web-${version}`,
         capturePort
       );
+
+      /** Remove All Listeners */
+      messaging.handler.on(BOT_TELEGRAM_WEB_APP_ACTION, () => {
+        eventNames.forEach((name) =>
+          messaging.handler.removeAllListeners(name)
+        );
+      });
 
       /** Find Telegram Web Tab */
       const tab = farmerTabs.find(
@@ -539,7 +571,11 @@ export default function useCore() {
 
   return useValuesMemo({
     /** Data */
+    farmers,
     drops,
+    enabledDrops,
+    dropsOrder,
+    orderedDrops,
     settings,
     hasRestoredSettings,
     socket,

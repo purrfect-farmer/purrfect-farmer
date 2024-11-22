@@ -8,9 +8,7 @@ import TelegramWebKIcon from "@/assets/images/telegram-web-k.png?format=webp&w=8
 import WelcomeIcon from "@/assets/images/icon-unwrapped-cropped.png?format=webp&h=224";
 import axios from "axios";
 import defaultSettings from "@/defaultSettings";
-import toast from "react-hot-toast";
 import useAppContext from "@/hooks/useAppContext";
-import useSocketDispatchCallback from "@/hooks/useSocketDispatchCallback";
 import useSocketState from "@/hooks/useSocketState";
 import { CgSpinner } from "react-icons/cg";
 import {
@@ -24,12 +22,10 @@ import { cn } from "@/lib/utils";
 import { forwardRef } from "react";
 import { useEffect } from "react";
 import { useMemo } from "react";
-import { useState } from "react";
 
 import DropButton from "./components/DropButton";
 import FarmerLinks from "./partials/FarmerLinks";
 import Shutdown from "./partials/Shutdown";
-import farmerTabs from "./farmerTabs";
 import useAppQuery from "./hooks/useAppQuery";
 import useSocketTabs from "./hooks/useSocketTabs";
 
@@ -80,6 +76,7 @@ export default function Welcome() {
     useSocketState("app.toggle-links-panel", false);
 
   const {
+    drops,
     settings,
     socket,
     openNewTab,
@@ -92,31 +89,6 @@ export default function Welcome() {
   } = useAppContext();
 
   const tabs = useSocketTabs("app", ["farmers", "bots"]);
-
-  /** Hidden Toggle */
-  const [showHidden, setShowHidden] = useState(import.meta.env.DEV);
-
-  /** Drops List */
-  const drops = useMemo(
-    () =>
-      farmerTabs.filter(
-        (item) =>
-          !["app", "telegram-web-k", "telegram-web-a"].includes(item.id) &&
-          (showHidden || !item.hidden)
-      ),
-    [showHidden, farmerTabs]
-  );
-
-  /** Show Hidden Drops */
-  const [showHiddenDrops, dispatchAndShowHiddenDrops] =
-    useSocketDispatchCallback(
-      "app.show-hidden-drops",
-      () => {
-        setShowHidden(true);
-        toast.success("Unlocked hidden farmer!");
-      },
-      [setShowHidden]
-    );
 
   /** Bots Query */
   const botsQuery = useAppQuery({
@@ -359,6 +331,19 @@ export default function Welcome() {
               )}
             </Tabs.Content>
           </Tabs.Root>
+
+          {/* Configure Farmers */}
+          <button
+            onClick={() => dispatchAndSetShowSettingsPanel(true)}
+            className={cn(
+              "flex items-center justify-center",
+              "rounded-lg shrink-0",
+              "text-blue-800 bg-blue-100",
+              "p-2"
+            )}
+          >
+            Configure Farmers
+          </button>
 
           {/* Connect */}
           <div className="flex items-center justify-center gap-2 text-xs">
