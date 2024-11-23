@@ -76,6 +76,7 @@ export default function Welcome() {
     useSocketState("app.toggle-links-panel", false);
 
   const {
+    farmers,
     drops,
     settings,
     socket,
@@ -336,13 +337,14 @@ export default function Welcome() {
           <button
             onClick={() => dispatchAndSetShowSettingsPanel(true)}
             className={cn(
+              "font-bold",
               "flex items-center justify-center",
               "rounded-lg shrink-0",
               "text-blue-800 bg-blue-100",
               "p-2"
             )}
           >
-            Configure Farmers
+            Configure Farmers {drops.length} / {farmers.length}
           </button>
 
           {/* Connect */}
