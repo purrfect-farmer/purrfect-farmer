@@ -39,12 +39,15 @@ export default function TomarketFarmer() {
       if (farmingInfoQuery.data) {
         return async function () {
           const farm = farmingInfoQuery.data;
-          const shouldHavest =
-            farm["round_id"] &&
-            farm["end_at"] &&
-            isAfter(new Date(), new Date(farm["end_at"] * 1000));
 
-          if (shouldHavest) {
+          if (!farm["round_id"]) {
+            /** Start Farming */
+            await startFarmingMutation.mutateAsync();
+            toast.success("Tomarket - Started Farming");
+          } else if (
+            farm["end_at"] &&
+            isAfter(new Date(), new Date(farm["end_at"] * 1000))
+          ) {
             /** Claim Farming */
             await claimFarmingMutation.mutateAsync();
             toast.success("Tomarket - Claimed Farming");
@@ -52,10 +55,6 @@ export default function TomarketFarmer() {
             /** Delay */
             await delay(1000);
 
-            /** Start Farming */
-            await startFarmingMutation.mutateAsync();
-            toast.success("Tomarket - Started Farming");
-          } else {
             /** Start Farming */
             await startFarmingMutation.mutateAsync();
             toast.success("Tomarket - Started Farming");
