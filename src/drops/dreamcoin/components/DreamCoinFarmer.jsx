@@ -41,7 +41,7 @@ export default function DreamCoinFarmer() {
           logNicely("DREAMCOIN DAY", day);
 
           if (day) {
-            await claimDailyTaskMutation.mutateAsync(item.id);
+            await claimDailyTaskMutation.mutateAsync(day.id);
             toast.success("DreamCoin - Daily Reward");
           }
         };
