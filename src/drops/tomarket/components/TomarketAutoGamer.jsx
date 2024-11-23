@@ -1,4 +1,5 @@
 import Countdown from "react-countdown";
+import toast from "react-hot-toast";
 import useFarmerAutoProcess from "@/hooks/useFarmerAutoProcess";
 import useProcessLock from "@/hooks/useProcessLock";
 import useSocketState from "@/hooks/useSocketState";
@@ -75,6 +76,11 @@ export default function Tomarket({ tomarket }) {
 
         /** Claim Game */
         await claimGameMutation.mutateAsync(game["stars"]);
+
+        /** Toast After Claiming Stars */
+        if (game["stars"] > 0) {
+          toast.success(`Tomarket Stars - ${game["stars"]}`);
+        }
       } catch {}
 
       /** Add a little delay */
