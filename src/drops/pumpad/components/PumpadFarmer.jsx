@@ -1,5 +1,6 @@
 import * as Tabs from "@radix-ui/react-tabs";
 import toast from "react-hot-toast";
+import useFarmerAsyncTask from "@/hooks/useFarmerAsyncTask";
 import useFarmerAutoTab from "@/hooks/useFarmerAutoTab";
 import useSocketTabs from "@/hooks/useSocketTabs";
 import { cn } from "@/lib/utils";
@@ -12,7 +13,6 @@ import PumpadTickets from "./PumpadTickets";
 import PumpadUsernameDisplay from "./PumpadUsernameDisplay";
 import usePumpadCheckInMutation from "../hooks/usePumpadCheckInMutation";
 import usePumpadCheckInQuery from "../hooks/usePumpadCheckInQuery";
-import useFarmerAsyncTask from "@/hooks/useFarmerAsyncTask";
 
 export default function PumpadFarmer() {
   const checkInQuery = usePumpadCheckInQuery();
@@ -29,14 +29,14 @@ export default function PumpadFarmer() {
     "daily-check-in",
     () => {
       if (checkInQuery.data)
-        return (async function () {
+        return async function () {
           const hasClaimed = checkInQuery.data["is_check_in"];
 
           if (!hasClaimed) {
             await claimCheckInMutation.mutateAsync();
             toast.success("Pumpad - Check-In");
           }
-        })();
+        };
     },
     [checkInQuery.data]
   );

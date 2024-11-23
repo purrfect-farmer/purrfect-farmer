@@ -28,7 +28,7 @@ export default function DreamCoinFarmer() {
     "daily-reward",
     () => {
       if (dailyTasksQuery.data)
-        return (async function () {
+        return async function () {
           const today = new Date().toISOString().split("T")[0];
           const dailyTasks = dailyTasksQuery.data.dailyTasks;
 
@@ -39,7 +39,7 @@ export default function DreamCoinFarmer() {
             await claimDailyTaskMutation.mutateAsync(item.id);
             toast.success("DreamCoin - Daily Reward");
           }
-        })();
+        };
     },
     [dailyTasksQuery.data]
   );
@@ -49,7 +49,7 @@ export default function DreamCoinFarmer() {
     "upgrade-all-level",
     () => {
       if (userQuery.data && levelQuery.data)
-        return (async function () {
+        return async function () {
           const totalGoldCost = levelQuery.data.totalGoldCost;
           const balance = userQuery.data.balance;
 
@@ -61,7 +61,7 @@ export default function DreamCoinFarmer() {
             await levelQuery.refetch();
             await userQuery.refetch();
           }
-        })();
+        };
     },
     [userQuery.data, levelQuery.data]
   );

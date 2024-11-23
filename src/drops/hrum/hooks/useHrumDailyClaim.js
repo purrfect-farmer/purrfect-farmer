@@ -12,7 +12,7 @@ export default function useHrumDailyClaim() {
     "daily.check-in",
     () => {
       if (dailyQuery.data) {
-        return (async function () {
+        return async function () {
           const day = Object.entries(dailyQuery.data).find(
             ([k, v]) => v === "canTake"
           );
@@ -27,7 +27,7 @@ export default function useHrumDailyClaim() {
               }
             );
           }
-        })();
+        };
       }
     },
     [dailyQuery.data]

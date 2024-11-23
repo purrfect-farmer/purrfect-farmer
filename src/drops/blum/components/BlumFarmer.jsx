@@ -36,7 +36,7 @@ export default function BlumFarmer() {
     "daily-check-in",
     () => {
       if (dailyRewardQuery.isLoading === false)
-        return (async function () {
+        return async function () {
           if (dailyRewardQuery.isSuccess) {
             /** Claim Daily Check-In */
             try {
@@ -44,7 +44,7 @@ export default function BlumFarmer() {
               toast.success("Blum - Daily Check-In");
             } catch {}
           }
-        })();
+        };
     },
     [dailyRewardQuery.isLoading]
   );
@@ -54,7 +54,7 @@ export default function BlumFarmer() {
     "friends-reward",
     () => {
       if (friendsBalanceQuery.data)
-        return (async function () {
+        return async function () {
           try {
             const amountForClaim = friendsBalanceQuery.data.amountForClaim;
             const canClaim = friendsBalanceQuery.data.canClaim;
@@ -68,7 +68,7 @@ export default function BlumFarmer() {
               await friendsBalanceQuery.refetch();
             }
           } catch {}
-        })();
+        };
     },
     [friendsBalanceQuery.data]
   );
@@ -78,7 +78,7 @@ export default function BlumFarmer() {
     "farming",
     () => {
       if (balanceQuery.data)
-        return (async function () {
+        return async function () {
           const balance = balanceQuery.data;
           const farming = balance.farming;
 
@@ -104,7 +104,7 @@ export default function BlumFarmer() {
             /** Refetch */
             await balanceQuery.refetch();
           }
-        })();
+        };
     },
     [balanceQuery.data]
   );

@@ -39,7 +39,7 @@ export default function MatchQuestFarmer() {
     "farming",
     () => {
       if (rewardQuery.data) {
-        return (async function () {
+        return async function () {
           const data = rewardQuery.data;
 
           if (data["reward"] === 0) {
@@ -66,7 +66,7 @@ export default function MatchQuestFarmer() {
             /** Allow Purchasing Daily Boost */
             setHasPurchasedDailyBoost(false);
           }
-        })();
+        };
       }
     },
     [rewardQuery.data]
@@ -77,7 +77,7 @@ export default function MatchQuestFarmer() {
     "daily-task-purchase",
     () => {
       if (userQuery.data && dailyTaskQuery.data)
-        return (async function () {
+        return async function () {
           let initialBalance = userQuery.data["Balance"] / 1000;
           let balance = initialBalance;
 
@@ -122,7 +122,7 @@ export default function MatchQuestFarmer() {
             /** Refetch User Query */
             await userQuery.refetch();
           }
-        })();
+        };
     },
     [userQuery.data, dailyTaskQuery.data, hasPurchasedDailyBoost]
   );

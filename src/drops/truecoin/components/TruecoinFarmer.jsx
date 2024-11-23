@@ -1,5 +1,6 @@
 import * as Tabs from "@radix-ui/react-tabs";
 import toast from "react-hot-toast";
+import useFarmerAsyncTask from "@/hooks/useFarmerAsyncTask";
 import useFarmerAutoTab from "@/hooks/useFarmerAutoTab";
 import useFarmerContext from "@/hooks/useFarmerContext";
 import useSocketTabs from "@/hooks/useSocketTabs";
@@ -13,7 +14,6 @@ import TruecoinLottery from "./TruecoinLottery";
 import TruecoinTasks from "./TruecoinTasks";
 import useTruecoinCollectDailyRewardMutation from "../hooks/useTruecoinCollectDailyRewardMutation";
 import useTruecoinLastDailyRewardQuery from "../hooks/useTruecoinLastDailyRewardQuery";
-import useFarmerAsyncTask from "@/hooks/useFarmerAsyncTask";
 
 export default function TruecoinFarmer() {
   const { authQuery } = useFarmerContext();
@@ -33,7 +33,7 @@ export default function TruecoinFarmer() {
     "daily-check-in",
     () => {
       if (lastDailyRewardQuery.data)
-        return (async function () {
+        return async function () {
           try {
             const { createdDate } = lastDailyRewardQuery.data;
 
@@ -42,7 +42,7 @@ export default function TruecoinFarmer() {
               toast.success("Truecoin - Daily Reward");
             }
           } catch {}
-        })();
+        };
     },
     [lastDailyRewardQuery.data]
   );

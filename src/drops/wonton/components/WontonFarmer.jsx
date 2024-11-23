@@ -1,5 +1,6 @@
 import * as Tabs from "@radix-ui/react-tabs";
 import toast from "react-hot-toast";
+import useFarmerAsyncTask from "@/hooks/useFarmerAsyncTask";
 import useFarmerAutoTab from "@/hooks/useFarmerAutoTab";
 import useSocketTabs from "@/hooks/useSocketTabs";
 import { cn } from "@/lib/utils";
@@ -14,7 +15,6 @@ import useWontonClaimFarmingMutation from "../hooks/useWontonClaimFarmingMutatio
 import useWontonDailyCheckInMutation from "../hooks/useWontonDailyCheckInMutation";
 import useWontonFarmingStatusQuery from "../hooks/useWontonFarmingStatusQuery";
 import useWontonStartFarmingMutation from "../hooks/useWontonStartFarmingMutation";
-import useFarmerAsyncTask from "@/hooks/useFarmerAsyncTask";
 
 export default function WontonFarmer() {
   const tabs = useSocketTabs("wonton.farmer-tabs", ["game", "tasks"]);
@@ -26,14 +26,14 @@ export default function WontonFarmer() {
   useFarmerAsyncTask(
     "daily-check-in",
     () => {
-      return (async function () {
+      return async function () {
         try {
           const data = await dailyCheckInMutation.mutateAsync();
           if (data.newCheckin) {
             toast.success("Wonton Daily Check-In");
           }
         } catch {}
-      })();
+      };
     },
     []
   );
@@ -43,7 +43,7 @@ export default function WontonFarmer() {
     "farming",
     () => {
       if (farmingStatusQuery.data) {
-        return (async function () {
+        return async function () {
           // Check
           const farming = farmingStatusQuery.data;
 
@@ -66,7 +66,7 @@ export default function WontonFarmer() {
             /** Refetch */
             await farmingStatusQuery.refetch();
           }
-        })();
+        };
       }
     },
     [farmingStatusQuery.data]

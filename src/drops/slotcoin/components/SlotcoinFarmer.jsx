@@ -1,5 +1,6 @@
 import * as Tabs from "@radix-ui/react-tabs";
 import toast from "react-hot-toast";
+import useFarmerAsyncTask from "@/hooks/useFarmerAsyncTask";
 import useFarmerAutoTab from "@/hooks/useFarmerAutoTab";
 import useSocketTabs from "@/hooks/useSocketTabs";
 import { cn } from "@/lib/utils";
@@ -11,7 +12,6 @@ import SlotcoinQuests from "./SlotcoinQuests";
 import SlotcoinTickets from "./SlotcoinTickets";
 import useSlotcoinCheckInInfoQuery from "../hooks/useSlotcoinCheckInInfoQuery";
 import useSlotcoinCheckInMutation from "../hooks/useSlotcoinCheckInMutation";
-import useFarmerAsyncTask from "@/hooks/useFarmerAsyncTask";
 
 export default function SlotcoinFarmer() {
   const checkInQuery = useSlotcoinCheckInInfoQuery();
@@ -27,14 +27,14 @@ export default function SlotcoinFarmer() {
     "daily-check-in",
     () => {
       if (checkInQuery.data)
-        return (async function () {
+        return async function () {
           const checkIn = checkInQuery.data;
 
           if (checkIn["time_to_claim"] <= 0) {
             await checkInMutation.mutateAsync();
             toast.success("Slotcoin - Check-In");
           }
-        })();
+        };
     },
     [checkInQuery.data]
   );

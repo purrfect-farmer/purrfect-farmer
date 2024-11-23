@@ -32,7 +32,7 @@ export default function useYescoinDailyCheckIn() {
           Boolean
         )
       )
-        return (async function () {
+        return async function () {
           const checkIn = dailyMissionQuery.data.find(
             (item) => item.link === "CheckIn"
           );
@@ -108,7 +108,7 @@ export default function useYescoinDailyCheckIn() {
             /** Refetch */
             await dailyMissionQuery.refetch();
           }
-        })();
+        };
     },
     [dailyMissionQuery.data, signInListQuery.data, walletQuery.data]
   );
