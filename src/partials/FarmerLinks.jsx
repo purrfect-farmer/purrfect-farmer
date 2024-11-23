@@ -1,6 +1,5 @@
 import * as ContextMenu from "@radix-ui/react-context-menu";
 import * as Dialog from "@radix-ui/react-dialog";
-import * as yup from "yup";
 import toast from "react-hot-toast";
 import useAppContext from "@/hooks/useAppContext";
 import useSocketDispatchCallback from "@/hooks/useSocketDispatchCallback";
@@ -21,21 +20,7 @@ import { useState } from "react";
 import TelegramLogo from "../assets/images/telegram-logo.svg";
 import TelegramLinkForm from "./TelegramLinkForm";
 
-const schema = yup
-  .object({
-    telegramLink: yup
-      .string()
-      .trim()
-      .url()
-      .matches(/^http(s)*:\/\/t\.me\/.+/, {
-        message: "Not a Valid Telegram Link",
-      })
-      .required()
-      .label("Telegram Link"),
-    title: yup.string().trim().label("Title"),
-  })
-  .required();
-
+/** Load Link Icon */
 const loadLinkIcon = function (src) {
   return new Promise((resolve, reject) => {
     const image = new Image();
@@ -45,6 +30,7 @@ const loadLinkIcon = function (src) {
   });
 };
 
+/** Link Icon */
 const FarmerLinkIcon = ({ link, refetch, ...props }) => {
   const [src, setSrc] = useState(null);
 
