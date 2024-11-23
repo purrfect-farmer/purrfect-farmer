@@ -129,6 +129,11 @@ export function postPortMessage(port, data) {
   });
 }
 
+/** Check if it's a Telegram Link */
+export function isTelegramLink(link) {
+  return /^http(s)*:\/\/t\.me\/.+/i.test(link);
+}
+
 /** Check if it's a bot URL */
 export function isBotURL(url) {
   return /_bot|startapp=|start=/i.test(url);

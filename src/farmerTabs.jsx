@@ -47,21 +47,12 @@ const farmerTabs = [
     component: <TelegramWeb version="a" />,
   },
   {
-    id: "matchquest",
-    title: "MatchQuest",
-    icon: farmerIcons["matchquest"],
-    component: <Farmer farmer="MatchQuest" />,
-    telegramLink:
-      "https://t.me/MatchQuestBot/start?startapp=775f1cc48a46ce5221f1d9476233dc33",
-    tasks: ["farming", "tasks", "daily-task-purchase", "game"],
-  },
-  {
-    id: "notgram",
-    title: "Notgram",
-    icon: farmerIcons["notgram"],
-    component: <Farmer farmer="Notgram" />,
-    telegramLink: "https://t.me/notgram_game_bot?start=r1147265290",
-    tasks: ["tasks"],
+    id: "dreamcoin",
+    title: "DreamCoin",
+    icon: farmerIcons["dreamcoin"],
+    component: <Farmer farmer="DreamCoin" />,
+    telegramLink: "https://t.me/DreamCoinOfficial_bot?start=1147265290",
+    tasks: ["daily-reward", "upgrade-all-level", "rewards", "lottery"],
   },
   {
     id: "notpixel",
@@ -106,6 +97,23 @@ const farmerTabs = [
     tasks: ["daily-check-in", "farming", "tasks", "game"],
   },
   {
+    id: "notgram",
+    title: "Notgram",
+    icon: farmerIcons["notgram"],
+    component: <Farmer farmer="Notgram" />,
+    telegramLink: "https://t.me/notgram_game_bot?start=r1147265290",
+    tasks: ["tasks"],
+  },
+  {
+    id: "matchquest",
+    title: "MatchQuest",
+    icon: farmerIcons["matchquest"],
+    component: <Farmer farmer="MatchQuest" />,
+    telegramLink:
+      "https://t.me/MatchQuestBot/start?startapp=775f1cc48a46ce5221f1d9476233dc33",
+    tasks: ["farming", "tasks", "daily-task-purchase", "game"],
+  },
+  {
     id: "tomarket",
     title: "Tomarket",
     icon: farmerIcons["tomarket"],
@@ -122,15 +130,6 @@ const farmerTabs = [
     tasks: ["daily-check-in", "missions", "tickets", "lottery"],
   },
   {
-    id: "slotcoin",
-    title: "Slotcoin",
-    icon: farmerIcons["slotcoin"],
-    component: <Farmer farmer="Slotcoin" />,
-    telegramLink:
-      "https://t.me/SlotCoinApp_bot/app?startapp=eyJyZWZfY29kZSI6ImEyZGQtNjBmNyIsInV0bV9pZCI6InJlZmZlcmFsX2xpbmtfc2hhcmUifQ==",
-    tasks: ["daily-check-in", "quests", "tickets", "lottery"],
-  },
-  {
     id: "agent301",
     title: "Agent 301",
     icon: farmerIcons["agent301"],
@@ -138,15 +137,14 @@ const farmerTabs = [
     telegramLink: "https://t.me/Agent301Bot/app?startapp=onetime1147265290",
     tasks: ["tasks", "puzzle", "wheel", "tickets"],
   },
-
   {
-    id: "goats",
-    title: "Goats",
-    icon: farmerIcons["goats"],
-    component: <Farmer farmer="Goats" />,
+    id: "slotcoin",
+    title: "Slotcoin",
+    icon: farmerIcons["slotcoin"],
+    component: <Farmer farmer="Slotcoin" />,
     telegramLink:
-      "https://t.me/realgoats_bot/run?startapp=f0a65866-9ab8-4f40-af15-7dcd196d3af7",
-    tasks: ["daily-check-in", "missions"],
+      "https://t.me/SlotCoinApp_bot/app?startapp=eyJyZWZfY29kZSI6ImEyZGQtNjBmNyIsInV0bV9pZCI6InJlZmZlcmFsX2xpbmtfc2hhcmUifQ==",
+    tasks: ["daily-check-in", "quests", "tickets", "lottery"],
   },
   {
     id: "truecoin",
@@ -163,6 +161,15 @@ const farmerTabs = [
     component: <Farmer farmer="BirdTon" />,
     telegramLink: "https://t.me/BIRDTonBot/app?startapp=1147265290",
     tasks: ["daily-check-in", "game", "tasks"],
+  },
+  {
+    id: "goats",
+    title: "Goats",
+    icon: farmerIcons["goats"],
+    component: <Farmer farmer="Goats" />,
+    telegramLink:
+      "https://t.me/realgoats_bot/run?startapp=f0a65866-9ab8-4f40-af15-7dcd196d3af7",
+    tasks: ["daily-check-in", "missions"],
   },
 ];
 

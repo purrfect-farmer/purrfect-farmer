@@ -1,6 +1,7 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
+
 import App from "./App.jsx";
 
 const queryClient = new QueryClient({
@@ -10,7 +11,7 @@ const queryClient = new QueryClient({
         return !queryClient.isMutating({
           mutationKey: query.queryKey.slice(0, 1),
         })
-          ? query.meta?.defaultRefetchInterval ?? 20_000
+          ? query.meta?.defaultRefetchInterval ?? 30_000
           : false;
       },
     },

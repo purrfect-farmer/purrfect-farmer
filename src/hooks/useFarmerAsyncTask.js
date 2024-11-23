@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import { useRef } from "react";
 import { useState } from "react";
+
 import useFarmerAutoTask from "./useFarmerAutoTask";
 
 export default function useFarmerAsyncTask(task, callback, deps = []) {
@@ -24,7 +25,7 @@ export default function useFarmerAsyncTask(task, callback, deps = []) {
         setIsProcessed(true);
       });
     }
-  }, deps);
+  }, [lockRef.current, ...deps]);
 
   /** Process Next Task */
   useFarmerAutoTask(
