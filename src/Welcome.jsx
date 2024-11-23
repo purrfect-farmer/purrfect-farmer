@@ -297,7 +297,21 @@ export default function Welcome() {
                 <FarmerLinks />
               </Dialog.Root>
             </Tabs.List>
-            <Tabs.Content value="farmers">
+            <Tabs.Content value="farmers" className="flex flex-col gap-2">
+              {/* Configure Farmers */}
+              <button
+                onClick={() => dispatchAndSetShowSettingsPanel(true)}
+                className={cn(
+                  "font-bold",
+                  "flex items-center justify-center",
+                  "rounded-lg shrink-0",
+                  "text-blue-800 bg-blue-100",
+                  "p-2"
+                )}
+              >
+                Configure Farmers {drops.length} / {farmers.length}
+              </button>
+
               {/* Drops */}
               <div className={cn("flex flex-wrap justify-center w-full")}>
                 {/* Drops */}
@@ -332,20 +346,6 @@ export default function Welcome() {
               )}
             </Tabs.Content>
           </Tabs.Root>
-
-          {/* Configure Farmers */}
-          <button
-            onClick={() => dispatchAndSetShowSettingsPanel(true)}
-            className={cn(
-              "font-bold",
-              "flex items-center justify-center",
-              "rounded-lg shrink-0",
-              "text-blue-800 bg-blue-100",
-              "p-2"
-            )}
-          >
-            Configure Farmers {drops.length} / {farmers.length}
-          </button>
 
           {/* Connect */}
           <div className="flex items-center justify-center gap-2 text-xs">
