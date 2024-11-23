@@ -13,6 +13,7 @@ import useDreamCoinDailyTasksQuery from "../hooks/useDreamCoinDailyTasksQuery";
 import useDreamCoinLevelQuery from "../hooks/useDreamCoinLevelQuery";
 import useDreamCoinUpgradeAllLevelMutation from "../hooks/useDreamCoinUpgradeAllLevelMutation";
 import useDreamCoinUserQuery from "../hooks/useDreamCoinUserQuery";
+import useFarmerAutoTab from "@/hooks/useFarmerAutoTab";
 
 export default function DreamCoinFarmer() {
   const tabs = useSocketTabs("dreamcoin.farmer-tabs", ["lottery", "rewards"]);
@@ -70,6 +71,9 @@ export default function DreamCoinFarmer() {
     },
     [userQuery.data, levelQuery.data]
   );
+
+  /** Switch Tab Automatically */
+  useFarmerAutoTab(tabs);
 
   return (
     <>
