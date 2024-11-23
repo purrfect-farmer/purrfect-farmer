@@ -15,7 +15,10 @@ import useDreamCoinUserQuery from "../hooks/useDreamCoinUserQuery";
 export default function DreamCoinLottery() {
   const query = useDreamCoinUserQuery();
   const multiplier = useMemo(
-    () => (query.data ? Math.max(...query.data.availableSpinMultipliers) : 1),
+    () =>
+      query.data?.availableSpinMultipliers
+        ?.sort((a, b) => b - a)
+        ?.find((item) => item <= query.data.energy.current) || 1,
     [query.data]
   );
   const energy = useMemo(
@@ -125,6 +128,10 @@ export default function DreamCoinLottery() {
           >
             {process.started ? "Stop" : "Start"}
           </button>
+
+          <p className="font-bold text-center text-purple-500">
+            Multiplier: {multiplier}
+          </p>
 
           {/* Farming Speed */}
           <div className="flex flex-col gap-1">
