@@ -1,12 +1,10 @@
 import * as ContextMenu from "@radix-ui/react-context-menu";
 import * as Dialog from "@radix-ui/react-dialog";
 import * as yup from "yup";
-import Input from "@/components/Input";
 import toast from "react-hot-toast";
 import useAppContext from "@/hooks/useAppContext";
 import useSocketDispatchCallback from "@/hooks/useSocketDispatchCallback";
 import useStorageState from "@/hooks/useStorageState";
-import { Controller, FormProvider, useForm } from "react-hook-form";
 import {
   HiOutlineListBullet,
   HiOutlinePencil,
@@ -19,9 +17,9 @@ import { useCallback } from "react";
 import { useEffect } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { useState } from "react";
-import { yupResolver } from "@hookform/resolvers/yup";
 
 import TelegramLogo from "../assets/images/telegram-logo.svg";
+import TelegramLinkForm from "./TelegramLinkForm";
 
 const schema = yup
   .object({
@@ -75,12 +73,10 @@ export default function FarmerLinks() {
   const [openModal, setOpenModal] = useState(false);
   const [currentLink, setCurrentLink] = useState(null);
 
+  /** Show as Grid */
   const showAsGrid = settings.showLinksAsGrid;
 
-  const form = useForm({
-    resolver: yupResolver(schema),
-  });
-
+  /** Fetch Metadata */
   const telegramLinkMutation = useMutation({
     mutationKey: ["app", "telegram-link"],
     async mutationFn(data) {
@@ -105,6 +101,7 @@ export default function FarmerLinks() {
     },
   });
 
+  /** Create or Edit Link */
   const createOrEditLink = useCallback(
     (link = null) => {
       setCurrentLink(link);
@@ -113,6 +110,7 @@ export default function FarmerLinks() {
     [setCurrentLink, setOpenModal]
   );
 
+  /** Store Links */
   const [, dispatchAndStoreLinks] = useSocketDispatchCallback(
     "app.store-links",
     storeLinks,
@@ -144,11 +142,11 @@ export default function FarmerLinks() {
 
   /** Save Link */
   const handleFormSubmit = useCallback(
-    (data) => {
+    (data) =>
       toast.promise(
         updateLink({
           ...data,
-          id: currentLink?.id || uuid(),
+          id: data.id || uuid(),
         }).then(() => {
           setCurrentLink(null);
           setOpenModal(false);
@@ -158,15 +156,9 @@ export default function FarmerLinks() {
           success: "Telegram Link Saved!",
           error: "Failed to Save!",
         }
-      );
-    },
+      ),
     [updateLink]
   );
-
-  /** Reset Form */
-  useEffect(() => {
-    form.reset();
-  }, [openModal]);
 
   return (
     <Dialog.Portal>
@@ -242,9 +234,9 @@ export default function FarmerLinks() {
                   showAsGrid ? "flex-wrap" : "flex-col gap-2"
                 )}
               >
-                {links.map((link, index) => (
+                {links.map((link) => (
                   <div
-                    key={index}
+                    key={link.id}
                     className={cn("flex flex-col", showAsGrid && "w-1/3 p-1")}
                   >
                     <ContextMenu.Root>
@@ -377,68 +369,11 @@ export default function FarmerLinks() {
                 Create or Edit Link
               </Dialog.Description>
 
-              <FormProvider {...form}>
-                <form
-                  onSubmit={form.handleSubmit(handleFormSubmit)}
-                  className="flex flex-col gap-2"
-                >
-                  {/* Telegram Link */}
-                  <Controller
-                    name="telegramLink"
-                    defaultValue={currentLink?.telegramLink || ""}
-                    render={({ field, fieldState }) => (
-                      <>
-                        <label className="text-neutral-500">
-                          Telegram Link
-                        </label>
-                        <Input
-                          {...field}
-                          autoComplete="off"
-                          placeholder="Telegram Link"
-                        />
-                        {fieldState.error?.message ? (
-                          <p className="text-red-500">
-                            {fieldState.error?.message}
-                          </p>
-                        ) : null}
-                      </>
-                    )}
-                  />
-
-                  {/* Title */}
-                  <Controller
-                    name="title"
-                    defaultValue={currentLink?.title || ""}
-                    render={({ field, fieldState }) => (
-                      <>
-                        <label className="text-neutral-500">Title</label>
-                        <Input
-                          {...field}
-                          autoComplete="off"
-                          placeholder="Title (Optional)"
-                        />
-                        {fieldState.error?.message ? (
-                          <p className="text-red-500">
-                            {fieldState.error?.message}
-                          </p>
-                        ) : null}
-                      </>
-                    )}
-                  />
-
-                  {/* Save Button */}
-                  <button
-                    type="submit"
-                    className={cn(
-                      "px-4 py-2 bg-blue-500 text-white rounded-lg",
-                      "disabled:opacity-50"
-                    )}
-                    disabled={telegramLinkMutation.isPending}
-                  >
-                    {telegramLinkMutation.isPending ? "Saving..." : "Save"}
-                  </button>
-                </form>
-              </FormProvider>
+              {/* Form */}
+              <TelegramLinkForm
+                link={currentLink}
+                handleFormSubmit={handleFormSubmit}
+              />
 
               {/* Cancel Button */}
               <Dialog.Close
