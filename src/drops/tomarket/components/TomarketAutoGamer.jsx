@@ -64,7 +64,7 @@ export default function Tomarket({ tomarket }) {
       process.lock();
 
       try {
-        await startGameMutation.mutateAsync();
+        const game = await startGameMutation.mutateAsync();
 
         /** Wait for countdown */
         setCountdown(Date.now() + GAME_DURATION);
@@ -74,7 +74,7 @@ export default function Tomarket({ tomarket }) {
         setCountdown(null);
 
         /** Claim Game */
-        await claimGameMutation.mutateAsync();
+        await claimGameMutation.mutateAsync(game["stars"]);
       } catch {}
 
       /** Add a little delay */

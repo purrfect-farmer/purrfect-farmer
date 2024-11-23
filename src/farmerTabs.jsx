@@ -119,7 +119,7 @@ const farmerTabs = [
     icon: farmerIcons["tomarket"],
     component: <Farmer farmer="Tomarket" />,
     telegramLink: "https://t.me/Tomarket_ai_bot/app?startapp=00003s0r",
-    tasks: ["game"],
+    tasks: ["farming", "game"],
   },
   {
     id: "pumpad",

@@ -1,38 +1,28 @@
 import toast from "react-hot-toast";
-import { CgSpinner } from "react-icons/cg";
+import useFarmerAsyncTask from "@/hooks/useFarmerAsyncTask";
+import useFarmerContext from "@/hooks/useFarmerContext";
+import { delay } from "@/lib/utils";
+import { isAfter } from "date-fns";
 import { useEffect } from "react";
-import { useState } from "react";
 
 import TomarketAutoGamer from "./TomarketAutoGamer";
 import TomarketBalanceDisplay from "./TomarketBalanceDisplay";
 import TomarketFarmerHeader from "./TomarketFarmerHeader";
+import useTomarketClaimFarmingMutation from "../hooks/useTomarketClaimFarmingMutation";
 import useTomarketDailyCheckInMutation from "../hooks/useTomarketDailyCheckInMutation";
-import useTomarketDailyCombo from "../hooks/useTomarketDailyCombo";
-import { getTomarketGame } from "../lib/utils";
-import { logNicely } from "@/lib/utils";
+import useTomarketFarmingInfoQuery from "../hooks/useTomarketFarmingInfoQuery";
+import useTomarketStartFarmingMutation from "../hooks/useTomarketStartFarmingMutation";
 
 export default function TomarketFarmer() {
-  const [tomarket, setTomarket] = useState(null);
+  const { tomarket } = useFarmerContext();
+
+  const farmingInfoQuery = useTomarketFarmingInfoQuery();
   const dailyCheckInMutation = useTomarketDailyCheckInMutation();
-
-  /** Get Tomarket ID */
-  useEffect(() => {
-    (async function () {
-      const result = await getTomarketGame();
-
-      /** Log it */
-      logNicely("TOMARKET", result);
-
-      setTomarket(result);
-    })();
-  }, []);
+  const startFarmingMutation = useTomarketStartFarmingMutation();
+  const claimFarmingMutation = useTomarketClaimFarmingMutation();
 
   /** Daily Check-In */
   useEffect(() => {
-    if (!tomarket) {
-      return;
-    }
-
     (async function () {
       const result = await dailyCheckInMutation.mutateAsync(tomarket.daily);
 
@@ -42,19 +32,46 @@ export default function TomarketFarmer() {
     })();
   }, [tomarket]);
 
-  /** Daily Combo */
-  useTomarketDailyCombo();
+  /** Farming */
+  useFarmerAsyncTask(
+    "farming",
+    () => {
+      if (farmingInfoQuery.data) {
+        return async function () {
+          const farm = farmingInfoQuery.data;
+          const shouldHavest =
+            farm["round_id"] &&
+            farm["end_at"] &&
+            isAfter(new Date(), new Date(farm["end_at"] * 1000));
 
-  return tomarket ? (
+          if (shouldHavest) {
+            /** Claim Farming */
+            await claimFarmingMutation.mutateAsync();
+            toast.success("Tomarket - Claimed Farming");
+
+            /** Delay */
+            await delay(1000);
+
+            /** Start Farming */
+            await startFarmingMutation.mutateAsync();
+            toast.success("Tomarket - Started Farming");
+          } else {
+            /** Start Farming */
+            await startFarmingMutation.mutateAsync();
+            toast.success("Tomarket - Started Farming");
+          }
+        };
+      }
+    },
+    [farmingInfoQuery.data]
+  );
+
+  return (
     <div className="flex flex-col p-4">
       <TomarketFarmerHeader />
       <TomarketBalanceDisplay />
 
       <TomarketAutoGamer tomarket={tomarket} />
-    </div>
-  ) : (
-    <div className="flex items-center justify-center grow">
-      <CgSpinner className="w-5 h-5 mx-auto animate-spin text-rose-500" />
     </div>
   );
 }
