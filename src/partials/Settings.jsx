@@ -10,10 +10,10 @@ import defaultSettings from "@/defaultSettings";
 import useAppContext from "@/hooks/useAppContext";
 import useSocketTabs from "@/hooks/useSocketTabs";
 import { CgSpinner } from "react-icons/cg";
+import { HiOutlineSquares2X2 } from "react-icons/hi2";
+import { Reorder, useDragControls } from "motion/react";
 import { cn, maximizeFarmerWindow, resizeFarmerWindow } from "@/lib/utils";
 import { useCallback, useEffect, useState } from "react";
-import { Reorder, useDragControls } from "motion/react";
-import { HiOutlineSquares2X2 } from "react-icons/hi2";
 
 const DropReorderItem = ({ children, ...props }) => {
   const dragControls = useDragControls();
@@ -24,7 +24,8 @@ const DropReorderItem = ({ children, ...props }) => {
         <button
           className={cn(
             "flex items-center justify-center",
-            "px-2 rounded-lg bg-neutral-100 shrink-0"
+            "px-3 rounded-lg bg-neutral-100 shrink-0",
+            "touch-none"
           )}
           onPointerDown={(event) => dragControls.start(event)}
         >
