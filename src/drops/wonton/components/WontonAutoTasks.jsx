@@ -173,7 +173,7 @@ export default function WontonAutoTasks() {
   /** Claim Progress */
   useEffect(() => {
     (async function () {
-      if (taskProgress > 0) {
+      if (taskProgress >= 3) {
         await claimProgressMutation.mutateAsync();
         toast.success("Wonton - Claimed Progress");
       }

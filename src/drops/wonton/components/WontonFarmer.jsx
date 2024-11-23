@@ -6,6 +6,7 @@ import useSocketTabs from "@/hooks/useSocketTabs";
 import { cn } from "@/lib/utils";
 import { isAfter } from "date-fns";
 
+import WontonAutoBadges from "./WontonBadges";
 import WontonAutoGamer from "./WontonAutoGamer";
 import WontonAutoTasks from "./WontonAutoTasks";
 import WontonBalanceDisplay from "./WontonBalanceDisplay";
@@ -17,11 +18,13 @@ import useWontonFarmingStatusQuery from "../hooks/useWontonFarmingStatusQuery";
 import useWontonStartFarmingMutation from "../hooks/useWontonStartFarmingMutation";
 
 export default function WontonFarmer() {
-  const tabs = useSocketTabs("wonton.farmer-tabs", ["game", "tasks"]);
+  const tabs = useSocketTabs("wonton.farmer-tabs", ["game", "badges", "tasks"]);
+
   const dailyCheckInMutation = useWontonDailyCheckInMutation();
+
+  const farmingStatusQuery = useWontonFarmingStatusQuery();
   const startFarmingMutation = useWontonStartFarmingMutation();
   const claimFarmingMutation = useWontonClaimFarmingMutation();
-  const farmingStatusQuery = useWontonFarmingStatusQuery();
 
   useFarmerAsyncTask(
     "daily-check-in",
@@ -82,7 +85,7 @@ export default function WontonFarmer() {
       <WontonBalanceDisplay />
 
       <Tabs.Root {...tabs.rootProps} className="flex flex-col gap-4">
-        <Tabs.List className="grid grid-cols-2">
+        <Tabs.List className="grid grid-cols-3">
           {tabs.list.map((value, index) => (
             <Tabs.Trigger
               key={index}
@@ -103,6 +106,13 @@ export default function WontonFarmer() {
           value="game"
         >
           <WontonAutoGamer />
+        </Tabs.Content>
+        <Tabs.Content
+          forceMount
+          className="data-[state=inactive]:hidden"
+          value="badges"
+        >
+          <WontonAutoBadges />
         </Tabs.Content>
         <Tabs.Content
           forceMount
