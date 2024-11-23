@@ -2,7 +2,7 @@ import * as Tabs from "@radix-ui/react-tabs";
 import toast from "react-hot-toast";
 import useFarmerAsyncTask from "@/hooks/useFarmerAsyncTask";
 import useSocketTabs from "@/hooks/useSocketTabs";
-import { cn, delay } from "@/lib/utils";
+import { cn, delay, logNicely } from "@/lib/utils";
 
 import DreamCoinIcon from "../assets/images/icon.png?format=webp&w=80";
 import DreamCoinInfoDisplay from "./DreamCoinInfoDisplay";
@@ -31,10 +31,15 @@ export default function DreamCoinFarmer() {
         return async function () {
           const today = new Date().toISOString().split("T")[0];
           const dailyTasks = dailyTasksQuery.data.dailyTasks;
-
           const day = dailyTasks.find(
             (item) => item.date === today && !item.isClaimed
           );
+
+          /** Log It */
+          logNicely("DREAMCOIN TODAY", today);
+          logNicely("DREAMCOIN DAILY-TASKS", dailyTasks);
+          logNicely("DREAMCOIN DAY", day);
+
           if (day) {
             await claimDailyTaskMutation.mutateAsync(item.id);
             toast.success("DreamCoin - Daily Reward");
@@ -50,10 +55,10 @@ export default function DreamCoinFarmer() {
     () => {
       if (userQuery.data && levelQuery.data)
         return async function () {
-          const totalGoldCost = levelQuery.data.totalGoldCost;
           const balance = userQuery.data.balance;
+          const { upgradesCount, totalGoldCost } = levelQuery.data;
 
-          if (balance >= totalGoldCost) {
+          if (upgradesCount && balance >= totalGoldCost) {
             await upgradeAllLevelMutation.mutateAsync();
             toast.success("Dream-Coin Upgraded Level");
 
