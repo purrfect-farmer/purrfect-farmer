@@ -103,8 +103,6 @@ export default function Tomarket({ tomarket }) {
     <div className="flex flex-col gap-2">
       {tickets > 0 ? (
         <>
-          <h3 className="font-bold">Game</h3>
-
           <TomarketInput
             disabled={process.started || tickets < 1}
             value={desiredPoint}
@@ -114,7 +112,7 @@ export default function Tomarket({ tomarket }) {
             max={MAX_POINT}
             placeholder={`Range (${MIN_POINT} - ${MAX_POINT})`}
           />
-          <p className="text-gray-500">
+          <p className="text-rose-100">
             Minimum Point (automatically adds extra 1-20 points.)
           </p>
         </>
@@ -162,7 +160,7 @@ export default function Tomarket({ tomarket }) {
               </p>
             </>
           ) : (
-            <p className="text-gray-400">Loading...</p>
+            <p className="text-rose-100">Loading...</p>
           )}
         </div>
       ) : null}

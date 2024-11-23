@@ -9,7 +9,7 @@ function Tomarket() {
   const farmer = useTomarket(useTomarketFarmer());
 
   return (
-    <div className="flex flex-col min-w-0 min-h-0 grow">
+    <div className="flex flex-col min-w-0 min-h-0 text-white bg-rose-500 grow">
       <FarmerContext.Provider value={farmer}>
         {farmer.tomarket ? (
           <TomarketFarmer />

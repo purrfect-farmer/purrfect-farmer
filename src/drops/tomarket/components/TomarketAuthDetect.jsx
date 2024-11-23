@@ -8,7 +8,7 @@ export default function TomarketAuthDetect({ status }) {
       title={"Tomarket Farmer"}
       icon={TomarketIcon}
       status={status}
-      className="text-gray-400"
+      className="text-rose-100"
     />
   );
 }
