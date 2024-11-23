@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useLayoutEffect } from "react";
 import { useState } from "react";
 
 import useFarmerAutoTask from "./useFarmerAutoTask";
@@ -9,7 +9,7 @@ export default function useFarmerAsyncTask(task, effect, deps = []) {
   const [callback, setCallback] = useState(null);
 
   /** Run the Effect */
-  useEffect(() => {
+  useLayoutEffect(() => {
     /** Get the return value */
     const returnValue = effect();
 
@@ -17,7 +17,7 @@ export default function useFarmerAsyncTask(task, effect, deps = []) {
     setCallback(() => returnValue || null);
   }, [...deps]);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (!callback || isRunning) return;
     /** Lock */
     setIsRunning(true);
