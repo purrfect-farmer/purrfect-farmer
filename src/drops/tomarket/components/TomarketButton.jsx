@@ -8,7 +8,7 @@ export default function TomarketButton({ color = "primary", ...props }) {
         "rounded-lg font-bold",
         {
           primary: "bg-lime-500 text-black",
-          danger: "bg-red-700 text-white",
+          danger: "bg-white text-red-500",
         }[color],
         props.disabled && "opacity-50",
         props.className

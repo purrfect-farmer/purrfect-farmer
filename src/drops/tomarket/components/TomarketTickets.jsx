@@ -78,7 +78,7 @@ export default function TomarketTickets() {
             className={cn(
               "p-2 font-bold rounded-lg disabled:opacity-50",
               process.started
-                ? "bg-red-700 text-white"
+                ? "bg-white text-red-500"
                 : "bg-lime-500 text-black"
             )}
           >
