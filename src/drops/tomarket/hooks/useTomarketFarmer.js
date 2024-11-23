@@ -14,7 +14,7 @@ export default function useTomarketFarmer() {
           title: "Tomarket Farmer",
         },
         domains: ["*.tomarket.ai"],
-        apiDelay: 1000,
+        apiDelay: 500,
       }),
       []
     )

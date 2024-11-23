@@ -5,10 +5,10 @@ export default function TomarketButton({ color = "primary", ...props }) {
     <button
       className={cn(
         "px-4 py-2",
-        "rounded-lg",
+        "rounded-lg font-bold",
         {
-          primary: "bg-green-500 text-black",
-          danger: "bg-red-500 text-white",
+          primary: "bg-lime-500 text-black",
+          danger: "bg-red-700 text-white",
         }[color],
         props.disabled && "opacity-50",
         props.className

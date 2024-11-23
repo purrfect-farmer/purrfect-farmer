@@ -61,7 +61,7 @@ export default function TomarketTickets() {
         <div className="flex justify-center">Fetching Tickets...</div>
       ) : // Error
       query.isError ? (
-        <div className="flex justify-center text-red-500">
+        <div className="flex justify-center text-red-700">
           Failed to fetch tickets...
         </div>
       ) : (
@@ -76,11 +76,10 @@ export default function TomarketTickets() {
             disabled={ticketsCount < 1}
             onClick={() => process.dispatchAndToggle(!process.started)}
             className={cn(
-              "p-2  rounded-lg disabled:opacity-50",
+              "p-2 font-bold rounded-lg disabled:opacity-50",
               process.started
-                ? "bg-red-500 text-white"
-                : "bg-green-500 text-black",
-              "font-bold"
+                ? "bg-red-700 text-white"
+                : "bg-lime-500 text-black"
             )}
           >
             {process.started ? "Stop" : "Start"}

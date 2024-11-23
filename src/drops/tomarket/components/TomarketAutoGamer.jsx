@@ -133,7 +133,7 @@ export default function Tomarket({ tomarket }) {
           {startGameMutation.isPending ? (
             <p className="font-bold text-yellow-500">Starting Game...</p>
           ) : startGameMutation.isError ? (
-            <p className="font-bold text-red-500">Failed to start game...</p>
+            <p className="font-bold text-red-700">Failed to start game...</p>
           ) : startGameMutation.isSuccess ? (
             <>
               <p className="font-bold text-green-500">
@@ -149,7 +149,7 @@ export default function Tomarket({ tomarket }) {
                 ) : claimGameMutation.isPending ? (
                   <span className="text-yellow-500">Claiming points...</span>
                 ) : claimGameMutation.isError ? (
-                  <span className="text-red-500">
+                  <span className="text-red-700">
                     Failed to claim points...
                   </span>
                 ) : claimGameMutation.isSuccess ? (
