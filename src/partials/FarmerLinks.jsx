@@ -136,7 +136,7 @@ export default function FarmerLinks() {
 
   /** Update Link */
   const updateLink = useCallback(
-    () => (data) =>
+    (data) =>
       telegramLinkMutation.mutateAsync(data).then((data) => {
         /** Store Links */
         dispatchAndStoreLinks(
