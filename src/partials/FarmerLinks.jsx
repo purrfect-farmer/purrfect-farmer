@@ -1,13 +1,12 @@
-import * as yup from "yup";
+import * as ContextMenu from "@radix-ui/react-context-menu";
 import * as Dialog from "@radix-ui/react-dialog";
-import useStorageState from "@/hooks/useStorageState";
-import { cn, fetchContent, isBotURL } from "@/lib/utils";
-import { useCallback } from "react";
-import { useState } from "react";
-import { yupResolver } from "@hookform/resolvers/yup";
-import { Controller, FormProvider, useForm } from "react-hook-form";
+import * as yup from "yup";
 import Input from "@/components/Input";
+import toast from "react-hot-toast";
+import useAppContext from "@/hooks/useAppContext";
 import useSocketDispatchCallback from "@/hooks/useSocketDispatchCallback";
+import useStorageState from "@/hooks/useStorageState";
+import { Controller, FormProvider, useForm } from "react-hook-form";
 import {
   HiOutlineListBullet,
   HiOutlinePencil,
@@ -15,13 +14,14 @@ import {
   HiOutlineSquares2X2,
   HiOutlineTrash,
 } from "react-icons/hi2";
-import useAppContext from "@/hooks/useAppContext";
+import { cn, fetchContent, isBotURL, uuid } from "@/lib/utils";
+import { useCallback } from "react";
 import { useEffect } from "react";
+import { useMutation } from "@tanstack/react-query";
+import { useState } from "react";
+import { yupResolver } from "@hookform/resolvers/yup";
 
 import TelegramLogo from "../assets/images/telegram-logo.svg";
-import toast from "react-hot-toast";
-import { useMutation } from "@tanstack/react-query";
-import * as ContextMenu from "@radix-ui/react-context-menu";
 
 const schema = yup
   .object({
@@ -37,6 +37,32 @@ const schema = yup
     title: yup.string().trim().label("Title"),
   })
   .required();
+
+const loadLinkIcon = function (src) {
+  return new Promise((resolve, reject) => {
+    const image = new Image();
+    image.addEventListener("load", resolve);
+    image.addEventListener("error", reject);
+    image.src = src;
+  });
+};
+
+const FarmerLinkIcon = ({ link, refetch, ...props }) => {
+  const [src, setSrc] = useState(null);
+
+  /** Load Link Icon */
+  useEffect(() => {
+    if (link.icon) {
+      loadLinkIcon(link.icon)
+        .then(() => {
+          setSrc(link.icon);
+        })
+        .catch(refetch);
+    }
+  }, [link.icon]);
+
+  return <img {...props} src={src || TelegramLogo} />;
+};
 
 export default function FarmerLinks() {
   const {
@@ -70,6 +96,7 @@ export default function FarmerLinks() {
 
         return {
           ...data,
+          id: data.id || uuid(),
           title: data.title || titleMeta.getAttribute("content"),
           icon: imageMeta.getAttribute("content"),
           description: descriptionMeta.getAttribute("content"),
@@ -94,42 +121,50 @@ export default function FarmerLinks() {
   );
 
   /** Delete Link */
-  const deleteLink = (link) => {
-    /** Store Links */
-    dispatchAndStoreLinks(
-      links.filter(
-        (item) =>
-          item.title !== link.title || item.telegramLink !== link.telegramLink
-      )
-    );
-  };
+  const deleteLink = useCallback(
+    (link) => {
+      /** Store Links */
+      dispatchAndStoreLinks(
+        links.filter(
+          (item) =>
+            item.title !== link.title || item.telegramLink !== link.telegramLink
+        )
+      );
+    },
+    [links, dispatchAndStoreLinks]
+  );
 
-  /** Save Link */
-  const handleFormSubmit = (data) => {
-    toast.promise(
+  /** Update Link */
+  const updateLink = useCallback(
+    () => (data) =>
       telegramLinkMutation.mutateAsync(data).then((data) => {
         /** Store Links */
         dispatchAndStoreLinks(
-          currentLink
-            ? links.map((link) =>
-                link.title === currentLink.title &&
-                link.telegramLink === currentLink.telegramLink
-                  ? data
-                  : link
-              )
+          links.some((link) => link.id === data.id)
+            ? links.map((link) => (link.id === data.id ? data : link))
             : [...links, data]
         );
-
-        setCurrentLink(null);
-        setOpenModal(false);
       }),
-      {
-        loading: "Please wait...",
-        success: "Telegram Link Saved!",
-        error: "Failed to Save!",
-      }
-    );
-  };
+    [links, dispatchAndStoreLinks]
+  );
+
+  /** Save Link */
+  const handleFormSubmit = useCallback(
+    (data) => {
+      toast.promise(
+        updateLink(data).then(() => {
+          setCurrentLink(null);
+          setOpenModal(false);
+        }),
+        {
+          loading: "Please wait...",
+          success: "Telegram Link Saved!",
+          error: "Failed to Save!",
+        }
+      );
+    },
+    [updateLink]
+  );
 
   /** Reset Form */
   useEffect(() => {
@@ -232,8 +267,9 @@ export default function FarmerLinks() {
                           }
                         >
                           {/* Icon */}
-                          <img
-                            src={link.icon || TelegramLogo}
+                          <FarmerLinkIcon
+                            link={link}
+                            refetch={() => updateLink(link)}
                             className={cn(
                               "rounded-full shrink-0 bg-neutral-200",
                               showAsGrid ? "w-10 h-10" : "w-8 h-8"
