@@ -31,7 +31,7 @@ export default function useFarmerAsyncTask(task, effect, deps = []) {
       setIsProcessed(true);
 
       /** Unlock */
-      setIsRunning(true);
+      setIsRunning(false);
     });
   }, [callback, isRunning]);
 
