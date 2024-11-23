@@ -96,7 +96,6 @@ export default function FarmerLinks() {
 
         return {
           ...data,
-          id: data.id || uuid(),
           title: data.title || titleMeta.getAttribute("content"),
           icon: imageMeta.getAttribute("content"),
           description: descriptionMeta.getAttribute("content"),
@@ -124,12 +123,7 @@ export default function FarmerLinks() {
   const deleteLink = useCallback(
     (link) => {
       /** Store Links */
-      dispatchAndStoreLinks(
-        links.filter(
-          (item) =>
-            item.title !== link.title || item.telegramLink !== link.telegramLink
-        )
-      );
+      dispatchAndStoreLinks(links.filter((item) => link.id !== item.id));
     },
     [links, dispatchAndStoreLinks]
   );
@@ -152,7 +146,10 @@ export default function FarmerLinks() {
   const handleFormSubmit = useCallback(
     (data) => {
       toast.promise(
-        updateLink(data).then(() => {
+        updateLink({
+          ...data,
+          id: currentLink?.id || uuid(),
+        }).then(() => {
           setCurrentLink(null);
           setOpenModal(false);
         }),
