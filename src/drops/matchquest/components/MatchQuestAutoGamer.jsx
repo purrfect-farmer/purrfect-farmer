@@ -95,7 +95,7 @@ export default function MatchQuestAutoGamer() {
   }, [tickets, process]);
 
   /** Auto-Game */
-  useFarmerAutoProcess("game", !gameRuleQuery.isLoading, process.start);
+  useFarmerAutoProcess("game", !gameRuleQuery.isLoading, process);
 
   return (
     <div className="flex flex-col gap-2">

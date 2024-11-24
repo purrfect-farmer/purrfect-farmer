@@ -53,7 +53,7 @@ export default function TomarketTickets() {
   }, [process, ticketsCount, farmingSpeed]);
 
   /** Auto-Spin */
-  useFarmerAutoProcess("tickets", !query.isLoading, process.start);
+  useFarmerAutoProcess("tickets", !query.isLoading, process);
 
   return (
     <>

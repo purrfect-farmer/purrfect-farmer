@@ -194,7 +194,7 @@ export default function Agent301Tasks() {
   }, [process]);
 
   /** Auto-Complete */
-  useFarmerAutoProcess("tasks", !tasksQuery.isLoading, process.start);
+  useFarmerAutoProcess("tasks", !tasksQuery.isLoading, process);
 
   return (
     <div className="p-4">

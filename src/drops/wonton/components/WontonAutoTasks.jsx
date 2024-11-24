@@ -205,7 +205,7 @@ export default function WontonAutoTasks() {
   }, [user]);
 
   /** Auto-Complete Tasks */
-  useFarmerAutoProcess("tasks", !taskQuery.isLoading, process.start);
+  useFarmerAutoProcess("tasks", !taskQuery.isLoading, process);
 
   return (
     <>

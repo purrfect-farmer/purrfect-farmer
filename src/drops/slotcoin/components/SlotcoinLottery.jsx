@@ -63,7 +63,7 @@ export default function SlotcoinLottery() {
   }, [process, energy, bid, farmingSpeed]);
 
   /** Auto-Spin */
-  useFarmerAutoProcess("lottery", !query.isLoading, process.start);
+  useFarmerAutoProcess("lottery", !query.isLoading, process);
 
   return (
     <div className="p-4">

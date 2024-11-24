@@ -94,7 +94,7 @@ export default function HrumAutoTasks({ queries }) {
   }, [process, pendingTasks, setCurrentTask, reset, refetchBalance]);
 
   /** Auto-Complete Tasks */
-  useFarmerAutoProcess("tasks", true, process.start);
+  useFarmerAutoProcess("tasks", true, process);
 
   return (
     <>

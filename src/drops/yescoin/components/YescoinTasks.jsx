@@ -118,7 +118,7 @@ export default function YescoinTasks() {
   }, [process]);
 
   /** Auto-Complete Tasks */
-  useFarmerAutoProcess("tasks", !tasksQuery.isLoading, process.start);
+  useFarmerAutoProcess("tasks", !tasksQuery.isLoading, process);
 
   return tasksQuery.isPending ? (
     <CgSpinner className="w-5 h-5 mx-auto animate-spin" />

@@ -86,7 +86,7 @@ export default function SlotcoinQuests() {
   }, [process, joinTelegramLink]);
 
   /** Auto-Complete Quests */
-  useFarmerAutoProcess("quests", !questsQuery.isLoading, process.start);
+  useFarmerAutoProcess("quests", !questsQuery.isLoading, process);
 
   return (
     <div className="p-4">

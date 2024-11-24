@@ -115,7 +115,7 @@ export default function TruecoinTasks() {
   }, [process]);
 
   /** Auto-Complete Tasks */
-  useFarmerAutoProcess("tasks", !partnerTasksQuery.isLoading, process.start);
+  useFarmerAutoProcess("tasks", !partnerTasksQuery.isLoading, process);
 
   return (
     <div className="p-4">

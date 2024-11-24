@@ -68,7 +68,7 @@ export default function BlumAutoGamer({ workerRef }) {
   );
 
   /** Auto-Play Games */
-  useFarmerAutoProcess("game", !query.isLoading, process.start);
+  useFarmerAutoProcess("game", !query.isLoading, process);
 
   /** Reset Desired Points */
   useEffect(() => {

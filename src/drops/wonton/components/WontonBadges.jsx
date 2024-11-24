@@ -109,7 +109,7 @@ export default function WontonAutoBadges() {
   }, [process, unclaimedBadges]);
 
   /** Auto-Complete Badges */
-  useFarmerAutoProcess("badges", !badgesQuery.isLoading, process.start);
+  useFarmerAutoProcess("badges", !badgesQuery.isLoading, process);
 
   return (
     <>

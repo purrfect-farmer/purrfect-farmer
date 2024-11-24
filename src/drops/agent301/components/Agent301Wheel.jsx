@@ -118,7 +118,7 @@ export default function Agent301Wheel() {
   }, [process]);
 
   /** Auto-Complete */
-  useFarmerAutoProcess("wheel", !wheelQuery.isLoading, process.start);
+  useFarmerAutoProcess("wheel", !wheelQuery.isLoading, process);
 
   return (
     <div className="p-4">

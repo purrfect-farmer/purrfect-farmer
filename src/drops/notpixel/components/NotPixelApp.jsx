@@ -164,7 +164,7 @@ export default function NotPixelApp({ diff, updatedAt }) {
   }, [process, diff, farmingSpeed, mining]);
 
   /** AutoPaint */
-  useFarmerAutoProcess("paint", !miningQuery.isLoading, process.start);
+  useFarmerAutoProcess("paint", !miningQuery.isLoading, process);
 
   return (
     <div className="flex flex-col gap-2 p-4">

@@ -53,7 +53,7 @@ export default function SlotcoinTickets() {
   }, [process, ticketsCount, farmingSpeed]);
 
   /** Auto-Spin */
-  useFarmerAutoProcess("tickets", !query.isLoading, process.start);
+  useFarmerAutoProcess("tickets", !query.isLoading, process);
 
   return (
     <div className="p-4">

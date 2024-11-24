@@ -85,7 +85,7 @@ export default function YescoinGamer() {
   }, [process, zoomies.enabled, coinLeft, specialBox, farmingSpeed]);
 
   /** Auto-Game */
-  useFarmerAutoProcess("game", !gameInfoQuery.isLoading, process.start);
+  useFarmerAutoProcess("game", !gameInfoQuery.isLoading, process);
 
   return (
     <div className="flex flex-col gap-2">

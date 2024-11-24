@@ -231,7 +231,7 @@ export default function BirdTonGamer() {
   }, [process, energy, gameId, startGame, reset, gameSpeedRef]);
 
   /** Auto-Play */
-  useFarmerAutoProcess("game", true, process.start);
+  useFarmerAutoProcess("game", true, process);
 
   return (
     <div className="flex flex-col gap-4">

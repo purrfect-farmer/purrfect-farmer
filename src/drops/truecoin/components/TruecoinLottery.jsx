@@ -117,7 +117,7 @@ export default function TruecoinLottery() {
   );
 
   /** Auto-Spin */
-  useFarmerAutoProcess("lottery", !authQuery.isLoading, process.start);
+  useFarmerAutoProcess("lottery", !authQuery.isLoading, process);
 
   return (
     <div className="flex flex-col gap-2 p-4">

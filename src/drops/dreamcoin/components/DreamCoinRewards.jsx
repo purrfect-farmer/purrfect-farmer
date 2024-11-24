@@ -101,7 +101,7 @@ export default function DreamCoinRewards() {
   }, [process, joinTelegramLink]);
 
   /** Auto-Complete Quests */
-  useFarmerAutoProcess("rewards", !rewardsQuery.isLoading, process.start);
+  useFarmerAutoProcess("rewards", !rewardsQuery.isLoading, process);
 
   return (
     <div className="p-4">

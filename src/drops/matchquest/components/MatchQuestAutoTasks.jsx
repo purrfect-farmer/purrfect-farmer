@@ -140,7 +140,7 @@ export default function MatchQuestAutoTasks() {
   }, [process, joinTelegramLink]);
 
   /** Auto-Complete Tasks */
-  useFarmerAutoProcess("tasks", !taskQuery.isLoading, process.start);
+  useFarmerAutoProcess("tasks", !taskQuery.isLoading, process);
 
   return (
     <>

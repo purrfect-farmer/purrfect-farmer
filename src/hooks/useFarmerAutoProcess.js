@@ -1,46 +1,26 @@
 import useFarmerContext from "@/hooks/useFarmerContext";
-import { useRef } from "react";
 
 import useFarmerAutoTask from "./useFarmerAutoTask";
 
-export default function useFarmerAutoProcess(task, check, start) {
+export default function useFarmerAutoProcess(task, check, process) {
   const { processNextTask } = useFarmerContext();
-  const controllerRef = useRef(null);
 
   return useFarmerAutoTask(
     task,
     () => {
       if (check) {
         /** Start the Process */
-        start((process) => {
-          /** Set Controller */
-          controllerRef.current = process.controller;
-
+        process.start(({ controller }) => {
           /** Add Abort Listener */
-          controllerRef.current.signal.addEventListener(
-            "abort",
-            processNextTask
-          );
+          controller.signal.addEventListener("abort", processNextTask);
         });
 
-        /** Abort on Skip */
+        /** Stop Process */
         return () => {
-          if (controllerRef.current) {
-            /** Remove Abort Listener */
-            controllerRef.current.signal.removeEventListener(
-              "abort",
-              processNextTask
-            );
-
-            /** Abort */
-            controllerRef.current.abort();
-          }
-
-          /** Reset Ref */
-          controllerRef.current = null;
+          process.stop();
         };
       }
     },
-    [check, start, processNextTask]
+    [check, process.start, process.stop, processNextTask]
   );
 }

@@ -189,7 +189,7 @@ export default function BirdTonTasks() {
   }, [process]);
 
   /** Auto-Complete */
-  useFarmerAutoProcess("tasks", true, process.start);
+  useFarmerAutoProcess("tasks", true, process);
 
   return (
     <div className="flex flex-col">

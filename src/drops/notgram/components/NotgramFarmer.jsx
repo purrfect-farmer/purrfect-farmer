@@ -45,7 +45,7 @@ export default function NotgramFarmer() {
   );
 
   /** Auto-Start  */
-  useFarmerAutoProcess("tasks", true, process.start);
+  useFarmerAutoProcess("tasks", true, process);
 
   /** Send Message to Port */
   useEffect(() => {
