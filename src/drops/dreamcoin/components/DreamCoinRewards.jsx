@@ -8,7 +8,7 @@ import { useMemo } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 
-import useDreamCoinClaimDailyTaskMutation from "../hooks/useDreamCoinClaimDailyTaskMutation";
+import useDreamCoinClaimDailyFreeRewardMutation from "../hooks/useDreamCoinClaimDailyFreeRewardMutation";
 import useDreamCoinClaimFreeRewardMutation from "../hooks/useDreamCoinClaimFreeRewardMutation";
 import useDreamCoinFreeRewardQuery from "../hooks/useDreamCoinFreeRewardQuery";
 
@@ -41,7 +41,7 @@ export default function DreamCoinRewards() {
     [tasks]
   );
 
-  const claimDailyTaskMutation = useDreamCoinClaimDailyTaskMutation();
+  const claimDailyTaskMutation = useDreamCoinClaimDailyFreeRewardMutation();
   const claimFreeRewardMutation = useDreamCoinClaimFreeRewardMutation();
 
   const [currentTask, setCurrentTask] = useState(null);

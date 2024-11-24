@@ -1,19 +1,18 @@
 import * as Tabs from "@radix-ui/react-tabs";
 import toast from "react-hot-toast";
 import useFarmerAsyncTask from "@/hooks/useFarmerAsyncTask";
+import useFarmerAutoTab from "@/hooks/useFarmerAutoTab";
 import useSocketTabs from "@/hooks/useSocketTabs";
 import { cn, delay, logNicely } from "@/lib/utils";
-
 import DreamCoinIcon from "../assets/images/icon.png?format=webp&w=80";
 import DreamCoinInfoDisplay from "./DreamCoinInfoDisplay";
 import DreamCoinLottery from "./DreamCoinLottery";
 import DreamCoinRewards from "./DreamCoinRewards";
-import useDreamCoinClaimDailyTaskMutation from "../hooks/useDreamCoinClaimDailyTaskMutation";
 import useDreamCoinDailyTasksQuery from "../hooks/useDreamCoinDailyTasksQuery";
 import useDreamCoinLevelQuery from "../hooks/useDreamCoinLevelQuery";
 import useDreamCoinUpgradeAllLevelMutation from "../hooks/useDreamCoinUpgradeAllLevelMutation";
 import useDreamCoinUserQuery from "../hooks/useDreamCoinUserQuery";
-import useFarmerAutoTab from "@/hooks/useFarmerAutoTab";
+import useDreamCoinClaimDailyTaskMutation from "../hooks/useDreamCoinClaimDailyTaskMutation";
 
 export default function DreamCoinFarmer() {
   const tabs = useSocketTabs("dreamcoin.farmer-tabs", ["lottery", "rewards"]);
