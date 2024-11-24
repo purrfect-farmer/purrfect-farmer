@@ -28,6 +28,7 @@ import FarmerLinks from "./partials/FarmerLinks";
 import Shutdown from "./partials/Shutdown";
 import useAppQuery from "./hooks/useAppQuery";
 import useSocketTabs from "./hooks/useSocketTabs";
+import { useCallback } from "react";
 
 /** Telegram Web Button */
 const TelegramWebButton = forwardRef(({ icon, children, ...props }, ref) => (
@@ -91,6 +92,11 @@ export default function Welcome() {
 
   const tabs = useSocketTabs("app", ["farmers", "bots"]);
 
+  const settingTabs = useSocketTabs("app.settings-tabs", [
+    "settings",
+    "farmers",
+  ]);
+
   /** Bots Query */
   const botsQuery = useAppQuery({
     refetchOnMount: false,
@@ -118,6 +124,18 @@ export default function Welcome() {
       })),
     [botsQuery.data]
   );
+
+  /** Configure Settings */
+  const configureAppSettings = useCallback(() => {
+    settingTabs.setValue("settings");
+    setShowSettingsPanel(true);
+  }, [settingTabs.setValue, setShowSettingsPanel]);
+
+  /** Configure Farmers */
+  const configureFarmers = useCallback(() => {
+    settingTabs.dispatchAndSetValue("farmers");
+    dispatchAndSetShowSettingsPanel(true);
+  }, [settingTabs.dispatchAndSetValue, dispatchAndSetShowSettingsPanel]);
 
   /** Update Title */
   useEffect(() => {
@@ -172,7 +190,7 @@ export default function Welcome() {
                 <ToolbarButton icon={HiOutlineCog6Tooth} title="Settings" />
               </Dialog.Trigger>
 
-              <Settings />
+              <Settings tabs={settingTabs} />
             </Dialog.Root>
           </div>
         </div>
@@ -204,7 +222,7 @@ export default function Welcome() {
 
           {/* Farmer Title */}
           <p
-            onClick={() => setShowSettingsPanel(true)}
+            onClick={configureAppSettings}
             className="font-bold text-center text-blue-500 cursor-pointer"
           >
             {settings.farmerTitle || defaultSettings.farmerTitle}
@@ -300,7 +318,7 @@ export default function Welcome() {
             <Tabs.Content value="farmers" className="flex flex-col gap-2">
               {/* Configure Farmers */}
               <button
-                onClick={() => dispatchAndSetShowSettingsPanel(true)}
+                onClick={configureFarmers}
                 className={cn(
                   "font-bold",
                   "flex items-center justify-center",

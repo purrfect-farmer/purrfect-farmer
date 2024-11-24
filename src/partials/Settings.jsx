@@ -8,7 +8,6 @@ import TelegramWebAIcon from "@/assets/images/telegram-web-a.png?format=webp&w=8
 import TelegramWebKIcon from "@/assets/images/telegram-web-k.png?format=webp&w=80";
 import defaultSettings from "@/defaultSettings";
 import useAppContext from "@/hooks/useAppContext";
-import useSocketTabs from "@/hooks/useSocketTabs";
 import { CgSpinner } from "react-icons/cg";
 import { HiOutlineSquares2X2 } from "react-icons/hi2";
 import { Reorder, useDragControls } from "motion/react";
@@ -36,7 +35,7 @@ const DropReorderItem = ({ children, ...props }) => {
   );
 };
 
-export default function Settings() {
+export default function Settings({ tabs }) {
   const {
     settings,
     configureSettings,
@@ -45,8 +44,6 @@ export default function Settings() {
     enabledDrops,
     orderedDrops,
   } = useAppContext();
-
-  const tabs = useSocketTabs("app.settings-tabs", ["farmers", "settings"]);
 
   /** Sync Server */
   const [syncServer, setSyncServer] = useState(
@@ -181,58 +178,6 @@ export default function Settings() {
                     </Tabs.Trigger>
                   ))}
                 </Tabs.List>
-                <Tabs.Content value="farmers">
-                  <div className="flex flex-col gap-2">
-                    {/* Repeat Cycle */}
-                    <LabelToggle
-                      onChange={(ev) =>
-                        dispatchAndConfigureSettings(
-                          "repeatZoomiesCycle",
-                          ev.target.checked
-                        )
-                      }
-                      checked={settings?.repeatZoomiesCycle}
-                    >
-                      Repeat Zoomies Cycle
-                    </LabelToggle>
-
-                    <p className="p-4 text-center text-blue-800 bg-blue-100 rounded-lg">
-                      Enable the farmers you would like to include.
-                    </p>
-
-                    <Reorder.Group
-                      values={dropsOrder}
-                      className="flex flex-col gap-2"
-                      onReorder={(newOrder) =>
-                        dispatchAndConfigureSettings(
-                          "dropsOrder",
-                          newOrder,
-                          false
-                        )
-                      }
-                    >
-                      {orderedDrops.map((drop) => (
-                        <DropReorderItem key={drop.id} value={drop.id}>
-                          <LabelToggle
-                            onChange={(ev) =>
-                              toggleDrop(drop.id, ev.target.checked)
-                            }
-                            checked={enabledDrops.includes(drop.id)}
-                          >
-                            <div className="flex items-center gap-1">
-                              <img
-                                src={drop.icon}
-                                className="w-6 h-6 rounded-full"
-                              />
-                              <h5>{drop.title}</h5>
-                            </div>
-                          </LabelToggle>
-                        </DropReorderItem>
-                      ))}
-                    </Reorder.Group>
-                  </div>
-                </Tabs.Content>
-
                 <Tabs.Content value="settings">
                   <form
                     onSubmit={(ev) => ev.preventDefault()}
@@ -389,6 +334,59 @@ export default function Settings() {
                       <ConfirmButton onClick={handleSetFarmerPosition} />
                     </div>
                   </form>
+                </Tabs.Content>
+
+                {/* Farmers Config */}
+                <Tabs.Content value="farmers">
+                  <div className="flex flex-col gap-2">
+                    {/* Repeat Cycle */}
+                    <LabelToggle
+                      onChange={(ev) =>
+                        dispatchAndConfigureSettings(
+                          "repeatZoomiesCycle",
+                          ev.target.checked
+                        )
+                      }
+                      checked={settings?.repeatZoomiesCycle}
+                    >
+                      Repeat Zoomies Cycle
+                    </LabelToggle>
+
+                    <p className="p-4 text-center text-blue-800 bg-blue-100 rounded-lg">
+                      Enable the farmers you would like to include.
+                    </p>
+
+                    <Reorder.Group
+                      values={dropsOrder}
+                      className="flex flex-col gap-2"
+                      onReorder={(newOrder) =>
+                        dispatchAndConfigureSettings(
+                          "dropsOrder",
+                          newOrder,
+                          false
+                        )
+                      }
+                    >
+                      {orderedDrops.map((drop) => (
+                        <DropReorderItem key={drop.id} value={drop.id}>
+                          <LabelToggle
+                            onChange={(ev) =>
+                              toggleDrop(drop.id, ev.target.checked)
+                            }
+                            checked={enabledDrops.includes(drop.id)}
+                          >
+                            <div className="flex items-center gap-1">
+                              <img
+                                src={drop.icon}
+                                className="w-6 h-6 rounded-full"
+                              />
+                              <h5>{drop.title}</h5>
+                            </div>
+                          </LabelToggle>
+                        </DropReorderItem>
+                      ))}
+                    </Reorder.Group>
+                  </div>
                 </Tabs.Content>
               </Tabs.Root>
             </div>
