@@ -39,10 +39,10 @@ export default function useFarmerAsyncTask(task, effect, deps = []) {
   useFarmerAutoTask(
     task,
     (zoomies) => {
-      if (isProcessed) {
+      if (isRunning === false && isProcessed) {
         zoomies.processNextTask();
       }
     },
-    [isProcessed]
+    [isRunning, isProcessed]
   );
 }
