@@ -46,6 +46,15 @@ const farmerTabs = [
     icon: TelegramWebAIcon,
     component: <TelegramWeb version="a" />,
   },
+
+  {
+    id: "rekt",
+    title: "Rekt.me",
+    icon: farmerIcons["rekt"],
+    component: <Farmer farmer="Rekt" />,
+    telegramLink: "https://t.me/rektme_bot/rektapp?startapp=UJ740H",
+    tasks: ["daily-reward", "farming"],
+  },
   {
     id: "dreamcoin",
     title: "DreamCoin",

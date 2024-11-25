@@ -10,7 +10,15 @@ const defaultSettings = {
   closeMainWindowOnStartup: false,
   preferredTelegramWebVersion: "k",
   dropsOrder: [],
-  enabledDrops: ["dreamcoin", "notpixel", "blum", "hrum", "yescoin", "wonton"],
+  enabledDrops: [
+    "rekt",
+    "dreamcoin",
+    "notpixel",
+    "blum",
+    "hrum",
+    "yescoin",
+    "wonton",
+  ],
   repeatZoomiesCycle: true,
 };
 

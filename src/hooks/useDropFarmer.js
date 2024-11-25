@@ -278,6 +278,7 @@ export default function useDropFarmer({
       handleWebRequest,
       {
         urls: domainMatches,
+        types: ["xmlhttprequest"],
       },
       ["requestHeaders"]
     );
