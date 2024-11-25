@@ -1,13 +1,13 @@
 import useFarmerApi from "@/hooks/useFarmerApi";
 import { useMutation } from "@tanstack/react-query";
 
-export default function useRektDailyCheckInMutation() {
+export default function useRektClaimFarmingMutation() {
   const api = useFarmerApi();
   return useMutation({
-    mutationKey: ["rekt", "daily-check-in", "claim"],
-    mutationFn: () =>
+    mutationKey: ["rekt", "farming", "claim"],
+    mutationFn: (id) =>
       api
-        .put("https://rekt-mini-app.vercel.app/api/check-in")
+        .put(`https://rekt-mini-app.vercel.app/api/farming/${id}/claim`)
         .then((res) => res.data),
   });
 }
