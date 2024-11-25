@@ -13,11 +13,11 @@ export function uuid() {
 }
 
 export function logNicely(...args) {
-  console.log("==== FARMER LOGGING ====");
+  console.log("\n==== FARMER LOGGING ====");
   args.forEach((item, index) => {
     console.log(index === 0 ? `<<<<${item}>>>>` : item);
   });
-  console.log("==== FARMER ENDED ====");
+  console.log("==== FARMER ENDED ====\n");
 }
 
 export function delay(length, precised = false) {
