@@ -45,7 +45,7 @@ export default function ControlArea() {
           {/* Refresh Button */}
           <button
             className="flex items-center justify-center w-10 h-10 shrink-0"
-            onClick={zoomies.refresh}
+            onClick={() => zoomies.dispatchAndRefresh()}
           >
             <HiOutlineArrowPath className="w-6 h-6 text-orange-500" />
           </button>
@@ -53,7 +53,7 @@ export default function ControlArea() {
           {/* Backward Button */}
           <button
             className="flex items-center justify-center w-10 h-10 shrink-0"
-            onClick={zoomies.processPreviousTask}
+            onClick={() => zoomies.processPreviousTask()}
           >
             <HiOutlineBackward className="w-6 h-6 text-orange-500" />
           </button>
@@ -61,7 +61,7 @@ export default function ControlArea() {
           {/* Forward Button */}
           <button
             className="flex items-center justify-center w-10 h-10 shrink-0"
-            onClick={zoomies.processNextTask}
+            onClick={() => zoomies.processNextTask()}
           >
             <HiOutlineForward className="w-6 h-6 text-orange-500" />
           </button>

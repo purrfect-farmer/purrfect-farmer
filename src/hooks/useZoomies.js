@@ -3,7 +3,9 @@ import toast from "react-hot-toast";
 import { useCallback } from "react";
 import { useEffect } from "react";
 import { useState } from "react";
+
 import useProcessLock from "./useProcessLock";
+import useSocketDispatchCallback from "./useSocketDispatchCallback";
 import useStorageState from "./useStorageState";
 import useValuesMemo from "./useValuesMemo";
 
@@ -55,15 +57,22 @@ export default function useZoomies(core) {
   }, [current.drop, setAuth, core.closeFarmerTabs, core.setActiveTab]);
 
   /** Refresh Zoomies */
-  const refresh = useCallback(() => {
-    setCurrent(() => {
-      return {
-        drop: drops[INITIAL_POSITION],
-        task: drops[INITIAL_POSITION]?.tasks?.[0],
-        cycles: 0,
-      };
-    });
-  }, [drops, setCurrent]);
+  const [refresh, dispatchAndRefresh] = useSocketDispatchCallback(
+    "zoomies.refresh",
+    () => {
+      setCurrent(() => {
+        return {
+          drop: drops[INITIAL_POSITION],
+          task: drops[INITIAL_POSITION]?.tasks?.[0],
+          cycles: 0,
+        };
+      });
+    },
+    [drops, setCurrent],
+
+    /** Socket */
+    core.socket
+  );
 
   /** Skip to Next Drop */
   const skipToNextDrop = useCallback(() => {
@@ -247,5 +256,6 @@ export default function useZoomies(core) {
     processPreviousTask,
     processNextTask,
     refresh,
+    dispatchAndRefresh,
   });
 }
