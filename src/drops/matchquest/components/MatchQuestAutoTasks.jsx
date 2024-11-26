@@ -1,7 +1,7 @@
 import useFarmerAutoProcess from "@/hooks/useFarmerAutoProcess";
 import useFarmerContext from "@/hooks/useFarmerContext";
 import useProcessLock from "@/hooks/useProcessLock";
-import { delay, isBotURL, logNicely } from "@/lib/utils";
+import { canJoinTelegramLink, delay, logNicely } from "@/lib/utils";
 import { useCallback } from "react";
 import { useEffect } from "react";
 import { useMemo } from "react";
@@ -114,7 +114,7 @@ export default function MatchQuestAutoTasks() {
         setTaskOffset(index);
         setCurrentTask(task);
 
-        if (task.link.startsWith("https://t.me/") && !isBotURL(task.link)) {
+        if (canJoinTelegramLink(task.link)) {
           await joinTelegramLink(task.link);
         }
 

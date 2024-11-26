@@ -1,7 +1,7 @@
 import useFarmerAutoProcess from "@/hooks/useFarmerAutoProcess";
 import useFarmerContext from "@/hooks/useFarmerContext";
 import useProcessLock from "@/hooks/useProcessLock";
-import { cn, delay, isBotURL, isTelegramLink, logNicely } from "@/lib/utils";
+import { canJoinTelegramLink, cn, delay, logNicely } from "@/lib/utils";
 import { useCallback } from "react";
 import { useEffect } from "react";
 import { useMemo } from "react";
@@ -75,7 +75,7 @@ export default function DreamCoinRewards() {
         setTaskOffset(index);
         setCurrentTask(task);
         try {
-          if (isTelegramLink(task.actionUrl) && !isBotURL(task.actionUrl)) {
+          if (canJoinTelegramLink(task.actionUrl)) {
             await joinTelegramLink(task.actionUrl);
           }
 

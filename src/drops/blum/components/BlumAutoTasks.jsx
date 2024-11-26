@@ -2,7 +2,7 @@ import useFarmerAutoProcess from "@/hooks/useFarmerAutoProcess";
 import useFarmerContext from "@/hooks/useFarmerContext";
 import useProcessLock from "@/hooks/useProcessLock";
 import useValueTasks from "@/hooks/useValueTasks";
-import { cn, delay, logNicely } from "@/lib/utils";
+import { canJoinTelegramLink, cn, delay, logNicely } from "@/lib/utils";
 import { useCallback } from "react";
 import { useEffect } from "react";
 import { useMemo } from "react";
@@ -229,7 +229,9 @@ export default function BlumAutoTasks() {
             setTaskOffset(index);
             setCurrentTask(task);
             if (task.socialSubscription?.openInTelegram) {
-              await joinTelegramLink(task.socialSubscription.url);
+              if (canJoinTelegramLink(task.socialSubscription.url)) {
+                await joinTelegramLink(task.socialSubscription.url);
+              }
             }
 
             try {

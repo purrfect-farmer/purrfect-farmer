@@ -139,6 +139,11 @@ export function isBotURL(url) {
   return /_bot|startapp=|start=/i.test(url);
 }
 
+/** Can Join Telegram Link */
+export function canJoinTelegramLink(link) {
+  return link && isTelegramLink(link) && !/\?/.test(link);
+}
+
 /** Fetch Content */
 export function fetchContent(url, ...options) {
   return axios.get(url, ...options).then((res) => res.data);

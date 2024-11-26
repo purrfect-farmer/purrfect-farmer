@@ -2,7 +2,7 @@ import toast from "react-hot-toast";
 import useFarmerAutoProcess from "@/hooks/useFarmerAutoProcess";
 import useFarmerContext from "@/hooks/useFarmerContext";
 import useProcessLock from "@/hooks/useProcessLock";
-import { cn, delay } from "@/lib/utils";
+import { canJoinTelegramLink, cn, delay } from "@/lib/utils";
 import { useCallback } from "react";
 import { useEffect } from "react";
 import { useMemo } from "react";
@@ -128,7 +128,9 @@ export default function WontonAutoTasks() {
             setCurrentTask(task);
 
             if (task.telegramChatId) {
-              await joinTelegramLink(task.taskUrl);
+              if (canJoinTelegramLink(task.taskUrl)) {
+                await joinTelegramLink(task.taskUrl);
+              }
             }
 
             try {

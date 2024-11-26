@@ -1,7 +1,7 @@
 import useFarmerAutoProcess from "@/hooks/useFarmerAutoProcess";
 import useFarmerContext from "@/hooks/useFarmerContext";
 import useProcessLock from "@/hooks/useProcessLock";
-import { cn, delay } from "@/lib/utils";
+import { canJoinTelegramLink, cn, delay } from "@/lib/utils";
 import { useCallback } from "react";
 import { useEffect } from "react";
 import { useMemo } from "react";
@@ -65,7 +65,7 @@ export default function SlotcoinQuests() {
         setTaskOffset(index);
         setCurrentTask(task);
         try {
-          if (task["task_data"]?.["channel_url"]) {
+          if (canJoinTelegramLink(task["task_data"]?.["channel_url"])) {
             await joinTelegramLink(task["task_data"]?.["channel_url"]);
           }
           await checkTaskMutation.mutateAsync(task.id);

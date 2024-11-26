@@ -80,7 +80,7 @@ export default function RektAutoGame() {
         if (result === "HIT") {
           toast.success("Rekt - Hit");
         } else {
-          toast.success("Rekt - Miss");
+          toast.error("Rekt - Miss");
         }
 
         /** Delay */

@@ -3,7 +3,7 @@ import useFarmerAutoProcess from "@/hooks/useFarmerAutoProcess";
 import useFarmerContext from "@/hooks/useFarmerContext";
 import useMessageHandlers from "@/hooks/useMessageHandlers";
 import useProcessLock from "@/hooks/useProcessLock";
-import { cn, isBotURL, postPortMessage } from "@/lib/utils";
+import { canJoinTelegramLink, cn, postPortMessage } from "@/lib/utils";
 import { useEffect } from "react";
 import { useMemo } from "react";
 
@@ -26,7 +26,7 @@ export default function NotgramFarmer() {
               const { url } = data;
 
               /** Not a bot */
-              if (!isBotURL(url)) {
+              if (canJoinTelegramLink(url)) {
                 joinTelegramLink(url);
               }
 

@@ -1,7 +1,7 @@
 import useFarmerAutoProcess from "@/hooks/useFarmerAutoProcess";
 import useFarmerContext from "@/hooks/useFarmerContext";
 import useProcessLock from "@/hooks/useProcessLock";
-import { cn, delay } from "@/lib/utils";
+import { canJoinTelegramLink, cn, delay } from "@/lib/utils";
 import { useCallback } from "react";
 import { useEffect } from "react";
 import { useMemo } from "react";
@@ -58,7 +58,9 @@ export default function PumpadMissions() {
         try {
           if (mission["sub_type"] === "PUMPAD_CHANNEL") {
             /** Join Link */
-            await joinTelegramLink(mission.url);
+            if (canJoinTelegramLink(mission.url)) {
+              await joinTelegramLink(mission.url);
+            }
 
             const channelId = await getChannelMutation.mutateAsync(mission.id);
 
