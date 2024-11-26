@@ -53,7 +53,14 @@ const farmerTabs = [
     icon: farmerIcons["rekt"],
     component: <Farmer farmer="Rekt" />,
     telegramLink: "https://t.me/rektme_bot/rektapp?startapp=UJ740H",
-    tasks: ["daily-check-in", "farming", "boost-farming", "quests", "game"],
+    tasks: [
+      "daily-check-in",
+      "farming",
+      "boost-farming",
+      "claim-referrals",
+      "quests",
+      "game",
+    ],
   },
   {
     id: "dreamcoin",

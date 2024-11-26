@@ -15,6 +15,10 @@ import useRektClaimFarmingMutation from "../hooks/useRektClaimFarmingMutation";
 import useRektUserQuery from "../hooks/useRektUserQuery";
 import useRektStartFarmingMutation from "../hooks/useRektStartFarmingMutation";
 import useRektBoostFarmingMutation from "../hooks/useRektBoostFarmingMutation";
+import useRektReferralClaimsQuery from "../hooks/useRektReferralClaimsQuery";
+import useRektClaimReferralTradeMutation from "../hooks/useRektClaimReferralTradeMutation";
+import useRektClaimReferralPointsMutation from "../hooks/useRektClaimReferralPointsMutation";
+import { isAfter, subHours } from "date-fns";
 
 export default function RektFarmer() {
   const tabs = useSocketTabs("rekt.farmer-tabs", ["game", "quests"]);
@@ -23,10 +27,14 @@ export default function RektFarmer() {
   const userQuery = useRektUserQuery();
   const activeFarmingQuery = useRektActiveFarmingQuery();
   const unclaimedFarmingQuery = useRektUnclaimedFarmingQuery();
+  const referralClaimsQuery = useRektReferralClaimsQuery();
 
   const startFarmingMutation = useRektStartFarmingMutation();
   const claimFarmingMutation = useRektClaimFarmingMutation();
   const boostFarmingMutation = useRektBoostFarmingMutation();
+
+  const claimReferralTradeMutation = useRektClaimReferralTradeMutation();
+  const claimReferralPointsMutation = useRektClaimReferralPointsMutation();
 
   /** Daily Check-In */
   useFarmerAsyncTask(
@@ -50,8 +58,9 @@ export default function RektFarmer() {
     () => {
       if (unclaimedFarmingQuery.data && activeFarmingQuery.isSuccess) {
         return async function () {
-          if (unclaimedFarmingQuery.data.length) {
-            for (const farming of unclaimedFarmingQuery.data) {
+          const unclaimedFarming = unclaimedFarmingQuery.data;
+          if (unclaimedFarming.length) {
+            for (const farming of unclaimedFarming) {
               /** Claim Farming */
               await claimFarmingMutation.mutateAsync(farming.externalId);
               toast.success("Rekt -  Claimed Farming");
@@ -65,16 +74,16 @@ export default function RektFarmer() {
             toast.success("Rekt -  Started Farming");
 
             /** Refetch */
-            await unclaimedFarmingQuery.refetch();
             await activeFarmingQuery.refetch();
+            await unclaimedFarmingQuery.refetch();
           } else if (!activeFarmingQuery.data) {
             /** Start Farming */
             await startFarmingMutation.mutateAsync();
             toast.success("Rekt -  Started Farming");
 
             /** Refetch */
-            await unclaimedFarmingQuery.refetch();
             await activeFarmingQuery.refetch();
+            await unclaimedFarmingQuery.refetch();
           }
         };
       }
@@ -101,13 +110,48 @@ export default function RektFarmer() {
             toast.success("Rekt -  Boosted Farming");
 
             /** Refetch */
-            await userQuery.refetch();
             await activeFarmingQuery.refetch();
+            await userQuery.refetch();
           }
         };
       }
     },
     [userQuery.data, activeFarmingQuery.data]
+  );
+
+  /** Auto-Claim Referrals */
+  useFarmerAsyncTask(
+    "claim-referrals",
+    () => {
+      if (referralClaimsQuery.data) {
+        return async function () {
+          const claims = referralClaimsQuery.data;
+
+          /** Check if time is due */
+          const canClaimNow = (time) =>
+            !time || isAfter(subHours(new Date(), 2), new Date(time));
+
+          /** Claim Points */
+          if (
+            claims.referredPointsToClaim &&
+            canClaimNow(claims.referralPointsClaimedLastTime)
+          ) {
+            await claimReferralPointsMutation.mutateAsync();
+            toast.success("Rekt - Claimed Referral Points");
+          }
+
+          /** Claim Trades */
+          if (
+            claims.referredTradesToClaim &&
+            canClaimNow(claims.referralTradesClaimedLastTime)
+          ) {
+            await claimReferralTradeMutation.mutateAsync();
+            toast.success("Rekt - Claimed Referral Trades");
+          }
+        };
+      }
+    },
+    [referralClaimsQuery.data]
   );
 
   /** Automatically Switch Tab */
