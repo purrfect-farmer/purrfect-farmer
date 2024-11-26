@@ -14,7 +14,7 @@ export default function DropButton({ drop, ...props }) {
         title={drop.title}
       >
         <img src={drop.icon} className="w-10 h-10 rounded-full shrink-0" />
-        <h3 className={cn("min-w-0 truncate")}>{drop.title}</h3>
+        <h3 className={cn("min-w-0 truncate w-full")}>{drop.title}</h3>
       </button>
     </div>
   );

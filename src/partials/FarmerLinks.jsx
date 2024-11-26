@@ -253,13 +253,13 @@ export default function FarmerLinks() {
 
                           <div className="flex flex-col w-full min-w-0 min-h-0 grow">
                             {/* Title */}
-                            <h4 className="min-w-0 font-bold truncate">
+                            <h4 className="w-full min-w-0 font-bold truncate">
                               {link.title}
                             </h4>
 
                             {/* Description */}
                             {link.description ? (
-                              <p className="min-w-0 truncate text-neutral-500">
+                              <p className="w-full min-w-0 truncate text-neutral-500">
                                 {link.description}
                               </p>
                             ) : null}
