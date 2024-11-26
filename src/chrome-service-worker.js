@@ -59,7 +59,7 @@ chrome.storage.local.onChanged.addListener(({ settings }) => {
 chrome.runtime.onInstalled.addListener(async () => {
   /** Open Farmer Window */
   const settings = await getSettings();
-  if (settings.openFarmerInNewWindow) {
+  if (settings.openFarmerInNewWindow && settings.openFarmerOnStartup) {
     await closePreviousPopups();
     await openFarmerWindow();
   }
@@ -73,7 +73,11 @@ chrome.runtime.onStartup.addListener(async () => {
   /** Get Settings */
   const settings = await getSettings();
 
-  if (platform.os !== "android" && settings.openFarmerOnStartup) {
+  if (
+    platform.os !== "android" &&
+    settings.openFarmerOnStartup &&
+    settings.openFarmerInNewWindow
+  ) {
     /** Main Window */
     let mainWindow;
 
