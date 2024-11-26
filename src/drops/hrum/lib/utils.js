@@ -1,7 +1,7 @@
 import md5 from "md5";
 
 export function getHrumHeaders(data, key) {
-  const apiTime = Date.now() / 1000;
+  const apiTime = Math.floor(Date.now() / 1000);
   const apiHash = md5(
     encodeURIComponent(`${apiTime}_${JSON.stringify(data || "")}`)
   );
