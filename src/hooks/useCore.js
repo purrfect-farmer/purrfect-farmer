@@ -21,7 +21,8 @@ const BOT_TELEGRAM_WEB_APP_ACTION = `set-telegram-web-app:${
 export const defaultOpenedTabs = () => [{ ...farmerTabs[0], active: true }];
 
 export default function useCore() {
-  const { settings, hasRestoredSettings, configureSettings } = useSettings();
+  const { settings, hasRestoredSettings, configureSettings, restoreSettings } =
+    useSettings();
   const socket = useSocket(settings.syncServer);
   const messaging = useMessagePort();
 
@@ -249,6 +250,16 @@ export default function useCore() {
     /** Configure Settings */
     configureSettings,
     [configureSettings],
+    /** Socket */
+    socket
+  );
+
+  /** Restore Settings */
+  const [, dispatchAndRestoreSettings] = useSocketDispatchCallback(
+    "core.restore-settings",
+    /** Restore Settings */
+    restoreSettings,
+    [restoreSettings],
     /** Socket */
     socket
   );
@@ -605,6 +616,7 @@ export default function useCore() {
     dispatchAndShutdown,
     dispatchAndReloadApp,
     dispatchAndConfigureSettings,
+    dispatchAndRestoreSettings,
 
     /** Telegram Web */
     openFarmerBot,

@@ -9,7 +9,7 @@ import TelegramWebKIcon from "@/assets/images/telegram-web-k.png?format=webp&w=8
 import defaultSettings from "@/defaultSettings";
 import useAppContext from "@/hooks/useAppContext";
 import { CgSpinner } from "react-icons/cg";
-import { HiOutlineSquares2X2 } from "react-icons/hi2";
+import { HiOutlineArrowPath, HiOutlineSquares2X2 } from "react-icons/hi2";
 import { Reorder, useDragControls } from "motion/react";
 import { cn, maximizeFarmerWindow, resizeFarmerWindow } from "@/lib/utils";
 import { useCallback, useEffect, useState } from "react";
@@ -39,6 +39,7 @@ export default function Settings({ tabs }) {
   const {
     settings,
     configureSettings,
+    dispatchAndRestoreSettings,
     dispatchAndConfigureSettings,
     dropsStatus,
     dropsOrder,
@@ -387,8 +388,15 @@ export default function Settings({ tabs }) {
                 </Tabs.Content>
               </Tabs.Root>
             </div>
-            <div className="flex flex-col p-4 font-bold shrink-0">
-              <Dialog.Close className="p-2.5 text-white bg-blue-500 rounded-xl">
+            <div className="flex gap-2 p-4 font-bold shrink-0">
+              <button
+                title="Restore Default Settings"
+                onClick={dispatchAndRestoreSettings}
+                className="p-2.5 bg-blue-100 text-blue-900 rounded-xl shrink-0"
+              >
+                <HiOutlineArrowPath className="w-4 h-4" />
+              </button>
+              <Dialog.Close className="p-2.5 text-white bg-blue-500 rounded-xl grow">
                 Close
               </Dialog.Close>
             </div>

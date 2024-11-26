@@ -36,5 +36,23 @@ export default function useSettings() {
     [settings, storeValue]
   );
 
-  return useValuesMemo({ settings, hasRestoredSettings, configureSettings });
+  /** Restore Settings */
+  const restoreSettings = useCallback(async () => {
+    /** Clear Storage */
+    await chrome.storage.local.clear();
+
+    /** Restore */
+    await storeValue(defaultSettings);
+
+    /** Toast */
+    toast.dismiss();
+    toast.success("Settings Restored");
+  }, [defaultSettings, storeValue]);
+
+  return useValuesMemo({
+    settings,
+    hasRestoredSettings,
+    configureSettings,
+    restoreSettings,
+  });
 }
