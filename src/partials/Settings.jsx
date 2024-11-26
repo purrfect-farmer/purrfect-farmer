@@ -40,8 +40,8 @@ export default function Settings({ tabs }) {
     settings,
     configureSettings,
     dispatchAndConfigureSettings,
+    dropsStatus,
     dropsOrder,
-    enabledDrops,
     orderedDrops,
   } = useAppContext();
 
@@ -99,15 +99,12 @@ export default function Settings({ tabs }) {
   /** Toggle Drop */
   const toggleDrop = useCallback(
     (id, enabled) => {
-      const entries = new Set([...settings.enabledDrops, id]);
-
-      if (!enabled) {
-        entries.delete(id);
-      }
-
-      dispatchAndConfigureSettings("enabledDrops", entries.values().toArray());
+      dispatchAndConfigureSettings("dropsStatus", {
+        ...dropsStatus,
+        [id]: enabled,
+      });
     },
-    [settings.enabledDrops, dispatchAndConfigureSettings]
+    [dropsStatus, dispatchAndConfigureSettings]
   );
 
   /** Update Settings */
@@ -373,7 +370,7 @@ export default function Settings({ tabs }) {
                             onChange={(ev) =>
                               toggleDrop(drop.id, ev.target.checked)
                             }
-                            checked={enabledDrops.includes(drop.id)}
+                            checked={dropsStatus[drop.id] === true}
                           >
                             <div className="flex items-center gap-1">
                               <img

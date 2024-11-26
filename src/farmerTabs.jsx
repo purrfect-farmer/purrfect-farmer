@@ -121,15 +121,6 @@ const farmerTabs = [
     tasks: ["tasks"],
   },
   {
-    id: "matchquest",
-    title: "MatchQuest",
-    icon: farmerIcons["matchquest"],
-    component: <Farmer farmer="MatchQuest" />,
-    telegramLink:
-      "https://t.me/MatchQuestBot/start?startapp=775f1cc48a46ce5221f1d9476233dc33",
-    tasks: ["farming", "tasks", "daily-task-purchase", "game"],
-  },
-  {
     id: "tomarket",
     title: "Tomarket",
     icon: farmerIcons["tomarket"],
@@ -177,6 +168,15 @@ const farmerTabs = [
     component: <Farmer farmer="BirdTon" />,
     telegramLink: "https://t.me/BIRDTonBot/app?startapp=1147265290",
     tasks: ["daily-check-in", "game", "tasks"],
+  },
+  {
+    id: "matchquest",
+    title: "MatchQuest",
+    icon: farmerIcons["matchquest"],
+    component: <Farmer farmer="MatchQuest" />,
+    telegramLink:
+      "https://t.me/MatchQuestBot/start?startapp=775f1cc48a46ce5221f1d9476233dc33",
+    tasks: ["farming", "tasks", "daily-task-purchase", "game"],
   },
   {
     id: "goats",

@@ -1,3 +1,17 @@
+/** Drops Status */
+const dropsStatus = {
+  ["rekt"]: true,
+  ["dreamcoin"]: true,
+  ["notpixel"]: true,
+  ["hrum"]: true,
+  ["wonton"]: true,
+  ["yescoin"]: true,
+};
+
+/** Drops Order */
+const dropsOrder = Object.keys(dropsStatus);
+
+/** Default Settings */
 const defaultSettings = {
   farmerTitle: "TGUser",
   syncServer: "127.0.0.1:7777",
@@ -9,16 +23,8 @@ const defaultSettings = {
   openFarmerOnStartup: false,
   closeMainWindowOnStartup: false,
   preferredTelegramWebVersion: "k",
-  dropsOrder: [],
-  enabledDrops: [
-    "rekt",
-    "dreamcoin",
-    "notpixel",
-    "blum",
-    "hrum",
-    "yescoin",
-    "wonton",
-  ],
+  dropsStatus,
+  dropsOrder,
   repeatZoomiesCycle: true,
 };
 

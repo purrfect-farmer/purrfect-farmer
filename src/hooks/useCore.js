@@ -42,19 +42,31 @@ export default function useCore() {
     [farmerTabs]
   );
 
-  /** Enabled Drops */
-  const enabledDrops = settings.enabledDrops;
+  /** Drops Status */
+  const dropsStatus = useMemo(() => {
+    return {
+      ...defaultSettings.dropsStatus,
+      ...settings.dropsStatus,
+    };
+  }, [defaultSettings.dropsStatus, settings.dropsStatus]);
 
   /** Drops Order */
   const dropsOrder = useMemo(
     () =>
       new Set([
+        /** Default Drops Order */
+        ...defaultSettings.dropsOrder.filter(
+          (item) => !settings.dropsOrder.includes(item)
+        ),
+        /** Modified Drops Order */
         ...settings.dropsOrder,
+
+        /** Others */
         ...farmers.reduce((result, item) => result.concat(item.id), []),
       ])
         .values()
         .toArray(),
-    [farmers, settings.dropsOrder]
+    [farmers, defaultSettings.dropsOrder, settings.dropsOrder]
   );
 
   /** Ordered Drops */
@@ -68,8 +80,8 @@ export default function useCore() {
 
   /** Drops */
   const drops = useMemo(
-    () => orderedDrops.filter((item) => enabledDrops.includes(item.id)),
-    [orderedDrops, enabledDrops]
+    () => orderedDrops.filter((item) => dropsStatus[item.id]),
+    [orderedDrops, dropsStatus]
   );
 
   /** Cancel Telegram Handlers */
@@ -573,7 +585,7 @@ export default function useCore() {
     /** Data */
     farmers,
     drops,
-    enabledDrops,
+    dropsStatus,
     dropsOrder,
     orderedDrops,
     settings,
