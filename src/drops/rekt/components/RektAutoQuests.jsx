@@ -23,20 +23,29 @@ export default function RektAutoQuests() {
   const referredUsersQuery = useRektReferredUsersQuery();
 
   const user = userQuery.data;
+
+  const tonWalletAddress = user?.tonWalletAddress;
+  const evmWalletAddress = user?.evmWalletAddress;
   const farmedPoints = user?.balance?.farmedPoints || 0;
   const referredUsersCount = referredUsersQuery.data?.referredUsersCount || 0;
   const totalCompleted = questQuery.data?.totalCompleted || 0;
 
-  /** Raw Quests */
-  const rawQuests = useMemo(
+  /** User Quests */
+  const userQuests = useMemo(
     () => (questQuery.data ? questQuery.data.userQuests : []),
     [questQuery.data]
   );
 
-  /** Validate Quest Type */
-  const validateQuestType = useCallback(
-    (item) => !["WALLET_TON", "WALLET_EVM"].includes(item.quest.specificType),
-    []
+  /** Validate Ton Wallet Quest */
+  const validateTonWalletQuest = useCallback(
+    (item) => item.quest.specificType !== "WALLET_TON" || tonWalletAddress,
+    [tonWalletAddress]
+  );
+
+  /** Validate Evm Wallet Quest */
+  const validateEvmWalletQuest = useCallback(
+    (item) => item.quest.specificType !== "WALLET_EVM" || evmWalletAddress,
+    [evmWalletAddress]
   );
 
   /** Validate Progress Quest */
@@ -66,16 +75,18 @@ export default function RektAutoQuests() {
   /** All Quests */
   const quests = useMemo(
     () =>
-      rawQuests.filter(
+      userQuests.filter(
         (item) =>
-          validateQuestType(item) &&
+          validateTonWalletQuest(item) &&
+          validateEvmWalletQuest(item) &&
           validateProgressQuest(item) &&
           validateFarmingQuest(item) &&
           validateReferralsQuest(item)
       ),
     [
-      rawQuests,
-      validateQuestType,
+      userQuests,
+      validateTonWalletQuest,
+      validateEvmWalletQuest,
       validateProgressQuest,
       validateFarmingQuest,
       validateReferralsQuest,
@@ -141,9 +152,9 @@ export default function RektAutoQuests() {
 
   /** Log It */
   useEffect(() => {
-    logNicely("REKT RAW QUESTS", rawQuests);
-    logNicely("REKT QUESTS", rawQuests);
-  }, [rawQuests, quests]);
+    logNicely("REKT RAW QUESTS", userQuests);
+    logNicely("REKT QUESTS", userQuests);
+  }, [userQuests, quests]);
 
   /** Reset */
   useEffect(reset, [process.started, reset]);
@@ -246,7 +257,7 @@ export default function RektAutoQuests() {
         ) : (
           <>
             {/* Quests Info */}
-            <h4 className="font-bold">Total Quests: {quests.length}</h4>
+            <h4 className="font-bold">Total Quests: {userQuests.length}</h4>
             <h4 className="font-bold text-lime-500">
               Finished Quests: {finishedQuests.length}
             </h4>

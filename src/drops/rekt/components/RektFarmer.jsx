@@ -19,6 +19,7 @@ import useRektReferralClaimsQuery from "../hooks/useRektReferralClaimsQuery";
 import useRektClaimReferralTradeMutation from "../hooks/useRektClaimReferralTradeMutation";
 import useRektClaimReferralPointsMutation from "../hooks/useRektClaimReferralPointsMutation";
 import { isAfter, subHours } from "date-fns";
+import RektAutoGame from "./RektAutoGame";
 
 export default function RektFarmer() {
   const tabs = useSocketTabs("rekt.farmer-tabs", ["game", "quests"]);
@@ -44,7 +45,11 @@ export default function RektFarmer() {
         try {
           const { result } = await dailyCheckInMutation.mutateAsync();
           if (result === "REWARDED") {
+            /** Toast */
             toast.success("Rekt - Daily Check-In");
+
+            /** Refetch */
+            await userQuery.refetch();
           }
         } catch {}
       };
@@ -76,6 +81,7 @@ export default function RektFarmer() {
             /** Refetch */
             await activeFarmingQuery.refetch();
             await unclaimedFarmingQuery.refetch();
+            await userQuery.refetch();
           } else if (!activeFarmingQuery.data) {
             /** Start Farming */
             await startFarmingMutation.mutateAsync();
@@ -84,6 +90,7 @@ export default function RektFarmer() {
             /** Refetch */
             await activeFarmingQuery.refetch();
             await unclaimedFarmingQuery.refetch();
+            await userQuery.refetch();
           }
         };
       }
@@ -125,19 +132,29 @@ export default function RektFarmer() {
     () => {
       if (referralClaimsQuery.data) {
         return async function () {
+          /** Claims */
           const claims = referralClaimsQuery.data;
 
           /** Check if time is due */
           const canClaimNow = (time) =>
             !time || isAfter(subHours(new Date(), 2), new Date(time));
 
+          /** Status */
+          let hasClaimed = false;
+
           /** Claim Points */
           if (
             claims.referredPointsToClaim &&
             canClaimNow(claims.referralPointsClaimedLastTime)
           ) {
+            /** Claim */
             await claimReferralPointsMutation.mutateAsync();
+
+            /** Toast */
             toast.success("Rekt - Claimed Referral Points");
+
+            /** Set Status */
+            hasClaimed = true;
           }
 
           /** Claim Trades */
@@ -145,8 +162,20 @@ export default function RektFarmer() {
             claims.referredTradesToClaim &&
             canClaimNow(claims.referralTradesClaimedLastTime)
           ) {
+            /** Claim */
             await claimReferralTradeMutation.mutateAsync();
+
+            /** Toast */
             toast.success("Rekt - Claimed Referral Trades");
+
+            /** Set Status */
+            hasClaimed = true;
+          }
+
+          /** Refetch After Claiming */
+          if (hasClaimed) {
+            await userQuery.refetch();
+            await referralClaimsQuery.refetch();
           }
         };
       }
@@ -183,7 +212,9 @@ export default function RektFarmer() {
           forceMount
           className="data-[state=inactive]:hidden"
           value="game"
-        ></Tabs.Content>
+        >
+          <RektAutoGame />
+        </Tabs.Content>
         <Tabs.Content
           forceMount
           className="data-[state=inactive]:hidden"
