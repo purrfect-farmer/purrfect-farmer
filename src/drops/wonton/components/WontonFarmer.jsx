@@ -62,20 +62,25 @@ export default function WontonFarmer() {
           const selectedBowl = bowls.find((item) => item.bowlDisplay);
 
           /** Top Skin */
-          const topSkin = skins.reduce((result, current) => {
-            if (
-              !result ||
-              Math.max(...current.stats.map(Number)) >
-                Math.max(...result.stats.map(Number))
-            )
-              return current;
-          }, null);
+          const topSkin =
+            skins.length > 0
+              ? skins.reduce((result, current) => {
+                  return Math.max(...current.stats.map(Number)) >
+                    Math.max(...result.stats.map(Number))
+                    ? current
+                    : result;
+                }, skins[0])
+              : null;
 
           /** Top Bowl */
-          const topBowl = bowls.reduce((result, current) => {
-            if (!result || Number(current.value) > Number(result.value))
-              return current;
-          }, null);
+          const topBowl =
+            bowls.length > 0
+              ? bowls.reduce((result, current) => {
+                  return Number(current.value) > Number(result.value)
+                    ? current
+                    : result;
+                }, bowls[0])
+              : null;
 
           /** Status */
           let status = false;
