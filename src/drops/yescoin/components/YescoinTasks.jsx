@@ -137,7 +137,7 @@ export default function YescoinTasks() {
       </button>
 
       {process.started && currentTask ? (
-        <div className="flex flex-col gap-2 p-4 rounded-lg bg-neutral-800">
+        <div className="flex flex-col gap-2 p-4 rounded-lg bg-neutral-900">
           <h4 className="font-bold">
             <span className="text-yellow-500">
               Running Task {taskOffset !== null ? +taskOffset + 1 : null}
@@ -156,7 +156,7 @@ export default function YescoinTasks() {
             onClick={() => dispatchAndClaimTask(task.taskId)}
             disabled={task["taskStatus"]}
             className={cn(
-              "flex items-center gap-2 p-2 rounded-lg bg-neutral-50",
+              "flex items-center gap-2 p-2 rounded-lg bg-neutral-50 dark:bg-neutral-700",
               "disabled:opacity-50",
               "text-left"
             )}

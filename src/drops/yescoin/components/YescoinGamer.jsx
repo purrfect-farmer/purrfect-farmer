@@ -70,8 +70,8 @@ export default function YescoinGamer() {
 
         await delayForSeconds(farmingSpeed);
 
-        await gameInfoQuery.refetch();
         await specialBoxInfoQuery.refetch();
+        await gameInfoQuery.refetch();
       }
 
       if (zoomies.enabled) {

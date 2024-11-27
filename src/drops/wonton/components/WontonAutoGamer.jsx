@@ -16,9 +16,9 @@ import useWontonUserQuery from "../hooks/useWontonUserQuery";
 
 const GAME_DURATION = 15_000;
 const EXTRA_DELAY = 3_000;
-const MIN_POINT = 100;
-const INITIAL_POINT = 320;
-const MAX_POINT = 580;
+const MIN_POINT = 10;
+const INITIAL_POINT = 30;
+const MAX_POINT = 40;
 
 export default function Wonton() {
   const query = useWontonUserQuery();
@@ -79,7 +79,7 @@ export default function Wonton() {
         setCountdown(null);
 
         /** Claim Game */
-        await claimGameMutation.mutateAsync(bonusRound);
+        await claimGameMutation.mutateAsync({ bonusRound, amountPerSize });
       } catch {}
 
       /** Add a little delay */
@@ -111,8 +111,8 @@ export default function Wonton() {
             max={MAX_POINT}
             placeholder={`Range (${MIN_POINT} - ${MAX_POINT})`}
           />
-          <p className="text-center text-gray-500">
-            Minimum Point (automatically adds extra 1-20 points.)
+          <p className="text-center text-neutral-400">
+            Minimum Point (automatically adds extra 1-10 points.)
           </p>
         </>
       ) : null}
@@ -157,7 +157,7 @@ export default function Wonton() {
               </p>
             </>
           ) : (
-            <p className="text-gray-400">Loading...</p>
+            <p className="text-neutral-400">Loading...</p>
           )}
         </div>
       ) : null}

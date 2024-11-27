@@ -54,7 +54,7 @@ export default function UtilsPanel({ open, onOpenChange }) {
 
               <div className="flex flex-col gap-2 py-4">
                 {/* Open Telegram Link */}
-                <label className="text-neutral-500">Open Telegram Link</label>
+                <label className="text-neutral-400">Open Telegram Link</label>
                 <div className="flex gap-2">
                   <Input
                     value={telegramLink}

@@ -16,7 +16,7 @@ export default function GoatsBalanceDisplay() {
             {Intl.NumberFormat().format(result?.balance || 0)}
           </h3>
           <p
-            className="flex items-center justify-center gap-2 text-neutral-500"
+            className="flex items-center justify-center gap-2 text-neutral-400"
             title="Tickets"
           >
             {result["user_name"]}

@@ -138,7 +138,7 @@ export default function WontonAutoBadges() {
               </WontonButton>
 
               {process.started && currentBadge ? (
-                <div className="flex flex-col gap-2 p-4 text-white rounded-lg bg-neutral-800">
+                <div className="flex flex-col gap-2 p-4 text-white rounded-lg bg-neutral-900">
                   <div className="flex gap-2">
                     <img
                       src={currentBadge.badgeImageUrl}

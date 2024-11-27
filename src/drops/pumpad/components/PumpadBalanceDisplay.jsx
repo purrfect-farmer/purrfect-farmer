@@ -37,7 +37,7 @@ export default function PumpadBalanceDisplay() {
             {otherAssets.map((item) => (
               <div
                 key={item["type"]}
-                className="flex items-center gap-1 p-1 rounded-full bg-neutral-100"
+                className="flex items-center gap-1 p-1 rounded-full bg-neutral-100 dark:bg-neutral-700"
               >
                 <img src={item["token"]["image_url"]} className="w-5 h-5" />
                 <span className="mr-1 text-xs font-bold">{item["amount"]}</span>

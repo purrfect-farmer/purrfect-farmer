@@ -147,7 +147,7 @@ export default function TruecoinTasks() {
           </button>
 
           {process.started && currentTask ? (
-            <div className="flex flex-col gap-2 p-4 text-white rounded-lg bg-neutral-800">
+            <div className="flex flex-col gap-2 p-4 text-white rounded-lg bg-neutral-900">
               <h4 className="font-bold">
                 <span className="text-yellow-500">
                   Running Task {taskOffset !== null ? +taskOffset + 1 : null}

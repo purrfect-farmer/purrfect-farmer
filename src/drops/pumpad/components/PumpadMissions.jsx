@@ -106,10 +106,12 @@ export default function PumpadMissions() {
       ) : (
         // Success
         <div className="flex flex-col gap-2">
-          <div className="flex flex-col p-2 text-black rounded-lg bg-neutral-100">
+          <div className="flex flex-col p-2 rounded-lg bg-neutral-100 dark:bg-neutral-700">
             <p>
-              <span className="font-bold text-orange-700">Missions</span>:{" "}
-              <span className="font-bold">{missions.length}</span>
+              <span className="font-bold text-orange-700 dark:text-orange-500">
+                Missions
+              </span>
+              : <span className="font-bold">{missions.length}</span>
             </p>
           </div>
           <button
@@ -125,7 +127,7 @@ export default function PumpadMissions() {
           </button>
 
           {process.started && currentMission ? (
-            <div className="flex flex-col gap-2 p-4 text-white rounded-lg bg-neutral-800">
+            <div className="flex flex-col gap-2 p-4 text-white rounded-lg bg-neutral-900">
               <h4 className="font-bold">
                 <span className="text-yellow-500">
                   Running Mission{" "}

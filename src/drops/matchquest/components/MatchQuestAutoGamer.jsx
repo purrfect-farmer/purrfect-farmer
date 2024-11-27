@@ -110,7 +110,7 @@ export default function MatchQuestAutoGamer() {
             max={MAX_POINT}
             placeholder={`Range (${MIN_POINT} - ${MAX_POINT})`}
           />
-          <p className="text-center text-gray-500">
+          <p className="text-center text-neutral-400">
             Minimum Point (automatically adds extra 1-20 points.)
           </p>
         </>
@@ -158,7 +158,7 @@ export default function MatchQuestAutoGamer() {
               </p>
             </>
           ) : (
-            <p className="text-gray-400">Loading...</p>
+            <p className="text-neutral-400">Loading...</p>
           )}
         </div>
       ) : null}

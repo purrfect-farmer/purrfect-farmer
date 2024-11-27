@@ -8,7 +8,7 @@ export default function MatchQuestAuthDetect({ status }) {
       title={"MatchQuest Farmer"}
       icon={MatchQuestIcon}
       status={status}
-      className="text-gray-400"
+      className="text-neutral-400"
     />
   );
 }

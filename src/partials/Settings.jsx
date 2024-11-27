@@ -184,7 +184,7 @@ export default function Settings({ tabs }) {
                     className="flex flex-col gap-2 py-4"
                   >
                     {/* Farmer Title */}
-                    <label className="text-neutral-500">Farmer Title</label>
+                    <label className="text-neutral-400">Farmer Title</label>
                     <Input
                       value={settings?.farmerTitle}
                       onChange={(ev) =>
@@ -194,7 +194,7 @@ export default function Settings({ tabs }) {
                     />
 
                     {/* Preferred Theme */}
-                    <label className="text-neutral-500">Preferred Theme</label>
+                    <label className="text-neutral-400">Preferred Theme</label>
 
                     <div className="grid grid-cols-3 gap-2">
                       {["system", "light", "dark"].map((theme) => (
@@ -218,7 +218,7 @@ export default function Settings({ tabs }) {
                     </div>
 
                     {/* Preferred Telegram Web Version */}
-                    <label className="text-neutral-500">
+                    <label className="text-neutral-400">
                       Preferred Telegram Web Version
                     </label>
 
@@ -267,7 +267,7 @@ export default function Settings({ tabs }) {
                     </LabelToggle>
 
                     {/* Sync Server */}
-                    <label className="text-neutral-500">Sync Server</label>
+                    <label className="text-neutral-400">Sync Server</label>
                     <div className="flex gap-2">
                       <Input
                         value={syncServer}
@@ -287,7 +287,7 @@ export default function Settings({ tabs }) {
                     </div>
 
                     {/* PC Options */}
-                    <h4 className="mt-4 text-neutral-500">PC Options</h4>
+                    <h4 className="mt-4 text-neutral-400">PC Options</h4>
 
                     {/* Open Farmer in new Window */}
                     <LabelToggle
@@ -329,7 +329,7 @@ export default function Settings({ tabs }) {
                     </LabelToggle>
 
                     {/* Farmers Per Windows */}
-                    <label className="text-neutral-500">
+                    <label className="text-neutral-400">
                       Farmers Per Window (Min - 3)
                     </label>
                     <div className="flex gap-2">
@@ -345,7 +345,7 @@ export default function Settings({ tabs }) {
                     </div>
 
                     {/* Farmer Postion */}
-                    <label className="text-neutral-500">Farmer Position</label>
+                    <label className="text-neutral-400">Farmer Position</label>
                     <div className="flex gap-2">
                       <Input
                         value={farmerPosition}

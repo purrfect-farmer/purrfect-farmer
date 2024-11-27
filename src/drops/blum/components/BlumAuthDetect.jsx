@@ -8,7 +8,7 @@ export default function BlumAuthDetect({ status }) {
       title={"Blum Farmer"}
       icon={BlumIcon}
       status={status}
-      className="text-gray-400"
+      className="text-neutral-400"
     />
   );
 }

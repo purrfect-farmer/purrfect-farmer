@@ -8,7 +8,7 @@ export default function NotgramAuthDetect({ status }) {
       title={"Notgram Farmer"}
       icon={NotgramIcon}
       status={status}
-      className="text-gray-400"
+      className="text-neutral-400"
     />
   );
 }

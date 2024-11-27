@@ -1,16 +1,16 @@
 import CoreSystemIcon from "@/assets/images/core-system.png?format=webp&w=128";
-import { useState } from "react";
 import { FaPaw } from "react-icons/fa6";
-
-import SyncControl from "./partials/SyncControl";
-import UtilsPanel from "./partials/UtilsPanel";
-import useAppContext from "./hooks/useAppContext";
-import { cn } from "./lib/utils";
 import {
   HiOutlineArrowPath,
   HiOutlineBackward,
   HiOutlineForward,
 } from "react-icons/hi2";
+import { useState } from "react";
+
+import SyncControl from "./partials/SyncControl";
+import UtilsPanel from "./partials/UtilsPanel";
+import useAppContext from "./hooks/useAppContext";
+import { cn } from "./lib/utils";
 
 export default function ControlArea() {
   const [showUtils, setShowUtils] = useState(false);
@@ -40,7 +40,7 @@ export default function ControlArea() {
           </button>
           <div className="flex flex-col min-w-0 min-h-0 truncate grow">
             <h4 className="font-bold">{zoomies.current.drop.title}</h4>
-            <p className="text-neutral-500">
+            <p className="text-neutral-400">
               Running{" "}
               {zoomies.current.drop.tasks.indexOf(zoomies.current.task) + 1} of{" "}
               {zoomies.current.drop.tasks.length}

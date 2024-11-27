@@ -198,7 +198,8 @@ export default function NotPixelApp({ diff, updatedAt }) {
                   className={cn(
                     "p-2",
                     "border-b-4 border-transparent",
-                    "data-[state=active]:border-black"
+                    "data-[state=active]:border-black",
+                    "dark:data-[state=active]:border-white"
                   )}
                 >
                   {value.toUpperCase()}
@@ -233,9 +234,9 @@ export default function NotPixelApp({ diff, updatedAt }) {
                     onValueChange={([value]) =>
                       dispatchAndSetFarmingSpeed(Math.max(0.5, value))
                     }
-                    trackClassName="bg-neutral-200"
-                    rangeClassName="bg-neutral-900"
-                    thumbClassName="bg-neutral-900"
+                    trackClassName="bg-neutral-200 dark:bg-neutral-600"
+                    rangeClassName="bg-black"
+                    thumbClassName="bg-black"
                   />
 
                   {/* Speed Display */}
@@ -273,7 +274,7 @@ export default function NotPixelApp({ diff, updatedAt }) {
 
                           {/* Box Color */}
                           <div
-                            className="w-full h-10 border rounded-lg"
+                            className="w-full h-10 rounded-lg"
                             style={{ backgroundColor: pixel.color }}
                           />
                         </>
@@ -315,8 +316,10 @@ export default function NotPixelApp({ diff, updatedAt }) {
                     "outline-0",
                     "rounded-lg",
                     "border border-black",
+                    "dark:bg-neutral-700",
                     "focus:ring focus:ring-neutral-500",
                     "placeholder:text-neutral-600",
+                    "dark:placeholder:text-neutral-200",
                     "px-4 py-2"
                   )}
                   onChange={(ev) => dispatchAndSetSecretWord(ev.target.value)}

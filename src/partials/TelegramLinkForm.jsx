@@ -44,7 +44,7 @@ export default function TelegramLinkForm({ link, handleFormSubmit }) {
           name="telegramLink"
           render={({ field, fieldState }) => (
             <>
-              <label className="text-neutral-500">Telegram Link</label>
+              <label className="text-neutral-400">Telegram Link</label>
               <Input
                 {...field}
                 autoComplete="off"
@@ -62,7 +62,7 @@ export default function TelegramLinkForm({ link, handleFormSubmit }) {
           name="title"
           render={({ field, fieldState }) => (
             <>
-              <label className="text-neutral-500">Title</label>
+              <label className="text-neutral-400">Title</label>
               <Input
                 {...field}
                 autoComplete="off"

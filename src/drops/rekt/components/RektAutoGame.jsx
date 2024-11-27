@@ -1,16 +1,17 @@
+import Countdown from "react-countdown";
+import toast from "react-hot-toast";
 import useFarmerAutoProcess from "@/hooks/useFarmerAutoProcess";
-import useRektCurrentPriceQuery from "../hooks/useRektCurrentPriceQuery";
-import useRektUserQuery from "../hooks/useRektUserQuery";
-import RektButton from "./RektButton";
 import useProcessLock from "@/hooks/useProcessLock";
+import { cn, delay } from "@/lib/utils";
+import { useCallback } from "react";
 import { useEffect } from "react";
 import { useState } from "react";
+
+import RektButton from "./RektButton";
 import useRektBidMutation from "../hooks/useRektBidMutation";
+import useRektCurrentPriceQuery from "../hooks/useRektCurrentPriceQuery";
 import useRektGetBidMutation from "../hooks/useRektGetBidMutation";
-import { cn, delay } from "@/lib/utils";
-import toast from "react-hot-toast";
-import { useCallback } from "react";
-import Countdown from "react-countdown";
+import useRektUserQuery from "../hooks/useRektUserQuery";
 
 const GAME_DURATION = 5_000;
 
@@ -182,7 +183,7 @@ export default function RektAutoGame() {
                 </p>
               </>
             ) : (
-              <p className="text-gray-400">Loading...</p>
+              <p className="text-neutral-400">Loading...</p>
             )}
           </>
         ) : null}

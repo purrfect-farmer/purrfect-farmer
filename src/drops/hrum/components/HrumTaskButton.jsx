@@ -15,7 +15,7 @@ export default function HrumTaskButton({ icon, title, reward, ...props }) {
       <img src={icon} className="w-10 h-10 rounded-full shrink-0" />
       <div>
         <h1 className="font-bold">{title}</h1>
-        <p className="text-neutral-500">
+        <p className="text-neutral-400">
           +{Intl.NumberFormat().format(reward)} $HRUM
         </p>
       </div>

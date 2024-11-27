@@ -248,9 +248,11 @@ export default function BirdTonGamer() {
             min={MIN_POINT}
             max={MAX_POINT}
             placeholder={`Range (${MIN_POINT} - ${MAX_POINT})`}
-            className={cn("p-2 bg-neutral-200 rounded-lg  outline-0")}
+            className={cn(
+              "p-2 bg-neutral-200 dark:bg-neutral-700 rounded-lg  outline-0"
+            )}
           />
-          <p className="text-neutral-500">
+          <p className="text-neutral-400">
             Minimum Point (automatically adds extra 1-20 points.)
           </p>
         </>

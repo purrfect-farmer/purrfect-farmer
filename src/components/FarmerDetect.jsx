@@ -7,7 +7,7 @@ export default function FarmerDetect({ status, title, icon, className }) {
       <h3 className="font-bold text-center">
         {status === "pending-webapp" ? "Getting App" : "Preparing Farmer"}
       </h3>
-      <p className={cn("text-center text-neutral-500", className)}>
+      <p className={cn("text-center text-neutral-400", className)}>
         {status === "pending-webapp" ? (
           <>Please open/reload the bot</>
         ) : (
