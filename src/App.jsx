@@ -7,11 +7,13 @@ import TabButtonList from "./components/TabButtonList";
 import TabContent from "./components/TabContent";
 import useApp from "./hooks/useApp";
 import { resizeFarmerWindow } from "./lib/utils";
+import { useMedia } from "react-use";
 
 function App() {
   const app = useApp();
   const theme = app.settings.theme;
   const wakeLockRef = useRef(null);
+  const systemIsDark = useMedia("(prefers-color-scheme: dark)");
 
   /** Resize window */
   useEffect(() => {
@@ -54,11 +56,9 @@ function App() {
   useEffect(() => {
     document.documentElement.classList.toggle(
       "dark",
-      theme === "dark" ||
-        (theme === "system" &&
-          window.matchMedia("(prefers-color-scheme: dark)").matches)
+      theme === "dark" || (theme === "system" && systemIsDark)
     );
-  }, [theme]);
+  }, [theme, systemIsDark]);
 
   return (
     <AppContext.Provider value={app}>
