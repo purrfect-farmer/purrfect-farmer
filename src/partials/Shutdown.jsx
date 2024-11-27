@@ -15,7 +15,7 @@ export default function Shutdown() {
           "p-4 overflow-auto bg-black/50"
         )}
       >
-        <Dialog.Content className="flex flex-col w-full max-w-sm gap-2 p-4 bg-white rounded-xl">
+        <Dialog.Content className="flex flex-col w-full max-w-sm gap-2 p-4 bg-white dark:bg-neutral-800 rounded-xl">
           {/* Title */}
           <Dialog.Title
             className={cn(
@@ -28,7 +28,7 @@ export default function Shutdown() {
           </Dialog.Title>
 
           {/* Description */}
-          <Dialog.Description className="px-2 text-center text-neutral-600">
+          <Dialog.Description className="px-2 text-center text-neutral-400">
             Are you sure you want to close the farmer?
           </Dialog.Description>
 
@@ -41,7 +41,11 @@ export default function Shutdown() {
           </button>
 
           {/* Cancel Button */}
-          <Dialog.Close className={cn("px-4 py-2 bg-neutral-200 rounded-lg")}>
+          <Dialog.Close
+            className={cn(
+              "px-4 py-2 bg-neutral-200 dark:bg-neutral-900 rounded-lg"
+            )}
+          >
             Cancel
           </Dialog.Close>
         </Dialog.Content>
