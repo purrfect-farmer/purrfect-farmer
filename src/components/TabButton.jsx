@@ -57,7 +57,7 @@ export default function TabButton({ tab, connected }) {
         "cursor-pointer",
         "flex gap-1 items-center",
         "p-1.5 rounded-full shrink-0",
-        tab.active ? "bg-neutral-100" : null
+        tab.active ? "bg-neutral-100 dark:bg-neutral-700" : null
       )}
     >
       {/* Icon */}
@@ -99,7 +99,8 @@ export default function TabButton({ tab, connected }) {
           <button
             className={cn(
               "inline-flex items-center justify-center",
-              "rounded-full w-7 h-7 shrink-0 hover:bg-neutral-200"
+              "rounded-full w-7 h-7 shrink-0",
+              "hover:bg-neutral-200 dark:hover:bg-neutral-600"
             )}
             onClick={handleReloadButtonClick}
           >
@@ -110,7 +111,8 @@ export default function TabButton({ tab, connected }) {
           <button
             className={cn(
               "inline-flex items-center justify-center",
-              "rounded-full w-7 h-7 shrink-0 hover:bg-neutral-200"
+              "rounded-full w-7 h-7 shrink-0",
+              "hover:bg-neutral-200 dark:hover:bg-neutral-600"
             )}
             onClick={handleCloseButtonClick}
           >

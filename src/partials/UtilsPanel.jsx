@@ -19,7 +19,8 @@ export default function UtilsPanel({ open, onOpenChange }) {
         <Dialog.Overlay className="fixed inset-0 z-40 bg-black/50" />
         <Dialog.Content
           className={cn(
-            "fixed z-50 inset-x-0 bottom-0 flex flex-col bg-white h-3/4 rounded-t-xl",
+            "bg-white dark:bg-neutral-800",
+            "fixed z-50 inset-x-0 bottom-0 flex flex-col h-3/4 rounded-t-xl",
             "flex flex-col"
           )}
           onOpenAutoFocus={(ev) => ev.preventDefault()}
@@ -71,7 +72,13 @@ export default function UtilsPanel({ open, onOpenChange }) {
                     <HiArrowTopRightOnSquare className="w-4 h-4 " />
                   </ConfirmButton>
                 </div>
-                <p className="p-4 text-center text-yellow-800 bg-yellow-100 rounded-lg">
+                <p
+                  className={cn(
+                    "bg-yellow-100 dark:bg-yellow-900",
+                    "text-yellow-800 dark:text-yellow-100",
+                    "p-4 text-center  rounded-lg"
+                  )}
+                >
                   You can paste any valid telegram link e.g your referral link,
                   a channel etc.
                 </p>

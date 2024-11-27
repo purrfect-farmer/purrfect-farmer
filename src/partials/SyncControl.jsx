@@ -5,7 +5,7 @@ export default function SyncControl() {
   const { socket } = useAppContext();
 
   return (
-    <label className="flex items-center justify-center gap-2 p-2 bg-white cursor-pointer grow">
+    <label className="flex items-center justify-center gap-2 p-2 cursor-pointer grow">
       Sync{" "}
       <Toggle
         checked={socket.syncing}

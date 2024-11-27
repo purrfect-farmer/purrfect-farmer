@@ -151,7 +151,8 @@ export default function FarmerLinks() {
       <Dialog.Overlay className="fixed inset-0 z-40 bg-black/50" />
       <Dialog.Content
         className={cn(
-          "fixed z-50 inset-x-0 bottom-0 flex flex-col bg-white h-3/4 rounded-t-xl",
+          "bg-white dark:bg-neutral-800",
+          "fixed z-50 inset-x-0 bottom-0 flex flex-col  h-3/4 rounded-t-xl",
           "flex flex-col gap-2",
           "px-2 py-4"
         )}
@@ -171,7 +172,8 @@ export default function FarmerLinks() {
             className={cn(
               "flex items-center justify-center w-10 h-10",
               "rounded-lg shrink-0",
-              "text-blue-800 bg-blue-100"
+              "bg-blue-100 dark:bg-blue-900",
+              "text-blue-800 dark:text-blue-100"
             )}
           >
             {showAsGrid ? (
@@ -204,7 +206,8 @@ export default function FarmerLinks() {
             className={cn(
               "flex items-center justify-center w-10 h-10",
               "rounded-lg shrink-0",
-              "text-blue-800 bg-blue-100"
+              "bg-blue-100 dark:bg-blue-900",
+              "text-blue-800 dark:text-blue-100"
             )}
           >
             <HiOutlinePlusCircle className="w-4 h-4" />
@@ -232,7 +235,8 @@ export default function FarmerLinks() {
                           className={cn(
                             "flex items-center",
                             "gap-2 p-2 rounded-lg",
-                            "bg-neutral-100 hover:bg-neutral-200",
+                            "bg-neutral-100 dark:bg-neutral-700",
+                            "hover:bg-neutral-200 dark:hover:bg-neutral-600",
                             showAsGrid ? "flex-col justify-center" : "text-left"
                           )}
                           onClick={() =>
@@ -246,7 +250,7 @@ export default function FarmerLinks() {
                             link={link}
                             refetch={() => updateLink(link)}
                             className={cn(
-                              "rounded-full shrink-0 bg-neutral-200",
+                              "rounded-full shrink-0 bg-neutral-200 dark:bg-neutral-600",
                               showAsGrid ? "w-10 h-10" : "w-8 h-8"
                             )}
                           />
@@ -259,7 +263,7 @@ export default function FarmerLinks() {
 
                             {/* Description */}
                             {link.description ? (
-                              <p className="w-full min-w-0 truncate text-neutral-500">
+                              <p className="w-full min-w-0 truncate text-neutral-400">
                                 {link.description}
                               </p>
                             ) : null}
@@ -309,12 +313,16 @@ export default function FarmerLinks() {
             </>
           ) : (
             <>
-              <div className="p-2 text-center text-neutral-500">
+              <div className="p-2 text-center text-neutral-400">
                 You haven't created any link.
               </div>
               <button
                 onClick={() => createOrEditLink()}
-                className="p-2 text-blue-800 bg-blue-100 rounded-lg"
+                className={cn(
+                  "bg-blue-100 dark:bg-blue-900",
+                  "text-blue-800 dark:text-blue-100",
+                  "p-2 rounded-lg"
+                )}
               >
                 Create Link
               </button>
@@ -331,7 +339,12 @@ export default function FarmerLinks() {
               "p-4 overflow-auto bg-black/50"
             )}
           >
-            <Dialog.Content className="flex flex-col w-full max-w-sm gap-2 p-4 bg-white rounded-xl">
+            <Dialog.Content
+              className={cn(
+                "bg-white dark:bg-neutral-800",
+                "flex flex-col w-full max-w-sm gap-2 p-4 rounded-xl"
+              )}
+            >
               {/* Title */}
               <Dialog.Title
                 className={cn(
@@ -363,7 +376,9 @@ export default function FarmerLinks() {
 
               {/* Cancel Button */}
               <Dialog.Close
-                className={cn("px-4 py-2 bg-neutral-200 rounded-lg")}
+                className={cn(
+                  "px-4 py-2 bg-neutral-200 dark:bg-neutral-900 rounded-lg"
+                )}
               >
                 Cancel
               </Dialog.Close>

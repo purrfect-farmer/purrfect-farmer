@@ -10,6 +10,7 @@ import { resizeFarmerWindow } from "./lib/utils";
 
 function App() {
   const app = useApp();
+  const theme = app.settings.theme;
   const wakeLockRef = useRef(null);
 
   /** Resize window */
@@ -48,6 +49,16 @@ function App() {
       wakeLockRef.current = null;
     };
   }, []);
+
+  /** Apply Theme */
+  useEffect(() => {
+    document.documentElement.classList.toggle(
+      "dark",
+      theme === "dark" ||
+        (theme === "system" &&
+          window.matchMedia("(prefers-color-scheme: dark)").matches)
+    );
+  }, [theme]);
 
   return (
     <AppContext.Provider value={app}>

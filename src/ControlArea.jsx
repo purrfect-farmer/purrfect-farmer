@@ -23,7 +23,12 @@ export default function ControlArea() {
 
       {/* Zoomies Control */}
       {zoomies.enabled && zoomies.current.drop ? (
-        <div className="flex items-center gap-2 px-2 bg-white border-t shrink-0">
+        <div
+          className={cn(
+            "flex items-center gap-2 px-2 shrink-0",
+            "border-t dark:border-neutral-700"
+          )}
+        >
           <button
             className="relative shrink-0"
             onClick={() => setActiveTab(zoomies.current.drop.id)}
@@ -85,7 +90,7 @@ export default function ControlArea() {
       ) : null}
 
       {/* Utils Control */}
-      <div className="flex gap-2 px-2 bg-white border-t shrink-0">
+      <div className="flex gap-2 px-2 border-t dark:border-neutral-700 shrink-0">
         <button
           className="flex items-center justify-center w-10 h-10 shrink-0"
           onClick={() => zoomies.dispatchAndToggle(!zoomies.enabled)}

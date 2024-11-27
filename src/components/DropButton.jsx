@@ -8,7 +8,8 @@ export default function DropButton({ drop, ...props }) {
         className={cn(
           "flex flex-col justify-center items-center",
           "gap-2 p-2 rounded-lg",
-          "bg-neutral-100 hover:bg-neutral-200",
+          "bg-neutral-100 dark:bg-neutral-700",
+          "hover:bg-neutral-200 dark:hover:bg-neutral-600",
           props.className
         )}
         title={drop.title}

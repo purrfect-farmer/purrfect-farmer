@@ -26,6 +26,7 @@ const defaultSettings = {
   dropsStatus,
   dropsOrder,
   repeatZoomiesCycle: true,
+  theme: "system",
 };
 
 export default defaultSettings;

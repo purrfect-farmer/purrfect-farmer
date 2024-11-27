@@ -13,15 +13,14 @@ export default function TabContent({ tab }) {
     <div
       className={cn(
         "absolute inset-0",
-        "flex flex-col ",
-        "bg-white",
+        "flex flex-col",
         !tab.active ? "invisible" : null
       )}
     >
       {/* Open Telegram Link Button */}
       {tab.telegramLink ? (
         <button
-          className="p-3 font-bold text-blue-500 border-b"
+          className="p-3 font-bold text-blue-500 border-b dark:text-blue-300 dark:border-neutral-700"
           onClick={() => dispatchAndOpenTelegramBot(tab.telegramLink)}
         >
           Open Bot

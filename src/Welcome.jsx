@@ -38,8 +38,8 @@ const TelegramWebButton = forwardRef(({ icon, children, ...props }, ref) => (
     className={cn(
       "p-2",
       "rounded-full",
-      "bg-neutral-100",
-      "hover:bg-blue-500",
+      "bg-neutral-100 dark:bg-neutral-700",
+      "hover:bg-blue-500 dark:hover:bg-blue-800",
       "hover:text-white",
       "inline-flex items-center justify-center gap-1",
       props.className
@@ -57,7 +57,9 @@ const ToolbarButton = forwardRef(({ icon: Icon, children, ...props }, ref) => (
     ref={ref}
     className={cn(
       "p-2.5 rounded-full shrink-0",
-      "bg-neutral-50 hover:bg-neutral-100",
+      "bg-neutral-50 dark:bg-neutral-700",
+      "hover:bg-neutral-100 dark:hover:bg-neutral-600",
+
       props.className
     )}
   >
@@ -246,9 +248,9 @@ export default function Welcome() {
                   key={v}
                   onClick={() => dispatchAndOpenFarmerBot(v)}
                   className={cn(
-                    "bg-orange-100",
-                    "text-orange-800",
-                    "hover:bg-orange-500"
+                    "bg-orange-100 dark:bg-orange-900",
+                    "text-orange-800 dark:text-orange-200",
+                    "hover:bg-orange-500 dark:hover:bg-orange-800"
                   )}
                   title={`Open ${
                     import.meta.env.VITE_APP_BOT_NAME
@@ -289,6 +291,8 @@ export default function Welcome() {
                     "border-b-2 border-transparent",
                     "data-[state=active]:bg-blue-100",
                     "data-[state=active]:text-blue-800",
+                    "dark:data-[state=active]:bg-blue-900",
+                    "dark:data-[state=active]:text-blue-100",
                     "uppercase"
                   )}
                 >
@@ -307,6 +311,8 @@ export default function Welcome() {
                     "border-b-2 border-transparent",
                     "data-[state=active]:bg-blue-100",
                     "data-[state=active]:text-blue-800",
+                    "dark:data-[state=active]:bg-blue-900",
+                    "dark:data-[state=active]:text-blue-100",
                     "uppercase"
                   )}
                 >
@@ -323,7 +329,8 @@ export default function Welcome() {
                   "font-bold",
                   "flex items-center justify-center",
                   "rounded-lg shrink-0",
-                  "text-blue-800 bg-blue-100",
+                  "bg-blue-100 dark:bg-blue-900",
+                  "text-blue-800 dark:text-blue-100",
                   "p-2"
                 )}
               >

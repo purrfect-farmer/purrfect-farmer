@@ -9,7 +9,7 @@ export default function ResetButton(props) {
       className={cn(
         "inline-flex items-center justify-center",
         "px-4 rounded-lg shrink-0",
-        "bg-neutral-100",
+        "bg-neutral-100 dark:bg-neutral-700",
         props.className
       )}
     >

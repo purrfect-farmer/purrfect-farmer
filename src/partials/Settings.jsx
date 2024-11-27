@@ -22,8 +22,9 @@ const DropReorderItem = ({ children, ...props }) => {
         <div className="min-w-0 min-h-0 grow">{children}</div>
         <button
           className={cn(
+            "bg-neutral-100 dark:bg-neutral-700",
             "flex items-center justify-center",
-            "px-3 rounded-lg bg-neutral-100 shrink-0",
+            "px-3 rounded-lg shrink-0",
             "touch-none"
           )}
           onPointerDown={(event) => dragControls.start(event)}
@@ -129,7 +130,8 @@ export default function Settings({ tabs }) {
       <Dialog.Overlay className="fixed inset-0 z-40 bg-black/50" />
       <Dialog.Content
         className={cn(
-          "fixed z-50 inset-x-0 bottom-0 flex flex-col bg-white h-3/4 rounded-t-xl",
+          "bg-white dark:bg-neutral-800",
+          "fixed z-50 inset-x-0 bottom-0 flex flex-col h-3/4 rounded-t-xl",
           "flex flex-col"
         )}
         onOpenAutoFocus={(ev) => ev.preventDefault()}
@@ -191,6 +193,30 @@ export default function Settings({ tabs }) {
                       placeholder="Farmer Title"
                     />
 
+                    {/* Preferred Theme */}
+                    <label className="text-neutral-500">Preferred Theme</label>
+
+                    <div className="grid grid-cols-3 gap-2">
+                      {["system", "light", "dark"].map((theme) => (
+                        <button
+                          onClick={() =>
+                            dispatchAndConfigureSettings("theme", theme)
+                          }
+                          key={theme}
+                          className={cn(
+                            settings.theme === theme
+                              ? "bg-blue-200 dark:bg-blue-800"
+                              : "bg-neutral-100 dark:bg-neutral-700",
+                            "p-2 rounded-lg",
+                            "flex gap-1 items-center justify-center",
+                            "uppercase"
+                          )}
+                        >
+                          {theme}
+                        </button>
+                      ))}
+                    </div>
+
                     {/* Preferred Telegram Web Version */}
                     <label className="text-neutral-500">
                       Preferred Telegram Web Version
@@ -208,8 +234,8 @@ export default function Settings({ tabs }) {
                           key={version}
                           className={cn(
                             settings.preferredTelegramWebVersion === version
-                              ? "bg-blue-200"
-                              : "bg-neutral-100",
+                              ? "bg-blue-200 dark:bg-blue-800"
+                              : "bg-neutral-100 dark:bg-neutral-700",
                             "p-2 rounded-lg",
                             "flex gap-1 items-center justify-center"
                           )}
@@ -350,7 +376,13 @@ export default function Settings({ tabs }) {
                       Repeat Zoomies Cycle
                     </LabelToggle>
 
-                    <p className="p-4 text-center text-blue-800 bg-blue-100 rounded-lg">
+                    <p
+                      className={cn(
+                        "bg-blue-100 dark:bg-blue-900",
+                        "text-blue-800 dark:text-blue-100",
+                        "p-4 text-center rounded-lg"
+                      )}
+                    >
                       Enable the farmers you would like to include.
                     </p>
 
@@ -392,7 +424,11 @@ export default function Settings({ tabs }) {
               <button
                 title="Restore Default Settings"
                 onClick={dispatchAndRestoreSettings}
-                className="p-2.5 bg-blue-100 text-blue-900 rounded-xl shrink-0"
+                className={cn(
+                  "bg-blue-100 dark:bg-blue-900",
+                  "text-blue-900 dark:text-blue-100",
+                  "p-2.5 rounded-xl shrink-0"
+                )}
               >
                 <HiOutlineArrowPath className="w-4 h-4" />
               </button>
