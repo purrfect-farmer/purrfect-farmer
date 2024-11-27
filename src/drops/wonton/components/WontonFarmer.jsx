@@ -3,7 +3,7 @@ import toast from "react-hot-toast";
 import useFarmerAsyncTask from "@/hooks/useFarmerAsyncTask";
 import useFarmerAutoTab from "@/hooks/useFarmerAutoTab";
 import useSocketTabs from "@/hooks/useSocketTabs";
-import { cn } from "@/lib/utils";
+import { cn, logNicely } from "@/lib/utils";
 import { isAfter } from "date-fns";
 
 import WontonAutoBadges from "./WontonBadges";
@@ -55,23 +55,67 @@ export default function WontonFarmer() {
         return async function () {
           const shopItems = shopQuery.data.shopItems;
           const items = shopItems.filter((item) => item.inventory > 0);
-          const selected = items.find((item) => item.inUse);
-          const max = items.reduce((result, current) => {
+          const skins = items.filter((item) => Number(item.farmingPower) !== 0);
+          const bowls = items.filter((item) => Number(item.farmingPower) === 0);
+
+          const selectedSkin = skins.find((item) => item.inUse);
+          const selectedBowl = bowls.find((item) => item.bowlDisplay);
+
+          /** Top Skin */
+          const topSkin = skins.reduce((result, current) => {
             if (
               !result ||
-              Math.max(...current.stats.map(Number)) >=
+              Math.max(...current.stats.map(Number)) >
                 Math.max(...result.stats.map(Number))
             )
               return current;
           }, null);
 
-          if (max && selected && max.id !== selected.id) {
+          /** Top Bowl */
+          const topBowl = bowls.reduce((result, current) => {
+            if (!result || Number(current.value) > Number(result.value))
+              return current;
+          }, null);
+
+          /** Status */
+          let status = false;
+
+          /** Log */
+          logNicely("WONTON OWNED SHOP ITEMS", items);
+
+          /** Log */
+          logNicely("WONTON OWNED SKINS", skins);
+          logNicely("WONTON SELECTED SKIN", selectedSkin);
+          logNicely("WONTON TOP SKIN", topSkin);
+
+          /** Log */
+          logNicely("WONTON OWNED BOWLS", bowls);
+          logNicely("WONTON SELECTED BOWL", selectedBowl);
+          logNicely("WONTON TOP BOWL", topBowl);
+
+          if (topSkin && topSkin.id !== selectedSkin?.id) {
             /** Use Item */
-            await useShopItemMutation.mutateAsync(max.id);
+            await useShopItemMutation.mutateAsync(topSkin.id);
 
             /** Toast */
-            toast.success("Wonton - Used Top Shop Item");
+            toast.success("Wonton - Used Top Skin");
 
+            /** Set Status */
+            status = true;
+          }
+
+          if (topBowl && topBowl.id !== selectedBowl?.id) {
+            /** Use Item */
+            await useShopItemMutation.mutateAsync(topBowl.id);
+
+            /** Toast */
+            toast.success("Wonton - Used Top Bowl");
+
+            /** Set Status */
+            status = true;
+          }
+
+          if (status) {
             /** Refetch */
             await shopQuery.refetch();
           }
