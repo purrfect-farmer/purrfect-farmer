@@ -56,6 +56,7 @@ const farmerTabs = [
     tasks: [
       "daily-check-in",
       "farming",
+      "use-top-shop-item",
       "boost-farming",
       "claim-referrals",
       "quests",

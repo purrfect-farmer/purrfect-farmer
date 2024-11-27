@@ -13,15 +13,30 @@ import WontonInput from "./WontonInput";
 import useWontonClaimGameMutation from "../hooks/useWontonClaimGameMutation";
 import useWontonStartGameMutation from "../hooks/useWontonStartGameMutation";
 import useWontonUserQuery from "../hooks/useWontonUserQuery";
+import useWontonShopQuery from "../hooks/useWontonShopQuery";
 
 const GAME_DURATION = 15_000;
 const EXTRA_DELAY = 3_000;
-const MIN_POINT = 10;
-const INITIAL_POINT = 30;
-const MAX_POINT = 40;
+const MIN_POINT = 80;
+const INITIAL_POINT = 120;
+const MAX_POINT = 130;
 
 export default function Wonton() {
   const query = useWontonUserQuery();
+  const shopQuery = useWontonShopQuery();
+
+  const selectedItem = useMemo(
+    () =>
+      shopQuery.data
+        ? shopQuery.data.shopItems.find((item) => item.inUse)
+        : null,
+    [shopQuery.data]
+  );
+
+  const perItem = useMemo(
+    () => (selectedItem ? Math.max(...selectedItem.stats.map(Number)) : 0),
+    [selectedItem]
+  );
 
   const process = useProcessLock("wonton.game");
 
@@ -36,7 +51,7 @@ export default function Wonton() {
   );
 
   const startGameMutation = useWontonStartGameMutation();
-  const claimGameMutation = useWontonClaimGameMutation(points);
+  const claimGameMutation = useWontonClaimGameMutation(points, perItem);
 
   /** Countdown renderer */
   const countdownRenderer = useCallback(
@@ -55,7 +70,7 @@ export default function Wonton() {
       return;
     }
 
-    if (tickets < 1) {
+    if (tickets < 1 || perItem < 1) {
       process.stop();
       return;
     }
@@ -65,11 +80,9 @@ export default function Wonton() {
       process.lock();
 
       try {
-        const { bonusRound, amountPerSize } =
-          await startGameMutation.mutateAsync();
+        const { bonusRound } = await startGameMutation.mutateAsync();
 
         /** Wait for countdown */
-
         const stopTime = GAME_DURATION + Math.floor(Math.random() * 5);
 
         setCountdown(Date.now() + stopTime);
@@ -79,7 +92,7 @@ export default function Wonton() {
         setCountdown(null);
 
         /** Claim Game */
-        await claimGameMutation.mutateAsync({ bonusRound, amountPerSize });
+        await claimGameMutation.mutateAsync({ bonusRound });
       } catch {}
 
       /** Add a little delay */
@@ -93,10 +106,14 @@ export default function Wonton() {
       /** Release Lock */
       process.unlock();
     })();
-  }, [tickets, process]);
+  }, [tickets, perItem, process]);
 
   /** Auto-Game */
-  useFarmerAutoProcess("game", !query.isLoading, process);
+  useFarmerAutoProcess(
+    "game",
+    [query.isLoading, shopQuery.isLoading].every((status) => !status),
+    process
+  );
 
   return (
     <div className="flex flex-col gap-2">
@@ -120,7 +137,7 @@ export default function Wonton() {
       {/* Start or Stop Button  */}
       <WontonButton
         color={process.started ? "danger" : "primary"}
-        disabled={tickets < 1}
+        disabled={tickets < 1 || perItem < 1}
         onClick={() => process.dispatchAndToggle(!process.started)}
       >
         {process.started ? "Stop" : "Start"}

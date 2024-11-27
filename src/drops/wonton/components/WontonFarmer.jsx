@@ -16,6 +16,8 @@ import useWontonClaimFarmingMutation from "../hooks/useWontonClaimFarmingMutatio
 import useWontonDailyCheckInMutation from "../hooks/useWontonDailyCheckInMutation";
 import useWontonFarmingStatusQuery from "../hooks/useWontonFarmingStatusQuery";
 import useWontonStartFarmingMutation from "../hooks/useWontonStartFarmingMutation";
+import useWontonShopQuery from "../hooks/useWontonShopQuery";
+import useWontonUseShopItemMutation from "../hooks/useWontonUseShopItemMutation";
 
 export default function WontonFarmer() {
   const tabs = useSocketTabs("wonton.farmer-tabs", ["game", "badges", "tasks"]);
@@ -26,6 +28,10 @@ export default function WontonFarmer() {
   const startFarmingMutation = useWontonStartFarmingMutation();
   const claimFarmingMutation = useWontonClaimFarmingMutation();
 
+  const shopQuery = useWontonShopQuery();
+  const useShopItemMutation = useWontonUseShopItemMutation();
+
+  /** Daily-Check-In */
   useFarmerAsyncTask(
     "daily-check-in",
     () => {
@@ -39,6 +45,40 @@ export default function WontonFarmer() {
       };
     },
     []
+  );
+
+  /** Select Top Item */
+  useFarmerAsyncTask(
+    "use-top-shop-item",
+    () => {
+      if (shopQuery.data) {
+        return async function () {
+          const shopItems = shopQuery.data.shopItems;
+          const items = shopItems.filter((item) => item.inventory > 0);
+          const selected = items.find((item) => item.inUse);
+          const max = items.reduce((result, current) => {
+            if (
+              !result ||
+              Math.max(...current.stats.map(Number)) >=
+                Math.max(...result.stats.map(Number))
+            )
+              return current;
+          }, null);
+
+          if (max && selected && max.id !== selected.id) {
+            /** Use Item */
+            await useShopItemMutation.mutateAsync(max.id);
+
+            /** Toast */
+            toast.success("Wonton - Used Top Shop Item");
+
+            /** Refetch */
+            await shopQuery.refetch();
+          }
+        };
+      }
+    },
+    [shopQuery.data]
   );
 
   /** Auto-Claim Farming */
