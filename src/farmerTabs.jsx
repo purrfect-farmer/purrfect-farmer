@@ -56,7 +56,6 @@ const farmerTabs = [
     tasks: [
       "daily-check-in",
       "farming",
-      "use-top-shop-item",
       "boost-farming",
       "claim-referrals",
       "quests",
@@ -111,7 +110,14 @@ const farmerTabs = [
     component: <Farmer farmer="Wonton" />,
     telegramLink:
       "https://t.me/WontonOrgBot/gameapp?startapp=referralCode=K45JQRG7",
-    tasks: ["daily-check-in", "farming", "tasks", "badges", "game"],
+    tasks: [
+      "daily-check-in",
+      "farming",
+      "use-top-shop-item",
+      "tasks",
+      "badges",
+      "game",
+    ],
   },
   {
     id: "notgram",
