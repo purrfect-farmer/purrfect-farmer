@@ -22,6 +22,21 @@ export default function BlumAutoTasks() {
 
   const { zoomies, dataQuery, joinTelegramLink } = useFarmerContext();
 
+  /** Validate Task Kind */
+  const validateTaskKind = useCallback(
+    (item) => !["ONCHAIN_TRANSACTION", "QUEST"].includes(item.kind),
+    []
+  );
+
+  /** Validate Progress Task */
+  const validateProgressTask = useCallback(
+    (item) =>
+      item.type !== "PROGRESS_TARGET" ||
+      Number(item.progressTarget.target) <=
+        Number(item.progressTarget.progress),
+    []
+  );
+
   /** Concat sub tasks */
   const reduceTasks = useCallback(
     (tasks) =>
@@ -92,7 +107,8 @@ export default function BlumAutoTasks() {
       tasks.filter(
         (item) =>
           item.status === "NOT_STARTED" &&
-          !["ONCHAIN_TRANSACTION", "QUEST"].includes(item.kind)
+          validateTaskKind(item) &&
+          validateProgressTask(item)
       ),
     [tasks]
   );
@@ -179,6 +195,11 @@ export default function BlumAutoTasks() {
       dataQuery.data?.blum?.keywords?.[task.title.toUpperCase()],
     [dataQuery.data]
   );
+
+  /** Log the Tasks */
+  useEffect(() => {
+    logNicely("BLUM RAW TASKS", rawTasks);
+  }, [rawTasks]);
 
   /** Log the Tasks */
   useEffect(() => {
@@ -364,7 +385,9 @@ export default function BlumAutoTasks() {
                 color={process.started ? "danger" : "primary"}
                 onClick={() => process.dispatchAndToggle(!process.started)}
                 disabled={
-                  pendingTasks.length === 0 && unclaimedTasks.length === 0
+                  pendingTasks.length === 0 &&
+                  unverifiedTasks.length === 0 &&
+                  unclaimedTasks.length === 0
                 }
               >
                 {process.started ? "Stop" : "Start"}
