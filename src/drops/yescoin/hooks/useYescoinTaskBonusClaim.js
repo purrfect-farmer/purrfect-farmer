@@ -15,16 +15,16 @@ export default function useYescoinTaskBonusClaim() {
           const { dailyTaskBonusStatus, commonTaskBonusStatus } =
             finishTaskBonusInfoQuery.data;
 
-          /** Claim Common Task */
-          if (commonTaskBonusStatus === 1) {
-            await claimTaskBonusMutation.mutateAsync(2);
-            toast.success("Yescoin - Claimed Common Task Bonus");
-          }
-
           /** Claim Daily Task */
           if (dailyTaskBonusStatus === 1) {
             await claimTaskBonusMutation.mutateAsync(1);
             toast.success("Yescoin - Claimed Daily Task Bonus");
+          }
+
+          /** Claim Common Task */
+          if (commonTaskBonusStatus === 1) {
+            await claimTaskBonusMutation.mutateAsync(2);
+            toast.success("Yescoin - Claimed Common Task Bonus");
           }
 
           if (dailyTaskBonusStatus === 1 || commonTaskBonusStatus === 1) {
