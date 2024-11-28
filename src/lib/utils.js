@@ -141,7 +141,7 @@ export function isBotURL(url) {
 
 /** Can Join Telegram Link */
 export function canJoinTelegramLink(link) {
-  return link && isTelegramLink(link) && !/\?/.test(link);
+  return link && /^http(s)*:\/\/t\.me\/[^\/\?]+$/i.test(link);
 }
 
 /** Fetch Content */
