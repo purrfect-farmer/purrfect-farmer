@@ -2,6 +2,7 @@ import toast from "react-hot-toast";
 import useFarmerAsyncTask from "@/hooks/useFarmerAsyncTask";
 
 import useYescoinClaimTaskBonusMutation from "./useYescoinClaimTaskBonusMutation";
+import useYescoinFinishTaskBonusInfoQuery from "./useYescoinFinishTaskBonusInfoQuery";
 
 export default function useYescoinTaskBonusClaim() {
   const finishTaskBonusInfoQuery = useYescoinFinishTaskBonusInfoQuery();
