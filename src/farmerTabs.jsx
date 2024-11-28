@@ -101,7 +101,14 @@ const farmerTabs = [
     icon: farmerIcons["yescoin"],
     component: <Farmer farmer="Yescoin" />,
     telegramLink: "https://t.me/theYescoin_bot/Yescoin?startapp=bH7bto",
-    tasks: ["daily-check-in", "tasks", "missions", "game"],
+    tasks: [
+      "daily-check-in",
+      "claim-special-box",
+      "tasks",
+      "missions",
+      "game",
+      "claim-task-bonus",
+    ],
   },
   {
     id: "wonton",

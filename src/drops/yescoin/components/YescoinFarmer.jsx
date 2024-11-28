@@ -12,6 +12,8 @@ import YescoinTasks from "./YescoinTasks";
 import useYescoinAccountInfoQuery from "../hooks/useYescoinAccountInfoQuery";
 import useYescoinDailyCheckIn from "../hooks/useYescoinDailyCheckIn";
 import useYescoinOfflineQuery from "../hooks/useYescoinOfflineQuery";
+import useYescoinTaskBonusClaim from "../hooks/useYescoinTaskBonusClaim";
+import useYescoinSpecialBoxClaim from "../hooks/useYescoinSpecialBoxClaim";
 
 export default function YescoinFarmer() {
   const accountInfoQuery = useYescoinAccountInfoQuery();
@@ -22,6 +24,8 @@ export default function YescoinFarmer() {
   ]);
 
   useYescoinDailyCheckIn();
+  useYescoinSpecialBoxClaim();
+  useYescoinTaskBonusClaim();
   useYescoinOfflineQuery();
 
   /** Automatically Switch Tab */
