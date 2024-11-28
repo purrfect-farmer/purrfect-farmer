@@ -1,3 +1,4 @@
+import toast from "react-hot-toast";
 import useFarmerAsyncTask from "@/hooks/useFarmerAsyncTask";
 
 import useYescoinAccountBuildInfoQuery from "./useYescoinAccountBuildInfoQuery";
@@ -23,11 +24,13 @@ export default function useYescoinSpecialBoxClaim() {
           /** Claim Special Box */
           if (specialBoxLeftRecoveryCount > 0) {
             await recoverSpecialBoxMutation.mutateAsync();
+            toast.success("Yescoin - Used Chest");
           }
 
           /** Claim Special Box */
           if (coinPoolLeftRecoveryCount > 0) {
             await recoverCoinPoolMutation.mutateAsync();
+            toast.success("Yescoin - Used Recovery");
           }
         };
     },
