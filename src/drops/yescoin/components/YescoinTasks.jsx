@@ -15,8 +15,10 @@ import useYescoinCheckTaskMutation from "../hooks/useYescoinCheckTaskMutation";
 import useYescoinClaimTaskMutation from "../hooks/useYescoinClaimTaskMutation";
 import useYescoinClickTaskMutation from "../hooks/useYescoinClickTaskMutation";
 import useYescoinTaskListQuery from "../hooks/useYescoinTaskListQuery";
+import useYescoinFinishTaskBonusInfoQuery from "../hooks/useYescoinFinishTaskBonusInfoQuery";
 
 export default function YescoinTasks() {
+  const finishTaskBonusInfoQuery = useYescoinFinishTaskBonusInfoQuery();
   const accountInfoQuery = useYescoinAccountInfoQuery();
   const tasksQuery = useYescoinTaskListQuery();
   const tasks = useMemo(
@@ -111,6 +113,7 @@ export default function YescoinTasks() {
       try {
         await tasksQuery.refetch();
         await accountInfoQuery.refetch();
+        await finishTaskBonusInfoQuery.refetch();
       } catch {}
 
       process.stop();

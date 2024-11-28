@@ -15,8 +15,10 @@ import useYescoinCheckDailyMissionMutation from "../hooks/useYescoinCheckDailyMi
 import useYescoinClaimMissionMutation from "../hooks/useYescoinClaimMissionMutation";
 import useYescoinClickDailyMissionMutation from "../hooks/useYescoinClickDailyMissionMutation";
 import useYescoinDailyMissionQuery from "../hooks/useYescoinDailyMissionQuery";
+import useYescoinFinishTaskBonusInfoQuery from "../hooks/useYescoinFinishTaskBonusInfoQuery";
 
 export default function YescoinDailyMission() {
+  const finishTaskBonusInfoQuery = useYescoinFinishTaskBonusInfoQuery();
   const accountInfoQuery = useYescoinAccountInfoQuery();
   const missionsQuery = useYescoinDailyMissionQuery();
   const missions = useMemo(
@@ -119,6 +121,7 @@ export default function YescoinDailyMission() {
       try {
         await missionsQuery.refetch();
         await accountInfoQuery.refetch();
+        await finishTaskBonusInfoQuery.refetch();
       } catch {}
 
       process.stop();
