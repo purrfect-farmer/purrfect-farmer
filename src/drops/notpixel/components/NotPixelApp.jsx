@@ -140,6 +140,11 @@ export default function NotPixelApp({ diff, updatedAt }) {
             toast.success(
               `+${Math.floor(data.balance - mining.userBalance)} - Not Pixel`
             );
+
+            /** Reward */
+            if (data["reward_user"]) {
+              toast.success("Not Pixel - Reward");
+            }
           }
         }
       } catch {
