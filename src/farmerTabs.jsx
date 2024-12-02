@@ -46,7 +46,15 @@ const farmerTabs = [
     icon: TelegramWebAIcon,
     component: <TelegramWeb version="a" />,
   },
-
+  {
+    id: "tsubasa",
+    title: "Tsubasa",
+    icon: farmerIcons["tsubasa"],
+    component: <Farmer farmer="Tsubasa" />,
+    telegramLink:
+      "https://t.me/TsubasaRivalsBot/start?startapp=inviter_id-1147265290",
+    tasks: ["daily-reward"],
+  },
   {
     id: "rekt",
     title: "Rekt.me",
@@ -197,15 +205,6 @@ const farmerTabs = [
     telegramLink:
       "https://t.me/MatchQuestBot/start?startapp=775f1cc48a46ce5221f1d9476233dc33",
     tasks: ["farming", "tasks", "daily-task-purchase", "game"],
-  },
-  {
-    id: "goats",
-    title: "Goats",
-    icon: farmerIcons["goats"],
-    component: <Farmer farmer="Goats" />,
-    telegramLink:
-      "https://t.me/realgoats_bot/run?startapp=f0a65866-9ab8-4f40-af15-7dcd196d3af7",
-    tasks: ["daily-check-in", "missions"],
   },
 ];
 

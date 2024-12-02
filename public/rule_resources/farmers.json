@@ -90,17 +90,17 @@
         {
           "header": "origin",
           "operation": "set",
-          "value": "https://dev.goatsbot.xyz"
+          "value": "https://app.ton.tsubasa-rivals.com"
         },
         {
           "header": "referer",
           "operation": "set",
-          "value": "https://dev.goatsbot.xyz/"
+          "value": "https://app.ton.tsubasa-rivals.com/"
         }
       ]
     },
     "condition": {
-      "requestDomains": ["goatsbot.xyz"]
+      "requestDomains": ["app.ton.tsubasa-rivals.com"]
     }
   },
   {

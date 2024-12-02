@@ -1,11 +1,11 @@
 /** Drops Status */
 const dropsStatus = {
+  ["tsubasa"]: true,
   ["rekt"]: true,
   ["dreamcoin"]: true,
   ["notpixel"]: true,
   ["hrum"]: true,
   ["wonton"]: true,
-  ["yescoin"]: true,
 };
 
 /** Drops Order */

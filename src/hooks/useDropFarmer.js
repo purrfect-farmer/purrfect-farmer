@@ -115,6 +115,12 @@ export default function useDropFarmer({
     [queryClient.setQueryData]
   );
 
+  /** Update Auth Query Data */
+  const updateAuthQueryData = useCallback(
+    (...args) => updateQueryData(authQueryKey, ...args),
+    [updateQueryData, authQueryKey]
+  );
+
   /** Remove Queries */
   const removeQueries = useCallback(() => {
     queryClient.removeQueries({ queryKey: [id] });
@@ -235,7 +241,7 @@ export default function useDropFarmer({
   useEffect(() => {
     /** Requires domain matches */
     /** Don't watch requests without Telegram Web App  */
-    if (domainMatches.length < 1 || !telegramWebApp) {
+    if (auth || domainMatches.length < 1 || !telegramWebApp) {
       return;
     }
 
@@ -286,6 +292,7 @@ export default function useDropFarmer({
       chrome.webRequest.onBeforeSendHeaders.removeListener(handleWebRequest);
     };
   }, [
+    auth,
     domainMatches,
     authHeaders,
     extractAuthHeaders,
@@ -373,6 +380,7 @@ export default function useDropFarmer({
     resetTelegramWebApp,
     reset,
     updateQueryData,
+    updateAuthQueryData,
     processNextTask,
     joinTelegramLink,
   });
