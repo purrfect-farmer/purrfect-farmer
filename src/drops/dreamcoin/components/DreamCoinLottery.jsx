@@ -16,12 +16,18 @@ import useDreamCoinLevelQuery from "../hooks/useDreamCoinLevelQuery";
 export default function DreamCoinLottery() {
   const query = useDreamCoinUserQuery();
   const levelQuery = useDreamCoinLevelQuery();
-  const multiplier = useMemo(
+  const availableMultipliers = useMemo(
     () =>
       query.data?.availableSpinMultipliers
+        ?.slice()
         ?.sort((a, b) => b - a)
-        ?.find((item) => item <= query.data.energy.current) || 1,
+        ?.filter((item) => item <= query.data.energy.current) || [],
     [query.data]
+  );
+
+  const multiplier = useMemo(
+    () => availableMultipliers.at(availableMultipliers.length > 3 ? 2 : 0) || 1,
+    [availableMultipliers]
   );
   const energy = useMemo(
     () => Number(query.data?.energy?.current || 0),
@@ -38,6 +44,11 @@ export default function DreamCoinLottery() {
     "dreamcoin.farming-speed",
     1
   );
+
+  /** Log It */
+  useEffect(() => {
+    logNicely("DREAMCOIN AVAILABLE MULTIPLIERS", availableMultipliers);
+  }, [availableMultipliers]);
 
   useEffect(() => {
     if (!process.canExecute) {
