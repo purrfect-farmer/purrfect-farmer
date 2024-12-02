@@ -11,9 +11,11 @@ import useDreamCoinGetCaseMutation from "../hooks/useDreamCoinGetCaseMutation";
 import useDreamCoinOpenCaseMutation from "../hooks/useDreamCoinOpenCaseMutation";
 import useDreamCoinSpinMutation from "../hooks/useDreamCoinSpinMutation";
 import useDreamCoinUserQuery from "../hooks/useDreamCoinUserQuery";
+import useDreamCoinLevelQuery from "../hooks/useDreamCoinLevelQuery";
 
 export default function DreamCoinLottery() {
   const query = useDreamCoinUserQuery();
+  const levelQuery = useDreamCoinLevelQuery();
   const multiplier = useMemo(
     () =>
       query.data?.availableSpinMultipliers
@@ -90,6 +92,7 @@ export default function DreamCoinLottery() {
 
       /** Refetch Balance */
       try {
+        await levelQuery.refetch();
         await query.refetch();
       } catch {}
 
