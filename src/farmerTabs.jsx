@@ -68,7 +68,13 @@ const farmerTabs = [
     icon: farmerIcons["dreamcoin"],
     component: <Farmer farmer="DreamCoin" />,
     telegramLink: "https://t.me/DreamCoinOfficial_bot?start=1147265290",
-    tasks: ["rewards", "daily-reward", "lottery", "upgrade-all-level"],
+    tasks: [
+      "rewards",
+      "daily-reward",
+      "open-free-case",
+      "lottery",
+      "upgrade-all-level",
+    ],
   },
   {
     id: "notpixel",

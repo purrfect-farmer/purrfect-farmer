@@ -13,6 +13,8 @@ import useDreamCoinLevelQuery from "../hooks/useDreamCoinLevelQuery";
 import useDreamCoinUpgradeAllLevelMutation from "../hooks/useDreamCoinUpgradeAllLevelMutation";
 import useDreamCoinUserQuery from "../hooks/useDreamCoinUserQuery";
 import useDreamCoinClaimDailyTaskMutation from "../hooks/useDreamCoinClaimDailyTaskMutation";
+import useDreamCoinGetCaseMutation from "../hooks/useDreamCoinGetCaseMutation";
+import useDreamCoinOpenCaseMutation from "../hooks/useDreamCoinOpenCaseMutation";
 
 export default function DreamCoinFarmer() {
   const tabs = useSocketTabs("dreamcoin.farmer-tabs", ["lottery", "rewards"]);
@@ -22,6 +24,8 @@ export default function DreamCoinFarmer() {
   const dailyTasksQuery = useDreamCoinDailyTasksQuery();
   const claimDailyTaskMutation = useDreamCoinClaimDailyTaskMutation();
   const upgradeAllLevelMutation = useDreamCoinUpgradeAllLevelMutation();
+  const getCaseMutation = useDreamCoinGetCaseMutation();
+  const openCaseMutation = useDreamCoinOpenCaseMutation();
 
   /** Auto Claim Daily Reward */
   useFarmerAsyncTask(
@@ -47,6 +51,31 @@ export default function DreamCoinFarmer() {
         };
     },
     [dailyTasksQuery.data]
+  );
+
+  /** Open Free Case */
+  useFarmerAsyncTask(
+    "open-free-case",
+    () => {
+      if (userQuery.data)
+        return async function () {
+          const { freeCaseId } = userQuery.data;
+
+          if (freeCaseId) {
+            const freeCase = await getCaseMutation.mutateAsync(freeCaseId);
+
+            /** Log It */
+            logNicely("DREAMCOIN FREECASE", freeCase);
+
+            /** Open Case */
+            await openCaseMutation(freeCaseId);
+
+            /** Toast */
+            toast.success("DreamCoin - FreeCase");
+          }
+        };
+    },
+    [userQuery.data]
   );
 
   /** Auto Upgrade All Level */
