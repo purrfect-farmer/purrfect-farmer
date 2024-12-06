@@ -568,13 +568,13 @@ export default function useCore() {
       "core.open-telegram-bot",
       async (url, version = preferredTelegramWebVersion, force = false) => {
         try {
+          /** Is Mini App Start Page */
+          const isStartPage = !/https:\/\/t\.me\/[^\/]+\/.+/.test(url);
+
           /** Open Telegram Link */
-          await openTelegramLink(url, version, force);
+          await openTelegramLink(url, version, isStartPage || force);
 
-          /** Is Direct Mini App Link */
-          const isDirectLink = /https:\/\/t\.me\/[^\/]+\/.+/.test(url);
-
-          if (!isDirectLink) {
+          if (isStartPage) {
             /** Get Port */
             const telegramWebPort = messaging.ports
               .values()
