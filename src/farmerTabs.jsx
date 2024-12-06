@@ -85,15 +85,6 @@ const farmerTabs = [
     ],
   },
   {
-    id: "notpixel",
-    title: "Not Pixel",
-    icon: farmerIcons["notpixel"],
-    component: <Farmer farmer="NotPixel" />,
-    telegramLink: "https://t.me/notpixel/app?startapp=f1147265290_s664035",
-    tasks: ["mining", "paint"],
-  },
-
-  {
     id: "blum",
     title: "Blum",
     icon: farmerIcons["blum"],
