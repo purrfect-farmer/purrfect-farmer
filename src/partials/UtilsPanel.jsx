@@ -4,11 +4,12 @@ import CoreSystemIcon from "@/assets/images/core-system.png?format=webp&w=128";
 import Input from "@/components/Input";
 import useAppContext from "@/hooks/useAppContext";
 import { HiArrowTopRightOnSquare } from "react-icons/hi2";
-import { cn } from "@/lib/utils";
+import { cn, isBotURL } from "@/lib/utils";
 import { useState } from "react";
 
 export default function UtilsPanel({ open, onOpenChange }) {
-  const { dispatchAndOpenTelegramLink } = useAppContext();
+  const { dispatchAndOpenTelegramBot, dispatchAndOpenTelegramLink } =
+    useAppContext();
 
   /** Sync Server */
   const [telegramLink, setTelegramLink] = useState("");
@@ -65,7 +66,9 @@ export default function UtilsPanel({ open, onOpenChange }) {
                   {/* Set Button */}
                   <ConfirmButton
                     onClick={() => {
-                      dispatchAndOpenTelegramLink(telegramLink);
+                      isBotURL(telegramLink)
+                        ? dispatchAndOpenTelegramBot(telegramLink)
+                        : dispatchAndOpenTelegramLink(telegramLink);
                       onOpenChange(false);
                     }}
                   >
