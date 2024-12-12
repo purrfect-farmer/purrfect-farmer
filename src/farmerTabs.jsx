@@ -53,7 +53,7 @@ const farmerTabs = [
     component: <Farmer farmer="Tsubasa" />,
     telegramLink:
       "https://t.me/TsubasaRivalsBot/start?startapp=inviter_id-1147265290",
-    tasks: ["daily-reward"],
+    tasks: ["daily-reward", "tasks", "cards"],
   },
   {
     id: "rekt",

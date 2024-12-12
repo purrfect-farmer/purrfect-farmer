@@ -9,7 +9,7 @@ export default function useTsubasaFarmer() {
     useMemo(
       () => ({
         id: "tsubasa",
-        host: "app.ton.tsubasa-rivals.com",
+        host: "web.app.ton.tsubasa-rivals.com",
         notification: {
           icon: TsubasaIcon,
           title: "Tsubasa Farmer",
