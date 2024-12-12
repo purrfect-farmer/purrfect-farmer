@@ -75,7 +75,7 @@ export default function TsubasaCards() {
           ),
         []
       ),
-    [authQuery.data]
+    [authQuery.data["card_info"]]
   );
 
   /** Upgradable Cards */
