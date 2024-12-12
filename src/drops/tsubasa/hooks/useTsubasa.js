@@ -1,4 +1,5 @@
 import useValuesMemo from "@/hooks/useValuesMemo";
+import { logNicely } from "@/lib/utils";
 import { useLayoutEffect } from "react";
 import { useState } from "react";
 
@@ -67,6 +68,11 @@ export default function useTsubasa(farmer) {
                 result[key] = value;
               }
             }
+
+            /** Log */
+            logNicely("TSUBASA PREVIOUS DATA", previous);
+            logNicely("TSUBASA NEW DATA", result);
+
             return result;
           });
         }
