@@ -142,12 +142,12 @@
         {
           "header": "origin",
           "operation": "set",
-          "value": "https://tg.pumpad.io"
+          "value": "https://tg-home.pumpad.io"
         },
         {
           "header": "referer",
           "operation": "set",
-          "value": "https://tg.pumpad.io/"
+          "value": "https://tg-home.pumpad.io/"
         },
         {
           "header": "cookie",

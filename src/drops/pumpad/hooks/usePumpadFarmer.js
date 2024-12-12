@@ -8,7 +8,7 @@ export default function usePumpadFarmer() {
     useMemo(
       () => ({
         id: "pumpad",
-        host: "tg.pumpad.io",
+        host: "tg-home.pumpad.io",
         notification: {
           icon: PumpadIcon,
           title: "Pumpad Farmer",
