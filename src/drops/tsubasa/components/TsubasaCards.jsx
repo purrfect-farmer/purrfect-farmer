@@ -99,7 +99,7 @@ export default function TsubasaCards() {
   /** Upgradable Cards */
   const upgradableCards = useMemo(
     () => unlockedCards.filter((card) => validateCardAvailability(card)),
-    [validateCardAvailability]
+    [unlockedCards, validateCardAvailability]
   );
 
   /** Level Zero Cards */
