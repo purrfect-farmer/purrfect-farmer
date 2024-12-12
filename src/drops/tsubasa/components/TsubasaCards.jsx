@@ -15,6 +15,7 @@ export default function TsubasaCards() {
   const { authQuery } = useFarmerContext();
   const user = authQuery.data?.["game_data"]?.["user"];
   const balance = user["total_coins"];
+  const friendCount = authQuery.data["friend_count"];
 
   /** Process */
   const process = useProcessLock("tsubasa.cards");
@@ -46,8 +47,12 @@ export default function TsubasaCards() {
     (list, card) =>
       card["unlock_card_id"] === null ||
       card["unlock_card_level"] <=
-        list.find((item) => item["id"] === card["unlock_card_id"])?.["level"],
-    []
+        (card["unlock_card_id"] === "Friend"
+          ? friendCount
+          : list.find((item) => item["id"] === card["unlock_card_id"])?.[
+              "level"
+            ]),
+    [friendCount]
   );
 
   /** All Cards */
