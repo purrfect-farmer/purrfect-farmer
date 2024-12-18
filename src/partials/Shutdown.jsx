@@ -28,7 +28,7 @@ export default function Shutdown() {
           </Dialog.Title>
 
           {/* Description */}
-          <Dialog.Description className="px-2 text-center text-neutral-400">
+          <Dialog.Description className="px-2 text-center text-neutral-500 dark:text-neutral-300">
             Are you sure you want to close the farmer?
           </Dialog.Description>
 
