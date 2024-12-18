@@ -225,7 +225,9 @@ if (location.hash.includes("tgWebAppData")) {
               /** Dispatch App */
               dispatchTelegramWebApp();
             });
-            node.appendChild(script);
+
+            /** Insert Immediately */
+            node.prepend(script);
           } else if (node.tagName === "SCRIPT") {
             /** Remove Duplicate Telegram Web Script */
             if (node.src === TG_WEB_SCRIPT_SRC && !node.dataset.init) {
