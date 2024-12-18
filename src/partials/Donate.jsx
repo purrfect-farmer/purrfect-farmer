@@ -66,11 +66,8 @@ export default function Donate() {
                       "bg-neutral-200 dark:bg-neutral-600"
                     )}
                     onClick={() => {
-                      copy(network.address, {
-                        onCopy() {
-                          toast.success("Copied!");
-                        },
-                      });
+                      copy(network.address);
+                      toast.success("Copied!");
                     }}
                   >
                     <HiOutlineClipboard className="w-4 h-4" />
