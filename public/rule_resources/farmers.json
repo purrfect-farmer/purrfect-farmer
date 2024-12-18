@@ -407,5 +407,31 @@
     "condition": {
       "requestDomains": ["rekt-mini-app.vercel.app"]
     }
+  },
+  {
+    "id": 16,
+    "action": {
+      "type": "modifyHeaders",
+      "requestHeaders": [
+        {
+          "header": "x-requested-with",
+          "operation": "set",
+          "value": "org.telegram.messenger"
+        },
+        {
+          "header": "origin",
+          "operation": "set",
+          "value": "https://game.zoo.team"
+        },
+        {
+          "header": "referer",
+          "operation": "set",
+          "value": "https://game.zoo.team/"
+        }
+      ]
+    },
+    "condition": {
+      "requestDomains": ["zoo.team"]
+    }
   }
 ]
