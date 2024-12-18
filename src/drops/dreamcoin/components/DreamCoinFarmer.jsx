@@ -68,7 +68,7 @@ export default function DreamCoinFarmer() {
             logNicely("DREAMCOIN FREECASE", freeCase);
 
             /** Open Case */
-            await openCaseMutation(freeCaseId);
+            await openCaseMutation.mutateAsync(freeCaseId);
 
             /** Toast */
             toast.success("DreamCoin - FreeCase");

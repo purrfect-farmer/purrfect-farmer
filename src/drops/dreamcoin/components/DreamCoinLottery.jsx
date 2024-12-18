@@ -92,7 +92,7 @@ export default function DreamCoinLottery() {
               logNicely("DREAMCOIN FREECASE", freeCase);
 
               /** Open Case */
-              await openCaseMutation(reward.freeCase);
+              await openCaseMutation.mutateAsync(reward.freeCase);
 
               /** Toast */
               toast.success("DreamCoin - FreeCase");
