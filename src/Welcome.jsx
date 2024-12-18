@@ -29,6 +29,7 @@ import Shutdown from "./partials/Shutdown";
 import useAppQuery from "./hooks/useAppQuery";
 import useSocketTabs from "./hooks/useSocketTabs";
 import { useCallback } from "react";
+import Donate from "./partials/Donate";
 
 /** Telegram Web Button */
 const TelegramWebButton = forwardRef(({ icon, children, ...props }, ref) => (
@@ -389,6 +390,15 @@ export default function Welcome() {
             >
               Dev
             </a>
+            &bull;
+            <Dialog.Root>
+              <Dialog.Trigger asChild>
+                <a role="button" className="text-blue-500 hover:underline">
+                  Donate
+                </a>
+              </Dialog.Trigger>
+              <Donate />
+            </Dialog.Root>
           </div>
         </div>
       </div>
