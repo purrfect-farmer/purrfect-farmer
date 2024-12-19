@@ -13,6 +13,7 @@ import ZooAutoTasks from "./ZooAutoTasks";
 import ZooAnimals from "./ZooAnimals";
 import ZooQuiz from "./ZooQuiz";
 import useZooBoost from "../hooks/useZooBoost";
+import useZooChestClaim from "../hooks/useZooChestClaim";
 
 export default function () {
   const dataQueries = useZooDataQueries();
@@ -23,6 +24,9 @@ export default function () {
 
   /** Run Riddle and Rebus Claim */
   useZooRiddleAndRebusClaim();
+
+  /** Claim Chest */
+  useZooChestClaim();
 
   /** Purchase Boost */
   useZooBoost();

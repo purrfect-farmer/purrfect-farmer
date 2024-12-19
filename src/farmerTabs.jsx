@@ -54,10 +54,11 @@ const farmerTabs = [
     telegramLink: "https://t.me/zoo_story_bot/game?startapp=ref1147265290",
     tasks: [
       "daily-reward",
+      "claim-chest",
       "claim-riddle-and-rebus",
       "tasks",
-      "animals",
       "purchase-boost",
+      "animals",
     ],
   },
   {
