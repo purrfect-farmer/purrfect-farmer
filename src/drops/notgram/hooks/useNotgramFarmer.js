@@ -15,7 +15,9 @@ export default function useNotgramFarmer() {
           title: "Notgram Farmer",
         },
         fetchAuth() {
-          return delay(3000).then(() => Promise.resolve({ status: true }));
+          return delay(5000, true).then(() =>
+            Promise.resolve({ status: true })
+          );
         },
       }),
       []
