@@ -1,4 +1,5 @@
 import { lazy, memo } from "react";
+import { useMemo } from "react";
 
 const components = new Map();
 
@@ -12,7 +13,7 @@ const loader = (farmer) =>
     .get(farmer);
 
 export default memo(function Farmer({ farmer, ...props }) {
-  const Component = loader(farmer);
+  const Component = useMemo(() => loader(farmer), [farmer]);
 
   return <Component {...props} />;
 });

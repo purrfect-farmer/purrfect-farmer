@@ -14,7 +14,7 @@ import { Reorder, useDragControls } from "motion/react";
 import { cn, maximizeFarmerWindow, resizeFarmerWindow } from "@/lib/utils";
 import { memo, useCallback, useEffect, useState } from "react";
 
-const DropReorderItem = ({ children, ...props }) => {
+const DropReorderItem = memo(({ children, ...props }) => {
   const dragControls = useDragControls();
   return (
     <Reorder.Item {...props} dragListener={false} dragControls={dragControls}>
@@ -34,7 +34,7 @@ const DropReorderItem = ({ children, ...props }) => {
       </div>
     </Reorder.Item>
   );
-};
+});
 
 export default memo(function Settings({ tabs }) {
   const {
