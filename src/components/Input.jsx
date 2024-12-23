@@ -1,6 +1,7 @@
 import { cn } from "@/lib/utils";
+import { memo } from "react";
 
-export default function Input(props) {
+export default memo(function Input(props) {
   return (
     <input
       {...props}
@@ -12,4 +13,4 @@ export default function Input(props) {
       )}
     />
   );
-}
+});

@@ -1,6 +1,7 @@
 import { cn } from "@/lib/utils";
+import { memo } from "react";
 
-export default function FarmerDetect({ status, title, icon, className }) {
+export default memo(function FarmerDetect({ status, title, icon, className }) {
   return (
     <div className="flex flex-col items-center justify-center min-w-0 min-h-0 gap-2 p-4 grow">
       <img src={icon} alt={title} className="w-16 h-16 my-2 rounded-full" />
@@ -16,4 +17,4 @@ export default function FarmerDetect({ status, title, icon, className }) {
       </p>
     </div>
   );
-}
+});

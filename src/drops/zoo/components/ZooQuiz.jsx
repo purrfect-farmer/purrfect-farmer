@@ -1,8 +1,10 @@
-import useZooDataQueries from "../hooks/useZooDataQueries";
-import RiddleIcon from "../assets/images/riddle.png?format=webp&w=80";
-import RebusIcon from "../assets/images/rebus.png?format=webp&w=80";
+import { memo } from "react";
 
-export default function ZooQuiz() {
+import RebusIcon from "../assets/images/rebus.png?format=webp&w=80";
+import RiddleIcon from "../assets/images/riddle.png?format=webp&w=80";
+import useZooDataQueries from "../hooks/useZooDataQueries";
+
+export default memo(function ZooQuiz() {
   const dataQueries = useZooDataQueries();
   const [allData] = dataQueries.data;
 
@@ -43,4 +45,4 @@ export default function ZooQuiz() {
       </div>
     </div>
   );
-}
+});

@@ -3,6 +3,7 @@ import useFarmerContext from "@/hooks/useFarmerContext";
 import useProcessLock from "@/hooks/useProcessLock";
 import useValueTasks from "@/hooks/useValueTasks";
 import { canJoinTelegramLink, cn, delay, logNicely } from "@/lib/utils";
+import { memo } from "react";
 import { useCallback } from "react";
 import { useEffect } from "react";
 import { useMemo } from "react";
@@ -16,7 +17,7 @@ import useBlumStartTaskMutation from "../hooks/useBlumStartTaskMutation";
 import useBlumTasksQuery from "../hooks/useBlumTasksQuery";
 import useBlumValidateTaskMutation from "../hooks/useBlumValidateTaskMutation";
 
-export default function BlumAutoTasks() {
+export default memo(function BlumAutoTasks() {
   const client = useQueryClient();
   const query = useBlumTasksQuery();
 
@@ -339,17 +340,7 @@ export default function BlumAutoTasks() {
       /** Stop Process */
       process.stop();
     })();
-  }, [
-    zoomies.enabled,
-    process,
-    action,
-    dataQuery.data,
-    getKeyword,
-    getResolvedValue,
-    removeResolvedValue,
-    dispatchAndPrompt,
-    joinTelegramLink,
-  ]);
+  }, [zoomies.enabled, process, action, dataQuery.data, getKeyword, getResolvedValue, removeResolvedValue, dispatchAndPrompt, joinTelegramLink]);
 
   /** Auto-Complete Tasks */
   useFarmerAutoProcess("tasks", !query.isLoading, process);
@@ -450,4 +441,4 @@ export default function BlumAutoTasks() {
       ) : null}
     </>
   );
-}
+});

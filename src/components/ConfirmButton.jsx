@@ -1,7 +1,8 @@
 import { HiCheck } from "react-icons/hi2";
 import { cn } from "@/lib/utils";
+import { memo } from "react";
 
-export default function ConfirmButton(props) {
+export default memo(function ConfirmButton(props) {
   return (
     <button
       type="button"
@@ -16,4 +17,4 @@ export default function ConfirmButton(props) {
       {props.children || <HiCheck className="w-4 h-4 " />}
     </button>
   );
-}
+});

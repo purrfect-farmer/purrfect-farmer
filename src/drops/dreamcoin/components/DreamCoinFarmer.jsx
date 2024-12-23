@@ -4,19 +4,21 @@ import useFarmerAsyncTask from "@/hooks/useFarmerAsyncTask";
 import useFarmerAutoTab from "@/hooks/useFarmerAutoTab";
 import useSocketTabs from "@/hooks/useSocketTabs";
 import { cn, delay, logNicely } from "@/lib/utils";
+import { memo } from "react";
+
 import DreamCoinIcon from "../assets/images/icon.png?format=webp&w=80";
 import DreamCoinInfoDisplay from "./DreamCoinInfoDisplay";
 import DreamCoinLottery from "./DreamCoinLottery";
 import DreamCoinRewards from "./DreamCoinRewards";
+import useDreamCoinClaimDailyTaskMutation from "../hooks/useDreamCoinClaimDailyTaskMutation";
 import useDreamCoinDailyTasksQuery from "../hooks/useDreamCoinDailyTasksQuery";
+import useDreamCoinGetCaseMutation from "../hooks/useDreamCoinGetCaseMutation";
 import useDreamCoinLevelQuery from "../hooks/useDreamCoinLevelQuery";
+import useDreamCoinOpenCaseMutation from "../hooks/useDreamCoinOpenCaseMutation";
 import useDreamCoinUpgradeAllLevelMutation from "../hooks/useDreamCoinUpgradeAllLevelMutation";
 import useDreamCoinUserQuery from "../hooks/useDreamCoinUserQuery";
-import useDreamCoinClaimDailyTaskMutation from "../hooks/useDreamCoinClaimDailyTaskMutation";
-import useDreamCoinGetCaseMutation from "../hooks/useDreamCoinGetCaseMutation";
-import useDreamCoinOpenCaseMutation from "../hooks/useDreamCoinOpenCaseMutation";
 
-export default function DreamCoinFarmer() {
+export default memo(function DreamCoinFarmer() {
   const tabs = useSocketTabs("dreamcoin.farmer-tabs", ["lottery", "rewards"]);
 
   const userQuery = useDreamCoinUserQuery();
@@ -157,4 +159,4 @@ export default function DreamCoinFarmer() {
       </div>
     </>
   );
-}
+});

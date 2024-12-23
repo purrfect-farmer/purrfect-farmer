@@ -3,12 +3,13 @@ import useFarmerAutoTask from "@/hooks/useFarmerAutoTask";
 import useFarmerContext from "@/hooks/useFarmerContext";
 import useSocketDispatchCallback from "@/hooks/useSocketDispatchCallback";
 import { delay } from "@/lib/utils";
+import { memo } from "react";
 import { useMemo } from "react";
 
 import HrumFullscreenSpinner from "./HrumFullscreenSpinner";
 import useHrumOpenMutation from "../hooks/useHrumOpenMutation";
 
-export default function HrumOpenButton({ queries }) {
+export default memo(function HrumOpenButton({ queries }) {
   const openMutation = useHrumOpenMutation();
   const [allData] = queries.data;
   const { processNextTask } = useFarmerContext();
@@ -68,4 +69,4 @@ export default function HrumOpenButton({ queries }) {
       {openMutation.isPending ? <HrumFullscreenSpinner /> : null}
     </>
   );
-}
+});

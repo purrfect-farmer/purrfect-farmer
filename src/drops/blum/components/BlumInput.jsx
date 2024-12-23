@@ -1,6 +1,7 @@
 import { cn } from "@/lib/utils";
+import { memo } from "react";
 
-export default function BlumInput({ ...props }) {
+export default memo(function BlumInput({ ...props }) {
   return (
     <input
       {...props}
@@ -15,4 +16,4 @@ export default function BlumInput({ ...props }) {
       )}
     />
   );
-}
+});

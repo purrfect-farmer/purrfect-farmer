@@ -1,6 +1,7 @@
 import * as Dialog from "@radix-ui/react-dialog";
 import { HiArrowTopRightOnSquare } from "react-icons/hi2";
 import { cn } from "@/lib/utils";
+import { memo } from "react";
 import { useCallback } from "react";
 import { useState } from "react";
 
@@ -8,7 +9,7 @@ import BlumButton from "./BlumButton";
 import BlumIcon from "../assets/images/icon.png?format=webp&w=80";
 import BlumInput from "./BlumInput";
 
-export default function BlumKeywordPrompt({ task, onSubmit }) {
+export default memo(function BlumKeywordPrompt({ task, onSubmit }) {
   const [keyword, setKeyword] = useState("");
 
   const handleFormSubmit = useCallback(
@@ -80,4 +81,4 @@ export default function BlumKeywordPrompt({ task, onSubmit }) {
       </Dialog.Portal>
     </Dialog.Root>
   );
-}
+});

@@ -1,4 +1,5 @@
 import FarmerContext from "@/contexts/FarmerContext";
+import { memo } from "react";
 
 import TomarketAuthDetect from "./components/TomarketAuthDetect";
 import TomarketFarmer from "./components/TomarketFarmer";
@@ -21,4 +22,4 @@ function Tomarket() {
   );
 }
 
-export default Tomarket;
+export default memo(Tomarket);

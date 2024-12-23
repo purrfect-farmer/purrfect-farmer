@@ -1,7 +1,9 @@
+import { memo } from "react";
+
 import TicketIcon from "../assets/images/ticket.webp";
 import useTomarketBalanceQuery from "../hooks/useTomarketBalanceQuery";
 
-export default function TomarketBalanceDisplay() {
+export default memo(function TomarketBalanceDisplay() {
   const query = useTomarketBalanceQuery();
 
   return (
@@ -22,4 +24,4 @@ export default function TomarketBalanceDisplay() {
       )}
     </div>
   );
-}
+});

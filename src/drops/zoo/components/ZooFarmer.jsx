@@ -3,19 +3,20 @@ import useFarmerAutoTab from "@/hooks/useFarmerAutoTab";
 import useSocketTabs from "@/hooks/useSocketTabs";
 import { CgSpinner } from "react-icons/cg";
 import { cn } from "@/lib/utils";
+import { memo } from "react";
 
+import ZooAnimals from "./ZooAnimals";
+import ZooAutoTasks from "./ZooAutoTasks";
 import ZooBalanceDisplay from "./ZooBalanceDisplay";
 import ZooIcon from "../assets/images/icon.png?format=webp&w=80";
-import useZooDailyClaim from "../hooks/useZooDailyClaim";
-import useZooDataQueries from "../hooks/useZooDataQueries";
-import useZooRiddleAndRebusClaim from "../hooks/useZooRiddleAndRebusClaim";
-import ZooAutoTasks from "./ZooAutoTasks";
-import ZooAnimals from "./ZooAnimals";
 import ZooQuiz from "./ZooQuiz";
 import useZooBoost from "../hooks/useZooBoost";
 import useZooChestClaim from "../hooks/useZooChestClaim";
+import useZooDailyClaim from "../hooks/useZooDailyClaim";
+import useZooDataQueries from "../hooks/useZooDataQueries";
+import useZooRiddleAndRebusClaim from "../hooks/useZooRiddleAndRebusClaim";
 
-export default function () {
+export default memo(function () {
   const dataQueries = useZooDataQueries();
   const tabs = useSocketTabs("zoo.farmer-tabs", ["animals", "quiz", "tasks"]);
 
@@ -93,4 +94,4 @@ export default function () {
       </Tabs.Root>
     </div>
   );
-}
+});

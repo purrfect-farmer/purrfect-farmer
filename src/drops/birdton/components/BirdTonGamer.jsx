@@ -6,6 +6,7 @@ import useProcessLock from "@/hooks/useProcessLock";
 import useSocketState from "@/hooks/useSocketState";
 import useSyncedRef from "@/hooks/useSyncedRef";
 import { cn, delay, delayForSeconds } from "@/lib/utils";
+import { memo } from "react";
 import { useCallback } from "react";
 import { useEffect } from "react";
 import { useMemo } from "react";
@@ -17,7 +18,7 @@ const MIN_POINT = 100;
 const INITIAL_POINT = 120;
 const MAX_POINT = 10_000;
 
-export default function BirdTonGamer() {
+export default memo(function BirdTonGamer() {
   const process = useProcessLock("birdton.game");
   const {
     zoomies,
@@ -293,4 +294,4 @@ export default function BirdTonGamer() {
       </div>
     </div>
   );
-}
+});

@@ -5,6 +5,7 @@ import useFarmerAutoTab from "@/hooks/useFarmerAutoTab";
 import useSocketTabs from "@/hooks/useSocketTabs";
 import { cn, logNicely } from "@/lib/utils";
 import { isAfter } from "date-fns";
+import { memo } from "react";
 
 import WontonAutoBadges from "./WontonBadges";
 import WontonAutoGamer from "./WontonAutoGamer";
@@ -15,11 +16,11 @@ import WontonUsernameDisplay from "./WontonUsernameDisplay";
 import useWontonClaimFarmingMutation from "../hooks/useWontonClaimFarmingMutation";
 import useWontonDailyCheckInMutation from "../hooks/useWontonDailyCheckInMutation";
 import useWontonFarmingStatusQuery from "../hooks/useWontonFarmingStatusQuery";
-import useWontonStartFarmingMutation from "../hooks/useWontonStartFarmingMutation";
 import useWontonShopQuery from "../hooks/useWontonShopQuery";
+import useWontonStartFarmingMutation from "../hooks/useWontonStartFarmingMutation";
 import useWontonUseShopItemMutation from "../hooks/useWontonUseShopItemMutation";
 
-export default function WontonFarmer() {
+export default memo(function WontonFarmer() {
   const tabs = useSocketTabs("wonton.farmer-tabs", ["game", "badges", "tasks"]);
 
   const dailyCheckInMutation = useWontonDailyCheckInMutation();
@@ -213,4 +214,4 @@ export default function WontonFarmer() {
       </Tabs.Root>
     </div>
   );
-}
+});

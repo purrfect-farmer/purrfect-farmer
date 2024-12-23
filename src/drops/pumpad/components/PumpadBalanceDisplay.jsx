@@ -1,8 +1,10 @@
+import { memo } from "react";
 import { useMemo } from "react";
+
 import StarIcon from "../assets/images/star.png?format=webp";
 import usePumpadAssetsQuery from "../hooks/usePumpadAssetsQuery";
 
-export default function PumpadBalanceDisplay() {
+export default memo(function PumpadBalanceDisplay() {
   const query = usePumpadAssetsQuery();
   const assets = useMemo(() => query.data?.assets || [], [query.data]);
   const star = useMemo(
@@ -50,4 +52,4 @@ export default function PumpadBalanceDisplay() {
       )}
     </div>
   );
-}
+});

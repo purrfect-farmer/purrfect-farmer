@@ -1,8 +1,8 @@
 import ShockedCat from "@/assets/images/shocked-cat.png?format=webp";
 import useAppContext from "@/hooks/useAppContext";
-import { useEffect } from "react";
+import { memo, useEffect } from "react";
 
-export default function ErrorFallback({ error, resetErrorBoundary }) {
+export default memo(function ErrorFallback({ error, resetErrorBoundary }) {
   const { zoomies } = useAppContext();
 
   useEffect(() => {
@@ -40,4 +40,4 @@ export default function ErrorFallback({ error, resetErrorBoundary }) {
       </button>
     </div>
   );
-}
+});

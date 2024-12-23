@@ -4,6 +4,7 @@ import useProcessLock from "@/hooks/useProcessLock";
 import useSocketDispatchCallback from "@/hooks/useSocketDispatchCallback";
 import { CgSpinner } from "react-icons/cg";
 import { cn, delay } from "@/lib/utils";
+import { memo } from "react";
 import { useCallback } from "react";
 import { useEffect } from "react";
 import { useMemo } from "react";
@@ -14,10 +15,10 @@ import useYescoinAccountInfoQuery from "../hooks/useYescoinAccountInfoQuery";
 import useYescoinCheckTaskMutation from "../hooks/useYescoinCheckTaskMutation";
 import useYescoinClaimTaskMutation from "../hooks/useYescoinClaimTaskMutation";
 import useYescoinClickTaskMutation from "../hooks/useYescoinClickTaskMutation";
-import useYescoinTaskListQuery from "../hooks/useYescoinTaskListQuery";
 import useYescoinFinishTaskBonusInfoQuery from "../hooks/useYescoinFinishTaskBonusInfoQuery";
+import useYescoinTaskListQuery from "../hooks/useYescoinTaskListQuery";
 
-export default function YescoinTasks() {
+export default memo(function YescoinTasks() {
   const finishTaskBonusInfoQuery = useYescoinFinishTaskBonusInfoQuery();
   const accountInfoQuery = useYescoinAccountInfoQuery();
   const tasksQuery = useYescoinTaskListQuery();
@@ -177,4 +178,4 @@ export default function YescoinTasks() {
       </div>
     </div>
   );
-}
+});

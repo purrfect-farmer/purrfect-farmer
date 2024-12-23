@@ -2,6 +2,7 @@ import useFarmerAutoProcess from "@/hooks/useFarmerAutoProcess";
 import useFarmerContext from "@/hooks/useFarmerContext";
 import useProcessLock from "@/hooks/useProcessLock";
 import { cn, delay } from "@/lib/utils";
+import { memo } from "react";
 import { useCallback } from "react";
 import { useEffect } from "react";
 import { useMemo } from "react";
@@ -11,7 +12,7 @@ import useTruecoinEarnPartnerTaskMutation from "../hooks/useTruecoinEarnPartnerT
 import useTruecoinPartnerTasksQuery from "../hooks/useTruecoinPartnerTasksQuery";
 import useTruecoinUserArchivesQuery from "../hooks/useTruecoinUserArchivesQuery";
 
-export default function TruecoinTasks() {
+export default memo(function TruecoinTasks() {
   const process = useProcessLock("truecoin.tasks");
   const { authQuery, authQueryKey, queryClient } = useFarmerContext();
 
@@ -171,4 +172,4 @@ export default function TruecoinTasks() {
       )}
     </div>
   );
-}
+});

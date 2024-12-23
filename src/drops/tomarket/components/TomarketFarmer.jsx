@@ -6,6 +6,7 @@ import useFarmerContext from "@/hooks/useFarmerContext";
 import useSocketTabs from "@/hooks/useSocketTabs";
 import { cn, delay } from "@/lib/utils";
 import { isAfter } from "date-fns";
+import { memo } from "react";
 import { useEffect } from "react";
 
 import TomarketAutoGamer from "./TomarketAutoGamer";
@@ -17,7 +18,7 @@ import useTomarketDailyCheckInMutation from "../hooks/useTomarketDailyCheckInMut
 import useTomarketFarmingInfoQuery from "../hooks/useTomarketFarmingInfoQuery";
 import useTomarketStartFarmingMutation from "../hooks/useTomarketStartFarmingMutation";
 
-export default function TomarketFarmer() {
+export default memo(function TomarketFarmer() {
   const { tomarket } = useFarmerContext();
 
   const tabs = useSocketTabs("tomarket.farmer-tabs", ["game", "tickets"]);
@@ -116,4 +117,4 @@ export default function TomarketFarmer() {
       </Tabs.Root>
     </div>
   );
-}
+});

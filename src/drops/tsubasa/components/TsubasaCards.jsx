@@ -4,6 +4,7 @@ import useFarmerContext from "@/hooks/useFarmerContext";
 import useProcessLock from "@/hooks/useProcessLock";
 import { cn, delay, logNicely } from "@/lib/utils";
 import { isAfter, isBefore } from "date-fns";
+import { memo } from "react";
 import { useCallback } from "react";
 import { useEffect } from "react";
 import { useMemo } from "react";
@@ -11,7 +12,7 @@ import { useState } from "react";
 
 import useTsubasaLevelUpMutation from "../hooks/useTsubasaLevelUpMutation";
 
-export default function TsubasaCards() {
+export default memo(function TsubasaCards() {
   const { authQuery } = useFarmerContext();
   const user = authQuery.data?.["game_data"]?.["user"];
   const balance = user["total_coins"];
@@ -129,14 +130,7 @@ export default function TsubasaCards() {
     logNicely("TSUBASA UPGRADABLE CARDS", upgradableCards);
     logNicely("TSUBASA LEVEL ZERO CARDS", levelZeroCards);
     logNicely("TSUBASA REQUIRED CARDS", requiredCards);
-  }, [
-    allCards,
-    availableCards,
-    unlockedCards,
-    upgradableCards,
-    levelZeroCards,
-    requiredCards,
-  ]);
+  }, [allCards, availableCards, unlockedCards, upgradableCards, levelZeroCards, requiredCards]);
 
   /** Reset Card */
   useEffect(() => {
@@ -237,4 +231,4 @@ export default function TsubasaCards() {
       ) : null}
     </div>
   );
-}
+});

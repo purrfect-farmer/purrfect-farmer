@@ -1,4 +1,5 @@
 import FarmerContext from "@/contexts/FarmerContext";
+import { memo } from "react";
 
 import MatchQuestAuthDetect from "./components/MatchQuestAuthDetect";
 import MatchQuestFarmer from "./components/MatchQuestFarmer";
@@ -19,4 +20,4 @@ function MatchQuest() {
   );
 }
 
-export default MatchQuest;
+export default memo(MatchQuest);

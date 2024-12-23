@@ -6,6 +6,7 @@ import useProcessLock from "@/hooks/useProcessLock";
 import useSocketState from "@/hooks/useSocketState";
 import { CgSpinner } from "react-icons/cg";
 import { cn, delayForSeconds } from "@/lib/utils";
+import { memo } from "react";
 import { useEffect } from "react";
 
 import useYescoinCollectCoinMutation from "../hooks/useYescoinCollectCoinMutation";
@@ -13,7 +14,7 @@ import useYescoinCollectSpecialBoxCoinMutation from "../hooks/useYescoinCollectS
 import useYescoinGameInfoQuery from "../hooks/useYescoinGameInfoQuery";
 import useYescoinGameSpecialBoxInfoQuery from "../hooks/useYescoinGameSpecialBoxInfoQuery";
 
-export default function YescoinGamer() {
+export default memo(function YescoinGamer() {
   const { zoomies } = useFarmerContext();
   const process = useProcessLock("yescoin.game");
   const gameInfoQuery = useYescoinGameInfoQuery();
@@ -133,4 +134,4 @@ export default function YescoinGamer() {
       )}
     </div>
   );
-}
+});

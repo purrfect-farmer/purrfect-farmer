@@ -3,12 +3,13 @@ import useFarmerAutoProcess from "@/hooks/useFarmerAutoProcess";
 import useProcessLock from "@/hooks/useProcessLock";
 import useSocketState from "@/hooks/useSocketState";
 import { cn, delayForSeconds } from "@/lib/utils";
+import { memo } from "react";
 import { useEffect } from "react";
 
 import usePumpadBetMutation from "../hooks/usePumpadBetMutation";
 import usePumpadTicketsQuery from "../hooks/usePumpadTicketsQuery";
 
-export default function PumpadTickets() {
+export default memo(function PumpadTickets() {
   const query = usePumpadTicketsQuery();
   const ticketsCount = query.data?.["number_of_tickets"] || 0;
 
@@ -109,4 +110,4 @@ export default function PumpadTickets() {
       )}
     </div>
   );
-}
+});

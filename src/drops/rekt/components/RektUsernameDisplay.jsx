@@ -1,6 +1,8 @@
+import { memo } from "react";
+
 import useRektUserQuery from "../hooks/useRektUserQuery";
 
-export default function RektUsernameDisplay() {
+export default memo(function RektUsernameDisplay() {
   const query = useRektUserQuery();
 
   return (
@@ -14,4 +16,4 @@ export default function RektUsernameDisplay() {
       </h4>
     </div>
   );
-}
+});

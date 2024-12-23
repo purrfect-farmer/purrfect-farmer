@@ -1,4 +1,5 @@
 import FarmerContext from "@/contexts/FarmerContext";
+import { memo } from "react";
 
 import BlumAuthDetect from "./components/BlumAuthDetect";
 import BlumFarmer from "./components/BlumFarmer";
@@ -19,4 +20,4 @@ function Blum() {
   );
 }
 
-export default Blum;
+export default memo(Blum);

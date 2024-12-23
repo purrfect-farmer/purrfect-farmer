@@ -1,6 +1,8 @@
+import { memo } from "react";
+
 import useWontonUserQuery from "../hooks/useWontonUserQuery";
 
-export default function WontonUsernameDisplay() {
+export default memo(function WontonUsernameDisplay() {
   const query = useWontonUserQuery();
 
   return (
@@ -14,4 +16,4 @@ export default function WontonUsernameDisplay() {
       </h4>
     </div>
   );
-}
+});

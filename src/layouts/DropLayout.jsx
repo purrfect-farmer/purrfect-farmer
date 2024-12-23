@@ -2,8 +2,9 @@ import { HiOutlineArrowLeft } from "react-icons/hi2";
 import { Link } from "react-router-dom";
 import { Outlet } from "react-router-dom";
 import { cn } from "@/lib/utils";
+import { memo } from "react";
 
-export default function DropLayout() {
+export default memo(function DropLayout() {
   return (
     <div className="flex flex-col min-h-dvh">
       <div className="flex items-center gap-2 p-2 font-bold shrink-0">
@@ -24,4 +25,4 @@ export default function DropLayout() {
       </div>
     </div>
   );
-}
+});

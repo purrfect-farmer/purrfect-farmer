@@ -2,13 +2,14 @@ import * as Dialog from "@radix-ui/react-dialog";
 import toast from "react-hot-toast";
 import useSocketDispatchCallback from "@/hooks/useSocketDispatchCallback";
 import { cn } from "@/lib/utils";
+import { memo } from "react";
 import { useState } from "react";
 
 import Agent301Icon from "../assets/images/icon.png?format=webp&w=80";
 
 const defaultChoices = () => Array(4).fill("");
 
-export default function Agent301PuzzleDialog({ onSubmit, onOpenChange }) {
+export default memo(function Agent301PuzzleDialog({ onSubmit, onOpenChange }) {
   const [choices, setChoices] = useState(defaultChoices);
 
   const [handleChoiceInput, dispatchAndHandleChoiceInput] =
@@ -124,4 +125,4 @@ export default function Agent301PuzzleDialog({ onSubmit, onOpenChange }) {
       </Dialog.Root>
     </>
   );
-}
+});

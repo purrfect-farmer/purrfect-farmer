@@ -1,9 +1,11 @@
 import { cn } from "@/lib/utils";
+import { memo } from "react";
+
 import CoinIcon from "../assets/images/coin.png?format=webp&w=80";
 import EnergyIcon from "../assets/images/energy.png?format=webp&w=80";
 import useDreamCoinUserQuery from "../hooks/useDreamCoinUserQuery";
 
-export default function DreamCoinInfoDisplay() {
+export default memo(function DreamCoinInfoDisplay() {
   const query = useDreamCoinUserQuery();
   const user = query.data;
 
@@ -63,4 +65,4 @@ export default function DreamCoinInfoDisplay() {
       )}
     </>
   );
-}
+});

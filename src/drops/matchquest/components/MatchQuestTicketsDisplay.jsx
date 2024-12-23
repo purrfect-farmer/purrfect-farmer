@@ -1,7 +1,9 @@
+import { memo } from "react";
+
 import TicketIcon from "../assets/images/icon_daily_play_count.png";
 import useMatchQuestGameRuleQuery from "../hooks/useMatchQuestGameRuleQuery";
 
-export default function MatchQuestTicketsDisplay() {
+export default memo(function MatchQuestTicketsDisplay() {
   const query = useMatchQuestGameRuleQuery();
 
   return (
@@ -19,4 +21,4 @@ export default function MatchQuestTicketsDisplay() {
       )}
     </div>
   );
-}
+});

@@ -1,7 +1,8 @@
 import { cn } from "@/lib/utils";
+import { memo } from "react";
 import { HiArrowPath } from "react-icons/hi2";
 
-export default function ResetButton(props) {
+export default memo(function ResetButton(props) {
   return (
     <button
       type="button"
@@ -16,4 +17,4 @@ export default function ResetButton(props) {
       <HiArrowPath className="w-4 h-4 " />
     </button>
   );
-}
+});

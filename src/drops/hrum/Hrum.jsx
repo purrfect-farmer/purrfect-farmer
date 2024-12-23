@@ -1,4 +1,5 @@
 import FarmerContext from "@/contexts/FarmerContext";
+import { memo } from "react";
 
 import HrumAuthDetect from "./components/HrumAuthDetect";
 import HrumFarmer from "./components/HrumFarmer";
@@ -20,4 +21,4 @@ function Hrum() {
   );
 }
 
-export default Hrum;
+export default memo(Hrum);

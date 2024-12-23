@@ -19,7 +19,7 @@ import {
   HiOutlinePuzzlePiece,
 } from "react-icons/hi2";
 import { cn } from "@/lib/utils";
-import { forwardRef } from "react";
+import { forwardRef, memo } from "react";
 import { useEffect } from "react";
 import { useMemo } from "react";
 
@@ -32,44 +32,48 @@ import { useCallback } from "react";
 import Donate from "./partials/Donate";
 
 /** Telegram Web Button */
-const TelegramWebButton = forwardRef(({ icon, children, ...props }, ref) => (
-  <button
-    {...props}
-    ref={ref}
-    className={cn(
-      "p-2",
-      "rounded-full",
-      "bg-neutral-100 dark:bg-neutral-700",
-      "hover:bg-blue-500 dark:hover:bg-blue-800",
-      "hover:text-white",
-      "inline-flex items-center justify-center gap-1",
-      props.className
-    )}
-  >
-    <img src={icon} className="w-6 h-6" />
-    {children}
-  </button>
-));
+const TelegramWebButton = memo(
+  forwardRef(({ icon, children, ...props }, ref) => (
+    <button
+      {...props}
+      ref={ref}
+      className={cn(
+        "p-2",
+        "rounded-full",
+        "bg-neutral-100 dark:bg-neutral-700",
+        "hover:bg-blue-500 dark:hover:bg-blue-800",
+        "hover:text-white",
+        "inline-flex items-center justify-center gap-1",
+        props.className
+      )}
+    >
+      <img src={icon} className="w-6 h-6" />
+      {children}
+    </button>
+  ))
+);
 
 /** Toolbar Button */
-const ToolbarButton = forwardRef(({ icon: Icon, children, ...props }, ref) => (
-  <button
-    {...props}
-    ref={ref}
-    className={cn(
-      "p-2.5 rounded-full shrink-0",
-      "bg-neutral-50 dark:bg-neutral-700",
-      "hover:bg-neutral-100 dark:hover:bg-neutral-600",
+const ToolbarButton = memo(
+  forwardRef(({ icon: Icon, children, ...props }, ref) => (
+    <button
+      {...props}
+      ref={ref}
+      className={cn(
+        "p-2.5 rounded-full shrink-0",
+        "bg-neutral-50 dark:bg-neutral-700",
+        "hover:bg-neutral-100 dark:hover:bg-neutral-600",
 
-      props.className
-    )}
-  >
-    <Icon className="w-5 h-5" />
-    {children}
-  </button>
-));
+        props.className
+      )}
+    >
+      <Icon className="w-5 h-5" />
+      {children}
+    </button>
+  ))
+);
 
-export default function Welcome() {
+export default memo(function Welcome() {
   const [
     showSettingsPanel,
     setShowSettingsPanel,
@@ -404,4 +408,4 @@ export default function Welcome() {
       </div>
     </>
   );
-}
+});

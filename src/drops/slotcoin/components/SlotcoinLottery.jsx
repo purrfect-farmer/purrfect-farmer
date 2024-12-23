@@ -3,13 +3,14 @@ import useFarmerAutoProcess from "@/hooks/useFarmerAutoProcess";
 import useProcessLock from "@/hooks/useProcessLock";
 import useSocketState from "@/hooks/useSocketState";
 import { cn, delayForSeconds } from "@/lib/utils";
+import { memo } from "react";
 import { useEffect, useMemo } from "react";
 
 import EnergyIcon from "../assets/images/energy.png?format=webp&w=80";
 import useSlotcoinInfoQuery from "../hooks/useSlotcoinInfoQuery";
 import useSlotcoinLotteryMutation from "../hooks/useSlotcoinLotteryMutation";
 
-export default function SlotcoinLottery() {
+export default memo(function SlotcoinLottery() {
   const query = useSlotcoinInfoQuery();
   const bid = useMemo(() => Number(query.data?.user?.bid || 0), [query.data]);
   const energy = useMemo(
@@ -125,4 +126,4 @@ export default function SlotcoinLottery() {
       )}
     </div>
   );
-}
+});

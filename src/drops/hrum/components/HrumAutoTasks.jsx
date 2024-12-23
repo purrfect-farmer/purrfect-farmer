@@ -1,6 +1,7 @@
 import useFarmerAutoProcess from "@/hooks/useFarmerAutoProcess";
 import useProcessLock from "@/hooks/useProcessLock";
 import { cn, delay } from "@/lib/utils";
+import { memo } from "react";
 import { useCallback } from "react";
 import { useEffect } from "react";
 import { useMemo } from "react";
@@ -8,7 +9,7 @@ import { useState } from "react";
 
 import useHrumClaimQuestMutation from "../hooks/useHrumClaimQuestMutation";
 
-export default function HrumAutoTasks({ queries }) {
+export default memo(function HrumAutoTasks({ queries }) {
   const process = useProcessLock("hrum.tasks");
   const claimTaskMutation = useHrumClaimQuestMutation();
   const [allData, afterData] = queries.data;
@@ -147,4 +148,4 @@ export default function HrumAutoTasks({ queries }) {
       </div>
     </>
   );
-}
+});

@@ -1,4 +1,6 @@
 import FarmerContext from "@/contexts/FarmerContext";
+import { memo } from "react";
+
 import YescoinAuthDetect from "./components/YescoinAuthDetect";
 import YescoinFarmer from "./components/YescoinFarmer";
 import useYescoinFarmer from "./hooks/useYescoinFarmer";
@@ -16,4 +18,4 @@ function Yescoin() {
   );
 }
 
-export default Yescoin;
+export default memo(Yescoin);

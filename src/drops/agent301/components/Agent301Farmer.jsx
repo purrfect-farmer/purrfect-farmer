@@ -9,8 +9,9 @@ import Agent301Lottery from "./Agent301Lottery";
 import Agent301Puzzle from "./Agent301Puzzle";
 import Agent301Tasks from "./Agent301Tasks";
 import Agent301Wheel from "./Agent301Wheel";
+import { memo } from "react";
 
-export default function Agent301Farmer() {
+export default memo(function Agent301Farmer() {
   const tabs = useSocketTabs("agent301.farmer-tabs", [
     "tickets",
     "wheel",
@@ -74,4 +75,4 @@ export default function Agent301Farmer() {
       </Tabs.Root>
     </div>
   );
-}
+});

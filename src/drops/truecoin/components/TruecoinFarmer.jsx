@@ -6,6 +6,7 @@ import useFarmerContext from "@/hooks/useFarmerContext";
 import useSocketTabs from "@/hooks/useSocketTabs";
 import { cn } from "@/lib/utils";
 import { isToday } from "date-fns";
+import { memo } from "react";
 
 import CoinIcon from "../assets/images/coin.png?format=webp&w=80";
 import EnergyIcon from "../assets/images/energy.png?format=webp&w=80";
@@ -15,7 +16,7 @@ import TruecoinTasks from "./TruecoinTasks";
 import useTruecoinCollectDailyRewardMutation from "../hooks/useTruecoinCollectDailyRewardMutation";
 import useTruecoinLastDailyRewardQuery from "../hooks/useTruecoinLastDailyRewardQuery";
 
-export default function TruecoinFarmer() {
+export default memo(function TruecoinFarmer() {
   const { authQuery } = useFarmerContext();
 
   const user = authQuery.data?.user;
@@ -112,4 +113,4 @@ export default function TruecoinFarmer() {
       </Tabs.Root>
     </div>
   );
-}
+});

@@ -3,6 +3,7 @@ import FarmerContext from "@/contexts/FarmerContext";
 import Agent301AuthDetect from "./components/Agent301AuthDetect";
 import Agent301Farmer from "./components/Agent301Farmer";
 import useAgent301Farmer from "./hooks/useAgent301Farmer";
+import { memo } from "react";
 
 function Agent301() {
   const farmer = useAgent301Farmer();
@@ -19,4 +20,4 @@ function Agent301() {
   );
 }
 
-export default Agent301;
+export default memo(Agent301);

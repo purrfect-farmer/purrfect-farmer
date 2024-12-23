@@ -1,6 +1,7 @@
 import useFarmerAutoProcess from "@/hooks/useFarmerAutoProcess";
 import useProcessLock from "@/hooks/useProcessLock";
 import { cn, delay } from "@/lib/utils";
+import { memo } from "react";
 import { useCallback } from "react";
 import { useEffect } from "react";
 import { useMemo } from "react";
@@ -12,7 +13,7 @@ import useWontonBadgesQuery from "../hooks/useWontonBadgesQuery";
 import useWontonClaimBadgeMutation from "../hooks/useWontonClaimBadgeMutation";
 import useWontonUserQuery from "../hooks/useWontonUserQuery";
 
-export default function WontonAutoBadges() {
+export default memo(function WontonAutoBadges() {
   const client = useQueryClient();
   const badgesQuery = useWontonBadgesQuery();
   const userQuery = useWontonUserQuery();
@@ -170,4 +171,4 @@ export default function WontonAutoBadges() {
       </div>
     </>
   );
-}
+});

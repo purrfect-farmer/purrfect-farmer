@@ -4,16 +4,17 @@ import useFarmerAutoProcess from "@/hooks/useFarmerAutoProcess";
 import useProcessLock from "@/hooks/useProcessLock";
 import useSocketState from "@/hooks/useSocketState";
 import { cn, delayForSeconds, logNicely } from "@/lib/utils";
+import { memo } from "react";
 import { useEffect, useMemo } from "react";
 
 import useDreamCoinClaimRaidRewardMutation from "../hooks/useDreamCoinClaimRaidRewardMutation";
 import useDreamCoinGetCaseMutation from "../hooks/useDreamCoinGetCaseMutation";
+import useDreamCoinLevelQuery from "../hooks/useDreamCoinLevelQuery";
 import useDreamCoinOpenCaseMutation from "../hooks/useDreamCoinOpenCaseMutation";
 import useDreamCoinSpinMutation from "../hooks/useDreamCoinSpinMutation";
 import useDreamCoinUserQuery from "../hooks/useDreamCoinUserQuery";
-import useDreamCoinLevelQuery from "../hooks/useDreamCoinLevelQuery";
 
-export default function DreamCoinLottery() {
+export default memo(function DreamCoinLottery() {
   const query = useDreamCoinUserQuery();
   const levelQuery = useDreamCoinLevelQuery();
   const availableMultipliers = useMemo(
@@ -177,4 +178,4 @@ export default function DreamCoinLottery() {
       )}
     </div>
   );
-}
+});

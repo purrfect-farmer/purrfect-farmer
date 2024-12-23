@@ -1,6 +1,7 @@
 import { cn } from "@/lib/utils";
+import { memo } from "react";
 
-export default function HrumTaskButton({ icon, title, reward, ...props }) {
+export default memo(function HrumTaskButton({ icon, title, reward, ...props }) {
   return (
     <button
       {...props}
@@ -21,4 +22,4 @@ export default function HrumTaskButton({ icon, title, reward, ...props }) {
       </div>
     </button>
   );
-}
+});

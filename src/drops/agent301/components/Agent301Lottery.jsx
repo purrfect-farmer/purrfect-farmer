@@ -1,12 +1,12 @@
 import useFarmerAutoProcess from "@/hooks/useFarmerAutoProcess";
 import useProcessLock from "@/hooks/useProcessLock";
 import { cn, delay } from "@/lib/utils";
-import { useEffect } from "react";
+import { memo, useEffect } from "react";
 
 import useAgent301BalanceQuery from "../hooks/useAgent301BalanceQuery";
 import useAgent301LotteryMutation from "../hooks/useAgent301LotteryMutation";
 
-export default function Agent301Lottery() {
+export default memo(function Agent301Lottery() {
   const process = useProcessLock("agent301.lottery");
 
   const balanceQuery = useAgent301BalanceQuery();
@@ -80,4 +80,4 @@ export default function Agent301Lottery() {
       )}
     </div>
   );
-}
+});

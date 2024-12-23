@@ -1,7 +1,8 @@
 import Toggle from "@/components/Toggle";
 import useAppContext from "@/hooks/useAppContext";
+import { memo } from "react";
 
-export default function SyncControl() {
+export default memo(function SyncControl() {
   const { socket } = useAppContext();
 
   return (
@@ -15,4 +16,4 @@ export default function SyncControl() {
       />
     </label>
   );
-}
+});

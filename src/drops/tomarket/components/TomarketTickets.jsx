@@ -3,12 +3,13 @@ import useFarmerAutoProcess from "@/hooks/useFarmerAutoProcess";
 import useProcessLock from "@/hooks/useProcessLock";
 import useSocketState from "@/hooks/useSocketState";
 import { cn, delayForSeconds } from "@/lib/utils";
+import { memo } from "react";
 import { useEffect, useMemo } from "react";
 
 import useTomarketSpinMutation from "../hooks/useTomarketSpinMutation";
 import useTomarketTicketsQuery from "../hooks/useTomarketTicketsQuery";
 
-export default function TomarketTickets() {
+export default memo(function TomarketTickets() {
   const query = useTomarketTicketsQuery();
   const ticketsCount = useMemo(
     () => Number(query.data?.["ticket_spin_1"] || 0),
@@ -114,4 +115,4 @@ export default function TomarketTickets() {
       )}
     </>
   );
-}
+});

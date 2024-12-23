@@ -2,6 +2,7 @@ import useFarmerAutoProcess from "@/hooks/useFarmerAutoProcess";
 import useFarmerContext from "@/hooks/useFarmerContext";
 import useProcessLock from "@/hooks/useProcessLock";
 import { canJoinTelegramLink, cn, delay, logNicely } from "@/lib/utils";
+import { memo } from "react";
 import { useCallback } from "react";
 import { useEffect } from "react";
 import { useMemo } from "react";
@@ -12,7 +13,7 @@ import useDreamCoinClaimDailyFreeRewardMutation from "../hooks/useDreamCoinClaim
 import useDreamCoinClaimFreeRewardMutation from "../hooks/useDreamCoinClaimFreeRewardMutation";
 import useDreamCoinFreeRewardQuery from "../hooks/useDreamCoinFreeRewardQuery";
 
-export default function DreamCoinRewards() {
+export default memo(function DreamCoinRewards() {
   const { joinTelegramLink } = useFarmerContext();
   const process = useProcessLock("dreamcoin.rewards");
   const queryClient = useQueryClient();
@@ -165,4 +166,4 @@ export default function DreamCoinRewards() {
       )}
     </div>
   );
-}
+});

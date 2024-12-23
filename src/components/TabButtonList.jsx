@@ -1,10 +1,10 @@
 import useAppContext from "@/hooks/useAppContext";
 import { cn } from "@/lib/utils";
-import { useMemo } from "react";
+import { memo, useMemo } from "react";
 
 import TabButton from "./TabButton";
 
-export default function TabButtonList({ tabs }) {
+export default memo(function TabButtonList({ tabs }) {
   const { socket } = useAppContext();
   const otherTabs = useMemo(() => tabs.slice(1), [tabs]);
 
@@ -34,4 +34,4 @@ export default function TabButtonList({ tabs }) {
       </div>
     </div>
   );
-}
+});

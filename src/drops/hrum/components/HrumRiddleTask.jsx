@@ -3,6 +3,7 @@ import useFarmerAutoTask from "@/hooks/useFarmerAutoTask";
 import useFarmerContext from "@/hooks/useFarmerContext";
 import useSocketDispatchCallback from "@/hooks/useSocketDispatchCallback";
 import { delay } from "@/lib/utils";
+import { memo } from "react";
 import { useMemo } from "react";
 
 import HrumFullscreenSpinner from "./HrumFullscreenSpinner";
@@ -11,7 +12,7 @@ import RiddleIcon from "../assets/images/riddle.jpg?format=webp&w=80";
 import useHrumCheckQuestMutation from "../hooks/useHrumCheckQuestMutation";
 import useHrumClaimQuestMutation from "../hooks/useHrumClaimQuestMutation";
 
-export default function HrumRiddleTask({ queries }) {
+export default memo(function HrumRiddleTask({ queries }) {
   const checkRiddleMutation = useHrumCheckQuestMutation("riddle");
   const claimRiddleMutation = useHrumClaimQuestMutation("riddle");
   const [allData, afterData] = queries.data;
@@ -88,4 +89,4 @@ export default function HrumRiddleTask({ queries }) {
       ) : null}
     </div>
   );
-}
+});

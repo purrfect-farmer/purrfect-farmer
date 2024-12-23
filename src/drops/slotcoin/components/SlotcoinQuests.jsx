@@ -2,6 +2,7 @@ import useFarmerAutoProcess from "@/hooks/useFarmerAutoProcess";
 import useFarmerContext from "@/hooks/useFarmerContext";
 import useProcessLock from "@/hooks/useProcessLock";
 import { canJoinTelegramLink, cn, delay } from "@/lib/utils";
+import { memo } from "react";
 import { useCallback } from "react";
 import { useEffect } from "react";
 import { useMemo } from "react";
@@ -11,7 +12,7 @@ import { useState } from "react";
 import useSlotcoinCheckTaskMutation from "../hooks/useSlotcoinCheckTaskMutation";
 import useSlotcoinQuestsQuery from "../hooks/useSlotcoinQuestsQuery";
 
-export default function SlotcoinQuests() {
+export default memo(function SlotcoinQuests() {
   const { joinTelegramLink } = useFarmerContext();
   const process = useProcessLock("slotcoin.quests");
   const queryClient = useQueryClient();
@@ -142,4 +143,4 @@ export default function SlotcoinQuests() {
       )}
     </div>
   );
-}
+});

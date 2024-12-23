@@ -1,6 +1,8 @@
+import { memo } from "react";
+
 import TomarketIcon from "../assets/images/icon.png?format=webp&w=80";
 
-export default function TomarketFarmerHeader() {
+export default memo(function TomarketFarmerHeader() {
   return (
     <div className="flex flex-col gap-1 py-4">
       <div className="flex items-center justify-center gap-2">
@@ -13,4 +15,4 @@ export default function TomarketFarmerHeader() {
       </div>
     </div>
   );
-}
+});

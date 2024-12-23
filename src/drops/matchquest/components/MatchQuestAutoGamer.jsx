@@ -3,6 +3,7 @@ import useFarmerAutoProcess from "@/hooks/useFarmerAutoProcess";
 import useProcessLock from "@/hooks/useProcessLock";
 import useSocketState from "@/hooks/useSocketState";
 import { delay } from "@/lib/utils";
+import { memo } from "react";
 import { useCallback } from "react";
 import { useEffect } from "react";
 import { useMemo } from "react";
@@ -21,7 +22,7 @@ const MIN_POINT = 90;
 const INITIAL_POINT = 100;
 const MAX_POINT = 120;
 
-export default function MatchQuestAutoGamer() {
+export default memo(function MatchQuestAutoGamer() {
   const gameRuleQuery = useMatchQuestGameRuleQuery();
   const userQuery = useMatchQuestUserQuery();
   const process = useProcessLock("matchquest.game");
@@ -164,4 +165,4 @@ export default function MatchQuestAutoGamer() {
       ) : null}
     </div>
   );
-}
+});

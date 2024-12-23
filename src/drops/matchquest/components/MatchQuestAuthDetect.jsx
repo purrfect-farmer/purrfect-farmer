@@ -1,8 +1,9 @@
 import FarmerDetect from "@/components/FarmerDetect";
+import { memo } from "react";
 
 import MatchQuestIcon from "../assets/images/icon.png?format=webp&w=80";
 
-export default function MatchQuestAuthDetect({ status }) {
+export default memo(function MatchQuestAuthDetect({ status }) {
   return (
     <FarmerDetect
       title={"MatchQuest Farmer"}
@@ -11,4 +12,4 @@ export default function MatchQuestAuthDetect({ status }) {
       className="text-neutral-400"
     />
   );
-}
+});

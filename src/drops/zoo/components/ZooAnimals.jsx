@@ -1,15 +1,16 @@
 import useFarmerAutoProcess from "@/hooks/useFarmerAutoProcess";
 import useProcessLock from "@/hooks/useProcessLock";
 import { cn, delay, logNicely } from "@/lib/utils";
+import { memo } from "react";
 import { useEffect } from "react";
 import { useMemo } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 
-import useZooDataQueries from "../hooks/useZooDataQueries";
 import useZooBuyAnimalMutation from "../hooks/useZooBuyAnimalMutation";
-import { useQueryClient } from "@tanstack/react-query";
+import useZooDataQueries from "../hooks/useZooDataQueries";
 
-export default function ZooAnimals() {
+export default memo(function ZooAnimals() {
   const queryClient = useQueryClient();
   const dataQueries = useZooDataQueries();
   const [allData] = dataQueries.data;
@@ -214,4 +215,4 @@ export default function ZooAnimals() {
       ) : null}
     </div>
   );
-}
+});

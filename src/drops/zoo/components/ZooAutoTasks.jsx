@@ -1,18 +1,19 @@
 import useFarmerAutoProcess from "@/hooks/useFarmerAutoProcess";
+import useFarmerContext from "@/hooks/useFarmerContext";
 import useProcessLock from "@/hooks/useProcessLock";
 import { canJoinTelegramLink, cn, delay, isTelegramLink } from "@/lib/utils";
+import { memo } from "react";
 import { useCallback } from "react";
 import { useEffect } from "react";
 import { useMemo } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 
+import useZooCheckQuestMutation from "../hooks/useZooCheckQuestMutation";
 import useZooClaimQuestMutation from "../hooks/useZooClaimQuestMutation";
 import useZooDataQueries from "../hooks/useZooDataQueries";
-import useFarmerContext from "@/hooks/useFarmerContext";
-import useZooCheckQuestMutation from "../hooks/useZooCheckQuestMutation";
-import { useQueryClient } from "@tanstack/react-query";
 
-export default function ZooAutoTasks() {
+export default memo(function ZooAutoTasks() {
   const { joinTelegramLink } = useFarmerContext();
 
   const process = useProcessLock("zoo.tasks");
@@ -202,4 +203,4 @@ export default function ZooAutoTasks() {
       </div>
     </>
   );
-}
+});

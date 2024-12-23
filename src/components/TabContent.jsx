@@ -1,12 +1,12 @@
 import useAppContext from "@/hooks/useAppContext";
 import { ErrorBoundary } from "react-error-boundary";
-import { Suspense } from "react";
+import { memo, Suspense } from "react";
 import { cn } from "@/lib/utils";
 
 import FullSpinner from "./FullSpinner";
 import ErrorFallback from "./ErrorFallback";
 
-export default function TabContent({ tab }) {
+export default memo(function TabContent({ tab }) {
   const { dispatchAndOpenTelegramBot } = useAppContext();
 
   return (
@@ -35,4 +35,4 @@ export default function TabContent({ tab }) {
       </div>
     </div>
   );
-}
+});

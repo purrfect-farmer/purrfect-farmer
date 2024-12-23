@@ -1,6 +1,8 @@
+import { memo } from "react";
+
 import useMatchQuestUserQuery from "../hooks/useMatchQuestUserQuery";
 
-export default function MatchQuestUsernameDisplay() {
+export default memo(function MatchQuestUsernameDisplay() {
   const query = useMatchQuestUserQuery();
 
   return (
@@ -14,4 +16,4 @@ export default function MatchQuestUsernameDisplay() {
       </h4>
     </div>
   );
-}
+});

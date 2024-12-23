@@ -3,6 +3,7 @@ import Input from "@/components/Input";
 import { Controller, FormProvider, useForm } from "react-hook-form";
 import { cn } from "@/lib/utils";
 import { yupResolver } from "@hookform/resolvers/yup";
+import { memo } from "react";
 
 const schema = yup
   .object({
@@ -21,7 +22,7 @@ const schema = yup
   })
   .required();
 
-export default function TelegramLinkForm({ link, handleFormSubmit }) {
+export default memo(function TelegramLinkForm({ link, handleFormSubmit }) {
   /** Form */
   const form = useForm({
     resolver: yupResolver(schema),
@@ -89,4 +90,4 @@ export default function TelegramLinkForm({ link, handleFormSubmit }) {
       </form>
     </FormProvider>
   );
-}
+});

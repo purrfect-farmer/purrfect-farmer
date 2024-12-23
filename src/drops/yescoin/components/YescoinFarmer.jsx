@@ -3,6 +3,7 @@ import useFarmerAutoTab from "@/hooks/useFarmerAutoTab";
 import useSocketTabs from "@/hooks/useSocketTabs";
 import { CgSpinner } from "react-icons/cg";
 import { cn } from "@/lib/utils";
+import { memo } from "react";
 
 import YescoinBalanceDisplay from "./YescoinBalanceDisplay";
 import YescoinDailyMission from "./YescoinDailyMission";
@@ -12,10 +13,10 @@ import YescoinTasks from "./YescoinTasks";
 import useYescoinAccountInfoQuery from "../hooks/useYescoinAccountInfoQuery";
 import useYescoinDailyCheckIn from "../hooks/useYescoinDailyCheckIn";
 import useYescoinOfflineQuery from "../hooks/useYescoinOfflineQuery";
-import useYescoinTaskBonusClaim from "../hooks/useYescoinTaskBonusClaim";
 import useYescoinSpecialBoxClaim from "../hooks/useYescoinSpecialBoxClaim";
+import useYescoinTaskBonusClaim from "../hooks/useYescoinTaskBonusClaim";
 
-export default function YescoinFarmer() {
+export default memo(function YescoinFarmer() {
   const accountInfoQuery = useYescoinAccountInfoQuery();
   const tabs = useSocketTabs("yescoin.farmer-tabs", [
     "game",
@@ -96,4 +97,4 @@ export default function YescoinFarmer() {
       )}
     </div>
   );
-}
+});

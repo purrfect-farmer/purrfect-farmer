@@ -1,7 +1,8 @@
 import { cn } from "@/lib/utils";
 import Toggle from "./Toggle";
+import { memo } from "react";
 
-export default function LabelToggle({ children, ...props }) {
+export default memo(function LabelToggle({ children, ...props }) {
   return (
     <label
       className={cn(
@@ -12,4 +13,4 @@ export default function LabelToggle({ children, ...props }) {
       <h4 className="min-w-0 min-h-0 grow">{children}</h4> <Toggle {...props} />
     </label>
   );
-}
+});

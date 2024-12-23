@@ -1,8 +1,9 @@
 import { cn } from "@/lib/utils";
+import { memo } from "react";
 
 import usePumpadUserQuery from "../hooks/usePumpadUserQuery";
 
-export default function PumpadUsernameDisplay() {
+export default memo(function PumpadUsernameDisplay() {
   const query = usePumpadUserQuery();
 
   return (
@@ -14,4 +15,4 @@ export default function PumpadUsernameDisplay() {
         : "Error..."}
     </h4>
   );
-}
+});

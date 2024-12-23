@@ -1,9 +1,11 @@
-import useZooDataQueries from "../hooks/useZooDataQueries";
+import { memo } from "react";
+
 import CoinIcon from "../assets/images/coin.png?format=webp&w=80";
 import FoodIcon from "../assets/images/food.png?format=webp&w=80";
 import TPHIcon from "../assets/images/tph.png?format=webp&w=80";
+import useZooDataQueries from "../hooks/useZooDataQueries";
 
-export default function ZooBalanceDisplay() {
+export default memo(function ZooBalanceDisplay() {
   const dataQueries = useZooDataQueries();
   const hero = dataQueries.data?.[0]?.hero;
 
@@ -28,4 +30,4 @@ export default function ZooBalanceDisplay() {
       </h4>
     </div>
   );
-}
+});

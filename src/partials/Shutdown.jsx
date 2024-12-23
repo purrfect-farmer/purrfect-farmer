@@ -2,8 +2,9 @@ import * as Dialog from "@radix-ui/react-dialog";
 import AppIcon from "@/assets/images/icon.png?format=webp&w=80";
 import useAppContext from "@/hooks/useAppContext";
 import { cn } from "@/lib/utils";
+import { memo } from "react";
 
-export default function Shutdown() {
+export default memo(function Shutdown() {
   const { dispatchAndShutdown } = useAppContext();
 
   return (
@@ -52,4 +53,4 @@ export default function Shutdown() {
       </Dialog.Overlay>
     </Dialog.Portal>
   );
-}
+});

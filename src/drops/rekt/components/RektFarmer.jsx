@@ -1,27 +1,29 @@
+import * as Tabs from "@radix-ui/react-tabs";
+import toast from "react-hot-toast";
 import useFarmerAsyncTask from "@/hooks/useFarmerAsyncTask";
 import useFarmerAutoTab from "@/hooks/useFarmerAutoTab";
 import useSocketTabs from "@/hooks/useSocketTabs";
-import * as Tabs from "@radix-ui/react-tabs";
-import useRektDailyCheckInMutation from "../hooks/useRektDailyCheckInMutation";
 import { cn, delay } from "@/lib/utils";
+import { isAfter, subHours } from "date-fns";
+import { memo } from "react";
+
+import RektAutoGame from "./RektAutoGame";
+import RektAutoQuests from "./RektAutoQuests";
+import RektBalanceDisplay from "./RektBalanceDisplay";
 import RektFarmerHeader from "./RektFarmerHeader";
 import RektUsernameDisplay from "./RektUsernameDisplay";
-import RektBalanceDisplay from "./RektBalanceDisplay";
-import RektAutoQuests from "./RektAutoQuests";
-import useRektUnclaimedFarmingQuery from "../hooks/useRektUnclaimedFarmingQuery";
 import useRektActiveFarmingQuery from "../hooks/useRektActiveFarmingQuery";
-import toast from "react-hot-toast";
-import useRektClaimFarmingMutation from "../hooks/useRektClaimFarmingMutation";
-import useRektUserQuery from "../hooks/useRektUserQuery";
-import useRektStartFarmingMutation from "../hooks/useRektStartFarmingMutation";
 import useRektBoostFarmingMutation from "../hooks/useRektBoostFarmingMutation";
-import useRektReferralClaimsQuery from "../hooks/useRektReferralClaimsQuery";
-import useRektClaimReferralTradeMutation from "../hooks/useRektClaimReferralTradeMutation";
+import useRektClaimFarmingMutation from "../hooks/useRektClaimFarmingMutation";
 import useRektClaimReferralPointsMutation from "../hooks/useRektClaimReferralPointsMutation";
-import { isAfter, subHours } from "date-fns";
-import RektAutoGame from "./RektAutoGame";
+import useRektClaimReferralTradeMutation from "../hooks/useRektClaimReferralTradeMutation";
+import useRektDailyCheckInMutation from "../hooks/useRektDailyCheckInMutation";
+import useRektReferralClaimsQuery from "../hooks/useRektReferralClaimsQuery";
+import useRektStartFarmingMutation from "../hooks/useRektStartFarmingMutation";
+import useRektUnclaimedFarmingQuery from "../hooks/useRektUnclaimedFarmingQuery";
+import useRektUserQuery from "../hooks/useRektUserQuery";
 
-export default function RektFarmer() {
+export default memo(function RektFarmer() {
   const tabs = useSocketTabs("rekt.farmer-tabs", ["game", "quests"]);
   const dailyCheckInMutation = useRektDailyCheckInMutation();
 
@@ -225,4 +227,4 @@ export default function RektFarmer() {
       </Tabs.Root>
     </div>
   );
-}
+});

@@ -1,7 +1,9 @@
+import { memo } from "react";
+
 import TicketIcon from "../assets/images/ticket.webp";
 import useBlumBalanceQuery from "../hooks/useBlumBalanceQuery";
 
-export default function BlumBalanceDisplay() {
+export default memo(function BlumBalanceDisplay() {
   const query = useBlumBalanceQuery();
 
   return (
@@ -22,4 +24,4 @@ export default function BlumBalanceDisplay() {
       )}
     </div>
   );
-}
+});

@@ -1,7 +1,7 @@
-import { useEffect } from "react";
+import { memo, useEffect } from "react";
 import { useState } from "react";
 
-export default function Crasher({ delay = 1000 }) {
+export default memo(function Crasher({ delay = 1000 }) {
   const [shouldCrash, setShouldCrash] = useState(false);
 
   if (shouldCrash) {
@@ -16,4 +16,4 @@ export default function Crasher({ delay = 1000 }) {
       clearTimeout(timeout);
     };
   }, [delay]);
-}
+});

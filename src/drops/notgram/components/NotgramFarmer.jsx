@@ -4,12 +4,13 @@ import useFarmerContext from "@/hooks/useFarmerContext";
 import useMessageHandlers from "@/hooks/useMessageHandlers";
 import useProcessLock from "@/hooks/useProcessLock";
 import { canJoinTelegramLink, cn, postPortMessage } from "@/lib/utils";
+import { memo } from "react";
 import { useEffect } from "react";
 import { useMemo } from "react";
 
 import NotgramIcon from "../assets/images/icon.png?format=webp&w=80";
 
-export default function NotgramFarmer() {
+export default memo(function NotgramFarmer() {
   const { setActiveTab, settings, joinTelegramLink } = useAppContext();
   const { id, port, host } = useFarmerContext();
   const process = useProcessLock("notgram.tasks");
@@ -58,13 +59,7 @@ export default function NotgramFarmer() {
           : id
       );
     });
-  }, [
-    id,
-    process.started,
-    port,
-    setActiveTab,
-    settings.preferredTelegramWebVersion,
-  ]);
+  }, [id, process.started, port, setActiveTab, settings.preferredTelegramWebVersion]);
 
   return (
     <div className="flex flex-col gap-4 p-4">
@@ -88,4 +83,4 @@ export default function NotgramFarmer() {
       </button>
     </div>
   );
-}
+});

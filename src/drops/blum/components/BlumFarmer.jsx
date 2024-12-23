@@ -4,6 +4,7 @@ import useFarmerAsyncTask from "@/hooks/useFarmerAsyncTask";
 import useFarmerAutoTab from "@/hooks/useFarmerAutoTab";
 import useSocketTabs from "@/hooks/useSocketTabs";
 import { cn, delay } from "@/lib/utils";
+import { memo } from "react";
 
 import BlumAutoTasks from "./BlumAutoTasks";
 import BlumBalanceDisplay from "./BlumBalanceDisplay";
@@ -18,7 +19,7 @@ import useBlumDailyRewardQuery from "../hooks/useBlumDailyRewardQuery";
 import useBlumFriendsBalanceQuery from "../hooks/useBlumFriendsBalanceQuery";
 import useBlumStartFarmingMutation from "../hooks/useBlumStartFarmingMutation";
 
-export default function BlumFarmer() {
+export default memo(function BlumFarmer() {
   const tabs = useSocketTabs("blum.farmer-tabs", ["game", "tasks"]);
   const balanceQuery = useBlumBalanceQuery();
 
@@ -151,4 +152,4 @@ export default function BlumFarmer() {
       </Tabs.Root>
     </div>
   );
-}
+});

@@ -4,7 +4,7 @@ import useFarmerContext from "@/hooks/useFarmerContext";
 import useSocketDispatchCallback from "@/hooks/useSocketDispatchCallback";
 import useSocketState from "@/hooks/useSocketState";
 import { logNicely } from "@/lib/utils";
-import { useCallback } from "react";
+import { memo, useCallback } from "react";
 
 import Agent301PuzzleDialog from "./Agent301PuzzleDialog";
 import PuzzleIcon from "../assets/images/puzzle.png?format=webp&w=80";
@@ -12,7 +12,7 @@ import useAgent301BalanceQuery from "../hooks/useAgent301BalanceQuery";
 import useAgent301CardsQuery from "../hooks/useAgent301CardsQuery";
 import useAgent301PuzzleMutation from "../hooks/useAgent301PuzzleMutation";
 
-export default function Agent301Puzzle() {
+export default memo(function Agent301Puzzle() {
   const cardsQuery = useAgent301CardsQuery();
   const result = cardsQuery.data?.result;
   const attemptsLeft = result?.attemptsLeft || 0;
@@ -120,4 +120,4 @@ export default function Agent301Puzzle() {
       ) : null}
     </>
   );
-}
+});

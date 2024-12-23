@@ -4,6 +4,7 @@ import useFarmerAsyncTask from "@/hooks/useFarmerAsyncTask";
 import useFarmerAutoTab from "@/hooks/useFarmerAutoTab";
 import useSocketTabs from "@/hooks/useSocketTabs";
 import { cn } from "@/lib/utils";
+import { memo } from "react";
 
 import SlotcoinIcon from "../assets/images/icon.png?format=webp&w=80";
 import SlotcoinInfoDisplay from "./SlotcoinInfoDisplay";
@@ -13,7 +14,7 @@ import SlotcoinTickets from "./SlotcoinTickets";
 import useSlotcoinCheckInInfoQuery from "../hooks/useSlotcoinCheckInInfoQuery";
 import useSlotcoinCheckInMutation from "../hooks/useSlotcoinCheckInMutation";
 
-export default function SlotcoinFarmer() {
+export default memo(function SlotcoinFarmer() {
   const checkInQuery = useSlotcoinCheckInInfoQuery();
   const checkInMutation = useSlotcoinCheckInMutation();
 
@@ -103,4 +104,4 @@ export default function SlotcoinFarmer() {
       </Tabs.Root>
     </div>
   );
-}
+});

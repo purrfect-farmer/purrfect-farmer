@@ -6,6 +6,7 @@ import useFarmerContext from "@/hooks/useFarmerContext";
 import useSocketTabs from "@/hooks/useSocketTabs";
 import { cn } from "@/lib/utils";
 import { isToday } from "date-fns";
+import { memo } from "react";
 
 import TsubasaCards from "./TsubasaCards";
 import TsubasaIcon from "../assets/images/icon.png?format=webp&w=80";
@@ -13,7 +14,7 @@ import TsubasaInfoDisplay from "./TsubasaInfoDisplay";
 import TsubasaTasks from "./TsubasaTasks";
 import useTsubasaClaimDailyRewardMutation from "../hooks/useTsubasaClaimDailyRewardMutation";
 
-export default function TsubasaFarmer() {
+export default memo(function TsubasaFarmer() {
   const tabs = useSocketTabs("tsubasa.farmer-tabs", ["cards", "tasks"]);
   const { authQuery } = useFarmerContext();
   const claimDailyRewardMutation = useTsubasaClaimDailyRewardMutation();
@@ -90,4 +91,4 @@ export default function TsubasaFarmer() {
       </Tabs.Root>
     </div>
   );
-}
+});

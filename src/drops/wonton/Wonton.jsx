@@ -1,4 +1,6 @@
 import FarmerContext from "@/contexts/FarmerContext";
+import { memo } from "react";
+
 import WontonAuthDetect from "./components/WontonAuthDetect";
 import WontonFarmer from "./components/WontonFarmer";
 import useWontonFarmer from "./hooks/useWontonFarmer";
@@ -16,4 +18,4 @@ function Wonton() {
   );
 }
 
-export default Wonton;
+export default memo(Wonton);

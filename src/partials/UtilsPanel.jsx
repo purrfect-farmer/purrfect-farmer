@@ -5,9 +5,9 @@ import Input from "@/components/Input";
 import useAppContext from "@/hooks/useAppContext";
 import { HiArrowTopRightOnSquare } from "react-icons/hi2";
 import { cn, isBotURL } from "@/lib/utils";
-import { useState } from "react";
+import { memo, useState } from "react";
 
-export default function UtilsPanel({ open, onOpenChange }) {
+export default memo(function UtilsPanel({ open, onOpenChange }) {
   const { dispatchAndOpenTelegramBot, dispatchAndOpenTelegramLink } =
     useAppContext();
 
@@ -97,4 +97,4 @@ export default function UtilsPanel({ open, onOpenChange }) {
       </Dialog.Portal>
     </Dialog.Root>
   );
-}
+});

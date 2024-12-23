@@ -1,6 +1,8 @@
+import { memo } from "react";
+
 import useMatchQuestUserQuery from "../hooks/useMatchQuestUserQuery";
 
-export default function MatchQuestBalanceDisplay() {
+export default memo(function MatchQuestBalanceDisplay() {
   const query = useMatchQuestUserQuery();
 
   return (
@@ -18,4 +20,4 @@ export default function MatchQuestBalanceDisplay() {
       )}
     </div>
   );
-}
+});

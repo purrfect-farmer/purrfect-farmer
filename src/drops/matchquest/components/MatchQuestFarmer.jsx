@@ -5,6 +5,7 @@ import useFarmerAutoTab from "@/hooks/useFarmerAutoTab";
 import useSocketTabs from "@/hooks/useSocketTabs";
 import { cn, delay } from "@/lib/utils";
 import { isAfter } from "date-fns";
+import { memo } from "react";
 import { useState } from "react";
 
 import MatchQuestAutoGamer from "./MatchQuestAutoGamer";
@@ -20,7 +21,7 @@ import useMatchQuestRewardQuery from "../hooks/useMatchQuestRewardQuery";
 import useMatchQuestStartFarmingMutation from "../hooks/useMatchQuestStartFarmingMutation";
 import useMatchQuestUserQuery from "../hooks/useMatchQuestUserQuery";
 
-export default function MatchQuestFarmer() {
+export default memo(function MatchQuestFarmer() {
   const tabs = useSocketTabs("matchquest.farmer-tabs", ["game", "tasks"]);
 
   const startFarmingMutation = useMatchQuestStartFarmingMutation();
@@ -170,4 +171,4 @@ export default function MatchQuestFarmer() {
       </Tabs.Root>
     </div>
   );
-}
+});

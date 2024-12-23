@@ -4,6 +4,7 @@ import useProcessLock from "@/hooks/useProcessLock";
 import useSocketDispatchCallback from "@/hooks/useSocketDispatchCallback";
 import { CgSpinner } from "react-icons/cg";
 import { cn, delay } from "@/lib/utils";
+import { memo } from "react";
 import { useCallback } from "react";
 import { useEffect } from "react";
 import { useMemo } from "react";
@@ -17,7 +18,7 @@ import useYescoinClickDailyMissionMutation from "../hooks/useYescoinClickDailyMi
 import useYescoinDailyMissionQuery from "../hooks/useYescoinDailyMissionQuery";
 import useYescoinFinishTaskBonusInfoQuery from "../hooks/useYescoinFinishTaskBonusInfoQuery";
 
-export default function YescoinDailyMission() {
+export default memo(function YescoinDailyMission() {
   const finishTaskBonusInfoQuery = useYescoinFinishTaskBonusInfoQuery();
   const accountInfoQuery = useYescoinAccountInfoQuery();
   const missionsQuery = useYescoinDailyMissionQuery();
@@ -186,4 +187,4 @@ export default function YescoinDailyMission() {
       </div>
     </div>
   );
-}
+});

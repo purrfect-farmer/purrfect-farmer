@@ -3,12 +3,13 @@ import useFarmerAutoProcess from "@/hooks/useFarmerAutoProcess";
 import useProcessLock from "@/hooks/useProcessLock";
 import useSocketState from "@/hooks/useSocketState";
 import { cn, delayForSeconds } from "@/lib/utils";
+import { memo } from "react";
 import { useEffect } from "react";
 
 import usePumpadLotteryMutation from "../hooks/usePumpadLotteryMutation";
 import usePumpadLotteryQuery from "../hooks/usePumpadLotteryQuery";
 
-export default function PumpadLottery() {
+export default memo(function PumpadLottery() {
   const query = usePumpadLotteryQuery();
   const drawCount = query.data?.["draw_count"] || 0;
 
@@ -109,4 +110,4 @@ export default function PumpadLottery() {
       )}
     </div>
   );
-}
+});

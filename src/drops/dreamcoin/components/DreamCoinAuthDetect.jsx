@@ -1,8 +1,9 @@
 import FarmerDetect from "@/components/FarmerDetect";
+import { memo } from "react";
 
 import DreamCoinIcon from "../assets/images/icon.png?format=webp&w=80";
 
-export default function DreamCoinAuthDetect({ status }) {
+export default memo(function DreamCoinAuthDetect({ status }) {
   return (
     <FarmerDetect
       title={"DreamCoin Farmer"}
@@ -10,4 +11,4 @@ export default function DreamCoinAuthDetect({ status }) {
       status={status}
     />
   );
-}
+});

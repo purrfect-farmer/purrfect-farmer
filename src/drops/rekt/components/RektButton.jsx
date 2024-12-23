@@ -1,6 +1,7 @@
 import { cn } from "@/lib/utils";
+import { memo } from "react";
 
-export default function RektButton({ color = "primary", ...props }) {
+export default memo(function RektButton({ color = "primary", ...props }) {
   return (
     <button
       {...props}
@@ -16,4 +17,4 @@ export default function RektButton({ color = "primary", ...props }) {
       )}
     />
   );
-}
+});

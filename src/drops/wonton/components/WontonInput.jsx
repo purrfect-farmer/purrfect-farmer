@@ -1,6 +1,7 @@
 import { cn } from "@/lib/utils";
+import { memo } from "react";
 
-export default function WontonInput({ ...props }) {
+export default memo(function WontonInput({ ...props }) {
   return (
     <input
       {...props}
@@ -15,4 +16,4 @@ export default function WontonInput({ ...props }) {
       )}
     />
   );
-}
+});

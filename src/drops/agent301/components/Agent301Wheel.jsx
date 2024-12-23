@@ -2,6 +2,7 @@ import useFarmerAutoProcess from "@/hooks/useFarmerAutoProcess";
 import useProcessLock from "@/hooks/useProcessLock";
 import { cn, delay } from "@/lib/utils";
 import { formatRelative } from "date-fns";
+import { memo } from "react";
 import { useCallback } from "react";
 import { useEffect } from "react";
 import { useMemo } from "react";
@@ -11,7 +12,7 @@ import { useState } from "react";
 import useAgent301CompleteWheelTaskMutation from "../hooks/useAgent301CompleteWheelTaskMutation";
 import useAgent301WheelQuery from "../hooks/useAgent301WheelQuery";
 
-export default function Agent301Wheel() {
+export default memo(function Agent301Wheel() {
   const client = useQueryClient();
   const wheelQuery = useAgent301WheelQuery();
 
@@ -186,4 +187,4 @@ export default function Agent301Wheel() {
       )}
     </div>
   );
-}
+});

@@ -1,7 +1,9 @@
+import { memo } from "react";
+
 import CoinIcon from "../assets/images/coin.png?format=webp&w=80";
 import useYescoinAccountInfoQuery from "../hooks/useYescoinAccountInfoQuery";
 
-export default function YescoinBalanceDisplay() {
+export default memo(function YescoinBalanceDisplay() {
   const accountInfoQuery = useYescoinAccountInfoQuery();
 
   return (
@@ -12,4 +14,4 @@ export default function YescoinBalanceDisplay() {
       </h4>
     </div>
   );
-}
+});

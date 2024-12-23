@@ -1,6 +1,7 @@
 import { cn } from "@/lib/utils";
+import { memo } from "react";
 
-export default function TomarketButton({ color = "primary", ...props }) {
+export default memo(function TomarketButton({ color = "primary", ...props }) {
   return (
     <button
       className={cn(
@@ -16,4 +17,4 @@ export default function TomarketButton({ color = "primary", ...props }) {
       {...props}
     />
   );
-}
+});

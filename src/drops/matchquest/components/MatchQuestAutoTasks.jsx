@@ -2,6 +2,7 @@ import useFarmerAutoProcess from "@/hooks/useFarmerAutoProcess";
 import useFarmerContext from "@/hooks/useFarmerContext";
 import useProcessLock from "@/hooks/useProcessLock";
 import { canJoinTelegramLink, delay, logNicely } from "@/lib/utils";
+import { memo } from "react";
 import { useCallback } from "react";
 import { useEffect } from "react";
 import { useMemo } from "react";
@@ -14,7 +15,7 @@ import useMatchQuestCompleteTaskMutation from "../hooks/useMatchQuestCompleteTas
 import useMatchQuestTasksQuery from "../hooks/useMatchQuestTasksQuery";
 import useMatchQuestUserQuery from "../hooks/useMatchQuestUserQuery";
 
-export default function MatchQuestAutoTasks() {
+export default memo(function MatchQuestAutoTasks() {
   const { joinTelegramLink } = useFarmerContext();
   const client = useQueryClient();
   const taskQuery = useMatchQuestTasksQuery();
@@ -186,4 +187,4 @@ export default function MatchQuestAutoTasks() {
       </div>
     </>
   );
-}
+});

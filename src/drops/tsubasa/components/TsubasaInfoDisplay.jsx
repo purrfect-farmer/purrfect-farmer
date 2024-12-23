@@ -1,9 +1,10 @@
 import useFarmerContext from "@/hooks/useFarmerContext";
-
-import BallIcon from "../assets/images/ball.png?format=webp&w=80";
+import { memo } from "react";
 import { useMemo } from "react";
 
-export default function TsubasaInfoDisplay() {
+import BallIcon from "../assets/images/ball.png?format=webp&w=80";
+
+export default memo(function TsubasaInfoDisplay() {
   const { authQuery } = useFarmerContext();
   const user = authQuery.data?.["game_data"]?.["user"];
 
@@ -48,4 +49,4 @@ export default function TsubasaInfoDisplay() {
       </div>
     </>
   );
-}
+});

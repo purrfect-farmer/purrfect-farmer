@@ -1,4 +1,5 @@
 import FarmerContext from "@/contexts/FarmerContext";
+import { memo } from "react";
 
 import ZooAuthDetect from "./components/ZooAuthDetect";
 import ZooFarmer from "./components/ZooFarmer";
@@ -16,4 +17,4 @@ function Zoo() {
   );
 }
 
-export default Zoo;
+export default memo(Zoo);

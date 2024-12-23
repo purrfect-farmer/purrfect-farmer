@@ -3,6 +3,7 @@ import useFarmerAutoProcess from "@/hooks/useFarmerAutoProcess";
 import useProcessLock from "@/hooks/useProcessLock";
 import useSocketState from "@/hooks/useSocketState";
 import { delay } from "@/lib/utils";
+import { memo } from "react";
 import { useCallback } from "react";
 import { useEffect } from "react";
 import { useMemo } from "react";
@@ -11,9 +12,9 @@ import { useState } from "react";
 import WontonButton from "./WontonButton";
 import WontonInput from "./WontonInput";
 import useWontonClaimGameMutation from "../hooks/useWontonClaimGameMutation";
+import useWontonShopQuery from "../hooks/useWontonShopQuery";
 import useWontonStartGameMutation from "../hooks/useWontonStartGameMutation";
 import useWontonUserQuery from "../hooks/useWontonUserQuery";
-import useWontonShopQuery from "../hooks/useWontonShopQuery";
 
 const GAME_DURATION = 15_000;
 const EXTRA_DELAY = 3_000;
@@ -21,7 +22,7 @@ const MIN_POINT = 80;
 const INITIAL_POINT = 120;
 const MAX_POINT = 130;
 
-export default function Wonton() {
+export default memo(function Wonton() {
   const query = useWontonUserQuery();
   const shopQuery = useWontonShopQuery();
 
@@ -180,4 +181,4 @@ export default function Wonton() {
       ) : null}
     </div>
   );
-}
+});

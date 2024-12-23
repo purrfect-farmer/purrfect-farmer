@@ -1,6 +1,8 @@
+import { memo } from "react";
+
 import WontonIcon from "../assets/images/icon.png?format=webp&w=80";
 
-export default function WontonFarmerHeader() {
+export default memo(function WontonFarmerHeader() {
   return (
     <div className="flex flex-col gap-1 py-4">
       <div className="flex items-center justify-center gap-2">
@@ -9,4 +11,4 @@ export default function WontonFarmerHeader() {
       </div>
     </div>
   );
-}
+});

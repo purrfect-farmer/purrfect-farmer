@@ -9,13 +9,14 @@ import useSocketState from "@/hooks/useSocketState";
 import { HiOutlineArrowPath } from "react-icons/hi2";
 import { cn, delay, delayForSeconds } from "@/lib/utils";
 import { isToday } from "date-fns";
+import { memo } from "react";
 import { useCallback } from "react";
 import { useEffect } from "react";
 
 import useTruecoin50SpinsBoost from "../hooks/useTruecoin50SpinsBoostMutation";
 import useTruecoinLotteryMutation from "../hooks/useTruecoinLotteryMutation";
 
-export default function TruecoinLottery() {
+export default memo(function TruecoinLottery() {
   const { queryClient, authQuery, authQueryKey, processNextTask } =
     useFarmerContext();
 
@@ -175,4 +176,4 @@ export default function TruecoinLottery() {
       {process.started ? <div className="text-center">Working....</div> : null}
     </div>
   );
-}
+});

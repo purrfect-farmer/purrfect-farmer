@@ -1,6 +1,8 @@
+import { memo } from "react";
+
 import useRektUserQuery from "../hooks/useRektUserQuery";
 
-export default function RektBalanceDisplay() {
+export default memo(function RektBalanceDisplay() {
   const query = useRektUserQuery();
 
   return (
@@ -32,4 +34,4 @@ export default function RektBalanceDisplay() {
       )}
     </div>
   );
-}
+});

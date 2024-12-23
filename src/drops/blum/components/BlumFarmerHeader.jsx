@@ -1,6 +1,8 @@
+import { memo } from "react";
+
 import BlumIcon from "../assets/images/icon.png?format=webp&w=80";
 
-export default function BlumFarmerHeader() {
+export default memo(function BlumFarmerHeader() {
   return (
     <div className="flex flex-col gap-1 py-4 border-b border-gray-500">
       <div className="flex items-center justify-center">
@@ -9,4 +11,4 @@ export default function BlumFarmerHeader() {
       </div>
     </div>
   );
-}
+});

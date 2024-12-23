@@ -5,6 +5,7 @@ import useProcessLock from "@/hooks/useProcessLock";
 import useSocketDispatchCallback from "@/hooks/useSocketDispatchCallback";
 import { HiOutlineArrowPath } from "react-icons/hi2";
 import { cn, delayForSeconds, logNicely } from "@/lib/utils";
+import { memo } from "react";
 import { useCallback } from "react";
 import { useEffect } from "react";
 import { useMemo } from "react";
@@ -12,7 +13,7 @@ import { useState } from "react";
 
 import useBirdTonHandlers from "../hooks/useBirdTonHandlers";
 
-export default function BirdTonTasks() {
+export default memo(function BirdTonTasks() {
   const { eventData, sendMessage, refreshTasks } = useFarmerContext();
 
   const [reloadTasks, dispatchAndReloadTasks] = useSocketDispatchCallback(
@@ -250,4 +251,4 @@ export default function BirdTonTasks() {
       </div>
     </div>
   );
-}
+});

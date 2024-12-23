@@ -2,6 +2,7 @@ import useFarmerAutoProcess from "@/hooks/useFarmerAutoProcess";
 import useFarmerContext from "@/hooks/useFarmerContext";
 import useProcessLock from "@/hooks/useProcessLock";
 import { canJoinTelegramLink, cn, delay, logNicely } from "@/lib/utils";
+import { memo } from "react";
 import { useCallback } from "react";
 import { useEffect } from "react";
 import { useMemo } from "react";
@@ -10,12 +11,12 @@ import { useState } from "react";
 
 import RektButton from "./RektButton";
 import useRektClaimQuestMutation from "../hooks/useRektClaimQuestMutation";
-import useRektQuestsQuery from "../hooks/useRektQuestsQuery";
-import useRektUserQuery from "../hooks/useRektUserQuery";
 import useRektCompleteQuestMutation from "../hooks/useRektCompleteQuestMutation";
+import useRektQuestsQuery from "../hooks/useRektQuestsQuery";
 import useRektReferredUsersQuery from "../hooks/useRektReferredUsersQuery";
+import useRektUserQuery from "../hooks/useRektUserQuery";
 
-export default function RektAutoQuests() {
+export default memo(function RektAutoQuests() {
   const { joinTelegramLink } = useFarmerContext();
   const client = useQueryClient();
   const questQuery = useRektQuestsQuery();
@@ -319,4 +320,4 @@ export default function RektAutoQuests() {
       </div>
     </>
   );
-}
+});

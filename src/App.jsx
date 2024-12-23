@@ -1,5 +1,5 @@
 import { Toaster } from "react-hot-toast";
-import { useEffect, useRef } from "react";
+import { memo, useEffect, useRef } from "react";
 
 import AppContext from "./contexts/AppContext";
 import ControlArea from "./ControlArea";
@@ -92,4 +92,4 @@ function App() {
   );
 }
 
-export default App;
+export default memo(App);

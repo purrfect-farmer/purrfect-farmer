@@ -4,6 +4,7 @@ import useFarmerAutoProcess from "@/hooks/useFarmerAutoProcess";
 import useProcessLock from "@/hooks/useProcessLock";
 import useSocketState from "@/hooks/useSocketState";
 import { delay } from "@/lib/utils";
+import { memo } from "react";
 import { useCallback, useEffect, useMemo } from "react";
 import { useState } from "react";
 
@@ -19,7 +20,7 @@ const MIN_POINT = 100;
 const INITIAL_POINT = 220;
 const MAX_POINT = 390;
 
-export default function Tomarket({ tomarket }) {
+export default memo(function Tomarket({ tomarket }) {
   const query = useTomarketBalanceQuery();
   const process = useProcessLock("tomarket.game");
   const [countdown, setCountdown] = useState(null);
@@ -166,4 +167,4 @@ export default function Tomarket({ tomarket }) {
       ) : null}
     </div>
   );
-}
+});

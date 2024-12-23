@@ -1,7 +1,9 @@
+import { memo } from "react";
+
 import CoinIcon from "../assets/images/coin.png?format=webp&w=80";
 import useSlotcoinInfoQuery from "../hooks/useSlotcoinInfoQuery";
 
-export default function SlotcoinUsernameDisplay() {
+export default memo(function SlotcoinUsernameDisplay() {
   const query = useSlotcoinInfoQuery();
   const user = query.data?.user;
 
@@ -21,4 +23,4 @@ export default function SlotcoinUsernameDisplay() {
       )}
     </>
   );
-}
+});

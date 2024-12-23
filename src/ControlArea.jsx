@@ -5,14 +5,14 @@ import {
   HiOutlineBackward,
   HiOutlineForward,
 } from "react-icons/hi2";
-import { useState } from "react";
+import { memo, useState } from "react";
 
 import SyncControl from "./partials/SyncControl";
 import UtilsPanel from "./partials/UtilsPanel";
 import useAppContext from "./hooks/useAppContext";
 import { cn } from "./lib/utils";
 
-export default function ControlArea() {
+export default memo(function ControlArea() {
   const [showUtils, setShowUtils] = useState(false);
   const { zoomies, setActiveTab } = useAppContext();
 
@@ -115,4 +115,4 @@ export default function ControlArea() {
       </div>
     </>
   );
-}
+});

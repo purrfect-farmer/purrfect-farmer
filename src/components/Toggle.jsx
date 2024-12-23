@@ -1,6 +1,7 @@
 import { cn } from "@/lib/utils";
+import { memo } from "react";
 
-export default function Toggle({ className, ...props }) {
+export default memo(function Toggle({ className, ...props }) {
   return (
     <>
       <input {...props} type="checkbox" className="sr-only peer" />
@@ -22,4 +23,4 @@ export default function Toggle({ className, ...props }) {
       />
     </>
   );
-}
+});

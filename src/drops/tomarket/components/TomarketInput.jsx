@@ -1,6 +1,7 @@
 import { cn } from "@/lib/utils";
+import { memo } from "react";
 
-export default function TomarketInput({ ...props }) {
+export default memo(function TomarketInput({ ...props }) {
   return (
     <input
       className={cn(
@@ -14,4 +15,4 @@ export default function TomarketInput({ ...props }) {
       {...props}
     />
   );
-}
+});

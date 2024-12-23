@@ -4,6 +4,7 @@ import useFarmerAutoProcess from "@/hooks/useFarmerAutoProcess";
 import useProcessLock from "@/hooks/useProcessLock";
 import useSocketState from "@/hooks/useSocketState";
 import { delay, logNicely, uuid } from "@/lib/utils";
+import { memo } from "react";
 import { useCallback } from "react";
 import { useEffect } from "react";
 import { useMemo } from "react";
@@ -23,7 +24,7 @@ const MIN_POINT = 100;
 const INITIAL_POINT = 180;
 const MAX_POINT = 280;
 
-export default function BlumAutoGamer({ workerRef }) {
+export default memo(function BlumAutoGamer({ workerRef }) {
   const query = useBlumBalanceQuery();
   const dogsDropEligibilityQuery = useBlumDogsDropEligibilityQuery();
   const client = useQueryClient();
@@ -296,4 +297,4 @@ export default function BlumAutoGamer({ workerRef }) {
       ) : null}
     </div>
   );
-}
+});

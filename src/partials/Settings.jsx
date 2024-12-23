@@ -12,7 +12,7 @@ import { CgSpinner } from "react-icons/cg";
 import { HiOutlineArrowPath, HiOutlineSquares2X2 } from "react-icons/hi2";
 import { Reorder, useDragControls } from "motion/react";
 import { cn, maximizeFarmerWindow, resizeFarmerWindow } from "@/lib/utils";
-import { useCallback, useEffect, useState } from "react";
+import { memo, useCallback, useEffect, useState } from "react";
 
 const DropReorderItem = ({ children, ...props }) => {
   const dragControls = useDragControls();
@@ -36,7 +36,7 @@ const DropReorderItem = ({ children, ...props }) => {
   );
 };
 
-export default function Settings({ tabs }) {
+export default memo(function Settings({ tabs }) {
   const {
     settings,
     configureSettings,
@@ -445,4 +445,4 @@ export default function Settings({ tabs }) {
       </Dialog.Content>
     </Dialog.Portal>
   );
-}
+});

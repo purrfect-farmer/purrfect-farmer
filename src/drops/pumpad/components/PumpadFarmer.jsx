@@ -4,6 +4,7 @@ import useFarmerAsyncTask from "@/hooks/useFarmerAsyncTask";
 import useFarmerAutoTab from "@/hooks/useFarmerAutoTab";
 import useSocketTabs from "@/hooks/useSocketTabs";
 import { cn } from "@/lib/utils";
+import { memo } from "react";
 
 import PumpadBalanceDisplay from "./PumpadBalanceDisplay";
 import PumpadIcon from "../assets/images/icon.png?format=webp&w=80";
@@ -14,7 +15,7 @@ import PumpadUsernameDisplay from "./PumpadUsernameDisplay";
 import usePumpadCheckInMutation from "../hooks/usePumpadCheckInMutation";
 import usePumpadCheckInQuery from "../hooks/usePumpadCheckInQuery";
 
-export default function PumpadFarmer() {
+export default memo(function PumpadFarmer() {
   const checkInQuery = usePumpadCheckInQuery();
   const claimCheckInMutation = usePumpadCheckInMutation();
 
@@ -108,4 +109,4 @@ export default function PumpadFarmer() {
       </Tabs.Root>
     </div>
   );
-}
+});

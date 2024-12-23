@@ -1,6 +1,7 @@
 import { cn } from "@/lib/utils";
+import { memo } from "react";
 
-export default function DropButton({ drop, ...props }) {
+export default memo(function DropButton({ drop, ...props }) {
   return (
     <div className="flex flex-col w-1/3 p-1">
       <button
@@ -19,4 +20,4 @@ export default function DropButton({ drop, ...props }) {
       </button>
     </div>
   );
-}
+});

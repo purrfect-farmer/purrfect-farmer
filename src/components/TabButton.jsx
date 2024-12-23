@@ -1,10 +1,10 @@
 import useAppContext from "@/hooks/useAppContext";
 import { HiOutlineArrowPath, HiOutlineXMark } from "react-icons/hi2";
 import { cn } from "@/lib/utils";
-import { useCallback, useRef } from "react";
+import { memo, useCallback, useRef } from "react";
 import { useEffect } from "react";
 
-export default function TabButton({ tab, connected }) {
+export default memo(function TabButton({ tab, connected }) {
   const { dispatchAndCloseTab, dispatchAndSetActiveTab, reloadTab } =
     useAppContext();
   const buttonRef = useRef();
@@ -122,4 +122,4 @@ export default function TabButton({ tab, connected }) {
       ) : null}
     </div>
   );
-}
+});

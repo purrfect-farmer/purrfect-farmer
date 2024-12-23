@@ -1,4 +1,5 @@
 import FarmerContext from "@/contexts/FarmerContext";
+import { memo } from "react";
 
 import TruecoinAuthDetect from "./components/TruecoinAuthDetect";
 import TruecoinFarmer from "./components/TruecoinFarmer";
@@ -17,4 +18,4 @@ function Truecoin() {
   );
 }
 
-export default Truecoin;
+export default memo(Truecoin);

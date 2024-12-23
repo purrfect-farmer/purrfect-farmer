@@ -1,8 +1,10 @@
+import { memo } from "react";
+
 import CoinIcon from "../assets/images/coin.svg";
 import TicketIcon from "../assets/images/ticket.svg";
 import useWontonUserQuery from "../hooks/useWontonUserQuery";
 
-export default function WontonBalanceDisplay() {
+export default memo(function WontonBalanceDisplay() {
   const query = useWontonUserQuery();
 
   return (
@@ -24,4 +26,4 @@ export default function WontonBalanceDisplay() {
       )}
     </div>
   );
-}
+});

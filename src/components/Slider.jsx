@@ -1,6 +1,6 @@
 import * as SliderPrimitive from "@radix-ui/react-slider";
 import { cn } from "@/lib/utils";
-import { forwardRef } from "react";
+import { forwardRef, memo } from "react";
 
 const Slider = forwardRef((props, forwardedRef) => {
   const value = props.value || props.defaultValue;
@@ -44,4 +44,4 @@ const Slider = forwardRef((props, forwardedRef) => {
   );
 });
 
-export default Slider;
+export default memo(Slider);

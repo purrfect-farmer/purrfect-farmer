@@ -3,12 +3,13 @@ import useFarmerAutoProcess from "@/hooks/useFarmerAutoProcess";
 import useProcessLock from "@/hooks/useProcessLock";
 import useSocketState from "@/hooks/useSocketState";
 import { cn, delayForSeconds } from "@/lib/utils";
+import { memo } from "react";
 import { useEffect, useMemo } from "react";
 
 import useSlotcoinDailySpinMutation from "../hooks/useSlotcoinDailySpinMutation";
 import useSlotcoinInfoQuery from "../hooks/useSlotcoinInfoQuery";
 
-export default function SlotcoinTickets() {
+export default memo(function SlotcoinTickets() {
   const query = useSlotcoinInfoQuery();
   const ticketsCount = useMemo(
     () => Number(query.data?.["user"]?.["daily_roulette_count"] || 0),
@@ -114,4 +115,4 @@ export default function SlotcoinTickets() {
       )}
     </div>
   );
-}
+});

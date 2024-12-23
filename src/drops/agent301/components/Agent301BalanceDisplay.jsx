@@ -1,7 +1,8 @@
 import useAgent301BalanceQuery from "../hooks/useAgent301BalanceQuery";
 import TicketIcon from "../assets/images/ticket.webp";
+import { memo } from "react";
 
-export default function Agent301BalanceDisplay() {
+export default memo(function Agent301BalanceDisplay() {
   const query = useAgent301BalanceQuery();
   const result = query.data?.result;
 
@@ -23,4 +24,4 @@ export default function Agent301BalanceDisplay() {
       )}
     </div>
   );
-}
+});

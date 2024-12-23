@@ -1,8 +1,9 @@
 import FarmerDetect from "@/components/FarmerDetect";
+import { memo } from "react";
 
 import TomarketIcon from "../assets/images/icon.png?format=webp&w=80";
 
-export default function TomarketAuthDetect({ status }) {
+export default memo(function TomarketAuthDetect({ status }) {
   return (
     <FarmerDetect
       title={"Tomarket Farmer"}
@@ -11,4 +12,4 @@ export default function TomarketAuthDetect({ status }) {
       className="text-rose-100"
     />
   );
-}
+});

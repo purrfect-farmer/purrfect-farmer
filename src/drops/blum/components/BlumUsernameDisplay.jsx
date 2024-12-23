@@ -1,6 +1,8 @@
+import { memo } from "react";
+
 import useBlumUserQuery from "../hooks/useBlumUserQuery";
 
-export default function BlumUsernameDisplay() {
+export default memo(function BlumUsernameDisplay() {
   const query = useBlumUserQuery();
 
   return (
@@ -14,4 +16,4 @@ export default function BlumUsernameDisplay() {
       </h4>
     </div>
   );
-}
+});

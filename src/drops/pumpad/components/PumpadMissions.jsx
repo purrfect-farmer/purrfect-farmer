@@ -2,6 +2,7 @@ import useFarmerAutoProcess from "@/hooks/useFarmerAutoProcess";
 import useFarmerContext from "@/hooks/useFarmerContext";
 import useProcessLock from "@/hooks/useProcessLock";
 import { canJoinTelegramLink, cn, delay } from "@/lib/utils";
+import { memo } from "react";
 import { useCallback } from "react";
 import { useEffect } from "react";
 import { useMemo } from "react";
@@ -12,7 +13,7 @@ import usePumpadCheckMissionMutation from "../hooks/usePumpadCheckMissionMutatio
 import usePumpadGetChannelMutation from "../hooks/usePumpadGetChannelMutation";
 import usePumpadMissionsQuery from "../hooks/usePumpadMissionsQuery";
 
-export default function PumpadMissions() {
+export default memo(function PumpadMissions() {
   const { joinTelegramLink } = useFarmerContext();
   const queryClient = useQueryClient();
   const missionsQuery = usePumpadMissionsQuery();
@@ -152,4 +153,4 @@ export default function PumpadMissions() {
       )}
     </div>
   );
-}
+});

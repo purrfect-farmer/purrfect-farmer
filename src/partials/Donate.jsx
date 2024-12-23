@@ -6,6 +6,7 @@ import { HiOutlineClipboard } from "react-icons/hi2";
 import copy from "copy-to-clipboard";
 import toast from "react-hot-toast";
 import { QRCodeSVG } from "qrcode.react";
+import { memo } from "react";
 
 const networks = [
   {
@@ -15,7 +16,7 @@ const networks = [
   },
 ];
 
-export default function Donate() {
+export default memo(function Donate() {
   return (
     <Dialog.Portal>
       <Dialog.Overlay
@@ -111,4 +112,4 @@ export default function Donate() {
       </Dialog.Overlay>
     </Dialog.Portal>
   );
-}
+});

@@ -1,4 +1,5 @@
 import FarmerContext from "@/contexts/FarmerContext";
+import { memo } from "react";
 
 import TsubasaAuthDetect from "./components/TsubasaAuthDetect";
 import TsubasaFarmer from "./components/TsubasaFarmer";
@@ -18,4 +19,4 @@ function Tsubasa() {
   );
 }
 
-export default Tsubasa;
+export default memo(Tsubasa);

@@ -3,6 +3,7 @@ import toast from "react-hot-toast";
 import useFarmerAutoProcess from "@/hooks/useFarmerAutoProcess";
 import useProcessLock from "@/hooks/useProcessLock";
 import { cn, delay } from "@/lib/utils";
+import { memo } from "react";
 import { useCallback } from "react";
 import { useEffect } from "react";
 import { useState } from "react";
@@ -15,7 +16,7 @@ import useRektUserQuery from "../hooks/useRektUserQuery";
 
 const GAME_DURATION = 5_000;
 
-export default function RektAutoGame() {
+export default memo(function RektAutoGame() {
   const process = useProcessLock("rekt.game");
   const userQuery = useRektUserQuery();
   const currentPriceQuery = useRektCurrentPriceQuery();
@@ -190,4 +191,4 @@ export default function RektAutoGame() {
       </div>
     </div>
   );
-}
+});

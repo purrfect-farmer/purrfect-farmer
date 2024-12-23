@@ -3,6 +3,7 @@ import useFarmerAutoProcess from "@/hooks/useFarmerAutoProcess";
 import useFarmerContext from "@/hooks/useFarmerContext";
 import useProcessLock from "@/hooks/useProcessLock";
 import { canJoinTelegramLink, cn, delay } from "@/lib/utils";
+import { memo } from "react";
 import { useCallback } from "react";
 import { useEffect } from "react";
 import { useMemo } from "react";
@@ -17,7 +18,7 @@ import useWontonStartTaskMutation from "../hooks/useWontonStartTaskMutation";
 import useWontonTasksQuery from "../hooks/useWontonTasksQuery";
 import useWontonUserQuery from "../hooks/useWontonUserQuery";
 
-export default function WontonAutoTasks() {
+export default memo(function WontonAutoTasks() {
   const { joinTelegramLink } = useFarmerContext();
   const client = useQueryClient();
   const taskQuery = useWontonTasksQuery();
@@ -284,4 +285,4 @@ export default function WontonAutoTasks() {
       </div>
     </>
   );
-}
+});

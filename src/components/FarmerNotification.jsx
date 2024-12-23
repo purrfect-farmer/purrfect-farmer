@@ -1,7 +1,7 @@
 import useAppContext from "@/hooks/useAppContext";
-import { useCallback } from "react";
+import { memo, useCallback } from "react";
 
-export default function FarmerNotification({ t, id, notification }) {
+export default memo(function FarmerNotification({ t, id, notification }) {
   const { dispatchAndSetActiveTab } = useAppContext();
 
   /** Handle Click */
@@ -14,4 +14,4 @@ export default function FarmerNotification({ t, id, notification }) {
       {notification.title} Started
     </span>
   );
-}
+});

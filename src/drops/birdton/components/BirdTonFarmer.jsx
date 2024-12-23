@@ -6,6 +6,7 @@ import useFarmerAutoTab from "@/hooks/useFarmerAutoTab";
 import useFarmerContext from "@/hooks/useFarmerContext";
 import useSocketTabs from "@/hooks/useSocketTabs";
 import { cn } from "@/lib/utils";
+import { memo } from "react";
 
 import BirdTonGamer from "./BirdTonGamer";
 import BirdTonIcon from "../assets/images/icon.png?format=webp&w=80";
@@ -14,7 +15,7 @@ import CoinIcon from "../assets/images/coin.png?format=webp&w=80";
 import EnergyIcon from "../assets/images/energy.png?format=webp&w=80";
 import useBirdTonClaimDailyRewardMutation from "../hooks/useBirdTonClaimDailyRewardMutation";
 
-export default function BirdTonFarmer() {
+export default memo(function BirdTonFarmer() {
   const { connected, user } = useFarmerContext();
 
   const energy = user?.["energy"] || 0;
@@ -103,4 +104,4 @@ export default function BirdTonFarmer() {
   ) : (
     <FullSpinner />
   );
-}
+});

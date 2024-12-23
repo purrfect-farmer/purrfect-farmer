@@ -1,8 +1,9 @@
 import FarmerDetect from "@/components/FarmerDetect";
+import { memo } from "react";
 
 import RektIcon from "../assets/images/icon.png?format=webp&w=80";
 
-export default function RektAuthDetect({ status }) {
+export default memo(function RektAuthDetect({ status }) {
   return (
     <FarmerDetect
       title={"Rekt Farmer"}
@@ -11,4 +12,4 @@ export default function RektAuthDetect({ status }) {
       className="text-blue-100"
     />
   );
-}
+});

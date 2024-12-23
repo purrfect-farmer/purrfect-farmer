@@ -1,4 +1,6 @@
 import FarmerContext from "@/contexts/FarmerContext";
+import { memo } from "react";
+
 import PumpadAuthDetect from "./components/PumpadAuthDetect";
 import PumpadFarmer from "./components/PumpadFarmer";
 import usePumpadFarmer from "./hooks/usePumpadFarmer";
@@ -16,4 +18,4 @@ function Pumpad() {
   );
 }
 
-export default Pumpad;
+export default memo(Pumpad);

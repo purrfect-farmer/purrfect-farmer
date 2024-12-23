@@ -12,7 +12,7 @@ import {
   HiOutlineTrash,
 } from "react-icons/hi2";
 import { cn, fetchContent, isBotURL, uuid } from "@/lib/utils";
-import { useCallback } from "react";
+import { memo, useCallback } from "react";
 import { useEffect } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { useState } from "react";
@@ -31,7 +31,7 @@ const loadLinkIcon = function (src) {
 };
 
 /** Link Icon */
-const FarmerLinkIcon = ({ link, refetch, ...props }) => {
+const FarmerLinkIcon = memo(({ link, refetch, ...props }) => {
   const [src, setSrc] = useState(null);
 
   /** Load Link Icon */
@@ -46,9 +46,9 @@ const FarmerLinkIcon = ({ link, refetch, ...props }) => {
   }, [link.icon]);
 
   return <img {...props} src={src || TelegramLogo} />;
-};
+});
 
-export default function FarmerLinks() {
+export default memo(function FarmerLinks() {
   const {
     settings,
     dispatchAndConfigureSettings,
@@ -388,4 +388,4 @@ export default function FarmerLinks() {
       </Dialog.Content>
     </Dialog.Portal>
   );
-}
+});

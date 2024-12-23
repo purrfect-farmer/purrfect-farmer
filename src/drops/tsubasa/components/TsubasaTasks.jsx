@@ -2,6 +2,7 @@ import useFarmerAutoProcess from "@/hooks/useFarmerAutoProcess";
 import useFarmerContext from "@/hooks/useFarmerContext";
 import useProcessLock from "@/hooks/useProcessLock";
 import { canJoinTelegramLink, cn, delay, logNicely } from "@/lib/utils";
+import { memo } from "react";
 import { useCallback } from "react";
 import { useEffect } from "react";
 import { useMemo } from "react";
@@ -10,7 +11,7 @@ import { useState } from "react";
 import useTsubasaClaimTaskMutation from "../hooks/useTsubasaClaimTaskMutation";
 import useTsubasaExecuteTaskMutation from "../hooks/useTsubasaExecuteTaskMutation";
 
-export default function TsubasaTasks() {
+export default memo(function TsubasaTasks() {
   const { authQuery, joinTelegramLink } = useFarmerContext();
 
   /** All Tasks */
@@ -222,4 +223,4 @@ export default function TsubasaTasks() {
       </div>
     </>
   );
-}
+});

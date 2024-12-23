@@ -1,6 +1,7 @@
 import useFarmerAutoProcess from "@/hooks/useFarmerAutoProcess";
 import useProcessLock from "@/hooks/useProcessLock";
 import { cn, delay } from "@/lib/utils";
+import { memo } from "react";
 import { useCallback } from "react";
 import { useEffect } from "react";
 import { useMemo } from "react";
@@ -10,7 +11,7 @@ import { useState } from "react";
 import useAgent301CompleteTaskMutation from "../hooks/useAgent301CompleteTaskMutation";
 import useAgent301TasksQuery from "../hooks/useAgent301TasksQuery";
 
-export default function Agent301Tasks() {
+export default memo(function Agent301Tasks() {
   const client = useQueryClient();
   const tasksQuery = useAgent301TasksQuery();
 
@@ -270,4 +271,4 @@ export default function Agent301Tasks() {
       )}
     </div>
   );
-}
+});

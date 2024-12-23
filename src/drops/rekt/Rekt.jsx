@@ -1,4 +1,5 @@
 import FarmerContext from "@/contexts/FarmerContext";
+import { memo } from "react";
 
 import RektAuthDetect from "./components/RektAuthDetect";
 import RektFarmer from "./components/RektFarmer";
@@ -19,4 +20,4 @@ function Rekt() {
   );
 }
 
-export default Rekt;
+export default memo(Rekt);

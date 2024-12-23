@@ -1,4 +1,5 @@
 import FarmerContext from "@/contexts/FarmerContext";
+import { memo } from "react";
 
 import DreamCoinAuthDetect from "./components/DreamCoinAuthDetect";
 import DreamCoinFarmer from "./components/DreamCoinFarmer";
@@ -17,4 +18,4 @@ function DreamCoin() {
   );
 }
 
-export default DreamCoin;
+export default memo(DreamCoin);

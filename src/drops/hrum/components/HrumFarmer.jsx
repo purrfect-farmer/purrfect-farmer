@@ -3,6 +3,7 @@ import useFarmerAutoTab from "@/hooks/useFarmerAutoTab";
 import useSocketTabs from "@/hooks/useSocketTabs";
 import { CgSpinner } from "react-icons/cg";
 import { cn } from "@/lib/utils";
+import { memo } from "react";
 
 import CookieIcon from "../assets/images/cookie.png?format=webp&w=160";
 import HrumAutoTasks from "./HrumAutoTasks";
@@ -13,7 +14,7 @@ import HrumRiddleTask from "./HrumRiddleTask";
 import useHrumDailyClaim from "../hooks/useHrumDailyClaim";
 import useHrumDataQueries from "../hooks/useHrumDataQueries";
 
-export default function () {
+export default memo(function () {
   const dataQueries = useHrumDataQueries();
 
   const hero = dataQueries.data?.[0]?.hero;
@@ -88,4 +89,4 @@ export default function () {
       </Tabs.Root>
     </div>
   );
-}
+});
