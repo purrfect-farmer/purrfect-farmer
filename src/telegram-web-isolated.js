@@ -1,4 +1,8 @@
-import { dispatchClickEventOnElement, isElementVisible } from "./lib/utils";
+import {
+  delay,
+  dispatchClickEventOnElement,
+  isElementVisible,
+} from "./lib/utils";
 
 /** Web Version */
 const webVersion = location.pathname.startsWith("/k/") ? "k" : "a";
@@ -44,10 +48,12 @@ let botObserver;
 let botObserverTimeout;
 
 /** Click Telegram Web Button */
-const clickTelegramWebButton = (button) => {
+const clickTelegramWebButton = (button, timeout = 0) => {
   if (isElementVisible(button)) {
-    /** Dispatch the Click Event */
-    dispatchClickEventOnElement(button);
+    delay(timeout, true).then(() => {
+      /** Dispatch the Click Event */
+      dispatchClickEventOnElement(button);
+    });
     return true;
   } else {
     return false;
@@ -87,7 +93,7 @@ const findAndConfirmPopup = (node) => {
 const findAndClickJoinButton = (node) => {
   /** Matches Join Button */
   if (node.matches(buttonSelectors.joinButton) && isJoinButton(node)) {
-    return clickTelegramWebButton(node);
+    return clickTelegramWebButton(node, 1000);
   }
 
   /** Click Status */
@@ -96,7 +102,7 @@ const findAndClickJoinButton = (node) => {
   /** Descendant Join Button */
   for (const element of node.querySelectorAll(buttonSelectors.joinButton)) {
     if (isJoinButton(element)) {
-      status = clickTelegramWebButton(element);
+      status = clickTelegramWebButton(element, 1000);
 
       if (status) {
         return status;
@@ -109,7 +115,7 @@ const findAndClickJoinButton = (node) => {
 const findAndClickStartButton = (node) => {
   /** Matches Start Button */
   if (node.matches(buttonSelectors.startButton) && isStartButton(node)) {
-    return clickTelegramWebButton(node);
+    return clickTelegramWebButton(node, 3000);
   }
 
   /** Click Status */
@@ -118,7 +124,7 @@ const findAndClickStartButton = (node) => {
   /** Descendant Start Button */
   for (const element of node.querySelectorAll(buttonSelectors.startButton)) {
     if (isStartButton(element)) {
-      status = clickTelegramWebButton(element);
+      status = clickTelegramWebButton(element, 3000);
 
       if (status) {
         return status;
@@ -135,7 +141,7 @@ const findAndClickLaunchButton = (node, isWebView) => {
       isWebView ? buttonSelectors.webViewButton : buttonSelectors.launchButton
     )
   ) {
-    return clickTelegramWebButton(node);
+    return clickTelegramWebButton(node, 500);
   }
 
   /** Click Status */
@@ -145,7 +151,7 @@ const findAndClickLaunchButton = (node, isWebView) => {
   for (const element of node.querySelectorAll(
     isWebView ? buttonSelectors.webViewButton : buttonSelectors.launchButton
   )) {
-    status = clickTelegramWebButton(element);
+    status = clickTelegramWebButton(element, 500);
 
     if (status) {
       return status;
