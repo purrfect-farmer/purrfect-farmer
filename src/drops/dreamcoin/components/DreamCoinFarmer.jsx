@@ -13,7 +13,6 @@ import DreamCoinRewards from "./DreamCoinRewards";
 import useDreamCoinClaimDailyTaskMutation from "../hooks/useDreamCoinClaimDailyTaskMutation";
 import useDreamCoinDailyTasksQuery from "../hooks/useDreamCoinDailyTasksQuery";
 import useDreamCoinGetCaseMutation from "../hooks/useDreamCoinGetCaseMutation";
-import useDreamCoinLevelQuery from "../hooks/useDreamCoinLevelQuery";
 import useDreamCoinOpenCaseMutation from "../hooks/useDreamCoinOpenCaseMutation";
 import useDreamCoinUpgradeAllLevelMutation from "../hooks/useDreamCoinUpgradeAllLevelMutation";
 import useDreamCoinUserQuery from "../hooks/useDreamCoinUserQuery";
@@ -22,7 +21,6 @@ export default memo(function DreamCoinFarmer() {
   const tabs = useSocketTabs("dreamcoin.farmer-tabs", ["lottery", "rewards"]);
 
   const userQuery = useDreamCoinUserQuery();
-  const levelQuery = useDreamCoinLevelQuery();
   const dailyTasksQuery = useDreamCoinDailyTasksQuery();
   const claimDailyTaskMutation = useDreamCoinClaimDailyTaskMutation();
   const upgradeAllLevelMutation = useDreamCoinUpgradeAllLevelMutation();
@@ -84,22 +82,21 @@ export default memo(function DreamCoinFarmer() {
   useFarmerAsyncTask(
     "upgrade-all-level",
     () => {
-      if (userQuery.data && levelQuery.data)
+      if (userQuery.data)
         return async function () {
           const balance = userQuery.data.balance;
-          const { upgradesCount, totalGoldCost } = levelQuery.data;
+          const { upgradePrice } = userQuery.data.clickerLevel;
 
-          if (upgradesCount && balance >= totalGoldCost) {
+          if (balance >= upgradePrice) {
             await upgradeAllLevelMutation.mutateAsync();
             toast.success("Dream-Coin Upgraded Level");
 
             await delay(3000);
-            await levelQuery.refetch();
             await userQuery.refetch();
           }
         };
     },
-    [userQuery.data, levelQuery.data]
+    [userQuery.data]
   );
 
   /** Switch Tab Automatically */

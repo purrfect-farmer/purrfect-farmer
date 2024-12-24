@@ -7,7 +7,7 @@ export default function useDreamCoinUpgradeAllLevelMutation() {
     mutationKey: ["dreamcoin", "level", "upgrade-all"],
     mutationFn: () =>
       api
-        .post("https://api.dreamcoin.ai/Levels/upgrade-all", null)
+        .post("https://api.dreamcoin.ai/Clicker/upgrade", null)
         .then((res) => res.data),
   });
 }
