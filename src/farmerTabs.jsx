@@ -97,6 +97,7 @@ const farmerTabs = [
       "open-free-case",
       "lottery",
       "upgrade-all-level",
+      "collect-clicker-reward",
     ],
   },
   {

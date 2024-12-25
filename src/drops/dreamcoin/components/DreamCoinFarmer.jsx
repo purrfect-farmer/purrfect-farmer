@@ -16,6 +16,7 @@ import useDreamCoinGetCaseMutation from "../hooks/useDreamCoinGetCaseMutation";
 import useDreamCoinOpenCaseMutation from "../hooks/useDreamCoinOpenCaseMutation";
 import useDreamCoinUpgradeAllLevelMutation from "../hooks/useDreamCoinUpgradeAllLevelMutation";
 import useDreamCoinUserQuery from "../hooks/useDreamCoinUserQuery";
+import useDreamCoinCollectClickerRewardMutation from "../hooks/useDreamCoinCollectClickerRewardMutation";
 
 export default memo(function DreamCoinFarmer() {
   const tabs = useSocketTabs("dreamcoin.farmer-tabs", ["lottery", "rewards"]);
@@ -23,6 +24,8 @@ export default memo(function DreamCoinFarmer() {
   const userQuery = useDreamCoinUserQuery();
   const dailyTasksQuery = useDreamCoinDailyTasksQuery();
   const claimDailyTaskMutation = useDreamCoinClaimDailyTaskMutation();
+  const collectClickerRewardMutation =
+    useDreamCoinCollectClickerRewardMutation();
   const upgradeAllLevelMutation = useDreamCoinUpgradeAllLevelMutation();
   const getCaseMutation = useDreamCoinGetCaseMutation();
   const openCaseMutation = useDreamCoinOpenCaseMutation();
@@ -72,6 +75,23 @@ export default memo(function DreamCoinFarmer() {
 
             /** Toast */
             toast.success("DreamCoin - FreeCase");
+          }
+        };
+    },
+    [userQuery.data]
+  );
+
+  /** Collect Clicker Reward */
+  useFarmerAsyncTask(
+    "collect-clicker-reward",
+    () => {
+      if (userQuery.data)
+        return async function () {
+          const { currentClicks } = userQuery.data.clickerLevel;
+
+          if (currentClicks > 0) {
+            await collectClickerRewardMutation.mutateAsync(currentClicks);
+            toast.success("Dream-Coin Collected Clicker");
           }
         };
     },
