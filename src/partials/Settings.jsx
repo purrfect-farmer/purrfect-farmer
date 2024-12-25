@@ -11,7 +11,7 @@ import useAppContext from "@/hooks/useAppContext";
 import { CgSpinner } from "react-icons/cg";
 import {
   HiOutlineArrowPath,
-  HiOutlineExclamationCircle,
+  HiOutlineExclamationTriangle,
   HiOutlineSquares2X2,
 } from "react-icons/hi2";
 import { Reorder, useDragControls } from "motion/react";
@@ -391,7 +391,7 @@ export default memo(function Settings({ tabs }) {
                       checked={settings?.uncappedPoints}
                     >
                       Uncapped Points{" "}
-                      <HiOutlineExclamationCircle className="inline w-4 h-4" />
+                      <HiOutlineExclamationTriangle className="inline w-4 h-4" />
                     </LabelToggle>
 
                     <p
