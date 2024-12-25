@@ -15,6 +15,7 @@ import useWontonClaimGameMutation from "../hooks/useWontonClaimGameMutation";
 import useWontonShopQuery from "../hooks/useWontonShopQuery";
 import useWontonStartGameMutation from "../hooks/useWontonStartGameMutation";
 import useWontonUserQuery from "../hooks/useWontonUserQuery";
+import useAppContext from "@/hooks/useAppContext";
 
 const GAME_DURATION = 15_000;
 const EXTRA_DELAY = 3_000;
@@ -23,6 +24,7 @@ const INITIAL_POINT = 120;
 const MAX_POINT = 130;
 
 export default memo(function Wonton() {
+  const { settings } = useAppContext();
   const query = useWontonUserQuery();
   const shopQuery = useWontonShopQuery();
 
@@ -47,8 +49,12 @@ export default memo(function Wonton() {
 
   const tickets = query.data?.ticketCount || 0;
   const points = useMemo(
-    () => Math.max(MIN_POINT, Math.min(MAX_POINT, desiredPoint)),
-    [desiredPoint]
+    () =>
+      Math.max(
+        MIN_POINT,
+        Math.min(settings.uncappedPoints ? Infinity : MAX_POINT, desiredPoint)
+      ),
+    [desiredPoint, settings.uncappedPoints]
   );
 
   const startGameMutation = useWontonStartGameMutation();

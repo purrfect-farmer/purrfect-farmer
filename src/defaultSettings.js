@@ -21,6 +21,7 @@ const defaultSettings = {
   farmerPosition: 1,
   openFarmerInNewWindow: true,
   openFarmerOnStartup: false,
+  uncappedPoints: false,
   closeMainWindowOnStartup: false,
   preferredTelegramWebVersion: "k",
   dropsStatus,

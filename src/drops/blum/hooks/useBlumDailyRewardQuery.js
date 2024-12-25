@@ -9,7 +9,7 @@ export default function useBlumDailyRewardQuery() {
     queryKey: ["blum", "daily-reward", "get"],
     queryFn: ({ signal }) =>
       api
-        .get("https://game-domain.blum.codes/api/v1/daily-reward?offset=-60", {
+        .get("https://game-domain.blum.codes/api/v2/daily-reward", {
           signal,
         })
         .then((res) => res.data),

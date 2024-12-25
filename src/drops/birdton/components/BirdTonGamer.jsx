@@ -13,12 +13,14 @@ import { useMemo } from "react";
 import { useState } from "react";
 
 import useBirdTonHandlers from "../hooks/useBirdTonHandlers";
+import useAppContext from "@/hooks/useAppContext";
 
 const MIN_POINT = 100;
 const INITIAL_POINT = 120;
 const MAX_POINT = 10_000;
 
 export default memo(function BirdTonGamer() {
+  const { settings } = useAppContext();
   const process = useProcessLock("birdton.game");
   const {
     zoomies,
@@ -47,8 +49,12 @@ export default memo(function BirdTonGamer() {
     useSocketState("birdton.game.desired-point", INITIAL_POINT);
 
   const perGamePoints = useMemo(
-    () => Math.max(MIN_POINT, Math.min(MAX_POINT, desiredPoint)),
-    [desiredPoint]
+    () =>
+      Math.max(
+        MIN_POINT,
+        Math.min(settings.uncappedPoints ? Infinity : MAX_POINT, desiredPoint)
+      ),
+    [desiredPoint, settings.uncappedPoints]
   );
 
   const energy = user?.["energy"] || 0;

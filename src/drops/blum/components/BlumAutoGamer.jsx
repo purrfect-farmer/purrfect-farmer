@@ -17,6 +17,7 @@ import useBlumBalanceQuery from "../hooks/useBlumBalanceQuery";
 import useBlumClaimGameMutation from "../hooks/useBlumClaimGameMutation";
 import useBlumDogsDropEligibilityQuery from "../hooks/useBlumDogsDropEligibilityQuery";
 import useBlumStartGameMutation from "../hooks/useBlumStartGameMutation";
+import useAppContext from "@/hooks/useAppContext";
 
 const GAME_DURATION = 30_000;
 const EXTRA_DELAY = 3_000;
@@ -25,6 +26,8 @@ const INITIAL_POINT = 180;
 const MAX_POINT = 280;
 
 export default memo(function BlumAutoGamer({ workerRef }) {
+  const { settings } = useAppContext();
+
   const query = useBlumBalanceQuery();
   const dogsDropEligibilityQuery = useBlumDogsDropEligibilityQuery();
   const client = useQueryClient();
@@ -37,8 +40,12 @@ export default memo(function BlumAutoGamer({ workerRef }) {
 
   const tickets = query.data?.playPasses || 0;
   const points = useMemo(
-    () => Math.max(MIN_POINT, Math.min(MAX_POINT, desiredPoint)),
-    [desiredPoint]
+    () =>
+      Math.max(
+        MIN_POINT,
+        Math.min(settings.uncappedPoints ? Infinity : MAX_POINT, desiredPoint)
+      ),
+    [desiredPoint, settings.uncappedPoints]
   );
 
   const startGameMutation = useBlumStartGameMutation();

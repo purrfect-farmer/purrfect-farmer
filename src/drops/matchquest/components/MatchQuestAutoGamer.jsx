@@ -15,6 +15,7 @@ import useMatchQuestClaimGameMutation from "../hooks/useMatchQuestClaimGameMutat
 import useMatchQuestGameRuleQuery from "../hooks/useMatchQuestGameRuleQuery";
 import useMatchQuestStartGameMutation from "../hooks/useMatchQuestStartGameMutation";
 import useMatchQuestUserQuery from "../hooks/useMatchQuestUserQuery";
+import useAppContext from "@/hooks/useAppContext";
 
 const GAME_DURATION = 30_000;
 const EXTRA_DELAY = 3_000;
@@ -23,6 +24,7 @@ const INITIAL_POINT = 100;
 const MAX_POINT = 120;
 
 export default memo(function MatchQuestAutoGamer() {
+  const { settings } = useAppContext();
   const gameRuleQuery = useMatchQuestGameRuleQuery();
   const userQuery = useMatchQuestUserQuery();
   const process = useProcessLock("matchquest.game");
@@ -33,8 +35,12 @@ export default memo(function MatchQuestAutoGamer() {
 
   const tickets = gameRuleQuery.data?.["game_count"] || 0;
   const points = useMemo(
-    () => Math.max(MIN_POINT, Math.min(MAX_POINT, desiredPoint)),
-    [desiredPoint]
+    () =>
+      Math.max(
+        MIN_POINT,
+        Math.min(settings.uncappedPoints ? Infinity : MAX_POINT, desiredPoint)
+      ),
+    [desiredPoint, settings.uncappedPoints]
   );
 
   const startGameMutation = useMatchQuestStartGameMutation();

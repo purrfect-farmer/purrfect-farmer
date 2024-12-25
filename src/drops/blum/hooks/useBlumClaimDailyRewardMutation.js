@@ -7,10 +7,7 @@ export default function useBlumClaimDailyRewardMutation() {
     mutationKey: ["blum", "daily-reward", "claim"],
     mutationFn: () =>
       api
-        .post(
-          "https://game-domain.blum.codes/api/v1/daily-reward?offset=-60",
-          null
-        )
+        .post("https://game-domain.blum.codes/api/v2/daily-reward", null)
         .then((res) => res.data),
   });
 }

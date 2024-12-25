@@ -9,7 +9,11 @@ import TelegramWebKIcon from "@/assets/images/telegram-web-k.png?format=webp&w=8
 import defaultSettings from "@/defaultSettings";
 import useAppContext from "@/hooks/useAppContext";
 import { CgSpinner } from "react-icons/cg";
-import { HiOutlineArrowPath, HiOutlineSquares2X2 } from "react-icons/hi2";
+import {
+  HiOutlineArrowPath,
+  HiOutlineExclamationCircle,
+  HiOutlineSquares2X2,
+} from "react-icons/hi2";
 import { Reorder, useDragControls } from "motion/react";
 import { cn, maximizeFarmerWindow, resizeFarmerWindow } from "@/lib/utils";
 import { memo, useCallback, useEffect, useState } from "react";
@@ -181,7 +185,7 @@ export default memo(function Settings({ tabs }) {
                 <Tabs.Content value="settings">
                   <form
                     onSubmit={(ev) => ev.preventDefault()}
-                    className="flex flex-col gap-2 py-4"
+                    className="flex flex-col gap-2"
                   >
                     {/* Farmer Title */}
                     <label className="text-neutral-400">Farmer Title</label>
@@ -374,6 +378,20 @@ export default memo(function Settings({ tabs }) {
                       checked={settings?.repeatZoomiesCycle}
                     >
                       Repeat Zoomies Cycle
+                    </LabelToggle>
+
+                    {/* Repeat Cycle */}
+                    <LabelToggle
+                      onChange={(ev) =>
+                        dispatchAndConfigureSettings(
+                          "uncappedPoints",
+                          ev.target.checked
+                        )
+                      }
+                      checked={settings?.uncappedPoints}
+                    >
+                      Uncapped Points{" "}
+                      <HiOutlineExclamationCircle className="inline w-4 h-4" />
                     </LabelToggle>
 
                     <p

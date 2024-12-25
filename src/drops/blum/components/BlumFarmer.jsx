@@ -36,10 +36,12 @@ export default memo(function BlumFarmer() {
   useFarmerAsyncTask(
     "daily-check-in",
     () => {
-      if (dailyRewardQuery.isLoading === false)
+      if (dailyRewardQuery.data)
         return async function () {
-          if (dailyRewardQuery.isSuccess) {
-            /** Claim Daily Check-In */
+          const { claim } = dailyRewardQuery.data;
+
+          /** Claim Daily Check-In */
+          if (claim === "available") {
             try {
               await claimDailyRewardMutation.mutateAsync();
               toast.success("Blum - Daily Check-In");
@@ -47,7 +49,7 @@ export default memo(function BlumFarmer() {
           }
         };
     },
-    [dailyRewardQuery.isLoading]
+    [dailyRewardQuery.data]
   );
 
   /** Friends Reward */

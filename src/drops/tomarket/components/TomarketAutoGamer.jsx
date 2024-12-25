@@ -13,6 +13,7 @@ import TomarketInput from "./TomarketInput";
 import useTomarketBalanceQuery from "../hooks/useTomarketBalanceQuery";
 import useTomarketClaimGameMutation from "../hooks/useTomarketClaimGameMutation";
 import useTomarketStartGameMutation from "../hooks/useTomarketStartGameMutation";
+import useAppContext from "@/hooks/useAppContext";
 
 const GAME_DURATION = 30_000;
 const EXTRA_DELAY = 3_000;
@@ -21,6 +22,7 @@ const INITIAL_POINT = 220;
 const MAX_POINT = 390;
 
 export default memo(function Tomarket({ tomarket }) {
+  const { settings } = useAppContext();
   const query = useTomarketBalanceQuery();
   const process = useProcessLock("tomarket.game");
   const [countdown, setCountdown] = useState(null);
@@ -29,8 +31,12 @@ export default memo(function Tomarket({ tomarket }) {
 
   const tickets = query.data?.["play_passes"] || 0;
   const points = useMemo(
-    () => Math.max(MIN_POINT, Math.min(MAX_POINT, desiredPoint)),
-    [desiredPoint]
+    () =>
+      Math.max(
+        MIN_POINT,
+        Math.min(settings.uncappedPoints ? Infinity : MAX_POINT, desiredPoint)
+      ),
+    [desiredPoint, settings.uncappedPoints]
   );
 
   const startGameMutation = useTomarketStartGameMutation(tomarket?.drop);
