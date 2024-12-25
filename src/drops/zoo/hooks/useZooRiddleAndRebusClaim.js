@@ -23,110 +23,112 @@ export default function useZooRiddleAndRebusClaim() {
     "claim-riddle-and-rebus",
     () => {
       if ([allData, afterData].every(Boolean)) {
-        return async function () {
-          /** Riddle */
-          const riddle = allData.dbData.dbQuests.find((quest) =>
-            quest.key.startsWith("riddle_")
-          );
+        /** Riddle */
+        const riddle = allData.dbData.dbQuests.find((quest) =>
+          quest.key.startsWith("riddle_")
+        );
 
-          /** Riddle Completion */
-          const riddleCompletion = afterData.quests.find(
-            (quest) => quest.key === riddle.key
-          );
+        /** Riddle Completion */
+        const riddleCompletion = afterData.quests.find(
+          (quest) => quest.key === riddle.key
+        );
 
-          /** Can Claim Riddle */
-          const canClaimRiddle = riddle && !riddleCompletion;
+        /** Can Claim Riddle */
+        const canClaimRiddle = riddle && !riddleCompletion;
 
-          /** Rebus */
-          const rebus = allData.dbData.dbQuests.find((quest) =>
-            quest.key.startsWith("rebus_")
-          );
+        /** Rebus */
+        const rebus = allData.dbData.dbQuests.find((quest) =>
+          quest.key.startsWith("rebus_")
+        );
 
-          /** Rebus Completion */
-          const rebusCompletion = afterData.quests.find(
-            (quest) => quest.key === rebus.key
-          );
+        /** Rebus Completion */
+        const rebusCompletion = afterData.quests.find(
+          (quest) => quest.key === rebus.key
+        );
 
-          /** Can Claim Rebus */
-          const canClaimRebus = rebus && !rebusCompletion;
+        /** Can Claim Rebus */
+        const canClaimRebus = rebus && !rebusCompletion;
 
-          /** Claim Riddle */
-          if (canClaimRiddle) {
-            try {
-              await checkRiddleMutation.mutateAsync([
-                riddle.key,
-                riddle.checkData,
-              ]);
+        if (canClaimRiddle || canClaimRebus) {
+          return async function () {
+            /** Claim Riddle */
+            if (canClaimRiddle) {
+              try {
+                await checkRiddleMutation.mutateAsync([
+                  riddle.key,
+                  riddle.checkData,
+                ]);
 
-              await claimRiddleMutation
-                .mutateAsync([riddle.key, riddle.checkData])
-                .then((result) => {
-                  /** Update All Data */
-                  queryClient.setQueryData(["zoo", "all"], (prev) => {
-                    return {
-                      ...prev,
-                      hero: result.hero,
-                    };
+                await claimRiddleMutation
+                  .mutateAsync([riddle.key, riddle.checkData])
+                  .then((result) => {
+                    /** Update All Data */
+                    queryClient.setQueryData(["zoo", "all"], (prev) => {
+                      return {
+                        ...prev,
+                        hero: result.hero,
+                      };
+                    });
+
+                    /** Update After Data */
+                    queryClient.setQueryData(["zoo", "after"], (prev) => {
+                      return {
+                        ...prev,
+                        quests: result.quests,
+                      };
+                    });
                   });
 
-                  /** Update After Data */
-                  queryClient.setQueryData(["zoo", "after"], (prev) => {
-                    return {
-                      ...prev,
-                      quests: result.quests,
-                    };
-                  });
-                });
+                /** Show Success Message */
+                toast.success("Riddle Claimed Successfully!");
 
-              /** Show Success Message */
-              toast.success("Riddle Claimed Successfully!");
-
-              /** Delay */
-              await delay(1000);
-            } catch {
-              /** Show Error Message */
-              toast.error("Failed to Claim Riddle!");
+                /** Delay */
+                await delay(1000);
+              } catch {
+                /** Show Error Message */
+                toast.error("Failed to Claim Riddle!");
+              }
             }
-          }
 
-          /** Claim Rebus */
-          if (canClaimRebus) {
-            try {
-              await checkRebusMutation.mutateAsync([
-                rebus.key,
-                rebus.checkData,
-              ]);
-              await claimRebusMutation
-                .mutateAsync([rebus.key, rebus.checkData])
-                .then((result) => {
-                  /** Update All Data */
-                  queryClient.setQueryData(["zoo", "all"], (prev) => {
-                    return {
-                      ...prev,
-                      hero: result.hero,
-                    };
+            /** Claim Rebus */
+            if (canClaimRebus) {
+              try {
+                await checkRebusMutation.mutateAsync([
+                  rebus.key,
+                  rebus.checkData,
+                ]);
+                await claimRebusMutation
+                  .mutateAsync([rebus.key, rebus.checkData])
+                  .then((result) => {
+                    /** Update All Data */
+                    queryClient.setQueryData(["zoo", "all"], (prev) => {
+                      return {
+                        ...prev,
+                        hero: result.hero,
+                      };
+                    });
+
+                    /** Update After Data */
+                    queryClient.setQueryData(["zoo", "after"], (prev) => {
+                      return {
+                        ...prev,
+                        quests: result.quests,
+                      };
+                    });
                   });
 
-                  /** Update After Data */
-                  queryClient.setQueryData(["zoo", "after"], (prev) => {
-                    return {
-                      ...prev,
-                      quests: result.quests,
-                    };
-                  });
-                });
+                /** Show Success Message */
+                toast.success("Rebus Claimed Successfully!");
 
-              /** Show Success Message */
-              toast.success("Rebus Claimed Successfully!");
-
-              /** Delay */
-              await delay(1000);
-            } catch {
-              /** Show Error Message */
-              toast.error("Failed to Claim Rebus!");
+                /** Delay */
+                await delay(1000);
+              } catch {
+                /** Show Error Message */
+                toast.error("Failed to Claim Rebus!");
+              }
             }
-          }
-        };
+          };
+        }
       }
     },
     [allData, afterData]

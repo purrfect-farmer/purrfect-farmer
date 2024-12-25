@@ -16,17 +16,17 @@ export default function useZooBoost() {
     "purchase-boost",
     () => {
       if (allData) {
-        return async function () {
-          const hero = allData?.hero;
-          const balance = hero?.coins;
-          const currentBoostPercent = hero?.boostPercent;
-          const availableBoosts = allData?.dbData.dbBoost.filter(
-            (item) => item.price <= balance
-          );
+        const hero = allData?.hero;
+        const balance = hero?.coins;
+        const currentBoostPercent = hero?.boostPercent;
+        const availableBoosts = allData?.dbData.dbBoost.filter(
+          (item) => item.price <= balance
+        );
 
-          const boost = availableBoosts.find((item) => item.price === 1000);
+        const boost = availableBoosts.find((item) => item.price === 1000);
 
-          if (boost && boost.boost > (currentBoostPercent || 0)) {
+        if (boost && boost.boost > (currentBoostPercent || 0)) {
+          return async function () {
             /** Buy Boost */
             const result = await buyBoostMutation.mutateAsync(boost.key);
 
@@ -40,8 +40,8 @@ export default function useZooBoost() {
 
             /** Toast */
             toast.success("Purchased Boost");
-          }
-        };
+          };
+        }
       }
     },
     [allData]

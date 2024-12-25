@@ -27,15 +27,17 @@ export default memo(function SlotcoinFarmer() {
   useFarmerAsyncTask(
     "daily-check-in",
     () => {
-      if (checkInQuery.data)
-        return async function () {
-          const checkIn = checkInQuery.data;
+      if (checkInQuery.data) {
+        const checkIn = checkInQuery.data;
 
-          if (checkIn["time_to_claim"] <= 0) {
+        if (checkIn["time_to_claim"] <= 0) {
+          return async function () {
             await checkInMutation.mutateAsync();
+            await checkInQuery.refetch();
             toast.success("Slotcoin - Check-In");
-          }
-        };
+          };
+        }
+      }
     },
     [checkInQuery.data]
   );

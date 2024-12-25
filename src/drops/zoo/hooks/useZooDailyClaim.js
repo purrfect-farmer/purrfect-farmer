@@ -15,13 +15,13 @@ export default function useZooDailyClaim() {
     "daily-reward",
     () => {
       if (afterData) {
-        return async function () {
-          const dailyRewards = afterData.dailyRewards;
-          const day = Object.entries(dailyRewards).find(
-            ([k, v]) => v === "canTake"
-          );
+        const dailyRewards = afterData.dailyRewards;
+        const day = Object.entries(dailyRewards).find(
+          ([k, v]) => v === "canTake"
+        );
 
-          if (day) {
+        if (day) {
+          return async function () {
             await toast
               .promise(dailyClaimMutation.mutateAsync(parseInt(day[0])), {
                 loading: "Claiming Daily Reward...",
@@ -45,8 +45,8 @@ export default function useZooDailyClaim() {
                   };
                 });
               });
-          }
-        };
+          };
+        }
       }
     },
     [afterData]

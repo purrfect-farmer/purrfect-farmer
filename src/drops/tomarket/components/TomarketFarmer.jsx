@@ -44,17 +44,20 @@ export default memo(function TomarketFarmer() {
     "farming",
     () => {
       if (farmingInfoQuery.data) {
-        return async function () {
-          const farm = farmingInfoQuery.data;
+        const farm = farmingInfoQuery.data;
 
-          if (!farm["round_id"]) {
+        if (!farm["round_id"]) {
+          return async function () {
             /** Start Farming */
             await startFarmingMutation.mutateAsync();
+            await farmingInfoQuery.refetch();
             toast.success("Tomarket - Started Farming");
-          } else if (
-            farm["end_at"] &&
-            isAfter(new Date(), new Date(farm["end_at"] * 1000))
-          ) {
+          };
+        } else if (
+          farm["end_at"] &&
+          isAfter(new Date(), new Date(farm["end_at"] * 1000))
+        ) {
+          return async function () {
             /** Claim Farming */
             await claimFarmingMutation.mutateAsync();
             toast.success("Tomarket - Claimed Farming");
@@ -65,8 +68,11 @@ export default memo(function TomarketFarmer() {
             /** Start Farming */
             await startFarmingMutation.mutateAsync();
             toast.success("Tomarket - Started Farming");
-          }
-        };
+
+            /** Refetch */
+            await farmingInfoQuery.refetch();
+          };
+        }
       }
     },
     [farmingInfoQuery.data]

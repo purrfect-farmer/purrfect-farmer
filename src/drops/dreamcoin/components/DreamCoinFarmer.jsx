@@ -34,24 +34,26 @@ export default memo(function DreamCoinFarmer() {
   useFarmerAsyncTask(
     "daily-reward",
     () => {
-      if (dailyTasksQuery.data)
-        return async function () {
-          const today = new Date().toISOString().split("T")[0];
-          const dailyTasks = dailyTasksQuery.data.dailyTasks;
-          const day = dailyTasks.find(
-            (item) => item.date === today && !item.isClaimed
-          );
+      if (dailyTasksQuery.data) {
+        const today = new Date().toISOString().split("T")[0];
+        const dailyTasks = dailyTasksQuery.data.dailyTasks;
+        const day = dailyTasks.find(
+          (item) => item.date === today && !item.isClaimed
+        );
 
-          /** Log It */
-          logNicely("DREAMCOIN TODAY", today);
-          logNicely("DREAMCOIN DAILY-TASKS", dailyTasks);
-          logNicely("DREAMCOIN DAY", day);
+        /** Log It */
+        logNicely("DREAMCOIN TODAY", today);
+        logNicely("DREAMCOIN DAILY-TASKS", dailyTasks);
+        logNicely("DREAMCOIN DAY", day);
 
-          if (day) {
+        if (day) {
+          return async function () {
             await claimDailyTaskMutation.mutateAsync(day.id);
+            await dailyTasksQuery.refetch();
             toast.success("DreamCoin - Daily Reward");
-          }
-        };
+          };
+        }
+      }
     },
     [dailyTasksQuery.data]
   );
@@ -60,11 +62,11 @@ export default memo(function DreamCoinFarmer() {
   useFarmerAsyncTask(
     "open-free-case",
     () => {
-      if (userQuery.data)
-        return async function () {
-          const { freeCaseId } = userQuery.data;
+      if (userQuery.data) {
+        const { freeCaseId } = userQuery.data;
 
-          if (freeCaseId) {
+        if (freeCaseId) {
+          return async function () {
             const freeCase = await getCaseMutation.mutateAsync(freeCaseId);
 
             /** Log It */
@@ -75,8 +77,12 @@ export default memo(function DreamCoinFarmer() {
 
             /** Toast */
             toast.success("DreamCoin - FreeCase");
-          }
-        };
+
+            /** Refetch */
+            await userQuery.refetch();
+          };
+        }
+      }
     },
     [userQuery.data]
   );
@@ -85,15 +91,17 @@ export default memo(function DreamCoinFarmer() {
   useFarmerAsyncTask(
     "collect-clicker-reward",
     () => {
-      if (userQuery.data)
-        return async function () {
-          const { currentClicks } = userQuery.data.clickerLevel;
-
-          if (currentClicks > 0) {
+      if (userQuery.data) {
+        const { currentClicks } = userQuery.data.clickerLevel;
+        if (currentClicks > 0) {
+          return async function () {
             await collectClickerRewardMutation.mutateAsync(currentClicks);
+            await userQuery.refetch();
+
             toast.success("Dream-Coin Collected Clicker");
-          }
-        };
+          };
+        }
+      }
     },
     [userQuery.data]
   );
@@ -102,19 +110,20 @@ export default memo(function DreamCoinFarmer() {
   useFarmerAsyncTask(
     "upgrade-all-level",
     () => {
-      if (userQuery.data)
-        return async function () {
-          const balance = userQuery.data.balance;
-          const { upgradePrice } = userQuery.data.clickerLevel;
+      if (userQuery.data) {
+        const balance = userQuery.data.balance;
+        const { upgradePrice } = userQuery.data.clickerLevel;
 
-          if (balance >= upgradePrice) {
+        if (balance >= upgradePrice) {
+          return async function () {
             await upgradeAllLevelMutation.mutateAsync();
             toast.success("Dream-Coin Upgraded Level");
 
             await delay(3000);
             await userQuery.refetch();
-          }
-        };
+          };
+        }
+      }
     },
     [userQuery.data]
   );

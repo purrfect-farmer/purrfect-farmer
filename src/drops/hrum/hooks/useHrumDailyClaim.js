@@ -12,12 +12,12 @@ export default function useHrumDailyClaim() {
     "daily.check-in",
     () => {
       if (dailyQuery.data) {
-        return async function () {
-          const day = Object.entries(dailyQuery.data).find(
-            ([k, v]) => v === "canTake"
-          );
+        const day = Object.entries(dailyQuery.data).find(
+          ([k, v]) => v === "canTake"
+        );
 
-          if (day) {
+        if (day) {
+          return async function () {
             await toast.promise(
               dailyClaimMutation.mutateAsync(parseInt(day[0])),
               {
@@ -26,8 +26,10 @@ export default function useHrumDailyClaim() {
                 success: "Successfully claimed daily reward.",
               }
             );
-          }
-        };
+
+            await dailyQuery.refetch();
+          };
+        }
       }
     },
     [dailyQuery.data]

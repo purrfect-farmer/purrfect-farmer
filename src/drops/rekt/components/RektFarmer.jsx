@@ -22,6 +22,7 @@ import useRektReferralClaimsQuery from "../hooks/useRektReferralClaimsQuery";
 import useRektStartFarmingMutation from "../hooks/useRektStartFarmingMutation";
 import useRektUnclaimedFarmingQuery from "../hooks/useRektUnclaimedFarmingQuery";
 import useRektUserQuery from "../hooks/useRektUserQuery";
+import { useState } from "react";
 
 export default memo(function RektFarmer() {
   const tabs = useSocketTabs("rekt.farmer-tabs", ["game", "quests"]);
@@ -39,24 +40,31 @@ export default memo(function RektFarmer() {
   const claimReferralTradeMutation = useRektClaimReferralTradeMutation();
   const claimReferralPointsMutation = useRektClaimReferralPointsMutation();
 
+  const [hasClaimedDailyCheckIn, setHasClaimedDailyCheckIn] = useState(false);
+
   /** Daily Check-In */
   useFarmerAsyncTask(
     "daily-check-in",
     () => {
-      return async function () {
-        try {
-          const { result } = await dailyCheckInMutation.mutateAsync();
-          if (result === "REWARDED") {
-            /** Toast */
-            toast.success("Rekt - Daily Check-In");
+      if (!hasClaimedDailyCheckIn) {
+        return async function () {
+          try {
+            const { result } = await dailyCheckInMutation.mutateAsync();
+            if (result === "REWARDED") {
+              /** Toast */
+              toast.success("Rekt - Daily Check-In");
 
-            /** Refetch */
-            await userQuery.refetch();
-          }
-        } catch {}
-      };
+              /** Refetch */
+              await userQuery.refetch();
+            }
+          } catch {}
+
+          /** Mark as Claimed */
+          setHasClaimedDailyCheckIn(true);
+        };
+      }
     },
-    []
+    [hasClaimedDailyCheckIn]
   );
 
   /** Auto Farming */
@@ -64,9 +72,10 @@ export default memo(function RektFarmer() {
     "farming",
     () => {
       if (unclaimedFarmingQuery.data && activeFarmingQuery.isSuccess) {
-        return async function () {
-          const unclaimedFarming = unclaimedFarmingQuery.data;
-          if (unclaimedFarming.length) {
+        const unclaimedFarming = unclaimedFarmingQuery.data;
+
+        if (unclaimedFarming.length) {
+          return async function () {
             for (const farming of unclaimedFarming) {
               /** Claim Farming */
               await claimFarmingMutation.mutateAsync(farming.externalId);
@@ -84,7 +93,9 @@ export default memo(function RektFarmer() {
             await activeFarmingQuery.refetch();
             await unclaimedFarmingQuery.refetch();
             await userQuery.refetch();
-          } else if (!activeFarmingQuery.data) {
+          };
+        } else if (!activeFarmingQuery.data) {
+          return async function () {
             /** Start Farming */
             await startFarmingMutation.mutateAsync();
             toast.success("Rekt -  Started Farming");
@@ -93,8 +104,8 @@ export default memo(function RektFarmer() {
             await activeFarmingQuery.refetch();
             await unclaimedFarmingQuery.refetch();
             await userQuery.refetch();
-          }
-        };
+          };
+        }
       }
     },
     [
@@ -109,11 +120,11 @@ export default memo(function RektFarmer() {
     "boost-farming",
     () => {
       if (userQuery.data && activeFarmingQuery.data) {
-        return async function () {
-          const { balance } = userQuery.data;
-          const { boostApplicationTime } = activeFarmingQuery.data;
+        const { balance } = userQuery.data;
+        const { boostApplicationTime } = activeFarmingQuery.data;
 
-          if (balance.boosts >= 1 && !boostApplicationTime) {
+        if (balance.boosts >= 1 && !boostApplicationTime) {
+          return async function () {
             /** Boost Farming */
             await boostFarmingMutation.mutateAsync();
             toast.success("Rekt -  Boosted Farming");
@@ -121,8 +132,8 @@ export default memo(function RektFarmer() {
             /** Refetch */
             await activeFarmingQuery.refetch();
             await userQuery.refetch();
-          }
-        };
+          };
+        }
       }
     },
     [userQuery.data, activeFarmingQuery.data]
@@ -133,53 +144,57 @@ export default memo(function RektFarmer() {
     "claim-referrals",
     () => {
       if (referralClaimsQuery.data) {
-        return async function () {
-          /** Claims */
-          const claims = referralClaimsQuery.data;
+        /** Claims */
+        const claims = referralClaimsQuery.data;
 
-          /** Check if time is due */
-          const canClaimNow = (time) =>
-            !time || isAfter(subHours(new Date(), 2), new Date(time));
+        /** Check if time is due */
+        const canClaimNow = (time) =>
+          !time || isAfter(subHours(new Date(), 2), new Date(time));
 
-          /** Status */
-          let hasClaimed = false;
+        const canClaimPoints =
+          claims.referredPointsToClaim &&
+          canClaimNow(claims.referralPointsClaimedLastTime);
 
-          /** Claim Points */
-          if (
-            claims.referredPointsToClaim &&
-            canClaimNow(claims.referralPointsClaimedLastTime)
-          ) {
-            /** Claim */
-            await claimReferralPointsMutation.mutateAsync();
+        const canClaimTrades =
+          claims.referredTradesToClaim &&
+          canClaimNow(claims.referralTradesClaimedLastTime);
 
-            /** Toast */
-            toast.success("Rekt - Claimed Referral Points");
+        if (canClaimPoints || canClaimTrades) {
+          return async function () {
+            /** Status */
+            let hasClaimed = false;
 
-            /** Set Status */
-            hasClaimed = true;
-          }
+            /** Claim Points */
+            if (canClaimPoints) {
+              /** Claim */
+              await claimReferralPointsMutation.mutateAsync();
 
-          /** Claim Trades */
-          if (
-            claims.referredTradesToClaim &&
-            canClaimNow(claims.referralTradesClaimedLastTime)
-          ) {
-            /** Claim */
-            await claimReferralTradeMutation.mutateAsync();
+              /** Toast */
+              toast.success("Rekt - Claimed Referral Points");
 
-            /** Toast */
-            toast.success("Rekt - Claimed Referral Trades");
+              /** Set Status */
+              hasClaimed = true;
+            }
 
-            /** Set Status */
-            hasClaimed = true;
-          }
+            /** Claim Trades */
+            if (canClaimTrades) {
+              /** Claim */
+              await claimReferralTradeMutation.mutateAsync();
 
-          /** Refetch After Claiming */
-          if (hasClaimed) {
-            await userQuery.refetch();
-            await referralClaimsQuery.refetch();
-          }
-        };
+              /** Toast */
+              toast.success("Rekt - Claimed Referral Trades");
+
+              /** Set Status */
+              hasClaimed = true;
+            }
+
+            /** Refetch After Claiming */
+            if (hasClaimed) {
+              await userQuery.refetch();
+              await referralClaimsQuery.refetch();
+            }
+          };
+        }
       }
     },
     [referralClaimsQuery.data]

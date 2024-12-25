@@ -23,15 +23,16 @@ export default memo(function TsubasaFarmer() {
   useFarmerAsyncTask(
     "daily-reward",
     () => {
-      if (authQuery.data)
-        return async function () {
-          const lastUpdate = authQuery.data["user_daily_reward"]["last_update"];
+      if (authQuery.data) {
+        const lastUpdate = authQuery.data["user_daily_reward"]["last_update"];
 
-          if (!isToday(lastUpdate * 1000)) {
+        if (!isToday(lastUpdate * 1000)) {
+          return async function () {
             await claimDailyRewardMutation.mutateAsync();
             toast.success("Tsubasa - Daily Reward");
-          }
-        };
+          };
+        }
+      }
     },
     [authQuery.data]
   );

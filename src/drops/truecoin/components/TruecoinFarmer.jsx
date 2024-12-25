@@ -33,17 +33,20 @@ export default memo(function TruecoinFarmer() {
   useFarmerAsyncTask(
     "daily-check-in",
     () => {
-      if (lastDailyRewardQuery.data)
-        return async function () {
-          try {
-            const { createdDate } = lastDailyRewardQuery.data;
+      if (lastDailyRewardQuery.data) {
+        const { createdDate } = lastDailyRewardQuery.data;
 
-            if (!createdDate || !isToday(new Date(createdDate))) {
+        if (!createdDate || !isToday(new Date(createdDate))) {
+          return async function () {
+            try {
               await collectDailyRewardMutation.mutateAsync();
+              await lastDailyRewardQuery.refetch();
+
               toast.success("Truecoin - Daily Reward");
-            }
-          } catch {}
-        };
+            } catch {}
+          };
+        }
+      }
     },
     [lastDailyRewardQuery.data]
   );
