@@ -1,6 +1,5 @@
 import toast from "react-hot-toast";
 import useFarmerAsyncTask from "@/hooks/useFarmerAsyncTask";
-import { useState } from "react";
 
 import useYescoinAccountBuildInfoQuery from "./useYescoinAccountBuildInfoQuery";
 import useYescoinRecoverCoinPoolMutation from "./useYescoinRecoverCoinPoolMutation";
@@ -10,41 +9,31 @@ export default function useYescoinSpecialBoxClaim() {
   const accountBuildInfoQuery = useYescoinAccountBuildInfoQuery();
   const recoverSpecialBoxMutation = useYescoinRecoverSpecialBoxMutation();
   const recoverCoinPoolMutation = useYescoinRecoverCoinPoolMutation();
-  const [hasUsedSpecialBox, setHasUsedSpecialBox] = useState(false);
 
   useFarmerAsyncTask(
     "claim-special-box",
     () => {
-      if (hasUsedSpecialBox) return;
-      if (accountBuildInfoQuery.data) {
-        const { specialBoxLeftRecoveryCount, coinPoolLeftRecoveryCount } =
-          accountBuildInfoQuery.data;
+      if (
+        accountBuildInfoQuery.isLoading === false &&
+        accountBuildInfoQuery.data
+      )
+        return async function () {
+          const { specialBoxLeftRecoveryCount, coinPoolLeftRecoveryCount } =
+            accountBuildInfoQuery.data;
 
-        const shouldClaimSpecialBox = specialBoxLeftRecoveryCount > 0;
-        const shouldClaimCoinPool = coinPoolLeftRecoveryCount > 0;
+          /** Claim Special Box */
+          if (specialBoxLeftRecoveryCount > 0) {
+            await recoverSpecialBoxMutation.mutateAsync();
+            toast.success("Yescoin - Used Chest");
+          }
 
-        if (shouldClaimSpecialBox || shouldClaimCoinPool) {
-          return async function () {
-            /** Claim Special Box */
-            if (shouldClaimSpecialBox) {
-              await recoverSpecialBoxMutation.mutateAsync();
-              toast.success("Yescoin - Used Chest");
-            }
-
-            /** Claim Special Box */
-            if (shouldClaimCoinPool) {
-              await recoverCoinPoolMutation.mutateAsync();
-              toast.success("Yescoin - Used Recovery");
-            }
-            /** Refetch */
-            await accountBuildInfoQuery.refetch();
-
-            /** Mark as Used */
-            setHasUsedSpecialBox(true);
-          };
-        }
-      }
+          /** Claim Special Box */
+          if (coinPoolLeftRecoveryCount > 0) {
+            await recoverCoinPoolMutation.mutateAsync();
+            toast.success("Yescoin - Used Recovery");
+          }
+        };
     },
-    [accountBuildInfoQuery.data, hasUsedSpecialBox]
+    [accountBuildInfoQuery.isLoading]
   );
 }

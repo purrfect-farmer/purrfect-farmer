@@ -19,7 +19,6 @@ import useWontonFarmingStatusQuery from "../hooks/useWontonFarmingStatusQuery";
 import useWontonShopQuery from "../hooks/useWontonShopQuery";
 import useWontonStartFarmingMutation from "../hooks/useWontonStartFarmingMutation";
 import useWontonUseShopItemMutation from "../hooks/useWontonUseShopItemMutation";
-import { useState } from "react";
 
 export default memo(function WontonFarmer() {
   const tabs = useSocketTabs("wonton.farmer-tabs", ["game", "badges", "tasks"]);
@@ -33,26 +32,20 @@ export default memo(function WontonFarmer() {
   const shopQuery = useWontonShopQuery();
   const useShopItemMutation = useWontonUseShopItemMutation();
 
-  const [hasClaimedDailyCheckIn, setHasClaimedDailyCheckIn] = useState(false);
-
   /** Daily-Check-In */
   useFarmerAsyncTask(
     "daily-check-in",
     () => {
-      if (!hasClaimedDailyCheckIn) {
-        return async function () {
-          try {
-            const data = await dailyCheckInMutation.mutateAsync();
-            if (data.newCheckin) {
-              toast.success("Wonton Daily Check-In");
-            }
-          } catch {}
-
-          setHasClaimedDailyCheckIn(true);
-        };
-      }
+      return async function () {
+        try {
+          const data = await dailyCheckInMutation.mutateAsync();
+          if (data.newCheckin) {
+            toast.success("Wonton Daily Check-In");
+          }
+        } catch {}
+      };
     },
-    [hasClaimedDailyCheckIn]
+    []
   );
 
   /** Select Top Item */
@@ -60,84 +53,79 @@ export default memo(function WontonFarmer() {
     "use-top-shop-item",
     () => {
       if (shopQuery.data) {
-        const shopItems = shopQuery.data.shopItems;
-        const items = shopItems.filter((item) => item.inventory > 0);
-        const skins = items.filter((item) => Number(item.farmingPower) !== 0);
-        const bowls = items.filter((item) => Number(item.farmingPower) === 0);
+        return async function () {
+          const shopItems = shopQuery.data.shopItems;
+          const items = shopItems.filter((item) => item.inventory > 0);
+          const skins = items.filter((item) => Number(item.farmingPower) !== 0);
+          const bowls = items.filter((item) => Number(item.farmingPower) === 0);
 
-        const selectedSkin = skins.find((item) => item.inUse);
-        const selectedBowl = bowls.find((item) => item.bowlDisplay);
+          const selectedSkin = skins.find((item) => item.inUse);
+          const selectedBowl = bowls.find((item) => item.bowlDisplay);
 
-        /** Top Skin */
-        const topSkin =
-          skins.length > 0
-            ? skins.reduce((result, current) => {
-                return Math.max(...current.stats.map(Number)) >
-                  Math.max(...result.stats.map(Number))
-                  ? current
-                  : result;
-              }, skins[0])
-            : null;
+          /** Top Skin */
+          const topSkin =
+            skins.length > 0
+              ? skins.reduce((result, current) => {
+                  return Math.max(...current.stats.map(Number)) >
+                    Math.max(...result.stats.map(Number))
+                    ? current
+                    : result;
+                }, skins[0])
+              : null;
 
-        /** Top Bowl */
-        const topBowl =
-          bowls.length > 0
-            ? bowls.reduce((result, current) => {
-                return Number(current.value) > Number(result.value)
-                  ? current
-                  : result;
-              }, bowls[0])
-            : null;
+          /** Top Bowl */
+          const topBowl =
+            bowls.length > 0
+              ? bowls.reduce((result, current) => {
+                  return Number(current.value) > Number(result.value)
+                    ? current
+                    : result;
+                }, bowls[0])
+              : null;
 
-        /** Log */
-        logNicely("WONTON OWNED SHOP ITEMS", items);
+          /** Status */
+          let status = false;
 
-        /** Log */
-        logNicely("WONTON OWNED SKINS", skins);
-        logNicely("WONTON SELECTED SKIN", selectedSkin);
-        logNicely("WONTON TOP SKIN", topSkin);
+          /** Log */
+          logNicely("WONTON OWNED SHOP ITEMS", items);
 
-        /** Log */
-        logNicely("WONTON OWNED BOWLS", bowls);
-        logNicely("WONTON SELECTED BOWL", selectedBowl);
-        logNicely("WONTON TOP BOWL", topBowl);
+          /** Log */
+          logNicely("WONTON OWNED SKINS", skins);
+          logNicely("WONTON SELECTED SKIN", selectedSkin);
+          logNicely("WONTON TOP SKIN", topSkin);
 
-        const shouldUseTopSkin = topSkin && topSkin.id !== selectedSkin?.id;
-        const shouldUseTopBowl = topBowl && topBowl.id !== selectedBowl?.id;
+          /** Log */
+          logNicely("WONTON OWNED BOWLS", bowls);
+          logNicely("WONTON SELECTED BOWL", selectedBowl);
+          logNicely("WONTON TOP BOWL", topBowl);
 
-        if (shouldUseTopSkin || shouldUseTopBowl) {
-          return async function () {
-            /** Status */
-            let status = false;
+          if (topSkin && topSkin.id !== selectedSkin?.id) {
+            /** Use Item */
+            await useShopItemMutation.mutateAsync(topSkin.id);
 
-            if (shouldUseTopSkin) {
-              /** Use Item */
-              await useShopItemMutation.mutateAsync(topSkin.id);
+            /** Toast */
+            toast.success("Wonton - Used Top Skin");
 
-              /** Toast */
-              toast.success("Wonton - Used Top Skin");
+            /** Set Status */
+            status = true;
+          }
 
-              /** Set Status */
-              status = true;
-            }
+          if (topBowl && topBowl.id !== selectedBowl?.id) {
+            /** Use Item */
+            await useShopItemMutation.mutateAsync(topBowl.id);
 
-            if (shouldUseTopBowl) {
-              /** Use Item */
-              await useShopItemMutation.mutateAsync(topBowl.id);
+            /** Toast */
+            toast.success("Wonton - Used Top Bowl");
 
-              /** Toast */
-              toast.success("Wonton - Used Top Bowl");
+            /** Set Status */
+            status = true;
+          }
 
-              /** Set Status */
-              status = true;
-            }
-
-            if (status) {
-              /** Refetch */
-              await shopQuery.refetch();
-            }
-          };
-        }
+          if (status) {
+            /** Refetch */
+            await shopQuery.refetch();
+          }
+        };
       }
     },
     [shopQuery.data]
@@ -148,20 +136,18 @@ export default memo(function WontonFarmer() {
     "farming",
     () => {
       if (farmingStatusQuery.data) {
-        // Check
-        const farming = farmingStatusQuery.data;
+        return async function () {
+          // Check
+          const farming = farmingStatusQuery.data;
 
-        if (!farming.finishAt || farming.claimed) {
-          return async function () {
+          if (!farming.finishAt || farming.claimed) {
             /** Start Farming */
             await startFarmingMutation.mutateAsync();
             toast.success("Wonton Started Farming");
 
             /** Refetch */
             await farmingStatusQuery.refetch();
-          };
-        } else if (isAfter(new Date(), new Date(farming.finishAt))) {
-          return async function () {
+          } else if (isAfter(new Date(), new Date(farming.finishAt))) {
             /** Claim Farming */
             await claimFarmingMutation.mutateAsync();
             toast.success("Wonton Claimed Previous Farming");
@@ -172,8 +158,8 @@ export default memo(function WontonFarmer() {
 
             /** Refetch */
             await farmingStatusQuery.refetch();
-          };
-        }
+          }
+        };
       }
     },
     [farmingStatusQuery.data]

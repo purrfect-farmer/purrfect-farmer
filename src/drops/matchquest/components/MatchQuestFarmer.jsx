@@ -32,8 +32,7 @@ export default memo(function MatchQuestFarmer() {
   const dailyTaskQuery = useMatchQuestDailyTaskQuery();
   const userQuery = useMatchQuestUserQuery();
 
-  /** Check Daily Items /Boost Was Purchased */
-  const [hasPurchasedDailyItems, setHasPurchasedDailyItems] = useState(false);
+  /** Check Daily Boost Was Purchased */
   const [hasPurchasedDailyBoost, setHasPurchasedDailyBoost] = useState(false);
 
   /** Auto Start and Claim Farming */
@@ -41,21 +40,19 @@ export default memo(function MatchQuestFarmer() {
     "farming",
     () => {
       if (rewardQuery.data) {
-        const data = rewardQuery.data;
+        return async function () {
+          const data = rewardQuery.data;
 
-        if (data["reward"] === 0) {
-          return async function () {
+          if (data["reward"] === 0) {
             /** Start Farming */
             await startFarmingMutation.mutateAsync();
             toast.success("MatchQuest Started Farming");
 
             /** Refetch Query */
             await rewardQuery.refetch();
-          };
-        } else if (
-          isAfter(new Date(), new Date(data["next_claim_timestamp"]))
-        ) {
-          return async function () {
+          } else if (
+            isAfter(new Date(), new Date(data["next_claim_timestamp"]))
+          ) {
             /** Claim Farming */
             await claimFarmingMutation.mutateAsync();
             toast.success("MatchQuest Claimed Previous Farming");
@@ -67,13 +64,10 @@ export default memo(function MatchQuestFarmer() {
             /** Refetch Query */
             await rewardQuery.refetch();
 
-            /** Allow Purchasing Items */
-            setHasPurchasedDailyItems(false);
-
             /** Allow Purchasing Daily Boost */
             setHasPurchasedDailyBoost(false);
-          };
-        }
+          }
+        };
       }
     },
     [rewardQuery.data]
@@ -83,12 +77,11 @@ export default memo(function MatchQuestFarmer() {
   useFarmerAsyncTask(
     "daily-task-purchase",
     () => {
-      if (hasPurchasedDailyItems) return;
-      if (userQuery.data && dailyTaskQuery.data) {
-        let initialBalance = userQuery.data["Balance"] / 1000;
-        let balance = initialBalance;
-
+      if (userQuery.data && dailyTaskQuery.data)
         return async function () {
+          let initialBalance = userQuery.data["Balance"] / 1000;
+          let balance = initialBalance;
+
           for (const task of dailyTaskQuery.data) {
             /** Prevent Purchase */
             if (task["type"] === "daily" && hasPurchasedDailyBoost) {
@@ -130,18 +123,9 @@ export default memo(function MatchQuestFarmer() {
             /** Refetch User Query */
             await userQuery.refetch();
           }
-
-          /** Mark as Purchased */
-          setHasPurchasedDailyItems(true);
         };
-      }
     },
-    [
-      userQuery.data,
-      dailyTaskQuery.data,
-      hasPurchasedDailyItems,
-      hasPurchasedDailyBoost,
-    ]
+    [userQuery.data, dailyTaskQuery.data, hasPurchasedDailyBoost]
   );
 
   /** Switch Tab Automatically */

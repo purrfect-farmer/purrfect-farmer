@@ -36,22 +36,18 @@ export default memo(function BlumFarmer() {
   useFarmerAsyncTask(
     "daily-check-in",
     () => {
-      if (dailyRewardQuery.data) {
-        const { claim } = dailyRewardQuery.data;
+      if (dailyRewardQuery.data)
+        return async function () {
+          const { claim } = dailyRewardQuery.data;
 
-        if (claim === "available") {
-          return async function () {
-            /** Claim Daily Check-In */
+          /** Claim Daily Check-In */
+          if (claim === "available") {
             try {
               await claimDailyRewardMutation.mutateAsync();
-              await dailyRewardQuery.refetch();
-
-              /** Toast */
               toast.success("Blum - Daily Check-In");
             } catch {}
-          };
-        }
-      }
+          }
+        };
     },
     [dailyRewardQuery.data]
   );
@@ -60,22 +56,22 @@ export default memo(function BlumFarmer() {
   useFarmerAsyncTask(
     "friends-reward",
     () => {
-      if (friendsBalanceQuery.data) {
-        const amountForClaim = friendsBalanceQuery.data.amountForClaim;
-        const canClaim = friendsBalanceQuery.data.canClaim;
+      if (friendsBalanceQuery.data)
+        return async function () {
+          try {
+            const amountForClaim = friendsBalanceQuery.data.amountForClaim;
+            const canClaim = friendsBalanceQuery.data.canClaim;
 
-        if (canClaim && amountForClaim > 0) {
-          return async function () {
-            try {
+            if (canClaim && amountForClaim > 0) {
               /** Claim Friends Reward */
               await claimFriendsRewardMutation.mutateAsync();
-              await friendsBalanceQuery.refetch();
-
               toast.success("Blum - Friends Reward");
-            } catch {}
-          };
-        }
-      }
+
+              /** Refetch */
+              await friendsBalanceQuery.refetch();
+            }
+          } catch {}
+        };
     },
     [friendsBalanceQuery.data]
   );
@@ -84,21 +80,19 @@ export default memo(function BlumFarmer() {
   useFarmerAsyncTask(
     "farming",
     () => {
-      if (balanceQuery.data) {
-        const balance = balanceQuery.data;
-        const farming = balance.farming;
+      if (balanceQuery.data)
+        return async function () {
+          const balance = balanceQuery.data;
+          const farming = balance.farming;
 
-        if (!balance.isFastFarmingEnabled) {
-          return async function () {
+          if (!balance.isFastFarmingEnabled) {
             /** Start New Farming */
             await startFarmingMutation.mutateAsync();
-            await balanceQuery.refetch();
-
-            /** Toast */
             toast.success("Blum - Started Farming");
-          };
-        } else if (farming && balance.timestamp >= farming.endTime) {
-          return async function () {
+
+            /** Refetch */
+            await balanceQuery.refetch();
+          } else if (farming && balance.timestamp >= farming.endTime) {
             /** Claim Previous Farming */
             await claimFarmingMutation.mutateAsync();
             toast.success("Blum - Claimed Previous Farming");
@@ -112,9 +106,8 @@ export default memo(function BlumFarmer() {
 
             /** Refetch */
             await balanceQuery.refetch();
-          };
-        }
-      }
+          }
+        };
     },
     [balanceQuery.data]
   );

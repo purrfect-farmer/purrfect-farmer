@@ -6,27 +6,34 @@ import useFarmerAutoTask from "./useFarmerAutoTask";
 export default function useFarmerAsyncTask(task, effect, deps = []) {
   const [isRunning, setIsRunning] = useState(false);
   const [isProcessed, setIsProcessed] = useState(false);
+  const [callback, setCallback] = useState(null);
 
   /** Run the Effect */
   useLayoutEffect(() => {
-    if (isRunning) return;
-    /** Get the callback */
-    const callback = effect();
+    /** Get the return value */
+    const returnValue = effect();
 
-    if (callback) {
-      /** Lock */
-      setIsRunning(true);
+    /** Set the Callback */
+    setCallback(() => returnValue || null);
+  }, [...deps]);
 
-      /** Run Callback */
-      callback().finally(() => {
-        /** Mark as Processed */
-        setIsProcessed(true);
+  useLayoutEffect(() => {
+    if (!callback || isRunning) return;
+    /** Lock */
+    setIsRunning(true);
 
-        /** Unlock */
-        setIsRunning(false);
-      });
-    }
-  }, [isRunning, ...deps]);
+    /** Clear Callback */
+    setCallback(null);
+
+    /** Run Callback */
+    callback().finally(() => {
+      /** Mark as Processed */
+      setIsProcessed(true);
+
+      /** Unlock */
+      setIsRunning(false);
+    });
+  }, [callback, isRunning]);
 
   /** Process Next Task */
   useFarmerAutoTask(

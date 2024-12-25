@@ -11,32 +11,28 @@ export default function useYescoinTaskBonusClaim() {
   useFarmerAsyncTask(
     "claim-task-bonus",
     () => {
-      if (finishTaskBonusInfoQuery.data) {
-        const { dailyTaskBonusStatus, commonTaskBonusStatus } =
-          finishTaskBonusInfoQuery.data;
+      if (finishTaskBonusInfoQuery.data)
+        return async function () {
+          const { dailyTaskBonusStatus, commonTaskBonusStatus } =
+            finishTaskBonusInfoQuery.data;
 
-        const canClaimDailyTaskBonus = dailyTaskBonusStatus === 1;
-        const canClaimCommonTaskBonus = commonTaskBonusStatus === 1;
+          /** Claim Daily Task */
+          if (dailyTaskBonusStatus === 1) {
+            await claimTaskBonusMutation.mutateAsync(1);
+            toast.success("Yescoin - Claimed Daily Task Bonus");
+          }
 
-        if (canClaimDailyTaskBonus || canClaimCommonTaskBonus) {
-          return async function () {
-            /** Claim Daily Task */
-            if (canClaimDailyTaskBonus) {
-              await claimTaskBonusMutation.mutateAsync(1);
-              toast.success("Yescoin - Claimed Daily Task Bonus");
-            }
+          /** Claim Common Task */
+          if (commonTaskBonusStatus === 1) {
+            await claimTaskBonusMutation.mutateAsync(2);
+            toast.success("Yescoin - Claimed Common Task Bonus");
+          }
 
-            /** Claim Common Task */
-            if (canClaimCommonTaskBonus) {
-              await claimTaskBonusMutation.mutateAsync(2);
-              toast.success("Yescoin - Claimed Common Task Bonus");
-            }
-
+          if (dailyTaskBonusStatus === 1 || commonTaskBonusStatus === 1) {
             /** Refetch */
             await finishTaskBonusInfoQuery.refetch();
-          };
-        }
-      }
+          }
+        };
     },
     [finishTaskBonusInfoQuery.data]
   );

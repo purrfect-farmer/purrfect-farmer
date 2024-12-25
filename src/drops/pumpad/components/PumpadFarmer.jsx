@@ -29,18 +29,15 @@ export default memo(function PumpadFarmer() {
   useFarmerAsyncTask(
     "daily-check-in",
     () => {
-      if (checkInQuery.data) {
-        const hasClaimed = checkInQuery.data["is_check_in"];
+      if (checkInQuery.data)
+        return async function () {
+          const hasClaimed = checkInQuery.data["is_check_in"];
 
-        if (!hasClaimed) {
-          return async function () {
+          if (!hasClaimed) {
             await claimCheckInMutation.mutateAsync();
-            await checkInQuery.refetch();
-
             toast.success("Pumpad - Check-In");
-          };
-        }
-      }
+          }
+        };
     },
     [checkInQuery.data]
   );

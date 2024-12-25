@@ -17,22 +17,22 @@ export default function useZooChestClaim() {
     "claim-chest",
     () => {
       if ([allData, afterData].every(Boolean)) {
-        /** Chest */
-        const chest = allData.dbData.dbQuests.find((quest) =>
-          quest.key.startsWith("chest_")
-        );
+        return async function () {
+          /** Chest */
+          const chest = allData.dbData.dbQuests.find((quest) =>
+            quest.key.startsWith("chest_")
+          );
 
-        /** Chest Completion */
-        const chestCompletion = afterData.quests.find(
-          (quest) => quest.key === chest?.key
-        );
+          /** Chest Completion */
+          const chestCompletion = afterData.quests.find(
+            (quest) => quest.key === chest?.key
+          );
 
-        /** Can Claim Chest */
-        const canClaimChest = chest && !chestCompletion;
+          /** Can Claim Chest */
+          const canClaimChest = chest && !chestCompletion;
 
-        /** Claim Chest */
-        if (canClaimChest) {
-          return async function () {
+          /** Claim Chest */
+          if (canClaimChest) {
             try {
               await claimChestMutation
                 .mutateAsync([chest.key])
@@ -60,8 +60,8 @@ export default function useZooChestClaim() {
               /** Show Error Message */
               toast.error("Failed to Claim Chest!");
             }
-          };
-        }
+          }
+        };
       }
     },
     [allData, afterData]
