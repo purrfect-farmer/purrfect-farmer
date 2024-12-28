@@ -17,6 +17,7 @@ import useDreamCoinOpenCaseMutation from "../hooks/useDreamCoinOpenCaseMutation"
 import useDreamCoinUpgradeAllLevelMutation from "../hooks/useDreamCoinUpgradeAllLevelMutation";
 import useDreamCoinUserQuery from "../hooks/useDreamCoinUserQuery";
 import useDreamCoinCollectClickerRewardMutation from "../hooks/useDreamCoinCollectClickerRewardMutation";
+import { useState } from "react";
 
 export default memo(function DreamCoinFarmer() {
   const tabs = useSocketTabs("dreamcoin.farmer-tabs", ["lottery", "rewards"]);
@@ -29,6 +30,9 @@ export default memo(function DreamCoinFarmer() {
   const upgradeAllLevelMutation = useDreamCoinUpgradeAllLevelMutation();
   const getCaseMutation = useDreamCoinGetCaseMutation();
   const openCaseMutation = useDreamCoinOpenCaseMutation();
+
+  const [hasCollectedClickerReward, setHasCollectedClickerReward] =
+    useState(false);
 
   /** Auto Claim Daily Reward */
   useFarmerAsyncTask(
@@ -85,7 +89,7 @@ export default memo(function DreamCoinFarmer() {
   useFarmerAsyncTask(
     "collect-clicker-reward",
     () => {
-      if (userQuery.data)
+      if (userQuery.data && hasCollectedClickerReward === false)
         return async function () {
           const { currentClicks } = userQuery.data.clickerLevel;
 
@@ -93,6 +97,8 @@ export default memo(function DreamCoinFarmer() {
             await collectClickerRewardMutation.mutateAsync(currentClicks);
             toast.success("Dream-Coin Collected Clicker");
           }
+
+          setHasCollectedClickerReward(true);
         };
     },
     [userQuery.data]

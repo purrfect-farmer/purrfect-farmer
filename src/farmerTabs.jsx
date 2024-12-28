@@ -47,6 +47,15 @@ const farmerTabs = [
     component: <TelegramWeb version="a" />,
   },
   {
+    id: "battle-bulls",
+    title: "Battle Bulls",
+    icon: farmerIcons["battle-bulls"],
+    component: <Farmer id={"battle-bulls"} farmer={"BattleBulls"} />,
+    telegramLink:
+      "https://t.me/battle_games_com_bot/start?startapp=frndId1147265290",
+    tasks: ["daily-reward", "choose-blockchain", "tasks", "cards"],
+  },
+  {
     id: "zoo",
     title: "Zoo",
     icon: farmerIcons["zoo"],
