@@ -111,8 +111,8 @@ export default memo(function BattleBullsTasks() {
     })();
   }, [process, joinTelegramLink]);
 
-  /** Auto-Complete Quests */
-  useFarmerAutoProcess("quests", !tasksQuery.isLoading, process);
+  /** Auto-Complete Tasks */
+  useFarmerAutoProcess("tasks", !tasksQuery.isLoading, process);
 
   return (
     <div className="p-4">
