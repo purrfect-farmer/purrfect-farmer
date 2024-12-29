@@ -454,10 +454,43 @@
           "operation": "set",
           "value": "https://tg.battle-games.com/"
         }
+      ],
+      "responseHeaders": [
+        {
+          "header": "access-control-allow-origin",
+          "operation": "set",
+          "value": "*"
+        }
       ]
     },
     "condition": {
       "requestDomains": ["battle-games.com"]
+    }
+  },
+  {
+    "id": 18,
+    "action": {
+      "type": "modifyHeaders",
+      "requestHeaders": [
+        {
+          "header": "x-requested-with",
+          "operation": "set",
+          "value": "org.telegram.messenger"
+        },
+        {
+          "header": "origin",
+          "operation": "set",
+          "value": "https://prod-tg-app.midas.app"
+        },
+        {
+          "header": "referer",
+          "operation": "set",
+          "value": "https://prod-tg-app.midas.app/"
+        }
+      ]
+    },
+    "condition": {
+      "requestDomains": ["midas.app"]
     }
   }
 ]

@@ -4,6 +4,9 @@ if (location.hash.includes("tgWebAppData")) {
   /** Telegram Web Script */
   const TG_WEB_SCRIPT_SRC = "https://telegram.org/js/telegram-web-app.js";
 
+  const USER_AGENT =
+    "Mozilla/5.0 (Linux; Android 14; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.6778.135 Mobile Safari/537.36 Telegram-Android/11.5.5 (Samsung SM-G991U1; Android 14; SDK 34; HIGH)";
+
   /** Requests to Watch */
   const requestsToWatch = new Map();
 
@@ -44,8 +47,7 @@ if (location.hash.includes("tgWebAppData")) {
 
   /** Override User Agent */
   Object.defineProperty(navigator, "userAgent", {
-    get: () =>
-      "Mozilla/5.0 (Linux; Android 11; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.6367.82 Safari/537.36",
+    get: () => USER_AGENT,
     configurable: true,
   });
 

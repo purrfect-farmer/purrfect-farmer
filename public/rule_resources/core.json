@@ -1,18 +1,19 @@
 [
   {
     "id": 1,
+    "priority": 1,
     "action": {
       "type": "modifyHeaders",
       "requestHeaders": [
         {
           "header": "user-agent",
           "operation": "set",
-          "value": "Mozilla/5.0 (Linux; Android 11; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.6367.82 Safari/537.36"
+          "value": "Mozilla/5.0 (Linux; Android 14; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.6778.135 Mobile Safari/537.36 Telegram-Android/11.5.5 (Samsung SM-G991U1; Android 14; SDK 34; HIGH)"
         },
         {
           "header": "sec-ch-ua",
           "operation": "set",
-          "value": "\"Chromium\";v=\"124\", \"Android WebView\";v=\"124\", \"Not-A.Brand\";v=\"99\""
+          "value": "\"Chromium\";v=\"131\", \"Android WebView\";v=\"131\", \"Not-A.Brand\";v=\"99\""
         },
         {
           "header": "sec-ch-ua-mobile",
@@ -67,7 +68,7 @@
       ]
     },
     "condition": {
-      "urlFilter": "*://*/*"
+      "urlFilter": "*"
     }
   }
 ]

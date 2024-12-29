@@ -18,6 +18,7 @@ import useValuesMemo from "./useValuesMemo";
 export default function useDropFarmer({
   id,
   host,
+  apiOptions,
   apiDelay = 200,
   domains = [],
   authHeaders = ["authorization"],
@@ -47,7 +48,7 @@ export default function useDropFarmer({
   const { port, telegramWebApp, resetTelegramWebApp } = useTelegramWebApp(host);
 
   /** Axios Instance */
-  const api = useMemo(() => axios.create(), []);
+  const api = useMemo(() => axios.create(apiOptions), [apiOptions]);
 
   /** Is It Zooming? */
   const isZooming = zoomies.enabled && zoomies.current.drop?.id === id;
