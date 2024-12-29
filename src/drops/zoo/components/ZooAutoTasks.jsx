@@ -44,29 +44,16 @@ export default memo(function ZooAutoTasks() {
     []
   );
 
-  /** Validate Chest Task */
-  const validateChestTask = useCallback(
-    (task) => task.key.startsWith("chest_s_") === false,
-    []
-  );
-
   /** All Tasks */
   const tasks = useMemo(
     () =>
       allData.dbData.dbQuests.filter(
         (item) =>
-          validateChestTask(item) ||
           validateFakeCheckTask(item) ||
           validateInviteTask(item) ||
           validateTelegramTask(item)
       ),
-    [
-      allData,
-      validateChestTask,
-      validateFakeCheckTask,
-      validateInviteTask,
-      validateTelegramTask,
-    ]
+    [allData, validateFakeCheckTask, validateInviteTask, validateTelegramTask]
   );
 
   /** Finished Tasks */

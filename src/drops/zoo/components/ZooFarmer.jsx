@@ -11,7 +11,6 @@ import ZooBalanceDisplay from "./ZooBalanceDisplay";
 import ZooIcon from "../assets/images/icon.png?format=webp&w=80";
 import ZooQuiz from "./ZooQuiz";
 import useZooBoost from "../hooks/useZooBoost";
-import useZooChestClaim from "../hooks/useZooChestClaim";
 import useZooDailyClaim from "../hooks/useZooDailyClaim";
 import useZooDataQueries from "../hooks/useZooDataQueries";
 import useZooRiddleAndRebusClaim from "../hooks/useZooRiddleAndRebusClaim";
@@ -30,9 +29,6 @@ export default memo(function () {
 
   /** Run Riddle and Rebus Claim */
   useZooRiddleAndRebusClaim();
-
-  /** Claim Chest */
-  useZooChestClaim();
 
   /** Purchase Feed */
   useZooFeed();
