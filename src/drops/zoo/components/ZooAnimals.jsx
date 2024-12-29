@@ -9,6 +9,7 @@ import { useState } from "react";
 
 import useZooBuyAnimalMutation from "../hooks/useZooBuyAnimalMutation";
 import useZooDataQueries from "../hooks/useZooDataQueries";
+import { isAfter, isBefore } from "date-fns";
 
 export default memo(function ZooAnimals() {
   const queryClient = useQueryClient();
@@ -52,8 +53,16 @@ export default memo(function ZooAnimals() {
       allAnimals
         .filter(
           (animal) =>
+            /** Exists */
             userAnimals.some((item) => item.key === animal.key) === false &&
-            animal.levels[0].price <= balance
+            /** Price */
+            animal.levels[0].price <= balance &&
+            /** Date Start */
+            (animal.dateStart === null ||
+              isAfter(new Date(), new Date(animal.dateStart))) &&
+            /** Date End */
+            (animal.dateEnd === null ||
+              isBefore(new Date(), new Date(animal.dateEnd)))
         )
         .sort((a, b) => b.levels[0].price - a.levels[0].price),
     [balance, allAnimals, userAnimals]
