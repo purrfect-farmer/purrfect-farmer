@@ -15,10 +15,15 @@ import useZooChestClaim from "../hooks/useZooChestClaim";
 import useZooDailyClaim from "../hooks/useZooDailyClaim";
 import useZooDataQueries from "../hooks/useZooDataQueries";
 import useZooRiddleAndRebusClaim from "../hooks/useZooRiddleAndRebusClaim";
+import useZooFeed from "../hooks/useZooFeed";
 
 export default memo(function () {
   const dataQueries = useZooDataQueries();
-  const tabs = useSocketTabs("zoo.farmer-tabs", ["animals", "quiz", "tasks"]);
+  const tabs = useSocketTabs("zoo.farmer-tabs", [
+    "animals",
+    "quizzes",
+    "tasks",
+  ]);
 
   /** Run Daily Claim */
   useZooDailyClaim();
@@ -28,6 +33,9 @@ export default memo(function () {
 
   /** Claim Chest */
   useZooChestClaim();
+
+  /** Purchase Feed */
+  useZooFeed();
 
   /** Purchase Boost */
   useZooBoost();
@@ -79,7 +87,7 @@ export default memo(function () {
         <Tabs.Content
           forceMount
           className="data-[state=inactive]:hidden"
-          value="quiz"
+          value="quizzes"
         >
           <ZooQuiz />
         </Tabs.Content>

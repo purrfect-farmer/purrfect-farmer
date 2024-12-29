@@ -81,6 +81,8 @@ const farmerTabs = [
       "claim-chest",
       "claim-riddle-and-rebus",
       "tasks",
+      "quizzes",
+      "feed",
       "purchase-boost",
       "animals",
     ],
