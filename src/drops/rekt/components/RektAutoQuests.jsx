@@ -96,13 +96,24 @@ export default memo(function RektAutoQuests() {
 
   /** Pending Quests */
   const pendingQuests = useMemo(
-    () => quests.filter((item) => item.questStatus === "NOT_COMPLETED"),
+    () =>
+      quests.filter(
+        (item) =>
+          item.questStatus === "NOT_COMPLETED" &&
+          item.quest.isAutomated === false
+      ),
     [quests]
   );
 
   /** Unclaimed Quests */
   const unclaimedQuests = useMemo(
-    () => quests.filter((item) => item.questStatus === "COMPLETED"),
+    () =>
+      quests.filter(
+        (item) =>
+          item.questStatus === "COMPLETED" ||
+          (item.quest.isAutomated === true &&
+            item.questStatus === "NOT_COMPLETED")
+      ),
     [quests]
   );
 
