@@ -99,7 +99,12 @@ export default memo(function TsubasaCards() {
 
   /** Upgradable Cards */
   const upgradableCards = useMemo(
-    () => unlockedCards.filter((card) => validateCardAvailability(card)),
+    () =>
+      unlockedCards
+        .filter((card) => validateCardAvailability(card))
+        .sort((a, b) => {
+          return b["next_profit_per_hour"] - a["next_profit_per_hour"];
+        }),
     [unlockedCards, validateCardAvailability]
   );
 
@@ -159,7 +164,7 @@ export default memo(function TsubasaCards() {
         : upgradableCards;
 
       /** Pick Random Card */
-      const card = collection[Math.floor(Math.random() * collection.length)];
+      const card = collection[0];
 
       /** Set Card */
       setCurrentCard(card);

@@ -6,11 +6,12 @@ import { memo } from "react";
 import { useCallback } from "react";
 import { useEffect } from "react";
 import { useMemo } from "react";
-import { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import useBattleBullsUserQuery from "../hooks/useBattleBullsUserQuery";
-import useBattleBullsCardsQuery from "../hooks/useBattleBullsCardsQuery";
+import { useState } from "react";
+
 import useBattleBullsBuyCardMutation from "../hooks/useBattleBullsBuyCardMutation";
+import useBattleBullsCardsQuery from "../hooks/useBattleBullsCardsQuery";
+import useBattleBullsUserQuery from "../hooks/useBattleBullsUserQuery";
 
 export default memo(function BattleBullsCards() {
   const queryClient = useQueryClient();
@@ -61,9 +62,16 @@ export default memo(function BattleBullsCards() {
   /** Upgradable Cards */
   const upgradableCards = useMemo(
     () =>
-      availableCards.filter(
-        (item) => validateCardCondition(item) && validateCardAvailability(item)
-      ),
+      availableCards
+        .filter(
+          (item) =>
+            validateCardCondition(item) && validateCardAvailability(item)
+        )
+        .sort((a, b) => {
+          return (
+            b.nextLevel.profitPerHourDelta - a.nextLevel.profitPerHourDelta
+          );
+        }),
     [availableCards, validateCardCondition, validateCardAvailability]
   );
 
@@ -121,8 +129,8 @@ export default memo(function BattleBullsCards() {
         ? requiredCards
         : upgradableCards;
 
-      /** Pick Random Card */
-      const card = collection[Math.floor(Math.random() * collection.length)];
+      /** Pick First Card */
+      const card = collection[0];
 
       /** Set Card */
       setCurrentCard(card);

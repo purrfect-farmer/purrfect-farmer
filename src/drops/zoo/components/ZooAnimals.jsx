@@ -1,6 +1,7 @@
 import useFarmerAutoProcess from "@/hooks/useFarmerAutoProcess";
 import useProcessLock from "@/hooks/useProcessLock";
 import { cn, delay, logNicely } from "@/lib/utils";
+import { isAfter, isBefore } from "date-fns";
 import { memo } from "react";
 import { useEffect } from "react";
 import { useMemo } from "react";
@@ -9,7 +10,6 @@ import { useState } from "react";
 
 import useZooBuyAnimalMutation from "../hooks/useZooBuyAnimalMutation";
 import useZooDataQueries from "../hooks/useZooDataQueries";
-import { isAfter, isBefore } from "date-fns";
 
 export default memo(function ZooAnimals() {
   const queryClient = useQueryClient();
@@ -40,10 +40,20 @@ export default memo(function ZooAnimals() {
   /** User Animals */
   const userAnimals = useMemo(
     () =>
-      allData.animals.map((animal) => ({
-        ...animal,
-        ...allAnimals.find((item) => item.key === animal.key),
-      })),
+      allData.animals.map((item) => {
+        const animal = allAnimals.find((entry) => entry.key === item.key);
+        const levels = animal.levels;
+        const currentLevelIndex = levels.findIndex(
+          (entry) => entry.level === item.level
+        );
+        const nextLevel = levels[currentLevelIndex + 1];
+
+        return {
+          ...item,
+          ...animal,
+          nextLevel,
+        };
+      }),
     [allData, allAnimals]
   );
 
@@ -64,24 +74,23 @@ export default memo(function ZooAnimals() {
             (animal.dateEnd === null ||
               isBefore(new Date(), new Date(animal.dateEnd)))
         )
-        .sort((a, b) => b.levels[0].price - a.levels[0].price),
+        .sort((a, b) => {
+          return b.levels[0].profit - a.levels[0].profit;
+        }),
     [balance, allAnimals, userAnimals]
   );
 
   /** Upgradable Animals */
   const upgradableAnimals = useMemo(
     () =>
-      userAnimals.filter((item) => {
-        const animal = allAnimals.find((entry) => entry.key === item.key);
-        const levels = animal.levels;
-        const currentLevelIndex = levels.findIndex(
-          (entry) => entry.level === item.level
-        );
-        const nextLevel = levels[currentLevelIndex + 1];
-
-        return nextLevel && nextLevel.price <= balance;
-      }),
-    [balance, allAnimals, userAnimals]
+      userAnimals
+        .filter((item) => {
+          return item.nextLevel && item.nextLevel.price <= balance;
+        })
+        .sort((a, b) => {
+          return b.nextLevel.profit - a.nextLevel.profit;
+        }),
+    [balance, userAnimals]
   );
 
   /** Positions */
@@ -143,7 +152,7 @@ export default memo(function ZooAnimals() {
       const collection = newAnimals.length ? newAnimals : upgradableAnimals;
 
       /** Pick Random Animal */
-      const animal = collection[Math.floor(Math.random() * collection.length)];
+      const animal = collection[0];
 
       /** Pick Random Position */
       const position =
