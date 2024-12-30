@@ -14,6 +14,7 @@ export default function useMidasFarmer() {
           icon: MidasIcon,
           title: "Midas Farmer",
         },
+        apiDelay: 3000,
         apiOptions: {
           withCredentials: true,
         },
