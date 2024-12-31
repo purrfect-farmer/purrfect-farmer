@@ -14,6 +14,7 @@ import PumpadTickets from "./PumpadTickets";
 import PumpadUsernameDisplay from "./PumpadUsernameDisplay";
 import usePumpadCheckInMutation from "../hooks/usePumpadCheckInMutation";
 import usePumpadCheckInQuery from "../hooks/usePumpadCheckInQuery";
+import PumpadPoints from "./PumpadPoints";
 
 export default memo(function PumpadFarmer() {
   const checkInQuery = usePumpadCheckInQuery();
@@ -23,6 +24,7 @@ export default memo(function PumpadFarmer() {
     "lottery",
     "tickets",
     "missions",
+    "points",
   ]);
 
   /** Daily Check-In */
@@ -64,7 +66,7 @@ export default memo(function PumpadFarmer() {
       <PumpadBalanceDisplay />
 
       <Tabs.Root {...tabs.rootProps} className="flex flex-col">
-        <Tabs.List className="grid grid-cols-3">
+        <Tabs.List className="grid grid-cols-4">
           {tabs.list.map((value, index) => (
             <Tabs.Trigger
               key={index}
@@ -105,6 +107,15 @@ export default memo(function PumpadFarmer() {
           value="missions"
         >
           <PumpadMissions />
+        </Tabs.Content>
+
+        {/* Points */}
+        <Tabs.Content
+          forceMount
+          className="data-[state=inactive]:hidden"
+          value="points"
+        >
+          <PumpadPoints />
         </Tabs.Content>
       </Tabs.Root>
     </div>

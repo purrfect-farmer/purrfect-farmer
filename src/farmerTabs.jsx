@@ -194,7 +194,7 @@ const farmerTabs = [
     icon: farmerIcons["pumpad"],
     component: <Farmer farmer="Pumpad" />,
     telegramLink: "https://t.me/Pumpad_Bot/Lucky?startapp=52458255372295027",
-    tasks: ["daily-check-in", "missions", "tickets", "lottery"],
+    tasks: ["daily-check-in", "points", "missions", "tickets", "lottery"],
   },
   {
     id: "agent301",
