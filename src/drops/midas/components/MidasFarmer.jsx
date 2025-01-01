@@ -68,7 +68,7 @@ export default memo(function MidasFarmer() {
             queryClient.setQueryData(["midas", "streak"], () => result);
 
             /** Toast */
-            toast.success("Midas Daily Check-In");
+            toast.success("Midas - Daily Check-In");
           }
         };
       }
@@ -88,7 +88,7 @@ export default memo(function MidasFarmer() {
             await claimReferralRewardsMutation.mutateAsync();
 
             /** Toast */
-            toast.success("Midas Daily Check-In");
+            toast.success("Midas - Referral Rewards");
           }
         };
       }
