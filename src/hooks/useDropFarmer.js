@@ -19,7 +19,7 @@ export default function useDropFarmer({
   id,
   host,
   apiOptions,
-  apiDelay = 500,
+  apiDelay = 1000,
   domains = [],
   authHeaders = ["authorization"],
   extractAuthHeaders,
