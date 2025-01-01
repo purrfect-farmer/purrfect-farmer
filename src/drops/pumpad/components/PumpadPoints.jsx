@@ -30,16 +30,14 @@ export default memo(function PumpadPoints() {
         },
       ]
         .concat(
-          pointsQuery.data
-            ? pointsQuery.data.tasks.map((item) => ({
-                ...item,
-                source: {
-                  ["Onclicka"]: "ON_CLICKA",
-                  ["OpenAD"]: "OPEN_AD",
-                  ["Monetag"]: "MONETAG",
-                }[item["ad_platform"]],
-              }))
-            : []
+          pointsQuery?.data?.tasks?.map((item) => ({
+            ...item,
+            source: {
+              ["Onclicka"]: "ON_CLICKA",
+              ["OpenAD"]: "OPEN_AD",
+              ["Monetag"]: "MONETAG",
+            }[item["ad_platform"]],
+          })) || []
         )
         .filter((item) => item["source"] && item["rest_completions"] > 0)
         .sort((a, b) => a["interval_time"] - b["interval_time"]),

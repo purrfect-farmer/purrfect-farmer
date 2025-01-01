@@ -19,12 +19,10 @@ export default memo(function PumpadMissions() {
   const missionsQuery = usePumpadMissionsQuery();
   const missions = useMemo(
     () =>
-      missionsQuery.data
-        ? missionsQuery.data["mission_list"].map((item) => ({
-            ...item["mission"],
-            ["done_time"]: item["done_time"],
-          }))
-        : [],
+      missionsQuery.data?.["mission_list"]?.map((item) => ({
+        ...item["mission"],
+        ["done_time"]: item["done_time"],
+      })) || [],
     [missionsQuery.data]
   );
 
