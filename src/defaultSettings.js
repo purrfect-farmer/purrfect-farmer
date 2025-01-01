@@ -19,6 +19,7 @@ const defaultSettings = {
   farmerTitle: "TGUser",
   syncServer: "127.0.0.1:7777",
   closeOtherBots: true,
+  farmersLayout: "grid",
   showLinksAsGrid: false,
   farmersPerWindow: 5,
   farmerPosition: 1,

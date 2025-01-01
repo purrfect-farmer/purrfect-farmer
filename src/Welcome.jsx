@@ -343,7 +343,14 @@ export default memo(function Welcome() {
               </button>
 
               {/* Drops */}
-              <div className={cn("flex flex-wrap justify-center w-full")}>
+              <div
+                className={cn(
+                  "flex w-full",
+                  settings.farmersLayout === "grid"
+                    ? "flex-wrap justify-center"
+                    : "flex-col gap-2"
+                )}
+              >
                 {/* Drops */}
                 {drops.map((drop) => (
                   <DropButton
@@ -357,7 +364,14 @@ export default memo(function Welcome() {
             <Tabs.Content value="bots">
               {/* Bots */}
               {botsQuery.isSuccess ? (
-                <div className={cn("flex flex-wrap justify-center w-full")}>
+                <div
+                  className={cn(
+                    "flex w-full",
+                    settings.farmersLayout === "grid"
+                      ? "flex-wrap justify-center"
+                      : "flex-col gap-2"
+                  )}
+                >
                   {/* Drops */}
                   {bots.map((bot, index) => (
                     <DropButton

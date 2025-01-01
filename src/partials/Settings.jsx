@@ -367,6 +367,30 @@ export default memo(function Settings({ tabs }) {
                 {/* Farmers Config */}
                 <Tabs.Content value="farmers">
                   <div className="flex flex-col gap-2">
+                    {/* Layout */}
+                    <label className="text-neutral-400">Layout</label>
+
+                    <div className="grid grid-cols-2 gap-2">
+                      {["grid", "list"].map((style) => (
+                        <button
+                          onClick={() =>
+                            dispatchAndConfigureSettings("farmersLayout", style)
+                          }
+                          key={style}
+                          className={cn(
+                            settings.farmersLayout === style
+                              ? "bg-blue-200 dark:bg-blue-800"
+                              : "bg-neutral-100 dark:bg-neutral-700",
+                            "p-2 rounded-lg",
+                            "flex gap-1 items-center justify-center",
+                            "uppercase"
+                          )}
+                        >
+                          {style}
+                        </button>
+                      ))}
+                    </div>
+
                     {/* Repeat Cycle */}
                     <LabelToggle
                       onChange={(ev) =>
