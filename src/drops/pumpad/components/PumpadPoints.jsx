@@ -1,56 +1,67 @@
 import useFarmerAutoProcess from "@/hooks/useFarmerAutoProcess";
-import useFarmerContext from "@/hooks/useFarmerContext";
 import useProcessLock from "@/hooks/useProcessLock";
-import { cn, delay } from "@/lib/utils";
+import { cn, delay, delayForSeconds } from "@/lib/utils";
 import { memo } from "react";
 import { useCallback } from "react";
 import { useEffect } from "react";
 import { useMemo } from "react";
-import { useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 
 import usePumpadPointTasksQuery from "../hooks/usePumpadPointTasksQuery";
 import usePumpadExposureMutation from "../hooks/usePumpadExposureMutation";
 import usePumpadCompletePointTaskMutation from "../hooks/usePumpadCompletePointTaskMutation";
+import usePumpadRemainingAdsQuery from "../hooks/usePumpadRemainingAdsQuery";
+import usePumpadAdIncrementMutation from "../hooks/usePumpadAdIncrementMutation";
 
 export default memo(function PumpadPoints() {
-  const { joinTelegramLink } = useFarmerContext();
-  const queryClient = useQueryClient();
   const pointsQuery = usePumpadPointTasksQuery();
+  const remainingAdsQuery = usePumpadRemainingAdsQuery();
+  const totalAdsCount = remainingAdsQuery.data?.["total_count"] || 0;
+  const remainingAdsCount = remainingAdsQuery.data?.["remaining_count"] || 0;
   const points = useMemo(
     () =>
-      pointsQuery.data
-        ? pointsQuery.data.tasks
-            .map((item) => ({
-              ...item,
-              source: {
-                ["Onclicka"]: "ON_CLICKA",
-                ["OpenAD"]: "OPEN_AD",
-                ["Monetag"]: "MONETAG",
-              }[item["ad_platform"]],
-            }))
-            .filter(
-              (item) =>
-                ["ON_CLICKA", "OPEN_AD", "MONETAG"].includes(item["source"]) &&
-                item["rest_completions"] > 0
-            )
-            .sort((a, b) => a["interval_time"] - b["interval_time"])
-        : [],
-    [pointsQuery.data]
+      [
+        {
+          ["task_name"]: "ADS",
+          ["source"]: "ADSGRAM",
+          ["interval_time"]: 30,
+          ["max_completions"]: totalAdsCount,
+          ["rest_completions"]: remainingAdsCount,
+        },
+      ]
+        .concat(
+          pointsQuery.data
+            ? pointsQuery.data.tasks.map((item) => ({
+                ...item,
+                source: {
+                  ["Onclicka"]: "ON_CLICKA",
+                  ["OpenAD"]: "OPEN_AD",
+                  ["Monetag"]: "MONETAG",
+                }[item["ad_platform"]],
+              }))
+            : []
+        )
+        .filter((item) => item["source"] && item["rest_completions"] > 0)
+        .sort((a, b) => a["interval_time"] - b["interval_time"]),
+    [totalAdsCount, remainingAdsCount, pointsQuery.data]
   );
 
   const process = useProcessLock("pumpad.points");
 
   const exposureMutation = usePumpadExposureMutation();
   const completePointTaskMutation = usePumpadCompletePointTaskMutation();
+  const adIncrementMutation = usePumpadAdIncrementMutation();
 
   const [currentPoint, setCurrentPoint] = useState(null);
-  const [pointOffset, setPointOffset] = useState(null);
+
+  const mutationStatus =
+    currentPoint?.["source"] === "ADSGRAM"
+      ? adIncrementMutation.status
+      : completePointTaskMutation.status;
 
   const reset = useCallback(() => {
     setCurrentPoint(null);
-    setPointOffset(null);
-  }, [setCurrentPoint, setPointOffset]);
+  }, [setCurrentPoint]);
 
   /** Reset */
   useEffect(reset, [process.started, reset]);
@@ -61,58 +72,86 @@ export default memo(function PumpadPoints() {
       return;
     }
 
+    if (points.length < 1) {
+      /** Stop the process */
+      process.stop();
+      return;
+    }
+
     (async function () {
       /** Lock the Process */
       process.lock();
 
-      for (const point of points) {
-        for (let i = 0; i < point["rest_completions"]; i++) {
-          if (process.controller.signal.aborted) return;
-          try {
-            setPointOffset(i);
-            setCurrentPoint(point);
+      /** Pick Point */
+      const point = points[0];
 
-            /** Reset Mutations */
-            exposureMutation.reset();
-            completePointTaskMutation.reset();
+      /** Set Point */
+      setCurrentPoint(point);
 
-            await exposureMutation.mutateAsync({
-              event: "VIDEO_AD_BEGIN",
-              source: point.source,
-            });
+      try {
+        /** Reset Mutations */
+        exposureMutation.reset();
+        adIncrementMutation.reset();
+        completePointTaskMutation.reset();
 
-            await delay(10_000);
+        if (point["source"] === "ADSGRAM") {
+          /** Exposure */
+          await exposureMutation.mutateAsync({
+            event: "VIDEO_AD_BEGIN",
+            page: "GET_RAFFLE_TICKETS",
+            source: "ADSGRAM",
+          });
 
-            await exposureMutation.mutateAsync({
-              event: "VIDEO_AD_END",
-              source: point.source,
-            });
+          /** Increase AD */
+          await adIncrementMutation.mutateAsync();
 
-            /** Complete Task */
-            await completePointTaskMutation.mutateAsync(point["task_id"]);
+          /** Delay Ad */
+          await delay(20_000);
+        } else {
+          /** Exposure */
+          await exposureMutation.mutateAsync({
+            event: "VIDEO_AD_BEGIN",
+            page: "MEMBER_PAGE",
+            source: point.source,
+          });
 
-            /** Delay */
-            await delay(point["interval_time"] * 1000);
-          } catch {
-            break;
-          }
+          /** Delay Ad */
+          await delay(10_000);
+
+          /** Exposure */
+          await exposureMutation.mutateAsync({
+            event: "VIDEO_AD_END",
+            page: "MEMBER_PAGE",
+            source: point.source,
+          });
+
+          /** Complete Task */
+          await completePointTaskMutation.mutateAsync(point["task_id"]);
         }
-      }
+      } catch {}
+
+      /** CoolDown */
+      await delayForSeconds(point["interval_time"]);
 
       /** Refetch Queries */
       try {
-        await queryClient.refetchQueries({
-          queryKey: ["pumpad"],
-        });
+        await remainingAdsQuery.refetch();
+        await pointsQuery.refetch();
       } catch {}
 
-      /** Stop the Process */
-      process.stop();
+      /** Unlock the Process */
+      process.unlock();
     })();
-  }, [process, joinTelegramLink]);
+  }, [process]);
 
   /** Auto-Complete Points */
-  useFarmerAutoProcess("points", !pointsQuery.isLoading, process);
+  useFarmerAutoProcess(
+    "points",
+    [remainingAdsQuery.isLoading, pointsQuery.isLoading].every(
+      (status) => status === false
+    ),
+    process
+  );
 
   return (
     <div className="p-4">
@@ -148,22 +187,23 @@ export default memo(function PumpadPoints() {
 
           {process.started && currentPoint ? (
             <div className="flex flex-col gap-2 p-4 text-white rounded-lg bg-neutral-900">
-              <h4 className="font-bold">
-                <span className="text-yellow-500">
-                  Running Point {pointOffset !== null ? +pointOffset + 1 : null}
-                </span>
-              </h4>
-              <h5 className="font-bold">{currentPoint["task_name"]}</h5>
+              <h5 className="font-bold text-purple-500">
+                {currentPoint["task_name"]}{" "}
+                {currentPoint["max_completions"] -
+                  currentPoint["rest_completions"]}
+                /{currentPoint["max_completions"]}
+              </h5>
               <p
                 className={cn(
                   "capitalize",
                   {
                     success: "text-green-500",
                     error: "text-red-500",
-                  }[completePointTaskMutation.status]
+                  }[mutationStatus]
                 )}
               >
-                {completePointTaskMutation.status}
+                {mutationStatus}{" "}
+                {mutationStatus === "success" ? "(Delaying...)" : null}
               </p>
             </div>
           ) : null}
