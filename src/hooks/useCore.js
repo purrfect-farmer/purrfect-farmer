@@ -575,6 +575,9 @@ export default function useCore() {
           await openTelegramLink(url, version, isStartPage || force);
 
           if (isStartPage) {
+            /** Wait */
+            await delay(1000);
+
             /** Get Port */
             const telegramWebPort = messaging.ports
               .values()
