@@ -62,15 +62,6 @@ const farmerTabs = [
     ],
   },
   {
-    id: "battle-bulls",
-    title: "Battle Bulls",
-    icon: farmerIcons["battle-bulls"],
-    component: <Farmer id={"battle-bulls"} farmer={"BattleBulls"} />,
-    telegramLink:
-      "https://t.me/battle_games_com_bot/start?startapp=frndId1147265290",
-    tasks: ["daily-reward", "choose-blockchain", "tasks", "cards"],
-  },
-  {
     id: "zoo",
     title: "Zoo",
     icon: farmerIcons["zoo"],
@@ -85,6 +76,14 @@ const farmerTabs = [
       "purchase-boost",
       "animals",
     ],
+  },
+  {
+    id: "hrum",
+    title: "Hrum",
+    icon: farmerIcons["hrum"],
+    component: <Farmer farmer="Hrum" />,
+    telegramLink: "http://t.me/hrummebot/game?startapp=ref1147265290",
+    tasks: ["daily.check-in", "tasks", "daily.riddle", "daily.cookie"],
   },
   {
     id: "tsubasa",
@@ -126,20 +125,21 @@ const farmerTabs = [
     ],
   },
   {
+    id: "battle-bulls",
+    title: "Battle Bulls",
+    icon: farmerIcons["battle-bulls"],
+    component: <Farmer id={"battle-bulls"} farmer={"BattleBulls"} />,
+    telegramLink:
+      "https://t.me/battle_games_com_bot/start?startapp=frndId1147265290",
+    tasks: ["daily-reward", "choose-blockchain", "tasks", "cards"],
+  },
+  {
     id: "blum",
     title: "Blum",
     icon: farmerIcons["blum"],
     component: <Farmer farmer="Blum" />,
     telegramLink: "https://t.me/blum/app?startapp=ref_3AIqvLlFFK",
     tasks: ["daily-check-in", "farming", "friends-reward", "tasks", "game"],
-  },
-  {
-    id: "hrum",
-    title: "Hrum",
-    icon: farmerIcons["hrum"],
-    component: <Farmer farmer="Hrum" />,
-    telegramLink: "http://t.me/hrummebot/game?startapp=ref1147265290",
-    tasks: ["daily.check-in", "tasks", "daily.riddle", "daily.cookie"],
   },
   {
     id: "yescoin",
@@ -181,12 +181,38 @@ const farmerTabs = [
     tasks: ["tasks"],
   },
   {
-    id: "tomarket",
-    title: "Tomarket",
-    icon: farmerIcons["tomarket"],
-    component: <Farmer farmer="Tomarket" />,
-    telegramLink: "https://t.me/Tomarket_ai_bot/app?startapp=00003s0r",
-    tasks: ["farming", "tickets", "game"],
+    id: "slotcoin",
+    title: "Slotcoin",
+    icon: farmerIcons["slotcoin"],
+    component: <Farmer farmer="Slotcoin" />,
+    telegramLink:
+      "https://t.me/SlotCoinApp_bot/app?startapp=eyJyZWZfY29kZSI6ImEyZGQtNjBmNyIsInV0bV9pZCI6InJlZmZlcmFsX2xpbmtfc2hhcmUifQ==",
+    tasks: ["daily-check-in", "quests", "tickets", "lottery"],
+  },
+  {
+    id: "birdton",
+    title: "BirdTON",
+    icon: farmerIcons["birdton"],
+    component: <Farmer farmer="BirdTon" />,
+    telegramLink: "https://t.me/BIRDTonBot/app?startapp=1147265290",
+    tasks: ["daily-check-in", "game", "tasks"],
+  },
+  {
+    id: "matchquest",
+    title: "MatchQuest",
+    icon: farmerIcons["matchquest"],
+    component: <Farmer farmer="MatchQuest" />,
+    telegramLink:
+      "https://t.me/MatchQuestBot/start?startapp=775f1cc48a46ce5221f1d9476233dc33",
+    tasks: ["farming", "tasks", "daily-task-purchase", "game"],
+  },
+  {
+    id: "truecoin",
+    title: "Truecoin",
+    icon: farmerIcons["truecoin"],
+    component: <Farmer farmer="Truecoin" />,
+    telegramLink: "https://t.me/true_coin_bot?start=1147265290",
+    tasks: ["daily-check-in", "tasks", "lottery.claim-all-50-boost", "lottery"],
   },
   {
     id: "pumpad",
@@ -205,38 +231,12 @@ const farmerTabs = [
     tasks: ["tasks", "puzzle", "wheel", "tickets"],
   },
   {
-    id: "slotcoin",
-    title: "Slotcoin",
-    icon: farmerIcons["slotcoin"],
-    component: <Farmer farmer="Slotcoin" />,
-    telegramLink:
-      "https://t.me/SlotCoinApp_bot/app?startapp=eyJyZWZfY29kZSI6ImEyZGQtNjBmNyIsInV0bV9pZCI6InJlZmZlcmFsX2xpbmtfc2hhcmUifQ==",
-    tasks: ["daily-check-in", "quests", "tickets", "lottery"],
-  },
-  {
-    id: "truecoin",
-    title: "Truecoin",
-    icon: farmerIcons["truecoin"],
-    component: <Farmer farmer="Truecoin" />,
-    telegramLink: "https://t.me/true_coin_bot?start=1147265290",
-    tasks: ["daily-check-in", "tasks", "lottery.claim-all-50-boost", "lottery"],
-  },
-  {
-    id: "birdton",
-    title: "BirdTON",
-    icon: farmerIcons["birdton"],
-    component: <Farmer farmer="BirdTon" />,
-    telegramLink: "https://t.me/BIRDTonBot/app?startapp=1147265290",
-    tasks: ["daily-check-in", "game", "tasks"],
-  },
-  {
-    id: "matchquest",
-    title: "MatchQuest",
-    icon: farmerIcons["matchquest"],
-    component: <Farmer farmer="MatchQuest" />,
-    telegramLink:
-      "https://t.me/MatchQuestBot/start?startapp=775f1cc48a46ce5221f1d9476233dc33",
-    tasks: ["farming", "tasks", "daily-task-purchase", "game"],
+    id: "tomarket",
+    title: "Tomarket",
+    icon: farmerIcons["tomarket"],
+    component: <Farmer farmer="Tomarket" />,
+    telegramLink: "https://t.me/Tomarket_ai_bot/app?startapp=00003s0r",
+    tasks: ["farming", "tickets", "game"],
   },
 ];
 
