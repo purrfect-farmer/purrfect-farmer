@@ -1,5 +1,7 @@
 import useDropFarmer from "@/hooks/useDropFarmer";
+import { delayForSeconds } from "@/lib/utils";
 import { useMemo } from "react";
+
 import NotgramIcon from "../assets/images/icon.png?format=webp&w=80";
 
 export default function useNotgramFarmer() {
