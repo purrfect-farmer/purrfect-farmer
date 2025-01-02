@@ -38,6 +38,9 @@ export default function useDropFarmer({
   /** Auth */
   const [authState, setAuthState] = useState(false);
 
+  /** Auth Reset Count */
+  const [authResetCount, setAuthResetCount] = useState(0);
+
   /** Domain Matches */
   const domainMatches = useMemo(
     () => domains.map((domain) => `*://${domain}/*`),
@@ -135,8 +138,9 @@ export default function useDropFarmer({
   /** Reset Auth */
   const resetAuth = useCallback(() => {
     setAuthState(false);
+    setAuthResetCount((prev) => prev + 1);
     resetQueries();
-  }, [setAuthState, resetQueries]);
+  }, [setAuthState, setAuthResetCount, resetQueries]);
 
   /** Reset Farmer  */
   const reset = useCallback(() => {
@@ -342,6 +346,13 @@ export default function useDropFarmer({
       zoomies.setAuth(auth);
     }
   }, [auth, isZooming, zoomies.setAuth]);
+
+  /** Process Next Task After 3 Auth Reset */
+  useEffect(() => {
+    if (isZooming && authResetCount >= 3) {
+      zoomies.skipToNextDrop();
+    }
+  }, [isZooming, authResetCount, zoomies.skipToNextDrop]);
 
   /** Process Next Task if Unable to Obtain Auth within 30sec */
   useEffect(() => {
