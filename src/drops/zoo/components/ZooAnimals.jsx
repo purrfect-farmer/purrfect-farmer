@@ -43,15 +43,22 @@ export default memo(function ZooAnimals() {
       allData.animals.map((item) => {
         const animal = allAnimals.find((entry) => entry.key === item.key);
         const levels = animal.levels;
+        const currentLevel = levels.find((entry) => entry.level === item.level);
         const currentLevelIndex = levels.findIndex(
           (entry) => entry.level === item.level
         );
         const nextLevel = levels[currentLevelIndex + 1];
 
+        const nextProfitDifference = nextLevel
+          ? nextLevel.profit - currentLevel.profit
+          : 0;
+
         return {
           ...item,
           ...animal,
+          currentLevel,
           nextLevel,
+          nextProfitDifference,
         };
       }),
     [allData, allAnimals]
@@ -88,7 +95,7 @@ export default memo(function ZooAnimals() {
           return item.nextLevel && item.nextLevel.price <= balance;
         })
         .sort((a, b) => {
-          return b.nextLevel.profit - a.nextLevel.profit;
+          return b.nextProfitDifference - a.nextProfitDifference;
         }),
     [balance, userAnimals]
   );

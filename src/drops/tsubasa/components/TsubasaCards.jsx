@@ -64,7 +64,7 @@ export default memo(function TsubasaCards() {
           result.concat(
             category["card_list"].map((card) => ({
               ...card,
-              ["profit_per_hour_difference"]: card["next_profit_per_hour"]
+              ["next_profit_per_hour_difference"]: card["next_profit_per_hour"]
                 ? card["next_profit_per_hour"] - card["profit_per_hour"]
                 : 0,
               ["category_id"]: category["category_id"],
@@ -107,7 +107,8 @@ export default memo(function TsubasaCards() {
         .filter((card) => validateCardAvailability(card))
         .sort((a, b) => {
           return (
-            b["profit_per_hour_difference"] - a["profit_per_hour_difference"]
+            b["next_profit_per_hour_difference"] -
+            a["next_profit_per_hour_difference"]
           );
         }),
     [unlockedCards, validateCardAvailability]
