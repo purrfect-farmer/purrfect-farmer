@@ -187,6 +187,7 @@ const farmerTabs = [
     component: <Farmer farmer="Notgram" />,
     telegramLink: "https://t.me/notgram_game_bot?start=r1147265290",
     tasks: ["tasks"],
+    closeBotInZoomies: false,
   },
   {
     id: "slotcoin",

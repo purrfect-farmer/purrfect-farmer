@@ -1,5 +1,6 @@
 import defaultZoomiesState from "@/defaultZoomiesState";
 import toast from "react-hot-toast";
+import { delay } from "@/lib/utils";
 import { useCallback } from "react";
 import { useEffect } from "react";
 import { useState } from "react";
@@ -132,6 +133,16 @@ export default function useZoomies(core) {
     [processTaskOffset]
   );
 
+  /** Open Bot */
+  const openBot = useCallback(
+    (force = true) => {
+      core.setActiveTab(current.drop?.id);
+      core.closeOtherBots();
+      core.openTelegramBot(current.drop.telegramLink, undefined, force);
+    },
+    [current.drop, core.closeOtherBots, core.openTelegramBot]
+  );
+
   /** Stop Zoomies after first cycle */
   useEffect(() => {
     if (process.started && !repeatZoomiesCycle) {
@@ -161,13 +172,6 @@ export default function useZoomies(core) {
   /** Open Bot */
   useEffect(() => {
     if (canProcessZoomies && !auth) {
-      /** Open Bot */
-      const openBot = (force = true) => {
-        core.setActiveTab(current.drop?.id);
-        core.closeOtherBots();
-        core.openTelegramBot(current.drop.telegramLink, undefined, force);
-      };
-
       /** First Time */
       openBot(false);
 
@@ -179,19 +183,30 @@ export default function useZoomies(core) {
         clearInterval(interval);
       };
     }
-  }, [canProcessZoomies, auth, current.drop]);
+  }, [canProcessZoomies, auth, openBot]);
 
   /** Handle Auth */
   useEffect(() => {
     if (!canProcessZoomies) return;
 
     if (auth) {
-      /** Set Active Tab */
       if (current.drop) {
-        core.setActiveTab(current.drop.id);
+        /** Close Other Bots */
+        if (current.drop.closeBotInZoomies !== false) {
+          core.closeOtherBots();
+        }
+
+        /** Delay before focusing */
+        delay(200).then(() => core.setActiveTab(current.drop.id));
       }
     }
-  }, [canProcessZoomies, auth, current.drop, core.setActiveTab]);
+  }, [
+    canProcessZoomies,
+    auth,
+    current.drop,
+    core.closeOtherBots,
+    core.setActiveTab,
+  ]);
 
   /** Reset the drops */
   useEffect(() => {

@@ -520,7 +520,6 @@ export default function useCore() {
         });
       },
       [
-        openedTabs,
         openFarmerBot,
         setActiveTab,
         preferredTelegramWebVersion,
