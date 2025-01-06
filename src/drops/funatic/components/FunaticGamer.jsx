@@ -51,7 +51,8 @@ export default memo(function FunaticGamer() {
       await tapMutation.mutateAsync(toCollect);
 
       /** Toast */
-      toast.success(`Collected ${toCollect} taps!`, { id: "funatic-taps" });
+      toast.dismiss();
+      toast.success(`Collected ${toCollect} taps!`);
 
       /** Update Balance */
       setBalance((prev) => prev - toCollect);
