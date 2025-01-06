@@ -29,8 +29,6 @@ const TabContentButton = memo(function (props) {
 export default memo(function TabContent({ tab }) {
   const { openURL, dispatchAndOpenTelegramBot } = useAppContext();
 
-  console.log(tab.telegramWebApp);
-
   return (
     <div
       className={cn(

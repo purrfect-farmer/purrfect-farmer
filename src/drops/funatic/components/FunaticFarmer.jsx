@@ -57,17 +57,14 @@ export default memo(function FunaticFarmer() {
   useFarmerAsyncTask(
     "boosters",
     () => {
-      if ([gameQuery.data, boostersQuery.data].every(Boolean))
+      if ([boostersQuery.data].every(Boolean))
         return async function () {
-          const balance = gameQuery.data?.funz?.currentFunzBalance || 0;
           const availableBoosters = boostersQuery.data.filter(
             (item) =>
-              item.currency === "funz" &&
-              item.price <= balance &&
-              item.isPermanent === false &&
+              item.price === 0 &&
               item.isActive === false &&
               item.cooldownLeft === 0 &&
-              item.usagesLeft > 0
+              item.usagesLeft !== 0
           );
 
           if (availableBoosters.length) {
@@ -83,12 +80,11 @@ export default memo(function FunaticFarmer() {
             }
 
             /** Refetch */
-            await gameQuery.refetch();
             await boostersQuery.refetch();
           }
         };
     },
-    [gameQuery.data, boostersQuery.data]
+    [boostersQuery.data]
   );
 
   /** Set Exchange */
