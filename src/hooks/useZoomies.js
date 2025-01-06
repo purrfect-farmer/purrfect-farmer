@@ -197,7 +197,7 @@ export default function useZoomies(core) {
         }
 
         /** Delay before focusing */
-        delay(200).then(() => core.setActiveTab(current.drop.id));
+        delay(500).then(() => core.setActiveTab(current.drop.id));
       }
     }
   }, [
