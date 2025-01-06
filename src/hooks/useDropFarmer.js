@@ -33,6 +33,7 @@ export default function useDropFarmer({
     zoomies,
     joinTelegramLink: coreJoinTelegramLink,
     setActiveTab,
+    updateTab,
   } = useAppContext();
 
   /** Auth */
@@ -367,6 +368,12 @@ export default function useDropFarmer({
       }
     }
   }, [auth, telegramWebApp, isZooming, zoomies.skipToNextDrop]);
+
+  /** Update Tab with TelegramWebApp Data  */
+  useEffect(
+    () => updateTab(id, { telegramWebApp }),
+    [id, telegramWebApp, updateTab]
+  );
 
   /** Clean Up */
   useEffect(() => () => removeQueries(), [removeQueries]);

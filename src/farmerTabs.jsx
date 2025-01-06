@@ -47,6 +47,15 @@ const farmerTabs = [
     component: <TelegramWeb version="a" />,
   },
   {
+    id: "funatic",
+    title: "Funatic",
+    icon: farmerIcons["funatic"],
+    component: <Farmer farmer="Funatic" />,
+    telegramLink:
+      "https://t.me/LuckyFunaticBot/lucky_funatic?startapp=1147265290",
+    tasks: ["daily-bonus", "boosters", "quests", "cards", "game"],
+  },
+  {
     id: "gold-eagle",
     title: "Gold Eagle",
     icon: farmerIcons["gold-eagle"],

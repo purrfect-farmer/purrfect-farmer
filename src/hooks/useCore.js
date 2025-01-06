@@ -125,6 +125,21 @@ export default function useCore() {
     socket
   );
 
+  /** Update Tab */
+  const [updateTab, dispatchAndUpdateTab] = useSocketDispatchCallback(
+    "core.update-tab",
+    (tabId, data) => {
+      setOpenedTabs((previous) => {
+        return previous.map((item) =>
+          item.id === tabId ? { ...item, ...data } : item
+        );
+      });
+    },
+    [setOpenedTabs],
+    /** Socket */
+    socket
+  );
+
   /** Set Active Tab */
   const [setActiveTab, dispatchAndSetActiveTab] = useSocketDispatchCallback(
     "core.set-active-tab",
@@ -260,6 +275,18 @@ export default function useCore() {
     /** Restore Settings */
     restoreSettings,
     [restoreSettings],
+    /** Socket */
+    socket
+  );
+
+  /** Open URL */
+  const [openURL, dispatchAndOpenURL] = useSocketDispatchCallback(
+    "core.open-url",
+    (url) =>
+      chrome?.windows?.create({
+        url,
+      }),
+    [],
     /** Socket */
     socket
   );
@@ -611,10 +638,12 @@ export default function useCore() {
     reloadApp,
     configureSettings,
     openNewTab,
+    openURL,
     openExtensionsPage,
     getFarmerBotPort,
     closeOtherBots,
     getMiniAppPorts,
+    dispatchAndOpenURL,
     dispatchAndShutdown,
     dispatchAndReloadApp,
     dispatchAndConfigureSettings,
@@ -636,12 +665,14 @@ export default function useCore() {
     /** Tabs */
     openedTabs,
     pushTab,
+    updateTab,
     setActiveTab,
     reloadTab,
     resetTabs,
     closeTab,
     closeFarmerTabs,
     dispatchAndPushTab,
+    dispatchAndUpdateTab,
     dispatchAndSetActiveTab,
     dispatchAndReloadTab,
     dispatchAndCloseTab,

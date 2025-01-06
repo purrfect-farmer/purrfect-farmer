@@ -1,10 +1,8 @@
 import defaultZoomiesState from "@/defaultZoomiesState";
 import toast from "react-hot-toast";
-import { delay } from "@/lib/utils";
 import { useCallback } from "react";
 import { useEffect } from "react";
 import { useState } from "react";
-
 import useProcessLock from "./useProcessLock";
 import useSocketDispatchCallback from "./useSocketDispatchCallback";
 import useStorageState from "./useStorageState";
@@ -196,8 +194,8 @@ export default function useZoomies(core) {
           core.closeOtherBots();
         }
 
-        /** Delay before focusing */
-        delay(500).then(() => core.setActiveTab(current.drop.id));
+        /** Focus */
+        core.setActiveTab(current.drop.id);
       }
     }
   }, [

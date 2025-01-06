@@ -492,5 +492,31 @@
     "condition": {
       "requestDomains": ["midas.app"]
     }
+  },
+  {
+    "id": 19,
+    "action": {
+      "type": "modifyHeaders",
+      "requestHeaders": [
+        {
+          "header": "x-requested-with",
+          "operation": "set",
+          "value": "org.telegram.messenger"
+        },
+        {
+          "header": "origin",
+          "operation": "set",
+          "value": "https://clicker.funtico.com"
+        },
+        {
+          "header": "referer",
+          "operation": "set",
+          "value": "https://clicker.funtico.com/"
+        }
+      ]
+    },
+    "condition": {
+      "requestDomains": ["funtico.com"]
+    }
   }
 ]

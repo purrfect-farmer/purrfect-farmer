@@ -2,6 +2,9 @@ import { decryptData, encryptData } from "./content-script-utils";
 import { uuid } from "./lib/utils";
 
 if (location.hash.includes("tgWebAppData")) {
+  /** Initial Location Href */
+  const initLocationHref = location.href;
+
   const connectWindowMessage = (data, callback, once = true) => {
     /** Generate ID */
     const id = data.id || uuid();
@@ -82,13 +85,16 @@ if (location.hash.includes("tgWebAppData")) {
   });
 
   /** Dispatch TelegramWebApp */
-  const dispatchTelegramWebApp = async (telegramWebApp) => {
+  const dispatchTelegramWebApp = async (data) => {
     try {
       port.postMessage({
         action: `set-telegram-web-app:${location.host}`,
         data: {
           host: location.host,
-          telegramWebApp,
+          telegramWebApp: {
+            ...data,
+            initLocationHref,
+          },
         },
       });
     } catch {}
