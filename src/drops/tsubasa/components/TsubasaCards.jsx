@@ -212,7 +212,7 @@ export default memo(function TsubasaCards() {
       </button>
 
       {process.started && currentCard ? (
-        <div className="flex flex-col gap-2 p-4 text-white rounded-lg bg-neutral-800">
+        <div className="flex flex-col gap-2 p-4 text-white rounded-lg bg-neutral-900">
           <>
             <div className="flex gap-2">
               <img
