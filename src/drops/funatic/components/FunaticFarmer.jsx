@@ -3,7 +3,7 @@ import toast from "react-hot-toast";
 import useFarmerAsyncTask from "@/hooks/useFarmerAsyncTask";
 import useFarmerAutoTab from "@/hooks/useFarmerAutoTab";
 import useSocketTabs from "@/hooks/useSocketTabs";
-import { cn } from "@/lib/utils";
+import { cn, delay } from "@/lib/utils";
 import { memo } from "react";
 
 import FunaticCards from "./FunaticCards";
@@ -15,7 +15,10 @@ import useFunaticActivateBoosterMutation from "../hooks/useFunaticActivateBooste
 import useFunaticBoostersQuery from "../hooks/useFunaticBoostersQuery";
 import useFunaticClaimDailyBonusMutation from "../hooks/useFunaticClaimDailyBonusMutation";
 import useFunaticDailyBonusQuery from "../hooks/useFunaticDailyBonusQuery";
+import useFunaticExchangesQuery from "../hooks/useFunaticExchangesQuery";
 import useFunaticGameQuery from "../hooks/useFunaticGameQuery";
+import useFunaticSetExchangeMutation from "../hooks/useFunaticSetExchangeMutation";
+import useFunaticUserQuery from "../hooks/useFunaticUserQuery";
 
 export default memo(function FunaticFarmer() {
   const tabs = useSocketTabs("funatic.farmer-tabs", [
@@ -24,9 +27,12 @@ export default memo(function FunaticFarmer() {
     "quests",
   ]);
 
+  const userQuery = useFunaticUserQuery();
+  const exchangesQuery = useFunaticExchangesQuery();
   const gameQuery = useFunaticGameQuery();
   const boostersQuery = useFunaticBoostersQuery();
   const dailyBonusQuery = useFunaticDailyBonusQuery();
+  const setExchangeMutation = useFunaticSetExchangeMutation();
   const activateBoosterMutation = useFunaticActivateBoosterMutation();
   const claimDailyBonusMutation = useFunaticClaimDailyBonusMutation();
 
@@ -83,6 +89,35 @@ export default memo(function FunaticFarmer() {
         };
     },
     [gameQuery.data, boostersQuery.data]
+  );
+
+  /** Set Exchange */
+  useFarmerAsyncTask(
+    "set-exchange",
+    () => {
+      if ([userQuery.data, exchangesQuery.data].every(Boolean))
+        return async function () {
+          const { user } = userQuery.data;
+          const cryptoExchange = user.cryptoExchange;
+
+          if (cryptoExchange.id === null) {
+            const collection = exchangesQuery.data;
+            const exchange =
+              collection[Math.floor(Math.random() * collection.length)];
+
+            /** Set Exchange */
+            await setExchangeMutation.mutateAsync(exchange.id);
+
+            /** Toast */
+            toast.success(`Funatic Set Exchange - ${exchange.name}`);
+
+            /** Refetch */
+            await userQuery.refetch();
+            await exchangesQuery.refetch();
+          }
+        };
+    },
+    [userQuery.data, exchangesQuery.data]
   );
 
   /** Switch Tab Automatically */

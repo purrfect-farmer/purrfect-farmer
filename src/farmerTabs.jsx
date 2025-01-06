@@ -53,7 +53,14 @@ const farmerTabs = [
     component: <Farmer farmer="Funatic" />,
     telegramLink:
       "https://t.me/LuckyFunaticBot/lucky_funatic?startapp=1147265290",
-    tasks: ["daily-bonus", "boosters", "quests", "cards", "game"],
+    tasks: [
+      "set-exchange",
+      "daily-bonus",
+      "boosters",
+      "quests",
+      "cards",
+      "game",
+    ],
   },
   {
     id: "gold-eagle",
