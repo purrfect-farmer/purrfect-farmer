@@ -130,7 +130,7 @@ export default memo(function BattleBullsCards() {
         : upgradableCards;
 
       /** Pick First Card */
-      const card = collection[0];
+      const card = collection[Math.floor(Math.random() * collection.length)];
 
       /** Set Card */
       setCurrentCard(card);

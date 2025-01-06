@@ -159,7 +159,7 @@ export default memo(function ZooAnimals() {
       const collection = newAnimals.length ? newAnimals : upgradableAnimals;
 
       /** Pick Random Animal */
-      const animal = collection[0];
+      const animal = collection[Math.floor(Math.random() * collection.length)];
 
       /** Pick Random Position */
       const position =

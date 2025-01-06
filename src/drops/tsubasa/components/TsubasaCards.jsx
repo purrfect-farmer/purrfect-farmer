@@ -170,7 +170,7 @@ export default memo(function TsubasaCards() {
         : upgradableCards;
 
       /** Pick Random Card */
-      const card = collection[0];
+      const card = collection[Math.floor(Math.random() * collection.length)];
 
       /** Set Card */
       setCurrentCard(card);
