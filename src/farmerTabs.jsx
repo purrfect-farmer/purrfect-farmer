@@ -47,6 +47,14 @@ const farmerTabs = [
     component: <TelegramWeb version="a" />,
   },
   {
+    id: "gold-eagle",
+    title: "Gold Eagle",
+    icon: farmerIcons["gold-eagle"],
+    component: <Farmer farmer="GoldEagle" id="gold-eagle" />,
+    telegramLink: "https://t.me/gold_eagle_coin_bot/main?startapp=r_ubdOBYN6KX",
+    tasks: ["game"],
+  },
+  {
     id: "midas",
     title: "Midas",
     icon: farmerIcons["midas"],
