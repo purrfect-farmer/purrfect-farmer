@@ -13,8 +13,10 @@ import SlotcoinQuests from "./SlotcoinQuests";
 import SlotcoinTickets from "./SlotcoinTickets";
 import useSlotcoinCheckInInfoQuery from "../hooks/useSlotcoinCheckInInfoQuery";
 import useSlotcoinCheckInMutation from "../hooks/useSlotcoinCheckInMutation";
+import useSlotcoinInfoQuery from "../hooks/useSlotcoinInfoQuery";
 
 export default memo(function SlotcoinFarmer() {
+  const infoQuery = useSlotcoinInfoQuery();
   const checkInQuery = useSlotcoinCheckInInfoQuery();
   const checkInMutation = useSlotcoinCheckInMutation();
 
@@ -32,8 +34,14 @@ export default memo(function SlotcoinFarmer() {
           const checkIn = checkInQuery.data;
 
           if (checkIn["time_to_claim"] <= 0) {
+            /** Check-In */
             await checkInMutation.mutateAsync();
+
+            /** Toast */
             toast.success("Slotcoin - Check-In");
+
+            /** Refetch */
+            await infoQuery.refetch();
           }
         };
     },

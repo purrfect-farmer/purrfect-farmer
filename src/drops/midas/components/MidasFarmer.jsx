@@ -69,6 +69,9 @@ export default memo(function MidasFarmer() {
 
             /** Toast */
             toast.success("Midas - Daily Check-In");
+
+            /** Refetch */
+            await userQuery.refetch();
           }
         };
       }
@@ -89,6 +92,9 @@ export default memo(function MidasFarmer() {
 
             /** Toast */
             toast.success("Midas - Referral Rewards");
+
+            /** Refetch */
+            await userQuery.refetch();
           }
         };
       }

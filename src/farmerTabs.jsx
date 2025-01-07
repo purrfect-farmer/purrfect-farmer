@@ -181,8 +181,8 @@ const farmerTabs = [
     telegramLink: "https://t.me/blum/app?startapp=ref_3AIqvLlFFK",
     tasks: {
       ["daily-check-in"]: true,
-      ["farming"]: true,
       ["friends-reward"]: true,
+      ["farming"]: true,
       ["tasks"]: false,
       ["game"]: false,
     },

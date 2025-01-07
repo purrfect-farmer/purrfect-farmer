@@ -45,8 +45,14 @@ export default memo(function FunaticFarmer() {
           const { cooldown } = dailyBonusQuery.data;
 
           if (cooldown === 0) {
+            /** Claim Daily Bonus */
             await claimDailyBonusMutation.mutateAsync();
+
+            /** Toast */
             toast.success("Funatic - Daily Bonus");
+
+            /** Refetch */
+            await gameQuery.refetch();
           }
         };
     },

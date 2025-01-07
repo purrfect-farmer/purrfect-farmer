@@ -52,8 +52,14 @@ export default memo(function DreamCoinFarmer() {
           logNicely("DREAMCOIN DAY", day);
 
           if (day) {
+            /** Claim */
             await claimDailyTaskMutation.mutateAsync(day.id);
+
+            /** Toast */
             toast.success("DreamCoin - Daily Reward");
+
+            /** Refetch */
+            await userQuery.refetch();
           }
         };
     },
@@ -79,6 +85,9 @@ export default memo(function DreamCoinFarmer() {
 
             /** Toast */
             toast.success("DreamCoin - FreeCase");
+
+            /** Refetch */
+            await userQuery.refetch();
           }
         };
     },
@@ -94,8 +103,14 @@ export default memo(function DreamCoinFarmer() {
           const { currentClicks } = userQuery.data.clickerLevel;
 
           if (currentClicks > 0) {
+            /** Collect */
             await collectClickerRewardMutation.mutateAsync(currentClicks);
+
+            /** Toast */
             toast.success("Dream-Coin Collected Clicker");
+
+            /** Refetch */
+            await userQuery.refetch();
           }
 
           setHasCollectedClickerReward(true);
