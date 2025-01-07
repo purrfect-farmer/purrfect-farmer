@@ -1,3 +1,4 @@
+import axios from "axios";
 import defaultSettings from "@/defaultSettings";
 import toast from "react-hot-toast";
 import farmerTabs, { TelegramWeb } from "@/farmerTabs";
@@ -23,6 +24,15 @@ export const defaultOpenedTabs = () => [{ ...farmerTabs[0], active: true }];
 export default function useCore() {
   const { settings, hasRestoredSettings, configureSettings, restoreSettings } =
     useSettings();
+
+  const cloudBackend = useMemo(
+    () =>
+      axios.create({
+        baseURL: settings.cloudServer,
+      }),
+    [settings.cloudServer]
+  );
+
   const socket = useSocket(settings.syncServer);
   const messaging = useMessagePort();
 
@@ -632,6 +642,7 @@ export default function useCore() {
     hasRestoredSettings,
     socket,
     messaging,
+    cloudBackend,
 
     /** App Methods */
     shutdown,

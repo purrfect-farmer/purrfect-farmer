@@ -11,6 +11,7 @@ import { useState } from "react";
 
 import useAppContext from "./useAppContext";
 import useAppQuery from "./useAppQuery";
+import useCloudSyncMutation from "./useCloudSyncMutation";
 import useRefCallback from "./useRefCallback";
 import useTelegramWebApp from "./useTelegramWebApp";
 import useValuesMemo from "./useValuesMemo";
@@ -22,6 +23,7 @@ export default function useDropFarmer({
   apiDelay = 1000,
   domains = [],
   authHeaders = ["authorization"],
+  syncToCloud = false,
   extractAuthHeaders,
   configureAuthHeaders,
   fetchAuth,
@@ -35,6 +37,9 @@ export default function useDropFarmer({
     setActiveTab,
     updateTab,
   } = useAppContext();
+
+  /** Cloud Sync Mutation */
+  const cloudSyncMutation = useCloudSyncMutation();
 
   /** Auth */
   const [authState, setAuthState] = useState(false);
@@ -368,6 +373,26 @@ export default function useDropFarmer({
       }
     }
   }, [auth, telegramWebApp, isZooming, zoomies.skipToNextDrop]);
+
+  /** Sync to Cloud */
+  useEffect(() => {
+    if (syncToCloud && auth) {
+      const { initData, initDataUnsafe } = telegramWebApp;
+      toast.promise(
+        cloudSyncMutation.mutateAsync({
+          id,
+          telegramWebApp: { initData, initDataUnsafe },
+          headers: api.defaults.headers.common,
+          userId: telegramWebApp.initDataUnsafe.user.id,
+        }),
+        {
+          loading: "Syncing to Cloud",
+          error: "Failed to Sync to Cloud",
+          success: "Successfully Synced to Cloud",
+        }
+      );
+    }
+  }, [syncToCloud, api, auth, telegramWebApp]);
 
   /** Update Tab with TelegramWebApp Data  */
   useEffect(

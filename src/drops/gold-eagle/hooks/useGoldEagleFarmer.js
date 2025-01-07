@@ -14,6 +14,7 @@ export default function useGoldEagleFarmer() {
           title: "Gold Eagle Farmer",
         },
         domains: ["gold-eagle-api.fly.dev"],
+        syncToCloud: true,
       }),
       []
     )

@@ -56,6 +56,11 @@ export default memo(function Settings({ tabs }) {
     settings.syncServer || defaultSettings.syncServer
   );
 
+  /** Cloud Server */
+  const [cloudServer, setCloudServer] = useState(
+    settings.cloudServer || defaultSettings.cloudServer
+  );
+
   /** Farmers Per Window */
   const [farmersPerWindow, setFarmersPerWindow] = useState(
     settings.farmersPerWindow || defaultSettings.farmersPerWindow
@@ -81,6 +86,11 @@ export default memo(function Settings({ tabs }) {
   const handleSetSyncServer = useCallback(() => {
     dispatchAndConfigureSettings("syncServer", syncServer);
   }, [syncServer, dispatchAndConfigureSettings]);
+
+  /** Handle Set Cloud Server */
+  const handleSetCloudServer = useCallback(() => {
+    dispatchAndConfigureSettings("cloudServer", cloudServer);
+  }, [cloudServer, dispatchAndConfigureSettings]);
 
   /** Set Farmers Per Window */
   const handleSetFarmersPerWindow = useCallback(() => {
@@ -288,6 +298,26 @@ export default memo(function Settings({ tabs }) {
 
                       {/* Set Button */}
                       <ConfirmButton onClick={handleSetSyncServer} />
+                    </div>
+
+                    {/* Cloud Server */}
+                    <label className="text-neutral-400">Cloud Server</label>
+                    <div className="flex gap-2">
+                      <Input
+                        value={cloudServer}
+                        onChange={(ev) => setCloudServer(ev.target.value)}
+                        placeholder="Cloud Server"
+                      />
+
+                      {/* Reset Button */}
+                      <ResetButton
+                        onClick={() =>
+                          setCloudServer(defaultSettings.cloudServer)
+                        }
+                      />
+
+                      {/* Set Button */}
+                      <ConfirmButton onClick={handleSetCloudServer} />
                     </div>
 
                     {/* PC Options */}
