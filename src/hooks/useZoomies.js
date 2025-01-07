@@ -53,7 +53,8 @@ export default function useZoomies(core) {
 
   /** Repeat Zoomies Cycle */
   const repeatZoomiesCycle =
-    core.settings.repeatZoomiesCycle || current.cycles === 0;
+    quickRun === false &&
+    (core.settings.repeatZoomiesCycle || current.cycles === 0);
 
   /** Can Process Zoomies */
   const canProcessZoomies =
@@ -78,9 +79,9 @@ export default function useZoomies(core) {
     "zoomies.enable-quick-run",
     () => {
       setQuickRun(true);
-      process.dispatchAndToggle(true);
+      process.start();
     },
-    [setQuickRun, process.dispatchAndToggle],
+    [setQuickRun, process.start],
 
     /** Socket */
     core.socket
