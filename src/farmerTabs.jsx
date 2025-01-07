@@ -53,14 +53,14 @@ const farmerTabs = [
     component: <Farmer farmer="Funatic" />,
     telegramLink:
       "https://t.me/LuckyFunaticBot/lucky_funatic?startapp=1147265290",
-    tasks: [
-      "set-exchange",
-      "daily-bonus",
-      "boosters",
-      "quests",
-      "cards",
-      "game",
-    ],
+    tasks: {
+      ["set-exchange"]: true,
+      ["daily-bonus"]: true,
+      ["boosters"]: false,
+      ["quests"]: false,
+      ["cards"]: false,
+      ["game"]: false,
+    },
   },
   {
     id: "gold-eagle",
@@ -68,7 +68,9 @@ const farmerTabs = [
     icon: farmerIcons["gold-eagle"],
     component: <Farmer farmer="GoldEagle" id="gold-eagle" />,
     telegramLink: "https://t.me/gold_eagle_coin_bot/main?startapp=r_ubdOBYN6KX",
-    tasks: ["game"],
+    tasks: {
+      ["game"]: true,
+    },
   },
   {
     id: "midas",
@@ -77,13 +79,13 @@ const farmerTabs = [
     component: <Farmer farmer="Midas" />,
     telegramLink:
       "https://t.me/MidasRWA_bot/app?startapp=ref_746a3d4f-5108-4931-af18-5589b9a07af9",
-    tasks: [
-      "visit",
-      "daily-check-in",
-      "claim-referral-rewards",
-      "tasks",
-      "game",
-    ],
+    tasks: {
+      ["visit"]: true,
+      ["daily-check-in"]: true,
+      ["claim-referral-rewards"]: true,
+      ["tasks"]: false,
+      ["game"]: false,
+    },
   },
   {
     id: "zoo",
@@ -91,15 +93,15 @@ const farmerTabs = [
     icon: farmerIcons["zoo"],
     component: <Farmer farmer="Zoo" />,
     telegramLink: "https://t.me/zoo_story_bot/game?startapp=ref1147265290",
-    tasks: [
-      "daily-reward",
-      "claim-riddle-and-rebus",
-      "tasks",
-      "quizzes",
-      "feed",
-      "purchase-boost",
-      "animals",
-    ],
+    tasks: {
+      ["daily-reward"]: true,
+      ["claim-riddle-and-rebus"]: true,
+      ["tasks"]: true,
+      ["quizzes"]: true,
+      ["feed"]: true,
+      ["purchase-boost"]: true,
+      ["animals"]: true,
+    },
   },
   {
     id: "hrum",
@@ -107,7 +109,12 @@ const farmerTabs = [
     icon: farmerIcons["hrum"],
     component: <Farmer farmer="Hrum" />,
     telegramLink: "http://t.me/hrummebot/game?startapp=ref1147265290",
-    tasks: ["daily.check-in", "tasks", "daily.riddle", "daily.cookie"],
+    tasks: {
+      ["daily.check-in"]: true,
+      ["tasks"]: true,
+      ["daily.riddle"]: true,
+      ["daily.cookie"]: true,
+    },
   },
   {
     id: "tsubasa",
@@ -116,7 +123,11 @@ const farmerTabs = [
     component: <Farmer farmer="Tsubasa" />,
     telegramLink:
       "https://t.me/TsubasaRivalsBot/start?startapp=inviter_id-1147265290",
-    tasks: ["daily-reward", "tasks", "cards"],
+    tasks: {
+      ["daily-reward"]: true,
+      ["tasks"]: false,
+      ["cards"]: false,
+    },
   },
   {
     id: "rekt",
@@ -124,14 +135,14 @@ const farmerTabs = [
     icon: farmerIcons["rekt"],
     component: <Farmer farmer="Rekt" />,
     telegramLink: "https://t.me/rektme_bot/rektapp?startapp=UJ740H",
-    tasks: [
-      "daily-check-in",
-      "farming",
-      "boost-farming",
-      "claim-referrals",
-      "quests",
-      "game",
-    ],
+    tasks: {
+      ["daily-check-in"]: true,
+      ["farming"]: true,
+      ["boost-farming"]: true,
+      ["claim-referrals"]: true,
+      ["quests"]: false,
+      ["game"]: false,
+    },
   },
   {
     id: "dreamcoin",
@@ -139,14 +150,14 @@ const farmerTabs = [
     icon: farmerIcons["dreamcoin"],
     component: <Farmer farmer="DreamCoin" />,
     telegramLink: "https://t.me/DreamCoinOfficial_bot?start=1147265290",
-    tasks: [
-      "rewards",
-      "daily-reward",
-      "open-free-case",
-      "lottery",
-      "upgrade-all-level",
-      "collect-clicker-reward",
-    ],
+    tasks: {
+      ["daily-reward"]: true,
+      ["open-free-case"]: true,
+      ["collect-clicker-reward"]: true,
+      ["rewards"]: false,
+      ["lottery"]: false,
+      ["upgrade-all-level"]: false,
+    },
   },
   {
     id: "battle-bulls",
@@ -155,7 +166,12 @@ const farmerTabs = [
     component: <Farmer id={"battle-bulls"} farmer={"BattleBulls"} />,
     telegramLink:
       "https://t.me/battle_games_com_bot/start?startapp=frndId1147265290",
-    tasks: ["daily-reward", "choose-blockchain", "tasks", "cards"],
+    tasks: {
+      ["daily-reward"]: true,
+      ["choose-blockchain"]: true,
+      ["tasks"]: false,
+      ["cards"]: false,
+    },
   },
   {
     id: "blum",
@@ -163,7 +179,13 @@ const farmerTabs = [
     icon: farmerIcons["blum"],
     component: <Farmer farmer="Blum" />,
     telegramLink: "https://t.me/blum/app?startapp=ref_3AIqvLlFFK",
-    tasks: ["daily-check-in", "farming", "friends-reward", "tasks", "game"],
+    tasks: {
+      ["daily-check-in"]: true,
+      ["farming"]: true,
+      ["friends-reward"]: true,
+      ["tasks"]: false,
+      ["game"]: false,
+    },
   },
   {
     id: "yescoin",
@@ -171,14 +193,14 @@ const farmerTabs = [
     icon: farmerIcons["yescoin"],
     component: <Farmer farmer="Yescoin" />,
     telegramLink: "https://t.me/theYescoin_bot/Yescoin?startapp=bH7bto",
-    tasks: [
-      "daily-check-in",
-      "claim-special-box",
-      "tasks",
-      "missions",
-      "game",
-      "claim-task-bonus",
-    ],
+    tasks: {
+      ["daily-check-in"]: true,
+      ["claim-special-box"]: false,
+      ["tasks"]: false,
+      ["missions"]: false,
+      ["game"]: false,
+      ["claim-task-bonus"]: false,
+    },
   },
   {
     id: "wonton",
@@ -187,14 +209,14 @@ const farmerTabs = [
     component: <Farmer farmer="Wonton" />,
     telegramLink:
       "https://t.me/WontonOrgBot/gameapp?startapp=referralCode=K45JQRG7",
-    tasks: [
-      "daily-check-in",
-      "farming",
-      "use-top-shop-item",
-      "tasks",
-      "badges",
-      "game",
-    ],
+    tasks: {
+      ["daily-check-in"]: true,
+      ["farming"]: true,
+      ["use-top-shop-item"]: false,
+      ["tasks"]: false,
+      ["badges"]: false,
+      ["game"]: false,
+    },
   },
   {
     id: "notgram",
@@ -202,7 +224,9 @@ const farmerTabs = [
     icon: farmerIcons["notgram"],
     component: <Farmer farmer="Notgram" />,
     telegramLink: "https://t.me/notgram_game_bot?start=r1147265290",
-    tasks: ["tasks"],
+    tasks: {
+      ["tasks"]: false,
+    },
     closeBotInZoomies: false,
   },
   {
@@ -212,7 +236,12 @@ const farmerTabs = [
     component: <Farmer farmer="Slotcoin" />,
     telegramLink:
       "https://t.me/SlotCoinApp_bot/app?startapp=eyJyZWZfY29kZSI6ImEyZGQtNjBmNyIsInV0bV9pZCI6InJlZmZlcmFsX2xpbmtfc2hhcmUifQ==",
-    tasks: ["daily-check-in", "quests", "tickets", "lottery"],
+    tasks: {
+      ["daily-check-in"]: true,
+      ["quests"]: false,
+      ["tickets"]: false,
+      ["lottery"]: false,
+    },
   },
   {
     id: "birdton",
@@ -220,7 +249,11 @@ const farmerTabs = [
     icon: farmerIcons["birdton"],
     component: <Farmer farmer="BirdTon" />,
     telegramLink: "https://t.me/BIRDTonBot/app?startapp=1147265290",
-    tasks: ["daily-check-in", "game", "tasks"],
+    tasks: {
+      ["daily-check-in"]: true,
+      ["game"]: false,
+      ["tasks"]: false,
+    },
   },
   {
     id: "matchquest",
@@ -229,7 +262,12 @@ const farmerTabs = [
     component: <Farmer farmer="MatchQuest" />,
     telegramLink:
       "https://t.me/MatchQuestBot/start?startapp=775f1cc48a46ce5221f1d9476233dc33",
-    tasks: ["farming", "tasks", "daily-task-purchase", "game"],
+    tasks: {
+      ["farming"]: true,
+      ["tasks"]: false,
+      ["daily-task-purchase"]: true,
+      ["game"]: true,
+    },
   },
   {
     id: "truecoin",
@@ -237,7 +275,12 @@ const farmerTabs = [
     icon: farmerIcons["truecoin"],
     component: <Farmer farmer="Truecoin" />,
     telegramLink: "https://t.me/true_coin_bot?start=1147265290",
-    tasks: ["daily-check-in", "tasks", "lottery.claim-all-50-boost", "lottery"],
+    tasks: {
+      ["daily-check-in"]: true,
+      ["tasks"]: false,
+      ["lottery.claim-all-50-boost"]: true,
+      ["lottery"]: false,
+    },
   },
   {
     id: "pumpad",
@@ -245,7 +288,13 @@ const farmerTabs = [
     icon: farmerIcons["pumpad"],
     component: <Farmer farmer="Pumpad" />,
     telegramLink: "https://t.me/Pumpad_Bot/Lucky?startapp=52458255372295027",
-    tasks: ["daily-check-in", "points", "missions", "tickets", "lottery"],
+    tasks: {
+      ["daily-check-in"]: true,
+      ["points"]: false,
+      ["missions"]: false,
+      ["tickets"]: false,
+      ["lottery"]: false,
+    },
   },
   {
     id: "agent301",
@@ -253,7 +302,12 @@ const farmerTabs = [
     icon: farmerIcons["agent301"],
     component: <Farmer farmer="Agent301" />,
     telegramLink: "https://t.me/Agent301Bot/app?startapp=onetime1147265290",
-    tasks: ["tasks", "puzzle", "wheel", "tickets"],
+    tasks: {
+      ["tasks"]: false,
+      ["puzzle"]: false,
+      ["wheel"]: false,
+      ["tickets"]: false,
+    },
   },
   {
     id: "tomarket",
@@ -261,7 +315,11 @@ const farmerTabs = [
     icon: farmerIcons["tomarket"],
     component: <Farmer farmer="Tomarket" />,
     telegramLink: "https://t.me/Tomarket_ai_bot/app?startapp=00003s0r",
-    tasks: ["farming", "tickets", "game"],
+    tasks: {
+      ["farming"]: true,
+      ["tickets"]: false,
+      ["game"]: false,
+    },
   },
 ];
 

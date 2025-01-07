@@ -31,14 +31,16 @@ export default function useZoomies(core) {
   /** Drops */
   const drops = useMemo(
     () =>
-      quickRun
-        ? core.drops
-            .map((item) => ({
-              ...item,
-              tasks: item.tasks.filter((task) => task.includes("daily")),
-            }))
-            .filter((item) => item.tasks.length > 0)
-        : core.drops,
+      core.drops
+        .map((item) => ({
+          ...item,
+          tasks: quickRun
+            ? Object.entries(item.tasks)
+                .filter(([k, v]) => Boolean(v))
+                .map(([k, v]) => k)
+            : Object.keys(item.tasks),
+        }))
+        .filter((item) => item.tasks.length > 0),
     [quickRun, core.drops]
   );
 
