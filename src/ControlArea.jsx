@@ -1,5 +1,5 @@
 import CoreSystemIcon from "@/assets/images/core-system.png?format=webp&w=128";
-import { FaPaw } from "react-icons/fa6";
+import { FaFire, FaPaw } from "react-icons/fa6";
 import {
   HiOutlineArrowPath,
   HiOutlineBackward,
@@ -119,12 +119,21 @@ export default memo(function ControlArea() {
               className="flex items-center justify-center w-10 h-10 shrink-0"
               onClick={() => zoomies.dispatchAndToggle(!zoomies.enabled)}
             >
-              <FaPaw
-                className={cn(
-                  "w-7 h-7",
-                  zoomies.enabled ? "text-orange-500" : "text-neutral-400"
-                )}
-              />
+              {zoomies.quickRun ? (
+                <FaFire
+                  className={cn(
+                    "w-7 h-7",
+                    zoomies.enabled ? "text-orange-500" : "text-neutral-400"
+                  )}
+                />
+              ) : (
+                <FaPaw
+                  className={cn(
+                    "w-7 h-7",
+                    zoomies.enabled ? "text-orange-500" : "text-neutral-400"
+                  )}
+                />
+              )}
             </button>
           </ContextMenu.Trigger>
 
