@@ -52,9 +52,9 @@ export default function useZoomies(core) {
   });
 
   /** Repeat Zoomies Cycle */
-  const repeatZoomiesCycle =
-    quickRun === false &&
-    (core.settings.repeatZoomiesCycle || current.cycles === 0);
+  const repeatZoomiesCycle = quickRun
+    ? current.cycles === 0
+    : core.settings.repeatZoomiesCycle || current.cycles === 0;
 
   /** Can Process Zoomies */
   const canProcessZoomies =
@@ -79,9 +79,9 @@ export default function useZoomies(core) {
     "zoomies.enable-quick-run",
     () => {
       setQuickRun(true);
-      process.start();
+      process.toggle(true);
     },
-    [setQuickRun, process.start],
+    [setQuickRun, process.toggle],
 
     /** Socket */
     core.socket
@@ -175,7 +175,7 @@ export default function useZoomies(core) {
 
   /** Stop Zoomies after first cycle */
   useEffect(() => {
-    if (process.started && !repeatZoomiesCycle) {
+    if (process.started && repeatZoomiesCycle === false) {
       process.stop();
       core.cancelTelegramHandlers();
       core.resetTabs();
@@ -208,7 +208,7 @@ export default function useZoomies(core) {
 
   /** Open Bot */
   useEffect(() => {
-    if (canProcessZoomies && !auth) {
+    if (canProcessZoomies && auth === false) {
       /** First Time */
       openBot(false);
 

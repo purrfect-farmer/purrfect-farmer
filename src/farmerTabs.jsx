@@ -58,8 +58,8 @@ const farmerTabs = [
       ["daily-bonus"]: true,
       ["boosters"]: false,
       ["quests"]: false,
-      ["cards"]: false,
       ["game"]: false,
+      ["cards"]: false,
     },
   },
   {
@@ -266,7 +266,7 @@ const farmerTabs = [
       ["farming"]: true,
       ["tasks"]: false,
       ["daily-task-purchase"]: true,
-      ["game"]: true,
+      ["game"]: false,
     },
   },
   {
