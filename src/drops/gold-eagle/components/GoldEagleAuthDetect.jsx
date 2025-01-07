@@ -6,7 +6,7 @@ import GoldEagleIcon from "../assets/images/icon.png?format=webp&w=80";
 export default memo(function GoldEagleAuthDetect({ status }) {
   return (
     <FarmerDetect
-      title={"GoldEagle Farmer"}
+      title={"Gold Eagle Farmer"}
       icon={GoldEagleIcon}
       status={status}
     />

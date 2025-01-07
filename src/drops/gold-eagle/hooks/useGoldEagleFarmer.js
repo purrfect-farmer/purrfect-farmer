@@ -11,7 +11,7 @@ export default function useGoldEagleFarmer() {
         host: "telegram.geagle.online",
         notification: {
           icon: GoldEagleIcon,
-          title: "GoldEagle Farmer",
+          title: "Gold Eagle Farmer",
         },
         domains: ["gold-eagle-api.fly.dev"],
       }),
