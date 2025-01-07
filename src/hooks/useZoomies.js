@@ -53,7 +53,7 @@ export default function useZoomies(core) {
 
   /** Repeat Zoomies Cycle */
   const repeatZoomiesCycle = quickRun
-    ? current.cycles === 0
+    ? current.cycles <= 2
     : core.settings.repeatZoomiesCycle || current.cycles === 0;
 
   /** Can Process Zoomies */
