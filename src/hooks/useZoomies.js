@@ -2,7 +2,9 @@ import defaultZoomiesState from "@/defaultZoomiesState";
 import toast from "react-hot-toast";
 import { useCallback } from "react";
 import { useEffect } from "react";
+import { useMemo } from "react";
 import { useState } from "react";
+
 import useProcessLock from "./useProcessLock";
 import useSocketDispatchCallback from "./useSocketDispatchCallback";
 import useStorageState from "./useStorageState";
@@ -17,14 +19,28 @@ export default function useZoomies(core) {
     storeValue: storeZoomiesState,
   } = useStorageState("zoomiesState", defaultZoomiesState);
 
-  /** Drops */
-  const drops = core.drops;
-
   /** Process */
   const process = useProcessLock("zoomies", core.socket);
 
   /** Auth */
   const [auth, setAuth] = useState(false);
+
+  /** Quick Run */
+  const [quickRun, setQuickRun] = useState(false);
+
+  /** Drops */
+  const drops = useMemo(
+    () =>
+      quickRun
+        ? core.drops
+            .map((item) => ({
+              ...item,
+              tasks: item.tasks.filter((task) => task.includes("daily")),
+            }))
+            .filter((item) => item.tasks.length > 0)
+        : core.drops,
+    [quickRun, core.drops]
+  );
 
   /** Current State */
   const [current, setCurrent] = useState({
@@ -54,6 +70,19 @@ export default function useZoomies(core) {
       core.setActiveTab(current.drop.id);
     }
   }, [current.drop, setAuth, core.closeFarmerTabs, core.setActiveTab]);
+
+  /** Enable Quick Run */
+  const [enableQuickRun, dispatchAndEnableQuickRun] = useSocketDispatchCallback(
+    "zoomies.enable-quick-run",
+    () => {
+      setQuickRun(true);
+      process.dispatchAndToggle(true);
+    },
+    [setQuickRun, process.dispatchAndToggle],
+
+    /** Socket */
+    core.socket
+  );
 
   /** Refresh Zoomies */
   const [refresh, dispatchAndRefresh] = useSocketDispatchCallback(
@@ -160,6 +189,13 @@ export default function useZoomies(core) {
     setCurrent,
   ]);
 
+  /** Reset Quick Run */
+  useEffect(() => {
+    if (process.started === false) {
+      setQuickRun(false);
+    }
+  }, [process.started, setQuickRun]);
+
   /** Reset Zoomies */
   useEffect(() => {
     if (canProcessZoomies) {
@@ -259,12 +295,15 @@ export default function useZoomies(core) {
 
   return useValuesMemo({
     drops,
+    quickRun,
     enabled: process.started,
     toggle: process.toggle,
     dispatchAndToggle: process.dispatchAndToggle,
+    dispatchAndEnableQuickRun,
     current,
     setAuth,
     setCurrent,
+    enableQuickRun,
     skipToNextDrop,
     processPreviousTask,
     processNextTask,

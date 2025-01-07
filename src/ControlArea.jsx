@@ -3,10 +3,11 @@ import { FaPaw } from "react-icons/fa6";
 import {
   HiOutlineArrowPath,
   HiOutlineBackward,
+  HiOutlineFire,
   HiOutlineForward,
 } from "react-icons/hi2";
 import { memo, useState } from "react";
-
+import * as ContextMenu from "@radix-ui/react-context-menu";
 import SyncControl from "./partials/SyncControl";
 import UtilsPanel from "./partials/UtilsPanel";
 import useAppContext from "./hooks/useAppContext";
@@ -112,18 +113,48 @@ export default memo(function ControlArea() {
 
       {/* Utils Control */}
       <div className="flex gap-2 px-2 border-t dark:border-neutral-700 shrink-0">
-        <button
-          className="flex items-center justify-center w-10 h-10 shrink-0"
-          onClick={() => zoomies.dispatchAndToggle(!zoomies.enabled)}
-        >
-          <FaPaw
-            className={cn(
-              "w-7 h-7",
-              zoomies.enabled ? "text-orange-500" : "text-neutral-400"
-            )}
-          />
-        </button>
+        <ContextMenu.Root>
+          <ContextMenu.Trigger asChild>
+            <button
+              className="flex items-center justify-center w-10 h-10 shrink-0"
+              onClick={() => zoomies.dispatchAndToggle(!zoomies.enabled)}
+            >
+              <FaPaw
+                className={cn(
+                  "w-7 h-7",
+                  zoomies.enabled ? "text-orange-500" : "text-neutral-400"
+                )}
+              />
+            </button>
+          </ContextMenu.Trigger>
 
+          <ContextMenu.Portal>
+            <ContextMenu.Content
+              collisionPadding={5}
+              alignOffset={5}
+              className={cn(
+                "flex flex-col gap-2 p-2",
+                "text-white rounded-lg bg-neutral-900",
+                "w-[var(--radix-context-menu-content-available-width)]",
+                "max-w-48",
+                "z-50"
+              )}
+            >
+              <ContextMenu.Item
+                onClick={() => zoomies.dispatchAndEnableQuickRun()}
+                className={cn(
+                  "flex items-center gap-2 p-2",
+                  "rounded-lg cursor-pointer",
+                  "bg-neutral-800 hover:bg-blue-500"
+                )}
+              >
+                <HiOutlineFire className="w-4 h-4" /> Quick Run
+              </ContextMenu.Item>
+            </ContextMenu.Content>
+          </ContextMenu.Portal>
+        </ContextMenu.Root>
+
+        {/* Sync Control */}
         <SyncControl />
 
         {/* Utils */}
