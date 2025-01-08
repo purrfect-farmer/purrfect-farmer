@@ -128,6 +128,9 @@ export default memo(function Settings({ tabs }) {
     /** Set Sync Server */
     setSyncServer(settings.syncServer || defaultSettings.syncServer);
 
+    /** Set Cloud Server */
+    setCloudServer(settings.cloudServer || defaultSettings.cloudServer);
+
     /** Set Farmers Per Window */
     setFarmersPerWindow(
       settings.farmersPerWindow || defaultSettings.farmersPerWindow
@@ -137,7 +140,7 @@ export default memo(function Settings({ tabs }) {
     setFarmerPosition(
       settings.farmerPosition || defaultSettings.farmerPosition
     );
-  }, [settings, setSyncServer, setFarmersPerWindow, setFarmerPosition]);
+  }, [settings, setSyncServer, setCloudServer, setFarmersPerWindow, setFarmerPosition]);
 
   return (
     <Dialog.Portal>
