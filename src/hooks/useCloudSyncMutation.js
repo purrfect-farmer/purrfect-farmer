@@ -2,11 +2,11 @@ import AppContext from "@/contexts/AppContext";
 import { useContext } from "react";
 import { useMutation } from "@tanstack/react-query";
 
-export default function useCloudSyncMutation() {
+export default function useCloudSyncMutation(id) {
   const { cloudBackend } = useContext(AppContext);
 
   return useMutation({
-    mutationKey: ["core", "cloud", "sync"],
+    mutationKey: ["core", "cloud", "sync", id],
     mutationFn: ({ id, userId, telegramWebApp, headers }) =>
       cloudBackend
         .post("/api/sync", {

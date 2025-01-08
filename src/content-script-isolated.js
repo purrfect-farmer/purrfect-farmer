@@ -1,5 +1,5 @@
 import { decryptData, encryptData } from "./content-script-utils";
-import { uuid } from "./lib/utils";
+import { getUserAgent, uuid } from "./lib/utils";
 
 if (location.hash.includes("tgWebAppData")) {
   /** Initial Location Href */
@@ -62,6 +62,17 @@ if (location.hash.includes("tgWebAppData")) {
       action: "open-telegram-link",
       data: {
         url,
+      },
+    });
+  };
+
+  const updateUserAgent = async () => {
+    const userAgent = await getUserAgent();
+
+    return await postWindowMessage({
+      action: "set-user-agent",
+      data: {
+        userAgent,
       },
     });
   };
@@ -183,6 +194,9 @@ if (location.hash.includes("tgWebAppData")) {
         break;
     }
   });
+
+  /** Update User-Agent */
+  updateUserAgent();
 
   /** Listen for TelegramWebApp */
   window.addEventListener("message", listenForTelegramWeb);

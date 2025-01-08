@@ -1,4 +1,4 @@
-import { getSettings } from "./lib/utils";
+import { getSettings, getUserAgent } from "./lib/utils";
 
 const removeActionPopup = async () => {
   const platform = await chrome.runtime.getPlatformInfo();
@@ -48,6 +48,42 @@ const configureExtension = async (settings) => {
   } catch {}
 };
 
+/** Update User-Agent */
+const updateUserAgent = async () => {
+  const userAgent = await getUserAgent();
+
+  const oldRules = await chrome.declarativeNetRequest.getDynamicRules();
+  const oldRuleIds = oldRules.map((rule) => rule.id);
+
+  /** Update Rules */
+  await chrome.declarativeNetRequest.updateDynamicRules({
+    removeRuleIds: oldRuleIds,
+    addRules: [
+      {
+        id: 1,
+        action: {
+          type: "modifyHeaders",
+          requestHeaders: [
+            {
+              header: "user-agent",
+              operation: "set",
+              value: userAgent,
+            },
+          ],
+        },
+        condition: {
+          urlFilter: "*",
+        },
+      },
+    ],
+  });
+
+  /** Store User-Agent */
+  await chrome.storage.local.set({
+    userAgent,
+  });
+};
+
 /** Watch Storage for Settings Change */
 chrome.storage.local.onChanged.addListener(({ settings }) => {
   if (settings) {
@@ -57,6 +93,9 @@ chrome.storage.local.onChanged.addListener(({ settings }) => {
 
 /** Open Farmer on Install */
 chrome.runtime.onInstalled.addListener(async () => {
+  /** Update User-Agent */
+  await updateUserAgent();
+
   /** Open Farmer Window */
   const settings = await getSettings();
   if (settings.openFarmerInNewWindow && settings.openFarmerOnStartup) {

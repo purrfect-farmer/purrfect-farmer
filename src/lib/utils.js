@@ -1,5 +1,6 @@
 import axios from "axios";
 import defaultSettings from "@/defaultSettings";
+import userAgents from "@/userAgents";
 import { clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
 import { v4 as uuidv4 } from "uuid";
@@ -51,6 +52,13 @@ export async function getSettings() {
     ...defaultSettings,
     ...settings,
   };
+}
+
+export async function getUserAgent() {
+  return await getStorage(
+    "userAgent",
+    userAgents[Math.floor(Math.random() * userAgents.length)]
+  );
 }
 
 export function isElementVisible(element) {

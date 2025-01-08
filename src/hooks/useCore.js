@@ -13,6 +13,7 @@ import useMessagePort from "./useMessagePort";
 import useSettings from "./useSettings";
 import useSocket from "./useSocket";
 import useSocketDispatchCallback from "./useSocketDispatchCallback";
+import useUserAgent from "./useUserAgent";
 import useValuesMemo from "./useValuesMemo";
 
 const BOT_TELEGRAM_WEB_APP_ACTION = `set-telegram-web-app:${
@@ -22,9 +23,14 @@ const BOT_TELEGRAM_WEB_APP_ACTION = `set-telegram-web-app:${
 export const defaultOpenedTabs = () => [{ ...farmerTabs[0], active: true }];
 
 export default function useCore() {
+  /** Settings */
   const { settings, hasRestoredSettings, configureSettings, restoreSettings } =
     useSettings();
 
+  /** User Agent */
+  const userAgent = useUserAgent();
+
+  /** Cloud Backend */
   const cloudBackend = useMemo(
     () =>
       axios.create({
@@ -643,6 +649,7 @@ export default function useCore() {
     socket,
     messaging,
     cloudBackend,
+    userAgent,
 
     /** App Methods */
     shutdown,

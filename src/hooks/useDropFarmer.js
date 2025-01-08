@@ -36,10 +36,11 @@ export default function useDropFarmer({
     joinTelegramLink: coreJoinTelegramLink,
     setActiveTab,
     updateTab,
+    userAgent,
   } = useAppContext();
 
   /** Cloud Sync Mutation */
-  const cloudSyncMutation = useCloudSyncMutation();
+  const cloudSyncMutation = useCloudSyncMutation(id);
 
   /** Auth */
   const [authState, setAuthState] = useState(false);
@@ -381,9 +382,15 @@ export default function useDropFarmer({
       toast.promise(
         cloudSyncMutation.mutateAsync({
           id,
-          telegramWebApp: { initData, initDataUnsafe },
-          headers: api.defaults.headers.common,
           userId: telegramWebApp.initDataUnsafe.user.id,
+          telegramWebApp: {
+            initData,
+            initDataUnsafe,
+          },
+          headers: {
+            ...api.defaults.headers.common,
+            "User-Agent": userAgent,
+          },
         }),
         {
           loading: "Syncing to Cloud",
@@ -392,7 +399,7 @@ export default function useDropFarmer({
         }
       );
     }
-  }, [syncToCloud, api, auth, telegramWebApp]);
+  }, [syncToCloud, api, auth, userAgent, telegramWebApp]);
 
   /** Update Tab with TelegramWebApp Data  */
   useEffect(
