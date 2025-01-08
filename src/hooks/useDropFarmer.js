@@ -380,8 +380,8 @@ export default function useDropFarmer({
     if (syncToCloud && auth) {
       const { initData, initDataUnsafe } = telegramWebApp;
 
-      toast.promise(
-        cloudSyncMutation.mutateAsync({
+      cloudSyncMutation
+        .mutateAsync({
           id,
           userId: telegramWebApp.initDataUnsafe.user.id,
           telegramWebApp: {
@@ -392,15 +392,20 @@ export default function useDropFarmer({
             ...api.defaults.headers.common,
             "User-Agent": userAgent,
           },
-        }),
-        {
-          loading: "Syncing to Cloud",
-          error: "Failed to Sync to Cloud",
-          success: "Successfully Synced to Cloud",
-        }
-      );
+        })
+        .then(() => {
+          toast.success(`${notification.title} - Synced to Cloud`);
+        });
     }
-  }, [syncToCloud, id, api, auth, userAgent, telegramWebApp]);
+  }, [
+    syncToCloud,
+    id,
+    api,
+    auth,
+    userAgent,
+    telegramWebApp,
+    notification.title,
+  ]);
 
   /** Update Tab with TelegramWebApp Data  */
   useEffect(
