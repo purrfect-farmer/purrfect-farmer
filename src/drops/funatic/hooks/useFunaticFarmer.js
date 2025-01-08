@@ -22,6 +22,7 @@ export default function useFunaticFarmer() {
           );
         },
         apiDelay: 200,
+        syncToCloud: true,
       }),
       []
     )
