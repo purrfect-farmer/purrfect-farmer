@@ -154,7 +154,7 @@ const farmerTabs = [
       ["daily-reward"]: true,
       ["open-free-case"]: true,
       ["collect-clicker-reward"]: true,
-      ["rewards"]: false,
+      ["rewards"]: true,
       ["lottery"]: false,
       ["upgrade-all-level"]: false,
     },
@@ -264,7 +264,7 @@ const farmerTabs = [
       "https://t.me/MatchQuestBot/start?startapp=775f1cc48a46ce5221f1d9476233dc33",
     tasks: {
       ["farming"]: true,
-      ["tasks"]: false,
+      ["tasks"]: true,
       ["daily-task-purchase"]: true,
       ["game"]: false,
     },
