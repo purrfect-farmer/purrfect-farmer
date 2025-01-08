@@ -379,6 +379,7 @@ export default function useDropFarmer({
   useEffect(() => {
     if (syncToCloud && auth) {
       const { initData, initDataUnsafe } = telegramWebApp;
+
       toast.promise(
         cloudSyncMutation.mutateAsync({
           id,
@@ -399,7 +400,7 @@ export default function useDropFarmer({
         }
       );
     }
-  }, [syncToCloud, api, auth, userAgent, telegramWebApp]);
+  }, [syncToCloud, id, api, auth, userAgent, telegramWebApp]);
 
   /** Update Tab with TelegramWebApp Data  */
   useEffect(
