@@ -25,26 +25,7 @@ export default memo(function ControlArea() {
       {/* Zoomies Control */}
       {zoomies.enabled && zoomies.current.drop ? (
         <>
-          <div
-            className={cn(
-              "flex items-center gap-2 px-2 py-1",
-              "text-white bg-purple-500 font-bold"
-            )}
-          >
-            <span
-              className={cn(
-                "flex items-center justify-center",
-                "w-6 h-6 text-xs",
-                "rounded-full shrink-0",
-                "bg-purple-600"
-              )}
-            >
-              {zoomies.current.drop.tasks.indexOf(zoomies.current.task) + 1}
-            </span>
-            <h1 className="min-w-0 min-h-0 truncate grow">
-              {zoomies.current.task.toUpperCase()}
-            </h1>
-          </div>
+          {/* Controls */}
           <div
             className={cn(
               "flex items-center gap-2 px-2 shrink-0",
@@ -107,6 +88,18 @@ export default memo(function ControlArea() {
             >
               {zoomies.current.cycles > 9 ? "9+" : zoomies.current.cycles}
             </span>
+          </div>
+
+          {/* Task Indicator */}
+          <div
+            className={cn(
+              "flex justify-center items-center gap-2 p-1",
+              "text-white text-center bg-purple-500 font-bold"
+            )}
+          >
+            <h1 className="min-w-0 min-h-0 text-xs truncate grow">
+              {zoomies.current.task.replaceAll(".", "-").toUpperCase()}
+            </h1>
           </div>
         </>
       ) : null}
