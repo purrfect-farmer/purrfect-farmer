@@ -28,6 +28,9 @@ const TabContentButton = memo(function (props) {
 
 export default memo(function TabContent({ tab }) {
   const { openURL, dispatchAndOpenTelegramBot } = useAppContext();
+  const tabURL = ["telegram-web-k", "telegram-web-a"].includes(tab.id)
+    ? `https://web.telegram.org/${tab.id.at(-1)}`
+    : tab?.telegramWebApp?.initLocationHref;
 
   return (
     <div
@@ -55,20 +58,17 @@ export default memo(function TabContent({ tab }) {
       </div>
 
       {/* Open Telegram Link Button */}
-      {tab.telegramWebApp ? (
-        <div className="flex gap-2 p-2 border-t dark:border-neutral-700">
+      {tabURL ? (
+        <div className="flex items-center justify-center gap-2 p-2 border-t dark:border-neutral-700">
           {/* Open URL */}
-          <TabContentButton
-            onClick={() => openURL(tab.telegramWebApp.initLocationHref)}
-          >
+          <TabContentButton onClick={() => openURL(tabURL)}>
             <HiOutlineArrowTopRightOnSquare className="w-4 h-4" /> Open URL
           </TabContentButton>
 
           {/* Copy URL */}
           <TabContentButton
             onClick={() => {
-              copy(tab.telegramWebApp.initLocationHref) &&
-                toast.success("Copied URL!");
+              copy(tabURL) && toast.success("Copied URL!");
             }}
           >
             <HiOutlineClipboard className="w-4 h-4" /> Copy URL
