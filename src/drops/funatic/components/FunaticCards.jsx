@@ -43,7 +43,9 @@ export default memo(function FunaticCards() {
       allCards.filter(
         (card) =>
           card.buyOrUpgradeCost <= balance &&
-          card.buyOrUpgradeRequirements.length === 0 &&
+          card.buyOrUpgradeRequirements.every(
+            (item) => item.isMissing === false
+          ) &&
           card.isMaxLevelReached === false &&
           card.isComingSoon === false
       ),
