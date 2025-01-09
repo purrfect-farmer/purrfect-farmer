@@ -21,6 +21,7 @@ export default function useZooFarmer() {
               header.value !== "empty"
           );
         },
+        syncToCloud: true,
       }),
       []
     )
