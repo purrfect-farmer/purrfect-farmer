@@ -230,23 +230,31 @@ if (location.hash.includes("tgWebAppData")) {
       if (mutation.type === "childList") {
         mutation.addedNodes.forEach((node) => {
           if (node.tagName === "HEAD") {
-            /** Add Telegram Web */
-            const script = document.createElement("script");
-            script.src = TG_WEB_SCRIPT_SRC;
-            script.dataset.init = true;
+            let script;
 
+            /** Get Telegram Script */
+            for (const item of node.querySelectorAll("script")) {
+              if (item.src === TG_WEB_SCRIPT_SRC) {
+                script = item;
+                break;
+              }
+            }
+
+            /** Add Telegram Web */
+            if (!script) {
+              /** Create Script */
+              script = document.createElement("script");
+              script.src = TG_WEB_SCRIPT_SRC;
+
+              /** Insert Immediately */
+              node.prepend(script);
+            }
+
+            /** Add Load Listener */
             script.addEventListener("load", async (ev) => {
               /** Dispatch App */
               dispatchTelegramWebApp();
             });
-
-            /** Insert Immediately */
-            node.prepend(script);
-          } else if (node.tagName === "SCRIPT") {
-            /** Remove Duplicate Telegram Web Script */
-            if (node.src === TG_WEB_SCRIPT_SRC && !node.dataset.init) {
-              node.remove();
-            }
           } else if (node.tagName === "BODY") {
             /** Disconnect */
             observer.disconnect();
