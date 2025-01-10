@@ -7,14 +7,14 @@ import { useEffect } from "react";
 import { useMemo } from "react";
 import { useState } from "react";
 
-import usePumpadPointTasksQuery from "../hooks/usePumpadPointTasksQuery";
 import usePumpadExposureMutation from "../hooks/usePumpadExposureMutation";
 import usePumpadCompletePointTaskMutation from "../hooks/usePumpadCompletePointTaskMutation";
 import usePumpadRemainingAdsQuery from "../hooks/usePumpadRemainingAdsQuery";
 import usePumpadAdIncrementMutation from "../hooks/usePumpadAdIncrementMutation";
+import usePumpadAdTasksQuery from "../hooks/usePumpadAdTasksQuery";
 
 export default memo(function PumpadPoints() {
-  const pointsQuery = usePumpadPointTasksQuery();
+  const adsQuery = usePumpadAdTasksQuery();
   const remainingAdsQuery = usePumpadRemainingAdsQuery();
   const totalAdsCount = remainingAdsQuery.data?.["total_count"] || 0;
   const remainingAdsCount = remainingAdsQuery.data?.["remaining_count"] || 0;
@@ -30,18 +30,19 @@ export default memo(function PumpadPoints() {
         },
       ]
         .concat(
-          pointsQuery?.data?.tasks?.map((item) => ({
+          adsQuery?.data?.tasks?.map((item) => ({
             ...item,
             source: {
               ["Onclicka"]: "ON_CLICKA",
               ["OpenAD"]: "OPEN_AD",
+              ["Tonadx"]: "TONADX",
               ["Monetag"]: "MONETAG",
             }[item["ad_platform"]],
           })) || []
         )
         .filter((item) => item["source"] && item["rest_completions"] > 0)
         .sort((a, b) => a["interval_time"] - b["interval_time"]),
-    [totalAdsCount, remainingAdsCount, pointsQuery.data]
+    [totalAdsCount, remainingAdsCount, adsQuery.data]
   );
 
   const process = useProcessLock("pumpad.points");
@@ -134,7 +135,7 @@ export default memo(function PumpadPoints() {
       /** Refetch Queries */
       try {
         await remainingAdsQuery.refetch();
-        await pointsQuery.refetch();
+        await adsQuery.refetch();
       } catch {}
 
       /** Unlock the Process */
@@ -145,7 +146,7 @@ export default memo(function PumpadPoints() {
   /** Auto-Complete Points */
   useFarmerAutoProcess(
     "points",
-    [remainingAdsQuery.isLoading, pointsQuery.isLoading].every(
+    [remainingAdsQuery.isLoading, adsQuery.isLoading].every(
       (status) => status === false
     ),
     process
@@ -153,10 +154,10 @@ export default memo(function PumpadPoints() {
 
   return (
     <div className="p-4">
-      {pointsQuery.isPending ? (
+      {adsQuery.isPending ? (
         <div className="flex justify-center">Loading...</div>
       ) : // Error
-      pointsQuery.isError ? (
+      adsQuery.isError ? (
         <div className="flex justify-center text-red-500">
           Failed to fetch points...
         </div>
