@@ -35,17 +35,11 @@ const buttonSelectors =
           "button:has(.icon.icon-webapp), .Button:has(.inline-button-text)",
       };
 
-/** Join Observer */
-let joinObserver;
+/** Join Observer Abort Controller */
+let joinObserverController;
 
-/** Join Observer Timeout */
-let joinObserverTimeout;
-
-/** Bot Observer */
-let botObserver;
-
-/** Bot Observer Timeout */
-let botObserverTimeout;
+/** Bot Observer Abort Controller */
+let botObserverController;
 
 /** Click Telegram Web Button */
 const clickTelegramWebButton = (button, timeout = 0) => {
@@ -161,19 +155,14 @@ const findAndClickLaunchButton = (node, isWebView) => {
 
 /** Join Conversation */
 const joinConversation = () => {
-  /** Clear Previous Timeout */
-  clearTimeout(joinObserverTimeout);
-
-  /** Clear Previous Observer */
-  joinObserver?.disconnect();
+  /** Abort Previous Controller */
+  joinObserverController?.abort();
 
   /** Click Join Button */
   let hasClickedJoinButton = false;
 
   /** Create Observer */
-  const observer = (joinObserver = new MutationObserver(function (
-    mutationList
-  ) {
+  const observer = new MutationObserver(function (mutationList) {
     for (const mutation of mutationList) {
       if (mutation.type === "childList") {
         mutation.addedNodes.forEach((node) => {
@@ -181,9 +170,6 @@ const joinConversation = () => {
             if (!hasClickedJoinButton) {
               hasClickedJoinButton = findAndClickJoinButton(node);
             } else {
-              /** Clear Timeout */
-              clearTimeout(timeout);
-
               /** Disconnect */
               observer.disconnect();
             }
@@ -193,20 +179,20 @@ const joinConversation = () => {
         if (!hasClickedJoinButton) {
           hasClickedJoinButton = findAndClickJoinButton(mutation.target);
         } else {
-          /** Clear Timeout */
-          clearTimeout(timeout);
-
           /** Disconnect */
           observer.disconnect();
         }
       }
     }
-  }));
+  });
 
-  /** Set Timeout to Stop Observing */
-  const timeout = (joinObserverTimeout = setTimeout(() => {
+  /** Set Controller */
+  joinObserverController = new AbortController();
+
+  /** Add Abort Event */
+  joinObserverController.signal.addEventListener("abort", () => {
     observer.disconnect();
-  }, 30_000));
+  });
 
   /** Observe */
   observer.observe(document.documentElement, {
@@ -214,15 +200,15 @@ const joinConversation = () => {
     subtree: true,
     attributes: true,
   });
+
+  /** Abort after timeout */
+  setTimeout(() => joinObserverController.abort(), 30_000);
 };
 
 /** Open Bot */
 const openBot = (isWebView) => {
-  /** Clear Previous Timeout */
-  clearTimeout(botObserverTimeout);
-
-  /** Clear Previous Observer */
-  botObserver?.disconnect();
+  /** Abort Previous Controller */
+  botObserverController?.abort();
 
   /** Has clicked Start Button? */
   let hasClickedStartButton = false;
@@ -231,7 +217,7 @@ const openBot = (isWebView) => {
   let hasClickedLaunchButton = false;
 
   /** Create Observer */
-  const observer = (botObserver = new MutationObserver(function (mutationList) {
+  const observer = new MutationObserver(function (mutationList) {
     for (const mutation of mutationList) {
       if (mutation.type === "childList") {
         mutation.addedNodes.forEach((node) => {
@@ -248,9 +234,6 @@ const openBot = (isWebView) => {
                 isWebView
               );
             } else {
-              /** Clear Timeout */
-              clearTimeout(timeout);
-
               /** Disconnect */
               observer.disconnect();
             }
@@ -269,20 +252,20 @@ const openBot = (isWebView) => {
             isWebView
           );
         } else {
-          /** Clear Timeout */
-          clearTimeout(timeout);
-
           /** Disconnect */
           observer.disconnect();
         }
       }
     }
-  }));
+  });
 
-  /** Set Timeout to Stop Observing */
-  const timeout = (botObserverTimeout = setTimeout(() => {
+  /** Set Controller */
+  botObserverController = new AbortController();
+
+  /** Add Abort Event */
+  botObserverController.signal.addEventListener("abort", () => {
     observer.disconnect();
-  }, 30_000));
+  });
 
   /** Observe */
   observer.observe(document.documentElement, {
@@ -290,11 +273,20 @@ const openBot = (isWebView) => {
     subtree: true,
     attributes: true,
   });
+
+  /** Abort after timeout */
+  setTimeout(() => botObserverController.abort(), 30_000);
 };
 
 /** Open Farmer Bot */
 const openFarmerBot = () => {
   return openBot();
+};
+
+/** Abort Observers */
+const abortObservers = () => {
+  botObserverController?.abort();
+  joinObserverController?.abort();
 };
 
 /** Auto Confirm Dialog */
@@ -364,6 +356,15 @@ const port = chrome.runtime.connect(chrome.runtime.id, {
 port.onMessage.addListener(async (message) => {
   const { id, action, data } = message;
   switch (action) {
+    case "abort-observers":
+      await abortObservers();
+      try {
+        port.postMessage({
+          id,
+          data: true,
+        });
+      } catch {}
+
     case "close-other-popups":
       await closeOtherPopups();
       try {

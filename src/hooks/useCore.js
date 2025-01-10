@@ -617,13 +617,18 @@ export default function useCore() {
           await openTelegramLink(url, version, isStartPage || force);
 
           if (isStartPage) {
-            /** Wait */
-            await delay(1000);
-
             /** Get Port */
             const telegramWebPort = messaging.ports
               .values()
               .find((port) => port.name === `telegram-web-${version}`);
+
+            /** Abort Observers */
+            postPortMessage(telegramWebPort, {
+              action: "abort-observers",
+            });
+
+            /** Wait */
+            await delay(1000);
 
             /** Open Bot */
             postPortMessage(telegramWebPort, {
