@@ -623,7 +623,7 @@ export default function useCore() {
               .find((port) => port.name === `telegram-web-${version}`);
 
             /** Abort Observers */
-            postPortMessage(telegramWebPort, {
+            await postPortMessage(telegramWebPort, {
               action: "abort-observers",
             });
 
@@ -631,7 +631,7 @@ export default function useCore() {
             await delay(1000);
 
             /** Open Bot */
-            postPortMessage(telegramWebPort, {
+            await postPortMessage(telegramWebPort, {
               action: "open-bot",
             });
           }
