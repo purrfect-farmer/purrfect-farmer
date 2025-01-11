@@ -522,7 +522,7 @@ export default function useCore() {
               toast.success(
                 `Re-Opening ${import.meta.env.VITE_APP_BOT_NAME}...`
               );
-              openFarmerBot(version, force);
+              openFarmerBot(version, true);
             };
 
             /** Add Handler */
