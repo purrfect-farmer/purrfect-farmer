@@ -155,8 +155,8 @@ const findAndClickLaunchButton = (node, isWebView) => {
 
 /** Join Conversation */
 const joinConversation = () => {
-  /** Abort Previous Controller */
-  joinObserverController?.abort();
+  /** Abort Previous Controllers */
+  abortObservers();
 
   /** Click Join Button */
   let hasClickedJoinButton = false;
@@ -207,8 +207,8 @@ const joinConversation = () => {
 
 /** Open Bot */
 const openBot = (isWebView) => {
-  /** Abort Previous Controller */
-  botObserverController?.abort();
+  /** Abort Previous Controllers */
+  abortObservers();
 
   /** Has clicked Start Button? */
   let hasClickedStartButton = false;

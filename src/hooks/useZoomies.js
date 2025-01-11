@@ -2,6 +2,7 @@ import defaultZoomiesState from "@/defaultZoomiesState";
 import toast from "react-hot-toast";
 import { useCallback } from "react";
 import { useEffect } from "react";
+import { useLayoutEffect } from "react";
 import { useMemo } from "react";
 import { useState } from "react";
 
@@ -79,9 +80,8 @@ export default function useZoomies(core) {
     "zoomies.enable-quick-run",
     () => {
       setQuickRun(true);
-      process.toggle(true);
     },
-    [setQuickRun, process.toggle],
+    [setQuickRun],
 
     /** Socket */
     core.socket
@@ -170,8 +170,27 @@ export default function useZoomies(core) {
       core.closeOtherBots();
       core.openTelegramBot(current.drop.telegramLink, undefined, force);
     },
-    [current.drop, core.closeOtherBots, core.openTelegramBot]
+    [
+      current.drop?.id,
+      current.drop?.telegramLink,
+      core.closeOtherBots,
+      core.openTelegramBot,
+    ]
   );
+
+  /** Start if Quick-Run is Enabled */
+  useLayoutEffect(() => {
+    if (quickRun) {
+      process.start();
+    }
+  }, [quickRun, process.start]);
+
+  /** Reset Quick Run */
+  useLayoutEffect(() => {
+    if (process.started === false) {
+      setQuickRun(false);
+    }
+  }, [process.started, setQuickRun]);
 
   /** Stop Zoomies after first cycle */
   useEffect(() => {
@@ -191,13 +210,6 @@ export default function useZoomies(core) {
     core.resetTabs,
     setCurrent,
   ]);
-
-  /** Reset Quick Run */
-  useEffect(() => {
-    if (process.started === false) {
-      setQuickRun(false);
-    }
-  }, [process.started, setQuickRun]);
 
   /** Reset Zoomies */
   useEffect(() => {
