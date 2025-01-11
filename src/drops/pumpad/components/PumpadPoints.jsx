@@ -1,6 +1,6 @@
 import useFarmerAutoProcess from "@/hooks/useFarmerAutoProcess";
 import useProcessLock from "@/hooks/useProcessLock";
-import { cn, delay, delayForSeconds } from "@/lib/utils";
+import { cn, delayForSeconds } from "@/lib/utils";
 import { memo } from "react";
 import { useCallback } from "react";
 import { useEffect } from "react";
@@ -103,9 +103,6 @@ export default memo(function PumpadPoints() {
 
           /** Increase AD */
           await adIncrementMutation.mutateAsync();
-
-          /** Delay Ad */
-          await delay(20_000);
         } else {
           /** Exposure */
           await exposureMutation.mutateAsync({
@@ -113,9 +110,6 @@ export default memo(function PumpadPoints() {
             page: "MEMBER_PAGE",
             source: point.source,
           });
-
-          /** Delay Ad */
-          await delay(10_000);
 
           /** Exposure */
           await exposureMutation.mutateAsync({

@@ -11,6 +11,7 @@ export default function usePumpadCompletePointTaskMutation() {
           "https://tg.pumpad.io/referral/api/v1/tg/member/complete_points_task",
           {
             ["task_id"]: id,
+            ["task_type"]: "WATCH_AD",
           }
         )
         .then((res) => res.data),
