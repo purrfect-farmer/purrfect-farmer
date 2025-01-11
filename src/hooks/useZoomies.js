@@ -199,10 +199,10 @@ export default function useZoomies(core) {
 
   /** Reset Zoomies */
   useEffect(() => {
-    if (canProcessZoomies) {
+    if (current.cycles >= 0 && canProcessZoomies) {
       resetZoomies();
     }
-  }, [canProcessZoomies, resetZoomies]);
+  }, [current.cycles, canProcessZoomies, resetZoomies]);
 
   /** Open Bot */
   useEffect(() => {
