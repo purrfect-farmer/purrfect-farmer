@@ -195,11 +195,11 @@ const farmerTabs = [
     telegramLink: "https://t.me/theYescoin_bot/Yescoin?startapp=bH7bto",
     tasks: {
       ["daily-check-in"]: true,
-      ["claim-special-box"]: false,
+      ["claim-special-box"]: true,
       ["tasks"]: false,
-      ["missions"]: false,
-      ["game"]: false,
-      ["claim-task-bonus"]: false,
+      ["missions"]: true,
+      ["game"]: true,
+      ["claim-task-bonus"]: true,
     },
   },
   {
@@ -266,7 +266,7 @@ const farmerTabs = [
       ["farming"]: true,
       ["tasks"]: true,
       ["daily-task-purchase"]: true,
-      ["game"]: false,
+      ["game"]: true,
     },
   },
   {
