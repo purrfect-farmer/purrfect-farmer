@@ -47,6 +47,18 @@ const farmerTabs = [
     component: <TelegramWeb version="a" />,
   },
   {
+    id: "horse-go",
+    title: "HorseGo",
+    icon: farmerIcons["horse-go"],
+    component: <Farmer id={"horse-go"} farmer="HorseGo" />,
+    telegramLink: "https://t.me/HorseGo_bot/HorseFever?startapp=code_G6ZAC6",
+    tasks: {
+      ["daily-sign-in"]: true,
+      ["complete-tasks"]: true,
+      ["game"]: false,
+    },
+  },
+  {
     id: "funatic",
     title: "Funatic",
     icon: farmerIcons["funatic"],
