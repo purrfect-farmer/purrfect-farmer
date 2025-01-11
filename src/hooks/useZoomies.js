@@ -2,7 +2,6 @@ import defaultZoomiesState from "@/defaultZoomiesState";
 import toast from "react-hot-toast";
 import { useCallback } from "react";
 import { useEffect } from "react";
-import { useLayoutEffect } from "react";
 import { useMemo } from "react";
 import { useState } from "react";
 
@@ -75,13 +74,14 @@ export default function useZoomies(core) {
     }
   }, [current.drop, setAuth, core.closeFarmerTabs, core.setActiveTab]);
 
-  /** Enable Quick Run */
-  const [enableQuickRun, dispatchAndEnableQuickRun] = useSocketDispatchCallback(
-    "zoomies.enable-quick-run",
-    () => {
-      setQuickRun(true);
+  /** Toggle Zoomies */
+  const [toggle, dispatchAndToggle] = useSocketDispatchCallback(
+    "zoomies.enable-zoomies",
+    (state = true, quick = false) => {
+      setQuickRun(quick);
+      process.toggle(state);
     },
-    [setQuickRun],
+    [setQuickRun, process.toggle],
 
     /** Socket */
     core.socket
@@ -177,20 +177,6 @@ export default function useZoomies(core) {
       core.openTelegramBot,
     ]
   );
-
-  /** Start if Quick-Run is Enabled */
-  useLayoutEffect(() => {
-    if (quickRun) {
-      process.start();
-    }
-  }, [quickRun, process.start]);
-
-  /** Reset Quick Run */
-  useLayoutEffect(() => {
-    if (process.started === false) {
-      setQuickRun(false);
-    }
-  }, [process.started, setQuickRun]);
 
   /** Stop Zoomies after first cycle */
   useEffect(() => {
@@ -312,13 +298,12 @@ export default function useZoomies(core) {
     drops,
     quickRun,
     enabled: process.started,
-    toggle: process.toggle,
-    dispatchAndToggle: process.dispatchAndToggle,
-    dispatchAndEnableQuickRun,
+    toggle,
+    dispatchAndToggle,
     current,
     setAuth,
     setCurrent,
-    enableQuickRun,
+    toggle,
     skipToNextDrop,
     processPreviousTask,
     processNextTask,

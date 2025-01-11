@@ -143,7 +143,7 @@ export default memo(function ControlArea() {
               )}
             >
               <ContextMenu.Item
-                onClick={() => zoomies.dispatchAndEnableQuickRun()}
+                onClick={() => zoomies.dispatchAndToggle(true, true)}
                 className={cn(
                   "flex items-center gap-2 p-2",
                   "rounded-lg cursor-pointer",
