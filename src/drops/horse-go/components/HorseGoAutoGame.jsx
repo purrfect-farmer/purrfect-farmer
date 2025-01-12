@@ -93,7 +93,7 @@ export default memo(function HorseGoAutoGame() {
           enforceWin ? "text-lime-500 font-bold" : null,
           "mx-auto my-2"
         )}
-        onClick={() => dispatchAndSetEnforceWin((prev) => prev === false)}
+        onClick={() => dispatchAndSetEnforceWin(enforceWin === false)}
       >
         Enforce Win
       </button>
