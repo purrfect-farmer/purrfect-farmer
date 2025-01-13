@@ -356,19 +356,22 @@ export default function useCore() {
     const farmerBotPortName = `mini-app:${import.meta.env.VITE_APP_BOT_HOST}`;
 
     if (ports.some((port) => port.name === farmerBotPortName)) {
-      for (const port of ports.filter(
-        (port) => port.name !== farmerBotPortName
-      )) {
-        await postPortMessage(port, {
-          action: "close-bot",
-        });
-      }
+      ports
+        .filter((port) => port.name !== farmerBotPortName)
+        .forEach((port) =>
+          postPortMessage(port, {
+            action: "close-bot",
+          })
+        );
     } else {
-      for (const port of ports.slice(1).reverse()) {
-        await postPortMessage(port, {
-          action: "close-bot",
-        });
-      }
+      ports
+        .slice(1)
+        .reverse()
+        .forEach((port) =>
+          postPortMessage(port, {
+            action: "close-bot",
+          })
+        );
     }
 
     /** Close Telegram WebK Popups */
@@ -377,7 +380,7 @@ export default function useCore() {
       .find((port) => port.name === "telegram-web-k");
 
     if (telegramWebKPort) {
-      await postPortMessage(telegramWebKPort, {
+      postPortMessage(telegramWebKPort, {
         action: "close-other-popups",
       });
     }
@@ -407,7 +410,7 @@ export default function useCore() {
         const miniAppPorts = getMiniAppPorts();
         if (miniAppPorts.length) {
           setActiveTab(`telegram-web-${version}`);
-          await postPortMessage(miniAppPorts.at(0), {
+          postPortMessage(miniAppPorts.at(0), {
             action: "open-telegram-link",
             data: { url: import.meta.env.VITE_APP_BOT_MINI_APP },
           });
@@ -419,7 +422,7 @@ export default function useCore() {
       /** Capture Port */
       const capturePort = async function (port) {
         /** Post Message */
-        await postPortMessage(port, {
+        postPortMessage(port, {
           action: "open-farmer-bot",
         });
       };
@@ -552,7 +555,7 @@ export default function useCore() {
 
           /** Close Other Bots */
           if (settings.closeOtherBots && isBotURL(url)) {
-            await closeOtherBots();
+            closeOtherBots();
           }
 
           /** Open Telegram Web */
@@ -588,7 +591,7 @@ export default function useCore() {
             .find((port) => port.name === `telegram-web-${version}`);
 
           /** Join Conversation */
-          await postPortMessage(telegramWebPort, {
+          postPortMessage(telegramWebPort, {
             action: "join-conversation",
           });
 
@@ -619,7 +622,7 @@ export default function useCore() {
             .find((port) => port.name === `telegram-web-${version}`);
 
           /** Abort Observers */
-          await postPortMessage(telegramWebPort, {
+          postPortMessage(telegramWebPort, {
             action: "abort-observers",
           });
 
@@ -628,7 +631,7 @@ export default function useCore() {
             await delay(1000);
 
             /** Open Bot */
-            await postPortMessage(telegramWebPort, {
+            postPortMessage(telegramWebPort, {
               action: "open-bot",
             });
           }
