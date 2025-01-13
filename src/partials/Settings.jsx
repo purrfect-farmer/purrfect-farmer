@@ -16,7 +16,7 @@ import {
 } from "react-icons/hi2";
 import { Reorder, useDragControls } from "motion/react";
 import { cn, maximizeFarmerWindow, resizeFarmerWindow } from "@/lib/utils";
-import { memo, useCallback, useEffect, useState } from "react";
+import { memo, useCallback, useLayoutEffect, useState } from "react";
 
 const DropReorderItem = memo(({ children, ...props }) => {
   const dragControls = useDragControls();
@@ -124,7 +124,7 @@ export default memo(function Settings({ tabs }) {
   );
 
   /** Update Settings */
-  useEffect(() => {
+  useLayoutEffect(() => {
     /** Set Sync Server */
     setSyncServer(settings.syncServer || defaultSettings.syncServer);
 
