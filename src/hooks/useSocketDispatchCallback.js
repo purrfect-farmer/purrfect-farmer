@@ -1,7 +1,8 @@
 import { useCallback } from "react";
+import { useLayoutEffect } from "react";
 import { useMemo } from "react";
+
 import useAppContext from "./useAppContext";
-import { useEffect } from "react";
 
 export default function useSocketDispatchCallback(
   action,
@@ -29,7 +30,7 @@ export default function useSocketDispatchCallback(
   );
 
   /** Add Handler */
-  useEffect(() => {
+  useLayoutEffect(() => {
     /** Create Handler */
     const handler = (command) => main(...command.data);
 

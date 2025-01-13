@@ -1,4 +1,3 @@
-import { useEffect } from "react";
 import { useLayoutEffect } from "react";
 import { useState } from "react";
 
@@ -21,7 +20,7 @@ export default function useFarmerAsyncTask(task, effect, deps = []) {
   }, [...deps]);
 
   /** Run effect */
-  useEffect(() => {
+  useLayoutEffect(() => {
     /** Don't run task concurrently during Quick Run Zoomies */
     if (isZooming && zoomies.quickRun && zoomies.current.task !== task) {
       return;

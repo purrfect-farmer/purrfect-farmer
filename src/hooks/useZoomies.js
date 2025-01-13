@@ -1,7 +1,7 @@
 import defaultZoomiesState from "@/defaultZoomiesState";
 import toast from "react-hot-toast";
 import { useCallback } from "react";
-import { useEffect } from "react";
+import { useLayoutEffect } from "react";
 import { useMemo } from "react";
 import { useState } from "react";
 
@@ -69,10 +69,10 @@ export default function useZoomies(core) {
     core.closeFarmerTabs();
 
     /** Set Active Tab */
-    if (current.drop) {
-      core.setActiveTab(current.drop.id);
+    if (current.drop?.id) {
+      core.setActiveTab(current.drop?.id);
     }
-  }, [current.drop, setAuth, core.closeFarmerTabs, core.setActiveTab]);
+  }, [setAuth, current.drop?.id, core.closeFarmerTabs, core.setActiveTab]);
 
   /** Toggle Zoomies */
   const [toggle, dispatchAndToggle] = useSocketDispatchCallback(
@@ -179,7 +179,7 @@ export default function useZoomies(core) {
   );
 
   /** Stop Zoomies after first cycle */
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (process.started && repeatZoomiesCycle === false) {
       process.stop();
       core.cancelTelegramHandlers();
@@ -198,14 +198,14 @@ export default function useZoomies(core) {
   ]);
 
   /** Reset Zoomies */
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (current.cycles >= 0 && canProcessZoomies) {
       resetZoomies();
     }
   }, [current.cycles, canProcessZoomies, resetZoomies]);
 
   /** Open Bot */
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (canProcessZoomies && auth === false) {
       /** First Time */
       openBot(false);
@@ -221,7 +221,7 @@ export default function useZoomies(core) {
   }, [canProcessZoomies, auth, openBot]);
 
   /** Handle Auth */
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (!canProcessZoomies) return;
 
     if (auth) {
@@ -236,15 +236,15 @@ export default function useZoomies(core) {
       }
     }
   }, [
-    canProcessZoomies,
     auth,
+    canProcessZoomies,
     current.drop,
     core.closeOtherBots,
     core.setActiveTab,
   ]);
 
   /** Reset the drops */
-  useEffect(() => {
+  useLayoutEffect(() => {
     /** Update current drop */
     setCurrent((prev) => {
       if (drops.includes(prev.drop)) {
@@ -260,7 +260,7 @@ export default function useZoomies(core) {
   }, [drops, setCurrent]);
 
   /** Stop When There's no Drop */
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (process.started && !current.drop) {
       process.stop();
       toast.error("No Farmer enabled in the Zoomies");
@@ -268,7 +268,7 @@ export default function useZoomies(core) {
   }, [process.started, process.stop, current.drop]);
 
   /** Restore State */
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (hasRestoredZoomiesState) {
       const prevState = zoomiesState;
       const drop = drops.find((item) => item.id === prevState.dropId);
@@ -285,7 +285,7 @@ export default function useZoomies(core) {
   }, [hasRestoredZoomiesState, setCurrent]);
 
   /** Store in Settings */
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (hasRestoredZoomiesState) {
       storeZoomiesState({
         dropId: current?.drop?.id,

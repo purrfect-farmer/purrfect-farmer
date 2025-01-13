@@ -1,6 +1,6 @@
 import { getStorage } from "@/lib/utils";
 import { useCallback } from "react";
-import { useEffect } from "react";
+import { useLayoutEffect } from "react";
 import { useState } from "react";
 
 import useValuesMemo from "./useValuesMemo";
@@ -20,7 +20,7 @@ export default function useStorageState(key, defaultValue) {
   );
 
   /** Restore Value and Watch Storage */
-  useEffect(() => {
+  useLayoutEffect(() => {
     /** Restore Value */
     getStorage(key, defaultValue).then((value) => {
       setValue(value);

@@ -1,5 +1,5 @@
 import { useCallback } from "react";
-import { useEffect } from "react";
+import { useLayoutEffect } from "react";
 import { useMemo } from "react";
 
 import useEventEmitter from "./useEventEmitter";
@@ -59,7 +59,7 @@ export default function useMessagePort() {
   );
 
   /** Instantiate Port Listener */
-  useEffect(() => {
+  useLayoutEffect(() => {
     /**
      * @param {chrome.runtime.Port} port
      */

@@ -1,5 +1,5 @@
 import { postPortMessage } from "@/lib/utils";
-import { useCallback, useEffect, useMemo } from "react";
+import { useCallback, useLayoutEffect, useMemo } from "react";
 import { useState } from "react";
 
 import useAppContext from "./useAppContext";
@@ -41,7 +41,7 @@ export default function useTelegramWebApp(host) {
   );
 
   /** Get TelegramWebApp from Bot */
-  useEffect(() => {
+  useLayoutEffect(() => {
     const port = messaging.ports
       .values()
       .find((port) => port.name === `mini-app:${host}`);

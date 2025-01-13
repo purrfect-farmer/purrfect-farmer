@@ -1,6 +1,6 @@
 import { io } from "socket.io-client";
 import { useCallback } from "react";
-import { useEffect } from "react";
+import { useLayoutEffect } from "react";
 import { useMemo } from "react";
 import { useRef } from "react";
 import { useState } from "react";
@@ -28,7 +28,7 @@ export default function useSocket(server = "127.0.0.1:7777") {
   );
 
   /** Instantiate Socket */
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (!server) return;
 
     const socket = (socketRef.current = io(`ws://${server}`));
@@ -51,7 +51,7 @@ export default function useSocket(server = "127.0.0.1:7777") {
   }, [server]);
 
   /** Handle Commands */
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (!server) return;
 
     const actionHandler = (arg) => {

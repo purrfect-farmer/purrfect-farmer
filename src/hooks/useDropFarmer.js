@@ -3,7 +3,6 @@ import axios from "axios";
 import toast from "react-hot-toast";
 import { createElement, useCallback } from "react";
 import { delay } from "@/lib/utils";
-import { useEffect } from "react";
 import { useIsMutating, useQueryClient } from "@tanstack/react-query";
 import { useLayoutEffect } from "react";
 import { useMemo } from "react";
@@ -174,7 +173,7 @@ export default function useDropFarmer({
   );
 
   /** Enforce only one request */
-  useEffect(() => {
+  useLayoutEffect(() => {
     let isRequestInProgress = false;
     let requestQueue = [];
 
@@ -228,7 +227,7 @@ export default function useDropFarmer({
   }, [api, apiDelay]);
 
   /** Response Interceptor */
-  useEffect(() => {
+  useLayoutEffect(() => {
     const interceptor = api.interceptors.response.use(
       (response) => Promise.resolve(response),
       (error) => {
@@ -250,7 +249,7 @@ export default function useDropFarmer({
   }, [api, resetAuth]);
 
   /** Handle Web Request */
-  useEffect(() => {
+  useLayoutEffect(() => {
     /** Requires domain matches */
     /** Don't watch requests without Telegram Web App  */
     if (auth || domainMatches.length < 1 || !telegramWebApp) {
@@ -321,7 +320,7 @@ export default function useDropFarmer({
   }, [api, telegramWebApp, authQuery.data, configureAuthHeaders]);
 
   /** Create Notification */
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (auth) {
       toast.success(
         (t) =>
@@ -348,21 +347,21 @@ export default function useDropFarmer({
 
   /** ========= Zoomies =========== */
   /** Set Auth */
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (isZooming) {
       zoomies.setAuth(auth);
     }
   }, [auth, isZooming, zoomies.setAuth]);
 
   /** Process Next Task After 3 Auth Reset */
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (isZooming && authResetCount >= 3) {
       zoomies.skipToNextDrop();
     }
   }, [isZooming, authResetCount, zoomies.skipToNextDrop]);
 
   /** Process Next Task if Unable to Obtain Auth within 30sec */
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (isZooming) {
       if (telegramWebApp && !auth) {
         /** Set Timeout */
@@ -376,7 +375,7 @@ export default function useDropFarmer({
   }, [auth, telegramWebApp, isZooming, zoomies.skipToNextDrop]);
 
   /** Sync to Cloud */
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (syncToCloud && auth) {
       const { initData, initDataUnsafe } = telegramWebApp;
 
@@ -408,13 +407,13 @@ export default function useDropFarmer({
   ]);
 
   /** Update Tab with TelegramWebApp Data  */
-  useEffect(
+  useLayoutEffect(
     () => updateTab(id, { telegramWebApp }),
     [id, telegramWebApp, updateTab]
   );
 
   /** Clean Up */
-  useEffect(() => () => removeQueries(), [removeQueries]);
+  useLayoutEffect(() => () => removeQueries(), [removeQueries]);
 
   /** Return API and Auth */
   return useValuesMemo({

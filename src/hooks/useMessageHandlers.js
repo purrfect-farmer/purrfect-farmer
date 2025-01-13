@@ -1,4 +1,5 @@
-import { useEffect } from "react";
+import { useLayoutEffect } from "react";
+
 import useAppContext from "./useAppContext";
 
 export default function useMessageHandlers(handlers, messaging) {
@@ -6,7 +7,7 @@ export default function useMessageHandlers(handlers, messaging) {
 
   const messagingToUse = messaging || app.messaging;
 
-  return useEffect(() => {
+  return useLayoutEffect(() => {
     messagingToUse.addMessageHandlers(handlers);
 
     return () => {

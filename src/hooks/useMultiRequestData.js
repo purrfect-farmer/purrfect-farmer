@@ -1,6 +1,6 @@
 import { connectPortMessage } from "@/lib/utils";
 import { useCallback } from "react";
-import { useEffect } from "react";
+import { useLayoutEffect } from "react";
 import { useMemo } from "react";
 import { useState } from "react";
 
@@ -18,7 +18,7 @@ export function useMultiRequestData(port, items, options) {
     [setResult]
   );
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (port) {
       connectPortMessage(
         port,
