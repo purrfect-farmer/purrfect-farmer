@@ -2,7 +2,7 @@ import useFarmerAutoProcess from "@/hooks/useFarmerAutoProcess";
 import useProcessLock from "@/hooks/useProcessLock";
 import { cn, delay, logNicely } from "@/lib/utils";
 import { isAfter, isBefore } from "date-fns";
-import { memo } from "react";
+import { memo, useCallback } from "react";
 import { useEffect } from "react";
 import { useMemo } from "react";
 import { useQueryClient } from "@tanstack/react-query";
@@ -17,6 +17,13 @@ export default memo(function ZooAnimals() {
   const [allData] = dataQueries.data;
   const hero = allData.hero;
   const balance = hero.coins;
+  const tph = hero?.tph || 0;
+
+  const instantItemPriceInTph =
+    allData?.dbData?.dbAutoFeed?.find((item) => item.key === "instant")
+      ?.priceInTph || 0;
+
+  const feedPrice = Math.ceil(tph * instantItemPriceInTph);
 
   /** Process */
   const process = useProcessLock("zoo.animals");
@@ -26,6 +33,12 @@ export default memo(function ZooAnimals() {
 
   /** Buy Animal Mutation */
   const buyAnimalMutation = useZooBuyAnimalMutation();
+
+  /** Can Purchase Animal */
+  const canPurchaseAnimal = useCallback(
+    (price) => balance - price >= feedPrice,
+    [balance, feedPrice]
+  );
 
   /** All Animals */
   const allAnimals = useMemo(
@@ -73,7 +86,7 @@ export default memo(function ZooAnimals() {
             /** Exists */
             userAnimals.some((item) => item.key === animal.key) === false &&
             /** Price */
-            animal.levels[0].price <= balance &&
+            canPurchaseAnimal(animal.levels[0].price) &&
             /** Date Start */
             (animal.dateStart === null ||
               isAfter(new Date(), new Date(animal.dateStart))) &&
@@ -84,7 +97,7 @@ export default memo(function ZooAnimals() {
         .sort((a, b) => {
           return b.levels[0].profit - a.levels[0].profit;
         }),
-    [balance, allAnimals, userAnimals]
+    [allAnimals, userAnimals, canPurchaseAnimal]
   );
 
   /** Upgradable Animals */
@@ -92,12 +105,12 @@ export default memo(function ZooAnimals() {
     () =>
       userAnimals
         .filter((item) => {
-          return item.nextLevel && item.nextLevel.price <= balance;
+          return item.nextLevel && canPurchaseAnimal(item.nextLevel.price);
         })
         .sort((a, b) => {
           return b.nextProfitDifference - a.nextProfitDifference;
         }),
-    [balance, userAnimals]
+    [userAnimals, canPurchaseAnimal]
   );
 
   /** Positions */
