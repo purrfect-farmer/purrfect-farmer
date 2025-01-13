@@ -21,10 +21,11 @@ export default memo(function HorseGoAutoGame() {
 
   const queryClient = useQueryClient();
 
-  const [enforceWin, setEnforceWin, dispatchAndSetEnforceWin] = useSocketState(
-    "horse-go.enforce-win",
-    false
+  const [mode, setMode, dispatchAndSetMode] = useSocketState(
+    "horse-go.mode",
+    "balanced"
   );
+
   const energy = userQuery.data?.energyPoints || 0;
 
   /** Play Game */
@@ -43,7 +44,10 @@ export default memo(function HorseGoAutoGame() {
       try {
         /** Bid */
         const result =
-          enforceWin || Math.floor(Math.random() * 2) ? "WIN" : "LOSE";
+          mode === "win" ||
+          (mode === "balanced" && Math.floor(Math.random() * 2))
+            ? "WIN"
+            : "LOSE";
         const priceChange = Math.floor(Math.random() * 2) ? "LONG" : "SHORT";
 
         /** Delay */
@@ -69,7 +73,7 @@ export default memo(function HorseGoAutoGame() {
       /** Release Lock */
       process.unlock();
     })();
-  }, [process, energy, enforceWin]);
+  }, [process, energy, mode]);
 
   /** Auto-Play Game */
   useFarmerAutoProcess(
@@ -88,15 +92,40 @@ export default memo(function HorseGoAutoGame() {
         {process.started ? "Stop" : "Start"}
       </HorseGoButton>
 
-      <button
-        className={cn(
-          enforceWin ? "text-lime-500 font-bold" : null,
-          "mx-auto my-2"
-        )}
-        onClick={() => dispatchAndSetEnforceWin(enforceWin === false)}
-      >
-        Enforce Win
-      </button>
+      <div className="grid grid-cols-3 p-2 rounded-full bg-neutral-800">
+        {/* Always Lose */}
+        <button
+          className={cn(
+            mode === "lose" ? "bg-red-500 font-bold" : null,
+            "px-2 py-1 rounded-full"
+          )}
+          onClick={() => dispatchAndSetMode("lose")}
+        >
+          Lose
+        </button>
+
+        {/* Balanced */}
+        <button
+          className={cn(
+            mode === "balanced" ? "bg-white text-black font-bold" : null,
+            "px-2 py-1 rounded-full"
+          )}
+          onClick={() => dispatchAndSetMode("balanced")}
+        >
+          Balanced
+        </button>
+
+        {/* Always Win */}
+        <button
+          className={cn(
+            mode === "win" ? "bg-lime-500 font-bold" : null,
+            "px-2 py-1 rounded-full"
+          )}
+          onClick={() => dispatchAndSetMode("win")}
+        >
+          Win
+        </button>
+      </div>
     </div>
   );
 });
