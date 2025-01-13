@@ -118,7 +118,7 @@ export default memo(function HorseGoAutoGame() {
         {/* Always Win */}
         <button
           className={cn(
-            mode === "win" ? "bg-lime-500 font-bold" : null,
+            mode === "win" ? "bg-lime-500 text-black font-bold" : null,
             "px-2 py-1 rounded-full"
           )}
           onClick={() => dispatchAndSetMode("win")}
