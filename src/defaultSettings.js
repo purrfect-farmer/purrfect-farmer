@@ -1,6 +1,5 @@
 /** Drops Status */
 const dropsStatus = {
-  ["horse-go"]: true,
   ["funatic"]: true,
   ["gold-eagle"]: true,
   ["midas"]: true,
@@ -9,6 +8,7 @@ const dropsStatus = {
   ["tsubasa"]: true,
   ["dreamcoin"]: true,
   ["rekt"]: true,
+  ["wonton"]: true,
 };
 
 /** Drops Order */
