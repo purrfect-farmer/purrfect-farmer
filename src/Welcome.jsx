@@ -393,22 +393,6 @@ export default memo(function Welcome() {
 
           {/* Connect */}
           <div className="flex items-center justify-center gap-2 text-xs">
-            <a
-              href={import.meta.env.VITE_APP_TELEGRAM_CHANNEL}
-              target="_blank"
-              className="text-blue-500 hover:underline"
-            >
-              Channel
-            </a>
-            &bull;
-            <a
-              href={import.meta.env.VITE_APP_DEV_CONTACT}
-              target="_blank"
-              className="text-blue-500 hover:underline"
-            >
-              Dev
-            </a>
-            &bull;
             <Dialog.Root>
               <Dialog.Trigger asChild>
                 <a role="button" className="text-blue-500 hover:underline">
