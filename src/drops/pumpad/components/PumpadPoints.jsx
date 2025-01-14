@@ -1,6 +1,6 @@
 import useFarmerAutoProcess from "@/hooks/useFarmerAutoProcess";
 import useProcessLock from "@/hooks/useProcessLock";
-import { cn, delayForSeconds } from "@/lib/utils";
+import { cn, delay } from "@/lib/utils";
 import { memo } from "react";
 import { useCallback } from "react";
 import { useEffect } from "react";
@@ -18,7 +18,8 @@ export default memo(function PumpadPoints() {
   const remainingAdsQuery = usePumpadRemainingAdsQuery();
   const totalAdsCount = remainingAdsQuery.data?.["total_count"] || 0;
   const remainingAdsCount = remainingAdsQuery.data?.["remaining_count"] || 0;
-  const points = useMemo(
+
+  const ads = useMemo(
     () =>
       [
         {
@@ -43,6 +44,27 @@ export default memo(function PumpadPoints() {
         .filter((item) => item["source"] && item["rest_completions"] > 0)
         .sort((a, b) => a["interval_time"] - b["interval_time"]),
     [totalAdsCount, remainingAdsCount, adsQuery.data]
+  );
+
+  /** Next Claim Time */
+  const [nextClaimTime, setNextClaimTime] = useState({
+    ["ON_CLICKA"]: 0,
+    ["OPEN_AD"]: 0,
+    ["TONADX"]: 0,
+    ["MONETAG"]: 0,
+  });
+
+  /** Points */
+  const points = useMemo(
+    () =>
+      ads
+        .map((item) => ({
+          ...item,
+          ["next_claim_time"]: nextClaimTime[item["source"]] || 0,
+        }))
+        .filter((item) => item["next_claim_time"] <= Date.now() + 200 * 1000)
+        .sort((a, b) => a["next_claim_time"] - b["next_claim_time"]),
+    [ads, nextClaimTime]
   );
 
   const process = useProcessLock("pumpad.points");
@@ -93,6 +115,9 @@ export default memo(function PumpadPoints() {
         adIncrementMutation.reset();
         completePointTaskMutation.reset();
 
+        /** Delay till next claim */
+        await delay(Math.max(0, point["next_claim_time"] - Date.now()), true);
+
         if (point["source"] === "ADSGRAM") {
           /** Exposure */
           await exposureMutation.mutateAsync({
@@ -124,7 +149,10 @@ export default memo(function PumpadPoints() {
       } catch {}
 
       /** CoolDown */
-      await delayForSeconds(point["interval_time"]);
+      setNextClaimTime((prev) => ({
+        ...prev,
+        [point["source"]]: Date.now() + point["interval_time"] * 1000,
+      }));
 
       /** Refetch Queries */
       try {
