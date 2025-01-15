@@ -47,6 +47,18 @@ const farmerTabs = [
     component: <TelegramWeb version="a" />,
   },
   {
+    id: "cex",
+    title: "CEX",
+    icon: farmerIcons["cex"],
+    component: <Farmer farmer="CEX" />,
+    telegramLink: "https://t.me/cexio_tap_bot?start=1717159919141996",
+    tasks: {
+      ["tasks"]: false,
+      ["game"]: false,
+      ["cards"]: false,
+    },
+  },
+  {
     id: "horse-go",
     title: "HorseGo",
     icon: farmerIcons["horse-go"],

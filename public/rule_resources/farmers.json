@@ -518,5 +518,57 @@
     "condition": {
       "requestDomains": ["funtico.com"]
     }
+  },
+  {
+    "id": 20,
+    "action": {
+      "type": "modifyHeaders",
+      "requestHeaders": [
+        {
+          "header": "x-requested-with",
+          "operation": "set",
+          "value": "org.telegram.messenger"
+        },
+        {
+          "header": "origin",
+          "operation": "set",
+          "value": "https://app.cexptap.com"
+        },
+        {
+          "header": "referer",
+          "operation": "set",
+          "value": "https://app.cexptap.com/"
+        }
+      ]
+    },
+    "condition": {
+      "requestDomains": ["app.cexptap.com"]
+    }
+  },
+  {
+    "id": 21,
+    "action": {
+      "type": "modifyHeaders",
+      "requestHeaders": [
+        {
+          "header": "x-requested-with",
+          "operation": "set",
+          "value": "org.telegram.messenger"
+        },
+        {
+          "header": "origin",
+          "operation": "set",
+          "value": "https://horsego.vip"
+        },
+        {
+          "header": "referer",
+          "operation": "set",
+          "value": "https://horsego.vip/"
+        }
+      ]
+    },
+    "condition": {
+      "requestDomains": ["horsego.vip"]
+    }
   }
 ]
