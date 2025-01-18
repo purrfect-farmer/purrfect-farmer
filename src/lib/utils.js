@@ -39,7 +39,7 @@ export function randomPercent(value, min = 0, max = 100) {
 }
 
 export function extraGamePoints(points) {
-  points + randomPercent(points, 0, 20);
+  return points + randomPercent(points, 0, 20);
 }
 
 export function delayForSeconds(length, precised = false) {
