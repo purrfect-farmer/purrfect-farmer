@@ -27,10 +27,9 @@ export default memo(function MatchQuestAutoTasks() {
   const tasks = useMemo(
     () =>
       taskQuery.data
-        ? Object.values(taskQuery.data).reduce(
-            (result, item) => result.concat(item || []),
-            []
-          )
+        ? Object.values(taskQuery.data)
+            .reduce((result, item) => result.concat(item || []), [])
+            .filter((item) => item.name.include("join_Dypians") === false)
         : [],
     [taskQuery.data]
   );
