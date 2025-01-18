@@ -283,25 +283,26 @@ export default memo(function Settings({ tabs }) {
                       Close Other Bots
                     </LabelToggle>
 
-                    {/* Sync Server */}
-                    <label className="text-neutral-400">Sync Server</label>
-                    <div className="flex gap-2">
-                      <Input
-                        value={syncServer}
-                        onChange={(ev) => setSyncServer(ev.target.value)}
-                        placeholder="Sync Server"
-                      />
+                    {/* Cloud Options */}
+                    <h4 className="mt-4 text-neutral-400">Cloud Options</h4>
 
-                      {/* Reset Button */}
-                      <ResetButton
-                        onClick={() =>
-                          setSyncServer(defaultSettings.syncServer)
-                        }
-                      />
-
-                      {/* Set Button */}
-                      <ConfirmButton onClick={handleSetSyncServer} />
-                    </div>
+                    {/* Cloud Sync */}
+                    <LabelToggle
+                      onChange={(ev) =>
+                        dispatchAndConfigureSettings(
+                          "enableCloudSync",
+                          ev.target.checked
+                        )
+                      }
+                      checked={settings?.enableCloudSync}
+                    >
+                      <span className="flex flex-col">
+                        <span>Enable Cloud Sync</span>
+                        <span className="text-orange-500">
+                          (Access Required)
+                        </span>
+                      </span>
+                    </LabelToggle>
 
                     {/* Cloud Server */}
                     <label className="text-neutral-400">Cloud Server</label>
@@ -364,6 +365,26 @@ export default memo(function Settings({ tabs }) {
                     >
                       Close Main Window on Startup
                     </LabelToggle>
+
+                    {/* Sync Server */}
+                    <label className="text-neutral-400">Sync Server</label>
+                    <div className="flex gap-2">
+                      <Input
+                        value={syncServer}
+                        onChange={(ev) => setSyncServer(ev.target.value)}
+                        placeholder="Sync Server"
+                      />
+
+                      {/* Reset Button */}
+                      <ResetButton
+                        onClick={() =>
+                          setSyncServer(defaultSettings.syncServer)
+                        }
+                      />
+
+                      {/* Set Button */}
+                      <ConfirmButton onClick={handleSetSyncServer} />
+                    </div>
 
                     {/* Farmers Per Windows */}
                     <label className="text-neutral-400">

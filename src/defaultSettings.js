@@ -19,6 +19,7 @@ const defaultSettings = {
   farmerTitle: "TGUser",
   syncServer: import.meta.env.VITE_SYNC_SERVER,
   cloudServer: import.meta.env.VITE_CLOUD_SERVER,
+  enableCloudSync: false,
   closeOtherBots: true,
   farmersLayout: "grid",
   showLinksAsGrid: false,

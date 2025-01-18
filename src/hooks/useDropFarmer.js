@@ -36,7 +36,14 @@ export default function useDropFarmer({
     setActiveTab,
     updateTab,
     userAgent,
+    settings,
   } = useAppContext();
+
+  /** Enable Cloud Sync */
+  const enableCloudSync = settings.enableCloudSync;
+
+  /** Should Sync */
+  const shouldSync = enableCloudSync && syncToCloud;
 
   /** Cloud Sync Mutation */
   const cloudSyncMutation = useCloudSyncMutation(id);
@@ -376,7 +383,7 @@ export default function useDropFarmer({
 
   /** Sync to Cloud */
   useLayoutEffect(() => {
-    if (syncToCloud && auth) {
+    if (shouldSync && auth) {
       const { initData, initDataUnsafe } = telegramWebApp;
 
       cloudSyncMutation
@@ -397,11 +404,11 @@ export default function useDropFarmer({
         });
     }
   }, [
-    syncToCloud,
     id,
     api,
     auth,
     userAgent,
+    shouldSync,
     telegramWebApp,
     notification.title,
   ]);
