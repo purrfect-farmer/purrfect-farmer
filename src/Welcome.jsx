@@ -15,6 +15,7 @@ import {
   HiOutlineArrowPath,
   HiOutlineArrowUpRight,
   HiOutlineCog6Tooth,
+  HiOutlineCurrencyDollar,
   HiOutlinePower,
   HiOutlinePuzzlePiece,
 } from "react-icons/hi2";
@@ -393,9 +394,51 @@ export default memo(function Welcome() {
 
           {/* Connect */}
           <div className="flex items-center justify-center gap-2 text-xs">
+            <div
+              className={cn(
+                "grid grid-cols-3 rounded-full overflow-hidden",
+                "text-center",
+                "bg-neutral-100 dark:bg-neutral-700",
+                "divide-x dark:divide-neutral-600"
+              )}
+            >
+              <a
+                href={import.meta.env.VITE_APP_TELEGRAM_CHANNEL}
+                target="_blank"
+                className="px-4 py-2 hover:bg-blue-500 hover:text-white"
+              >
+                Channel
+              </a>
+              <a
+                href={import.meta.env.VITE_APP_DEV_CONTACT}
+                target="_blank"
+                className="px-4 py-2 hover:bg-blue-500 hover:text-white"
+              >
+                Dev
+              </a>
+              <a
+                href={import.meta.env.VITE_APP_TELEGRAM_GROUP}
+                target="_blank"
+                className="px-4 py-2 hover:bg-blue-500 hover:text-white"
+              >
+                Group
+              </a>
+            </div>
+          </div>
+          <div className="flex items-center justify-center gap-2 text-xs">
             <Dialog.Root>
               <Dialog.Trigger asChild>
-                <a role="button" className="text-blue-500 hover:underline">
+                <a
+                  role="button"
+                  className={cn(
+                    "text-blue-500",
+                    "px-4 py-2",
+                    "rounded-full",
+                    "border border-blue-500",
+                    "flex items-center justify-center gap-2"
+                  )}
+                >
+                  <HiOutlineCurrencyDollar className="w-4 h-4" />
                   Donate
                 </a>
               </Dialog.Trigger>
