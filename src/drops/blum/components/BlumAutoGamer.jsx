@@ -3,7 +3,7 @@ import toast from "react-hot-toast";
 import useFarmerAutoProcess from "@/hooks/useFarmerAutoProcess";
 import useProcessLock from "@/hooks/useProcessLock";
 import useSocketState from "@/hooks/useSocketState";
-import { delay, logNicely, uuid } from "@/lib/utils";
+import { delay, extraGamePoints, logNicely, uuid } from "@/lib/utils";
 import { memo } from "react";
 import { useCallback } from "react";
 import { useEffect } from "react";
@@ -107,7 +107,7 @@ export default memo(function BlumAutoGamer({ workerRef }) {
         logNicely("BLUM GAME", game);
 
         /** Calculate */
-        const finalPoints = points + Math.floor(Math.random() * 20);
+        const finalPoints = extraGamePoints(points);
         const bombsClicked = Math.floor(Math.random() * 3);
         const freezeClicked = Math.floor(Math.random() * 3);
 
@@ -250,9 +250,7 @@ export default memo(function BlumAutoGamer({ workerRef }) {
             max={MAX_POINT}
             placeholder={`Range (${MIN_POINT} - ${MAX_POINT})`}
           />
-          <p className="text-neutral-400">
-            Minimum Point (automatically adds extra 1-20 points.)
-          </p>
+          <p className="text-neutral-400">Minimum Point (+extra points.)</p>
         </>
       ) : null}
 

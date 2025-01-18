@@ -119,9 +119,7 @@ export default memo(function Tomarket({ tomarket }) {
             max={MAX_POINT}
             placeholder={`Range (${MIN_POINT} - ${MAX_POINT})`}
           />
-          <p className="text-rose-100">
-            Minimum Point (automatically adds extra 1-20 points.)
-          </p>
+          <p className="text-rose-100">Minimum Point (+extra points.)</p>
         </>
       ) : null}
 

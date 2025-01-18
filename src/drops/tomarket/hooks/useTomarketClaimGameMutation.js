@@ -1,4 +1,5 @@
 import useFarmerApi from "@/hooks/useFarmerApi";
+import { extraGamePoints } from "@/lib/utils";
 import { useMutation } from "@tanstack/react-query";
 
 export default function useTomarketClaimGameMutation(id, points) {
@@ -9,7 +10,7 @@ export default function useTomarketClaimGameMutation(id, points) {
       api
         .post("https://api-web.tomarket.ai/tomarket-game/v1/game/claim", {
           game_id: id,
-          points: points + Math.floor(Math.random() * 20),
+          points: extraGamePoints(points),
           stars,
         })
         .then((res) => res.data.data),

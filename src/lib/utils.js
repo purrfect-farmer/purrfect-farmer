@@ -32,6 +32,16 @@ export function delay(length, precised = false) {
   });
 }
 
+export function randomPercent(value, min = 0, max = 100) {
+  return Math.floor(
+    (value * (min + Math.floor(Math.random() * (max - min)))) / 100
+  );
+}
+
+export function extraGamePoints(points) {
+  points + randomPercent(points, 0, 20);
+}
+
 export function delayForSeconds(length, precised = false) {
   return delay(length * 1000, precised);
 }

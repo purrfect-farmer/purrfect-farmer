@@ -5,7 +5,7 @@ import useFarmerContext from "@/hooks/useFarmerContext";
 import useProcessLock from "@/hooks/useProcessLock";
 import useSocketState from "@/hooks/useSocketState";
 import useSyncedRef from "@/hooks/useSyncedRef";
-import { cn, delay, delayForSeconds } from "@/lib/utils";
+import { cn, delay, delayForSeconds, extraGamePoints } from "@/lib/utils";
 import { memo } from "react";
 import { useCallback } from "react";
 import { useEffect } from "react";
@@ -15,9 +15,9 @@ import { useState } from "react";
 import useBirdTonHandlers from "../hooks/useBirdTonHandlers";
 import useAppContext from "@/hooks/useAppContext";
 
-const MIN_POINT = 100;
-const INITIAL_POINT = 120;
-const MAX_POINT = 10_000;
+const MIN_POINT = 80;
+const INITIAL_POINT = 100;
+const MAX_POINT = 200;
 
 export default memo(function BirdTonGamer() {
   const { settings } = useAppContext();
@@ -93,7 +93,7 @@ export default memo(function BirdTonGamer() {
     return createGame().then((id) => {
       setPoints(0);
       setDesiredPoint(perGamePoints);
-      setStopPoint(perGamePoints + Math.floor(Math.random() * 20));
+      setStopPoint(extraGamePoints(perGamePoints));
       setGameId(id);
     });
   }, [
@@ -259,9 +259,7 @@ export default memo(function BirdTonGamer() {
               "p-2 bg-neutral-200 dark:bg-neutral-700 rounded-lg  outline-0"
             )}
           />
-          <p className="text-neutral-400">
-            Minimum Point (automatically adds extra 1-20 points.)
-          </p>
+          <p className="text-neutral-400">Minimum Point (+extra points.)</p>
         </>
       )}
 

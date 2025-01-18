@@ -118,7 +118,7 @@ export default memo(function MatchQuestAutoGamer() {
             placeholder={`Range (${MIN_POINT} - ${MAX_POINT})`}
           />
           <p className="text-center text-neutral-400">
-            Minimum Point (automatically adds extra 1-20 points.)
+            Minimum Point (+extra points.)
           </p>
         </>
       ) : null}

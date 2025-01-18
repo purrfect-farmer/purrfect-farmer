@@ -1,4 +1,5 @@
 import useFarmerApi from "@/hooks/useFarmerApi";
+import { extraGamePoints } from "@/lib/utils";
 import { useMutation } from "@tanstack/react-query";
 
 export default function useMatchQuestClaimGameMutation(points) {
@@ -9,7 +10,7 @@ export default function useMatchQuestClaimGameMutation(points) {
       api
         .post("https://tgapp-api.matchain.io/api/tgapp/v1/game/claim", {
           ["game_id"]: id,
-          ["point"]: points + Math.floor(Math.random() * 20),
+          ["point"]: extraGamePoints(points),
         })
         .then((res) => res.data.data),
   });

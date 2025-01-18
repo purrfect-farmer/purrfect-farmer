@@ -19,9 +19,9 @@ import useAppContext from "@/hooks/useAppContext";
 
 const GAME_DURATION = 15_000;
 const EXTRA_DELAY = 3_000;
-const MIN_POINT = 80;
-const INITIAL_POINT = 120;
-const MAX_POINT = 130;
+const MIN_POINT = 70;
+const INITIAL_POINT = 100;
+const MAX_POINT = 120;
 
 export default memo(function Wonton() {
   const { settings } = useAppContext();
@@ -136,7 +136,7 @@ export default memo(function Wonton() {
             placeholder={`Range (${MIN_POINT} - ${MAX_POINT})`}
           />
           <p className="text-center text-neutral-400">
-            Minimum Point (automatically adds extra 1-10 points.)
+            Minimum Point (+extra points.)
           </p>
         </>
       ) : null}
