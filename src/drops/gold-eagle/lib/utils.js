@@ -1,11 +1,17 @@
 import { getDropMainScript } from "@/lib/utils";
 
-export async function getSignInKey() {
-  if (getSignInKey.DATA) return getSignInKey.DATA;
+export async function getGoldEagleGame() {
+  if (getGoldEagleGame.DATA) return getGoldEagleGame.DATA;
+  const url = "https://telegram.geagle.online";
+  const scriptResponse = await getDropMainScript(url);
 
-  const scriptResponse = await getDropMainScript("https://www.gold-eagle.gold");
+  const tapSecret = scriptResponse.match(/TAP_SECRET="([^"]+)"/);
 
-  const match = scriptResponse.match(/"([^"]+)"[^"]+\.signInType/);
+  if (tapSecret) {
+    const result = {
+      tapSecret: tapSecret[1],
+    };
 
-  return (getSignInKey.DATA = match[1]);
+    return (getGoldEagleGame.DATA = result);
+  }
 }
