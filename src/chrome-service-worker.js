@@ -84,6 +84,18 @@ const updateUserAgent = async () => {
   });
 };
 
+/** Setup Extension */
+const setupExtension = async () => {
+  /** Configure Settings */
+  await configureExtension(await getSettings());
+
+  /** Update User-Agent */
+  await updateUserAgent();
+
+  /** Remove Action Popup */
+  await removeActionPopup();
+};
+
 /** Watch Storage for Settings Change */
 chrome.storage.local.onChanged.addListener(({ settings }) => {
   if (settings) {
@@ -93,8 +105,8 @@ chrome.storage.local.onChanged.addListener(({ settings }) => {
 
 /** Open Farmer on Install */
 chrome.runtime.onInstalled.addListener(async () => {
-  /** Update User-Agent */
-  await updateUserAgent();
+  /** Setup Extension */
+  await setupExtension();
 
   /** Open Farmer Window */
   const settings = await getSettings();
@@ -106,6 +118,9 @@ chrome.runtime.onInstalled.addListener(async () => {
 
 /** Open Farmer on Startup */
 chrome.runtime.onStartup.addListener(async () => {
+  /** Setup Extension */
+  await setupExtension();
+
   /** Get Platform */
   const platform = await chrome.runtime.getPlatformInfo();
 
@@ -147,10 +162,5 @@ chrome.runtime.onStartup.addListener(async () => {
   }
 });
 
-/** Remove Action Popup */
-removeActionPopup();
-
-/** Configure Extension */
-getSettings().then((settings) => {
-  configureExtension(settings);
-});
+/** Always Setup Extension */
+setupExtension();
