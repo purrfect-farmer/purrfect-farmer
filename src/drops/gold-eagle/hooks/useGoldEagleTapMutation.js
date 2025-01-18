@@ -6,11 +6,11 @@ export default function useGoldEagleTapMutation() {
   const api = useFarmerApi();
   return useMutation({
     mutationKey: ["gold-eagle", "tap"],
-    mutationFn: (count) =>
+    mutationFn: ({ taps, available }) =>
       api
         .post("https://gold-eagle-api.fly.dev/tap", {
-          ["available_taps"]: 1,
-          ["count"]: count,
+          ["count"]: taps,
+          ["available_taps"]: available,
           ["timestamp"]: Math.floor(Date.now() / 1000),
           salt: uuid(),
         })

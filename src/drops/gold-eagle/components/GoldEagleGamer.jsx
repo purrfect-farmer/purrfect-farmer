@@ -28,17 +28,24 @@ export default memo(function GoldEagleGamer() {
       /** Lock */
       process.lock();
 
+      const percent = 80 + Math.floor(Math.random() * 18);
+      const taps = Math.floor((energy * percent) / 100);
+      const available = Math.floor(energy - taps);
+
       /** Tap */
-      await tapMutation.mutateAsync(energy);
+      await tapMutation.mutateAsync({
+        taps,
+        available,
+      });
 
       /** Toast */
-      toast.success(`Tapped ${energy} coins!`);
+      toast.success(`Tapped ${taps} coins!`);
 
       /** Refetch */
       await query.refetch();
 
       /** Unlock */
-      process.unlock();
+      process.stop();
     })();
   }, [process, energy]);
 
