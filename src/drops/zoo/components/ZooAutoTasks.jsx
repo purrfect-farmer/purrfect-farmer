@@ -1,7 +1,13 @@
 import useFarmerAutoProcess from "@/hooks/useFarmerAutoProcess";
 import useFarmerContext from "@/hooks/useFarmerContext";
 import useProcessLock from "@/hooks/useProcessLock";
-import { canJoinTelegramLink, cn, delay, isTelegramLink } from "@/lib/utils";
+import {
+  canJoinTelegramLink,
+  cn,
+  delay,
+  isTelegramLink,
+  logNicely,
+} from "@/lib/utils";
 import { memo } from "react";
 import { useCallback } from "react";
 import { useEffect } from "react";
@@ -34,7 +40,8 @@ export default memo(function ZooAutoTasks() {
 
   /** Validate Telegram Task */
   const validateTelegramTask = useCallback(
-    (task) => isTelegramLink(task.actionUrl),
+    (task) =>
+      isTelegramLink(task.actionUrl) && task.checkType.includes("telegram"),
     []
   );
 
@@ -81,6 +88,13 @@ export default memo(function ZooAutoTasks() {
   const reset = useCallback(() => {
     setCurrentTask(null);
   }, [setCurrentTask]);
+
+  /** Log Tasks */
+  useEffect(() => {
+    logNicely("ZOO ALL TASKS", tasks);
+    logNicely("ZOO PENDING TASKS", pendingTasks);
+    logNicely("ZOO FINISHED TASKS", finishedTasks);
+  }, [tasks, pendingTasks, finishedTasks]);
 
   /** Reset */
   useEffect(reset, [process.started, reset]);
