@@ -10,7 +10,7 @@ export default memo(function GoldEagleBalanceDisplay() {
   const maxEnergy = query.data?.["max_energy"] || 0;
 
   return (
-    <div className="flex flex-col gap-2 text-center text-yellow-600">
+    <div className="flex flex-col gap-2 text-center text-orange-600">
       {query.isPending ? (
         "Fetching balance..."
       ) : query.isSuccess ? (

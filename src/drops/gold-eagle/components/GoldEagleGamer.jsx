@@ -1,16 +1,19 @@
+import toast from "react-hot-toast";
 import useFarmerAutoProcess from "@/hooks/useFarmerAutoProcess";
+import useFarmerContext from "@/hooks/useFarmerContext";
 import useProcessLock from "@/hooks/useProcessLock";
 import { cn } from "@/lib/utils";
 import { memo } from "react";
 import { useEffect } from "react";
-import useGoldEagleUserProgressQuery from "../hooks/useGoldEagleUserProgressQuery";
+
 import useGoldEagleTapMutation from "../hooks/useGoldEagleTapMutation";
-import toast from "react-hot-toast";
+import useGoldEagleUserProgressQuery from "../hooks/useGoldEagleUserProgressQuery";
 
 export default memo(function GoldEagleGamer() {
+  const { game } = useFarmerContext();
   const process = useProcessLock("gold-eagle.game");
 
-  const tapMutation = useGoldEagleTapMutation();
+  const tapMutation = useGoldEagleTapMutation(game.hex);
   const query = useGoldEagleUserProgressQuery();
 
   const energy = query.data?.["energy"] || 0;
@@ -58,7 +61,7 @@ export default memo(function GoldEagleGamer() {
         onClick={() => process.dispatchAndToggle(!process.started)}
         className={cn(
           "px-4 py-2 rounded-lg text-white font-bold",
-          !process.started ? "bg-yellow-600" : "bg-red-500"
+          !process.started ? "bg-orange-600" : "bg-red-500"
         )}
       >
         {!process.started ? "Start Playing" : "Stop Playing"}

@@ -6,6 +6,7 @@ import { memo } from "react";
 
 import GoldEagleBalanceDisplay from "./GoldEagleBalanceDisplay";
 import GoldEagleIcon from "../assets/images/icon.png?format=webp&w=80";
+import GoldEagleGamer from "./GoldEagleGamer";
 
 export default memo(function GoldEagleFarmer() {
   const tabs = useSocketTabs("gold-eagle.farmer-tabs", ["game"]);
@@ -37,7 +38,7 @@ export default memo(function GoldEagleFarmer() {
                 className={cn(
                   "p-2",
                   "border-b-2 border-transparent",
-                  "data-[state=active]:border-yellow-500"
+                  "data-[state=active]:border-orange-500"
                 )}
               >
                 {value.toUpperCase()}
@@ -51,7 +52,7 @@ export default memo(function GoldEagleFarmer() {
             className="data-[state=inactive]:hidden"
             value="game"
           >
-            <p className="text-center">Under Maintenance</p>
+            <GoldEagleGamer />
           </Tabs.Content>
         </Tabs.Root>
       </>
