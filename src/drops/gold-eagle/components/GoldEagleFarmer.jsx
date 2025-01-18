@@ -5,7 +5,6 @@ import { cn } from "@/lib/utils";
 import { memo } from "react";
 
 import GoldEagleBalanceDisplay from "./GoldEagleBalanceDisplay";
-import GoldEagleGamer from "./GoldEagleGamer";
 import GoldEagleIcon from "../assets/images/icon.png?format=webp&w=80";
 
 export default memo(function GoldEagleFarmer() {
@@ -52,7 +51,7 @@ export default memo(function GoldEagleFarmer() {
             className="data-[state=inactive]:hidden"
             value="game"
           >
-            <GoldEagleGamer />
+            <p className="text-center">Under Maintenance</p>
           </Tabs.Content>
         </Tabs.Root>
       </>
