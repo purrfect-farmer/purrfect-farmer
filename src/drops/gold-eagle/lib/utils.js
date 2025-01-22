@@ -47,16 +47,17 @@ export async function getGoldEagleGame() {
   return (getGoldEagleGame.DATA = result);
 }
 
-export function calculateGoldEagleData(taps) {
-  const nonce = btoa(totp.generate(hex));
+export function calculateGoldEagleData(taps, currentNonce) {
+  const nonce = currentNonce || btoa(totp.generate(hex));
   const input = {
-    ct: nonce,
     st: taps,
+    ct: nonce,
   };
   const json = JSON.stringify(input);
+
   const buffer = Buffer.from(json, "utf8");
   const key = forge.pki.publicKeyFromPem(PEM);
-  const binary = key.encrypt(buffer.toString("binary"), ENCRYPTION_ALGORITHM);
+  const data = key.encrypt(buffer.toString("binary"), ENCRYPTION_ALGORITHM);
 
-  return Buffer.from(binary).toString("base64");
+  return Buffer.from(data, "binary").toString("base64");
 }
