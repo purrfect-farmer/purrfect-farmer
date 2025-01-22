@@ -167,8 +167,8 @@ export function fetchContent(url, ...options) {
   return axios.get(url, ...options).then((res) => res.data);
 }
 
-/** Get Main Script */
-export async function getDropMainScript(url, name = "index") {
+/** Find Drop Main Script */
+export async function findDropMainScript(url, name = "index") {
   const htmlResponse = await fetchContent(url);
 
   const parser = new DOMParser();
@@ -180,6 +180,13 @@ export async function getDropMainScript(url, name = "index") {
     scripts,
     (script) => script.type === "module" && script.src.includes(name)
   );
+
+  return indexScript;
+}
+
+/** Get Main Script */
+export async function getDropMainScript(url, name = "index") {
+  const indexScript = await findDropMainScript(url, name);
 
   if (!indexScript) return;
 

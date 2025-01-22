@@ -33,13 +33,9 @@ export default memo(function GoldEagleGamer() {
 
       const percent = 80 + Math.floor(Math.random() * 18);
       const taps = Math.floor((energy * percent) / 100);
-      const available = Math.floor(energy - taps);
 
       /** Tap */
-      await tapMutation.mutateAsync({
-        taps,
-        available,
-      });
+      await tapMutation.mutateAsync(taps);
 
       /** Toast */
       toast.success(`Tapped ${taps} coins!`);
