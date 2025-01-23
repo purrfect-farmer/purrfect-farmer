@@ -161,6 +161,3 @@ chrome.runtime.onStartup.addListener(async () => {
     } catch {}
   }
 });
-
-/** Always Setup Extension */
-setupExtension();
