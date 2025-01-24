@@ -1,4 +1,4 @@
-import { decryptData, encryptData } from "./content-script-utils";
+import { core, decryptData, encryptData } from "./content-script-utils";
 
 if (location.hash.includes("tgWebAppData")) {
   /** Telegram Web Script */
@@ -50,17 +50,6 @@ if (location.hash.includes("tgWebAppData")) {
       "&tgWebAppPlatform=android"
     );
   });
-
-  /** Override fetch and XMLHttpRequest */
-  const core = {
-    fetch: window.fetch.bind(window),
-    matchMedia: window.matchMedia.bind(window),
-    XMLHttpRequest: window.XMLHttpRequest.bind(window),
-    postMessage: window.postMessage.bind(window),
-    Promise: {
-      race: Promise.race.bind(Promise),
-    },
-  };
 
   /** Modified XMLHttpRequest */
   const modifiedXMLHttpRequest = class extends XMLHttpRequest {
