@@ -54,6 +54,7 @@ if (location.hash.includes("tgWebAppData")) {
   /** Override fetch and XMLHttpRequest */
   const core = {
     fetch: window.fetch.bind(window),
+    matchMedia: window.matchMedia.bind(window),
     XMLHttpRequest: window.XMLHttpRequest.bind(window),
     postMessage: window.postMessage.bind(window),
     Promise: {

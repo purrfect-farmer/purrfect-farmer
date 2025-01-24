@@ -11,6 +11,7 @@
     "build:telegram-web-main": "VITE_ENTRY=telegram-web-main vite build",
     "build:telegram-web-isolated": "VITE_ENTRY=telegram-web-isolated vite build",
     "build:content-script-main": "VITE_ENTRY=content-script-main vite build",
+    "build:content-script-patches": "VITE_ENTRY=content-script-patches vite build",
     "build:content-script-isolated": "VITE_ENTRY=content-script-isolated vite build",
     "build:notgram-main": "VITE_ENTRY=notgram-main vite build",
     "lint": "eslint .",
