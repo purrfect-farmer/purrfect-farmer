@@ -21,15 +21,13 @@ export default memo(function MatchQuestAutoTasks() {
   const taskQuery = useMatchQuestTasksQuery();
   const userQuery = useMatchQuestUserQuery();
 
-  const user = userQuery.data;
-
   /** All Tasks */
   const tasks = useMemo(
     () =>
       taskQuery.data
         ? Object.values(taskQuery.data)
             .reduce((result, item) => result.concat(item || []), [])
-            .filter((item) => item.name.include("join_Dypians") === false)
+            .filter((item) => item.name.includes("join_Dypians") === false)
         : [],
     [taskQuery.data]
   );
@@ -86,7 +84,9 @@ export default memo(function MatchQuestAutoTasks() {
   /** Log It */
   useEffect(() => {
     logNicely("MATCHQUEST TASKS", tasks);
-  }, [tasks]);
+    logNicely("MATCHQUEST PENDING TASKS", pendingTasks);
+    logNicely("MATCHQUEST FINISHED TASKS", finishedTasks);
+  }, [tasks, pendingTasks, finishedTasks]);
 
   /** Reset */
   useEffect(reset, [process.started, reset]);
