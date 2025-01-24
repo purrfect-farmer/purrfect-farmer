@@ -85,13 +85,11 @@ export default memo(function TsubasaTasks() {
       return;
     }
 
-    (async function () {
-      /** Lock the process */
-      process.lock();
-
+    /** Execute the process */
+    process.execute(async function () {
       if (!action) {
         setAction("start");
-        return process.unlock();
+        return;
       }
       switch (action) {
         case "start":
@@ -121,7 +119,7 @@ export default memo(function TsubasaTasks() {
           resetTask();
           setAction("claim");
 
-          return process.unlock();
+          return;
 
         case "claim":
           /** Claim */
@@ -140,8 +138,10 @@ export default memo(function TsubasaTasks() {
       }
 
       resetTask();
-      process.stop();
-    })();
+
+      /** Stop */
+      return true;
+    });
   }, [process, action, joinTelegramLink]);
 
   /** Auto-Complete Tasks */

@@ -67,10 +67,8 @@ export default memo(function Tomarket({ tomarket }) {
       return;
     }
 
-    (async function () {
-      /** Lock Process */
-      process.lock();
-
+    /** Execute the Process */
+    process.execute(async function () {
       try {
         const game = await startGameMutation.mutateAsync();
 
@@ -97,10 +95,7 @@ export default memo(function Tomarket({ tomarket }) {
       try {
         await query.refetch();
       } catch {}
-
-      /** Release Lock */
-      process.unlock();
-    })();
+    });
   }, [process, tickets]);
 
   /** Auto-Game */

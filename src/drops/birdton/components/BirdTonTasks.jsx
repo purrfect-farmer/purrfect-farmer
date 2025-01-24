@@ -122,10 +122,8 @@ export default memo(function BirdTonTasks() {
       return;
     }
 
-    (async function () {
-      /** Lock the Process */
-      process.lock();
-
+    /** Execute */
+    process.execute(async function () {
       /** Beginning Daily Tasks */
       setAction("daily");
       for (let [index, task] of Object.entries(unclaimedDailyTasks)) {
@@ -184,9 +182,9 @@ export default memo(function BirdTonTasks() {
       /** Reset */
       reset();
 
-      /** Stop the process */
-      process.stop();
-    })();
+      /** Stop */
+      return true;
+    });
   }, [process]);
 
   /** Auto-Complete */

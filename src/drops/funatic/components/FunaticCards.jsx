@@ -82,10 +82,8 @@ export default memo(function FunaticCards() {
       return;
     }
 
-    (async function () {
-      /** Lock */
-      process.lock();
-
+    /** Execute */
+    process.execute(async function () {
       /** Choose Collection */
       const collection = levelZeroCards.length
         ? levelZeroCards
@@ -103,18 +101,17 @@ export default memo(function FunaticCards() {
           cardId: card.id,
           isUpgrade: card.level !== null,
         });
+      } catch {}
 
-        /** Refetch */
+      /** Refetch */
+      try {
         await gameQuery.refetch();
         await cardsQuery.refetch();
       } catch {}
 
       /** Delay */
       await delay(2000);
-
-      /** Unlock */
-      process.unlock();
-    })();
+    });
   }, [process, upgradableCards, levelZeroCards]);
 
   /** Auto-Upgrade */

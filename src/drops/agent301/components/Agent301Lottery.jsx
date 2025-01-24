@@ -25,10 +25,8 @@ export default memo(function Agent301Lottery() {
       return;
     }
 
-    (async function () {
-      /** Lock Process */
-      process.lock();
-
+    /** Execute the Process */
+    process.execute(async function () {
       /** Spin */
       try {
         await spinMutation.mutateAsync();
@@ -41,10 +39,7 @@ export default memo(function Agent301Lottery() {
 
       /** Delay */
       await delay(10_000);
-
-      // Release Lock
-      process.unlock();
-    })();
+    });
   }, [process, tickets]);
 
   /** Auto-Spin */

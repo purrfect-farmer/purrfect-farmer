@@ -74,10 +74,8 @@ export default memo(function TruecoinLottery() {
       return;
     }
 
-    (async function () {
-      // Lock Process
-      process.lock();
-
+    // Execute the Process
+    process.execute(async function () {
       try {
         await spinMutation.mutateAsync(null).then((data) => {
           if (data.user.currentSpins < 1) {
@@ -102,10 +100,7 @@ export default memo(function TruecoinLottery() {
 
       /** Delay */
       await delayForSeconds(farmingSpeed);
-
-      // Release Lock
-      process.unlock();
-    })();
+    });
   }, [process, user, farmingSpeed, authQueryKey, queryClient.setQueryData]);
 
   /** Auto Claim All 50-Boost */

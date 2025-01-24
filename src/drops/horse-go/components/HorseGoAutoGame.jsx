@@ -37,10 +37,8 @@ export default memo(function HorseGoAutoGame() {
       return;
     }
 
-    (async function () {
-      /** Lock Process */
-      process.lock();
-
+    /** Execute */
+    process.execute(async function () {
       try {
         /** Bid */
         const result =
@@ -69,10 +67,7 @@ export default memo(function HorseGoAutoGame() {
         /** Update Data */
         queryClient.setQueryData(["horse-go", "user"], () => data);
       } catch {}
-
-      /** Release Lock */
-      process.unlock();
-    })();
+    });
   }, [process, energy, mode]);
 
   /** Auto-Play Game */

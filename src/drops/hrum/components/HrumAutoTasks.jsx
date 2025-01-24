@@ -64,10 +64,8 @@ export default memo(function HrumAutoTasks({ queries }) {
       return;
     }
 
-    (async function () {
-      /** Lock Process */
-      process.lock();
-
+    /** Execute the Process */
+    process.execute(async function () {
       for (let [index, task] of Object.entries(pendingTasks)) {
         if (process.controller.signal.aborted) return;
 
@@ -90,8 +88,10 @@ export default memo(function HrumAutoTasks({ queries }) {
 
       /** Stop */
       reset();
-      process.stop();
-    })();
+
+      /** Stop */
+      return true;
+    });
   }, [process, pendingTasks, setCurrentTask, reset, refetchBalance]);
 
   /** Auto-Complete Tasks */

@@ -27,10 +27,8 @@ export default memo(function CEXGamer() {
       return;
     }
 
-    (async function () {
-      /** Lock */
-      process.lock();
-
+    /** Execute */
+    process.execute(async function () {
       /** Calculate Amount to Collect */
 
       const percent = 60 + Math.floor(Math.random() * 20);
@@ -56,9 +54,9 @@ export default memo(function CEXGamer() {
       /** Delay */
       await delay(500);
 
-      /** Stop Process */
-      process.stop();
-    })();
+      /** Stop */
+      return true;
+    });
   }, [process, energy]);
 
   /** Auto-Game */

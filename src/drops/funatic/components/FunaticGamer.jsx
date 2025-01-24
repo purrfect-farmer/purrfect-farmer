@@ -27,10 +27,8 @@ export default memo(function FunaticGamer() {
       return;
     }
 
-    (async function () {
-      /** Lock */
-      process.lock();
-
+    /** Execute */
+    process.execute(async function () {
       /** Calculate Amount to Collect */
       const taps = Math.min(energy, 8 + Math.floor(Math.random() * 3));
 
@@ -52,10 +50,7 @@ export default memo(function FunaticGamer() {
 
       /** Delay */
       await delay(500);
-
-      /** Stop Process */
-      process.unlock();
-    })();
+    });
   }, [process, energy]);
 
   /** Auto-Game */

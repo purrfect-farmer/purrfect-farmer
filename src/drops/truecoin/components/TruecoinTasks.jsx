@@ -86,10 +86,8 @@ export default memo(function TruecoinTasks() {
       return;
     }
 
-    (async function () {
-      /** Lock the process */
-      process.lock();
-
+    /** Execute the process */
+    process.execute(async function () {
       for (let [index, task] of Object.entries(uncompletedTasks)) {
         if (process.controller.signal.aborted) return;
         setTaskOffset(index);
@@ -110,9 +108,9 @@ export default memo(function TruecoinTasks() {
       /** Little Delay */
       await delay(1000);
 
-      /** Stop The Process */
-      process.stop();
-    })();
+      /** Stop */
+      return true;
+    });
   }, [process]);
 
   /** Auto-Complete Tasks */

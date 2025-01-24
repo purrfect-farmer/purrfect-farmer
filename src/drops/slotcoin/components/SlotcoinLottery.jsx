@@ -41,10 +41,8 @@ export default memo(function SlotcoinLottery() {
       return;
     }
 
-    (async function () {
-      // Lock Process
-      process.lock();
-
+    // Execute Process
+    process.execute(async function () {
       /** Spin */
       try {
         await spinMutation.mutateAsync();
@@ -57,10 +55,7 @@ export default memo(function SlotcoinLottery() {
 
       /** Delay */
       await delayForSeconds(farmingSpeed);
-
-      // Release Lock
-      process.unlock();
-    })();
+    });
   }, [process, energy, bid, farmingSpeed]);
 
   /** Auto-Spin */

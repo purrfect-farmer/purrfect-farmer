@@ -90,13 +90,11 @@ export default memo(function FunaticQuests() {
       return;
     }
 
-    (async function () {
-      /** Lock the process */
-      process.lock();
-
+    /** Execute */
+    process.execute(async function () {
       if (!action) {
         setAction("start");
-        return process.unlock();
+        return;
       }
       switch (action) {
         case "start":
@@ -132,7 +130,7 @@ export default memo(function FunaticQuests() {
           resetQuest();
           setAction("claim");
 
-          return process.unlock();
+          return;
 
         case "claim":
           /** Claim */
@@ -157,8 +155,9 @@ export default memo(function FunaticQuests() {
       } catch {}
 
       resetQuest();
-      process.stop();
-    })();
+
+      return true;
+    });
   }, [process, action, joinTelegramLink]);
 
   /** Auto-Complete Quests */

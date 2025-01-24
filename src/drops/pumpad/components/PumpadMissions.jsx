@@ -46,10 +46,8 @@ export default memo(function PumpadMissions() {
       return;
     }
 
-    (async function () {
-      /** Lock the Process */
-      process.lock();
-
+    /** Execute the Process */
+    process.execute(async function () {
       for (let [index, mission] of Object.entries(missions)) {
         if (process.controller.signal.aborted) return;
         setMissionOffset(index);
@@ -86,8 +84,9 @@ export default memo(function PumpadMissions() {
         });
       } catch {}
 
-      process.stop();
-    })();
+      /** Stop */
+      return true;
+    });
   }, [process, joinTelegramLink]);
 
   /** Auto-Complete Missions */

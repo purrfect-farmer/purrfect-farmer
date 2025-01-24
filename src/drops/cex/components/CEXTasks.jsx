@@ -154,13 +154,11 @@ export default memo(function CEXTasks() {
       return;
     }
 
-    (async function () {
-      /** Lock the process */
-      process.lock();
-
+    /** Execute */
+    process.execute(async function () {
       if (!action) {
         setAction("start");
-        return process.unlock();
+        return;
       }
       switch (action) {
         case "start":
@@ -196,7 +194,7 @@ export default memo(function CEXTasks() {
           resetTask();
           setAction("verify");
 
-          return process.unlock();
+          return;
 
         case "verify":
           /** Beginning of Start Action */
@@ -225,7 +223,7 @@ export default memo(function CEXTasks() {
           resetTask();
           setAction("claim");
 
-          return process.unlock();
+          return;
 
         case "claim":
           /** Claim */
@@ -249,8 +247,9 @@ export default memo(function CEXTasks() {
       } catch {}
 
       resetTask();
-      process.stop();
-    })();
+
+      return true;
+    });
   }, [process, action, joinTelegramLink]);
 
   /** Auto-Complete Tasks */

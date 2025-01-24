@@ -102,10 +102,8 @@ export default memo(function YescoinDailyMission() {
       return;
     }
 
-    (async function () {
-      /** Lock the process */
-      process.lock();
-
+    /** Execute the process */
+    process.execute(async function () {
       for (let [index, mission] of Object.entries(uncompletedMissions)) {
         if (process.controller.signal.aborted) return;
         setMissionOffset(index);
@@ -125,8 +123,9 @@ export default memo(function YescoinDailyMission() {
         await finishTaskBonusInfoQuery.refetch();
       } catch {}
 
-      process.stop();
-    })();
+      /** Stop */
+      return true;
+    });
   }, [process]);
 
   /** Auto-Complete Missions */

@@ -67,10 +67,8 @@ export default memo(function DreamCoinRewards() {
       return;
     }
 
-    (async function () {
-      /** Lock the process */
-      process.lock();
-
+    /** Execute */
+    process.execute(async function () {
       for (let [index, task] of Object.entries(uncompletedTasks)) {
         if (process.controller.signal.aborted) return;
         setTaskOffset(index);
@@ -97,8 +95,9 @@ export default memo(function DreamCoinRewards() {
         });
       } catch {}
 
-      process.stop();
-    })();
+      /** Stop */
+      return true;
+    });
   }, [process, joinTelegramLink]);
 
   /** Auto-Complete Quests */

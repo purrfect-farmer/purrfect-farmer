@@ -52,10 +52,7 @@ export default memo(function Agent301Wheel() {
       return;
     }
 
-    (async function () {
-      /** Lock the process */
-      process.lock();
-
+    process.execute(async function () {
       /** Beginning of Hourly Task */
       if (Date.now() >= hourly["timestamp"] * 1000) {
         setAction("hourly");
@@ -113,9 +110,9 @@ export default memo(function Agent301Wheel() {
         });
       } catch {}
 
-      /** Stop the Process */
-      process.stop();
-    })();
+      /** Stop */
+      return true;
+    });
   }, [process]);
 
   /** Auto-Complete */

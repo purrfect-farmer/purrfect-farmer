@@ -75,10 +75,8 @@ export default memo(function ZooQuiz() {
       return;
     }
 
-    (async function () {
-      /** Lock Process */
-      process.lock();
-
+    /** Execute Process */
+    process.execute(async function () {
       for (let [index, quiz] of Object.entries(pendingQuizzes)) {
         if (process.controller.signal.aborted) return;
 
@@ -141,8 +139,10 @@ export default memo(function ZooQuiz() {
 
       /** Stop */
       reset();
-      process.stop();
-    })();
+
+      /** Stop */
+      return true;
+    });
   }, [process, pendingQuizzes, setCurrentQuiz, reset]);
 
   /** Auto-Complete Quizzes */

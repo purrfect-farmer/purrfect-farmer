@@ -55,10 +55,8 @@ export default memo(function RektAutoGame() {
       return;
     }
 
-    (async function () {
-      /** Lock Process */
-      process.lock();
-
+    /** Execute the Process */
+    process.execute(async function () {
       try {
         /** Bid */
         const { id } = await bidMutation.mutateAsync({
@@ -92,10 +90,7 @@ export default memo(function RektAutoGame() {
         await userQuery.refetch();
         await currentPriceQuery.refetch();
       } catch {}
-
-      /** Release Lock */
-      process.unlock();
-    })();
+    });
   }, [process, trades, timestamp]);
 
   /** Auto-Play Game */

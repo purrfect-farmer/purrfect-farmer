@@ -82,10 +82,8 @@ export default memo(function Wonton() {
       return;
     }
 
-    (async function () {
-      /** Lock Process */
-      process.lock();
-
+    /** Execute the Process */
+    process.execute(async function () {
       try {
         const { bonusRound } = await startGameMutation.mutateAsync();
 
@@ -109,10 +107,7 @@ export default memo(function Wonton() {
       try {
         await query.refetch();
       } catch {}
-
-      /** Release Lock */
-      process.unlock();
-    })();
+    });
   }, [tickets, perItem, process]);
 
   /** Auto-Game */

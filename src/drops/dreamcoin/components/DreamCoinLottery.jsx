@@ -61,10 +61,7 @@ export default memo(function DreamCoinLottery() {
       return;
     }
 
-    (async function () {
-      // Lock Process
-      process.lock();
-
+    process.execute(async function () {
       /** Spin */
       try {
         const { slotRewards } = await spinMutation.mutateAsync(multiplier);
@@ -110,10 +107,7 @@ export default memo(function DreamCoinLottery() {
 
       /** Delay */
       await delayForSeconds(farmingSpeed);
-
-      // Release Lock
-      process.unlock();
-    })();
+    });
   }, [process, energy, multiplier, farmingSpeed]);
 
   /** Auto-Spin */

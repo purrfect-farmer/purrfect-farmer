@@ -68,10 +68,8 @@ export default memo(function MatchQuestAutoGamer() {
       return;
     }
 
-    (async function () {
-      /** Lock Process */
-      process.lock();
-
+    /** Execute the Process */
+    process.execute(async function () {
       try {
         const game = await startGameMutation.mutateAsync();
 
@@ -95,10 +93,7 @@ export default memo(function MatchQuestAutoGamer() {
         await gameRuleQuery.refetch();
         await userQuery.refetch();
       } catch {}
-
-      /** Release Lock */
-      process.unlock();
-    })();
+    });
   }, [tickets, process]);
 
   /** Auto-Game */

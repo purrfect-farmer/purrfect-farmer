@@ -158,10 +158,8 @@ export default memo(function TsubasaCards() {
       return;
     }
 
-    (async function () {
-      /** Lock */
-      process.lock();
-
+    /** Execute */
+    process.execute(async function () {
       /** Choose Collection */
       const collection = levelZeroCards.length
         ? levelZeroCards
@@ -190,10 +188,7 @@ export default memo(function TsubasaCards() {
 
       /** Delay */
       await delay(2000);
-
-      /** Unlock */
-      process.unlock();
-    })();
+    });
   }, [process, upgradableCards, levelZeroCards, requiredCards]);
 
   /** Auto-Upgrade */

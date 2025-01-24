@@ -81,10 +81,8 @@ export default memo(function WontonAutoBadges() {
       return;
     }
 
-    (async function () {
-      /** Lock the process */
-      process.lock();
-
+    /** Execute the process */
+    process.execute(async function () {
       /** Refetch Callback */
       const refetch = async () => {
         try {
@@ -93,6 +91,7 @@ export default memo(function WontonAutoBadges() {
         } catch {}
       };
 
+      /** Set Badge */
       setCurrentBadge(unclaimedBadges[0]);
 
       /** Claim Badge */
@@ -103,10 +102,7 @@ export default memo(function WontonAutoBadges() {
 
       /** Delay */
       await delay(1000);
-
-      /** Release Lock */
-      process.unlock();
-    })();
+    });
   }, [process, unclaimedBadges]);
 
   /** Auto-Complete Badges */

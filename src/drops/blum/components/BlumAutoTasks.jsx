@@ -226,10 +226,8 @@ export default memo(function BlumAutoTasks() {
       return;
     }
 
-    (async function () {
-      /** Lock the Process */
-      process.lock();
-
+    /** Execute */
+    process.execute(async function () {
       const refetch = async () => {
         try {
           await refetchTasks();
@@ -239,7 +237,7 @@ export default memo(function BlumAutoTasks() {
 
       if (!action) {
         setAction("start");
-        return process.unlock();
+        return;
       }
       switch (action) {
         case "start":
@@ -271,7 +269,7 @@ export default memo(function BlumAutoTasks() {
           resetTask();
           setAction("verify");
 
-          return process.unlock();
+          return;
 
         case "verify":
           /** Verify */
@@ -313,7 +311,7 @@ export default memo(function BlumAutoTasks() {
           resetTask();
           setAction("claim");
 
-          return process.unlock();
+          return;
 
         case "claim":
           /** Claim */
@@ -337,10 +335,20 @@ export default memo(function BlumAutoTasks() {
       /** Reset Task */
       resetTask();
 
-      /** Stop Process */
-      process.stop();
-    })();
-  }, [zoomies.enabled, process, action, dataQuery.data, getKeyword, getResolvedValue, removeResolvedValue, dispatchAndPrompt, joinTelegramLink]);
+      /** Stop */
+      return true;
+    });
+  }, [
+    zoomies.enabled,
+    process,
+    action,
+    dataQuery.data,
+    getKeyword,
+    getResolvedValue,
+    removeResolvedValue,
+    dispatchAndPrompt,
+    joinTelegramLink,
+  ]);
 
   /** Auto-Complete Tasks */
   useFarmerAutoProcess("tasks", !query.isLoading, process);

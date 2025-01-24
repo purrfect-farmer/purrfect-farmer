@@ -43,10 +43,8 @@ export default memo(function YescoinGamer() {
       return;
     }
 
-    (async function () {
-      /** Lock */
-      process.lock();
-
+    /** Execute */
+    process.execute(async function () {
       const toCollect = Math.min(
         coinLeft,
         150 + Math.floor(Math.random() * 50)
@@ -76,13 +74,9 @@ export default memo(function YescoinGamer() {
       }
 
       if (zoomies.enabled) {
-        /** Stop Process */
-        process.stop();
-      } else {
-        /** Unlock */
-        process.unlock();
+        return true;
       }
-    })();
+    });
   }, [process, zoomies.enabled, coinLeft, specialBox, farmingSpeed]);
 
   /** Auto-Game */

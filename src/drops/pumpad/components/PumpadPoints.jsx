@@ -99,10 +99,8 @@ export default memo(function PumpadPoints() {
       return;
     }
 
-    (async function () {
-      /** Lock the Process */
-      process.lock();
-
+    /** Execute the Process */
+    process.execute(async function () {
       /** Pick Point */
       const point = points[0];
 
@@ -159,10 +157,7 @@ export default memo(function PumpadPoints() {
         await remainingAdsQuery.refetch();
         await adsQuery.refetch();
       } catch {}
-
-      /** Unlock the Process */
-      process.unlock();
-    })();
+    });
   }, [process]);
 
   /** Auto-Complete Points */

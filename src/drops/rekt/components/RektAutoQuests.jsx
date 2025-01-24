@@ -177,10 +177,8 @@ export default memo(function RektAutoQuests() {
       return;
     }
 
-    (async function () {
-      /** Lock the process */
-      process.lock();
-
+    /** Execute the process */
+    process.execute(async function () {
       const refetch = async () => {
         try {
           await refetchQuests();
@@ -190,7 +188,7 @@ export default memo(function RektAutoQuests() {
 
       if (!action) {
         setAction("start");
-        return process.unlock();
+        return;
       }
       switch (action) {
         case "start":
@@ -221,7 +219,7 @@ export default memo(function RektAutoQuests() {
           resetQuest();
           setAction("claim");
 
-          return process.unlock();
+          return;
 
         case "claim":
           /** Claim */
@@ -241,8 +239,10 @@ export default memo(function RektAutoQuests() {
 
       await refetch();
       resetQuest();
-      process.stop();
-    })();
+
+      /** Stop */
+      return true;
+    });
   }, [process, action, joinTelegramLink]);
 
   /** Auto-Complete Quests */

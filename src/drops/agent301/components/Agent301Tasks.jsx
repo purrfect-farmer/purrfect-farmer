@@ -102,10 +102,8 @@ export default memo(function Agent301Tasks() {
       return;
     }
 
-    (async function () {
-      /** Lock the Process */
-      process.lock();
-
+    /** Execute the Process */
+    process.execute(async function () {
       /** Daily */
       setAction("daily");
       for (let [index, task] of Object.entries(unClaimedDailyTasks)) {
@@ -189,9 +187,9 @@ export default memo(function Agent301Tasks() {
       /** Reset */
       reset();
 
-      /** Stop the Process */
-      process.stop();
-    })();
+      /** Stop */
+      return true;
+    });
   }, [process]);
 
   /** Auto-Complete */

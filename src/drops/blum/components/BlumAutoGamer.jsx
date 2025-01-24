@@ -95,10 +95,8 @@ export default memo(function BlumAutoGamer({ workerRef }) {
       return;
     }
 
-    (async function () {
-      /** Lock Process */
-      process.lock();
-
+    /** Execute */
+    process.execute(async function () {
       try {
         const game = await startGameMutation.mutateAsync();
         const assets = game.assets;
@@ -220,10 +218,7 @@ export default memo(function BlumAutoGamer({ workerRef }) {
         /** Log it */
         customLogger("BLUM ERROR", e);
       }
-
-      /** Release Lock */
-      process.unlock();
-    })();
+    });
   }, [tickets, process, points, postWorkerMessage]);
 
   /** Toast Dogs Eligibility */

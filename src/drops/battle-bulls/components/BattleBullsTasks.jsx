@@ -66,10 +66,8 @@ export default memo(function BattleBullsTasks() {
       return;
     }
 
-    (async function () {
-      /** Lock the process */
-      process.lock();
-
+    /** Execute the Process */
+    process.execute(async function () {
       for (let [index, task] of Object.entries(uncompletedTasks)) {
         if (process.controller.signal.aborted) return;
         setTaskOffset(index);
@@ -107,8 +105,8 @@ export default memo(function BattleBullsTasks() {
       }
 
       /** Stop */
-      process.stop();
-    })();
+      return true;
+    });
   }, [process, joinTelegramLink]);
 
   /** Auto-Complete Tasks */

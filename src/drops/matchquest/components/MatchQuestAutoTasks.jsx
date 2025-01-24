@@ -97,10 +97,8 @@ export default memo(function MatchQuestAutoTasks() {
       return;
     }
 
-    (async function () {
-      /** Lock the process */
-      process.lock();
-
+    /** Execute the process */
+    process.execute(async function () {
       const refetch = async () => {
         try {
           await refetchTasks();
@@ -135,8 +133,10 @@ export default memo(function MatchQuestAutoTasks() {
 
       await refetch();
       resetTask();
-      process.stop();
-    })();
+
+      /** Stop */
+      return true;
+    });
   }, [process, joinTelegramLink]);
 
   /** Auto-Complete Tasks */

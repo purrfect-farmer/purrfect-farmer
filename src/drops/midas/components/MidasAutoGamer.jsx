@@ -26,10 +26,8 @@ export default memo(function Midas() {
       return;
     }
 
-    (async function () {
-      /** Lock */
-      process.lock();
-
+    /** Execute */
+    process.execute(async function () {
       if (!process.controller.signal.aborted) {
         /** Delay */
         await delayForSeconds(7);
@@ -42,10 +40,7 @@ export default memo(function Midas() {
 
         await userQuery.refetch();
       }
-
-      /** Unlock */
-      process.unlock();
-    })();
+    });
   }, [process, tickets]);
 
   /** Auto-Game */

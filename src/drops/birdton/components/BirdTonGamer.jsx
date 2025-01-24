@@ -200,10 +200,8 @@ export default memo(function BirdTonGamer() {
       return;
     }
 
-    (async function () {
-      /** Lock The Process */
-      process.lock();
-
+    /** Execute */
+    process.execute(async function () {
       /** End Game */
       const endGame = () => {
         sendMessage({ event_type: "game_end", data: gameId });
@@ -234,7 +232,7 @@ export default memo(function BirdTonGamer() {
         /** End Game */
         endGame();
       }
-    })();
+    });
   }, [process, energy, gameId, startGame, reset, gameSpeedRef]);
 
   /** Auto-Play */

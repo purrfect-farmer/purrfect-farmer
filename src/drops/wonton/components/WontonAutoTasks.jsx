@@ -103,10 +103,8 @@ export default memo(function WontonAutoTasks() {
       return;
     }
 
-    (async function () {
-      /** Lock the process */
-      process.lock();
-
+    /** Execute the process */
+    process.execute(async function () {
       const refetch = async () => {
         try {
           await refetchTasks();
@@ -116,7 +114,7 @@ export default memo(function WontonAutoTasks() {
 
       if (!action) {
         setAction("start");
-        return process.unlock();
+        return;
       }
       switch (action) {
         case "start":
@@ -149,7 +147,7 @@ export default memo(function WontonAutoTasks() {
           resetTask();
           setAction("claim");
 
-          return process.unlock();
+          return;
 
         case "claim":
           /** Claim */
@@ -169,8 +167,10 @@ export default memo(function WontonAutoTasks() {
 
       await refetch();
       resetTask();
-      process.stop();
-    })();
+
+      /** Stop */
+      return true;
+    });
   }, [process, action, joinTelegramLink]);
 
   /** Claim Progress */

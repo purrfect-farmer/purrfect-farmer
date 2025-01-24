@@ -2,6 +2,7 @@ import useFarmerAutoProcess from "@/hooks/useFarmerAutoProcess";
 import useFarmerContext from "@/hooks/useFarmerContext";
 import useProcessLock from "@/hooks/useProcessLock";
 import { canJoinTelegramLink, cn, delay } from "@/lib/utils";
+import { isAfter } from "date-fns";
 import { memo } from "react";
 import { useCallback } from "react";
 import { useEffect } from "react";
@@ -13,7 +14,6 @@ import MidasButton from "./MidasButton";
 import useMidasClaimTaskMutation from "../hooks/useMidasClaimTaskMutation";
 import useMidasStartTaskMutation from "../hooks/useMidasStartTaskMutation";
 import useMidasTasksQuery from "../hooks/useMidasTasksQuery";
-import { isAfter } from "date-fns";
 
 export default memo(function MidasAutoTasks() {
   const { joinTelegramLink } = useFarmerContext();
@@ -105,10 +105,8 @@ export default memo(function MidasAutoTasks() {
       return;
     }
 
-    (async function () {
-      /** Lock the process */
-      process.lock();
-
+    /** Execute the process */
+    process.execute(async function () {
       const refetch = async () => {
         try {
           await refetchTasks();
@@ -118,7 +116,7 @@ export default memo(function MidasAutoTasks() {
 
       if (!action) {
         setAction("start");
-        return process.unlock();
+        return;
       }
       switch (action) {
         case "start":
@@ -149,7 +147,7 @@ export default memo(function MidasAutoTasks() {
           resetTask();
           setAction("claim");
 
-          return process.unlock();
+          return;
 
         case "claim":
           /** Claim */
@@ -169,8 +167,10 @@ export default memo(function MidasAutoTasks() {
 
       await refetch();
       resetTask();
-      process.stop();
-    })();
+
+      /** Stop */
+      return true;
+    });
   }, [process, action, joinTelegramLink]);
 
   /** Auto-Complete Tasks */

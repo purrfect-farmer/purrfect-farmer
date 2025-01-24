@@ -33,10 +33,8 @@ export default memo(function TomarketTickets() {
       return;
     }
 
-    (async function () {
-      // Lock Process
-      process.lock();
-
+    // Execute the Process
+    process.execute(async function () {
       /** Spin */
       try {
         await spinMutation.mutateAsync();
@@ -47,10 +45,7 @@ export default memo(function TomarketTickets() {
       try {
         await query.refetch();
       } catch {}
-
-      // Release Lock
-      process.unlock();
-    })();
+    });
   }, [process, ticketsCount, farmingSpeed]);
 
   /** Auto-Spin */

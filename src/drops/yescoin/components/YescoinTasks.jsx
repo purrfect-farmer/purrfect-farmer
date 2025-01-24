@@ -94,10 +94,8 @@ export default memo(function YescoinTasks() {
       return;
     }
 
-    (async function () {
-      /** Lock the process */
-      process.lock();
-
+    /** Execute the process */
+    process.execute(async function () {
       for (let [index, task] of Object.entries(uncompletedTasks)) {
         if (process.controller.signal.aborted) return;
         setTaskOffset(index);
@@ -117,8 +115,9 @@ export default memo(function YescoinTasks() {
         await finishTaskBonusInfoQuery.refetch();
       } catch {}
 
-      process.stop();
-    })();
+      /** Stop */
+      return true;
+    });
   }, [process]);
 
   /** Auto-Complete Tasks */

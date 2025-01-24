@@ -126,10 +126,8 @@ export default memo(function CEXCards() {
       return;
     }
 
-    (async function () {
-      /** Lock */
-      process.lock();
-
+    /** Execute */
+    process.execute(async function () {
       /** Choose Collection */
       const collection = levelZeroCards.length
         ? levelZeroCards
@@ -160,10 +158,7 @@ export default memo(function CEXCards() {
 
       /** Delay */
       await delay(2000);
-
-      /** Unlock */
-      process.unlock();
-    })();
+    });
   }, [process, upgradableCards, levelZeroCards]);
 
   /** Auto-Upgrade */

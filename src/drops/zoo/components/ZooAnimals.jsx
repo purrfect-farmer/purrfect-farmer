@@ -164,10 +164,8 @@ export default memo(function ZooAnimals() {
       return;
     }
 
-    (async function () {
-      /** Lock */
-      process.lock();
-
+    /** Execute */
+    process.execute(async function () {
       /** Choose Collection */
       const collection = newAnimals.length ? newAnimals : upgradableAnimals;
 
@@ -201,10 +199,7 @@ export default memo(function ZooAnimals() {
 
       /** Delay */
       await delay(2000);
-
-      /** Unlock */
-      process.unlock();
-    })();
+    });
   }, [process, newAnimals, upgradableAnimals]);
 
   /** Auto-Upgrade */

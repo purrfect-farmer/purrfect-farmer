@@ -30,10 +30,8 @@ export default memo(function PumpadLottery() {
       return;
     }
 
-    (async function () {
-      // Lock Process
-      process.lock();
-
+    // Execute the Process
+    process.execute(async function () {
       /** Spin */
       try {
         await spinMutation.mutateAsync();
@@ -44,10 +42,7 @@ export default memo(function PumpadLottery() {
       try {
         await query.refetch();
       } catch {}
-
-      // Release Lock
-      process.unlock();
-    })();
+    });
   }, [process, drawCount, farmingSpeed]);
 
   /** Auto-Spin */

@@ -105,10 +105,8 @@ export default memo(function ZooAutoTasks() {
       return;
     }
 
-    (async function () {
-      /** Lock Process */
-      process.lock();
-
+    /** Execute Process */
+    process.execute(async function () {
       for (let [index, task] of Object.entries(pendingTasks)) {
         if (process.controller.signal.aborted) return;
 
@@ -159,8 +157,10 @@ export default memo(function ZooAutoTasks() {
 
       /** Stop */
       reset();
-      process.stop();
-    })();
+
+      /** Stop */
+      return true;
+    });
   }, [process, pendingTasks, setCurrentTask, reset]);
 
   /** Auto-Complete Tasks */

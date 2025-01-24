@@ -27,10 +27,8 @@ export default memo(function GoldEagleGamer() {
       return;
     }
 
-    (async function () {
-      /** Lock */
-      process.lock();
-
+    /** Execute */
+    process.execute(async function () {
       const percent = 80 + Math.floor(Math.random() * 18);
       const taps = Math.floor((energy * percent) / 100);
 
@@ -43,9 +41,9 @@ export default memo(function GoldEagleGamer() {
       /** Refetch */
       await query.refetch();
 
-      /** Unlock */
-      process.stop();
-    })();
+      /** Stop */
+      return true;
+    });
   }, [process, energy]);
 
   /** Auto-Game */

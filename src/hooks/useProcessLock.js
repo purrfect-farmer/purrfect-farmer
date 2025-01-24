@@ -123,15 +123,12 @@ export default function useProcessLock(key, socket) {
 
   /** Exectute A Callback */
   const execute = useCallback(
-    async (callback, shouldStop = false) => {
+    async (callback) => {
       /** Lock */
       await lock();
 
-      /** Run Callback */
-      await callback();
-
       /** Should Stop? */
-      if (shouldStop) {
+      if (await callback()) {
         await stop();
       } else {
         await unlock();

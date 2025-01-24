@@ -30,10 +30,8 @@ export default memo(function PumpadTickets() {
       return;
     }
 
-    (async function () {
-      // Lock Process
-      process.lock();
-
+    // Execute the Process
+    process.execute(async function () {
       /** Spin */
       try {
         await betMutation.mutateAsync();
@@ -44,10 +42,7 @@ export default memo(function PumpadTickets() {
       try {
         await query.refetch();
       } catch {}
-
-      // Release Lock
-      process.unlock();
-    })();
+    });
   }, [process, ticketsCount, farmingSpeed]);
 
   /** Auto-Spin */
