@@ -13,7 +13,27 @@ export default function useHorseGoFarmer() {
           icon: HorseGoIcon,
           title: "HorseGo Farmer",
         },
-        domains: ["api.horsego.vip"],
+        /**
+         * @param {import("axios").AxiosInstance} api
+         */
+        fetchAuth(api, telegramWebApp) {
+          return api
+            .post(
+              `https://api.horsego.vip/user_api/login?authString=${encodeURIComponent(
+                telegramWebApp.initData
+              )}`
+            )
+            .then((res) => res.data.data);
+        },
+
+        /**
+         * @param {import("axios").AxiosInstance} api
+         */
+        configureAuthHeaders(api, telegramWebApp, data) {
+          api.defaults.headers.common[
+            "Authorization"
+          ] = `Bearer ${data?.authToken}`;
+        },
       }),
       []
     )
