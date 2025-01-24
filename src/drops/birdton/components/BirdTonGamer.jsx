@@ -143,7 +143,7 @@ export default memo(function BirdTonGamer() {
       await delay(1000);
 
       /** Callback */
-      saveGameCallback(zoomies.enabled);
+      saveGameCallback?.(zoomies.enabled);
     },
     [
       reset,
@@ -200,7 +200,7 @@ export default memo(function BirdTonGamer() {
       /** End Game */
       const endGame = () =>
         new Promise((res) => {
-          setSaveGameCallback(res);
+          setSaveGameCallback(() => res);
           sendMessage({ event_type: "game_end", data: gameId });
         });
 
