@@ -23,6 +23,20 @@ if (location.hash.includes("tgWebAppData")) {
         }
       };
 
+      /** Override Element */
+      HTMLDivElement.prototype.__addEventListener =
+        HTMLDivElement.prototype.addEventListener;
+
+      HTMLDivElement.prototype.addEventListener = function (...args) {
+        if (args[0] === "touchstart") {
+          return this.__addEventListener.apply(this, [
+            "mousedown",
+            ...args.slice(1),
+          ]);
+        }
+        return this.__addEventListener.apply(this, args);
+      };
+
       /** Remove Haptic */
       localStorage.removeItem("haptic");
 

@@ -7,6 +7,9 @@ export const core = {
   matchMedia: window.matchMedia.bind(window),
   XMLHttpRequest: window.XMLHttpRequest.bind(window),
   postMessage: window.postMessage.bind(window),
+  document: {
+    createElement: document.createElement.bind(document),
+  },
   Promise: {
     race: Promise.race.bind(Promise),
   },
