@@ -23,7 +23,7 @@ export default memo(function TsubasaTasks() {
       allTasks.filter(
         (task) =>
           task["event_type"] === 1 &&
-          task["title"].toUpperCase().includes("WALLET") === false
+          ["FRIENDS", "WALLET"].includes(task["title"].toUpperCase()) === false
       ),
     [allTasks]
   );
