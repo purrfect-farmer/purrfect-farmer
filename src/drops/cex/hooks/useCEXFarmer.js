@@ -16,7 +16,7 @@ export default function useCEXFarmer() {
         },
         domains: ["app.cexptap.com"],
         authHeaders: ["x-appl-version", "x-request-userhash"],
-        // syncToCloud: true,
+        syncToCloud: true,
       }),
       []
     )

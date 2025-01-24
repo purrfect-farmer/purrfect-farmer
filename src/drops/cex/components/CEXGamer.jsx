@@ -32,7 +32,9 @@ export default memo(function CEXGamer() {
       process.lock();
 
       /** Calculate Amount to Collect */
-      const taps = Math.min(energy, 20 + Math.floor(Math.random() * 10));
+
+      const percent = 60 + Math.floor(Math.random() * 20);
+      const taps = Math.floor((energy * percent) / 100);
       const balance = energy - taps;
 
       /** Tap */
@@ -55,7 +57,7 @@ export default memo(function CEXGamer() {
       await delay(500);
 
       /** Stop Process */
-      process.unlock();
+      process.stop();
     })();
   }, [process, energy]);
 
