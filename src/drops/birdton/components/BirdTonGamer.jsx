@@ -31,6 +31,7 @@ export default memo(function BirdTonGamer() {
     refreshTasks,
   } = useFarmerContext();
   const [createGameCallback, setCreateGameCallback] = useState(null);
+  const [saveGameCallback, setSaveGameCallback] = useState(null);
 
   const [farmingSpeed, , dispatchAndSetFarmingSpeed] = useSocketState(
     "birdton.farming-speed",
@@ -136,27 +137,21 @@ export default memo(function BirdTonGamer() {
       reset();
 
       /** Refresh Tasks */
-      refreshTasks();
+      await refreshTasks();
 
       /** Delay */
       await delay(1000);
 
-      if (zoomies.enabled) {
-        /** Stop the Process */
-        process.stop();
-      } else {
-        /** Unlock the process */
-        process.unlock();
-      }
+      /** Callback */
+      saveGameCallback(zoomies.enabled);
     },
     [
-      zoomies.enabled,
-      queryClient.setQueryData,
-      process.unlock,
-      process.stop,
-      authQueryKey,
       reset,
+      authQueryKey,
       refreshTasks,
+      saveGameCallback,
+      queryClient.setQueryData,
+      zoomies.enabled,
     ]
   );
 
@@ -203,9 +198,11 @@ export default memo(function BirdTonGamer() {
     /** Execute */
     process.execute(async function () {
       /** End Game */
-      const endGame = () => {
-        sendMessage({ event_type: "game_end", data: gameId });
-      };
+      const endGame = () =>
+        new Promise((res) => {
+          setSaveGameCallback(res);
+          sendMessage({ event_type: "game_end", data: gameId });
+        });
 
       /** Add Abort Listener */
       process.controller.signal.addEventListener("abort", endGame);
@@ -230,7 +227,7 @@ export default memo(function BirdTonGamer() {
         await delay(1000);
 
         /** End Game */
-        endGame();
+        return await endGame();
       }
     });
   }, [process, energy, gameId, startGame, reset, gameSpeedRef]);
