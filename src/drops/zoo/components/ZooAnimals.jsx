@@ -1,6 +1,6 @@
 import useFarmerAutoProcess from "@/hooks/useFarmerAutoProcess";
 import useProcessLock from "@/hooks/useProcessLock";
-import { cn, delay, logNicely } from "@/lib/utils";
+import { cn, customLogger, delay } from "@/lib/utils";
 import { isAfter, isBefore } from "date-fns";
 import { memo, useCallback } from "react";
 import { useEffect } from "react";
@@ -136,17 +136,17 @@ export default memo(function ZooAnimals() {
 
   /** Log All Animals */
   useEffect(() => {
-    logNicely("ZOO ALL ANIMALS", allAnimals);
-    logNicely("ZOO USER ANIMALS", userAnimals);
-    logNicely("ZOO NEW ANIMALS", newAnimals);
-    logNicely("ZOO UPGRADABLE ANIMALS", upgradableAnimals);
+    customLogger("ZOO ALL ANIMALS", allAnimals);
+    customLogger("ZOO USER ANIMALS", userAnimals);
+    customLogger("ZOO NEW ANIMALS", newAnimals);
+    customLogger("ZOO UPGRADABLE ANIMALS", upgradableAnimals);
   }, [allAnimals, userAnimals, newAnimals, upgradableAnimals]);
 
   /** Log All Positions */
   useEffect(() => {
-    logNicely("ZOO ALL POSITIONS", positions);
-    logNicely("ZOO USED POSITIONS", usedPositions);
-    logNicely("ZOO AVAILABLE POSITIONS", availablePositions);
+    customLogger("ZOO ALL POSITIONS", positions);
+    customLogger("ZOO USED POSITIONS", usedPositions);
+    customLogger("ZOO AVAILABLE POSITIONS", availablePositions);
   }, [positions, usedPositions, availablePositions]);
 
   /** Reset Animal */

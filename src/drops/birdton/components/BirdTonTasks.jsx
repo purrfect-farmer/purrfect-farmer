@@ -4,7 +4,7 @@ import useFarmerContext from "@/hooks/useFarmerContext";
 import useProcessLock from "@/hooks/useProcessLock";
 import useSocketDispatchCallback from "@/hooks/useSocketDispatchCallback";
 import { HiOutlineArrowPath } from "react-icons/hi2";
-import { cn, delayForSeconds, logNicely } from "@/lib/utils";
+import { cn, customLogger, delayForSeconds } from "@/lib/utils";
 import { memo } from "react";
 import { useCallback } from "react";
 import { useEffect } from "react";
@@ -110,7 +110,7 @@ export default memo(function BirdTonTasks() {
 
   /** Log Tasks */
   useEffect(() => {
-    logNicely("BirdTON Tasks", subTasks);
+    customLogger("BirdTON Tasks", subTasks);
   }, [subTasks]);
 
   /** Reset */

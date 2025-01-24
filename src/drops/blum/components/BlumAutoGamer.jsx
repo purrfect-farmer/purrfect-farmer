@@ -1,9 +1,10 @@
 import Countdown from "react-countdown";
 import toast from "react-hot-toast";
+import useAppContext from "@/hooks/useAppContext";
 import useFarmerAutoProcess from "@/hooks/useFarmerAutoProcess";
 import useProcessLock from "@/hooks/useProcessLock";
 import useSocketState from "@/hooks/useSocketState";
-import { delay, extraGamePoints, logNicely, uuid } from "@/lib/utils";
+import { customLogger, delay, extraGamePoints, uuid } from "@/lib/utils";
 import { memo } from "react";
 import { useCallback } from "react";
 import { useEffect } from "react";
@@ -17,7 +18,6 @@ import useBlumBalanceQuery from "../hooks/useBlumBalanceQuery";
 import useBlumClaimGameMutation from "../hooks/useBlumClaimGameMutation";
 import useBlumDogsDropEligibilityQuery from "../hooks/useBlumDogsDropEligibilityQuery";
 import useBlumStartGameMutation from "../hooks/useBlumStartGameMutation";
-import useAppContext from "@/hooks/useAppContext";
 
 const GAME_DURATION = 30_000;
 const EXTRA_DELAY = 3_000;
@@ -104,7 +104,7 @@ export default memo(function BlumAutoGamer({ workerRef }) {
         const assets = game.assets;
 
         /** Log */
-        logNicely("BLUM GAME", game);
+        customLogger("BLUM GAME", game);
 
         /** Calculate */
         const finalPoints = extraGamePoints(points);
@@ -199,7 +199,7 @@ export default memo(function BlumAutoGamer({ workerRef }) {
         });
 
         /** Log */
-        logNicely("BLUM GAME PAYLOAD", payload);
+        customLogger("BLUM GAME PAYLOAD", payload);
 
         /** Claim Game */
         await claimGameMutation.mutateAsync(pack.hash);
@@ -218,7 +218,7 @@ export default memo(function BlumAutoGamer({ workerRef }) {
         });
       } catch (e) {
         /** Log it */
-        logNicely("BLUM ERROR", e);
+        customLogger("BLUM ERROR", e);
       }
 
       /** Release Lock */

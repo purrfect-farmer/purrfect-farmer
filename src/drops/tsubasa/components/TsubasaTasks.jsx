@@ -1,7 +1,7 @@
 import useFarmerAutoProcess from "@/hooks/useFarmerAutoProcess";
 import useFarmerContext from "@/hooks/useFarmerContext";
 import useProcessLock from "@/hooks/useProcessLock";
-import { canJoinTelegramLink, cn, delay, logNicely } from "@/lib/utils";
+import { canJoinTelegramLink, cn, customLogger, delay } from "@/lib/utils";
 import { memo } from "react";
 import { useCallback } from "react";
 import { useEffect } from "react";
@@ -69,11 +69,11 @@ export default memo(function TsubasaTasks() {
 
   /** Log All Tasks */
   useEffect(() => {
-    logNicely("TSUBASA ALL TASKS", allTasks);
-    logNicely("TSUBASA AVAILABLE TASKS", availableTasks);
-    logNicely("TSUBASA PENDING TASKS", pendingTasks);
-    logNicely("TSUBASA UNCLAIMED TASKS", unclaimedTasks);
-    logNicely("TSUBASA FINISHED TASKS", finishedTasks);
+    customLogger("TSUBASA ALL TASKS", allTasks);
+    customLogger("TSUBASA AVAILABLE TASKS", availableTasks);
+    customLogger("TSUBASA PENDING TASKS", pendingTasks);
+    customLogger("TSUBASA UNCLAIMED TASKS", unclaimedTasks);
+    customLogger("TSUBASA FINISHED TASKS", finishedTasks);
   }, [allTasks, availableTasks, pendingTasks, unclaimedTasks, finishedTasks]);
 
   /** Reset */

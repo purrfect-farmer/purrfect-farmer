@@ -1,11 +1,11 @@
-import { decryptData, encryptData } from "./content-script-utils";
 import {
+  customLogger,
   delay,
   delayForSeconds,
   dispatchClickEventOnElement,
-  logNicely,
   scrollElementIntoView,
 } from "./lib/utils";
+import { decryptData, encryptData } from "./content-script-utils";
 
 const core = {
   open: window.open.bind(window),
@@ -27,7 +27,7 @@ const modifiedWindowOpen = (url) => {
     );
   }
 
-  logNicely("NOTGRAM LINK", url);
+  customLogger("NOTGRAM LINK", url);
 };
 
 let PROCESS_HAS_STARTED = false;
@@ -106,7 +106,7 @@ const runTasks = async () => {
     /** Needs to Perform Task */
     if (verifyButton.disabled) {
       /** Log */
-      logNicely("NOTGRAM", "Performing Task");
+      customLogger("NOTGRAM", "Performing Task");
 
       /** Click */
       dispatchClickEventOnElement(performButton);
@@ -118,7 +118,7 @@ const runTasks = async () => {
     /** Can Verify */
     if (!verifyButton.disabled) {
       /** Log */
-      logNicely("NOTGRAM", "Verifying Task");
+      customLogger("NOTGRAM", "Verifying Task");
 
       /** Click to Verify */
       dispatchClickEventOnElement(verifyButton);
@@ -130,7 +130,7 @@ const runTasks = async () => {
     /** Can Claim */
     if (claimButton && !claimButton.disabled) {
       /** Log */
-      logNicely("NOTGRAM", "Claiming Task");
+      customLogger("NOTGRAM", "Claiming Task");
 
       /** Click to Claim */
       dispatchClickEventOnElement(claimButton);

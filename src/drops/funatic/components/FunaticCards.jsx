@@ -1,6 +1,6 @@
 import useFarmerAutoProcess from "@/hooks/useFarmerAutoProcess";
 import useProcessLock from "@/hooks/useProcessLock";
-import { cn, delay, logNicely } from "@/lib/utils";
+import { cn, customLogger, delay } from "@/lib/utils";
 import { memo } from "react";
 import { useEffect } from "react";
 import { useMemo } from "react";
@@ -62,9 +62,9 @@ export default memo(function FunaticCards() {
   );
   /** Log All Cards */
   useEffect(() => {
-    logNicely("FUNATIC ALL CARDS", allCards);
-    logNicely("FUNATIC AVAILABLE CARDS", availableCards);
-    logNicely("FUNATIC LEVEL ZERO CARDS", levelZeroCards);
+    customLogger("FUNATIC ALL CARDS", allCards);
+    customLogger("FUNATIC AVAILABLE CARDS", availableCards);
+    customLogger("FUNATIC LEVEL ZERO CARDS", levelZeroCards);
   }, [allCards, availableCards, levelZeroCards]);
 
   /** Reset Card */

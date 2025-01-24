@@ -13,7 +13,7 @@ export function uuid() {
   return uuidv4();
 }
 
-export function logNicely(...args) {
+export function customLogger(...args) {
   console.log("\n");
   args.forEach((item, index) => {
     console.log(index === 0 ? `<<<<${item}>>>>` : item);

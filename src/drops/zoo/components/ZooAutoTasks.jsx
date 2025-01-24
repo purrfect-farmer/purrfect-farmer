@@ -4,9 +4,9 @@ import useProcessLock from "@/hooks/useProcessLock";
 import {
   canJoinTelegramLink,
   cn,
+  customLogger,
   delay,
   isTelegramLink,
-  logNicely,
 } from "@/lib/utils";
 import { memo } from "react";
 import { useCallback } from "react";
@@ -91,9 +91,9 @@ export default memo(function ZooAutoTasks() {
 
   /** Log Tasks */
   useEffect(() => {
-    logNicely("ZOO ALL TASKS", tasks);
-    logNicely("ZOO PENDING TASKS", pendingTasks);
-    logNicely("ZOO FINISHED TASKS", finishedTasks);
+    customLogger("ZOO ALL TASKS", tasks);
+    customLogger("ZOO PENDING TASKS", pendingTasks);
+    customLogger("ZOO FINISHED TASKS", finishedTasks);
   }, [tasks, pendingTasks, finishedTasks]);
 
   /** Reset */

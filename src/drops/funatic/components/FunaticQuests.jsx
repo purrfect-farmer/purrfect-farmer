@@ -1,7 +1,7 @@
 import useFarmerAutoProcess from "@/hooks/useFarmerAutoProcess";
 import useFarmerContext from "@/hooks/useFarmerContext";
 import useProcessLock from "@/hooks/useProcessLock";
-import { canJoinTelegramLink, cn, delay, logNicely } from "@/lib/utils";
+import { canJoinTelegramLink, cn, customLogger, delay } from "@/lib/utils";
 import { memo } from "react";
 import { useCallback } from "react";
 import { useEffect } from "react";
@@ -74,11 +74,11 @@ export default memo(function FunaticQuests() {
 
   /** Log All Quests */
   useEffect(() => {
-    logNicely("FUNATIC ALL QUESTS", allQuests);
-    logNicely("FUNATIC AVAILABLE QUESTS", availableQuests);
-    logNicely("FUNATIC PENDING QUESTS", pendingQuests);
-    logNicely("FUNATIC UNCLAIMED QUESTS", unclaimedQuests);
-    logNicely("FUNATIC FINISHED QUESTS", finishedQuests);
+    customLogger("FUNATIC ALL QUESTS", allQuests);
+    customLogger("FUNATIC AVAILABLE QUESTS", availableQuests);
+    customLogger("FUNATIC PENDING QUESTS", pendingQuests);
+    customLogger("FUNATIC UNCLAIMED QUESTS", unclaimedQuests);
+    customLogger("FUNATIC FINISHED QUESTS", finishedQuests);
   }, [allQuests, availableQuests, pendingQuests, unclaimedQuests, finishedQuests]);
 
   /** Reset */

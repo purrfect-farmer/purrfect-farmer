@@ -1,20 +1,20 @@
 import useFarmerAutoProcess from "@/hooks/useFarmerAutoProcess";
 import useFarmerContext from "@/hooks/useFarmerContext";
 import useProcessLock from "@/hooks/useProcessLock";
-import { canJoinTelegramLink, cn, delay, logNicely } from "@/lib/utils";
+import { canJoinTelegramLink, cn, customLogger, delay } from "@/lib/utils";
+import { isBefore, subMilliseconds } from "date-fns";
 import { memo } from "react";
 import { useCallback } from "react";
 import { useEffect } from "react";
 import { useMemo } from "react";
 import { useState } from "react";
 
+import useCEXCheckTaskMutation from "../hooks/useCEXCheckTaskMutation";
+import useCEXChildrenQuery from "../hooks/useCEXChildrenQuery";
 import useCEXClaimTaskMutation from "../hooks/useCEXClaimTaskMutation";
-import useCEXTasksQuery from "../hooks/useCEXTasksQuery";
 import useCEXStartTaskMutation from "../hooks/useCEXStartTaskMutation";
 import useCEXTasksConfigQuery from "../hooks/useCEXTasksConfigQuery";
-import useCEXCheckTaskMutation from "../hooks/useCEXCheckTaskMutation";
-import { isBefore, subMilliseconds } from "date-fns";
-import useCEXChildrenQuery from "../hooks/useCEXChildrenQuery";
+import useCEXTasksQuery from "../hooks/useCEXTasksQuery";
 
 export default memo(function CEXTasks() {
   const configQuery = useCEXTasksConfigQuery();
@@ -119,7 +119,7 @@ export default memo(function CEXTasks() {
 
   /** Log Config */
   useEffect(() => {
-    logNicely("CEX TASKS CONFIG", configQuery.data?.tasksConfig);
+    customLogger("CEX TASKS CONFIG", configQuery.data?.tasksConfig);
   }, [
     /** Config */
     configQuery.data?.tasksConfig,
@@ -127,13 +127,13 @@ export default memo(function CEXTasks() {
 
   /** Log All Tasks */
   useEffect(() => {
-    logNicely("CEX ALL TASKS", allTasks);
-    logNicely("CEX AVAILABLE TASKS", availableTasks);
-    logNicely("CEX PENDING TASKS", pendingTasks);
-    logNicely("CEX READY TO CHECK TASKS", readyToCheckTasks);
-    logNicely("CEX UNVERIFIED TASKS", unverifiedTasks);
-    logNicely("CEX UNCLAIMED TASKS", unclaimedTasks);
-    logNicely("CEX FINISHED TASKS", finishedTasks);
+    customLogger("CEX ALL TASKS", allTasks);
+    customLogger("CEX AVAILABLE TASKS", availableTasks);
+    customLogger("CEX PENDING TASKS", pendingTasks);
+    customLogger("CEX READY TO CHECK TASKS", readyToCheckTasks);
+    customLogger("CEX UNVERIFIED TASKS", unverifiedTasks);
+    customLogger("CEX UNCLAIMED TASKS", unclaimedTasks);
+    customLogger("CEX FINISHED TASKS", finishedTasks);
   }, [
     /** Tasks */
     allTasks,

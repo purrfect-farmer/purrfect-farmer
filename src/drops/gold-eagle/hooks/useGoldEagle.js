@@ -1,5 +1,5 @@
 import useValuesMemo from "@/hooks/useValuesMemo";
-import { logNicely } from "@/lib/utils";
+import { customLogger } from "@/lib/utils";
 import { useEffect } from "react";
 import { useState } from "react";
 
@@ -15,7 +15,7 @@ export default function useGoldEagle(farmer) {
         const game = await getGoldEagleGame();
 
         /** Log it */
-        logNicely("GOLD-EAGLE", game);
+        customLogger("GOLD-EAGLE", game);
 
         /** Set Result */
         setGame(game);

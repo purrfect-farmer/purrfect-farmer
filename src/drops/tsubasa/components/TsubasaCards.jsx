@@ -2,7 +2,7 @@ import toast from "react-hot-toast";
 import useFarmerAutoProcess from "@/hooks/useFarmerAutoProcess";
 import useFarmerContext from "@/hooks/useFarmerContext";
 import useProcessLock from "@/hooks/useProcessLock";
-import { cn, delay, logNicely } from "@/lib/utils";
+import { cn, customLogger, delay } from "@/lib/utils";
 import { isAfter, isBefore } from "date-fns";
 import { memo } from "react";
 import { useCallback } from "react";
@@ -135,12 +135,12 @@ export default memo(function TsubasaCards() {
 
   /** Log All Cards */
   useEffect(() => {
-    logNicely("TSUBASA ALL CARDS", allCards);
-    logNicely("TSUBASA AVAILABLE CARDS", availableCards);
-    logNicely("TSUBASA UNLOCKED CARDS", unlockedCards);
-    logNicely("TSUBASA UPGRADABLE CARDS", upgradableCards);
-    logNicely("TSUBASA LEVEL ZERO CARDS", levelZeroCards);
-    logNicely("TSUBASA REQUIRED CARDS", requiredCards);
+    customLogger("TSUBASA ALL CARDS", allCards);
+    customLogger("TSUBASA AVAILABLE CARDS", availableCards);
+    customLogger("TSUBASA UNLOCKED CARDS", unlockedCards);
+    customLogger("TSUBASA UPGRADABLE CARDS", upgradableCards);
+    customLogger("TSUBASA LEVEL ZERO CARDS", levelZeroCards);
+    customLogger("TSUBASA REQUIRED CARDS", requiredCards);
   }, [allCards, availableCards, unlockedCards, upgradableCards, levelZeroCards, requiredCards]);
 
   /** Reset Card */

@@ -3,7 +3,7 @@ import toast from "react-hot-toast";
 import useFarmerAsyncTask from "@/hooks/useFarmerAsyncTask";
 import useFarmerAutoTab from "@/hooks/useFarmerAutoTab";
 import useSocketTabs from "@/hooks/useSocketTabs";
-import { cn, delay, logNicely } from "@/lib/utils";
+import { cn, delay, customLogger } from "@/lib/utils";
 import { memo } from "react";
 
 import DreamCoinIcon from "../assets/images/icon.png?format=webp&w=80";
@@ -47,9 +47,9 @@ export default memo(function DreamCoinFarmer() {
           );
 
           /** Log It */
-          logNicely("DREAMCOIN TODAY", today);
-          logNicely("DREAMCOIN DAILY-TASKS", dailyTasks);
-          logNicely("DREAMCOIN DAY", day);
+          customLogger("DREAMCOIN TODAY", today);
+          customLogger("DREAMCOIN DAILY-TASKS", dailyTasks);
+          customLogger("DREAMCOIN DAY", day);
 
           if (day) {
             /** Claim */
@@ -78,7 +78,7 @@ export default memo(function DreamCoinFarmer() {
             const freeCase = await getCaseMutation.mutateAsync(freeCaseId);
 
             /** Log It */
-            logNicely("DREAMCOIN FREECASE", freeCase);
+            customLogger("DREAMCOIN FREECASE", freeCase);
 
             /** Open Case */
             await openCaseMutation.mutateAsync(freeCaseId);

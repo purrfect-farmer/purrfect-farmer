@@ -1,7 +1,7 @@
 import useFarmerAutoProcess from "@/hooks/useFarmerAutoProcess";
 import useFarmerContext from "@/hooks/useFarmerContext";
 import useProcessLock from "@/hooks/useProcessLock";
-import { canJoinTelegramLink, cn, delay, logNicely } from "@/lib/utils";
+import { canJoinTelegramLink, cn, customLogger, delay } from "@/lib/utils";
 import { memo } from "react";
 import { useCallback } from "react";
 import { useEffect } from "react";
@@ -55,7 +55,7 @@ export default memo(function DreamCoinRewards() {
 
   /** LogIt */
   useEffect(() => {
-    logNicely("DREAMCOIN TASKS", tasks);
+    customLogger("DREAMCOIN TASKS", tasks);
   }, [tasks]);
 
   /** Reset */

@@ -1,6 +1,6 @@
 import useFarmerAutoProcess from "@/hooks/useFarmerAutoProcess";
 import useProcessLock from "@/hooks/useProcessLock";
-import { cn, delay, logNicely } from "@/lib/utils";
+import { cn, customLogger, delay } from "@/lib/utils";
 import { memo } from "react";
 import { useEffect } from "react";
 import { useMemo } from "react";
@@ -106,9 +106,9 @@ export default memo(function CEXCards() {
   );
   /** Log All Cards */
   useEffect(() => {
-    logNicely("CEX ALL CARDS", allCards);
-    logNicely("CEX AVAILABLE CARDS", availableCards);
-    logNicely("CEX LEVEL ZERO CARDS", levelZeroCards);
+    customLogger("CEX ALL CARDS", allCards);
+    customLogger("CEX AVAILABLE CARDS", availableCards);
+    customLogger("CEX LEVEL ZERO CARDS", levelZeroCards);
   }, [allCards, availableCards, levelZeroCards]);
 
   /** Reset Card */

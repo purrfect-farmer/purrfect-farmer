@@ -3,7 +3,7 @@ import useFarmerAutoTask from "@/hooks/useFarmerAutoTask";
 import useFarmerContext from "@/hooks/useFarmerContext";
 import useSocketDispatchCallback from "@/hooks/useSocketDispatchCallback";
 import useSocketState from "@/hooks/useSocketState";
-import { logNicely } from "@/lib/utils";
+import { customLogger } from "@/lib/utils";
 import { memo, useCallback } from "react";
 
 import Agent301PuzzleDialog from "./Agent301PuzzleDialog";
@@ -82,7 +82,7 @@ export default memo(function Agent301Puzzle() {
         const answer = dataQuery.data?.agent301?.puzzle?.[day];
 
         /** Log It */
-        logNicely("AGENT 301 PUZZLE", day, answer);
+        customLogger("AGENT 301 PUZZLE", day, answer);
 
         if (attemptsLeft && answer) {
           handleChoiceSubmit(answer).finally(() => {

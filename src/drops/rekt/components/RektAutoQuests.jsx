@@ -1,7 +1,7 @@
 import useFarmerAutoProcess from "@/hooks/useFarmerAutoProcess";
 import useFarmerContext from "@/hooks/useFarmerContext";
 import useProcessLock from "@/hooks/useProcessLock";
-import { canJoinTelegramLink, cn, delay, logNicely } from "@/lib/utils";
+import { canJoinTelegramLink, cn, customLogger, delay } from "@/lib/utils";
 import { memo } from "react";
 import { useCallback } from "react";
 import { useEffect } from "react";
@@ -164,8 +164,8 @@ export default memo(function RektAutoQuests() {
 
   /** Log It */
   useEffect(() => {
-    logNicely("REKT RAW QUESTS", userQuests);
-    logNicely("REKT QUESTS", userQuests);
+    customLogger("REKT RAW QUESTS", userQuests);
+    customLogger("REKT QUESTS", userQuests);
   }, [userQuests, quests]);
 
   /** Reset */

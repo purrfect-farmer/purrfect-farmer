@@ -1,5 +1,5 @@
 import useValuesMemo from "@/hooks/useValuesMemo";
-import { logNicely } from "@/lib/utils";
+import { customLogger } from "@/lib/utils";
 import { useEffect } from "react";
 import { useState } from "react";
 
@@ -15,7 +15,7 @@ export default function useTomarket(farmer) {
         const game = await getTomarketGame();
 
         /** Log it */
-        logNicely("TOMARKET", game);
+        customLogger("TOMARKET", game);
 
         /** Set Result */
         setTomarket(game);

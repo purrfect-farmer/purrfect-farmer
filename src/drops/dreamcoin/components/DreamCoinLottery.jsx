@@ -3,7 +3,7 @@ import toast from "react-hot-toast";
 import useFarmerAutoProcess from "@/hooks/useFarmerAutoProcess";
 import useProcessLock from "@/hooks/useProcessLock";
 import useSocketState from "@/hooks/useSocketState";
-import { cn, delayForSeconds, logNicely } from "@/lib/utils";
+import { cn, customLogger, delayForSeconds } from "@/lib/utils";
 import { memo } from "react";
 import { useEffect, useMemo } from "react";
 
@@ -48,7 +48,7 @@ export default memo(function DreamCoinLottery() {
 
   /** Log It */
   useEffect(() => {
-    logNicely("DREAMCOIN AVAILABLE MULTIPLIERS", availableMultipliers);
+    customLogger("DREAMCOIN AVAILABLE MULTIPLIERS", availableMultipliers);
   }, [availableMultipliers]);
 
   useEffect(() => {
@@ -90,7 +90,7 @@ export default memo(function DreamCoinLottery() {
               );
 
               /** Log It */
-              logNicely("DREAMCOIN FREECASE", freeCase);
+              customLogger("DREAMCOIN FREECASE", freeCase);
 
               /** Open Case */
               await openCaseMutation.mutateAsync(reward.freeCase);

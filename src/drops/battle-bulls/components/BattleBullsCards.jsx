@@ -1,6 +1,6 @@
 import useFarmerAutoProcess from "@/hooks/useFarmerAutoProcess";
 import useProcessLock from "@/hooks/useProcessLock";
-import { cn, delay, logNicely } from "@/lib/utils";
+import { cn, customLogger, delay } from "@/lib/utils";
 import { isAfter } from "date-fns";
 import { memo } from "react";
 import { useCallback } from "react";
@@ -96,11 +96,11 @@ export default memo(function BattleBullsCards() {
 
   /** Log All Cards */
   useEffect(() => {
-    logNicely("BATTLE BULLS ALL CARDS", cards);
-    logNicely("BATTLE BULLS AVAILABLE CARDS", availableCards);
-    logNicely("BATTLE BULLS UPGRADABLE CARDS", upgradableCards);
-    logNicely("BATTLE BULLS LEVEL ZERO CARDS", levelZeroCards);
-    logNicely("BATTLE BULLS REQUIRED CARDS", requiredCards);
+    customLogger("BATTLE BULLS ALL CARDS", cards);
+    customLogger("BATTLE BULLS AVAILABLE CARDS", availableCards);
+    customLogger("BATTLE BULLS UPGRADABLE CARDS", upgradableCards);
+    customLogger("BATTLE BULLS LEVEL ZERO CARDS", levelZeroCards);
+    customLogger("BATTLE BULLS REQUIRED CARDS", requiredCards);
   }, [cards, availableCards, upgradableCards, levelZeroCards, requiredCards]);
 
   /** Reset Card */

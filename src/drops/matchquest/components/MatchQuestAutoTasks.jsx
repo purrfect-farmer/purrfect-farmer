@@ -1,7 +1,7 @@
 import useFarmerAutoProcess from "@/hooks/useFarmerAutoProcess";
 import useFarmerContext from "@/hooks/useFarmerContext";
 import useProcessLock from "@/hooks/useProcessLock";
-import { canJoinTelegramLink, delay, logNicely } from "@/lib/utils";
+import { canJoinTelegramLink, customLogger, delay } from "@/lib/utils";
 import { memo } from "react";
 import { useCallback } from "react";
 import { useEffect } from "react";
@@ -83,9 +83,9 @@ export default memo(function MatchQuestAutoTasks() {
 
   /** Log It */
   useEffect(() => {
-    logNicely("MATCHQUEST TASKS", tasks);
-    logNicely("MATCHQUEST PENDING TASKS", pendingTasks);
-    logNicely("MATCHQUEST FINISHED TASKS", finishedTasks);
+    customLogger("MATCHQUEST TASKS", tasks);
+    customLogger("MATCHQUEST PENDING TASKS", pendingTasks);
+    customLogger("MATCHQUEST FINISHED TASKS", finishedTasks);
   }, [tasks, pendingTasks, finishedTasks]);
 
   /** Reset */

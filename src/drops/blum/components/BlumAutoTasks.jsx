@@ -2,7 +2,7 @@ import useFarmerAutoProcess from "@/hooks/useFarmerAutoProcess";
 import useFarmerContext from "@/hooks/useFarmerContext";
 import useProcessLock from "@/hooks/useProcessLock";
 import useValueTasks from "@/hooks/useValueTasks";
-import { canJoinTelegramLink, cn, delay, logNicely } from "@/lib/utils";
+import { canJoinTelegramLink, cn, customLogger, delay } from "@/lib/utils";
 import { memo } from "react";
 import { useCallback } from "react";
 import { useEffect } from "react";
@@ -199,17 +199,17 @@ export default memo(function BlumAutoTasks() {
 
   /** Log the Tasks */
   useEffect(() => {
-    logNicely("BLUM RAW TASKS", rawTasks);
+    customLogger("BLUM RAW TASKS", rawTasks);
   }, [rawTasks]);
 
   /** Log the Tasks */
   useEffect(() => {
-    logNicely("BLUM TASKS", tasks);
+    customLogger("BLUM TASKS", tasks);
   }, [tasks]);
 
   /** Log the Keyword Tasks */
   useEffect(() => {
-    logNicely(
+    customLogger(
       "BLUM KEYWORD TASKS",
       Object.fromEntries(
         keywordTasks.map((task) => [task.title.toUpperCase(), getKeyword(task)])

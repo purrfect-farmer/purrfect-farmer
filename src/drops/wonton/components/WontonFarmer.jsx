@@ -3,7 +3,7 @@ import toast from "react-hot-toast";
 import useFarmerAsyncTask from "@/hooks/useFarmerAsyncTask";
 import useFarmerAutoTab from "@/hooks/useFarmerAutoTab";
 import useSocketTabs from "@/hooks/useSocketTabs";
-import { cn, logNicely } from "@/lib/utils";
+import { cn, customLogger } from "@/lib/utils";
 import { isAfter } from "date-fns";
 import { memo } from "react";
 
@@ -87,17 +87,17 @@ export default memo(function WontonFarmer() {
           let status = false;
 
           /** Log */
-          logNicely("WONTON OWNED SHOP ITEMS", items);
+          customLogger("WONTON OWNED SHOP ITEMS", items);
 
           /** Log */
-          logNicely("WONTON OWNED SKINS", skins);
-          logNicely("WONTON SELECTED SKIN", selectedSkin);
-          logNicely("WONTON TOP SKIN", topSkin);
+          customLogger("WONTON OWNED SKINS", skins);
+          customLogger("WONTON SELECTED SKIN", selectedSkin);
+          customLogger("WONTON TOP SKIN", topSkin);
 
           /** Log */
-          logNicely("WONTON OWNED BOWLS", bowls);
-          logNicely("WONTON SELECTED BOWL", selectedBowl);
-          logNicely("WONTON TOP BOWL", topBowl);
+          customLogger("WONTON OWNED BOWLS", bowls);
+          customLogger("WONTON SELECTED BOWL", selectedBowl);
+          customLogger("WONTON TOP BOWL", topBowl);
 
           if (topSkin && topSkin.id !== selectedSkin?.id) {
             /** Use Item */
