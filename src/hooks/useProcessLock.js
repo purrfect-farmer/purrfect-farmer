@@ -121,6 +121,25 @@ export default function useProcessLock(key, socket) {
     }));
   }, [setProcess]);
 
+  /** Exectute A Callback */
+  const execute = useCallback(
+    async (callback, shouldStop = false) => {
+      /** Lock */
+      await lock();
+
+      /** Run Callback */
+      await callback();
+
+      /** Should Stop? */
+      if (shouldStop) {
+        await stop();
+      } else {
+        await unlock();
+      }
+    },
+    [lock, unlock, stop]
+  );
+
   /** Terminate on Unmount */
   useEffect(() => {
     return () => {
@@ -137,6 +156,7 @@ export default function useProcessLock(key, socket) {
       toggle,
       lock,
       unlock,
+      execute,
       dispatchAndStart,
       dispatchAndStop,
       dispatchAndToggle,
