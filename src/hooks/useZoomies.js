@@ -207,18 +207,38 @@ export default function useZoomies(core) {
   /** Open Bot */
   useLayoutEffect(() => {
     if (canProcessZoomies && auth === false) {
+      /** Timeout */
+      let timeout;
+
+      /** Attempts */
+      let attempts = 0;
+
+      /** Update Timeout */
+      const updateTimeout = () => {
+        timeout = setTimeout(reOpenBot, 60_000);
+      };
+
+      /** ReOpen Bot */
+      const reOpenBot = () => {
+        if (++attempts > 2) {
+          skipToNextDrop();
+        } else {
+          updateTimeout();
+        }
+      };
+
       /** First Time */
       openBot(false);
 
-      /** Interval */
-      const interval = setInterval(openBot, 60000);
+      /** Update Timeout */
+      updateTimeout();
 
-      /** Clear Interval */
+      /** Clear Timeout */
       return () => {
-        clearInterval(interval);
+        clearTimeout(timeout);
       };
     }
-  }, [canProcessZoomies, auth, openBot]);
+  }, [canProcessZoomies, auth, openBot, skipToNextDrop]);
 
   /** Handle Auth */
   useLayoutEffect(() => {
