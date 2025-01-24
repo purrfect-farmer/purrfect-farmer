@@ -202,7 +202,7 @@ const joinConversation = () => {
   });
 
   /** Abort after timeout */
-  setTimeout(() => joinObserverController.abort(), 30_000);
+  setTimeout(() => joinObserverController.abort(), 10_000);
 };
 
 /** Open Bot */
@@ -275,7 +275,7 @@ const openBot = (isWebView) => {
   });
 
   /** Abort after timeout */
-  setTimeout(() => botObserverController.abort(), 30_000);
+  setTimeout(() => botObserverController.abort(), 10_000);
 };
 
 /** Open Farmer Bot */
