@@ -24,7 +24,7 @@ export default memo(function DreamCoinInfoDisplay() {
 
           {/* Level */}
           <h2 className="font-bold text-center text-orange-500">
-            LVL {user?.level?.current || 0}
+            LVL {user?.clickerLevel?.current || 0}
           </h2>
 
           {/* Balance */}
@@ -43,21 +43,14 @@ export default memo(function DreamCoinInfoDisplay() {
           <div className="flex flex-col items-center justify-center gap-1 text-center whitespace-nowrap">
             <h4
               className={cn(
-                "relative px-4 py-2 rounded-full",
-                "bg-green-600 text-white",
-                "font-bold text-sm"
+                "relative px-2 py-1 rounded-full",
+                "bg-lime-500 text-black",
+                "font-bold text-xs"
               )}
             >
               {Intl.NumberFormat().format(user?.airDropXp || 0)} XP
             </h4>
-            <h4
-              className={cn(
-                "text-xs",
-                "px-2 py-1 rounded-full",
-                "text-green-100 bg-green-800",
-                "font-bold"
-              )}
-            >
+            <h4 className={cn("text-xs", "text-lime-500", "font-bold")}>
               +{Intl.NumberFormat().format(user?.airDropXpPerHour || 0)} XP/H
             </h4>
           </div>
