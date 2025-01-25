@@ -32,18 +32,22 @@ export default memo(function CEXGamer() {
       const taps = Math.floor((energy * percent) / 100);
       const balance = energy - taps;
 
-      /** Tap */
-      await tapMutation.mutateAsync({
-        tapsToClaim: taps,
-        tapsEnergy: balance,
-      });
+      try {
+        /** Tap */
+        await tapMutation.mutateAsync({
+          tapsToClaim: taps,
+          tapsEnergy: balance,
+        });
 
-      /** Toast */
-      toast.dismiss();
-      toast.success(`Collected ${taps} taps!`);
+        /** Toast */
+        toast.dismiss();
+        toast.success(`Collected ${taps} taps!`);
+      } catch {}
 
-      /** Refetch */
-      await userQuery.refetch();
+      try {
+        /** Refetch */
+        await userQuery.refetch();
+      } catch {}
 
       /** Stop */
       return true;
