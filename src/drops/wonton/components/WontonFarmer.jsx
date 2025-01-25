@@ -3,7 +3,7 @@ import toast from "react-hot-toast";
 import useFarmerAsyncTask from "@/hooks/useFarmerAsyncTask";
 import useFarmerAutoTab from "@/hooks/useFarmerAutoTab";
 import useSocketTabs from "@/hooks/useSocketTabs";
-import { cn, customLogger } from "@/lib/utils";
+import { cn, customLogger, delay } from "@/lib/utils";
 import { isAfter } from "date-fns";
 import { memo } from "react";
 
@@ -19,18 +19,24 @@ import useWontonFarmingStatusQuery from "../hooks/useWontonFarmingStatusQuery";
 import useWontonShopQuery from "../hooks/useWontonShopQuery";
 import useWontonStartFarmingMutation from "../hooks/useWontonStartFarmingMutation";
 import useWontonUseShopItemMutation from "../hooks/useWontonUseShopItemMutation";
+import useWontonUserQuery from "../hooks/useWontonUserQuery";
+import useWontonPurchaseBasicBoxMutation from "../hooks/useWontonPurchaseBasicBoxMutation";
+import useWontonDrawBasicBoxMutation from "../hooks/useWontonDrawBasicBoxMutation";
 
 export default memo(function WontonFarmer() {
   const tabs = useSocketTabs("wonton.farmer-tabs", ["game", "badges", "tasks"]);
 
   const dailyCheckInMutation = useWontonDailyCheckInMutation();
 
+  const userQuery = useWontonUserQuery();
   const farmingStatusQuery = useWontonFarmingStatusQuery();
   const startFarmingMutation = useWontonStartFarmingMutation();
   const claimFarmingMutation = useWontonClaimFarmingMutation();
 
   const shopQuery = useWontonShopQuery();
   const useShopItemMutation = useWontonUseShopItemMutation();
+  const purchaseBasicBoxMutation = useWontonPurchaseBasicBoxMutation();
+  const drawBasicBoxMutation = useWontonDrawBasicBoxMutation();
 
   /** Daily-Check-In */
   useFarmerAsyncTask(
@@ -46,6 +52,86 @@ export default memo(function WontonFarmer() {
       };
     },
     []
+  );
+
+  /** Buy Basic Box */
+  useFarmerAsyncTask(
+    "buy-basic-box",
+    () => {
+      if (userQuery.data && shopQuery.data) {
+        return async function () {
+          const shop = shopQuery.data;
+          const quota = shop.basicBoxQuota.available;
+          const basicBox = shop.blindbox.basicBox;
+
+          const balance = userQuery.data.tokenBalance;
+          const totalPrice = basicBox.price * quota;
+          const canPurchase = quota > 0 && totalPrice <= balance;
+
+          /** Log */
+          customLogger("WONTON BASIC BOX", basicBox);
+          customLogger("WONTON TOTAL BASIC BOX PRICE", totalPrice);
+          customLogger("WONTON CAN PURCHASE BASIC BOX", canPurchase);
+
+          if (!canPurchase) return;
+
+          /** Purchase */
+          await purchaseBasicBoxMutation.mutateAsync(quota);
+
+          /** Toast */
+          toast.success("Wonton - Purchase Basic Box");
+
+          /** Refetch */
+          await shopQuery.refetch();
+          await userQuery.refetch();
+        };
+      }
+    },
+    [userQuery.data, shopQuery.data]
+  );
+
+  /** Draw Basic Box */
+  useFarmerAsyncTask(
+    "draw-basic-box",
+    () => {
+      if (shopQuery.data) {
+        return async function () {
+          const shop = shopQuery.data;
+          const basicBox = shop.blindbox.basicBox;
+          const available = basicBox.balance;
+          const canDraw = available > 0;
+
+          /** Log */
+          customLogger("WONTON AVAILABLE BASIC BOX", available);
+
+          if (!canDraw) return;
+
+          /** Set Initial Balance */
+          let balance = available;
+
+          while (balance > 0) {
+            /** Get Amount */
+            const amount = Math.min(3, balance);
+
+            /** Deduct Balance */
+            balance -= amount;
+
+            /** Draw */
+            await drawBasicBoxMutation.mutateAsync(amount);
+
+            /** Toast */
+            toast.success("Wonton - Draw Basic Box");
+
+            /** Delay */
+            await delay(500);
+          }
+
+          /** Refetch */
+          await shopQuery.refetch();
+        };
+      }
+    },
+    [shopQuery.data]
   );
 
   /** Select Top Item */

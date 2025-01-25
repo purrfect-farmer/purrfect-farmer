@@ -240,6 +240,8 @@ const farmerTabs = [
       ["tasks"]: false,
       ["badges"]: false,
       ["game"]: false,
+      ["buy-basic-box"]: true,
+      ["draw-basic-box"]: true,
     },
   },
   {
