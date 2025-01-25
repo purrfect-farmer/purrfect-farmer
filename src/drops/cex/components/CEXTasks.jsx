@@ -52,7 +52,8 @@ export default memo(function CEXTasks() {
     () =>
       allTasks.filter(
         (item) =>
-          ["boost_telegram"].includes(item.key) === false &&
+          ["boost_telegram", "register_on_cex_io"].includes(item.key) ===
+            false &&
           ["socialQuiz", "cexEvent"].includes(item.type) === false &&
           validateReferralTask(item)
       ),
@@ -170,10 +171,10 @@ export default memo(function CEXTasks() {
             setTaskOffset(index);
             setCurrentTask(task);
 
-            if (task["action_url"]) {
-              if (canJoinTelegramLink(task["action_url"])) {
-                await joinTelegramLink(task["action_url"]);
-              }
+            const url = task?.config?.taskDetails?.redirectUrl;
+
+            if (canJoinTelegramLink(url)) {
+              await joinTelegramLink(url);
             }
 
             /** Start Task */
@@ -204,6 +205,13 @@ export default memo(function CEXTasks() {
 
             setTaskOffset(index);
             setCurrentTask(task);
+
+            /** Join URL */
+            const url = task?.config?.taskDetails?.redirectUrl;
+
+            if (canJoinTelegramLink(url)) {
+              await joinTelegramLink(url);
+            }
 
             /** Verify Task */
             try {
