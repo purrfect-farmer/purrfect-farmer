@@ -519,7 +519,7 @@ export default memo(function Settings({ tabs }) {
             <div className="flex gap-2 p-4 font-bold shrink-0">
               <button
                 title="Restore Default Settings"
-                onClick={dispatchAndRestoreSettings}
+                onClick={() => dispatchAndRestoreSettings()}
                 className={cn(
                   "bg-blue-100 dark:bg-blue-900",
                   "text-blue-900 dark:text-blue-100",

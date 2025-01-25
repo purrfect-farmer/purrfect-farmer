@@ -8,7 +8,7 @@ export default memo(function ConfirmButton(props) {
       type="button"
       {...props}
       className={cn(
-        "inline-flex items-center justify-center",
+        "inline-flex gap-2 items-center justify-center",
         "px-4 rounded-lg shrink-0",
         "text-white bg-blue-500",
         props.className

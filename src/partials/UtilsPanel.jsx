@@ -1,15 +1,17 @@
 import * as Dialog from "@radix-ui/react-dialog";
-import ConfirmButton from "@/components/ConfirmButton";
 import CoreSystemIcon from "@/assets/images/core-system.png?format=webp&w=128";
 import Input from "@/components/Input";
 import useAppContext from "@/hooks/useAppContext";
-import { HiArrowTopRightOnSquare } from "react-icons/hi2";
+import { HiArrowTopRightOnSquare, HiUserPlus } from "react-icons/hi2";
 import { cn, isBotURL } from "@/lib/utils";
 import { memo, useState } from "react";
 
 export default memo(function UtilsPanel({ open, onOpenChange }) {
-  const { dispatchAndOpenTelegramBot, dispatchAndOpenTelegramLink } =
-    useAppContext();
+  const {
+    dispatchAndOpenTelegramBot,
+    dispatchAndOpenTelegramLink,
+    dispatchAndJoinTelegramLink,
+  } = useAppContext();
 
   /** Sync Server */
   const [telegramLink, setTelegramLink] = useState("");
@@ -62,9 +64,30 @@ export default memo(function UtilsPanel({ open, onOpenChange }) {
                     onChange={(ev) => setTelegramLink(ev.target.value)}
                     placeholder="e.g https://t.me/..."
                   />
+                </div>
+                <div className="grid grid-cols-2 gap-2">
+                  {/* Join Button */}
+                  <button
+                    className={cn(
+                      "inline-flex gap-2 items-center justify-center",
+                      "py-2 px-4 rounded-full shrink-0 font-bold",
+                      "text-white bg-green-500"
+                    )}
+                    onClick={() => {
+                      dispatchAndJoinTelegramLink(telegramLink);
+                      onOpenChange(false);
+                    }}
+                  >
+                    <HiUserPlus className="w-4 h-4 " /> Join
+                  </button>
 
-                  {/* Set Button */}
-                  <ConfirmButton
+                  {/* Open Button */}
+                  <button
+                    className={cn(
+                      "inline-flex gap-2 items-center justify-center",
+                      "py-2 px-4 rounded-full shrink-0 font-bold",
+                      "text-white bg-blue-500"
+                    )}
                     onClick={() => {
                       isBotURL(telegramLink)
                         ? dispatchAndOpenTelegramBot(telegramLink)
@@ -72,13 +95,13 @@ export default memo(function UtilsPanel({ open, onOpenChange }) {
                       onOpenChange(false);
                     }}
                   >
-                    <HiArrowTopRightOnSquare className="w-4 h-4 " />
-                  </ConfirmButton>
+                    <HiArrowTopRightOnSquare className="w-4 h-4 " /> Open
+                  </button>
                 </div>
                 <p
                   className={cn(
-                    "bg-yellow-100 dark:bg-yellow-900",
-                    "text-yellow-800 dark:text-yellow-100",
+                    "bg-yellow-100",
+                    "text-yellow-800 dark:text-yellow-900",
                     "p-4 text-center  rounded-lg"
                   )}
                 >
@@ -88,7 +111,7 @@ export default memo(function UtilsPanel({ open, onOpenChange }) {
               </div>
             </div>
             <div className="flex flex-col p-4 font-bold shrink-0">
-              <Dialog.Close className="p-2.5 text-white bg-blue-500 rounded-xl">
+              <Dialog.Close className="p-2.5 text-white bg-blue-500 rounded-full">
                 Close
               </Dialog.Close>
             </div>

@@ -581,6 +581,10 @@ export default function useCore() {
     useSocketDispatchCallback(
       "core.join-telegram-link",
       async (url, version = preferredTelegramWebVersion, force = false) => {
+        if (!url) {
+          return;
+        }
+
         try {
           /** Open Telegram Link */
           await openTelegramLink(url, version, force);
@@ -683,6 +687,7 @@ export default function useCore() {
     dispatchAndOpenFarmerBot,
     dispatchAndOpenTelegramBot,
     dispatchAndOpenTelegramLink,
+    dispatchAndJoinTelegramLink,
     dispatchAndNavigateToTelegramWeb,
 
     /** Tabs */
