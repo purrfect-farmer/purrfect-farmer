@@ -2,17 +2,14 @@ import toast from "react-hot-toast";
 import useFarmerAutoProcess from "@/hooks/useFarmerAutoProcess";
 import useProcessLock from "@/hooks/useProcessLock";
 import { CgSpinner } from "react-icons/cg";
-import { cn, delay } from "@/lib/utils";
+import { cn } from "@/lib/utils";
 import { memo } from "react";
 import { useEffect } from "react";
-
 import useCEXTapMutation from "../hooks/useCEXTapMutation";
-import { useQueryClient } from "@tanstack/react-query";
 import useCEXUserQuery from "../hooks/useCEXUserQuery";
 
 export default memo(function CEXGamer() {
   const process = useProcessLock("cex.game");
-  const queryClient = useQueryClient();
   const userQuery = useCEXUserQuery();
   const tapMutation = useCEXTapMutation();
 
@@ -45,14 +42,8 @@ export default memo(function CEXGamer() {
       toast.dismiss();
       toast.success(`Collected ${taps} taps!`);
 
-      /** Update Balance */
-      queryClient.setQueryData(["cex", "user"], (prev) => ({
-        ...prev,
-        multiTapsEnergy: prev.multiTapsEnergy - taps,
-      }));
-
-      /** Delay */
-      await delay(500);
+      /** Refetch */
+      await userQuery.refetch();
 
       /** Stop */
       return true;
