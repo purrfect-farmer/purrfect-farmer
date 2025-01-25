@@ -15,8 +15,10 @@ import useCEXClaimTaskMutation from "../hooks/useCEXClaimTaskMutation";
 import useCEXStartTaskMutation from "../hooks/useCEXStartTaskMutation";
 import useCEXTasksConfigQuery from "../hooks/useCEXTasksConfigQuery";
 import useCEXTasksQuery from "../hooks/useCEXTasksQuery";
+import useCEXUserQuery from "../hooks/useCEXUserQuery";
 
 export default memo(function CEXTasks() {
+  const userQuery = useCEXUserQuery();
   const configQuery = useCEXTasksConfigQuery();
   const childrenQuery = useCEXChildrenQuery();
   const tasksQuery = useCEXTasksQuery();
@@ -252,6 +254,7 @@ export default memo(function CEXTasks() {
       /** Refetch */
       try {
         await tasksQuery.refetch();
+        await userQuery.refetch();
       } catch {}
 
       resetTask();
