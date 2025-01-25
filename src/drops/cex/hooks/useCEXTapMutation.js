@@ -7,14 +7,20 @@ export default function useCEXTapMutation() {
     mutationKey: ["cex", "tap"],
     mutationFn: ({ tapsEnergy, tapsToClaim }) =>
       api
-        .post("https://app.cexptap.com/api/v2/claimMultiTaps", {
-          ...payload,
-          data: {
-            tapsEnergy: tapsEnergy.toString(),
-            tapsToClaim: tapsToClaim.toString(),
-            tapsTs: Date.now(),
+        .post(
+          "https://app.cexptap.com/api/v2/claimMultiTaps",
+          {
+            ...payload,
+            data: {
+              tapsEnergy: tapsEnergy.toString(),
+              tapsToClaim: tapsToClaim.toString(),
+              tapsTs: Date.now(),
+            },
           },
-        })
+          {
+            ignoreUnauthenticatedError: true,
+          }
+        )
         .then((res) => res.data),
   });
 }

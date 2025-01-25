@@ -239,7 +239,7 @@ export default function useDropFarmer({
       (response) => Promise.resolve(response),
       (error) => {
         if (
-          !error.config.ignoreUnauthenticatedError &&
+          error.config.ignoreUnauthenticatedError !== true &&
           [401, 403, 418].includes(error?.response?.status)
         ) {
           toast.dismiss();
