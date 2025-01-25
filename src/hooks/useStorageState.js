@@ -29,7 +29,7 @@ export default function useStorageState(key, defaultValue) {
 
     /** Watch Storage */
     const watchStorage = ({ [key]: item }) => {
-      if (item) {
+      if (item?.newValue) {
         setValue(item.newValue);
       }
     };

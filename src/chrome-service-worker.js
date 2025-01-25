@@ -98,7 +98,7 @@ const setupExtension = async () => {
 
 /** Watch Storage for Settings Change */
 chrome.storage.local.onChanged.addListener(({ settings }) => {
-  if (settings) {
+  if (settings?.newValue) {
     configureExtension(settings.newValue);
   }
 });
