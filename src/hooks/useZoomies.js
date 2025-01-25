@@ -184,6 +184,7 @@ export default function useZoomies(core) {
       process.stop();
       core.cancelTelegramHandlers();
       core.resetTabs();
+      setQuickRun(false);
       setCurrent((prev) => ({
         ...prev,
         cycles: 0,
@@ -195,6 +196,7 @@ export default function useZoomies(core) {
     core.cancelTelegramHandlers,
     core.resetTabs,
     setCurrent,
+    setQuickRun,
   ]);
 
   /** Reset Zoomies */
