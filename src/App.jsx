@@ -26,6 +26,7 @@ function App() {
   useEffect(() => {
     const requestWakeLock = async () => {
       try {
+        wakeLockRef.current?.release();
         wakeLockRef.current = await navigator.wakeLock.request("screen");
       } catch {}
     };
