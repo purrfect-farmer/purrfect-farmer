@@ -16,7 +16,11 @@ export function uuid() {
 export function customLogger(...args) {
   console.log("\n");
   args.forEach((item, index) => {
-    console.log(index === 0 ? `<<<<${item}>>>>` : item);
+    if (index === 0) {
+      console.log(`%c<<<<${item}>>>>`, "color:orange; font-weight:bold;");
+    } else {
+      console.log(item);
+    }
   });
   console.log("\n");
 }
