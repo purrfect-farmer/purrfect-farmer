@@ -70,7 +70,7 @@ export default memo(function UtilsPanel({ open, onOpenChange }) {
                   <button
                     className={cn(
                       "inline-flex gap-2 items-center justify-center",
-                      "py-2 px-4 rounded-full shrink-0 font-bold",
+                      "py-2 px-4 rounded-lg shrink-0 font-bold",
                       "text-white bg-green-500"
                     )}
                     onClick={() => {
@@ -85,7 +85,7 @@ export default memo(function UtilsPanel({ open, onOpenChange }) {
                   <button
                     className={cn(
                       "inline-flex gap-2 items-center justify-center",
-                      "py-2 px-4 rounded-full shrink-0 font-bold",
+                      "py-2 px-4 rounded-lg shrink-0 font-bold",
                       "text-white bg-blue-500"
                     )}
                     onClick={() => {
@@ -111,7 +111,7 @@ export default memo(function UtilsPanel({ open, onOpenChange }) {
               </div>
             </div>
             <div className="flex flex-col p-4 font-bold shrink-0">
-              <Dialog.Close className="p-2.5 text-white bg-blue-500 rounded-full">
+              <Dialog.Close className="p-2.5 text-white bg-blue-500 rounded-lg">
                 Close
               </Dialog.Close>
             </div>
