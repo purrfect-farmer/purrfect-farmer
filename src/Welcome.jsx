@@ -1,5 +1,6 @@
 import * as Dialog from "@radix-ui/react-dialog";
 import * as Tabs from "@radix-ui/react-tabs";
+import { RiRemoteControlLine } from "react-icons/ri";
 import BotWebAIcon from "@/assets/images/bot-web-a.png?format=webp&w=80";
 import BotWebKIcon from "@/assets/images/bot-web-k.png?format=webp&w=80";
 import Settings from "@/partials/Settings";
@@ -247,7 +248,7 @@ export default memo(function Welcome() {
               socket.connected ? "text-green-500" : "text-red-500"
             )}
           >
-            <HiOutlineArrowPath /> Sync:{" "}
+            <RiRemoteControlLine className="w-4 h-4" /> Sync:{" "}
             {socket.connected ? "Connected" : "Disconnected"}
           </p>
 
