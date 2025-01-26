@@ -1,7 +1,13 @@
 import useFarmerAutoProcess from "@/hooks/useFarmerAutoProcess";
 import useFarmerContext from "@/hooks/useFarmerContext";
 import useProcessLock from "@/hooks/useProcessLock";
-import { canJoinTelegramLink, cn, customLogger, delay } from "@/lib/utils";
+import {
+  canJoinTelegramLink,
+  cn,
+  customLogger,
+  delay,
+  taskWordIsValid,
+} from "@/lib/utils";
 import { memo } from "react";
 import { useCallback } from "react";
 import { useEffect } from "react";
@@ -23,7 +29,7 @@ export default memo(function TsubasaTasks() {
       allTasks.filter(
         (task) =>
           task["event_type"] === 1 &&
-          ["FRIENDS", "WALLET"].includes(task["title"].toUpperCase()) === false
+          taskWordIsValid(task["title"], ["FRIENDS", "WALLET"])
       ),
     [allTasks]
   );

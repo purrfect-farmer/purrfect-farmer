@@ -239,3 +239,8 @@ export async function maximizeFarmerWindow() {
     });
   }
 }
+
+/** Check Task Word */
+export function taskWordIsValid(word, list) {
+  return list.every((item) => word.toUpperCase().includes(item) === false);
+}

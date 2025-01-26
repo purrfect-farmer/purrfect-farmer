@@ -1,7 +1,7 @@
 import useFarmerAutoProcess from "@/hooks/useFarmerAutoProcess";
 import useFarmerContext from "@/hooks/useFarmerContext";
 import useProcessLock from "@/hooks/useProcessLock";
-import { canJoinTelegramLink, cn, delay } from "@/lib/utils";
+import { canJoinTelegramLink, cn, delay, taskWordIsValid } from "@/lib/utils";
 import { memo } from "react";
 import { useCallback } from "react";
 import { useEffect } from "react";
@@ -34,7 +34,12 @@ export default memo(function SlotcoinQuests() {
   );
 
   const uncompletedTasks = useMemo(
-    () => tasks.filter((item) => !item["is_completed"]),
+    () =>
+      tasks.filter(
+        (item) =>
+          item["is_completed"] === false &&
+          taskWordIsValid(item["title"], ["WALLET", "CONNECT"])
+      ),
     [tasks]
   );
 
