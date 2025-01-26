@@ -269,7 +269,7 @@ const tabs = [
     icon: farmerIcons["slotcoin"],
     component: createFarmerComponent("Slotcoin"),
     telegramLink:
-      "https://t.me/SlotCoinApp_bot/app?startapp=eyJyZWZfY29kZSI6ImEyZGQtNjBmNyIsInV0bV9pZCI6InJlZmZlcmFsX2xpbmtfc2hhcmUifQ=:",
+      "https://t.me/SlotCoinApp_bot/app?startapp=eyJyZWZfY29kZSI6ImEyZGQtNjBmNyIsInV0bV9pZCI6InJlZmZlcmFsX2xpbmtfc2hhcmUifQ==",
     tasks: {
       ["daily-check-in"]: true,
       ["quests"]: false,
