@@ -31,6 +31,7 @@ import useAppQuery from "./hooks/useAppQuery";
 import useSocketTabs from "./hooks/useSocketTabs";
 import { useCallback } from "react";
 import Donate from "./partials/Donate";
+import CloudStatus from "./CloudStatus";
 
 /** Telegram Web Button */
 const TelegramWebButton = memo(
@@ -236,13 +237,17 @@ export default memo(function Welcome() {
             {settings.farmerTitle || defaultSettings.farmerTitle}
           </p>
 
+          {/* Cloud Status */}
+          <CloudStatus />
+
           {/* Sync Status */}
           <p
             className={cn(
-              "text-center",
+              "text-center flex items-center justify-center gap-2",
               socket.connected ? "text-green-500" : "text-red-500"
             )}
           >
+            <HiOutlineArrowPath /> Sync:{" "}
             {socket.connected ? "Connected" : "Disconnected"}
           </p>
 
