@@ -259,9 +259,11 @@ export default memo(function Welcome() {
                   key={v}
                   onClick={() => dispatchAndOpenFarmerBot(v)}
                   className={cn(
-                    "bg-orange-100 dark:bg-orange-900",
-                    "text-orange-800 dark:text-orange-200",
-                    "hover:bg-orange-500 dark:hover:bg-orange-800"
+                    "border border-transparent",
+                    "dark:border-orange-500",
+                    "bg-orange-100 dark:bg-transparent",
+                    "text-orange-900 dark:text-orange-500",
+                    "hover:bg-orange-500 dark:hover:bg-orange-500"
                   )}
                   title={`Open ${
                     import.meta.env.VITE_APP_BOT_NAME
