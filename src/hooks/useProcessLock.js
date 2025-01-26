@@ -25,9 +25,7 @@ export default function useProcessLock(key, socket) {
     (callback) => {
       setProcess((prev) => {
         if (prev.started) {
-          if (typeof callback === "function") {
-            callback(prev);
-          }
+          callback?.(prev);
           return prev;
         }
 
@@ -40,9 +38,7 @@ export default function useProcessLock(key, socket) {
           controller,
         };
 
-        if (typeof callback === "function") {
-          callback(newState);
-        }
+        callback?.(newState);
 
         return newState;
       });
@@ -59,9 +55,7 @@ export default function useProcessLock(key, socket) {
     (callback) => {
       setProcess((prev) => {
         if (!prev.started) {
-          if (typeof callback === "function") {
-            callback(prev);
-          }
+          callback?.(prev);
           return prev;
         }
 
@@ -74,9 +68,7 @@ export default function useProcessLock(key, socket) {
           controller: null,
         };
 
-        if (typeof callback === "function") {
-          callback(newState);
-        }
+        callback?.(newState);
 
         return newState;
       });
