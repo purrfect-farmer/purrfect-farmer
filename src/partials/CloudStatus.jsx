@@ -1,9 +1,9 @@
 import { HiOutlineCloud } from "react-icons/hi2";
 import { useContext } from "react";
 
-import AppContext from "./contexts/AppContext";
-import useCloudStatusQuery from "./hooks/useCloudStatusQuery";
-import { cn } from "./lib/utils";
+import AppContext from "@/contexts/AppContext";
+import useCloudStatusQuery from "@/hooks/useCloudStatusQuery";
+import { cn } from "@/lib/utils";
 
 export default function CloudStatus() {
   const { settings } = useContext(AppContext);

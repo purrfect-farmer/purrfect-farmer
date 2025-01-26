@@ -8,10 +8,10 @@ import {
 } from "react-icons/hi2";
 import { memo, useState } from "react";
 import * as ContextMenu from "@radix-ui/react-context-menu";
-import SyncControl from "./partials/SyncControl";
-import UtilsPanel from "./partials/UtilsPanel";
-import useAppContext from "./hooks/useAppContext";
-import { cn } from "./lib/utils";
+import SyncControl from "@/partials/SyncControl";
+import UtilsPanel from "@/partials/UtilsPanel";
+import useAppContext from "@/hooks/useAppContext";
+import { cn } from "@/lib/utils";
 
 export default memo(function ControlArea() {
   const [showUtils, setShowUtils] = useState(false);

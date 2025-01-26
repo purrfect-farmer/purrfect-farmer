@@ -1,7 +1,7 @@
 import axios from "axios";
-import defaultSettings from "@/defaultSettings";
+import defaultSettings from "@/core/defaultSettings";
 import toast from "react-hot-toast";
-import farmerTabs, { TelegramWeb } from "@/farmerTabs";
+import tabs, { TelegramWeb } from "@/core/tabs";
 import { createElement } from "react";
 import { delay, isBotURL, postPortMessage } from "@/lib/utils";
 import { useCallback } from "react";
@@ -20,7 +20,7 @@ const BOT_TELEGRAM_WEB_APP_ACTION = `set-telegram-web-app:${
   import.meta.env.VITE_APP_BOT_HOST
 }`;
 
-export const defaultOpenedTabs = () => [{ ...farmerTabs[0], active: true }];
+export const defaultOpenedTabs = () => [{ ...tabs[0], active: true }];
 
 export default function useCore() {
   /** Settings */
@@ -53,10 +53,10 @@ export default function useCore() {
   /** Farmers */
   const farmers = useMemo(
     () =>
-      farmerTabs.filter(
+      tabs.filter(
         (item) => !["app", "telegram-web-k", "telegram-web-a"].includes(item.id)
       ),
-    [farmerTabs]
+    [tabs]
   );
 
   /** Drops Status */
@@ -160,9 +160,9 @@ export default function useCore() {
   const [setActiveTab, dispatchAndSetActiveTab] = useSocketDispatchCallback(
     "core.set-active-tab",
     (id) => {
-      pushTab(farmerTabs.find((item) => item.id === id));
+      pushTab(tabs.find((item) => item.id === id));
     },
-    [farmerTabs, pushTab],
+    [tabs, pushTab],
     /** Socket */
     socket
   );
@@ -441,9 +441,7 @@ export default function useCore() {
       });
 
       /** Find Telegram Web Tab */
-      const tab = farmerTabs.find(
-        (item) => item.id === `telegram-web-${version}`
-      );
+      const tab = tabs.find((item) => item.id === `telegram-web-${version}`);
 
       /** Push the tab */
       pushTab(
@@ -463,7 +461,7 @@ export default function useCore() {
       );
     },
     [
-      farmerTabs,
+      tabs,
       setActiveTab,
       pushTab,
       getFarmerBotPort,

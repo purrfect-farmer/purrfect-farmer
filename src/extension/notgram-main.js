@@ -4,7 +4,8 @@ import {
   delayForSeconds,
   dispatchClickEventOnElement,
   scrollElementIntoView,
-} from "./lib/utils";
+} from "@/lib/utils";
+
 import { decryptData, encryptData } from "./content-script-utils";
 
 const core = {

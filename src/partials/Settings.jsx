@@ -6,7 +6,7 @@ import LabelToggle from "@/components/LabelToggle";
 import ResetButton from "@/components/ResetButton";
 import TelegramWebAIcon from "@/assets/images/telegram-web-a.png?format=webp&w=80";
 import TelegramWebKIcon from "@/assets/images/telegram-web-k.png?format=webp&w=80";
-import defaultSettings from "@/defaultSettings";
+import defaultSettings from "@/core/defaultSettings";
 import useAppContext from "@/hooks/useAppContext";
 import { CgSpinner } from "react-icons/cg";
 import {

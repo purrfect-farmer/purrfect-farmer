@@ -1,13 +1,13 @@
 import { Toaster } from "react-hot-toast";
+import { useMedia } from "react-use";
 import { memo, useEffect, useRef } from "react";
 
-import AppContext from "./contexts/AppContext";
-import ControlArea from "./ControlArea";
-import TabButtonList from "./components/TabButtonList";
-import TabContent from "./components/TabContent";
-import useApp from "./hooks/useApp";
-import { resizeFarmerWindow } from "./lib/utils";
-import { useMedia } from "react-use";
+import AppContext from "@/contexts/AppContext";
+import TabButtonList from "@/components/TabButtonList";
+import TabContent from "@/components/TabContent";
+import useApp from "@/hooks/useApp";
+import ControlArea from "@/partials/ControlArea";
+import { resizeFarmerWindow } from "@/lib/utils";
 
 function App() {
   const app = useApp();

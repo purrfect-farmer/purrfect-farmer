@@ -29,7 +29,7 @@ export default defineConfig(({ mode }) => {
       input = {
         [process.env.VITE_ENTRY]: path.resolve(
           __dirname,
-          `./src/${process.env.VITE_ENTRY}.js`
+          `./src/extension/${process.env.VITE_ENTRY}.js`
         ),
       };
       break;

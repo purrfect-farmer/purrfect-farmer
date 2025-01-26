@@ -1,13 +1,21 @@
 import AppIcon from "@/assets/images/icon.png?format=webp&w=80";
+import Farmer from "@/components/Farmer";
 import TelegramWebAIcon from "@/assets/images/telegram-web-a.png?format=webp&w=80";
 import TelegramWebKIcon from "@/assets/images/telegram-web-k.png?format=webp&w=80";
 import path from "path-browserify";
+import { createElement } from "react";
+import { kebabCase } from "change-case";
 import { lazy } from "react";
 
-import Farmer from "./Farmer";
+/** Create Farmer Component */
+const createFarmerComponent = (farmer, kebab = false) =>
+  createElement(Farmer, {
+    id: kebab ? kebabCase(farmer) : farmer.toLowerCase(),
+    farmer,
+  });
 
-export const Welcome = lazy(() => import("@/Welcome"));
-export const TelegramWeb = lazy(() => import("@/TelegramWeb"));
+export const Welcome = lazy(() => import("@/app/Welcome"));
+export const TelegramWeb = lazy(() => import("@/app/TelegramWeb"));
 
 export const farmerIconsGlob = import.meta.glob(
   "@/drops/*/assets/images/icon.png",
@@ -27,30 +35,30 @@ export const farmerIcons = Object.fromEntries(
   })
 );
 
-const farmerTabs = [
+const tabs = [
   {
     id: "app",
     title: import.meta.env.VITE_APP_NAME,
     icon: AppIcon,
-    component: <Welcome />,
+    component: createElement(Welcome),
   },
   {
     id: "telegram-web-k",
     title: "Telegram WebK",
     icon: TelegramWebKIcon,
-    component: <TelegramWeb version="k" />,
+    component: createElement(TelegramWeb, { version: "k" }),
   },
   {
     id: "telegram-web-a",
     title: "Telegram WebA",
     icon: TelegramWebAIcon,
-    component: <TelegramWeb version="a" />,
+    component: createElement(TelegramWeb, { version: "a" }),
   },
   {
     id: "cex",
     title: "CEX",
     icon: farmerIcons["cex"],
-    component: <Farmer farmer="CEX" />,
+    component: createFarmerComponent("CEX"),
     telegramLink: "https://t.me/cexio_tap_bot?start=1717159919141996",
     tasks: {
       ["tasks"]: false,
@@ -62,7 +70,7 @@ const farmerTabs = [
     id: "horse-go",
     title: "HorseGo",
     icon: farmerIcons["horse-go"],
-    component: <Farmer id={"horse-go"} farmer="HorseGo" />,
+    component: createFarmerComponent("HorseGo", true),
     telegramLink: "https://t.me/HorseGo_bot/HorseFever?startapp=code_G6ZAC6",
     tasks: {
       ["daily-sign-in"]: true,
@@ -74,7 +82,7 @@ const farmerTabs = [
     id: "funatic",
     title: "Funatic",
     icon: farmerIcons["funatic"],
-    component: <Farmer farmer="Funatic" />,
+    component: createFarmerComponent("Funatic"),
     telegramLink:
       "https://t.me/LuckyFunaticBot/lucky_funatic?startapp=1147265290",
     tasks: {
@@ -90,7 +98,7 @@ const farmerTabs = [
     id: "gold-eagle",
     title: "Gold Eagle",
     icon: farmerIcons["gold-eagle"],
-    component: <Farmer farmer="GoldEagle" id="gold-eagle" />,
+    component: createFarmerComponent("GoldEagle", true),
     telegramLink: "https://t.me/gold_eagle_coin_bot/main?startapp=r_ubdOBYN6KX",
     tasks: {
       ["game"]: true,
@@ -100,7 +108,7 @@ const farmerTabs = [
     id: "midas",
     title: "Midas",
     icon: farmerIcons["midas"],
-    component: <Farmer farmer="Midas" />,
+    component: createFarmerComponent("Midas"),
     telegramLink:
       "https://t.me/MidasRWA_bot/app?startapp=ref_746a3d4f-5108-4931-af18-5589b9a07af9",
     tasks: {
@@ -115,7 +123,7 @@ const farmerTabs = [
     id: "zoo",
     title: "Zoo",
     icon: farmerIcons["zoo"],
-    component: <Farmer farmer="Zoo" />,
+    component: createFarmerComponent("Zoo"),
     telegramLink: "https://t.me/zoo_story_bot/game?startapp=ref1147265290",
     tasks: {
       ["daily-reward"]: true,
@@ -131,7 +139,7 @@ const farmerTabs = [
     id: "hrum",
     title: "Hrum",
     icon: farmerIcons["hrum"],
-    component: <Farmer farmer="Hrum" />,
+    component: createFarmerComponent("Hrum"),
     telegramLink: "http://t.me/hrummebot/game?startapp=ref1147265290",
     tasks: {
       ["daily.check-in"]: true,
@@ -144,7 +152,7 @@ const farmerTabs = [
     id: "tsubasa",
     title: "Tsubasa",
     icon: farmerIcons["tsubasa"],
-    component: <Farmer farmer="Tsubasa" />,
+    component: createFarmerComponent("Tsubasa"),
     telegramLink:
       "https://t.me/TsubasaRivalsBot/start?startapp=inviter_id-1147265290",
     tasks: {
@@ -157,7 +165,7 @@ const farmerTabs = [
     id: "rekt",
     title: "Rekt.me",
     icon: farmerIcons["rekt"],
-    component: <Farmer farmer="Rekt" />,
+    component: createFarmerComponent("Rekt"),
     telegramLink: "https://t.me/rektme_bot/rektapp?startapp=UJ740H",
     tasks: {
       ["daily-check-in"]: true,
@@ -172,7 +180,7 @@ const farmerTabs = [
     id: "dreamcoin",
     title: "DreamCoin",
     icon: farmerIcons["dreamcoin"],
-    component: <Farmer farmer="DreamCoin" />,
+    component: createFarmerComponent("DreamCoin"),
     telegramLink: "https://t.me/DreamCoinOfficial_bot?start=1147265290",
     tasks: {
       ["daily-reward"]: true,
@@ -187,7 +195,7 @@ const farmerTabs = [
     id: "battle-bulls",
     title: "Battle Bulls",
     icon: farmerIcons["battle-bulls"],
-    component: <Farmer id={"battle-bulls"} farmer={"BattleBulls"} />,
+    component: createFarmerComponent("BattleBulls", true),
     telegramLink:
       "https://t.me/battle_games_com_bot/start?startapp=frndId1147265290",
     tasks: {
@@ -201,7 +209,7 @@ const farmerTabs = [
     id: "blum",
     title: "Blum",
     icon: farmerIcons["blum"],
-    component: <Farmer farmer="Blum" />,
+    component: createFarmerComponent("Blum"),
     telegramLink: "https://t.me/blum/app?startapp=ref_3AIqvLlFFK",
     tasks: {
       ["daily-check-in"]: true,
@@ -215,7 +223,7 @@ const farmerTabs = [
     id: "yescoin",
     title: "Yescoin",
     icon: farmerIcons["yescoin"],
-    component: <Farmer farmer="Yescoin" />,
+    component: createFarmerComponent("Yescoin"),
     telegramLink: "https://t.me/theYescoin_bot/Yescoin?startapp=bH7bto",
     tasks: {
       ["daily-check-in"]: true,
@@ -230,7 +238,7 @@ const farmerTabs = [
     id: "wonton",
     title: "Wonton",
     icon: farmerIcons["wonton"],
-    component: <Farmer farmer="Wonton" />,
+    component: createFarmerComponent("Wonton"),
     telegramLink:
       "https://t.me/WontonOrgBot/gameapp?startapp=referralCode=K45JQRG7",
     tasks: {
@@ -248,7 +256,7 @@ const farmerTabs = [
     id: "notgram",
     title: "Notgram",
     icon: farmerIcons["notgram"],
-    component: <Farmer farmer="Notgram" />,
+    component: createFarmerComponent("Notgram"),
     telegramLink: "https://t.me/notgram_game_bot?start=r1147265290",
     tasks: {
       ["tasks"]: false,
@@ -259,9 +267,9 @@ const farmerTabs = [
     id: "slotcoin",
     title: "Slotcoin",
     icon: farmerIcons["slotcoin"],
-    component: <Farmer farmer="Slotcoin" />,
+    component: createFarmerComponent("Slotcoin"),
     telegramLink:
-      "https://t.me/SlotCoinApp_bot/app?startapp=eyJyZWZfY29kZSI6ImEyZGQtNjBmNyIsInV0bV9pZCI6InJlZmZlcmFsX2xpbmtfc2hhcmUifQ==",
+      "https://t.me/SlotCoinApp_bot/app?startapp=eyJyZWZfY29kZSI6ImEyZGQtNjBmNyIsInV0bV9pZCI6InJlZmZlcmFsX2xpbmtfc2hhcmUifQ=:",
     tasks: {
       ["daily-check-in"]: true,
       ["quests"]: false,
@@ -273,7 +281,7 @@ const farmerTabs = [
     id: "birdton",
     title: "BirdTON",
     icon: farmerIcons["birdton"],
-    component: <Farmer farmer="BirdTon" />,
+    component: createFarmerComponent("BirdTon"),
     telegramLink: "https://t.me/BIRDTonBot/app?startapp=1147265290",
     tasks: {
       ["daily-check-in"]: true,
@@ -285,7 +293,7 @@ const farmerTabs = [
     id: "matchquest",
     title: "MatchQuest",
     icon: farmerIcons["matchquest"],
-    component: <Farmer farmer="MatchQuest" />,
+    component: createFarmerComponent("MatchQuest"),
     telegramLink:
       "https://t.me/MatchQuestBot/start?startapp=775f1cc48a46ce5221f1d9476233dc33",
     tasks: {
@@ -299,7 +307,7 @@ const farmerTabs = [
     id: "truecoin",
     title: "Truecoin",
     icon: farmerIcons["truecoin"],
-    component: <Farmer farmer="Truecoin" />,
+    component: createFarmerComponent("Truecoin"),
     telegramLink: "https://t.me/true_coin_bot?start=1147265290",
     tasks: {
       ["daily-check-in"]: true,
@@ -312,7 +320,7 @@ const farmerTabs = [
     id: "pumpad",
     title: "Pumpad",
     icon: farmerIcons["pumpad"],
-    component: <Farmer farmer="Pumpad" />,
+    component: createFarmerComponent("Pumpad"),
     telegramLink: "https://t.me/Pumpad_Bot/Lucky?startapp=52458255372295027",
     tasks: {
       ["daily-check-in"]: true,
@@ -326,7 +334,7 @@ const farmerTabs = [
     id: "agent301",
     title: "Agent 301",
     icon: farmerIcons["agent301"],
-    component: <Farmer farmer="Agent301" />,
+    component: createFarmerComponent("Agent301"),
     telegramLink: "https://t.me/Agent301Bot/app?startapp=onetime1147265290",
     tasks: {
       ["tasks"]: false,
@@ -339,7 +347,7 @@ const farmerTabs = [
     id: "tomarket",
     title: "Tomarket",
     icon: farmerIcons["tomarket"],
-    component: <Farmer farmer="Tomarket" />,
+    component: createFarmerComponent("Tomarket"),
     telegramLink: "https://t.me/Tomarket_ai_bot/app?startapp=00003s0r",
     tasks: {
       ["farming"]: true,
@@ -349,4 +357,4 @@ const farmerTabs = [
   },
 ];
 
-export default farmerTabs;
+export default tabs;

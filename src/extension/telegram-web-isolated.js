@@ -2,7 +2,7 @@ import {
   delay,
   dispatchClickEventOnElement,
   isElementVisible,
-} from "./lib/utils";
+} from "@/lib/utils";
 
 /** Web Version */
 const webVersion = location.pathname.startsWith("/k/") ? "k" : "a";

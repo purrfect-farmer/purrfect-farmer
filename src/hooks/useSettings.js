@@ -1,4 +1,4 @@
-import defaultSettings from "@/defaultSettings";
+import defaultSettings from "@/core/defaultSettings";
 import toast from "react-hot-toast";
 import { useCallback } from "react";
 import { useMemo } from "react";

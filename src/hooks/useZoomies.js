@@ -1,4 +1,4 @@
-import defaultZoomiesState from "@/defaultZoomiesState";
+import defaultZoomiesState from "@/core/defaultZoomiesState";
 import toast from "react-hot-toast";
 import { useCallback } from "react";
 import { useLayoutEffect } from "react";

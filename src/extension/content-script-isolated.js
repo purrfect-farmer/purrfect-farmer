@@ -1,5 +1,6 @@
+import { getUserAgent, uuid } from "@/lib/utils";
+
 import { decryptData, encryptData } from "./content-script-utils";
-import { getUserAgent, uuid } from "./lib/utils";
 
 if (location.hash.includes("tgWebAppData")) {
   /** Initial Location Href */

@@ -1,6 +1,6 @@
 import axios from "axios";
-import defaultSettings from "@/defaultSettings";
-import userAgents from "@/userAgents";
+import defaultSettings from "@/core/defaultSettings";
+import userAgents from "@/core/userAgents";
 import { clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
 import { v4 as uuidv4 } from "uuid";

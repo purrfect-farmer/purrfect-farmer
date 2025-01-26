@@ -8,7 +8,7 @@ import TelegramWebAIcon from "@/assets/images/telegram-web-a.png?format=webp&w=8
 import TelegramWebKIcon from "@/assets/images/telegram-web-k.png?format=webp&w=80";
 import WelcomeIcon from "@/assets/images/icon-unwrapped-cropped.png?format=webp&h=224";
 import axios from "axios";
-import defaultSettings from "@/defaultSettings";
+import defaultSettings from "@/core/defaultSettings";
 import useAppContext from "@/hooks/useAppContext";
 import useSocketState from "@/hooks/useSocketState";
 import { CgSpinner } from "react-icons/cg";
@@ -24,15 +24,15 @@ import { cn } from "@/lib/utils";
 import { forwardRef, memo } from "react";
 import { useEffect } from "react";
 import { useMemo } from "react";
-
-import DropButton from "./components/DropButton";
-import FarmerLinks from "./partials/FarmerLinks";
-import Shutdown from "./partials/Shutdown";
-import useAppQuery from "./hooks/useAppQuery";
-import useSocketTabs from "./hooks/useSocketTabs";
 import { useCallback } from "react";
-import Donate from "./partials/Donate";
-import CloudStatus from "./CloudStatus";
+
+import DropButton from "@/components/DropButton";
+import FarmerLinks from "@/partials/FarmerLinks";
+import Shutdown from "@/partials/Shutdown";
+import useAppQuery from "@/hooks/useAppQuery";
+import useSocketTabs from "@/hooks/useSocketTabs";
+import Donate from "@/partials/Donate";
+import CloudStatus from "@/partials/CloudStatus";
 
 /** Telegram Web Button */
 const TelegramWebButton = memo(

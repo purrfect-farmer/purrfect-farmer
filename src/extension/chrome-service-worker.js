@@ -1,4 +1,4 @@
-import { getSettings, getUserAgent } from "./lib/utils";
+import { getSettings, getUserAgent } from "@/lib/utils";
 
 const removeActionPopup = async () => {
   const platform = await chrome.runtime.getPlatformInfo();
