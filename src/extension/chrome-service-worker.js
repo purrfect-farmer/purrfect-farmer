@@ -110,8 +110,12 @@ chrome.runtime.onInstalled.addListener(async () => {
 
   /** Open Farmer Window */
   const settings = await getSettings();
-  if (settings.openFarmerInNewWindow && settings.openFarmerOnStartup) {
-    await closePreviousPopups();
+
+  /** Always Close Previous Popups */
+  await closePreviousPopups();
+
+  /** Open Farmer Window */
+  if (settings.openFarmerInNewWindow) {
     await openFarmerWindow();
   }
 });
@@ -136,6 +140,7 @@ chrome.runtime.onStartup.addListener(async () => {
     let mainWindow;
 
     try {
+      /** Get Main Window */
       mainWindow = await chrome.windows.getCurrent();
     } catch {}
 
