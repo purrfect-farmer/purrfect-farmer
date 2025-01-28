@@ -10,12 +10,14 @@ export default memo(function BirdTon() {
   const farmer = useBirdTon(useBirdTonFarmer());
 
   return (
-    <FarmerContext.Provider value={farmer}>
-      {farmer.auth ? (
-        <BirdTonFarmer />
-      ) : (
-        <BirdTonAuthDetect status={farmer.status} />
-      )}
-    </FarmerContext.Provider>
+    <div className="flex flex-col min-w-0 min-h-0 text-white bg-sky-500 grow">
+      <FarmerContext.Provider value={farmer}>
+        {farmer.auth ? (
+          <BirdTonFarmer />
+        ) : (
+          <BirdTonAuthDetect status={farmer.status} />
+        )}
+      </FarmerContext.Provider>
+    </div>
   );
 });

@@ -193,10 +193,10 @@ export default memo(function BirdTonTasks() {
   return (
     <div className="flex flex-col">
       {/* Tasks Info */}
-      <h4 className="font-bold text-purple-500">
+      <h4 className="font-bold text-purple-200">
         Daily Tasks: {dailyTasks.length}/{claimedDailyTasks.length}
       </h4>
-      <h4 className="font-bold text-sky-500">
+      <h4 className="font-bold text-yellow-300">
         Sub Tasks: {subTasks.length}/{claimedSubTasks.length}
       </h4>
 
@@ -207,8 +207,10 @@ export default memo(function BirdTonTasks() {
             onClick={() => process.dispatchAndToggle(!process.started)}
             className={cn(
               "grow min-h-0 min-w-0",
-              "w-full px-4 py-2 uppercase rounded-lg font-bold disabled:opacity-50 text-white",
-              !process.started ? "bg-sky-500" : "bg-red-500"
+              "w-full px-4 py-2 uppercase rounded-lg font-bold disabled:opacity-50",
+              !process.started
+                ? "bg-yellow-400 text-black"
+                : "bg-red-500 text-white"
             )}
           >
             {!process.started ? "Start" : "Stop"}
@@ -241,7 +243,7 @@ export default memo(function BirdTonTasks() {
               </span>
             </h4>
 
-            <h5 className="font-bold text-purple-500">
+            <h5 className="font-bold text-purple-300">
               {action === "sub" ? currentTask["channel_name"] : "Running..."}
             </h5>
           </div>

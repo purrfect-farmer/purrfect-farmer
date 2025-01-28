@@ -1,5 +1,6 @@
 import Slider from "@/components/Slider";
 import toast from "react-hot-toast";
+import useAppContext from "@/hooks/useAppContext";
 import useFarmerAutoProcess from "@/hooks/useFarmerAutoProcess";
 import useFarmerContext from "@/hooks/useFarmerContext";
 import useProcessLock from "@/hooks/useProcessLock";
@@ -13,7 +14,6 @@ import { useMemo } from "react";
 import { useState } from "react";
 
 import useBirdTonHandlers from "../hooks/useBirdTonHandlers";
-import useAppContext from "@/hooks/useAppContext";
 
 const MIN_POINT = 80;
 const INITIAL_POINT = 100;
@@ -251,10 +251,10 @@ export default memo(function BirdTonGamer() {
             max={MAX_POINT}
             placeholder={`Range (${MIN_POINT} - ${MAX_POINT})`}
             className={cn(
-              "p-2 bg-neutral-200 dark:bg-neutral-700 rounded-lg  outline-0"
+              "p-2 bg-sky-700 text-white placeholder:text-sky-100 rounded-lg  outline-0"
             )}
           />
-          <p className="text-neutral-400">Minimum Point (+extra points.)</p>
+          <p className="text-neutral-100">Minimum Point (+extra points.)</p>
         </>
       )}
 
@@ -263,8 +263,8 @@ export default memo(function BirdTonGamer() {
         onClick={() => process.dispatchAndToggle(!process.started)}
         disabled={energy < 1}
         className={cn(
-          "w-full px-4 py-2 uppercase rounded-lg font-bold disabled:opacity-50 text-white",
-          !gameId ? "bg-sky-500" : "bg-red-500"
+          "w-full px-4 py-2 uppercase rounded-lg font-bold disabled:opacity-50",
+          !gameId ? "bg-yellow-400 text-black" : "bg-red-500 text-white"
         )}
       >
         {!gameId ? "Start" : "Stop"}
@@ -282,13 +282,13 @@ export default memo(function BirdTonGamer() {
             dispatchAndSetFarmingSpeed(Math.max(0.5, value))
           }
           trackClassName="bg-sky-200"
-          rangeClassName="bg-sky-500"
-          thumbClassName="bg-sky-500"
+          rangeClassName="bg-sky-300"
+          thumbClassName="bg-sky-100"
         />
 
         {/* Speed Display */}
         <div className="text-center">
-          Flying Speed: <span className="text-sky-500">{farmingSpeed}s</span>
+          Flying Speed: <span className="text-sky-100">{farmingSpeed}s</span>
         </div>
       </div>
     </div>

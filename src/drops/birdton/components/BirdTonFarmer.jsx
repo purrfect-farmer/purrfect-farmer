@@ -61,7 +61,7 @@ export default memo(function BirdTonFarmer() {
       </h3>
 
       <h4 className="flex justify-center text-sm font-bold text-center">
-        <span className="py-1.5 px-2 text-sky-500">
+        <span className="py-1.5 px-2 text-sky-100">
           <img src={EnergyIcon} className="inline w-5" /> {energy} / {maxEnergy}
         </span>
       </h4>
@@ -75,7 +75,7 @@ export default memo(function BirdTonFarmer() {
               className={cn(
                 "p-2",
                 "border-b-4 border-transparent",
-                "data-[state=active]:border-sky-500"
+                "data-[state=active]:border-sky-100"
               )}
             >
               {value.toUpperCase()}
