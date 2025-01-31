@@ -97,7 +97,7 @@ export default function useCore() {
 
   /** Drops */
   const drops = useMemo(
-    () => orderedDrops.filter((item) => dropsStatus[item.id] !== false),
+    () => orderedDrops.filter((item) => dropsStatus[item.id] === true),
     [orderedDrops, dropsStatus]
   );
 
