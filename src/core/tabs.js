@@ -120,22 +120,6 @@ const tabs = [
     },
   },
   {
-    id: "zoo",
-    title: "Zoo",
-    icon: farmerIcons["zoo"],
-    component: createFarmerComponent("Zoo"),
-    telegramLink: "https://t.me/zoo_story_bot/game?startapp=ref1147265290",
-    tasks: {
-      ["daily-reward"]: true,
-      ["claim-riddle-and-rebus"]: true,
-      ["tasks"]: true,
-      ["quizzes"]: true,
-      ["feed"]: true,
-      ["purchase-boost"]: true,
-      ["animals"]: true,
-    },
-  },
-  {
     id: "hrum",
     title: "Hrum",
     icon: farmerIcons["hrum"],
