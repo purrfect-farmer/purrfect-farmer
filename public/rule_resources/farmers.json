@@ -570,31 +570,5 @@
     "condition": {
       "requestDomains": ["gold-eagle-api.fly.dev"]
     }
-  },
-  {
-    "id": 22,
-    "action": {
-      "type": "modifyHeaders",
-      "requestHeaders": [
-        {
-          "header": "x-requested-with",
-          "operation": "set",
-          "value": "org.telegram.messenger"
-        },
-        {
-          "header": "origin",
-          "operation": "set",
-          "value": "https://telegram.geagle.online"
-        },
-        {
-          "header": "referer",
-          "operation": "set",
-          "value": "https://telegram.geagle.online/"
-        }
-      ]
-    },
-    "condition": {
-      "requestDomains": ["gold-eagle-api.fly.dev"]
-    }
   }
 ]
