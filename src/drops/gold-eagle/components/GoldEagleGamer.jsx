@@ -17,6 +17,7 @@ export default memo(function GoldEagleGamer() {
   const query = useGoldEagleUserProgressQuery();
 
   const energy = query.data?.["energy"] || 0;
+  const weight = query.data?.["tap_weight"] || 0;
 
   /** Auto Game */
   useEffect(() => {
@@ -29,8 +30,9 @@ export default memo(function GoldEagleGamer() {
 
     /** Execute */
     process.execute(async function () {
-      const percent = 80 + Math.floor(Math.random() * 18);
-      const taps = Math.floor((energy * percent) / 100);
+      const percent = 90 + Math.floor(Math.random() * 9);
+      const claim = Math.floor((energy * percent) / 100);
+      const taps = Math.floor(claim / weight);
 
       /** Tap */
       await tapMutation.mutateAsync(taps);
@@ -44,7 +46,7 @@ export default memo(function GoldEagleGamer() {
       /** Stop */
       return true;
     });
-  }, [process, energy]);
+  }, [process, energy, weight]);
 
   /** Auto-Game */
   useFarmerAutoProcess("game", !query.isLoading, process);
