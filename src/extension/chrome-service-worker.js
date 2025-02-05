@@ -22,12 +22,31 @@ const closePreviousPopups = async () => {
 
 /** Open Farmer */
 const openFarmerWindow = async () => {
-  chrome.windows.create({
-    url: "index.html",
-    type: "popup",
-    state: "maximized",
-    focused: true,
+  const url = chrome.runtime.getURL("index.html");
+  const [tab] = await chrome.tabs.query({
+    url,
+    windowType: "popup",
   });
+
+  /** Focus the previous tab */
+  if (tab) {
+    const window = await chrome.windows.get(tab.windowId);
+
+    /** Focus the window */
+    if (window.focused === false) {
+      return await chrome.windows.update(window.id, {
+        focused: true,
+      });
+    }
+  } else {
+    /** Create a new window */
+    chrome.windows.create({
+      url,
+      type: "popup",
+      state: "maximized",
+      focused: true,
+    });
+  }
 };
 
 const configureExtension = async (settings) => {
