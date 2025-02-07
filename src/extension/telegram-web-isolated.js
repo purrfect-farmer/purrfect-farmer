@@ -23,14 +23,15 @@ const buttonSelectors =
         launchButton: ".new-message-bot-commands.is-view",
         confirmButton: ".popup-button",
         startButton: ".chat-input-control-button",
-        joinButton: ".chat-join, .chat-input-control-button",
+        joinButton:
+          ".chat-join, .chat-input-control-button, .popup-button.btn.primary",
         webViewButton: ".is-web-view, .reply-markup-button.anchor-url.is-link",
       }
     : {
         launchButton: ".bot-menu.open",
         confirmButton: ".confirm-dialog-button",
         startButton: ".join-subscribe-button",
-        joinButton: ".join-subscribe-button",
+        joinButton: ".join-subscribe-button, .Button.confirm-dialog-button",
         webViewButton:
           "button:has(.icon.icon-webapp), .Button:has(.inline-button-text)",
       };
