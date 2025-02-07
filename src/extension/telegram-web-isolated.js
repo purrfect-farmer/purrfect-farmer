@@ -11,8 +11,12 @@ const webVersion = location.pathname.startsWith("/k/") ? "k" : "a";
 const FARMER_BOT_URL = import.meta.env.VITE_APP_BOT_URL;
 
 /** Button Text */
-const joinButtonTextContent =
-  webVersion === "k" ? ["SUBSCRIBE", "JOIN"] : ["JOIN CHANNEL", "JOIN GROUP"];
+const joinButtonTextContent = [
+  "SUBSCRIBE",
+  "JOIN CHANNEL",
+  "JOIN GROUP",
+  "JOIN",
+];
 const confirmButtonTextContent = webVersion === "k" ? "LAUNCH" : "CONFIRM";
 const closeButtonTextContent = "CLOSE ANYWAY";
 
