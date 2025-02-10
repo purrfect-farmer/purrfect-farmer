@@ -6,6 +6,7 @@ export default function useCloudUserQuery() {
   const { cloudBackend } = useCloudContext();
 
   return useQuery({
+    retry: true,
     queryKey: ["core", "cloud", "user"],
     queryFn: ({ signal }) =>
       cloudBackend.get("/api/user", { signal }).then((res) => res.data),

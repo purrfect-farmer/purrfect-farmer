@@ -12,7 +12,7 @@ export default function CloudPanel() {
       </div>
 
       {/* Content */}
-      <div className="flex flex-col min-w-0 min-h-0 gap-4 p-4 overflow-auto grow">
+      <div className="flex flex-col min-w-0 min-h-0 gap-4 p-4 overflow-auto grow scrollbar-thin">
         {/* User Display */}
         <CloudUserDisplay />
 

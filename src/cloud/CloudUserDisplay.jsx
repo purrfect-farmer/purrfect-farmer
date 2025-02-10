@@ -35,27 +35,37 @@ export default function CloudUserDisplay() {
       ) : userQuery.isError ? (
         <p className="text-center text-red-500">Error...</p>
       ) : (
-        <div className="flex flex-col items-center justify-center gap-2 text-center">
-          <img src={UserIcon} className="w-20 h-20 rounded-full shrink-0" />
+        <div className="flex flex-col gap-2">
+          <div className="flex items-center gap-4 p-3 text-white rounded-full bg-neutral-900">
+            {/* User Photo */}
+            <img className="rounded-full w-11 h-11 shrink-0" src={UserIcon} />
 
-          <div className="flex flex-col min-w-0 min-h-0 grow">
-            <h3 className="text-xl font-bold font-turret-road">{user.name}</h3>
-            <p className="text-purple-500">@{user.username}</p>
-            <p className="text-lime-500">{user.email}</p>
+            <div className="flex flex-col min-w-0 min-h-0 grow">
+              {/* User Name */}
+              <p className="text-lg font-bold truncate font-turret-road">
+                {user.name}
+              </p>
 
-            <div className="grid grid-cols-2 gap-2 my-2 font-bold">
-              <Dialog.Root>
-                <Dialog.Trigger className="text-blue-500">
-                  Password
-                </Dialog.Trigger>
+              {/* User Email */}
+              <p className="truncate text-lime-500">{user.email}</p>
 
-                <CloudPasswordUpdate />
-              </Dialog.Root>
-
-              <button onClick={logout} className="text-red-500">
-                Logout
-              </button>
+              {/* Username */}
+              <p className="text-yellow-500 truncate ">@{user.username}</p>
             </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-2 mx-auto my-2 font-bold">
+            <Dialog.Root>
+              <Dialog.Trigger className="text-blue-500">
+                Password
+              </Dialog.Trigger>
+
+              <CloudPasswordUpdate />
+            </Dialog.Root>
+
+            <button onClick={logout} className="text-red-500">
+              Logout
+            </button>
           </div>
         </div>
       )}

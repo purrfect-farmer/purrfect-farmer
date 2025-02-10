@@ -6,6 +6,7 @@ export default function useCloudAccountsQuery() {
   const { cloudBackend } = useCloudContext();
 
   return useQuery({
+    retry: true,
     refetchInterval: 10000,
     queryKey: ["core", "cloud", "accounts"],
     queryFn: ({ signal }) =>

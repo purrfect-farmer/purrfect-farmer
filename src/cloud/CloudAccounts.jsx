@@ -52,7 +52,7 @@ export default function CloudAccounts() {
   ) : accountsQuery.isError ? (
     <p className="text-center text-red-500">Error...</p>
   ) : (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-6">
       {groups.map((group) => (
         <div key={group.id} className="flex flex-col gap-2">
           <h3 className="flex items-center gap-2 px-2">
@@ -65,31 +65,40 @@ export default function CloudAccounts() {
               {group.total}
             </span>
           </h3>
-          {group.users.map((account) => (
-            <div key={account.id} className="flex gap-2">
-              {/* Details */}
-              <div
-                className={cn(
-                  "flex items-center min-w-0 min-h-0",
-                  "gap-2 p-2 rounded-lg grow bg-neutral-100 dark:bg-neutral-700"
-                )}
-              >
-                <img
-                  src={account["photo_url"]}
-                  className="w-6 h-6 rounded-full shrink-0"
-                />{" "}
-                {account.username || account["user_id"]}
-              </div>
+          {group.users.length ? (
+            group.users.map((account) => (
+              <div key={account.id} className="flex gap-2">
+                {/* Details */}
+                <div
+                  className={cn(
+                    "flex items-center min-w-0 min-h-0",
+                    "gap-2 p-2 rounded-lg grow bg-neutral-100 dark:bg-neutral-700"
+                  )}
+                >
+                  <img
+                    src={account["photo_url"]}
+                    className="w-6 h-6 rounded-full shrink-0"
+                  />{" "}
+                  <h5>{account.username || account["user_id"]}</h5>
+                </div>
 
-              {/* Terminate Button */}
-              <button
-                onClick={() => disconnectAccount(account.id)}
-                className="px-3 text-white bg-red-500 rounded-lg shrink-0"
-              >
-                <HiOutlineXMark className="w-4 h-4" />
-              </button>
-            </div>
-          ))}
+                {/* Terminate Button */}
+                <button
+                  title="Disconnect Account"
+                  onClick={() => disconnectAccount(account.id)}
+                  className={cn(
+                    "text-red-600 bg-red-100",
+                    "dark:text-white dark:bg-red-500",
+                    "px-3 rounded-lg shrink-0"
+                  )}
+                >
+                  <HiOutlineXMark className="w-4 h-4" />
+                </button>
+              </div>
+            ))
+          ) : (
+            <p className="text-center">No account to display..</p>
+          )}
         </div>
       ))}
     </div>
