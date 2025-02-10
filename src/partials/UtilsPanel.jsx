@@ -30,9 +30,11 @@ export default memo(function UtilsPanel({ open, onOpenChange }) {
         >
           <>
             <div className="flex flex-col min-w-0 min-h-0 gap-2 p-4 overflow-auto grow">
-              <img src={CoreSystemIcon} className="w-16 mx-auto" />
+              {/* Icon */}
+              <img src={CoreSystemIcon} className="w-10 mx-auto" />
 
-              <Dialog.Title className="text-lg font-bold text-center">
+              {/* Title */}
+              <Dialog.Title className="text-xl text-center font-turret-road">
                 <span
                   className={cn(
                     "text-transparent font-bold",
@@ -43,16 +45,10 @@ export default memo(function UtilsPanel({ open, onOpenChange }) {
                   {import.meta.env.VITE_CORE_SYSTEM_NAME}
                 </span>
               </Dialog.Title>
-              <Dialog.Description className="text-center">
-                <span
-                  className={cn(
-                    "text-transparent font-bold",
-                    "bg-clip-text",
-                    "bg-gradient-to-r from-green-500 to-blue-500"
-                  )}
-                >
-                  Core System Tools
-                </span>
+
+              {/* Description */}
+              <Dialog.Description className="sr-only">
+                Core System Tools
               </Dialog.Description>
 
               <div className="flex flex-col gap-2 py-4">
