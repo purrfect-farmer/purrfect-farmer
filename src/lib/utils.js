@@ -227,7 +227,7 @@ export async function resizeFarmerWindow() {
 
     const left = Math.max(1, Math.floor(position * width) - width);
 
-    chrome?.windows?.update(currentWindow.id, {
+    await chrome?.windows?.update(currentWindow.id, {
       state: "normal",
       width,
       left,

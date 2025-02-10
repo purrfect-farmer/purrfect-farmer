@@ -19,7 +19,7 @@ export default defineConfig(({ mode }) => {
   switch (process.env.VITE_ENTRY) {
     case "index":
       input = Object.fromEntries(
-        ["index"].map((item) => [
+        ["index", "cloud"].map((item) => [
           item,
           path.resolve(__dirname, `./${item}.html`),
         ])

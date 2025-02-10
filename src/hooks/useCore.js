@@ -253,6 +253,16 @@ export default function useCore() {
     });
   }, []);
 
+  /** Open Cloud Manager */
+  const openCloudManager = useCallback(async () => {
+    await chrome?.windows?.create({
+      url: chrome.runtime.getURL("cloud.html"),
+      type: "popup",
+      state: "maximized",
+      focused: true,
+    });
+  }, []);
+
   /** Shutdown */
   const [shutdown, dispatchAndShutdown] = useSocketDispatchCallback(
     "core.shutdown",
@@ -664,6 +674,7 @@ export default function useCore() {
     configureSettings,
     openNewTab,
     openURL,
+    openCloudManager,
     openExtensionsPage,
     getFarmerBotPort,
     closeOtherBots,

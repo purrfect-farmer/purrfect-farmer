@@ -12,12 +12,25 @@ export default function useStorageState(key, defaultValue) {
   /** Configure Value */
   const storeValue = useCallback(
     async (newValue) => {
-      return await chrome?.storage?.local.set({
-        [key]: newValue,
-      });
+      if (typeof chrome?.storage?.local !== "undefined") {
+        return await chrome?.storage?.local.set({
+          [key]: newValue,
+        });
+      } else {
+        return setValue(newValue);
+      }
     },
-    [key]
+    [key, setValue]
   );
+
+  /** Remove Value */
+  const removeValue = useCallback(async () => {
+    if (typeof chrome?.storage?.local !== "undefined") {
+      return await chrome?.storage?.local.remove(key);
+    } else {
+      return setValue(null);
+    }
+  }, [key, setValue]);
 
   /** Restore Value and Watch Storage */
   useLayoutEffect(() => {
@@ -29,7 +42,7 @@ export default function useStorageState(key, defaultValue) {
 
     /** Watch Storage */
     const watchStorage = ({ [key]: item }) => {
-      if (item?.newValue) {
+      if (item) {
         setValue(item.newValue);
       }
     };
@@ -43,5 +56,11 @@ export default function useStorageState(key, defaultValue) {
     };
   }, [key, getStorage, setValue, setHasRestoredValue]);
 
-  return useValuesMemo({ value, hasRestoredValue, setValue, storeValue });
+  return useValuesMemo({
+    value,
+    hasRestoredValue,
+    setValue,
+    storeValue,
+    removeValue,
+  });
 }

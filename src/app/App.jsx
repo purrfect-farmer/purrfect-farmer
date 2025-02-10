@@ -1,5 +1,4 @@
 import { Toaster } from "react-hot-toast";
-import { useMedia } from "react-use";
 import { memo, useEffect, useRef } from "react";
 
 import AppContext from "@/contexts/AppContext";
@@ -8,12 +7,12 @@ import TabContent from "@/components/TabContent";
 import useApp from "@/hooks/useApp";
 import ControlArea from "@/partials/ControlArea";
 import { resizeFarmerWindow } from "@/lib/utils";
+import useTheme from "@/hooks/useTheme";
 
 function App() {
   const app = useApp();
   const theme = app.settings.theme;
   const wakeLockRef = useRef(null);
-  const systemIsDark = useMedia("(prefers-color-scheme: dark)");
 
   /** Resize window */
   useEffect(() => {
@@ -54,12 +53,7 @@ function App() {
   }, []);
 
   /** Apply Theme */
-  useEffect(() => {
-    document.documentElement.classList.toggle(
-      "dark",
-      theme === "dark" || (theme === "system" && systemIsDark)
-    );
-  }, [theme, systemIsDark]);
+  useTheme(theme);
 
   return (
     <AppContext.Provider value={app}>

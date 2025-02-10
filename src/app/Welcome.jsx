@@ -15,6 +15,7 @@ import { CgSpinner } from "react-icons/cg";
 import {
   HiOutlineArrowPath,
   HiOutlineArrowUpRight,
+  HiOutlineCloud,
   HiOutlineCog6Tooth,
   HiOutlineCurrencyDollar,
   HiOutlinePower,
@@ -63,7 +64,7 @@ const ToolbarButton = memo(
       {...props}
       ref={ref}
       className={cn(
-        "p-2.5 rounded-full shrink-0",
+        "p-2 rounded-full shrink-0",
         "bg-neutral-50 dark:bg-neutral-700",
         "hover:bg-neutral-100 dark:hover:bg-neutral-600",
 
@@ -93,6 +94,7 @@ export default memo(function Welcome() {
     socket,
     openNewTab,
     openExtensionsPage,
+    openCloudManager,
     openTelegramWeb,
     dispatchAndSetActiveTab,
     dispatchAndReloadApp,
@@ -183,6 +185,15 @@ export default memo(function Welcome() {
               onClick={openNewTab}
               icon={HiOutlineArrowUpRight}
             />
+
+            {/* Open Cloud Manager */}
+            {settings.enableCloudSync ? (
+              <ToolbarButton
+                title="Open Cloud Manager"
+                onClick={openCloudManager}
+                icon={HiOutlineCloud}
+              />
+            ) : null}
 
             {/* Open Extensions Page */}
             <ToolbarButton
