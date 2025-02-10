@@ -1,15 +1,13 @@
 import useFarmerApi from "@/hooks/useFarmerApi";
 import { useMutation } from "@tanstack/react-query";
 
-export default function useYescoinClickTaskMutation() {
+export default function useYescoinCheckQuestMutation() {
   const api = useFarmerApi();
   return useMutation({
-    mutationKey: ["yescoin", "task", "click"],
+    mutationKey: ["yescoin", "quest", "check"],
     mutationFn: (id) =>
       api
-        .post("https://bi.yescoin.gold/task/clickTask", id, {
-          headers: { "content-type": "application/json" },
-        })
+        .get(`https://bi.yescoin.gold/quest/check?questId=${id}`)
         .then((res) => res.data.data),
   });
 }

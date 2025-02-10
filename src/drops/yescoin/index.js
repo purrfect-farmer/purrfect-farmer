@@ -11,9 +11,8 @@ export default {
   tasks: {
     ["daily-check-in"]: true,
     ["claim-special-box"]: true,
-    ["tasks"]: false,
-    ["missions"]: true,
-    ["game"]: true,
-    ["claim-task-bonus"]: true,
+    ["daily"]: true,
+    ["achievement"]: false,
+    ["partner"]: false,
   },
 };
