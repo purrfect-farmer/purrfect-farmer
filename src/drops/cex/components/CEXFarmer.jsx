@@ -5,13 +5,12 @@ import { cn } from "@/lib/utils";
 import { memo } from "react";
 
 import CEXCards from "./CEXCards";
-import CEXGamer from "./CEXGamer";
 import CEXIcon from "../assets/images/icon.png?format=webp&w=80";
 import CEXInfoDisplay from "./CEXInfoDisplay";
 import CEXTasks from "./CEXTasks";
 
 export default memo(function CEXFarmer() {
-  const tabs = useSocketTabs("cex.farmer-tabs", ["game", "cards", "tasks"]);
+  const tabs = useSocketTabs("cex.farmer-tabs", ["cards", "tasks"]);
 
   /** Switch Tab Automatically */
   useFarmerAutoTab(tabs);
@@ -28,7 +27,7 @@ export default memo(function CEXFarmer() {
       <CEXInfoDisplay />
 
       <Tabs.Root {...tabs.rootProps} className="flex flex-col">
-        <Tabs.List className="grid grid-cols-3">
+        <Tabs.List className="grid grid-cols-2">
           {tabs.list.map((value, index) => (
             <Tabs.Trigger
               key={index}
@@ -43,15 +42,6 @@ export default memo(function CEXFarmer() {
             </Tabs.Trigger>
           ))}
         </Tabs.List>
-
-        {/* Game */}
-        <Tabs.Content
-          forceMount
-          className="data-[state=inactive]:hidden"
-          value="game"
-        >
-          <CEXGamer />
-        </Tabs.Content>
 
         {/* Cards */}
         <Tabs.Content
