@@ -6,7 +6,7 @@ import { decode } from "hi-base32";
 import { findDropMainScript } from "@/lib/utils";
 import { totp } from "otplib";
 
-const INDEX_SCRIPT = "index-DWhGSfZr";
+const INDEX_SCRIPT = "index-DqNrnL0J";
 const SECRET = "FZYQHANLB3I2KAWEOKI4T2PVXHHZ4K5F";
 const ENCRYPTION_ALGORITHM = "RSAES-PKCS1-V1_5";
 const PEM =
