@@ -42,6 +42,11 @@ export default function CloudAccounts() {
           loading: "Disconnecting...",
           error: "Error...",
         })
+        .then((status) => {
+          if (status.kicked) {
+            toast.success("User was kicked from chat");
+          }
+        })
         .finally(accountsQuery.refetch);
     },
     [disconnectAccountMutation.mutateAsync, accountsQuery.refetch]
@@ -52,7 +57,7 @@ export default function CloudAccounts() {
   ) : accountsQuery.isError ? (
     <p className="text-center text-red-500">Error...</p>
   ) : (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-8">
       {groups.map((group) => (
         <div key={group.id} className="flex flex-col gap-2">
           <h3 className="flex items-center gap-2 px-2">

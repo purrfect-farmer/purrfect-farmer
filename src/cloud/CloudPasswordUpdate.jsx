@@ -1,12 +1,12 @@
-import { cn } from "@/lib/utils";
 import * as Dialog from "@radix-ui/react-dialog";
 import * as yup from "yup";
-import { Controller, FormProvider, useForm } from "react-hook-form";
-import PrimaryButton from "@/components/PrimaryButton";
-import useCloudPasswordUpdateMutation from "@/hooks/useCloudPasswordUpdateMutation";
-import { yupResolver } from "@hookform/resolvers/yup";
 import Input from "@/components/Input";
+import PrimaryButton from "@/components/PrimaryButton";
 import toast from "react-hot-toast";
+import useCloudPasswordUpdateMutation from "@/hooks/useCloudPasswordUpdateMutation";
+import { Controller, FormProvider, useForm } from "react-hook-form";
+import { cn } from "@/lib/utils";
+import { yupResolver } from "@hookform/resolvers/yup";
 
 /** Schema */
 const schema = yup
@@ -131,7 +131,11 @@ export default function CloudPasswordUpdate() {
               />
 
               {/* Submit Button */}
-              <PrimaryButton type="submit" disabled={isPending}>
+              <PrimaryButton
+                className="my-1"
+                type="submit"
+                disabled={isPending}
+              >
                 {isPending ? "Updating..." : "Update"}
               </PrimaryButton>
             </form>

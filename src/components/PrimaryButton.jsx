@@ -10,7 +10,7 @@ export default memo(function PrimaryButton({
       {...props}
       className={cn(
         "bg-blue-500 text-white",
-        "p-2.5 rounded-lg font-bold",
+        "p-2 rounded-lg font-bold",
         "disabled:opacity-50",
         props.className
       )}

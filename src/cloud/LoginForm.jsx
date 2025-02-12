@@ -82,13 +82,17 @@ export default function LoginForm() {
           onSubmit={form.handleSubmit(handleFormSubmit)}
           className="flex flex-col gap-2"
         >
-          {/* Email */}
+          {/* Username / Email */}
           <Controller
             disabled={isPending}
             name="email"
             render={({ field, fieldState }) => (
               <>
-                <Input {...field} autoComplete="off" placeholder="Email" />
+                <Input
+                  {...field}
+                  autoComplete="off"
+                  placeholder="Username / Email"
+                />
                 {fieldState.error?.message ? (
                   <p className="text-red-500">{fieldState.error?.message}</p>
                 ) : null}

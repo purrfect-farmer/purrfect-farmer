@@ -1,7 +1,13 @@
 import AppIcon from "@/assets/images/icon.png?format=webp&w=56";
-import CloudUserDisplay from "./CloudUserDisplay";
+import useCloudContext from "@/hooks/useCloudContext";
+
 import CloudAccounts from "./CloudAccounts";
+import CloudUserDisplay from "./CloudUserDisplay";
+import CloudServerDisplay from "./CloudServerDisplay";
 export default function CloudPanel() {
+  const { settings } = useCloudContext();
+  const address = settings.cloudServer;
+
   return (
     <div className="flex flex-col h-dvh">
       {/* Heading */}
@@ -13,6 +19,14 @@ export default function CloudPanel() {
 
       {/* Content */}
       <div className="flex flex-col min-w-0 min-h-0 gap-4 p-4 overflow-auto grow scrollbar-thin">
+        {/* Display Address */}
+        <p className="p-2 text-center text-orange-800 bg-orange-100 rounded-lg">
+          <span className="font-bold">Server</span>: {address}
+        </p>
+
+        {/* Display Server */}
+        <CloudServerDisplay />
+
         {/* User Display */}
         <CloudUserDisplay />
 
