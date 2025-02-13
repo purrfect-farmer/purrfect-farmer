@@ -14,7 +14,13 @@ const closePreviousPopups = async () => {
   });
 
   for (const window of windows) {
-    if (window.tabs.some((tab) => tab.url === "chrome://newtab/")) {
+    if (
+      window.tabs.some((tab) =>
+        ["chrome://newtab/", chrome.runtime.getURL("index.html")].includes(
+          tab.url
+        )
+      )
+    ) {
       await chrome.windows.remove(window.id);
     }
   }

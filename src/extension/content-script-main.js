@@ -1,5 +1,3 @@
-import { isBotURL } from "@/lib/utils";
-
 import { core, decryptData, encryptData } from "./content-script-utils";
 
 if (location.hash.includes("tgWebAppData")) {
@@ -125,17 +123,6 @@ if (location.hash.includes("tgWebAppData")) {
         return Promise.reject(err);
       }
     });
-  };
-
-  /** Modify Open */
-  window.open = function (...args) {
-    const url = args[0];
-
-    if (url.startsWith("https://t.me/") && isBotURL(url) === false) {
-      return window.Telegram?.WebApp?.openTelegramLink(url);
-    }
-
-    return core.open(...args);
   };
 
   /** Handle Messages */
