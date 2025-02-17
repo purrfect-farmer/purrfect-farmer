@@ -7,7 +7,7 @@ export default function useYescoinRecoverSpecialBoxMutation() {
     mutationKey: ["yescoin", "recover", "special-box", "claim"],
     mutationFn: () =>
       api
-        .post("https://bi.yescoin.gold/game/recoverSpecialBox")
+        .post("https://api-backend.yescoin.fun/game/recoverSpecialBox")
         .then((res) => res.data.data),
   });
 }

@@ -11,7 +11,7 @@ export default function useYescoinAccountInfoQuery() {
     queryKey: ["yescoin", "account", "info"],
     queryFn: ({ signal }) =>
       api
-        .get("https://bi.yescoin.gold/account/getAccountInfo", {
+        .get("https://api-backend.yescoin.fun/account/getAccountInfo", {
           signal,
         })
         .then((res) => res.data.data),

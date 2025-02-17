@@ -1,14 +1,13 @@
 import useFarmerApi from "@/hooks/useFarmerApi";
 import { useQuery } from "@tanstack/react-query";
 
-export default function useYescoinAccountBuildInfoQuery() {
+export default function useYescoinTaskListQuery() {
   const api = useFarmerApi();
-
   return useQuery({
-    queryKey: ["yescoin", "account", "build", "info"],
+    queryKey: ["yescoin", "task", "list"],
     queryFn: ({ signal }) =>
       api
-        .get("https://api-backend.yescoin.fun/build/getAccountBuildInfo", {
+        .get("https://api-backend.yescoin.fun/task/getTaskList", {
           signal,
         })
         .then((res) => res.data.data),

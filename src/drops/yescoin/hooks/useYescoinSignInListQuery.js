@@ -7,7 +7,7 @@ export default function useYescoinSignInListQuery() {
     queryKey: ["yescoin", "sign-in", "list"],
     queryFn: ({ signal }) =>
       api
-        .get("https://bi.yescoin.gold/signIn/list", {
+        .get("https://api-backend.yescoin.fun/signIn/list", {
           signal,
         })
         .then((res) => res.data.data),

@@ -4,27 +4,23 @@ import useSocketTabs from "@/hooks/useSocketTabs";
 import { CgSpinner } from "react-icons/cg";
 import { cn } from "@/lib/utils";
 import { memo } from "react";
-
 import YescoinBalanceDisplay from "./YescoinBalanceDisplay";
+import YescoinDailyMission from "./YescoinDailyMission";
 import YescoinIcon from "../assets/images/icon.png?format=webp&w=80";
+import YescoinTasks from "./YescoinTasks";
 import useYescoinAccountInfoQuery from "../hooks/useYescoinAccountInfoQuery";
 import useYescoinDailyCheckIn from "../hooks/useYescoinDailyCheckIn";
 import useYescoinOfflineQuery from "../hooks/useYescoinOfflineQuery";
 import useYescoinSpecialBoxClaim from "../hooks/useYescoinSpecialBoxClaim";
-import YescoinPartnerQuests from "./YescoinPartnerQuests";
-import YescoinDailyQuests from "./YescoinDailyQuests";
-import YescoinAchievementQuests from "./YescoinAchievementQuests";
+import useYescoinTaskBonusClaim from "../hooks/useYescoinTaskBonusClaim";
 
 export default memo(function YescoinFarmer() {
   const accountInfoQuery = useYescoinAccountInfoQuery();
-  const tabs = useSocketTabs("yescoin.farmer-tabs", [
-    "daily",
-    "achievement",
-    "partner",
-  ]);
+  const tabs = useSocketTabs("yescoin.farmer-tabs", ["missions", "tasks"]);
 
   useYescoinDailyCheckIn();
   useYescoinSpecialBoxClaim();
+  useYescoinTaskBonusClaim();
   useYescoinOfflineQuery();
 
   /** Automatically Switch Tab */
@@ -46,7 +42,7 @@ export default memo(function YescoinFarmer() {
         <>
           <YescoinBalanceDisplay />
           <Tabs.Root {...tabs.rootProps} className="flex flex-col gap-4">
-            <Tabs.List className="grid grid-cols-3">
+            <Tabs.List className="grid grid-cols-2">
               {tabs.list.map((value, index) => (
                 <Tabs.Trigger
                   key={index}
@@ -62,31 +58,22 @@ export default memo(function YescoinFarmer() {
               ))}
             </Tabs.List>
 
-            {/* Daily */}
+            {/* Daily Mission */}
             <Tabs.Content
               forceMount
               className="data-[state=inactive]:hidden"
-              value="daily"
+              value="missions"
             >
-              <YescoinDailyQuests />
+              <YescoinDailyMission />
             </Tabs.Content>
 
-            {/* Achievement */}
+            {/* Tasks */}
             <Tabs.Content
               forceMount
               className="data-[state=inactive]:hidden"
-              value="achievement"
+              value="tasks"
             >
-              <YescoinAchievementQuests />
-            </Tabs.Content>
-
-            {/* Partner */}
-            <Tabs.Content
-              forceMount
-              className="data-[state=inactive]:hidden"
-              value="partner"
-            >
-              <YescoinPartnerQuests />
+              <YescoinTasks />
             </Tabs.Content>
           </Tabs.Root>
         </>

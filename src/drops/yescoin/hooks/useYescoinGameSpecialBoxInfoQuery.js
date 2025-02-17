@@ -1,17 +1,18 @@
 import useFarmerApi from "@/hooks/useFarmerApi";
 import { useQuery } from "@tanstack/react-query";
 
-export default function useYescoinOfflineQuery() {
+export default function useYescoinGameSpecialBoxInfoQuery(options) {
   const api = useFarmerApi();
 
   return useQuery({
+    ...options,
     meta: {
       defaultRefetchInterval: 5000,
     },
-    queryKey: ["yescoin", "offline"],
+    queryKey: ["yescoin", "game", "special-box-info"],
     queryFn: ({ signal }) =>
       api
-        .post("https://api-backend.yescoin.fun/user/offline", null, {
+        .get("https://api-backend.yescoin.fun/game/getSpecialBoxInfo", {
           signal,
         })
         .then((res) => res.data.data),

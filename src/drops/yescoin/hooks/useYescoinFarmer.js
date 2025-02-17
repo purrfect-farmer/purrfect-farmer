@@ -8,12 +8,12 @@ export default function useYescoinFarmer() {
     useMemo(
       () => ({
         id: "yescoin",
-        host: "www.yescoin.gold",
+        host: "www.yescoin.fun",
         notification: {
           icon: YescoinIcon,
           title: "Yescoin Farmer",
         },
-        domains: ["*.yescoin.gold"],
+        domains: ["*.yescoin.fun"],
         authHeaders: ["token"],
       }),
       []

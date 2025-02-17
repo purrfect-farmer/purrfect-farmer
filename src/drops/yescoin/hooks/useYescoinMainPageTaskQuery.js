@@ -1,13 +1,13 @@
 import useFarmerApi from "@/hooks/useFarmerApi";
 import { useQuery } from "@tanstack/react-query";
 
-export default function useYescoinQuestQuery(category) {
+export default function useYescoinMainPageTaskQuery() {
   const api = useFarmerApi();
   return useQuery({
-    queryKey: ["yescoin", "quest", "list", category],
+    queryKey: ["yescoin", "main-page", "task"],
     queryFn: ({ signal }) =>
       api
-        .get(`https://bi.yescoin.gold/quest/list?category=${category}`, {
+        .get("https://api-backend.yescoin.fun/task/mainPage", {
           signal,
         })
         .then((res) => res.data.data),

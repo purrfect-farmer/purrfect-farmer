@@ -7,7 +7,7 @@ export default function useYescoinRecoverCoinPoolMutation() {
     mutationKey: ["yescoin", "recover", "coin-pool", "claim"],
     mutationFn: () =>
       api
-        .post("https://bi.yescoin.gold/game/recoverCoinPool")
+        .post("https://api-backend.yescoin.fun/game/recoverCoinPool")
         .then((res) => res.data.data),
   });
 }
