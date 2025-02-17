@@ -128,23 +128,6 @@ chrome.storage.local.onChanged.addListener(({ settings }) => {
   }
 });
 
-/** Open Farmer on Install */
-chrome.runtime.onInstalled.addListener(async () => {
-  /** Setup Extension */
-  await setupExtension();
-
-  /** Open Farmer Window */
-  const settings = await getSettings();
-
-  /** Always Close Previous Popups */
-  await closePreviousPopups();
-
-  /** Open Farmer Window */
-  if (settings.openFarmerInNewWindow) {
-    await openFarmerWindow();
-  }
-});
-
 /** Open Farmer on Startup */
 chrome.runtime.onStartup.addListener(async () => {
   /** Setup Extension */
@@ -189,5 +172,26 @@ chrome.runtime.onStartup.addListener(async () => {
         }
       }
     } catch {}
+  }
+});
+
+/** Open Farmer on Install */
+chrome.runtime.onInstalled.addListener(async (ev) => {
+  /** Setup Extension */
+  await setupExtension();
+
+  /** Open Farmer Window */
+  const settings = await getSettings();
+
+  /** Open Window */
+  if (
+    ["install", "update"].includes(ev.reason) &&
+    settings.openFarmerInNewWindow
+  ) {
+    /** Always Close Previous Popups */
+    await closePreviousPopups();
+
+    /** Open Farmer Window */
+    await openFarmerWindow();
   }
 });
