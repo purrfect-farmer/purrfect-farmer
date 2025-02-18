@@ -1,13 +1,13 @@
-import { Toaster } from "react-hot-toast";
-import { memo, useEffect, useRef } from "react";
-
 import AppContext from "@/contexts/AppContext";
+import ControlArea from "@/partials/ControlArea";
 import TabButtonList from "@/components/TabButtonList";
 import TabContent from "@/components/TabContent";
 import useApp from "@/hooks/useApp";
-import ControlArea from "@/partials/ControlArea";
-import { resizeFarmerWindow } from "@/lib/utils";
+import useSeeker from "@/hooks/useSeeker";
 import useTheme from "@/hooks/useTheme";
+import { Toaster } from "react-hot-toast";
+import { memo, useEffect, useRef } from "react";
+import { resizeFarmerWindow } from "@/lib/utils";
 
 function App() {
   const app = useApp();
@@ -54,6 +54,9 @@ function App() {
 
   /** Apply Theme */
   useTheme(theme);
+
+  /** Use Seeker */
+  useSeeker(app);
 
   return (
     <AppContext.Provider value={app}>

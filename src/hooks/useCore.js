@@ -39,6 +39,15 @@ export default function useCore() {
     [settings.cloudServer]
   );
 
+  /** Seeker Backend */
+  const seekerBackend = useMemo(
+    () =>
+      axios.create({
+        baseURL: settings.seekerServer,
+      }),
+    [settings.seekerServer]
+  );
+
   const socket = useSocket(settings.syncServer);
   const messaging = useMessagePort();
 
@@ -666,6 +675,7 @@ export default function useCore() {
     socket,
     messaging,
     cloudBackend,
+    seekerBackend,
     userAgent,
 
     /** App Methods */

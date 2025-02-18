@@ -1,16 +1,22 @@
 import * as Dialog from "@radix-ui/react-dialog";
 import * as Tabs from "@radix-ui/react-tabs";
-import { RiRemoteControlLine } from "react-icons/ri";
 import BotWebAIcon from "@/assets/images/bot-web-a.png?format=webp&w=80";
 import BotWebKIcon from "@/assets/images/bot-web-k.png?format=webp&w=80";
+import CloudStatus from "@/partials/CloudStatus";
+import Donate from "@/partials/Donate";
+import DropButton from "@/components/DropButton";
+import FarmerLinks from "@/partials/FarmerLinks";
 import Settings from "@/partials/Settings";
+import Shutdown from "@/partials/Shutdown";
 import TelegramWebAIcon from "@/assets/images/telegram-web-a.png?format=webp&w=80";
 import TelegramWebKIcon from "@/assets/images/telegram-web-k.png?format=webp&w=80";
 import WelcomeIcon from "@/assets/images/icon-unwrapped-cropped.png?format=webp&h=224";
 import axios from "axios";
 import defaultSettings from "@/core/defaultSettings";
 import useAppContext from "@/hooks/useAppContext";
+import useAppQuery from "@/hooks/useAppQuery";
 import useSocketState from "@/hooks/useSocketState";
+import useSocketTabs from "@/hooks/useSocketTabs";
 import { CgSpinner } from "react-icons/cg";
 import {
   HiOutlineArrowPath,
@@ -21,19 +27,12 @@ import {
   HiOutlinePower,
   HiOutlinePuzzlePiece,
 } from "react-icons/hi2";
+import { RiRemoteControlLine } from "react-icons/ri";
 import { cn } from "@/lib/utils";
 import { forwardRef, memo } from "react";
+import { useCallback } from "react";
 import { useEffect } from "react";
 import { useMemo } from "react";
-import { useCallback } from "react";
-
-import DropButton from "@/components/DropButton";
-import FarmerLinks from "@/partials/FarmerLinks";
-import Shutdown from "@/partials/Shutdown";
-import useAppQuery from "@/hooks/useAppQuery";
-import useSocketTabs from "@/hooks/useSocketTabs";
-import Donate from "@/partials/Donate";
-import CloudStatus from "@/partials/CloudStatus";
 
 /** Telegram Web Button */
 const TelegramWebButton = memo(
@@ -107,6 +106,7 @@ export default memo(function Welcome() {
   const settingTabs = useSocketTabs("app.settings-tabs", [
     "settings",
     "farmers",
+    "seeker",
   ]);
 
   /** Bots Query */

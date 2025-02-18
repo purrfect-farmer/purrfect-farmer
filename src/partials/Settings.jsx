@@ -12,11 +12,14 @@ import { CgSpinner } from "react-icons/cg";
 import {
   HiOutlineArrowPath,
   HiOutlineExclamationTriangle,
+  HiOutlineListBullet,
   HiOutlineSquares2X2,
 } from "react-icons/hi2";
 import { Reorder, useDragControls } from "motion/react";
 import { cn, maximizeFarmerWindow, resizeFarmerWindow } from "@/lib/utils";
 import { memo, useCallback, useLayoutEffect, useState } from "react";
+
+import Seeker from "./Seeker";
 
 const DropReorderItem = memo(({ children, ...props }) => {
   const dragControls = useDragControls();
@@ -61,6 +64,11 @@ export default memo(function Settings({ tabs }) {
     settings.cloudServer || defaultSettings.cloudServer
   );
 
+  /** Seeker Server */
+  const [seekerServer, setSeekerServer] = useState(
+    settings.seekerServer || defaultSettings.seekerServer
+  );
+
   /** Farmers Per Window */
   const [farmersPerWindow, setFarmersPerWindow] = useState(
     settings.farmersPerWindow || defaultSettings.farmersPerWindow
@@ -91,6 +99,11 @@ export default memo(function Settings({ tabs }) {
   const handleSetCloudServer = useCallback(() => {
     dispatchAndConfigureSettings("cloudServer", cloudServer);
   }, [cloudServer, dispatchAndConfigureSettings]);
+
+  /** Handle Set Seeker Server */
+  const handleSetSeekerServer = useCallback(() => {
+    dispatchAndConfigureSettings("seekerServer", seekerServer);
+  }, [seekerServer, dispatchAndConfigureSettings]);
 
   /** Set Farmers Per Window */
   const handleSetFarmersPerWindow = useCallback(() => {
@@ -131,6 +144,9 @@ export default memo(function Settings({ tabs }) {
     /** Set Cloud Server */
     setCloudServer(settings.cloudServer || defaultSettings.cloudServer);
 
+    /** Set Seeker Server */
+    setSeekerServer(settings.seekerServer || defaultSettings.seekerServer);
+
     /** Set Farmers Per Window */
     setFarmersPerWindow(
       settings.farmersPerWindow || defaultSettings.farmersPerWindow
@@ -140,7 +156,15 @@ export default memo(function Settings({ tabs }) {
     setFarmerPosition(
       settings.farmerPosition || defaultSettings.farmerPosition
     );
-  }, [settings, setSyncServer, setCloudServer, setFarmersPerWindow, setFarmerPosition]);
+  }, [
+    /** Deps */
+    settings,
+    setSyncServer,
+    setCloudServer,
+    setSeekerServer,
+    setFarmersPerWindow,
+    setFarmerPosition,
+  ]);
 
   return (
     <Dialog.Portal>
@@ -180,7 +204,7 @@ export default memo(function Settings({ tabs }) {
               </Dialog.Description>
 
               <Tabs.Root {...tabs.rootProps} className="flex flex-col gap-4">
-                <Tabs.List className="grid grid-cols-2">
+                <Tabs.List className="grid grid-cols-3">
                   {tabs.list.map((value, index) => (
                     <Tabs.Trigger
                       key={index}
@@ -324,6 +348,73 @@ export default memo(function Settings({ tabs }) {
                       <ConfirmButton onClick={handleSetCloudServer} />
                     </div>
 
+                    {/* Enabling */}
+                    <p
+                      className={cn(
+                        "mt-4",
+                        "bg-blue-100 text-blue-800 dark:text-blue-900 p-4 text-center rounded-lg"
+                      )}
+                    >
+                      Enable the seeker to update your Cloud Server Address
+                      automatically.
+                    </p>
+
+                    {/* Seeker Options */}
+                    <h4 className="text-neutral-400">Seeker Options</h4>
+
+                    {/* Cloud Seeker */}
+                    <div className="flex gap-2">
+                      <div className="min-w-0 min-h-0 grow">
+                        <LabelToggle
+                          onChange={(ev) =>
+                            dispatchAndConfigureSettings(
+                              "enableSeeker",
+                              ev.target.checked
+                            )
+                          }
+                          checked={settings?.enableSeeker}
+                        >
+                          <span className="flex flex-col">
+                            <span>Enable Seeker</span>
+                          </span>
+                        </LabelToggle>
+                      </div>
+
+                      {/* Seekers */}
+                      <button
+                        onClick={() => tabs.dispatchAndSetValue("seeker")}
+                        type="button"
+                        className={cn(
+                          "shrink-0",
+                          "inline-flex items-center justify-center",
+                          "px-4 rounded-lg shrink-0",
+                          "bg-neutral-100 dark:bg-neutral-700"
+                        )}
+                      >
+                        <HiOutlineListBullet className="w-4 h-4 " />
+                      </button>
+                    </div>
+
+                    {/* Seeker Server */}
+                    <label className="text-neutral-400">Seeker Server</label>
+                    <div className="flex gap-2">
+                      <Input
+                        value={seekerServer}
+                        onChange={(ev) => setSeekerServer(ev.target.value)}
+                        placeholder="Seeker Server"
+                      />
+
+                      {/* Reset Button */}
+                      <ResetButton
+                        onClick={() =>
+                          setSeekerServer(defaultSettings.seekerServer)
+                        }
+                      />
+
+                      {/* Set Button */}
+                      <ConfirmButton onClick={handleSetSeekerServer} />
+                    </div>
+
                     {/* PC Options */}
                     <h4 className="mt-4 text-neutral-400">PC Options</h4>
 
@@ -367,7 +458,7 @@ export default memo(function Settings({ tabs }) {
                     </LabelToggle>
 
                     {/* Sync Server */}
-                    <label className="text-neutral-400">Sync Server</label>
+                    <label className="mt-4 text-neutral-400">Sync Server</label>
                     <div className="flex gap-2">
                       <Input
                         value={syncServer}
@@ -387,7 +478,7 @@ export default memo(function Settings({ tabs }) {
                     </div>
 
                     {/* Farmers Per Windows */}
-                    <label className="text-neutral-400">
+                    <label className="mt-4 text-neutral-400">
                       Farmers Per Window (Min - 3)
                     </label>
                     <div className="flex gap-2">
@@ -513,6 +604,11 @@ export default memo(function Settings({ tabs }) {
                       ))}
                     </Reorder.Group>
                   </div>
+                </Tabs.Content>
+
+                {/* Seeker */}
+                <Tabs.Content value="seeker">
+                  <Seeker />
                 </Tabs.Content>
               </Tabs.Root>
             </div>
