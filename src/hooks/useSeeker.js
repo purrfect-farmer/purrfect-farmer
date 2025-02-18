@@ -5,7 +5,7 @@ import { useLayoutEffect } from "react";
 import useSeekerServerQuery from "./useSeekerServerQuery";
 
 export default function useSeeker(app) {
-  const { settings, dispatchAndConfigureSettings } = app;
+  const { settings, configureSettings } = app;
   const serverQuery = useSeekerServerQuery(app);
   const address = serverQuery.data?.address;
 
@@ -20,7 +20,7 @@ export default function useSeeker(app) {
       customLogger("SEEKER CLOUD SERVER ", serverQuery.data);
 
       /** Update Cloud Server Address */
-      dispatchAndConfigureSettings("cloudServer", address);
+      configureSettings("cloudServer", address, false);
 
       /** Toast */
       toast.success("Cloud Server Updated!");
@@ -30,6 +30,6 @@ export default function useSeeker(app) {
     settings.enableSeeker,
     settings.cloudServer,
     address,
-    dispatchAndConfigureSettings,
+    configureSettings,
   ]);
 }

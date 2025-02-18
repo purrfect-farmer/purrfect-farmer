@@ -1,7 +1,7 @@
 import useAppContext from "@/hooks/useAppContext";
 import useSeekerQuery from "@/hooks/useSeekerQuery";
 import { CgSpinner } from "react-icons/cg";
-import { HiOutlineCheck } from "react-icons/hi2";
+import { HiOutlineCheck, HiOutlineCloud } from "react-icons/hi2";
 import { cn } from "@/lib/utils";
 import { memo } from "react";
 
@@ -37,12 +37,15 @@ export default memo(function Seeker() {
                   role="button"
                   className={cn(
                     "bg-neutral-100 dark:bg-neutral-700",
-                    "flex items-center gap-4 p-2 px-4 cursor-pointer rounded-xl"
+                    "flex items-center gap-2 p-2 px-4 cursor-pointer rounded-xl"
                   )}
                   onClick={() =>
                     dispatchAndConfigureSettings("seekerId", server.id)
                   }
                 >
+                  {/* Icon */}
+                  <HiOutlineCloud className="w-4 h-4 shrink-0" />
+
                   {/* Server Name */}
                   <span className="font-bold grow">{server.name}</span>
 
