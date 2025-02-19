@@ -1,9 +1,8 @@
-import { HiOutlineCloud } from "react-icons/hi2";
-import { useContext } from "react";
-
 import AppContext from "@/contexts/AppContext";
 import useCloudStatusQuery from "@/hooks/useCloudStatusQuery";
+import { HiOutlineCloud } from "react-icons/hi2";
 import { cn } from "@/lib/utils";
+import { useContext } from "react";
 
 export default function CloudStatus() {
   const { settings } = useContext(AppContext);
@@ -22,7 +21,7 @@ export default function CloudStatus() {
     >
       <HiOutlineCloud className="w-4 h-4" /> Cloud:{" "}
       {status === "success"
-        ? "Active"
+        ? data.name
         : status === "pending"
         ? "Checking"
         : "Error"}

@@ -9,6 +9,6 @@ export default function useCloudStatusQuery() {
     enabled: settings.enableCloudSync,
     queryKey: ["core", "cloud", "status", settings.cloudServer],
     queryFn: ({ signal }) =>
-      cloudBackend.head("/up", { signal }).then((res) => res.data),
+      cloudBackend.get("/api/server", { signal }).then((res) => res.data),
   });
 }
