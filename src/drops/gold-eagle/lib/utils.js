@@ -3,10 +3,9 @@ import { Buffer } from "buffer";
 import { HashAlgorithms, KeyEncodings } from "@otplib/core";
 import { createDigest } from "@otplib/plugin-crypto-js";
 import { decode } from "hi-base32";
-import { findDropMainScript } from "@/lib/utils";
+import { fetchContent, findDropMainScript } from "@/lib/utils";
 import { totp } from "otplib";
 
-const INDEX_SCRIPT = "index-BT70ebje";
 const SECRET = "FZYQHANLB3I2KAWEOKI4T2PVXHHZ4K5F";
 const ENCRYPTION_ALGORITHM = "RSAES-PKCS1-V1_5";
 const PEM =
@@ -31,8 +30,11 @@ const hex = Buffer.from(bytes).toString("hex");
 export async function getGoldEagleGame() {
   if (getGoldEagleGame.DATA) return getGoldEagleGame.DATA;
 
+  const config = await fetchContent(import.meta.env.VITE_APP_FARMER_CONFIG_URL);
+  const indexScript = config["gold-eagle"]["index"];
+
   const url = "https://telegram.geagle.online";
-  const script = await findDropMainScript(url, INDEX_SCRIPT);
+  const script = await findDropMainScript(url, indexScript);
 
   if (!script) return;
 
