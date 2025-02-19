@@ -1,13 +1,14 @@
-import Input from "@/components/Input";
-import WelcomeIcon from "@/assets/images/icon-unwrapped-cropped.png?format=webp&h=224";
-import useCloudContext from "@/hooks/useCloudContext";
-import PrimaryButton from "@/components/PrimaryButton";
-
 import * as yup from "yup";
+import Input from "@/components/Input";
+import PrimaryButton from "@/components/PrimaryButton";
+import WelcomeIcon from "@/assets/images/icon-unwrapped-cropped.png?format=webp&h=224";
+import toast from "react-hot-toast";
+import useCloudContext from "@/hooks/useCloudContext";
+import useCloudLoginMutation from "@/hooks/useCloudLoginMutation";
 import { Controller, FormProvider, useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
-import useCloudLoginMutation from "@/hooks/useCloudLoginMutation";
-import toast from "react-hot-toast";
+
+import CloudServerDisplay from "./CloudServerDisplay";
 
 /** Schema */
 const schema = yup
@@ -72,10 +73,15 @@ export default function LoginForm() {
         <h2 className="text-lg text-center font-turret-road">Cloud Manager</h2>
       </div>
 
-      {/* Display Address */}
-      <p className="p-2 text-center text-orange-800 bg-orange-100 rounded-lg">
-        <span className="font-bold">Server</span>: {address}
-      </p>
+      <div className="flex flex-col gap-2 my-2">
+        {/* Display Address */}
+        <p className="p-2 text-center text-orange-800 bg-orange-100 rounded-lg">
+          <span className="font-bold">Server</span>: {address}
+        </p>
+
+        {/* Display Server */}
+        <CloudServerDisplay />
+      </div>
 
       <FormProvider {...form}>
         <form

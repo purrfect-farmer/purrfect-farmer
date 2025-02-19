@@ -1,3 +1,4 @@
+import * as Collapsible from "@radix-ui/react-collapsible";
 import FunaticIcon from "@/drops/funatic/assets/images/icon.png?format=webp&w=80";
 import GoldEagleIcon from "@/drops/gold-eagle/assets/images/icon.png?format=webp&w=80";
 import Input from "@/components/Input";
@@ -75,10 +76,17 @@ export default function CloudAccounts() {
       />
 
       {/* Accounts */}
-      <div className="flex flex-col gap-8">
+      <div className="flex flex-col gap-2">
         {groups.map((group) => (
-          <div key={group.id} className="flex flex-col gap-2">
-            <h3 className="flex items-center gap-2 px-2">
+          <Collapsible.Root key={group.id} className="flex flex-col gap-2">
+            <Collapsible.Trigger
+              className={cn(
+                "bg-neutral-100 dark:bg-neutral-700",
+                "flex items-center gap-2 p-2 cursor-pointer rounded-xl",
+                "border border-transparent",
+                "data-[state=open]:border-blue-500"
+              )}
+            >
               <img
                 src={CLOUD_FARMERS[group.id].icon}
                 className="w-6 h-6 rounded-full shrink-0"
@@ -89,42 +97,44 @@ export default function CloudAccounts() {
               <span className="px-2 py-px text-xs text-white bg-purple-500 rounded-full shrink-0">
                 {group.users.length}
               </span>
-            </h3>
-            {group.users.length ? (
-              group.users.map((account) => (
-                <div key={account.id} className="flex gap-2">
-                  {/* Details */}
-                  <div
-                    className={cn(
-                      "flex items-center min-w-0 min-h-0",
-                      "gap-2 p-2 rounded-lg grow bg-neutral-100 dark:bg-neutral-700"
-                    )}
-                  >
-                    <img
-                      src={account["photo_url"]}
-                      className="w-6 h-6 rounded-full shrink-0"
-                    />{" "}
-                    <h5>{account.username || account["user_id"]}</h5>
-                  </div>
+            </Collapsible.Trigger>
+            <Collapsible.Content className="mb-4">
+              {group.users.length ? (
+                group.users.map((account) => (
+                  <div key={account.id} className="flex gap-2">
+                    {/* Details */}
+                    <div
+                      className={cn(
+                        "flex items-center min-w-0 min-h-0",
+                        "gap-2 p-2 rounded-lg grow bg-neutral-100 dark:bg-neutral-700"
+                      )}
+                    >
+                      <img
+                        src={account["photo_url"]}
+                        className="w-6 h-6 rounded-full shrink-0"
+                      />{" "}
+                      <h5>{account.username || account["user_id"]}</h5>
+                    </div>
 
-                  {/* Terminate Button */}
-                  <button
-                    title="Disconnect Account"
-                    onClick={() => disconnectAccount(account.id)}
-                    className={cn(
-                      "text-red-600 bg-red-100",
-                      "dark:text-red-500 dark:bg-neutral-700",
-                      "px-3 rounded-lg shrink-0"
-                    )}
-                  >
-                    <HiOutlineXMark className="w-5 h-5" />
-                  </button>
-                </div>
-              ))
-            ) : (
-              <p className="text-center">No account to display..</p>
-            )}
-          </div>
+                    {/* Terminate Button */}
+                    <button
+                      title="Disconnect Account"
+                      onClick={() => disconnectAccount(account.id)}
+                      className={cn(
+                        "text-red-600 bg-red-100",
+                        "dark:text-red-500 dark:bg-neutral-700",
+                        "px-3 rounded-lg shrink-0"
+                      )}
+                    >
+                      <HiOutlineXMark className="w-5 h-5" />
+                    </button>
+                  </div>
+                ))
+              ) : (
+                <p className="text-center">No account to display..</p>
+              )}
+            </Collapsible.Content>
+          </Collapsible.Root>
         ))}
       </div>
     </div>

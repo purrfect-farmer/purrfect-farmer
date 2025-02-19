@@ -13,8 +13,8 @@ export default function CloudServerDisplay() {
       ) : serverQuery.isError ? (
         <p className="text-center text-red-500">Error...</p>
       ) : (
-        <div className="flex items-center justify-center gap-2 text-lg truncate">
-          <HiOutlineCloud className="w-5 h-5" /> {server.name}
+        <div className="flex items-center justify-center gap-2 text-green-500 truncate">
+          <HiOutlineCloud className="w-4 h-4" /> {server.name}
         </div>
       )}
     </div>
