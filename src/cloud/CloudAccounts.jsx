@@ -1,5 +1,7 @@
 import * as Collapsible from "@radix-ui/react-collapsible";
 import FunaticIcon from "@/drops/funatic/assets/images/icon.png?format=webp&w=80";
+import SlotcoinIcon from "@/drops/slotcoin/assets/images/icon.png?format=webp&w=80";
+import DreamCoinIcon from "@/drops/dreamcoin/assets/images/icon.png?format=webp&w=80";
 import GoldEagleIcon from "@/drops/gold-eagle/assets/images/icon.png?format=webp&w=80";
 import Input from "@/components/Input";
 import toast from "react-hot-toast";
@@ -11,13 +13,21 @@ import { useCallback } from "react";
 import { useMemo, useState } from "react";
 
 const CLOUD_FARMERS = {
-  funatic: {
+  ["funatic"]: {
     title: "Funatic Farmer",
     icon: FunaticIcon,
   },
-  "gold-eagle": {
+  ["gold-eagle"]: {
     title: "Gold Eagle Farmer",
     icon: GoldEagleIcon,
+  },
+  ["slotcoin"]: {
+    title: "Slotcoin Farmer",
+    icon: SlotcoinIcon,
+  },
+  ["dreamcoin"]: {
+    title: "DreamCoin Farmer",
+    icon: DreamCoinIcon,
   },
 };
 
