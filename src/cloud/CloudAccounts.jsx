@@ -1,9 +1,9 @@
 import * as Collapsible from "@radix-ui/react-collapsible";
-import FunaticIcon from "@/drops/funatic/assets/images/icon.png?format=webp&w=80";
-import SlotcoinIcon from "@/drops/slotcoin/assets/images/icon.png?format=webp&w=80";
 import DreamCoinIcon from "@/drops/dreamcoin/assets/images/icon.png?format=webp&w=80";
+import FunaticIcon from "@/drops/funatic/assets/images/icon.png?format=webp&w=80";
 import GoldEagleIcon from "@/drops/gold-eagle/assets/images/icon.png?format=webp&w=80";
 import Input from "@/components/Input";
+import SlotcoinIcon from "@/drops/slotcoin/assets/images/icon.png?format=webp&w=80";
 import toast from "react-hot-toast";
 import useCloudAccountsQuery from "@/hooks/useCloudAccountsQuery";
 import useCloudDisconnectAccountMutation from "@/hooks/useCloudDisconnectAccountMutation";
@@ -108,38 +108,40 @@ export default function CloudAccounts() {
                 {group.users.length}
               </span>
             </Collapsible.Trigger>
-            <Collapsible.Content className="mb-4">
+            <Collapsible.Content className="mb-2">
               {group.users.length ? (
-                group.users.map((account) => (
-                  <div key={account.id} className="flex gap-2">
-                    {/* Details */}
-                    <div
-                      className={cn(
-                        "flex items-center min-w-0 min-h-0",
-                        "gap-2 p-2 rounded-lg grow bg-neutral-100 dark:bg-neutral-700"
-                      )}
-                    >
-                      <img
-                        src={account["photo_url"]}
-                        className="w-6 h-6 rounded-full shrink-0"
-                      />{" "}
-                      <h5>{account.username || account["user_id"]}</h5>
-                    </div>
+                <div className="flex flex-col gap-1">
+                  {group.users.map((account) => (
+                    <div key={account.id} className="flex gap-2">
+                      {/* Details */}
+                      <div
+                        className={cn(
+                          "flex items-center min-w-0 min-h-0",
+                          "gap-2 p-2 rounded-lg grow bg-neutral-100 dark:bg-neutral-700"
+                        )}
+                      >
+                        <img
+                          src={account["photo_url"]}
+                          className="w-6 h-6 rounded-full shrink-0"
+                        />{" "}
+                        <h5>{account.username || account["user_id"]}</h5>
+                      </div>
 
-                    {/* Terminate Button */}
-                    <button
-                      title="Disconnect Account"
-                      onClick={() => disconnectAccount(account.id)}
-                      className={cn(
-                        "text-red-600 bg-red-100",
-                        "dark:text-red-500 dark:bg-neutral-700",
-                        "px-3 rounded-lg shrink-0"
-                      )}
-                    >
-                      <HiOutlineXMark className="w-5 h-5" />
-                    </button>
-                  </div>
-                ))
+                      {/* Terminate Button */}
+                      <button
+                        title="Disconnect Account"
+                        onClick={() => disconnectAccount(account.id)}
+                        className={cn(
+                          "text-red-600 bg-red-100",
+                          "dark:text-red-500 dark:bg-neutral-700",
+                          "px-3 rounded-lg shrink-0"
+                        )}
+                      >
+                        <HiOutlineXMark className="w-5 h-5" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
               ) : (
                 <p className="text-center">No account to display..</p>
               )}
