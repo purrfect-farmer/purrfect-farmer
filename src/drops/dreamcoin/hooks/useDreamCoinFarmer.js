@@ -15,6 +15,7 @@ export default function useDreamCoinFarmer() {
         },
         authHeaders: ["authorization", "baggage", "sentry-trace"],
         domains: ["*.dreamcoin.ai"],
+        syncToCloud: true,
       }),
       []
     )

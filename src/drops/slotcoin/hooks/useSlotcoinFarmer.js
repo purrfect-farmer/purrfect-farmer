@@ -14,6 +14,7 @@ export default function useSlotcoinFarmer() {
           title: "Slotcoin Farmer",
         },
         domains: ["*.slotcoin.app"],
+        syncToCloud: true,
       }),
       []
     )
