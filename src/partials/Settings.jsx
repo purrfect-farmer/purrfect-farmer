@@ -565,8 +565,7 @@ export default memo(function Settings({ tabs }) {
 
                     <p
                       className={cn(
-                        "bg-blue-100 dark:bg-blue-900",
-                        "text-blue-800 dark:text-blue-100",
+                        "bg-blue-100 text-blue-800 dark:text-blue-900",
                         "p-4 text-center rounded-lg"
                       )}
                     >

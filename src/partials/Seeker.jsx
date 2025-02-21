@@ -1,7 +1,11 @@
 import useAppContext from "@/hooks/useAppContext";
 import useSeekerQuery from "@/hooks/useSeekerQuery";
 import { CgSpinner } from "react-icons/cg";
-import { HiOutlineCheck, HiOutlineCloud } from "react-icons/hi2";
+import {
+  HiOutlineBoltSlash,
+  HiOutlineCheck,
+  HiOutlineCloud,
+} from "react-icons/hi2";
 import { cn } from "@/lib/utils";
 import { memo } from "react";
 
@@ -58,9 +62,10 @@ export default memo(function Seeker() {
           )}
         </>
       ) : (
-        <>
-          <p className="p-2 text-center">Seeker not enabled</p>
-        </>
+        <div className="flex flex-col items-center justify-center gap-2 py-2">
+          <HiOutlineBoltSlash className="w-12 h-12" />
+          <p className="text-center">Seeker not enabled</p>
+        </div>
       )}
     </div>
   );
