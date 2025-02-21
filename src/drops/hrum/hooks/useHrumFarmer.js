@@ -21,6 +21,7 @@ export default function useHrumFarmer() {
               header.value !== "empty"
           );
         },
+        syncToCloud: true,
       }),
       []
     )

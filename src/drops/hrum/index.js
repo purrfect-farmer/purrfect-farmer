@@ -6,6 +6,7 @@ export default {
   id: "hrum",
   title: "Hrum",
   icon,
+  syncToCloud: true,
   component: createLazyElement(() => import("./Hrum")),
   telegramLink: "http://t.me/hrummebot/game?startapp=ref1147265290",
   tasks: {
