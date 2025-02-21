@@ -6,6 +6,7 @@ export default {
   id: "dreamcoin",
   title: "DreamCoin",
   icon,
+  syncToCloud: true,
   component: createLazyElement(() => import("./DreamCoin")),
   telegramLink: "https://t.me/DreamCoinOfficial_bot?start=1147265290",
   tasks: {

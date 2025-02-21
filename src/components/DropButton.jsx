@@ -12,7 +12,7 @@ export default memo(function DropButton({ drop, ...props }) {
         {...props}
         className={cn(
           "flex items-center",
-          "p-2",
+          "p-2 relative",
           "bg-neutral-100 dark:bg-neutral-700",
           "hover:bg-neutral-200 dark:hover:bg-neutral-600",
           showAsGrid
@@ -30,6 +30,10 @@ export default memo(function DropButton({ drop, ...props }) {
           )}
         />
         <h3 className={cn("min-w-0 truncate w-full")}>{drop.title}</h3>
+
+        {drop.syncToCloud ? (
+          <span className="absolute w-1 h-1 bg-green-500 rounded-full top-2 right-2" />
+        ) : null}
       </button>
     </div>
   );

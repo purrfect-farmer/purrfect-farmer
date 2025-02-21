@@ -6,6 +6,7 @@ export default {
   id: "gold-eagle",
   title: "Gold Eagle",
   icon,
+  syncToCloud: true,
   component: createLazyElement(() => import("./GoldEagle")),
   telegramLink: "https://t.me/gold_eagle_coin_bot/main?startapp=r_ubdOBYN6KX",
   tasks: {
