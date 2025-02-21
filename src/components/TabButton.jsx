@@ -80,6 +80,24 @@ export default memo(function TabButton({ tab, connected }) {
             )}
           ></span>
         ) : null}
+
+        {tab.syncToCloud ? (
+          <span
+            className={cn(
+              "absolute inset-0",
+              "rotate-45",
+
+              // After
+              "after:absolute",
+              "after:top-0 after:left-1/2",
+              "after:-translate-x-1/2 after:-translate-y-1/2",
+              "after:border-2 after:border-white",
+              "after:w-2 after:h-2",
+              "after:rounded-full",
+              "after:bg-sky-500"
+            )}
+          ></span>
+        ) : null}
       </div>
 
       {/* Title */}

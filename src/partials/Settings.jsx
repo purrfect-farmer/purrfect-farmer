@@ -593,10 +593,29 @@ export default memo(function Settings({ tabs }) {
                             checked={dropsStatus[drop.id] === true}
                           >
                             <div className="flex items-center gap-1">
-                              <img
-                                src={drop.icon}
-                                className="w-6 h-6 rounded-full"
-                              />
+                              <span className="relative shrink-0">
+                                <img
+                                  src={drop.icon}
+                                  className="w-6 h-6 rounded-full"
+                                />
+                                {drop.syncToCloud ? (
+                                  <span
+                                    className={cn(
+                                      "absolute inset-0",
+                                      "rotate-45",
+
+                                      // After
+                                      "after:absolute",
+                                      "after:top-0 after:left-1/2",
+                                      "after:-translate-x-1/2 after:-translate-y-1/2",
+                                      "after:border-2 after:border-white",
+                                      "after:w-2 after:h-2",
+                                      "after:rounded-full",
+                                      "after:bg-sky-500"
+                                    )}
+                                  ></span>
+                                ) : null}
+                              </span>
                               <h5>{drop.title}</h5>
                             </div>
                           </LabelToggle>

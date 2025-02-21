@@ -4,6 +4,7 @@ import FunaticIcon from "@/drops/funatic/assets/images/icon.png?format=webp&w=80
 import GoldEagleIcon from "@/drops/gold-eagle/assets/images/icon.png?format=webp&w=80";
 import Input from "@/components/Input";
 import SlotcoinIcon from "@/drops/slotcoin/assets/images/icon.png?format=webp&w=80";
+import HrumIcon from "@/drops/hrum/assets/images/icon.png?format=webp&w=80";
 import toast from "react-hot-toast";
 import useCloudAccountsQuery from "@/hooks/useCloudAccountsQuery";
 import useCloudDisconnectAccountMutation from "@/hooks/useCloudDisconnectAccountMutation";
@@ -28,6 +29,10 @@ const CLOUD_FARMERS = {
   ["dreamcoin"]: {
     title: "DreamCoin Farmer",
     icon: DreamCoinIcon,
+  },
+  ["hrum"]: {
+    title: "Hrum Farmer",
+    icon: HrumIcon,
   },
 };
 
