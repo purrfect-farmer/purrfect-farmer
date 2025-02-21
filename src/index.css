@@ -1,5 +1,102 @@
-@import "fonts.css";
+@import "./fonts.css" layer(base);
 
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme {
+  --font-sans: Product Sans, ui-sans-serif, system-ui, sans-serif,
+    "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+  --font-turret-road: Turret Road;
+
+  --color-notgram-gold-50: #ffffff;
+  --color-notgram-gold-100: #fffcf9;
+  --color-notgram-gold-200: #fcecd2;
+  --color-notgram-gold-300: #fadcac;
+  --color-notgram-gold-400: #f7cb85;
+  --color-notgram-gold-500: #f5bb5f;
+  --color-notgram-gold-600: #f2a52a;
+  --color-notgram-gold-700: #d6890d;
+  --color-notgram-gold-800: #a2670a;
+  --color-notgram-gold-900: #6d4507;
+  --color-notgram-gold-950: #523505;
+  --color-notgram-gold: #f5bb5f;
+
+  --color-birdton-blue-50: #ffffff;
+  --color-birdton-blue-100: #f0faff;
+  --color-birdton-blue-200: #c7edff;
+  --color-birdton-blue-300: #9fe0ff;
+  --color-birdton-blue-400: #76d2ff;
+  --color-birdton-blue-500: #4dc5ff;
+  --color-birdton-blue-600: #15b3ff;
+  --color-birdton-blue-700: #0094dc;
+  --color-birdton-blue-800: #006ea4;
+  --color-birdton-blue-900: #00496c;
+  --color-birdton-blue-950: #003650;
+  --color-birdton-blue: #4dc5ff;
+
+  --color-blum-green-50: #fdfef9;
+  --color-blum-green-100: #f5fde7;
+  --color-blum-green-200: #e6f9c1;
+  --color-blum-green-300: #d8f59c;
+  --color-blum-green-400: #c9f277;
+  --color-blum-green-500: #baee52;
+  --color-blum-green-600: #a6e91f;
+  --color-blum-green-700: #84bd13;
+  --color-blum-green-800: #618a0e;
+  --color-blum-green-900: #3d5709;
+  --color-blum-green-950: #2b3e06;
+  --color-blum-green: #baee52;
+
+  --color-pumpad-green-50: #f6ffb6;
+  --color-pumpad-green-100: #f3ffa1;
+  --color-pumpad-green-200: #eeff78;
+  --color-pumpad-green-300: #e9ff50;
+  --color-pumpad-green-400: #e4ff27;
+  --color-pumpad-green-500: #ddfd00;
+  --color-pumpad-green-600: #acc500;
+  --color-pumpad-green-700: #7b8d00;
+  --color-pumpad-green-800: #4a5500;
+  --color-pumpad-green-900: #191d00;
+  --color-pumpad-green-950: #000100;
+  --color-pumpad-green: #ddfd00;
+
+  --color-wonton-green-50: #c1fe78;
+  --color-wonton-green-100: #b7fe64;
+  --color-wonton-green-200: #a4fe3b;
+  --color-wonton-green-300: #92fe13;
+  --color-wonton-green-400: #7de701;
+  --color-wonton-green-500: #5faf01;
+  --color-wonton-green-600: #417701;
+  --color-wonton-green-700: #223f00;
+  --color-wonton-green-800: #040800;
+  --color-wonton-green-900: #000000;
+  --color-wonton-green-950: #000000;
+  --color-wonton-green: #7de701;
+}
+
+/*
+  The default border color has changed to `currentColor` in Tailwind CSS v4,
+  so we've added these compatibility styles to make sure everything still
+  looks the same as it did with Tailwind CSS v3.
+
+  If we ever want to remove these styles, we need to add an explicit border
+  color utility to any element that depends on these defaults.
+*/
+@layer base {
+  *,
+  ::after,
+  ::before,
+  ::backdrop,
+  ::file-selector-button {
+    border-color: var(--color-gray-200, currentColor);
+  }
+}
+
+.scrollbar-thin {
+  @apply [&::-webkit-scrollbar]:w-2
+  [&::-webkit-scrollbar-track]:bg-gray-100
+  [&::-webkit-scrollbar-thumb]:bg-gray-300
+  dark:[&::-webkit-scrollbar-track]:bg-neutral-700
+  dark:[&::-webkit-scrollbar-thumb]:bg-neutral-500;
+}

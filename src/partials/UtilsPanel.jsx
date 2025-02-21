@@ -39,7 +39,7 @@ export default memo(function UtilsPanel({ open, onOpenChange }) {
                   className={cn(
                     "text-transparent font-bold",
                     "bg-clip-text",
-                    "bg-gradient-to-r from-pink-500 to-violet-500"
+                    "bg-linear-to-r from-pink-500 to-violet-500"
                   )}
                 >
                   {import.meta.env.VITE_CORE_SYSTEM_NAME}

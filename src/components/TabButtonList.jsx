@@ -18,7 +18,7 @@ export default memo(function TabButtonList({ tabs }) {
       )}
     >
       {/* Main */}
-      <div className="sticky left-0 z-[1] px-2 bg-white dark:bg-neutral-800 shrink-0">
+      <div className="sticky left-0 z-1 px-2 bg-white dark:bg-neutral-800 shrink-0">
         <TabButton
           key={tabs[0].id}
           tab={tabs[0]}

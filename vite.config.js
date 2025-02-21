@@ -1,5 +1,6 @@
 import path from "path";
 import react from "@vitejs/plugin-react";
+import tailwindcss from "@tailwindcss/vite";
 import { ViteEjsPlugin } from "vite-plugin-ejs";
 import { defineConfig } from "vite";
 import { fileURLToPath } from "url";
@@ -19,10 +20,11 @@ export default defineConfig(({ mode }) => {
   switch (process.env.VITE_ENTRY) {
     case "index":
       input = Object.fromEntries(
-        ["index", "cloud"].map((item) => [
-          item,
-          path.resolve(__dirname, `./${item}.html`),
-        ])
+        [
+          /** Entries */
+          "index",
+          "cloud",
+        ].map((item) => [item, path.resolve(__dirname, `./${item}.html`)])
       );
       break;
     default:
@@ -57,7 +59,13 @@ export default defineConfig(({ mode }) => {
         ),
       },
     },
-    plugins: [ViteEjsPlugin(env), react(), imagetools()],
+    plugins: [
+      /** Plugins */
+      ViteEjsPlugin(env),
+      react(),
+      tailwindcss(),
+      imagetools(),
+    ],
     esbuild: {
       supported: {
         "top-level-await": true,

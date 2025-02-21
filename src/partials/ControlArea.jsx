@@ -77,7 +77,7 @@ export default memo(function ControlArea() {
             <span
               className={cn(
                 "shrink-0",
-                "bg-gradient-to-br",
+                "bg-linear-to-br",
                 "from-red-500 to-purple-500",
                 "text-white font-bold",
                 "rounded-full",

@@ -185,7 +185,7 @@ export default memo(function Settings({ tabs }) {
                   className={cn(
                     "text-transparent font-bold",
                     "bg-clip-text",
-                    "bg-gradient-to-r from-pink-500 to-violet-500"
+                    "bg-linear-to-r from-pink-500 to-violet-500"
                   )}
                 >
                   Settings
@@ -196,7 +196,7 @@ export default memo(function Settings({ tabs }) {
                   className={cn(
                     "text-transparent font-bold",
                     "bg-clip-text",
-                    "bg-gradient-to-r from-green-500 to-blue-500"
+                    "bg-linear-to-r from-green-500 to-blue-500"
                   )}
                 >
                   Configure the Farmer

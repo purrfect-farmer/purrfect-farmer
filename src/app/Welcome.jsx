@@ -234,7 +234,7 @@ export default memo(function Welcome() {
                 "font-turret-road",
                 "text-transparent font-bold",
                 "bg-clip-text",
-                "bg-gradient-to-r from-pink-500 to-violet-500"
+                "bg-linear-to-r from-pink-500 to-violet-500"
               )}
             >
               v{chrome?.runtime?.getManifest().version}

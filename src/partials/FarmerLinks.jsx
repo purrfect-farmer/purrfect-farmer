@@ -189,7 +189,7 @@ export default memo(function FarmerLinks() {
               className={cn(
                 "text-transparent font-turret-road font-bold",
                 "bg-clip-text",
-                "bg-gradient-to-r from-pink-500 to-violet-500"
+                "bg-linear-to-r from-pink-500 to-violet-500"
               )}
             >
               Telegram Links
@@ -356,7 +356,7 @@ export default memo(function FarmerLinks() {
                   className={cn(
                     "text-transparent font-bold",
                     "bg-clip-text",
-                    "bg-gradient-to-r from-pink-500 to-violet-500"
+                    "bg-linear-to-r from-pink-500 to-violet-500"
                   )}
                 >
                   {currentLink ? "Edit Link" : "Create Link"}

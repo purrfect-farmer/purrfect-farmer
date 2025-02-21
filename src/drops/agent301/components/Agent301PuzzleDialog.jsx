@@ -87,7 +87,7 @@ export default memo(function Agent301PuzzleDialog({ onSubmit, onOpenChange }) {
                       type="number"
                       className={cn(
                         "border-0 rounded-lg bg-black outline-0",
-                        "focus:ring focus:ring-blue-500",
+                        "focus:ring-3 focus:ring-blue-500",
                         "text-center font-bold text-xl",
                         "py-2"
                       )}

@@ -8,7 +8,7 @@ export default memo(function Input(props) {
       className={cn(
         "bg-neutral-100 dark:bg-neutral-700",
         "p-2.5 rounded-lg font-bold grow min-h-0 min-w-0",
-        "focus:outline-none focus:ring focus:ring-blue-300",
+        "focus:outline-hidden focus:ring-3 focus:ring-blue-300",
         "disabled:opacity-50",
         props.className
       )}

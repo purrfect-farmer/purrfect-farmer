@@ -33,9 +33,9 @@ const Slider = forwardRef((props, forwardedRef) => {
           className={cn(
             "relative w-6 h-6 rounded-full",
             "flex items-center justify-center text-xs",
-            "bg-blue-500 shadow-sm",
+            "bg-blue-500 shadow-xs",
             "border-4 border-white",
-            "focus:outline-none",
+            "focus:outline-hidden",
             props.thumbClassName
           )}
         />
