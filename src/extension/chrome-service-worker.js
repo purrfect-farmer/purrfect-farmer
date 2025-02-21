@@ -15,10 +15,13 @@ const closePreviousPopups = async () => {
 
   for (const window of windows) {
     if (
-      window.tabs.some((tab) =>
-        ["chrome://newtab/", chrome.runtime.getURL("index.html")].includes(
-          tab.url
-        )
+      window.tabs.some(
+        (tab) =>
+          tab.active &&
+          tab.status === "complete" &&
+          ["chrome://newtab/", chrome.runtime.getURL("index.html")].includes(
+            tab.url
+          )
       )
     ) {
       await chrome.windows.remove(window.id);
