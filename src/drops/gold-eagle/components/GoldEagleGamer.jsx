@@ -2,10 +2,12 @@ import toast from "react-hot-toast";
 import useFarmerAutoProcess from "@/hooks/useFarmerAutoProcess";
 import useFarmerContext from "@/hooks/useFarmerContext";
 import useProcessLock from "@/hooks/useProcessLock";
+import useSocketDispatchCallback from "@/hooks/useSocketDispatchCallback";
+import { SlWallet } from "react-icons/sl";
 import { cn } from "@/lib/utils";
 import { memo } from "react";
 import { useEffect } from "react";
-
+import useGoldEagleClaimMutation from "../hooks/useGoldEagleClaimMutation";
 import useGoldEagleTapMutation from "../hooks/useGoldEagleTapMutation";
 import useGoldEagleUserProgressQuery from "../hooks/useGoldEagleUserProgressQuery";
 
@@ -14,10 +16,27 @@ export default memo(function GoldEagleGamer() {
   const process = useProcessLock("gold-eagle.game");
 
   const tapMutation = useGoldEagleTapMutation(game.hex);
+  const claimMutation = useGoldEagleClaimMutation();
   const query = useGoldEagleUserProgressQuery();
 
   const energy = query.data?.["energy"] || 0;
   const weight = query.data?.["tap_weight"] || 0;
+
+  const [, dispatchAndClaim] = useSocketDispatchCallback(
+    "gold-eagle.claim",
+    () => {
+      toast
+        .promise(claimMutation.mutateAsync(), {
+          loading: "Claiming....",
+          success: "Claimed Successfully",
+          error: "Failed to Claim!",
+        })
+        .catch((e) =>
+          toast.error(e.response?.data?.message || "Something went wrong!")
+        );
+    },
+    []
+  );
 
   /** Auto Game */
   useEffect(() => {
@@ -52,7 +71,7 @@ export default memo(function GoldEagleGamer() {
   useFarmerAutoProcess("game", !query.isLoading, process);
 
   return (
-    <div className="flex flex-col gap-2">
+    <div className="flex flex-col gap-4">
       <button
         onClick={() => process.dispatchAndToggle(!process.started)}
         className={cn(
@@ -61,6 +80,13 @@ export default memo(function GoldEagleGamer() {
         )}
       >
         {!process.started ? "Start Playing" : "Stop Playing"}
+      </button>
+
+      <button
+        className="text-orange-500 font-bold flex justify-center items-center gap-2"
+        onClick={() => dispatchAndClaim()}
+      >
+        <SlWallet className="w-4 h-4" /> Claim to SL8
       </button>
     </div>
   );
