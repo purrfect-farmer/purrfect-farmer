@@ -1,5 +1,6 @@
 import { createMutexFunction, getSettings, getUserAgent } from "@/lib/utils";
 
+/** Remove Action Popup */
 const removeActionPopup = async () => {
   const platform = await chrome.runtime.getPlatformInfo();
   if (platform.os !== "android") {
@@ -7,58 +8,59 @@ const removeActionPopup = async () => {
   }
 };
 
-const closePreviousPopups = createMutexFunction(
-  async (closeFarmerPage = false) => {
-    const urls = ["chrome://newtab/"].concat(
-      closeFarmerPage ? [chrome.runtime.getURL("index.html")] : []
-    );
+/** Close Previous Popups */
+const closePreviousPopups = createMutexFunction(async () => {
+  const urls = ["chrome://newtab/", chrome.runtime.getURL("index.html")];
 
-    const windows = await chrome.windows.getAll({
-      populate: true,
-      windowTypes: ["popup"],
-    });
+  const windows = await chrome.windows.getAll({
+    populate: true,
+    windowTypes: ["popup"],
+  });
 
-    for (const window of windows) {
-      if (window.tabs.some((tab) => urls.includes(tab.url))) {
-        await chrome.windows.remove(window.id);
-      }
+  for (const window of windows) {
+    if (window.tabs.some((tab) => urls.includes(tab.url))) {
+      await chrome.windows.remove(window.id);
     }
   }
-);
+});
 
 /** Open Farmer */
-const openFarmerWindow = createMutexFunction(
-  async (closeFarmerPage = false) => {
-    /** Close Previous Popups */
-    await closePreviousPopups(closeFarmerPage);
+const openFarmerWindow = createMutexFunction(async () => {
+  /** Close Previous Popups */
+  await closePreviousPopups();
 
-    /** Create a new window */
-    await chrome.windows.create({
-      url: chrome.runtime.getURL("index.html"),
-      type: "popup",
-      state: "maximized",
-      focused: true,
-    });
+  /** Create a new window */
+  await chrome.windows.create({
+    url: chrome.runtime.getURL("index.html"),
+    type: "popup",
+    state: "maximized",
+    focused: true,
+  });
+});
+
+/** Handle Action Clicked */
+const handleActionClicked = () => openFarmerWindow();
+
+/** Configure Extension */
+const configureExtension = createMutexFunction(
+  async ({ openFarmerInNewWindow }) => {
+    /** Configure Action */
+    if (openFarmerInNewWindow) {
+      chrome.action.onClicked.addListener(handleActionClicked);
+    } else {
+      chrome.action.onClicked.removeListener(handleActionClicked);
+    }
+
+    try {
+      /** Configure Side Panel */
+      await chrome.sidePanel
+        .setPanelBehavior({
+          openPanelOnActionClick: openFarmerInNewWindow === false,
+        })
+        .catch(() => {});
+    } catch {}
   }
 );
-
-const configureExtension = createMutexFunction(async (settings) => {
-  /** Configure Action */
-  if (settings.openFarmerInNewWindow) {
-    chrome.action.onClicked.addListener(openFarmerWindow);
-  } else {
-    chrome.action.onClicked.removeListener(openFarmerWindow);
-  }
-
-  try {
-    /** Configure Side Panel */
-    await chrome.sidePanel
-      .setPanelBehavior({
-        openPanelOnActionClick: !settings.openFarmerInNewWindow,
-      })
-      .catch(() => {});
-  } catch {}
-});
 
 /** Update User-Agent */
 const updateUserAgent = createMutexFunction(async () => {
