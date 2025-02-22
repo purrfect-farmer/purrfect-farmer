@@ -44,21 +44,26 @@ const handleActionClicked = () => openFarmerWindow();
 /** Configure Extension */
 const configureExtension = createMutexFunction(
   async ({ openFarmerInNewWindow }) => {
-    /** Configure Action */
-    if (openFarmerInNewWindow) {
-      chrome.action.onClicked.addListener(handleActionClicked);
-    } else {
-      chrome.action.onClicked.removeListener(handleActionClicked);
-    }
+    const platform = await chrome.runtime.getPlatformInfo();
 
-    try {
-      /** Configure Side Panel */
-      await chrome.sidePanel
-        .setPanelBehavior({
-          openPanelOnActionClick: openFarmerInNewWindow === false,
-        })
-        .catch(() => {});
-    } catch {}
+    if (platform.os !== "android") {
+      /** Remove Previous Listener */
+      chrome.action.onClicked.removeListener(handleActionClicked);
+
+      /** Configure Action */
+      if (openFarmerInNewWindow) {
+        chrome.action.onClicked.addListener(handleActionClicked);
+      }
+
+      try {
+        /** Configure Side Panel */
+        await chrome.sidePanel
+          .setPanelBehavior({
+            openPanelOnActionClick: openFarmerInNewWindow === false,
+          })
+          .catch(() => {});
+      } catch {}
+    }
   }
 );
 
@@ -139,7 +144,9 @@ chrome.runtime.onStartup.addListener(async () => {
         }
       } else {
         /** Go to extensions page */
-        const tabs = await chrome.tabs.query({});
+        const tabs = await chrome.tabs.query({
+          windowType: "normal",
+        });
 
         if (tabs[0]) {
           await chrome.tabs.update(tabs[0].id, {
