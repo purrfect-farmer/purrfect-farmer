@@ -2,8 +2,6 @@ import axios from "axios";
 import defaultSettings from "@/core/defaultSettings";
 import userAgents from "@/core/userAgents";
 import { clsx } from "clsx";
-import { createElement } from "react";
-import { lazy } from "react";
 import { twMerge } from "tailwind-merge";
 import { v4 as uuidv4 } from "uuid";
 
@@ -249,9 +247,4 @@ export async function maximizeFarmerWindow() {
 /** Check Task Word */
 export function taskWordIsValid(word, list) {
   return list.every((item) => word.toUpperCase().includes(item) === false);
-}
-
-/** Create Lazy Element */
-export function createLazyElement(callback) {
-  return createElement(lazy(callback));
 }

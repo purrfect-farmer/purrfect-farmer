@@ -1,4 +1,4 @@
-import { createLazyElement } from "@/lib/utils";
+import { createLazyElement } from "@/lib/createLazyElement";
 
 import icon from "./assets/images/icon.png?format=webp&w=80&h=80";
 

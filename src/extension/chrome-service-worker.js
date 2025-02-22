@@ -18,7 +18,6 @@ const closePreviousPopups = async () => {
       window.tabs.some(
         (tab) =>
           tab.active &&
-          tab.status === "complete" &&
           ["chrome://newtab/", chrome.runtime.getURL("index.html")].includes(
             tab.url
           )

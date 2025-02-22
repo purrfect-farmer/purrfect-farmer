@@ -293,6 +293,18 @@ export default memo(function Settings({ tabs }) {
                         </button>
                       ))}
                     </div>
+                    {/* Show Mini-App Toolbar */}
+                    <LabelToggle
+                      onChange={(ev) =>
+                        dispatchAndConfigureSettings(
+                          "showMiniAppToolbar",
+                          ev.target.checked
+                        )
+                      }
+                      checked={settings?.showMiniAppToolbar}
+                    >
+                      Show Mini-App Toolbar
+                    </LabelToggle>
 
                     {/* Close Other Bots */}
                     <LabelToggle

@@ -56,6 +56,13 @@
       "all_frames": true
     },
     {
+      "matches": ["*://*/*"],
+      "js": ["mini-app-toolbar-isolated.js"],
+      "run_at": "document_start",
+      "world": "ISOLATED",
+      "all_frames": true
+    },
+    {
       "matches": ["*://notgramgame.fun/*"],
       "js": ["notgram-main.js"],
       "run_at": "document_start",

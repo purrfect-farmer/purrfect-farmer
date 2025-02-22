@@ -34,7 +34,6 @@ export default function useDropFarmer({
     zoomies,
     joinTelegramLink: coreJoinTelegramLink,
     setActiveTab,
-    updateTab,
     userAgent,
     settings,
   } = useAppContext();
@@ -412,12 +411,6 @@ export default function useDropFarmer({
     telegramWebApp,
     notification.title,
   ]);
-
-  /** Update Tab with TelegramWebApp Data  */
-  useLayoutEffect(
-    () => updateTab(id, { telegramWebApp }),
-    [id, telegramWebApp, updateTab]
-  );
 
   /** Clean Up */
   useLayoutEffect(() => () => removeQueries(), [removeQueries]);

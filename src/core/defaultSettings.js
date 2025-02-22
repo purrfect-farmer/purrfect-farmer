@@ -25,6 +25,7 @@ const defaultSettings = {
   enableSeeker: false,
   closeOtherBots: true,
   farmersLayout: "grid",
+  showMiniAppToolbar: false,
   showLinksAsGrid: false,
   farmersPerWindow: 5,
   farmerPosition: 1,
