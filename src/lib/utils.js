@@ -13,6 +13,19 @@ export function uuid() {
   return uuidv4();
 }
 
+export function createMutexFunction(callback) {
+  let locked = false;
+  return async function (...args) {
+    if (locked) return;
+    locked = true;
+    try {
+      await callback(...args);
+    } finally {
+      locked = false;
+    }
+  };
+}
+
 export function customLogger(...args) {
   console.log("\n");
   args.forEach((item, index) => {

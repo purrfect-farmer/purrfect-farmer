@@ -1,4 +1,4 @@
-import { getSettings, getUserAgent } from "@/lib/utils";
+import { createMutexFunction, getSettings, getUserAgent } from "@/lib/utils";
 
 const removeActionPopup = async () => {
   const platform = await chrome.runtime.getPlatformInfo();
@@ -7,7 +7,7 @@ const removeActionPopup = async () => {
   }
 };
 
-const closePreviousPopups = async () => {
+const closePreviousPopups = createMutexFunction(async () => {
   const windows = await chrome.windows.getAll({
     populate: true,
     windowTypes: ["popup"],
@@ -15,21 +15,22 @@ const closePreviousPopups = async () => {
 
   for (const window of windows) {
     if (
-      window.tabs.some(
-        (tab) =>
-          tab.active &&
-          ["chrome://newtab/", chrome.runtime.getURL("index.html")].includes(
-            tab.url
-          )
+      window.tabs.some((tab) =>
+        ["chrome://newtab/", chrome.runtime.getURL("index.html")].includes(
+          tab.url
+        )
       )
     ) {
       await chrome.windows.remove(window.id);
     }
   }
-};
+});
 
 /** Open Farmer */
-const openFarmerWindow = async () => {
+const openFarmerWindow = createMutexFunction(async () => {
+  /** Close Previous Popups */
+  await closePreviousPopups();
+
   const url = chrome.runtime.getURL("index.html");
   const [tab] = await chrome.tabs.query({
     url,
@@ -55,9 +56,9 @@ const openFarmerWindow = async () => {
       focused: true,
     });
   }
-};
+});
 
-const configureExtension = async (settings) => {
+const configureExtension = createMutexFunction(async (settings) => {
   /** Configure Action */
   if (settings.openFarmerInNewWindow) {
     chrome.action.onClicked.addListener(openFarmerWindow);
@@ -73,10 +74,10 @@ const configureExtension = async (settings) => {
       })
       .catch(() => {});
   } catch {}
-};
+});
 
 /** Update User-Agent */
-const updateUserAgent = async () => {
+const updateUserAgent = createMutexFunction(async () => {
   const userAgent = await getUserAgent();
 
   const oldRules = await chrome.declarativeNetRequest.getDynamicRules();
@@ -109,10 +110,10 @@ const updateUserAgent = async () => {
   await chrome.storage.local.set({
     userAgent,
   });
-};
+});
 
 /** Setup Extension */
-const setupExtension = async () => {
+const setupExtension = createMutexFunction(async () => {
   /** Configure Settings */
   await configureExtension(await getSettings());
 
@@ -121,7 +122,7 @@ const setupExtension = async () => {
 
   /** Remove Action Popup */
   await removeActionPopup();
-};
+});
 
 /** Watch Storage for Settings Change */
 chrome.storage.local.onChanged.addListener(({ settings }) => {
@@ -185,15 +186,8 @@ chrome.runtime.onInstalled.addListener(async (ev) => {
   /** Open Farmer Window */
   const settings = await getSettings();
 
-  /** Open Window */
-  if (
-    ["install", "update"].includes(ev.reason) &&
-    settings.openFarmerInNewWindow
-  ) {
-    /** Always Close Previous Popups */
-    await closePreviousPopups();
-
-    /** Open Farmer Window */
+  /** Open Farmer Window */
+  if (settings.openFarmerInNewWindow) {
     await openFarmerWindow();
   }
 });
