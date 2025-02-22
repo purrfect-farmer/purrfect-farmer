@@ -2,9 +2,9 @@ import * as Collapsible from "@radix-ui/react-collapsible";
 import DreamCoinIcon from "@/drops/dreamcoin/assets/images/icon.png?format=webp&w=80";
 import FunaticIcon from "@/drops/funatic/assets/images/icon.png?format=webp&w=80";
 import GoldEagleIcon from "@/drops/gold-eagle/assets/images/icon.png?format=webp&w=80";
+import HrumIcon from "@/drops/hrum/assets/images/icon.png?format=webp&w=80";
 import Input from "@/components/Input";
 import SlotcoinIcon from "@/drops/slotcoin/assets/images/icon.png?format=webp&w=80";
-import HrumIcon from "@/drops/hrum/assets/images/icon.png?format=webp&w=80";
 import toast from "react-hot-toast";
 import useCloudAccountsQuery from "@/hooks/useCloudAccountsQuery";
 import useCloudDisconnectAccountMutation from "@/hooks/useCloudDisconnectAccountMutation";
@@ -103,11 +103,11 @@ export default function CloudAccounts() {
               )}
             >
               <img
-                src={CLOUD_FARMERS[group.id].icon}
+                src={CLOUD_FARMERS[group.id]?.icon}
                 className="w-6 h-6 rounded-full shrink-0"
               />
               <span className="font-bold grow">
-                {CLOUD_FARMERS[group.id].title}
+                {CLOUD_FARMERS[group.id]?.title}
               </span>
               <span className="px-2 py-px text-xs text-white bg-purple-500 rounded-full shrink-0">
                 {group.users.length}
