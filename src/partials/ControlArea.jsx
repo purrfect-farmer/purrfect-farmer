@@ -1,4 +1,10 @@
+import * as ContextMenu from "@radix-ui/react-context-menu";
+import * as Dialog from "@radix-ui/react-dialog";
 import CoreSystemIcon from "@/assets/images/core-system.png?format=webp&w=128";
+import SyncControl from "@/partials/SyncControl";
+import UtilsPanel from "@/partials/UtilsPanel";
+import useAppContext from "@/hooks/useAppContext";
+import useSocketState from "@/hooks/useSocketState";
 import { FaFire, FaPaw } from "react-icons/fa6";
 import {
   HiOutlineArrowPath,
@@ -6,22 +12,18 @@ import {
   HiOutlineFire,
   HiOutlineForward,
 } from "react-icons/hi2";
-import { memo, useState } from "react";
-import * as ContextMenu from "@radix-ui/react-context-menu";
-import SyncControl from "@/partials/SyncControl";
-import UtilsPanel from "@/partials/UtilsPanel";
-import useAppContext from "@/hooks/useAppContext";
 import { cn } from "@/lib/utils";
+import { memo } from "react";
 
 export default memo(function ControlArea() {
-  const [showUtils, setShowUtils] = useState(false);
   const { zoomies, setActiveTab } = useAppContext();
+  const [showUtils, setShowUtils, dispatchAndSetShowUtils] = useSocketState(
+    "app.toggle-utils-panel",
+    false
+  );
 
   return (
     <>
-      {/* Utils */}
-      <UtilsPanel open={showUtils} onOpenChange={setShowUtils} />
-
       {/* Zoomies Control */}
       {zoomies.enabled && zoomies.current.drop ? (
         <>
@@ -160,12 +162,14 @@ export default memo(function ControlArea() {
         <SyncControl />
 
         {/* Utils */}
-        <button
-          className="flex items-center justify-center w-10 h-10 shrink-0"
-          onClick={() => setShowUtils(true)}
-        >
-          <img src={CoreSystemIcon} className="w-7 h-7" />
-        </button>
+        <Dialog.Root open={showUtils} onOpenChange={dispatchAndSetShowUtils}>
+          <Dialog.Trigger className="flex items-center justify-center w-10 h-10 shrink-0">
+            <img src={CoreSystemIcon} className="w-7 h-7" />
+          </Dialog.Trigger>
+
+          {/* Utils */}
+          <UtilsPanel onOpenChange={dispatchAndSetShowUtils} />
+        </Dialog.Root>
       </div>
     </>
   );
