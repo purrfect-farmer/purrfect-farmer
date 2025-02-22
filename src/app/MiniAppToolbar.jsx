@@ -7,8 +7,8 @@ import {
 import { useCallback } from "react";
 
 const Container = styled.div`
-  background-color: oklch(0.768 0.233 130.85);
-  color: black;
+  background-color: oklch(0.627 0.265 303.9);
+  color: white;
   position: fixed;
   bottom: 0;
   left: 0;
@@ -23,8 +23,8 @@ const Container = styled.div`
 `;
 
 const Button = styled.button`
-  background-color: oklch(0.841 0.238 128.85);
-  color: black;
+  background-color: oklch(0.714 0.203 305.504);
+  color: white;
   border-radius: 100px;
   display: flex;
   align-items: center;
@@ -33,7 +33,8 @@ const Button = styled.button`
   border: 0px;
   outline: 0px;
   cursor: pointer;
-  font-weight: bold;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+    Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
 `;
 
 const OpenURLIcon = styled(HiOutlineArrowTopRightOnSquare)`
