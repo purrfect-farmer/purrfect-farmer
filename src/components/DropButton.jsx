@@ -44,7 +44,7 @@ export default memo(function DropButton({ drop, ...props }) {
                 "after:border-2 after:border-white",
                 "after:w-2 after:h-2",
                 "after:rounded-full",
-                "after:bg-sky-500"
+                "after:bg-green-500"
               )}
             ></span>
           ) : null}
