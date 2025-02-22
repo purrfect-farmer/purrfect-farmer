@@ -133,9 +133,15 @@ export default function CloudAccounts() {
                           {account.username || account["user_id"]}
                         </h5>
                         {typeof account["is_connected"] !== "undefined" ? (
-                          <span className="shrink-0">
-                            {account["is_connected"] ? "🟩" : "🟥"}
-                          </span>
+                          <span
+                            className={cn(
+                              "shrink-0 size-2 rounded-full",
+                              "border-2 border-white",
+                              account["is_connected"]
+                                ? "bg-green-500"
+                                : "bg-red-500"
+                            )}
+                          />
                         ) : null}
                       </div>
 
