@@ -8,7 +8,7 @@ export default {
   icon,
   syncToCloud: true,
   component: createLazyElement(() => import("./Hrum")),
-  telegramLink: "http://t.me/hrummebot/game?startapp=ref1147265290",
+  telegramLink: "https://t.me/hrummebot/game?startapp=ref1147265290",
   tasks: {
     ["daily.check-in"]: true,
     ["tasks"]: true,
