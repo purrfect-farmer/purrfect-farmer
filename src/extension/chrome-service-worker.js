@@ -14,13 +14,7 @@ const closePreviousPopups = createMutexFunction(async () => {
   });
 
   for (const window of windows) {
-    if (
-      window.tabs.some((tab) =>
-        ["chrome://newtab/", chrome.runtime.getURL("index.html")].includes(
-          tab.url
-        )
-      )
-    ) {
+    if (window.tabs.some((tab) => ["chrome://newtab/"].includes(tab.url))) {
       await chrome.windows.remove(window.id);
     }
   }
@@ -32,24 +26,25 @@ const openFarmerWindow = createMutexFunction(async () => {
   await closePreviousPopups();
 
   const url = chrome.runtime.getURL("index.html");
-  const [tab] = await chrome.tabs.query({
-    url,
-    windowType: "popup",
+  const windows = await chrome.windows.getAll({
+    populate: true,
+    windowTypes: ["popup"],
   });
 
+  const previousWindow = windows.find((window) =>
+    window.tabs.some((tab) => tab.url === url)
+  );
   /** Focus the previous tab */
-  if (tab) {
-    const window = await chrome.windows.get(tab.windowId);
-
+  if (previousWindow) {
     /** Focus the window */
-    if (window.focused === false) {
-      return await chrome.windows.update(window.id, {
+    if (previousWindow.focused === false) {
+      return await chrome.windows.update(previousWindow.id, {
         focused: true,
       });
     }
   } else {
     /** Create a new window */
-    chrome.windows.create({
+    await chrome.windows.create({
       url,
       type: "popup",
       state: "maximized",
@@ -114,21 +109,14 @@ const updateUserAgent = createMutexFunction(async () => {
 
 /** Setup Extension */
 const setupExtension = createMutexFunction(async () => {
-  /** Configure Settings */
-  await configureExtension(await getSettings());
+  /** Remove Action Popup */
+  await removeActionPopup();
 
   /** Update User-Agent */
   await updateUserAgent();
 
-  /** Remove Action Popup */
-  await removeActionPopup();
-});
-
-/** Watch Storage for Settings Change */
-chrome.storage.local.onChanged.addListener(({ settings }) => {
-  if (settings?.newValue) {
-    configureExtension(settings.newValue);
-  }
+  /** Configure Settings */
+  await configureExtension(await getSettings());
 });
 
 /** Open Farmer on Startup */
@@ -189,5 +177,12 @@ chrome.runtime.onInstalled.addListener(async (ev) => {
   /** Open Farmer Window */
   if (settings.openFarmerInNewWindow) {
     await openFarmerWindow();
+  }
+});
+
+/** Watch Storage for Settings Change */
+chrome.storage.local.onChanged.addListener(({ settings }) => {
+  if (settings?.newValue) {
+    configureExtension(settings.newValue);
   }
 });

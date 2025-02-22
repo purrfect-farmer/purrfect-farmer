@@ -15,14 +15,15 @@ export function uuid() {
 
 export function createMutexFunction(callback) {
   let locked = false;
-  return async function (...args) {
+  return function (...args) {
     if (locked) return;
+    /** Lock Function */
     locked = true;
-    try {
-      await callback(...args);
-    } finally {
+
+    /** Execute original callback */
+    callback(...args).finally(() => {
       locked = false;
-    }
+    });
   };
 }
 
