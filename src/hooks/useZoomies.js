@@ -260,7 +260,8 @@ export default function useZoomies(core) {
   }, [
     auth,
     canProcessZoomies,
-    current.drop,
+    current.drop?.id,
+    current.drop?.closeBotInZoomies,
     core.closeOtherBots,
     core.setActiveTab,
   ]);
@@ -269,7 +270,14 @@ export default function useZoomies(core) {
   useLayoutEffect(() => {
     /** Update current drop */
     setCurrent((prev) => {
-      if (drops.includes(prev.drop)) {
+      if (
+        drops.some(
+          (item) =>
+            item.id === prev?.drop?.id &&
+            item.tasks.length === prev?.drop?.tasks?.length &&
+            item.tasks.includes(prev?.task)
+        )
+      ) {
         return prev;
       } else {
         return {
@@ -314,7 +322,12 @@ export default function useZoomies(core) {
         task: current?.task,
       });
     }
-  }, [hasRestoredZoomiesState, storeZoomiesState, current]);
+  }, [
+    hasRestoredZoomiesState,
+    storeZoomiesState,
+    current?.drop?.id,
+    current?.task,
+  ]);
 
   return useValuesMemo({
     drops,
