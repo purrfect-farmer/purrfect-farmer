@@ -2,8 +2,8 @@ import * as yup from "yup";
 import Input from "@/components/Input";
 import { Controller, FormProvider, useForm } from "react-hook-form";
 import { cn } from "@/lib/utils";
-import { yupResolver } from "@hookform/resolvers/yup";
 import { memo } from "react";
+import { yupResolver } from "@hookform/resolvers/yup";
 
 const schema = yup
   .object({
@@ -13,7 +13,7 @@ const schema = yup
       .string()
       .trim()
       .url()
-      .matches(/^http(s)*:\/\/t\.me\/.+/, {
+      .matches(/^(http|https):\/\/t\.me\/.+/, {
         message: "Not a Valid Telegram Link",
       })
       .required()

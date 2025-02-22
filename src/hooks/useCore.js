@@ -632,7 +632,7 @@ export default function useCore() {
       async (url, version = preferredTelegramWebVersion, force = false) => {
         try {
           /** Is Mini App Start Page */
-          const isStartPage = !/https:\/\/t\.me\/[^\/]+\/.+/.test(url);
+          const isStartPage = !/(http|https):\/\/t\.me\/[^\/]+\/.+/.test(url);
 
           /** Open Telegram Link */
           await openTelegramLink(url, version, isStartPage || force);

@@ -167,7 +167,7 @@ export function postPortMessage(port, data) {
 
 /** Check if it's a Telegram Link */
 export function isTelegramLink(link) {
-  return link && /^http(s)*:\/\/t\.me\/.+/i.test(link.toLowerCase());
+  return link && /^(http|https):\/\/t\.me\/.+/i.test(link.toLowerCase());
 }
 
 /** Check if it's a bot URL */
@@ -180,7 +180,7 @@ export function canJoinTelegramLink(link) {
   return (
     link &&
     link.toLowerCase().includes("bot") === false &&
-    /^http(s)*:\/\/t\.me\/[^\/\?]+$/i.test(link.toLowerCase())
+    /^(http|https):\/\/t\.me\/[^\/\?]+$/i.test(link.toLowerCase())
   );
 }
 
