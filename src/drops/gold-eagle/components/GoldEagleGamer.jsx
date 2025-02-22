@@ -7,6 +7,7 @@ import { SlWallet } from "react-icons/sl";
 import { cn } from "@/lib/utils";
 import { memo } from "react";
 import { useEffect } from "react";
+
 import useGoldEagleClaimMutation from "../hooks/useGoldEagleClaimMutation";
 import useGoldEagleTapMutation from "../hooks/useGoldEagleTapMutation";
 import useGoldEagleUserProgressQuery from "../hooks/useGoldEagleUserProgressQuery";
@@ -26,16 +27,19 @@ export default memo(function GoldEagleGamer() {
     "gold-eagle.claim",
     () => {
       toast
-        .promise(claimMutation.mutateAsync(), {
-          loading: "Claiming....",
-          success: "Claimed Successfully",
-          error: "Failed to Claim!",
-        })
+        .promise(
+          claimMutation.mutateAsync().then(() => query.refetch()),
+          {
+            loading: "Claiming....",
+            success: "Claimed Successfully",
+            error: "Failed to Claim!",
+          }
+        )
         .catch((e) =>
           toast.error(e.response?.data?.message || "Something went wrong!")
         );
     },
-    []
+    [claimMutation.mutateAsync, query.refetch]
   );
 
   /** Auto Game */
