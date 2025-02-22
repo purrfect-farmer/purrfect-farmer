@@ -31,7 +31,7 @@ const Slider = forwardRef((props, forwardedRef) => {
         <SliderPrimitive.Thumb
           key={i}
           className={cn(
-            "relative w-6 h-6 rounded-full",
+            "relative size-6 rounded-full",
             "flex items-center justify-center text-xs",
             "bg-blue-500 shadow-xs",
             "border-4 border-white",
