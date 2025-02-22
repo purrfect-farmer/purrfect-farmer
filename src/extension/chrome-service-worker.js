@@ -7,51 +7,40 @@ const removeActionPopup = async () => {
   }
 };
 
-const closePreviousPopups = createMutexFunction(async () => {
-  const windows = await chrome.windows.getAll({
-    populate: true,
-    windowTypes: ["popup"],
-  });
+const closePreviousPopups = createMutexFunction(
+  async (closeFarmerPage = false) => {
+    const urls = ["chrome://newtab/"].concat(
+      closeFarmerPage ? [chrome.runtime.getURL("index.html")] : []
+    );
 
-  for (const window of windows) {
-    if (window.tabs.some((tab) => ["chrome://newtab/"].includes(tab.url))) {
-      await chrome.windows.remove(window.id);
+    const windows = await chrome.windows.getAll({
+      populate: true,
+      windowTypes: ["popup"],
+    });
+
+    for (const window of windows) {
+      if (window.tabs.some((tab) => urls.includes(tab.url))) {
+        await chrome.windows.remove(window.id);
+      }
     }
   }
-});
+);
 
 /** Open Farmer */
-const openFarmerWindow = createMutexFunction(async () => {
-  /** Close Previous Popups */
-  await closePreviousPopups();
+const openFarmerWindow = createMutexFunction(
+  async (closeFarmerPage = false) => {
+    /** Close Previous Popups */
+    await closePreviousPopups(closeFarmerPage);
 
-  const url = chrome.runtime.getURL("index.html");
-  const windows = await chrome.windows.getAll({
-    populate: true,
-    windowTypes: ["popup"],
-  });
-
-  const previousWindow = windows.find((window) =>
-    window.tabs.some((tab) => tab.url === url)
-  );
-  /** Focus the previous tab */
-  if (previousWindow) {
-    /** Focus the window */
-    if (previousWindow.focused === false) {
-      return await chrome.windows.update(previousWindow.id, {
-        focused: true,
-      });
-    }
-  } else {
     /** Create a new window */
     await chrome.windows.create({
-      url,
+      url: chrome.runtime.getURL("index.html"),
       type: "popup",
       state: "maximized",
       focused: true,
     });
   }
-});
+);
 
 const configureExtension = createMutexFunction(async (settings) => {
   /** Configure Action */
@@ -112,23 +101,17 @@ const setupExtension = createMutexFunction(async () => {
   /** Remove Action Popup */
   await removeActionPopup();
 
-  /** Update User-Agent */
-  await updateUserAgent();
-
   /** Configure Settings */
   await configureExtension(await getSettings());
 });
 
 /** Open Farmer on Startup */
 chrome.runtime.onStartup.addListener(async () => {
-  /** Setup Extension */
-  await setupExtension();
+  /** Get Settings */
+  const settings = await getSettings();
 
   /** Get Platform */
   const platform = await chrome.runtime.getPlatformInfo();
-
-  /** Get Settings */
-  const settings = await getSettings();
 
   if (
     platform.os !== "android" &&
@@ -168,15 +151,15 @@ chrome.runtime.onStartup.addListener(async () => {
 
 /** Open Farmer on Install */
 chrome.runtime.onInstalled.addListener(async (ev) => {
-  /** Setup Extension */
-  await setupExtension();
+  /** Update User-Agent */
+  await updateUserAgent();
 
   /** Open Farmer Window */
   const settings = await getSettings();
 
   /** Open Farmer Window */
   if (settings.openFarmerInNewWindow) {
-    await openFarmerWindow();
+    await openFarmerWindow(true);
   }
 });
 
@@ -186,3 +169,6 @@ chrome.storage.local.onChanged.addListener(({ settings }) => {
     configureExtension(settings.newValue);
   }
 });
+
+/** Setup Extension */
+setupExtension();
