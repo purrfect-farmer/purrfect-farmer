@@ -7,7 +7,7 @@ import {
 import { useCallback } from "react";
 
 const Container = styled.div`
-  background-color: oklch(0.627 0.265 303.9);
+  background-color: oklch(0.496 0.265 301.924);
   color: white;
   position: fixed;
   bottom: 0;
@@ -23,7 +23,7 @@ const Container = styled.div`
 `;
 
 const Button = styled.button`
-  background-color: oklch(0.714 0.203 305.504);
+  background-color: oklch(0.627 0.265 303.9);
   color: white;
   border-radius: 100px;
   display: flex;
