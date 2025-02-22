@@ -134,7 +134,7 @@ export default function CloudAccounts() {
                         </h5>
                         {typeof account["is_connected"] !== "undefined" ? (
                           <span className="shrink-0">
-                            {account["is_connected"] ? "✅" : "🟥"}
+                            {account["is_connected"] ? "🟩" : "🟥"}
                           </span>
                         ) : null}
                       </div>
