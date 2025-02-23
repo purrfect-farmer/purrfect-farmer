@@ -24,7 +24,7 @@ export default memo(function TelegramUser({ user }) {
           src={user?.["photo_url"]}
         />
 
-        <div className="flex flex-col min-w-0 min-h-0 grow pr-2">
+        <div className="flex flex-col min-w-0 min-h-0 grow pr-2 gap-1">
           {/* First and Last Name */}
           <p className="font-bold text-purple-500 truncate">
             {user?.["first_name"] || "Telegram"} {user?.["last_name"] || "User"}
