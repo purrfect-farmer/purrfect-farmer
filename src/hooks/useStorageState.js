@@ -43,7 +43,9 @@ export default function useStorageState(key, defaultValue) {
     /** Watch Storage */
     const watchStorage = ({ [key]: item }) => {
       if (item) {
-        setValue(item.newValue);
+        setValue(
+          typeof item.newValue !== "undefined" ? item.newValue : defaultValue
+        );
       }
     };
 
@@ -54,7 +56,13 @@ export default function useStorageState(key, defaultValue) {
       /** Remove Listener */
       chrome?.storage?.local?.onChanged.removeListener(watchStorage);
     };
-  }, [key, getStorage, setValue, setHasRestoredValue]);
+  }, [
+    /** Deps */
+    key,
+    getStorage,
+    setValue,
+    setHasRestoredValue,
+  ]);
 
   return useValuesMemo({
     value,

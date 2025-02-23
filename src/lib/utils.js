@@ -70,7 +70,7 @@ export function delayForMinutes(length, precised = false) {
 
 export async function getStorage(key, defaultValue) {
   const { [key]: value } = await chrome?.storage?.local.get(key);
-  return value || defaultValue;
+  return typeof value !== "undefined" ? value : defaultValue;
 }
 
 export async function getSettings() {

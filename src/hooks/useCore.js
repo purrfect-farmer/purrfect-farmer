@@ -8,6 +8,7 @@ import { useCallback } from "react";
 import { useMemo } from "react";
 import { useRef } from "react";
 import { useState } from "react";
+
 import useMessagePort from "./useMessagePort";
 import useSettings from "./useSettings";
 import useSocket from "./useSocket";
@@ -55,8 +56,16 @@ export default function useCore() {
     defaultSettings.preferredTelegramWebVersion;
   const [openedTabs, setOpenedTabs] = useState(defaultOpenedTabs);
 
-  /** Open Telegram Link Interval Ref */
-  const openTelegramLinkIntervalRef = useRef(null);
+  /** Open Farmer Bot Handler Ref */
+  const farmerBotHandlerRef = useRef({
+    listeners: {},
+  });
+
+  /** Open Telegram Link Handler Ref */
+  const telegramLinkHandlerRef = useRef({
+    interval: null,
+    listeners: {},
+  });
 
   /** Farmers */
   const farmers = useMemo(
@@ -124,19 +133,53 @@ export default function useCore() {
     [orderedDrops, enabledDropsKey]
   );
 
+  /** Reset openFarmerBot Handler */
+  const resetOpenFarmerBotHandler = useCallback(() => {
+    /** Handler Ref */
+    const ref = farmerBotHandlerRef;
+
+    /** Remove Listeners */
+    for (const event in ref.current.listeners) {
+      /** Remove Listener */
+      messaging.handler.removeListener(event, ref.current.listeners[event]);
+
+      /** Delete Listener */
+      delete ref.current.listeners[event];
+    }
+  }, [messaging.handler.removeListener]);
+
+  /** Reset openTelegramLink Handler */
+  const resetOpenTelegramLinkHandler = useCallback(() => {
+    /** Handler Ref */
+    const ref = telegramLinkHandlerRef;
+
+    if (ref.current.interval) {
+      /** Clear Previous Interval */
+      clearInterval(ref.current.interval);
+
+      /** Unset Interval */
+      ref.current.interval = null;
+    }
+
+    /** Remove Listeners */
+    for (const event in ref.current.listeners) {
+      /** Remove Listener */
+      messaging.handler.removeListener(event, ref.current.listeners[event]);
+
+      /** Delete Listener */
+      delete ref.current.listeners[event];
+    }
+  }, [messaging.handler.removeListener]);
+
   /** Cancel Telegram Handlers */
   const cancelTelegramHandlers = useCallback(() => {
-    /** Clear Interval */
-    clearInterval(openTelegramLinkIntervalRef.current);
-
-    /** Remove Telegram Web Port Handlers */
-    ["k", "a"]
-      .map((item) => `port-connected:telegram-web-${item}`)
-      .forEach((name) => messaging.handler.removeAllListeners(name));
-
-    /** Remove Bot Web App Action */
-    messaging.handler.removeAllListeners(BOT_TELEGRAM_WEB_APP_ACTION);
-  }, [messaging.handler]);
+    resetOpenFarmerBotHandler();
+    resetOpenTelegramLinkHandler();
+  }, [
+    /** Deps */
+    resetOpenFarmerBotHandler,
+    resetOpenTelegramLinkHandler,
+  ]);
 
   /* ===== HELPERS ===== */
 
@@ -193,10 +236,13 @@ export default function useCore() {
   const [resetTabs, dispatchAndResetTabs] = useSocketDispatchCallback(
     "core.reset-tabs",
     () => {
-      setOpenedTabs(defaultOpenedTabs);
+      /** Cancel Handlers */
       cancelTelegramHandlers();
+
+      /** Reset Tabs */
+      setOpenedTabs(defaultOpenedTabs);
     },
-    [setOpenedTabs, cancelTelegramHandlers],
+    [cancelTelegramHandlers, setOpenedTabs],
     /** Socket */
     socket
   );
@@ -419,16 +465,15 @@ export default function useCore() {
     }
   }, [getMiniAppPorts, messaging.ports]);
 
+  /** Open Farmer Bot */
   const [openFarmerBot, dispatchAndOpenFarmerBot] = useSocketDispatchCallback(
     "core.open-farmer-bot",
     async (version, force = false) => {
-      /** Event Names */
-      const eventNames = ["k", "a"].map(
-        (item) => `port-connected:telegram-web-${item}`
-      );
+      /** Reset Previous Handler */
+      resetOpenFarmerBotHandler();
 
-      /** Remove All Listeners */
-      eventNames.forEach((name) => messaging.handler.removeAllListeners(name));
+      /** Handler Ref */
+      const ref = farmerBotHandlerRef;
 
       /** When Not Force */
       if (!force) {
@@ -451,6 +496,8 @@ export default function useCore() {
           return;
         }
       }
+      /** Telegram Web Event Name */
+      const telegramWebEventName = `port-connected:telegram-web-${version}`;
 
       /** Capture Port */
       const capturePort = async function (port) {
@@ -460,18 +507,21 @@ export default function useCore() {
         });
       };
 
-      /** Add Handler */
-      messaging.handler.on(
-        `port-connected:telegram-web-${version}`,
-        capturePort
-      );
+      /** Store Listener */
+      ref.current.listeners[telegramWebEventName] = capturePort;
 
-      /** Remove All Listeners */
-      messaging.handler.on(BOT_TELEGRAM_WEB_APP_ACTION, () => {
-        eventNames.forEach((name) =>
-          messaging.handler.removeAllListeners(name)
-        );
-      });
+      /** Capture Port every time Telegram Web Opens */
+      messaging.handler.on(telegramWebEventName, capturePort);
+
+      /** Store Listener */
+      ref.current.listeners[BOT_TELEGRAM_WEB_APP_ACTION] =
+        resetOpenFarmerBotHandler;
+
+      /** Reset Handler Once the Bot Opens */
+      messaging.handler.once(
+        BOT_TELEGRAM_WEB_APP_ACTION,
+        resetOpenFarmerBotHandler
+      );
 
       /** Find Telegram Web Tab */
       const tab = tabs.find((item) => item.id === `telegram-web-${version}`);
@@ -499,9 +549,9 @@ export default function useCore() {
       pushTab,
       getFarmerBotPort,
       getMiniAppPorts,
+      resetOpenFarmerBotHandler,
       messaging.handler,
       messaging.ports,
-      messaging.removeMessageHandlers,
     ],
     /** Socket */
     socket
@@ -517,22 +567,16 @@ export default function useCore() {
         }
 
         return new Promise(async (resolve, reject) => {
-          /** Clear Previous Interval */
-          clearInterval(openTelegramLinkIntervalRef.current);
+          /** Reset Handler */
+          resetOpenTelegramLinkHandler();
 
-          /** Remove Previous Handler */
-          messaging.handler.removeAllListeners(BOT_TELEGRAM_WEB_APP_ACTION);
+          /** Handler Ref */
+          const ref = telegramLinkHandlerRef;
 
           /** Handle Farmer Bot Web App */
           const handleFarmerBotWebApp = (message, port) => {
-            /** Clear Interval */
-            clearInterval(openTelegramLinkIntervalRef.current);
-
-            /** Off Listener */
-            messaging.handler.removeAllListeners(BOT_TELEGRAM_WEB_APP_ACTION);
-
-            /** Reset */
-            openTelegramLinkIntervalRef.current = null;
+            /** Reset Handler */
+            resetOpenTelegramLinkHandler();
 
             /** Post the Link */
             postTelegramLink(port, `telegram-web-${version}`);
@@ -559,17 +603,18 @@ export default function useCore() {
               openFarmerBot(version, true);
             };
 
-            /** Add Handler */
+            /** Store Listener */
+            ref.current.listeners[BOT_TELEGRAM_WEB_APP_ACTION] =
+              handleFarmerBotWebApp;
+
+            /** Register Listener */
             messaging.handler.once(
               BOT_TELEGRAM_WEB_APP_ACTION,
               handleFarmerBotWebApp
             );
 
-            /** Reopen the bot */
-            openTelegramLinkIntervalRef.current = setInterval(
-              reOpenFarmerBot,
-              30000
-            );
+            /** Re-Open the bot */
+            ref.current.interval = setInterval(reOpenFarmerBot, 30000);
 
             /** Open Farmer Bot */
             openFarmerBot(version, force);
@@ -599,6 +644,7 @@ export default function useCore() {
         preferredTelegramWebVersion,
         getFarmerBotPort,
         closeOtherBots,
+        resetOpenTelegramLinkHandler,
         messaging.ports,
         messaging.handler,
         settings.closeOtherBots,
