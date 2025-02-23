@@ -8,7 +8,6 @@ import { useCallback } from "react";
 import { useMemo } from "react";
 import { useRef } from "react";
 import { useState } from "react";
-
 import useMessagePort from "./useMessagePort";
 import useSettings from "./useSettings";
 import useSocket from "./useSocket";
@@ -95,19 +94,34 @@ export default function useCore() {
     [farmers, defaultSettings.dropsOrder, settings.dropsOrder]
   );
 
+  /** Drops Order Key */
+  const dropsOrderKey = useMemo(() => dropsOrder.join(":"), [dropsOrder]);
+
+  /** Enabled Drops Key */
+  const enabledDropsKey = useMemo(
+    () =>
+      Object.entries(dropsStatus)
+        .filter(([, v]) => v === true)
+        .map(([k]) => k)
+        .join(":"),
+    [dropsStatus]
+  );
+
   /** Ordered Drops */
   const orderedDrops = useMemo(
     () =>
       farmers
         .slice()
-        .sort((a, b) => dropsOrder.indexOf(a.id) - dropsOrder.indexOf(b.id)),
-    [farmers, dropsOrder]
+        .sort(
+          (a, b) => dropsOrderKey.indexOf(a.id) - dropsOrderKey.indexOf(b.id)
+        ),
+    [farmers, dropsOrderKey]
   );
 
   /** Drops */
   const drops = useMemo(
-    () => orderedDrops.filter((item) => dropsStatus[item.id] === true),
-    [orderedDrops, dropsStatus]
+    () => orderedDrops.filter((item) => enabledDropsKey.includes(item.id)),
+    [orderedDrops, enabledDropsKey]
   );
 
   /** Cancel Telegram Handlers */

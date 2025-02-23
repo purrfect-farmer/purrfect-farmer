@@ -28,12 +28,6 @@ export default function useZoomies(core) {
   /** Quick Run */
   const [quickRun, setQuickRun] = useState(false);
 
-  /** Drops Key */
-  const dropsKey = useMemo(
-    () => core.drops.map((item) => item.id).join(":"),
-    [core.drops]
-  );
-
   /** Drops */
   const drops = useMemo(
     () =>
@@ -47,7 +41,7 @@ export default function useZoomies(core) {
             : Object.keys(item.tasks),
         }))
         .filter((item) => item.tasks.length > 0),
-    [quickRun, dropsKey]
+    [quickRun, core.drops]
   );
 
   /** Current State */
