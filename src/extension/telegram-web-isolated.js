@@ -59,6 +59,27 @@ const clickTelegramWebButton = (button, timeout = 0) => {
   }
 };
 
+const clickNodeOrDescendant = (selector, node, verify, timeout) => {
+  /** Matches Join Button */
+  if (node.matches(selector) && verify(node)) {
+    return clickTelegramWebButton(node, timeout);
+  }
+
+  /** Click Status */
+  let status = false;
+
+  /** Descendant Join Button */
+  for (const element of node.querySelectorAll(selector)) {
+    if (verify(element)) {
+      status = clickTelegramWebButton(element, timeout);
+
+      if (status) {
+        return status;
+      }
+    }
+  }
+};
+
 /** Is Popup Button */
 const isPopupButton = (element) =>
   [confirmButtonTextContent, closeButtonTextContent].includes(
@@ -75,87 +96,41 @@ const isJoinButton = (element) =>
 
 /** Find And Confirm Popup */
 const findAndConfirmPopup = (node) => {
-  /** Matches Start Button */
-  if (node.matches(buttonSelectors.confirmButton) && isPopupButton(node)) {
-    return dispatchClickEventOnElement(node);
-  }
-
-  /** Descendant Start Button */
-  for (const element of node.querySelectorAll(buttonSelectors.confirmButton)) {
-    if (isPopupButton(element)) {
-      return dispatchClickEventOnElement(element);
-    }
-  }
+  return clickNodeOrDescendant(
+    buttonSelectors.confirmButton,
+    node,
+    isPopupButton
+  );
 };
 
 /** Find And Click Join Button */
 const findAndClickJoinButton = (node) => {
-  /** Matches Join Button */
-  if (node.matches(buttonSelectors.joinButton) && isJoinButton(node)) {
-    return clickTelegramWebButton(node, 3000);
-  }
-
-  /** Click Status */
-  let status = false;
-
-  /** Descendant Join Button */
-  for (const element of node.querySelectorAll(buttonSelectors.joinButton)) {
-    if (isJoinButton(element)) {
-      status = clickTelegramWebButton(element, 3000);
-
-      if (status) {
-        return status;
-      }
-    }
-  }
+  return clickNodeOrDescendant(
+    buttonSelectors.joinButton,
+    node,
+    isJoinButton,
+    3000
+  );
 };
 
 /** Find And Click Start Button */
 const findAndClickStartButton = (node) => {
-  /** Matches Start Button */
-  if (node.matches(buttonSelectors.startButton) && isStartButton(node)) {
-    return clickTelegramWebButton(node, 5000);
-  }
-
-  /** Click Status */
-  let status = false;
-
-  /** Descendant Start Button */
-  for (const element of node.querySelectorAll(buttonSelectors.startButton)) {
-    if (isStartButton(element)) {
-      status = clickTelegramWebButton(element, 5000);
-
-      if (status) {
-        return status;
-      }
-    }
-  }
+  return clickNodeOrDescendant(
+    buttonSelectors.startButton,
+    node,
+    isStartButton,
+    5000
+  );
 };
 
 /** Find And Click Launch Button */
 const findAndClickLaunchButton = (node, isWebView) => {
-  /** Matches Launch Button */
-  if (
-    node.matches(
-      isWebView ? buttonSelectors.webViewButton : buttonSelectors.launchButton
-    )
-  ) {
-    return clickTelegramWebButton(node, 1000);
-  }
-
-  /** Click Status */
-  let status = false;
-
-  /** Descendant Launch Button */
-  for (const element of node.querySelectorAll(
-    isWebView ? buttonSelectors.webViewButton : buttonSelectors.launchButton
-  )) {
-    status = clickTelegramWebButton(element, 1000);
-
-    if (status) {
-      return status;
-    }
-  }
+  return clickNodeOrDescendant(
+    isWebView ? buttonSelectors.webViewButton : buttonSelectors.launchButton,
+    node,
+    (node) => true,
+    1000
+  );
 };
 
 /** Join Conversation */
@@ -207,7 +182,7 @@ const joinConversation = () => {
   });
 
   /** Abort after timeout */
-  setTimeout(() => joinObserverController.abort(), 10_000);
+  setTimeout(() => joinObserverController.abort(), 20_000);
 };
 
 /** Open Bot */
@@ -280,7 +255,7 @@ const openBot = (isWebView) => {
   });
 
   /** Abort after timeout */
-  setTimeout(() => botObserverController.abort(), 10_000);
+  setTimeout(() => botObserverController.abort(), 20_000);
 };
 
 /** Open Farmer Bot */
@@ -358,7 +333,7 @@ const port = chrome.runtime.connect(chrome.runtime.id, {
 });
 
 /** Listen for Port Message */
-port.onMessage.addListener(async (message) => {
+port.onMessage?.addListener(async (message) => {
   const { id, action, data } = message;
   switch (action) {
     case "abort-observers":

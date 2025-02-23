@@ -137,16 +137,18 @@ export function connectPortMessage(port, message, callback, once = true) {
     try {
       if (response.id === id) {
         if (once) {
-          port.onMessage.removeListener(respond);
+          port.onMessage?.removeListener(respond);
         }
         callback(response);
       }
     } catch {}
   };
 
-  port.onMessage.addListener(respond);
+  /** Add Listener */
+  port.onMessage?.addListener(respond);
+
   try {
-    port.postMessage({
+    port?.postMessage({
       ...message,
       id,
       once,

@@ -133,7 +133,7 @@ if (location.hash.includes("tgWebAppData")) {
   };
 
   /** Set Port */
-  port.onMessage.addListener(async (message) => {
+  port.onMessage?.addListener(async (message) => {
     const { id, action, data } = message;
     switch (action) {
       case `get-telegram-web-app:${location.host}`:

@@ -1,4 +1,4 @@
-import AppIcon from "@/assets/images/icon.png?inline&format=webp&w=64";
+import AppIcon from "@/assets/images/icon.png?inline&format=webp&w=72&h=72";
 import Draggable from "react-draggable";
 import copy from "copy-to-clipboard";
 import styled from "styled-components";
@@ -38,8 +38,8 @@ const Container = styled.div`
 
 const Image = styled.img`
   border-radius: 999px;
-  width: 32px;
-  height: 32px;
+  width: 36px;
+  height: 36px;
 `;
 
 const Button = styled.button`
@@ -50,8 +50,8 @@ const Button = styled.button`
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 32px;
-  height: 32px;
+  width: 36px;
+  height: 36px;
   border: 0px;
   outline: 0px;
   cursor: pointer;
