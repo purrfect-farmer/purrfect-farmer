@@ -12,6 +12,9 @@ if (location.hash.includes("tgWebAppData") && window.parent !== window) {
 
   /** Create Toolbar */
   const createToolbar = () => {
+    /** Prevent Duplicates */
+    if (toolbar) return;
+
     /** Create Container */
     const container = document.createElement("div");
 
