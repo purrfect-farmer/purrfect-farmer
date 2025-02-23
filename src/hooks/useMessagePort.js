@@ -46,8 +46,8 @@ export default function useMessagePort() {
   const removePort = useCallback(
     (port) => {
       /** Remove Listeners */
-      port.onMessage?.removeListener(portMessageHandler);
       port.onDisconnect?.removeListener(removePort);
+      port.onMessage?.removeListener(portMessageHandler);
 
       /** Remove Port */
       ports.delete(port);
@@ -64,16 +64,17 @@ export default function useMessagePort() {
      * @param {chrome.runtime.Port} port
      */
     const portConnectHandler = (port) => {
-      /** Add Port */
-      addPort(port);
+      /** Message Handler */
+      port.onMessage?.addListener(portMessageHandler);
 
       /** Register Disconnect */
       port.onDisconnect?.addListener(removePort);
 
-      /** Message Handler */
-      port.onMessage?.addListener(portMessageHandler);
+      /** Add Port */
+      addPort(port);
     };
 
+    /** Listen for Port Connection */
     chrome?.runtime?.onConnect.addListener(portConnectHandler);
 
     return () => {
