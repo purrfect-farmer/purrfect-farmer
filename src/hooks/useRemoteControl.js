@@ -1,3 +1,4 @@
+import { customLogger } from "@/lib/utils";
 import { io } from "socket.io-client";
 import { useCallback } from "react";
 import { useLayoutEffect } from "react";
@@ -23,17 +24,21 @@ export default function useRemoteControl(
   /** Dispatch */
   const dispatch = useCallback(
     (data) => {
-      if (enabled && syncing && socketRef.current?.connected) {
+      if (syncing && socketRef.current?.connected) {
         socketRef.current?.send(data);
       }
     },
-    [enabled, syncing]
+    [syncing]
   );
 
   /** Instantiate Socket */
   useLayoutEffect(() => {
     if (enabled && address) {
-      const socket = (socketRef.current = io(`ws://${address}`));
+      /** Create Socket */
+      const socket = io(`ws://${address}`);
+
+      /** Store Ref */
+      socketRef.current = socket;
 
       socket.on("connect", () => {
         setConnected(true);
@@ -45,9 +50,10 @@ export default function useRemoteControl(
 
       return () => {
         try {
-          socket.removeAllListeners();
           socket.close();
-        } catch {}
+        } catch (e) {
+          customLogger("REMOTE CONTROL SOCKET ERROR", e);
+        }
         socketRef.current = null;
       };
     }
@@ -57,9 +63,9 @@ export default function useRemoteControl(
   useLayoutEffect(() => {
     if (enabled && address) {
       const actionHandler = (arg) => {
-        if (!syncing) return;
-
-        handler.emit(arg.action, arg);
+        if (syncing) {
+          handler.emit(arg.action, arg);
+        }
       };
 
       socketRef.current?.on("command", actionHandler);
