@@ -1,4 +1,4 @@
-import { createMutexFunction, getSettings, getUserAgent } from "@/lib/utils";
+import { getSettings, getUserAgent } from "@/lib/utils";
 
 /** Remove Action Popup */
 const removeActionPopup = async () => {
@@ -9,7 +9,7 @@ const removeActionPopup = async () => {
 };
 
 /** Close Previous Popups */
-const closePreviousPopups = createMutexFunction(async () => {
+const closePreviousPopups = async () => {
   const urls = ["chrome://newtab/", chrome.runtime.getURL("index.html")];
 
   const windows = await chrome.windows.getAll({
@@ -22,10 +22,10 @@ const closePreviousPopups = createMutexFunction(async () => {
       await chrome.windows.remove(window.id);
     }
   }
-});
+};
 
 /** Open Farmer */
-const openFarmerWindow = createMutexFunction(async () => {
+const openFarmerWindow = async () => {
   /** Close Previous Popups */
   await closePreviousPopups();
 
@@ -36,39 +36,37 @@ const openFarmerWindow = createMutexFunction(async () => {
     state: "maximized",
     focused: true,
   });
-});
+};
 
 /** Handle Action Clicked */
 const handleActionClicked = () => openFarmerWindow();
 
 /** Configure Extension */
-const configureExtension = createMutexFunction(
-  async ({ openFarmerInNewWindow }) => {
-    const platform = await chrome.runtime.getPlatformInfo();
+const configureExtension = async ({ openFarmerInNewWindow }) => {
+  const platform = await chrome.runtime.getPlatformInfo();
 
-    if (platform.os !== "android") {
-      /** Remove Previous Listener */
-      chrome.action.onClicked.removeListener(handleActionClicked);
+  if (platform.os !== "android") {
+    /** Remove Previous Listener */
+    chrome.action.onClicked.removeListener(handleActionClicked);
 
-      /** Configure Action */
-      if (openFarmerInNewWindow) {
-        chrome.action.onClicked.addListener(handleActionClicked);
-      }
-
-      try {
-        /** Configure Side Panel */
-        await chrome.sidePanel
-          .setPanelBehavior({
-            openPanelOnActionClick: openFarmerInNewWindow === false,
-          })
-          .catch(() => {});
-      } catch {}
+    /** Configure Action */
+    if (openFarmerInNewWindow) {
+      chrome.action.onClicked.addListener(handleActionClicked);
     }
+
+    try {
+      /** Configure Side Panel */
+      await chrome.sidePanel
+        .setPanelBehavior({
+          openPanelOnActionClick: openFarmerInNewWindow === false,
+        })
+        .catch(() => {});
+    } catch {}
   }
-);
+};
 
 /** Update User-Agent */
-const updateUserAgent = createMutexFunction(async () => {
+const updateUserAgent = async () => {
   const userAgent = await getUserAgent();
 
   const oldRules = await chrome.declarativeNetRequest.getDynamicRules();
@@ -101,27 +99,30 @@ const updateUserAgent = createMutexFunction(async () => {
   await chrome.storage.local.set({
     userAgent,
   });
-});
+};
 
 /** Setup Extension */
-const setupExtension = createMutexFunction(async () => {
+const setupExtension = async () => {
   /** Remove Action Popup */
   await removeActionPopup();
 
-  /** Configure Settings */
-  await configureExtension(await getSettings());
-});
-
-/** Open Farmer on Startup */
-chrome.runtime.onStartup.addListener(async () => {
   /** Update User-Agent */
   await updateUserAgent();
 
-  /** Get Settings */
-  const settings = await getSettings();
+  /** Configure Settings */
+  await configureExtension(await getSettings());
+};
+
+/** Open Farmer on Startup */
+chrome.runtime.onStartup.addListener(async () => {
+  /** Setup Extension */
+  await setupExtension();
 
   /** Get Platform */
   const platform = await chrome.runtime.getPlatformInfo();
+
+  /** Get Settings */
+  const settings = await getSettings();
 
   if (
     platform.os !== "android" &&
@@ -163,8 +164,8 @@ chrome.runtime.onStartup.addListener(async () => {
 
 /** Open Farmer on Install */
 chrome.runtime.onInstalled.addListener(async (ev) => {
-  /** Update User-Agent */
-  await updateUserAgent();
+  /** Setup Extension */
+  await setupExtension();
 
   /** Open Farmer Window */
   const settings = await getSettings();
@@ -181,6 +182,3 @@ chrome.storage.local.onChanged.addListener(({ settings }) => {
     configureExtension(settings.newValue);
   }
 });
-
-/** Setup Extension */
-setupExtension();
