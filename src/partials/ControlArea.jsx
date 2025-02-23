@@ -1,5 +1,6 @@
 import * as ContextMenu from "@radix-ui/react-context-menu";
 import * as Dialog from "@radix-ui/react-dialog";
+import AppIcon from "@/assets/images/icon.png?format=webp&w=56&h=56";
 import CoreSystemIcon from "@/assets/images/core-system.png?format=webp&w=128";
 import RemoteControl from "@/partials/RemoteControl";
 import UtilsPanel from "@/partials/UtilsPanel";
@@ -16,7 +17,7 @@ import { cn } from "@/lib/utils";
 import { memo } from "react";
 
 export default memo(function ControlArea() {
-  const { zoomies, setActiveTab } = useAppContext();
+  const { zoomies, settings, setActiveTab } = useAppContext();
   const [showUtils, setShowUtils, dispatchAndSetShowUtils] = useSocketState(
     "app.toggle-utils-panel",
     false
@@ -159,7 +160,14 @@ export default memo(function ControlArea() {
         </ContextMenu.Root>
 
         {/* Remote Control */}
-        <RemoteControl />
+        {settings.enableRemoteControl ? (
+          <RemoteControl />
+        ) : (
+          <div className="flex items-center justify-center gap-2 px-2 grow min-w-0 min-h-0">
+            <img className="shrink-0 size-7" src={AppIcon} />{" "}
+            {import.meta.env.VITE_APP_NAME}
+          </div>
+        )}
 
         {/* Utils */}
         <Dialog.Root open={showUtils} onOpenChange={dispatchAndSetShowUtils}>

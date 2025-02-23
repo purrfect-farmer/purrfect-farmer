@@ -6,7 +6,7 @@ export default memo(function RemoteControl() {
   const { remote } = useAppContext();
 
   return (
-    <label className="flex items-center justify-center gap-2 p-2 cursor-pointer grow">
+    <label className="flex items-center justify-center gap-2 p-2 cursor-pointer grow min-w-0 min-h-0">
       Remote{" "}
       <Toggle
         checked={remote.syncing}

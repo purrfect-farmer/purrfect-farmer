@@ -262,7 +262,7 @@ export default memo(function Welcome() {
                 remote.connected ? "text-green-500" : "text-red-500"
               )}
             >
-              <RiRemoteControlLine className="w-4 h-4" /> Sync:{" "}
+              <RiRemoteControlLine className="w-4 h-4" /> Remote:{" "}
               {remote.connected ? "Connected" : "Disconnected"}
             </p>
           ) : null}

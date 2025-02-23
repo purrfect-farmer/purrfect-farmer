@@ -472,7 +472,9 @@ export default memo(function Settings({ tabs }) {
                     </LabelToggle>
 
                     {/* Remote Options */}
-                    <h4 className="mt-4 text-neutral-400">Remote Options</h4>
+                    <h4 className="mt-4 text-neutral-400">
+                      Remote Control Options
+                    </h4>
                     <LabelToggle
                       onChange={(ev) =>
                         dispatchAndConfigureSettings(
@@ -485,9 +487,9 @@ export default memo(function Settings({ tabs }) {
                       Enable Remote Control
                     </LabelToggle>
 
-                    {/* Remote Server */}
-                    <label className="mt-4 text-neutral-400">
-                      Remote Server
+                    {/* Remote Control Server */}
+                    <label className="text-neutral-400">
+                      Remote Control Server
                     </label>
                     <div className="flex gap-2">
                       <Input
@@ -495,7 +497,7 @@ export default memo(function Settings({ tabs }) {
                         onChange={(ev) =>
                           setRemoteControlServer(ev.target.value)
                         }
-                        placeholder="Remote Server"
+                        placeholder="Remote Control Server"
                       />
 
                       {/* Reset Button */}
