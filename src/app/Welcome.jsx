@@ -225,12 +225,12 @@ export default memo(function Welcome() {
           <img src={WelcomeIcon} className="mx-auto h-28" />
 
           {/* App Title */}
-          <h3 className="text-2xl text-center font-turret-road">
+          <h3 className="text-2xl text-center font-turret-road leading-none">
             {import.meta.env.VITE_APP_NAME}
           </h3>
 
           {/* App Version */}
-          <p className="text-lg text-center">
+          <p className="text-lg text-center leading-none">
             <span
               className={cn(
                 "font-turret-road",
@@ -246,7 +246,7 @@ export default memo(function Welcome() {
           {/* Farmer Title */}
           <p
             onClick={configureAppSettings}
-            className="font-bold text-center text-blue-500 cursor-pointer"
+            className="font-bold text-center text-blue-500 cursor-pointer leading-none"
           >
             {settings.farmerTitle || defaultSettings.farmerTitle}
           </p>
