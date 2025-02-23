@@ -4,7 +4,7 @@ import useFarmerAutoProcess from "@/hooks/useFarmerAutoProcess";
 import useFarmerAutoTask from "@/hooks/useFarmerAutoTask";
 import useFarmerContext from "@/hooks/useFarmerContext";
 import useProcessLock from "@/hooks/useProcessLock";
-import useSocketDispatchCallback from "@/hooks/useSocketDispatchCallback";
+import useRemoteCallback from "@/hooks/useRemoteCallback";
 import useSocketState from "@/hooks/useSocketState";
 import { HiOutlineArrowPath } from "react-icons/hi2";
 import { cn, delay, delayForSeconds } from "@/lib/utils";
@@ -34,7 +34,7 @@ export default memo(function TruecoinLottery() {
   const process = useProcessLock("truecoin.lottery");
 
   /** Handle button click */
-  const [claim50Boost, dispatchAndClaim50Boost] = useSocketDispatchCallback(
+  const [claim50Boost, dispatchAndClaim50Boost] = useRemoteCallback(
     "truecoin.claim-50-boost",
     () => {
       return toast.promise(boostMutation.mutateAsync(), {

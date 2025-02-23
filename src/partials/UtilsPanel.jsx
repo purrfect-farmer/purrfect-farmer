@@ -16,7 +16,7 @@ export default memo(function UtilsPanel({ onOpenChange }) {
     dispatchAndJoinTelegramLink,
   } = useAppContext();
 
-  /** Sync Server */
+  /** Remote Server */
   const [telegramLink, setTelegramLink] = useState("");
 
   return (

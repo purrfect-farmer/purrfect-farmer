@@ -1,4 +1,4 @@
-import useSocketDispatchCallback from "@/hooks/useSocketDispatchCallback";
+import useRemoteCallback from "@/hooks/useRemoteCallback";
 import { useCallback } from "react";
 import { useMemo } from "react";
 import { useState } from "react";
@@ -6,7 +6,7 @@ import { useState } from "react";
 import useAppContext from "./useAppContext";
 
 export default function useValueTasks(key) {
-  const { socket } = useAppContext();
+  const { remote } = useAppContext();
   const [valuePrompt, setValuePrompt] = useState(null);
 
   /** Get stored values */
@@ -82,7 +82,7 @@ export default function useValueTasks(key) {
   );
 
   /** Prompt Value */
-  const [, dispatchAndPrompt] = useSocketDispatchCallback(
+  const [, dispatchAndPrompt] = useRemoteCallback(
     key + ":prompt",
     (id) =>
       new Promise((resolve, reject) => {
@@ -95,7 +95,7 @@ export default function useValueTasks(key) {
   );
 
   /** Handle value Prompt Submit */
-  const [submitPrompt, dispatchAndSubmitPrompt] = useSocketDispatchCallback(
+  const [submitPrompt, dispatchAndSubmitPrompt] = useRemoteCallback(
     key + ":submit",
     (value) => {
       if (!valuePrompt) return;
@@ -114,7 +114,7 @@ export default function useValueTasks(key) {
       getResolvedValue(id).then((value) => {
         if (value) {
           /** Dispatch for others to store */
-          socket.dispatch({
+          remote.dispatch({
             action: `${key}.store`,
             data: {
               id,
@@ -124,7 +124,7 @@ export default function useValueTasks(key) {
         }
       });
     },
-    [key, socket, getResolvedValue]
+    [key, remote.dispatch, getResolvedValue]
   );
 
   /** Store Value Request */

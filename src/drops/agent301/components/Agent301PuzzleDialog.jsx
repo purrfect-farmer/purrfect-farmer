@@ -1,6 +1,6 @@
 import * as Dialog from "@radix-ui/react-dialog";
 import toast from "react-hot-toast";
-import useSocketDispatchCallback from "@/hooks/useSocketDispatchCallback";
+import useRemoteCallback from "@/hooks/useRemoteCallback";
 import { cn } from "@/lib/utils";
 import { memo } from "react";
 import { useState } from "react";
@@ -12,36 +12,34 @@ const defaultChoices = () => Array(4).fill("");
 export default memo(function Agent301PuzzleDialog({ onSubmit, onOpenChange }) {
   const [choices, setChoices] = useState(defaultChoices);
 
-  const [handleChoiceInput, dispatchAndHandleChoiceInput] =
-    useSocketDispatchCallback(
-      "agent301.puzzle.input",
-      (index, value) => {
-        if (value && (value < 1 || value > 16)) {
-          return;
-        }
-        setChoices((previous) =>
-          previous.map((choice, choiceIndex) =>
-            index === choiceIndex ? value && parseInt(value) : choice
-          )
-        );
-      },
-      [setChoices]
-    );
+  const [handleChoiceInput, dispatchAndHandleChoiceInput] = useRemoteCallback(
+    "agent301.puzzle.input",
+    (index, value) => {
+      if (value && (value < 1 || value > 16)) {
+        return;
+      }
+      setChoices((previous) =>
+        previous.map((choice, choiceIndex) =>
+          index === choiceIndex ? value && parseInt(value) : choice
+        )
+      );
+    },
+    [setChoices]
+  );
 
-  const [handleFormSubmit, dispatchAndHandleFormSubmit] =
-    useSocketDispatchCallback(
-      "agent301.puzzle.submit",
-      () => {
-        if (choices.some((choice) => !choice)) {
-          toast.error("Please enter all choice.", {
-            className: "font-bold font-sans",
-          });
-        } else {
-          onSubmit(choices);
-        }
-      },
-      [choices, onSubmit]
-    );
+  const [handleFormSubmit, dispatchAndHandleFormSubmit] = useRemoteCallback(
+    "agent301.puzzle.submit",
+    () => {
+      if (choices.some((choice) => !choice)) {
+        toast.error("Please enter all choice.", {
+          className: "font-bold font-sans",
+        });
+      } else {
+        onSubmit(choices);
+      }
+    },
+    [choices, onSubmit]
+  );
 
   return (
     <>

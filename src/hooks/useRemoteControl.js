@@ -7,7 +7,10 @@ import { useState } from "react";
 
 import useEventEmitter from "./useEventEmitter";
 
-export default function useSocket(server = "127.0.0.1:7777") {
+export default function useRemoteControl(
+  enabled = false,
+  address = import.meta.env.VITE_REMOTE_CONTROL_SERVER
+) {
   const socketRef = useRef(null);
   const [connected, setConnected] = useState(false);
   const [syncing, setSyncing] = useState(true);
@@ -20,52 +23,52 @@ export default function useSocket(server = "127.0.0.1:7777") {
   /** Dispatch */
   const dispatch = useCallback(
     (data) => {
-      if (syncing && socketRef.current?.connected) {
-        socketRef.current.send(data);
+      if (enabled && syncing && socketRef.current?.connected) {
+        socketRef.current?.send(data);
       }
     },
-    [socketRef, syncing]
+    [enabled, syncing]
   );
 
   /** Instantiate Socket */
   useLayoutEffect(() => {
-    if (!server) return;
+    if (enabled && address) {
+      const socket = (socketRef.current = io(`ws://${address}`));
 
-    const socket = (socketRef.current = io(`ws://${server}`));
+      socket.on("connect", () => {
+        setConnected(true);
+      });
 
-    socket.on("connect", () => {
-      setConnected(true);
-    });
+      socket.on("disconnect", () => {
+        setConnected(false);
+      });
 
-    socket.on("disconnect", () => {
-      setConnected(false);
-    });
-
-    return () => {
-      try {
-        socket.removeAllListeners();
-        socket.close();
-      } catch {}
-      socketRef.current = null;
-    };
-  }, [server]);
+      return () => {
+        try {
+          socket.removeAllListeners();
+          socket.close();
+        } catch {}
+        socketRef.current = null;
+      };
+    }
+  }, [enabled, address]);
 
   /** Handle Commands */
   useLayoutEffect(() => {
-    if (!server) return;
+    if (enabled && address) {
+      const actionHandler = (arg) => {
+        if (!syncing) return;
 
-    const actionHandler = (arg) => {
-      if (!syncing) return;
+        handler.emit(arg.action, arg);
+      };
 
-      handler.emit(arg.action, arg);
-    };
+      socketRef.current?.on("command", actionHandler);
 
-    socketRef.current?.on("command", actionHandler);
-
-    return () => {
-      socketRef.current?.off("command", actionHandler);
-    };
-  }, [server, handler, syncing]);
+      return () => {
+        socketRef.current?.off("command", actionHandler);
+      };
+    }
+  }, [enabled, address, handler, syncing]);
 
   return useMemo(
     () => ({

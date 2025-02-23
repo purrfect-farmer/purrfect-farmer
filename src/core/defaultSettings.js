@@ -17,11 +17,12 @@ const dropsOrder = Object.keys(dropsStatus);
 /** Default Settings */
 const defaultSettings = {
   farmerTitle: "TGUser",
-  syncServer: import.meta.env.VITE_SYNC_SERVER,
+  remoteControlServer: import.meta.env.VITE_REMOTE_CONTROL_SERVER,
   cloudServer: import.meta.env.VITE_CLOUD_SERVER,
   seekerServer: import.meta.env.VITE_SEEKER_SERVER,
   seekerId: null,
   enableCloudSync: false,
+  enableRemoteControl: false,
   enableSeeker: false,
   closeOtherBots: true,
   farmersLayout: "grid",

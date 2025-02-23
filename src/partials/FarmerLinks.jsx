@@ -2,7 +2,7 @@ import * as ContextMenu from "@radix-ui/react-context-menu";
 import * as Dialog from "@radix-ui/react-dialog";
 import toast from "react-hot-toast";
 import useAppContext from "@/hooks/useAppContext";
-import useSocketDispatchCallback from "@/hooks/useSocketDispatchCallback";
+import useRemoteCallback from "@/hooks/useRemoteCallback";
 import useStorageState from "@/hooks/useStorageState";
 import {
   HiOutlineListBullet,
@@ -17,8 +17,8 @@ import { useEffect } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { useState } from "react";
 
-import TelegramLogo from "../assets/images/telegram-logo.svg";
 import TelegramLinkForm from "./TelegramLinkForm";
+import TelegramLogo from "../assets/images/telegram-logo.svg";
 
 /** Load Link Icon */
 const loadLinkIcon = function (src) {
@@ -97,7 +97,7 @@ export default memo(function FarmerLinks() {
   );
 
   /** Store Links */
-  const [, dispatchAndStoreLinks] = useSocketDispatchCallback(
+  const [, dispatchAndStoreLinks] = useRemoteCallback(
     "app.store-links",
     storeLinks,
     [storeLinks]

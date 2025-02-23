@@ -2,16 +2,16 @@ import Toggle from "@/components/Toggle";
 import useAppContext from "@/hooks/useAppContext";
 import { memo } from "react";
 
-export default memo(function SyncControl() {
-  const { socket } = useAppContext();
+export default memo(function RemoteControl() {
+  const { remote } = useAppContext();
 
   return (
     <label className="flex items-center justify-center gap-2 p-2 cursor-pointer grow">
-      Sync{" "}
+      Remote{" "}
       <Toggle
-        checked={socket.syncing}
+        checked={remote.syncing}
         onChange={(ev) => {
-          socket.setSyncing(ev.target.checked);
+          remote.setSyncing(ev.target.checked);
         }}
       />
     </label>

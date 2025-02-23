@@ -4,14 +4,9 @@ import { useMemo } from "react";
 
 import useAppContext from "./useAppContext";
 
-export default function useSocketDispatchCallback(
-  action,
-  callback,
-  deps = [],
-  socket
-) {
+export default function useRemoteCallback(action, callback, deps = [], remote) {
   const app = useAppContext();
-  const socketToUse = socket || app?.socket;
+  const remoteToUse = remote || app?.remote;
 
   /** Main Callback */
   const main = useCallback(callback, deps);
@@ -19,14 +14,14 @@ export default function useSocketDispatchCallback(
   /** Dispatch Callback */
   const dispatch = useCallback(
     (...args) => {
-      socketToUse.dispatch({
+      remoteToUse.dispatch({
         action,
         data: args,
       });
 
       return main(...args);
     },
-    [socketToUse, action, main]
+    [remoteToUse, action, main]
   );
 
   /** Add Handler */
@@ -35,11 +30,11 @@ export default function useSocketDispatchCallback(
     const handler = (command) => main(...command.data);
 
     /** Add Handler */
-    socketToUse.handler.on(action, handler);
+    remoteToUse.handler.on(action, handler);
 
     /** Remove Handler */
-    return () => socketToUse.handler.off(action, handler);
-  }, [socketToUse.handler, action, main]);
+    return () => remoteToUse.handler.off(action, handler);
+  }, [remoteToUse.handler, action, main]);
 
   return useMemo(() => [main, dispatch], [main, dispatch]);
 }

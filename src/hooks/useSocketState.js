@@ -1,13 +1,13 @@
 import { useMemo } from "react";
 import { useState } from "react";
 
-import useSocketDispatchCallback from "./useSocketDispatchCallback";
+import useRemoteCallback from "./useRemoteCallback";
 
 export default function useSocketState(key = "", initialState) {
   const [state, setState] = useState(initialState);
 
   /** Change State Handler */
-  const [, dispatchAndSetState] = useSocketDispatchCallback(
+  const [, dispatchAndSetState] = useRemoteCallback(
     key + ":set",
     /** Main */
     setState,

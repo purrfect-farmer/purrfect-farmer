@@ -1,7 +1,7 @@
 import toast from "react-hot-toast";
 import useFarmerAutoTask from "@/hooks/useFarmerAutoTask";
 import useFarmerContext from "@/hooks/useFarmerContext";
-import useSocketDispatchCallback from "@/hooks/useSocketDispatchCallback";
+import useRemoteCallback from "@/hooks/useRemoteCallback";
 import useSocketState from "@/hooks/useSocketState";
 import { customLogger } from "@/lib/utils";
 import { memo, useCallback } from "react";
@@ -62,16 +62,15 @@ export default memo(function Agent301Puzzle() {
     [toast, cardsQuery.refetch, balanceQuery.refetch, setShowModal]
   );
 
-  const [handleButtonClick, dispatchAndHandleButtonClick] =
-    useSocketDispatchCallback(
-      "agent301.puzzle.show-modal",
-      () => {
-        if (attemptsLeft >= 1) {
-          setShowModal(true);
-        }
-      },
-      [attemptsLeft, setShowModal]
-    );
+  const [handleButtonClick, dispatchAndHandleButtonClick] = useRemoteCallback(
+    "agent301.puzzle.show-modal",
+    () => {
+      if (attemptsLeft >= 1) {
+        setShowModal(true);
+      }
+    },
+    [attemptsLeft, setShowModal]
+  );
 
   /** Complete Puzzle */
   useFarmerAutoTask(

@@ -2,19 +2,19 @@ import { useLayoutEffect } from "react";
 
 import useAppContext from "./useAppContext";
 
-export default function useSocketHandlers(handlers, socket) {
+export default function useSocketHandlers(handlers, remote) {
   const app = useAppContext();
-  const socketToUse = socket || app?.socket;
+  const remoteToUse = remote || app?.remote;
 
   return useLayoutEffect(() => {
-    socketToUse.addCommandHandlers(handlers);
+    remoteToUse.addCommandHandlers(handlers);
 
     return () => {
-      socketToUse.removeCommandHandlers(handlers);
+      remoteToUse.removeCommandHandlers(handlers);
     };
   }, [
     handlers,
-    socketToUse.addCommandHandlers,
-    socketToUse.removeCommandHandlers,
+    remoteToUse.addCommandHandlers,
+    remoteToUse.removeCommandHandlers,
   ]);
 }

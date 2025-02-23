@@ -91,7 +91,7 @@ export default memo(function Welcome() {
     farmers,
     drops,
     settings,
-    socket,
+    remote,
     telegramUser,
     openNewTab,
     openExtensionsPage,
@@ -254,16 +254,18 @@ export default memo(function Welcome() {
           {/* Cloud Status */}
           <CloudStatus />
 
-          {/* Sync Status */}
-          <p
-            className={cn(
-              "text-center flex items-center justify-center gap-2",
-              socket.connected ? "text-green-500" : "text-red-500"
-            )}
-          >
-            <RiRemoteControlLine className="w-4 h-4" /> Sync:{" "}
-            {socket.connected ? "Connected" : "Disconnected"}
-          </p>
+          {/* Remote Control Status */}
+          {settings.enableRemoteControl ? (
+            <p
+              className={cn(
+                "text-center flex items-center justify-center gap-2",
+                remote.connected ? "text-green-500" : "text-red-500"
+              )}
+            >
+              <RiRemoteControlLine className="w-4 h-4" /> Sync:{" "}
+              {remote.connected ? "Connected" : "Disconnected"}
+            </p>
+          ) : null}
 
           {/* Display User */}
           {telegramUser ? <TelegramUser user={telegramUser} /> : null}

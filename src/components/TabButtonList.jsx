@@ -5,7 +5,7 @@ import { memo, useMemo } from "react";
 import TabButton from "./TabButton";
 
 export default memo(function TabButtonList({ tabs }) {
-  const { socket } = useAppContext();
+  const { remote } = useAppContext();
   const otherTabs = useMemo(() => tabs.slice(1), [tabs]);
 
   return (
@@ -22,7 +22,7 @@ export default memo(function TabButtonList({ tabs }) {
         <TabButton
           key={tabs[0].id}
           tab={tabs[0]}
-          connected={socket.connected}
+          connected={remote.connected}
         />
       </div>
 

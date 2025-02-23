@@ -54,9 +54,9 @@ export default memo(function Settings({ tabs }) {
     orderedDrops,
   } = useAppContext();
 
-  /** Sync Server */
-  const [syncServer, setSyncServer] = useState(
-    settings.syncServer || defaultSettings.syncServer
+  /** Remote Server */
+  const [remoteControlServer, setRemoteControlServer] = useState(
+    settings.remoteControlServer || defaultSettings.remoteControlServer
   );
 
   /** Cloud Server */
@@ -90,10 +90,10 @@ export default memo(function Settings({ tabs }) {
     maximizeFarmerWindow();
   }, []);
 
-  /** Handle Set Sync Server */
-  const handleSetSyncServer = useCallback(() => {
-    dispatchAndConfigureSettings("syncServer", syncServer);
-  }, [syncServer, dispatchAndConfigureSettings]);
+  /** Handle Set Remote Server */
+  const handleSetRemoteControlServer = useCallback(() => {
+    dispatchAndConfigureSettings("remoteControlServer", remoteControlServer);
+  }, [remoteControlServer, dispatchAndConfigureSettings]);
 
   /** Handle Set Cloud Server */
   const handleSetCloudServer = useCallback(() => {
@@ -138,8 +138,10 @@ export default memo(function Settings({ tabs }) {
 
   /** Update Settings */
   useLayoutEffect(() => {
-    /** Set Sync Server */
-    setSyncServer(settings.syncServer || defaultSettings.syncServer);
+    /** Set Remote Server */
+    setRemoteControlServer(
+      settings.remoteControlServer || defaultSettings.remoteControlServer
+    );
 
     /** Set Cloud Server */
     setCloudServer(settings.cloudServer || defaultSettings.cloudServer);
@@ -159,7 +161,7 @@ export default memo(function Settings({ tabs }) {
   }, [
     /** Deps */
     settings,
-    setSyncServer,
+    setRemoteControlServer,
     setCloudServer,
     setSeekerServer,
     setFarmersPerWindow,
@@ -469,24 +471,44 @@ export default memo(function Settings({ tabs }) {
                       Close Main Window on Startup
                     </LabelToggle>
 
-                    {/* Sync Server */}
-                    <label className="mt-4 text-neutral-400">Sync Server</label>
+                    {/* Remote Options */}
+                    <h4 className="mt-4 text-neutral-400">Remote Options</h4>
+                    <LabelToggle
+                      onChange={(ev) =>
+                        dispatchAndConfigureSettings(
+                          "enableRemoteControl",
+                          ev.target.checked
+                        )
+                      }
+                      checked={settings?.enableRemoteControl}
+                    >
+                      Enable Remote Control
+                    </LabelToggle>
+
+                    {/* Remote Server */}
+                    <label className="mt-4 text-neutral-400">
+                      Remote Server
+                    </label>
                     <div className="flex gap-2">
                       <Input
-                        value={syncServer}
-                        onChange={(ev) => setSyncServer(ev.target.value)}
-                        placeholder="Sync Server"
+                        value={remoteControlServer}
+                        onChange={(ev) =>
+                          setRemoteControlServer(ev.target.value)
+                        }
+                        placeholder="Remote Server"
                       />
 
                       {/* Reset Button */}
                       <ResetButton
                         onClick={() =>
-                          setSyncServer(defaultSettings.syncServer)
+                          setRemoteControlServer(
+                            defaultSettings.remoteControlServer
+                          )
                         }
                       />
 
                       {/* Set Button */}
-                      <ConfirmButton onClick={handleSetSyncServer} />
+                      <ConfirmButton onClick={handleSetRemoteControlServer} />
                     </div>
 
                     {/* Farmers Per Windows */}

@@ -1,7 +1,7 @@
 import toast from "react-hot-toast";
 import useFarmerAutoProcess from "@/hooks/useFarmerAutoProcess";
 import useProcessLock from "@/hooks/useProcessLock";
-import useSocketDispatchCallback from "@/hooks/useSocketDispatchCallback";
+import useRemoteCallback from "@/hooks/useRemoteCallback";
 import { CgSpinner } from "react-icons/cg";
 import { cn, delay } from "@/lib/utils";
 import { memo } from "react";
@@ -75,7 +75,7 @@ export default memo(function YescoinTasks() {
     );
   }, []);
 
-  const [claimTask, dispatchAndClaimTask] = useSocketDispatchCallback(
+  const [claimTask, dispatchAndClaimTask] = useRemoteCallback(
     "yescoin.claim-task",
     async (id) => {
       if (!tasks.some((task) => task.taskId === id && !task.taskStatus)) return;

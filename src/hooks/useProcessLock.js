@@ -4,9 +4,9 @@ import { useMemo } from "react";
 import { useRef } from "react";
 import { useState } from "react";
 
-import useSocketDispatchCallback from "./useSocketDispatchCallback";
+import useRemoteCallback from "./useRemoteCallback";
 
-export default function useProcessLock(key, socket) {
+export default function useProcessLock(key, remote) {
   const controllerRef = useRef();
   const [process, setProcess] = useState({
     started: false,
@@ -20,7 +20,7 @@ export default function useProcessLock(key, socket) {
   );
 
   /** Start Process */
-  const [start, dispatchAndStart] = useSocketDispatchCallback(
+  const [start, dispatchAndStart] = useRemoteCallback(
     key + ":start",
     (callback) => {
       setProcess((prev) => {
@@ -45,12 +45,12 @@ export default function useProcessLock(key, socket) {
     },
     [setProcess],
 
-    /** Socket */
-    socket
+    /** Remote */
+    remote
   );
 
   /** Stop Process */
-  const [stop, dispatchAndStop] = useSocketDispatchCallback(
+  const [stop, dispatchAndStop] = useRemoteCallback(
     key + ":stop",
     (callback) => {
       setProcess((prev) => {
@@ -75,12 +75,12 @@ export default function useProcessLock(key, socket) {
     },
     [setProcess],
 
-    /** Socket */
-    socket
+    /** Remote */
+    remote
   );
 
   /** Toggle */
-  const [toggle, dispatchAndToggle] = useSocketDispatchCallback(
+  const [toggle, dispatchAndToggle] = useRemoteCallback(
     key + ":toggle",
     (status) => {
       if (typeof status === "boolean") {
@@ -93,8 +93,8 @@ export default function useProcessLock(key, socket) {
     },
     [process.started, start, stop],
 
-    /** Socket */
-    socket
+    /** Remote */
+    remote
   );
 
   /** Lock Process */

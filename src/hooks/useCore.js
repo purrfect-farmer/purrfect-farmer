@@ -10,9 +10,9 @@ import { useRef } from "react";
 import { useState } from "react";
 
 import useMessagePort from "./useMessagePort";
+import useRemoteCallback from "./useRemoteCallback";
+import useRemoteControl from "./useRemoteControl";
 import useSettings from "./useSettings";
-import useSocket from "./useSocket";
-import useSocketDispatchCallback from "./useSocketDispatchCallback";
 import useUserAgent from "./useUserAgent";
 import useValuesMemo from "./useValuesMemo";
 
@@ -48,7 +48,10 @@ export default function useCore() {
     [settings.seekerServer]
   );
 
-  const socket = useSocket(settings.syncServer);
+  const remote = useRemoteControl(
+    settings.enableRemoteControl,
+    settings.remoteControlServer
+  );
   const messaging = useMessagePort();
 
   const preferredTelegramWebVersion =
@@ -183,7 +186,7 @@ export default function useCore() {
 
   /* ===== HELPERS ===== */
 
-  const [pushTab, dispatchAndPushTab] = useSocketDispatchCallback(
+  const [pushTab, dispatchAndPushTab] = useRemoteCallback(
     "core.push-tab",
     (tab, override = false) => {
       setOpenedTabs((previous) => {
@@ -203,12 +206,12 @@ export default function useCore() {
       });
     },
     [setOpenedTabs],
-    /** Socket */
-    socket
+    /** Remote */
+    remote
   );
 
   /** Update Tab */
-  const [updateTab, dispatchAndUpdateTab] = useSocketDispatchCallback(
+  const [updateTab, dispatchAndUpdateTab] = useRemoteCallback(
     "core.update-tab",
     (tabId, data) => {
       setOpenedTabs((previous) => {
@@ -218,22 +221,22 @@ export default function useCore() {
       });
     },
     [setOpenedTabs],
-    /** Socket */
-    socket
+    /** Remote */
+    remote
   );
 
   /** Set Active Tab */
-  const [setActiveTab, dispatchAndSetActiveTab] = useSocketDispatchCallback(
+  const [setActiveTab, dispatchAndSetActiveTab] = useRemoteCallback(
     "core.set-active-tab",
     (id) => {
       pushTab(tabs.find((item) => item.id === id));
     },
     [tabs, pushTab],
-    /** Socket */
-    socket
+    /** Remote */
+    remote
   );
 
-  const [resetTabs, dispatchAndResetTabs] = useSocketDispatchCallback(
+  const [resetTabs, dispatchAndResetTabs] = useRemoteCallback(
     "core.reset-tabs",
     () => {
       /** Cancel Handlers */
@@ -243,26 +246,25 @@ export default function useCore() {
       setOpenedTabs(defaultOpenedTabs);
     },
     [cancelTelegramHandlers, setOpenedTabs],
-    /** Socket */
-    socket
+    /** Remote */
+    remote
   );
 
-  const [closeFarmerTabs, dispatchAndCloseFarmerTabs] =
-    useSocketDispatchCallback(
-      "core.close-farmer-tabs",
-      () => {
-        setOpenedTabs((prev) =>
-          prev.filter((item) =>
-            ["app", "telegram-web-k", "telegram-web-a"].includes(item.id)
-          )
-        );
-      },
-      [setOpenedTabs],
-      /** Socket */
-      socket
-    );
+  const [closeFarmerTabs, dispatchAndCloseFarmerTabs] = useRemoteCallback(
+    "core.close-farmer-tabs",
+    () => {
+      setOpenedTabs((prev) =>
+        prev.filter((item) =>
+          ["app", "telegram-web-k", "telegram-web-a"].includes(item.id)
+        )
+      );
+    },
+    [setOpenedTabs],
+    /** Remote */
+    remote
+  );
 
-  const [reloadTab, dispatchAndReloadTab] = useSocketDispatchCallback(
+  const [reloadTab, dispatchAndReloadTab] = useRemoteCallback(
     "core.reload-tab",
     (id) => {
       setOpenedTabs((previous) => {
@@ -274,11 +276,11 @@ export default function useCore() {
       });
     },
     [setOpenedTabs],
-    /** Socket */
-    socket
+    /** Remote */
+    remote
   );
 
-  const [closeTab, dispatchAndCloseTab] = useSocketDispatchCallback(
+  const [closeTab, dispatchAndCloseTab] = useRemoteCallback(
     "core.close-tab",
     (id) => {
       setOpenedTabs((previous) => {
@@ -300,8 +302,8 @@ export default function useCore() {
       }
     },
     [setOpenedTabs, cancelTelegramHandlers],
-    /** Socket */
-    socket
+    /** Remote */
+    remote
   );
 
   /** Open New Tab */
@@ -333,62 +335,62 @@ export default function useCore() {
   }, []);
 
   /** Shutdown */
-  const [shutdown, dispatchAndShutdown] = useSocketDispatchCallback(
+  const [shutdown, dispatchAndShutdown] = useRemoteCallback(
     "core.shutdown",
     () => {
       window.close();
     },
     [],
-    /** Socket */
-    socket
+    /** Remote */
+    remote
   );
 
   /** Reload App */
-  const [reloadApp, dispatchAndReloadApp] = useSocketDispatchCallback(
+  const [reloadApp, dispatchAndReloadApp] = useRemoteCallback(
     "core.reload-app",
     () => {
       window.location.reload();
     },
     [],
-    /** Socket */
-    socket
+    /** Remote */
+    remote
   );
 
   /** Configure Settings */
-  const [, dispatchAndConfigureSettings] = useSocketDispatchCallback(
+  const [, dispatchAndConfigureSettings] = useRemoteCallback(
     "core.configure-settings",
     /** Configure Settings */
     configureSettings,
     [configureSettings],
-    /** Socket */
-    socket
+    /** Remote */
+    remote
   );
 
   /** Restore Settings */
-  const [, dispatchAndRestoreSettings] = useSocketDispatchCallback(
+  const [, dispatchAndRestoreSettings] = useRemoteCallback(
     "core.restore-settings",
     /** Restore Settings */
     restoreSettings,
     [restoreSettings],
-    /** Socket */
-    socket
+    /** Remote */
+    remote
   );
 
   /** Open URL */
-  const [openURL, dispatchAndOpenURL] = useSocketDispatchCallback(
+  const [openURL, dispatchAndOpenURL] = useRemoteCallback(
     "core.open-url",
     (url) =>
       chrome?.windows?.create({
         url,
       }),
     [],
-    /** Socket */
-    socket
+    /** Remote */
+    remote
   );
 
   /** Navigate to Telegram Web */
   const [navigateToTelegramWeb, dispatchAndNavigateToTelegramWeb] =
-    useSocketDispatchCallback(
+    useRemoteCallback(
       "core.navigate-to-telegram-web",
       (v) =>
         chrome?.tabs?.query({ active: true, currentWindow: true }, (tabs) => {
@@ -398,8 +400,8 @@ export default function useCore() {
           });
         }),
       [],
-      /** Socket */
-      socket
+      /** Remote */
+      remote
     );
 
   /** Open Telegram Web */
@@ -466,7 +468,7 @@ export default function useCore() {
   }, [getMiniAppPorts, messaging.ports]);
 
   /** Open Farmer Bot */
-  const [openFarmerBot, dispatchAndOpenFarmerBot] = useSocketDispatchCallback(
+  const [openFarmerBot, dispatchAndOpenFarmerBot] = useRemoteCallback(
     "core.open-farmer-bot",
     async (version, force = false) => {
       /** Reset Previous Handler */
@@ -553,175 +555,170 @@ export default function useCore() {
       messaging.handler,
       messaging.ports,
     ],
-    /** Socket */
-    socket
+    /** Remote */
+    remote
   );
 
   /** Open Telegram Link */
-  const [openTelegramLink, dispatchAndOpenTelegramLink] =
-    useSocketDispatchCallback(
-      "core.open-telegram-link",
-      (url, version = preferredTelegramWebVersion, force = false) => {
-        if (!url) {
-          return;
-        }
+  const [openTelegramLink, dispatchAndOpenTelegramLink] = useRemoteCallback(
+    "core.open-telegram-link",
+    (url, version = preferredTelegramWebVersion, force = false) => {
+      if (!url) {
+        return;
+      }
 
-        return new Promise(async (resolve, reject) => {
+      return new Promise(async (resolve, reject) => {
+        /** Reset Handler */
+        resetOpenTelegramLinkHandler();
+
+        /** Handler Ref */
+        const ref = telegramLinkHandlerRef;
+
+        /** Handle Farmer Bot Web App */
+        const handleFarmerBotWebApp = (message, port) => {
           /** Reset Handler */
           resetOpenTelegramLinkHandler();
 
-          /** Handler Ref */
-          const ref = telegramLinkHandlerRef;
+          /** Post the Link */
+          postTelegramLink(port, `telegram-web-${version}`);
 
-          /** Handle Farmer Bot Web App */
-          const handleFarmerBotWebApp = (message, port) => {
-            /** Reset Handler */
-            resetOpenTelegramLinkHandler();
+          /** Resolve the Promise */
+          resolve(true);
+        };
 
-            /** Post the Link */
-            postTelegramLink(port, `telegram-web-${version}`);
+        /** Post Telegram Link */
+        const postTelegramLink = (port, tabId) =>
+          postPortMessage(port, {
+            action: "open-telegram-link",
+            data: { url },
+          }).then(() => {
+            setActiveTab(tabId);
+          });
 
-            /** Resolve the Promise */
-            resolve(true);
+        const openNewTelegramWeb = () => {
+          /** Re-Open Bot */
+          const reOpenFarmerBot = () => {
+            toast.success(`Re-Opening ${import.meta.env.VITE_APP_BOT_NAME}...`);
+            openFarmerBot(version, true);
           };
 
-          /** Post Telegram Link */
-          const postTelegramLink = (port, tabId) =>
-            postPortMessage(port, {
-              action: "open-telegram-link",
-              data: { url },
-            }).then(() => {
-              setActiveTab(tabId);
-            });
+          /** Store Listener */
+          ref.current.listeners[BOT_TELEGRAM_WEB_APP_ACTION] =
+            handleFarmerBotWebApp;
 
-          const openNewTelegramWeb = () => {
-            /** Re-Open Bot */
-            const reOpenFarmerBot = () => {
-              toast.success(
-                `Re-Opening ${import.meta.env.VITE_APP_BOT_NAME}...`
-              );
-              openFarmerBot(version, true);
-            };
+          /** Register Listener */
+          messaging.handler.once(
+            BOT_TELEGRAM_WEB_APP_ACTION,
+            handleFarmerBotWebApp
+          );
 
-            /** Store Listener */
-            ref.current.listeners[BOT_TELEGRAM_WEB_APP_ACTION] =
-              handleFarmerBotWebApp;
+          /** Re-Open the bot */
+          ref.current.interval = setInterval(reOpenFarmerBot, 30000);
 
-            /** Register Listener */
-            messaging.handler.once(
-              BOT_TELEGRAM_WEB_APP_ACTION,
-              handleFarmerBotWebApp
-            );
+          /** Open Farmer Bot */
+          openFarmerBot(version, force);
 
-            /** Re-Open the bot */
-            ref.current.interval = setInterval(reOpenFarmerBot, 30000);
-
-            /** Open Farmer Bot */
-            openFarmerBot(version, force);
-
-            /** Not Forced */
-            if (!force) {
-              /** Is it running?... */
-              const farmerBotPort = getFarmerBotPort();
-              if (farmerBotPort) {
-                handleFarmerBotWebApp(null, farmerBotPort);
-              }
+          /** Not Forced */
+          if (!force) {
+            /** Is it running?... */
+            const farmerBotPort = getFarmerBotPort();
+            if (farmerBotPort) {
+              handleFarmerBotWebApp(null, farmerBotPort);
             }
-          };
-
-          /** Close Other Bots */
-          if (settings.closeOtherBots && isBotURL(url)) {
-            closeOtherBots();
           }
+        };
 
-          /** Open Telegram Web */
-          openNewTelegramWeb();
-        });
-      },
-      [
-        openFarmerBot,
-        setActiveTab,
-        preferredTelegramWebVersion,
-        getFarmerBotPort,
-        closeOtherBots,
-        resetOpenTelegramLinkHandler,
-        messaging.ports,
-        messaging.handler,
-        settings.closeOtherBots,
-      ],
-      /** Socket */
-      socket
-    );
-
-  /** Join Telegram Link */
-  const [joinTelegramLink, dispatchAndJoinTelegramLink] =
-    useSocketDispatchCallback(
-      "core.join-telegram-link",
-      async (url, version = preferredTelegramWebVersion, force = false) => {
-        if (!url) {
-          return;
+        /** Close Other Bots */
+        if (settings.closeOtherBots && isBotURL(url)) {
+          closeOtherBots();
         }
 
-        try {
-          /** Open Telegram Link */
-          await openTelegramLink(url, version, force);
+        /** Open Telegram Web */
+        openNewTelegramWeb();
+      });
+    },
+    [
+      openFarmerBot,
+      setActiveTab,
+      preferredTelegramWebVersion,
+      getFarmerBotPort,
+      closeOtherBots,
+      resetOpenTelegramLinkHandler,
+      messaging.ports,
+      messaging.handler,
+      settings.closeOtherBots,
+    ],
+    /** Remote */
+    remote
+  );
 
-          /** Get Port */
-          const telegramWebPort = messaging.ports
-            .values()
-            .find((port) => port.name === `telegram-web-${version}`);
+  /** Join Telegram Link */
+  const [joinTelegramLink, dispatchAndJoinTelegramLink] = useRemoteCallback(
+    "core.join-telegram-link",
+    async (url, version = preferredTelegramWebVersion, force = false) => {
+      if (!url) {
+        return;
+      }
 
-          /** Join Conversation */
-          postPortMessage(telegramWebPort, {
-            action: "join-conversation",
-          });
+      try {
+        /** Open Telegram Link */
+        await openTelegramLink(url, version, force);
 
-          /** Extra Delay */
-          await delay(5000);
-        } catch {}
-      },
-      [messaging.ports, preferredTelegramWebVersion, openTelegramLink],
-      /** Socket */
-      socket
-    );
+        /** Get Port */
+        const telegramWebPort = messaging.ports
+          .values()
+          .find((port) => port.name === `telegram-web-${version}`);
+
+        /** Join Conversation */
+        postPortMessage(telegramWebPort, {
+          action: "join-conversation",
+        });
+
+        /** Extra Delay */
+        await delay(5000);
+      } catch {}
+    },
+    [messaging.ports, preferredTelegramWebVersion, openTelegramLink],
+    /** Remote */
+    remote
+  );
 
   /** Open Telegram Bot */
-  const [openTelegramBot, dispatchAndOpenTelegramBot] =
-    useSocketDispatchCallback(
-      "core.open-telegram-bot",
-      async (url, version = preferredTelegramWebVersion, force = false) => {
-        try {
-          /** Is Mini App Start Page */
-          const isStartPage = !/(http|https):\/\/t\.me\/[^\/]+\/.+/.test(url);
+  const [openTelegramBot, dispatchAndOpenTelegramBot] = useRemoteCallback(
+    "core.open-telegram-bot",
+    async (url, version = preferredTelegramWebVersion, force = false) => {
+      try {
+        /** Is Mini App Start Page */
+        const isStartPage = !/(http|https):\/\/t\.me\/[^\/]+\/.+/.test(url);
 
-          /** Open Telegram Link */
-          await openTelegramLink(url, version, isStartPage || force);
+        /** Open Telegram Link */
+        await openTelegramLink(url, version, isStartPage || force);
 
-          /** Get Port */
-          const telegramWebPort = messaging.ports
-            .values()
-            .find((port) => port.name === `telegram-web-${version}`);
+        /** Get Port */
+        const telegramWebPort = messaging.ports
+          .values()
+          .find((port) => port.name === `telegram-web-${version}`);
 
-          /** Abort Observers */
+        /** Abort Observers */
+        postPortMessage(telegramWebPort, {
+          action: "abort-observers",
+        });
+
+        if (isStartPage) {
+          /** Wait */
+          await delay(1000);
+
+          /** Open Bot */
           postPortMessage(telegramWebPort, {
-            action: "abort-observers",
+            action: "open-bot",
           });
-
-          if (isStartPage) {
-            /** Wait */
-            await delay(1000);
-
-            /** Open Bot */
-            postPortMessage(telegramWebPort, {
-              action: "open-bot",
-            });
-          }
-        } catch {}
-      },
-      [messaging.ports, preferredTelegramWebVersion, openTelegramLink],
-      /** Socket */
-      socket
-    );
+        }
+      } catch {}
+    },
+    [messaging.ports, preferredTelegramWebVersion, openTelegramLink],
+    /** Remote */
+    remote
+  );
 
   return useValuesMemo({
     /** Data */
@@ -732,7 +729,7 @@ export default function useCore() {
     orderedDrops,
     settings,
     hasRestoredSettings,
-    socket,
+    remote,
     messaging,
     cloudBackend,
     seekerBackend,

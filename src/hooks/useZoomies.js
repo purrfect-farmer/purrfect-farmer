@@ -6,7 +6,7 @@ import { useMemo } from "react";
 import { useState } from "react";
 
 import useProcessLock from "./useProcessLock";
-import useSocketDispatchCallback from "./useSocketDispatchCallback";
+import useRemoteCallback from "./useRemoteCallback";
 import useStorageState from "./useStorageState";
 import useValuesMemo from "./useValuesMemo";
 
@@ -20,7 +20,7 @@ export default function useZoomies(core) {
   } = useStorageState("zoomiesState", defaultZoomiesState);
 
   /** Process */
-  const process = useProcessLock("zoomies", core.socket);
+  const process = useProcessLock("zoomies", core.remote);
 
   /** Auth */
   const [auth, setAuth] = useState(false);
@@ -88,7 +88,7 @@ export default function useZoomies(core) {
   }, [setAuth, current.drop?.id, core.closeFarmerTabs, core.setActiveTab]);
 
   /** Toggle Zoomies */
-  const [toggle, dispatchAndToggle] = useSocketDispatchCallback(
+  const [toggle, dispatchAndToggle] = useRemoteCallback(
     "zoomies.enable-zoomies",
     (state = true, quick = false) => {
       setQuickRun(quick);
@@ -96,12 +96,12 @@ export default function useZoomies(core) {
     },
     [setQuickRun, process.toggle],
 
-    /** Socket */
-    core.socket
+    /** Remote */
+    core.remote
   );
 
   /** Refresh Zoomies */
-  const [refresh, dispatchAndRefresh] = useSocketDispatchCallback(
+  const [refresh, dispatchAndRefresh] = useRemoteCallback(
     "zoomies.refresh",
     () => {
       setCurrent(() => {
@@ -114,8 +114,8 @@ export default function useZoomies(core) {
     },
     [drops, setCurrent],
 
-    /** Socket */
-    core.socket
+    /** Remote */
+    core.remote
   );
 
   /** Skip to Next Drop */

@@ -1,7 +1,7 @@
 import * as ContextMenu from "@radix-ui/react-context-menu";
 import * as Dialog from "@radix-ui/react-dialog";
 import CoreSystemIcon from "@/assets/images/core-system.png?format=webp&w=128";
-import SyncControl from "@/partials/SyncControl";
+import RemoteControl from "@/partials/RemoteControl";
 import UtilsPanel from "@/partials/UtilsPanel";
 import useAppContext from "@/hooks/useAppContext";
 import useSocketState from "@/hooks/useSocketState";
@@ -158,8 +158,8 @@ export default memo(function ControlArea() {
           </ContextMenu.Portal>
         </ContextMenu.Root>
 
-        {/* Sync Control */}
-        <SyncControl />
+        {/* Remote Control */}
+        <RemoteControl />
 
         {/* Utils */}
         <Dialog.Root open={showUtils} onOpenChange={dispatchAndSetShowUtils}>

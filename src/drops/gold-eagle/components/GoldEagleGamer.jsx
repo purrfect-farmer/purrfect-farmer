@@ -2,7 +2,7 @@ import toast from "react-hot-toast";
 import useFarmerAutoProcess from "@/hooks/useFarmerAutoProcess";
 import useFarmerContext from "@/hooks/useFarmerContext";
 import useProcessLock from "@/hooks/useProcessLock";
-import useSocketDispatchCallback from "@/hooks/useSocketDispatchCallback";
+import useRemoteCallback from "@/hooks/useRemoteCallback";
 import { SlWallet } from "react-icons/sl";
 import { cn } from "@/lib/utils";
 import { memo } from "react";
@@ -23,7 +23,7 @@ export default memo(function GoldEagleGamer() {
   const energy = query.data?.["energy"] || 0;
   const weight = query.data?.["tap_weight"] || 0;
 
-  const [, dispatchAndClaim] = useSocketDispatchCallback(
+  const [, dispatchAndClaim] = useRemoteCallback(
     "gold-eagle.claim",
     () => {
       toast

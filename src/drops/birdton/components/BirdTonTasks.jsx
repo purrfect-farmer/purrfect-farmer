@@ -2,7 +2,7 @@ import toast from "react-hot-toast";
 import useFarmerAutoProcess from "@/hooks/useFarmerAutoProcess";
 import useFarmerContext from "@/hooks/useFarmerContext";
 import useProcessLock from "@/hooks/useProcessLock";
-import useSocketDispatchCallback from "@/hooks/useSocketDispatchCallback";
+import useRemoteCallback from "@/hooks/useRemoteCallback";
 import { HiOutlineArrowPath } from "react-icons/hi2";
 import { cn, customLogger, delayForSeconds } from "@/lib/utils";
 import { memo } from "react";
@@ -16,7 +16,7 @@ import useBirdTonHandlers from "../hooks/useBirdTonHandlers";
 export default memo(function BirdTonTasks() {
   const { eventData, sendMessage, refreshTasks } = useFarmerContext();
 
-  const [reloadTasks, dispatchAndReloadTasks] = useSocketDispatchCallback(
+  const [reloadTasks, dispatchAndReloadTasks] = useRemoteCallback(
     "birdton.reload-tasks",
     () => {
       /** Refresh */
