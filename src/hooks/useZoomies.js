@@ -28,21 +28,34 @@ export default function useZoomies(core) {
   /** Quick Run */
   const [quickRun, setQuickRun] = useState(false);
 
-  /** Drops */
-  const drops = useMemo(
+  /** All Drops */
+  const zoomiesDrops = useMemo(
     () =>
       core.drops
         .map((item) => ({
           ...item,
-          tasks: quickRun
-            ? Object.entries(item.tasks)
-                .filter(([k, v]) => Boolean(v))
-                .map(([k, v]) => k)
-            : Object.keys(item.tasks),
+          tasks: Object.keys(item.tasks),
         }))
         .filter((item) => item.tasks.length > 0),
-    [quickRun, core.drops]
+    [core.drops]
   );
+
+  /** Quick Run Drops */
+  const quickRunDrops = useMemo(
+    () =>
+      core.drops
+        .map((item) => ({
+          ...item,
+          tasks: Object.entries(item.tasks)
+            .filter(([, v]) => Boolean(v))
+            .map(([k]) => k),
+        }))
+        .filter((item) => item.tasks.length > 0),
+    [core.drops]
+  );
+
+  /** Drops */
+  const drops = quickRun ? quickRunDrops : zoomiesDrops;
 
   /** Current State */
   const [current, setCurrent] = useState({
@@ -274,7 +287,7 @@ export default function useZoomies(core) {
         drops.some(
           (item) =>
             item.id === prev?.drop?.id &&
-            item.tasks.length === prev?.drop?.tasks?.length &&
+            item.tasks.join(":") === prev?.drop?.tasks?.join(":") &&
             item.tasks.includes(prev?.task)
         )
       ) {
@@ -301,8 +314,11 @@ export default function useZoomies(core) {
   useLayoutEffect(() => {
     if (hasRestoredZoomiesState) {
       const prevState = zoomiesState;
-      const drop = drops.find((item) => item.id === prevState.dropId);
       const task = prevState.task;
+      const drop = drops.find(
+        (item) =>
+          item.id === prevState.dropId && item.tasks.includes(prevState.task)
+      );
 
       if (drop) {
         setCurrent((prev) => ({
