@@ -8,6 +8,7 @@ import DropButton from "@/components/DropButton";
 import FarmerLinks from "@/partials/FarmerLinks";
 import Settings from "@/partials/Settings";
 import Shutdown from "@/partials/Shutdown";
+import TelegramUser from "@/partials/TelegramUser";
 import TelegramWebAIcon from "@/assets/images/telegram-web-a.png?format=webp&w=80";
 import TelegramWebKIcon from "@/assets/images/telegram-web-k.png?format=webp&w=80";
 import WelcomeIcon from "@/assets/images/icon-unwrapped-cropped.png?format=webp&h=224";
@@ -91,6 +92,7 @@ export default memo(function Welcome() {
     drops,
     settings,
     socket,
+    telegramUser,
     openNewTab,
     openExtensionsPage,
     openCloudManager,
@@ -262,6 +264,9 @@ export default memo(function Welcome() {
             <RiRemoteControlLine className="w-4 h-4" /> Sync:{" "}
             {socket.connected ? "Connected" : "Disconnected"}
           </p>
+
+          {/* Display User */}
+          {telegramUser ? <TelegramUser user={telegramUser} /> : null}
 
           <div className="flex flex-col gap-1">
             {/* Open Farmer Bot */}

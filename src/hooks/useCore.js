@@ -16,7 +16,7 @@ import useSocketDispatchCallback from "./useSocketDispatchCallback";
 import useUserAgent from "./useUserAgent";
 import useValuesMemo from "./useValuesMemo";
 
-const BOT_TELEGRAM_WEB_APP_ACTION = `set-telegram-web-app:${
+export const BOT_TELEGRAM_WEB_APP_ACTION = `set-telegram-web-app:${
   import.meta.env.VITE_APP_BOT_HOST
 }`;
 
