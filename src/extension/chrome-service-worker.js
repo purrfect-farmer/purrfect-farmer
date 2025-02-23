@@ -114,6 +114,9 @@ const setupExtension = createMutexFunction(async () => {
 
 /** Open Farmer on Startup */
 chrome.runtime.onStartup.addListener(async () => {
+  /** Update User-Agent */
+  await updateUserAgent();
+
   /** Get Settings */
   const settings = await getSettings();
 
