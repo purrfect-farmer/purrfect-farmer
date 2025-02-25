@@ -10,7 +10,7 @@ const removeActionPopup = async () => {
 
 /** Close Previous Popups */
 const closePreviousPopups = async () => {
-  const urls = ["chrome://newtab/", chrome.runtime.getURL("index.html")];
+  const urls = ["chrome://newtab/"];
 
   const windows = await chrome.windows.getAll({
     populate: true,
@@ -56,11 +56,9 @@ const configureExtension = async ({ openFarmerInNewWindow }) => {
 
     try {
       /** Configure Side Panel */
-      await chrome.sidePanel
-        .setPanelBehavior({
-          openPanelOnActionClick: openFarmerInNewWindow === false,
-        })
-        .catch(() => {});
+      await chrome.sidePanel.setPanelBehavior({
+        openPanelOnActionClick: openFarmerInNewWindow === false,
+      });
     } catch {}
   }
 };
