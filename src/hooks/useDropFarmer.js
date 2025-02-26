@@ -38,9 +38,6 @@ export default function useDropFarmer({
     settings,
   } = useAppContext();
 
-  /** Farmer Title */
-  const farmerTitle = settings.farmerTitle;
-
   /** Enable Cloud Sync */
   const enableCloudSync = settings.enableCloudSync;
 
@@ -395,7 +392,6 @@ export default function useDropFarmer({
           telegramWebApp: {
             initData,
             initDataUnsafe,
-            farmerTitle,
           },
           headers: {
             ...api.defaults.headers.common,
@@ -411,7 +407,6 @@ export default function useDropFarmer({
     api,
     auth,
     userAgent,
-    farmerTitle,
     shouldSync,
     telegramWebApp,
     notification.title,
