@@ -727,9 +727,9 @@ export default function useCore() {
           /** Wait */
           await delay(1000);
 
-          /** Open Bot */
+          /** Open Webview Bot */
           postPortMessage(telegramWebPort, {
-            action: "open-bot",
+            action: "open-webview-bot",
           });
         }
       } catch {}

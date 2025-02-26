@@ -353,7 +353,7 @@ port.onMessage?.addListener(async (message) => {
           data: true,
         });
       } catch {}
-    case "open-bot":
+    case "open-webview-bot":
       await openBot(true);
       try {
         port.postMessage({
