@@ -1,24 +1,24 @@
 import { dispatchClickEventOnElement, isElementVisible } from "@/lib/utils";
 
 /** Web Version */
-const webVersion = location.pathname.startsWith("/k/") ? "k" : "a";
+const WEB_VERSION = location.pathname.startsWith("/k/") ? "k" : "a";
 
 /** Farmer Bot URL */
 const FARMER_BOT_URL = import.meta.env.VITE_APP_BOT_URL;
 
 /** Button Text */
-const joinButtonTextContent = [
+const JOIN_BUTTON_TEXT_CONTENT = [
   "SUBSCRIBE",
   "JOIN CHANNEL",
   "JOIN GROUP",
   "JOIN",
 ];
-const confirmButtonTextContent = webVersion === "k" ? "LAUNCH" : "CONFIRM";
-const closeButtonTextContent = "CLOSE ANYWAY";
+const CONFIRM_BUTTON_TEXT_CONTENT = WEB_VERSION === "k" ? "LAUNCH" : "CONFIRM";
+const CLOSE_BUTTON_TEXT_CONTENT = "CLOSE ANYWAY";
 
 /** Button Selectors */
-const buttonSelectors =
-  webVersion === "k"
+const BUTTON_SELECTORS =
+  WEB_VERSION === "k"
     ? {
         launchButton: ".new-message-bot-commands.is-view",
         confirmButton: ".popup-button",
@@ -36,26 +36,23 @@ const buttonSelectors =
           "button:has(.icon.icon-webapp), .Button:has(.inline-button-text)",
       };
 
-/** Join Observer Abort Controller */
-let joinObserverController;
-
-/** Bot Observer Abort Controller */
-let botObserverController;
+/** Observers */
+const OBSERVERS = {};
 
 /** Click Timeouts */
-let clickTimeouts = {};
+const CLICK_TIMEOUTS = {};
 
 /** Click Telegram Web Button */
 const clickTelegramWebButton = (key, button, timeout = 0) => {
   if (isElementVisible(button)) {
-    if (clickTimeouts[key]) {
-      clearTimeout(clickTimeouts[key]);
+    if (CLICK_TIMEOUTS[key]) {
+      clearTimeout(CLICK_TIMEOUTS[key]);
     }
 
     /** Set Timeout */
-    clickTimeouts[key] = setTimeout(() => {
+    CLICK_TIMEOUTS[key] = setTimeout(() => {
       /** Remove Timeout */
-      delete clickTimeouts[key];
+      delete CLICK_TIMEOUTS[key];
 
       /** Dispatch the Click Event */
       dispatchClickEventOnElement(button);
@@ -90,7 +87,7 @@ const clickNodeOrDescendant = (key, selector, node, verify, timeout) => {
 
 /** Is Popup Button */
 const isPopupButton = (element) =>
-  [confirmButtonTextContent, closeButtonTextContent].includes(
+  [CONFIRM_BUTTON_TEXT_CONTENT, CLOSE_BUTTON_TEXT_CONTENT].includes(
     element.textContent.trim().toUpperCase()
   );
 
@@ -100,13 +97,13 @@ const isStartButton = (element) =>
 
 /** Is it a Join Button */
 const isJoinButton = (element) =>
-  joinButtonTextContent.includes(element.textContent.trim().toUpperCase());
+  JOIN_BUTTON_TEXT_CONTENT.includes(element.textContent.trim().toUpperCase());
 
 /** Find And Confirm Popup */
 const findAndConfirmPopup = (node) => {
   return clickNodeOrDescendant(
     "findAndConfirmPopup",
-    buttonSelectors.confirmButton,
+    BUTTON_SELECTORS.confirmButton,
     node,
     isPopupButton
   );
@@ -116,7 +113,7 @@ const findAndConfirmPopup = (node) => {
 const findAndClickJoinButton = (node) => {
   return clickNodeOrDescendant(
     "findAndClickJoinButton",
-    buttonSelectors.joinButton,
+    BUTTON_SELECTORS.joinButton,
     node,
     isJoinButton,
     3000
@@ -127,7 +124,7 @@ const findAndClickJoinButton = (node) => {
 const findAndClickStartButton = (node) => {
   return clickNodeOrDescendant(
     "findAndClickStartButton",
-    buttonSelectors.startButton,
+    BUTTON_SELECTORS.startButton,
     node,
     isStartButton,
     5000
@@ -138,53 +135,52 @@ const findAndClickStartButton = (node) => {
 const findAndClickLaunchButton = (node, isWebView) => {
   return clickNodeOrDescendant(
     "findAndClickLaunchButton",
-    isWebView ? buttonSelectors.webViewButton : buttonSelectors.launchButton,
+    isWebView ? BUTTON_SELECTORS.webViewButton : BUTTON_SELECTORS.launchButton,
     node,
     (node) => true,
     1000
   );
 };
 
+/** Disconnect Observers */
+const disconnectObservers = () => {
+  for (const key in OBSERVERS) {
+    /** Disconnect Observer */
+    OBSERVERS[key].disconnect();
+
+    /** Delete the Key */
+    delete OBSERVERS[key];
+  }
+};
+
 /** Join Conversation */
 const joinConversation = () => {
-  /** Abort Previous Controllers */
-  abortObservers();
-
-  /** Click Join Button */
-  let hasClickedJoinButton = false;
+  /** Disconnect Previous Observer */
+  disconnectObservers();
 
   /** Create Observer */
   const observer = new MutationObserver(function (mutationList) {
     for (const mutation of mutationList) {
       if (mutation.type === "childList") {
-        mutation.addedNodes.forEach((node) => {
+        for (const node of mutation.addedNodes) {
           if (node.nodeType === Node.ELEMENT_NODE) {
-            if (!hasClickedJoinButton) {
-              hasClickedJoinButton = findAndClickJoinButton(node);
-            } else {
+            if (findAndClickJoinButton(node)) {
               /** Disconnect */
-              observer.disconnect();
+              return observer.disconnect();
             }
           }
-        });
+        }
       } else if (mutation.type == "attributes") {
-        if (!hasClickedJoinButton) {
-          hasClickedJoinButton = findAndClickJoinButton(mutation.target);
-        } else {
+        if (findAndClickJoinButton(mutation.target)) {
           /** Disconnect */
-          observer.disconnect();
+          return observer.disconnect();
         }
       }
     }
   });
 
-  /** Set Controller */
-  joinObserverController = new AbortController();
-
-  /** Add Abort Event */
-  joinObserverController.signal.addEventListener("abort", () => {
-    observer.disconnect();
-  });
+  /** Store Observer */
+  OBSERVERS["join"] = observer;
 
   /** Observe */
   observer.observe(document.documentElement, {
@@ -193,71 +189,46 @@ const joinConversation = () => {
     attributes: true,
   });
 
-  /** Abort after timeout */
-  setTimeout(() => joinObserverController.abort(), 20_000);
+  /** Disconnect after timeout */
+  setTimeout(() => observer.disconnect(), 20_000);
 };
 
 /** Open Bot */
 const openBot = (isWebView) => {
-  /** Abort Previous Controllers */
-  abortObservers();
-
-  /** Has clicked Start Button? */
-  let hasClickedStartButton = false;
-
-  /** Has clicked Launch Button? */
-  let hasClickedLaunchButton = false;
+  /** Disconnect Previous Observer */
+  disconnectObservers();
 
   /** Create Observer */
   const observer = new MutationObserver(function (mutationList) {
     for (const mutation of mutationList) {
       if (mutation.type === "childList") {
-        mutation.addedNodes.forEach((node) => {
+        for (const node of mutation.addedNodes) {
           if (node.nodeType === Node.ELEMENT_NODE) {
             /** Click Start Button */
-            if (!hasClickedStartButton) {
-              hasClickedStartButton = findAndClickStartButton(node);
-            }
+            findAndClickStartButton(node);
 
             /** Click Launch Button */
-            if (!hasClickedLaunchButton) {
-              hasClickedLaunchButton = findAndClickLaunchButton(
-                node,
-                isWebView
-              );
-            } else {
+            if (findAndClickLaunchButton(node, isWebView)) {
               /** Disconnect */
-              observer.disconnect();
+              return observer.disconnect();
             }
           }
-        });
+        }
       } else if (mutation.type == "attributes") {
         /** Click Start Button */
-        if (!hasClickedStartButton) {
-          hasClickedStartButton = findAndClickStartButton(mutation.target);
-        }
+        findAndClickStartButton(mutation.target);
 
         /** Click Launch Button */
-        if (!hasClickedLaunchButton) {
-          hasClickedLaunchButton = findAndClickLaunchButton(
-            mutation.target,
-            isWebView
-          );
-        } else {
+        if (findAndClickLaunchButton(mutation.target, isWebView)) {
           /** Disconnect */
-          observer.disconnect();
+          return observer.disconnect();
         }
       }
     }
   });
 
-  /** Set Controller */
-  botObserverController = new AbortController();
-
-  /** Add Abort Event */
-  botObserverController.signal.addEventListener("abort", () => {
-    observer.disconnect();
-  });
+  /** Store Observer */
+  OBSERVERS["bot"] = observer;
 
   /** Observe */
   observer.observe(document.documentElement, {
@@ -266,19 +237,13 @@ const openBot = (isWebView) => {
     attributes: true,
   });
 
-  /** Abort after timeout */
-  setTimeout(() => botObserverController.abort(), 20_000);
+  /** Disconnect Observer */
+  setTimeout(() => observer.disconnect(), 20_000);
 };
 
 /** Open Farmer Bot */
 const openFarmerBot = () => {
   return openBot();
-};
-
-/** Abort Observers */
-const abortObservers = () => {
-  botObserverController?.abort();
-  joinObserverController?.abort();
 };
 
 /** Auto Confirm Dialog */
@@ -287,11 +252,11 @@ const autoConfirm = () => {
   const observer = new MutationObserver(function (mutationList, observer) {
     for (const mutation of mutationList) {
       if (mutation.type === "childList") {
-        mutation.addedNodes.forEach((node) => {
+        for (const node of mutation.addedNodes) {
           if (node.nodeType === Node.ELEMENT_NODE) {
             findAndConfirmPopup(node);
           }
-        });
+        }
       }
     }
   });
@@ -341,15 +306,15 @@ const closeOtherPopups = () => {
 
 /** Connect to Messaging */
 const port = chrome.runtime.connect(chrome.runtime.id, {
-  name: `telegram-web-${webVersion}`,
+  name: `telegram-web-${WEB_VERSION}`,
 });
 
 /** Listen for Port Message */
 port.onMessage?.addListener(async (message) => {
   const { id, action, data } = message;
   switch (action) {
-    case "abort-observers":
-      await abortObservers();
+    case "disconnect-observers":
+      await disconnectObservers();
       try {
         port.postMessage({
           id,

@@ -184,8 +184,8 @@ export default function useCore() {
     resetOpenTelegramLinkHandler,
   ]);
 
-  /** Abort Telegram Observers */
-  const abortTelegramObservers = useCallback(() => {
+  /** Disconnect Telegram Observers */
+  const disconnectTelegramObservers = useCallback(() => {
     /** Get Ports */
     const ports = messaging.ports
       .values()
@@ -194,9 +194,9 @@ export default function useCore() {
       );
 
     for (const port of ports) {
-      /** Abort Observers */
+      /** Disconnect Observers */
       postPortMessage(port, {
-        action: "abort-observers",
+        action: "disconnect-observers",
       });
     }
   }, [messaging.ports]);
@@ -588,8 +588,8 @@ export default function useCore() {
         /** Reset Handler */
         resetOpenTelegramLinkHandler();
 
-        /** Abort Observers */
-        abortTelegramObservers();
+        /** Disconnect Observers */
+        disconnectTelegramObservers();
 
         /** Handler Ref */
         const ref = telegramLinkHandlerRef;
@@ -602,8 +602,8 @@ export default function useCore() {
           /** Post the Link */
           postTelegramLink(port, `telegram-web-${version}`);
 
-          /** Abort Observers */
-          abortTelegramObservers();
+          /** Disconnect Observers */
+          disconnectTelegramObservers();
 
           /** Resolve the Promise */
           resolve(true);
@@ -666,7 +666,7 @@ export default function useCore() {
       preferredTelegramWebVersion,
       getFarmerBotPort,
       closeOtherBots,
-      abortTelegramObservers,
+      disconnectTelegramObservers,
       resetOpenTelegramLinkHandler,
       messaging.ports,
       messaging.handler,
@@ -738,7 +738,7 @@ export default function useCore() {
       messaging.ports,
       preferredTelegramWebVersion,
       openTelegramLink,
-      abortTelegramObservers,
+      disconnectTelegramObservers,
     ],
     /** Remote */
     remote
