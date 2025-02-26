@@ -184,6 +184,23 @@ export default function useCore() {
     resetOpenTelegramLinkHandler,
   ]);
 
+  /** Abort Telegram Observers */
+  const abortTelegramObservers = useCallback(() => {
+    /** Get Ports */
+    const ports = messaging.ports
+      .values()
+      .filter((port) =>
+        ["telegram-web-k", "telegram-web-a"].includes(port.name)
+      );
+
+    for (const port of ports) {
+      /** Abort Observers */
+      postPortMessage(port, {
+        action: "abort-observers",
+      });
+    }
+  }, [messaging.ports]);
+
   /* ===== HELPERS ===== */
 
   const [pushTab, dispatchAndPushTab] = useRemoteCallback(
@@ -571,6 +588,9 @@ export default function useCore() {
         /** Reset Handler */
         resetOpenTelegramLinkHandler();
 
+        /** Abort Observers */
+        abortTelegramObservers();
+
         /** Handler Ref */
         const ref = telegramLinkHandlerRef;
 
@@ -581,6 +601,9 @@ export default function useCore() {
 
           /** Post the Link */
           postTelegramLink(port, `telegram-web-${version}`);
+
+          /** Abort Observers */
+          abortTelegramObservers();
 
           /** Resolve the Promise */
           resolve(true);
@@ -643,6 +666,7 @@ export default function useCore() {
       preferredTelegramWebVersion,
       getFarmerBotPort,
       closeOtherBots,
+      abortTelegramObservers,
       resetOpenTelegramLinkHandler,
       messaging.ports,
       messaging.handler,
@@ -694,17 +718,12 @@ export default function useCore() {
         /** Open Telegram Link */
         await openTelegramLink(url, version, isStartPage || force);
 
-        /** Get Port */
-        const telegramWebPort = messaging.ports
-          .values()
-          .find((port) => port.name === `telegram-web-${version}`);
-
-        /** Abort Observers */
-        postPortMessage(telegramWebPort, {
-          action: "abort-observers",
-        });
-
         if (isStartPage) {
+          /** Get Port */
+          const telegramWebPort = messaging.ports
+            .values()
+            .find((port) => port.name === `telegram-web-${version}`);
+
           /** Wait */
           await delay(1000);
 
@@ -715,7 +734,12 @@ export default function useCore() {
         }
       } catch {}
     },
-    [messaging.ports, preferredTelegramWebVersion, openTelegramLink],
+    [
+      messaging.ports,
+      preferredTelegramWebVersion,
+      openTelegramLink,
+      abortTelegramObservers,
+    ],
     /** Remote */
     remote
   );
