@@ -1,8 +1,4 @@
-import {
-  delay,
-  dispatchClickEventOnElement,
-  isElementVisible,
-} from "@/lib/utils";
+import { dispatchClickEventOnElement, isElementVisible } from "@/lib/utils";
 
 /** Web Version */
 const webVersion = location.pathname.startsWith("/k/") ? "k" : "a";
@@ -46,23 +42,35 @@ let joinObserverController;
 /** Bot Observer Abort Controller */
 let botObserverController;
 
+/** Click Timeouts */
+let clickTimeouts = {};
+
 /** Click Telegram Web Button */
-const clickTelegramWebButton = (button, timeout = 0) => {
+const clickTelegramWebButton = (key, button, timeout = 0) => {
   if (isElementVisible(button)) {
-    delay(timeout, true).then(() => {
+    if (clickTimeouts[key]) {
+      clearTimeout(clickTimeouts[key]);
+    }
+
+    /** Set Timeout */
+    clickTimeouts[key] = setTimeout(() => {
+      /** Remove Timeout */
+      delete clickTimeouts[key];
+
       /** Dispatch the Click Event */
       dispatchClickEventOnElement(button);
-    });
+    }, timeout);
+
     return true;
   } else {
     return false;
   }
 };
 
-const clickNodeOrDescendant = (selector, node, verify, timeout) => {
+const clickNodeOrDescendant = (key, selector, node, verify, timeout) => {
   /** Matches Join Button */
   if (node.matches(selector) && verify(node)) {
-    return clickTelegramWebButton(node, timeout);
+    return clickTelegramWebButton(key, node, timeout);
   }
 
   /** Click Status */
@@ -71,7 +79,7 @@ const clickNodeOrDescendant = (selector, node, verify, timeout) => {
   /** Descendant Join Button */
   for (const element of node.querySelectorAll(selector)) {
     if (verify(element)) {
-      status = clickTelegramWebButton(element, timeout);
+      status = clickTelegramWebButton(key, element, timeout);
 
       if (status) {
         return status;
@@ -97,6 +105,7 @@ const isJoinButton = (element) =>
 /** Find And Confirm Popup */
 const findAndConfirmPopup = (node) => {
   return clickNodeOrDescendant(
+    "findAndConfirmPopup",
     buttonSelectors.confirmButton,
     node,
     isPopupButton
@@ -106,6 +115,7 @@ const findAndConfirmPopup = (node) => {
 /** Find And Click Join Button */
 const findAndClickJoinButton = (node) => {
   return clickNodeOrDescendant(
+    "findAndClickJoinButton",
     buttonSelectors.joinButton,
     node,
     isJoinButton,
@@ -116,6 +126,7 @@ const findAndClickJoinButton = (node) => {
 /** Find And Click Start Button */
 const findAndClickStartButton = (node) => {
   return clickNodeOrDescendant(
+    "findAndClickStartButton",
     buttonSelectors.startButton,
     node,
     isStartButton,
@@ -126,6 +137,7 @@ const findAndClickStartButton = (node) => {
 /** Find And Click Launch Button */
 const findAndClickLaunchButton = (node, isWebView) => {
   return clickNodeOrDescendant(
+    "findAndClickLaunchButton",
     isWebView ? buttonSelectors.webViewButton : buttonSelectors.launchButton,
     node,
     (node) => true,
