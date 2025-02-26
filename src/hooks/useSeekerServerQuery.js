@@ -7,6 +7,10 @@ export default function useSeekerServerQuery(app) {
   const { settings, seekerBackend } = app ?? context;
 
   return useQuery({
+    refetchOnMount: false,
+    refetchOnReconnect: false,
+    refetchOnWindowFocus: false,
+    refetchInterval: false,
     enabled: settings.enableSeeker && Boolean(settings.seekerId),
     queryKey: [
       "core",
