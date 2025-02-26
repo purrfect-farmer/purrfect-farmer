@@ -321,6 +321,7 @@ port.onMessage?.addListener(async (message) => {
           data: true,
         });
       } catch {}
+      break;
 
     case "close-other-popups":
       await closeOtherPopups();
@@ -330,6 +331,8 @@ port.onMessage?.addListener(async (message) => {
           data: true,
         });
       } catch {}
+      break;
+
     case "open-webview-bot":
       await openBot(true);
       try {
