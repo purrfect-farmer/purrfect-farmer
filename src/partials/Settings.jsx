@@ -8,6 +8,7 @@ import TelegramWebAIcon from "@/assets/images/telegram-web-a.png?format=webp&w=8
 import TelegramWebKIcon from "@/assets/images/telegram-web-k.png?format=webp&w=80";
 import defaultSettings from "@/core/defaultSettings";
 import useAppContext from "@/hooks/useAppContext";
+import useRemoteCallback from "@/hooks/useRemoteCallback";
 import { CgSpinner } from "react-icons/cg";
 import {
   HiOutlineArrowPath,
@@ -106,14 +107,17 @@ export default memo(function Settings({ tabs }) {
   }, [seekerServer, dispatchAndConfigureSettings]);
 
   /** Set Farmers Per Window */
-  const handleSetFarmersPerWindow = useCallback(() => {
-    dispatchAndConfigureSettings(
-      "farmersPerWindow",
-      Math.max(3, Number(farmersPerWindow))
-    );
+  const [, dispatchAndSetFarmersPerWindow] = useRemoteCallback(
+    "settings.farmers-per-window",
+    (amount) => {
+      /** Store Settings */
+      configureSettings("farmersPerWindow", Math.max(3, Number(amount)));
 
-    resizeSettingsPage();
-  }, [resizeSettingsPage, farmersPerWindow, dispatchAndConfigureSettings]);
+      /** Resize Page */
+      resizeSettingsPage();
+    },
+    [configureSettings, resizeSettingsPage]
+  );
 
   /** Set Farmer Position */
   const handleSetFarmerPosition = useCallback(() => {
@@ -526,7 +530,11 @@ export default memo(function Settings({ tabs }) {
                       />
 
                       {/* Set Button */}
-                      <ConfirmButton onClick={handleSetFarmersPerWindow} />
+                      <ConfirmButton
+                        onClick={() =>
+                          dispatchAndSetFarmersPerWindow(farmersPerWindow)
+                        }
+                      />
                     </div>
 
                     {/* Farmer Postion */}
