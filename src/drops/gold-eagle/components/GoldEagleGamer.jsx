@@ -5,11 +5,11 @@ import useProcessLock from "@/hooks/useProcessLock";
 import useRemoteCallback from "@/hooks/useRemoteCallback";
 import { SlWallet } from "react-icons/sl";
 import { cn } from "@/lib/utils";
-import { memo } from "react";
+import { memo, useMemo } from "react";
 import { useEffect } from "react";
-
 import useGoldEagleClaimMutation from "../hooks/useGoldEagleClaimMutation";
 import useGoldEagleTapMutation from "../hooks/useGoldEagleTapMutation";
+import useGoldEagleTasksQuery from "../hooks/useGoldEagleTasksQuery";
 import useGoldEagleUserProgressQuery from "../hooks/useGoldEagleUserProgressQuery";
 
 export default memo(function GoldEagleGamer() {
@@ -19,6 +19,18 @@ export default memo(function GoldEagleGamer() {
   const tapMutation = useGoldEagleTapMutation(game.hex);
   const claimMutation = useGoldEagleClaimMutation();
   const query = useGoldEagleUserProgressQuery();
+  const tasksQuery = useGoldEagleTasksQuery();
+  const pendingTasks = useMemo(
+    () =>
+      tasksQuery.data?.filter(
+        (task) => task["task_type"] === "Sl8" && task["status"] !== "Completed"
+      ),
+    [tasksQuery.data]
+  );
+  const canClaimToSl8 = useMemo(
+    () => tasksQuery.isSuccess && pendingTasks.length === 0,
+    [tasksQuery.isSuccess, pendingTasks]
+  );
 
   const energy = query.data?.["energy"] || 0;
   const weight = query.data?.["tap_weight"] || 0;
@@ -75,7 +87,7 @@ export default memo(function GoldEagleGamer() {
   useFarmerAutoProcess("game", !query.isLoading, process);
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-2">
       <button
         onClick={() => process.dispatchAndToggle(!process.started)}
         className={cn(
@@ -87,11 +99,40 @@ export default memo(function GoldEagleGamer() {
       </button>
 
       <button
-        className="text-orange-500 font-bold flex justify-center items-center gap-2"
+        className={cn(
+          "px-4 py-2 rounded-lg",
+          "text-orange-500",
+          "bg-orange-100 dark:bg-black",
+          "font-bold flex justify-center items-center gap-2"
+        )}
         onClick={() => dispatchAndClaim()}
       >
         <SlWallet className="w-4 h-4" /> Claim to SL8
       </button>
+
+      {/* Status */}
+      <p
+        className={cn(
+          "text-center flex justify-center items-center gap-2",
+          tasksQuery.isPending
+            ? "text-yellow-500"
+            : tasksQuery.isError
+            ? "text-red-500"
+            : canClaimToSl8
+            ? "text-green-500"
+            : "text-yellow-500"
+        )}
+      >
+        {tasksQuery.isPending ? (
+          "Checking..."
+        ) : tasksQuery.isError ? (
+          "Error!"
+        ) : canClaimToSl8 ? (
+          <>Status: Claimable</>
+        ) : (
+          <>Pending Tasks ({pendingTasks.length})</>
+        )}
+      </p>
     </div>
   );
 });
