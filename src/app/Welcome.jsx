@@ -22,6 +22,7 @@ import { CgSpinner } from "react-icons/cg";
 import {
   HiOutlineArrowPath,
   HiOutlineArrowUpRight,
+  HiOutlineArrowsPointingOut,
   HiOutlineCloud,
   HiOutlineCog6Tooth,
   HiOutlineCurrencyDollar,
@@ -139,6 +140,15 @@ export default memo(function Welcome() {
     [botsQuery.data]
   );
 
+  /** Toggle FullScreen */
+  const toggleFullScreen = useCallback(function toggleFullScreen() {
+    if (!document.fullscreenElement) {
+      document.documentElement.requestFullscreen();
+    } else if (document.exitFullscreen) {
+      document.exitFullscreen();
+    }
+  }, []);
+
   /** Configure Settings */
   const configureAppSettings = useCallback(() => {
     settingTabs.setValue("settings");
@@ -171,6 +181,13 @@ export default memo(function Welcome() {
               </Dialog.Trigger>
               <Shutdown />
             </Dialog.Root>
+
+            {/* Toggle Fullscreen */}
+            <ToolbarButton
+              title="Toggle Fullscreen"
+              icon={HiOutlineArrowsPointingOut}
+              onClick={toggleFullScreen}
+            />
 
             {/* Reload Window */}
             <ToolbarButton
