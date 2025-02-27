@@ -4,7 +4,11 @@ import { cn } from "@/lib/utils";
 import { memo, useCallback, useRef } from "react";
 import { useEffect } from "react";
 
-export default memo(function TabButton({ tab, connected }) {
+export default memo(function TabButton({
+  tab,
+  showRemoteStatus,
+  remoteIsConnected,
+}) {
   const { dispatchAndCloseTab, dispatchAndSetActiveTab, reloadTab } =
     useAppContext();
   const buttonRef = useRef();
@@ -63,7 +67,7 @@ export default memo(function TabButton({ tab, connected }) {
       {/* Icon */}
       <div className="relative shrink-0">
         <img src={tab.icon} className="rounded-full w-7 h-7" />
-        {typeof connected !== "undefined" ? (
+        {showRemoteStatus ? (
           <span
             className={cn(
               "absolute inset-0",
@@ -76,7 +80,7 @@ export default memo(function TabButton({ tab, connected }) {
               "after:border-2 after:border-white",
               "after:p-1",
               "after:rounded-full",
-              connected ? "after:bg-green-500" : "after:bg-red-500"
+              remoteIsConnected ? "after:bg-green-500" : "after:bg-red-500"
             )}
           ></span>
         ) : null}
