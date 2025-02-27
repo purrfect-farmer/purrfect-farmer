@@ -1,14 +1,17 @@
 import AppIcon from "@/assets/images/icon.png?inline&format=webp&w=72&h=72";
 import Draggable from "react-draggable";
+import MinimizedAppIcon from "@/assets/images/icon-toolbar-minimized.png?inline&format=webp&w=72&h=72";
 import copy from "copy-to-clipboard";
 import styled from "styled-components";
 import { AiOutlineDrag } from "react-icons/ai";
 import {
   HiOutlineArrowTopRightOnSquare,
+  HiOutlineArrowsPointingOut,
   HiOutlineClipboard,
 } from "react-icons/hi2";
 import { useCallback } from "react";
 import { useRef } from "react";
+import { useState } from "react";
 
 const Wrapper = styled.div`
   position: fixed;
@@ -40,6 +43,7 @@ const Image = styled.img`
   border-radius: 999px;
   width: 36px;
   height: 36px;
+  cursor: pointer;
 `;
 
 const Button = styled.button`
@@ -64,6 +68,11 @@ const Button = styled.button`
   }
 `;
 
+const FullScreenIcon = styled(HiOutlineArrowsPointingOut)`
+  width: 16px;
+  height: 16px;
+`;
+
 const OpenURLIcon = styled(HiOutlineArrowTopRightOnSquare)`
   width: 16px;
   height: 16px;
@@ -83,6 +92,10 @@ export default function MiniAppToolbar({ url }) {
   const dragHandleClass = "draggable-handle";
   const nodeRef = useRef(null);
 
+  const [showFullUi, setShowFullUi] = useState(true);
+
+  const toggleFullUi = useCallback(() => setShowFullUi((prev) => !prev));
+
   const openURL = useCallback(() => {
     window.open(url);
   }, [url]);
@@ -91,27 +104,49 @@ export default function MiniAppToolbar({ url }) {
     copy(url);
   }, [url]);
 
+  /** Toggle FullScreen */
+  const toggleFullScreen = useCallback(function toggleFullScreen() {
+    if (!document.fullscreenElement) {
+      document.documentElement.requestFullscreen();
+    } else if (document.exitFullscreen) {
+      document.exitFullscreen();
+    }
+  }, []);
+
   return (
     <>
       <Wrapper>
         <Draggable handle={`.${dragHandleClass}`} nodeRef={nodeRef}>
           <Container ref={nodeRef}>
-            <Image src={AppIcon} />
+            <Image
+              src={showFullUi ? AppIcon : MinimizedAppIcon}
+              onClick={toggleFullUi}
+              draggable={false}
+            />
 
-            {/* Open */}
-            <Button onClick={openURL} title="Open URL">
-              <OpenURLIcon />
-            </Button>
+            {showFullUi ? (
+              <>
+                {/* Toggle Fullscreen */}
+                <Button onClick={toggleFullScreen} title="Toggle Fullscreen">
+                  <FullScreenIcon />
+                </Button>
 
-            {/* Copy */}
-            <Button onClick={copyURL} title="Copy URL">
-              <ClipboardIcon />
-            </Button>
+                {/* Open */}
+                <Button onClick={openURL} title="Open URL">
+                  <OpenURLIcon />
+                </Button>
 
-            {/* Drag */}
-            <Button className={dragHandleClass} title="Drag">
-              <HandleIcon />
-            </Button>
+                {/* Copy */}
+                <Button onClick={copyURL} title="Copy URL">
+                  <ClipboardIcon />
+                </Button>
+
+                {/* Drag */}
+                <Button className={dragHandleClass} title="Drag">
+                  <HandleIcon />
+                </Button>
+              </>
+            ) : null}
           </Container>
         </Draggable>
       </Wrapper>

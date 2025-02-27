@@ -5,6 +5,9 @@ export default memo(function TelegramWeb({ version, hash = "" }) {
     <iframe
       src={`https://web.telegram.org/${version}${hash}`}
       className="w-full h-full border-0 outline-0"
+      referrerPolicy="no-referrer"
+      allow="geolocation; microphone; camera; fullscreen; payment"
+      allowFullScreen
     />
   );
 });
