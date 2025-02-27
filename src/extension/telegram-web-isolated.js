@@ -65,22 +65,15 @@ const clickTelegramWebButton = (key, button, timeout = 0) => {
 };
 
 const clickNodeOrDescendant = (key, selector, node, verify, timeout) => {
-  /** Matches Join Button */
+  /** Matches Node */
   if (node.matches(selector) && verify(node)) {
     return clickTelegramWebButton(key, node, timeout);
   }
 
-  /** Click Status */
-  let status = false;
-
-  /** Descendant Join Button */
+  /** Descendant Node */
   for (const element of node.querySelectorAll(selector)) {
-    if (verify(element)) {
-      status = clickTelegramWebButton(key, element, timeout);
-
-      if (status) {
-        return status;
-      }
+    if (verify(element) && clickTelegramWebButton(key, element, timeout)) {
+      return true;
     }
   }
 };
@@ -98,6 +91,40 @@ const isStartButton = (element) =>
 /** Is it a Join Button */
 const isJoinButton = (element) =>
   JOIN_BUTTON_TEXT_CONTENT.includes(element.textContent.trim().toUpperCase());
+
+/** Apply FullScreen */
+const applyFullScreen = (node) => {
+  if (!node) return; // Ensure node exists
+
+  /** Get existing permissions, handle null case */
+  const permissions = (node.getAttribute("allow") || "")
+    .split(";")
+    .map((item) => item.trim())
+    .filter(Boolean);
+
+  /** Add 'fullscreen' only if not already present */
+  if (!permissions.includes("fullscreen")) {
+    permissions.push("fullscreen");
+  }
+
+  /** Set updated 'allow' attribute */
+  node.setAttribute("allow", permissions.join("; "));
+
+  /** Reload Iframe */
+  node.src += "";
+};
+
+const findAndApplyFullScreen = (node) => {
+  /** Matches Iframe */
+  if (node.tagName === "IFRAME") {
+    return applyFullScreen(node);
+  }
+
+  /** Descendant Iframe */
+  for (const element of node.querySelectorAll("iframe")) {
+    applyFullScreen(element);
+  }
+};
 
 /** Find And Confirm Popup */
 const findAndConfirmPopup = (node) => {
@@ -267,6 +294,27 @@ const autoConfirm = () => {
   });
 };
 
+/** Allow FullScreen */
+const observeAndAllowFullScreen = () => {
+  /** Start Observing */
+  const observer = new MutationObserver(function (mutationList, observer) {
+    for (const mutation of mutationList) {
+      if (mutation.type === "childList") {
+        for (const node of mutation.addedNodes) {
+          if (node.nodeType === Node.ELEMENT_NODE) {
+            findAndApplyFullScreen(node);
+          }
+        }
+      }
+    }
+  });
+
+  observer.observe(document.documentElement, {
+    childList: true,
+    subtree: true,
+  });
+};
+
 /** Farmer Bot Is Running */
 const farmerBotIsRunning = (iframes) => {
   for (const iframe of iframes) {
@@ -367,3 +415,8 @@ port.onMessage?.addListener(async (message) => {
 
 /** Enable auto confirm */
 autoConfirm();
+
+/** Allow Fullscreen */
+if (WEB_VERSION === "a") {
+  observeAndAllowFullScreen();
+}

@@ -1,6 +1,9 @@
 import { core, decryptData, encryptData } from "./content-script-utils";
 
 if (location.hash.includes("tgWebAppData")) {
+  /** Initial Location Hash */
+  const INITIAL_LOCATION_HASH = location.hash;
+
   /** Telegram Web Script */
   const TG_WEB_SCRIPT_SRC = "https://telegram.org/js/telegram-web-app.js";
 
