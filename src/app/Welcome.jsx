@@ -172,8 +172,8 @@ export default memo(function Welcome() {
     <>
       {/* Settings and New Window Button */}
       <div className="p-2 shrink-0">
-        <div className="flex justify-between w-full gap-2 mx-auto max-w-96">
-          <div className="flex gap-2">
+        <div className="flex gap-1 justify-between w-full mx-auto max-w-96 overflow-auto">
+          <div className="flex gap-1">
             {/* Shutdown */}
             <Dialog.Root>
               <Dialog.Trigger asChild>
@@ -197,7 +197,7 @@ export default memo(function Welcome() {
             />
           </div>
 
-          <div className="flex gap-2">
+          <div className="flex gap-1">
             {/* Open New Tab */}
             <ToolbarButton
               title="Open New Tab"
