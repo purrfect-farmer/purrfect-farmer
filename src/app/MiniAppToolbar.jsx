@@ -3,12 +3,12 @@ import Draggable from "react-draggable";
 import MinimizedAppIcon from "@/assets/images/icon-toolbar-minimized.png?inline&format=webp&w=72&h=72";
 import copy from "copy-to-clipboard";
 import styled from "styled-components";
-import { AiOutlineDrag } from "react-icons/ai";
 import {
   HiOutlineArrowTopRightOnSquare,
   HiOutlineArrowsPointingOut,
   HiOutlineClipboard,
 } from "react-icons/hi2";
+import { RiDraggable } from "react-icons/ri";
 import { useCallback } from "react";
 import { useRef } from "react";
 import { useState } from "react";
@@ -83,7 +83,7 @@ const ClipboardIcon = styled(HiOutlineClipboard)`
   height: 16px;
 `;
 
-const HandleIcon = styled(AiOutlineDrag)`
+const HandleIcon = styled(RiDraggable)`
   width: 16px;
   height: 16px;
 `;
@@ -91,6 +91,10 @@ const HandleIcon = styled(AiOutlineDrag)`
 export default function MiniAppToolbar({ url }) {
   const dragHandleClass = "draggable-handle";
   const nodeRef = useRef(null);
+  const [position, setPosition] = useState({
+    x: 0,
+    y: 0,
+  });
 
   const [showFullUi, setShowFullUi] = useState(true);
 
@@ -105,18 +109,42 @@ export default function MiniAppToolbar({ url }) {
   }, [url]);
 
   /** Toggle FullScreen */
-  const toggleFullScreen = useCallback(function toggleFullScreen() {
+  const toggleFullScreen = useCallback(async function toggleFullScreen() {
     if (!document.fullscreenElement) {
-      document.documentElement.requestFullscreen();
+      /** Request Fullscreen */
+      await document.documentElement.requestFullscreen();
+
+      /** Reset Position */
+      setPosition({
+        x: 0,
+        y: 0,
+      });
     } else if (document.exitFullscreen) {
-      document.exitFullscreen();
+      /** Exit Fullscreen */
+      await document.exitFullscreen();
+
+      /** Reset Position */
+      setPosition({
+        x: 0,
+        y: 0,
+      });
     }
   }, []);
 
   return (
     <>
       <Wrapper>
-        <Draggable handle={`.${dragHandleClass}`} nodeRef={nodeRef}>
+        <Draggable
+          position={position}
+          onDrag={(e, { x, y }) =>
+            setPosition({
+              x,
+              y,
+            })
+          }
+          handle={`.${dragHandleClass}`}
+          nodeRef={nodeRef}
+        >
           <Container ref={nodeRef}>
             <Image
               src={showFullUi ? AppIcon : MinimizedAppIcon}
@@ -140,13 +168,12 @@ export default function MiniAppToolbar({ url }) {
                 <Button onClick={copyURL} title="Copy URL">
                   <ClipboardIcon />
                 </Button>
-
-                {/* Drag */}
-                <Button className={dragHandleClass} title="Drag">
-                  <HandleIcon />
-                </Button>
               </>
             ) : null}
+            {/* Drag */}
+            <Button className={dragHandleClass} title="Drag">
+              <HandleIcon />
+            </Button>
           </Container>
         </Draggable>
       </Wrapper>
