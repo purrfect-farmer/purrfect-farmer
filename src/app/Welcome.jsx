@@ -156,7 +156,7 @@ export default memo(function Welcome() {
     document.title = `${
       settings.farmerTitle || defaultSettings.farmerTitle
     } - ${import.meta.env.VITE_APP_NAME}`;
-  }, [settings]);
+  }, [settings.farmerTitle, defaultSettings.farmerTitle]);
 
   return (
     <>
