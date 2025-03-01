@@ -1,57 +1,52 @@
 import { getSettings, getUserAgent } from "@/lib/utils";
 
-/** Remove Action Popup */
-const removeActionPopup = async () => {
-  const platform = await chrome.runtime.getPlatformInfo();
-  if (platform.os !== "android") {
-    await chrome.action.setPopup({ popup: "" }).catch(() => {});
-  }
-};
-
 /** Close Previous Popups */
-const closePreviousPopups = async () => {
-  const urls = ["chrome://newtab/"];
-
-  const windows = await chrome.windows.getAll({
-    populate: true,
-    windowTypes: ["popup"],
+const closePreviousPopups = async (windowId) => {
+  const tabs = await chrome.tabs.query({
+    windowType: "popup",
   });
 
-  for (const window of windows) {
-    if (window.tabs.some((tab) => urls.includes(tab.url))) {
-      await chrome.windows.remove(window.id);
+  for (const tab of tabs) {
+    const isEmptyTab = tab.url === "chrome://newtab/";
+    const isPreviousWindow =
+      tab.url === chrome.runtime.getURL("index.html") &&
+      tab.windowId !== windowId;
+
+    if (isEmptyTab || isPreviousWindow) {
+      await chrome.windows.remove(tab.windowId);
     }
   }
 };
 
 /** Open Farmer */
 const openFarmerWindow = async () => {
-  /** Close Previous Popups */
-  await closePreviousPopups();
-
   /** Create a new window */
-  await chrome.windows.create({
+  const window = await chrome.windows.create({
     url: chrome.runtime.getURL("index.html"),
     type: "popup",
     state: "maximized",
     focused: true,
   });
-};
 
-/** Handle Action Clicked */
-const handleActionClicked = () => openFarmerWindow();
+  /** Close Previous Popups */
+  await closePreviousPopups(window.id);
+};
 
 /** Configure Extension */
 const configureExtension = async ({ openFarmerInNewWindow }) => {
+  /** Get Platform */
   const platform = await chrome.runtime.getPlatformInfo();
 
   if (platform.os !== "android") {
+    /** Remove Popup */
+    await chrome.action.setPopup({ popup: "" });
+
     /** Remove Previous Listener */
-    chrome.action.onClicked.removeListener(handleActionClicked);
+    chrome.action.onClicked.removeListener(openFarmerWindow);
 
     /** Configure Action */
     if (openFarmerInNewWindow) {
-      chrome.action.onClicked.addListener(handleActionClicked);
+      chrome.action.onClicked.addListener(openFarmerWindow);
     }
 
     try {
@@ -101,9 +96,6 @@ const updateUserAgent = async () => {
 
 /** Setup Extension */
 const setupExtension = async () => {
-  /** Remove Action Popup */
-  await removeActionPopup();
-
   /** Update User-Agent */
   await updateUserAgent();
 
@@ -142,7 +134,7 @@ chrome.runtime.onStartup.addListener(async () => {
       if (settings.closeMainWindowOnStartup) {
         /** Close Main Window */
         if (mainWindow?.id) {
-          await chrome.windows.remove(mainWindow.id);
+          await chrome.windows.remove(mainWindow?.id);
         }
       } else {
         /** Go to extensions page */
@@ -165,11 +157,11 @@ chrome.runtime.onInstalled.addListener(async (ev) => {
   /** Setup Extension */
   await setupExtension();
 
-  /** Open Farmer Window */
-  const settings = await getSettings();
+  /** Get Settings */
+  const { openFarmerInNewWindow } = await getSettings();
 
   /** Open Farmer Window */
-  if (settings.openFarmerInNewWindow) {
+  if (openFarmerInNewWindow) {
     await openFarmerWindow(true);
   }
 });
