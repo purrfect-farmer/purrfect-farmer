@@ -72,7 +72,7 @@ const ToolbarButton = memo(
         props.className
       )}
     >
-      <Icon className="w-4 h-4" />
+      <Icon className="size-5" />
       {children}
     </button>
   ))
