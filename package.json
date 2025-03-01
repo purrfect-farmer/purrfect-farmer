@@ -29,7 +29,6 @@
     "@tailwindcss/vite": "^4.0.9",
     "@tanstack/react-query": "^5.66.11",
     "axios": "^1.8.1",
-    "buffer": "^6.0.3",
     "clsx": "^2.1.1",
     "copy-to-clipboard": "^3.3.3",
     "crypto-js": "^4.2.0",
