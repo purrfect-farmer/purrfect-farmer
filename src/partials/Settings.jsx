@@ -297,6 +297,20 @@ export default memo(function Settings({ tabs }) {
                         </button>
                       ))}
                     </div>
+
+                    {/* Show User Info */}
+                    <LabelToggle
+                      onChange={(ev) =>
+                        dispatchAndConfigureSettings(
+                          "displayUserInfo",
+                          ev.target.checked
+                        )
+                      }
+                      checked={settings?.displayUserInfo}
+                    >
+                      Display User Info
+                    </LabelToggle>
+
                     {/* Show Mini-App Toolbar */}
                     <LabelToggle
                       onChange={(ev) =>
@@ -364,19 +378,8 @@ export default memo(function Settings({ tabs }) {
                       <ConfirmButton onClick={handleSetCloudServer} />
                     </div>
 
-                    {/* Enabling */}
-                    <p
-                      className={cn(
-                        "mt-4",
-                        "bg-blue-100 text-blue-800 dark:text-blue-900 p-4 text-center rounded-lg"
-                      )}
-                    >
-                      Enable the seeker to update your Cloud Server Address
-                      automatically.
-                    </p>
-
                     {/* Seeker Options */}
-                    <h4 className="text-neutral-400">Seeker Options</h4>
+                    <h4 className="mt-4 text-neutral-400">Seeker Options</h4>
 
                     {/* Cloud Seeker */}
                     <div className="flex gap-2">
@@ -410,6 +413,15 @@ export default memo(function Settings({ tabs }) {
                         <HiOutlineListBullet className="w-4 h-4 " />
                       </button>
                     </div>
+
+                    <p
+                      className={cn(
+                        "bg-blue-100 text-blue-800 dark:text-blue-900 p-4 text-center rounded-lg"
+                      )}
+                    >
+                      Enable Seeker to update your Cloud Server Address
+                      automatically.
+                    </p>
 
                     {/* Seeker Server */}
                     <label className="text-neutral-400">Seeker Server</label>

@@ -16,16 +16,19 @@ const dropsOrder = Object.keys(dropsStatus);
 
 /** Default Settings */
 const defaultSettings = {
+  theme: "system",
+  preferredTelegramWebVersion: "k",
   farmerTitle: "TGUser",
+  closeOtherBots: true,
+  enableCloud: false,
+  enableSeeker: false,
+  enableMirror: false,
   mirrorServer: import.meta.env.VITE_MIRROR_SERVER,
   cloudServer: import.meta.env.VITE_CLOUD_SERVER,
   seekerServer: import.meta.env.VITE_SEEKER_SERVER,
   seekerId: null,
-  enableCloud: false,
-  enableMirror: false,
-  enableSeeker: false,
-  closeOtherBots: true,
   farmersLayout: "grid",
+  displayUserInfo: true,
   showMiniAppToolbar: false,
   showLinksAsGrid: false,
   farmersPerWindow: 5,
@@ -34,11 +37,9 @@ const defaultSettings = {
   openFarmerOnStartup: false,
   uncappedPoints: false,
   closeMainWindowOnStartup: false,
-  preferredTelegramWebVersion: "k",
   dropsStatus,
   dropsOrder,
   repeatZoomiesCycle: true,
-  theme: "system",
 };
 
 export default defaultSettings;

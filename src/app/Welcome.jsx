@@ -285,7 +285,9 @@ export default memo(function Welcome() {
           ) : null}
 
           {/* Display User */}
-          {telegramUser ? <TelegramUser user={telegramUser} /> : null}
+          {telegramUser && settings.displayUserInfo ? (
+            <TelegramUser user={telegramUser} />
+          ) : null}
 
           <div className="flex flex-col gap-1">
             {/* Open Farmer Bot */}
