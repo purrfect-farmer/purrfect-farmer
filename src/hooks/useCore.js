@@ -10,8 +10,8 @@ import { useRef } from "react";
 import { useState } from "react";
 
 import useMessagePort from "./useMessagePort";
-import useRemoteCallback from "./useRemoteCallback";
-import useRemoteControl from "./useRemoteControl";
+import useMirror from "./useMirror";
+import useMirroredCallback from "./useMirroredCallback";
 import useSettings from "./useSettings";
 import useUserAgent from "./useUserAgent";
 import useValuesMemo from "./useValuesMemo";
@@ -48,10 +48,7 @@ export default function useCore() {
     [settings.seekerServer]
   );
 
-  const remote = useRemoteControl(
-    settings.enableRemoteControl,
-    settings.remoteControlServer
-  );
+  const mirror = useMirror(settings.enableMirror, settings.mirrorServer);
   const messaging = useMessagePort();
 
   const preferredTelegramWebVersion =
@@ -203,7 +200,7 @@ export default function useCore() {
 
   /* ===== HELPERS ===== */
 
-  const [pushTab, dispatchAndPushTab] = useRemoteCallback(
+  const [pushTab, dispatchAndPushTab] = useMirroredCallback(
     "core.push-tab",
     (tab, override = false) => {
       setOpenedTabs((previous) => {
@@ -223,12 +220,12 @@ export default function useCore() {
       });
     },
     [setOpenedTabs],
-    /** Remote */
-    remote
+    /** Mirror */
+    mirror
   );
 
   /** Update Tab */
-  const [updateTab, dispatchAndUpdateTab] = useRemoteCallback(
+  const [updateTab, dispatchAndUpdateTab] = useMirroredCallback(
     "core.update-tab",
     (tabId, data) => {
       setOpenedTabs((previous) => {
@@ -238,22 +235,22 @@ export default function useCore() {
       });
     },
     [setOpenedTabs],
-    /** Remote */
-    remote
+    /** Mirror */
+    mirror
   );
 
   /** Set Active Tab */
-  const [setActiveTab, dispatchAndSetActiveTab] = useRemoteCallback(
+  const [setActiveTab, dispatchAndSetActiveTab] = useMirroredCallback(
     "core.set-active-tab",
     (id) => {
       pushTab(tabs.find((item) => item.id === id));
     },
     [tabs, pushTab],
-    /** Remote */
-    remote
+    /** Mirror */
+    mirror
   );
 
-  const [resetTabs, dispatchAndResetTabs] = useRemoteCallback(
+  const [resetTabs, dispatchAndResetTabs] = useMirroredCallback(
     "core.reset-tabs",
     () => {
       /** Cancel Handlers */
@@ -263,11 +260,11 @@ export default function useCore() {
       setOpenedTabs(defaultOpenedTabs);
     },
     [cancelTelegramHandlers, setOpenedTabs],
-    /** Remote */
-    remote
+    /** Mirror */
+    mirror
   );
 
-  const [closeFarmerTabs, dispatchAndCloseFarmerTabs] = useRemoteCallback(
+  const [closeFarmerTabs, dispatchAndCloseFarmerTabs] = useMirroredCallback(
     "core.close-farmer-tabs",
     () => {
       setOpenedTabs((prev) =>
@@ -277,11 +274,11 @@ export default function useCore() {
       );
     },
     [setOpenedTabs],
-    /** Remote */
-    remote
+    /** Mirror */
+    mirror
   );
 
-  const [reloadTab, dispatchAndReloadTab] = useRemoteCallback(
+  const [reloadTab, dispatchAndReloadTab] = useMirroredCallback(
     "core.reload-tab",
     (id) => {
       setOpenedTabs((previous) => {
@@ -293,11 +290,11 @@ export default function useCore() {
       });
     },
     [setOpenedTabs],
-    /** Remote */
-    remote
+    /** Mirror */
+    mirror
   );
 
-  const [closeTab, dispatchAndCloseTab] = useRemoteCallback(
+  const [closeTab, dispatchAndCloseTab] = useMirroredCallback(
     "core.close-tab",
     (id) => {
       setOpenedTabs((previous) => {
@@ -319,8 +316,8 @@ export default function useCore() {
       }
     },
     [setOpenedTabs, cancelTelegramHandlers],
-    /** Remote */
-    remote
+    /** Mirror */
+    mirror
   );
 
   /** Open New Tab */
@@ -352,62 +349,62 @@ export default function useCore() {
   }, []);
 
   /** Shutdown */
-  const [shutdown, dispatchAndShutdown] = useRemoteCallback(
+  const [shutdown, dispatchAndShutdown] = useMirroredCallback(
     "core.shutdown",
     () => {
       window.close();
     },
     [],
-    /** Remote */
-    remote
+    /** Mirror */
+    mirror
   );
 
   /** Reload App */
-  const [reloadApp, dispatchAndReloadApp] = useRemoteCallback(
+  const [reloadApp, dispatchAndReloadApp] = useMirroredCallback(
     "core.reload-app",
     () => {
       window.location.reload();
     },
     [],
-    /** Remote */
-    remote
+    /** Mirror */
+    mirror
   );
 
   /** Configure Settings */
-  const [, dispatchAndConfigureSettings] = useRemoteCallback(
+  const [, dispatchAndConfigureSettings] = useMirroredCallback(
     "core.configure-settings",
     /** Configure Settings */
     configureSettings,
     [configureSettings],
-    /** Remote */
-    remote
+    /** Mirror */
+    mirror
   );
 
   /** Restore Settings */
-  const [, dispatchAndRestoreSettings] = useRemoteCallback(
+  const [, dispatchAndRestoreSettings] = useMirroredCallback(
     "core.restore-settings",
     /** Restore Settings */
     restoreSettings,
     [restoreSettings],
-    /** Remote */
-    remote
+    /** Mirror */
+    mirror
   );
 
   /** Open URL */
-  const [openURL, dispatchAndOpenURL] = useRemoteCallback(
+  const [openURL, dispatchAndOpenURL] = useMirroredCallback(
     "core.open-url",
     (url) =>
       chrome?.windows?.create({
         url,
       }),
     [],
-    /** Remote */
-    remote
+    /** Mirror */
+    mirror
   );
 
   /** Navigate to Telegram Web */
   const [navigateToTelegramWeb, dispatchAndNavigateToTelegramWeb] =
-    useRemoteCallback(
+    useMirroredCallback(
       "core.navigate-to-telegram-web",
       (v) =>
         chrome?.tabs?.query({ active: true, currentWindow: true }, (tabs) => {
@@ -417,8 +414,8 @@ export default function useCore() {
           });
         }),
       [],
-      /** Remote */
-      remote
+      /** Mirror */
+      mirror
     );
 
   /** Open Telegram Web */
@@ -485,7 +482,7 @@ export default function useCore() {
   }, [getMiniAppPorts, messaging.ports]);
 
   /** Open Farmer Bot */
-  const [openFarmerBot, dispatchAndOpenFarmerBot] = useRemoteCallback(
+  const [openFarmerBot, dispatchAndOpenFarmerBot] = useMirroredCallback(
     "core.open-farmer-bot",
     async (version, force = false) => {
       /** Reset Previous Handler */
@@ -572,12 +569,12 @@ export default function useCore() {
       messaging.handler,
       messaging.ports,
     ],
-    /** Remote */
-    remote
+    /** Mirror */
+    mirror
   );
 
   /** Open Telegram Link */
-  const [openTelegramLink, dispatchAndOpenTelegramLink] = useRemoteCallback(
+  const [openTelegramLink, dispatchAndOpenTelegramLink] = useMirroredCallback(
     "core.open-telegram-link",
     (url, version = preferredTelegramWebVersion, force = false) => {
       if (!url) {
@@ -672,12 +669,12 @@ export default function useCore() {
       messaging.handler,
       settings.closeOtherBots,
     ],
-    /** Remote */
-    remote
+    /** Mirror */
+    mirror
   );
 
   /** Join Telegram Link */
-  const [joinTelegramLink, dispatchAndJoinTelegramLink] = useRemoteCallback(
+  const [joinTelegramLink, dispatchAndJoinTelegramLink] = useMirroredCallback(
     "core.join-telegram-link",
     async (url, version = preferredTelegramWebVersion, force = false) => {
       if (!url) {
@@ -703,12 +700,12 @@ export default function useCore() {
       } catch {}
     },
     [messaging.ports, preferredTelegramWebVersion, openTelegramLink],
-    /** Remote */
-    remote
+    /** Mirror */
+    mirror
   );
 
   /** Open Telegram Bot */
-  const [openTelegramBot, dispatchAndOpenTelegramBot] = useRemoteCallback(
+  const [openTelegramBot, dispatchAndOpenTelegramBot] = useMirroredCallback(
     "core.open-telegram-bot",
     async (url, version = preferredTelegramWebVersion, force = false) => {
       try {
@@ -740,8 +737,8 @@ export default function useCore() {
       openTelegramLink,
       disconnectTelegramObservers,
     ],
-    /** Remote */
-    remote
+    /** Mirror */
+    mirror
   );
 
   return useValuesMemo({
@@ -753,7 +750,7 @@ export default function useCore() {
     orderedDrops,
     settings,
     hasRestoredSettings,
-    remote,
+    mirror,
     messaging,
     cloudBackend,
     seekerBackend,

@@ -1,7 +1,7 @@
 import toast from "react-hot-toast";
 import useFarmerAutoTask from "@/hooks/useFarmerAutoTask";
 import useFarmerContext from "@/hooks/useFarmerContext";
-import useRemoteCallback from "@/hooks/useRemoteCallback";
+import useMirroredCallback from "@/hooks/useMirroredCallback";
 import { delay } from "@/lib/utils";
 import { memo } from "react";
 import { useMemo } from "react";
@@ -34,7 +34,7 @@ export default memo(function HrumRiddleTask({ queries }) {
   /** No Riddle or Completed */
   const disabled = !riddle || riddleCompletion;
 
-  const [claimRiddle, dispatchAndClaimRiddle] = useRemoteCallback(
+  const [claimRiddle, dispatchAndClaimRiddle] = useMirroredCallback(
     "hrum.claim-riddle",
     async () => {
       if (riddle && !disabled) {

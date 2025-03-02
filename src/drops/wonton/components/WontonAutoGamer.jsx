@@ -1,7 +1,8 @@
 import Countdown from "react-countdown";
+import useAppContext from "@/hooks/useAppContext";
 import useFarmerAutoProcess from "@/hooks/useFarmerAutoProcess";
+import useMirroredState from "@/hooks/useMirroredState";
 import useProcessLock from "@/hooks/useProcessLock";
-import useSocketState from "@/hooks/useSocketState";
 import { delay } from "@/lib/utils";
 import { memo } from "react";
 import { useCallback } from "react";
@@ -15,7 +16,6 @@ import useWontonClaimGameMutation from "../hooks/useWontonClaimGameMutation";
 import useWontonShopQuery from "../hooks/useWontonShopQuery";
 import useWontonStartGameMutation from "../hooks/useWontonStartGameMutation";
 import useWontonUserQuery from "../hooks/useWontonUserQuery";
-import useAppContext from "@/hooks/useAppContext";
 
 const GAME_DURATION = 15_000;
 const EXTRA_DELAY = 3_000;
@@ -45,7 +45,7 @@ export default memo(function Wonton() {
 
   const [countdown, setCountdown] = useState(null);
   const [desiredPoint, setDesiredPoint, dispatchAndSetDesiredPoint] =
-    useSocketState("wonton.game.desired-point", INITIAL_POINT);
+    useMirroredState("wonton.game.desired-point", INITIAL_POINT);
 
   const tickets = query.data?.ticketCount || 0;
   const points = useMemo(

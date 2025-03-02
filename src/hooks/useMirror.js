@@ -8,13 +8,13 @@ import { useState } from "react";
 
 import useEventEmitter from "./useEventEmitter";
 
-export default function useRemoteControl(
+export default function useMirror(
   enabled = false,
-  address = import.meta.env.VITE_REMOTE_CONTROL_SERVER
+  address = import.meta.env.VITE_MIRROR_SERVER
 ) {
   const socketRef = useRef(null);
   const [connected, setConnected] = useState(false);
-  const [syncing, setSyncing] = useState(true);
+  const [mirroring, setMirroring] = useState(true);
   const {
     emitter: handler,
     addListeners: addCommandHandlers,
@@ -24,11 +24,11 @@ export default function useRemoteControl(
   /** Dispatch */
   const dispatch = useCallback(
     (data) => {
-      if (syncing && socketRef.current?.connected) {
+      if (mirroring && socketRef.current?.connected) {
         socketRef.current?.send(data);
       }
     },
-    [syncing]
+    [mirroring]
   );
 
   /** Instantiate Socket */
@@ -63,7 +63,7 @@ export default function useRemoteControl(
   useLayoutEffect(() => {
     if (enabled && address) {
       const actionHandler = (arg) => {
-        if (syncing) {
+        if (mirroring) {
           handler.emit(arg.action, arg);
         }
       };
@@ -74,23 +74,23 @@ export default function useRemoteControl(
         socketRef.current?.off("command", actionHandler);
       };
     }
-  }, [enabled, address, handler, syncing]);
+  }, [enabled, address, handler, mirroring]);
 
   return useMemo(
     () => ({
       connected,
-      syncing,
+      mirroring,
       handler,
       dispatch,
-      setSyncing,
+      setMirroring,
       addCommandHandlers,
       removeCommandHandlers,
     }),
     [
       connected,
-      syncing,
+      mirroring,
       dispatch,
-      setSyncing,
+      setMirroring,
       addCommandHandlers,
       removeCommandHandlers,
     ]

@@ -1,7 +1,7 @@
 import toast from "react-hot-toast";
 import useFarmerAutoTask from "@/hooks/useFarmerAutoTask";
 import useFarmerContext from "@/hooks/useFarmerContext";
-import useRemoteCallback from "@/hooks/useRemoteCallback";
+import useMirroredCallback from "@/hooks/useMirroredCallback";
 import { delay } from "@/lib/utils";
 import { memo } from "react";
 import { useMemo } from "react";
@@ -19,7 +19,7 @@ export default memo(function HrumOpenButton({ queries }) {
     return allData.hero.cookies > 0;
   }, [allData]);
 
-  const [openCookie, dispatchAndOpenCookie] = useRemoteCallback(
+  const [openCookie, dispatchAndOpenCookie] = useMirroredCallback(
     "hrum.open-cookie",
     async () => {
       if (show) {

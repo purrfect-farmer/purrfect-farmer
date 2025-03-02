@@ -1,8 +1,8 @@
 import toast from "react-hot-toast";
 import useFarmerAutoTask from "@/hooks/useFarmerAutoTask";
 import useFarmerContext from "@/hooks/useFarmerContext";
-import useRemoteCallback from "@/hooks/useRemoteCallback";
-import useSocketState from "@/hooks/useSocketState";
+import useMirroredCallback from "@/hooks/useMirroredCallback";
+import useMirroredState from "@/hooks/useMirroredState";
 import { customLogger } from "@/lib/utils";
 import { memo, useCallback } from "react";
 
@@ -21,7 +21,7 @@ export default memo(function Agent301Puzzle() {
   const balanceQuery = useAgent301BalanceQuery();
   const claimMutation = useAgent301PuzzleMutation();
 
-  const [showModal, setShowModal, dispatchAndSetShowModal] = useSocketState(
+  const [showModal, setShowModal, dispatchAndSetShowModal] = useMirroredState(
     "agent301.puzzle.modal",
     false
   );
@@ -62,7 +62,7 @@ export default memo(function Agent301Puzzle() {
     [toast, cardsQuery.refetch, balanceQuery.refetch, setShowModal]
   );
 
-  const [handleButtonClick, dispatchAndHandleButtonClick] = useRemoteCallback(
+  const [handleButtonClick, dispatchAndHandleButtonClick] = useMirroredCallback(
     "agent301.puzzle.show-modal",
     () => {
       if (attemptsLeft >= 1) {

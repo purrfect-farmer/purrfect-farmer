@@ -1,9 +1,9 @@
 import { useMemo } from "react";
 
-import useSocketState from "./useSocketState";
+import useMirroredState from "./useMirroredState";
 import useValuesMemo from "./useValuesMemo";
 
-export default function useSocketTabs(
+export default function useMirroredTabs(
   key = "",
   defaultList = [],
   defaultValue
@@ -12,7 +12,7 @@ export default function useSocketTabs(
   const list = useMemo(() => defaultList, [...defaultList]);
 
   /** Tab Value */
-  const [value, setValue, dispatchAndSetValue] = useSocketState(
+  const [value, setValue, dispatchAndSetValue] = useMirroredState(
     key,
     defaultValue || list[0]
   );

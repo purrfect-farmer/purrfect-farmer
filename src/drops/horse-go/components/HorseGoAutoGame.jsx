@@ -1,15 +1,15 @@
 import toast from "react-hot-toast";
 import useFarmerAutoProcess from "@/hooks/useFarmerAutoProcess";
+import useMirroredState from "@/hooks/useMirroredState";
 import useProcessLock from "@/hooks/useProcessLock";
 import { cn, delay } from "@/lib/utils";
 import { memo } from "react";
 import { useEffect } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 
 import HorseGoButton from "./HorseGoButton";
-import useHorseGoUserQuery from "../hooks/useHorseGoUserQuery";
 import useHorseGoRaceMutation from "../hooks/useHorseGoRaceMutation";
-import { useQueryClient } from "@tanstack/react-query";
-import useSocketState from "@/hooks/useSocketState";
+import useHorseGoUserQuery from "../hooks/useHorseGoUserQuery";
 
 const GAME_DURATION = 5_000;
 
@@ -21,7 +21,7 @@ export default memo(function HorseGoAutoGame() {
 
   const queryClient = useQueryClient();
 
-  const [mode, setMode, dispatchAndSetMode] = useSocketState(
+  const [mode, setMode, dispatchAndSetMode] = useMirroredState(
     "horse-go.mode",
     "balanced"
   );

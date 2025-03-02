@@ -3,9 +3,9 @@ import toast from "react-hot-toast";
 import useFarmerAutoProcess from "@/hooks/useFarmerAutoProcess";
 import useFarmerAutoTask from "@/hooks/useFarmerAutoTask";
 import useFarmerContext from "@/hooks/useFarmerContext";
+import useMirroredCallback from "@/hooks/useMirroredCallback";
+import useMirroredState from "@/hooks/useMirroredState";
 import useProcessLock from "@/hooks/useProcessLock";
-import useRemoteCallback from "@/hooks/useRemoteCallback";
-import useSocketState from "@/hooks/useSocketState";
 import { HiOutlineArrowPath } from "react-icons/hi2";
 import { cn, delay, delayForSeconds } from "@/lib/utils";
 import { isToday } from "date-fns";
@@ -26,7 +26,7 @@ export default memo(function TruecoinLottery() {
   const spinMutation = useTruecoinLotteryMutation();
   const boostMutation = useTruecoin50SpinsBoost();
 
-  const [farmingSpeed, , dispatchAndSetFarmingSpeed] = useSocketState(
+  const [farmingSpeed, , dispatchAndSetFarmingSpeed] = useMirroredState(
     "truecoin.farming-speed",
     0.5
   );
@@ -34,7 +34,7 @@ export default memo(function TruecoinLottery() {
   const process = useProcessLock("truecoin.lottery");
 
   /** Handle button click */
-  const [claim50Boost, dispatchAndClaim50Boost] = useRemoteCallback(
+  const [claim50Boost, dispatchAndClaim50Boost] = useMirroredCallback(
     "truecoin.claim-50-boost",
     () => {
       return toast.promise(boostMutation.mutateAsync(), {

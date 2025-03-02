@@ -1,7 +1,7 @@
 import Slider from "@/components/Slider";
 import useFarmerAutoProcess from "@/hooks/useFarmerAutoProcess";
+import useMirroredState from "@/hooks/useMirroredState";
 import useProcessLock from "@/hooks/useProcessLock";
-import useSocketState from "@/hooks/useSocketState";
 import { cn, delayForSeconds } from "@/lib/utils";
 import { memo } from "react";
 import { useEffect, useMemo } from "react";
@@ -26,7 +26,7 @@ export default memo(function SlotcoinLottery() {
   const spinMutation = useSlotcoinLotteryMutation();
   const process = useProcessLock("slotcoin.lottery");
 
-  const [farmingSpeed, , dispatchAndSetFarmingSpeed] = useSocketState(
+  const [farmingSpeed, , dispatchAndSetFarmingSpeed] = useMirroredState(
     "slotcoin.farming-speed",
     1
   );

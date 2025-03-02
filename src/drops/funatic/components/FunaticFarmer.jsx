@@ -2,7 +2,7 @@ import * as Tabs from "@radix-ui/react-tabs";
 import toast from "react-hot-toast";
 import useFarmerAsyncTask from "@/hooks/useFarmerAsyncTask";
 import useFarmerAutoTab from "@/hooks/useFarmerAutoTab";
-import useSocketTabs from "@/hooks/useSocketTabs";
+import useMirroredTabs from "@/hooks/useMirroredTabs";
 import { cn, delay } from "@/lib/utils";
 import { memo } from "react";
 
@@ -21,7 +21,7 @@ import useFunaticSetExchangeMutation from "../hooks/useFunaticSetExchangeMutatio
 import useFunaticUserQuery from "../hooks/useFunaticUserQuery";
 
 export default memo(function FunaticFarmer() {
-  const tabs = useSocketTabs("funatic.farmer-tabs", [
+  const tabs = useMirroredTabs("funatic.farmer-tabs", [
     "game",
     "cards",
     "quests",

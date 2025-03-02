@@ -1,6 +1,6 @@
 import * as Dialog from "@radix-ui/react-dialog";
 import toast from "react-hot-toast";
-import useRemoteCallback from "@/hooks/useRemoteCallback";
+import useMirroredCallback from "@/hooks/useMirroredCallback";
 import { cn } from "@/lib/utils";
 import { memo } from "react";
 import { useState } from "react";
@@ -12,7 +12,7 @@ const defaultChoices = () => Array(4).fill("");
 export default memo(function Agent301PuzzleDialog({ onSubmit, onOpenChange }) {
   const [choices, setChoices] = useState(defaultChoices);
 
-  const [handleChoiceInput, dispatchAndHandleChoiceInput] = useRemoteCallback(
+  const [handleChoiceInput, dispatchAndHandleChoiceInput] = useMirroredCallback(
     "agent301.puzzle.input",
     (index, value) => {
       if (value && (value < 1 || value > 16)) {
@@ -27,7 +27,7 @@ export default memo(function Agent301PuzzleDialog({ onSubmit, onOpenChange }) {
     [setChoices]
   );
 
-  const [handleFormSubmit, dispatchAndHandleFormSubmit] = useRemoteCallback(
+  const [handleFormSubmit, dispatchAndHandleFormSubmit] = useMirroredCallback(
     "agent301.puzzle.submit",
     () => {
       if (choices.some((choice) => !choice)) {

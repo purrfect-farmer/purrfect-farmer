@@ -1,7 +1,7 @@
 import Slider from "@/components/Slider";
 import useFarmerAutoProcess from "@/hooks/useFarmerAutoProcess";
+import useMirroredState from "@/hooks/useMirroredState";
 import useProcessLock from "@/hooks/useProcessLock";
-import useSocketState from "@/hooks/useSocketState";
 import { cn, delayForSeconds } from "@/lib/utils";
 import { memo } from "react";
 import { useEffect } from "react";
@@ -14,7 +14,7 @@ export default memo(function PumpadLottery() {
   const drawCount = query.data?.["draw_count"] || 0;
 
   const spinMutation = usePumpadLotteryMutation();
-  const [farmingSpeed, , dispatchAndSetFarmingSpeed] = useSocketState(
+  const [farmingSpeed, , dispatchAndSetFarmingSpeed] = useMirroredState(
     "pumpad.lottery.farming-speed",
     2
   );

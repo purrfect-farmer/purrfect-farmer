@@ -2,7 +2,7 @@ import * as ContextMenu from "@radix-ui/react-context-menu";
 import * as Dialog from "@radix-ui/react-dialog";
 import toast from "react-hot-toast";
 import useAppContext from "@/hooks/useAppContext";
-import useRemoteCallback from "@/hooks/useRemoteCallback";
+import useMirroredCallback from "@/hooks/useMirroredCallback";
 import useStorageState from "@/hooks/useStorageState";
 import {
   HiOutlineListBullet,
@@ -97,7 +97,7 @@ export default memo(function FarmerLinks() {
   );
 
   /** Store Links */
-  const [, dispatchAndStoreLinks] = useRemoteCallback(
+  const [, dispatchAndStoreLinks] = useMirroredCallback(
     "app.store-links",
     storeLinks,
     [storeLinks]

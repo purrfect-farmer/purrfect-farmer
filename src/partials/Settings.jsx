@@ -8,7 +8,7 @@ import TelegramWebAIcon from "@/assets/images/telegram-web-a.png?format=webp&w=8
 import TelegramWebKIcon from "@/assets/images/telegram-web-k.png?format=webp&w=80";
 import defaultSettings from "@/core/defaultSettings";
 import useAppContext from "@/hooks/useAppContext";
-import useRemoteCallback from "@/hooks/useRemoteCallback";
+import useMirroredCallback from "@/hooks/useMirroredCallback";
 import { CgSpinner } from "react-icons/cg";
 import {
   HiOutlineArrowPath,
@@ -55,9 +55,9 @@ export default memo(function Settings({ tabs }) {
     orderedDrops,
   } = useAppContext();
 
-  /** Remote Server */
-  const [remoteControlServer, setRemoteControlServer] = useState(
-    settings.remoteControlServer || defaultSettings.remoteControlServer
+  /** Mirror Server */
+  const [mirrorServer, setMirrorServer] = useState(
+    settings.mirrorServer || defaultSettings.mirrorServer
   );
 
   /** Cloud Server */
@@ -91,10 +91,10 @@ export default memo(function Settings({ tabs }) {
     maximizeFarmerWindow();
   }, []);
 
-  /** Handle Set Remote Server */
-  const handleSetRemoteControlServer = useCallback(() => {
-    dispatchAndConfigureSettings("remoteControlServer", remoteControlServer);
-  }, [remoteControlServer, dispatchAndConfigureSettings]);
+  /** Handle Set Mirror Server */
+  const handleSetMirrorServer = useCallback(() => {
+    dispatchAndConfigureSettings("mirrorServer", mirrorServer);
+  }, [mirrorServer, dispatchAndConfigureSettings]);
 
   /** Handle Set Cloud Server */
   const handleSetCloudServer = useCallback(() => {
@@ -107,7 +107,7 @@ export default memo(function Settings({ tabs }) {
   }, [seekerServer, dispatchAndConfigureSettings]);
 
   /** Set Farmers Per Window */
-  const [, dispatchAndSetFarmersPerWindow] = useRemoteCallback(
+  const [, dispatchAndSetFarmersPerWindow] = useMirroredCallback(
     "settings.farmers-per-window",
     (amount) => {
       /** Store Settings */
@@ -142,10 +142,8 @@ export default memo(function Settings({ tabs }) {
 
   /** Update Settings */
   useLayoutEffect(() => {
-    /** Set Remote Server */
-    setRemoteControlServer(
-      settings.remoteControlServer || defaultSettings.remoteControlServer
-    );
+    /** Set Mirror Server */
+    setMirrorServer(settings.mirrorServer || defaultSettings.mirrorServer);
 
     /** Set Cloud Server */
     setCloudServer(settings.cloudServer || defaultSettings.cloudServer);
@@ -165,7 +163,7 @@ export default memo(function Settings({ tabs }) {
   }, [
     /** Deps */
     settings,
-    setRemoteControlServer,
+    setMirrorServer,
     setCloudServer,
     setSeekerServer,
     setFarmersPerWindow,
@@ -475,46 +473,38 @@ export default memo(function Settings({ tabs }) {
                       Close Main Window on Startup
                     </LabelToggle>
 
-                    {/* Remote Options */}
-                    <h4 className="mt-4 text-neutral-400">
-                      Remote Control Options
-                    </h4>
+                    {/* Mirror Options */}
+                    <h4 className="mt-4 text-neutral-400">Mirror Options</h4>
                     <LabelToggle
                       onChange={(ev) =>
                         dispatchAndConfigureSettings(
-                          "enableRemoteControl",
+                          "enableMirror",
                           ev.target.checked
                         )
                       }
-                      checked={settings?.enableRemoteControl}
+                      checked={settings?.enableMirror}
                     >
-                      Enable Remote Control
+                      Enable Mirror
                     </LabelToggle>
 
-                    {/* Remote Control Server */}
-                    <label className="text-neutral-400">
-                      Remote Control Server
-                    </label>
+                    {/* Mirror Server */}
+                    <label className="text-neutral-400">Mirror Server</label>
                     <div className="flex gap-2">
                       <Input
-                        value={remoteControlServer}
-                        onChange={(ev) =>
-                          setRemoteControlServer(ev.target.value)
-                        }
-                        placeholder="Remote Control Server"
+                        value={mirrorServer}
+                        onChange={(ev) => setMirrorServer(ev.target.value)}
+                        placeholder="Mirror Server"
                       />
 
                       {/* Reset Button */}
                       <ResetButton
                         onClick={() =>
-                          setRemoteControlServer(
-                            defaultSettings.remoteControlServer
-                          )
+                          setMirrorServer(defaultSettings.mirrorServer)
                         }
                       />
 
                       {/* Set Button */}
-                      <ConfirmButton onClick={handleSetRemoteControlServer} />
+                      <ConfirmButton onClick={handleSetMirrorServer} />
                     </div>
 
                     {/* Farmers Per Windows */}

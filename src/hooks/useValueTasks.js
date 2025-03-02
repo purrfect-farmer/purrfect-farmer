@@ -1,4 +1,4 @@
-import useRemoteCallback from "@/hooks/useRemoteCallback";
+import useMirroredCallback from "@/hooks/useMirroredCallback";
 import { useCallback } from "react";
 import { useMemo } from "react";
 import { useState } from "react";
@@ -6,7 +6,7 @@ import { useState } from "react";
 import useAppContext from "./useAppContext";
 
 export default function useValueTasks(key) {
-  const { remote } = useAppContext();
+  const { mirror } = useAppContext();
   const [valuePrompt, setValuePrompt] = useState(null);
 
   /** Get stored values */
@@ -82,7 +82,7 @@ export default function useValueTasks(key) {
   );
 
   /** Prompt Value */
-  const [, dispatchAndPrompt] = useRemoteCallback(
+  const [, dispatchAndPrompt] = useMirroredCallback(
     key + ":prompt",
     (id) =>
       new Promise((resolve, reject) => {
@@ -95,7 +95,7 @@ export default function useValueTasks(key) {
   );
 
   /** Handle value Prompt Submit */
-  const [submitPrompt, dispatchAndSubmitPrompt] = useRemoteCallback(
+  const [submitPrompt, dispatchAndSubmitPrompt] = useMirroredCallback(
     key + ":submit",
     (value) => {
       if (!valuePrompt) return;
@@ -114,7 +114,7 @@ export default function useValueTasks(key) {
       getResolvedValue(id).then((value) => {
         if (value) {
           /** Dispatch for others to store */
-          remote.dispatch({
+          mirror.dispatch({
             action: `${key}.store`,
             data: {
               id,
@@ -124,7 +124,7 @@ export default function useValueTasks(key) {
         }
       });
     },
-    [key, remote.dispatch, getResolvedValue]
+    [key, mirror.dispatch, getResolvedValue]
   );
 
   /** Store Value Request */

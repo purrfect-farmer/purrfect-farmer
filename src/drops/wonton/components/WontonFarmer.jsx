@@ -2,7 +2,7 @@ import * as Tabs from "@radix-ui/react-tabs";
 import toast from "react-hot-toast";
 import useFarmerAsyncTask from "@/hooks/useFarmerAsyncTask";
 import useFarmerAutoTab from "@/hooks/useFarmerAutoTab";
-import useSocketTabs from "@/hooks/useSocketTabs";
+import useMirroredTabs from "@/hooks/useMirroredTabs";
 import { cn, customLogger, delay } from "@/lib/utils";
 import { isAfter } from "date-fns";
 import { memo } from "react";
@@ -15,16 +15,20 @@ import WontonFarmerHeader from "./WontonFarmerHeader";
 import WontonUsernameDisplay from "./WontonUsernameDisplay";
 import useWontonClaimFarmingMutation from "../hooks/useWontonClaimFarmingMutation";
 import useWontonDailyCheckInMutation from "../hooks/useWontonDailyCheckInMutation";
+import useWontonDrawBasicBoxMutation from "../hooks/useWontonDrawBasicBoxMutation";
 import useWontonFarmingStatusQuery from "../hooks/useWontonFarmingStatusQuery";
+import useWontonPurchaseBasicBoxMutation from "../hooks/useWontonPurchaseBasicBoxMutation";
 import useWontonShopQuery from "../hooks/useWontonShopQuery";
 import useWontonStartFarmingMutation from "../hooks/useWontonStartFarmingMutation";
 import useWontonUseShopItemMutation from "../hooks/useWontonUseShopItemMutation";
 import useWontonUserQuery from "../hooks/useWontonUserQuery";
-import useWontonPurchaseBasicBoxMutation from "../hooks/useWontonPurchaseBasicBoxMutation";
-import useWontonDrawBasicBoxMutation from "../hooks/useWontonDrawBasicBoxMutation";
 
 export default memo(function WontonFarmer() {
-  const tabs = useSocketTabs("wonton.farmer-tabs", ["game", "badges", "tasks"]);
+  const tabs = useMirroredTabs("wonton.farmer-tabs", [
+    "game",
+    "badges",
+    "tasks",
+  ]);
 
   const dailyCheckInMutation = useWontonDailyCheckInMutation();
 

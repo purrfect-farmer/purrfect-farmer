@@ -2,8 +2,8 @@ import Countdown from "react-countdown";
 import toast from "react-hot-toast";
 import useAppContext from "@/hooks/useAppContext";
 import useFarmerAutoProcess from "@/hooks/useFarmerAutoProcess";
+import useMirroredState from "@/hooks/useMirroredState";
 import useProcessLock from "@/hooks/useProcessLock";
-import useSocketState from "@/hooks/useSocketState";
 import { customLogger, delay, extraGamePoints, uuid } from "@/lib/utils";
 import { memo } from "react";
 import { useCallback } from "react";
@@ -36,7 +36,7 @@ export default memo(function BlumAutoGamer({ workerRef }) {
 
   const [countdown, setCountdown] = useState(null);
   const [desiredPoint, setDesiredPoint, dispatchAndSetDesiredPoint] =
-    useSocketState("blum.game.desired-point", INITIAL_POINT);
+    useMirroredState("blum.game.desired-point", INITIAL_POINT);
 
   const tickets = query.data?.playPasses || 0;
   const points = useMemo(

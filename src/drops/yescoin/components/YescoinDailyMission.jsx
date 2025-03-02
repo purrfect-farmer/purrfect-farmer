@@ -1,7 +1,7 @@
 import toast from "react-hot-toast";
 import useFarmerAutoProcess from "@/hooks/useFarmerAutoProcess";
+import useMirroredCallback from "@/hooks/useMirroredCallback";
 import useProcessLock from "@/hooks/useProcessLock";
-import useRemoteCallback from "@/hooks/useRemoteCallback";
 import { CgSpinner } from "react-icons/cg";
 import { cn, delay } from "@/lib/utils";
 import { memo } from "react";
@@ -75,7 +75,7 @@ export default memo(function YescoinDailyMission() {
     );
   }, []);
 
-  const [claimMission, dispatchAndClaimMission] = useRemoteCallback(
+  const [claimMission, dispatchAndClaimMission] = useMirroredCallback(
     "yescoin.claim-mission",
     async (id) => {
       if (

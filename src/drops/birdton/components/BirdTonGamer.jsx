@@ -3,8 +3,8 @@ import toast from "react-hot-toast";
 import useAppContext from "@/hooks/useAppContext";
 import useFarmerAutoProcess from "@/hooks/useFarmerAutoProcess";
 import useFarmerContext from "@/hooks/useFarmerContext";
+import useMirroredState from "@/hooks/useMirroredState";
 import useProcessLock from "@/hooks/useProcessLock";
-import useSocketState from "@/hooks/useSocketState";
 import useSyncedRef from "@/hooks/useSyncedRef";
 import { cn, delay, delayForSeconds, extraGamePoints } from "@/lib/utils";
 import { memo } from "react";
@@ -33,7 +33,7 @@ export default memo(function BirdTonGamer() {
   const [createGameCallback, setCreateGameCallback] = useState(null);
   const [saveGameCallback, setSaveGameCallback] = useState(null);
 
-  const [farmingSpeed, , dispatchAndSetFarmingSpeed] = useSocketState(
+  const [farmingSpeed, , dispatchAndSetFarmingSpeed] = useMirroredState(
     "birdton.farming-speed",
     2
   );
@@ -47,7 +47,7 @@ export default memo(function BirdTonGamer() {
 
   const [gameId, setGameId] = useState(null);
   const [desiredPoint, setDesiredPoint, dispatchAndSetDesiredPoint] =
-    useSocketState("birdton.game.desired-point", INITIAL_POINT);
+    useMirroredState("birdton.game.desired-point", INITIAL_POINT);
 
   const perGamePoints = useMemo(
     () =>

@@ -2,7 +2,7 @@ import * as Tabs from "@radix-ui/react-tabs";
 import toast from "react-hot-toast";
 import useFarmerAsyncTask from "@/hooks/useFarmerAsyncTask";
 import useFarmerAutoTab from "@/hooks/useFarmerAutoTab";
-import useSocketTabs from "@/hooks/useSocketTabs";
+import useMirroredTabs from "@/hooks/useMirroredTabs";
 import { cn, delay } from "@/lib/utils";
 import { memo } from "react";
 
@@ -20,7 +20,7 @@ import useBlumFriendsBalanceQuery from "../hooks/useBlumFriendsBalanceQuery";
 import useBlumStartFarmingMutation from "../hooks/useBlumStartFarmingMutation";
 
 export default memo(function BlumFarmer() {
-  const tabs = useSocketTabs("blum.farmer-tabs", ["game", "tasks"]);
+  const tabs = useMirroredTabs("blum.farmer-tabs", ["game", "tasks"]);
   const balanceQuery = useBlumBalanceQuery();
 
   const dailyRewardQuery = useBlumDailyRewardQuery();

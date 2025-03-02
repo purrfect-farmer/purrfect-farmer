@@ -4,9 +4,14 @@ import { useMemo } from "react";
 
 import useAppContext from "./useAppContext";
 
-export default function useRemoteCallback(action, callback, deps = [], remote) {
+export default function useMirroredCallback(
+  action,
+  callback,
+  deps = [],
+  mirror
+) {
   const app = useAppContext();
-  const remoteToUse = remote || app?.remote;
+  const mirrorToUse = mirror || app?.mirror;
 
   /** Main Callback */
   const main = useCallback(callback, deps);
@@ -14,14 +19,14 @@ export default function useRemoteCallback(action, callback, deps = [], remote) {
   /** Dispatch Callback */
   const dispatch = useCallback(
     (...args) => {
-      remoteToUse.dispatch({
+      mirrorToUse.dispatch({
         action,
         data: args,
       });
 
       return main(...args);
     },
-    [remoteToUse, action, main]
+    [mirrorToUse, action, main]
   );
 
   /** Add Handler */
@@ -30,11 +35,11 @@ export default function useRemoteCallback(action, callback, deps = [], remote) {
     const handler = (command) => main(...command.data);
 
     /** Add Handler */
-    remoteToUse.handler.on(action, handler);
+    mirrorToUse.handler.on(action, handler);
 
     /** Remove Handler */
-    return () => remoteToUse.handler.off(action, handler);
-  }, [remoteToUse.handler, action, main]);
+    return () => mirrorToUse.handler.off(action, handler);
+  }, [mirrorToUse.handler, action, main]);
 
   return useMemo(() => [main, dispatch], [main, dispatch]);
 }

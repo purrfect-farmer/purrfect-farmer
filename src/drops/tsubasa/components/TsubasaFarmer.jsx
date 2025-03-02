@@ -3,7 +3,7 @@ import toast from "react-hot-toast";
 import useFarmerAsyncTask from "@/hooks/useFarmerAsyncTask";
 import useFarmerAutoTab from "@/hooks/useFarmerAutoTab";
 import useFarmerContext from "@/hooks/useFarmerContext";
-import useSocketTabs from "@/hooks/useSocketTabs";
+import useMirroredTabs from "@/hooks/useMirroredTabs";
 import { cn } from "@/lib/utils";
 import { isToday } from "date-fns";
 import { memo } from "react";
@@ -15,7 +15,7 @@ import TsubasaTasks from "./TsubasaTasks";
 import useTsubasaClaimDailyRewardMutation from "../hooks/useTsubasaClaimDailyRewardMutation";
 
 export default memo(function TsubasaFarmer() {
-  const tabs = useSocketTabs("tsubasa.farmer-tabs", ["cards", "tasks"]);
+  const tabs = useMirroredTabs("tsubasa.farmer-tabs", ["cards", "tasks"]);
   const { authQuery } = useFarmerContext();
   const claimDailyRewardMutation = useTsubasaClaimDailyRewardMutation();
 

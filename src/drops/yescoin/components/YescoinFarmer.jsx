@@ -1,9 +1,10 @@
 import * as Tabs from "@radix-ui/react-tabs";
 import useFarmerAutoTab from "@/hooks/useFarmerAutoTab";
-import useSocketTabs from "@/hooks/useSocketTabs";
+import useMirroredTabs from "@/hooks/useMirroredTabs";
 import { CgSpinner } from "react-icons/cg";
 import { cn } from "@/lib/utils";
 import { memo } from "react";
+
 import YescoinBalanceDisplay from "./YescoinBalanceDisplay";
 import YescoinDailyMission from "./YescoinDailyMission";
 import YescoinIcon from "../assets/images/icon.png?format=webp&w=80";
@@ -16,7 +17,7 @@ import useYescoinTaskBonusClaim from "../hooks/useYescoinTaskBonusClaim";
 
 export default memo(function YescoinFarmer() {
   const accountInfoQuery = useYescoinAccountInfoQuery();
-  const tabs = useSocketTabs("yescoin.farmer-tabs", ["missions", "tasks"]);
+  const tabs = useMirroredTabs("yescoin.farmer-tabs", ["missions", "tasks"]);
 
   useYescoinDailyCheckIn();
   useYescoinSpecialBoxClaim();

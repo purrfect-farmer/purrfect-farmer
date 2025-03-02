@@ -2,25 +2,25 @@ import * as Tabs from "@radix-ui/react-tabs";
 import toast from "react-hot-toast";
 import useFarmerAsyncTask from "@/hooks/useFarmerAsyncTask";
 import useFarmerAutoTab from "@/hooks/useFarmerAutoTab";
-import useSocketTabs from "@/hooks/useSocketTabs";
+import useMirroredTabs from "@/hooks/useMirroredTabs";
 import { cn } from "@/lib/utils";
 import { memo } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 
 import MidasAutoGamer from "./MidasAutoGamer";
 import MidasAutoTasks from "./MidasAutoTasks";
 import MidasBalanceDisplay from "./MidasBalanceDisplay";
 import MidasFarmerHeader from "./MidasFarmerHeader";
 import MidasUsernameDisplay from "./MidasUsernameDisplay";
-import useMidasDailyCheckInMutation from "../hooks/useMidasDailyCheckInMutation";
-import useMidasStreakQuery from "../hooks/useMidasStreakQuery";
-import { useQueryClient } from "@tanstack/react-query";
-import useMidasVisitMutation from "../hooks/useMidasVisitMutation";
-import useMidasUserQuery from "../hooks/useMidasUserQuery";
-import useMidasReferralStatusQuery from "../hooks/useMidasReferralStatusQuery";
 import useMidasClaimReferralRewardsMutation from "../hooks/useMidasClaimReferralRewardsMutation";
+import useMidasDailyCheckInMutation from "../hooks/useMidasDailyCheckInMutation";
+import useMidasReferralStatusQuery from "../hooks/useMidasReferralStatusQuery";
+import useMidasStreakQuery from "../hooks/useMidasStreakQuery";
+import useMidasUserQuery from "../hooks/useMidasUserQuery";
+import useMidasVisitMutation from "../hooks/useMidasVisitMutation";
 
 export default memo(function MidasFarmer() {
-  const tabs = useSocketTabs("midas.farmer-tabs", ["game", "tasks"]);
+  const tabs = useMirroredTabs("midas.farmer-tabs", ["game", "tasks"]);
   const queryClient = useQueryClient();
 
   const userQuery = useMidasUserQuery();

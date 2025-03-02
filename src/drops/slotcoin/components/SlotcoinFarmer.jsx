@@ -2,7 +2,7 @@ import * as Tabs from "@radix-ui/react-tabs";
 import toast from "react-hot-toast";
 import useFarmerAsyncTask from "@/hooks/useFarmerAsyncTask";
 import useFarmerAutoTab from "@/hooks/useFarmerAutoTab";
-import useSocketTabs from "@/hooks/useSocketTabs";
+import useMirroredTabs from "@/hooks/useMirroredTabs";
 import { cn } from "@/lib/utils";
 import { memo } from "react";
 
@@ -20,7 +20,7 @@ export default memo(function SlotcoinFarmer() {
   const checkInQuery = useSlotcoinCheckInInfoQuery();
   const checkInMutation = useSlotcoinCheckInMutation();
 
-  const tabs = useSocketTabs("slotcoin.farmer-tabs", [
+  const tabs = useMirroredTabs("slotcoin.farmer-tabs", [
     "lottery",
     "tickets",
     "quests",

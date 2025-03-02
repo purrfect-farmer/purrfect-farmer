@@ -16,8 +16,8 @@ import axios from "axios";
 import defaultSettings from "@/core/defaultSettings";
 import useAppContext from "@/hooks/useAppContext";
 import useAppQuery from "@/hooks/useAppQuery";
-import useSocketState from "@/hooks/useSocketState";
-import useSocketTabs from "@/hooks/useSocketTabs";
+import useMirroredState from "@/hooks/useMirroredState";
+import useMirroredTabs from "@/hooks/useMirroredTabs";
 import { CgSpinner } from "react-icons/cg";
 import {
   HiOutlineArrowPath,
@@ -83,16 +83,16 @@ export default memo(function Welcome() {
     showSettingsPanel,
     setShowSettingsPanel,
     dispatchAndSetShowSettingsPanel,
-  ] = useSocketState("app.toggle-settings-panel", false);
+  ] = useMirroredState("app.toggle-settings-panel", false);
 
   const [showLinksPanel, setShowLinksPanel, dispatchAndSetShowLinksPanel] =
-    useSocketState("app.toggle-links-panel", false);
+    useMirroredState("app.toggle-links-panel", false);
 
   const {
     farmers,
     drops,
     settings,
-    remote,
+    mirror,
     telegramUser,
     openNewTab,
     openExtensionsPage,
@@ -104,9 +104,9 @@ export default memo(function Welcome() {
     dispatchAndOpenTelegramBot,
   } = useAppContext();
 
-  const tabs = useSocketTabs("app", ["farmers", "bots"]);
+  const tabs = useMirroredTabs("app", ["farmers", "bots"]);
 
-  const settingTabs = useSocketTabs("app.settings-tabs", [
+  const settingTabs = useMirroredTabs("app.settings-tabs", [
     "settings",
     "farmers",
     "seeker",
@@ -172,7 +172,7 @@ export default memo(function Welcome() {
     <>
       {/* Settings and New Window Button */}
       <div className="p-2 shrink-0">
-        <div className="flex gap-1 justify-between w-full mx-auto max-w-96 overflow-auto">
+        <div className="flex justify-between w-full gap-1 mx-auto overflow-auto max-w-96">
           <div className="flex gap-1">
             {/* Shutdown */}
             <Dialog.Root>
@@ -242,12 +242,12 @@ export default memo(function Welcome() {
           <img src={WelcomeIcon} className="mx-auto h-28" />
 
           {/* App Title */}
-          <h3 className="text-2xl text-center font-turret-road leading-none">
+          <h3 className="text-2xl leading-none text-center font-turret-road">
             {import.meta.env.VITE_APP_NAME}
           </h3>
 
           {/* App Version */}
-          <p className="text-lg text-center leading-none">
+          <p className="text-lg leading-none text-center">
             <span
               className={cn(
                 "font-turret-road",
@@ -263,7 +263,7 @@ export default memo(function Welcome() {
           {/* Farmer Title */}
           <p
             onClick={configureAppSettings}
-            className="font-bold text-center text-blue-500 cursor-pointer leading-none"
+            className="font-bold leading-none text-center text-blue-500 cursor-pointer"
           >
             {settings.farmerTitle || defaultSettings.farmerTitle}
           </p>
@@ -271,16 +271,16 @@ export default memo(function Welcome() {
           {/* Cloud Status */}
           <CloudStatus />
 
-          {/* Remote Control Status */}
-          {settings.enableRemoteControl ? (
+          {/* Mirror Status */}
+          {settings.enableMirror ? (
             <p
               className={cn(
                 "text-center flex items-center justify-center gap-2",
-                remote.connected ? "text-green-500" : "text-red-500"
+                mirror.connected ? "text-green-500" : "text-red-500"
               )}
             >
-              <RiRemoteControlLine className="w-4 h-4" /> Remote:{" "}
-              {remote.connected ? "Connected" : "Disconnected"}
+              <RiRemoteControlLine className="w-4 h-4" /> Mirror:{" "}
+              {mirror.connected ? "Connected" : "Disconnected"}
             </p>
           ) : null}
 

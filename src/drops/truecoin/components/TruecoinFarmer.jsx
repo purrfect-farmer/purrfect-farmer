@@ -3,7 +3,7 @@ import toast from "react-hot-toast";
 import useFarmerAsyncTask from "@/hooks/useFarmerAsyncTask";
 import useFarmerAutoTab from "@/hooks/useFarmerAutoTab";
 import useFarmerContext from "@/hooks/useFarmerContext";
-import useSocketTabs from "@/hooks/useSocketTabs";
+import useMirroredTabs from "@/hooks/useMirroredTabs";
 import { cn } from "@/lib/utils";
 import { isToday } from "date-fns";
 import { memo } from "react";
@@ -27,7 +27,7 @@ export default memo(function TruecoinFarmer() {
   const lastDailyRewardQuery = useTruecoinLastDailyRewardQuery();
   const collectDailyRewardMutation = useTruecoinCollectDailyRewardMutation();
 
-  const tabs = useSocketTabs("truecoin.farmer-tabs", ["lottery", "tasks"]);
+  const tabs = useMirroredTabs("truecoin.farmer-tabs", ["lottery", "tasks"]);
 
   /** Daily-Check-In */
   useFarmerAsyncTask(

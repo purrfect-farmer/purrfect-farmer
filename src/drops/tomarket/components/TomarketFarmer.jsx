@@ -3,7 +3,7 @@ import toast from "react-hot-toast";
 import useFarmerAsyncTask from "@/hooks/useFarmerAsyncTask";
 import useFarmerAutoTab from "@/hooks/useFarmerAutoTab";
 import useFarmerContext from "@/hooks/useFarmerContext";
-import useSocketTabs from "@/hooks/useSocketTabs";
+import useMirroredTabs from "@/hooks/useMirroredTabs";
 import { cn, delay } from "@/lib/utils";
 import { isAfter } from "date-fns";
 import { memo } from "react";
@@ -21,7 +21,7 @@ import useTomarketStartFarmingMutation from "../hooks/useTomarketStartFarmingMut
 export default memo(function TomarketFarmer() {
   const { tomarket } = useFarmerContext();
 
-  const tabs = useSocketTabs("tomarket.farmer-tabs", ["game", "tickets"]);
+  const tabs = useMirroredTabs("tomarket.farmer-tabs", ["game", "tickets"]);
 
   const farmingInfoQuery = useTomarketFarmingInfoQuery();
   const dailyCheckInMutation = useTomarketDailyCheckInMutation();

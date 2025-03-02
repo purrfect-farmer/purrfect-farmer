@@ -2,7 +2,7 @@ import * as Tabs from "@radix-ui/react-tabs";
 import toast from "react-hot-toast";
 import useFarmerAsyncTask from "@/hooks/useFarmerAsyncTask";
 import useFarmerAutoTab from "@/hooks/useFarmerAutoTab";
-import useSocketTabs from "@/hooks/useSocketTabs";
+import useMirroredTabs from "@/hooks/useMirroredTabs";
 import { cn, delay } from "@/lib/utils";
 import { isAfter } from "date-fns";
 import { memo } from "react";
@@ -22,7 +22,7 @@ import useMatchQuestStartFarmingMutation from "../hooks/useMatchQuestStartFarmin
 import useMatchQuestUserQuery from "../hooks/useMatchQuestUserQuery";
 
 export default memo(function MatchQuestFarmer() {
-  const tabs = useSocketTabs("matchquest.farmer-tabs", ["game", "tasks"]);
+  const tabs = useMirroredTabs("matchquest.farmer-tabs", ["game", "tasks"]);
 
   const startFarmingMutation = useMatchQuestStartFarmingMutation();
   const claimFarmingMutation = useMatchQuestClaimFarmingMutation();

@@ -1,12 +1,13 @@
 import toast from "react-hot-toast";
 import useFarmerAutoProcess from "@/hooks/useFarmerAutoProcess";
 import useFarmerContext from "@/hooks/useFarmerContext";
+import useMirroredCallback from "@/hooks/useMirroredCallback";
 import useProcessLock from "@/hooks/useProcessLock";
-import useRemoteCallback from "@/hooks/useRemoteCallback";
 import { SlWallet } from "react-icons/sl";
 import { cn } from "@/lib/utils";
 import { memo, useMemo } from "react";
 import { useEffect } from "react";
+
 import useGoldEagleClaimMutation from "../hooks/useGoldEagleClaimMutation";
 import useGoldEagleTapMutation from "../hooks/useGoldEagleTapMutation";
 import useGoldEagleTasksQuery from "../hooks/useGoldEagleTasksQuery";
@@ -35,7 +36,7 @@ export default memo(function GoldEagleGamer() {
   const energy = query.data?.["energy"] || 0;
   const weight = query.data?.["tap_weight"] || 0;
 
-  const [, dispatchAndClaim] = useRemoteCallback(
+  const [, dispatchAndClaim] = useMirroredCallback(
     "gold-eagle.claim",
     () => {
       toast

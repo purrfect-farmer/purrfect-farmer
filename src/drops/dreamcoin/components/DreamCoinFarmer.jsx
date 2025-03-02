@@ -2,25 +2,25 @@ import * as Tabs from "@radix-ui/react-tabs";
 import toast from "react-hot-toast";
 import useFarmerAsyncTask from "@/hooks/useFarmerAsyncTask";
 import useFarmerAutoTab from "@/hooks/useFarmerAutoTab";
-import useSocketTabs from "@/hooks/useSocketTabs";
-import { cn, delay, customLogger } from "@/lib/utils";
+import useMirroredTabs from "@/hooks/useMirroredTabs";
+import { cn, customLogger, delay } from "@/lib/utils";
 import { memo } from "react";
+import { useState } from "react";
 
 import DreamCoinIcon from "../assets/images/icon.png?format=webp&w=80";
 import DreamCoinInfoDisplay from "./DreamCoinInfoDisplay";
 import DreamCoinLottery from "./DreamCoinLottery";
 import DreamCoinRewards from "./DreamCoinRewards";
 import useDreamCoinClaimDailyTaskMutation from "../hooks/useDreamCoinClaimDailyTaskMutation";
+import useDreamCoinCollectClickerRewardMutation from "../hooks/useDreamCoinCollectClickerRewardMutation";
 import useDreamCoinDailyTasksQuery from "../hooks/useDreamCoinDailyTasksQuery";
 import useDreamCoinGetCaseMutation from "../hooks/useDreamCoinGetCaseMutation";
 import useDreamCoinOpenCaseMutation from "../hooks/useDreamCoinOpenCaseMutation";
 import useDreamCoinUpgradeAllLevelMutation from "../hooks/useDreamCoinUpgradeAllLevelMutation";
 import useDreamCoinUserQuery from "../hooks/useDreamCoinUserQuery";
-import useDreamCoinCollectClickerRewardMutation from "../hooks/useDreamCoinCollectClickerRewardMutation";
-import { useState } from "react";
 
 export default memo(function DreamCoinFarmer() {
-  const tabs = useSocketTabs("dreamcoin.farmer-tabs", ["lottery", "rewards"]);
+  const tabs = useMirroredTabs("dreamcoin.farmer-tabs", ["lottery", "rewards"]);
 
   const userQuery = useDreamCoinUserQuery();
   const dailyTasksQuery = useDreamCoinDailyTasksQuery();

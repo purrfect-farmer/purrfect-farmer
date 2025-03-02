@@ -1,6 +1,6 @@
 import * as Tabs from "@radix-ui/react-tabs";
 import useFarmerAutoTab from "@/hooks/useFarmerAutoTab";
-import useSocketTabs from "@/hooks/useSocketTabs";
+import useMirroredTabs from "@/hooks/useMirroredTabs";
 import { cn } from "@/lib/utils";
 import { memo } from "react";
 
@@ -10,7 +10,7 @@ import CEXInfoDisplay from "./CEXInfoDisplay";
 import CEXTasks from "./CEXTasks";
 
 export default memo(function CEXFarmer() {
-  const tabs = useSocketTabs("cex.farmer-tabs", ["cards", "tasks"]);
+  const tabs = useMirroredTabs("cex.farmer-tabs", ["cards", "tasks"]);
 
   /** Switch Tab Automatically */
   useFarmerAutoTab(tabs);

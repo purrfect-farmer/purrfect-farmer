@@ -1,8 +1,8 @@
 import Slider from "@/components/Slider";
 import toast from "react-hot-toast";
 import useFarmerAutoProcess from "@/hooks/useFarmerAutoProcess";
+import useMirroredState from "@/hooks/useMirroredState";
 import useProcessLock from "@/hooks/useProcessLock";
-import useSocketState from "@/hooks/useSocketState";
 import { cn, customLogger, delayForSeconds } from "@/lib/utils";
 import { memo } from "react";
 import { useEffect, useMemo } from "react";
@@ -41,7 +41,7 @@ export default memo(function DreamCoinLottery() {
   const openCaseMutation = useDreamCoinOpenCaseMutation();
   const process = useProcessLock("dreamcoin.lottery");
 
-  const [farmingSpeed, , dispatchAndSetFarmingSpeed] = useSocketState(
+  const [farmingSpeed, , dispatchAndSetFarmingSpeed] = useMirroredState(
     "dreamcoin.farming-speed",
     1
   );

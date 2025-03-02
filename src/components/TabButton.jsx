@@ -6,8 +6,8 @@ import { useEffect } from "react";
 
 export default memo(function TabButton({
   tab,
-  showRemoteStatus,
-  remoteIsConnected,
+  showMirrorStatus,
+  mirrorIsConnected,
 }) {
   const { dispatchAndCloseTab, dispatchAndSetActiveTab, reloadTab } =
     useAppContext();
@@ -67,7 +67,7 @@ export default memo(function TabButton({
       {/* Icon */}
       <div className="relative shrink-0">
         <img src={tab.icon} className="rounded-full w-7 h-7" />
-        {showRemoteStatus ? (
+        {showMirrorStatus ? (
           <span
             className={cn(
               "absolute inset-0",
@@ -80,7 +80,7 @@ export default memo(function TabButton({
               "after:border-2 after:border-white",
               "after:p-1",
               "after:rounded-full",
-              remoteIsConnected ? "after:bg-green-500" : "after:bg-red-500"
+              mirrorIsConnected ? "after:bg-green-500" : "after:bg-red-500"
             )}
           ></span>
         ) : null}

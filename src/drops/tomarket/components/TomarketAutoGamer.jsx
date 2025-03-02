@@ -1,8 +1,9 @@
 import Countdown from "react-countdown";
 import toast from "react-hot-toast";
+import useAppContext from "@/hooks/useAppContext";
 import useFarmerAutoProcess from "@/hooks/useFarmerAutoProcess";
+import useMirroredState from "@/hooks/useMirroredState";
 import useProcessLock from "@/hooks/useProcessLock";
-import useSocketState from "@/hooks/useSocketState";
 import { delay } from "@/lib/utils";
 import { memo } from "react";
 import { useCallback, useEffect, useMemo } from "react";
@@ -13,7 +14,6 @@ import TomarketInput from "./TomarketInput";
 import useTomarketBalanceQuery from "../hooks/useTomarketBalanceQuery";
 import useTomarketClaimGameMutation from "../hooks/useTomarketClaimGameMutation";
 import useTomarketStartGameMutation from "../hooks/useTomarketStartGameMutation";
-import useAppContext from "@/hooks/useAppContext";
 
 const GAME_DURATION = 30_000;
 const EXTRA_DELAY = 3_000;
@@ -27,7 +27,7 @@ export default memo(function Tomarket({ tomarket }) {
   const process = useProcessLock("tomarket.game");
   const [countdown, setCountdown] = useState(null);
   const [desiredPoint, setDesiredPoint, dispatchAndSetDesiredPoint] =
-    useSocketState("tomarket.game.desired-point", INITIAL_POINT);
+    useMirroredState("tomarket.game.desired-point", INITIAL_POINT);
 
   const tickets = query.data?.["play_passes"] || 0;
   const points = useMemo(

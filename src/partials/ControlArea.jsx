@@ -2,10 +2,9 @@ import * as ContextMenu from "@radix-ui/react-context-menu";
 import * as Dialog from "@radix-ui/react-dialog";
 import AppIcon from "@/assets/images/icon.png?format=webp&w=56&h=56";
 import CoreSystemIcon from "@/assets/images/core-system.png?format=webp&w=128";
-import RemoteControl from "@/partials/RemoteControl";
 import UtilsPanel from "@/partials/UtilsPanel";
 import useAppContext from "@/hooks/useAppContext";
-import useSocketState from "@/hooks/useSocketState";
+import useMirroredState from "@/hooks/useMirroredState";
 import { FaFire, FaPaw } from "react-icons/fa6";
 import {
   HiOutlineArrowPath,
@@ -15,10 +14,11 @@ import {
 } from "react-icons/hi2";
 import { cn } from "@/lib/utils";
 import { memo } from "react";
+import Mirror from "./Mirror";
 
 export default memo(function ControlArea() {
   const { zoomies, settings, setActiveTab } = useAppContext();
-  const [showUtils, setShowUtils, dispatchAndSetShowUtils] = useSocketState(
+  const [showUtils, setShowUtils, dispatchAndSetShowUtils] = useMirroredState(
     "app.toggle-utils-panel",
     false
   );
@@ -159,11 +159,11 @@ export default memo(function ControlArea() {
           </ContextMenu.Portal>
         </ContextMenu.Root>
 
-        {/* Remote Control */}
-        {settings.enableRemoteControl ? (
-          <RemoteControl />
+        {/* Mirror */}
+        {settings.enableMirror ? (
+          <Mirror />
         ) : (
-          <div className="flex items-center justify-center gap-2 px-2 grow min-w-0 min-h-0">
+          <div className="flex items-center justify-center min-w-0 min-h-0 gap-2 px-2 grow">
             <img className="shrink-0 size-7" src={AppIcon} />{" "}
             {import.meta.env.VITE_APP_NAME}
           </div>

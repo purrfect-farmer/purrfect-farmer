@@ -16,7 +16,6 @@ export default memo(function UtilsPanel({ onOpenChange }) {
     dispatchAndJoinTelegramLink,
   } = useAppContext();
 
-  /** Remote Server */
   const [telegramLink, setTelegramLink] = useState("");
 
   return (
@@ -68,7 +67,7 @@ export default memo(function UtilsPanel({ onOpenChange }) {
               </LabelToggle>
 
               {/* Open Telegram Link */}
-              <label className="text-neutral-400 mt-2">
+              <label className="mt-2 text-neutral-400">
                 Open Telegram Link
               </label>
               <div className="flex gap-2">

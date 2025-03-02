@@ -1,15 +1,15 @@
 import * as Tabs from "@radix-ui/react-tabs";
 import useFarmerAutoTab from "@/hooks/useFarmerAutoTab";
-import useSocketTabs from "@/hooks/useSocketTabs";
+import useMirroredTabs from "@/hooks/useMirroredTabs";
 import { cn } from "@/lib/utils";
 import { memo } from "react";
 
 import GoldEagleBalanceDisplay from "./GoldEagleBalanceDisplay";
-import GoldEagleIcon from "../assets/images/icon.png?format=webp&w=80";
 import GoldEagleGamer from "./GoldEagleGamer";
+import GoldEagleIcon from "../assets/images/icon.png?format=webp&w=80";
 
 export default memo(function GoldEagleFarmer() {
-  const tabs = useSocketTabs("gold-eagle.farmer-tabs", ["game"]);
+  const tabs = useMirroredTabs("gold-eagle.farmer-tabs", ["game"]);
 
   /** Automatically Switch Tab */
   useFarmerAutoTab(tabs);

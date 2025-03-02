@@ -1,6 +1,6 @@
 import * as Tabs from "@radix-ui/react-tabs";
 import useFarmerAutoTab from "@/hooks/useFarmerAutoTab";
-import useSocketTabs from "@/hooks/useSocketTabs";
+import useMirroredTabs from "@/hooks/useMirroredTabs";
 import { CgSpinner } from "react-icons/cg";
 import { cn } from "@/lib/utils";
 import { memo } from "react";
@@ -18,7 +18,7 @@ export default memo(function () {
   const dataQueries = useHrumDataQueries();
 
   const hero = dataQueries.data?.[0]?.hero;
-  const tabs = useSocketTabs("hrum.farmer-tabs", ["daily", "tasks"]);
+  const tabs = useMirroredTabs("hrum.farmer-tabs", ["daily", "tasks"]);
 
   /** Run Daily Claim */
   useHrumDailyClaim();

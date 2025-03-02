@@ -4,9 +4,9 @@ import { useMemo } from "react";
 import { useRef } from "react";
 import { useState } from "react";
 
-import useRemoteCallback from "./useRemoteCallback";
+import useMirroredCallback from "./useMirroredCallback";
 
-export default function useProcessLock(key, remote) {
+export default function useProcessLock(key, mirror) {
   const controllerRef = useRef();
   const [process, setProcess] = useState({
     started: false,
@@ -20,7 +20,7 @@ export default function useProcessLock(key, remote) {
   );
 
   /** Start Process */
-  const [start, dispatchAndStart] = useRemoteCallback(
+  const [start, dispatchAndStart] = useMirroredCallback(
     key + ":start",
     (callback) => {
       setProcess((prev) => {
@@ -45,12 +45,12 @@ export default function useProcessLock(key, remote) {
     },
     [setProcess],
 
-    /** Remote */
-    remote
+    /** Mirror */
+    mirror
   );
 
   /** Stop Process */
-  const [stop, dispatchAndStop] = useRemoteCallback(
+  const [stop, dispatchAndStop] = useMirroredCallback(
     key + ":stop",
     (callback) => {
       setProcess((prev) => {
@@ -75,12 +75,12 @@ export default function useProcessLock(key, remote) {
     },
     [setProcess],
 
-    /** Remote */
-    remote
+    /** Mirror */
+    mirror
   );
 
   /** Toggle */
-  const [toggle, dispatchAndToggle] = useRemoteCallback(
+  const [toggle, dispatchAndToggle] = useMirroredCallback(
     key + ":toggle",
     (status) => {
       if (typeof status === "boolean") {
@@ -93,8 +93,8 @@ export default function useProcessLock(key, remote) {
     },
     [process.started, start, stop],
 
-    /** Remote */
-    remote
+    /** Mirror */
+    mirror
   );
 
   /** Lock Process */

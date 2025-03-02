@@ -5,8 +5,8 @@ import { useLayoutEffect } from "react";
 import { useMemo } from "react";
 import { useState } from "react";
 
+import useMirroredCallback from "./useMirroredCallback";
 import useProcessLock from "./useProcessLock";
-import useRemoteCallback from "./useRemoteCallback";
 import useStorageState from "./useStorageState";
 import useValuesMemo from "./useValuesMemo";
 
@@ -20,7 +20,7 @@ export default function useZoomies(core) {
   } = useStorageState("zoomiesState", defaultZoomiesState);
 
   /** Process */
-  const process = useProcessLock("zoomies", core.remote);
+  const process = useProcessLock("zoomies", core.mirror);
 
   /** Auth */
   const [auth, setAuth] = useState(false);
@@ -88,7 +88,7 @@ export default function useZoomies(core) {
   }, [setAuth, current.drop?.id, core.closeFarmerTabs, core.setActiveTab]);
 
   /** Toggle Zoomies */
-  const [toggle, dispatchAndToggle] = useRemoteCallback(
+  const [toggle, dispatchAndToggle] = useMirroredCallback(
     "zoomies.enable-zoomies",
     (state = true, quick = false) => {
       setQuickRun(quick);
@@ -96,12 +96,12 @@ export default function useZoomies(core) {
     },
     [setQuickRun, process.toggle],
 
-    /** Remote */
-    core.remote
+    /** Mirror */
+    core.mirror
   );
 
   /** Refresh Zoomies */
-  const [refresh, dispatchAndRefresh] = useRemoteCallback(
+  const [refresh, dispatchAndRefresh] = useMirroredCallback(
     "zoomies.refresh",
     () => {
       setCurrent(() => {
@@ -114,8 +114,8 @@ export default function useZoomies(core) {
     },
     [drops, setCurrent],
 
-    /** Remote */
-    core.remote
+    /** Mirror */
+    core.mirror
   );
 
   /** Skip to Next Drop */

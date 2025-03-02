@@ -1,23 +1,23 @@
 import * as Tabs from "@radix-ui/react-tabs";
+import toast from "react-hot-toast";
 import useFarmerAsyncTask from "@/hooks/useFarmerAsyncTask";
 import useFarmerAutoTab from "@/hooks/useFarmerAutoTab";
-import useSocketTabs from "@/hooks/useSocketTabs";
+import useMirroredTabs from "@/hooks/useMirroredTabs";
 import { cn, delay } from "@/lib/utils";
 import { memo } from "react";
+import { useMemo } from "react";
 
 import HorseGoAutoGame from "./HorseGoAutoGame";
 import HorseGoBalanceDisplay from "./HorseGoBalanceDisplay";
 import HorseGoFarmerHeader from "./HorseGoFarmerHeader";
 import HorseGoUsernameDisplay from "./HorseGoUsernameDisplay";
+import useHorseGoCompleteTaskMutation from "../hooks/useHorseGoCompleteTaskMutation";
+import useHorseGoDailySignInMutation from "../hooks/useHorseGoDailySignInMutation";
 import useHorseGoTasksQuery from "../hooks/useHorseGoTasksQuery";
 import useHorseGoUserQuery from "../hooks/useHorseGoUserQuery";
-import { useMemo } from "react";
-import useHorseGoCompleteTaskMutation from "../hooks/useHorseGoCompleteTaskMutation";
-import toast from "react-hot-toast";
-import useHorseGoDailySignInMutation from "../hooks/useHorseGoDailySignInMutation";
 
 export default memo(function HorseGoFarmer() {
-  const tabs = useSocketTabs("horse-go.farmer-tabs", ["game"]);
+  const tabs = useMirroredTabs("horse-go.farmer-tabs", ["game"]);
   const tasksQuery = useHorseGoTasksQuery();
   const userQuery = useHorseGoUserQuery();
   const user = userQuery.data;

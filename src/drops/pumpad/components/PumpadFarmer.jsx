@@ -2,7 +2,7 @@ import * as Tabs from "@radix-ui/react-tabs";
 import toast from "react-hot-toast";
 import useFarmerAsyncTask from "@/hooks/useFarmerAsyncTask";
 import useFarmerAutoTab from "@/hooks/useFarmerAutoTab";
-import useSocketTabs from "@/hooks/useSocketTabs";
+import useMirroredTabs from "@/hooks/useMirroredTabs";
 import { cn } from "@/lib/utils";
 import { memo } from "react";
 
@@ -10,17 +10,17 @@ import PumpadBalanceDisplay from "./PumpadBalanceDisplay";
 import PumpadIcon from "../assets/images/icon.png?format=webp&w=80";
 import PumpadLottery from "./PumpadLottery";
 import PumpadMissions from "./PumpadMissions";
+import PumpadPoints from "./PumpadPoints";
 import PumpadTickets from "./PumpadTickets";
 import PumpadUsernameDisplay from "./PumpadUsernameDisplay";
 import usePumpadCheckInMutation from "../hooks/usePumpadCheckInMutation";
 import usePumpadCheckInQuery from "../hooks/usePumpadCheckInQuery";
-import PumpadPoints from "./PumpadPoints";
 
 export default memo(function PumpadFarmer() {
   const checkInQuery = usePumpadCheckInQuery();
   const claimCheckInMutation = usePumpadCheckInMutation();
 
-  const tabs = useSocketTabs("pumpad.farmer-tabs", [
+  const tabs = useMirroredTabs("pumpad.farmer-tabs", [
     "lottery",
     "tickets",
     "missions",

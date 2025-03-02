@@ -1,7 +1,8 @@
 import Countdown from "react-countdown";
+import useAppContext from "@/hooks/useAppContext";
 import useFarmerAutoProcess from "@/hooks/useFarmerAutoProcess";
+import useMirroredState from "@/hooks/useMirroredState";
 import useProcessLock from "@/hooks/useProcessLock";
-import useSocketState from "@/hooks/useSocketState";
 import { delay } from "@/lib/utils";
 import { memo } from "react";
 import { useCallback } from "react";
@@ -15,7 +16,6 @@ import useMatchQuestClaimGameMutation from "../hooks/useMatchQuestClaimGameMutat
 import useMatchQuestGameRuleQuery from "../hooks/useMatchQuestGameRuleQuery";
 import useMatchQuestStartGameMutation from "../hooks/useMatchQuestStartGameMutation";
 import useMatchQuestUserQuery from "../hooks/useMatchQuestUserQuery";
-import useAppContext from "@/hooks/useAppContext";
 
 const GAME_DURATION = 30_000;
 const EXTRA_DELAY = 3_000;
@@ -31,7 +31,7 @@ export default memo(function MatchQuestAutoGamer() {
 
   const [countdown, setCountdown] = useState(null);
   const [desiredPoint, setDesiredPoint, dispatchAndSetDesiredPoint] =
-    useSocketState("matchquest.game.desired-point", INITIAL_POINT);
+    useMirroredState("matchquest.game.desired-point", INITIAL_POINT);
 
   const tickets = gameRuleQuery.data?.["game_count"] || 0;
   const points = useMemo(

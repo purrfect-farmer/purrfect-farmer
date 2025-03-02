@@ -5,7 +5,7 @@ import { memo, useMemo } from "react";
 import TabButton from "./TabButton";
 
 export default memo(function TabButtonList({ tabs }) {
-  const { remote, settings } = useAppContext();
+  const { mirror, settings } = useAppContext();
   const otherTabs = useMemo(() => tabs.slice(1), [tabs]);
 
   return (
@@ -18,12 +18,12 @@ export default memo(function TabButtonList({ tabs }) {
       )}
     >
       {/* Main */}
-      <div className="sticky left-0 z-1 px-2 bg-white dark:bg-neutral-800 shrink-0">
+      <div className="sticky left-0 px-2 bg-white z-1 dark:bg-neutral-800 shrink-0">
         <TabButton
           key={tabs[0].id}
           tab={tabs[0]}
-          showRemoteStatus={settings.enableRemoteControl}
-          remoteIsConnected={remote.connected}
+          showMirrorStatus={settings.enableMirror}
+          mirrorIsConnected={mirror.connected}
         />
       </div>
 

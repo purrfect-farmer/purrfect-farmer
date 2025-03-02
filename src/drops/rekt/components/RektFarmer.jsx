@@ -2,7 +2,7 @@ import * as Tabs from "@radix-ui/react-tabs";
 import toast from "react-hot-toast";
 import useFarmerAsyncTask from "@/hooks/useFarmerAsyncTask";
 import useFarmerAutoTab from "@/hooks/useFarmerAutoTab";
-import useSocketTabs from "@/hooks/useSocketTabs";
+import useMirroredTabs from "@/hooks/useMirroredTabs";
 import { cn, delay } from "@/lib/utils";
 import { isAfter, subHours } from "date-fns";
 import { memo } from "react";
@@ -24,7 +24,7 @@ import useRektUnclaimedFarmingQuery from "../hooks/useRektUnclaimedFarmingQuery"
 import useRektUserQuery from "../hooks/useRektUserQuery";
 
 export default memo(function RektFarmer() {
-  const tabs = useSocketTabs("rekt.farmer-tabs", ["game", "quests"]);
+  const tabs = useMirroredTabs("rekt.farmer-tabs", ["game", "quests"]);
   const dailyCheckInMutation = useRektDailyCheckInMutation();
 
   const userQuery = useRektUserQuery();

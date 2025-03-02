@@ -1,13 +1,13 @@
 import { useMemo } from "react";
 import { useState } from "react";
 
-import useRemoteCallback from "./useRemoteCallback";
+import useMirroredCallback from "./useMirroredCallback";
 
-export default function useSocketState(key = "", initialState) {
+export default function useMirroredState(key = "", initialState) {
   const [state, setState] = useState(initialState);
 
   /** Change State Handler */
-  const [, dispatchAndSetState] = useRemoteCallback(
+  const [, dispatchAndSetState] = useMirroredCallback(
     key + ":set",
     /** Main */
     setState,

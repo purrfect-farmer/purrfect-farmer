@@ -4,7 +4,7 @@ import toast from "react-hot-toast";
 import useFarmerAsyncTask from "@/hooks/useFarmerAsyncTask";
 import useFarmerAutoTab from "@/hooks/useFarmerAutoTab";
 import useFarmerContext from "@/hooks/useFarmerContext";
-import useSocketTabs from "@/hooks/useSocketTabs";
+import useMirroredTabs from "@/hooks/useMirroredTabs";
 import { cn } from "@/lib/utils";
 import { memo } from "react";
 
@@ -20,7 +20,7 @@ export default memo(function BirdTonFarmer() {
 
   const energy = user?.["energy"] || 0;
   const maxEnergy = user?.["energy_capacity"] || 0;
-  const tabs = useSocketTabs("birdton.farmer-tabs", ["game", "tasks"]);
+  const tabs = useMirroredTabs("birdton.farmer-tabs", ["game", "tasks"]);
 
   const claimDailyRewardMutation = useBirdTonClaimDailyRewardMutation();
 

@@ -2,23 +2,23 @@ import * as Tabs from "@radix-ui/react-tabs";
 import toast from "react-hot-toast";
 import useFarmerAsyncTask from "@/hooks/useFarmerAsyncTask";
 import useFarmerAutoTab from "@/hooks/useFarmerAutoTab";
-import useSocketTabs from "@/hooks/useSocketTabs";
+import useMirroredTabs from "@/hooks/useMirroredTabs";
 import { cn } from "@/lib/utils";
 import { isToday } from "date-fns";
 import { memo } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 
 import BattleBullsCards from "./BattleBullsCards";
 import BattleBullsIcon from "../assets/images/icon.png?format=webp&w=80";
 import BattleBullsInfoDisplay from "./BattleBullsInfoDisplay";
 import BattleBullsTasks from "./BattleBullsTasks";
+import useBattleBullsBlockchainMutation from "../hooks/useBattleBullsBlockchainMutation";
 import useBattleBullsClaimDailyRewardMutation from "../hooks/useBattleBullsClaimDailyRewardMutation";
 import useBattleBullsTasksQuery from "../hooks/useBattleBullsTasksQuery";
-import { useQueryClient } from "@tanstack/react-query";
 import useBattleBullsUserQuery from "../hooks/useBattleBullsUserQuery";
-import useBattleBullsBlockchainMutation from "../hooks/useBattleBullsBlockchainMutation";
 
 export default memo(function BattleBullsFarmer() {
-  const tabs = useSocketTabs("battle-bulls.farmer-tabs", ["cards", "tasks"]);
+  const tabs = useMirroredTabs("battle-bulls.farmer-tabs", ["cards", "tasks"]);
   const queryClient = useQueryClient();
   const userQuery = useBattleBullsUserQuery();
   const tasksQuery = useBattleBullsTasksQuery();
