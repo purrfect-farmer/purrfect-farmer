@@ -11,7 +11,7 @@ export default memo(function Mirror() {
       <Toggle
         checked={mirror.mirroring}
         onChange={(ev) => {
-          mirror.setSyncing(ev.target.checked);
+          mirror.setMirroring(ev.target.checked);
         }}
       />
     </label>
