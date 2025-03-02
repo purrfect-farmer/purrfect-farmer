@@ -21,7 +21,7 @@ const defaultSettings = {
   cloudServer: import.meta.env.VITE_CLOUD_SERVER,
   seekerServer: import.meta.env.VITE_SEEKER_SERVER,
   seekerId: null,
-  enableCloudSync: false,
+  enableCloud: false,
   enableMirror: false,
   enableSeeker: false,
   closeOtherBots: true,

@@ -326,18 +326,18 @@ export default memo(function Settings({ tabs }) {
                     {/* Cloud Options */}
                     <h4 className="mt-4 text-neutral-400">Cloud Options</h4>
 
-                    {/* Cloud Sync */}
+                    {/* Cloud */}
                     <LabelToggle
                       onChange={(ev) =>
                         dispatchAndConfigureSettings(
-                          "enableCloudSync",
+                          "enableCloud",
                           ev.target.checked
                         )
                       }
-                      checked={settings?.enableCloudSync}
+                      checked={settings?.enableCloud}
                     >
                       <span className="flex flex-col">
-                        <span>Enable Cloud Sync</span>
+                        <span>Enable Cloud</span>
                         <span className="text-orange-500">
                           (Access Required)
                         </span>

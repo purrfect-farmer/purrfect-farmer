@@ -8,7 +8,7 @@ export default function CloudStatus() {
   const { settings } = useContext(AppContext);
   const { status, data } = useCloudStatusQuery();
 
-  return settings.enableCloudSync ? (
+  return settings.enableCloud ? (
     <p
       className={cn(
         "text-center flex items-center justify-center gap-2",

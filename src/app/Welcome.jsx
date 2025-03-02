@@ -206,7 +206,7 @@ export default memo(function Welcome() {
             />
 
             {/* Open Cloud Manager */}
-            {settings.enableCloudSync ? (
+            {settings.enableCloud ? (
               <ToolbarButton
                 title="Open Cloud Manager"
                 onClick={openCloudManager}
