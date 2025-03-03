@@ -6,6 +6,7 @@ export default {
   id: "wonton",
   title: "Wonton",
   icon,
+  syncToCloud: true,
   component: createLazyElement(() => import("./Wonton")),
   telegramLink:
     "https://t.me/WontonOrgBot/gameapp?startapp=referralCode=K45JQRG7",
