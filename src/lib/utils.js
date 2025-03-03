@@ -232,7 +232,7 @@ export async function resizeFarmerWindow() {
     const settings = await getSettings();
     const position = settings.farmerPosition || defaultSettings.farmerPosition;
     const width = Math.max(
-      300,
+      270,
       Math.floor(
         currentWindow.width /
           (settings.farmersPerWindow || defaultSettings.farmersPerWindow)
