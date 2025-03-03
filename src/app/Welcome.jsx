@@ -254,7 +254,7 @@ export default memo(function Welcome() {
                 "text-transparent",
                 "bg-clip-text",
                 "bg-linear-to-r",
-                "from-green-500 to-blue-400"
+                "from-pink-500 to-orange-400"
               )}
             >
               v{chrome?.runtime?.getManifest().version || "0.0.1"}
