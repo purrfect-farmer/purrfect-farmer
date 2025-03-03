@@ -1,11 +1,16 @@
-import AppContext from "@/contexts/AppContext";
-import { useContext } from "react";
 import { useQuery } from "@tanstack/react-query";
 
+import useAppContext from "./useAppContext";
+
 export default function useCloudStatusQuery() {
-  const { settings, cloudBackend } = useContext(AppContext);
+  const { settings, cloudBackend } = useAppContext();
 
   return useQuery({
+    retry: true,
+    refetchOnMount: false,
+    refetchOnReconnect: false,
+    refetchOnWindowFocus: false,
+    refetchInterval: false,
     enabled: settings.enableCloud,
     queryKey: ["core", "cloud", "status", settings.cloudServer],
     queryFn: ({ signal }) =>
