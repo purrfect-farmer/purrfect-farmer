@@ -45,11 +45,8 @@ export default function useDropFarmer({
   /** Farmer Title */
   const farmerTitle = settings.farmerTitle;
 
-  /** Enable Cloud */
-  const enableCloud = settings.enableCloud;
-
   /** Should Sync */
-  const shouldSync = enableCloud && syncToCloud;
+  const shouldSync = settings.enableCloud && syncToCloud;
 
   /** Cloud Sync Mutation */
   const cloudSyncMutation = useCloudSyncMutation(id);

@@ -5,6 +5,7 @@ import tabs, { TelegramWeb } from "@/core/tabs";
 import { createElement } from "react";
 import { delay, isBotURL, postPortMessage } from "@/lib/utils";
 import { useCallback } from "react";
+import { useDeepCompareMemo } from "use-deep-compare";
 import { useMemo } from "react";
 import { useRef } from "react";
 import { useState } from "react";
@@ -77,7 +78,7 @@ export default function useCore() {
   );
 
   /** Drops Status */
-  const dropsStatus = useMemo(() => {
+  const dropsStatus = useDeepCompareMemo(() => {
     return {
       ...defaultSettings.dropsStatus,
       ...settings.dropsStatus,
@@ -85,7 +86,7 @@ export default function useCore() {
   }, [defaultSettings.dropsStatus, settings.dropsStatus]);
 
   /** Drops Order */
-  const dropsOrder = useMemo(
+  const dropsOrder = useDeepCompareMemo(
     () =>
       new Set([
         /** Default Drops Order */
@@ -103,34 +104,19 @@ export default function useCore() {
     [farmers, defaultSettings.dropsOrder, settings.dropsOrder]
   );
 
-  /** Drops Order Key */
-  const dropsOrderKey = useMemo(() => dropsOrder.join(":"), [dropsOrder]);
-
-  /** Enabled Drops Key */
-  const enabledDropsKey = useMemo(
-    () =>
-      Object.entries(dropsStatus)
-        .filter(([, v]) => v === true)
-        .map(([k]) => k)
-        .join(":"),
-    [dropsStatus]
-  );
-
   /** Ordered Drops */
-  const orderedDrops = useMemo(
+  const orderedDrops = useDeepCompareMemo(
     () =>
       farmers
         .slice()
-        .sort(
-          (a, b) => dropsOrderKey.indexOf(a.id) - dropsOrderKey.indexOf(b.id)
-        ),
-    [farmers, dropsOrderKey]
+        .sort((a, b) => dropsOrder.indexOf(a.id) - dropsOrder.indexOf(b.id)),
+    [farmers, dropsOrder]
   );
 
   /** Drops */
-  const drops = useMemo(
-    () => orderedDrops.filter((item) => enabledDropsKey.includes(item.id)),
-    [orderedDrops, enabledDropsKey]
+  const drops = useDeepCompareMemo(
+    () => orderedDrops.filter((item) => dropsStatus[item.id] === true),
+    [orderedDrops, dropsStatus]
   );
 
   /** Reset openFarmerBot Handler */
