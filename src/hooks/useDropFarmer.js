@@ -3,6 +3,10 @@ import axios from "axios";
 import toast from "react-hot-toast";
 import { createElement, useCallback } from "react";
 import { delay } from "@/lib/utils";
+import {
+  useDeepCompareLayoutEffect,
+  useDeepCompareMemo,
+} from "use-deep-compare";
 import { useIsMutating, useQueryClient } from "@tanstack/react-query";
 import { useLayoutEffect } from "react";
 import { useMemo } from "react";
@@ -57,7 +61,7 @@ export default function useDropFarmer({
   const [authResetCount, setAuthResetCount] = useState(0);
 
   /** Domain Matches */
-  const domainMatches = useMemo(
+  const domainMatches = useDeepCompareMemo(
     () => domains.map((domain) => `*://${domain}/*`),
     [domains]
   );
@@ -258,7 +262,7 @@ export default function useDropFarmer({
   }, [api, resetAuth]);
 
   /** Handle Web Request */
-  useLayoutEffect(() => {
+  useDeepCompareLayoutEffect(() => {
     /** Requires domain matches */
     /** Don't watch requests without Telegram Web App  */
     if (auth || domainMatches.length < 1 || !telegramWebApp) {
