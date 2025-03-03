@@ -1,10 +1,5 @@
 import * as Collapsible from "@radix-ui/react-collapsible";
-import DreamCoinIcon from "@/drops/dreamcoin/assets/images/icon.png?format=webp&w=80";
-import FunaticIcon from "@/drops/funatic/assets/images/icon.png?format=webp&w=80";
-import GoldEagleIcon from "@/drops/gold-eagle/assets/images/icon.png?format=webp&w=80";
-import HrumIcon from "@/drops/hrum/assets/images/icon.png?format=webp&w=80";
 import Input from "@/components/Input";
-import SlotcoinIcon from "@/drops/slotcoin/assets/images/icon.png?format=webp&w=80";
 import toast from "react-hot-toast";
 import useCloudAccountsQuery from "@/hooks/useCloudAccountsQuery";
 import useCloudDisconnectAccountMutation from "@/hooks/useCloudDisconnectAccountMutation";
@@ -13,28 +8,17 @@ import { cn } from "@/lib/utils";
 import { useCallback } from "react";
 import { useMemo, useState } from "react";
 
-const CLOUD_FARMERS = {
-  ["funatic"]: {
-    title: "Funatic Farmer",
-    icon: FunaticIcon,
-  },
-  ["gold-eagle"]: {
-    title: "Gold Eagle Farmer",
-    icon: GoldEagleIcon,
-  },
-  ["slotcoin"]: {
-    title: "Slotcoin Farmer",
-    icon: SlotcoinIcon,
-  },
-  ["dreamcoin"]: {
-    title: "DreamCoin Farmer",
-    icon: DreamCoinIcon,
-  },
-  ["hrum"]: {
-    title: "Hrum Farmer",
-    icon: HrumIcon,
-  },
-};
+const CLOUD_FARMERS = Object.fromEntries(
+  Object.values(
+    import.meta.glob("@/drops/*/index.js", { eager: true, import: "default" })
+  ).map(({ id, title, icon }) => [
+    id,
+    {
+      title,
+      icon,
+    },
+  ])
+);
 
 export default function CloudAccounts() {
   const [search, setSearch] = useState("");
