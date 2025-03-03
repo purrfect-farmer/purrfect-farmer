@@ -35,12 +35,12 @@ export default memo(function UtilsPanel({ onOpenChange }) {
             <img src={CoreSystemIcon} className="w-10 mx-auto" />
 
             {/* Title */}
-            <Dialog.Title className="text-xl text-center font-turret-road">
+            <Dialog.Title className="text-xl text-center">
               <span
                 className={cn(
-                  "text-transparent font-bold",
+                  "text-transparent font-turret-road font-bold",
                   "bg-clip-text",
-                  "bg-linear-to-r from-pink-500 to-violet-500"
+                  "bg-linear-to-r from-green-500 to-blue-400"
                 )}
               >
                 {import.meta.env.VITE_CORE_SYSTEM_NAME}

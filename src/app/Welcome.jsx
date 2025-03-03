@@ -242,7 +242,7 @@ export default memo(function Welcome() {
           <img src={WelcomeIcon} className="mx-auto h-28" />
 
           {/* App Title */}
-          <h3 className="text-2xl leading-none text-center font-turret-road">
+          <h3 className="text-2xl text-orange-500 leading-none text-center font-turret-road">
             {import.meta.env.VITE_APP_NAME}
           </h3>
 
@@ -250,13 +250,14 @@ export default memo(function Welcome() {
           <p className="text-lg leading-none text-center">
             <span
               className={cn(
-                "font-turret-road",
-                "text-transparent font-bold",
+                "font-turret-road font-bold",
+                "text-transparent",
                 "bg-clip-text",
-                "bg-linear-to-r from-pink-500 to-violet-500"
+                "bg-linear-to-r",
+                "from-green-500 to-blue-400"
               )}
             >
-              v{chrome?.runtime?.getManifest().version}
+              v{chrome?.runtime?.getManifest().version || "0.0.1"}
             </span>
           </p>
 
