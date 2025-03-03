@@ -6,9 +6,7 @@ export default function useYescoinGameSpecialBoxInfoQuery(options) {
 
   return useQuery({
     ...options,
-    meta: {
-      defaultRefetchInterval: 5000,
-    },
+    refetchInterval: 5000,
     queryKey: ["yescoin", "game", "special-box-info"],
     queryFn: ({ signal }) =>
       api

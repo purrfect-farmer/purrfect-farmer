@@ -7,13 +7,7 @@ import App from "./app/App.jsx";
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      refetchInterval: (query) => {
-        return !queryClient.isMutating({
-          mutationKey: query.queryKey.slice(0, 1),
-        })
-          ? query.meta?.defaultRefetchInterval ?? 30_000
-          : false;
-      },
+      refetchInterval: 30_000,
     },
   },
 });

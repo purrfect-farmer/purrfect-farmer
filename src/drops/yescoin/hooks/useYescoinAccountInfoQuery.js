@@ -5,9 +5,7 @@ export default function useYescoinAccountInfoQuery() {
   const api = useFarmerApi();
 
   return useQuery({
-    meta: {
-      defaultRefetchInterval: 5000,
-    },
+    refetchInterval: 5000,
     queryKey: ["yescoin", "account", "info"],
     queryFn: ({ signal }) =>
       api

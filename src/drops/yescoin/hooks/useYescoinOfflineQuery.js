@@ -5,9 +5,7 @@ export default function useYescoinOfflineQuery() {
   const api = useFarmerApi();
 
   return useQuery({
-    meta: {
-      defaultRefetchInterval: 5000,
-    },
+    refetchInterval: 5000,
     queryKey: ["yescoin", "offline"],
     queryFn: ({ signal }) =>
       api

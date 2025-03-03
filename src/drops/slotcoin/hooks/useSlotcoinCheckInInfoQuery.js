@@ -4,9 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 export default function useSlotcoinCheckInInfoQuery() {
   const { api } = useFarmerContext();
   return useQuery({
-    meta: {
-      defaultRefetchInterval: 20000,
-    },
+    refetchInterval: 20000,
     queryKey: ["slotcoin", "check-in", "info"],
     queryFn: ({ signal }) =>
       api
