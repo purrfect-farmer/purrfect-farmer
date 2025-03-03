@@ -65,7 +65,9 @@ export default function CloudLoginForm() {
 
       <div className="flex flex-col">
         {/* Title */}
-        <h1 className="text-2xl text-center font-turret-road">Purrfect</h1>
+        <h1 className="text-2xl text-center font-turret-road">
+          {import.meta.env.VITE_APP_ORG_NAME}
+        </h1>
 
         {/* Sub Title */}
         <h2 className="text-3xl text-center font-turret-road text-orange-500">
