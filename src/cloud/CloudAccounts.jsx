@@ -14,7 +14,7 @@ const CLOUD_FARMERS = Object.fromEntries(
   ).map(({ id, title, icon }) => [
     id,
     {
-      title,
+      title: `${title} Farmer`,
       icon,
     },
   ])
