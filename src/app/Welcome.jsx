@@ -253,7 +253,7 @@ export default memo(function Welcome() {
 
           {/* App Version */}
           <p className="text-lg leading-none text-center">
-            <span className={cn("font-turret-road font-bold text-teal-500")}>
+            <span className={cn("font-turret-road font-bold text-orange-500")}>
               v{chrome?.runtime?.getManifest().version || "0.0.1"}
             </span>
           </p>
