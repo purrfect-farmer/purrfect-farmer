@@ -14,6 +14,7 @@ export default function useTsubasaFarmer() {
           icon: TsubasaIcon,
           title: "Tsubasa Farmer",
         },
+        syncToCloud: true,
         domains: [],
         /**
          * @param {import("axios").AxiosInstance} api

@@ -6,6 +6,7 @@ export default {
   id: "tsubasa",
   title: "Tsubasa",
   icon,
+  syncToCloud: true,
   component: createLazyElement(() => import("./Tsubasa")),
   telegramLink:
     "https://t.me/TsubasaRivalsBot/start?startapp=inviter_id-1147265290",
