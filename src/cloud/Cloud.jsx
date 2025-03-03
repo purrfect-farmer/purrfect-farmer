@@ -8,8 +8,8 @@ import { Toaster } from "react-hot-toast";
 import { useEffect } from "react";
 import { useMemo } from "react";
 
+import CloudLoginForm from "./CloudLoginForm";
 import CloudPanel from "./CloudPanel";
-import LoginForm from "./LoginForm";
 
 export default function Cloud() {
   const { settings } = useSettings();
@@ -81,7 +81,7 @@ export default function Cloud() {
       value={{ settings, cloudBackend, cloudAuth, isLoggedIn }}
     >
       {/* Panel or Login Form */}
-      {isLoggedIn ? <CloudPanel /> : <LoginForm />}
+      {isLoggedIn ? <CloudPanel /> : <CloudLoginForm />}
 
       {/* Toaster */}
       <Toaster

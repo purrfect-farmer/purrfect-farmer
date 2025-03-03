@@ -18,7 +18,7 @@ const schema = yup
   })
   .required();
 
-export default function LoginForm() {
+export default function CloudLoginForm() {
   const { settings, cloudAuth } = useCloudContext();
   const address = settings.cloudServer;
 
@@ -65,12 +65,12 @@ export default function LoginForm() {
 
       <div className="flex flex-col">
         {/* Title */}
-        <h1 className="text-2xl text-center text-orange-500 font-turret-road">
-          Purrfect
-        </h1>
+        <h1 className="text-2xl text-center font-turret-road">Purrfect</h1>
 
         {/* Sub Title */}
-        <h2 className="text-lg text-center font-turret-road">Cloud Manager</h2>
+        <h2 className="text-3xl text-center font-turret-road text-orange-500">
+          Cloud Manager
+        </h2>
       </div>
 
       <div className="flex flex-col gap-2 my-2">
