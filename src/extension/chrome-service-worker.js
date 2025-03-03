@@ -106,7 +106,7 @@ const setupExtension = async () => {
 /** Open Farmer on Startup */
 chrome.runtime.onStartup.addListener(async () => {
   /** Store that startup has been invoked */
-  await chrome.storage.session.set({ startupListenerCalled: true });
+  await chrome.storage.session.set({ startupListenerWasCalled: true });
 
   /** Setup Extension */
   await setupExtension();
@@ -155,20 +155,18 @@ chrome.runtime.onStartup.addListener(async () => {
   }
 });
 
-chrome.storage.session;
-
 /** Open Farmer on Install */
 chrome.runtime.onInstalled.addListener(async (ev) => {
   /** Setup Extension */
   await setupExtension();
 
   /** Get Startup State */
-  const { startupListenerCalled } = await chrome.storage.session.get(
-    "startupListenerCalled"
+  const { startupListenerWasCalled } = await chrome.storage.session.get(
+    "startupListenerWasCalled"
   );
 
   /** Only Open A Window When Startup hasn't been called */
-  if (!startupListenerCalled) {
+  if (!startupListenerWasCalled) {
     /** Get Settings */
     const { openFarmerInNewWindow } = await getSettings();
 
