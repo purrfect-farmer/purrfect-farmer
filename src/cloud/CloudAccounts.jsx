@@ -51,11 +51,6 @@ export default function CloudAccounts() {
           loading: "Disconnecting...",
           error: "Error...",
         })
-        .then((status) => {
-          if (status.kicked) {
-            toast.success("User was kicked from chat");
-          }
-        })
         .finally(accountsQuery.refetch);
     },
     [disconnectAccountMutation.mutateAsync, accountsQuery.refetch]
