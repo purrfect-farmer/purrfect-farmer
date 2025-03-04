@@ -1,14 +1,14 @@
 /** Drops Status */
 const dropsStatus = {
-  ["funatic"]: true,
   ["gold-eagle"]: true,
-  ["midas"]: true,
-  ["zoo"]: true,
+  ["funatic"]: true,
   ["hrum"]: true,
   ["tsubasa"]: true,
+  ["wonton"]: true,
+  ["slotcoin"]: true,
   ["dreamcoin"]: true,
   ["rekt"]: true,
-  ["wonton"]: true,
+  ["midas"]: true,
 };
 
 /** Drops Order */
