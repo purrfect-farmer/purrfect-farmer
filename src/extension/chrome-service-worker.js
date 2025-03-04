@@ -1,5 +1,18 @@
 import { getSettings, getUserAgent } from "@/lib/utils";
 
+/** Watch Window Resize */
+const watchWindowResize = (windowId) =>
+  new Promise((res, rej) => {
+    const handleOnBoundsChanged = (window) => {
+      if (window.id === windowId) {
+        chrome.windows.onBoundsChanged.removeListener(handleOnBoundsChanged);
+        res();
+      }
+    };
+
+    chrome.windows.onBoundsChanged.addListener(handleOnBoundsChanged);
+  });
+
 /** Close Previous Popups */
 const closePreviousPopups = async (windowId) => {
   const tabs = await chrome.tabs.query({
@@ -13,7 +26,7 @@ const closePreviousPopups = async (windowId) => {
       tab.windowId !== windowId;
 
     if (isEmptyTab || isPreviousWindow) {
-      await chrome.windows.remove(tab.windowId);
+      await chrome.tabs.remove(tab.id);
     }
   }
 };
@@ -27,6 +40,9 @@ const openFarmerWindow = async () => {
     state: "maximized",
     focused: true,
   });
+
+  /** Watch Window Resize */
+  await watchWindowResize(window.id);
 
   /** Close Previous Popups */
   await closePreviousPopups(window.id);
