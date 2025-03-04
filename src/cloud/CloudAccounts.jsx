@@ -86,7 +86,7 @@ export default function CloudAccounts() {
                 className="w-6 h-6 rounded-full shrink-0"
               />
               <span className="font-bold grow">
-                {CLOUD_FARMERS[group.id]?.title}
+                {CLOUD_FARMERS[group.id]?.title || "(Unknown) Farmer"}
               </span>
               <span className="px-2 py-px text-xs text-white bg-purple-500 rounded-full shrink-0">
                 {group.users.length}
