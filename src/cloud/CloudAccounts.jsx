@@ -109,6 +109,11 @@ export default function CloudAccounts() {
                           className="w-6 h-6 rounded-full shrink-0"
                         />{" "}
                         <h5 className="grow min-w-0 min-h-0 truncate">
+                          {account.title ? (
+                            <b className="text-blue-500 dark:text-lime-500">
+                              {account.title}
+                            </b>
+                          ) : null}{" "}
                           {account.username || account["user_id"]}
                         </h5>
                         {typeof account["is_connected"] !== "undefined" ? (
