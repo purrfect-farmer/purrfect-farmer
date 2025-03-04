@@ -2,7 +2,7 @@ import { getSettings, getUserAgent } from "@/lib/utils";
 
 /** Watch Window Resize */
 const watchWindowResize = (windowId) =>
-  new Promise((res, rej) => {
+  new Promise((res) => {
     const handleOnBoundsChanged = (window) => {
       if (window.id === windowId) {
         chrome.windows.onBoundsChanged.removeListener(handleOnBoundsChanged);
@@ -13,20 +13,40 @@ const watchWindowResize = (windowId) =>
     chrome.windows.onBoundsChanged.addListener(handleOnBoundsChanged);
   });
 
+/** Watch Window Removal */
+const watchWindowRemoval = (windowId) =>
+  new Promise((res) => {
+    const handleOnRemoved = (id) => {
+      if (id === windowId) {
+        chrome.windows.onRemoved.removeListener(handleOnRemoved);
+        res();
+      }
+    };
+
+    chrome.windows.onRemoved.addListener(handleOnRemoved);
+  });
+
+/** Close Window */
+const closeWindow = async (windowId) => {
+  const successfulRemoval = watchWindowRemoval(windowId);
+
+  await chrome.windows.remove(windowId);
+  await successfulRemoval;
+};
+
 /** Close Previous Popups */
 const closePreviousPopups = async (windowId) => {
+  const indexPage = chrome.runtime.getURL("index.html");
   const tabs = await chrome.tabs.query({
     windowType: "popup",
   });
 
   for (const tab of tabs) {
     const isEmptyTab = tab.url === "chrome://newtab/";
-    const isPreviousWindow =
-      tab.url === chrome.runtime.getURL("index.html") &&
-      tab.windowId !== windowId;
+    const isPreviousWindow = tab.url === indexPage && tab.windowId !== windowId;
 
     if (isEmptyTab || isPreviousWindow) {
-      await chrome.tabs.remove(tab.id);
+      await closeWindow(tab.windowId);
     }
   }
 };
@@ -121,9 +141,6 @@ const setupExtension = async () => {
 
 /** Open Farmer on Startup */
 chrome.runtime.onStartup.addListener(async () => {
-  /** Store that startup has been invoked */
-  await chrome.storage.session.set({ startupListenerWasCalled: true });
-
   /** Setup Extension */
   await setupExtension();
 
@@ -153,7 +170,7 @@ chrome.runtime.onStartup.addListener(async () => {
       if (settings.closeMainWindowOnStartup) {
         /** Close Main Window */
         if (mainWindow?.id) {
-          await chrome.windows.remove(mainWindow?.id);
+          await closeWindow(mainWindow?.id);
         }
       } else {
         /** Go to extensions page */
@@ -176,20 +193,12 @@ chrome.runtime.onInstalled.addListener(async (ev) => {
   /** Setup Extension */
   await setupExtension();
 
-  /** Get Startup State */
-  const { startupListenerWasCalled } = await chrome.storage.session.get(
-    "startupListenerWasCalled"
-  );
+  /** Get Settings */
+  const { openFarmerInNewWindow } = await getSettings();
 
-  /** Only Open A Window When Startup hasn't been called */
-  if (!startupListenerWasCalled) {
-    /** Get Settings */
-    const { openFarmerInNewWindow } = await getSettings();
-
-    /** Open Farmer Window */
-    if (openFarmerInNewWindow) {
-      await openFarmerWindow(true);
-    }
+  /** Open Farmer Window */
+  if (openFarmerInNewWindow) {
+    await openFarmerWindow(true);
   }
 });
 
