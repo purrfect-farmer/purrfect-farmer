@@ -1,4 +1,4 @@
-import CloudContext from "@/contexts/CloudContext";
+import AppContext from "@/contexts/AppContext";
 import axios from "axios";
 import toast from "react-hot-toast";
 import useCloudAuth from "@/hooks/useCloudAuth";
@@ -77,7 +77,7 @@ export default function Cloud() {
   }, [cloudBackend, cloudAuth.removeToken]);
 
   return (
-    <CloudContext.Provider
+    <AppContext.Provider
       value={{ settings, cloudBackend, cloudAuth, isLoggedIn }}
     >
       {/* Panel or Login Form */}
@@ -93,6 +93,6 @@ export default function Cloud() {
           },
         }}
       />
-    </CloudContext.Provider>
+    </AppContext.Provider>
   );
 }

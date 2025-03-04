@@ -3,7 +3,7 @@ import Input from "@/components/Input";
 import PrimaryButton from "@/components/PrimaryButton";
 import WelcomeIcon from "@/assets/images/icon-unwrapped-cropped.png?format=webp&h=224";
 import toast from "react-hot-toast";
-import useCloudContext from "@/hooks/useCloudContext";
+import useAppContext from "@/hooks/useAppContext";
 import useCloudLoginMutation from "@/hooks/useCloudLoginMutation";
 import { Controller, FormProvider, useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
@@ -19,7 +19,7 @@ const schema = yup
   .required();
 
 export default function CloudLoginForm() {
-  const { settings, cloudAuth } = useCloudContext();
+  const { settings, cloudAuth } = useAppContext();
   const address = settings.cloudServer;
 
   const loginMutation = useCloudLoginMutation();

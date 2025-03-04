@@ -1,11 +1,12 @@
 import AppIcon from "@/assets/images/icon.png?format=webp&w=56";
-import useCloudContext from "@/hooks/useCloudContext";
+import useAppContext from "@/hooks/useAppContext";
 
 import CloudAccounts from "./CloudAccounts";
-import CloudUserDisplay from "./CloudUserDisplay";
 import CloudServerDisplay from "./CloudServerDisplay";
+import CloudUserDisplay from "./CloudUserDisplay";
+
 export default function CloudPanel() {
-  const { settings } = useCloudContext();
+  const { settings } = useAppContext();
   const address = settings.cloudServer;
 
   return (

@@ -1,9 +1,9 @@
 import { useQuery } from "@tanstack/react-query";
 
-import useCloudContext from "./useCloudContext";
+import useAppContext from "./useAppContext";
 
 export default function useCloudUserQuery() {
-  const { settings, cloudBackend } = useCloudContext();
+  const { settings, cloudBackend } = useAppContext();
 
   return useQuery({
     retry: true,
