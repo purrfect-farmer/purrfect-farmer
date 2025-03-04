@@ -1,7 +1,6 @@
 /** Drops Status */
 const dropsStatus = {
   ["gold-eagle"]: true,
-  ["funatic"]: true,
   ["hrum"]: true,
   ["tsubasa"]: true,
   ["wonton"]: true,
