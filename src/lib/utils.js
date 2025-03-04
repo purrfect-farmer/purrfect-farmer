@@ -221,13 +221,16 @@ export async function getDropMainScript(url, name = "index") {
 }
 
 /** Watch Window State Update */
-export function watchWindowStateUpdate(windowId, prevState, newState) {
+export function watchWindowStateUpdate(windowId, currentState, updatedState) {
   return new Promise((res) => {
     const handleOnBoundsChanged = async (window) => {
       if (window.id === windowId) {
-        const updatedWindow = await chrome.windows.get(windowId);
-        const isUpdated =
-          window.state === prevState && updatedWindow.state === newState;
+        const isCurrentState = window.state === currentState;
+        const isUpdatedState =
+          typeof updatedState === "undefined" ||
+          (await chrome.windows.get(windowId)).state === updatedState;
+
+        const isUpdated = isCurrentState && isUpdatedState;
 
         if (isUpdated) {
           chrome.windows.onBoundsChanged.removeListener(handleOnBoundsChanged);

@@ -91,7 +91,6 @@ export default memo(function Settings({ tabs }) {
     if (currentWindow) {
       const successfulUpdate = watchWindowStateUpdate(
         currentWindow.id,
-        "maximized",
         "maximized"
       );
 
