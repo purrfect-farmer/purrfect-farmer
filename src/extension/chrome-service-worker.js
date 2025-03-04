@@ -3,10 +3,16 @@ import { getSettings, getUserAgent } from "@/lib/utils";
 /** Watch Window Resize */
 const watchWindowResize = (windowId) =>
   new Promise((res) => {
-    const handleOnBoundsChanged = (window) => {
+    const handleOnBoundsChanged = async (window) => {
       if (window.id === windowId) {
-        chrome.windows.onBoundsChanged.removeListener(handleOnBoundsChanged);
-        res();
+        const updatedWindow = await chrome.windows.get(windowId);
+        const isResized =
+          window.state === "maximized" && updatedWindow.state === "normal";
+
+        if (isResized) {
+          chrome.windows.onBoundsChanged.removeListener(handleOnBoundsChanged);
+          res();
+        }
       }
     };
 
