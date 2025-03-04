@@ -442,7 +442,8 @@ export default memo(function Welcome() {
                 "grid grid-cols-3 rounded-full overflow-hidden",
                 "text-center",
                 "bg-neutral-100 dark:bg-neutral-700",
-                "divide-x dark:divide-neutral-600"
+                "divide-x dark:divide-neutral-600",
+                "font-turret-road font-bold"
               )}
             >
               <a
