@@ -17,7 +17,7 @@ export default memo(function TelegramUser({ user }) {
 
   return (
     <div className="px-2">
-      <div className="flex items-center gap-2 px-3 py-2 rounded-full bg-black">
+      <div className="flex items-center gap-2 px-3 py-2 rounded-full bg-black max-w-xs mx-auto">
         {/* User Photo */}
         <img
           className="rounded-full size-10 shrink-0"
