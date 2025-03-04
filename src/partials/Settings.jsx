@@ -17,7 +17,12 @@ import {
   HiOutlineSquares2X2,
 } from "react-icons/hi2";
 import { Reorder, useDragControls } from "motion/react";
-import { cn, maximizeFarmerWindow, resizeFarmerWindow } from "@/lib/utils";
+import {
+  cn,
+  maximizeFarmerWindow,
+  resizeFarmerWindow,
+  watchWindowStateUpdate,
+} from "@/lib/utils";
 import { memo, useCallback, useLayoutEffect, useState } from "react";
 
 import Seeker from "./Seeker";
@@ -81,14 +86,19 @@ export default memo(function Settings({ tabs }) {
   );
 
   /** Resize Page */
-  const resizeSettingsPage = useCallback(() => {
-    const handleOnBoundsChanged = () => {
-      chrome.windows.onBoundsChanged.removeListener(handleOnBoundsChanged);
-      resizeFarmerWindow();
-    };
+  const resizeSettingsPage = useCallback(async () => {
+    const currentWindow = await chrome?.windows?.getCurrent();
+    if (currentWindow) {
+      const successfulUpdate = watchWindowStateUpdate(
+        currentWindow.id,
+        "maximized",
+        "maximized"
+      );
 
-    chrome.windows.onBoundsChanged.addListener(handleOnBoundsChanged);
-    maximizeFarmerWindow();
+      await maximizeFarmerWindow();
+      await successfulUpdate;
+      await resizeFarmerWindow();
+    }
   }, []);
 
   /** Handle Set Mirror Server */

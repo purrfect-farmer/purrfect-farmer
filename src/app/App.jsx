@@ -16,9 +16,7 @@ function App() {
 
   /** Resize window */
   useEffect(() => {
-    (async function () {
-      await resizeFarmerWindow();
-    })();
+    resizeFarmerWindow();
   }, []);
 
   /** Acquire WakeLock */

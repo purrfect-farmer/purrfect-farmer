@@ -1,44 +1,9 @@
-import { getSettings, getUserAgent } from "@/lib/utils";
-
-/** Watch Window Resize */
-const watchWindowResize = (windowId) =>
-  new Promise((res) => {
-    const handleOnBoundsChanged = async (window) => {
-      if (window.id === windowId) {
-        const updatedWindow = await chrome.windows.get(windowId);
-        const isResized =
-          window.state === "maximized" && updatedWindow.state === "normal";
-
-        if (isResized) {
-          chrome.windows.onBoundsChanged.removeListener(handleOnBoundsChanged);
-          res();
-        }
-      }
-    };
-
-    chrome.windows.onBoundsChanged.addListener(handleOnBoundsChanged);
-  });
-
-/** Watch Window Removal */
-const watchWindowRemoval = (windowId) =>
-  new Promise((res) => {
-    const handleOnRemoved = (id) => {
-      if (id === windowId) {
-        chrome.windows.onRemoved.removeListener(handleOnRemoved);
-        res();
-      }
-    };
-
-    chrome.windows.onRemoved.addListener(handleOnRemoved);
-  });
-
-/** Close Window */
-const closeWindow = async (windowId) => {
-  const successfulRemoval = watchWindowRemoval(windowId);
-
-  await chrome.windows.remove(windowId);
-  await successfulRemoval;
-};
+import {
+  closeWindow,
+  getSettings,
+  getUserAgent,
+  watchWindowStateUpdate,
+} from "@/lib/utils";
 
 /** Close Previous Popups */
 const closePreviousPopups = async (windowId) => {
@@ -68,7 +33,7 @@ const openFarmerWindow = async () => {
   });
 
   /** Watch Window Resize */
-  await watchWindowResize(window.id);
+  await watchWindowStateUpdate(window.id, "maximized", "normal");
 
   /** Close Previous Popups */
   await closePreviousPopups(window.id);

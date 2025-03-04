@@ -220,6 +220,48 @@ export async function getDropMainScript(url, name = "index") {
   return scriptResponse;
 }
 
+/** Watch Window State Update */
+export function watchWindowStateUpdate(windowId, prevState, newState) {
+  return new Promise((res) => {
+    const handleOnBoundsChanged = async (window) => {
+      if (window.id === windowId) {
+        const updatedWindow = await chrome.windows.get(windowId);
+        const isUpdated =
+          window.state === prevState && updatedWindow.state === newState;
+
+        if (isUpdated) {
+          chrome.windows.onBoundsChanged.removeListener(handleOnBoundsChanged);
+          res();
+        }
+      }
+    };
+
+    chrome.windows.onBoundsChanged.addListener(handleOnBoundsChanged);
+  });
+}
+
+/** Watch Window Removal */
+export function watchWindowRemoval(windowId) {
+  return new Promise((res) => {
+    const handleOnRemoved = (id) => {
+      if (id === windowId) {
+        chrome.windows.onRemoved.removeListener(handleOnRemoved);
+        res();
+      }
+    };
+
+    chrome.windows.onRemoved.addListener(handleOnRemoved);
+  });
+}
+
+/** Close Window */
+export async function closeWindow(windowId) {
+  const successfulRemoval = watchWindowRemoval(windowId);
+
+  await chrome.windows.remove(windowId);
+  await successfulRemoval;
+}
+
 /** Resize Farmer Window */
 export async function resizeFarmerWindow() {
   const currentWindow = await chrome?.windows?.getCurrent();
@@ -254,7 +296,7 @@ export async function maximizeFarmerWindow() {
   const currentWindow = await chrome?.windows?.getCurrent();
 
   if (currentWindow && currentWindow.type === "popup") {
-    chrome?.windows?.update(currentWindow.id, {
+    await chrome?.windows?.update(currentWindow.id, {
       state: "maximized",
     });
   }
