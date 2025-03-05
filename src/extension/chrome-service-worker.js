@@ -169,7 +169,14 @@ chrome.runtime.onInstalled.addListener(async (ev) => {
 
   /** Open Farmer Window */
   if (openFarmerInNewWindow) {
-    await openFarmerWindow(true);
+    const tabs = await chrome.tabs.query({
+      windowType: "popup",
+      url: chrome.runtime.getURL("index.html"),
+    });
+
+    if (tabs.length === 0) {
+      await openFarmerWindow(true);
+    }
   }
 });
 
