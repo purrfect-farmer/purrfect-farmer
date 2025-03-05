@@ -58,42 +58,6 @@ export default memo(function WontonFarmer() {
     []
   );
 
-  /** Buy Basic Box */
-  useFarmerAsyncTask(
-    "buy-basic-box",
-    () => {
-      if (userQuery.data && shopQuery.data) {
-        return async function () {
-          const shop = shopQuery.data;
-          const quota = shop.basicBoxQuota.available;
-          const basicBox = shop.blindbox.basicBox;
-
-          const balance = userQuery.data.tokenBalance;
-          const totalPrice = basicBox.price * quota;
-          const canPurchase = quota > 0 && totalPrice <= balance;
-
-          /** Log */
-          customLogger("WONTON BASIC BOX", basicBox);
-          customLogger("WONTON TOTAL BASIC BOX PRICE", totalPrice);
-          customLogger("WONTON CAN PURCHASE BASIC BOX", canPurchase);
-
-          if (!canPurchase) return;
-
-          /** Purchase */
-          await purchaseBasicBoxMutation.mutateAsync(quota);
-
-          /** Toast */
-          toast.success("Wonton - Purchase Basic Box");
-
-          /** Refetch */
-          await shopQuery.refetch();
-          await userQuery.refetch();
-        };
-      }
-    },
-    [userQuery.data, shopQuery.data]
-  );
-
   /** Draw Basic Box */
   useFarmerAsyncTask(
     "draw-basic-box",
