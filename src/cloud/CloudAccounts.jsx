@@ -97,6 +97,20 @@ export default function CloudAccounts() {
                 <div className="flex flex-col gap-1">
                   {group.users.map((account) => (
                     <div key={account.id} className="flex gap-2">
+                      {/* Title */}
+                      {account.title ? (
+                        <h4
+                          className={cn(
+                            "font-bold",
+                            "text-blue-500 dark:text-blue-400",
+                            "flex items-center justify-center",
+                            "px-3 rounded-lg shrink-0",
+                            "bg-neutral-100 dark:bg-neutral-700"
+                          )}
+                        >
+                          {account.title}
+                        </h4>
+                      ) : null}{" "}
                       {/* Details */}
                       <div
                         className={cn(
@@ -104,16 +118,13 @@ export default function CloudAccounts() {
                           "gap-2 p-2 rounded-lg grow bg-neutral-100 dark:bg-neutral-700"
                         )}
                       >
+                        {/* Photo */}
                         <img
                           src={account["photo_url"]}
                           className="w-6 h-6 rounded-full shrink-0"
                         />{" "}
+                        {/* Username */}
                         <h5 className="grow min-w-0 min-h-0 truncate">
-                          {account.title ? (
-                            <b className="text-blue-500 dark:text-lime-500">
-                              {account.title}
-                            </b>
-                          ) : null}{" "}
                           {account.username || account["user_id"]}
                         </h5>
                         {typeof account["is_connected"] !== "undefined" ? (
@@ -128,7 +139,6 @@ export default function CloudAccounts() {
                           />
                         ) : null}
                       </div>
-
                       {/* Terminate Button */}
                       <button
                         title="Disconnect Account"
