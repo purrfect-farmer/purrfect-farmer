@@ -22,22 +22,25 @@ const DialogContent = styled(Dialog.Content)`
   padding: 16px;
   background-color: white;
   border-radius: 12px;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+    Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
 `;
 
 const DialogTitle = styled(Dialog.Title)`
-  font-size: 16px;
+  font-size: 14px;
   font-weight: bold;
   text-align: center;
   color: oklch(0.623 0.214 259.815);
 `;
 
 const DialogDescription = styled(Dialog.Description)`
-  font-size: 14px;
+  font-size: 12px;
   text-align: center;
   color: #252525;
 `;
 
 const DialogClose = styled(Dialog.Close)`
+  font-size: 12px;
   background-color: oklch(0.623 0.214 259.815);
   color: white;
   padding: 8px;
@@ -48,6 +51,7 @@ const DialogClose = styled(Dialog.Close)`
 `;
 
 const Input = styled.input`
+  font-size: 12px;
   background-color: #f5f5f5;
   padding: 8px;
   border-radius: 8px;
@@ -60,6 +64,7 @@ const Input = styled.input`
 `;
 
 const Select = styled.select`
+  font-size: 12px;
   background-color: #f5f5f5;
   padding: 8px;
   border-radius: 8px;
