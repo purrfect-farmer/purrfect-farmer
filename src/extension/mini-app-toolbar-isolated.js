@@ -6,7 +6,7 @@ import { getSettings } from "@/lib/utils";
 /** Initial Location */
 const INITIAL_LOCATION = location.href;
 
-if (location.hash.includes("tgWebAppData") && window.parent !== window) {
+if (location.hash.includes("tgWebAppData")) {
   /** Initial State */
   let toolbar = null;
 
