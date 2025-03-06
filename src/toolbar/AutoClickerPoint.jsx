@@ -48,6 +48,7 @@ export default memo(function AutoClickerPoint({
 }) {
   const nodeRef = useRef(null);
   const wasDragged = useRef(false);
+  const initialPosition = useRef({ x, y });
 
   const handleClick = useCallback(
     (ev) => {
@@ -63,8 +64,17 @@ export default memo(function AutoClickerPoint({
       nodeRef={nodeRef}
       disabled={disabled}
       position={{ x, y }}
-      onStart={() => {
+      onStart={(_e, { x, y }) => {
         wasDragged.current = false;
+        initialPosition.current = { x, y };
+      }}
+      onStop={(_e, { x, y }) => {
+        if (
+          Math.abs(x - initialPosition.current.x) >= 2 ||
+          Math.abs(y - initialPosition.current.y) >= 2
+        ) {
+          wasDragged.current = true;
+        }
       }}
       onDrag={(_e, { x, y }) => {
         /** Call onDrag */
@@ -72,8 +82,6 @@ export default memo(function AutoClickerPoint({
           x,
           y,
         });
-
-        wasDragged.current = true;
       }}
     >
       <Wrapper ref={nodeRef}>
