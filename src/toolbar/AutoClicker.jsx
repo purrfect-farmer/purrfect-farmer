@@ -153,7 +153,7 @@ export default memo(function AutoClicker() {
   const [, dispatchAndRemovePoint] = useMirroredCallback(
     "mini-app-toolbar:clicker-remove-point",
     () => {
-      const result = [...prev];
+      const result = [...points];
 
       result.pop();
 
