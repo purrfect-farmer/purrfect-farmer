@@ -1,7 +1,9 @@
 import Draggable from "react-draggable";
 import styled from "styled-components";
+import useAppContext from "@/hooks/useAppContext";
 import useMirroredCallback from "@/hooks/useMirroredCallback";
 import useMirroredState from "@/hooks/useMirroredState";
+import useStorageState from "@/hooks/useStorageState";
 import {
   HiOutlineMinus,
   HiOutlinePause,
@@ -107,6 +109,7 @@ const PauseIcon = styled(HiOutlinePause)`
 `;
 
 export default memo(function AutoClicker() {
+  const { host } = useAppContext();
   const dragHandleClass = "draggable-handle";
   const nodeRef = useRef(null);
   const [position, , dispatchAndSetPosition] = useMirroredState(
@@ -117,7 +120,10 @@ export default memo(function AutoClicker() {
     }
   );
 
-  const [points, setPoints] = useState([]);
+  const { value: points, storeValue: setPoints } = useStorageState(
+    `clicker:${host}`,
+    []
+  );
   const [selectedPoint, , dispatchAndSetSelectedPoint] = useMirroredState(
     "mini-app-toolbar:clicker-selected-point",
     null
@@ -131,8 +137,8 @@ export default memo(function AutoClicker() {
   const [, dispatchAndAddPoint] = useMirroredCallback(
     "mini-app-toolbar:clicker-add-point",
     () => {
-      setPoints((prev) => [
-        ...prev,
+      setPoints([
+        ...points,
         {
           x: Math.floor(window.innerWidth / 2),
           y: Math.floor(window.innerHeight / 2),
@@ -141,28 +147,26 @@ export default memo(function AutoClicker() {
         },
       ]);
     },
-    []
+    [points]
   );
 
   const [, dispatchAndRemovePoint] = useMirroredCallback(
     "mini-app-toolbar:clicker-remove-point",
     () => {
-      setPoints((prev) => {
-        const result = [...prev];
+      const result = [...prev];
 
-        result.pop();
+      result.pop();
 
-        return result;
-      });
+      setPoints(result);
     },
-    []
+    [points]
   );
 
   const [, dispatchAndUpdatePointData] = useMirroredCallback(
     "mini-app-toolbar:clicker-update-point",
     (index, data) =>
-      setPoints((prev) =>
-        prev.map((item, itemIndex) =>
+      setPoints(
+        points.map((item, itemIndex) =>
           itemIndex === index
             ? {
                 ...item,
@@ -171,7 +175,7 @@ export default memo(function AutoClicker() {
             : item
         )
       ),
-    []
+    [points]
   );
 
   const clickPoint = useCallback((point) => {
