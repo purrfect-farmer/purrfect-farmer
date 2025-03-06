@@ -3,7 +3,6 @@ import {
   customLogger,
   getSettings,
   getUserAgent,
-  watchWindowStateUpdate,
 } from "@/lib/utils";
 
 /** Close Previous Popups */
@@ -32,9 +31,6 @@ const openFarmerWindow = async () => {
     state: "maximized",
     focused: true,
   });
-
-  /** Watch Window Resize */
-  await watchWindowStateUpdate(window.id, "maximized", "normal");
 
   /** Close Previous Popups */
   await closePreviousPopups(window.id);
@@ -182,6 +178,9 @@ chrome.runtime.onInstalled.addListener(async (ev) => {
     const { startupListenerWasInvoked } = await chrome.storage.session.get(
       "startupListenerWasInvoked"
     );
+
+    /** Log Storage */
+    customLogger("STARTUP STORAGE", startupListenerWasInvoked);
 
     if (!startupListenerWasInvoked) {
       await openFarmerWindow(true);
