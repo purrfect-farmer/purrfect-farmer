@@ -7,13 +7,23 @@ import {
   HiOutlinePlus,
 } from "react-icons/hi2";
 import { RiDraggable } from "react-icons/ri";
-import { dispatchClickEventOnElement } from "@/lib/utils";
+import { customLogger, dispatchClickEventOnElement } from "@/lib/utils";
+import { memo } from "react";
 import { useCallback } from "react";
 import { useEffect } from "react";
 import { useRef } from "react";
 import { useState } from "react";
 
 import AutoClickerPoint from "./AutoClickerPoint";
+import AutoClickerPointConfig from "./AutoClickerPointConfig";
+
+const DEFAULT_INTERVAL = 100;
+const DEFAULT_UNIT = "ms";
+const CLICK_TIMEOUTS = {
+  m: 60_000,
+  s: 1000,
+  ms: 1,
+};
 
 const Wrapper = styled.div`
   position: fixed;
@@ -25,7 +35,7 @@ const Wrapper = styled.div`
   align-items: center;
   justify-content: center;
   font-size: 12px;
-  z-index: 99992;
+  z-index: 99910;
 `;
 
 const Container = styled.div`
@@ -38,7 +48,6 @@ const Container = styled.div`
   padding: 6px;
   gap: 6px;
   font-size: 12px;
-  z-index: 99999;
   border-radius: 999px;
   box-sizing: border-box;
   position: absolute;
@@ -97,7 +106,7 @@ const PauseIcon = styled(HiOutlinePause)`
   height: 16px;
 `;
 
-export default function AutoClicker() {
+export default memo(function AutoClicker() {
   const dragHandleClass = "draggable-handle";
   const nodeRef = useRef(null);
   const [position, setPosition] = useState({
@@ -106,6 +115,7 @@ export default function AutoClicker() {
   });
 
   const [points, setPoints] = useState([]);
+  const [selectedPoint, setSelectedPoint] = useState(null);
   const [autoClick, setAutoClick] = useState(false);
 
   const toggleAutoClick = useCallback(() => setAutoClick((prev) => !prev));
@@ -115,6 +125,8 @@ export default function AutoClicker() {
       {
         x: Math.floor(window.innerWidth / 2),
         y: Math.floor(window.innerHeight / 2),
+        interval: DEFAULT_INTERVAL,
+        unit: DEFAULT_UNIT,
       },
     ]);
   }, []);
@@ -129,29 +141,69 @@ export default function AutoClicker() {
     });
   }, []);
 
-  const updatePointPosition = useCallback(
-    (index, position) =>
+  const updatePointData = useCallback(
+    (index, data) =>
       setPoints((prev) =>
-        prev.map((item, itemIndex) => (itemIndex === index ? position : item))
+        prev.map((item, itemIndex) =>
+          itemIndex === index
+            ? {
+                ...item,
+                ...data,
+              }
+            : item
+        )
       ),
     []
   );
 
+  const clickPoint = useCallback((point) => {
+    /** Get Element */
+    const element = document.elementFromPoint(point.x, point.y);
+
+    /** Click */
+    dispatchClickEventOnElement(element, {
+      clientX: point.x,
+      clientY: point.y,
+    });
+
+    /** Log */
+    customLogger("AUTO-CLICKER", point, element);
+  }, []);
+
+  /** Start Clicking */
   useEffect(() => {
     if (!autoClick) return;
 
-    for (const point of points) {
-      const element = document.elementFromPoint(point.x, point.y);
+    /** Initial Click */
+    points.forEach(clickPoint);
 
-      dispatchClickEventOnElement(element, {
-        clientX: point.x,
-        clientY: point.y,
-      });
-    }
-  }, [autoClick, points]);
+    /** Set Intervals */
+    const intervals = points.map((point) =>
+      setInterval(
+        clickPoint,
+        point.interval * CLICK_TIMEOUTS[point.unit],
+        point
+      )
+    );
+
+    return () => {
+      /** Clear Intervals */
+      intervals.forEach((interval) => clearInterval(interval));
+    };
+  }, [autoClick, points, clickPoint]);
 
   return (
     <>
+      {/* Config */}
+      {selectedPoint !== null ? (
+        <AutoClickerPointConfig
+          point={points[selectedPoint]}
+          onOpenChange={() => setSelectedPoint(null)}
+          updatePoint={(data) => updatePointData(selectedPoint, data)}
+        />
+      ) : null}
+
+      {/* Points */}
       {points.map((point, index) => (
         <AutoClickerPoint
           key={index}
@@ -159,9 +211,13 @@ export default function AutoClicker() {
           x={point.x}
           y={point.y}
           disabled={autoClick}
-          onDrag={(position) => updatePointPosition(index, position)}
+          onDrag={(position) => updatePointData(index, position)}
+          onClick={() => {
+            setSelectedPoint(index);
+          }}
         />
       ))}
+
       <Wrapper>
         <Draggable
           position={position}
@@ -211,4 +267,4 @@ export default function AutoClicker() {
       </Wrapper>
     </>
   );
-}
+});

@@ -24,7 +24,7 @@ const Wrapper = styled.div`
   align-items: center;
   justify-content: center;
   font-size: 12px;
-  z-index: 99991;
+  z-index: 99910;
 `;
 
 const Container = styled.div`
@@ -36,7 +36,6 @@ const Container = styled.div`
   padding: 6px;
   gap: 6px;
   font-size: 12px;
-  z-index: 99999;
   border-radius: 999px;
   box-sizing: border-box;
   position: absolute;

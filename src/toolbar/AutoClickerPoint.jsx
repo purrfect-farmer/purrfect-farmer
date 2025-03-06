@@ -1,10 +1,12 @@
 import Draggable from "react-draggable";
 import styled from "styled-components";
+import { memo } from "react";
+import { useCallback } from "react";
 import { useRef } from "react";
 
 const Wrapper = styled.div`
   position: fixed;
-  z-index: 99993;
+  z-index: 99920;
   left: 0;
   top: 0;
 `;
@@ -36,30 +38,56 @@ const Point = styled.button`
   }
 `;
 
-export default function AutoClickerPoint({
+export default memo(function AutoClickerPoint({
   disabled = false,
   title,
   x,
   y,
+  onClick,
   onDrag,
 }) {
   const nodeRef = useRef(null);
+  const wasDragged = useRef(false);
+
+  const handleClick = useCallback(
+    (ev) => {
+      if (!wasDragged.current) {
+        onClick(ev);
+      }
+    },
+    [onClick]
+  );
 
   return (
     <Draggable
+      nodeRef={nodeRef}
       disabled={disabled}
       position={{ x, y }}
-      onDrag={(e, { x, y }) => {
+      onStart={() => {
+        wasDragged.current = false;
+      }}
+      onDrag={(_e, { x, y, deltaX, deltaY }) => {
+        /** Call onDrag */
         onDrag({
           x,
           y,
         });
+
+        /** Check Threshold */
+        if (Math.abs(deltaX) >= 3 || Math.abs(deltaY) >= 3) {
+          wasDragged.current = true;
+        }
       }}
-      nodeRef={nodeRef}
     >
       <Wrapper ref={nodeRef}>
-        <Point disabled={disabled}>{title}</Point>
+        <Point
+          disabled={disabled}
+          onClick={handleClick}
+          onTouchEnd={handleClick}
+        >
+          {title}
+        </Point>
       </Wrapper>
     </Draggable>
   );
-}
+});
