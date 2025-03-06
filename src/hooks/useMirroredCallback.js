@@ -1,3 +1,4 @@
+import { customLogger } from "@/lib/utils";
 import { useCallback } from "react";
 import { useLayoutEffect } from "react";
 import { useMemo } from "react";
@@ -19,10 +20,14 @@ export default function useMirroredCallback(
   /** Dispatch Callback */
   const dispatch = useCallback(
     (...args) => {
-      mirrorToUse.dispatch({
-        action,
-        data: args,
-      });
+      try {
+        mirrorToUse.dispatch({
+          action,
+          data: args,
+        });
+      } catch (e) {
+        customLogger("DISPATCH ERROR", e);
+      }
 
       return main(...args);
     },
