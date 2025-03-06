@@ -7,6 +7,7 @@ import { useRef } from "react";
 import { useState } from "react";
 
 import useEventEmitter from "./useEventEmitter";
+import useSyncedRef from "./useSyncedRef";
 
 export default function useMirror(
   enabled = false,
@@ -21,15 +22,15 @@ export default function useMirror(
     removeListeners: removeCommandHandlers,
   } = useEventEmitter();
 
+  /** Store Mirroring State in Ref */
+  const mirroringRef = useSyncedRef(mirroring);
+
   /** Dispatch */
-  const dispatch = useCallback(
-    (data) => {
-      if (mirroring && socketRef.current?.connected) {
-        socketRef.current?.send(data);
-      }
-    },
-    [mirroring]
-  );
+  const dispatch = useCallback((data) => {
+    if (mirroringRef.current && socketRef.current?.connected) {
+      socketRef.current?.send(data);
+    }
+  }, []);
 
   /** Instantiate Socket */
   useLayoutEffect(() => {

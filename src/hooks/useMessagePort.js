@@ -30,6 +30,7 @@ export default function useMessagePort() {
 
       /** Emit Event */
       handler.emit(`port-connected:${port.name}`, port);
+      handler.emit("port-connected", port);
     },
     [handler, ports]
   );
@@ -54,6 +55,7 @@ export default function useMessagePort() {
 
       /** Emit Event */
       handler.emit(`port-disconnected:${port?.name}`, port);
+      handler.emit("port-disconnected", port);
     },
     [handler, ports, portMessageHandler]
   );

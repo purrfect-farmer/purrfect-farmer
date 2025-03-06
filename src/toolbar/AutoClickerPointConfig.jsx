@@ -21,6 +21,7 @@ const DialogContent = styled(Dialog.Content)`
   gap: 8px;
   padding: 16px;
   background-color: white;
+  color: black;
   border-radius: 12px;
   font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
     Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;

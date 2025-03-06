@@ -1,5 +1,7 @@
 import Draggable from "react-draggable";
 import styled from "styled-components";
+import useMirroredCallback from "@/hooks/useMirroredCallback";
+import useMirroredState from "@/hooks/useMirroredState";
 import {
   HiOutlineMinus,
   HiOutlinePause,
@@ -113,33 +115,48 @@ export default memo(function AutoClicker() {
   });
 
   const [points, setPoints] = useState([]);
-  const [selectedPoint, setSelectedPoint] = useState(null);
-  const [autoClick, setAutoClick] = useState(false);
+  const [selectedPoint, , dispatchAndSetSelectedPoint] = useMirroredState(
+    "mini-app-toolbar:clicker-selected-point",
+    null
+  );
+  const [enabled, setEnabled] = useState(false);
 
-  const toggleAutoClick = useCallback(() => setAutoClick((prev) => !prev));
-  const addPoint = useCallback(() => {
-    setPoints((prev) => [
-      ...prev,
-      {
-        x: Math.floor(window.innerWidth / 2),
-        y: Math.floor(window.innerHeight / 2),
-        interval: DEFAULT_INTERVAL,
-        unit: DEFAULT_UNIT,
-      },
-    ]);
-  }, []);
+  const [, dispatchAndToggleAutoClicks] = useMirroredCallback(
+    "mini-app-toolbar:clicker-auto-clicks",
+    () => setEnabled((prev) => !prev)
+  );
+  const [, dispatchAndAddPoint] = useMirroredCallback(
+    "mini-app-toolbar:clicker-add-point",
+    () => {
+      setPoints((prev) => [
+        ...prev,
+        {
+          x: Math.floor(window.innerWidth / 2),
+          y: Math.floor(window.innerHeight / 2),
+          interval: DEFAULT_INTERVAL,
+          unit: DEFAULT_UNIT,
+        },
+      ]);
+    },
+    []
+  );
 
-  const removePoint = useCallback(() => {
-    setPoints((prev) => {
-      const result = [...prev];
+  const [, dispatchAndRemovePoint] = useMirroredCallback(
+    "mini-app-toolbar:clicker-remove-point",
+    () => {
+      setPoints((prev) => {
+        const result = [...prev];
 
-      result.pop();
+        result.pop();
 
-      return result;
-    });
-  }, []);
+        return result;
+      });
+    },
+    []
+  );
 
-  const updatePointData = useCallback(
+  const [, dispatchAndUpdatePointData] = useMirroredCallback(
+    "mini-app-toolbar:clicker-update-point",
     (index, data) =>
       setPoints((prev) =>
         prev.map((item, itemIndex) =>
@@ -170,7 +187,7 @@ export default memo(function AutoClicker() {
 
   /** Start Clicking */
   useEffect(() => {
-    if (!autoClick) return;
+    if (!enabled) return;
 
     /** Initial Click */
     points.forEach(clickPoint);
@@ -188,7 +205,7 @@ export default memo(function AutoClicker() {
       /** Clear Intervals */
       intervals.forEach((interval) => clearInterval(interval));
     };
-  }, [autoClick, points, clickPoint]);
+  }, [enabled, points, clickPoint]);
 
   return (
     <>
@@ -196,8 +213,10 @@ export default memo(function AutoClicker() {
       {selectedPoint !== null ? (
         <AutoClickerPointConfig
           point={points[selectedPoint]}
-          onOpenChange={() => setSelectedPoint(null)}
-          updatePoint={(data) => updatePointData(selectedPoint, data)}
+          onOpenChange={() => dispatchAndSetSelectedPoint(null)}
+          updatePoint={(data) =>
+            dispatchAndUpdatePointData(selectedPoint, data)
+          }
         />
       ) : null}
 
@@ -208,10 +227,10 @@ export default memo(function AutoClicker() {
           title={index + 1}
           x={point.x}
           y={point.y}
-          disabled={autoClick}
-          onDrag={(position) => updatePointData(index, position)}
+          disabled={enabled}
+          onDrag={(position) => dispatchAndUpdatePointData(index, position)}
           onClick={() => {
-            setSelectedPoint(index);
+            dispatchAndSetSelectedPoint(index);
           }}
         />
       ))}
@@ -231,33 +250,33 @@ export default memo(function AutoClicker() {
           <Container ref={nodeRef}>
             {/* Start / Stop */}
             <Button
-              title={autoClick ? "Stop" : "Start"}
-              onClick={toggleAutoClick}
-              className={autoClick ? "active" : ""}
+              title={enabled ? "Stop" : "Start"}
+              onClick={() => dispatchAndToggleAutoClicks()}
+              className={enabled ? "active" : ""}
             >
-              {autoClick ? <PauseIcon /> : <StartIcon />}
+              {enabled ? <PauseIcon /> : <StartIcon />}
             </Button>
 
             {/* Add */}
-            <Button disabled={autoClick} title="Add Point" onClick={addPoint}>
+            <Button
+              disabled={enabled}
+              title="Add Point"
+              onClick={() => dispatchAndAddPoint()}
+            >
               <PlusIcon />
             </Button>
 
             {/* Minus */}
             <Button
-              disabled={autoClick}
+              disabled={enabled}
               title="Remove Point"
-              onClick={removePoint}
+              onClick={() => dispatchAndRemovePoint()}
             >
               <MinusIcon />
             </Button>
 
             {/* Drag */}
-            <Button
-              disabled={autoClick}
-              className={dragHandleClass}
-              title="Drag"
-            >
+            <Button disabled={enabled} className={dragHandleClass} title="Drag">
               <HandleIcon />
             </Button>
           </Container>

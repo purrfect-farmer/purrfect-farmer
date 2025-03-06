@@ -4,9 +4,15 @@ import { createRoot } from "react-dom/client";
 import { getSettings } from "@/lib/utils";
 
 /** Initial Location */
+const INITIAL_HOST = location.host;
 const INITIAL_LOCATION = location.href;
 
 if (location.hash.includes("tgWebAppData")) {
+  /** Connect to Messaging */
+  const port = chrome.runtime.connect(chrome.runtime.id, {
+    name: `mini-app-toolbar:${location.host}`,
+  });
+
   /** Initial State */
   let toolbar = null;
 
@@ -25,6 +31,8 @@ if (location.hash.includes("tgWebAppData")) {
     root.render(
       createElement(MiniAppToolbar, {
         url: INITIAL_LOCATION,
+        host: INITIAL_HOST,
+        port,
       })
     );
 
