@@ -1,5 +1,6 @@
 import {
   closeWindow,
+  customLogger,
   getSettings,
   getUserAgent,
   watchWindowStateUpdate,
@@ -112,6 +113,9 @@ const setupExtension = async () => {
 
 /** Open Farmer on Startup */
 chrome.runtime.onStartup.addListener(async () => {
+  /** Log */
+  customLogger("STARTUP INVOKED", Date.now());
+
   /** Store that startup has been invoked */
   await chrome.storage.session.set({ startupListenerWasInvoked: true });
 
@@ -164,6 +168,9 @@ chrome.runtime.onStartup.addListener(async () => {
 
 /** Open Farmer on Install */
 chrome.runtime.onInstalled.addListener(async (ev) => {
+  /** Log */
+  customLogger("ONINSTALLED INVOKED", Date.now());
+
   /** Setup Extension */
   await setupExtension();
 
