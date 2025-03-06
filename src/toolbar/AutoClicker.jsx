@@ -109,10 +109,13 @@ const PauseIcon = styled(HiOutlinePause)`
 export default memo(function AutoClicker() {
   const dragHandleClass = "draggable-handle";
   const nodeRef = useRef(null);
-  const [position, setPosition] = useState({
-    x: 0,
-    y: 0,
-  });
+  const [position, , dispatchAndSetPosition] = useMirroredState(
+    "mini-app-toolbar:clicker-draggable",
+    {
+      x: 0,
+      y: 0,
+    }
+  );
 
   const [points, setPoints] = useState([]);
   const [selectedPoint, , dispatchAndSetSelectedPoint] = useMirroredState(
@@ -239,7 +242,7 @@ export default memo(function AutoClicker() {
         <Draggable
           position={position}
           onDrag={(e, { x, y }) =>
-            setPosition({
+            dispatchAndSetPosition({
               x,
               y,
             })

@@ -15,7 +15,6 @@ import { PiHandTap } from "react-icons/pi";
 import { RiDraggable } from "react-icons/ri";
 import { useCallback } from "react";
 import { useRef } from "react";
-import { useState } from "react";
 
 const Wrapper = styled.div`
   position: fixed;
@@ -103,10 +102,13 @@ export default function ToolbarPanel() {
   const { url } = useAppContext();
   const dragHandleClass = "draggable-handle";
   const nodeRef = useRef(null);
-  const [position, setPosition] = useState({
-    x: 0,
-    y: 0,
-  });
+  const [position, , dispatchAndSetPosition] = useMirroredState(
+    "mini-app-toolbar:panel-draggable",
+    {
+      x: 0,
+      y: 0,
+    }
+  );
 
   const [showFullUi, , dispatchAndSetShowFullUi] = useMirroredState(
     "mini-app-toolbar:show-full-ui",
@@ -132,7 +134,7 @@ export default function ToolbarPanel() {
       await document.documentElement.requestFullscreen();
 
       /** Reset Position */
-      setPosition({
+      dispatchAndSetPosition({
         x: 0,
         y: 0,
       });
@@ -141,7 +143,7 @@ export default function ToolbarPanel() {
       await document.exitFullscreen();
 
       /** Reset Position */
-      setPosition({
+      dispatchAndSetPosition({
         x: 0,
         y: 0,
       });
@@ -155,7 +157,7 @@ export default function ToolbarPanel() {
         <Draggable
           position={position}
           onDrag={(e, { x, y }) =>
-            setPosition({
+            dispatchAndSetPosition({
               x,
               y,
             })
