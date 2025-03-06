@@ -66,17 +66,14 @@ export default memo(function AutoClickerPoint({
       onStart={() => {
         wasDragged.current = false;
       }}
-      onDrag={(_e, { x, y, deltaX, deltaY }) => {
+      onDrag={(_e, { x, y }) => {
         /** Call onDrag */
         onDrag({
           x,
           y,
         });
 
-        /** Check Threshold */
-        if (Math.abs(deltaX) >= 3 || Math.abs(deltaY) >= 3) {
-          wasDragged.current = true;
-        }
+        wasDragged.current = true;
       }}
     >
       <Wrapper ref={nodeRef}>
