@@ -16,7 +16,6 @@ import { memo } from "react";
 import { useCallback } from "react";
 import { useEffect } from "react";
 import { useRef } from "react";
-import { useState } from "react";
 
 import AutoClickerPoint from "./AutoClickerPoint";
 import AutoClickerPointConfig from "./AutoClickerPointConfig";
@@ -120,24 +119,25 @@ export default memo(function AutoClicker() {
     }
   );
 
-  const { value: points, storeValue: setPoints } = useStorageState(
+  const { value: points, storeValue: storePoints } = useStorageState(
     `clicker:${host}`,
     []
   );
+
+  const [enabled, , dispatchAndSetEnabled] = useMirroredState(
+    "mini-app-toolbar:clicker-auto-clicks",
+    false
+  );
+
   const [selectedPoint, , dispatchAndSetSelectedPoint] = useMirroredState(
     "mini-app-toolbar:clicker-selected-point",
     null
   );
-  const [enabled, setEnabled] = useState(false);
 
-  const [, dispatchAndToggleAutoClicks] = useMirroredCallback(
-    "mini-app-toolbar:clicker-auto-clicks",
-    () => setEnabled((prev) => !prev)
-  );
   const [, dispatchAndAddPoint] = useMirroredCallback(
     "mini-app-toolbar:clicker-add-point",
     () => {
-      setPoints([
+      storePoints([
         ...points,
         {
           x: Math.floor(window.innerWidth / 2),
@@ -157,7 +157,7 @@ export default memo(function AutoClicker() {
 
       result.pop();
 
-      setPoints(result);
+      storePoints(result);
     },
     [points]
   );
@@ -165,7 +165,7 @@ export default memo(function AutoClicker() {
   const [, dispatchAndUpdatePointData] = useMirroredCallback(
     "mini-app-toolbar:clicker-update-point",
     (index, data) =>
-      setPoints(
+      storePoints(
         points.map((item, itemIndex) =>
           itemIndex === index
             ? {
@@ -258,7 +258,7 @@ export default memo(function AutoClicker() {
             {/* Start / Stop */}
             <Button
               title={enabled ? "Stop" : "Start"}
-              onClick={() => dispatchAndToggleAutoClicks()}
+              onClick={() => dispatchAndSetEnabled(!enabled)}
               className={enabled ? "active" : ""}
             >
               {enabled ? <PauseIcon /> : <StartIcon />}
