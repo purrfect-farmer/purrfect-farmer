@@ -104,14 +104,15 @@ export function isElementVisible(element) {
 }
 
 /** Dispatch Click Event on Element */
-export function dispatchClickEventOnElement(element) {
+export function dispatchClickEventOnElement(element, options) {
   if (element) {
-    ["mousedown", "click"].forEach((eventType) => {
+    ["mousedown", "click", "mouseup"].forEach((eventType) => {
       /** Dispatch the event */
       element.dispatchEvent(
         new MouseEvent(eventType, {
           bubbles: true,
           cancelable: true,
+          ...options,
         })
       );
     });

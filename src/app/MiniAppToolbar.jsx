@@ -1,4 +1,5 @@
 import AppIcon from "@/assets/images/icon.png?inline&format=webp&w=72&h=72";
+import AutoClicker from "@/toolbar/AutoClicker";
 import Draggable from "react-draggable";
 import MinimizedAppIcon from "@/assets/images/icon-toolbar-minimized.png?inline&format=webp&w=72&h=72";
 import copy from "copy-to-clipboard";
@@ -8,6 +9,7 @@ import {
   HiOutlineArrowsPointingOut,
   HiOutlineClipboard,
 } from "react-icons/hi2";
+import { PiHandTap } from "react-icons/pi";
 import { RiDraggable } from "react-icons/ri";
 import { useCallback } from "react";
 import { useRef } from "react";
@@ -22,7 +24,7 @@ const Wrapper = styled.div`
   align-items: center;
   justify-content: center;
   font-size: 12px;
-  z-index: 99999;
+  z-index: 99991;
 `;
 
 const Container = styled.div`
@@ -37,6 +39,8 @@ const Container = styled.div`
   z-index: 99999;
   border-radius: 999px;
   box-sizing: border-box;
+  position: absolute;
+  bottom: 100%;
 `;
 
 const Image = styled.img`
@@ -62,7 +66,8 @@ const Button = styled.button`
   font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
     Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
 
-  &:hover {
+  &:hover,
+  &.active {
     background-color: oklch(0.768 0.233 130.85);
     color: black;
   }
@@ -88,6 +93,11 @@ const HandleIcon = styled(RiDraggable)`
   height: 16px;
 `;
 
+const ClickerIcon = styled(PiHandTap)`
+  width: 16px;
+  height: 16px;
+`;
+
 export default function MiniAppToolbar({ url }) {
   const dragHandleClass = "draggable-handle";
   const nodeRef = useRef(null);
@@ -96,9 +106,11 @@ export default function MiniAppToolbar({ url }) {
     y: 0,
   });
 
+  const [showClicker, setShowClicker] = useState(false);
   const [showFullUi, setShowFullUi] = useState(true);
 
   const toggleFullUi = useCallback(() => setShowFullUi((prev) => !prev));
+  const toggleClicker = useCallback(() => setShowClicker((prev) => !prev));
 
   const openURL = useCallback(() => {
     window.open(url);
@@ -133,6 +145,7 @@ export default function MiniAppToolbar({ url }) {
 
   return (
     <>
+      {showClicker ? <AutoClicker /> : null}
       <Wrapper>
         <Draggable
           position={position}
@@ -157,6 +170,15 @@ export default function MiniAppToolbar({ url }) {
                 {/* Toggle Fullscreen */}
                 <Button onClick={toggleFullScreen} title="Toggle Fullscreen">
                   <FullScreenIcon />
+                </Button>
+
+                {/* Toggle Clicker */}
+                <Button
+                  onClick={toggleClicker}
+                  className={showClicker ? "active" : ""}
+                  title="Toggle Clicker"
+                >
+                  <ClickerIcon />
                 </Button>
 
                 {/* Open */}
