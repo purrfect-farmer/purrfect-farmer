@@ -112,7 +112,7 @@ export default function ToolbarPanel() {
 
   const [showFullUi, , dispatchAndSetShowFullUi] = useMirroredState(
     "mini-app-toolbar:show-full-ui",
-    true
+    false
   );
   const [showClicker, , dispatchAndSetShowClicker] = useMirroredState(
     "mini-app-toolbar:show-clicker",
@@ -172,20 +172,20 @@ export default function ToolbarPanel() {
               draggable={false}
             />
 
+            {/* Toggle Clicker */}
+            <Button
+              onClick={() => dispatchAndSetShowClicker(!showClicker)}
+              className={showClicker ? "active" : ""}
+              title="Toggle Clicker"
+            >
+              <ClickerIcon />
+            </Button>
+
             {showFullUi ? (
               <>
                 {/* Toggle Fullscreen */}
                 <Button onClick={toggleFullScreen} title="Toggle Fullscreen">
                   <FullScreenIcon />
-                </Button>
-
-                {/* Toggle Clicker */}
-                <Button
-                  onClick={() => dispatchAndSetShowClicker(!showClicker)}
-                  className={showClicker ? "active" : ""}
-                  title="Toggle Clicker"
-                >
-                  <ClickerIcon />
                 </Button>
 
                 {/* Open */}
