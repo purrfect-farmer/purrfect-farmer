@@ -120,8 +120,8 @@ export function dispatchClickEventOnElement(element, { clientX, clientY }) {
   const touch = new Touch({
     identifier: Date.now(),
     target: element,
-    clientX: clientX,
-    clientY: clientY,
+    clientX,
+    clientY,
     screenX: clientX,
     screenY: clientY,
     pageX: clientX,
