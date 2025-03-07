@@ -1,8 +1,8 @@
 import {
+  clickElementCenter,
   customLogger,
   delay,
   delayForSeconds,
-  dispatchClickEventOnElement,
   scrollElementIntoView,
 } from "@/lib/utils";
 
@@ -44,7 +44,7 @@ const startTasks = async () => {
   try {
     if (tasksLink) {
       /** Click Tasks */
-      dispatchClickEventOnElement(tasksLink);
+      clickElementCenter(tasksLink);
 
       /** Delay */
       await delay(1000);
@@ -56,7 +56,7 @@ const startTasks = async () => {
         const button = tabButtons[i];
 
         /** Click Special */
-        dispatchClickEventOnElement(button);
+        clickElementCenter(button);
 
         /** Delay */
         await delay(1000);
@@ -110,7 +110,7 @@ const runTasks = async () => {
       customLogger("NOTGRAM", "Performing Task");
 
       /** Click */
-      dispatchClickEventOnElement(performButton);
+      clickElementCenter(performButton);
 
       /** Delay */
       await delayForSeconds(15);
@@ -122,7 +122,7 @@ const runTasks = async () => {
       customLogger("NOTGRAM", "Verifying Task");
 
       /** Click to Verify */
-      dispatchClickEventOnElement(verifyButton);
+      clickElementCenter(verifyButton);
 
       /** Delay */
       await delayForSeconds(10);
@@ -134,7 +134,7 @@ const runTasks = async () => {
       customLogger("NOTGRAM", "Claiming Task");
 
       /** Click to Claim */
-      dispatchClickEventOnElement(claimButton);
+      clickElementCenter(claimButton);
 
       /** Delay */
       await delayForSeconds(3);
@@ -158,7 +158,7 @@ const closePopup = () => {
   );
 
   if (confirmButton) {
-    dispatchClickEventOnElement(confirmButton);
+    clickElementCenter(confirmButton);
   }
 };
 

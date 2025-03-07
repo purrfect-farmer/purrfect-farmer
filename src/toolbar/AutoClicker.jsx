@@ -183,10 +183,12 @@ export default memo(function AutoClicker() {
     const element = document.elementFromPoint(point.x, point.y);
 
     /** Click */
-    dispatchClickEventOnElement(element, {
-      clientX: point.x,
-      clientY: point.y,
-    });
+    if (element) {
+      dispatchClickEventOnElement(element, {
+        clientX: point.x,
+        clientY: point.y,
+      });
+    }
 
     /** Log */
     customLogger("AUTO-CLICKER", point, element);

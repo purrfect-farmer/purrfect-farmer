@@ -1,4 +1,4 @@
-import { dispatchClickEventOnElement, isElementVisible } from "@/lib/utils";
+import { clickElementCenter, isElementVisible } from "@/lib/utils";
 
 /** Web Version */
 const WEB_VERSION = location.pathname.startsWith("/k/") ? "k" : "a";
@@ -55,7 +55,7 @@ const clickTelegramWebButton = (key, button, timeout = 0) => {
       delete CLICK_TIMEOUTS[key];
 
       /** Dispatch the Click Event */
-      dispatchClickEventOnElement(button);
+      clickElementCenter(button);
     }, timeout);
 
     return true;
@@ -326,7 +326,7 @@ const farmerBotIsRunning = (iframes) => {
 
 /** Close Popup */
 const closePopup = (iframe) => {
-  dispatchClickEventOnElement(
+  clickElementCenter(
     iframe.parentElement.previousElementSibling.querySelector(".popup-close")
   );
 };

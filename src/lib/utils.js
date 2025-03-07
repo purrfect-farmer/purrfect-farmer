@@ -104,19 +104,60 @@ export function isElementVisible(element) {
 }
 
 /** Dispatch Click Event on Element */
-export function dispatchClickEventOnElement(element, options) {
+export function dispatchClickEventOnElement(element, { clientX, clientY }) {
+  /** Mouse Events */
+  ["mousedown", "click", "mouseup"].forEach((eventType) => {
+    element.dispatchEvent(
+      new MouseEvent(eventType, {
+        bubbles: true,
+        cancelable: true,
+        clientX,
+        clientY,
+      })
+    );
+  });
+
+  const touch = new Touch({
+    identifier: Date.now(),
+    target: element,
+    clientX: clientX,
+    clientY: clientY,
+    screenX: clientX,
+    screenY: clientY,
+    pageX: clientX,
+    pageY: clientY,
+  });
+
+  /** Touch Events */
+  ["touchstart", "touchend"].forEach((eventType) => {
+    element.dispatchEvent(
+      new TouchEvent(eventType, {
+        bubbles: true,
+        cancelable: true,
+        touches: [touch],
+        changedTouches: [touch],
+      })
+    );
+  });
+}
+
+export function clickElementCenter(element) {
   if (element) {
-    ["mousedown", "click", "mouseup"].forEach((eventType) => {
-      /** Dispatch the event */
-      element.dispatchEvent(
-        new MouseEvent(eventType, {
-          bubbles: true,
-          cancelable: true,
-          ...options,
-        })
-      );
-    });
+    const coords = getElementCenter(element);
+    return dispatchClickEventOnElement(element, coords);
   }
+}
+
+export function getElementCenter(element) {
+  const rect = element.getBoundingClientRect();
+
+  const clientX = rect.left + rect.width / 2;
+  const clientY = rect.top + rect.height / 2;
+
+  return {
+    clientX,
+    clientY,
+  };
 }
 
 export function scrollElementIntoView(element) {
