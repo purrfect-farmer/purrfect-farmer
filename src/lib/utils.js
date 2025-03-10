@@ -69,7 +69,8 @@ export function delayForMinutes(length, precised = false) {
 }
 
 export async function getStorage(key, defaultValue) {
-  const { [key]: value } = await chrome?.storage?.local.get(key);
+  const data = await chrome?.storage?.local.get(key);
+  const value = data?.[key];
   return typeof value !== "undefined" ? value : defaultValue;
 }
 
