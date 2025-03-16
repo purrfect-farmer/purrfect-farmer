@@ -1,5 +1,6 @@
 import AppContext from "@/contexts/AppContext";
 import ControlArea from "@/partials/ControlArea";
+import FullSpinner from "@/components/FullSpinner";
 import TabButtonList from "@/components/TabButtonList";
 import TabContent from "@/components/TabContent";
 import useApp from "@/hooks/useApp";
@@ -13,6 +14,7 @@ import Onboarding from "./Onboarding";
 
 function App() {
   const app = useApp();
+  const hasRestoredSettings = app.hasRestoredSettings;
   const theme = app.settings.theme;
   const onboarded = app.settings.onboarded;
   const wakeLockRef = useRef(null);
@@ -61,26 +63,32 @@ function App() {
 
   return (
     <AppContext.Provider value={app}>
-      {onboarded ? (
-        <div className="flex flex-col h-dvh">
-          {app.openedTabs.length > 1 ? (
-            <TabButtonList tabs={app.openedTabs} />
-          ) : null}
+      {hasRestoredSettings ? (
+        onboarded ? (
+          <div className="flex flex-col h-dvh">
+            {app.openedTabs.length > 1 ? (
+              <TabButtonList tabs={app.openedTabs} />
+            ) : null}
 
-          {/* Tabs Contents Wrapper */}
-          <div className="relative min-w-0 min-h-0 overflow-auto grow">
-            {app.openedTabs.map((tab) => (
-              <TabContent
-                key={tab.reloadedAt ? `${tab.id}-${tab.reloadedAt}` : tab.id}
-                tab={tab}
-              />
-            ))}
+            {/* Tabs Contents Wrapper */}
+            <div className="relative min-w-0 min-h-0 overflow-auto grow">
+              {app.openedTabs.map((tab) => (
+                <TabContent
+                  key={tab.reloadedAt ? `${tab.id}-${tab.reloadedAt}` : tab.id}
+                  tab={tab}
+                />
+              ))}
+            </div>
+
+            <ControlArea />
           </div>
-
-          <ControlArea />
-        </div>
+        ) : (
+          <Onboarding />
+        )
       ) : (
-        <Onboarding />
+        <div className="flex flex-col h-dvh">
+          <FullSpinner />
+        </div>
       )}
       <Toaster
         position="top-center"
