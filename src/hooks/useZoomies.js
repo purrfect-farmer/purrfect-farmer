@@ -22,8 +22,8 @@ export default function useZoomies(core) {
   /** Process */
   const process = useProcessLock("zoomies", core.mirror);
 
-  /** Started */
-  const [started, setStarted] = useState(false);
+  /** Farmer has Started */
+  const [farmerHasStarted, setFarmerHasStarted] = useState(false);
 
   /** Quick Run */
   const [quickRun, setQuickRun] = useState(false);
@@ -76,7 +76,7 @@ export default function useZoomies(core) {
   /** Reset Zoomies */
   const resetZoomies = useCallback(() => {
     /** Reset Started */
-    setStarted(false);
+    setFarmerHasStarted(false);
 
     /** Close Farmer Tabs */
     core.closeFarmerTabs();
@@ -85,7 +85,12 @@ export default function useZoomies(core) {
     if (current.drop?.id) {
       core.setActiveTab(current.drop?.id);
     }
-  }, [setStarted, current.drop?.id, core.closeFarmerTabs, core.setActiveTab]);
+  }, [
+    setFarmerHasStarted,
+    current.drop?.id,
+    core.closeFarmerTabs,
+    core.setActiveTab,
+  ]);
 
   /** Toggle Zoomies */
   const [toggle, dispatchAndToggle] = useMirroredCallback(
@@ -221,7 +226,7 @@ export default function useZoomies(core) {
 
   /** Open Bot */
   useLayoutEffect(() => {
-    if (canProcessZoomies && started === false) {
+    if (canProcessZoomies && farmerHasStarted === false) {
       /** Timeout */
       let timeout;
 
@@ -253,13 +258,13 @@ export default function useZoomies(core) {
         clearTimeout(timeout);
       };
     }
-  }, [canProcessZoomies, started, openBot, skipToNextDrop]);
+  }, [canProcessZoomies, farmerHasStarted, openBot, skipToNextDrop]);
 
   /** Handle Started */
   useLayoutEffect(() => {
     if (!canProcessZoomies) return;
 
-    if (started) {
+    if (farmerHasStarted) {
       if (current.drop) {
         /** Close Other Bots */
         if (current.drop.closeBotInZoomies !== false) {
@@ -271,7 +276,7 @@ export default function useZoomies(core) {
       }
     }
   }, [
-    started,
+    farmerHasStarted,
     canProcessZoomies,
     current.drop?.id,
     current.drop?.closeBotInZoomies,
@@ -352,7 +357,7 @@ export default function useZoomies(core) {
     toggle,
     dispatchAndToggle,
     current,
-    setStarted,
+    setStarted: setFarmerHasStarted,
     setCurrent,
     toggle,
     skipToNextDrop,

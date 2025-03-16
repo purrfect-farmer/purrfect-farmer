@@ -420,9 +420,9 @@ export default function useDropFarmer({
   /** Set Started */
   useLayoutEffect(() => {
     if (isZooming) {
-      zoomies.setStarted(started);
+      zoomies.setFarmerHasStarted(started);
     }
-  }, [started, isZooming, zoomies.setStarted]);
+  }, [started, isZooming, zoomies.setFarmerHasStarted]);
 
   /** Process Next Task After 3 Init Reset */
   useLayoutEffect(() => {
