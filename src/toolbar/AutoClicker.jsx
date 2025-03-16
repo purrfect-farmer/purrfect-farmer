@@ -39,6 +39,7 @@ const Wrapper = styled.div`
   justify-content: center;
   font-size: 12px;
   z-index: 99910;
+  overflow: visible !important;
 `;
 
 const Container = styled.div`

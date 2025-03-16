@@ -7,6 +7,7 @@ import { useRef } from "react";
 const Wrapper = styled.div`
   position: fixed;
   z-index: 99920;
+  overflow: visible !important;
   left: 0;
   top: 0;
 `;
