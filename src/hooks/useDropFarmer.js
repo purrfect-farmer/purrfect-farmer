@@ -161,10 +161,12 @@ export default function useDropFarmer({
 
   /** Meta */
   const hasPreparedMeta =
-    typeof fetchMeta === "function" ? metaQuery.isSuccess : hasPreparedAuth;
+    (typeof fetchMeta === "function" ? metaQuery.isSuccess : true) &&
+    hasPreparedAuth;
 
   /** Started */
-  const started = startManually ? hasStartedManually : hasPreparedMeta;
+  const started =
+    (startManually ? hasStartedManually : true) && hasPreparedMeta;
 
   /** Status */
   const status = useMemo(
