@@ -18,6 +18,7 @@ const defaultSettings = {
   theme: "system",
   preferredTelegramWebVersion: "k",
   farmerTitle: "TGUser",
+  onboarded: false,
   closeOtherBots: true,
   enableCloud: false,
   enableSeeker: false,

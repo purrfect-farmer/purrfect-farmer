@@ -9,9 +9,12 @@ import { Toaster } from "react-hot-toast";
 import { memo, useEffect, useRef } from "react";
 import { resizeFarmerWindow } from "@/lib/utils";
 
+import Onboarding from "./Onboarding";
+
 function App() {
   const app = useApp();
   const theme = app.settings.theme;
+  const onboarded = app.settings.onboarded;
   const wakeLockRef = useRef(null);
 
   /** Resize window */
@@ -58,23 +61,27 @@ function App() {
 
   return (
     <AppContext.Provider value={app}>
-      <div className="flex flex-col h-dvh">
-        {app.openedTabs.length > 1 ? (
-          <TabButtonList tabs={app.openedTabs} />
-        ) : null}
+      {onboarded ? (
+        <div className="flex flex-col h-dvh">
+          {app.openedTabs.length > 1 ? (
+            <TabButtonList tabs={app.openedTabs} />
+          ) : null}
 
-        {/* Tabs Contents Wrapper */}
-        <div className="relative min-w-0 min-h-0 overflow-auto grow">
-          {app.openedTabs.map((tab) => (
-            <TabContent
-              key={tab.reloadedAt ? `${tab.id}-${tab.reloadedAt}` : tab.id}
-              tab={tab}
-            />
-          ))}
+          {/* Tabs Contents Wrapper */}
+          <div className="relative min-w-0 min-h-0 overflow-auto grow">
+            {app.openedTabs.map((tab) => (
+              <TabContent
+                key={tab.reloadedAt ? `${tab.id}-${tab.reloadedAt}` : tab.id}
+                tab={tab}
+              />
+            ))}
+          </div>
+
+          <ControlArea />
         </div>
-
-        <ControlArea />
-      </div>
+      ) : (
+        <Onboarding />
+      )}
       <Toaster
         position="top-center"
         toastOptions={{

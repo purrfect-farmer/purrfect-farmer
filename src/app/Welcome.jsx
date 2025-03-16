@@ -3,6 +3,7 @@ import * as Tabs from "@radix-ui/react-tabs";
 import BotWebAIcon from "@/assets/images/bot-web-a.png?format=webp&w=80";
 import BotWebKIcon from "@/assets/images/bot-web-k.png?format=webp&w=80";
 import CloudStatus from "@/partials/CloudStatus";
+import Connect from "@/partials/Connect";
 import Donate from "@/partials/Donate";
 import DropButton from "@/components/DropButton";
 import FarmerLinks from "@/partials/FarmerLinks";
@@ -436,39 +437,7 @@ export default memo(function Welcome() {
           </Tabs.Root>
 
           {/* Connect */}
-          <div className="flex items-center justify-center gap-2 text-xs">
-            <div
-              className={cn(
-                "grid grid-cols-3 rounded-full overflow-hidden",
-                "text-center",
-                "bg-neutral-100 dark:bg-neutral-700",
-                "divide-x dark:divide-neutral-600",
-                "font-turret-road font-bold"
-              )}
-            >
-              <a
-                href={import.meta.env.VITE_APP_TELEGRAM_CHANNEL}
-                target="_blank"
-                className="px-4 py-2 hover:bg-blue-500 hover:text-white"
-              >
-                Channel
-              </a>
-              <a
-                href={import.meta.env.VITE_APP_DEV_CONTACT}
-                target="_blank"
-                className="px-4 py-2 hover:bg-blue-500 hover:text-white"
-              >
-                Dev
-              </a>
-              <a
-                href={import.meta.env.VITE_APP_TELEGRAM_GROUP}
-                target="_blank"
-                className="px-4 py-2 hover:bg-blue-500 hover:text-white"
-              >
-                Group
-              </a>
-            </div>
-          </div>
+          <Connect />
           <div className="flex items-center justify-center gap-2 text-xs">
             <Dialog.Root>
               <Dialog.Trigger asChild>
