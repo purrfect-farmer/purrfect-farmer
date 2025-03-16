@@ -34,6 +34,7 @@ const DialogTitle = styled(Dialog.Title)`
   font-weight: bold;
   text-align: center;
   color: rgb(252 159 48);
+  margin: 0;
 `;
 
 const DialogDescription = styled(Dialog.Description)`
@@ -42,6 +43,7 @@ const DialogDescription = styled(Dialog.Description)`
   font-size: 12px;
   text-align: center;
   color: #252525;
+  margin: 0;
 `;
 
 const DialogClose = styled(Dialog.Close)`
