@@ -22,26 +22,10 @@ export default function Alert({ as: Component = "div", variant, ...props }) {
         "flex items-center gap-4",
 
         {
-          info: [
-            "text-blue-800 dark:text-blue-500",
-            "bg-blue-100",
-            "dark:bg-blue-500/20",
-          ],
-          warning: [
-            "text-orange-800 dark:text-orange-500",
-            "bg-orange-100",
-            "dark:bg-orange-500/20",
-          ],
-          danger: [
-            "text-red-800 dark:text-red-500",
-            "bg-red-100",
-            "dark:bg-red-500/20",
-          ],
-          success: [
-            "text-green-800 dark:text-green-500",
-            "bg-green-100",
-            "dark:bg-green-500/20",
-          ],
+          info: ["text-blue-800 dark:text-blue-900", "bg-blue-100"],
+          warning: ["text-orange-800 dark:text-orange-900", "bg-orange-100"],
+          danger: ["text-red-800 dark:text-red-900", "bg-red-100"],
+          success: ["text-green-800 dark:text-green-900", "bg-green-100"],
         }[variant],
         props.className
       )}
