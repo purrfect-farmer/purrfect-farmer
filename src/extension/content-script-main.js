@@ -243,6 +243,9 @@ if (location.hash.includes("tgWebAppData")) {
               node.prepend(script);
             }
 
+            /** Override Type */
+            script.type = "text/javascript";
+
             /** Add Load Listener */
             script.addEventListener("load", async (ev) => {
               /** Dispatch App */
