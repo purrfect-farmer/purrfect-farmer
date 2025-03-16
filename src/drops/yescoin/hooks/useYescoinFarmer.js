@@ -9,10 +9,9 @@ export default function useYescoinFarmer() {
       () => ({
         id: "yescoin",
         host: "www.yescoin.fun",
-        notification: {
-          icon: YescoinIcon,
-          title: "Yescoin Farmer",
-        },
+        icon: YescoinIcon,
+        title: "Yescoin Farmer",
+
         domains: ["*.yescoin.fun"],
         authHeaders: ["token"],
       }),

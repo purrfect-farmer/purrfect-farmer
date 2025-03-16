@@ -10,10 +10,9 @@ export default function useCEXFarmer() {
       () => ({
         id: "cex",
         host: "app.cexptap.com",
-        notification: {
-          icon: CEXIcon,
-          title: "CEX Farmer",
-        },
+        icon: CEXIcon,
+        title: "CEX Farmer",
+
         domains: ["app.cexptap.com"],
         authHeaders: ["x-appl-version", "x-request-userhash"],
       }),

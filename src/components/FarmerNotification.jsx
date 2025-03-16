@@ -1,7 +1,7 @@
 import useAppContext from "@/hooks/useAppContext";
 import { memo, useCallback } from "react";
 
-export default memo(function FarmerNotification({ t, id, notification }) {
+export default memo(function FarmerNotification({ t, id, title }) {
   const { dispatchAndSetActiveTab } = useAppContext();
 
   /** Handle Click */
@@ -11,7 +11,7 @@ export default memo(function FarmerNotification({ t, id, notification }) {
 
   return (
     <span className="cursor-pointer" onClick={handleClick}>
-      {notification.title} Started
+      {title} Started
     </span>
   );
 });

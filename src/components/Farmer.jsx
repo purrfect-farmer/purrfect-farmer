@@ -1,19 +1,29 @@
-import { lazy, memo } from "react";
-import { useMemo } from "react";
+import FarmerContext from "@/contexts/FarmerContext";
+import { cn } from "@/lib/utils";
+import { memo } from "react";
 
-const components = new Map();
+import FarmerInit from "./FarmerInit";
 
-const loader = (id, farmer) =>
-  components.get(id) ||
-  components
-    .set(
-      id,
-      lazy(() => import(`@/drops/${id}/${farmer}.jsx`))
-    )
-    .get(id);
-
-export default memo(function Farmer({ id, farmer, ...props }) {
-  const Component = useMemo(() => loader(id, farmer), [id, farmer]);
-
-  return <Component {...props} />;
+export default memo(function Farmer({
+  farmer,
+  children,
+  className,
+  initClassName,
+}) {
+  return (
+    <FarmerContext.Provider value={farmer}>
+      <div className={cn("flex flex-col min-w-0 min-h-0 grow", className)}>
+        {farmer.started ? (
+          children
+        ) : (
+          <FarmerInit
+            title={farmer.title}
+            icon={farmer.icon}
+            status={farmer.status}
+            className={initClassName}
+          />
+        )}
+      </div>
+    </FarmerContext.Provider>
+  );
 });

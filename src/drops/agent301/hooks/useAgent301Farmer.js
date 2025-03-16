@@ -9,10 +9,8 @@ export default function useAgent301Farmer() {
       () => ({
         id: "agent301",
         host: "static.agent301.org",
-        notification: {
-          icon: Agent301Icon,
-          title: "Agent301 Farmer",
-        },
+        icon: Agent301Icon,
+        title: "Agent301 Farmer",
         domains: ["*.agent301.org"],
       }),
       []

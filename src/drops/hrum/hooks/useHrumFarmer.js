@@ -9,10 +9,9 @@ export default function useHrumFarmer() {
       () => ({
         id: "hrum",
         host: "game.hrum.me",
-        notification: {
-          icon: HrumIcon,
-          title: "Hrum Farmer",
-        },
+        icon: HrumIcon,
+        title: "Hrum Farmer",
+
         domains: ["*.hrum.me"],
         extractAuthHeaders(headers) {
           return headers.filter(

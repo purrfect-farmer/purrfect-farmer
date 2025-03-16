@@ -22,8 +22,8 @@ export default function useZoomies(core) {
   /** Process */
   const process = useProcessLock("zoomies", core.mirror);
 
-  /** Auth */
-  const [auth, setAuth] = useState(false);
+  /** Started */
+  const [started, setStarted] = useState(false);
 
   /** Quick Run */
   const [quickRun, setQuickRun] = useState(false);
@@ -75,8 +75,8 @@ export default function useZoomies(core) {
 
   /** Reset Zoomies */
   const resetZoomies = useCallback(() => {
-    /** Reset Auth */
-    setAuth(false);
+    /** Reset Started */
+    setStarted(false);
 
     /** Close Farmer Tabs */
     core.closeFarmerTabs();
@@ -85,7 +85,7 @@ export default function useZoomies(core) {
     if (current.drop?.id) {
       core.setActiveTab(current.drop?.id);
     }
-  }, [setAuth, current.drop?.id, core.closeFarmerTabs, core.setActiveTab]);
+  }, [setStarted, current.drop?.id, core.closeFarmerTabs, core.setActiveTab]);
 
   /** Toggle Zoomies */
   const [toggle, dispatchAndToggle] = useMirroredCallback(
@@ -221,7 +221,7 @@ export default function useZoomies(core) {
 
   /** Open Bot */
   useLayoutEffect(() => {
-    if (canProcessZoomies && auth === false) {
+    if (canProcessZoomies && started === false) {
       /** Timeout */
       let timeout;
 
@@ -253,13 +253,13 @@ export default function useZoomies(core) {
         clearTimeout(timeout);
       };
     }
-  }, [canProcessZoomies, auth, openBot, skipToNextDrop]);
+  }, [canProcessZoomies, started, openBot, skipToNextDrop]);
 
-  /** Handle Auth */
+  /** Handle Started */
   useLayoutEffect(() => {
     if (!canProcessZoomies) return;
 
-    if (auth) {
+    if (started) {
       if (current.drop) {
         /** Close Other Bots */
         if (current.drop.closeBotInZoomies !== false) {
@@ -271,7 +271,7 @@ export default function useZoomies(core) {
       }
     }
   }, [
-    auth,
+    started,
     canProcessZoomies,
     current.drop?.id,
     current.drop?.closeBotInZoomies,
@@ -352,7 +352,7 @@ export default function useZoomies(core) {
     toggle,
     dispatchAndToggle,
     current,
-    setAuth,
+    setStarted,
     setCurrent,
     toggle,
     skipToNextDrop,

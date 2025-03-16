@@ -10,10 +10,9 @@ export default function useNotgramFarmer() {
       () => ({
         id: "notgram",
         host: "notgramgame.fun",
-        notification: {
-          icon: NotgramIcon,
-          title: "Notgram Farmer",
-        },
+        icon: NotgramIcon,
+        title: "Notgram Farmer",
+
         fetchAuth() {
           return delayForSeconds(10, true).then(() =>
             Promise.resolve({ status: true })

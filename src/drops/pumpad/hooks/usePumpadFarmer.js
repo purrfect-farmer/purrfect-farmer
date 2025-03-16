@@ -9,10 +9,9 @@ export default function usePumpadFarmer() {
       () => ({
         id: "pumpad",
         host: "tg-home.pumpad.io",
-        notification: {
-          icon: PumpadIcon,
-          title: "Pumpad Farmer",
-        },
+        icon: PumpadIcon,
+        title: "Pumpad Farmer",
+
         domains: ["tg.pumpad.io"],
       }),
       []

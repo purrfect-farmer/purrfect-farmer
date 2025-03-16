@@ -5,9 +5,15 @@ export async function getTomarketGame() {
   const url = "https://mini-app.tomarket.ai";
   const scriptResponse = await getDropMainScript(url);
 
-  const daily = scriptResponse.match(/daily:"([^"]+)"/);
-  const drop = scriptResponse.match(/drop:"([^"]+)"/);
-  const farm = scriptResponse.match(/farm:"([^"]+)"/);
+  const daily = scriptResponse.match(
+    /daily:"([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})"/
+  );
+  const drop = scriptResponse.match(
+    /drop:"([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})"/
+  );
+  const farm = scriptResponse.match(
+    /farm:"([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})"/
+  );
 
   if ([daily, drop, farm].every(Boolean)) {
     const result = {

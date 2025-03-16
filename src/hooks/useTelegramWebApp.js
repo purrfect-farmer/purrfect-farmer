@@ -52,7 +52,7 @@ export default function useTelegramWebApp(host) {
         action: `get-telegram-web-app:${host}`,
       });
     }
-  }, [host, setPort]);
+  }, [host, setPort, messaging.ports]);
 
   return useMemo(
     () => ({ port, telegramWebApp, resetTelegramWebApp }),

@@ -9,10 +9,9 @@ export default function useTruecoinFarmer() {
       () => ({
         id: "truecoin",
         host: "bot.true.world",
-        notification: {
-          icon: TruecoinIcon,
-          title: "Truecoin Farmer",
-        },
+        icon: TruecoinIcon,
+        title: "Truecoin Farmer",
+
         domains: [],
         /**
          * @param {import("axios").AxiosInstance} api

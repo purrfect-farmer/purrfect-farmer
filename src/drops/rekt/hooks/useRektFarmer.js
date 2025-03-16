@@ -9,10 +9,9 @@ export default function useRektFarmer() {
       () => ({
         id: "rekt",
         host: "rekt-mini-app.vercel.app",
-        notification: {
-          icon: RektIcon,
-          title: "Rekt Farmer",
-        },
+        icon: RektIcon,
+        title: "Rekt Farmer",
+
         authHeaders: ["auth-token"],
         domains: ["rekt-mini-app.vercel.app"],
       }),

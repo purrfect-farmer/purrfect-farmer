@@ -14,7 +14,8 @@ import useGoldEagleTasksQuery from "../hooks/useGoldEagleTasksQuery";
 import useGoldEagleUserProgressQuery from "../hooks/useGoldEagleUserProgressQuery";
 
 export default memo(function GoldEagleGamer() {
-  const { game } = useFarmerContext();
+  const { metaQuery } = useFarmerContext();
+  const game = metaQuery.data;
   const process = useProcessLock("gold-eagle.game");
 
   const tapMutation = useGoldEagleTapMutation(game.hex);

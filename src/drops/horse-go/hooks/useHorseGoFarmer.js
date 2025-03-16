@@ -9,10 +9,9 @@ export default function useHorseGoFarmer() {
       () => ({
         id: "horse-go",
         host: "horsego.vip",
-        notification: {
-          icon: HorseGoIcon,
-          title: "HorseGo Farmer",
-        },
+        icon: HorseGoIcon,
+        title: "HorseGo Farmer",
+
         /**
          * @param {import("axios").AxiosInstance} api
          */

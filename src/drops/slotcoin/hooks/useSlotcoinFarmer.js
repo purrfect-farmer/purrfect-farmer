@@ -9,10 +9,9 @@ export default function useSlotcoinFarmer() {
       () => ({
         id: "slotcoin",
         host: "app.slotcoin.app",
-        notification: {
-          icon: SlotcoinIcon,
-          title: "Slotcoin Farmer",
-        },
+        icon: SlotcoinIcon,
+        title: "Slotcoin Farmer",
+
         domains: ["*.slotcoin.app"],
         syncToCloud: true,
       }),

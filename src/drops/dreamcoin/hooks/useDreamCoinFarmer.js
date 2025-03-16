@@ -9,10 +9,9 @@ export default function useDreamCoinFarmer() {
       () => ({
         id: "dreamcoin",
         host: "dreamcoin.ai",
-        notification: {
-          icon: DreamCoinIcon,
-          title: "DreamCoin Farmer",
-        },
+        icon: DreamCoinIcon,
+        title: "DreamCoin Farmer",
+
         authHeaders: ["authorization", "baggage", "sentry-trace"],
         domains: ["*.dreamcoin.ai"],
         syncToCloud: true,

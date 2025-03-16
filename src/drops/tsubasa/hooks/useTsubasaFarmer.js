@@ -10,10 +10,9 @@ export default function useTsubasaFarmer() {
       () => ({
         id: "tsubasa",
         host: "web.app.ton.tsubasa-rivals.com",
-        notification: {
-          icon: TsubasaIcon,
-          title: "Tsubasa Farmer",
-        },
+        icon: TsubasaIcon,
+        title: "Tsubasa Farmer",
+
         syncToCloud: true,
         domains: [],
         /**

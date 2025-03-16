@@ -9,10 +9,9 @@ export default function useBattleBullsFarmer() {
       () => ({
         id: "battle-bulls",
         host: "tg.battle-games.com",
-        notification: {
-          icon: BattleBullsIcon,
-          title: "BattleBulls Farmer",
-        },
+        icon: BattleBullsIcon,
+        title: "BattleBulls Farmer",
+
         domains: ["*.battle-games.com"],
       }),
       []

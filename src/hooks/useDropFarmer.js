@@ -25,13 +25,17 @@ export default function useDropFarmer({
   apiOptions,
   apiDelay = 200,
   domains = [],
+  title,
+  icon,
   authHeaders = ["authorization"],
   syncToCloud = false,
+  startManually = false,
   extractAuthHeaders,
   configureAuthHeaders,
   fetchAuth,
-  notification,
+  fetchMeta,
   authQueryOptions,
+  metaQueryOptions,
 }) {
   /** Zoomies */
   const {
@@ -51,11 +55,14 @@ export default function useDropFarmer({
   /** Cloud Sync Mutation */
   const cloudSyncMutation = useCloudSyncMutation(id);
 
-  /** Auth */
-  const [authState, setAuthState] = useState(false);
+  /** Has Detected Auth Headers? */
+  const [hasDetectedAuthHeaders, setHasDetectedAuthHeaders] = useState(false);
 
-  /** Auth Reset Count */
-  const [authResetCount, setAuthResetCount] = useState(0);
+  /** Has Started Manually */
+  const [hasStartedManually, setHasStartedManually] = useState(false);
+
+  /** Init Reset Count */
+  const [initResetCount, setInitResetCount] = useState(0);
 
   /** Domain Matches */
   const domainMatches = useDeepCompareMemo(
@@ -75,24 +82,27 @@ export default function useDropFarmer({
   /** QueryClient */
   const queryClient = useQueryClient();
 
+  /** Telegram Hash */
+  const telegramHash = telegramWebApp?.initDataUnsafe?.hash;
+
   /** IsMutating */
   const isMutating = useIsMutating({
     mutationKey: [id],
   });
 
-  /** Query Key */
+  /** Auth Query Key */
   const authQueryKey = useMemo(
-    () => [id, "auth", telegramWebApp?.initDataUnsafe?.hash],
-    [id, telegramWebApp]
+    () => [id, "auth", telegramHash],
+    [id, telegramHash]
   );
 
-  /** QueryFn */
+  /** Auth QueryFn */
   const authQueryFn = useCallback(
     () => fetchAuth(api, telegramWebApp),
     [api, telegramWebApp, fetchAuth]
   );
 
-  /** Auth */
+  /** Auth Query */
   const authQuery = useAppQuery({
     refetchOnMount: false,
     refetchOnReconnect: false,
@@ -102,6 +112,36 @@ export default function useDropFarmer({
     enabled: typeof fetchAuth === "function" && Boolean(telegramWebApp),
     queryKey: authQueryKey,
     queryFn: authQueryFn,
+  });
+
+  /** Auth */
+  const hasPreparedAuth =
+    typeof fetchAuth === "function"
+      ? authQuery.isSuccess
+      : hasDetectedAuthHeaders;
+
+  /** Meta Query Key */
+  const metaQueryKey = useMemo(
+    () => [id, "meta", telegramHash],
+    [id, telegramHash]
+  );
+
+  /** Meta QueryFn */
+  const metaQueryFn = useCallback(
+    () => fetchMeta(api, telegramWebApp, authQuery.data),
+    [api, telegramWebApp, authQuery.data, fetchMeta]
+  );
+
+  /** Meta Query */
+  const metaQuery = useAppQuery({
+    refetchOnMount: false,
+    refetchOnReconnect: false,
+    refetchOnWindowFocus: false,
+    refetchInterval: false,
+    ...metaQueryOptions,
+    enabled: typeof fetchMeta === "function" && hasPreparedAuth,
+    queryKey: metaQueryKey,
+    queryFn: metaQueryFn,
   });
 
   /** Data Query */
@@ -119,14 +159,23 @@ export default function useDropFarmer({
         .then((res) => res.data),
   });
 
-  /** Auth */
-  const auth =
-    typeof fetchAuth === "function" ? authQuery.isSuccess : authState;
+  /** Meta */
+  const hasPreparedMeta =
+    typeof fetchMeta === "function" ? metaQuery.isSuccess : hasPreparedAuth;
+
+  /** Started */
+  const started = startManually ? hasStartedManually : hasPreparedMeta;
 
   /** Status */
   const status = useMemo(
-    () => (!telegramWebApp ? "pending-webapp" : "pending-auth"),
+    () => (!telegramWebApp ? "pending-webapp" : "pending-init"),
     [telegramWebApp]
+  );
+
+  /** Mark as Started */
+  const markAsStarted = useCallback(
+    (status = true) => setHasStartedManually(status),
+    [setHasStartedManually]
   );
 
   /** Update Query Data */
@@ -141,6 +190,12 @@ export default function useDropFarmer({
     [updateQueryData, authQueryKey]
   );
 
+  /** Update Meta Query Data */
+  const updateMetaQueryData = useCallback(
+    (...args) => updateQueryData(metaQueryKey, ...args),
+    [updateQueryData, metaQueryKey]
+  );
+
   /** Remove Queries */
   const removeQueries = useCallback(() => {
     queryClient.removeQueries({ queryKey: [id] });
@@ -151,18 +206,24 @@ export default function useDropFarmer({
     queryClient.resetQueries({ queryKey: [id] });
   }, [id, queryClient.resetQueries]);
 
-  /** Reset Auth */
-  const resetAuth = useCallback(() => {
-    setAuthState(false);
-    setAuthResetCount((prev) => prev + 1);
+  /** Reset Init */
+  const resetInit = useCallback(() => {
     resetQueries();
-  }, [setAuthState, setAuthResetCount, resetQueries]);
+    setHasDetectedAuthHeaders(false);
+    setHasStartedManually(false);
+    setInitResetCount((prev) => prev + 1);
+  }, [
+    resetQueries,
+    setHasDetectedAuthHeaders,
+    setHasStartedManually,
+    setInitResetCount,
+  ]);
 
   /** Reset Farmer  */
   const reset = useCallback(() => {
+    resetInit();
     resetTelegramWebApp();
-    resetAuth();
-  }, [resetTelegramWebApp, resetAuth]);
+  }, [resetInit, resetTelegramWebApp]);
 
   /**  Next task callback */
   const processNextTask = useRefCallback(zoomies.processNextTask, [
@@ -247,7 +308,7 @@ export default function useDropFarmer({
         ) {
           toast.dismiss();
           toast.error("Unauthenticated - Please reload the Bot or Farmer");
-          resetAuth();
+          resetInit();
         }
         return Promise.reject(error);
       }
@@ -256,13 +317,13 @@ export default function useDropFarmer({
     return () => {
       api.interceptors.response.eject(interceptor);
     };
-  }, [api, resetAuth]);
+  }, [api, resetInit]);
 
   /** Handle Web Request */
   useDeepCompareLayoutEffect(() => {
     /** Requires domain matches */
     /** Don't watch requests without Telegram Web App  */
-    if (auth || domainMatches.length < 1 || !telegramWebApp) {
+    if (hasPreparedAuth || domainMatches.length < 1 || !telegramWebApp) {
       return;
     }
 
@@ -297,7 +358,7 @@ export default function useDropFarmer({
           .every(Boolean);
 
       if (configured) {
-        setAuthState(true);
+        setHasDetectedAuthHeaders(true);
       }
     };
 
@@ -313,13 +374,13 @@ export default function useDropFarmer({
       chrome.webRequest.onBeforeSendHeaders.removeListener(handleWebRequest);
     };
   }, [
-    auth,
+    hasPreparedAuth,
     domainMatches,
     authHeaders,
     extractAuthHeaders,
     telegramWebApp,
     api,
-    setAuthState,
+    setHasDetectedAuthHeaders,
   ]);
 
   /** Handle Auth Data  */
@@ -331,17 +392,17 @@ export default function useDropFarmer({
 
   /** Create Notification */
   useLayoutEffect(() => {
-    if (auth) {
+    if (started) {
       toast.success(
         (t) =>
           createElement(FarmerNotification, {
             t,
             id,
-            notification,
+            title,
           }),
         {
           icon: createElement("img", {
-            src: notification.icon,
+            src: icon,
             className: "w-6 h-6 rounded-full",
           }),
           id: `${id}-farmer`,
@@ -353,40 +414,38 @@ export default function useDropFarmer({
     return () => {
       toast.dismiss(`${id}-farmer`);
     };
-  }, [id, auth]);
+  }, [id, started]);
 
   /** ========= Zoomies =========== */
-  /** Set Auth */
+  /** Set Started */
   useLayoutEffect(() => {
     if (isZooming) {
-      zoomies.setAuth(auth);
+      zoomies.setStarted(started);
     }
-  }, [auth, isZooming, zoomies.setAuth]);
+  }, [started, isZooming, zoomies.setStarted]);
 
-  /** Process Next Task After 3 Auth Reset */
+  /** Process Next Task After 3 Init Reset */
   useLayoutEffect(() => {
-    if (isZooming && authResetCount >= 3) {
+    if (isZooming && initResetCount >= 3) {
       zoomies.skipToNextDrop();
     }
-  }, [isZooming, authResetCount, zoomies.skipToNextDrop]);
+  }, [isZooming, initResetCount, zoomies.skipToNextDrop]);
 
-  /** Process Next Task if Unable to Obtain Auth within 30sec */
+  /** Process Next Task if Unable to Start within 30sec */
   useLayoutEffect(() => {
-    if (isZooming) {
-      if (telegramWebApp && !auth) {
-        /** Set Timeout */
-        const timeout = setTimeout(zoomies.skipToNextDrop, 30_000);
+    if (isZooming && telegramWebApp && !started) {
+      /** Set Timeout */
+      const timeout = setTimeout(zoomies.skipToNextDrop, 30_000);
 
-        return () => {
-          clearTimeout(timeout);
-        };
-      }
+      return () => {
+        clearTimeout(timeout);
+      };
     }
-  }, [auth, telegramWebApp, isZooming, zoomies.skipToNextDrop]);
+  }, [started, telegramWebApp, isZooming, zoomies.skipToNextDrop]);
 
   /** Sync to Cloud */
   useLayoutEffect(() => {
-    if (shouldSync && auth) {
+    if (shouldSync && hasPreparedAuth) {
       const { initData, initDataUnsafe } = telegramWebApp;
 
       cloudSyncMutation
@@ -404,46 +463,53 @@ export default function useDropFarmer({
           },
         })
         .then(() => {
-          toast.success(`${notification.title} - Synced to Cloud`);
+          toast.success(`${title} - Synced to Cloud`);
         });
     }
   }, [
     id,
     api,
-    auth,
+    hasPreparedAuth,
     userAgent,
     farmerTitle,
     shouldSync,
     telegramWebApp,
-    notification.title,
+    title,
   ]);
 
   /** Clean Up */
   useLayoutEffect(() => () => removeQueries(), [removeQueries]);
 
-  /** Return API and Auth */
   return useValuesMemo({
     id,
     host,
     status,
     port,
+    title,
+    icon,
     api,
-    auth,
+    auth: hasPreparedAuth,
     authQuery,
     authQueryKey,
+    metaQuery,
+    metaQueryKey,
     dataQuery,
     queryClient,
     telegramWebApp,
     isMutating,
     zoomies,
     isZooming,
-    removeQueries,
-    resetAuth,
-    resetTelegramWebApp,
+    started,
     reset,
+    resetInit,
+    resetTelegramWebApp,
+    removeQueries,
     updateQueryData,
     updateAuthQueryData,
+    updateMetaQueryData,
     processNextTask,
     joinTelegramLink,
+    markAsStarted,
+    setHasStartedManually,
   });
 }

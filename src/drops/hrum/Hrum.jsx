@@ -1,7 +1,6 @@
-import FarmerContext from "@/contexts/FarmerContext";
+import Farmer from "@/components/Farmer";
 import { memo } from "react";
 
-import HrumAuthDetect from "./components/HrumAuthDetect";
 import HrumFarmer from "./components/HrumFarmer";
 import useHrumFarmer from "./hooks/useHrumFarmer";
 
@@ -9,15 +8,13 @@ function Hrum() {
   const farmer = useHrumFarmer();
 
   return (
-    <div className="flex flex-col min-w-0 min-h-0 text-white bg-purple-500 grow">
-      <FarmerContext.Provider value={farmer}>
-        {farmer.auth ? (
-          <HrumFarmer />
-        ) : (
-          <HrumAuthDetect status={farmer.status} />
-        )}
-      </FarmerContext.Provider>
-    </div>
+    <Farmer
+      farmer={farmer}
+      className="text-white bg-purple-500"
+      initClassName="text-purple-100"
+    >
+      <HrumFarmer />
+    </Farmer>
   );
 }
 

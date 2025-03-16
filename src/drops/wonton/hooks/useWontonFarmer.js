@@ -9,10 +9,9 @@ export default function useWontonFarmer() {
       () => ({
         id: "wonton",
         host: "www.wonton.restaurant",
-        notification: {
-          icon: WontonIcon,
-          title: "Wonton Farmer",
-        },
+        icon: WontonIcon,
+        title: "Wonton Farmer",
+
         domains: ["*.wonton.food"],
         apiDelay: 3000,
         syncToCloud: true,

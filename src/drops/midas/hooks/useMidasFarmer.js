@@ -10,10 +10,9 @@ export default function useMidasFarmer() {
         id: "midas",
         host: "prod-tg-app.midas.app",
         domains: ["api-tg-app.midas.app"],
-        notification: {
-          icon: MidasIcon,
-          title: "Midas Farmer",
-        },
+        icon: MidasIcon,
+        title: "Midas Farmer",
+
         apiDelay: 3000,
         apiOptions: {
           withCredentials: true,

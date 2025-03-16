@@ -9,10 +9,9 @@ export default function useBlumFarmer() {
       () => ({
         id: "blum",
         host: "telegram.blum.codes",
-        notification: {
-          icon: BlumIcon,
-          title: "Blum Farmer",
-        },
+        icon: BlumIcon,
+        title: "Blum Farmer",
+
         domains: ["*.blum.codes"],
       }),
       []

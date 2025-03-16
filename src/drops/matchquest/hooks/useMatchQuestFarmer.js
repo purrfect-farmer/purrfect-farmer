@@ -9,10 +9,9 @@ export default function useMatchQuestFarmer() {
       () => ({
         id: "matchquest",
         host: "tgapp.matchain.io",
-        notification: {
-          icon: MatchQuestIcon,
-          title: "MatchQuest Farmer",
-        },
+        icon: MatchQuestIcon,
+        title: "MatchQuest Farmer",
+
         domains: ["tgapp-api.matchain.io"],
       }),
       []

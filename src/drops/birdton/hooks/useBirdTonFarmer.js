@@ -9,10 +9,8 @@ export default function useBirdTonFarmer() {
       () => ({
         id: "birdton",
         host: "birdton.site",
-        notification: {
-          icon: BirdTonIcon,
-          title: "BirdTon Farmer",
-        },
+        icon: BirdTonIcon,
+        title: "BirdTon Farmer",
         domains: [],
         /**
          * @param {import("axios").AxiosInstance} api
@@ -22,6 +20,8 @@ export default function useBirdTonFarmer() {
             .post("https://birdton.site/auth", telegramWebApp)
             .then((res) => res.data);
         },
+        /** Start Manually */
+        startManually: true,
       }),
       []
     )

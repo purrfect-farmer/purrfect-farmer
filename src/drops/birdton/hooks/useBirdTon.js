@@ -138,6 +138,11 @@ export default function useBirdTon(farmer) {
     };
   }, [websocketAuthKey, farmer.reset]);
 
+  /** Mark as Started */
+  useEffect(() => {
+    farmer.markAsStarted(connected);
+  }, [connected, farmer.markAsStarted]);
+
   return useValuesMemo({
     ...farmer,
     user,
