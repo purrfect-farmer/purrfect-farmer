@@ -1,7 +1,7 @@
 import axios from "axios";
 import defaultSettings from "@/core/defaultSettings";
 import toast from "react-hot-toast";
-import tabs, { TelegramWeb } from "@/core/tabs";
+import tabs, { TelegramWeb, farmers } from "@/core/tabs";
 import { createElement } from "react";
 import { delay, isBotURL, postPortMessage } from "@/lib/utils";
 import { useCallback } from "react";
@@ -14,6 +14,7 @@ import useMessagePort from "./useMessagePort";
 import useMirror from "./useMirror";
 import useMirroredCallback from "./useMirroredCallback";
 import useSettings from "./useSettings";
+import useTelegramClient from "./useTelegramClient";
 import useUserAgent from "./useUserAgent";
 import useValuesMemo from "./useValuesMemo";
 
@@ -49,6 +50,7 @@ export default function useCore() {
     [settings.seekerServer]
   );
 
+  const telegramClient = useTelegramClient();
   const mirror = useMirror(settings.enableMirror, settings.mirrorServer);
   const messaging = useMessagePort();
 
@@ -67,15 +69,6 @@ export default function useCore() {
     interval: null,
     listeners: {},
   });
-
-  /** Farmers */
-  const farmers = useMemo(
-    () =>
-      tabs.filter(
-        (item) => !["app", "telegram-web-k", "telegram-web-a"].includes(item.id)
-      ),
-    [tabs]
-  );
 
   /** Drops Status */
   const dropsStatus = useDeepCompareMemo(() => {
@@ -737,6 +730,7 @@ export default function useCore() {
     settings,
     hasRestoredSettings,
     mirror,
+    telegramClient,
     messaging,
     cloudBackend,
     seekerBackend,

@@ -6,6 +6,7 @@ import { defineConfig } from "vite";
 import { fileURLToPath } from "url";
 import { imagetools } from "vite-imagetools";
 import { loadEnv } from "vite";
+import { nodePolyfills } from "vite-plugin-node-polyfills";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -61,6 +62,11 @@ export default defineConfig(({ mode }) => {
     },
     plugins: [
       /** Plugins */
+      nodePolyfills({
+        globals: {
+          Buffer: false,
+        },
+      }),
       ViteEjsPlugin(env),
       react(),
       tailwindcss(),

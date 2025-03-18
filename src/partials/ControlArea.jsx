@@ -5,6 +5,7 @@ import CoreSystemIcon from "@/assets/images/core-system.png?format=webp&w=128";
 import UtilsPanel from "@/partials/UtilsPanel";
 import useAppContext from "@/hooks/useAppContext";
 import useMirroredState from "@/hooks/useMirroredState";
+import useMirroredTabs from "@/hooks/useMirroredTabs";
 import { FaFire, FaPaw } from "react-icons/fa6";
 import {
   HiOutlineArrowPath,
@@ -14,6 +15,7 @@ import {
 } from "react-icons/hi2";
 import { cn } from "@/lib/utils";
 import { memo } from "react";
+
 import Mirror from "./Mirror";
 
 export default memo(function ControlArea() {
@@ -22,6 +24,11 @@ export default memo(function ControlArea() {
     "app.toggle-utils-panel",
     false
   );
+
+  const panelTabs = useMirroredTabs("app.utils-panel-tabs", [
+    "farmer",
+    "system",
+  ]);
 
   return (
     <>
@@ -176,7 +183,7 @@ export default memo(function ControlArea() {
           </Dialog.Trigger>
 
           {/* Utils */}
-          <UtilsPanel onOpenChange={dispatchAndSetShowUtils} />
+          <UtilsPanel tabs={panelTabs} onOpenChange={dispatchAndSetShowUtils} />
         </Dialog.Root>
       </div>
     </>
