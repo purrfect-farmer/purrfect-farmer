@@ -59,7 +59,7 @@ export default function CloudLoginForm() {
   };
 
   return (
-    <div className="flex flex-col justify-center gap-2 p-4 min-h-dvh">
+    <div className="flex flex-col justify-center gap-2 p-4 grow">
       {/* Icon */}
       <img src={WelcomeIcon} className="mx-auto h-28" />
 

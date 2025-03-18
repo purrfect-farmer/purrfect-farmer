@@ -10,7 +10,7 @@ export default function CloudPanel() {
   const address = settings.cloudServer;
 
   return (
-    <div className="flex flex-col h-dvh">
+    <div className="flex flex-col grow">
       {/* Heading */}
       <div className="p-2 border-b shrink-0 dark:border-neutral-700">
         <h1 className="flex items-center justify-center gap-2 font-bold">

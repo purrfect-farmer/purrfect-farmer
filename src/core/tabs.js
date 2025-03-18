@@ -1,4 +1,5 @@
 import AppIcon from "@/assets/images/icon.png?format=webp&w=80";
+import CloudManagerIcon from "@/assets/images/cloud-manager.png?format=webp&w=80";
 import CloudTelegramSessionIcon from "@/assets/images/cloud-telegram-session.png?format=webp&w=80";
 import LocalTelegramSessionIcon from "@/assets/images/local-telegram-session.png?format=webp&w=80";
 import TelegramWebAIcon from "@/assets/images/telegram-web-a.png?format=webp&w=80";
@@ -10,11 +11,12 @@ import farmers from "./farmers";
 
 export const Welcome = lazy(() => import("@/app/Welcome"));
 export const TelegramWeb = lazy(() => import("@/app/TelegramWeb"));
-export const LocalTelegramSession = lazy(() =>
-  import("@/app/LocalTelegramSession")
-);
+export const CloudManager = lazy(() => import("@/app/CloudManager"));
 export const CloudTelegramSession = lazy(() =>
   import("@/app/CloudTelegramSession")
+);
+export const LocalTelegramSession = lazy(() =>
+  import("@/app/LocalTelegramSession")
 );
 
 export const app = [
@@ -44,12 +46,12 @@ export const telegramWeb = [
 ];
 
 export const utils = [
-  /** Local Telegram Session */
+  /** Cloud Telegram Session */
   {
-    id: "local-telegram-session",
-    title: "Local Telegram Session",
-    icon: LocalTelegramSessionIcon,
-    component: createElement(LocalTelegramSession),
+    id: "cloud-manager",
+    title: "Cloud Manager",
+    icon: CloudManagerIcon,
+    component: createElement(CloudManager),
   },
 
   /** Cloud Telegram Session */
@@ -58,6 +60,14 @@ export const utils = [
     title: "Cloud Telegram Session",
     icon: CloudTelegramSessionIcon,
     component: createElement(CloudTelegramSession),
+  },
+
+  /** Local Telegram Session */
+  {
+    id: "local-telegram-session",
+    title: "Local Telegram Session",
+    icon: LocalTelegramSessionIcon,
+    component: createElement(LocalTelegramSession),
   },
 ];
 

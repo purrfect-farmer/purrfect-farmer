@@ -1,3 +1,4 @@
+import useCloudAuth from "./useCloudAuth";
 import useCore from "./useCore";
 import useMiniAppToolbar from "./useMiniAppToolbar";
 import useTelegramUser from "./useTelegramUser";
@@ -8,6 +9,7 @@ export default function useApp() {
   const core = useCore();
   const zoomies = useZoomies(core);
   const telegramUser = useTelegramUser(core);
+  const cloudAuth = useCloudAuth();
 
   /** Use Toolbar */
   useMiniAppToolbar(core);
@@ -16,5 +18,6 @@ export default function useApp() {
     ...core,
     zoomies,
     telegramUser,
+    cloudAuth,
   });
 }

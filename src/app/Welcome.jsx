@@ -24,7 +24,6 @@ import {
   HiOutlineArrowPath,
   HiOutlineArrowUpRight,
   HiOutlineArrowsPointingOut,
-  HiOutlineCloud,
   HiOutlineCog6Tooth,
   HiOutlineCurrencyDollar,
   HiOutlinePower,
@@ -97,7 +96,6 @@ export default memo(function Welcome() {
     telegramUser,
     openNewTab,
     openExtensionsPage,
-    openCloudManager,
     openTelegramWeb,
     dispatchAndSetActiveTab,
     dispatchAndReloadApp,
@@ -205,15 +203,6 @@ export default memo(function Welcome() {
               onClick={openNewTab}
               icon={HiOutlineArrowUpRight}
             />
-
-            {/* Open Cloud Manager */}
-            {settings.enableCloud ? (
-              <ToolbarButton
-                title="Open Cloud Manager"
-                onClick={openCloudManager}
-                icon={HiOutlineCloud}
-              />
-            ) : null}
 
             {/* Open Extensions Page */}
             <ToolbarButton

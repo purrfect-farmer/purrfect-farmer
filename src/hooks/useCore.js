@@ -10,6 +10,7 @@ import { useMemo } from "react";
 import { useRef } from "react";
 import { useState } from "react";
 
+import useCloudAuth from "./useCloudAuth";
 import useMessagePort from "./useMessagePort";
 import useMirror from "./useMirror";
 import useMirroredCallback from "./useMirroredCallback";
@@ -32,13 +33,21 @@ export default function useCore() {
   /** User Agent */
   const userAgent = useUserAgent();
 
+  /** CloudAuth */
+  const cloudAuth = useCloudAuth();
+
   /** Cloud Backend */
   const cloudBackend = useMemo(
     () =>
       axios.create({
         baseURL: settings.cloudServer,
+        headers: {
+          common: {
+            Authorization: cloudAuth.token ? `Bearer ${cloudAuth.token}` : null,
+          },
+        },
       }),
-    [settings.cloudServer]
+    [settings.cloudServer, cloudAuth.token]
   );
 
   /** Seeker Backend */
@@ -312,16 +321,6 @@ export default function useCore() {
   const openExtensionsPage = useCallback(async () => {
     await chrome?.windows?.create({
       url: "chrome://extensions",
-      state: "maximized",
-      focused: true,
-    });
-  }, []);
-
-  /** Open Cloud Manager */
-  const openCloudManager = useCallback(async () => {
-    await chrome?.windows?.create({
-      url: chrome.runtime.getURL("cloud.html"),
-      type: "popup",
       state: "maximized",
       focused: true,
     });
@@ -742,7 +741,6 @@ export default function useCore() {
     configureSettings,
     openNewTab,
     openURL,
-    openCloudManager,
     openExtensionsPage,
     getFarmerBotPort,
     closeOtherBots,

@@ -24,7 +24,6 @@ export default defineConfig(({ mode }) => {
         [
           /** Entries */
           "index",
-          "cloud",
         ].map((item) => [item, path.resolve(__dirname, `./${item}.html`)])
       );
       break;
