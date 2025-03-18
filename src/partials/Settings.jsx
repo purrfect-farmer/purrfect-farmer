@@ -11,8 +11,10 @@ import useAppContext from "@/hooks/useAppContext";
 import useMirroredCallback from "@/hooks/useMirroredCallback";
 import { CgSpinner } from "react-icons/cg";
 import {
+  HiBolt,
   HiOutlineArrowPath,
   HiOutlineExclamationTriangle,
+  HiOutlineGlobeAlt,
   HiOutlineListBullet,
   HiOutlineSquares2X2,
 } from "react-icons/hi2";
@@ -24,7 +26,6 @@ import {
   watchWindowStateUpdate,
 } from "@/lib/utils";
 import { memo, useCallback, useLayoutEffect, useState } from "react";
-
 import Seeker from "./Seeker";
 
 const DropReorderItem = memo(({ children, ...props }) => {
@@ -267,6 +268,38 @@ export default memo(function Settings({ tabs }) {
                           )}
                         >
                           {theme}
+                        </button>
+                      ))}
+                    </div>
+
+                    {/* Farmer Mode */}
+                    <label className="text-neutral-400">Farmer Mode</label>
+
+                    <div className="grid grid-cols-2 gap-2">
+                      {["web", "session"].map((farmerMode) => (
+                        <button
+                          onClick={() =>
+                            dispatchAndConfigureSettings(
+                              "farmerMode",
+                              farmerMode
+                            )
+                          }
+                          key={farmerMode}
+                          className={cn(
+                            settings.farmerMode === farmerMode
+                              ? "bg-blue-200 dark:bg-blue-800"
+                              : "bg-neutral-100 dark:bg-neutral-700",
+                            "p-2 rounded-lg",
+                            "flex gap-1 items-center justify-center",
+                            "uppercase"
+                          )}
+                        >
+                          {farmerMode === "web" ? (
+                            <HiOutlineGlobeAlt className="size-4" />
+                          ) : (
+                            <HiBolt className="size-4" />
+                          )}
+                          {farmerMode}
                         </button>
                       ))}
                     </div>

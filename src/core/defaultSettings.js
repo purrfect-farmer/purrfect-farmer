@@ -17,6 +17,7 @@ const dropsOrder = Object.keys(dropsStatus);
 const defaultSettings = {
   theme: "system",
   preferredTelegramWebVersion: "k",
+  farmerMode: "web",
   farmerTitle: "TGUser",
   onboarded: false,
   closeOtherBots: true,

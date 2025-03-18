@@ -30,6 +30,9 @@ export default function useCore() {
   const { settings, hasRestoredSettings, configureSettings, restoreSettings } =
     useSettings();
 
+  /** Farmer Mode */
+  const farmerMode = settings.farmerMode;
+
   /** User Agent */
   const userAgent = useUserAgent();
 
@@ -59,7 +62,7 @@ export default function useCore() {
     [settings.seekerServer]
   );
 
-  const telegramClient = useTelegramClient();
+  const telegramClient = useTelegramClient(farmerMode);
   const mirror = useMirror(settings.enableMirror, settings.mirrorServer);
   const messaging = useMessagePort();
 
