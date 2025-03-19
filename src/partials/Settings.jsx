@@ -380,44 +380,6 @@ export default memo(function Settings({ tabs }) {
                       Close Other Bots
                     </LabelToggle>
 
-                    {/* Session Options */}
-                    <h4 className="mt-4 text-neutral-400">Session Options</h4>
-
-                    {/* Link to Telegram Apps */}
-                    <div className="flex">
-                      <a
-                        target="_blank"
-                        href="https://my.telegram.org/apps"
-                        className="text-blue-500 underline"
-                      >
-                        Get Details Here
-                      </a>
-                    </div>
-
-                    <Input
-                      value={settings?.telegramApiId}
-                      onChange={(ev) =>
-                        configureSettings(
-                          "telegramApiId",
-                          ev.target.value,
-                          false
-                        )
-                      }
-                      placeholder="Telegram Api ID"
-                    />
-
-                    <Input
-                      value={settings?.telegramApiHash}
-                      onChange={(ev) =>
-                        configureSettings(
-                          "telegramApiHash",
-                          ev.target.value,
-                          false
-                        )
-                      }
-                      placeholder="Telegram Api Hash"
-                    />
-
                     {/* Cloud Options */}
                     <h4 className="mt-4 text-neutral-400">Cloud Options</h4>
 

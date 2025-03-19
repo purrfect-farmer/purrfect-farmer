@@ -4,18 +4,14 @@ import { useRef } from "react";
 
 import useLocalTelegramSession from "./useLocalTelegramSession";
 
-export default function useTelegramClient(settings) {
+export default function useTelegramClient(farmerMode) {
   const [session] = useLocalTelegramSession();
   const clientRef = useRef(null);
 
   useEffect(() => {
-    if (session && settings.farmerMode === "session") {
+    if (session && farmerMode === "session") {
       /** Create Client */
-      const client = createTelegramClient(
-        settings.telegramApiId,
-        settings.telegramApiHash,
-        session
-      );
+      const client = createTelegramClient(session);
 
       /** Set Ref */
       clientRef.current = client;
@@ -27,12 +23,7 @@ export default function useTelegramClient(settings) {
         clientRef.current = null;
       };
     }
-  }, [
-    session,
-    settings.farmerMode,
-    settings.telegramApiId,
-    settings.telegramApiHash,
-  ]);
+  }, [session, farmerMode]);
 
   return clientRef;
 }

@@ -41,8 +41,6 @@ const defaultSettings = {
   dropsStatus,
   dropsOrder,
   repeatZoomiesCycle: true,
-  telegramApiId: "",
-  telegramApiHash: "",
 };
 
 export default defaultSettings;

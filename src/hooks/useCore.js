@@ -62,7 +62,7 @@ export default function useCore() {
     [settings.seekerServer]
   );
 
-  const telegramClient = useTelegramClient(settings);
+  const telegramClient = useTelegramClient(farmerMode);
   const mirror = useMirror(settings.enableMirror, settings.mirrorServer);
   const messaging = useMessagePort();
 
@@ -730,6 +730,7 @@ export default function useCore() {
     dropsOrder,
     orderedDrops,
     settings,
+    farmerMode,
     hasRestoredSettings,
     mirror,
     telegramClient,

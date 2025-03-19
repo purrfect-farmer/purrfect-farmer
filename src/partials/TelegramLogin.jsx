@@ -1,11 +1,9 @@
 import toast from "react-hot-toast";
-import useAppContext from "@/hooks/useAppContext";
 import { createTelegramClient } from "@/lib/createTelegramClient";
 import { useCallback } from "react";
 import { useEffect } from "react";
 import { useRef } from "react";
 import { useState } from "react";
-
 import TelegramLoginCodeForm from "./TelegramLoginCodeForm";
 import TelegramLoginPasswordForm from "./TelegramLoginPasswordForm";
 import TelegramLoginPhoneForm from "./TelegramLoginPhoneForm";
@@ -14,7 +12,6 @@ export default function TelegramLogin({
   mode = "cloud",
   storeTelegramSession,
 }) {
-  const { settings } = useAppContext();
   const [stage, setStage] = useState("phone");
   const [tempSession, setTempSession] = useState(null);
   const [handlers, setHandlers] = useState({
@@ -87,10 +84,7 @@ export default function TelegramLogin({
   /** Run a client in local mode */
   useEffect(() => {
     if (mode === "local") {
-      const client = createTelegramClient(
-        settings.telegramApiId,
-        settings.telegramApiHash
-      );
+      const client = createTelegramClient();
 
       (async function () {
         await client.start({
@@ -114,13 +108,7 @@ export default function TelegramLogin({
 
       return () => client.destroy();
     }
-  }, [
-    mode,
-    createHandler,
-    storeTelegramSession,
-    settings.telegramApiId,
-    settings.telegramApiHash,
-  ]);
+  }, [mode, createHandler, storeTelegramSession]);
 
   /** Resolve When Stage Changes */
   useEffect(() => {
