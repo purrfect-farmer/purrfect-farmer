@@ -11,6 +11,8 @@ import { useRef } from "react";
 import { useState } from "react";
 
 import useCloudAuth from "./useCloudAuth";
+import useCloudTelegramSession from "./useCloudTelegramSession";
+import useLocalTelegramSession from "./useLocalTelegramSession";
 import useMessagePort from "./useMessagePort";
 import useMirror from "./useMirror";
 import useMirroredCallback from "./useMirroredCallback";
@@ -29,6 +31,14 @@ export default function useCore() {
   /** Settings */
   const { settings, hasRestoredSettings, configureSettings, restoreSettings } =
     useSettings();
+
+  /** Local Telegram Session */
+  const [localTelegramSession, setLocalTelegramSession] =
+    useLocalTelegramSession();
+
+  /** Cloud Telegram Session */
+  const [cloudTelegramSession, setCloudTelegramSession] =
+    useCloudTelegramSession();
 
   /** Farmer Mode */
   const farmerMode = settings.farmerMode;
@@ -62,7 +72,7 @@ export default function useCore() {
     [settings.seekerServer]
   );
 
-  const telegramClient = useTelegramClient(farmerMode);
+  const telegramClient = useTelegramClient(farmerMode, localTelegramSession);
   const mirror = useMirror(settings.enableMirror, settings.mirrorServer);
   const messaging = useMessagePort();
 
@@ -738,6 +748,8 @@ export default function useCore() {
     cloudBackend,
     seekerBackend,
     userAgent,
+    localTelegramSession,
+    cloudTelegramSession,
 
     /** App Methods */
     shutdown,
@@ -749,6 +761,8 @@ export default function useCore() {
     getFarmerBotPort,
     closeOtherBots,
     getMiniAppPorts,
+    setLocalTelegramSession,
+    setCloudTelegramSession,
     dispatchAndOpenURL,
     dispatchAndShutdown,
     dispatchAndReloadApp,

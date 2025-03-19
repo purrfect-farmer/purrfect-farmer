@@ -3,21 +3,21 @@ import LocalTelegramSessionIcon from "@/assets/images/local-telegram-session.png
 import TelegramLogin from "@/partials/TelegramLogin";
 import toast from "react-hot-toast";
 import useAppContext from "@/hooks/useAppContext";
-import useLocalTelegramSession from "@/hooks/useLocalTelegramSession";
 import { Api } from "telegram";
 import { cn } from "@/lib/utils";
 import { createTelegramClient } from "@/lib/createTelegramClient";
 
 export default function LocalTelegramSession() {
-  const { telegramClient } = useAppContext();
-  const [session, setCloudTelegramSession] = useLocalTelegramSession();
+  const { telegramClient, localTelegramSession, setLocalTelegramSession } =
+    useAppContext();
 
   const handleLogoutButtonClick = () => {
     toast
       .promise(
         (async function () {
           const client =
-            telegramClient.current || createTelegramClient(session);
+            telegramClient.current ||
+            createTelegramClient(localTelegramSession);
 
           try {
             /** Try to reconnect */
@@ -33,7 +33,7 @@ export default function LocalTelegramSession() {
           } catch {}
 
           /** Remove Session */
-          setCloudTelegramSession(null);
+          setLocalTelegramSession(null);
         })(),
         {
           success: "Successfully logged out...",
@@ -59,7 +59,7 @@ export default function LocalTelegramSession() {
         </h1>
       </div>
 
-      {session ? (
+      {localTelegramSession ? (
         <div className="flex flex-col gap-2">
           <Alert variant={"success"}>
             Your Telegram account is currently logged in locally.
@@ -79,7 +79,7 @@ export default function LocalTelegramSession() {
       ) : (
         <TelegramLogin
           mode="local"
-          storeTelegramSession={setCloudTelegramSession}
+          storeTelegramSession={setLocalTelegramSession}
         />
       )}
     </div>

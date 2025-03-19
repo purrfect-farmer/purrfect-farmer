@@ -2,18 +2,18 @@ import Alert from "@/components/Alert";
 import CloudTelegramSessionIcon from "@/assets/images/cloud-telegram-session.png?format=webp&w=192";
 import TelegramLogin from "@/partials/TelegramLogin";
 import toast from "react-hot-toast";
-import useCloudTelegramSession from "@/hooks/useCloudTelegramSession";
+import useAppContext from "@/hooks/useAppContext";
 import useTelegramLogoutMutation from "@/hooks/useTelegramLogoutMutation";
 import { cn } from "@/lib/utils";
 
 export default function CloudTelegramSession() {
-  const [session, setCloudTelegramSession] = useCloudTelegramSession();
+  const { cloudTelegramSession, setCloudTelegramSession } = useAppContext();
   const logoutMutation = useTelegramLogoutMutation();
 
   const handleLogoutButtonClick = () => {
     toast.promise(
       logoutMutation.mutateAsync(
-        { session },
+        { session: cloudTelegramSession },
         {
           onSuccess() {
             setCloudTelegramSession(null);
@@ -40,7 +40,7 @@ export default function CloudTelegramSession() {
           Cloud Session
         </h1>
       </div>
-      {session ? (
+      {cloudTelegramSession ? (
         <div className="flex flex-col gap-2">
           <Alert variant={"success"}>
             Your Telegram account is currently logged in on Cloud.
