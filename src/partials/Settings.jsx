@@ -244,7 +244,7 @@ export default memo(function Settings({ tabs }) {
                     <Input
                       value={settings?.farmerTitle}
                       onChange={(ev) =>
-                        configureSettings("farmerTitle", ev.target.value)
+                        configureSettings("farmerTitle", ev.target.value, false)
                       }
                       placeholder="Farmer Title"
                     />
@@ -385,7 +385,11 @@ export default memo(function Settings({ tabs }) {
                     <Input
                       value={settings?.telegramApiId}
                       onChange={(ev) =>
-                        configureSettings("telegramApiId", ev.target.value)
+                        configureSettings(
+                          "telegramApiId",
+                          ev.target.value,
+                          false
+                        )
                       }
                       placeholder="Telegram Api ID"
                     />
@@ -393,7 +397,11 @@ export default memo(function Settings({ tabs }) {
                     <Input
                       value={settings?.telegramApiHash}
                       onChange={(ev) =>
-                        configureSettings("telegramApiHash", ev.target.value)
+                        configureSettings(
+                          "telegramApiHash",
+                          ev.target.value,
+                          false
+                        )
                       }
                       placeholder="Telegram Api Hash"
                     />
