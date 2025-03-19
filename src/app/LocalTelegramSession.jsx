@@ -1,11 +1,50 @@
 import Alert from "@/components/Alert";
 import LocalTelegramSessionIcon from "@/assets/images/local-telegram-session.png?format=webp&w=192";
 import TelegramLogin from "@/partials/TelegramLogin";
+import toast from "react-hot-toast";
+import useAppContext from "@/hooks/useAppContext";
 import useLocalTelegramSession from "@/hooks/useLocalTelegramSession";
+import { Api } from "telegram";
 import { cn } from "@/lib/utils";
+import { createTelegramClient } from "@/lib/createTelegramClient";
 
 export default function LocalTelegramSession() {
+  const { telegramClient } = useAppContext();
   const [session, setCloudTelegramSession] = useLocalTelegramSession();
+
+  const handleLogoutButtonClick = () => {
+    toast
+      .promise(
+        (async function () {
+          const client =
+            telegramClient.current || createTelegramClient(session);
+
+          try {
+            /** Try to reconnect */
+            if (client.disconnected) {
+              await client.connect();
+            }
+
+            /** Logout */
+            await client.invoke(new Api.auth.LogOut({}));
+
+            /** Destroy */
+            await client.destroy();
+          } catch {}
+
+          /** Remove Session */
+          setCloudTelegramSession(null);
+        })(),
+        {
+          success: "Successfully logged out...",
+          error: "Error...",
+          loading: "Logging out...",
+        }
+      )
+      .catch((e) => {
+        console.error(e);
+      });
+  };
 
   return (
     <div
@@ -25,6 +64,17 @@ export default function LocalTelegramSession() {
           <Alert variant={"success"}>
             Your Telegram account is currently logged in locally.
           </Alert>
+
+          <button
+            className={cn(
+              "bg-red-500 text-white",
+              "p-2 rounded-lg font-bold",
+              "disabled:opacity-50"
+            )}
+            onClick={handleLogoutButtonClick}
+          >
+            Logout
+          </button>
         </div>
       ) : (
         <TelegramLogin

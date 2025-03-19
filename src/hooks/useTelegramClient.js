@@ -16,7 +16,8 @@ export default function useTelegramClient(farmerMode) {
       /** Set Ref */
       clientRef.current = client;
 
-      client.start();
+      /** Connect */
+      client.connect();
 
       return () => {
         client.destroy();

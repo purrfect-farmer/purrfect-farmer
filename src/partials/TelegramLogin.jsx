@@ -4,6 +4,7 @@ import { useCallback } from "react";
 import { useEffect } from "react";
 import { useRef } from "react";
 import { useState } from "react";
+
 import TelegramLoginCodeForm from "./TelegramLoginCodeForm";
 import TelegramLoginPasswordForm from "./TelegramLoginPasswordForm";
 import TelegramLoginPhoneForm from "./TelegramLoginPhoneForm";
@@ -100,10 +101,15 @@ export default function TelegramLogin({
         });
 
         /** Store Session */
-        storeTelegramSession(client.session.save());
+        const session = client.session.save();
 
-        /** Destroy */
-        await client.destroy();
+        try {
+          /** Destroy */
+          await client.destroy();
+        } catch {}
+
+        /** Store Session */
+        storeTelegramSession(session);
       })();
 
       return () => client.destroy();

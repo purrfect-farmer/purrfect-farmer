@@ -2,7 +2,7 @@ import { StringSession } from "telegram/sessions";
 import { TelegramClient } from "telegram";
 
 /** Create Telegram Client */
-export const createTelegramClient = (apiId, apiHash, session = "") => {
+export const createTelegramClient = (session = "") => {
   const stringSession = new StringSession(session);
 
   /** Create Client */
