@@ -383,13 +383,16 @@ export default memo(function Settings({ tabs }) {
                     {/* Session Options */}
                     <h4 className="mt-4 text-neutral-400">Session Options</h4>
 
-                    <a
-                      target="_blank"
-                      href="https://my.telegram.org/apps"
-                      className="text-blue-500 underline"
-                    >
-                      Get Details Here
-                    </a>
+                    {/* Link to Telegram Apps */}
+                    <div className="flex">
+                      <a
+                        target="_blank"
+                        href="https://my.telegram.org/apps"
+                        className="text-blue-500 underline"
+                      >
+                        Get Details Here
+                      </a>
+                    </div>
 
                     <Input
                       value={settings?.telegramApiId}
