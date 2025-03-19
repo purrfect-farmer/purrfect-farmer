@@ -2,9 +2,7 @@ import { StringSession } from "telegram/sessions";
 import { TelegramClient } from "telegram";
 
 /** Create Telegram Client */
-export const createTelegramClient = (session = "") => {
-  const apiId = Number(import.meta.env.VITE_APP_TELEGRAM_API_ID);
-  const apiHash = import.meta.env.VITE_APP_TELEGRAM_API_HASH;
+export const createTelegramClient = (apiId, apiHash, session = "") => {
   const stringSession = new StringSession(session);
 
   /** Create Client */

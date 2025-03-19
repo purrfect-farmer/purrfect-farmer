@@ -26,6 +26,7 @@ import {
   watchWindowStateUpdate,
 } from "@/lib/utils";
 import { memo, useCallback, useLayoutEffect, useState } from "react";
+
 import Seeker from "./Seeker";
 
 const DropReorderItem = memo(({ children, ...props }) => {
@@ -378,6 +379,24 @@ export default memo(function Settings({ tabs }) {
                     >
                       Close Other Bots
                     </LabelToggle>
+
+                    {/* Session Options */}
+                    <h4 className="mt-4 text-neutral-400">Session Options</h4>
+                    <Input
+                      value={settings?.telegramApiId}
+                      onChange={(ev) =>
+                        configureSettings("telegramApiId", ev.target.value)
+                      }
+                      placeholder="Telegram Api ID"
+                    />
+
+                    <Input
+                      value={settings?.telegramApiHash}
+                      onChange={(ev) =>
+                        configureSettings("telegramApiHash", ev.target.value)
+                      }
+                      placeholder="Telegram Api Hash"
+                    />
 
                     {/* Cloud Options */}
                     <h4 className="mt-4 text-neutral-400">Cloud Options</h4>

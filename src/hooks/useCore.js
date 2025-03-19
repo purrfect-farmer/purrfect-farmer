@@ -62,7 +62,7 @@ export default function useCore() {
     [settings.seekerServer]
   );
 
-  const telegramClient = useTelegramClient(farmerMode);
+  const telegramClient = useTelegramClient(settings);
   const mirror = useMirror(settings.enableMirror, settings.mirrorServer);
   const messaging = useMessagePort();
 
