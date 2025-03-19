@@ -11,7 +11,7 @@ export default function useTelegramPasswordMutation(form) {
         .post("/api/telegram/password", {
           ...data,
           api_id: settings.telegramApiId,
-          api_hash: settings.telegramApiId,
+          api_hash: settings.telegramApiHash,
         })
         .then((res) => res.data),
   });

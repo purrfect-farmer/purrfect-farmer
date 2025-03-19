@@ -11,7 +11,7 @@ export default function useTelegramLoginMutation(form) {
         .post("/api/telegram/login", {
           ...data,
           api_id: settings.telegramApiId,
-          api_hash: settings.telegramApiId,
+          api_hash: settings.telegramApiHash,
         })
         .then((res) => res.data),
   });
