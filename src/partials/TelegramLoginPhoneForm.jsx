@@ -14,7 +14,11 @@ const schema = yup
   })
   .required();
 
-export default function TelegramLoginPhoneForm({ handler, onSuccess }) {
+export default function TelegramLoginPhoneForm({
+  session,
+  handler,
+  onSuccess,
+}) {
   /** Form */
   const form = useForm({
     resolver: yupResolver(schema),
@@ -32,7 +36,7 @@ export default function TelegramLoginPhoneForm({ handler, onSuccess }) {
       await handler(phone);
     } else {
       await mutation.mutateAsync(
-        { phone },
+        { session, phone },
         {
           onSuccess,
         }
