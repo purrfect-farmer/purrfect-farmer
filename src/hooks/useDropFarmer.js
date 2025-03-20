@@ -42,7 +42,6 @@ export default function useDropFarmer({
     zoomies,
     joinTelegramLink: coreJoinTelegramLink,
     setActiveTab,
-    userAgent,
     settings,
   } = useAppContext();
 
@@ -461,7 +460,6 @@ export default function useDropFarmer({
           },
           headers: {
             ...api.defaults.headers.common,
-            "User-Agent": userAgent,
           },
         })
         .then(() => {
@@ -472,7 +470,6 @@ export default function useDropFarmer({
     id,
     api,
     hasPreparedAuth,
-    userAgent,
     farmerTitle,
     shouldSync,
     telegramWebApp,
