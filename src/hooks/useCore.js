@@ -744,6 +744,7 @@ export default function useCore() {
     hasRestoredSettings,
     mirror,
     telegramClient,
+    cloudAuth,
     messaging,
     cloudBackend,
     seekerBackend,

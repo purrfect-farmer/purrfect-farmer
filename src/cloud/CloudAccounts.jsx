@@ -1,8 +1,10 @@
 import * as Collapsible from "@radix-ui/react-collapsible";
+import * as Dialog from "@radix-ui/react-dialog";
 import Input from "@/components/Input";
 import toast from "react-hot-toast";
 import useCloudAccountsQuery from "@/hooks/useCloudAccountsQuery";
 import useCloudDisconnectAccountMutation from "@/hooks/useCloudDisconnectAccountMutation";
+import useCloudKickAccountMutation from "@/hooks/useCloudKickAccountMutation";
 import { HiOutlineXMark } from "react-icons/hi2";
 import { cn } from "@/lib/utils";
 import { useCallback } from "react";
@@ -22,6 +24,7 @@ const CLOUD_FARMERS = Object.fromEntries(
 
 export default function CloudAccounts() {
   const [search, setSearch] = useState("");
+  const kickAccountMutation = useCloudKickAccountMutation();
   const disconnectAccountMutation = useCloudDisconnectAccountMutation();
   const accountsQuery = useCloudAccountsQuery();
 
@@ -34,7 +37,13 @@ export default function CloudAccounts() {
             users: search
               ? v.users.filter(
                   (user) =>
-                    user.username.includes(search) ||
+                    user["username"]
+                      .replaceAll("@", "")
+                      .toLowerCase()
+                      .includes(search.replaceAll("@", "").toLowerCase()) ||
+                    user["title"]
+                      ?.toLowerCase()
+                      ?.includes(search.toLowerCase()) ||
                     user["user_id"].toString().includes(search)
                 )
               : v.users,
@@ -54,6 +63,19 @@ export default function CloudAccounts() {
         .finally(accountsQuery.refetch);
     },
     [disconnectAccountMutation.mutateAsync, accountsQuery.refetch]
+  );
+
+  const kickAccount = useCallback(
+    (id) => {
+      toast
+        .promise(kickAccountMutation.mutateAsync(id), {
+          success: "Successfully kicked",
+          loading: "Kicking...",
+          error: "Error...",
+        })
+        .finally(accountsQuery.refetch);
+    },
+    [kickAccountMutation.mutateAsync, accountsQuery.refetch]
   );
 
   return accountsQuery.isPending ? (
@@ -112,33 +134,94 @@ export default function CloudAccounts() {
                         </h4>
                       ) : null}{" "}
                       {/* Details */}
-                      <div
-                        className={cn(
-                          "flex items-center min-w-0 min-h-0",
-                          "gap-2 p-2 rounded-lg grow bg-neutral-100 dark:bg-neutral-700"
-                        )}
-                      >
-                        {/* Photo */}
-                        <img
-                          src={account["photo_url"]}
-                          className="w-6 h-6 rounded-full shrink-0"
-                        />{" "}
-                        {/* Username */}
-                        <h5 className="grow min-w-0 min-h-0 truncate">
-                          {account.username || account["user_id"]}
-                        </h5>
-                        {typeof account["is_connected"] !== "undefined" ? (
-                          <span
+                      <Dialog.Root>
+                        <Dialog.Trigger
+                          className={cn(
+                            "flex items-center min-w-0 min-h-0",
+                            "gap-2 p-2 rounded-lg grow bg-neutral-100 dark:bg-neutral-700",
+                            "text-left"
+                          )}
+                        >
+                          {/* Photo */}
+                          <img
+                            src={account["photo_url"]}
+                            className="w-6 h-6 rounded-full shrink-0"
+                          />{" "}
+                          {/* Username */}
+                          <h5 className="grow min-w-0 min-h-0 truncate">
+                            {account.username || account["user_id"]}
+                          </h5>
+                          {typeof account["is_connected"] !== "undefined" ? (
+                            <span
+                              className={cn(
+                                "shrink-0 size-2 rounded-full",
+                                "border-2 border-white",
+                                account["is_connected"]
+                                  ? "bg-green-500"
+                                  : "bg-red-500"
+                              )}
+                            />
+                          ) : null}
+                        </Dialog.Trigger>
+
+                        <Dialog.Portal>
+                          <Dialog.Overlay
                             className={cn(
-                              "shrink-0 size-2 rounded-full",
-                              "border-2 border-white",
-                              account["is_connected"]
-                                ? "bg-green-500"
-                                : "bg-red-500"
+                              "fixed inset-0 z-40",
+                              "flex items-center justify-center",
+                              "p-4 overflow-auto bg-black/50"
                             )}
-                          />
-                        ) : null}
-                      </div>
+                          >
+                            <Dialog.Content className="flex flex-col w-full max-w-sm gap-2 p-4 bg-white dark:bg-neutral-800 rounded-xl">
+                              <img
+                                src={account["photo_url"]}
+                                className="w-24 h-24 rounded-full mx-auto"
+                              />
+
+                              {/* Title */}
+                              <Dialog.Title
+                                className={cn(
+                                  "inline-flex items-center justify-center gap-2",
+                                  "text-center",
+                                  "text-xl truncate",
+                                  "font-turret-road text-orange-500"
+                                )}
+                              >
+                                @{account["username"]}
+                              </Dialog.Title>
+
+                              {/* Description */}
+                              <Dialog.Description className="px-2 text-lg text-center text-blue-500">
+                                {account.title}
+                              </Dialog.Description>
+
+                              {/* Kick Button */}
+                              <button
+                                title="Kick User"
+                                disabled={kickAccountMutation.isPending}
+                                onClick={() => kickAccount(account.id)}
+                                className={cn(
+                                  "px-4 py-2 bg-red-500 text-white rounded-lg",
+                                  "disabled:opacity-60"
+                                )}
+                              >
+                                Kick User
+                              </button>
+
+                              {/* Cancel Button */}
+                              <Dialog.Close
+                                disabled={kickAccountMutation.isPending}
+                                className={cn(
+                                  "px-4 py-2 bg-neutral-200 dark:bg-neutral-900 rounded-lg",
+                                  "disabled:opacity-60"
+                                )}
+                              >
+                                Cancel
+                              </Dialog.Close>
+                            </Dialog.Content>
+                          </Dialog.Overlay>
+                        </Dialog.Portal>
+                      </Dialog.Root>
                       {/* Terminate Button */}
                       <button
                         title="Disconnect Account"
