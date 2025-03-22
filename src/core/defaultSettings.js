@@ -1,5 +1,6 @@
 /** Drops Status */
 const dropsStatus = {
+  ["digger"]: true,
   ["gold-eagle"]: true,
   ["hrum"]: true,
   ["tsubasa"]: true,

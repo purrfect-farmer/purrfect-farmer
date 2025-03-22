@@ -544,5 +544,57 @@
     "condition": {
       "requestDomains": ["gold-eagle-api.fly.dev"]
     }
+  },
+  {
+    "id": 21,
+    "action": {
+      "type": "modifyHeaders",
+      "requestHeaders": [
+        {
+          "header": "x-requested-with",
+          "operation": "set",
+          "value": "org.telegram.messenger"
+        },
+        {
+          "header": "origin",
+          "operation": "set",
+          "value": "https://diggergame.app"
+        },
+        {
+          "header": "referer",
+          "operation": "set",
+          "value": "https://diggergame.app/"
+        }
+      ]
+    },
+    "condition": {
+      "requestDomains": ["api.diggergame.app"]
+    }
+  },
+  {
+    "id": 22,
+    "action": {
+      "type": "modifyHeaders",
+      "requestHeaders": [
+        {
+          "header": "x-requested-with",
+          "operation": "set",
+          "value": "org.telegram.messenger"
+        },
+        {
+          "header": "origin",
+          "operation": "set",
+          "value": "https://clicker.funtico.com"
+        },
+        {
+          "header": "referer",
+          "operation": "set",
+          "value": "https://clicker.funtico.com/"
+        }
+      ]
+    },
+    "condition": {
+      "requestDomains": ["*.funtico.com"]
+    }
   }
 ]
