@@ -9,11 +9,11 @@ export default function useFunaticFarmer() {
       () => ({
         id: "funatic",
         host: "clicker.funtico.com",
-        notification: {
-          icon: FunaticIcon,
-          title: "Funatic Farmer",
-        },
         domains: ["*.funtico.com"],
+
+        icon: FunaticIcon,
+        title: "Funatic Farmer",
+
         extractAuthHeaders(headers) {
           return headers.filter(
             (header) =>
@@ -21,6 +21,7 @@ export default function useFunaticFarmer() {
               header.value !== "Bearer undefined"
           );
         },
+
         apiDelay: 200,
         syncToCloud: true,
       }),
