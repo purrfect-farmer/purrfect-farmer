@@ -17,6 +17,7 @@ import axios from "axios";
 import defaultSettings from "@/core/defaultSettings";
 import useAppContext from "@/hooks/useAppContext";
 import useAppQuery from "@/hooks/useAppQuery";
+import useCloudSessionCheck from "@/hooks/useCloudSessionCheck";
 import useMirroredState from "@/hooks/useMirroredState";
 import useMirroredTabs from "@/hooks/useMirroredTabs";
 import { CgSpinner } from "react-icons/cg";
@@ -159,6 +160,9 @@ export default memo(function Welcome() {
     settingTabs.dispatchAndSetValue("farmers");
     dispatchAndSetShowSettingsPanel(true);
   }, [settingTabs.dispatchAndSetValue, dispatchAndSetShowSettingsPanel]);
+
+  /** Check Cloud Session */
+  useCloudSessionCheck();
 
   /** Update Title */
   useEffect(() => {
