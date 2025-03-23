@@ -2,14 +2,14 @@ import { useMutation } from "@tanstack/react-query";
 
 import useAppContext from "./useAppContext";
 
-export default function useCloudDisconnectAccountMutation() {
+export default function useCloudDisconnectFarmerMutation() {
   const { cloudBackend } = useAppContext();
 
   return useMutation({
-    mutationKey: ["core", "cloud", "account", "disconnect"],
+    mutationKey: ["core", "cloud", "farmer", "disconnect"],
     mutationFn: (id) =>
       cloudBackend
-        .post(`/api/accounts/${id}/disconnect`)
+        .post(`/api/farmers/${id}/disconnect`)
         .then((res) => res.data),
   });
 }

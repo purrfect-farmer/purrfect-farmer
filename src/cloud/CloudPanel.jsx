@@ -1,7 +1,7 @@
 import AppIcon from "@/assets/images/icon.png?format=webp&w=56";
 import useAppContext from "@/hooks/useAppContext";
 
-import CloudAccounts from "./CloudAccounts";
+import CloudFarmers from "./CloudFarmers";
 import CloudServerDisplay from "./CloudServerDisplay";
 import CloudUserDisplay from "./CloudUserDisplay";
 
@@ -31,8 +31,8 @@ export default function CloudPanel() {
         {/* User Display */}
         <CloudUserDisplay />
 
-        {/* Accounts */}
-        <CloudAccounts />
+        {/* Farmer */}
+        <CloudFarmers />
       </div>
     </div>
   );

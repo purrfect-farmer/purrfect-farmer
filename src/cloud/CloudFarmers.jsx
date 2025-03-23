@@ -2,9 +2,9 @@ import * as Collapsible from "@radix-ui/react-collapsible";
 import * as Dialog from "@radix-ui/react-dialog";
 import Input from "@/components/Input";
 import toast from "react-hot-toast";
-import useCloudAccountsQuery from "@/hooks/useCloudAccountsQuery";
-import useCloudDisconnectAccountMutation from "@/hooks/useCloudDisconnectAccountMutation";
-import useCloudKickAccountMutation from "@/hooks/useCloudKickAccountMutation";
+import useCloudDisconnectFarmerMutation from "@/hooks/useCloudDisconnectFarmerMutation";
+import useCloudFarmersQuery from "@/hooks/useCloudFarmersQuery";
+import useCloudKickMemberMutation from "@/hooks/useCloudKickMemberMutation";
 import { HiOutlineXMark } from "react-icons/hi2";
 import { cn } from "@/lib/utils";
 import { useCallback } from "react";
@@ -24,14 +24,14 @@ const CLOUD_FARMERS = Object.fromEntries(
 
 export default function CloudAccounts() {
   const [search, setSearch] = useState("");
-  const kickAccountMutation = useCloudKickAccountMutation();
-  const disconnectAccountMutation = useCloudDisconnectAccountMutation();
-  const accountsQuery = useCloudAccountsQuery();
+  const kickMemberMutation = useCloudKickMemberMutation();
+  const disconnectFarmerMutation = useCloudDisconnectFarmerMutation();
+  const farmersQuery = useCloudFarmersQuery();
 
   const groups = useMemo(
     () =>
-      accountsQuery.data
-        ? Object.entries(accountsQuery.data).map(([k, v]) => ({
+      farmersQuery.data
+        ? Object.entries(farmersQuery.data).map(([k, v]) => ({
             ...v,
             id: k,
             users: search
@@ -49,38 +49,38 @@ export default function CloudAccounts() {
               : v.users,
           }))
         : [],
-    [search, accountsQuery.data]
+    [search, farmersQuery.data]
   );
 
-  const disconnectAccount = useCallback(
+  const disconnectFarmer = useCallback(
     (id) => {
       toast
-        .promise(disconnectAccountMutation.mutateAsync(id), {
+        .promise(disconnectFarmerMutation.mutateAsync(id), {
           success: "Successfully disconnected",
           loading: "Disconnecting...",
           error: "Error...",
         })
-        .finally(accountsQuery.refetch);
+        .finally(farmersQuery.refetch);
     },
-    [disconnectAccountMutation.mutateAsync, accountsQuery.refetch]
+    [disconnectFarmerMutation.mutateAsync, farmersQuery.refetch]
   );
 
-  const kickAccount = useCallback(
+  const kickMember = useCallback(
     (id) => {
       toast
-        .promise(kickAccountMutation.mutateAsync(id), {
+        .promise(kickMemberMutation.mutateAsync(id), {
           success: "Successfully kicked",
           loading: "Kicking...",
           error: "Error...",
         })
-        .finally(accountsQuery.refetch);
+        .finally(farmersQuery.refetch);
     },
-    [kickAccountMutation.mutateAsync, accountsQuery.refetch]
+    [kickMemberMutation.mutateAsync, farmersQuery.refetch]
   );
 
-  return accountsQuery.isPending ? (
-    <p className="text-center">Fetching Accounts...</p>
-  ) : accountsQuery.isError ? (
+  return farmersQuery.isPending ? (
+    <p className="text-center">Fetching Farmers...</p>
+  ) : farmersQuery.isError ? (
     <p className="text-center text-red-500">Error...</p>
   ) : (
     <div className="flex flex-col gap-4">
@@ -117,10 +117,10 @@ export default function CloudAccounts() {
             <Collapsible.Content className="mb-2">
               {group.users.length ? (
                 <div className="flex flex-col gap-1">
-                  {group.users.map((account) => (
-                    <div key={account.id} className="flex gap-2">
+                  {group.users.map((user) => (
+                    <div key={user["id"]} className="flex gap-2">
                       {/* Title */}
-                      {account.title ? (
+                      {user["title"] ? (
                         <h4
                           className={cn(
                             "font-bold",
@@ -130,7 +130,7 @@ export default function CloudAccounts() {
                             "bg-neutral-100 dark:bg-neutral-700"
                           )}
                         >
-                          {account.title}
+                          {user["title"]}
                         </h4>
                       ) : null}{" "}
                       {/* Details */}
@@ -144,19 +144,19 @@ export default function CloudAccounts() {
                         >
                           {/* Photo */}
                           <img
-                            src={account["photo_url"]}
+                            src={user["photo_url"]}
                             className="w-6 h-6 rounded-full shrink-0"
                           />{" "}
                           {/* Username */}
                           <h5 className="grow min-w-0 min-h-0 truncate">
-                            {account.username || account["user_id"]}
+                            {user["username"] || user["user_id"]}
                           </h5>
-                          {typeof account["is_connected"] !== "undefined" ? (
+                          {typeof user["is_connected"] !== "undefined" ? (
                             <span
                               className={cn(
                                 "shrink-0 size-2 rounded-full",
                                 "border-2 border-white",
-                                account["is_connected"]
+                                user["is_connected"]
                                   ? "bg-green-500"
                                   : "bg-red-500"
                               )}
@@ -174,7 +174,7 @@ export default function CloudAccounts() {
                           >
                             <Dialog.Content className="flex flex-col w-full max-w-sm gap-2 p-4 bg-white dark:bg-neutral-800 rounded-xl">
                               <img
-                                src={account["photo_url"]}
+                                src={user["photo_url"]}
                                 className="w-24 h-24 rounded-full mx-auto"
                               />
 
@@ -187,19 +187,19 @@ export default function CloudAccounts() {
                                   "font-turret-road text-orange-500"
                                 )}
                               >
-                                @{account["username"]}
+                                @{user["username"]}
                               </Dialog.Title>
 
                               {/* Description */}
                               <Dialog.Description className="px-2 text-lg text-center text-blue-500">
-                                {account.title}
+                                {user["title"]}
                               </Dialog.Description>
 
                               {/* Kick Button */}
                               <button
                                 title="Kick User"
-                                disabled={kickAccountMutation.isPending}
-                                onClick={() => kickAccount(account.id)}
+                                disabled={kickMemberMutation.isPending}
+                                onClick={() => kickMember(user["user_id"])}
                                 className={cn(
                                   "px-4 py-2 bg-red-500 text-white rounded-lg",
                                   "disabled:opacity-60"
@@ -210,7 +210,7 @@ export default function CloudAccounts() {
 
                               {/* Cancel Button */}
                               <Dialog.Close
-                                disabled={kickAccountMutation.isPending}
+                                disabled={kickMemberMutation.isPending}
                                 className={cn(
                                   "px-4 py-2 bg-neutral-200 dark:bg-neutral-900 rounded-lg",
                                   "disabled:opacity-60"
@@ -225,7 +225,7 @@ export default function CloudAccounts() {
                       {/* Terminate Button */}
                       <button
                         title="Disconnect Account"
-                        onClick={() => disconnectAccount(account.id)}
+                        onClick={() => disconnectFarmer(user["id"])}
                         className={cn(
                           "text-red-600 bg-red-100",
                           "dark:text-red-500 dark:bg-neutral-700",
