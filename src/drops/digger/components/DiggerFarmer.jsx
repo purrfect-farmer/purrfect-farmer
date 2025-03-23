@@ -30,7 +30,7 @@ export default memo(function DiggerFarmer() {
   useFarmerAsyncTask(
     "dig",
     () => {
-      if (userQuery.data) {
+      if (userQuery.isLoading === false) {
         return async function () {
           await toast.promise(digMutation.mutateAsync(), {
             loading: "Digging...",
@@ -40,7 +40,7 @@ export default memo(function DiggerFarmer() {
         };
       }
     },
-    [userQuery.data]
+    [userQuery.isLoading]
   );
 
   /** Switch Tab Automatically */
