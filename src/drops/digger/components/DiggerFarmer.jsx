@@ -13,6 +13,7 @@ import DiggerIcon from "../assets/images/icon.png?format=webp&w=80";
 import DiggerInfoDisplay from "./DiggerInfoDisplay";
 import DiggerTasks from "./DiggerTasks";
 import useDiggerDigMutation from "../hooks/useDiggerDigMutation";
+import useDiggerUserQuery from "../hooks/useDiggerUserQuery";
 
 export default memo(function DiggerFarmer() {
   const tabs = useMirroredTabs("digger.farmer-tabs", [
@@ -22,21 +23,24 @@ export default memo(function DiggerFarmer() {
     "tasks",
   ]);
 
+  const userQuery = useDiggerUserQuery();
   const digMutation = useDiggerDigMutation();
 
   /** Dig */
   useFarmerAsyncTask(
     "dig",
     () => {
-      return async function () {
-        await toast.promise(digMutation.mutateAsync(), {
-          loading: "Digging...",
-          success: "Successfully digged...",
-          error: "Can't dig now",
-        });
-      };
+      if (userQuery.data) {
+        return async function () {
+          await toast.promise(digMutation.mutateAsync(), {
+            loading: "Digging...",
+            success: "Successfully digged...",
+            error: "Can't dig now",
+          });
+        };
+      }
     },
-    []
+    [userQuery.data]
   );
 
   /** Switch Tab Automatically */
