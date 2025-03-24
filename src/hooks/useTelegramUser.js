@@ -12,7 +12,10 @@ export default function useTelegramUser(core) {
   /** Configure User */
   const configureUser = useCallback(
     ({ telegramWebApp }) => {
-      storeTelegramUser(telegramWebApp.initDataUnsafe.user);
+      storeTelegramUser({
+        ...telegramWebApp.initDataUnsafe.user,
+        ["init_data"]: telegramWebApp.initData,
+      });
     },
     [storeTelegramUser]
   );
