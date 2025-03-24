@@ -13,6 +13,7 @@ export default function useMatchQuestFarmer() {
         title: "MatchQuest Farmer",
 
         domains: ["tgapp-api.matchain.io"],
+        syncToCloud: true,
       }),
       []
     )

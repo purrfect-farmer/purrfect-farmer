@@ -6,6 +6,7 @@ export default {
   id: "matchquest",
   title: "MatchQuest",
   icon,
+  syncToCloud: true,
   component: createLazyElement(() => import("./MatchQuest")),
   telegramLink:
     "https://t.me/MatchQuestBot/start?startapp=775f1cc48a46ce5221f1d9476233dc33",
