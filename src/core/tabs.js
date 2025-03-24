@@ -1,5 +1,5 @@
 import AppIcon from "@/assets/images/icon.png?format=webp&w=80";
-import CloudManagerIcon from "@/assets/images/cloud-manager.png?format=webp&w=80";
+import CloudIcon from "@/assets/images/cloud-manager.png?format=webp&w=80";
 import CloudTelegramSessionIcon from "@/assets/images/cloud-telegram-session.png?format=webp&w=80";
 import LocalTelegramSessionIcon from "@/assets/images/local-telegram-session.png?format=webp&w=80";
 import TelegramWebAIcon from "@/assets/images/telegram-web-a.png?format=webp&w=80";
@@ -11,6 +11,7 @@ import farmers from "./farmers";
 
 export const Welcome = lazy(() => import("@/app/Welcome"));
 export const TelegramWeb = lazy(() => import("@/app/TelegramWeb"));
+export const PayForCloud = lazy(() => import("@/app/PayForCloud"));
 export const CloudManager = lazy(() => import("@/app/CloudManager"));
 export const CloudTelegramSession = lazy(() =>
   import("@/app/CloudTelegramSession")
@@ -46,11 +47,19 @@ export const telegramWeb = [
 ];
 
 export const utils = [
-  /** Cloud Telegram Session */
+  /** Pay For Cloud */
+  {
+    id: "pay-for-cloud",
+    title: "Pay For Cloud",
+    icon: CloudIcon,
+    component: createElement(PayForCloud),
+  },
+
+  /** Cloud Manager */
   {
     id: "cloud-manager",
     title: "Cloud Manager",
-    icon: CloudManagerIcon,
+    icon: CloudIcon,
     component: createElement(CloudManager),
   },
 

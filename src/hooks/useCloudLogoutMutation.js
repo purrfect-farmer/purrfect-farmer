@@ -6,7 +6,7 @@ export default function useCloudLogoutMutation() {
   const { cloudBackend } = useAppContext();
 
   return useMutation({
-    mutationKey: ["core", "cloud", "logout"],
+    mutationKey: ["app", "cloud", "logout"],
     mutationFn: () => cloudBackend.post("/api/logout").then((res) => res.data),
   });
 }

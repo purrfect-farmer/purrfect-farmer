@@ -6,7 +6,7 @@ export default function useCloudDisconnectFarmerMutation() {
   const { cloudBackend } = useAppContext();
 
   return useMutation({
-    mutationKey: ["core", "cloud", "farmer", "disconnect"],
+    mutationKey: ["app", "cloud", "farmer", "disconnect"],
     mutationFn: (id) =>
       cloudBackend
         .post(`/api/farmers/${id}/disconnect`)

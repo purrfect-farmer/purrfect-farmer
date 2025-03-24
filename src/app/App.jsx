@@ -8,8 +8,6 @@ import useSeeker from "@/hooks/useSeeker";
 import useTheme from "@/hooks/useTheme";
 import { Toaster } from "react-hot-toast";
 import { memo, useEffect, useRef } from "react";
-import { resizeFarmerWindow } from "@/lib/utils";
-
 import Onboarding from "./Onboarding";
 
 function App() {
@@ -18,11 +16,6 @@ function App() {
   const theme = app.settings.theme;
   const onboarded = app.settings.onboarded;
   const wakeLockRef = useRef(null);
-
-  /** Resize window */
-  useEffect(() => {
-    resizeFarmerWindow();
-  }, []);
 
   /** Acquire WakeLock */
   useEffect(() => {

@@ -6,7 +6,7 @@ export default function useCloudLoginMutation() {
   const { cloudBackend } = useAppContext();
 
   return useMutation({
-    mutationKey: ["core", "cloud", "login"],
+    mutationKey: ["app", "cloud", "login"],
     mutationFn: (data) =>
       cloudBackend.post("/api/login", data).then((res) => res.data),
   });

@@ -1,17 +1,18 @@
 import AppContext from "@/contexts/AppContext";
-import useCloudStatusQuery from "@/hooks/useCloudStatusQuery";
+import useCloudServerQuery from "@/hooks/useCloudServerQuery";
 import { HiOutlineCloud } from "react-icons/hi2";
 import { cn } from "@/lib/utils";
 import { useContext } from "react";
 
-export default function CloudStatus() {
+export default function CloudStatus(props) {
   const { settings } = useContext(AppContext);
-  const { status, data } = useCloudStatusQuery();
+  const { status, data } = useCloudServerQuery();
 
   return settings.enableCloud ? (
     <p
       className={cn(
         "text-center flex items-center justify-center gap-2",
+        props.className,
         {
           pending: "text-orange-500",
           success: "text-green-500",

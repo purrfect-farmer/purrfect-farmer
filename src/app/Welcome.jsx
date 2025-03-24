@@ -3,6 +3,7 @@ import * as Tabs from "@radix-ui/react-tabs";
 import BotWebAIcon from "@/assets/images/bot-web-a.png?format=webp&w=80";
 import BotWebKIcon from "@/assets/images/bot-web-k.png?format=webp&w=80";
 import CloudStatus from "@/partials/CloudStatus";
+import CloudSubscription from "@/partials/CloudSubscription";
 import Connect from "@/partials/Connect";
 import Donate from "@/partials/Donate";
 import DropButton from "@/components/DropButton";
@@ -17,7 +18,6 @@ import axios from "axios";
 import defaultSettings from "@/core/defaultSettings";
 import useAppContext from "@/hooks/useAppContext";
 import useAppQuery from "@/hooks/useAppQuery";
-import useCloudSessionCheck from "@/hooks/useCloudSessionCheck";
 import useMirroredState from "@/hooks/useMirroredState";
 import useMirroredTabs from "@/hooks/useMirroredTabs";
 import { CgSpinner } from "react-icons/cg";
@@ -161,9 +161,6 @@ export default memo(function Welcome() {
     dispatchAndSetShowSettingsPanel(true);
   }, [settingTabs.dispatchAndSetValue, dispatchAndSetShowSettingsPanel]);
 
-  /** Check Cloud Session */
-  useCloudSessionCheck();
-
   /** Update Title */
   useEffect(() => {
     document.title = `${
@@ -276,9 +273,14 @@ export default memo(function Welcome() {
             </p>
           ) : null}
 
+          {/* Cloud Subscription */}
+          <CloudSubscription />
+
           {/* Display User */}
           {telegramUser && settings.displayUserInfo ? (
-            <TelegramUser user={telegramUser} />
+            <div className="px-2">
+              <TelegramUser user={telegramUser} className="max-w-xs mx-auto" />
+            </div>
           ) : null}
 
           <div className="flex flex-col gap-1">

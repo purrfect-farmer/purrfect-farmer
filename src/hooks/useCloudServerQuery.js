@@ -7,7 +7,10 @@ export default function useCloudServerQuery() {
 
   return useQuery({
     retry: true,
-    queryKey: ["core", "cloud", "server", settings.cloudServer],
+    refetchOnMount: false,
+    refetchOnReconnect: false,
+    refetchOnWindowFocus: false,
+    queryKey: ["app", "cloud", "server", settings.cloudServer],
     queryFn: ({ signal }) =>
       cloudBackend.get("/api/server", { signal }).then((res) => res.data),
   });

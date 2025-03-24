@@ -306,42 +306,40 @@ export async function closeWindow(windowId) {
 
 /** Resize Farmer Window */
 export async function resizeFarmerWindow() {
+  const coords = await getWindowCoords();
   const currentWindow = await chrome?.windows?.getCurrent();
 
-  if (
-    currentWindow &&
-    currentWindow.type === "popup" &&
-    currentWindow.state === "maximized"
-  ) {
-    const settings = await getSettings();
-    const position = settings.farmerPosition || defaultSettings.farmerPosition;
-    const width = Math.max(
-      270,
-      Math.floor(
-        currentWindow.width /
-          (settings.farmersPerWindow || defaultSettings.farmersPerWindow)
-      )
-    );
-
-    const left = Math.max(1, Math.floor(position * width) - width);
-
-    await chrome?.windows?.update(currentWindow.id, {
-      state: "normal",
-      width,
-      left,
-    });
-  }
+  await chrome?.windows?.update(currentWindow.id, {
+    ...coords,
+    state: "normal",
+  });
 }
 
-/** Maximize Farmer Window */
-export async function maximizeFarmerWindow() {
-  const currentWindow = await chrome?.windows?.getCurrent();
+/** Get Window Coords */
+export async function getWindowCoords() {
+  const settings = await getSettings();
+  const displays = await chrome.system.display.getInfo();
+  const primaryDisplay =
+    displays.find((display) => display.isPrimary) || displays[0];
 
-  if (currentWindow && currentWindow.type === "popup") {
-    await chrome?.windows?.update(currentWindow.id, {
-      state: "maximized",
-    });
-  }
+  const maxWidth = primaryDisplay.workArea.width;
+  const maxHeight = primaryDisplay.workArea.height;
+
+  const position = settings.farmerPosition || defaultSettings.farmerPosition;
+  const width = Math.max(
+    270,
+    Math.floor(
+      maxWidth / (settings.farmersPerWindow || defaultSettings.farmersPerWindow)
+    )
+  );
+  const left = Math.max(1, Math.floor(position * width) - width);
+
+  return {
+    top: 0,
+    left,
+    width,
+    height: maxHeight,
+  };
 }
 
 /** Check Task Word */

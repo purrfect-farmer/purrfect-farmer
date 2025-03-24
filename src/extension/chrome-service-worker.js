@@ -3,6 +3,7 @@ import {
   customLogger,
   getSettings,
   getUserAgent,
+  getWindowCoords,
 } from "@/lib/utils";
 
 /** Close Previous Popups */
@@ -24,12 +25,14 @@ const closePreviousPopups = async (windowId) => {
 
 /** Open Farmer */
 const openFarmerWindow = async () => {
+  const coords = await getWindowCoords();
+
   /** Create a new window */
   const window = await chrome.windows.create({
-    url: chrome.runtime.getURL("index.html"),
+    ...coords,
     type: "popup",
-    state: "maximized",
     focused: true,
+    url: chrome.runtime.getURL("index.html"),
   });
 
   /** Close Previous Popups */

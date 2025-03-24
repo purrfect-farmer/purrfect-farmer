@@ -6,7 +6,7 @@ export default function useCloudSyncMutation(id) {
   const { cloudBackend } = useContext(AppContext);
 
   return useMutation({
-    mutationKey: ["core", "cloud", "sync", id],
+    mutationKey: ["app", "cloud", "sync", id],
     mutationFn: ({ id, userId, telegramWebApp, headers }) =>
       cloudBackend
         .post("/api/sync", {

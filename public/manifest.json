@@ -19,7 +19,8 @@
     "notifications",
     "webRequest",
     "webNavigation",
-    "declarativeNetRequest"
+    "declarativeNetRequest",
+    "system.display"
   ],
   "action": {
     "default_icon": "icon-48.png",

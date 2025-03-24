@@ -7,13 +7,14 @@ import useTelegramLogoutMutation from "@/hooks/useTelegramLogoutMutation";
 import { cn } from "@/lib/utils";
 
 export default function CloudTelegramSession() {
-  const { cloudTelegramSession, setCloudTelegramSession } = useAppContext();
+  const { telegramUser, cloudTelegramSession, setCloudTelegramSession } =
+    useAppContext();
   const logoutMutation = useTelegramLogoutMutation();
 
   const handleLogoutButtonClick = () => {
     toast.promise(
       logoutMutation.mutateAsync(
-        { session: cloudTelegramSession },
+        { auth: telegramUser?.["init_data"] },
         {
           onSuccess() {
             setCloudTelegramSession(null);

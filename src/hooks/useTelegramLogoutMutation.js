@@ -6,7 +6,7 @@ export default function useTelegramLogoutMutation() {
   const { cloudBackend } = useAppContext();
 
   return useMutation({
-    mutationKey: ["core", "cloud", "telegram", "logout"],
+    mutationKey: ["app", "cloud", "telegram", "logout"],
     mutationFn: (data) =>
       cloudBackend.post("/api/telegram/logout", data).then((res) => res.data),
   });

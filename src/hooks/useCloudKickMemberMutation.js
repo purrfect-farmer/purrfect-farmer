@@ -6,7 +6,7 @@ export default function useCloudKickMemberMutation() {
   const { cloudBackend } = useAppContext();
 
   return useMutation({
-    mutationKey: ["core", "cloud", "member", "kick"],
+    mutationKey: ["app", "cloud", "member", "kick"],
     mutationFn: (id) =>
       cloudBackend.post(`/api/members/${id}/kick`).then((res) => res.data),
   });

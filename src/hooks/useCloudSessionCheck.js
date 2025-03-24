@@ -1,26 +1,16 @@
-import toast from "react-hot-toast";
 import { useEffect } from "react";
 
 import useAppContext from "./useAppContext";
-import useTelegramCheckMutation from "./useTelegramCheckMutation";
+import useCloudTelegramSessionQuery from "./useCloudTelegramSessionQuery";
 
-export default function useCloudSessionCheck() {
-  const { cloudTelegramSession, setCloudTelegramSession } = useAppContext();
-  const telegramCheckMutation = useTelegramCheckMutation();
+export default function useCloudSessionCheck(context) {
+  const app = useAppContext();
+  const { setCloudTelegramSession } = context || app;
+  const { data, isSuccess } = useCloudTelegramSessionQuery(context);
 
   useEffect(() => {
-    if (cloudTelegramSession) {
-      telegramCheckMutation
-        .mutateAsync(cloudTelegramSession)
-        .then(({ status }) => {
-          if (status === false) {
-            /** Remove Session */
-            setCloudTelegramSession(null);
-
-            /** Toast */
-            toast.error("Telegram Account has been logged out of Cloud!");
-          }
-        });
+    if (isSuccess) {
+      setCloudTelegramSession(data.session);
     }
-  }, [cloudTelegramSession]);
+  }, [isSuccess, data]);
 }

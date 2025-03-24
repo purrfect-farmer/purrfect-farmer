@@ -5,7 +5,7 @@ export default function useTelegramCodeMutation(form) {
   const { cloudBackend } = useAppContext();
 
   return useFormMutation(form, {
-    mutationKey: ["core", "cloud", "telegram", "code"],
+    mutationKey: ["app", "cloud", "telegram", "code"],
     mutationFn: (data) =>
       cloudBackend.post("/api/telegram/code", data).then((res) => res.data),
   });
