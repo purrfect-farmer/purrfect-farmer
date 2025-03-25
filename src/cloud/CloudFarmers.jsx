@@ -38,9 +38,10 @@ export default function CloudAccounts() {
               ? v.users.filter(
                   (user) =>
                     user["username"]
-                      .replaceAll("@", "")
-                      .toLowerCase()
-                      .includes(search.replaceAll("@", "").toLowerCase()) ||
+                      ?.toString()
+                      ?.replaceAll("@", "")
+                      ?.toLowerCase()
+                      ?.includes(search.replaceAll("@", "").toLowerCase()) ||
                     user["title"]
                       ?.toLowerCase()
                       ?.includes(search.toLowerCase()) ||

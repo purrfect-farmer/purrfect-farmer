@@ -4,6 +4,7 @@ import BotWebAIcon from "@/assets/images/bot-web-a.png?format=webp&w=80";
 import BotWebKIcon from "@/assets/images/bot-web-k.png?format=webp&w=80";
 import CloudStatus from "@/partials/CloudStatus";
 import CloudSubscription from "@/partials/CloudSubscription";
+import CloudTelegramSessionStatus from "@/partials/CloudTelegramSessionStatus";
 import Connect from "@/partials/Connect";
 import Donate from "@/partials/Donate";
 import DropButton from "@/components/DropButton";
@@ -259,6 +260,9 @@ export default memo(function Welcome() {
 
           {/* Cloud Status */}
           <CloudStatus />
+
+          {/* Cloud Telegram Session Status */}
+          <CloudTelegramSessionStatus />
 
           {/* Mirror Status */}
           {settings.enableMirror ? (
