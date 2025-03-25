@@ -36,7 +36,7 @@ export default function CloudSubscription() {
               (Expires:{" "}
               {formatDate(
                 new Date(subscription["ends_at"]),
-                "EEEE - Mo MMM, yyyy"
+                "EEEE - do MMM, yyyy"
               )}
               )
             </b>
