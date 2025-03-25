@@ -4,55 +4,35 @@ import FullSpinner from "@/components/FullSpinner";
 import TabButtonList from "@/components/TabButtonList";
 import TabContent from "@/components/TabContent";
 import useApp from "@/hooks/useApp";
+import useCloudSessionCheck from "@/hooks/useCloudSessionCheck";
+import useMiniAppToolbar from "@/hooks/useMiniAppToolbar";
 import useSeeker from "@/hooks/useSeeker";
 import useTheme from "@/hooks/useTheme";
 import { Toaster } from "react-hot-toast";
-import { memo, useEffect, useRef } from "react";
+import { memo } from "react";
 import Onboarding from "./Onboarding";
+import useWakeLock from "@/hooks/useWakeLock";
 
 function App() {
   const app = useApp();
   const hasRestoredSettings = app.hasRestoredSettings;
   const theme = app.settings.theme;
   const onboarded = app.settings.onboarded;
-  const wakeLockRef = useRef(null);
 
-  /** Acquire WakeLock */
-  useEffect(() => {
-    const requestWakeLock = async () => {
-      try {
-        wakeLockRef.current?.release();
-        wakeLockRef.current = await navigator.wakeLock.request("screen");
-      } catch {}
-    };
+  /** Use Seeker */
+  useSeeker(app);
 
-    const handleVisibilityChange = async () => {
-      if (
-        wakeLockRef.current !== null &&
-        document.visibilityState === "visible"
-      ) {
-        await requestWakeLock();
-      }
-    };
+  /** Check Cloud Telegram Session */
+  useCloudSessionCheck(app);
 
-    /** Watch Visibility Change */
-    document.addEventListener("visibilitychange", handleVisibilityChange);
-
-    /** Request initial WakeLock */
-    requestWakeLock();
-
-    return () => {
-      document.removeEventListener("visibilitychange", handleVisibilityChange);
-      wakeLockRef.current?.release();
-      wakeLockRef.current = null;
-    };
-  }, []);
+  /** Use Toolbar */
+  useMiniAppToolbar(app);
 
   /** Apply Theme */
   useTheme(theme);
 
-  /** Use Seeker */
-  useSeeker(app);
+  /** Acquire WakeLock */
+  useWakeLock();
 
   return (
     <AppContext.Provider value={app}>
