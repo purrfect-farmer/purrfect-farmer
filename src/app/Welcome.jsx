@@ -269,7 +269,9 @@ export default memo(function Welcome() {
             <p
               className={cn(
                 "text-center flex items-center justify-center gap-2",
-                mirror.connected ? "text-green-500" : "text-red-500"
+                mirror.connected
+                  ? "text-green-600 dark:text-green-500"
+                  : "text-red-500"
               )}
             >
               <RiRemoteControlLine className="w-4 h-4" /> Mirror:{" "}

@@ -15,7 +15,7 @@ export default function CloudStatus(props) {
         props.className,
         {
           pending: "text-orange-500",
-          success: "text-green-500",
+          success: "text-green-600 dark:text-green-500",
           error: "text-red-500",
         }[status]
       )}
