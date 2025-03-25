@@ -172,52 +172,61 @@ export default function CloudAccounts() {
                               "p-4 overflow-auto bg-black/50"
                             )}
                           >
-                            <Dialog.Content className="flex flex-col w-full max-w-sm gap-2 p-4 bg-white dark:bg-neutral-800 rounded-xl">
+                            <Dialog.Content className="flex flex-col w-full max-w-sm gap-6 p-4 bg-white dark:bg-neutral-800 rounded-xl">
                               <img
                                 src={user["photo_url"]}
                                 className="w-24 h-24 rounded-full mx-auto"
                               />
 
-                              {/* Title */}
-                              <Dialog.Title
-                                className={cn(
-                                  "inline-flex items-center justify-center gap-2",
-                                  "text-center",
-                                  "text-xl truncate",
-                                  "font-turret-road text-orange-500"
-                                )}
-                              >
-                                @{user["username"]}
-                              </Dialog.Title>
+                              <div className="flex flex-col">
+                                {/* Title */}
+                                <Dialog.Title
+                                  className={cn(
+                                    "inline-flex items-center justify-center gap-2",
+                                    "text-center",
+                                    "text-xl truncate",
+                                    "text-blue-500 font-bold"
+                                  )}
+                                >
+                                  {user["title"] || "TGUser"}
+                                </Dialog.Title>
 
-                              {/* Description */}
-                              <Dialog.Description className="px-2 text-lg text-center text-blue-500">
-                                {user["title"]}
-                              </Dialog.Description>
+                                {/* Description */}
+                                <Dialog.Description className="px-2 text-lg text-center text-orange-500 font-turret-road">
+                                  @{user["username"]}
+                                </Dialog.Description>
 
-                              {/* Kick Button */}
-                              <button
-                                title="Kick User"
-                                disabled={kickMemberMutation.isPending}
-                                onClick={() => kickMember(user["user_id"])}
-                                className={cn(
-                                  "px-4 py-2 bg-red-500 text-white rounded-lg",
-                                  "disabled:opacity-60"
-                                )}
-                              >
-                                Kick User
-                              </button>
+                                {/* User ID */}
+                                <p className="px-2 font-bold text-purple-500 text-center">
+                                  User ID: {user["user_id"]}
+                                </p>
+                              </div>
 
-                              {/* Cancel Button */}
-                              <Dialog.Close
-                                disabled={kickMemberMutation.isPending}
-                                className={cn(
-                                  "px-4 py-2 bg-neutral-200 dark:bg-neutral-900 rounded-lg",
-                                  "disabled:opacity-60"
-                                )}
-                              >
-                                Cancel
-                              </Dialog.Close>
+                              <div className="flex flex-col gap-2 mt-2">
+                                {/* Kick Button */}
+                                <button
+                                  title="Kick User"
+                                  disabled={kickMemberMutation.isPending}
+                                  onClick={() => kickMember(user["user_id"])}
+                                  className={cn(
+                                    "px-4 py-2 bg-red-500 text-white rounded-lg",
+                                    "disabled:opacity-60"
+                                  )}
+                                >
+                                  Kick User
+                                </button>
+
+                                {/* Cancel Button */}
+                                <Dialog.Close
+                                  disabled={kickMemberMutation.isPending}
+                                  className={cn(
+                                    "px-4 py-2 bg-neutral-200 dark:bg-neutral-900 rounded-lg",
+                                    "disabled:opacity-60"
+                                  )}
+                                >
+                                  Cancel
+                                </Dialog.Close>
+                              </div>
                             </Dialog.Content>
                           </Dialog.Overlay>
                         </Dialog.Portal>
