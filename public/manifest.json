@@ -45,16 +45,16 @@
     },
     {
       "matches": ["*://*/*"],
-      "js": ["content-script-patches.js"],
+      "js": ["content-script-isolated.js"],
       "run_at": "document_start",
-      "world": "MAIN",
+      "world": "ISOLATED",
       "all_frames": true
     },
     {
       "matches": ["*://*/*"],
-      "js": ["content-script-isolated.js"],
+      "js": ["content-script-patches.js"],
       "run_at": "document_start",
-      "world": "ISOLATED",
+      "world": "MAIN",
       "all_frames": true
     },
     {
