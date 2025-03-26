@@ -1,7 +1,7 @@
 import Alert from "@/components/Alert";
 import AppContext from "@/contexts/AppContext";
 import useCloudSubscriptionQuery from "@/hooks/useCloudSubscriptionQuery";
-import { formatDate } from "date-fns";
+import { differenceInHours, formatDate } from "date-fns";
 import { useContext } from "react";
 
 export default function CloudSubscription() {
@@ -20,7 +20,9 @@ export default function CloudSubscription() {
             ? "info"
             : status === "error"
             ? "danger"
-            : subscription
+            : subscription &&
+              differenceInHours(new Date(subscription["ends_at"]), new Date()) >
+                24
             ? "success"
             : "warning"
         }
