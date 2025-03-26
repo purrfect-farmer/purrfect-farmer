@@ -6,11 +6,10 @@ export default function StatusIcon({ icon: Icon, status, ...props }) {
       {...props}
       className={cn(
         "p-2 rounded-full shrink-0",
-        "bg-neutral-50 dark:bg-neutral-700",
         {
-          success: "text-green-500",
-          error: "text-red-500",
-          pending: "text-orange-500",
+          success: ["text-green-800 dark:text-green-900", "bg-green-100"],
+          error: ["text-red-800 dark:text-red-900", "bg-red-100"],
+          pending: ["text-orange-800 dark:text-orange-900", "bg-orange-100"],
         }[status],
         props.className
       )}
