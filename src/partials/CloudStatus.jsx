@@ -1,7 +1,7 @@
 import AppContext from "@/contexts/AppContext";
+import StatusIcon from "@/components/StatusIcon";
 import useCloudServerQuery from "@/hooks/useCloudServerQuery";
 import { HiOutlineCloud } from "react-icons/hi2";
-import { cn } from "@/lib/utils";
 import { useContext } from "react";
 
 export default function CloudStatus(props) {
@@ -9,23 +9,10 @@ export default function CloudStatus(props) {
   const { status, data } = useCloudServerQuery();
 
   return settings.enableCloud ? (
-    <p
-      className={cn(
-        "text-center flex items-center justify-center gap-2",
-        props.className,
-        {
-          pending: "text-orange-500",
-          success: "text-green-600 dark:text-green-500",
-          error: "text-red-500",
-        }[status]
-      )}
-    >
-      <HiOutlineCloud className="w-4 h-4" /> Cloud:{" "}
-      {status === "success"
-        ? data.name
-        : status === "pending"
-        ? "Checking"
-        : "Error"}
-    </p>
+    <StatusIcon
+      title={data?.name || "Cloud"}
+      icon={HiOutlineCloud}
+      status={status}
+    />
   ) : null;
 }

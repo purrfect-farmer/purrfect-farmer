@@ -11,6 +11,7 @@ import DropButton from "@/components/DropButton";
 import FarmerLinks from "@/partials/FarmerLinks";
 import Settings from "@/partials/Settings";
 import Shutdown from "@/partials/Shutdown";
+import StatusIcon from "@/components/StatusIcon";
 import TelegramUser from "@/partials/TelegramUser";
 import TelegramWebAIcon from "@/assets/images/telegram-web-a.png?format=webp&w=80";
 import TelegramWebKIcon from "@/assets/images/telegram-web-k.png?format=webp&w=80";
@@ -258,29 +259,23 @@ export default memo(function Welcome() {
             {settings.farmerTitle || defaultSettings.farmerTitle}
           </p>
 
-          {/* Cloud Status */}
-          <CloudStatus />
+          {/* Status */}
+          <div className="flex gap-2 items-center justify-center empty:hidden">
+            {/* Cloud Status */}
+            <CloudStatus />
 
-          {/* Cloud Telegram Session Status */}
-          <CloudTelegramSessionStatus />
+            {/* Cloud Telegram Session Status */}
+            <CloudTelegramSessionStatus />
 
-          {/* Mirror Status */}
-          {settings.enableMirror ? (
-            <p
-              className={cn(
-                "text-center flex items-center justify-center gap-2",
-                mirror.connected
-                  ? "text-green-600 dark:text-green-500"
-                  : "text-red-500"
-              )}
-            >
-              <RiRemoteControlLine className="w-4 h-4" /> Mirror:{" "}
-              {mirror.connected ? "Connected" : "Disconnected"}
-            </p>
-          ) : null}
-
-          {/* Cloud Subscription */}
-          <CloudSubscription />
+            {/* Mirror Status */}
+            {settings.enableMirror ? (
+              <StatusIcon
+                title="Mirror"
+                icon={RiRemoteControlLine}
+                status={mirror.connected ? "success" : "error"}
+              />
+            ) : null}
+          </div>
 
           {/* Display User */}
           {telegramUser && settings.displayUserInfo ? (
@@ -288,6 +283,9 @@ export default memo(function Welcome() {
               <TelegramUser user={telegramUser} className="max-w-xs mx-auto" />
             </div>
           ) : null}
+
+          {/* Cloud Subscription */}
+          <CloudSubscription />
 
           <div className="flex flex-col gap-1">
             {/* Open Farmer Bot */}
