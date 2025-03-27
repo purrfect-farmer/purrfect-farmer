@@ -2,13 +2,13 @@
 const dropsStatus = {
   ["digger"]: true,
   ["gold-eagle"]: true,
+  ["funatic"]: true,
+  ["matchquest"]: true,
   ["hrum"]: true,
   ["tsubasa"]: true,
   ["wonton"]: true,
   ["slotcoin"]: true,
   ["dreamcoin"]: true,
-  ["rekt"]: true,
-  ["midas"]: true,
 };
 
 /** Drops Order */
