@@ -1,11 +1,11 @@
 import AppContext from "@/contexts/AppContext";
 import useCloudServerQuery from "@/hooks/useCloudServerQuery";
-import { HiOutlineCloud } from "react-icons/hi2";
+import { HiBolt, HiBoltSlash, HiOutlineCloud } from "react-icons/hi2";
 import { cn } from "@/lib/utils";
 import { useContext } from "react";
 
 export default function CloudStatus(props) {
-  const { settings } = useContext(AppContext);
+  const { settings, cloudTelegramSession } = useContext(AppContext);
   const { status, data } = useCloudServerQuery();
 
   return settings.enableCloud ? (
@@ -21,11 +21,24 @@ export default function CloudStatus(props) {
       )}
     >
       <HiOutlineCloud className="w-4 h-4" /> Cloud:{" "}
-      {status === "success"
-        ? data.name
-        : status === "pending"
-        ? "Checking"
-        : "Error"}
+      {status === "success" ? (
+        <>
+          {data.name}{" "}
+          <span className={cn(!cloudTelegramSession && "text-orange-500")}>
+            (
+            {cloudTelegramSession ? (
+              <HiBolt className="w-4 h-4 inline-flex" />
+            ) : (
+              <HiBoltSlash className="w-4 h-4 inline-flex" />
+            )}
+            )
+          </span>
+        </>
+      ) : status === "pending" ? (
+        "Checking"
+      ) : (
+        "Error"
+      )}
     </p>
   ) : null;
 }
