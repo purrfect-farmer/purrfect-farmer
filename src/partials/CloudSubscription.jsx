@@ -22,7 +22,7 @@ export default function CloudSubscription() {
             ? "danger"
             : subscription &&
               differenceInHours(new Date(subscription["ends_at"]), new Date()) >
-                24
+                168
             ? "success"
             : "warning"
         }
