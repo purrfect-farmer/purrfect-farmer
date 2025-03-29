@@ -25,6 +25,7 @@ import {
   HiOutlineArrowPath,
   HiOutlineArrowUpRight,
   HiOutlineArrowsPointingOut,
+  HiOutlineBars3BottomRight,
   HiOutlineCog6Tooth,
   HiOutlineCurrencyDollar,
   HiOutlinePower,
@@ -102,6 +103,7 @@ export default memo(function Welcome() {
     dispatchAndReloadApp,
     dispatchAndOpenFarmerBot,
     dispatchAndOpenTelegramBot,
+    dispatchAndShowSystemUtils,
   } = useAppContext();
 
   const tabs = useMirroredTabs("app", ["farmers", "bots"]);
@@ -203,6 +205,13 @@ export default memo(function Welcome() {
               title="Open New Tab"
               onClick={openNewTab}
               icon={HiOutlineArrowUpRight}
+            />
+
+            {/* Open System Utils */}
+            <ToolbarButton
+              title="Open System Utils"
+              onClick={dispatchAndShowSystemUtils}
+              icon={HiOutlineBars3BottomRight}
             />
 
             {/* Open Extensions Page */}

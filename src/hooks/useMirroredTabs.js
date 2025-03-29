@@ -6,7 +6,8 @@ import useValuesMemo from "./useValuesMemo";
 export default function useMirroredTabs(
   key = "",
   defaultList = [],
-  defaultValue
+  defaultValue,
+  mirror
 ) {
   /** List */
   const list = useMemo(() => defaultList, [...defaultList]);
@@ -14,7 +15,8 @@ export default function useMirroredTabs(
   /** Tab Value */
   const [value, setValue, dispatchAndSetValue] = useMirroredState(
     key,
-    defaultValue || list[0]
+    defaultValue || list[0],
+    mirror
   );
 
   return useValuesMemo({

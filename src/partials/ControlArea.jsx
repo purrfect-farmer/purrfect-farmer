@@ -4,8 +4,6 @@ import AppIcon from "@/assets/images/icon.png?format=webp&w=56&h=56";
 import CoreSystemIcon from "@/assets/images/core-system.png?format=webp&w=128";
 import UtilsPanel from "@/partials/UtilsPanel";
 import useAppContext from "@/hooks/useAppContext";
-import useMirroredState from "@/hooks/useMirroredState";
-import useMirroredTabs from "@/hooks/useMirroredTabs";
 import { FaFire, FaPaw } from "react-icons/fa6";
 import {
   HiOutlineArrowPath,
@@ -15,20 +13,17 @@ import {
 } from "react-icons/hi2";
 import { cn } from "@/lib/utils";
 import { memo } from "react";
-
 import Mirror from "./Mirror";
 
 export default memo(function ControlArea() {
-  const { zoomies, settings, setActiveTab } = useAppContext();
-  const [showUtils, setShowUtils, dispatchAndSetShowUtils] = useMirroredState(
-    "app.toggle-utils-panel",
-    false
-  );
-
-  const panelTabs = useMirroredTabs("app.utils-panel-tabs", [
-    "farmer",
-    "system",
-  ]);
+  const {
+    zoomies,
+    settings,
+    setActiveTab,
+    utilsPanelTabs,
+    showUtilsPanel,
+    dispatchAndSetShowUtilsPanel,
+  } = useAppContext();
 
   return (
     <>
@@ -177,13 +172,19 @@ export default memo(function ControlArea() {
         )}
 
         {/* Utils */}
-        <Dialog.Root open={showUtils} onOpenChange={dispatchAndSetShowUtils}>
+        <Dialog.Root
+          open={showUtilsPanel}
+          onOpenChange={dispatchAndSetShowUtilsPanel}
+        >
           <Dialog.Trigger className="flex items-center justify-center w-10 h-10 shrink-0">
             <img src={CoreSystemIcon} className="w-7 h-7" />
           </Dialog.Trigger>
 
           {/* Utils */}
-          <UtilsPanel tabs={panelTabs} onOpenChange={dispatchAndSetShowUtils} />
+          <UtilsPanel
+            tabs={utilsPanelTabs}
+            onOpenChange={dispatchAndSetShowUtilsPanel}
+          />
         </Dialog.Root>
       </div>
     </>

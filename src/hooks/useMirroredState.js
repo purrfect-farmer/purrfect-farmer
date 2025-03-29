@@ -3,7 +3,7 @@ import { useState } from "react";
 
 import useMirroredCallback from "./useMirroredCallback";
 
-export default function useMirroredState(key = "", initialState) {
+export default function useMirroredState(key = "", initialState, mirror) {
   const [state, setState] = useState(initialState);
 
   /** Change State Handler */
@@ -11,7 +11,8 @@ export default function useMirroredState(key = "", initialState) {
     key + ":set",
     /** Main */
     setState,
-    [setState]
+    [setState],
+    mirror
   );
 
   return useMemo(
