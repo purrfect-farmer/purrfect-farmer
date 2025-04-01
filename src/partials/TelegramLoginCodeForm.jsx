@@ -15,6 +15,7 @@ const schema = yup
   .required();
 
 export default function TelegramLoginCodeForm({
+  mode,
   handler,
   session,
   ...options
@@ -32,7 +33,7 @@ export default function TelegramLoginCodeForm({
 
   /** Submit */
   const handleFormSubmit = async ({ code }) => {
-    if (typeof handler === "function") {
+    if (mode === "local") {
       await handler(code);
     } else {
       await mutation.mutateAsync(

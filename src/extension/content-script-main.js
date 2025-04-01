@@ -153,7 +153,7 @@ if (location.hash.includes("tgWebAppData")) {
               {
                 id,
                 type: "response",
-                payload: encryptData(window.Telegram?.WebApp),
+                payload: encryptData(getTelegramWebApp()),
               },
               "*"
             );
@@ -206,12 +206,27 @@ if (location.hash.includes("tgWebAppData")) {
     } catch {}
   });
 
+  /** Get TelegramWebApp */
+  const getTelegramWebApp = () => {
+    if (window.Telegram?.WebApp) {
+      const { initData, initDataUnsafe, platform, version } =
+        window.Telegram?.WebApp;
+
+      return {
+        initData,
+        initDataUnsafe,
+        platform,
+        version,
+      };
+    }
+  };
+
   /** Dispatch TelegramWebApp */
   const dispatchTelegramWebApp = async () => {
     window.postMessage(
       {
         type: "init",
-        payload: encryptData(window.Telegram?.WebApp),
+        payload: encryptData(getTelegramWebApp()),
       },
       "*"
     );

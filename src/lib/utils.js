@@ -346,3 +346,41 @@ export async function getWindowCoords() {
 export function taskWordIsValid(word, list) {
   return list.every((item) => word.toUpperCase().includes(item) === false);
 }
+
+/** Parse Telegram Link */
+export function parseTelegramLink(url) {
+  const parsedUrl = new URL(url);
+  const [bot, shortName = ""] = parsedUrl.pathname
+    .replace(/^\//, "")
+    .split("/");
+
+  return {
+    url,
+    bot: "@" + bot,
+    shortName,
+    startParam:
+      parsedUrl.searchParams.get("start") ||
+      parsedUrl.searchParams.get("startapp") ||
+      "",
+  };
+}
+
+/** Extract Telegram WebAppData */
+export function extractTgWebAppData(url) {
+  const parsedUrl = new URL(url);
+  const params = new URLSearchParams(parsedUrl.hash.replace(/^#/, ""));
+  const initData = params.get("tgWebAppData");
+  const parsedInitData = Object.fromEntries(
+    new URLSearchParams(initData).entries()
+  );
+
+  return {
+    platform: params.get("tgWebAppPlatform"),
+    version: params.get("tgWebAppVersion"),
+    initData,
+    initDataUnsafe: {
+      ...parsedInitData,
+      user: JSON.parse(parsedInitData.user),
+    },
+  };
+}

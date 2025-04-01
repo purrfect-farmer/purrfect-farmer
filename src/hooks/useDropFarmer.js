@@ -7,15 +7,16 @@ import {
   useDeepCompareLayoutEffect,
   useDeepCompareMemo,
 } from "use-deep-compare";
+import { useEffect } from "react";
 import { useIsMutating, useQueryClient } from "@tanstack/react-query";
 import { useLayoutEffect } from "react";
 import { useMemo } from "react";
 import { useState } from "react";
-
 import useAppContext from "./useAppContext";
 import useAppQuery from "./useAppQuery";
 import useCloudSyncMutation from "./useCloudSyncMutation";
 import useRefCallback from "./useRefCallback";
+import useTabContext from "./useTabContext";
 import useTelegramWebApp from "./useTelegramWebApp";
 import useValuesMemo from "./useValuesMemo";
 
@@ -43,7 +44,11 @@ export default function useDropFarmer({
     joinTelegramLink: coreJoinTelegramLink,
     setActiveTab,
     settings,
+    farmerMode,
+    telegramClient,
   } = useAppContext();
+
+  const { telegramLink } = useTabContext();
 
   /** Farmer Title */
   const farmerTitle = settings.farmerTitle;
@@ -70,7 +75,8 @@ export default function useDropFarmer({
   );
 
   /** TelegramWebApp */
-  const { port, telegramWebApp, resetTelegramWebApp } = useTelegramWebApp(host);
+  const { port, telegramWebApp, setTelegramWebApp, resetTelegramWebApp } =
+    useTelegramWebApp(host);
 
   /** Axios Instance */
   const api = useMemo(() => axios.create(apiOptions), [apiOptions]);
@@ -474,6 +480,21 @@ export default function useDropFarmer({
     shouldSync,
     telegramWebApp,
     title,
+  ]);
+
+  /** Get Telegram WebApp */
+  useEffect(() => {
+    if (farmerMode === "session" && !telegramWebApp) {
+      telegramClient.getTelegramWebApp(telegramLink).then((result) => {
+        setTelegramWebApp(result);
+      });
+    }
+  }, [
+    farmerMode,
+    telegramLink,
+    telegramWebApp,
+    setTelegramWebApp,
+    telegramClient.getTelegramWebApp,
   ]);
 
   /** Clean Up */

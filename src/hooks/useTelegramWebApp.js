@@ -55,7 +55,7 @@ export default function useTelegramWebApp(host) {
   }, [host, setPort, messaging.ports]);
 
   return useMemo(
-    () => ({ port, telegramWebApp, resetTelegramWebApp }),
-    [port, telegramWebApp, resetTelegramWebApp]
+    () => ({ port, telegramWebApp, setTelegramWebApp, resetTelegramWebApp }),
+    [port, telegramWebApp, setTelegramWebApp, resetTelegramWebApp]
   );
 }

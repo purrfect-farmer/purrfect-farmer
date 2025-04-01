@@ -1,4 +1,5 @@
 import toast from "react-hot-toast";
+import useAppContext from "@/hooks/useAppContext";
 import { createTelegramClient } from "@/lib/createTelegramClient";
 import { useCallback } from "react";
 import { useEffect } from "react";
@@ -13,6 +14,7 @@ export default function TelegramLogin({
   mode = "cloud",
   storeTelegramSession,
 }) {
+  const { telegramClient } = useAppContext();
   const [stage, setStage] = useState("phone");
   const [tempSession, setTempSession] = useState(null);
   const [handlers, setHandlers] = useState({
@@ -85,10 +87,12 @@ export default function TelegramLogin({
   /** Run a client in local mode */
   useEffect(() => {
     if (mode === "local") {
+      /** Create Client */
       const client = createTelegramClient();
 
-      (async function () {
-        await client.start({
+      /** Start Client */
+      client
+        .start({
           phoneNumber: createHandler("phone"),
           phoneCode: createHandler("code"),
           password: createHandler("password"),
@@ -98,21 +102,22 @@ export default function TelegramLogin({
             processingRef.current?.reject?.(error);
             toast.error(error.message);
           },
+        })
+        .then(() => {
+          /** Set Client */
+          telegramClient.ref.current = client;
+
+          /** Store Session */
+          storeTelegramSession(client.session.save());
         });
 
-        /** Store Session */
-        const session = client.session.save();
-
-        try {
-          /** Destroy */
-          await client.destroy();
-        } catch {}
-
-        /** Store Session */
-        storeTelegramSession(session);
-      })();
-
-      return () => client.destroy();
+      return () => {
+        client.isUserAuthorized().then((status) => {
+          if (status === false) {
+            client.destroy();
+          }
+        });
+      };
     }
   }, [mode, createHandler, storeTelegramSession]);
 
@@ -125,12 +130,14 @@ export default function TelegramLogin({
 
   return stage === "password" ? (
     <TelegramLoginPasswordForm
+      mode={mode}
       session={tempSession}
       handler={handlers.password}
       onSuccess={handleCloudPasswordConfirmation}
     />
   ) : stage === "code" ? (
     <TelegramLoginCodeForm
+      mode={mode}
       session={tempSession}
       handler={handlers.code}
       onSuccess={handleCloudCodeConfirmation}
@@ -138,6 +145,7 @@ export default function TelegramLogin({
     />
   ) : (
     <TelegramLoginPhoneForm
+      mode={mode}
       session={tempSession}
       handler={handlers.phone}
       onSuccess={handleCloudPhoneLogin}

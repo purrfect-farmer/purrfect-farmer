@@ -16,12 +16,12 @@ export default function LocalTelegramSession() {
       .promise(
         (async function () {
           const client =
-            telegramClient.current ||
+            telegramClient.ref.current ||
             createTelegramClient(localTelegramSession);
 
           try {
             /** Try to reconnect */
-            if (client.disconnected) {
+            if (!client.connected) {
               await client.connect();
             }
 
