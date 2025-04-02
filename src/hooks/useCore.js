@@ -670,27 +670,43 @@ export default function useCore() {
     async (url, version = preferredTelegramWebVersion, force = false) => {
       if (!url) {
         return;
+      } else if (farmerMode === "session") {
+        try {
+          await toast.promise(telegramClient.joinTelegramLink(url), {
+            loading: "Joining...",
+            success: "Joined...",
+            error: "Failed to Join...",
+          });
+        } catch (e) {
+          console.error(e);
+        }
+      } else {
+        try {
+          /** Open Telegram Link */
+          await openTelegramLink(url, version, force);
+
+          /** Get Port */
+          const telegramWebPort = messaging.ports
+            .values()
+            .find((port) => port.name === `telegram-web-${version}`);
+
+          /** Join Conversation */
+          postPortMessage(telegramWebPort, {
+            action: "join-conversation",
+          });
+        } catch {}
       }
 
-      try {
-        /** Open Telegram Link */
-        await openTelegramLink(url, version, force);
-
-        /** Get Port */
-        const telegramWebPort = messaging.ports
-          .values()
-          .find((port) => port.name === `telegram-web-${version}`);
-
-        /** Join Conversation */
-        postPortMessage(telegramWebPort, {
-          action: "join-conversation",
-        });
-
-        /** Extra Delay */
-        await delay(5000);
-      } catch {}
+      /** Extra Delay */
+      await delay(5000);
     },
-    [messaging.ports, preferredTelegramWebVersion, openTelegramLink],
+    [
+      farmerMode,
+      openTelegramLink,
+      preferredTelegramWebVersion,
+      messaging.ports,
+      telegramClient.joinTelegramLink,
+    ],
     /** Mirror */
     mirror
   );

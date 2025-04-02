@@ -360,13 +360,13 @@ export function taskWordIsValid(word, list) {
 /** Parse Telegram Link */
 export function parseTelegramLink(url) {
   const parsedUrl = new URL(url);
-  const [bot, shortName = ""] = parsedUrl.pathname
+  const [entity, shortName = ""] = parsedUrl.pathname
     .replace(/^\//, "")
     .split("/");
 
   return {
     url,
-    bot: "@" + bot,
+    entity,
     shortName,
     startParam:
       parsedUrl.searchParams.get("start") ||

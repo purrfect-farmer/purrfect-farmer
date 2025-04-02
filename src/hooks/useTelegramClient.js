@@ -36,8 +36,8 @@ export default function useTelegramClient(mode, session) {
           if (!parsed.shortName) {
             const result = await client.invoke(
               new Api.messages.StartBot({
-                bot: parsed.bot,
-                peer: parsed.bot,
+                bot: parsed.entity,
+                peer: parsed.entity,
                 startParam: parsed.startParam,
               })
             );
@@ -47,7 +47,9 @@ export default function useTelegramClient(mode, session) {
 
             await new Promise((resolve) => {
               /** Event to Handle */
-              const eventToHandle = new NewMessage({ fromUsers: [parsed.bot] });
+              const eventToHandle = new NewMessage({
+                fromUsers: [parsed.entity],
+              });
 
               /**
                * @param {import("telegram/events").NewMessageEvent} event
@@ -67,17 +69,17 @@ export default function useTelegramClient(mode, session) {
             parsed.shortName
               ? new Api.messages.RequestAppWebView({
                   platform: "android",
-                  peer: parsed.bot,
+                  peer: parsed.entity,
                   startParam: parsed.startParam,
                   app: new Api.InputBotAppShortName({
-                    botId: await client.getInputEntity(parsed.bot),
+                    botId: await client.getInputEntity(parsed.entity),
                     shortName: parsed.shortName,
                   }),
                 })
               : new Api.messages.RequestMainWebView({
                   platform: "android",
-                  bot: parsed.bot,
-                  peer: parsed.bot,
+                  bot: parsed.entity,
+                  peer: parsed.entity,
                   startParam: parsed.startParam,
                 })
           );
@@ -111,6 +113,47 @@ export default function useTelegramClient(mode, session) {
     [getWebview]
   );
 
+  /** Join Telegram Link */
+  const joinTelegramLink = useCallback(
+    (link) =>
+      execute(
+        /**
+         * @param {import("telegram").TelegramClient} client
+         */
+        async (client) => {
+          try {
+            const parsed = parseTelegramLink(link);
+            const result = await client.invoke(
+              parsed.entity.startsWith("+")
+                ? new Api.messages.ImportChatInvite({
+                    hash: parsed.entity.replace("+", ""),
+                  })
+                : new Api.channels.JoinChannel({
+                    channel: parsed.entity,
+                  })
+            );
+
+            /** Log */
+            customLogger("JOINED CHANNEL", {
+              link,
+              result,
+            });
+
+            /** Return Result */
+            return result;
+          } catch (error) {
+            if (
+              error.message.includes("USER_ALREADY_PARTICIPANT") === false &&
+              error.message.includes("INVITE_REQUEST_SENT") === false
+            ) {
+              throw error;
+            }
+          }
+        }
+      ),
+    [execute]
+  );
+
   useEffect(() => {
     if (mode === "session" && session) {
       /** Log Session */
@@ -135,7 +178,7 @@ export default function useTelegramClient(mode, session) {
   }, [session, mode]);
 
   return useMemo(
-    () => ({ ref, getWebview, getTelegramWebApp }),
-    [ref, getWebview, getTelegramWebApp]
+    () => ({ ref, getWebview, getTelegramWebApp, joinTelegramLink }),
+    [ref, getWebview, getTelegramWebApp, joinTelegramLink]
   );
 }
