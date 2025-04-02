@@ -8,7 +8,6 @@ import {
   removeChromeLocalStorage,
   setChromeLocalStorage,
 } from "@/lib/utils";
-import { useEffect } from "react";
 import { useIsMutating, useQueryClient } from "@tanstack/react-query";
 import { useLayoutEffect } from "react";
 import { useMemo } from "react";
@@ -72,8 +71,10 @@ export default function useDropFarmer() {
   const [initResetCount, setInitResetCount] = useState(0);
 
   /** TelegramWebApp */
-  const { port, telegramWebApp, setTelegramWebApp, resetTelegramWebApp } =
-    useTelegramWebApp(host);
+  const { port, telegramWebApp, resetTelegramWebApp } = useTelegramWebApp(
+    telegramLink,
+    host
+  );
 
   /** Axios Instance */
   const api = useMemo(() => axios.create(apiOptions), [apiOptions]);
@@ -452,21 +453,6 @@ export default function useDropFarmer() {
     shouldSyncToCloud,
     telegramWebApp,
     title,
-  ]);
-
-  /** Get Telegram WebApp */
-  useEffect(() => {
-    if (farmerMode === "session" && !telegramWebApp) {
-      telegramClient.getTelegramWebApp(telegramLink).then((result) => {
-        setTelegramWebApp(result);
-      });
-    }
-  }, [
-    farmerMode,
-    telegramLink,
-    telegramWebApp,
-    setTelegramWebApp,
-    telegramClient.getTelegramWebApp,
   ]);
 
   /** Clean Up */

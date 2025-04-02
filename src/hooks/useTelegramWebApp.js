@@ -5,10 +5,16 @@ import { useState } from "react";
 import useAppContext from "./useAppContext";
 import useMessageHandlers from "./useMessageHandlers";
 
-export default function useTelegramWebApp(host) {
+/**
+ * TelegramWebApp Hook
+ * @param {string} telegramLink
+ * @param {string} host
+ * @returns
+ */
+export default function useTelegramWebApp(telegramLink, host) {
   const [telegramWebApp, setTelegramWebApp] = useState(null);
   const [port, setPort] = useState(null);
-  const { messaging } = useAppContext();
+  const { messaging, farmerMode, telegramClient } = useAppContext();
 
   /** Reset TelegramWebApp */
   const resetTelegramWebApp = useCallback(() => {
@@ -40,19 +46,36 @@ export default function useTelegramWebApp(host) {
     )
   );
 
-  /** Get TelegramWebApp from Bot */
+  /** Get Telegram WebApp from Session */
   useLayoutEffect(() => {
-    const port = messaging.ports
-      .values()
-      .find((port) => port.name === `mini-app:${host}`);
-
-    if (port) {
-      setPort(port);
-      postPortMessage(port, {
-        action: `get-telegram-web-app:${host}`,
+    if (farmerMode === "session" && telegramWebApp === null) {
+      telegramClient.getTelegramWebApp(telegramLink).then((result) => {
+        setTelegramWebApp(result);
       });
     }
-  }, [host, setPort, messaging.ports]);
+  }, [
+    farmerMode,
+    telegramLink,
+    telegramWebApp,
+    setTelegramWebApp,
+    telegramClient.getTelegramWebApp,
+  ]);
+
+  /** Get TelegramWebApp from Bot */
+  useLayoutEffect(() => {
+    if (telegramWebApp === null) {
+      const port = messaging.ports
+        .values()
+        .find((port) => port.name === `mini-app:${host}`);
+
+      if (port) {
+        setPort(port);
+        postPortMessage(port, {
+          action: `get-telegram-web-app:${host}`,
+        });
+      }
+    }
+  }, [host, setPort, messaging.ports, telegramWebApp]);
 
   return useMemo(
     () => ({ port, telegramWebApp, setTelegramWebApp, resetTelegramWebApp }),
