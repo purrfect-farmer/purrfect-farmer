@@ -46,24 +46,15 @@ export default function useTelegramWebApp(telegramLink, host) {
     )
   );
 
-  /** Get Telegram WebApp from Session */
+  /** Get Telegram WebApp from Session or Bot */
   useLayoutEffect(() => {
-    if (farmerMode === "session" && telegramWebApp === null) {
+    if (telegramWebApp !== null) {
+      return;
+    } else if (farmerMode === "session") {
       telegramClient.getTelegramWebApp(telegramLink).then((result) => {
         setTelegramWebApp(result);
       });
-    }
-  }, [
-    farmerMode,
-    telegramLink,
-    telegramWebApp,
-    setTelegramWebApp,
-    telegramClient.getTelegramWebApp,
-  ]);
-
-  /** Get TelegramWebApp from Bot */
-  useLayoutEffect(() => {
-    if (telegramWebApp === null) {
+    } else {
       const port = messaging.ports
         .values()
         .find((port) => port.name === `mini-app:${host}`);
@@ -75,7 +66,16 @@ export default function useTelegramWebApp(telegramLink, host) {
         });
       }
     }
-  }, [host, setPort, messaging.ports, telegramWebApp]);
+  }, [
+    host,
+    setPort,
+    farmerMode,
+    telegramLink,
+    telegramWebApp,
+    setTelegramWebApp,
+    telegramClient.getTelegramWebApp,
+    messaging.ports,
+  ]);
 
   return useMemo(
     () => ({ port, telegramWebApp, setTelegramWebApp, resetTelegramWebApp }),
