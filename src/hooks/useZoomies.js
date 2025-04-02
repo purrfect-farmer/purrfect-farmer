@@ -19,6 +19,9 @@ export default function useZoomies(core) {
     storeValue: storeZoomiesState,
   } = useStorageState("zoomiesState", defaultZoomiesState);
 
+  /** Farmer Mode */
+  const farmerMode = core.farmerMode;
+
   /** Process */
   const process = useProcessLock("zoomies", core.mirror);
 
@@ -226,7 +229,11 @@ export default function useZoomies(core) {
 
   /** Open Bot */
   useLayoutEffect(() => {
-    if (canProcessZoomies && farmerHasStarted === false) {
+    if (
+      farmerMode === "web" &&
+      canProcessZoomies &&
+      farmerHasStarted === false
+    ) {
       /** Timeout */
       let timeout;
 
@@ -258,7 +265,13 @@ export default function useZoomies(core) {
         clearTimeout(timeout);
       };
     }
-  }, [canProcessZoomies, farmerHasStarted, openBot, skipToNextDrop]);
+  }, [
+    farmerMode,
+    canProcessZoomies,
+    farmerHasStarted,
+    openBot,
+    skipToNextDrop,
+  ]);
 
   /** Handle Started */
   useLayoutEffect(() => {
