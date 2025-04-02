@@ -8,6 +8,9 @@ export default {
   icon,
   component: createLazyElement(() => import("./Rekt")),
   telegramLink: "https://t.me/rektme_bot/rektapp?startapp=UJ740H",
+  host: "rekt-mini-app.vercel.app",
+  authHeaders: ["auth-token"],
+  domains: ["rekt-mini-app.vercel.app"],
   tasks: {
     ["daily-check-in"]: true,
     ["farming"]: true,

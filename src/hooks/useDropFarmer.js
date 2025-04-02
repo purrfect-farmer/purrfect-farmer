@@ -12,6 +12,7 @@ import { useIsMutating, useQueryClient } from "@tanstack/react-query";
 import { useLayoutEffect } from "react";
 import { useMemo } from "react";
 import { useState } from "react";
+
 import useAppContext from "./useAppContext";
 import useAppQuery from "./useAppQuery";
 import useCloudSyncMutation from "./useCloudSyncMutation";
@@ -20,24 +21,27 @@ import useTabContext from "./useTabContext";
 import useTelegramWebApp from "./useTelegramWebApp";
 import useValuesMemo from "./useValuesMemo";
 
-export default function useDropFarmer({
-  id,
-  host,
-  apiOptions,
-  apiDelay = 200,
-  domains = [],
-  title,
-  icon,
-  authHeaders = ["authorization"],
-  syncToCloud = false,
-  startManually = false,
-  extractAuthHeaders,
-  configureAuthHeaders,
-  fetchAuth,
-  fetchMeta,
-  authQueryOptions,
-  metaQueryOptions,
-}) {
+export default function useDropFarmer() {
+  const {
+    id,
+    host,
+    apiOptions,
+    apiDelay = 200,
+    domains = [],
+    title,
+    icon,
+    authHeaders = ["authorization"],
+    syncToCloud = false,
+    startManually = false,
+    telegramLink,
+    extractAuthHeaders,
+    configureAuthHeaders,
+    fetchAuth,
+    fetchMeta,
+    authQueryOptions,
+    metaQueryOptions,
+  } = useTabContext();
+
   /** Zoomies */
   const {
     zoomies,
@@ -47,8 +51,6 @@ export default function useDropFarmer({
     farmerMode,
     telegramClient,
   } = useAppContext();
-
-  const { telegramLink } = useTabContext();
 
   /** Farmer Title */
   const farmerTitle = settings.farmerTitle;

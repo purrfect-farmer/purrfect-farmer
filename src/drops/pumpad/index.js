@@ -8,6 +8,8 @@ export default {
   icon,
   component: createLazyElement(() => import("./Pumpad")),
   telegramLink: "https://t.me/Pumpad_Bot/Lucky?startapp=52458255372295027",
+  host: "tg-home.pumpad.io",
+  domains: ["tg.pumpad.io"],
   tasks: {
     ["daily-check-in"]: true,
     ["points"]: false,

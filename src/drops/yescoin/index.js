@@ -8,6 +8,9 @@ export default {
   icon,
   component: createLazyElement(() => import("./Yescoin")),
   telegramLink: "https://t.me/theYescoin_bot/Yescoin?startapp=bH7bto",
+  host: "www.yescoin.fun",
+  domains: ["*.yescoin.fun"],
+  authHeaders: ["token"],
   tasks: {
     ["daily-check-in"]: true,
     ["claim-special-box"]: true,

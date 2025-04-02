@@ -8,6 +8,9 @@ export default {
   icon,
   component: createLazyElement(() => import("./Agent301")),
   telegramLink: "https://t.me/Agent301Bot/app?startapp=onetime1147265290",
+  host: "static.agent301.org",
+  domains: ["*.agent301.org"],
+
   tasks: {
     ["tasks"]: false,
     ["puzzle"]: false,

@@ -8,6 +8,8 @@ export default {
   icon,
   component: createLazyElement(() => import("./Blum")),
   telegramLink: "https://t.me/blum/app?startapp=ref_3AIqvLlFFK",
+  host: "telegram.blum.codes",
+  domains: ["*.blum.codes"],
   tasks: {
     ["daily-check-in"]: true,
     ["friends-reward"]: true,

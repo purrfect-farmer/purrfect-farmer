@@ -1,4 +1,5 @@
 import { createLazyElement } from "@/lib/createLazyElement";
+import { delayForSeconds } from "@/lib/utils";
 
 import icon from "./assets/images/icon.png?format=webp&w=80&h=80";
 
@@ -8,6 +9,12 @@ export default {
   icon,
   component: createLazyElement(() => import("./Notgram")),
   telegramLink: "https://t.me/notgram_game_bot?start=r1147265290",
+  host: "notgramgame.fun",
+  fetchAuth() {
+    return delayForSeconds(10, true).then(() =>
+      Promise.resolve({ status: true })
+    );
+  },
   tasks: {
     ["tasks"]: false,
   },

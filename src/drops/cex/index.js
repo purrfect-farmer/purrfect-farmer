@@ -8,6 +8,9 @@ export default {
   icon,
   component: createLazyElement(() => import("./CEX")),
   telegramLink: "https://t.me/cexio_tap_bot?start=1717159919141996",
+  host: "app.cexptap.com",
+  domains: ["app.cexptap.com"],
+  authHeaders: ["x-appl-version", "x-request-userhash"],
   tasks: {
     ["tasks"]: false,
     ["cards"]: false,

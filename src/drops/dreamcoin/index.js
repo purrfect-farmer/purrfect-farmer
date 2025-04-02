@@ -9,6 +9,9 @@ export default {
   syncToCloud: true,
   component: createLazyElement(() => import("./DreamCoin")),
   telegramLink: "https://t.me/DreamCoinOfficial_bot?start=1147265290",
+  host: "dreamcoin.ai",
+  authHeaders: ["authorization", "baggage", "sentry-trace"],
+  domains: ["*.dreamcoin.ai"],
   tasks: {
     ["daily-reward"]: true,
     ["open-free-case"]: true,

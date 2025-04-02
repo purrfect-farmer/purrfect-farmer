@@ -2,23 +2,8 @@ import useDropFarmer from "@/hooks/useDropFarmer";
 import useValuesMemo from "@/hooks/useValuesMemo";
 import { useMemo } from "react";
 
-import CEXIcon from "../assets/images/icon.png?format=webp&w=80";
-
 export default function useCEXFarmer() {
-  const farmer = useDropFarmer(
-    useMemo(
-      () => ({
-        id: "cex",
-        host: "app.cexptap.com",
-        icon: CEXIcon,
-        title: "CEX Farmer",
-
-        domains: ["app.cexptap.com"],
-        authHeaders: ["x-appl-version", "x-request-userhash"],
-      }),
-      []
-    )
-  );
+  const farmer = useDropFarmer();
 
   /** Payload */
   const payload = useMemo(
