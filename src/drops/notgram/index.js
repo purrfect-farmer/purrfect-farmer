@@ -10,6 +10,7 @@ export default {
   component: createLazyElement(() => import("./Notgram")),
   telegramLink: "https://t.me/notgram_game_bot?start=r1147265290",
   host: "notgramgame.fun",
+  usesPort: true,
   alwaysFetchAuth: true,
 
   /** Fetch Auth */

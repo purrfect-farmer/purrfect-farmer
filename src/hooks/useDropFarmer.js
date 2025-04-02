@@ -29,6 +29,7 @@ export default function useDropFarmer() {
     apiDelay = 200,
     title,
     icon,
+    usesPort = false,
     syncToCloud = false,
     startManually = false,
     alwaysFetchAuth = false,
@@ -46,8 +47,6 @@ export default function useDropFarmer() {
     joinTelegramLink: coreJoinTelegramLink,
     setActiveTab,
     settings,
-    farmerMode,
-    telegramClient,
   } = useAppContext();
 
   /** Farmer Title */
@@ -71,10 +70,12 @@ export default function useDropFarmer() {
   const [initResetCount, setInitResetCount] = useState(0);
 
   /** TelegramWebApp */
-  const { port, telegramWebApp, resetTelegramWebApp } = useTelegramWebApp(
+  const { port, telegramWebApp, resetTelegramWebApp } = useTelegramWebApp({
+    id,
+    host,
+    usesPort,
     telegramLink,
-    host
-  );
+  });
 
   /** Axios Instance */
   const api = useMemo(() => axios.create(apiOptions), [apiOptions]);
@@ -246,9 +247,9 @@ export default function useDropFarmer() {
 
   /** Reset Farmer  */
   const reset = useCallback(async () => {
-    await resetInit();
     await resetTelegramWebApp();
-  }, [resetInit, resetTelegramWebApp]);
+    await resetInit();
+  }, [resetTelegramWebApp, resetInit]);
 
   /**  Next task callback */
   const processNextTask = useRefCallback(zoomies.processNextTask, [
@@ -345,7 +346,7 @@ export default function useDropFarmer() {
         ) {
           toast.dismiss();
           toast.error("Unauthenticated - Please reload the Bot or Farmer");
-          resetInit();
+          reset();
         }
         return Promise.reject(error);
       }
@@ -354,7 +355,7 @@ export default function useDropFarmer() {
     return () => {
       api.interceptors.response.eject(interceptor);
     };
-  }, [api, resetInit]);
+  }, [api, reset]);
 
   /** Handle Auth Data  */
   useLayoutEffect(() => {

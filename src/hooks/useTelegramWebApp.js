@@ -1,4 +1,9 @@
-import { postPortMessage } from "@/lib/utils";
+import {
+  getChromeLocalStorage,
+  postPortMessage,
+  removeChromeLocalStorage,
+  setChromeLocalStorage,
+} from "@/lib/utils";
 import { useCallback, useLayoutEffect, useMemo } from "react";
 import { useState } from "react";
 
@@ -7,20 +12,26 @@ import useMessageHandlers from "./useMessageHandlers";
 
 /**
  * TelegramWebApp Hook
- * @param {string} telegramLink
- * @param {string} host
- * @returns
  */
-export default function useTelegramWebApp(telegramLink, host) {
+export default function useTelegramWebApp({
+  id,
+  telegramLink,
+  usesPort,
+  host,
+}) {
   const [telegramWebApp, setTelegramWebApp] = useState(null);
   const [port, setPort] = useState(null);
   const { messaging, farmerMode, telegramClient } = useAppContext();
 
+  /** WebApp Chrome Storage Key */
+  const webAppChromeStorageKey = `farmer-telegram-web-app:${id}`;
+
   /** Reset TelegramWebApp */
-  const resetTelegramWebApp = useCallback(() => {
-    setTelegramWebApp(null);
-    setPort(null);
-  }, [setTelegramWebApp, setPort]);
+  const resetTelegramWebApp = useCallback(async () => {
+    await removeChromeLocalStorage(webAppChromeStorageKey);
+    await setTelegramWebApp(null);
+    await setPort(null);
+  }, [webAppChromeStorageKey, setTelegramWebApp, setPort]);
 
   /** Configure TelegramWebApp from Message */
   const configureTelegramWebApp = useCallback(
@@ -46,15 +57,27 @@ export default function useTelegramWebApp(telegramLink, host) {
     )
   );
 
-  /** Get Telegram WebApp from Session or Bot */
+  /** Save WebApp in Storage */
+  useLayoutEffect(() => {
+    if (usesPort == false && telegramWebApp !== null) {
+      const { url, initData, platform, version } = telegramWebApp;
+      setChromeLocalStorage(webAppChromeStorageKey, {
+        url,
+        initData,
+        platform,
+        version,
+      });
+    }
+  }, [usesPort, telegramWebApp, webAppChromeStorageKey]);
+
+  /** Get Telegram WebApp from Storage, Session or Bot */
   useLayoutEffect(() => {
     if (telegramWebApp !== null) {
       return;
-    } else if (farmerMode === "session") {
-      telegramClient.getTelegramWebApp(telegramLink).then((result) => {
-        setTelegramWebApp(result);
-      });
-    } else {
+    }
+
+    /** Set From Port */
+    const setWebAppFromPort = () => {
       const port = messaging.ports
         .values()
         .find((port) => port.name === `mini-app:${host}`);
@@ -65,14 +88,41 @@ export default function useTelegramWebApp(telegramLink, host) {
           action: `get-telegram-web-app:${host}`,
         });
       }
+    };
+
+    /** Set From Session */
+    const setWebAppFromSession = () => {
+      telegramClient.getTelegramWebApp(telegramLink).then((result) => {
+        setTelegramWebApp(result);
+      });
+    };
+
+    if (usesPort) {
+      setWebAppFromPort();
+    } else {
+      getChromeLocalStorage(webAppChromeStorageKey, null).then((result) => {
+        if (result) {
+          setTelegramWebApp({
+            ...result,
+            initDataUnsafe: extractInitDataUnsafe(result.initData),
+          });
+        } else if (farmerMode === "session") {
+          setWebAppFromSession();
+        } else {
+          setWebAppFromPort();
+        }
+      });
     }
   }, [
+    id,
     host,
     setPort,
+    usesPort,
     farmerMode,
     telegramLink,
     telegramWebApp,
     setTelegramWebApp,
+    webAppChromeStorageKey,
     telegramClient.getTelegramWebApp,
     messaging.ports,
   ]);

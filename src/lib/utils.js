@@ -380,18 +380,25 @@ export function extractTgWebAppData(url) {
   const parsedUrl = new URL(url);
   const params = new URLSearchParams(parsedUrl.hash.replace(/^#/, ""));
   const initData = params.get("tgWebAppData");
-  const parsedInitData = Object.fromEntries(
-    new URLSearchParams(initData).entries()
-  );
+  const initDataUnsafe = extractInitDataUnsafe(initData);
 
   return {
     url,
     platform: params.get("tgWebAppPlatform"),
     version: params.get("tgWebAppVersion"),
     initData,
-    initDataUnsafe: {
-      ...parsedInitData,
-      user: JSON.parse(parsedInitData.user),
-    },
+    initDataUnsafe,
+  };
+}
+
+/** Extract InitDataUnsafe */
+export function extractInitDataUnsafe(initData) {
+  const parsedInitData = Object.fromEntries(
+    new URLSearchParams(initData).entries()
+  );
+
+  return {
+    ...parsedInitData,
+    user: JSON.parse(parsedInitData.user),
   };
 }

@@ -187,13 +187,17 @@ export default function useZoomies(core) {
   /** Open Bot */
   const openBot = useCallback(
     (force = true) => {
-      core.setActiveTab(current.drop?.id);
-      core.closeOtherBots();
-      core.openTelegramBot(current.drop.telegramLink, undefined, force);
+      if (farmerMode === "web" || current.drop?.usesPort) {
+        core.setActiveTab(current.drop?.id);
+        core.closeOtherBots();
+        core.openTelegramBot(current.drop.telegramLink, undefined, force);
+      }
     },
     [
+      farmerMode,
       current.drop?.id,
       current.drop?.telegramLink,
+      current.drop?.usesPort,
       core.closeOtherBots,
       core.openTelegramBot,
     ]
@@ -229,11 +233,7 @@ export default function useZoomies(core) {
 
   /** Open Bot */
   useLayoutEffect(() => {
-    if (
-      farmerMode === "web" &&
-      canProcessZoomies &&
-      farmerHasStarted === false
-    ) {
+    if (canProcessZoomies && farmerHasStarted === false) {
       /** Timeout */
       let timeout;
 
@@ -265,13 +265,7 @@ export default function useZoomies(core) {
         clearTimeout(timeout);
       };
     }
-  }, [
-    farmerMode,
-    canProcessZoomies,
-    farmerHasStarted,
-    openBot,
-    skipToNextDrop,
-  ]);
+  }, [canProcessZoomies, farmerHasStarted, openBot, skipToNextDrop]);
 
   /** Handle Started */
   useLayoutEffect(() => {
