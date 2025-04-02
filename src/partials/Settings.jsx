@@ -66,6 +66,7 @@ const SettingsGroup = ({ id, title, children, defaultOpened = false }) => {
         "flex flex-col gap-2",
         "border border-transparent rounded-xl",
         "data-[state=open]:p-2",
+        "data-[state=open]:-mx-2",
         "data-[state=open]:border-blue-700",
         "dark:data-[state=open]:border-blue-500"
       )}
