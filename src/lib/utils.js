@@ -383,7 +383,6 @@ export function extractTgWebAppData(url) {
   const initDataUnsafe = extractInitDataUnsafe(initData);
 
   return {
-    url,
     platform: params.get("tgWebAppPlatform"),
     version: params.get("tgWebAppVersion"),
     initData,

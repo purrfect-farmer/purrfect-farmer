@@ -213,7 +213,6 @@ if (location.hash.includes("tgWebAppData")) {
         window.Telegram?.WebApp;
 
       return {
-        url: INITIAL_LOCATION,
         initData,
         initDataUnsafe,
         platform,

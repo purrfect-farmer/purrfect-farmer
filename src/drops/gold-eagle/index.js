@@ -19,9 +19,15 @@ export default {
    * @param {import("axios").AxiosInstance} api
    */
   fetchAuth(api, telegramWebApp) {
+    const params = new URLSearchParams({
+      tgWebAppData: telegramWebApp.initData,
+      tgWebAppPlatform: telegramWebApp.platform,
+      tgWebAppVersion: telegramWebApp.version,
+    });
+
     return api
       .post("https://gold-eagle-api.fly.dev/login/telegram", {
-        ["init_data_raw"]: telegramWebApp.url,
+        ["init_data_raw"]: `https://telegram.geagle.online/?tgWebAppStartParam=r_ubdOBYN6KX#${params.toString()}`,
       })
       .then((res) => res.data);
   },
