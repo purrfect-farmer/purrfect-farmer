@@ -10,7 +10,6 @@ export default {
   component: createLazyElement(() => import("./Digger")),
   telegramLink: "https://t.me/diggerton_bot/dig?startapp=bro1147265290",
   host: "diggergame.app",
-  domains: ["*.diggergame.app"],
 
   /**
    * Fetch Auth

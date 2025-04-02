@@ -9,7 +9,6 @@ export default {
   component: createLazyElement(() => import("./Blum")),
   telegramLink: "https://t.me/BlumCryptoBot/app?startapp=ref_3AIqvLlFFK",
   host: "telegram.blum.codes",
-  domains: ["*.blum.codes"],
 
   /**
    * Fetch Auth

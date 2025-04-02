@@ -12,7 +12,6 @@ export default {
   telegramLink: "https://t.me/Tomarket_ai_bot/app?startapp=00003s0r",
 
   host: "mini-app.tomarket.ai",
-  domains: ["*.tomarket.ai"],
   apiDelay: 500,
 
   /**

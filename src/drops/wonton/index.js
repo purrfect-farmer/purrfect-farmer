@@ -11,7 +11,6 @@ export default {
   telegramLink:
     "https://t.me/WontonOrgBot/gameapp?startapp=referralCode=K45JQRG7",
   host: "www.wonton.restaurant",
-  domains: ["*.wonton.food"],
   apiDelay: 3000,
 
   /**

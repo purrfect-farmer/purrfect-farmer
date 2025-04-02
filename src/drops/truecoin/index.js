@@ -9,7 +9,6 @@ export default {
   component: createLazyElement(() => import("./Truecoin")),
   telegramLink: "https://t.me/true_coin_bot?start=1147265290",
   host: "bot.true.world",
-  domains: [],
   alwaysFetchAuth: true,
 
   /**

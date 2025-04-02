@@ -12,7 +12,6 @@ export default {
   component: createLazyElement(() => import("./GoldEagle")),
   telegramLink: "https://t.me/gold_eagle_coin_bot/main?startapp=r_ubdOBYN6KX",
   host: "telegram.geagle.online",
-  domains: ["gold-eagle-api.fly.dev"],
 
   /**
    * Fetch Auth

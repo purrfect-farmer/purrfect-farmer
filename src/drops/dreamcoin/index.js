@@ -11,7 +11,6 @@ export default {
   telegramLink: "https://t.me/DreamCoinOfficial_bot?start=1147265290",
   host: "dreamcoin.ai",
   authHeaders: ["authorization", "baggage", "sentry-trace"],
-  domains: ["*.dreamcoin.ai"],
 
   /**
    * Fetch Auth
