@@ -27,7 +27,7 @@ export default {
         ["last_name"]: initDataUnsafe["user"]?.["last_name"] ?? "",
         ["user_name"]: initDataUnsafe["user"]?.["username"] ?? "",
       })
-      .then((res) => res.data.data);
+      .then((res) => ({ token: res.data.data.token }));
   },
 
   /**

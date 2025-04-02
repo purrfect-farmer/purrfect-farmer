@@ -12,6 +12,8 @@ export default {
     "https://t.me/TsubasaRivalsBot/start?startapp=inviter_id-1147265290",
   host: "web.app.ton.tsubasa-rivals.com",
   domains: [],
+  alwaysFetchAuth: true,
+
   /**
    * @param {import("axios").AxiosInstance} api
    */

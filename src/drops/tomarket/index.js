@@ -27,7 +27,7 @@ export default {
         ["from"]: "",
         ["is_bot"]: false,
       })
-      .then((res) => res.data.data);
+      .then((res) => ({ token: res.data.data["access_token"] }));
   },
 
   /**
@@ -35,7 +35,7 @@ export default {
    * @param {import("axios").AxiosInstance} api
    */
   configureAuthHeaders(api, telegramWebApp, data) {
-    api.defaults.headers.common["Authorization"] = data["access_token"];
+    api.defaults.headers.common["Authorization"] = data.token;
   },
 
   /** Fetch Meta */

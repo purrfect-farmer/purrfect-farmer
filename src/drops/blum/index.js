@@ -25,7 +25,7 @@ export default {
         },
         referralToken: "3AIqvLlFFK",
       })
-      .then((res) => res.data);
+      .then((res) => res.data.token);
   },
 
   /**
@@ -33,9 +33,7 @@ export default {
    * @param {import("axios").AxiosInstance} api
    */
   configureAuthHeaders(api, telegramWebApp, data) {
-    api.defaults.headers.common[
-      "Authorization"
-    ] = `Bearer ${data.token.access}`;
+    api.defaults.headers.common["Authorization"] = `Bearer ${data.access}`;
   },
 
   tasks: {

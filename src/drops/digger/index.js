@@ -22,7 +22,7 @@ export default {
         ["init_data"]: telegramWebApp.initData,
         ["platform"]: telegramWebApp.platform,
       })
-      .then((res) => res.data.result);
+      .then((res) => res.data.result.auth);
   },
 
   /**
@@ -30,7 +30,7 @@ export default {
    * @param {import("axios").AxiosInstance} api
    */
   configureAuthHeaders(api, telegramWebApp, data) {
-    api.defaults.headers.common["Authorization"] = `Bearer ${data.auth.token}`;
+    api.defaults.headers.common["Authorization"] = `Bearer ${data.token}`;
   },
 
   tasks: {

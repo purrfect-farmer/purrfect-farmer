@@ -30,7 +30,7 @@ export default {
         username: initDataUnsafe["user"]?.["username"] ?? "",
         photo_url: initDataUnsafe["user"]?.["photo_url"] ?? "",
       })
-      .then((res) => res.data);
+      .then((res) => ({ token: res.data.token }));
   },
 
   /**

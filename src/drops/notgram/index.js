@@ -10,6 +10,9 @@ export default {
   component: createLazyElement(() => import("./Notgram")),
   telegramLink: "https://t.me/notgram_game_bot?start=r1147265290",
   host: "notgramgame.fun",
+  alwaysFetchAuth: true,
+
+  /** Fetch Auth */
   fetchAuth() {
     return delayForSeconds(10, true).then(() =>
       Promise.resolve({ status: true })

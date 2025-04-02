@@ -13,6 +13,7 @@ export default {
   host: "rekt-mini-app.vercel.app",
   authHeaders: ["auth-token"],
   domains: ["rekt-mini-app.vercel.app"],
+  alwaysFetchAuth: true,
 
   /**
    * Fetch Auth

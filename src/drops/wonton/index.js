@@ -25,7 +25,7 @@ export default {
         inviteCode: "K45JQRG7",
         newUserPromoteCode: "",
       })
-      .then((res) => res.data);
+      .then((res) => res.data.tokens);
   },
 
   /**
@@ -33,9 +33,7 @@ export default {
    * @param {import("axios").AxiosInstance} api
    */
   configureAuthHeaders(api, telegramWebApp, data) {
-    api.defaults.headers.common[
-      "Authorization"
-    ] = `Bearer ${data.tokens.accessToken}`;
+    api.defaults.headers.common["Authorization"] = `Bearer ${data.accessToken}`;
   },
 
   tasks: {

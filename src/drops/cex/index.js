@@ -11,6 +11,7 @@ export default {
   host: "app.cexptap.com",
   domains: ["app.cexptap.com"],
   authHeaders: ["x-appl-version", "x-request-userhash"],
+  alwaysFetchAuth: true,
 
   /**
    * Fetch Auth

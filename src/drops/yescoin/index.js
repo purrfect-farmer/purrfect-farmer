@@ -21,7 +21,7 @@ export default {
       .post("https://api-backend.yescoin.fun/user/loginNew", {
         code: decodeURIComponent(telegramWebApp.initData),
       })
-      .then((res) => res.data.data);
+      .then((res) => ({ token: res.data.data.token }));
   },
 
   /**
