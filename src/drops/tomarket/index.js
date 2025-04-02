@@ -15,6 +15,29 @@ export default {
   domains: ["*.tomarket.ai"],
   apiDelay: 500,
 
+  /**
+   * Fetch Auth
+   * @param {import("axios").AxiosInstance} api
+   */
+  fetchAuth(api, telegramWebApp) {
+    return api
+      .post("https://api-web.tomarket.ai/tomarket-game/v1/user/login", {
+        ["init_data"]: telegramWebApp.initData,
+        ["invite_code"]: "00003s0r",
+        ["from"]: "",
+        ["is_bot"]: false,
+      })
+      .then((res) => res.data.data);
+  },
+
+  /**
+   * Configure Auth Headers
+   * @param {import("axios").AxiosInstance} api
+   */
+  configureAuthHeaders(api, telegramWebApp, data) {
+    api.defaults.headers.common["Authorization"] = data["access_token"];
+  },
+
   /** Fetch Meta */
   async fetchMeta() {
     const game = await getTomarketGame();
