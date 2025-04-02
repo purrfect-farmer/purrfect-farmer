@@ -8,10 +8,6 @@ import {
   removeChromeLocalStorage,
   setChromeLocalStorage,
 } from "@/lib/utils";
-import {
-  useDeepCompareLayoutEffect,
-  useDeepCompareMemo,
-} from "use-deep-compare";
 import { useEffect } from "react";
 import { useIsMutating, useQueryClient } from "@tanstack/react-query";
 import { useLayoutEffect } from "react";
@@ -32,15 +28,12 @@ export default function useDropFarmer() {
     host,
     apiOptions,
     apiDelay = 200,
-    domains = [],
     title,
     icon,
-    authHeaders = ["authorization"],
     syncToCloud = false,
     startManually = false,
     alwaysFetchAuth = false,
     telegramLink,
-    extractAuthHeaders,
     configureAuthHeaders,
     fetchAuth,
     fetchMeta,
@@ -67,20 +60,16 @@ export default function useDropFarmer() {
   /** Cloud Sync Mutation */
   const cloudSyncMutation = useCloudSyncMutation(id);
 
-  /** Has Detected Auth Headers? */
-  const [hasDetectedAuthHeaders, setHasDetectedAuthHeaders] = useState(false);
+  /** Has Configured Auth Headers? */
+  const [hasConfiguredAuthHeaders, setHasConfiguredAuthHeaders] = useState(
+    typeof configureAuthHeaders === "undefined"
+  );
 
   /** Has Started Manually */
   const [hasStartedManually, setHasStartedManually] = useState(false);
 
   /** Init Reset Count */
   const [initResetCount, setInitResetCount] = useState(0);
-
-  /** Domain Matches */
-  const domainMatches = useDeepCompareMemo(
-    () => domains.map((domain) => `*://${domain}/*`),
-    [domains]
-  );
 
   /** TelegramWebApp */
   const { port, telegramWebApp, setTelegramWebApp, resetTelegramWebApp } =
@@ -120,7 +109,14 @@ export default function useDropFarmer() {
         : getChromeLocalStorage(authChromeStorageKey, null).then(
             (result) => result || fetchAuth(api, telegramWebApp)
           ),
-    [id, api, telegramWebApp, fetchAuth, authChromeStorageKey, alwaysFetchAuth]
+    [
+      /** Deps */
+      api,
+      telegramWebApp,
+      fetchAuth,
+      authChromeStorageKey,
+      alwaysFetchAuth,
+    ]
   );
 
   /** Auth Query */
@@ -136,10 +132,7 @@ export default function useDropFarmer() {
   });
 
   /** Auth */
-  const hasPreparedAuth =
-    typeof fetchAuth === "function"
-      ? authQuery.isSuccess
-      : hasDetectedAuthHeaders;
+  const hasPreparedAuth = authQuery.isSuccess && hasConfiguredAuthHeaders;
 
   /** Meta Query Key */
   const metaQueryKey = useMemo(
@@ -195,12 +188,6 @@ export default function useDropFarmer() {
     [telegramWebApp]
   );
 
-  /** Should Watch Requests */
-  const shouldWatchRequests =
-    hasPreparedAuth === false &&
-    typeof fetchAuth === "undefined" &&
-    typeof telegramWebApp !== "undefined";
-
   /** Mark as Started */
   const markAsStarted = useCallback(
     (status = true) => setHasStartedManually(status),
@@ -245,13 +232,13 @@ export default function useDropFarmer() {
   const resetInit = useCallback(async () => {
     await resetChromeLocalStorage();
     await resetQueries();
-    await setHasDetectedAuthHeaders(false);
+    await setHasConfiguredAuthHeaders(false);
     await setHasStartedManually(false);
     await setInitResetCount((prev) => prev + 1);
   }, [
     resetQueries,
     resetChromeLocalStorage,
-    setHasDetectedAuthHeaders,
+    setHasConfiguredAuthHeaders,
     setHasStartedManually,
     setInitResetCount,
   ]);
@@ -282,10 +269,15 @@ export default function useDropFarmer() {
 
   /** Save Auth Data in Storage */
   useLayoutEffect(() => {
-    if (alwaysFetchAuth === false) {
+    if (alwaysFetchAuth === false && authQuery.isSuccess) {
       setChromeLocalStorage(authChromeStorageKey, authQuery.data);
     }
-  }, [id, alwaysFetchAuth, authChromeStorageKey, authQuery.data]);
+  }, [
+    alwaysFetchAuth,
+    authChromeStorageKey,
+    authQuery.isSuccess,
+    authQuery.data,
+  ]);
 
   /** Enforce only one request */
   useLayoutEffect(() => {
@@ -363,74 +355,20 @@ export default function useDropFarmer() {
     };
   }, [api, resetInit]);
 
-  /** Handle Web Request */
-  useDeepCompareLayoutEffect(() => {
-    if (shouldWatchRequests === false) {
-      return;
-    }
-
-    const getRequestHeaders = (details) =>
-      extractAuthHeaders
-        ? extractAuthHeaders(details.requestHeaders, telegramWebApp)
-        : details.requestHeaders.filter((header) => {
-            return authHeaders.includes(header.name.toLowerCase());
-          });
-
-    const handleWebRequest = (details) => {
-      const headers = getRequestHeaders(details);
-      const requiredHeadersLength = extractAuthHeaders
-        ? headers.length
-        : authHeaders.length;
-
-      const configured =
-        headers.length &&
-        headers.length === requiredHeadersLength &&
-        headers
-          .map((header) => {
-            if (header.value !== api.defaults.headers.common[header.name]) {
-              api.defaults.headers.common[header.name] = header.value;
-
-              if (header.value) {
-                return true;
-              }
-            }
-
-            return false;
-          })
-          .every(Boolean);
-
-      if (configured) {
-        setHasDetectedAuthHeaders(true);
-      }
-    };
-
-    chrome.webRequest.onBeforeSendHeaders.addListener(
-      handleWebRequest,
-      {
-        urls: domainMatches,
-      },
-      ["requestHeaders"]
-    );
-
-    return () => {
-      chrome.webRequest.onBeforeSendHeaders.removeListener(handleWebRequest);
-    };
-  }, [
-    setHasDetectedAuthHeaders,
-    shouldWatchRequests,
-    domainMatches,
-    authHeaders,
-    extractAuthHeaders,
-    telegramWebApp,
-    api,
-  ]);
-
   /** Handle Auth Data  */
   useLayoutEffect(() => {
-    if (authQuery.data && configureAuthHeaders) {
+    if (authQuery.isSuccess && configureAuthHeaders) {
       configureAuthHeaders(api, telegramWebApp, authQuery.data);
+      setHasConfiguredAuthHeaders(true);
     }
-  }, [api, telegramWebApp, authQuery.data, configureAuthHeaders]);
+  }, [
+    api,
+    telegramWebApp,
+    authQuery.isSuccess,
+    authQuery.data,
+    configureAuthHeaders,
+    setHasConfiguredAuthHeaders,
+  ]);
 
   /** Create Notification */
   useLayoutEffect(() => {
