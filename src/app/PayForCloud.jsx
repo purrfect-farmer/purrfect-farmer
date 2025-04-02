@@ -1,10 +1,10 @@
 import * as yup from "yup";
 import Alert from "@/components/Alert";
-import CloudTelegramSessionIcon from "@/assets/images/icon.png?format=webp&w=192";
 import FieldStateError from "@/components/FieldStateError";
 import Input from "@/components/Input";
 import PrimaryButton from "@/components/PrimaryButton";
 import TelegramUser from "@/partials/TelegramUser";
+import WelcomeIcon from "@/assets/images/icon-unwrapped-cropped.png?format=webp&h=192";
 import useAppContext from "@/hooks/useAppContext";
 import useCloudServerQuery from "@/hooks/useCloudServerQuery";
 import usePaymentInitializeMutation from "@/hooks/usePaymentInitializationMutation";
@@ -51,7 +51,7 @@ export default memo(function PayForCloud() {
     <>
       <div className="flex flex-col justify-center min-w-0 min-h-0 gap-4 p-4 grow">
         <div className="flex flex-col gap-2 justify-center items-center">
-          <img src={CloudTelegramSessionIcon} className="size-24" />
+          <img src={WelcomeIcon} className="h-24" />
           <h1 className="font-turret-road text-center text-3xl text-orange-500">
             Pay For Cloud
           </h1>
@@ -60,7 +60,13 @@ export default memo(function PayForCloud() {
         {telegramUser ? (
           <div className="flex flex-col gap-2">
             {/* Cloud */}
-            <Alert variant={"info"}>
+            <Alert
+              variant={
+                { pending: "warning", error: "danger", success: "success" }[
+                  status
+                ]
+              }
+            >
               <span className="font-bold">Cloud Server:</span>{" "}
               <span>
                 {status === "success"
