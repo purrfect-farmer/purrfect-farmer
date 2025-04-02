@@ -11,6 +11,24 @@ export default {
   host: "app.cexptap.com",
   domains: ["app.cexptap.com"],
   authHeaders: ["x-appl-version", "x-request-userhash"],
+
+  /**
+   * Fetch Auth
+   * @param {import("axios").AxiosInstance} api
+   */
+  fetchAuth(api, telegramWebApp) {
+    return { hash: telegramWebApp.initDataUnsafe["hash"] };
+  },
+
+  /**
+   * Configure Auth Headers
+   * @param {import("axios").AxiosInstance} api
+   */
+  configureAuthHeaders(api, telegramWebApp, data) {
+    api.defaults.headers.common["x-appl-version"] = "0.20.7";
+    api.defaults.headers.common["x-request-userhash"] = data.hash;
+  },
+
   tasks: {
     ["tasks"]: false,
     ["cards"]: false,

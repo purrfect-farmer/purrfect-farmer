@@ -375,6 +375,7 @@ export function extractTgWebAppData(url) {
   );
 
   return {
+    url,
     platform: params.get("tgWebAppPlatform"),
     version: params.get("tgWebAppVersion"),
     initData,

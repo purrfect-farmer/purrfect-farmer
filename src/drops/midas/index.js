@@ -15,6 +15,28 @@ export default {
   apiOptions: {
     withCredentials: true,
   },
+
+  /**
+   * Fetch Auth
+   * @param {import("axios").AxiosInstance} api
+   */
+  fetchAuth(api, telegramWebApp) {
+    return api
+      .post("https://api-tg-app.midas.app/api/auth/register", {
+        initData: telegramWebApp.initData,
+        source: "ref_746a3d4f-5108-4931-af18-5589b9a07af9",
+      })
+      .then((res) => ({ token: res.data }));
+  },
+
+  /**
+   * Configure Auth Headers
+   * @param {import("axios").AxiosInstance} api
+   */
+  configureAuthHeaders(api, telegramWebApp, data) {
+    api.defaults.headers.common["Authorization"] = `Bearer ${data.token}`;
+  },
+
   tasks: {
     ["visit"]: true,
     ["daily-check-in"]: true,

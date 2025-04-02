@@ -13,6 +13,30 @@ export default {
   telegramLink: "https://t.me/gold_eagle_coin_bot/main?startapp=r_ubdOBYN6KX",
   host: "telegram.geagle.online",
   domains: ["gold-eagle-api.fly.dev"],
+
+  /**
+   * Fetch Auth
+   * @param {import("axios").AxiosInstance} api
+   */
+  fetchAuth(api, telegramWebApp) {
+    return api
+      .post("https://gold-eagle-api.fly.dev/login/telegram", {
+        ["init_data_raw"]: telegramWebApp.url,
+      })
+      .then((res) => res.data);
+  },
+
+  /**
+   * Configure Auth Headers
+   * @param {import("axios").AxiosInstance} api
+   */
+  configureAuthHeaders(api, telegramWebApp, data) {
+    api.defaults.headers.common[
+      "Authorization"
+    ] = `Bearer ${data["access_token"]}`;
+  },
+
+  /** Fetch Meta */
   async fetchMeta() {
     const game = await getGoldEagleGame();
 

@@ -11,6 +11,22 @@ export default {
   host: "static.agent301.org",
   domains: ["*.agent301.org"],
 
+  /**
+   * Fetch Auth
+   * @param {import("axios").AxiosInstance} api
+   */
+  fetchAuth(api, telegramWebApp) {
+    return { auth: telegramWebApp.initData };
+  },
+
+  /**
+   * Configure Auth Headers
+   * @param {import("axios").AxiosInstance} api
+   */
+  configureAuthHeaders(api, telegramWebApp, data) {
+    api.defaults.headers.common["Authorization"] = data.auth;
+  },
+
   tasks: {
     ["tasks"]: false,
     ["puzzle"]: false,

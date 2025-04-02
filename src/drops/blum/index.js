@@ -7,9 +7,37 @@ export default {
   title: "Blum",
   icon,
   component: createLazyElement(() => import("./Blum")),
-  telegramLink: "https://t.me/blum/app?startapp=ref_3AIqvLlFFK",
+  telegramLink: "https://t.me/BlumCryptoBot/app?startapp=ref_3AIqvLlFFK",
   host: "telegram.blum.codes",
   domains: ["*.blum.codes"],
+
+  /**
+   * Fetch Auth
+   * @param {import("axios").AxiosInstance} api
+   */
+  fetchAuth(api, telegramWebApp) {
+    return api
+      .post("https://auth-domain.blum.codes/api/v1/auth", {
+        provider: "TELEGRAM",
+        strategy: "TELEGRAM",
+        payload: {
+          initData: telegramWebApp.initData,
+        },
+        referralToken: "3AIqvLlFFK",
+      })
+      .then((res) => res.data);
+  },
+
+  /**
+   * Configure Auth Headers
+   * @param {import("axios").AxiosInstance} api
+   */
+  configureAuthHeaders(api, telegramWebApp, data) {
+    api.defaults.headers.common[
+      "Authorization"
+    ] = `Bearer ${data.token.access}`;
+  },
+
   tasks: {
     ["daily-check-in"]: true,
     ["friends-reward"]: true,

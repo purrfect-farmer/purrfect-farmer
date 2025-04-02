@@ -9,10 +9,11 @@ export default {
   component: createLazyElement(() => import("./BirdTon")),
   telegramLink: "https://t.me/BIRDTonBot/app?startapp=1147265290",
   host: "birdton.site",
-  domains: [],
+
   /** Start Manually */
   startManually: true,
-  /**
+
+  /** Fetch Auth
    * @param {import("axios").AxiosInstance} api
    */
   fetchAuth(api, telegramWebApp) {

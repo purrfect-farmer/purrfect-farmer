@@ -12,6 +12,35 @@ export default {
   host: "dreamcoin.ai",
   authHeaders: ["authorization", "baggage", "sentry-trace"],
   domains: ["*.dreamcoin.ai"],
+
+  /**
+   * Fetch Auth
+   * @param {import("axios").AxiosInstance} api
+   */
+  fetchAuth(api, telegramWebApp) {
+    const { initData, initDataUnsafe } = telegramWebApp;
+    return api
+      .post("https://api.dreamcoin.ai/Auth/telegram", {
+        auth_date: initDataUnsafe["auth_date"],
+        raw_init_data: initData,
+        hash: initDataUnsafe["hash"],
+        id: initDataUnsafe["user"]["id"],
+        first_name: initDataUnsafe["user"]?.["first_name"] ?? "",
+        last_name: initDataUnsafe["user"]?.["last_name"] ?? "",
+        username: initDataUnsafe["user"]?.["username"] ?? "",
+        photo_url: initDataUnsafe["user"]?.["photo_url"] ?? "",
+      })
+      .then((res) => res.data);
+  },
+
+  /**
+   * Configure Auth Headers
+   * @param {import("axios").AxiosInstance} api
+   */
+  configureAuthHeaders(api, telegramWebApp, data) {
+    api.defaults.headers.common["Authorization"] = `Bearer ${data.token}`;
+  },
+
   tasks: {
     ["daily-reward"]: true,
     ["open-free-case"]: true,

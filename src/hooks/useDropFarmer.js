@@ -55,8 +55,8 @@ export default function useDropFarmer() {
   /** Farmer Title */
   const farmerTitle = settings.farmerTitle;
 
-  /** Should Sync */
-  const shouldSync = settings.enableCloud && syncToCloud;
+  /** Should Sync To Cloud */
+  const shouldSyncToCloud = settings.enableCloud && syncToCloud;
 
   /** Cloud Sync Mutation */
   const cloudSyncMutation = useCloudSyncMutation(id);
@@ -180,6 +180,12 @@ export default function useDropFarmer() {
     () => (!telegramWebApp ? "pending-webapp" : "pending-init"),
     [telegramWebApp]
   );
+
+  /** Should Watch Requests */
+  const shouldWatchRequests =
+    hasPreparedAuth === false &&
+    typeof fetchAuth === "undefined" &&
+    typeof telegramWebApp !== "undefined";
 
   /** Mark as Started */
   const markAsStarted = useCallback(
@@ -330,9 +336,7 @@ export default function useDropFarmer() {
 
   /** Handle Web Request */
   useDeepCompareLayoutEffect(() => {
-    /** Requires domain matches */
-    /** Don't watch requests without Telegram Web App  */
-    if (hasPreparedAuth || domainMatches.length < 1 || !telegramWebApp) {
+    if (shouldWatchRequests === false) {
       return;
     }
 
@@ -383,13 +387,13 @@ export default function useDropFarmer() {
       chrome.webRequest.onBeforeSendHeaders.removeListener(handleWebRequest);
     };
   }, [
-    hasPreparedAuth,
+    setHasDetectedAuthHeaders,
+    shouldWatchRequests,
     domainMatches,
     authHeaders,
     extractAuthHeaders,
     telegramWebApp,
     api,
-    setHasDetectedAuthHeaders,
   ]);
 
   /** Handle Auth Data  */
@@ -454,16 +458,15 @@ export default function useDropFarmer() {
 
   /** Sync to Cloud */
   useLayoutEffect(() => {
-    if (shouldSync && hasPreparedAuth) {
+    if (shouldSyncToCloud && hasPreparedAuth) {
       const { initData, initDataUnsafe } = telegramWebApp;
 
       cloudSyncMutation
         .mutateAsync({
           id,
-          userId: telegramWebApp.initDataUnsafe.user.id,
+          userId: initDataUnsafe.user.id,
           telegramWebApp: {
             initData,
-            initDataUnsafe,
             farmerTitle,
           },
           headers: {
@@ -479,7 +482,7 @@ export default function useDropFarmer() {
     api,
     hasPreparedAuth,
     farmerTitle,
-    shouldSync,
+    shouldSyncToCloud,
     telegramWebApp,
     title,
   ]);

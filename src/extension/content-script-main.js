@@ -2,7 +2,7 @@ import { core, decryptData, encryptData } from "./content-script-utils";
 
 if (location.hash.includes("tgWebAppData")) {
   /** Initial Location Hash */
-  const INITIAL_LOCATION_HASH = location.hash;
+  const INITIAL_LOCATION = location.href;
 
   /** Telegram Web Script */
   const TG_WEB_SCRIPT_SRC = "https://telegram.org/js/telegram-web-app.js";
@@ -213,6 +213,7 @@ if (location.hash.includes("tgWebAppData")) {
         window.Telegram?.WebApp;
 
       return {
+        url: INITIAL_LOCATION,
         initData,
         initDataUnsafe,
         platform,
