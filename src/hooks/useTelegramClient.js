@@ -13,6 +13,7 @@ import { useRef } from "react";
 
 export default function useTelegramClient(mode, session) {
   const ref = useRef(null);
+  const hasSession = Boolean(session);
 
   const execute = useCallback(async (callback) => {
     if (!ref.current.connected) {
@@ -159,26 +160,34 @@ export default function useTelegramClient(mode, session) {
       /** Log Session */
       customLogger("TG CLIENT SESSION", session);
 
-      /** Create Client */
+      /** @type {import("telegram").TelegramClient} Client */
       const client = ref.current || createTelegramClient(session);
 
       /** Set Ref */
       ref.current = client;
 
-      /** Connect */
-      if (!client.connected) {
-        client.connect();
+      if (client) {
+        /** Connect */
+        if (!client.connected) {
+          client.connect();
+        }
       }
 
       return () => {
-        client.destroy();
+        client?.destroy();
         ref.current = null;
       };
     }
   }, [session, mode]);
 
   return useMemo(
-    () => ({ ref, getWebview, getTelegramWebApp, joinTelegramLink }),
-    [ref, getWebview, getTelegramWebApp, joinTelegramLink]
+    () => ({
+      ref,
+      hasSession,
+      getWebview,
+      getTelegramWebApp,
+      joinTelegramLink,
+    }),
+    [ref, hasSession, getWebview, getTelegramWebApp, joinTelegramLink]
   );
 }

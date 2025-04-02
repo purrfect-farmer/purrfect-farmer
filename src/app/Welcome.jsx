@@ -21,6 +21,7 @@ import useMirroredTabs from "@/hooks/useMirroredTabs";
 import { CgSpinner } from "react-icons/cg";
 import { Dialog } from "radix-ui";
 import {
+  HiBolt,
   HiOutlineArrowPath,
   HiOutlineArrowUpRight,
   HiOutlineArrowsPointingOut,
@@ -95,6 +96,7 @@ export default memo(function Welcome() {
     drops,
     settings,
     mirror,
+    telegramClient,
     telegramUser,
     openNewTab,
     openExtensionsPage,
@@ -239,17 +241,35 @@ export default memo(function Welcome() {
       <div className="flex flex-col p-2 overflow-auto grow scrollbar-thin">
         <div className="flex flex-col w-full gap-2 mx-auto my-auto max-w-96">
           {/* App Icon */}
-          <img src={WelcomeIcon} className="mx-auto h-28" />
+          <div className="relative mx-auto">
+            <img src={WelcomeIcon} className="h-28" />
+          </div>
 
           {/* App Title */}
-          <h3
-            className={cn(
-              "leading-none font-turret-road",
-              "text-2xl text-center"
-            )}
-          >
-            {import.meta.env.VITE_APP_NAME}
-          </h3>
+          <div className={cn("flex items-center justify-center gap-2")}>
+            {/* Display Session */}
+            {telegramClient.hasSession ? (
+              <div
+                className={cn(
+                  "inline-flex",
+                  "bg-orange-500 text-white",
+                  "p-1 rounded-full"
+                )}
+              >
+                <HiBolt className="size-4" />
+              </div>
+            ) : null}
+
+            {/* Title */}
+            <h3
+              className={cn(
+                "leading-none font-turret-road",
+                "text-2xl text-center"
+              )}
+            >
+              {import.meta.env.VITE_APP_NAME}
+            </h3>
+          </div>
 
           {/* App Version */}
           <p className="text-lg leading-none text-center">
