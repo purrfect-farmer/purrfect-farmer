@@ -13,6 +13,31 @@ export default {
   host: "www.wonton.restaurant",
   domains: ["*.wonton.food"],
   apiDelay: 3000,
+
+  /**
+   * Fetch Auth
+   * @param {import("axios").AxiosInstance} api
+   */
+  fetchAuth(api, telegramWebApp) {
+    return api
+      .post("https://wonton.food/api/v1/user/auth", {
+        initData: telegramWebApp.initData,
+        inviteCode: "K45JQRG7",
+        newUserPromoteCode: "",
+      })
+      .then((res) => res.data);
+  },
+
+  /**
+   * Configure Auth Headers
+   * @param {import("axios").AxiosInstance} api
+   */
+  configureAuthHeaders(api, telegramWebApp, data) {
+    api.defaults.headers.common[
+      "Authorization"
+    ] = `Bearer ${data.tokens.accessToken}`;
+  },
+
   tasks: {
     ["daily-check-in"]: true,
     ["farming"]: true,

@@ -11,6 +11,27 @@ export default {
   host: "www.yescoin.fun",
   domains: ["*.yescoin.fun"],
   authHeaders: ["token"],
+
+  /**
+   * Fetch Auth
+   * @param {import("axios").AxiosInstance} api
+   */
+  fetchAuth(api, telegramWebApp) {
+    return api
+      .post("https://api-backend.yescoin.fun/user/loginNew", {
+        code: decodeURIComponent(telegramWebApp.initData),
+      })
+      .then((res) => res.data.data);
+  },
+
+  /**
+   * Configure Auth Headers
+   * @param {import("axios").AxiosInstance} api
+   */
+  configureAuthHeaders(api, telegramWebApp, data) {
+    api.defaults.headers.common["token"] = data.token;
+  },
+
   tasks: {
     ["daily-check-in"]: true,
     ["claim-special-box"]: true,
