@@ -68,14 +68,24 @@ export function delayForMinutes(length, precised = false) {
   return delay(length * 60 * 1000, precised);
 }
 
-export async function getStorage(key, defaultValue) {
+export async function getChromeLocalStorage(key, defaultValue) {
   const data = await chrome?.storage?.local.get(key);
   const value = data?.[key];
   return typeof value !== "undefined" ? value : defaultValue;
 }
 
+export async function setChromeLocalStorage(key, value) {
+  await chrome?.storage?.local.set({
+    [key]: value,
+  });
+}
+
+export async function removeChromeLocalStorage(key) {
+  await chrome?.storage?.local.remove(key);
+}
+
 export async function getSettings() {
-  const settings = await getStorage("settings", defaultSettings);
+  const settings = await getChromeLocalStorage("settings", defaultSettings);
 
   return {
     ...defaultSettings,
@@ -84,7 +94,7 @@ export async function getSettings() {
 }
 
 export async function getUserAgent() {
-  return await getStorage(
+  return await getChromeLocalStorage(
     "userAgent",
     userAgents[Math.floor(Math.random() * userAgents.length)]
   );

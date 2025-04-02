@@ -1,4 +1,4 @@
-import { getStorage } from "@/lib/utils";
+import { getChromeLocalStorage } from "@/lib/utils";
 import { useCallback } from "react";
 import { useLayoutEffect } from "react";
 import { useState } from "react";
@@ -35,7 +35,7 @@ export default function useStorageState(key, defaultValue) {
   /** Restore Value and Watch Storage */
   useLayoutEffect(() => {
     /** Restore Value */
-    getStorage(key, defaultValue).then((value) => {
+    getChromeLocalStorage(key, defaultValue).then((value) => {
       setValue(value);
       setHasRestoredValue(true);
     });
@@ -59,7 +59,7 @@ export default function useStorageState(key, defaultValue) {
   }, [
     /** Deps */
     key,
-    getStorage,
+    getChromeLocalStorage,
     setValue,
     setHasRestoredValue,
   ]);

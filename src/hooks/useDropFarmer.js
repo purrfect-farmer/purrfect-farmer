@@ -2,7 +2,12 @@ import FarmerNotification from "@/components/FarmerNotification";
 import axios from "axios";
 import toast from "react-hot-toast";
 import { createElement, useCallback } from "react";
-import { delay } from "@/lib/utils";
+import {
+  delay,
+  getChromeLocalStorage,
+  removeChromeLocalStorage,
+  setChromeLocalStorage,
+} from "@/lib/utils";
 import {
   useDeepCompareLayoutEffect,
   useDeepCompareMemo,
@@ -33,6 +38,7 @@ export default function useDropFarmer() {
     authHeaders = ["authorization"],
     syncToCloud = false,
     startManually = false,
+    alwaysFetchAuth = false,
     telegramLink,
     extractAuthHeaders,
     configureAuthHeaders,
@@ -97,6 +103,9 @@ export default function useDropFarmer() {
     mutationKey: [id],
   });
 
+  /** Auth Chrome Storage Key */
+  const authChromeStorageKey = `farmer-auth:${id}`;
+
   /** Auth Query Key */
   const authQueryKey = useMemo(
     () => [id, "auth", telegramHash],
@@ -105,8 +114,13 @@ export default function useDropFarmer() {
 
   /** Auth QueryFn */
   const authQueryFn = useCallback(
-    () => fetchAuth(api, telegramWebApp),
-    [api, telegramWebApp, fetchAuth]
+    () =>
+      alwaysFetchAuth
+        ? fetchAuth(api, telegramWebApp)
+        : getChromeLocalStorage(authChromeStorageKey, null).then(
+            (result) => result || fetchAuth(api, telegramWebApp)
+          ),
+    [id, api, telegramWebApp, fetchAuth, authChromeStorageKey, alwaysFetchAuth]
   );
 
   /** Auth Query */
@@ -221,23 +235,31 @@ export default function useDropFarmer() {
     queryClient.resetQueries({ queryKey: [id] });
   }, [id, queryClient.resetQueries]);
 
+  /** Reset Chrome Local Storage */
+  const resetChromeLocalStorage = useCallback(
+    () => removeChromeLocalStorage(authChromeStorageKey),
+    [authChromeStorageKey]
+  );
+
   /** Reset Init */
-  const resetInit = useCallback(() => {
-    resetQueries();
-    setHasDetectedAuthHeaders(false);
-    setHasStartedManually(false);
-    setInitResetCount((prev) => prev + 1);
+  const resetInit = useCallback(async () => {
+    await resetChromeLocalStorage();
+    await resetQueries();
+    await setHasDetectedAuthHeaders(false);
+    await setHasStartedManually(false);
+    await setInitResetCount((prev) => prev + 1);
   }, [
     resetQueries,
+    resetChromeLocalStorage,
     setHasDetectedAuthHeaders,
     setHasStartedManually,
     setInitResetCount,
   ]);
 
   /** Reset Farmer  */
-  const reset = useCallback(() => {
-    resetInit();
-    resetTelegramWebApp();
+  const reset = useCallback(async () => {
+    await resetInit();
+    await resetTelegramWebApp();
   }, [resetInit, resetTelegramWebApp]);
 
   /**  Next task callback */
@@ -257,6 +279,13 @@ export default function useDropFarmer() {
     },
     [id, coreJoinTelegramLink, setActiveTab]
   );
+
+  /** Save Auth Data in Storage */
+  useLayoutEffect(() => {
+    if (alwaysFetchAuth === false) {
+      setChromeLocalStorage(authChromeStorageKey, authQuery.data);
+    }
+  }, [id, alwaysFetchAuth, authChromeStorageKey, authQuery.data]);
 
   /** Enforce only one request */
   useLayoutEffect(() => {
