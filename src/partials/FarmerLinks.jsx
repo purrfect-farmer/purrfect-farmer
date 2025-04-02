@@ -1,9 +1,9 @@
-import * as ContextMenu from "@radix-ui/react-context-menu";
-import * as Dialog from "@radix-ui/react-dialog";
 import toast from "react-hot-toast";
 import useAppContext from "@/hooks/useAppContext";
 import useMirroredCallback from "@/hooks/useMirroredCallback";
 import useStorageState from "@/hooks/useStorageState";
+import { ContextMenu } from "radix-ui";
+import { Dialog } from "radix-ui";
 import {
   HiOutlineListBullet,
   HiOutlinePencil,

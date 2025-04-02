@@ -1,6 +1,6 @@
-import * as Dialog from "@radix-ui/react-dialog";
 import AppIcon from "@/assets/images/icon.png?format=webp&w=80";
 import useAppContext from "@/hooks/useAppContext";
+import { Dialog } from "radix-ui";
 import { cn } from "@/lib/utils";
 import { memo } from "react";
 

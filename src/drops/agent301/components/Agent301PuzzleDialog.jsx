@@ -1,4 +1,4 @@
-import * as Dialog from "@radix-ui/react-dialog";
+import { Dialog } from "radix-ui";
 import toast from "react-hot-toast";
 import useMirroredCallback from "@/hooks/useMirroredCallback";
 import { cn } from "@/lib/utils";

@@ -1,5 +1,5 @@
-import * as Dialog from "@radix-ui/react-dialog";
 import styled from "styled-components";
+import { Dialog } from "radix-ui";
 
 const DialogOverlay = styled(Dialog.Overlay)`
   position: fixed;

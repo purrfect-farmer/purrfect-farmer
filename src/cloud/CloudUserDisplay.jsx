@@ -1,9 +1,9 @@
-import * as Dialog from "@radix-ui/react-dialog";
 import UserIcon from "@/assets/images/user-icon.png?format=webp&w=256";
 import toast from "react-hot-toast";
 import useAppContext from "@/hooks/useAppContext";
 import useCloudLogoutMutation from "@/hooks/useCloudLogoutMutation";
 import useCloudUserQuery from "@/hooks/useCloudUserQuery";
+import { Dialog } from "radix-ui";
 import { useCallback } from "react";
 
 import CloudPasswordUpdate from "./CloudPasswordUpdate";

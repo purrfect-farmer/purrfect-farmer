@@ -1,10 +1,10 @@
-import * as Dialog from "@radix-ui/react-dialog";
-import * as Tabs from "@radix-ui/react-tabs";
 import CoreSystemIcon from "@/assets/images/core-system.png?format=webp&w=128";
 import Input from "@/components/Input";
 import LabelToggle from "@/components/LabelToggle";
 import useAppContext from "@/hooks/useAppContext";
+import { Dialog } from "radix-ui";
 import { HiArrowTopRightOnSquare, HiUserPlus } from "react-icons/hi2";
+import { Tabs } from "radix-ui";
 import { cn, isBotURL } from "@/lib/utils";
 import { memo, useState } from "react";
 import { utils } from "@/core/tabs";

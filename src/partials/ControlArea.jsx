@@ -1,9 +1,9 @@
-import * as ContextMenu from "@radix-ui/react-context-menu";
-import * as Dialog from "@radix-ui/react-dialog";
 import AppIcon from "@/assets/images/icon.png?format=webp&w=56&h=56";
 import CoreSystemIcon from "@/assets/images/core-system.png?format=webp&w=128";
 import UtilsPanel from "@/partials/UtilsPanel";
 import useAppContext from "@/hooks/useAppContext";
+import { ContextMenu } from "radix-ui";
+import { Dialog } from "radix-ui";
 import { FaFire, FaPaw } from "react-icons/fa6";
 import {
   HiOutlineArrowPath,
@@ -13,6 +13,7 @@ import {
 } from "react-icons/hi2";
 import { cn } from "@/lib/utils";
 import { memo } from "react";
+
 import Mirror from "./Mirror";
 
 export default memo(function ControlArea() {

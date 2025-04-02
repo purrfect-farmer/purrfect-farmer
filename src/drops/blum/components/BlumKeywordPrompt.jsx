@@ -1,4 +1,4 @@
-import * as Dialog from "@radix-ui/react-dialog";
+import { Dialog } from "radix-ui";
 import { HiArrowTopRightOnSquare } from "react-icons/hi2";
 import { cn } from "@/lib/utils";
 import { memo } from "react";

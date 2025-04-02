@@ -1,10 +1,10 @@
-import * as Dialog from "@radix-ui/react-dialog";
 import * as yup from "yup";
 import Input from "@/components/Input";
 import PrimaryButton from "@/components/PrimaryButton";
 import toast from "react-hot-toast";
 import useCloudPasswordUpdateMutation from "@/hooks/useCloudPasswordUpdateMutation";
 import { Controller, FormProvider, useForm } from "react-hook-form";
+import { Dialog } from "radix-ui";
 import { cn } from "@/lib/utils";
 import { yupResolver } from "@hookform/resolvers/yup";
 

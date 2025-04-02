@@ -1,4 +1,4 @@
-import * as SliderPrimitive from "@radix-ui/react-slider";
+import { SliderPrimitive } from "radix-ui";
 import { cn } from "@/lib/utils";
 import { forwardRef, memo } from "react";
 

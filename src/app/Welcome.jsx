@@ -1,5 +1,3 @@
-import * as Dialog from "@radix-ui/react-dialog";
-import * as Tabs from "@radix-ui/react-tabs";
 import BotWebAIcon from "@/assets/images/bot-web-a.png?format=webp&w=80";
 import BotWebKIcon from "@/assets/images/bot-web-k.png?format=webp&w=80";
 import CloudStatus from "@/partials/CloudStatus";
@@ -21,6 +19,7 @@ import useAppQuery from "@/hooks/useAppQuery";
 import useMirroredState from "@/hooks/useMirroredState";
 import useMirroredTabs from "@/hooks/useMirroredTabs";
 import { CgSpinner } from "react-icons/cg";
+import { Dialog } from "radix-ui";
 import {
   HiOutlineArrowPath,
   HiOutlineArrowUpRight,
@@ -32,6 +31,7 @@ import {
   HiOutlinePuzzlePiece,
 } from "react-icons/hi2";
 import { RiRemoteControlLine } from "react-icons/ri";
+import { Tabs } from "radix-ui";
 import { cn } from "@/lib/utils";
 import { forwardRef, memo } from "react";
 import { useCallback } from "react";
