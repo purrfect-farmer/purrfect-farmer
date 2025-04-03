@@ -5,7 +5,8 @@ import {
   removeChromeLocalStorage,
   setChromeLocalStorage,
 } from "@/lib/utils";
-import { useCallback, useLayoutEffect, useMemo } from "react";
+import { useCallback, useMemo } from "react";
+import { useEffect } from "react";
 import { useState } from "react";
 
 import useAppContext from "./useAppContext";
@@ -60,7 +61,7 @@ export default function useTelegramWebApp({
   );
 
   /** Save WebApp in Storage */
-  useLayoutEffect(() => {
+  useEffect(() => {
     if (cacheTelegramWebApp && telegramWebApp !== null) {
       const { initData, platform, version } = telegramWebApp;
       setChromeLocalStorage(webAppChromeStorageKey, {
@@ -72,7 +73,7 @@ export default function useTelegramWebApp({
   }, [cacheTelegramWebApp, telegramWebApp, webAppChromeStorageKey]);
 
   /** Get Telegram WebApp from Storage, Session or Bot */
-  useLayoutEffect(() => {
+  useEffect(() => {
     if (telegramWebApp !== null) {
       return;
     }
