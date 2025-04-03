@@ -17,6 +17,7 @@ export default memo(function Farmer({
           children
         ) : (
           <FarmerInit
+            mode={farmer.mode}
             title={farmer.title}
             icon={farmer.icon}
             status={farmer.status}

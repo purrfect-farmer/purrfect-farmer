@@ -7,8 +7,9 @@ import {
   parseTelegramLink,
 } from "@/lib/utils";
 import { useCallback, useLayoutEffect } from "react";
-import { useMemo } from "react";
 import { useRef } from "react";
+
+import useValuesMemo from "./useValuesMemo";
 
 export default function useTelegramClient(mode, session) {
   const ref = useRef(null);
@@ -24,9 +25,94 @@ export default function useTelegramClient(mode, session) {
 
     /** Ensure User is Authorized  */
     if (await ref.current.isUserAuthorized()) {
-      return await callback(ref.current);
+      return callback(ref.current);
     }
   }, []);
+
+  /** Wait for Reply */
+  const waitForReply = useCallback(
+    /**
+     * @param {import("telegram").TelegramClient} client
+     */
+    (client, entity) =>
+      new Promise((resolve) => {
+        /** Event to Handle */
+        const eventToHandle = new NewMessage({
+          fromUsers: [entity],
+        });
+
+        /**
+         * @param {import("telegram/events").NewMessageEvent} event
+         */
+        const handler = (event) => {
+          client.removeEventHandler(handler, eventToHandle);
+          customLogger("BOT RECEIVED MESSAGE", event);
+          resolve(event);
+        };
+
+        /** Add Event */
+        client.addEventHandler(handler, eventToHandle);
+      }),
+    []
+  );
+
+  /** Base Start Bot */
+  const baseStartBot = useCallback(
+    /**
+     * @param {import("telegram").TelegramClient} client
+     */
+    async (client, { entity, startParam = "" }) => {
+      /** Start the Bot */
+      const result = await client.invoke(
+        new Api.messages.StartBot({
+          bot: entity,
+          peer: entity,
+          startParam: startParam,
+        })
+      );
+
+      /** Log Bot Start */
+      customLogger("START BOT", result);
+
+      /** Wait for Reply */
+      return waitForReply(client, entity);
+    },
+    [waitForReply]
+  );
+
+  /** Start Bot */
+  const startBot = useCallback(
+    ({ entity, startParam = "" }) =>
+      execute(
+        /**
+         * @param {import("telegram").TelegramClient} client
+         */
+        (client) =>
+          baseStartBot(client, {
+            entity,
+            startParam,
+          })
+      ),
+    [execute, baseStartBot]
+  );
+
+  /** Start Bot from Link */
+  const startBotFromLink = useCallback(
+    (link) =>
+      execute(
+        /**
+         * @param {import("telegram").TelegramClient} client
+         */
+        (client) => {
+          const { entity, startParam } = parseTelegramLink(link);
+          return baseStartBot(client, {
+            entity,
+            startParam,
+          });
+        }
+      ),
+    [execute, baseStartBot]
+  );
 
   /** Get Webview */
   const getWebview = useCallback(
@@ -40,34 +126,9 @@ export default function useTelegramClient(mode, session) {
 
           /** Start the Bot */
           if (!parsed.shortName) {
-            const result = await client.invoke(
-              new Api.messages.StartBot({
-                bot: parsed.entity,
-                peer: parsed.entity,
-                startParam: parsed.startParam,
-              })
-            );
-
-            /** Log Bot Start */
-            customLogger("START BOT", result);
-
-            await new Promise((resolve) => {
-              /** Event to Handle */
-              const eventToHandle = new NewMessage({
-                fromUsers: [parsed.entity],
-              });
-
-              /**
-               * @param {import("telegram/events").NewMessageEvent} event
-               */
-              const handler = (event) => {
-                client.removeEventHandler(handler, eventToHandle);
-                customLogger("BOT RECEIVED MESSAGE", event);
-                resolve();
-              };
-
-              /** Add Event */
-              client.addEventHandler(handler, eventToHandle);
+            await baseStartBot(client, {
+              entity: parsed.entity,
+              startParam: parsed.startParam,
             });
           }
 
@@ -99,7 +160,7 @@ export default function useTelegramClient(mode, session) {
           return result;
         }
       ),
-    [execute]
+    [execute, baseStartBot]
   );
 
   /** Get Telegram WebApp */
@@ -181,14 +242,15 @@ export default function useTelegramClient(mode, session) {
     }
   }, [session, mode]);
 
-  return useMemo(
-    () => ({
-      ref,
-      hasSession,
-      getWebview,
-      getTelegramWebApp,
-      joinTelegramLink,
-    }),
-    [ref, hasSession, getWebview, getTelegramWebApp, joinTelegramLink]
-  );
+  return useValuesMemo({
+    ref,
+    hasSession,
+    execute,
+    waitForReply,
+    startBot,
+    startBotFromLink,
+    getWebview,
+    getTelegramWebApp,
+    joinTelegramLink,
+  });
 }
