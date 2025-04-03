@@ -6,8 +6,7 @@ import {
   extractTgWebAppData,
   parseTelegramLink,
 } from "@/lib/utils";
-import { useCallback } from "react";
-import { useEffect } from "react";
+import { useCallback, useLayoutEffect } from "react";
 import { useMemo } from "react";
 import { useRef } from "react";
 
@@ -155,7 +154,7 @@ export default function useTelegramClient(mode, session) {
     [execute]
   );
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (mode === "session" && session) {
       /** Log Session */
       customLogger("TG CLIENT SESSION", session);
