@@ -75,20 +75,12 @@ const SettingsContainer = ({ children }) => {
 
 const SettingsGroup = ({ id, title, children }) => {
   return (
-    <Accordion.Item
-      value={id}
-      className={cn(
-        "flex flex-col gap-2",
-        "border border-transparent rounded-2xl",
-        "data-[state=open]:p-2",
-        "data-[state=open]:-mx-2",
-        "data-[state=open]:border-neutral-300",
-        "dark:data-[state=open]:border-neutral-700"
-      )}
-    >
+    <Accordion.Item value={id} className={cn("flex flex-col gap-2")}>
       <Accordion.Trigger
         className={cn(
           "bg-neutral-100 dark:bg-neutral-700",
+          "data-[state=open]:bg-blue-500",
+          "data-[state=open]:text-white",
           "flex items-center gap-4 p-2 cursor-pointer rounded-xl",
           "group"
         )}
@@ -99,7 +91,16 @@ const SettingsGroup = ({ id, title, children }) => {
           className={cn("size-5", "group-data-[state=open]:-rotate-90")}
         />
       </Accordion.Trigger>
-      <Accordion.Content className="flex flex-col gap-2">
+      <Accordion.Content
+        className={cn(
+          "flex flex-col gap-2",
+          "after:w-2/4 after:h-2",
+          "after:rounded-full",
+          "after:bg-blue-400",
+          "after:mx-auto",
+          "after:my-1"
+        )}
+      >
         {children}
       </Accordion.Content>
     </Accordion.Item>
