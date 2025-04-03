@@ -41,7 +41,10 @@ export default function useCore() {
     useCloudTelegramSession();
 
   /** Farmer Mode */
-  const farmerMode = settings.farmerMode;
+  const farmerMode =
+    settings.farmerMode === "session" && localTelegramSession !== null
+      ? "session"
+      : "web";
 
   /** User Agent */
   const userAgent = useUserAgent();

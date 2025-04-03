@@ -8,8 +8,12 @@ import { cn } from "@/lib/utils";
 import { createTelegramClient } from "@/lib/createTelegramClient";
 
 export default function LocalTelegramSession() {
-  const { telegramClient, localTelegramSession, setLocalTelegramSession } =
-    useAppContext();
+  const {
+    telegramClient,
+    configureSettings,
+    localTelegramSession,
+    setLocalTelegramSession,
+  } = useAppContext();
 
   const handleLogoutButtonClick = () => {
     toast
@@ -34,6 +38,9 @@ export default function LocalTelegramSession() {
 
           /** Remove Session */
           setLocalTelegramSession(null);
+
+          /** Reset Farmer Mode */
+          configureSettings("farmerMode", "web", false);
         })(),
         {
           success: "Successfully logged out...",

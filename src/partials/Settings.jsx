@@ -90,6 +90,7 @@ const SettingsGroup = ({ id, title, children, defaultOpened = false }) => {
 
 export default memo(function Settings({ tabs }) {
   const {
+    telegramClient,
     settings,
     configureSettings,
     dispatchAndRestoreSettings,
@@ -323,10 +324,15 @@ export default memo(function Settings({ tabs }) {
                               )
                             }
                             key={farmerMode}
+                            disabled={
+                              farmerMode === "session" &&
+                              telegramClient.hasSession === false
+                            }
                             className={cn(
                               settings.farmerMode === farmerMode
                                 ? "bg-blue-200 dark:bg-blue-800"
                                 : "bg-neutral-100 dark:bg-neutral-700",
+                              "disabled:opacity-60",
                               "p-2 rounded-lg",
                               "flex gap-1 items-center justify-center",
                               "uppercase"
