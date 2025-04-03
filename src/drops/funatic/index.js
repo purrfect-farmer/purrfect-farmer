@@ -32,14 +32,6 @@ export default {
     api.defaults.headers.common["Authorization"] = `Bearer ${data.token}`;
   },
 
-  /** Extract Auth Headers */
-  extractAuthHeaders(headers) {
-    return headers.filter(
-      (header) =>
-        header.name.toLowerCase() === "authorization" &&
-        header.value !== "Bearer undefined"
-    );
-  },
   apiDelay: 200,
   tasks: {
     ["set-exchange"]: true,

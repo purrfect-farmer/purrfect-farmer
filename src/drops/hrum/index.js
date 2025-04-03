@@ -37,13 +37,6 @@ export default {
       .then((res) => res.data.data);
   },
 
-  /** Extract Auth Headers */
-  extractAuthHeaders(headers) {
-    return headers.filter(
-      (header) =>
-        header.name.toLowerCase() === "api-key" && header.value !== "empty"
-    );
-  },
   tasks: {
     ["daily.check-in"]: true,
     ["tasks"]: true,
