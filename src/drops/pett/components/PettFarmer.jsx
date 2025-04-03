@@ -1,13 +1,8 @@
 import { memo } from "react";
-
 import PettIcon from "../assets/images/icon.png?format=webp&w=80";
-import usePettStatusQuery from "../hooks/usePettStatusQuery";
+import PettInfoDisplay from "./PettInfoDisplay";
 
 export default memo(function PettFarmer() {
-  const statusQuery = usePettStatusQuery();
-
-  console.log(statusQuery.data);
-
   return (
     <div className="flex flex-col gap-2 py-4">
       {/* Header */}
@@ -19,6 +14,9 @@ export default memo(function PettFarmer() {
         />
         <h1 className="font-bold">PettAI Farmer</h1>
       </div>
+
+      {/* Info */}
+      <PettInfoDisplay />
     </div>
   );
 });

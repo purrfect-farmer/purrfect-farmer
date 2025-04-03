@@ -12,16 +12,26 @@ export default function usePettStatusQuery() {
 
       const balanceAIP = parseFloat(text.match(/([\d\.]+)\s+\$AIP/)[1]);
       const balanceETH = parseFloat(text.match(/([\d\.]+)\s+\$ETH/)[1]);
+      const state = text.match(/PettBro is ([^\s]+)/)[1];
       const stats = Object.fromEntries(
         ["Level", "Hunger", "Health", "Energy", "Happiness", "Clean"].map(
-          (item) => [
-            item,
-            parseFloat(text.match(new RegExp(`${item}:\\s+(.+)\n`))[1]),
-          ]
+          (item) => {
+            const match = text.match(
+              new RegExp(`([^\s\n]+)\\s+\\|\\s+${item}:\\s+(.+)\n`)
+            );
+            return [
+              item,
+              {
+                icon: match[1],
+                title: `${match[1]} ${item}`,
+                value: parseFloat(match[2]),
+              },
+            ];
+          }
         )
       );
 
-      return { message, balanceAIP, balanceETH, stats };
+      return { message, balanceAIP, balanceETH, stats, state };
     },
   });
 }
