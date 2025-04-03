@@ -128,13 +128,16 @@ export default function useDropFarmer() {
     refetchOnWindowFocus: false,
     refetchInterval: false,
     ...authQueryOptions,
-    enabled: typeof fetchAuth === "function" && Boolean(telegramWebApp),
+    enabled: typeof fetchAuth !== "undefined" && Boolean(telegramWebApp),
     queryKey: authQueryKey,
     queryFn: authQueryFn,
   });
 
   /** Auth */
-  const hasPreparedAuth = authQuery.isSuccess && hasConfiguredAuthHeaders;
+  const hasPreparedAuth =
+    typeof fetchAuth !== "undefined"
+      ? authQuery.isSuccess && hasConfiguredAuthHeaders
+      : true;
 
   /** Meta Query Key */
   const metaQueryKey = useMemo(
@@ -155,7 +158,7 @@ export default function useDropFarmer() {
     refetchOnWindowFocus: false,
     refetchInterval: false,
     ...metaQueryOptions,
-    enabled: typeof fetchMeta === "function" && hasPreparedAuth,
+    enabled: typeof fetchMeta !== "undefined" && hasPreparedAuth,
     queryKey: metaQueryKey,
     queryFn: metaQueryFn,
   });
@@ -177,7 +180,7 @@ export default function useDropFarmer() {
 
   /** Meta */
   const hasPreparedMeta =
-    (typeof fetchMeta === "function" ? metaQuery.isSuccess : true) &&
+    (typeof fetchMeta !== "undefined" ? metaQuery.isSuccess : true) &&
     hasPreparedAuth;
 
   /** Started */
