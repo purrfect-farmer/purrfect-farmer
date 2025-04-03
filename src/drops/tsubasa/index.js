@@ -1,6 +1,7 @@
 import { createLazyElement } from "@/lib/createLazyElement";
 
 import icon from "./assets/images/icon.png?format=webp&w=80&h=80";
+import { getTsubasaHeaders } from "./lib/utils";
 
 export default {
   id: "tsubasa",
