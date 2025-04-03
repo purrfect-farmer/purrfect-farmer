@@ -1,6 +1,8 @@
 import SessionMessenger from "@/lib/SessionMessenger";
+import { useCallback } from "react";
 import { useEffect } from "react";
 import { useMemo } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 
 import useAppContext from "./useAppContext";
@@ -31,6 +33,14 @@ export default function useSessionFarmer() {
     [entity, startParam]
   );
 
+  /** QueryClient */
+  const queryClient = useQueryClient();
+
+  /** Remove Queries */
+  const removeQueries = useCallback(() => {
+    queryClient.removeQueries({ queryKey: [id] });
+  }, [id, queryClient.removeQueries]);
+
   /** Start Bot */
   useEffect(() => {
     messenger.startBot().then((event) => {
@@ -48,6 +58,9 @@ export default function useSessionFarmer() {
     handleStartReply,
     setStarted,
   ]);
+
+  /** Clean Up */
+  useEffect(() => () => removeQueries(), [removeQueries]);
 
   return useValuesMemo({
     id,
