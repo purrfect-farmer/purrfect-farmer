@@ -11,6 +11,7 @@ import {
 import { useIsMutating, useQueryClient } from "@tanstack/react-query";
 import { useLayoutEffect } from "react";
 import { useMemo } from "react";
+import { useRef } from "react";
 import { useState } from "react";
 
 import useAppContext from "./useAppContext";
@@ -77,6 +78,12 @@ export default function useDropFarmer() {
     usesPort,
     telegramLink,
     cacheTelegramWebApp,
+  });
+
+  /** Api Queue Ref */
+  const apiQueueRef = useRef({
+    isRequestInProgress: false,
+    requestQueue: [],
   });
 
   /** Axios Instance */
@@ -256,6 +263,12 @@ export default function useDropFarmer() {
     await resetInit();
   }, [resetTelegramWebApp, resetInit]);
 
+  /** Clear API Queue */
+  const clearApiQueue = useCallback(() => {
+    apiQueueRef.current.requestQueue = [];
+    apiQueueRef.current.isRequestInProgress = false;
+  }, []);
+
   /**  Next task callback */
   const processNextTask = useRefCallback(zoomies.processNextTask, [
     zoomies.processNextTask,
@@ -283,18 +296,16 @@ export default function useDropFarmer() {
 
   /** Enforce only one request */
   useLayoutEffect(() => {
-    let isRequestInProgress = false;
-    let requestQueue = [];
-
     const processNextRequest = () => {
-      if (requestQueue.length === 0) {
-        isRequestInProgress = false;
+      if (apiQueueRef.current.requestQueue.length === 0) {
+        apiQueueRef.current.isRequestInProgress = false;
         return;
       }
 
-      isRequestInProgress = true;
+      /** Mark Request In Progress */
+      apiQueueRef.current.isRequestInProgress = true;
 
-      const { config, resolve } = requestQueue.shift();
+      const { config, resolve } = apiQueueRef.current.requestQueue.shift();
 
       delay(apiDelay).then(() => {
         resolve(config);
@@ -303,13 +314,14 @@ export default function useDropFarmer() {
 
     const requestInterceptor = api.interceptors.request.use(
       (config) => {
-        if (isRequestInProgress) {
+        if (apiQueueRef.current.isRequestInProgress) {
           return new Promise((resolve, reject) => {
-            requestQueue.push({ config, resolve, reject });
+            apiQueueRef.current.requestQueue.push({ config, resolve, reject });
           });
         }
 
-        isRequestInProgress = true;
+        /** Mark Request In Progress */
+        apiQueueRef.current.isRequestInProgress = true;
 
         return delay(apiDelay).then(() => Promise.resolve(config));
       },
@@ -346,6 +358,7 @@ export default function useDropFarmer() {
         ) {
           toast.dismiss();
           toast.error("Unauthenticated - Please reload the Bot or Farmer");
+          clearApiQueue();
           reset();
         }
         return Promise.reject(error);
@@ -355,7 +368,7 @@ export default function useDropFarmer() {
     return () => {
       api.interceptors.response.eject(interceptor);
     };
-  }, [api, reset]);
+  }, [api, clearApiQueue, reset]);
 
   /** Handle Auth Data  */
   useLayoutEffect(() => {
@@ -398,7 +411,7 @@ export default function useDropFarmer() {
     };
   }, [id, started]);
 
-  /** ========= Zoomies =========== */
+  /**  Zoomies */
   /** Set Started */
   useLayoutEffect(() => {
     if (isZooming) {
