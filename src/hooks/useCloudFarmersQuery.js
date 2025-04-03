@@ -10,9 +10,6 @@ export default function useCloudFarmersQuery() {
     refetchInterval: 10000,
     queryKey: ["app", "cloud", "farmers", settings.cloudServer],
     queryFn: ({ signal }) =>
-      cloudBackend
-        .get("/api/farmers", { signal })
-        .catch(() => cloudBackend.get("/api/accounts", { signal }))
-        .then((res) => res.data),
+      cloudBackend.get("/api/farmers", { signal }).then((res) => res.data),
   });
 }
