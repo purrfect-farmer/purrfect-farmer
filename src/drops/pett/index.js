@@ -10,8 +10,8 @@ export default {
   component: createLazyElement(() => import("./Pett")),
   entity: "pett_ai_bot",
   startParam: "REF-nKan1OQ",
-  handleStartReply(messenger, event) {
-    return messenger.waitForReply(() => event.message.click(0));
+  handleStartReply(messenger, message) {
+    return messenger.waitForReply(() => message.click(0));
   },
   tasks: {
     ["game"]: true,

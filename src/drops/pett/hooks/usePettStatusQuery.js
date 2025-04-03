@@ -6,18 +6,22 @@ export default function usePettStatusQuery() {
 
   return useStaticQuery({
     queryKey: ["pett", "status"],
-    queryFn: async () => {
-      const { message } = await messenger.sendStart();
+    async queryFn() {
+      const message = await messenger.sendStart();
       const text = message.message;
 
-      const balanceAIP = parseFloat(text.match(/([\d\.]+)\s+\$AIP/)[1]);
-      const balanceETH = parseFloat(text.match(/([\d\.]+)\s+\$ETH/)[1]);
+      const balanceAIP = parseFloat(
+        text.match(/([\d\.,]+)\s+\$AIP/)[1].replaceAll(",", "")
+      );
+      const balanceETH = parseFloat(
+        text.match(/([\d\.,]+)\s+\$ETH/)[1].replaceAll(",", "")
+      );
       const state = text.match(/PettBro is ([^\s]+)/)[1];
       const stats = Object.fromEntries(
         ["Level", "Hunger", "Health", "Energy", "Happiness", "Clean"].map(
           (item) => {
             const match = text.match(
-              new RegExp(`([^\s\n]+)\\s+\\|\\s+${item}:\\s+(.+)\n`)
+              new RegExp(`([^\s\n]+)\\s+\\|\\s+${item}:\\s+([^\n]+)`)
             );
             return [
               item,

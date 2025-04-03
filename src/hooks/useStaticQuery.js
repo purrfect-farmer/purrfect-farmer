@@ -11,6 +11,7 @@ export default function useStaticQuery(options) {
     refetchOnReconnect: false,
     refetchOnWindowFocus: false,
     refetchInterval: false,
+    retry: false,
     ...options,
   });
 }

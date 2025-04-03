@@ -24,6 +24,8 @@ export default memo(function PettInfoDisplay() {
             </h3>
           </div>
 
+          <h4>State: {query.data.state.toUpperCase()}</h4>
+
           {/* Stats */}
           <div className="flex flex-wrap justify-center gap-2 px-2">
             {Object.entries(query.data.stats).map(([key, item]) => (

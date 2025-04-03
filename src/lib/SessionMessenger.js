@@ -1,4 +1,5 @@
 import { Api } from "telegram";
+import { EditedMessage } from "telegram/events/EditedMessage";
 import { NewMessage } from "telegram/events";
 
 import { customLogger } from "./utils";
@@ -26,6 +27,51 @@ export default class SessionMessenger {
     );
   }
 
+  /**
+   * Click Button
+   * @param {import("telegram").Api.Message} message
+   * @param {string} search
+   * @param {object} param2
+   * @param {boolean} param2.edited
+   * @param {boolean} param2.hasButtons
+   */
+  clickButton(message, search, { edited = true, hasButtons = true } = {}) {
+    return this.waitForReply(
+      () =>
+        message.click({
+          text: (input) =>
+            new RegExp(
+              ["\\", "(", ")", ".", "|", "^"].reduce(
+                (result, item) => result.replaceAll(item, "\\" + item),
+                search
+              ),
+              "i"
+            ).test(input),
+        }),
+      {
+        edited,
+        filter(message) {
+          return hasButtons !== true || message.buttonCount > 0;
+        },
+      }
+    );
+  }
+
+  /**
+   * Click Path
+   * @param {import("telegram").Api.Message} message
+   * @param {string} path
+   */
+  async clickPath(message, path) {
+    let currentMessage = message;
+
+    for (const search of path.split(/\s*>\s*/)) {
+      currentMessage = await this.clickButton(currentMessage, search);
+    }
+
+    return currentMessage;
+  }
+
   /** Send Start */
   sendStart() {
     return this.sendMessage("/start");
@@ -44,27 +90,37 @@ export default class SessionMessenger {
     );
   }
 
-  async waitForReply(callback) {
-    /** Await Callback */
-    await callback();
-
-    return new Promise((resolve) => {
+  async waitForReply(callback, { edited = false, filter } = {}) {
+    return new Promise(async (resolve) => {
       /** Event to Handle */
-      const eventToHandle = new NewMessage({
-        fromUsers: [this._entity],
-      });
+      const eventToHandle = edited
+        ? new EditedMessage({
+            fromUsers: [this._entity],
+          })
+        : new NewMessage({
+            fromUsers: [this._entity],
+          });
 
       /**
-       * @param {import("telegram/events").NewMessageEvent} event
+       * @param {import("telegram/events").NewMessageEvent | import("telegram/events/EditedMessage").EditedMessage} event
        */
       const handler = (event) => {
-        this._client.removeEventHandler(handler, eventToHandle);
-        customLogger("BOT RECEIVED EVENT", event);
-        resolve(event);
+        customLogger("BOT RECEIVED MESSAGE", event.message);
+
+        if (
+          event.message &&
+          (typeof filter === "undefined" || filter(event.message))
+        ) {
+          this._client.removeEventHandler(handler, eventToHandle);
+          resolve(event.message);
+        }
       };
 
       /** Add Event */
       this._client.addEventHandler(handler, eventToHandle);
+
+      /** Await Callback */
+      customLogger("BOT CALLBACK", await callback());
     });
   }
 }
