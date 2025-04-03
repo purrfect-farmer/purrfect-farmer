@@ -5,13 +5,19 @@ import PettIcon from "../assets/images/icon.png?format=webp&w=80";
 import PettInfoDisplay from "./PettInfoDisplay";
 import usePettBuyFoodMutation from "../hooks/usePettBuyFoodMutation";
 import usePettCafeteriaQuery from "../hooks/usePettCafeteriaQuery";
+import usePettRubMutation from "../hooks/usePettRubMutation";
+import usePettSleepMutation from "../hooks/usePettSleepMutation";
 import usePettStatusQuery from "../hooks/usePettStatusQuery";
+import usePettTakeShowerMutation from "../hooks/usePettTakeShowerMutation";
 import usePettWakeUpMutation from "../hooks/usePettWakeUpMutation";
 
 export default memo(function PettFarmer() {
   const query = usePettStatusQuery();
   const wakeUpMutation = usePettWakeUpMutation();
-  const buyMutation = usePettBuyFoodMutation();
+  const sleepMutation = usePettSleepMutation();
+  const takeShowerMutation = usePettTakeShowerMutation();
+  const rubMutation = usePettRubMutation();
+  const buyFoodMutation = usePettBuyFoodMutation();
 
   const cafeteriaQuery = usePettCafeteriaQuery({
     enabled: query.isSuccess,
@@ -19,12 +25,12 @@ export default memo(function PettFarmer() {
 
   /** Play Game */
   useEffect(() => {
-    if (query.isSuccess) {
-      (async () => {})();
+    if (cafeteriaQuery.isSuccess) {
+      (async () => {
+        await buyFoodMutation.mutateAsync("🍔");
+      })();
     }
-  }, [query.isSuccess, query.data]);
-
-  console.log(cafeteriaQuery.data);
+  }, [cafeteriaQuery.isSuccess, cafeteriaQuery.data, query.data]);
 
   return (
     <div className="flex flex-col gap-2 py-4">

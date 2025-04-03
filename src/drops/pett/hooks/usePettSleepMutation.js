@@ -7,7 +7,7 @@ export default function usePettSleepMutation() {
   return useMutation({
     mutationKey: ["pett", "sleep"],
     async mutationFn() {
-      const start = await messenger.sendStart();
+      const start = await messenger.returnToHome();
       const result = await messenger.clickPath(start, "Bedroom > Sleep");
 
       return result;

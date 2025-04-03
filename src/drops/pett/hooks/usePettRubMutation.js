@@ -1,17 +1,14 @@
 import useFarmerContext from "@/hooks/useFarmerContext";
 import { useMutation } from "@tanstack/react-query";
 
-export default function usePettBuyFoodMutation() {
+export default function usePettRubMutation() {
   const { messenger } = useFarmerContext();
 
   return useMutation({
-    mutationKey: ["pett", "buy-food"],
-    async mutationFn(food) {
+    mutationKey: ["pett", "rub"],
+    async mutationFn() {
       const start = await messenger.returnToHome();
-      const result = await messenger.clickPath(
-        start,
-        ["Store", "Cafeteria", food, "Buy 💵"].join(" > ")
-      );
+      const result = await messenger.clickPath(start, "Bathroom > Rub");
 
       return result;
     },

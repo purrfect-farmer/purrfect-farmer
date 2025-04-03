@@ -28,7 +28,7 @@ export default function usePettCafeteriaQuery(options) {
     ...options,
     queryKey: ["pett", "cafeteria"],
     async queryFn() {
-      const start = await messenger.sendStart();
+      const start = await messenger.returnToHome();
       const firstPageMessage = await messenger.clickPath(
         start,
         "Store > Cafeteria"

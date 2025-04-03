@@ -16,6 +16,11 @@ export default class SessionMessenger {
     this._client = client;
     this._entity = entity;
     this._startParam = startParam;
+    this._lastMessage = null;
+  }
+
+  get lastMessage() {
+    return this._lastMessage;
   }
 
   sendMessage(message, options) {
@@ -72,6 +77,36 @@ export default class SessionMessenger {
     return currentMessage;
   }
 
+  async returnToHome() {
+    let currentMessage = this.lastMessage;
+    let button;
+
+    while (
+      (button = currentMessage.buttons
+        .flat()
+        .find((button) =>
+          ["🏠", "⬆️", "⬅️", "⚪️"].some((search) =>
+            button.text.includes(search)
+          )
+        ))
+    ) {
+      currentMessage = await this.waitForReply(
+        () =>
+          button.click({
+            sharePhone: false,
+          }),
+        {
+          edited: true,
+          filter(message) {
+            return message.buttonCount > 0;
+          },
+        }
+      );
+    }
+
+    return currentMessage;
+  }
+
   /** Send Start */
   sendStart() {
     return this.sendMessage("/start");
@@ -112,7 +147,7 @@ export default class SessionMessenger {
           (typeof filter === "undefined" || filter(event.message))
         ) {
           this._client.removeEventHandler(handler, eventToHandle);
-          resolve(event.message);
+          setTimeout(resolve, 500, (this._lastMessage = event.message));
         }
       };
 
