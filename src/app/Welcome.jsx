@@ -246,30 +246,25 @@ export default memo(function Welcome() {
           </div>
 
           {/* App Title */}
-          <div className={cn("flex items-center justify-center gap-2")}>
-            {/* Display Session */}
+          <h3
+            className={cn(
+              "leading-none font-turret-road",
+              "text-2xl",
+              "flex items-center gap-2"
+            )}
+          >
+            <span className="grow basis-0 text-right">
+              {import.meta.env.VITE_APP_NAME.split(" ")[0]}
+            </span>
+
             {telegramClient.hasSession ? (
-              <div
-                className={cn(
-                  "inline-flex",
-                  "bg-orange-500 text-white",
-                  "p-1 rounded-full"
-                )}
-              >
-                <HiBolt className="size-4" />
-              </div>
+              <HiBolt className="size-4 shrink-0 text-orange-500" />
             ) : null}
 
-            {/* Title */}
-            <h3
-              className={cn(
-                "leading-none font-turret-road",
-                "text-2xl text-center"
-              )}
-            >
-              {import.meta.env.VITE_APP_NAME}
-            </h3>
-          </div>
+            <span className="grow basis-0">
+              {import.meta.env.VITE_APP_NAME.split(" ")[1]}
+            </span>
+          </h3>
 
           {/* App Version */}
           <p className="text-lg leading-none text-center">
