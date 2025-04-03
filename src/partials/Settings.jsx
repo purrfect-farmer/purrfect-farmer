@@ -1,3 +1,4 @@
+import Alert from "@/components/Alert";
 import ConfirmButton from "@/components/ConfirmButton";
 import Input from "@/components/Input";
 import LabelToggle from "@/components/LabelToggle";
@@ -467,6 +468,11 @@ export default memo(function Settings({ tabs }) {
 
                     {/* Seeker Options */}
                     <SettingsGroup id={"seeker"} title={"Seeker Options"}>
+                      <Alert variant={"info"}>
+                        Enable Seeker to update your Cloud Server Address
+                        automatically.
+                      </Alert>
+
                       {/* Cloud Seeker */}
                       <div className="flex gap-2">
                         <div className="min-w-0 min-h-0 grow">
@@ -499,15 +505,6 @@ export default memo(function Settings({ tabs }) {
                           <HiOutlineListBullet className="w-4 h-4 " />
                         </button>
                       </div>
-
-                      <p
-                        className={cn(
-                          "bg-blue-100 text-blue-800 dark:text-blue-900 p-4 text-center rounded-lg"
-                        )}
-                      >
-                        Enable Seeker to update your Cloud Server Address
-                        automatically.
-                      </p>
 
                       {/* Seeker Server */}
                       <SettingsLabel>Seeker Server</SettingsLabel>
@@ -699,14 +696,9 @@ export default memo(function Settings({ tabs }) {
                       <HiOutlineExclamationTriangle className="inline w-4 h-4" />
                     </LabelToggle>
 
-                    <p
-                      className={cn(
-                        "bg-blue-100 text-blue-800 dark:text-blue-900",
-                        "p-4 text-center rounded-lg"
-                      )}
-                    >
+                    <Alert variant={"info"}>
                       Enable the farmers you would like to include.
-                    </p>
+                    </Alert>
 
                     <Reorder.Group
                       values={dropsOrder}

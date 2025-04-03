@@ -1,3 +1,4 @@
+import Alert from "@/components/Alert";
 import useAppContext from "@/hooks/useAppContext";
 import useSeekerQuery from "@/hooks/useSeekerQuery";
 import { CgSpinner } from "react-icons/cg";
@@ -25,14 +26,10 @@ export default memo(function Seeker() {
             </p>
           ) : (
             <>
-              <p
-                className={cn(
-                  "bg-yellow-100 text-yellow-800 dark:text-yellow-900 p-4 text-center rounded-lg"
-                )}
-              >
+              <Alert variant={"warning"}>
                 Only select the server you have access to, your Cloud Server
                 Address will be updated automatically upon reboots.
-              </p>
+              </Alert>
 
               {/* List Servers */}
               {seekerQuery.data.map((server) => (
