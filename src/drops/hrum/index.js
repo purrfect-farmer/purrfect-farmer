@@ -11,7 +11,7 @@ export default {
   component: createLazyElement(() => import("./Hrum")),
   telegramLink: "https://t.me/hrummebot/game?startapp=ref1147265290",
   host: "game.hrum.me",
-  alwaysFetchAuth: true,
+  cacheAuth: false,
 
   /**
    * Fetch Auth

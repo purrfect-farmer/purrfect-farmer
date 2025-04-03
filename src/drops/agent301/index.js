@@ -9,7 +9,7 @@ export default {
   component: createLazyElement(() => import("./Agent301")),
   telegramLink: "https://t.me/Agent301Bot/app?startapp=onetime1147265290",
   host: "static.agent301.org",
-  alwaysFetchAuth: true,
+  cacheAuth: false,
 
   /**
    * Fetch Auth

@@ -16,9 +16,10 @@ import useMessageHandlers from "./useMessageHandlers";
  */
 export default function useTelegramWebApp({
   id,
-  telegramLink,
-  usesPort,
   host,
+  usesPort,
+  telegramLink,
+  cacheTelegramWebApp,
 }) {
   const [telegramWebApp, setTelegramWebApp] = useState(null);
   const [port, setPort] = useState(null);
@@ -60,16 +61,15 @@ export default function useTelegramWebApp({
 
   /** Save WebApp in Storage */
   useLayoutEffect(() => {
-    if (usesPort == false && telegramWebApp !== null) {
-      const { url, initData, platform, version } = telegramWebApp;
+    if (cacheTelegramWebApp && telegramWebApp !== null) {
+      const { initData, platform, version } = telegramWebApp;
       setChromeLocalStorage(webAppChromeStorageKey, {
-        url,
         initData,
         platform,
         version,
       });
     }
-  }, [usesPort, telegramWebApp, webAppChromeStorageKey]);
+  }, [cacheTelegramWebApp, telegramWebApp, webAppChromeStorageKey]);
 
   /** Get Telegram WebApp from Storage, Session or Bot */
   useLayoutEffect(() => {
@@ -98,8 +98,20 @@ export default function useTelegramWebApp({
       });
     };
 
+    /** Set From Session or Port */
+    const setWebAppFromSessionOrPort = () => {
+      if (farmerMode === "session") {
+        setWebAppFromSession();
+      } else {
+        setWebAppFromPort();
+      }
+    };
+
+    /** Get Web App */
     if (usesPort) {
       setWebAppFromPort();
+    } else if (cacheTelegramWebApp === false) {
+      setWebAppFromSessionOrPort();
     } else {
       getChromeLocalStorage(webAppChromeStorageKey, null).then((result) => {
         if (result) {
@@ -107,15 +119,12 @@ export default function useTelegramWebApp({
             ...result,
             initDataUnsafe: extractInitDataUnsafe(result.initData),
           });
-        } else if (farmerMode === "session") {
-          setWebAppFromSession();
         } else {
-          setWebAppFromPort();
+          setWebAppFromSessionOrPort();
         }
       });
     }
   }, [
-    id,
     host,
     setPort,
     usesPort,
@@ -123,6 +132,7 @@ export default function useTelegramWebApp({
     telegramLink,
     telegramWebApp,
     setTelegramWebApp,
+    cacheTelegramWebApp,
     webAppChromeStorageKey,
     telegramClient.getTelegramWebApp,
     messaging.ports,

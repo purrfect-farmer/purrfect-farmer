@@ -15,11 +15,17 @@ export default function useTelegramClient(mode, session) {
   const hasSession = Boolean(session);
 
   const execute = useCallback(async (callback) => {
-    if (!ref.current.connected) {
-      await ref.current.connect();
+    if (ref.current === null) {
+      throw new Error("No Telegram Client!");
     }
 
-    return await callback(ref.current);
+    /** Connect  */
+    await ref.current.connect();
+
+    /** Ensure User is Authorized  */
+    if (await ref.current.isUserAuthorized()) {
+      return await callback(ref.current);
+    }
   }, []);
 
   /** Get Webview */

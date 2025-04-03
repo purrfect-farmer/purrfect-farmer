@@ -11,7 +11,7 @@ export default {
   telegramLink: "https://t.me/notgram_game_bot?start=r1147265290",
   host: "notgramgame.fun",
   usesPort: true,
-  alwaysFetchAuth: true,
+  cacheAuth: false,
 
   /** Fetch Auth */
   fetchAuth() {

@@ -32,7 +32,8 @@ export default function useDropFarmer() {
     usesPort = false,
     syncToCloud = false,
     startManually = false,
-    alwaysFetchAuth = false,
+    cacheAuth = true,
+    cacheTelegramWebApp = true,
     telegramLink,
     configureAuthHeaders,
     fetchAuth,
@@ -75,6 +76,7 @@ export default function useDropFarmer() {
     host,
     usesPort,
     telegramLink,
+    cacheTelegramWebApp,
   });
 
   /** Axios Instance */
@@ -106,18 +108,18 @@ export default function useDropFarmer() {
   /** Auth QueryFn */
   const authQueryFn = useCallback(
     () =>
-      alwaysFetchAuth
-        ? fetchAuth(api, telegramWebApp)
-        : getChromeLocalStorage(authChromeStorageKey, null).then(
+      cacheAuth
+        ? getChromeLocalStorage(authChromeStorageKey, null).then(
             (result) => result || fetchAuth(api, telegramWebApp)
-          ),
+          )
+        : fetchAuth(api, telegramWebApp),
     [
       /** Deps */
       api,
       telegramWebApp,
       fetchAuth,
       authChromeStorageKey,
-      alwaysFetchAuth,
+      cacheAuth,
     ]
   );
 
@@ -274,15 +276,10 @@ export default function useDropFarmer() {
 
   /** Save Auth Data in Storage */
   useLayoutEffect(() => {
-    if (alwaysFetchAuth === false && authQuery.isSuccess) {
+    if (cacheAuth && authQuery.isSuccess) {
       setChromeLocalStorage(authChromeStorageKey, authQuery.data);
     }
-  }, [
-    alwaysFetchAuth,
-    authChromeStorageKey,
-    authQuery.isSuccess,
-    authQuery.data,
-  ]);
+  }, [cacheAuth, authChromeStorageKey, authQuery.isSuccess, authQuery.data]);
 
   /** Enforce only one request */
   useLayoutEffect(() => {
