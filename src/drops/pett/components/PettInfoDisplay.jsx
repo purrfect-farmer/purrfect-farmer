@@ -24,7 +24,12 @@ export default memo(function PettInfoDisplay() {
             </h3>
           </div>
 
-          <h4>State: {query.data.state.toUpperCase()}</h4>
+          <h4>
+            State:{" "}
+            <span className="font-bold text-purple-500">
+              {query.data.state.toUpperCase()}
+            </span>
+          </h4>
 
           {/* Stats */}
           <div className="flex flex-wrap justify-center gap-2 px-2">
