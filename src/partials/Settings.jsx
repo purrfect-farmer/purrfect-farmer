@@ -9,11 +9,12 @@ import defaultSettings from "@/core/defaultSettings";
 import useAppContext from "@/hooks/useAppContext";
 import useMirroredCallback from "@/hooks/useMirroredCallback";
 import useMirroredState from "@/hooks/useMirroredState";
+import { Accordion } from "radix-ui";
 import { CgSpinner } from "react-icons/cg";
-import { Collapsible, Dialog, Tabs } from "radix-ui";
+import { Dialog, Tabs } from "radix-ui";
 import {
   HiBolt,
-  HiChevronDown,
+  HiChevronRight,
   HiOutlineArrowPath,
   HiOutlineExclamationTriangle,
   HiOutlineGlobeAlt,
@@ -54,38 +55,54 @@ const SettingsLabel = ({ children }) => (
   </label>
 );
 
-const SettingsGroup = ({ id, title, children, defaultOpened = false }) => {
-  const [opened, , dispatchAndSetOpened] = useMirroredState(
-    `settings-${id}-collapsible`,
-    defaultOpened
+const SettingsContainer = ({ children }) => {
+  const [value, , dispatchAndSetValue] = useMirroredState(
+    "settings-container",
+    "farmer"
   );
+
   return (
-    <Collapsible.Root
-      open={opened}
-      onOpenChange={dispatchAndSetOpened}
+    <Accordion.Root
+      className="flex flex-col gap-2"
+      value={value}
+      onValueChange={dispatchAndSetValue}
+      collapsible
+    >
+      {children}
+    </Accordion.Root>
+  );
+};
+
+const SettingsGroup = ({ id, title, children }) => {
+  return (
+    <Accordion.Item
+      value={id}
       className={cn(
         "flex flex-col gap-2",
-        "border border-transparent rounded-xl",
+        "border border-transparent rounded-2xl",
         "data-[state=open]:p-2",
         "data-[state=open]:-mx-2",
-        "data-[state=open]:border-blue-700",
-        "dark:data-[state=open]:border-blue-500"
+        "data-[state=open]:border-neutral-300",
+        "dark:data-[state=open]:border-neutral-700"
       )}
     >
-      <Collapsible.Trigger
+      <Accordion.Trigger
         className={cn(
           "bg-neutral-100 dark:bg-neutral-700",
-          "flex items-center gap-4 p-2 cursor-pointer rounded-xl"
+          "flex items-center gap-4 p-2 cursor-pointer rounded-xl",
+          "group"
         )}
       >
         <h4 className="min-w-0 min-h-0 grow font-bold ml-9">{title}</h4>
 
-        <HiChevronDown className={cn("size-5", opened && "-rotate-180")} />
-      </Collapsible.Trigger>
-      <Collapsible.Content className="flex flex-col gap-2">
+        <HiChevronRight
+          className={cn("size-5", "group-data-[state=open]:-rotate-90")}
+        />
+      </Accordion.Trigger>
+      <Accordion.Content className="flex flex-col gap-2">
         {children}
-      </Collapsible.Content>
-    </Collapsible.Root>
+      </Accordion.Content>
+    </Accordion.Item>
   );
 };
 
@@ -268,377 +285,377 @@ export default memo(function Settings({ tabs }) {
                     onSubmit={(ev) => ev.preventDefault()}
                     className="flex flex-col gap-2"
                   >
-                    {/* Farmer Options */}
-                    <SettingsGroup
-                      id={"farmer"}
-                      title={"Farmer Options"}
-                      defaultOpened
-                    >
-                      {/* Farmer Title */}
-                      <SettingsLabel>Farmer Title</SettingsLabel>
-                      <Input
-                        value={settings?.farmerTitle}
-                        onChange={(ev) =>
-                          configureSettings(
-                            "farmerTitle",
-                            ev.target.value,
-                            false
-                          )
-                        }
-                        placeholder="Farmer Title"
-                      />
-
-                      {/* Preferred Theme */}
-                      <SettingsLabel>Preferred Theme</SettingsLabel>
-
-                      <div className="grid grid-cols-3 gap-2">
-                        {["system", "light", "dark"].map((theme) => (
-                          <button
-                            onClick={() =>
-                              dispatchAndConfigureSettings("theme", theme)
-                            }
-                            key={theme}
-                            className={cn(
-                              settings.theme === theme
-                                ? "bg-blue-200 dark:bg-blue-800"
-                                : "bg-neutral-100 dark:bg-neutral-700",
-                              "p-2 rounded-lg",
-                              "flex gap-1 items-center justify-center",
-                              "uppercase"
-                            )}
-                          >
-                            {theme}
-                          </button>
-                        ))}
-                      </div>
-
-                      {/* Farmer Mode */}
-                      <SettingsLabel>Farmer Mode</SettingsLabel>
-
-                      <div className="grid grid-cols-2 gap-2">
-                        {["web", "session"].map((farmerMode) => (
-                          <button
-                            onClick={() =>
-                              dispatchAndConfigureSettings(
-                                "farmerMode",
-                                farmerMode
-                              )
-                            }
-                            key={farmerMode}
-                            disabled={
-                              farmerMode === "session" &&
-                              telegramClient.hasSession === false
-                            }
-                            className={cn(
-                              settings.farmerMode === farmerMode
-                                ? "bg-blue-200 dark:bg-blue-800"
-                                : "bg-neutral-100 dark:bg-neutral-700",
-                              "disabled:opacity-60",
-                              "p-2 rounded-lg",
-                              "flex gap-1 items-center justify-center",
-                              "uppercase"
-                            )}
-                          >
-                            {farmerMode === "web" ? (
-                              <HiOutlineGlobeAlt className="size-4" />
-                            ) : (
-                              <HiBolt className="size-4" />
-                            )}
-                            {farmerMode}
-                          </button>
-                        ))}
-                      </div>
-
-                      {/* Preferred Telegram Web Version */}
-                      <SettingsLabel>
-                        Preferred Telegram Web Version
-                      </SettingsLabel>
-
-                      <div className="grid grid-cols-2 gap-2">
-                        {["k", "a"].map((version) => (
-                          <button
-                            onClick={() =>
-                              dispatchAndConfigureSettings(
-                                "preferredTelegramWebVersion",
-                                version
-                              )
-                            }
-                            key={version}
-                            className={cn(
-                              settings.preferredTelegramWebVersion === version
-                                ? "bg-blue-200 dark:bg-blue-800"
-                                : "bg-neutral-100 dark:bg-neutral-700",
-                              "p-2 rounded-lg",
-                              "flex gap-1 items-center justify-center"
-                            )}
-                          >
-                            <img
-                              src={
-                                version === "k"
-                                  ? TelegramWebKIcon
-                                  : TelegramWebAIcon
-                              }
-                              className="w-6 h-6"
-                            />
-                            {`Web-${version.toUpperCase()}`}
-                          </button>
-                        ))}
-                      </div>
-
-                      {/* Show User Info */}
-                      <LabelToggle
-                        onChange={(ev) =>
-                          dispatchAndConfigureSettings(
-                            "displayUserInfo",
-                            ev.target.checked
-                          )
-                        }
-                        checked={settings?.displayUserInfo}
-                      >
-                        Display User Info
-                      </LabelToggle>
-
-                      {/* Show Mini-App Toolbar */}
-                      <LabelToggle
-                        onChange={(ev) =>
-                          dispatchAndConfigureSettings(
-                            "showMiniAppToolbar",
-                            ev.target.checked
-                          )
-                        }
-                        checked={settings?.showMiniAppToolbar}
-                      >
-                        Show Mini-App Toolbar
-                      </LabelToggle>
-
-                      {/* Close Other Bots */}
-                      <LabelToggle
-                        onChange={(ev) =>
-                          dispatchAndConfigureSettings(
-                            "closeOtherBots",
-                            ev.target.checked
-                          )
-                        }
-                        checked={settings?.closeOtherBots}
-                      >
-                        Close Other Bots
-                      </LabelToggle>
-                    </SettingsGroup>
-
-                    {/* Cloud Options */}
-                    <SettingsGroup id={"cloud"} title={"Cloud Options"}>
-                      {/* Cloud */}
-                      <LabelToggle
-                        onChange={(ev) =>
-                          dispatchAndConfigureSettings(
-                            "enableCloud",
-                            ev.target.checked
-                          )
-                        }
-                        checked={settings?.enableCloud}
-                      >
-                        <span className="flex flex-col">
-                          <span>Enable Cloud</span>
-                          <span className="text-orange-500">
-                            (Access Required)
-                          </span>
-                        </span>
-                      </LabelToggle>
-
-                      {/* Cloud Server */}
-                      <SettingsLabel>Cloud Server</SettingsLabel>
-                      <div className="flex gap-2">
+                    <SettingsContainer>
+                      {/* Farmer Options */}
+                      <SettingsGroup id={"farmer"} title={"Farmer Options"}>
+                        {/* Farmer Title */}
+                        <SettingsLabel>Farmer Title</SettingsLabel>
                         <Input
-                          value={cloudServer}
-                          onChange={(ev) => setCloudServer(ev.target.value)}
-                          placeholder="Cloud Server"
-                        />
-
-                        {/* Reset Button */}
-                        <ResetButton
-                          onClick={() =>
-                            setCloudServer(defaultSettings.cloudServer)
+                          value={settings?.farmerTitle}
+                          onChange={(ev) =>
+                            configureSettings(
+                              "farmerTitle",
+                              ev.target.value,
+                              false
+                            )
                           }
+                          placeholder="Farmer Title"
                         />
 
-                        {/* Set Button */}
-                        <ConfirmButton onClick={handleSetCloudServer} />
-                      </div>
-                    </SettingsGroup>
+                        {/* Preferred Theme */}
+                        <SettingsLabel>Preferred Theme</SettingsLabel>
 
-                    {/* Seeker Options */}
-                    <SettingsGroup id={"seeker"} title={"Seeker Options"}>
-                      <Alert variant={"info"}>
-                        Enable Seeker to update your Cloud Server Address
-                        automatically.
-                      </Alert>
-
-                      {/* Cloud Seeker */}
-                      <div className="flex gap-2">
-                        <div className="min-w-0 min-h-0 grow">
-                          <LabelToggle
-                            onChange={(ev) =>
-                              dispatchAndConfigureSettings(
-                                "enableSeeker",
-                                ev.target.checked
-                              )
-                            }
-                            checked={settings?.enableSeeker}
-                          >
-                            <span className="flex flex-col">
-                              <span>Enable Seeker</span>
-                            </span>
-                          </LabelToggle>
+                        <div className="grid grid-cols-3 gap-2">
+                          {["system", "light", "dark"].map((theme) => (
+                            <button
+                              onClick={() =>
+                                dispatchAndConfigureSettings("theme", theme)
+                              }
+                              key={theme}
+                              className={cn(
+                                settings.theme === theme
+                                  ? "bg-blue-200 dark:bg-blue-800"
+                                  : "bg-neutral-100 dark:bg-neutral-700",
+                                "p-2 rounded-lg",
+                                "flex gap-1 items-center justify-center",
+                                "uppercase"
+                              )}
+                            >
+                              {theme}
+                            </button>
+                          ))}
                         </div>
 
-                        {/* Seekers */}
-                        <button
-                          onClick={() => tabs.dispatchAndSetValue("seeker")}
-                          type="button"
-                          className={cn(
-                            "shrink-0",
-                            "inline-flex items-center justify-center",
-                            "px-4 rounded-lg shrink-0",
-                            "bg-neutral-100 dark:bg-neutral-700"
-                          )}
-                        >
-                          <HiOutlineListBullet className="w-4 h-4 " />
-                        </button>
-                      </div>
+                        {/* Farmer Mode */}
+                        <SettingsLabel>Farmer Mode</SettingsLabel>
 
-                      {/* Seeker Server */}
-                      <SettingsLabel>Seeker Server</SettingsLabel>
-                      <div className="flex gap-2">
-                        <Input
-                          value={seekerServer}
-                          onChange={(ev) => setSeekerServer(ev.target.value)}
-                          placeholder="Seeker Server"
-                        />
+                        <div className="grid grid-cols-2 gap-2">
+                          {["web", "session"].map((farmerMode) => (
+                            <button
+                              onClick={() =>
+                                dispatchAndConfigureSettings(
+                                  "farmerMode",
+                                  farmerMode
+                                )
+                              }
+                              key={farmerMode}
+                              disabled={
+                                farmerMode === "session" &&
+                                telegramClient.hasSession === false
+                              }
+                              className={cn(
+                                settings.farmerMode === farmerMode
+                                  ? "bg-blue-200 dark:bg-blue-800"
+                                  : "bg-neutral-100 dark:bg-neutral-700",
+                                "disabled:opacity-60",
+                                "p-2 rounded-lg",
+                                "flex gap-1 items-center justify-center",
+                                "uppercase"
+                              )}
+                            >
+                              {farmerMode === "web" ? (
+                                <HiOutlineGlobeAlt className="size-4" />
+                              ) : (
+                                <HiBolt className="size-4" />
+                              )}
+                              {farmerMode}
+                            </button>
+                          ))}
+                        </div>
 
-                        {/* Reset Button */}
-                        <ResetButton
-                          onClick={() =>
-                            setSeekerServer(defaultSettings.seekerServer)
-                          }
-                        />
+                        {/* Preferred Telegram Web Version */}
+                        <SettingsLabel>
+                          Preferred Telegram Web Version
+                        </SettingsLabel>
 
-                        {/* Set Button */}
-                        <ConfirmButton onClick={handleSetSeekerServer} />
-                      </div>
-                    </SettingsGroup>
+                        <div className="grid grid-cols-2 gap-2">
+                          {["k", "a"].map((version) => (
+                            <button
+                              onClick={() =>
+                                dispatchAndConfigureSettings(
+                                  "preferredTelegramWebVersion",
+                                  version
+                                )
+                              }
+                              key={version}
+                              className={cn(
+                                settings.preferredTelegramWebVersion === version
+                                  ? "bg-blue-200 dark:bg-blue-800"
+                                  : "bg-neutral-100 dark:bg-neutral-700",
+                                "p-2 rounded-lg",
+                                "flex gap-1 items-center justify-center"
+                              )}
+                            >
+                              <img
+                                src={
+                                  version === "k"
+                                    ? TelegramWebKIcon
+                                    : TelegramWebAIcon
+                                }
+                                className="w-6 h-6"
+                              />
+                              {`Web-${version.toUpperCase()}`}
+                            </button>
+                          ))}
+                        </div>
 
-                    {/* PC Options */}
-                    <SettingsGroup id="pc" title="PC Options">
-                      {/* Open Farmer in new Window */}
-                      <LabelToggle
-                        onChange={(ev) =>
-                          dispatchAndConfigureSettings(
-                            "openFarmerInNewWindow",
-                            ev.target.checked
-                          )
-                        }
-                        checked={settings?.openFarmerInNewWindow}
-                      >
-                        Open Farmer in new Window
-                      </LabelToggle>
-
-                      {/* Open Farmer on StartUp */}
-                      <LabelToggle
-                        onChange={(ev) =>
-                          dispatchAndConfigureSettings(
-                            "openFarmerOnStartup",
-                            ev.target.checked
-                          )
-                        }
-                        checked={settings?.openFarmerOnStartup}
-                      >
-                        Open Farmer on Startup
-                      </LabelToggle>
-
-                      {/* Close Main Window on Startup */}
-                      <LabelToggle
-                        onChange={(ev) =>
-                          dispatchAndConfigureSettings(
-                            "closeMainWindowOnStartup",
-                            ev.target.checked
-                          )
-                        }
-                        checked={settings?.closeMainWindowOnStartup}
-                      >
-                        Close Main Window on Startup
-                      </LabelToggle>
-                    </SettingsGroup>
-
-                    {/* Mirror Options */}
-                    <SettingsGroup id="mirror" title={"Mirror Options"}>
-                      <LabelToggle
-                        onChange={(ev) =>
-                          dispatchAndConfigureSettings(
-                            "enableMirror",
-                            ev.target.checked
-                          )
-                        }
-                        checked={settings?.enableMirror}
-                      >
-                        Enable Mirror
-                      </LabelToggle>
-
-                      {/* Mirror Server */}
-                      <SettingsLabel>Mirror Server</SettingsLabel>
-                      <div className="flex gap-2">
-                        <Input
-                          value={mirrorServer}
-                          onChange={(ev) => setMirrorServer(ev.target.value)}
-                          placeholder="Mirror Server"
-                        />
-
-                        {/* Reset Button */}
-                        <ResetButton
-                          onClick={() =>
-                            setMirrorServer(defaultSettings.mirrorServer)
-                          }
-                        />
-
-                        {/* Set Button */}
-                        <ConfirmButton onClick={handleSetMirrorServer} />
-                      </div>
-
-                      {/* Farmers Per Windows */}
-                      <label className="mt-4 text-neutral-400">
-                        Farmers Per Window (Min - 3)
-                      </label>
-                      <div className="flex gap-2">
-                        <Input
-                          value={farmersPerWindow}
-                          type="number"
+                        {/* Show User Info */}
+                        <LabelToggle
                           onChange={(ev) =>
-                            setFarmersPerWindow(ev.target.value)
+                            dispatchAndConfigureSettings(
+                              "displayUserInfo",
+                              ev.target.checked
+                            )
                           }
-                          placeholder="Farmers Per Window"
-                        />
+                          checked={settings?.displayUserInfo}
+                        >
+                          Display User Info
+                        </LabelToggle>
 
-                        {/* Set Button */}
-                        <ConfirmButton
-                          onClick={() =>
-                            dispatchAndSetFarmersPerWindow(farmersPerWindow)
+                        {/* Show Mini-App Toolbar */}
+                        <LabelToggle
+                          onChange={(ev) =>
+                            dispatchAndConfigureSettings(
+                              "showMiniAppToolbar",
+                              ev.target.checked
+                            )
                           }
-                        />
-                      </div>
+                          checked={settings?.showMiniAppToolbar}
+                        >
+                          Show Mini-App Toolbar
+                        </LabelToggle>
 
-                      {/* Farmer Postion */}
-                      <SettingsLabel>Farmer Position</SettingsLabel>
-                      <div className="flex gap-2">
-                        <Input
-                          value={farmerPosition}
-                          type="number"
-                          onChange={(ev) => setFarmerPosition(ev.target.value)}
-                          placeholder="Farmer Position"
-                        />
+                        {/* Close Other Bots */}
+                        <LabelToggle
+                          onChange={(ev) =>
+                            dispatchAndConfigureSettings(
+                              "closeOtherBots",
+                              ev.target.checked
+                            )
+                          }
+                          checked={settings?.closeOtherBots}
+                        >
+                          Close Other Bots
+                        </LabelToggle>
+                      </SettingsGroup>
 
-                        {/* Set Button */}
-                        <ConfirmButton onClick={handleSetFarmerPosition} />
-                      </div>
-                    </SettingsGroup>
+                      {/* Cloud Options */}
+                      <SettingsGroup id={"cloud"} title={"Cloud Options"}>
+                        {/* Cloud */}
+                        <LabelToggle
+                          onChange={(ev) =>
+                            dispatchAndConfigureSettings(
+                              "enableCloud",
+                              ev.target.checked
+                            )
+                          }
+                          checked={settings?.enableCloud}
+                        >
+                          <span className="flex flex-col">
+                            <span>Enable Cloud</span>
+                            <span className="text-orange-500">
+                              (Access Required)
+                            </span>
+                          </span>
+                        </LabelToggle>
+
+                        {/* Cloud Server */}
+                        <SettingsLabel>Cloud Server</SettingsLabel>
+                        <div className="flex gap-2">
+                          <Input
+                            value={cloudServer}
+                            onChange={(ev) => setCloudServer(ev.target.value)}
+                            placeholder="Cloud Server"
+                          />
+
+                          {/* Reset Button */}
+                          <ResetButton
+                            onClick={() =>
+                              setCloudServer(defaultSettings.cloudServer)
+                            }
+                          />
+
+                          {/* Set Button */}
+                          <ConfirmButton onClick={handleSetCloudServer} />
+                        </div>
+                      </SettingsGroup>
+
+                      {/* Seeker Options */}
+                      <SettingsGroup id={"seeker"} title={"Seeker Options"}>
+                        <Alert variant={"info"}>
+                          Enable Seeker to update your Cloud Server Address
+                          automatically.
+                        </Alert>
+
+                        {/* Cloud Seeker */}
+                        <div className="flex gap-2">
+                          <div className="min-w-0 min-h-0 grow">
+                            <LabelToggle
+                              onChange={(ev) =>
+                                dispatchAndConfigureSettings(
+                                  "enableSeeker",
+                                  ev.target.checked
+                                )
+                              }
+                              checked={settings?.enableSeeker}
+                            >
+                              <span className="flex flex-col">
+                                <span>Enable Seeker</span>
+                              </span>
+                            </LabelToggle>
+                          </div>
+
+                          {/* Seekers */}
+                          <button
+                            onClick={() => tabs.dispatchAndSetValue("seeker")}
+                            type="button"
+                            className={cn(
+                              "shrink-0",
+                              "inline-flex items-center justify-center",
+                              "px-4 rounded-lg shrink-0",
+                              "bg-neutral-100 dark:bg-neutral-700"
+                            )}
+                          >
+                            <HiOutlineListBullet className="w-4 h-4 " />
+                          </button>
+                        </div>
+
+                        {/* Seeker Server */}
+                        <SettingsLabel>Seeker Server</SettingsLabel>
+                        <div className="flex gap-2">
+                          <Input
+                            value={seekerServer}
+                            onChange={(ev) => setSeekerServer(ev.target.value)}
+                            placeholder="Seeker Server"
+                          />
+
+                          {/* Reset Button */}
+                          <ResetButton
+                            onClick={() =>
+                              setSeekerServer(defaultSettings.seekerServer)
+                            }
+                          />
+
+                          {/* Set Button */}
+                          <ConfirmButton onClick={handleSetSeekerServer} />
+                        </div>
+                      </SettingsGroup>
+
+                      {/* PC Options */}
+                      <SettingsGroup id="pc" title="PC Options">
+                        {/* Open Farmer in new Window */}
+                        <LabelToggle
+                          onChange={(ev) =>
+                            dispatchAndConfigureSettings(
+                              "openFarmerInNewWindow",
+                              ev.target.checked
+                            )
+                          }
+                          checked={settings?.openFarmerInNewWindow}
+                        >
+                          Open Farmer in new Window
+                        </LabelToggle>
+
+                        {/* Open Farmer on StartUp */}
+                        <LabelToggle
+                          onChange={(ev) =>
+                            dispatchAndConfigureSettings(
+                              "openFarmerOnStartup",
+                              ev.target.checked
+                            )
+                          }
+                          checked={settings?.openFarmerOnStartup}
+                        >
+                          Open Farmer on Startup
+                        </LabelToggle>
+
+                        {/* Close Main Window on Startup */}
+                        <LabelToggle
+                          onChange={(ev) =>
+                            dispatchAndConfigureSettings(
+                              "closeMainWindowOnStartup",
+                              ev.target.checked
+                            )
+                          }
+                          checked={settings?.closeMainWindowOnStartup}
+                        >
+                          Close Main Window on Startup
+                        </LabelToggle>
+                      </SettingsGroup>
+
+                      {/* Mirror Options */}
+                      <SettingsGroup id="mirror" title={"Mirror Options"}>
+                        <LabelToggle
+                          onChange={(ev) =>
+                            dispatchAndConfigureSettings(
+                              "enableMirror",
+                              ev.target.checked
+                            )
+                          }
+                          checked={settings?.enableMirror}
+                        >
+                          Enable Mirror
+                        </LabelToggle>
+
+                        {/* Mirror Server */}
+                        <SettingsLabel>Mirror Server</SettingsLabel>
+                        <div className="flex gap-2">
+                          <Input
+                            value={mirrorServer}
+                            onChange={(ev) => setMirrorServer(ev.target.value)}
+                            placeholder="Mirror Server"
+                          />
+
+                          {/* Reset Button */}
+                          <ResetButton
+                            onClick={() =>
+                              setMirrorServer(defaultSettings.mirrorServer)
+                            }
+                          />
+
+                          {/* Set Button */}
+                          <ConfirmButton onClick={handleSetMirrorServer} />
+                        </div>
+
+                        {/* Farmers Per Windows */}
+                        <label className="mt-4 text-neutral-400">
+                          Farmers Per Window (Min - 3)
+                        </label>
+                        <div className="flex gap-2">
+                          <Input
+                            value={farmersPerWindow}
+                            type="number"
+                            onChange={(ev) =>
+                              setFarmersPerWindow(ev.target.value)
+                            }
+                            placeholder="Farmers Per Window"
+                          />
+
+                          {/* Set Button */}
+                          <ConfirmButton
+                            onClick={() =>
+                              dispatchAndSetFarmersPerWindow(farmersPerWindow)
+                            }
+                          />
+                        </div>
+
+                        {/* Farmer Postion */}
+                        <SettingsLabel>Farmer Position</SettingsLabel>
+                        <div className="flex gap-2">
+                          <Input
+                            value={farmerPosition}
+                            type="number"
+                            onChange={(ev) =>
+                              setFarmerPosition(ev.target.value)
+                            }
+                            placeholder="Farmer Position"
+                          />
+
+                          {/* Set Button */}
+                          <ConfirmButton onClick={handleSetFarmerPosition} />
+                        </div>
+                      </SettingsGroup>
+                    </SettingsContainer>
                   </form>
                 </Tabs.Content>
 
