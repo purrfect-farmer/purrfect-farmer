@@ -171,12 +171,8 @@ export default function useTelegramClient(mode, session) {
       /** Set Ref */
       ref.current = client;
 
-      if (client) {
-        /** Connect */
-        if (!client.connected) {
-          client.connect();
-        }
-      }
+      /** Connect */
+      client.connect();
 
       return () => {
         client?.destroy();
