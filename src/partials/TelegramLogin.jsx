@@ -1,5 +1,6 @@
 import toast from "react-hot-toast";
 import useAppContext from "@/hooks/useAppContext";
+import { CgSpinner } from "react-icons/cg";
 import { createTelegramClient } from "@/lib/createTelegramClient";
 import { useCallback } from "react";
 import { useEffect } from "react";
@@ -22,6 +23,8 @@ export default function TelegramLogin({
     code: null,
     password: null,
   });
+
+  const [initialized, setInitialized] = useState(mode === "cloud");
 
   const processingRef = useRef({
     resolve: null,
@@ -69,6 +72,9 @@ export default function TelegramLogin({
   const createHandler = useCallback(
     (stage) => () =>
       new Promise((resolve) => {
+        /** Resolve Previous */
+        processingRef.current?.resolve?.();
+
         /** Set Stage */
         setStage(stage);
 
@@ -87,6 +93,11 @@ export default function TelegramLogin({
   /** Run a client in local mode */
   useEffect(() => {
     if (mode === "local") {
+      /** Set Promise */
+      setProcessingResolver().then(() => {
+        setInitialized(true);
+      });
+
       /** Create Client */
       const client = createTelegramClient();
 
@@ -119,36 +130,39 @@ export default function TelegramLogin({
         });
       };
     }
-  }, [mode, createHandler, storeTelegramSession]);
+  }, [
+    mode,
+    createHandler,
+    setInitialized,
+    setProcessingResolver,
+    storeTelegramSession,
+  ]);
 
-  /** Resolve When Stage Changes */
-  useEffect(() => {
-    if (mode === "local") {
-      processingRef.current?.resolve?.();
-    }
-  }, [mode, stage]);
-
-  return stage === "password" ? (
-    <TelegramLoginPasswordForm
-      mode={mode}
-      session={tempSession}
-      handler={handlers.password}
-      onSuccess={handleCloudPasswordConfirmation}
-    />
-  ) : stage === "code" ? (
-    <TelegramLoginCodeForm
-      mode={mode}
-      session={tempSession}
-      handler={handlers.code}
-      onSuccess={handleCloudCodeConfirmation}
-      onError={handleCloudCodeError}
-    />
+  return initialized ? (
+    stage === "password" ? (
+      <TelegramLoginPasswordForm
+        mode={mode}
+        session={tempSession}
+        handler={handlers.password}
+        onSuccess={handleCloudPasswordConfirmation}
+      />
+    ) : stage === "code" ? (
+      <TelegramLoginCodeForm
+        mode={mode}
+        session={tempSession}
+        handler={handlers.code}
+        onSuccess={handleCloudCodeConfirmation}
+        onError={handleCloudCodeError}
+      />
+    ) : (
+      <TelegramLoginPhoneForm
+        mode={mode}
+        session={tempSession}
+        handler={handlers.phone}
+        onSuccess={handleCloudPhoneLogin}
+      />
+    )
   ) : (
-    <TelegramLoginPhoneForm
-      mode={mode}
-      session={tempSession}
-      handler={handlers.phone}
-      onSuccess={handleCloudPhoneLogin}
-    />
+    <CgSpinner className="w-5 h-5 mx-auto animate-spin" />
   );
 }
