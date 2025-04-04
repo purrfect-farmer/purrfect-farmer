@@ -39,8 +39,8 @@ export default memo(function PettFarmer() {
   const shouldSleep =
     isAwake &&
     stats.Energy.value <= 20 &&
-    stats.Clean.value >= 75 &&
-    stats.Hunger.value > 70 &&
+    stats.Clean.value > 50 &&
+    stats.Hunger.value > 30 &&
     stats.Health.value > 50;
 
   /** Sleep */
