@@ -35,12 +35,16 @@ export default function useZoomies(core) {
   const zoomiesDrops = useMemo(
     () =>
       core.drops
+
         .map((item) => ({
           ...item,
           tasks: Object.keys(item.tasks),
         }))
+        .filter(
+          (item) => typeof item.mode === "undefined" || item.mode === farmerMode
+        )
         .filter((item) => item.tasks.length > 0),
-    [core.drops]
+    [farmerMode, core.drops]
   );
 
   /** Quick Run Drops */
