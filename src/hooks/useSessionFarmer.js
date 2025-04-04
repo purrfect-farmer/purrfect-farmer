@@ -10,7 +10,7 @@ import useTabContext from "./useTabContext";
 import useValuesMemo from "./useValuesMemo";
 
 export default function useSessionFarmer() {
-  const { telegramClient } = useAppContext();
+  const { farmerMode, telegramClient } = useAppContext();
   const {
     id,
     title,
@@ -43,17 +43,20 @@ export default function useSessionFarmer() {
 
   /** Start Bot */
   useEffect(() => {
-    messenger.startBot().then((event) => {
-      if (typeof handleStartReply !== "undefined") {
-        handleStartReply(messenger, event).then(() => {
+    if (farmerMode === "session") {
+      messenger.startBot().then((message) => {
+        if (typeof handleStartReply !== "undefined") {
+          handleStartReply(messenger, message).then(() => {
+            setStarted(true);
+          });
+        } else {
           setStarted(true);
-        });
-      } else {
-        setStarted(true);
-      }
-    });
+        }
+      });
+    }
   }, [
     /** Deps */
+    farmerMode,
     messenger,
     handleStartReply,
     setStarted,
