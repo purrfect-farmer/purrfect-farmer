@@ -8,7 +8,7 @@ export default {
   title: "PettAI",
   icon,
   component: createLazyElement(() => import("./Pett")),
-  entity: "pett_ai_bot",
+  entity: "Pett_AI_Delta_Bot",
   startParam: "REF-nKan1OQ",
   handleStartReply(messenger, message) {
     return messenger.waitForReply(() => message.click(0));

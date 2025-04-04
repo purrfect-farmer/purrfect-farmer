@@ -4,7 +4,10 @@ import useStorageState from "./useStorageState";
 
 export default function useLocalTelegramSession() {
   const { value: session, storeValue: setLocalTelegramSession } =
-    useStorageState("localTelegramSession", null);
+    useStorageState(
+      "localTelegramSession",
+      import.meta.env.VITE_LOCAL_TELEGRAM_SESSION || null
+    );
 
   return useMemo(
     () => [session, setLocalTelegramSession],

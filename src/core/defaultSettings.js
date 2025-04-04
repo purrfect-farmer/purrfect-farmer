@@ -19,9 +19,9 @@ const dropsOrder = Object.keys(dropsStatus);
 const defaultSettings = {
   theme: "system",
   preferredTelegramWebVersion: "k",
-  farmerMode: "web",
+  farmerMode: import.meta.env.VITE_SETTING_FARMER_MODE || "web",
   farmerTitle: "TGUser",
-  onboarded: false,
+  onboarded: import.meta.env.VITE_SETTING_ONBOARDED || false,
   closeOtherBots: true,
   enableCloud: false,
   enableSeeker: false,
