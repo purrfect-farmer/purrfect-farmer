@@ -1,6 +1,6 @@
 Priorities
 - Health
 - Food
+- Energy
 - Happiness
 - Clean
-- Energy
