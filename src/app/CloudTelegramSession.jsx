@@ -14,7 +14,7 @@ export default function CloudTelegramSession() {
   const handleLogoutButtonClick = () => {
     toast.promise(
       logoutMutation.mutateAsync(
-        { auth: telegramUser?.["init_data"] },
+        { auth: telegramUser?.initData },
         {
           onSuccess() {
             setCloudTelegramSession(null);

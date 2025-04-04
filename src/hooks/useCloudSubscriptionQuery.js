@@ -5,7 +5,7 @@ import useAppContext from "./useAppContext";
 export default function useCloudSubscriptionQuery(context) {
   const app = useAppContext();
   const { telegramUser, settings, cloudBackend } = context || app;
-  const initData = telegramUser?.["init_data"];
+  const initData = telegramUser?.initData;
   const enabled = settings.enableCloud && Boolean(initData);
 
   return useQuery({

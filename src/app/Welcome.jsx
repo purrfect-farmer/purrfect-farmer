@@ -299,7 +299,10 @@ export default memo(function Welcome() {
           {/* Display User */}
           {telegramUser && settings.displayUserInfo ? (
             <div className="px-2">
-              <TelegramUser user={telegramUser} className="max-w-xs mx-auto" />
+              <TelegramUser
+                user={telegramUser.user}
+                className="max-w-xs mx-auto"
+              />
             </div>
           ) : null}
 

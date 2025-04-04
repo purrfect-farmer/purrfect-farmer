@@ -6,7 +6,7 @@ import { useContext } from "react";
 
 export default function CloudSubscription() {
   const { telegramUser, settings } = useContext(AppContext);
-  const initData = telegramUser?.["init_data"];
+  const initData = telegramUser?.initData;
   const enabled = settings.enableCloud && Boolean(initData);
 
   const { status, data } = useCloudSubscriptionQuery();

@@ -37,7 +37,7 @@ export default memo(function PayForCloud() {
   const handleFormSubmit = async ({ email }) => {
     const transaction = await paymentInitializationMutation.mutateAsync({
       email,
-      auth: telegramUser?.["init_data"],
+      auth: telegramUser?.initData,
     });
 
     /** Log Transaction */
@@ -78,7 +78,7 @@ export default memo(function PayForCloud() {
             </Alert>
 
             {/* Telegram User */}
-            <TelegramUser user={telegramUser} className="rounded-lg" />
+            <TelegramUser user={telegramUser.user} className="rounded-lg" />
 
             {/* Successful Redirection */}
             {paymentInitializationMutation.isSuccess ? (

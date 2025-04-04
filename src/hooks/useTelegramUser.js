@@ -1,4 +1,6 @@
+import { extractInitDataUnsafe } from "@/lib/utils";
 import { useCallback } from "react";
+import { useEffect } from "react";
 import { useMemo } from "react";
 
 import useMessageHandlers from "./useMessageHandlers";
@@ -6,18 +8,27 @@ import useStorageState from "./useStorageState";
 import { BOT_TELEGRAM_WEB_APP_ACTION } from "./useCore";
 
 export default function useTelegramUser(core) {
-  const { value: telegramUser, storeValue: storeTelegramUser } =
-    useStorageState("telegramUser", null);
+  const { farmerMode, messaging, telegramClient } = core;
+  const { value: telegramInitData, storeValue: storeTelegramInitData } =
+    useStorageState("telegramInitData", null);
 
-  /** Configure User */
-  const configureUser = useCallback(
+  const telegramUser = useMemo(
+    () =>
+      telegramInitData
+        ? {
+            user: extractInitDataUnsafe(telegramInitData).user,
+            initData: telegramInitData,
+          }
+        : null,
+    [telegramInitData]
+  );
+
+  /** Configure InitData */
+  const configureInitData = useCallback(
     ({ telegramWebApp }) => {
-      storeTelegramUser({
-        ...telegramWebApp.initDataUnsafe.user,
-        ["init_data"]: telegramWebApp.initData,
-      });
+      storeTelegramInitData(telegramWebApp.initData);
     },
-    [storeTelegramUser]
+    [storeTelegramInitData]
   );
 
   /** Handler */
@@ -25,13 +36,29 @@ export default function useTelegramUser(core) {
     useMemo(
       () => ({
         [BOT_TELEGRAM_WEB_APP_ACTION]: (message) => {
-          configureUser(message.data);
+          configureInitData(message.data);
         },
       }),
-      [configureUser]
+      [configureInitData]
     ),
-    core.messaging
+    messaging
   );
+
+  /** Get TelegramWebApp */
+  useEffect(() => {
+    if (farmerMode === "session" && telegramInitData === null) {
+      telegramClient
+        .getTelegramWebApp(import.meta.env.VITE_APP_BOT_MINI_APP)
+        .then((telegramWebApp) => {
+          configureInitData({ telegramWebApp });
+        });
+    }
+  }, [
+    farmerMode,
+    telegramInitData,
+    telegramClient.getTelegramWebApp,
+    configureInitData,
+  ]);
 
   return telegramUser;
 }
