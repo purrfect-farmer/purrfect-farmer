@@ -13,7 +13,5 @@ export default {
   handleStartReply(messenger, message) {
     return messenger.waitForReply(() => message.click(0));
   },
-  tasks: {
-    ["game"]: true,
-  },
+  tasks: {},
 };
