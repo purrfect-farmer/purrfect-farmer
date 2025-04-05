@@ -7,11 +7,13 @@ import useApp from "@/hooks/useApp";
 import useCloudSessionCheck from "@/hooks/useCloudSessionCheck";
 import useMiniAppToolbar from "@/hooks/useMiniAppToolbar";
 import useSeeker from "@/hooks/useSeeker";
+import useTelegramWebAppEvents from "@/hooks/useTelegramWebAppEvents";
 import useTheme from "@/hooks/useTheme";
+import useWakeLock from "@/hooks/useWakeLock";
 import { Toaster } from "react-hot-toast";
 import { memo } from "react";
+
 import Onboarding from "./Onboarding";
-import useWakeLock from "@/hooks/useWakeLock";
 
 function App() {
   const app = useApp();
@@ -27,6 +29,9 @@ function App() {
 
   /** Use Toolbar */
   useMiniAppToolbar(app);
+
+  /** Use TelegramWebApp Events */
+  useTelegramWebAppEvents(app);
 
   /** Apply Theme */
   useTheme(theme);

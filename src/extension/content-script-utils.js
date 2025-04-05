@@ -11,6 +11,10 @@ export const core = {
   document: {
     createElement: document.createElement.bind(document),
   },
+  console: {
+    log: console.log.bind(console),
+  },
+  parent: window.parent,
   Promise: {
     race: Promise.race.bind(Promise),
   },

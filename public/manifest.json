@@ -106,6 +106,6 @@
     "sandbox": "sandbox allow-scripts allow-forms allow-popups allow-modals;"
   },
   "sandbox": {
-    "pages": ["browser-sandbox.html"]
+    "pages": []
   }
 }

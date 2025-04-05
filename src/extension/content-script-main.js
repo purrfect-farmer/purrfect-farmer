@@ -46,6 +46,30 @@ if (location.hash.includes("tgWebAppData")) {
     });
   };
 
+  /** Override Parent */
+  window.parent = new Proxy(window.parent, {
+    get(target, p) {
+      if (p === "postMessage") {
+        return (...args) => {
+          const inputs = [...args];
+
+          if (inputs.length > 1) {
+            if (typeof inputs[1] === "object") {
+              inputs[1].targetOrigin = "*";
+            } else {
+              inputs[1] = "*";
+            }
+          }
+          target.postMessage(...inputs);
+        };
+      } else if (typeof target[p] === "function") {
+        return target[p].bind(target);
+      }
+
+      return target[p];
+    },
+  });
+
   /** Replace Platform */
   ["webk", "weba", "web"].forEach((platform) => {
     location.hash = location.hash.replace(
