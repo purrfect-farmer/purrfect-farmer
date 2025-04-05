@@ -1,4 +1,7 @@
+import BrowserIcon from "@/assets/images/browser.png?w=80&format=webp";
 import TabContext from "@/contexts/TabContext";
+import TelegramWebAIcon from "@/assets/images/telegram-web-a.png?format=webp&w=80";
+import TelegramWebKIcon from "@/assets/images/telegram-web-k.png?format=webp&w=80";
 import useAppContext from "@/hooks/useAppContext";
 import { ErrorBoundary } from "react-error-boundary";
 import { Suspense, memo } from "react";
@@ -8,7 +11,8 @@ import ErrorFallback from "./ErrorFallback";
 import FullSpinner from "./FullSpinner";
 
 export default memo(function TabContent({ tab }) {
-  const { dispatchAndOpenTelegramBot } = useAppContext();
+  const { settings, preferredTelegramWebVersion, dispatchAndOpenTelegramBot } =
+    useAppContext();
 
   return (
     <TabContext.Provider value={tab}>
@@ -22,7 +26,12 @@ export default memo(function TabContent({ tab }) {
         {/* Open Telegram Link Button */}
         {tab.telegramLink ? (
           <button
-            className="p-3 font-bold text-blue-500 border-b dark:text-blue-300 dark:border-neutral-700"
+            className={cn(
+              "flex items-center justify-center gap-2",
+              "h-10 font-bold",
+              "text-blue-500 dark:text-blue-300",
+              "border-b dark:border-neutral-700"
+            )}
             onClick={() =>
               dispatchAndOpenTelegramBot(tab.telegramLink, {
                 browserId: tab.id,
@@ -32,6 +41,16 @@ export default memo(function TabContent({ tab }) {
               })
             }
           >
+            <img
+              src={
+                tab.embedWebPage && settings.enableInAppBrowser
+                  ? BrowserIcon
+                  : preferredTelegramWebVersion === "k"
+                  ? TelegramWebKIcon
+                  : TelegramWebAIcon
+              }
+              className="size-5 shrink-0"
+            />
             Open Bot
           </button>
         ) : null}
