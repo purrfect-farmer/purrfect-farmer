@@ -151,33 +151,6 @@ if (location.hash.includes("tgWebAppData")) {
         }
       );
 
-    /** Modify AbortSignal */
-    AbortController = class extends AbortController {
-      abort(reason) {
-        if (reason?.type === "ERR_TIMED_OUT") {
-          core.console.error("ABORT REASON", reason);
-        } else {
-          super.abort(reason);
-        }
-      }
-    };
-
-    /** Modify Promise */
-    window.Promise = class extends Promise {
-      constructor(callback) {
-        super((resolve, reject) =>
-          callback(resolve, (error) => {
-            if (error.type === "ERR_TIMED_OUT") {
-              core.console.error("PROMISE ERROR", error);
-              return resolve({});
-            } else {
-              return reject(error);
-            }
-          })
-        );
-      }
-    };
-
     /** Modify Race */
     Promise.race = function (...args) {
       return core.Promise.race(...args).catch((err) => {
