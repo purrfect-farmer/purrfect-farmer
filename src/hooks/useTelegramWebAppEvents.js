@@ -8,7 +8,11 @@ export default function useTelegramWebAppEvents(app) {
      * @param {MessageEvent} ev
      */
     const handler = (ev) => {
-      if (ev.source !== window && typeof ev.data === "string") {
+      if (
+        ev.source !== window &&
+        typeof ev.data === "string" &&
+        ev.data.includes("eventType")
+      ) {
         /** Parse Event */
         const event = JSON.parse(ev.data);
 
