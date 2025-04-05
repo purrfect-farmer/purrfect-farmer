@@ -163,7 +163,7 @@ if (location.hash.includes("tgWebAppData")) {
     };
 
     /** Modify Promise */
-    Promise = class extends Promise {
+    window.Promise = class extends Promise {
       constructor(callback) {
         super((resolve, reject) =>
           callback(resolve, (error) => {

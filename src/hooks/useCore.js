@@ -737,7 +737,7 @@ export default function useCore() {
         browserId,
         browserTitle,
         browserIcon,
-        embedWebPage = false,
+        embedWebPage = import.meta.env.DEV,
         force = false,
       } = {}
     ) => {
