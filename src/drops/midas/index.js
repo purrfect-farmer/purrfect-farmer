@@ -14,6 +14,7 @@ export default {
   apiOptions: {
     withCredentials: true,
   },
+  embedWebPage: true,
 
   /**
    * Fetch Auth

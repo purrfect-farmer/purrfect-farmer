@@ -10,6 +10,7 @@ export default {
   telegramLink:
     "https://t.me/battle_games_com_bot/start?startapp=frndId1147265290",
   host: "tg.battle-games.com",
+  embedWebPage: true,
   cacheAuth: false,
 
   /**

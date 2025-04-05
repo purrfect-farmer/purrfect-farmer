@@ -6,7 +6,7 @@ export default memo(function Browser({ url }) {
       src={url}
       className="w-full h-full border-0 outline-0"
       referrerPolicy="no-referrer"
-      allow="geolocation; microphone; camera; fullscreen; payment"
+      allow="geolocation; microphone; accelerometer; camera; fullscreen; payment"
     />
   );
 });

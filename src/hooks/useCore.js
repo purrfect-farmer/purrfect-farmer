@@ -1,6 +1,5 @@
 import axios from "axios";
 import defaultSettings from "@/core/defaultSettings";
-import md5 from "md5";
 import toast from "react-hot-toast";
 import tabs, { Browser, TelegramWeb, farmers } from "@/core/tabs";
 import { createElement } from "react";
@@ -735,25 +734,29 @@ export default function useCore() {
       url,
       {
         version = preferredTelegramWebVersion,
+        browserId,
+        browserTitle,
+        browserIcon,
         embedWebPage = false,
         force = false,
       } = {}
     ) => {
       try {
-        if (farmerMode === "session" && embedWebPage === true) {
+        if (
+          farmerMode === "session" &&
+          embedWebPage === true &&
+          settings.enableInAppBrowser === true
+        ) {
           toast.promise(
             (async function () {
-              const { entity, profilePhoto } = await telegramClient.getEntity(
-                url
-              );
               const webview = await telegramClient.getWebview(url);
 
               /** Push the tab */
               pushTab(
                 {
-                  id: `browser-${md5(entity.username)}`,
-                  title: entity.firstName,
-                  icon: profilePhoto,
+                  id: `browser-${browserId}`,
+                  title: browserTitle,
+                  icon: browserIcon,
                   component: createElement(Browser, {
                     url: webview.url,
                   }),
@@ -798,6 +801,7 @@ export default function useCore() {
       pushTab,
       farmerMode,
       messaging.ports,
+      settings.enableInAppBrowser,
       telegramClient.getEntity,
       telegramClient.getWebview,
       preferredTelegramWebVersion,
@@ -827,6 +831,7 @@ export default function useCore() {
     userAgent,
     localTelegramSession,
     cloudTelegramSession,
+    preferredTelegramWebVersion,
 
     /** App Methods */
     shutdown,

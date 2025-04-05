@@ -10,6 +10,7 @@ export default {
   telegramLink: "https://t.me/cexio_tap_bot?start=1717159919141996",
   host: "app.cexptap.com",
   authHeaders: ["x-appl-version", "x-request-userhash"],
+  embedWebPage: true,
   cacheAuth: false,
 
   /**

@@ -4,6 +4,7 @@ import { createTelegramClient } from "@/lib/createTelegramClient";
 import {
   customLogger,
   extractTgWebAppData,
+  isTelegramLink,
   parseTelegramLink,
 } from "@/lib/utils";
 import { useCallback, useLayoutEffect } from "react";
@@ -34,7 +35,7 @@ export default function useTelegramClient(mode, session) {
     /**
      * @param {import("telegram").TelegramClient} client
      */
-    (client, entity) =>
+    (client, entity, { filter } = {}) =>
       new Promise((resolve) => {
         /** Event to Handle */
         const eventToHandle = new NewMessage({
@@ -45,9 +46,12 @@ export default function useTelegramClient(mode, session) {
          * @param {import("telegram/events").NewMessageEvent} event
          */
         const handler = (event) => {
-          client.removeEventHandler(handler, eventToHandle);
           customLogger("BOT RECEIVED MESSAGE", event);
-          resolve(event);
+
+          if (typeof filter === "undefined" || filter(event.message)) {
+            client.removeEventHandler(handler, eventToHandle);
+            resolve(event.message);
+          }
         };
 
         /** Add Event */
@@ -61,7 +65,7 @@ export default function useTelegramClient(mode, session) {
     /**
      * @param {import("telegram").TelegramClient} client
      */
-    async (client, { entity, startParam = "" }) => {
+    async (client, { entity, startParam = "" }, replyOptions) => {
       /** Start the Bot */
       const result = await client.invoke(
         new Api.messages.StartBot({
@@ -75,40 +79,48 @@ export default function useTelegramClient(mode, session) {
       customLogger("START BOT", result);
 
       /** Wait for Reply */
-      return waitForReply(client, entity);
+      return waitForReply(client, entity, replyOptions);
     },
     [waitForReply]
   );
 
   /** Start Bot */
   const startBot = useCallback(
-    ({ entity, startParam = "" }) =>
+    ({ entity, startParam = "" }, replyOptions) =>
       execute(
         /**
          * @param {import("telegram").TelegramClient} client
          */
         (client) =>
-          baseStartBot(client, {
-            entity,
-            startParam,
-          })
+          baseStartBot(
+            client,
+            {
+              entity,
+              startParam,
+            },
+            replyOptions
+          )
       ),
     [execute, baseStartBot]
   );
 
   /** Start Bot from Link */
   const startBotFromLink = useCallback(
-    (link) =>
+    (link, replyOptions) =>
       execute(
         /**
          * @param {import("telegram").TelegramClient} client
          */
         (client) => {
           const { entity, startParam } = parseTelegramLink(link);
-          return baseStartBot(client, {
-            entity,
-            startParam,
-          });
+          return baseStartBot(
+            client,
+            {
+              entity,
+              startParam,
+            },
+            replyOptions
+          );
         }
       ),
     [execute, baseStartBot]
@@ -152,19 +164,73 @@ export default function useTelegramClient(mode, session) {
          * @param {import("telegram").TelegramClient} client
          */
         async (client) => {
-          const parsed = parseTelegramLink(link);
+          let parsed = parseTelegramLink(link);
+          let url;
+          const themeParams = new Api.DataJSON({
+            data: JSON.stringify({
+              bg_color: "#ffffff",
+              text_color: "#000000",
+              hint_color: "#aaaaaa",
+              link_color: "#006aff",
+              button_color: "#2cab37",
+              button_text_color: "#ffffff",
+            }),
+          });
 
           /** Start the Bot */
           if (!parsed.shortName) {
-            await baseStartBot(client, {
-              entity: parsed.entity,
-              startParam: parsed.startParam,
-            });
+            await baseStartBot(
+              client,
+              {
+                entity: parsed.entity,
+                startParam: parsed.startParam,
+              },
+              {
+                filter(message) {
+                  const buttons = message
+                    ? message.buttons
+                        .flat()
+                        .map((item) => item.button)
+                        .filter((button) => Boolean(button.url))
+                    : null;
+
+                  if (buttons) {
+                    for (const button of buttons) {
+                      if (isTelegramLink(button.url) === false) {
+                        url = button.url;
+                        return true;
+                      } else {
+                        const parsedTelegramLink = parseTelegramLink(
+                          button.url
+                        );
+
+                        if (
+                          parsed.entity.toLowerCase() ===
+                            parsedTelegramLink.entity.toLowerCase() &&
+                          parsedTelegramLink.shortName
+                        ) {
+                          parsed.shortName = parsedTelegramLink.shortName;
+                          return true;
+                        }
+                      }
+                    }
+                  }
+                },
+              }
+            );
           }
 
           const result = await client.invoke(
-            parsed.shortName
-              ? new Api.messages.RequestAppWebView({
+            url
+              ? new Api.messages.RequestWebView({
+                  url,
+                  platform: "android",
+                  bot: parsed.entity,
+                  peer: parsed.entity,
+                  startParam: parsed.startParam,
+                  themeParams,
+                })
+              : new Api.messages.RequestAppWebView({
                   platform: "android",
                   peer: parsed.entity,
                   startParam: parsed.startParam,
@@ -172,12 +238,7 @@ export default function useTelegramClient(mode, session) {
                     botId: await client.getInputEntity(parsed.entity),
                     shortName: parsed.shortName,
                   }),
-                })
-              : new Api.messages.RequestMainWebView({
-                  platform: "android",
-                  bot: parsed.entity,
-                  peer: parsed.entity,
-                  startParam: parsed.startParam,
+                  themeParams,
                 })
           );
 

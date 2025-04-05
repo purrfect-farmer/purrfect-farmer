@@ -9,6 +9,7 @@ export default {
   component: createLazyElement(() => import("./Yescoin")),
   telegramLink: "https://t.me/theYescoin_bot/Yescoin?startapp=bH7bto",
   host: "www.yescoin.fun",
+  embedWebPage: true,
   authHeaders: ["token"],
 
   /**

@@ -25,6 +25,9 @@ export default memo(function TabContent({ tab }) {
             className="p-3 font-bold text-blue-500 border-b dark:text-blue-300 dark:border-neutral-700"
             onClick={() =>
               dispatchAndOpenTelegramBot(tab.telegramLink, {
+                browserId: tab.id,
+                browserTitle: tab.title,
+                browserIcon: tab.icon,
                 embedWebPage: tab.embedWebPage,
               })
             }

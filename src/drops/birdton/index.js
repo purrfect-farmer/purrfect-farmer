@@ -9,6 +9,7 @@ export default {
   component: createLazyElement(() => import("./BirdTon")),
   telegramLink: "https://t.me/BIRDTonBot/app?startapp=1147265290",
   host: "birdton.site",
+  embedWebPage: true,
   cacheAuth: false,
 
   /** Start Manually */

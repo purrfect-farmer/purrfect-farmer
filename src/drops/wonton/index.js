@@ -12,6 +12,7 @@ export default {
     "https://t.me/WontonOrgBot/gameapp?startapp=referralCode=K45JQRG7",
   host: "www.wonton.restaurant",
   apiDelay: 3000,
+  embedWebPage: true,
 
   /**
    * Fetch Auth

@@ -11,7 +11,13 @@ import { useMemo } from "react";
 import NotgramIcon from "../assets/images/icon.png?format=webp&w=80";
 
 export default memo(function NotgramFarmer() {
-  const { setActiveTab, settings, joinTelegramLink } = useAppContext();
+  const {
+    farmerMode,
+    setActiveTab,
+    joinTelegramLink,
+    preferredTelegramWebVersion,
+  } = useAppContext();
+
   const { id, port, host } = useFarmerContext();
   const process = useProcessLock("notgram.tasks");
 
@@ -55,11 +61,13 @@ export default memo(function NotgramFarmer() {
     }).then(() => {
       setActiveTab(
         process.started
-          ? `telegram-web-${settings.preferredTelegramWebVersion}`
+          ? farmerMode === "session"
+            ? "browser-notgram"
+            : `telegram-web-${preferredTelegramWebVersion}`
           : id
       );
     });
-  }, [id, process.started, port, setActiveTab, settings.preferredTelegramWebVersion]);
+  }, [id, farmerMode, process.started, port, setActiveTab, preferredTelegramWebVersion]);
 
   return (
     <div className="flex flex-col gap-4 p-4">

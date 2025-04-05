@@ -400,6 +400,19 @@ export default memo(function Settings({ tabs }) {
                           ))}
                         </div>
 
+                        {/* Enable In-App Browser */}
+                        <LabelToggle
+                          onChange={(ev) =>
+                            dispatchAndConfigureSettings(
+                              "enableInAppBrowser",
+                              ev.target.checked
+                            )
+                          }
+                          checked={settings?.enableInAppBrowser}
+                        >
+                          Enable In-App Browser
+                        </LabelToggle>
+
                         {/* Show User Info */}
                         <LabelToggle
                           onChange={(ev) =>
