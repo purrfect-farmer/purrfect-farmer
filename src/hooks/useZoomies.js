@@ -194,7 +194,13 @@ export default function useZoomies(core) {
       if (farmerMode === "web" || current.drop?.usesPort) {
         core.setActiveTab(current.drop?.id);
         core.closeOtherBots();
-        core.openTelegramBot(current.drop.telegramLink, { force });
+        core.openTelegramBot(current.drop.telegramLink, {
+          force,
+          browserId: current.drop.id,
+          browserTitle: current.drop.title,
+          browserIcon: current.drop.icon,
+          embedWebPage: current.drop.embedWebPage,
+        });
       }
     },
     [
