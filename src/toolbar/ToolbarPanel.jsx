@@ -44,26 +44,29 @@ const Container = styled.div`
   bottom: 100%;
 `;
 
+const BaseButton = styled.button`
+  box-sizing: border-box;
+  background-color: transparent;
+  cursor: pointer;
+  border-radius: 999px;
+  border: 0px;
+  outline: 0px;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+`;
+
 const Image = styled.img`
   border-radius: 999px;
   width: 36px;
   height: 36px;
-  cursor: pointer;
 `;
 
-const Button = styled.button`
-  box-sizing: border-box;
+const Button = styled(BaseButton)`
   background-color: #262626;
   color: white;
-  border-radius: 999px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 36px;
-  height: 36px;
-  border: 0px;
-  outline: 0px;
-  cursor: pointer;
   font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
     Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
 
@@ -167,12 +170,12 @@ export default function ToolbarPanel() {
           nodeRef={nodeRef}
         >
           <Container ref={nodeRef}>
-            <button onClick={() => dispatchAndSetShowFullUi(!showFullUi)}>
+            <BaseButton onClick={() => dispatchAndSetShowFullUi(!showFullUi)}>
               <Image
                 src={showFullUi ? AppIcon : MinimizedAppIcon}
                 draggable={false}
               />
-            </button>
+            </BaseButton>
 
             {/* Toggle Clicker */}
             <Button
