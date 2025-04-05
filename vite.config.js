@@ -62,10 +62,8 @@ export default defineConfig(({ mode }) => {
     plugins: [
       /** Plugins */
       nodePolyfills({
-        include: [],
         globals: {
-          global: true,
-          process: true,
+          Buffer: false,
         },
       }),
       ViteEjsPlugin(env),
