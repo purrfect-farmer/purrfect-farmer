@@ -12,6 +12,7 @@ export default {
   telegramLink: "https://t.me/rektme_bot/rektapp?startapp=UJ740H",
   host: "rekt-mini-app.vercel.app",
   authHeaders: ["auth-token"],
+  embedWebPage: true,
   cacheAuth: false,
 
   /**
