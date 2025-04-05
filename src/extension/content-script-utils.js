@@ -13,6 +13,8 @@ export const core = {
   },
   console: {
     log: console.log.bind(console),
+    error: console.error.bind(console),
+    warn: console.warn.bind(console),
   },
   parent: window.parent,
   Promise: {

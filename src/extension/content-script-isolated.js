@@ -2,7 +2,7 @@ import { getUserAgent, uuid } from "@/lib/utils";
 
 import { decryptData, encryptData } from "./content-script-utils";
 
-if (location.hash.includes("tgWebAppData")) {
+if (/tgWebAppPlatform=android/.test(location.href)) {
   /** Initial Location Href */
   const initLocationHref = location.href;
 

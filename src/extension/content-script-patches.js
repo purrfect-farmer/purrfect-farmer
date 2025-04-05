@@ -1,6 +1,6 @@
 import { core } from "./content-script-utils";
 
-if (location.hash.includes("tgWebAppData")) {
+if (/tgWebAppPlatform=android/.test(location.href)) {
   switch (location.host) {
     /** Bypass KittyVerse on Desktop */
     case "play.kittyverse.ai":

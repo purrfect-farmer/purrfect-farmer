@@ -22,7 +22,7 @@ const defaultSettings = {
   farmerTitle: "TGUser",
   onboarded: import.meta.env.VITE_SETTING_ONBOARDED || false,
   closeOtherBots: true,
-  enableInAppBrowser: false,
+  enableInAppBrowser: true,
   enableCloud: false,
   enableSeeker: false,
   enableMirror: false,

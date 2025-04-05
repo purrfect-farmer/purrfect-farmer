@@ -7,7 +7,7 @@ import { getSettings } from "@/lib/utils";
 const INITIAL_HOST = location.host;
 const INITIAL_LOCATION = location.href;
 
-if (location.hash.includes("tgWebAppData")) {
+if (/tgWebAppPlatform=android/.test(location.href)) {
   /** Connect to Messaging */
   const port = chrome.runtime.connect(chrome.runtime.id, {
     name: `mini-app-toolbar:${location.host}`,
