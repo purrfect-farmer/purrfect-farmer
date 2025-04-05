@@ -1,3 +1,4 @@
+import { customLogger } from "@/lib/utils";
 import { useEffect } from "react";
 
 export default function useTelegramWebAppEvents(app) {
