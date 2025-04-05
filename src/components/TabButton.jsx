@@ -1,3 +1,4 @@
+import BrowserIcon from "@/assets/images/browser.png?w=80&format=webp";
 import useAppContext from "@/hooks/useAppContext";
 import { HiOutlineArrowPath, HiOutlineXMark } from "react-icons/hi2";
 import { cn } from "@/lib/utils";
@@ -67,6 +68,12 @@ export default memo(function TabButton({
       {/* Icon */}
       <div className="relative shrink-0">
         <img src={tab.icon} className="rounded-full w-7 h-7" />
+        {tab.id.startsWith("browser") ? (
+          <img
+            src={BrowserIcon}
+            className="absolute size-5 right-0 bottom-0 translate-x-1 translate-y-0.5"
+          />
+        ) : null}
         {showMirrorStatus ? (
           <span
             className={cn(

@@ -1,12 +1,7 @@
 import { memo } from "react";
 
+import Browser from "./Browser";
+
 export default memo(function TelegramWeb({ version, hash = "" }) {
-  return (
-    <iframe
-      src={`https://web.telegram.org/${version}${hash}`}
-      className="w-full h-full border-0 outline-0"
-      referrerPolicy="no-referrer"
-      allow="geolocation; microphone; camera; fullscreen; payment"
-    />
-  );
+  return <Browser url={`https://web.telegram.org/${version}${hash}`} />;
 });

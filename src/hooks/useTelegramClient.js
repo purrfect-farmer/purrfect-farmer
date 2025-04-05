@@ -114,6 +114,36 @@ export default function useTelegramClient(mode, session) {
     [execute, baseStartBot]
   );
 
+  /** Get Entity */
+  const getEntity = useCallback(
+    (link) =>
+      execute(
+        /**
+         * @param {import("telegram").TelegramClient} client
+         */
+        async (client) => {
+          const parsed = parseTelegramLink(link);
+          const entity = await client.getEntity(parsed.entity);
+          const buffer = await client.downloadProfilePhoto(entity, {
+            isBig: false,
+          });
+          const result = {
+            entity,
+            profilePhoto: `data:image/jpeg;base64,${buffer.toString("base64")}`,
+          };
+
+          /** Entity */
+          customLogger("ENTITY", {
+            link,
+            result,
+          });
+
+          return result;
+        }
+      ),
+    [execute]
+  );
+
   /** Get Webview */
   const getWebview = useCallback(
     (link) =>
@@ -249,6 +279,7 @@ export default function useTelegramClient(mode, session) {
     waitForReply,
     startBot,
     startBotFromLink,
+    getEntity,
     getWebview,
     getTelegramWebApp,
     joinTelegramLink,

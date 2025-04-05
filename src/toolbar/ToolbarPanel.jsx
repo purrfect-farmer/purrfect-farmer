@@ -167,11 +167,12 @@ export default function ToolbarPanel() {
           nodeRef={nodeRef}
         >
           <Container ref={nodeRef}>
-            <Image
-              src={showFullUi ? AppIcon : MinimizedAppIcon}
-              onClick={() => dispatchAndSetShowFullUi(!showFullUi)}
-              draggable={false}
-            />
+            <button onClick={() => dispatchAndSetShowFullUi(!showFullUi)}>
+              <Image
+                src={showFullUi ? AppIcon : MinimizedAppIcon}
+                draggable={false}
+              />
+            </button>
 
             {/* Toggle Clicker */}
             <Button

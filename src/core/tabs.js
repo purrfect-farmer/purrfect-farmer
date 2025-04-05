@@ -10,6 +10,7 @@ import { lazy } from "react";
 import farmers from "./farmers";
 
 export const Welcome = lazy(() => import("@/app/Welcome"));
+export const Browser = lazy(() => import("@/app/Browser"));
 export const TelegramWeb = lazy(() => import("@/app/TelegramWeb"));
 export const PayForCloud = lazy(() => import("@/app/PayForCloud"));
 export const CloudManager = lazy(() => import("@/app/CloudManager"));

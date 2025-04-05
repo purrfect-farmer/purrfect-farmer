@@ -53,10 +53,12 @@ export default function useTelegramWebApp({
           setPort(port);
         },
         [`set-telegram-web-app:${host}`]: (message, port) => {
-          configureTelegramWebApp(message, port);
+          if (telegramWebApp === null) {
+            configureTelegramWebApp(message, port);
+          }
         },
       }),
-      [host, configureTelegramWebApp, setPort]
+      [host, telegramWebApp, configureTelegramWebApp, setPort]
     )
   );
 

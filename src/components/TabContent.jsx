@@ -23,7 +23,11 @@ export default memo(function TabContent({ tab }) {
         {tab.telegramLink ? (
           <button
             className="p-3 font-bold text-blue-500 border-b dark:text-blue-300 dark:border-neutral-700"
-            onClick={() => dispatchAndOpenTelegramBot(tab.telegramLink)}
+            onClick={() =>
+              dispatchAndOpenTelegramBot(tab.telegramLink, {
+                embedWebPage: tab.embedWebPage,
+              })
+            }
           >
             Open Bot
           </button>
