@@ -33,7 +33,7 @@ export default memo(function BirdTonFarmer() {
         toast.success("BirdTon - Daily Reward");
       }
     },
-    [user?.["can_claim_daily"]]
+    []
   );
 
   /** Switch Tab Automatically */
