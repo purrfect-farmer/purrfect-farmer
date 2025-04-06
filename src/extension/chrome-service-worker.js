@@ -133,7 +133,7 @@ const setupExtension = async () => {
 /** Setup Service Worker */
 const setupServiceWorker = async () => {
   /** Log */
-  customLogger("SETUP SERVICE WORKER", Date.now());
+  customLogger("SETUP-SERVICE WORKER", Date.now());
 
   /** Setup Extension */
   await setupExtension();
@@ -142,18 +142,28 @@ const setupServiceWorker = async () => {
   const { openFarmerInNewWindow, openFarmerOnStartup } = await getSettings();
 
   /** Was Startup Invoked */
-  const { onStartupInvoked } = await chrome.storage.session.get({
-    onStartupInvoked: false,
-  });
+  const { onStartupInvoked, onInstalledInvoked } =
+    await chrome.storage.session.get({
+      onInstalledInvoked: false,
+      onStartupInvoked: false,
+    });
 
   /** Log Result */
-  customLogger("STARTUP WAS INVOKED", onStartupInvoked);
+  customLogger("ON-STARTUP WAS INVOKED", onStartupInvoked);
+  customLogger("ON-INSTALLED WAS INVOKED", onInstalledInvoked);
 
-  if (
-    openFarmerInNewWindow &&
-    (onStartupInvoked === false || openFarmerOnStartup)
-  ) {
-    await openFarmerWindow();
+  if (openFarmerInNewWindow) {
+    if (onStartupInvoked === false || openFarmerOnStartup) {
+      await openFarmerWindow();
+    }
+  } else {
+    if (onStartupInvoked === false && onInstalledInvoked === false) {
+      try {
+        await chrome.sidePanel.open();
+      } catch (e) {
+        console.error(e);
+      }
+    }
   }
 
   /** Store Setup Completion Time */
@@ -162,15 +172,15 @@ const setupServiceWorker = async () => {
   });
 };
 
-/** Open Farmer on Startup */
+/** onStartup */
 chrome.runtime.onStartup.addListener(async () => {
-  /** Log StartUp Invoked */
+  /** Log onStartUp Invoked */
   await chrome.storage.session.set({
     onStartupInvoked: true,
   });
 
   /** Log */
-  customLogger("STARTUP INVOKED", Date.now());
+  customLogger("ON-STARTUP INVOKED", Date.now());
 
   /** Handle Storage Change */
   const handleStorageChange = async (changes) => {
@@ -220,6 +230,17 @@ chrome.runtime.onStartup.addListener(async () => {
 
   /** Add Listener for Storage Change */
   chrome.storage.session.onChanged.addListener(handleStorageChange);
+});
+
+/** onInstalled  */
+chrome.runtime.onInstalled.addListener(async () => {
+  /** Log onInstalled Invoked */
+  await chrome.storage.session.set({
+    onInstalledInvoked: true,
+  });
+
+  /** Log */
+  customLogger("ON-INSTALLED INVOKED", Date.now());
 });
 
 /** Watch Storage for Settings Change */
