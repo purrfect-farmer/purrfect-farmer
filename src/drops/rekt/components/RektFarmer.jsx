@@ -1,11 +1,11 @@
-import { Tabs } from "radix-ui";
 import toast from "react-hot-toast";
 import useFarmerAsyncTask from "@/hooks/useFarmerAsyncTask";
 import useFarmerAutoTab from "@/hooks/useFarmerAutoTab";
 import useMirroredTabs from "@/hooks/useMirroredTabs";
+import { Tabs } from "radix-ui";
 import { cn, delay } from "@/lib/utils";
 import { isAfter, subHours } from "date-fns";
-import { memo } from "react";
+import { memo, useMemo } from "react";
 
 import RektAutoGame from "./RektAutoGame";
 import RektAutoQuests from "./RektAutoQuests";
@@ -32,6 +32,13 @@ export default memo(function RektFarmer() {
   const unclaimedFarmingQuery = useRektUnclaimedFarmingQuery();
   const referralClaimsQuery = useRektReferralClaimsQuery();
 
+  const activeFarmingState = useMemo(
+    () => ({
+      active: Boolean(activeFarmingQuery.data),
+    }),
+    [activeFarmingQuery.data]
+  );
+
   const startFarmingMutation = useRektStartFarmingMutation();
   const claimFarmingMutation = useRektClaimFarmingMutation();
   const boostFarmingMutation = useRektBoostFarmingMutation();
@@ -42,19 +49,17 @@ export default memo(function RektFarmer() {
   /** Daily Check-In */
   useFarmerAsyncTask(
     "daily-check-in",
-    () => {
-      return async function () {
-        try {
-          const { result } = await dailyCheckInMutation.mutateAsync();
-          if (result === "REWARDED") {
-            /** Toast */
-            toast.success("Rekt - Daily Check-In");
+    async function () {
+      try {
+        const { result } = await dailyCheckInMutation.mutateAsync();
+        if (result === "REWARDED") {
+          /** Toast */
+          toast.success("Rekt - Daily Check-In");
 
-            /** Refetch */
-            await userQuery.refetch();
-          }
-        } catch {}
-      };
+          /** Refetch */
+          await userQuery.refetch();
+        }
+      } catch {}
     },
     []
   );
@@ -62,67 +67,59 @@ export default memo(function RektFarmer() {
   /** Auto Farming */
   useFarmerAsyncTask(
     "farming",
-    () => {
-      if (unclaimedFarmingQuery.data && activeFarmingQuery.isSuccess) {
-        return async function () {
-          const unclaimedFarming = unclaimedFarmingQuery.data;
-          if (unclaimedFarming.length) {
-            for (const farming of unclaimedFarming) {
-              /** Claim Farming */
-              await claimFarmingMutation.mutateAsync(farming.externalId);
-              toast.success("Rekt -  Claimed Farming");
-            }
+    async function () {
+      const unclaimedFarming = unclaimedFarmingQuery.data;
+      if (unclaimedFarming.length) {
+        for (const farming of unclaimedFarming) {
+          /** Claim Farming */
+          await claimFarmingMutation.mutateAsync(farming.externalId);
+          toast.success("Rekt -  Claimed Farming");
+        }
 
-            /** Delay */
-            await delay(1000);
+        /** Delay */
+        await delay(1000);
 
-            /** Start Farming */
-            await startFarmingMutation.mutateAsync();
-            toast.success("Rekt -  Started Farming");
+        /** Start Farming */
+        await startFarmingMutation.mutateAsync();
+        toast.success("Rekt -  Started Farming");
 
-            /** Refetch */
-            await activeFarmingQuery.refetch();
-            await unclaimedFarmingQuery.refetch();
-            await userQuery.refetch();
-          } else if (!activeFarmingQuery.data) {
-            /** Start Farming */
-            await startFarmingMutation.mutateAsync();
-            toast.success("Rekt -  Started Farming");
+        /** Refetch */
+        await activeFarmingQuery.refetch();
+        await unclaimedFarmingQuery.refetch();
+        await userQuery.refetch();
+      } else if (activeFarmingState.active === false) {
+        /** Start Farming */
+        await startFarmingMutation.mutateAsync();
+        toast.success("Rekt -  Started Farming");
 
-            /** Refetch */
-            await activeFarmingQuery.refetch();
-            await unclaimedFarmingQuery.refetch();
-            await userQuery.refetch();
-          }
-        };
+        /** Refetch */
+        await activeFarmingQuery.refetch();
+        await unclaimedFarmingQuery.refetch();
+        await userQuery.refetch();
       }
     },
     [
       unclaimedFarmingQuery.data,
       activeFarmingQuery.isSuccess,
-      activeFarmingQuery.data,
+      activeFarmingState,
     ]
   );
 
   /** Auto-Boost Farming */
   useFarmerAsyncTask(
     "boost-farming",
-    () => {
-      if (userQuery.data && activeFarmingQuery.data) {
-        return async function () {
-          const { balance } = userQuery.data;
-          const { boostApplicationTime } = activeFarmingQuery.data;
+    async function () {
+      const { balance } = userQuery.data;
+      const { boostApplicationTime } = activeFarmingQuery.data;
 
-          if (balance.boosts >= 1 && !boostApplicationTime) {
-            /** Boost Farming */
-            await boostFarmingMutation.mutateAsync();
-            toast.success("Rekt -  Boosted Farming");
+      if (balance.boosts >= 1 && !boostApplicationTime) {
+        /** Boost Farming */
+        await boostFarmingMutation.mutateAsync();
+        toast.success("Rekt -  Boosted Farming");
 
-            /** Refetch */
-            await activeFarmingQuery.refetch();
-            await userQuery.refetch();
-          }
-        };
+        /** Refetch */
+        await activeFarmingQuery.refetch();
+        await userQuery.refetch();
       }
     },
     [userQuery.data, activeFarmingQuery.data]
@@ -131,55 +128,51 @@ export default memo(function RektFarmer() {
   /** Auto-Claim Referrals */
   useFarmerAsyncTask(
     "claim-referrals",
-    () => {
-      if (referralClaimsQuery.data) {
-        return async function () {
-          /** Claims */
-          const claims = referralClaimsQuery.data;
+    async function () {
+      /** Claims */
+      const claims = referralClaimsQuery.data;
 
-          /** Check if time is due */
-          const canClaimNow = (time) =>
-            !time || isAfter(subHours(new Date(), 2), new Date(time));
+      /** Check if time is due */
+      const canClaimNow = (time) =>
+        !time || isAfter(subHours(new Date(), 2), new Date(time));
 
-          /** Status */
-          let hasClaimed = false;
+      /** Status */
+      let hasClaimed = false;
 
-          /** Claim Points */
-          if (
-            claims.referredPointsToClaim &&
-            canClaimNow(claims.referralPointsClaimedLastTime)
-          ) {
-            /** Claim */
-            await claimReferralPointsMutation.mutateAsync();
+      /** Claim Points */
+      if (
+        claims.referredPointsToClaim &&
+        canClaimNow(claims.referralPointsClaimedLastTime)
+      ) {
+        /** Claim */
+        await claimReferralPointsMutation.mutateAsync();
 
-            /** Toast */
-            toast.success("Rekt - Claimed Referral Points");
+        /** Toast */
+        toast.success("Rekt - Claimed Referral Points");
 
-            /** Set Status */
-            hasClaimed = true;
-          }
+        /** Set Status */
+        hasClaimed = true;
+      }
 
-          /** Claim Trades */
-          if (
-            claims.referredTradesToClaim &&
-            canClaimNow(claims.referralTradesClaimedLastTime)
-          ) {
-            /** Claim */
-            await claimReferralTradeMutation.mutateAsync();
+      /** Claim Trades */
+      if (
+        claims.referredTradesToClaim &&
+        canClaimNow(claims.referralTradesClaimedLastTime)
+      ) {
+        /** Claim */
+        await claimReferralTradeMutation.mutateAsync();
 
-            /** Toast */
-            toast.success("Rekt - Claimed Referral Trades");
+        /** Toast */
+        toast.success("Rekt - Claimed Referral Trades");
 
-            /** Set Status */
-            hasClaimed = true;
-          }
+        /** Set Status */
+        hasClaimed = true;
+      }
 
-          /** Refetch After Claiming */
-          if (hasClaimed) {
-            await userQuery.refetch();
-            await referralClaimsQuery.refetch();
-          }
-        };
+      /** Refetch After Claiming */
+      if (hasClaimed) {
+        await userQuery.refetch();
+        await referralClaimsQuery.refetch();
       }
     },
     [referralClaimsQuery.data]

@@ -1,9 +1,9 @@
-import { Tabs } from "radix-ui";
 import toast from "react-hot-toast";
 import useFarmerAsyncTask from "@/hooks/useFarmerAsyncTask";
 import useFarmerAutoTab from "@/hooks/useFarmerAutoTab";
 import useFarmerContext from "@/hooks/useFarmerContext";
 import useMirroredTabs from "@/hooks/useMirroredTabs";
+import { Tabs } from "radix-ui";
 import { cn } from "@/lib/utils";
 import { isToday } from "date-fns";
 import { memo } from "react";
@@ -32,18 +32,15 @@ export default memo(function TruecoinFarmer() {
   /** Daily-Check-In */
   useFarmerAsyncTask(
     "daily-check-in",
-    () => {
-      if (lastDailyRewardQuery.data)
-        return async function () {
-          try {
-            const { createdDate } = lastDailyRewardQuery.data;
+    async function () {
+      try {
+        const { createdDate } = lastDailyRewardQuery.data;
 
-            if (!createdDate || !isToday(new Date(createdDate))) {
-              await collectDailyRewardMutation.mutateAsync();
-              toast.success("Truecoin - Daily Reward");
-            }
-          } catch {}
-        };
+        if (!createdDate || !isToday(new Date(createdDate))) {
+          await collectDailyRewardMutation.mutateAsync();
+          toast.success("Truecoin - Daily Reward");
+        }
+      } catch {}
     },
     [lastDailyRewardQuery.data]
   );

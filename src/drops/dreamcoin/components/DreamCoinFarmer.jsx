@@ -1,8 +1,8 @@
-import { Tabs } from "radix-ui";
 import toast from "react-hot-toast";
 import useFarmerAsyncTask from "@/hooks/useFarmerAsyncTask";
 import useFarmerAutoTab from "@/hooks/useFarmerAutoTab";
 import useMirroredTabs from "@/hooks/useMirroredTabs";
+import { Tabs } from "radix-ui";
 import { cn, customLogger, delay } from "@/lib/utils";
 import { memo } from "react";
 import { useState } from "react";
@@ -37,31 +37,28 @@ export default memo(function DreamCoinFarmer() {
   /** Auto Claim Daily Reward */
   useFarmerAsyncTask(
     "daily-reward",
-    () => {
-      if (dailyTasksQuery.data)
-        return async function () {
-          const today = new Date().toISOString().split("T")[0];
-          const dailyTasks = dailyTasksQuery.data.dailyTasks;
-          const day = dailyTasks.find(
-            (item) => item.date === today && !item.isClaimed
-          );
+    async function () {
+      const today = new Date().toISOString().split("T")[0];
+      const dailyTasks = dailyTasksQuery.data.dailyTasks;
+      const day = dailyTasks.find(
+        (item) => item.date === today && !item.isClaimed
+      );
 
-          /** Log It */
-          customLogger("DREAMCOIN TODAY", today);
-          customLogger("DREAMCOIN DAILY-TASKS", dailyTasks);
-          customLogger("DREAMCOIN DAY", day);
+      /** Log It */
+      customLogger("DREAMCOIN TODAY", today);
+      customLogger("DREAMCOIN DAILY-TASKS", dailyTasks);
+      customLogger("DREAMCOIN DAY", day);
 
-          if (day) {
-            /** Claim */
-            await claimDailyTaskMutation.mutateAsync(day.id);
+      if (day) {
+        /** Claim */
+        await claimDailyTaskMutation.mutateAsync(day.id);
 
-            /** Toast */
-            toast.success("DreamCoin - Daily Reward");
+        /** Toast */
+        toast.success("DreamCoin - Daily Reward");
 
-            /** Refetch */
-            await userQuery.refetch();
-          }
-        };
+        /** Refetch */
+        await userQuery.refetch();
+      }
     },
     [dailyTasksQuery.data]
   );
@@ -69,27 +66,24 @@ export default memo(function DreamCoinFarmer() {
   /** Open Free Case */
   useFarmerAsyncTask(
     "open-free-case",
-    () => {
-      if (userQuery.data)
-        return async function () {
-          const { freeCaseId } = userQuery.data;
+    async function () {
+      const { freeCaseId } = userQuery.data;
 
-          if (freeCaseId) {
-            const freeCase = await getCaseMutation.mutateAsync(freeCaseId);
+      if (freeCaseId) {
+        const freeCase = await getCaseMutation.mutateAsync(freeCaseId);
 
-            /** Log It */
-            customLogger("DREAMCOIN FREECASE", freeCase);
+        /** Log It */
+        customLogger("DREAMCOIN FREECASE", freeCase);
 
-            /** Open Case */
-            await openCaseMutation.mutateAsync(freeCaseId);
+        /** Open Case */
+        await openCaseMutation.mutateAsync(freeCaseId);
 
-            /** Toast */
-            toast.success("DreamCoin - FreeCase");
+        /** Toast */
+        toast.success("DreamCoin - FreeCase");
 
-            /** Refetch */
-            await userQuery.refetch();
-          }
-        };
+        /** Refetch */
+        await userQuery.refetch();
+      }
     },
     [userQuery.data]
   );
@@ -97,45 +91,39 @@ export default memo(function DreamCoinFarmer() {
   /** Collect Clicker Reward */
   useFarmerAsyncTask(
     "collect-clicker-reward",
-    () => {
-      if (userQuery.data && hasCollectedClickerReward === false)
-        return async function () {
-          const { currentClicks } = userQuery.data.clickerLevel;
+    async function () {
+      const { currentClicks } = userQuery.data.clickerLevel;
 
-          if (currentClicks > 0) {
-            /** Collect */
-            await collectClickerRewardMutation.mutateAsync(currentClicks);
+      if (currentClicks > 0) {
+        /** Collect */
+        await collectClickerRewardMutation.mutateAsync(currentClicks);
 
-            /** Toast */
-            toast.success("Dream-Coin Collected Clicker");
+        /** Toast */
+        toast.success("Dream-Coin Collected Clicker");
 
-            /** Refetch */
-            await userQuery.refetch();
-          }
+        /** Refetch */
+        await userQuery.refetch();
+      }
 
-          setHasCollectedClickerReward(true);
-        };
+      setHasCollectedClickerReward(true);
     },
-    [userQuery.data]
+    [userQuery.data, hasCollectedClickerReward === false]
   );
 
   /** Auto Upgrade All Level */
   useFarmerAsyncTask(
     "upgrade-all-level",
-    () => {
-      if (userQuery.data)
-        return async function () {
-          const balance = userQuery.data.balance;
-          const { upgradePrice } = userQuery.data.clickerLevel;
+    async function () {
+      const balance = userQuery.data.balance;
+      const { upgradePrice } = userQuery.data.clickerLevel;
 
-          if (balance >= upgradePrice) {
-            await upgradeAllLevelMutation.mutateAsync();
-            toast.success("Dream-Coin Upgraded Level");
+      if (balance >= upgradePrice) {
+        await upgradeAllLevelMutation.mutateAsync();
+        toast.success("Dream-Coin Upgraded Level");
 
-            await delay(3000);
-            await userQuery.refetch();
-          }
-        };
+        await delay(3000);
+        await userQuery.refetch();
+      }
     },
     [userQuery.data]
   );

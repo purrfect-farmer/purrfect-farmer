@@ -1,8 +1,8 @@
-import { Tabs } from "radix-ui";
 import toast from "react-hot-toast";
 import useFarmerAsyncTask from "@/hooks/useFarmerAsyncTask";
 import useFarmerAutoTab from "@/hooks/useFarmerAutoTab";
 import useMirroredTabs from "@/hooks/useMirroredTabs";
+import { Tabs } from "radix-ui";
 import { cn } from "@/lib/utils";
 import { memo } from "react";
 import { useQueryClient } from "@tanstack/react-query";
@@ -33,21 +33,17 @@ export default memo(function MidasFarmer() {
   /** Visit */
   useFarmerAsyncTask(
     "visit",
-    () => {
-      if (userQuery.data) {
-        return async function () {
-          const { isFirstVisit } = streakQuery.data;
+    async function () {
+      const { isFirstVisit } = streakQuery.data;
 
-          if (isFirstVisit) {
-            const result = await visitMutation.mutateAsync();
+      if (isFirstVisit) {
+        const result = await visitMutation.mutateAsync();
 
-            /** Update Data */
-            queryClient.setQueryData(["midas", "user"], () => result);
+        /** Update Data */
+        queryClient.setQueryData(["midas", "user"], () => result);
 
-            /** Toast */
-            toast.success("Midas - Visited");
-          }
-        };
+        /** Toast */
+        toast.success("Midas - Visited");
       }
     },
     [streakQuery.data]
@@ -56,24 +52,20 @@ export default memo(function MidasFarmer() {
   /** Daily-Check-In */
   useFarmerAsyncTask(
     "daily-check-in",
-    () => {
-      if (streakQuery.data) {
-        return async function () {
-          const { claimable } = streakQuery.data;
+    async function () {
+      const { claimable } = streakQuery.data;
 
-          if (claimable) {
-            const result = await dailyCheckInMutation.mutateAsync();
+      if (claimable) {
+        const result = await dailyCheckInMutation.mutateAsync();
 
-            /** Update Data */
-            queryClient.setQueryData(["midas", "streak"], () => result);
+        /** Update Data */
+        queryClient.setQueryData(["midas", "streak"], () => result);
 
-            /** Toast */
-            toast.success("Midas - Daily Check-In");
+        /** Toast */
+        toast.success("Midas - Daily Check-In");
 
-            /** Refetch */
-            await userQuery.refetch();
-          }
-        };
+        /** Refetch */
+        await userQuery.refetch();
       }
     },
     [streakQuery.data]
@@ -82,21 +74,17 @@ export default memo(function MidasFarmer() {
   /** Claim Referral Rewards */
   useFarmerAsyncTask(
     "claim-referral-rewards",
-    () => {
-      if (referralStatusQuery.data) {
-        return async function () {
-          const { canClaim } = referralStatusQuery.data;
+    async function () {
+      const { canClaim } = referralStatusQuery.data;
 
-          if (canClaim) {
-            await claimReferralRewardsMutation.mutateAsync();
+      if (canClaim) {
+        await claimReferralRewardsMutation.mutateAsync();
 
-            /** Toast */
-            toast.success("Midas - Referral Rewards");
+        /** Toast */
+        toast.success("Midas - Referral Rewards");
 
-            /** Refetch */
-            await userQuery.refetch();
-          }
-        };
+        /** Refetch */
+        await userQuery.refetch();
       }
     },
     [referralStatusQuery.data]

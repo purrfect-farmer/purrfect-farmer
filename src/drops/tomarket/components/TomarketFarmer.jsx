@@ -1,9 +1,9 @@
-import { Tabs } from "radix-ui";
 import toast from "react-hot-toast";
 import useFarmerAsyncTask from "@/hooks/useFarmerAsyncTask";
 import useFarmerAutoTab from "@/hooks/useFarmerAutoTab";
 import useFarmerContext from "@/hooks/useFarmerContext";
 import useMirroredTabs from "@/hooks/useMirroredTabs";
+import { Tabs } from "radix-ui";
 import { cn, delay } from "@/lib/utils";
 import { isAfter } from "date-fns";
 import { memo } from "react";
@@ -42,31 +42,27 @@ export default memo(function TomarketFarmer() {
   /** Farming */
   useFarmerAsyncTask(
     "farming",
-    () => {
-      if (farmingInfoQuery.data) {
-        return async function () {
-          const farm = farmingInfoQuery.data;
+    async function () {
+      const farm = farmingInfoQuery.data;
 
-          if (!farm["round_id"]) {
-            /** Start Farming */
-            await startFarmingMutation.mutateAsync();
-            toast.success("Tomarket - Started Farming");
-          } else if (
-            farm["end_at"] &&
-            isAfter(new Date(), new Date(farm["end_at"] * 1000))
-          ) {
-            /** Claim Farming */
-            await claimFarmingMutation.mutateAsync();
-            toast.success("Tomarket - Claimed Farming");
+      if (!farm["round_id"]) {
+        /** Start Farming */
+        await startFarmingMutation.mutateAsync();
+        toast.success("Tomarket - Started Farming");
+      } else if (
+        farm["end_at"] &&
+        isAfter(new Date(), new Date(farm["end_at"] * 1000))
+      ) {
+        /** Claim Farming */
+        await claimFarmingMutation.mutateAsync();
+        toast.success("Tomarket - Claimed Farming");
 
-            /** Delay */
-            await delay(1000);
+        /** Delay */
+        await delay(1000);
 
-            /** Start Farming */
-            await startFarmingMutation.mutateAsync();
-            toast.success("Tomarket - Started Farming");
-          }
-        };
+        /** Start Farming */
+        await startFarmingMutation.mutateAsync();
+        toast.success("Tomarket - Started Farming");
       }
     },
     [farmingInfoQuery.data]

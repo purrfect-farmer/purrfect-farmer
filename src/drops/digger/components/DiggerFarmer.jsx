@@ -1,8 +1,8 @@
-import { Tabs } from "radix-ui";
 import toast from "react-hot-toast";
 import useFarmerAsyncTask from "@/hooks/useFarmerAsyncTask";
 import useFarmerAutoTab from "@/hooks/useFarmerAutoTab";
 import useMirroredTabs from "@/hooks/useMirroredTabs";
+import { Tabs } from "radix-ui";
 import { cn } from "@/lib/utils";
 import { memo } from "react";
 
@@ -29,18 +29,14 @@ export default memo(function DiggerFarmer() {
   /** Dig */
   useFarmerAsyncTask(
     "dig",
-    () => {
-      if (userQuery.isLoading === false) {
-        return async function () {
-          await toast.promise(digMutation.mutateAsync(), {
-            loading: "Digging...",
-            success: "Successfully digged...",
-            error: "Can't dig now",
-          });
-        };
-      }
+    async function () {
+      await toast.promise(digMutation.mutateAsync(), {
+        loading: "Digging...",
+        success: "Successfully digged...",
+        error: "Can't dig now",
+      });
     },
-    [userQuery.isLoading]
+    [userQuery.isLoading === false]
   );
 
   /** Switch Tab Automatically */

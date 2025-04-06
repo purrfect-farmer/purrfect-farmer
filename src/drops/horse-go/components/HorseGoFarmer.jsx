@@ -1,8 +1,8 @@
-import { Tabs } from "radix-ui";
 import toast from "react-hot-toast";
 import useFarmerAsyncTask from "@/hooks/useFarmerAsyncTask";
 import useFarmerAutoTab from "@/hooks/useFarmerAutoTab";
 import useMirroredTabs from "@/hooks/useMirroredTabs";
+import { Tabs } from "radix-ui";
 import { cn, delay } from "@/lib/utils";
 import { memo } from "react";
 import { useMemo } from "react";
@@ -82,22 +82,18 @@ export default memo(function HorseGoFarmer() {
   /** Daily Sign In */
   useFarmerAsyncTask(
     "daily-sign-in",
-    () => {
-      if (userQuery.data) {
-        return async function () {
-          const { signInStatus } = userQuery.data;
+    async function () {
+      const { signInStatus } = userQuery.data;
 
-          if (signInStatus === "NO") {
-            /** Sign In */
-            await dailySignInMutation.mutateAsync();
+      if (signInStatus === "NO") {
+        /** Sign In */
+        await dailySignInMutation.mutateAsync();
 
-            /** Toast */
-            toast.success("HorseGo Daily Sign-In");
+        /** Toast */
+        toast.success("HorseGo Daily Sign-In");
 
-            /** Refetch */
-            await userQuery.refetch();
-          }
-        };
+        /** Refetch */
+        await userQuery.refetch();
       }
     },
     [userQuery.data]
@@ -106,27 +102,23 @@ export default memo(function HorseGoFarmer() {
   /** Complete Tasks */
   useFarmerAsyncTask(
     "complete-tasks",
-    () => {
-      if (userQuery.isSuccess && tasksQuery.isSuccess) {
-        return async function () {
-          if (claimableTasks.length < 1) return;
+    async function () {
+      if (claimableTasks.length < 1) return;
 
-          for (const task of claimableTasks) {
-            /** Complete Task */
-            await completeTaskMutation.mutateAsync(task.id);
+      for (const task of claimableTasks) {
+        /** Complete Task */
+        await completeTaskMutation.mutateAsync(task.id);
 
-            /** Toast */
-            toast.dismiss();
-            toast.success(`HorseGo - ${task.nameEn || "Task"}`);
+        /** Toast */
+        toast.dismiss();
+        toast.success(`HorseGo - ${task.nameEn || "Task"}`);
 
-            /** Delay */
-            await delay(1000);
-          }
-
-          /** Refetch */
-          await userQuery.refetch();
-        };
+        /** Delay */
+        await delay(1000);
       }
+
+      /** Refetch */
+      await userQuery.refetch();
     },
     [claimableTasks, userQuery.isSuccess, tasksQuery.isSuccess]
   );

@@ -1,8 +1,8 @@
-import { Tabs } from "radix-ui";
 import toast from "react-hot-toast";
 import useFarmerAsyncTask from "@/hooks/useFarmerAsyncTask";
 import useFarmerAutoTab from "@/hooks/useFarmerAutoTab";
 import useMirroredTabs from "@/hooks/useMirroredTabs";
+import { Tabs } from "radix-ui";
 import { cn } from "@/lib/utils";
 import { memo } from "react";
 
@@ -30,16 +30,13 @@ export default memo(function PumpadFarmer() {
   /** Daily Check-In */
   useFarmerAsyncTask(
     "daily-check-in",
-    () => {
-      if (checkInQuery.data)
-        return async function () {
-          const hasClaimed = checkInQuery.data["is_check_in"];
+    async function () {
+      const hasClaimed = checkInQuery.data["is_check_in"];
 
-          if (!hasClaimed) {
-            await claimCheckInMutation.mutateAsync();
-            toast.success("Pumpad - Check-In");
-          }
-        };
+      if (!hasClaimed) {
+        await claimCheckInMutation.mutateAsync();
+        toast.success("Pumpad - Check-In");
+      }
     },
     [checkInQuery.data]
   );

@@ -1,8 +1,8 @@
-import { Tabs } from "radix-ui";
 import toast from "react-hot-toast";
 import useFarmerAsyncTask from "@/hooks/useFarmerAsyncTask";
 import useFarmerAutoTab from "@/hooks/useFarmerAutoTab";
 import useMirroredTabs from "@/hooks/useMirroredTabs";
+import { Tabs } from "radix-ui";
 import { cn, delay } from "@/lib/utils";
 import { memo } from "react";
 
@@ -39,22 +39,19 @@ export default memo(function FunaticFarmer() {
   /** Auto Claim Daily Bonus */
   useFarmerAsyncTask(
     "daily-bonus",
-    () => {
-      if (dailyBonusQuery.data)
-        return async function () {
-          const { cooldown } = dailyBonusQuery.data;
+    async function () {
+      const { cooldown } = dailyBonusQuery.data;
 
-          if (cooldown === 0) {
-            /** Claim Daily Bonus */
-            await claimDailyBonusMutation.mutateAsync();
+      if (cooldown === 0) {
+        /** Claim Daily Bonus */
+        await claimDailyBonusMutation.mutateAsync();
 
-            /** Toast */
-            toast.success("Funatic - Daily Bonus");
+        /** Toast */
+        toast.success("Funatic - Daily Bonus");
 
-            /** Refetch */
-            await gameQuery.refetch();
-          }
-        };
+        /** Refetch */
+        await gameQuery.refetch();
+      }
     },
     [dailyBonusQuery.data]
   );
@@ -62,33 +59,30 @@ export default memo(function FunaticFarmer() {
   /** Activate Boosters */
   useFarmerAsyncTask(
     "boosters",
-    () => {
-      if ([boostersQuery.data].every(Boolean))
-        return async function () {
-          const availableBoosters = boostersQuery.data.filter(
-            (item) =>
-              item.price === 0 &&
-              item.isActive === false &&
-              item.cooldownLeft === 0 &&
-              item.usagesLeft !== 0
-          );
+    async function () {
+      const availableBoosters = boostersQuery.data.filter(
+        (item) =>
+          item.price === 0 &&
+          item.isActive === false &&
+          item.cooldownLeft === 0 &&
+          item.usagesLeft !== 0
+      );
 
-          if (availableBoosters.length) {
-            for (const booster of availableBoosters) {
-              /** Activate */
-              await activateBoosterMutation.mutateAsync(booster.type);
+      if (availableBoosters.length) {
+        for (const booster of availableBoosters) {
+          /** Activate */
+          await activateBoosterMutation.mutateAsync(booster.type);
 
-              /** Toast */
-              toast.success(`Funatic - Booster (${booster.name})`);
+          /** Toast */
+          toast.success(`Funatic - Booster (${booster.name})`);
 
-              /** Delay */
-              await delay(1000);
-            }
+          /** Delay */
+          await delay(1000);
+        }
 
-            /** Refetch */
-            await boostersQuery.refetch();
-          }
-        };
+        /** Refetch */
+        await boostersQuery.refetch();
+      }
     },
     [boostersQuery.data]
   );
@@ -96,28 +90,25 @@ export default memo(function FunaticFarmer() {
   /** Set Exchange */
   useFarmerAsyncTask(
     "set-exchange",
-    () => {
-      if ([userQuery.data, exchangesQuery.data].every(Boolean))
-        return async function () {
-          const { user } = userQuery.data;
-          const cryptoExchange = user.cryptoExchange;
+    async function () {
+      const { user } = userQuery.data;
+      const cryptoExchange = user.cryptoExchange;
 
-          if (cryptoExchange.id === null) {
-            const collection = exchangesQuery.data;
-            const exchange =
-              collection[Math.floor(Math.random() * collection.length)];
+      if (cryptoExchange.id === null) {
+        const collection = exchangesQuery.data;
+        const exchange =
+          collection[Math.floor(Math.random() * collection.length)];
 
-            /** Set Exchange */
-            await setExchangeMutation.mutateAsync(exchange.id);
+        /** Set Exchange */
+        await setExchangeMutation.mutateAsync(exchange.id);
 
-            /** Toast */
-            toast.success(`Funatic Set Exchange - ${exchange.name}`);
+        /** Toast */
+        toast.success(`Funatic Set Exchange - ${exchange.name}`);
 
-            /** Refetch */
-            await userQuery.refetch();
-            await exchangesQuery.refetch();
-          }
-        };
+        /** Refetch */
+        await userQuery.refetch();
+        await exchangesQuery.refetch();
+      }
     },
     [userQuery.data, exchangesQuery.data]
   );

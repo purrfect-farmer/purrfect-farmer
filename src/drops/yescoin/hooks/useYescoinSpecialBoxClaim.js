@@ -12,28 +12,26 @@ export default function useYescoinSpecialBoxClaim() {
 
   useFarmerAsyncTask(
     "claim-special-box",
-    () => {
-      if (
-        accountBuildInfoQuery.isLoading === false &&
-        accountBuildInfoQuery.data
-      )
-        return async function () {
-          const { specialBoxLeftRecoveryCount, coinPoolLeftRecoveryCount } =
-            accountBuildInfoQuery.data;
+    async function () {
+      if (!accountBuildInfoQuery.data) {
+        return;
+      }
 
-          /** Claim Special Box */
-          if (specialBoxLeftRecoveryCount > 0) {
-            await recoverSpecialBoxMutation.mutateAsync();
-            toast.success("Yescoin - Used Chest");
-          }
+      const { specialBoxLeftRecoveryCount, coinPoolLeftRecoveryCount } =
+        accountBuildInfoQuery.data;
 
-          /** Claim Special Box */
-          if (coinPoolLeftRecoveryCount > 0) {
-            await recoverCoinPoolMutation.mutateAsync();
-            toast.success("Yescoin - Used Recovery");
-          }
-        };
+      /** Claim Special Box */
+      if (specialBoxLeftRecoveryCount > 0) {
+        await recoverSpecialBoxMutation.mutateAsync();
+        toast.success("Yescoin - Used Chest");
+      }
+
+      /** Claim Special Box */
+      if (coinPoolLeftRecoveryCount > 0) {
+        await recoverCoinPoolMutation.mutateAsync();
+        toast.success("Yescoin - Used Recovery");
+      }
     },
-    [accountBuildInfoQuery.isLoading]
+    [accountBuildInfoQuery.isLoading === false]
   );
 }

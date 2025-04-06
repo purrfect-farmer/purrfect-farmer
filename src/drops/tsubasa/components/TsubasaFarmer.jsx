@@ -1,9 +1,9 @@
-import { Tabs } from "radix-ui";
 import toast from "react-hot-toast";
 import useFarmerAsyncTask from "@/hooks/useFarmerAsyncTask";
 import useFarmerAutoTab from "@/hooks/useFarmerAutoTab";
 import useFarmerContext from "@/hooks/useFarmerContext";
 import useMirroredTabs from "@/hooks/useMirroredTabs";
+import { Tabs } from "radix-ui";
 import { cn } from "@/lib/utils";
 import { isToday } from "date-fns";
 import { memo } from "react";
@@ -22,16 +22,13 @@ export default memo(function TsubasaFarmer() {
   /** Auto Claim Daily Reward */
   useFarmerAsyncTask(
     "daily-reward",
-    () => {
-      if (authQuery.data)
-        return async function () {
-          const lastUpdate = authQuery.data["user_daily_reward"]["last_update"];
+    async function () {
+      const lastUpdate = authQuery.data["user_daily_reward"]["last_update"];
 
-          if (!isToday(lastUpdate * 1000)) {
-            await claimDailyRewardMutation.mutateAsync();
-            toast.success("Tsubasa - Daily Reward");
-          }
-        };
+      if (!isToday(lastUpdate * 1000)) {
+        await claimDailyRewardMutation.mutateAsync();
+        toast.success("Tsubasa - Daily Reward");
+      }
     },
     [authQuery.data]
   );

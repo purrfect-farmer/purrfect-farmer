@@ -10,24 +10,17 @@ export default function useHrumDailyClaim() {
 
   useFarmerAsyncTask(
     "daily.check-in",
-    () => {
-      if (dailyQuery.data) {
-        return async function () {
-          const day = Object.entries(dailyQuery.data).find(
-            ([k, v]) => v === "canTake"
-          );
+    async function () {
+      const day = Object.entries(dailyQuery.data).find(
+        ([k, v]) => v === "canTake"
+      );
 
-          if (day) {
-            await toast.promise(
-              dailyClaimMutation.mutateAsync(parseInt(day[0])),
-              {
-                loading: "Claiming Daily Reward...",
-                error: "Failed to claim daily reward...",
-                success: "Successfully claimed daily reward.",
-              }
-            );
-          }
-        };
+      if (day) {
+        await toast.promise(dailyClaimMutation.mutateAsync(parseInt(day[0])), {
+          loading: "Claiming Daily Reward...",
+          error: "Failed to claim daily reward...",
+          success: "Successfully claimed daily reward.",
+        });
       }
     },
     [dailyQuery.data]

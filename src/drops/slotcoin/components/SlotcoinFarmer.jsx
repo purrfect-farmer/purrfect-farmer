@@ -1,8 +1,8 @@
-import { Tabs } from "radix-ui";
 import toast from "react-hot-toast";
 import useFarmerAsyncTask from "@/hooks/useFarmerAsyncTask";
 import useFarmerAutoTab from "@/hooks/useFarmerAutoTab";
 import useMirroredTabs from "@/hooks/useMirroredTabs";
+import { Tabs } from "radix-ui";
 import { cn } from "@/lib/utils";
 import { memo } from "react";
 
@@ -28,22 +28,19 @@ export default memo(function SlotcoinFarmer() {
 
   useFarmerAsyncTask(
     "daily-check-in",
-    () => {
-      if (checkInQuery.data)
-        return async function () {
-          const checkIn = checkInQuery.data;
+    async function () {
+      const checkIn = checkInQuery.data;
 
-          if (checkIn["time_to_claim"] <= 0) {
-            /** Check-In */
-            await checkInMutation.mutateAsync();
+      if (checkIn["time_to_claim"] <= 0) {
+        /** Check-In */
+        await checkInMutation.mutateAsync();
 
-            /** Toast */
-            toast.success("Slotcoin - Check-In");
+        /** Toast */
+        toast.success("Slotcoin - Check-In");
 
-            /** Refetch */
-            await infoQuery.refetch();
-          }
-        };
+        /** Refetch */
+        await infoQuery.refetch();
+      }
     },
     [checkInQuery.data]
   );

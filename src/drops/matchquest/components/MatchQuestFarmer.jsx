@@ -1,8 +1,8 @@
-import { Tabs } from "radix-ui";
 import toast from "react-hot-toast";
 import useFarmerAsyncTask from "@/hooks/useFarmerAsyncTask";
 import useFarmerAutoTab from "@/hooks/useFarmerAutoTab";
 import useMirroredTabs from "@/hooks/useMirroredTabs";
+import { Tabs } from "radix-ui";
 import { cn, delay } from "@/lib/utils";
 import { isAfter } from "date-fns";
 import { memo } from "react";
@@ -38,36 +38,30 @@ export default memo(function MatchQuestFarmer() {
   /** Auto Start and Claim Farming */
   useFarmerAsyncTask(
     "farming",
-    () => {
-      if (rewardQuery.data) {
-        return async function () {
-          const data = rewardQuery.data;
+    async function () {
+      const data = rewardQuery.data;
 
-          if (data["reward"] === 0) {
-            /** Start Farming */
-            await startFarmingMutation.mutateAsync();
-            toast.success("MatchQuest Started Farming");
+      if (data["reward"] === 0) {
+        /** Start Farming */
+        await startFarmingMutation.mutateAsync();
+        toast.success("MatchQuest Started Farming");
 
-            /** Refetch Query */
-            await rewardQuery.refetch();
-          } else if (
-            isAfter(new Date(), new Date(data["next_claim_timestamp"]))
-          ) {
-            /** Claim Farming */
-            await claimFarmingMutation.mutateAsync();
-            toast.success("MatchQuest Claimed Previous Farming");
+        /** Refetch Query */
+        await rewardQuery.refetch();
+      } else if (isAfter(new Date(), new Date(data["next_claim_timestamp"]))) {
+        /** Claim Farming */
+        await claimFarmingMutation.mutateAsync();
+        toast.success("MatchQuest Claimed Previous Farming");
 
-            /** Start Farming */
-            await startFarmingMutation.mutateAsync();
-            toast.success("MatchQuest Started Farming");
+        /** Start Farming */
+        await startFarmingMutation.mutateAsync();
+        toast.success("MatchQuest Started Farming");
 
-            /** Refetch Query */
-            await rewardQuery.refetch();
+        /** Refetch Query */
+        await rewardQuery.refetch();
 
-            /** Allow Purchasing Daily Boost */
-            setHasPurchasedDailyBoost(false);
-          }
-        };
+        /** Allow Purchasing Daily Boost */
+        setHasPurchasedDailyBoost(false);
       }
     },
     [rewardQuery.data]
@@ -76,54 +70,51 @@ export default memo(function MatchQuestFarmer() {
   /** Auto Purchase Daily Task */
   useFarmerAsyncTask(
     "daily-task-purchase",
-    () => {
-      if (userQuery.data && dailyTaskQuery.data)
-        return async function () {
-          let initialBalance = userQuery.data["Balance"] / 1000;
-          let balance = initialBalance;
+    async function () {
+      let initialBalance = userQuery.data["Balance"] / 1000;
+      let balance = initialBalance;
 
-          for (const task of dailyTaskQuery.data) {
-            /** Prevent Purchase */
-            if (task["type"] === "daily" && hasPurchasedDailyBoost) {
-              continue;
-            }
+      for (const task of dailyTaskQuery.data) {
+        /** Prevent Purchase */
+        if (task["type"] === "daily" && hasPurchasedDailyBoost) {
+          continue;
+        }
 
-            for (let i = task["current_count"]; i < task["task_count"]; i++) {
-              if (balance >= task["point"]) {
-                try {
-                  /** Purchase */
-                  const isSuccess = await purchaseDailyTaskMutation.mutateAsync(
-                    task["type"]
-                  );
+        for (let i = task["current_count"]; i < task["task_count"]; i++) {
+          if (balance >= task["point"]) {
+            try {
+              /** Purchase */
+              const isSuccess = await purchaseDailyTaskMutation.mutateAsync(
+                task["type"]
+              );
 
-                  if (!isSuccess) break;
+              if (!isSuccess) break;
 
-                  /** Update Balance */
-                  balance -= task["point"];
+              /** Update Balance */
+              balance -= task["point"];
 
-                  /** Toast Message */
-                  toast.success("MatchQuest Purchased - " + task["name"]);
+              /** Toast Message */
+              toast.success("MatchQuest Purchased - " + task["name"]);
 
-                  /** Delay */
-                  await delay(1000);
-                } catch {}
-              }
-            }
-
-            /** Prevent Purchasing Again */
-            if (task["type"] === "daily") {
-              setHasPurchasedDailyBoost(true);
-            }
+              /** Delay */
+              await delay(1000);
+            } catch {}
           }
+        }
 
-          if (balance !== initialBalance) {
-            /** Refetch Daily Task Query */
-            await dailyTaskQuery.refetch();
+        /** Prevent Purchasing Again */
+        if (task["type"] === "daily") {
+          setHasPurchasedDailyBoost(true);
+        }
+      }
 
-            /** Refetch User Query */
-            await userQuery.refetch();
-          }
-        };
+      if (balance !== initialBalance) {
+        /** Refetch Daily Task Query */
+        await dailyTaskQuery.refetch();
+
+        /** Refetch User Query */
+        await userQuery.refetch();
+      }
     },
     [userQuery.data, dailyTaskQuery.data, hasPurchasedDailyBoost]
   );

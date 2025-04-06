@@ -1,10 +1,10 @@
-import { Tabs } from "radix-ui";
 import FullSpinner from "@/components/FullSpinner";
 import toast from "react-hot-toast";
 import useFarmerAsyncTask from "@/hooks/useFarmerAsyncTask";
 import useFarmerAutoTab from "@/hooks/useFarmerAutoTab";
 import useFarmerContext from "@/hooks/useFarmerContext";
 import useMirroredTabs from "@/hooks/useMirroredTabs";
+import { Tabs } from "radix-ui";
 import { cn } from "@/lib/utils";
 import { memo } from "react";
 
@@ -27,14 +27,11 @@ export default memo(function BirdTonFarmer() {
   /** Claim Daily Reward */
   useFarmerAsyncTask(
     "daily-check-in",
-    () => {
-      return async function () {
-        if (user?.["can_claim_daily"]) {
-          await claimDailyRewardMutation.mutateAsync();
-
-          toast.success("BirdTon - Daily Reward");
-        }
-      };
+    async function () {
+      if (user?.["can_claim_daily"]) {
+        await claimDailyRewardMutation.mutateAsync();
+        toast.success("BirdTon - Daily Reward");
+      }
     },
     [user?.["can_claim_daily"]]
   );

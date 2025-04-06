@@ -1,8 +1,8 @@
-import { Tabs } from "radix-ui";
 import toast from "react-hot-toast";
 import useFarmerAsyncTask from "@/hooks/useFarmerAsyncTask";
 import useFarmerAutoTab from "@/hooks/useFarmerAutoTab";
 import useMirroredTabs from "@/hooks/useMirroredTabs";
+import { Tabs } from "radix-ui";
 import { cn } from "@/lib/utils";
 import { isToday } from "date-fns";
 import { memo } from "react";
@@ -29,43 +29,38 @@ export default memo(function BattleBullsFarmer() {
   /** Auto Claim Daily Reward */
   useFarmerAsyncTask(
     "daily-reward",
-    () => {
-      if ([userQuery.data, tasksQuery.data].every(Boolean))
-        return async function () {
-          const dailyTasks = tasksQuery.data.find(
-            (item) => item.id === "streak_days"
-          );
-          const completedAt = dailyTasks.completedAt;
+    async function () {
+      const dailyTasks = tasksQuery.data.find(
+        (item) => item.id === "streak_days"
+      );
+      const completedAt = dailyTasks.completedAt;
 
-          if (completedAt === null || !isToday(new Date(completedAt))) {
-            const result = await claimDailyRewardMutation.mutateAsync();
+      if (completedAt === null || !isToday(new Date(completedAt))) {
+        const result = await claimDailyRewardMutation.mutateAsync();
 
-            const user = result.user;
-            const {
-              taskId,
-              competedAt: completedAt,
-              ...taskUpdate
-            } = result.completedTask;
+        const user = result.user;
+        const {
+          taskId,
+          competedAt: completedAt,
+          ...taskUpdate
+        } = result.completedTask;
 
-            /** Update User */
-            queryClient.setQueryData(["battle-bulls", "user"], (prev) => ({
-              ...prev,
-              ...user,
-            }));
+        /** Update User */
+        queryClient.setQueryData(["battle-bulls", "user"], (prev) => ({
+          ...prev,
+          ...user,
+        }));
 
-            /** Update Tasks */
-            queryClient.setQueryData(["battle-bulls", "tasks"], (prev) =>
-              prev.map((item) =>
-                item.id === taskId
-                  ? { ...item, ...taskUpdate, completedAt }
-                  : item
-              )
-            );
+        /** Update Tasks */
+        queryClient.setQueryData(["battle-bulls", "tasks"], (prev) =>
+          prev.map((item) =>
+            item.id === taskId ? { ...item, ...taskUpdate, completedAt } : item
+          )
+        );
 
-            /** Toast */
-            toast.success("BattleBulls - Daily Reward");
-          }
-        };
+        /** Toast */
+        toast.success("BattleBulls - Daily Reward");
+      }
     },
     [userQuery.data, tasksQuery.data]
   );
@@ -73,24 +68,21 @@ export default memo(function BattleBullsFarmer() {
   /** Choose Blockchain */
   useFarmerAsyncTask(
     "choose-blockchain",
-    () => {
-      if (userQuery.data)
-        return async function () {
-          const blockchainId = userQuery.data.blockchainId;
+    async function () {
+      const blockchainId = userQuery.data.blockchainId;
 
-          if (blockchainId === null) {
-            const result = await blockchainMutation.mutateAsync("bitcoin");
+      if (blockchainId === null) {
+        const result = await blockchainMutation.mutateAsync("bitcoin");
 
-            /** Update User */
-            queryClient.setQueryData(["battle-bulls", "user"], (prev) => ({
-              ...prev,
-              ...result,
-            }));
+        /** Update User */
+        queryClient.setQueryData(["battle-bulls", "user"], (prev) => ({
+          ...prev,
+          ...result,
+        }));
 
-            /** Toast */
-            toast.success("BattleBulls - Selected Blockchain");
-          }
-        };
+        /** Toast */
+        toast.success("BattleBulls - Selected Blockchain");
+      }
     },
     [userQuery.data]
   );
