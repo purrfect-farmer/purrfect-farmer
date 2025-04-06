@@ -209,11 +209,15 @@ export default function useCore() {
     (tab, override = false) => {
       setOpenedTabs((previous) => {
         if (typeof tab === "string") {
-          return previous.map((item) =>
-            item.id === tab
-              ? { ...item, active: true }
-              : { ...item, active: false }
-          );
+          if (previous.some((item) => item.id === tab)) {
+            return previous.map((item) =>
+              item.id === tab
+                ? { ...item, active: true }
+                : { ...item, active: false }
+            );
+          } else {
+            return previous;
+          }
         } else {
           if (previous.some((item) => item.id === tab.id)) {
             /** Push Update */
