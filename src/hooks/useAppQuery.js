@@ -3,6 +3,10 @@ import { useDeepCompareMemo } from "use-deep-compare";
 import { useMemo } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 
+/**
+ * App Query
+ * @param {import("@tanstack/react-query").UseQueryOptions} options
+ */
 export default function useAppQuery(options) {
   const queryClient = useQueryClient();
 
