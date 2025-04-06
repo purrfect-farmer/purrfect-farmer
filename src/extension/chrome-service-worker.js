@@ -139,9 +139,20 @@ const setupServiceWorker = async () => {
   await setupExtension();
 
   /** Get Settings */
-  const { openFarmerInNewWindow } = await getSettings();
+  const { openFarmerInNewWindow, openFarmerOnStartup } = await getSettings();
 
-  if (openFarmerInNewWindow) {
+  /** Was Startup Invoked */
+  const { onStartupInvoked } = await chrome.storage.session.get({
+    onStartupInvoked: false,
+  });
+
+  /** Log Result */
+  customLogger("STARTUP WAS INVOKED", onStartupInvoked);
+
+  if (
+    openFarmerInNewWindow &&
+    (onStartupInvoked === false || openFarmerOnStartup)
+  ) {
     await openFarmerWindow();
   }
 
@@ -153,6 +164,11 @@ const setupServiceWorker = async () => {
 
 /** Open Farmer on Startup */
 chrome.runtime.onStartup.addListener(async () => {
+  /** Log StartUp Invoked */
+  await chrome.storage.session.set({
+    onStartupInvoked: true,
+  });
+
   /** Log */
   customLogger("STARTUP INVOKED", Date.now());
 
