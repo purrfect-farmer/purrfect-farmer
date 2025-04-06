@@ -5,7 +5,7 @@ export default memo(function Crasher({ delay = 1000 }) {
   const [shouldCrash, setShouldCrash] = useState(false);
 
   if (shouldCrash) {
-    throw 5;
+    throw new Error("CRASHER");
   }
 
   /** Run Crash Effect */
