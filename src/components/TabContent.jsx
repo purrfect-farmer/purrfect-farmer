@@ -30,7 +30,8 @@ export default memo(function TabContent({ tab }) {
               "flex items-center justify-center gap-2",
               "h-10 font-bold",
               "text-blue-500 dark:text-blue-300",
-              "border-b dark:border-neutral-700"
+              "border-b dark:border-neutral-700",
+              "shrink-0"
             )}
             onClick={() =>
               dispatchAndOpenTelegramBot(tab.telegramLink, {
