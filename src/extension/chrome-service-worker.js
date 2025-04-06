@@ -68,12 +68,12 @@ const configureExtension = async ({ openFarmerInNewWindow }) => {
     /** Remove Popup */
     await chrome.action.setPopup({ popup: "" });
 
-    /** Remove Previous Listener */
-    chrome.action.onClicked.removeListener(openFarmerWindow);
-
     /** Configure Action */
     if (openFarmerInNewWindow) {
       chrome.action.onClicked.addListener(openFarmerWindow);
+    } else {
+      /** Remove Previous Listener */
+      chrome.action.onClicked.removeListener(openFarmerWindow);
     }
 
     try {
@@ -130,65 +130,10 @@ const setupExtension = async () => {
   await configureExtension(await getSettings());
 };
 
-/** Open Farmer on Startup */
-chrome.runtime.onStartup.addListener(async () => {
+/** Setup Service Worker */
+const setupServiceWorker = async () => {
   /** Log */
-  customLogger("STARTUP INVOKED", Date.now());
-
-  /** Store that startup has been invoked */
-  await chrome.storage.session.set({ startupListenerWasInvoked: true });
-
-  /** Setup Extension */
-  await setupExtension();
-
-  /** Get Platform */
-  const platform = await chrome.runtime.getPlatformInfo();
-
-  /** Get Settings */
-  const settings = await getSettings();
-
-  if (
-    platform.os !== "android" &&
-    settings.openFarmerOnStartup &&
-    settings.openFarmerInNewWindow
-  ) {
-    /** Main Window */
-    let mainWindow;
-
-    try {
-      /** Get Main Window */
-      mainWindow = await chrome.windows.getCurrent();
-    } catch {}
-
-    /** Open Farmer Window */
-    await openFarmerWindow();
-
-    try {
-      if (settings.closeMainWindowOnStartup) {
-        /** Close Main Window */
-        if (mainWindow?.id) {
-          await closeWindow(mainWindow?.id);
-        }
-      } else {
-        /** Go to extensions page */
-        const tabs = await chrome.tabs.query({
-          windowType: "normal",
-        });
-
-        if (tabs[0]) {
-          await chrome.tabs.update(tabs[0].id, {
-            url: "chrome://extensions",
-          });
-        }
-      }
-    } catch {}
-  }
-});
-
-/** Open Farmer on Install */
-chrome.runtime.onInstalled.addListener(async (ev) => {
-  /** Log */
-  customLogger("ONINSTALLED INVOKED", Date.now());
+  customLogger("SETUP SERVICE WORKER", Date.now());
 
   /** Setup Extension */
   await setupExtension();
@@ -196,19 +141,69 @@ chrome.runtime.onInstalled.addListener(async (ev) => {
   /** Get Settings */
   const { openFarmerInNewWindow } = await getSettings();
 
-  /** Open Farmer Window */
   if (openFarmerInNewWindow) {
-    const { startupListenerWasInvoked } = await chrome.storage.session.get(
-      "startupListenerWasInvoked"
-    );
-
-    /** Log Storage */
-    customLogger("STARTUP STORAGE", startupListenerWasInvoked);
-
-    if (!startupListenerWasInvoked) {
-      await openFarmerWindow(true);
-    }
+    await openFarmerWindow();
   }
+
+  /** Store Setup Completion Time */
+  await chrome.storage.session.set({
+    serviceWorkerSetup: Date.now(),
+  });
+};
+
+/** Open Farmer on Startup */
+chrome.runtime.onStartup.addListener(async () => {
+  /** Log */
+  customLogger("STARTUP INVOKED", Date.now());
+
+  /** Handle Storage Change */
+  const handleStorageChange = async (changes) => {
+    const { serviceWorkerSetup } = changes;
+    if (serviceWorkerSetup) {
+      /** Remove Watch */
+      chrome.storage.session.onChanged.removeListener(handleStorageChange);
+
+      /** Get Platform */
+      const platform = await chrome.runtime.getPlatformInfo();
+
+      /** Get Settings */
+      const {
+        openFarmerOnStartup,
+        openFarmerInNewWindow,
+        closeMainWindowOnStartup,
+      } = await getSettings();
+
+      if (
+        platform.os !== "android" &&
+        openFarmerOnStartup &&
+        openFarmerInNewWindow
+      ) {
+        /** Retrieve Tabs */
+        const tabs = await chrome.tabs.query({
+          windowType: "normal",
+        });
+
+        if (tabs.length === 0) return;
+
+        try {
+          if (closeMainWindowOnStartup) {
+            /** Close Main Window */
+            await closeWindow(tabs[0].windowId);
+          } else {
+            /** Go to extensions page */
+            await chrome.tabs.update(tabs[0].id, {
+              url: "chrome://extensions",
+            });
+          }
+        } catch (e) {
+          console.error(e);
+        }
+      }
+    }
+  };
+
+  /** Add Listener for Storage Change */
+  chrome.storage.session.onChanged.addListener(handleStorageChange);
 });
 
 /** Watch Storage for Settings Change */
@@ -217,3 +212,6 @@ chrome.storage.local.onChanged.addListener(({ settings }) => {
     configureExtension(settings.newValue);
   }
 });
+
+/** Always Setup Service Worker  */
+setupServiceWorker();
