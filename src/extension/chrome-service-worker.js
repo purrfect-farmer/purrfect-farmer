@@ -158,14 +158,6 @@ const setupServiceWorker = async () => {
     if (onStartupInvoked === false || openFarmerOnStartup) {
       await openFarmerWindow();
     }
-  } else {
-    if (onStartupInvoked === false && onInstalledInvoked === false) {
-      try {
-        await chrome.sidePanel.open();
-      } catch (e) {
-        console.error(e);
-      }
-    }
   }
 
   /** Store Setup Completion Time */
