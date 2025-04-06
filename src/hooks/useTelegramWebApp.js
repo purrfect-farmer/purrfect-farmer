@@ -5,6 +5,7 @@ import {
   removeChromeLocalStorage,
   setChromeLocalStorage,
 } from "@/lib/utils";
+import { isAfter, subMinutes } from "date-fns";
 import { useCallback, useMemo } from "react";
 import { useEffect } from "react";
 import { useState } from "react";
@@ -113,18 +114,28 @@ export default function useTelegramWebApp({
     /** Get Web App */
     if (usesPort) {
       setWebAppFromPort();
-    } else if (cacheTelegramWebApp === false || farmerMode === "session") {
+    } else if (cacheTelegramWebApp === false) {
       setWebAppFromSessionOrPort();
     } else {
       getChromeLocalStorage(webAppChromeStorageKey, null).then((result) => {
         if (result) {
-          setTelegramWebApp({
-            ...result,
-            initDataUnsafe: extractInitDataUnsafe(result.initData),
-          });
-        } else {
-          setWebAppFromSessionOrPort();
+          const initDataUnsafe = extractInitDataUnsafe(result.initData);
+
+          /** Ensure initData is recent */
+          if (
+            isAfter(
+              new Date(initDataUnsafe["auth_date"] * 1000),
+              subMinutes(new Date(), 10)
+            )
+          ) {
+            return setTelegramWebApp({
+              ...result,
+              initDataUnsafe,
+            });
+          }
         }
+
+        return setWebAppFromSessionOrPort();
       });
     }
   }, [

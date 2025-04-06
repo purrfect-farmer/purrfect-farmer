@@ -69,10 +69,14 @@ export function delayForMinutes(length, precised = false) {
 }
 
 export async function getChromeLocalStorage(key, defaultValue) {
-  const { [key]: value } = await chrome?.storage?.local.get({
-    [key]: defaultValue,
-  });
-  return value;
+  if (typeof chrome?.storage?.local !== "undefined") {
+    const { [key]: value } = await chrome?.storage?.local.get({
+      [key]: defaultValue,
+    });
+    return value;
+  } else {
+    return defaultValue;
+  }
 }
 
 export async function setChromeLocalStorage(key, value) {
