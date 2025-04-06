@@ -113,7 +113,7 @@ export default function useTelegramWebApp({
     /** Get Web App */
     if (usesPort) {
       setWebAppFromPort();
-    } else if (cacheTelegramWebApp === false) {
+    } else if (cacheTelegramWebApp === false || farmerMode === "session") {
       setWebAppFromSessionOrPort();
     } else {
       getChromeLocalStorage(webAppChromeStorageKey, null).then((result) => {
