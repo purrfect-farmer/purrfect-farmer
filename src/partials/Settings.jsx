@@ -110,6 +110,7 @@ const SettingsGroup = ({ id, title, children }) => {
 
 export default memo(function Settings({ tabs }) {
   const {
+    farmerMode,
     telegramClient,
     settings,
     configureSettings,
@@ -321,21 +322,18 @@ export default memo(function Settings({ tabs }) {
                         <SettingsLabel>Farmer Mode</SettingsLabel>
 
                         <div className="grid grid-cols-2 gap-2">
-                          {["web", "session"].map((farmerMode) => (
+                          {["web", "session"].map((mode) => (
                             <button
                               onClick={() =>
-                                dispatchAndConfigureSettings(
-                                  "farmerMode",
-                                  farmerMode
-                                )
+                                dispatchAndConfigureSettings("farmerMode", mode)
                               }
-                              key={farmerMode}
+                              key={mode}
                               disabled={
-                                farmerMode === "session" &&
+                                mode === "session" &&
                                 telegramClient.hasSession === false
                               }
                               className={cn(
-                                settings.farmerMode === farmerMode
+                                farmerMode === mode
                                   ? "bg-blue-200 dark:bg-blue-800"
                                   : "bg-neutral-100 dark:bg-neutral-700",
                                 "disabled:opacity-60",
@@ -344,12 +342,12 @@ export default memo(function Settings({ tabs }) {
                                 "uppercase"
                               )}
                             >
-                              {farmerMode === "web" ? (
+                              {mode === "web" ? (
                                 <HiOutlineGlobeAlt className="size-4" />
                               ) : (
                                 <HiBolt className="size-4" />
                               )}
-                              {farmerMode}
+                              {mode}
                             </button>
                           ))}
                         </div>
