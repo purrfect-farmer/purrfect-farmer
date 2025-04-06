@@ -5,6 +5,7 @@ import CloudSubscription from "@/partials/CloudSubscription";
 import Connect from "@/partials/Connect";
 import Donate from "@/partials/Donate";
 import DropButton from "@/components/DropButton";
+import FarmerLinks from "@/partials/FarmerLinks";
 import Settings from "@/partials/Settings";
 import Shutdown from "@/partials/Shutdown";
 import Tabs from "@/components/Tabs";
@@ -347,6 +348,7 @@ export default memo(function Welcome() {
           <Tabs
             tabs={tabs}
             rootClassName="px-1 py-2"
+            listClassName={"grid-cols-3"}
             triggerClassName={cn(
               "rounded-lg",
               "border-b-0",
@@ -355,6 +357,29 @@ export default memo(function Welcome() {
               "dark:data-[state=active]:bg-blue-900",
               "dark:data-[state=active]:text-blue-100",
               "uppercase"
+            )}
+            renderList={(content) => (
+              <>
+                {/* Content */}
+                {content}
+
+                {/* Links */}
+                <Dialog.Root
+                  open={showLinksPanel}
+                  onOpenChange={dispatchAndSetShowLinksPanel}
+                >
+                  <Dialog.Trigger
+                    className={cn(
+                      "p-2 rounded-lg",
+                      "border-b-4 border-transparent",
+                      "uppercase"
+                    )}
+                  >
+                    Links
+                  </Dialog.Trigger>
+                  <FarmerLinks />
+                </Dialog.Root>
+              </>
             )}
           >
             <Tabs.Content value="farmers" className="flex flex-col gap-2">
