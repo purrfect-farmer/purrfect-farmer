@@ -250,9 +250,9 @@ export default memo(function Welcome() {
           <div className="flex items-center justify-center gap-2">
             {telegramClient.hasSession ? (
               telegramClient.connected ? (
-                <HiBolt className="size-5 shrink-0 text-orange-500" />
+                <HiBolt className="size-5 shrink-0 text-green-500" />
               ) : (
-                <HiBoltSlash className="size-5 shrink-0 text-orange-500" />
+                <HiBoltSlash className="size-5 shrink-0 text-red-500" />
               )
             ) : null}
             <h3
