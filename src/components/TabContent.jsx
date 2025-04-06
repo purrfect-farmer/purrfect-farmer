@@ -11,8 +11,12 @@ import ErrorFallback from "./ErrorFallback";
 import FullSpinner from "./FullSpinner";
 
 export default memo(function TabContent({ tab }) {
-  const { settings, preferredTelegramWebVersion, dispatchAndOpenTelegramBot } =
-    useAppContext();
+  const {
+    settings,
+    farmerMode,
+    preferredTelegramWebVersion,
+    dispatchAndOpenTelegramBot,
+  } = useAppContext();
 
   return (
     <TabContext.Provider value={tab}>
@@ -44,7 +48,9 @@ export default memo(function TabContent({ tab }) {
           >
             <img
               src={
-                tab.embedWebPage && settings.enableInAppBrowser
+                farmerMode === "session" &&
+                tab.embedWebPage &&
+                settings.enableInAppBrowser
                   ? BrowserIcon
                   : preferredTelegramWebVersion === "k"
                   ? TelegramWebKIcon
