@@ -32,8 +32,8 @@ export default memo(function MatchQuestFarmer() {
   const dailyTaskQuery = useMatchQuestDailyTaskQuery();
   const userQuery = useMatchQuestUserQuery();
 
-  /** Check Daily Boost Was Purchased */
-  const [hasPurchasedDailyBoost, setHasPurchasedDailyBoost] = useState(false);
+  /** Daily Boost State */
+  const [dailyBoost, setDailyBoost] = useState({ purchased: false });
 
   /** Auto Start and Claim Farming */
   useFarmerAsyncTask(
@@ -61,7 +61,7 @@ export default memo(function MatchQuestFarmer() {
         await rewardQuery.refetch();
 
         /** Allow Purchasing Daily Boost */
-        setHasPurchasedDailyBoost(false);
+        setDailyBoost({ purchased: true });
       }
     },
     [rewardQuery.data]
@@ -76,7 +76,7 @@ export default memo(function MatchQuestFarmer() {
 
       for (const task of dailyTaskQuery.data) {
         /** Prevent Purchase */
-        if (task["type"] === "daily" && hasPurchasedDailyBoost) {
+        if (task["type"] === "daily" && dailyBoost.purchased) {
           continue;
         }
 
@@ -104,7 +104,7 @@ export default memo(function MatchQuestFarmer() {
 
         /** Prevent Purchasing Again */
         if (task["type"] === "daily") {
-          setHasPurchasedDailyBoost(true);
+          setDailyBoost({ purchased: true });
         }
       }
 
@@ -116,7 +116,7 @@ export default memo(function MatchQuestFarmer() {
         await userQuery.refetch();
       }
     },
-    [userQuery.data, dailyTaskQuery.data, hasPurchasedDailyBoost]
+    [userQuery.data, dailyTaskQuery.data, dailyBoost]
   );
 
   /** Switch Tab Automatically */
