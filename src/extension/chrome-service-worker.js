@@ -174,7 +174,7 @@ const setupServiceWorker = async () => {
 
 /** onStartup */
 chrome.runtime.onStartup.addListener(async () => {
-  /** Log onStartUp Invoked */
+  /** Store onStartUp Invoked */
   await chrome.storage.session.set({
     onStartupInvoked: true,
   });
@@ -234,7 +234,7 @@ chrome.runtime.onStartup.addListener(async () => {
 
 /** onInstalled  */
 chrome.runtime.onInstalled.addListener(async () => {
-  /** Log onInstalled Invoked */
+  /** Store onInstalled Invoked */
   await chrome.storage.session.set({
     onInstalledInvoked: true,
   });
