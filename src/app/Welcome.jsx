@@ -23,6 +23,7 @@ import { CgSpinner } from "react-icons/cg";
 import { Dialog } from "radix-ui";
 import {
   HiBolt,
+  HiBoltSlash,
   HiOutlineArrowPath,
   HiOutlineArrowUpRight,
   HiOutlineArrowsPointingOut,
@@ -248,7 +249,11 @@ export default memo(function Welcome() {
           {/* App Title */}
           <div className="flex items-center justify-center gap-2">
             {telegramClient.hasSession ? (
-              <HiBolt className="size-5 shrink-0 text-orange-500" />
+              telegramClient.connected ? (
+                <HiBolt className="size-5 shrink-0 text-orange-500" />
+              ) : (
+                <HiBoltSlash className="size-5 shrink-0 text-orange-500" />
+              )
             ) : null}
             <h3
               className={cn(

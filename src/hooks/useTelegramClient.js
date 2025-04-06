@@ -1,5 +1,6 @@
 import { Api } from "telegram";
-import { NewMessage } from "telegram/events";
+import { NewMessage, Raw } from "telegram/events";
+import { UpdateConnectionState } from "telegram/network";
 import { createTelegramClient } from "@/lib/createTelegramClient";
 import {
   customLogger,
@@ -9,12 +10,14 @@ import {
 } from "@/lib/utils";
 import { useCallback, useLayoutEffect } from "react";
 import { useRef } from "react";
+import { useState } from "react";
 
 import useValuesMemo from "./useValuesMemo";
 
 export default function useTelegramClient(mode, session) {
   const ref = useRef(null);
   const hasSession = Boolean(session);
+  const [connected, setConnected] = useState(false);
 
   const execute = useCallback(async (callback) => {
     if (ref.current === null) {
@@ -323,19 +326,34 @@ export default function useTelegramClient(mode, session) {
       /** Set Ref */
       ref.current = client;
 
+      /** Set Connection State */
+      setConnected(client.connected);
+
+      /** Add Connected Event Handler */
+      client.addEventHandler(
+        (event) => {
+          setConnected(event.state === UpdateConnectionState.connected);
+        },
+        new Raw({
+          types: [UpdateConnectionState],
+        })
+      );
+
       /** Connect */
       client.connect();
 
       return () => {
         client?.destroy();
         ref.current = null;
+        setConnected(false);
       };
     }
-  }, [session, mode]);
+  }, [session, mode, setConnected]);
 
   return useValuesMemo({
     ref,
     hasSession,
+    connected,
     execute,
     waitForReply,
     startBot,
