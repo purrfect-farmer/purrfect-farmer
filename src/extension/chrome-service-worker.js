@@ -81,7 +81,9 @@ const configureExtension = async ({ openFarmerInNewWindow }) => {
       await chrome.sidePanel.setPanelBehavior({
         openPanelOnActionClick: openFarmerInNewWindow === false,
       });
-    } catch {}
+    } catch (e) {
+      console.error(e);
+    }
   }
 };
 
