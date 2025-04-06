@@ -6,37 +6,57 @@ import {
   getWindowCoords,
 } from "@/lib/utils";
 
-/** Close Previous Popups */
-const closePreviousPopups = async (windowId) => {
-  const indexPage = chrome.runtime.getURL("index.html");
-  const tabs = await chrome.tabs.query({
-    windowType: "popup",
-  });
+/**
+ * Close Previous Popups
+ * @param {chrome.windows.Window[]} windows
+ */
+const closePreviousPopups = async (windows) => {
+  const windowsToClose = windows.filter((window) =>
+    window.tabs.some((tab) => tab.url === "chrome://newtab/")
+  );
 
-  for (const tab of tabs) {
-    const isEmptyTab = tab.url === "chrome://newtab/";
-    const isPreviousWindow = tab.url === indexPage && tab.windowId !== windowId;
-
-    if (isEmptyTab || isPreviousWindow) {
-      await closeWindow(tab.windowId);
-    }
+  for (const window of windowsToClose) {
+    await closeWindow(window.id);
   }
 };
 
 /** Open Farmer */
 const openFarmerWindow = async () => {
-  const coords = await getWindowCoords();
+  const indexPage = chrome.runtime.getURL("index.html");
 
-  /** Create a new window */
-  const window = await chrome.windows.create({
-    ...coords,
-    type: "popup",
-    focused: true,
-    url: chrome.runtime.getURL("index.html"),
+  /** Get All Windows */
+  const windows = await chrome.windows.getAll({
+    populate: true,
+    windowTypes: ["popup"],
   });
 
+  /** Find Previous Window */
+  const window = windows.find((window) =>
+    window.tabs.some((tab) => tab.url === indexPage)
+  );
+
+  /** Get Coords */
+  const coords = await getWindowCoords();
+
+  if (window) {
+    /** Focus Previous Window */
+    await chrome.windows.update(window.id, {
+      ...coords,
+      focused: true,
+      state: "normal",
+    });
+  } else {
+    /** Create a new window */
+    await chrome.windows.create({
+      ...coords,
+      type: "popup",
+      focused: true,
+      url: indexPage,
+    });
+  }
+
   /** Close Previous Popups */
-  await closePreviousPopups(window.id);
+  await closePreviousPopups(windows);
 };
 
 /** Configure Extension */
