@@ -28,7 +28,7 @@ const Tabs = ({
             value={value}
             className={cn(
               "p-2",
-              "border-b-2 border-transparent",
+              "border-b-4 border-transparent",
               "data-[state=active]:border-blue-500",
               triggerClassName
             )}

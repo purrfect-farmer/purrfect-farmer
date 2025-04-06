@@ -8,6 +8,7 @@ import { delay } from "@/lib/utils";
 import { isAfter } from "date-fns";
 import { memo } from "react";
 import { useEffect } from "react";
+
 import TomarketAutoGamer from "./TomarketAutoGamer";
 import TomarketBalanceDisplay from "./TomarketBalanceDisplay";
 import TomarketFarmerHeader from "./TomarketFarmerHeader";
@@ -75,10 +76,7 @@ export default memo(function TomarketFarmer() {
       <TomarketFarmerHeader />
       <TomarketBalanceDisplay />
 
-      <Tabs
-        tabs={tabs}
-        triggerClassName={"border-b-4 data-[state=active]:border-white"}
-      >
+      <Tabs tabs={tabs} triggerClassName={"data-[state=active]:border-white"}>
         {/* Game */}
         <Tabs.Content value="game">
           <TomarketAutoGamer tomarket={tomarket} />

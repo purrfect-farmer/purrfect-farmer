@@ -7,6 +7,7 @@ import { delay } from "@/lib/utils";
 import { isAfter } from "date-fns";
 import { memo } from "react";
 import { useState } from "react";
+
 import MatchQuestAutoGamer from "./MatchQuestAutoGamer";
 import MatchQuestAutoTasks from "./MatchQuestAutoTasks";
 import MatchQuestBalanceDisplay from "./MatchQuestBalanceDisplay";
@@ -131,7 +132,7 @@ export default memo(function MatchQuestFarmer() {
       <Tabs
         tabs={tabs}
         rootClassName={"gap-4"}
-        triggerClassName={"border-b data-[state=active]:border-orange-500"}
+        triggerClassName={"data-[state=active]:border-orange-500"}
       >
         <Tabs.Content value="game">
           <MatchQuestAutoGamer />

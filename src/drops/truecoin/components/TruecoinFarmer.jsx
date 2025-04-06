@@ -6,6 +6,7 @@ import useFarmerContext from "@/hooks/useFarmerContext";
 import useMirroredTabs from "@/hooks/useMirroredTabs";
 import { isToday } from "date-fns";
 import { memo } from "react";
+
 import CoinIcon from "../assets/images/coin.png?format=webp&w=80";
 import EnergyIcon from "../assets/images/energy.png?format=webp&w=80";
 import TruecoinIcon from "../assets/images/icon.png?format=webp&w=80";
@@ -74,7 +75,7 @@ export default memo(function TruecoinFarmer() {
       <Tabs
         tabs={tabs}
         rootClassName={"gap-0"}
-        triggerClassName={"border-b-4 data-[state=active]:border-purple-500"}
+        triggerClassName={"data-[state=active]:border-purple-500"}
       >
         {/* Lottery */}
         <Tabs.Content value="lottery">

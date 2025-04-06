@@ -4,6 +4,7 @@ import useFarmerAsyncTask from "@/hooks/useFarmerAsyncTask";
 import useFarmerAutoTab from "@/hooks/useFarmerAutoTab";
 import useMirroredTabs from "@/hooks/useMirroredTabs";
 import { memo } from "react";
+
 import SlotcoinIcon from "../assets/images/icon.png?format=webp&w=80";
 import SlotcoinInfoDisplay from "./SlotcoinInfoDisplay";
 import SlotcoinLottery from "./SlotcoinLottery";
@@ -64,7 +65,7 @@ export default memo(function SlotcoinFarmer() {
       <Tabs
         tabs={tabs}
         rootClassName={"gap-0"}
-        triggerClassName={"border-b-4 data-[state=active]:border-purple-500"}
+        triggerClassName={"data-[state=active]:border-purple-500"}
       >
         {/* Lottery */}
         <Tabs.Content value="lottery">

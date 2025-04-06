@@ -2,6 +2,7 @@ import Tabs from "@/components/Tabs";
 import useFarmerAutoTab from "@/hooks/useFarmerAutoTab";
 import useMirroredTabs from "@/hooks/useMirroredTabs";
 import { memo } from "react";
+
 import CEXCards from "./CEXCards";
 import CEXIcon from "../assets/images/icon.png?format=webp&w=80";
 import CEXInfoDisplay from "./CEXInfoDisplay";
@@ -27,7 +28,7 @@ export default memo(function CEXFarmer() {
       <Tabs
         tabs={tabs}
         rootClassName={"gap-0"}
-        triggerClassName={"border-b-4 data-[state=active]:border-orange-500"}
+        triggerClassName={"data-[state=active]:border-orange-500"}
         className="flex flex-col"
       >
         {/* Cards */}

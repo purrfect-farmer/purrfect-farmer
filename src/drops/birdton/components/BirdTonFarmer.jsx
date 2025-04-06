@@ -6,6 +6,7 @@ import useFarmerAutoTab from "@/hooks/useFarmerAutoTab";
 import useFarmerContext from "@/hooks/useFarmerContext";
 import useMirroredTabs from "@/hooks/useMirroredTabs";
 import { memo } from "react";
+
 import BirdTonGamer from "./BirdTonGamer";
 import BirdTonIcon from "../assets/images/icon.png?format=webp&w=80";
 import BirdTonTasks from "./BirdTonTasks";
@@ -64,7 +65,7 @@ export default memo(function BirdTonFarmer() {
       <Tabs
         tabs={tabs}
         rootClassName={"gap-4"}
-        triggerClassName={"border-b-4 data-[state=active]:border-sky-100"}
+        triggerClassName={"data-[state=active]:border-sky-100"}
       >
         {/* Game */}
         <Tabs.Content value="game">

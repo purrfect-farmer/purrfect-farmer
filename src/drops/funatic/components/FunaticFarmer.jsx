@@ -5,6 +5,7 @@ import useFarmerAutoTab from "@/hooks/useFarmerAutoTab";
 import useMirroredTabs from "@/hooks/useMirroredTabs";
 import { delay } from "@/lib/utils";
 import { memo } from "react";
+
 import FunaticCards from "./FunaticCards";
 import FunaticGamer from "./FunaticGamer";
 import FunaticIcon from "../assets/images/icon.png?format=webp&w=80";
@@ -133,7 +134,7 @@ export default memo(function FunaticFarmer() {
       <Tabs
         tabs={tabs}
         rootClassName={"gap-0"}
-        triggerClassName={"border-b-4 data-[state=active]:border-purple-500"}
+        triggerClassName={"data-[state=active]:border-purple-500"}
       >
         {/* Game */}
         <Tabs.Content value="game">

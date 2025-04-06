@@ -4,6 +4,7 @@ import useFarmerAsyncTask from "@/hooks/useFarmerAsyncTask";
 import useFarmerAutoTab from "@/hooks/useFarmerAutoTab";
 import useMirroredTabs from "@/hooks/useMirroredTabs";
 import { memo } from "react";
+
 import DiggerCards from "./DiggerCards";
 import DiggerChests from "./DiggerChests";
 import DiggerGame from "./DiggerGame";
@@ -58,7 +59,7 @@ export default memo(function DiggerFarmer() {
       <Tabs
         tabs={tabs}
         rootClassName={"gap-0"}
-        triggerClassName={"border-b-4 data-[state=active]:border-green-500"}
+        triggerClassName={"data-[state=active]:border-green-500"}
         className="flex flex-col"
       >
         {/* Game */}

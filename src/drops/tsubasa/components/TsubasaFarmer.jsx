@@ -6,6 +6,7 @@ import useFarmerContext from "@/hooks/useFarmerContext";
 import useMirroredTabs from "@/hooks/useMirroredTabs";
 import { isToday } from "date-fns";
 import { memo } from "react";
+
 import TsubasaCards from "./TsubasaCards";
 import TsubasaIcon from "../assets/images/icon.png?format=webp&w=80";
 import TsubasaInfoDisplay from "./TsubasaInfoDisplay";
@@ -52,7 +53,7 @@ export default memo(function TsubasaFarmer() {
       <Tabs
         tabs={tabs}
         rootClassName={"gap-0"}
-        triggerClassName={"border-b-4 data-[state=active]:border-blue-500"}
+        triggerClassName={"data-[state=active]:border-blue-500"}
       >
         {/* Cards */}
         <Tabs.Content value="cards">

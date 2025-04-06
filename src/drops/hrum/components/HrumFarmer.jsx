@@ -3,6 +3,7 @@ import useFarmerAutoTab from "@/hooks/useFarmerAutoTab";
 import useMirroredTabs from "@/hooks/useMirroredTabs";
 import { CgSpinner } from "react-icons/cg";
 import { memo } from "react";
+
 import CookieIcon from "../assets/images/cookie.png?format=webp&w=160";
 import HrumAutoTasks from "./HrumAutoTasks";
 import HrumBalanceDisplay from "./HrumBalanceDisplay";
@@ -55,7 +56,7 @@ export default memo(function () {
       <Tabs
         tabs={tabs}
         rootClassName={"gap-4"}
-        triggerClassName={"border-b-4 data-[state=active]:border-yellow-500"}
+        triggerClassName={"data-[state=active]:border-yellow-500"}
       >
         <Tabs.Content value="daily">
           {/* Hrum Riddle */}

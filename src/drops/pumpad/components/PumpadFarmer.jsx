@@ -4,6 +4,7 @@ import useFarmerAsyncTask from "@/hooks/useFarmerAsyncTask";
 import useFarmerAutoTab from "@/hooks/useFarmerAutoTab";
 import useMirroredTabs from "@/hooks/useMirroredTabs";
 import { memo } from "react";
+
 import PumpadBalanceDisplay from "./PumpadBalanceDisplay";
 import PumpadIcon from "../assets/images/icon.png?format=webp&w=80";
 import PumpadLottery from "./PumpadLottery";
@@ -63,9 +64,7 @@ export default memo(function PumpadFarmer() {
       <Tabs
         tabs={tabs}
         rootClassName={"gap-0"}
-        triggerClassName={
-          "border-b-4 data-[state=active]:border-pumpad-green-500"
-        }
+        triggerClassName={"data-[state=active]:border-pumpad-green-500"}
       >
         {/* Lottery */}
         <Tabs.Content value="lottery">

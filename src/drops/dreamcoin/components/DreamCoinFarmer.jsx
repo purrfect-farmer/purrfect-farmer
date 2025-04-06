@@ -150,7 +150,7 @@ export default memo(function DreamCoinFarmer() {
         <Tabs
           tabs={tabs}
           rootClassName={"gap-0"}
-          triggerClassName={"border-b-4 data-[state=active]:border-orange-500"}
+          triggerClassName={"data-[state=active]:border-orange-500"}
         >
           {/* Lottery */}
           <Tabs.Content value="lottery">
