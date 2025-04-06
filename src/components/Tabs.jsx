@@ -7,10 +7,14 @@ const GRID_SIZES = {
   4: "grid-cols-4",
   5: "grid-cols-5",
 };
+
+const defaultRenderList = (content) => content;
+
 const Tabs = ({
   children,
   rootClassName,
   listClassName,
+  renderList = defaultRenderList,
   triggerClassName,
   tabs,
 }) => {
@@ -22,20 +26,22 @@ const Tabs = ({
       <TabsPrimitive.List
         className={cn("grid", GRID_SIZES[tabs.list.length], listClassName)}
       >
-        {tabs.list.map((value, index) => (
-          <TabsPrimitive.Trigger
-            key={index}
-            value={value}
-            className={cn(
-              "p-2",
-              "border-b-4 border-transparent",
-              "data-[state=active]:border-blue-500",
-              triggerClassName
-            )}
-          >
-            {value.toUpperCase()}
-          </TabsPrimitive.Trigger>
-        ))}
+        {renderList(
+          tabs.list.map((value, index) => (
+            <TabsPrimitive.Trigger
+              key={index}
+              value={value}
+              className={cn(
+                "p-2",
+                "border-b-4 border-transparent",
+                "data-[state=active]:border-blue-500",
+                triggerClassName
+              )}
+            >
+              {value.toUpperCase()}
+            </TabsPrimitive.Trigger>
+          ))
+        )}
       </TabsPrimitive.List>
       {children}
     </TabsPrimitive.Root>
