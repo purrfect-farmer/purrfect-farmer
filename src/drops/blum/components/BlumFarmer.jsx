@@ -1,11 +1,10 @@
+import Tabs from "@/components/Tabs";
 import toast from "react-hot-toast";
 import useFarmerAsyncTask from "@/hooks/useFarmerAsyncTask";
 import useFarmerAutoTab from "@/hooks/useFarmerAutoTab";
 import useMirroredTabs from "@/hooks/useMirroredTabs";
-import { Tabs } from "radix-ui";
-import { cn, delay } from "@/lib/utils";
+import { delay } from "@/lib/utils";
 import { memo } from "react";
-
 import BlumAutoTasks from "./BlumAutoTasks";
 import BlumBalanceDisplay from "./BlumBalanceDisplay";
 import BlumFarmerHeader from "./BlumFarmerHeader";
@@ -112,37 +111,18 @@ export default memo(function BlumFarmer() {
       <BlumUsernameDisplay />
       <BlumBalanceDisplay />
 
-      <Tabs.Root {...tabs.rootProps} className="flex flex-col gap-4">
-        <Tabs.List className="grid grid-cols-2">
-          {tabs.list.map((value, index) => (
-            <Tabs.Trigger
-              key={index}
-              value={value}
-              className={cn(
-                "p-2",
-                "border-b border-transparent",
-                "data-[state=active]:border-blum-green-500"
-              )}
-            >
-              {value.toUpperCase()}
-            </Tabs.Trigger>
-          ))}
-        </Tabs.List>
-        <Tabs.Content
-          forceMount
-          className="data-[state=inactive]:hidden"
-          value="game"
-        >
+      <Tabs
+        tabs={tabs}
+        rootClassName={"gap-4"}
+        triggerClassName={"data-[state=active]:border-blum-green-500"}
+      >
+        <Tabs.Content value="game">
           <BlumGamer />
         </Tabs.Content>
-        <Tabs.Content
-          forceMount
-          className="data-[state=inactive]:hidden"
-          value="tasks"
-        >
+        <Tabs.Content value="tasks">
           <BlumAutoTasks />
         </Tabs.Content>
-      </Tabs.Root>
+      </Tabs>
     </div>
   );
 });

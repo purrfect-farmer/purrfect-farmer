@@ -1,9 +1,7 @@
-import { Tabs } from "radix-ui";
+import Tabs from "@/components/Tabs";
 import useFarmerAutoTab from "@/hooks/useFarmerAutoTab";
 import useMirroredTabs from "@/hooks/useMirroredTabs";
-import { cn } from "@/lib/utils";
 import { memo } from "react";
-
 import CEXCards from "./CEXCards";
 import CEXIcon from "../assets/images/icon.png?format=webp&w=80";
 import CEXInfoDisplay from "./CEXInfoDisplay";
@@ -26,41 +24,22 @@ export default memo(function CEXFarmer() {
       {/* Info */}
       <CEXInfoDisplay />
 
-      <Tabs.Root {...tabs.rootProps} className="flex flex-col">
-        <Tabs.List className="grid grid-cols-2">
-          {tabs.list.map((value, index) => (
-            <Tabs.Trigger
-              key={index}
-              value={value}
-              className={cn(
-                "p-2",
-                "border-b-4 border-transparent",
-                "data-[state=active]:border-orange-500"
-              )}
-            >
-              {value.toUpperCase()}
-            </Tabs.Trigger>
-          ))}
-        </Tabs.List>
-
+      <Tabs
+        tabs={tabs}
+        rootClassName={"gap-0"}
+        triggerClassName={"border-b-4 data-[state=active]:border-orange-500"}
+        className="flex flex-col"
+      >
         {/* Cards */}
-        <Tabs.Content
-          forceMount
-          className="data-[state=inactive]:hidden"
-          value="cards"
-        >
+        <Tabs.Content value="cards">
           <CEXCards />
         </Tabs.Content>
 
         {/* Tasks */}
-        <Tabs.Content
-          forceMount
-          className="data-[state=inactive]:hidden"
-          value="tasks"
-        >
+        <Tabs.Content value="tasks">
           <CEXTasks />
         </Tabs.Content>
-      </Tabs.Root>
+      </Tabs>
     </div>
   );
 });

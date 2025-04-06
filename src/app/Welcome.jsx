@@ -5,9 +5,9 @@ import CloudSubscription from "@/partials/CloudSubscription";
 import Connect from "@/partials/Connect";
 import Donate from "@/partials/Donate";
 import DropButton from "@/components/DropButton";
-import FarmerLinks from "@/partials/FarmerLinks";
 import Settings from "@/partials/Settings";
 import Shutdown from "@/partials/Shutdown";
+import Tabs from "@/components/Tabs";
 import TelegramUser from "@/partials/TelegramUser";
 import TelegramWebAIcon from "@/assets/images/telegram-web-a.png?format=webp&w=80";
 import TelegramWebKIcon from "@/assets/images/telegram-web-k.png?format=webp&w=80";
@@ -32,7 +32,6 @@ import {
   HiOutlinePuzzlePiece,
 } from "react-icons/hi2";
 import { RiRemoteControlLine } from "react-icons/ri";
-import { Tabs } from "radix-ui";
 import { cn } from "@/lib/utils";
 import { forwardRef, memo } from "react";
 import { useCallback } from "react";
@@ -345,50 +344,19 @@ export default memo(function Welcome() {
             </div>
           </div>
 
-          <Tabs.Root
-            {...tabs.rootProps}
-            className="flex flex-col gap-2 px-1 py-2"
+          <Tabs
+            tabs={tabs}
+            rootClassName="px-1 py-2"
+            triggerClassName={cn(
+              "rounded-lg",
+              "border-b-0",
+              "data-[state=active]:bg-blue-100",
+              "data-[state=active]:text-blue-800",
+              "dark:data-[state=active]:bg-blue-900",
+              "dark:data-[state=active]:text-blue-100",
+              "uppercase"
+            )}
           >
-            <Tabs.List className="grid grid-cols-3 px-1">
-              {tabs.list.map((value, index) => (
-                <Tabs.Trigger
-                  key={index}
-                  value={value}
-                  className={cn(
-                    "p-2 rounded-lg",
-                    "border-b-2 border-transparent",
-                    "data-[state=active]:bg-blue-100",
-                    "data-[state=active]:text-blue-800",
-                    "dark:data-[state=active]:bg-blue-900",
-                    "dark:data-[state=active]:text-blue-100",
-                    "uppercase"
-                  )}
-                >
-                  {value}
-                </Tabs.Trigger>
-              ))}
-
-              {/* Links */}
-              <Dialog.Root
-                open={showLinksPanel}
-                onOpenChange={dispatchAndSetShowLinksPanel}
-              >
-                <Dialog.Trigger
-                  className={cn(
-                    "p-2 rounded-lg",
-                    "border-b-2 border-transparent",
-                    "data-[state=active]:bg-blue-100",
-                    "data-[state=active]:text-blue-800",
-                    "dark:data-[state=active]:bg-blue-900",
-                    "dark:data-[state=active]:text-blue-100",
-                    "uppercase"
-                  )}
-                >
-                  Links
-                </Dialog.Trigger>
-                <FarmerLinks />
-              </Dialog.Root>
-            </Tabs.List>
             <Tabs.Content value="farmers" className="flex flex-col gap-2">
               {/* Configure Farmers */}
               <button
@@ -452,7 +420,7 @@ export default memo(function Welcome() {
                 </div>
               )}
             </Tabs.Content>
-          </Tabs.Root>
+          </Tabs>
 
           {/* Connect */}
           <Connect />

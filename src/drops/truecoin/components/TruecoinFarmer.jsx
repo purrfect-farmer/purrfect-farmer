@@ -1,13 +1,11 @@
+import Tabs from "@/components/Tabs";
 import toast from "react-hot-toast";
 import useFarmerAsyncTask from "@/hooks/useFarmerAsyncTask";
 import useFarmerAutoTab from "@/hooks/useFarmerAutoTab";
 import useFarmerContext from "@/hooks/useFarmerContext";
 import useMirroredTabs from "@/hooks/useMirroredTabs";
-import { Tabs } from "radix-ui";
-import { cn } from "@/lib/utils";
 import { isToday } from "date-fns";
 import { memo } from "react";
-
 import CoinIcon from "../assets/images/coin.png?format=webp&w=80";
 import EnergyIcon from "../assets/images/energy.png?format=webp&w=80";
 import TruecoinIcon from "../assets/images/icon.png?format=webp&w=80";
@@ -73,41 +71,21 @@ export default memo(function TruecoinFarmer() {
         ) : null}
       </>
 
-      <Tabs.Root {...tabs.rootProps} className="flex flex-col">
-        <Tabs.List className="grid grid-cols-2">
-          {tabs.list.map((value, index) => (
-            <Tabs.Trigger
-              key={index}
-              value={value}
-              className={cn(
-                "p-2",
-                "border-b-4 border-transparent",
-                "data-[state=active]:border-purple-500"
-              )}
-            >
-              {value.toUpperCase()}
-            </Tabs.Trigger>
-          ))}
-        </Tabs.List>
-
+      <Tabs
+        tabs={tabs}
+        rootClassName={"gap-0"}
+        triggerClassName={"border-b-4 data-[state=active]:border-purple-500"}
+      >
         {/* Lottery */}
-        <Tabs.Content
-          forceMount
-          className="data-[state=inactive]:hidden"
-          value="lottery"
-        >
+        <Tabs.Content value="lottery">
           <TruecoinLottery />
         </Tabs.Content>
 
         {/* Tasks */}
-        <Tabs.Content
-          forceMount
-          className="data-[state=inactive]:hidden"
-          value="tasks"
-        >
+        <Tabs.Content value="tasks">
           <TruecoinTasks />
         </Tabs.Content>
-      </Tabs.Root>
+      </Tabs>
     </div>
   );
 });

@@ -2,12 +2,9 @@ import toast from "react-hot-toast";
 import useFarmerAsyncTask from "@/hooks/useFarmerAsyncTask";
 import useFarmerAutoTab from "@/hooks/useFarmerAutoTab";
 import useMirroredTabs from "@/hooks/useMirroredTabs";
-import { Tabs } from "radix-ui";
-import { cn } from "@/lib/utils";
 import { isToday } from "date-fns";
 import { memo } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-
 import BattleBullsCards from "./BattleBullsCards";
 import BattleBullsIcon from "../assets/images/icon.png?format=webp&w=80";
 import BattleBullsInfoDisplay from "./BattleBullsInfoDisplay";
@@ -16,6 +13,7 @@ import useBattleBullsBlockchainMutation from "../hooks/useBattleBullsBlockchainM
 import useBattleBullsClaimDailyRewardMutation from "../hooks/useBattleBullsClaimDailyRewardMutation";
 import useBattleBullsTasksQuery from "../hooks/useBattleBullsTasksQuery";
 import useBattleBullsUserQuery from "../hooks/useBattleBullsUserQuery";
+import Tabs from "@/components/Tabs";
 
 export default memo(function BattleBullsFarmer() {
   const tabs = useMirroredTabs("battle-bulls.farmer-tabs", ["cards", "tasks"]);
@@ -105,41 +103,21 @@ export default memo(function BattleBullsFarmer() {
       {/* Info */}
       <BattleBullsInfoDisplay />
 
-      <Tabs.Root {...tabs.rootProps} className="flex flex-col">
-        <Tabs.List className="grid grid-cols-2">
-          {tabs.list.map((value, index) => (
-            <Tabs.Trigger
-              key={index}
-              value={value}
-              className={cn(
-                "p-2",
-                "border-b-4 border-transparent",
-                "data-[state=active]:border-blue-500"
-              )}
-            >
-              {value.toUpperCase()}
-            </Tabs.Trigger>
-          ))}
-        </Tabs.List>
-
+      <Tabs
+        tabs={tabs}
+        rootClassName={"gap-0"}
+        triggerClassName={"data-[state=active]:border-blue-500"}
+      >
         {/* Cards */}
-        <Tabs.Content
-          forceMount
-          className="data-[state=inactive]:hidden"
-          value="cards"
-        >
+        <Tabs.Content value="cards">
           <BattleBullsCards />
         </Tabs.Content>
 
         {/* Tasks */}
-        <Tabs.Content
-          forceMount
-          className="data-[state=inactive]:hidden"
-          value="tasks"
-        >
+        <Tabs.Content value="tasks">
           <BattleBullsTasks />
         </Tabs.Content>
-      </Tabs.Root>
+      </Tabs>
     </div>
   );
 });

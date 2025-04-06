@@ -1,7 +1,6 @@
-import { Tabs } from "radix-ui";
+import Tabs from "@/components/Tabs";
 import useFarmerAutoTab from "@/hooks/useFarmerAutoTab";
 import useMirroredTabs from "@/hooks/useMirroredTabs";
-import { cn } from "@/lib/utils";
 import { memo } from "react";
 
 import GoldEagleBalanceDisplay from "./GoldEagleBalanceDisplay";
@@ -29,32 +28,17 @@ export default memo(function GoldEagleFarmer() {
       <>
         <GoldEagleBalanceDisplay />
 
-        <Tabs.Root {...tabs.rootProps} className="flex flex-col gap-4">
-          <Tabs.List className="grid grid-cols-1">
-            {tabs.list.map((value, index) => (
-              <Tabs.Trigger
-                key={index}
-                value={value}
-                className={cn(
-                  "p-2",
-                  "border-b-2 border-transparent",
-                  "data-[state=active]:border-orange-500"
-                )}
-              >
-                {value.toUpperCase()}
-              </Tabs.Trigger>
-            ))}
-          </Tabs.List>
-
+        <Tabs
+          tabs={tabs}
+          rootClassName={"gap-4"}
+          triggerClassName={"data-[state=active]:border-orange-500"}
+          className="flex flex-col gap-4"
+        >
           {/* Game */}
-          <Tabs.Content
-            forceMount
-            className="data-[state=inactive]:hidden"
-            value="game"
-          >
+          <Tabs.Content value="game">
             <GoldEagleGamer />
           </Tabs.Content>
-        </Tabs.Root>
+        </Tabs>
       </>
     </div>
   );

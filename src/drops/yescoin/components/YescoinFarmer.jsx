@@ -1,8 +1,7 @@
-import { Tabs } from "radix-ui";
+import Tabs from "@/components/Tabs";
 import useFarmerAutoTab from "@/hooks/useFarmerAutoTab";
 import useMirroredTabs from "@/hooks/useMirroredTabs";
 import { CgSpinner } from "react-icons/cg";
-import { cn } from "@/lib/utils";
 import { memo } from "react";
 
 import YescoinBalanceDisplay from "./YescoinBalanceDisplay";
@@ -42,41 +41,21 @@ export default memo(function YescoinFarmer() {
       {accountInfoQuery.isSuccess ? (
         <>
           <YescoinBalanceDisplay />
-          <Tabs.Root {...tabs.rootProps} className="flex flex-col gap-4">
-            <Tabs.List className="grid grid-cols-2">
-              {tabs.list.map((value, index) => (
-                <Tabs.Trigger
-                  key={index}
-                  value={value}
-                  className={cn(
-                    "p-2",
-                    "border-b-2 border-transparent",
-                    "data-[state=active]:border-orange-500"
-                  )}
-                >
-                  {value.toUpperCase()}
-                </Tabs.Trigger>
-              ))}
-            </Tabs.List>
-
+          <Tabs
+            tabs={tabs}
+            rootClassName={"gap-4"}
+            triggerClassName={"data-[state=active]:border-orange-500"}
+          >
             {/* Daily Mission */}
-            <Tabs.Content
-              forceMount
-              className="data-[state=inactive]:hidden"
-              value="missions"
-            >
+            <Tabs.Content value="missions">
               <YescoinDailyMission />
             </Tabs.Content>
 
             {/* Tasks */}
-            <Tabs.Content
-              forceMount
-              className="data-[state=inactive]:hidden"
-              value="tasks"
-            >
+            <Tabs.Content value="tasks">
               <YescoinTasks />
             </Tabs.Content>
-          </Tabs.Root>
+          </Tabs>
         </>
       ) : (
         <CgSpinner className="w-5 h-5 mx-auto animate-spin" />

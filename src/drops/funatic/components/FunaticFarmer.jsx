@@ -1,11 +1,10 @@
+import Tabs from "@/components/Tabs";
 import toast from "react-hot-toast";
 import useFarmerAsyncTask from "@/hooks/useFarmerAsyncTask";
 import useFarmerAutoTab from "@/hooks/useFarmerAutoTab";
 import useMirroredTabs from "@/hooks/useMirroredTabs";
-import { Tabs } from "radix-ui";
-import { cn, delay } from "@/lib/utils";
+import { delay } from "@/lib/utils";
 import { memo } from "react";
-
 import FunaticCards from "./FunaticCards";
 import FunaticGamer from "./FunaticGamer";
 import FunaticIcon from "../assets/images/icon.png?format=webp&w=80";
@@ -131,50 +130,26 @@ export default memo(function FunaticFarmer() {
       {/* Info */}
       <FunaticInfoDisplay />
 
-      <Tabs.Root {...tabs.rootProps} className="flex flex-col">
-        <Tabs.List className="grid grid-cols-3">
-          {tabs.list.map((value, index) => (
-            <Tabs.Trigger
-              key={index}
-              value={value}
-              className={cn(
-                "p-2",
-                "border-b-4 border-transparent",
-                "data-[state=active]:border-purple-500"
-              )}
-            >
-              {value.toUpperCase()}
-            </Tabs.Trigger>
-          ))}
-        </Tabs.List>
-
+      <Tabs
+        tabs={tabs}
+        rootClassName={"gap-0"}
+        triggerClassName={"border-b-4 data-[state=active]:border-purple-500"}
+      >
         {/* Game */}
-        <Tabs.Content
-          forceMount
-          className="data-[state=inactive]:hidden"
-          value="game"
-        >
+        <Tabs.Content value="game">
           <FunaticGamer />
         </Tabs.Content>
 
         {/* Cards */}
-        <Tabs.Content
-          forceMount
-          className="data-[state=inactive]:hidden"
-          value="cards"
-        >
+        <Tabs.Content value="cards">
           <FunaticCards />
         </Tabs.Content>
 
         {/* Tasks */}
-        <Tabs.Content
-          forceMount
-          className="data-[state=inactive]:hidden"
-          value="quests"
-        >
+        <Tabs.Content value="quests">
           <FunaticQuests />
         </Tabs.Content>
-      </Tabs.Root>
+      </Tabs>
     </div>
   );
 });

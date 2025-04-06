@@ -1,11 +1,9 @@
+import Tabs from "@/components/Tabs";
 import toast from "react-hot-toast";
 import useFarmerAsyncTask from "@/hooks/useFarmerAsyncTask";
 import useFarmerAutoTab from "@/hooks/useFarmerAutoTab";
 import useMirroredTabs from "@/hooks/useMirroredTabs";
-import { Tabs } from "radix-ui";
-import { cn } from "@/lib/utils";
 import { memo } from "react";
-
 import DiggerCards from "./DiggerCards";
 import DiggerChests from "./DiggerChests";
 import DiggerGame from "./DiggerGame";
@@ -57,59 +55,32 @@ export default memo(function DiggerFarmer() {
       {/* Info */}
       <DiggerInfoDisplay />
 
-      <Tabs.Root {...tabs.rootProps} className="flex flex-col">
-        <Tabs.List className="grid grid-cols-4">
-          {tabs.list.map((value, index) => (
-            <Tabs.Trigger
-              key={index}
-              value={value}
-              className={cn(
-                "p-2",
-                "border-b-4 border-transparent",
-                "data-[state=active]:border-green-500"
-              )}
-            >
-              {value.toUpperCase()}
-            </Tabs.Trigger>
-          ))}
-        </Tabs.List>
-
+      <Tabs
+        tabs={tabs}
+        rootClassName={"gap-0"}
+        triggerClassName={"border-b-4 data-[state=active]:border-green-500"}
+        className="flex flex-col"
+      >
         {/* Game */}
-        <Tabs.Content
-          forceMount
-          className="data-[state=inactive]:hidden"
-          value="game"
-        >
+        <Tabs.Content value="game">
           <DiggerGame />
         </Tabs.Content>
 
         {/* Chests */}
-        <Tabs.Content
-          forceMount
-          className="data-[state=inactive]:hidden"
-          value="chests"
-        >
+        <Tabs.Content value="chests">
           <DiggerChests />
         </Tabs.Content>
 
         {/* Cards */}
-        <Tabs.Content
-          forceMount
-          className="data-[state=inactive]:hidden"
-          value="cards"
-        >
+        <Tabs.Content value="cards">
           <DiggerCards />
         </Tabs.Content>
 
         {/* Tasks */}
-        <Tabs.Content
-          forceMount
-          className="data-[state=inactive]:hidden"
-          value="tasks"
-        >
+        <Tabs.Content value="tasks">
           <DiggerTasks />
         </Tabs.Content>
-      </Tabs.Root>
+      </Tabs>
     </div>
   );
 });

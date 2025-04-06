@@ -1,11 +1,9 @@
+import Tabs from "@/components/Tabs";
 import toast from "react-hot-toast";
 import useFarmerAsyncTask from "@/hooks/useFarmerAsyncTask";
 import useFarmerAutoTab from "@/hooks/useFarmerAutoTab";
 import useMirroredTabs from "@/hooks/useMirroredTabs";
-import { Tabs } from "radix-ui";
-import { cn } from "@/lib/utils";
 import { memo } from "react";
-
 import PumpadBalanceDisplay from "./PumpadBalanceDisplay";
 import PumpadIcon from "../assets/images/icon.png?format=webp&w=80";
 import PumpadLottery from "./PumpadLottery";
@@ -62,59 +60,33 @@ export default memo(function PumpadFarmer() {
       {/* Balance */}
       <PumpadBalanceDisplay />
 
-      <Tabs.Root {...tabs.rootProps} className="flex flex-col">
-        <Tabs.List className="grid grid-cols-4">
-          {tabs.list.map((value, index) => (
-            <Tabs.Trigger
-              key={index}
-              value={value}
-              className={cn(
-                "p-2",
-                "border-b-4 border-transparent",
-                "data-[state=active]:border-pumpad-green-500"
-              )}
-            >
-              {value.toUpperCase()}
-            </Tabs.Trigger>
-          ))}
-        </Tabs.List>
-
+      <Tabs
+        tabs={tabs}
+        rootClassName={"gap-0"}
+        triggerClassName={
+          "border-b-4 data-[state=active]:border-pumpad-green-500"
+        }
+      >
         {/* Lottery */}
-        <Tabs.Content
-          forceMount
-          className="data-[state=inactive]:hidden"
-          value="lottery"
-        >
+        <Tabs.Content value="lottery">
           <PumpadLottery />
         </Tabs.Content>
 
         {/* Tickets */}
-        <Tabs.Content
-          forceMount
-          className="data-[state=inactive]:hidden"
-          value="tickets"
-        >
+        <Tabs.Content value="tickets">
           <PumpadTickets />
         </Tabs.Content>
 
         {/* Missions */}
-        <Tabs.Content
-          forceMount
-          className="data-[state=inactive]:hidden"
-          value="missions"
-        >
+        <Tabs.Content value="missions">
           <PumpadMissions />
         </Tabs.Content>
 
         {/* Points */}
-        <Tabs.Content
-          forceMount
-          className="data-[state=inactive]:hidden"
-          value="points"
-        >
+        <Tabs.Content value="points">
           <PumpadPoints />
         </Tabs.Content>
-      </Tabs.Root>
+      </Tabs>
     </div>
   );
 });

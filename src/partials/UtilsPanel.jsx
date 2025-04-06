@@ -1,10 +1,10 @@
 import CoreSystemIcon from "@/assets/images/core-system.png?format=webp&w=128";
 import Input from "@/components/Input";
 import LabelToggle from "@/components/LabelToggle";
+import Tabs from "@/components/Tabs";
 import useAppContext from "@/hooks/useAppContext";
 import { Dialog } from "radix-ui";
 import { HiArrowTopRightOnSquare, HiUserPlus } from "react-icons/hi2";
-import { Tabs } from "radix-ui";
 import { cn, isBotURL } from "@/lib/utils";
 import { memo, useState } from "react";
 import { utils } from "@/core/tabs";
@@ -55,23 +55,11 @@ export default memo(function UtilsPanel({ tabs, onOpenChange }) {
               Core System Tools
             </Dialog.Description>
 
-            <Tabs.Root {...tabs.rootProps} className="flex flex-col gap-4">
-              <Tabs.List className="grid grid-cols-2">
-                {tabs.list.map((value, index) => (
-                  <Tabs.Trigger
-                    key={index}
-                    value={value}
-                    className={cn(
-                      "p-2",
-                      "border-b-2 border-transparent",
-                      "data-[state=active]:border-blue-500"
-                    )}
-                  >
-                    {value.toUpperCase()}
-                  </Tabs.Trigger>
-                ))}
-              </Tabs.List>
-
+            <Tabs
+              tabs={tabs}
+              rootClassName={"gap-4"}
+              triggerClassName={"data-[state=active]:border-blue-500"}
+            >
               {/* Farmer */}
               <Tabs.Content value="farmer">
                 <div className="flex flex-col gap-2">
@@ -170,7 +158,7 @@ export default memo(function UtilsPanel({ tabs, onOpenChange }) {
                   </Dialog.Close>
                 ))}
               </Tabs.Content>
-            </Tabs.Root>
+            </Tabs>
           </div>
           <div className="flex flex-col p-4 font-bold shrink-0">
             <Dialog.Close className="p-2.5 text-white bg-blue-500 rounded-lg">

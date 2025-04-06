@@ -1,12 +1,11 @@
+import Tabs from "@/components/Tabs";
 import toast from "react-hot-toast";
 import useFarmerAsyncTask from "@/hooks/useFarmerAsyncTask";
 import useFarmerAutoTab from "@/hooks/useFarmerAutoTab";
 import useMirroredTabs from "@/hooks/useMirroredTabs";
-import { Tabs } from "radix-ui";
-import { cn, customLogger, delay } from "@/lib/utils";
+import { customLogger, delay } from "@/lib/utils";
 import { isAfter } from "date-fns";
 import { memo } from "react";
-
 import WontonAutoBadges from "./WontonBadges";
 import WontonAutoGamer from "./WontonAutoGamer";
 import WontonAutoTasks from "./WontonAutoTasks";
@@ -214,44 +213,21 @@ export default memo(function WontonFarmer() {
       <WontonUsernameDisplay />
       <WontonBalanceDisplay />
 
-      <Tabs.Root {...tabs.rootProps} className="flex flex-col gap-4">
-        <Tabs.List className="grid grid-cols-3">
-          {tabs.list.map((value, index) => (
-            <Tabs.Trigger
-              key={index}
-              value={value}
-              className={cn(
-                "p-2",
-                "border-b-2 border-transparent",
-                "data-[state=active]:border-wonton-green-500"
-              )}
-            >
-              {value.toUpperCase()}
-            </Tabs.Trigger>
-          ))}
-        </Tabs.List>
-        <Tabs.Content
-          forceMount
-          className="data-[state=inactive]:hidden"
-          value="game"
-        >
+      <Tabs
+        tabs={tabs}
+        rootClassName={"gap-4"}
+        triggerClassName={"data-[state=active]:border-wonton-green-500"}
+      >
+        <Tabs.Content value="game">
           <WontonAutoGamer />
         </Tabs.Content>
-        <Tabs.Content
-          forceMount
-          className="data-[state=inactive]:hidden"
-          value="badges"
-        >
+        <Tabs.Content value="badges">
           <WontonAutoBadges />
         </Tabs.Content>
-        <Tabs.Content
-          forceMount
-          className="data-[state=inactive]:hidden"
-          value="tasks"
-        >
+        <Tabs.Content value="tasks">
           <WontonAutoTasks />
         </Tabs.Content>
-      </Tabs.Root>
+      </Tabs>
     </div>
   );
 });

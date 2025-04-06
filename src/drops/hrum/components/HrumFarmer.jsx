@@ -1,10 +1,8 @@
-import { Tabs } from "radix-ui";
+import Tabs from "@/components/Tabs";
 import useFarmerAutoTab from "@/hooks/useFarmerAutoTab";
 import useMirroredTabs from "@/hooks/useMirroredTabs";
 import { CgSpinner } from "react-icons/cg";
-import { cn } from "@/lib/utils";
 import { memo } from "react";
-
 import CookieIcon from "../assets/images/cookie.png?format=webp&w=160";
 import HrumAutoTasks from "./HrumAutoTasks";
 import HrumBalanceDisplay from "./HrumBalanceDisplay";
@@ -54,39 +52,20 @@ export default memo(function () {
       {/* Open Button */}
       <HrumOpenButton queries={dataQueries} />
 
-      <Tabs.Root {...tabs.rootProps} className="flex flex-col gap-4">
-        <Tabs.List className="grid grid-cols-2">
-          {tabs.list.map((value, index) => (
-            <Tabs.Trigger
-              key={index}
-              value={value}
-              className={cn(
-                "p-2",
-                "border-b-4 border-transparent",
-                "data-[state=active]:border-yellow-500"
-              )}
-            >
-              {value.toUpperCase()}
-            </Tabs.Trigger>
-          ))}
-        </Tabs.List>
-        <Tabs.Content
-          forceMount
-          className="data-[state=inactive]:hidden"
-          value="daily"
-        >
+      <Tabs
+        tabs={tabs}
+        rootClassName={"gap-4"}
+        triggerClassName={"border-b-4 data-[state=active]:border-yellow-500"}
+      >
+        <Tabs.Content value="daily">
           {/* Hrum Riddle */}
           <HrumRiddleTask queries={dataQueries} />
         </Tabs.Content>
-        <Tabs.Content
-          forceMount
-          className="data-[state=inactive]:hidden"
-          value="tasks"
-        >
+        <Tabs.Content value="tasks">
           {/* Hrum Tasks */}
           <HrumAutoTasks queries={dataQueries} />
         </Tabs.Content>
-      </Tabs.Root>
+      </Tabs>
     </div>
   );
 });

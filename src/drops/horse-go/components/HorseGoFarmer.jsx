@@ -1,12 +1,11 @@
+import Tabs from "@/components/Tabs";
 import toast from "react-hot-toast";
 import useFarmerAsyncTask from "@/hooks/useFarmerAsyncTask";
 import useFarmerAutoTab from "@/hooks/useFarmerAutoTab";
 import useMirroredTabs from "@/hooks/useMirroredTabs";
-import { Tabs } from "radix-ui";
-import { cn, delay } from "@/lib/utils";
+import { delay } from "@/lib/utils";
 import { memo } from "react";
 import { useMemo } from "react";
-
 import HorseGoAutoGame from "./HorseGoAutoGame";
 import HorseGoBalanceDisplay from "./HorseGoBalanceDisplay";
 import HorseGoFarmerHeader from "./HorseGoFarmerHeader";
@@ -132,30 +131,15 @@ export default memo(function HorseGoFarmer() {
       <HorseGoUsernameDisplay />
       <HorseGoBalanceDisplay />
 
-      <Tabs.Root {...tabs.rootProps} className="flex flex-col gap-4">
-        <Tabs.List className="grid grid-cols-1">
-          {tabs.list.map((value, index) => (
-            <Tabs.Trigger
-              key={index}
-              value={value}
-              className={cn(
-                "p-2",
-                "border-b-2 border-transparent",
-                "data-[state=active]:border-white"
-              )}
-            >
-              {value.toUpperCase()}
-            </Tabs.Trigger>
-          ))}
-        </Tabs.List>
-        <Tabs.Content
-          forceMount
-          className="data-[state=inactive]:hidden"
-          value="game"
-        >
+      <Tabs
+        tabs={tabs}
+        rootClassName={"gap-4"}
+        triggerClassName={"data-[state=active]:border-white"}
+      >
+        <Tabs.Content value="game">
           <HorseGoAutoGame />
         </Tabs.Content>
-      </Tabs.Root>
+      </Tabs>
     </div>
   );
 });

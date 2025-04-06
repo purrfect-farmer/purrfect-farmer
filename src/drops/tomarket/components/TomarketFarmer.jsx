@@ -1,14 +1,13 @@
+import Tabs from "@/components/Tabs";
 import toast from "react-hot-toast";
 import useFarmerAsyncTask from "@/hooks/useFarmerAsyncTask";
 import useFarmerAutoTab from "@/hooks/useFarmerAutoTab";
 import useFarmerContext from "@/hooks/useFarmerContext";
 import useMirroredTabs from "@/hooks/useMirroredTabs";
-import { Tabs } from "radix-ui";
-import { cn, delay } from "@/lib/utils";
+import { delay } from "@/lib/utils";
 import { isAfter } from "date-fns";
 import { memo } from "react";
 import { useEffect } from "react";
-
 import TomarketAutoGamer from "./TomarketAutoGamer";
 import TomarketBalanceDisplay from "./TomarketBalanceDisplay";
 import TomarketFarmerHeader from "./TomarketFarmerHeader";
@@ -76,41 +75,20 @@ export default memo(function TomarketFarmer() {
       <TomarketFarmerHeader />
       <TomarketBalanceDisplay />
 
-      <Tabs.Root {...tabs.rootProps} className="flex flex-col gap-2">
-        <Tabs.List className="grid grid-cols-2">
-          {tabs.list.map((value, index) => (
-            <Tabs.Trigger
-              key={index}
-              value={value}
-              className={cn(
-                "p-2",
-                "border-b-4 border-transparent",
-                "data-[state=active]:border-white"
-              )}
-            >
-              {value.toUpperCase()}
-            </Tabs.Trigger>
-          ))}
-        </Tabs.List>
-
+      <Tabs
+        tabs={tabs}
+        triggerClassName={"border-b-4 data-[state=active]:border-white"}
+      >
         {/* Game */}
-        <Tabs.Content
-          forceMount
-          className="data-[state=inactive]:hidden"
-          value="game"
-        >
+        <Tabs.Content value="game">
           <TomarketAutoGamer tomarket={tomarket} />
         </Tabs.Content>
 
         {/* Tickets */}
-        <Tabs.Content
-          forceMount
-          className="data-[state=inactive]:hidden"
-          value="tickets"
-        >
+        <Tabs.Content value="tickets">
           <TomarketTickets />
         </Tabs.Content>
-      </Tabs.Root>
+      </Tabs>
     </div>
   );
 });

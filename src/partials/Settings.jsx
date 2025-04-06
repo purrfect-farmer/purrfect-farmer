@@ -3,6 +3,7 @@ import ConfirmButton from "@/components/ConfirmButton";
 import Input from "@/components/Input";
 import LabelToggle from "@/components/LabelToggle";
 import ResetButton from "@/components/ResetButton";
+import Tabs from "@/components/Tabs";
 import TelegramWebAIcon from "@/assets/images/telegram-web-a.png?format=webp&w=80";
 import TelegramWebKIcon from "@/assets/images/telegram-web-k.png?format=webp&w=80";
 import defaultSettings from "@/core/defaultSettings";
@@ -11,7 +12,7 @@ import useMirroredCallback from "@/hooks/useMirroredCallback";
 import useMirroredState from "@/hooks/useMirroredState";
 import { Accordion } from "radix-ui";
 import { CgSpinner } from "react-icons/cg";
-import { Dialog, Tabs } from "radix-ui";
+import { Dialog } from "radix-ui";
 import {
   HiBolt,
   HiChevronRight,
@@ -265,22 +266,11 @@ export default memo(function Settings({ tabs }) {
                 </span>
               </Dialog.Description>
 
-              <Tabs.Root {...tabs.rootProps} className="flex flex-col gap-2">
-                <Tabs.List className="grid grid-cols-3 px-2">
-                  {tabs.list.map((value, index) => (
-                    <Tabs.Trigger
-                      key={index}
-                      value={value}
-                      className={cn(
-                        "p-2",
-                        "border-b-2 border-transparent",
-                        "data-[state=active]:border-blue-500"
-                      )}
-                    >
-                      {value.toUpperCase()}
-                    </Tabs.Trigger>
-                  ))}
-                </Tabs.List>
+              <Tabs
+                tabs={tabs}
+                listClassName={"px-2"}
+                triggerClassName={"data-[state=active]:border-blue-500"}
+              >
                 <Tabs.Content value="settings">
                   <form
                     onSubmit={(ev) => ev.preventDefault()}
@@ -787,7 +777,7 @@ export default memo(function Settings({ tabs }) {
                 <Tabs.Content value="seeker">
                   <Seeker />
                 </Tabs.Content>
-              </Tabs.Root>
+              </Tabs>
             </div>
             <div className="flex gap-2 p-4 font-bold shrink-0">
               <button

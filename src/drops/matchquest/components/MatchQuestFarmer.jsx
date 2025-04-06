@@ -1,13 +1,12 @@
+import Tabs from "@/components/Tabs";
 import toast from "react-hot-toast";
 import useFarmerAsyncTask from "@/hooks/useFarmerAsyncTask";
 import useFarmerAutoTab from "@/hooks/useFarmerAutoTab";
 import useMirroredTabs from "@/hooks/useMirroredTabs";
-import { Tabs } from "radix-ui";
-import { cn, delay } from "@/lib/utils";
+import { delay } from "@/lib/utils";
 import { isAfter } from "date-fns";
 import { memo } from "react";
 import { useState } from "react";
-
 import MatchQuestAutoGamer from "./MatchQuestAutoGamer";
 import MatchQuestAutoTasks from "./MatchQuestAutoTasks";
 import MatchQuestBalanceDisplay from "./MatchQuestBalanceDisplay";
@@ -129,37 +128,18 @@ export default memo(function MatchQuestFarmer() {
       <MatchQuestBalanceDisplay />
       <MatchQuestTicketsDisplay />
 
-      <Tabs.Root {...tabs.rootProps} className="flex flex-col gap-4">
-        <Tabs.List className="grid grid-cols-2">
-          {tabs.list.map((value, index) => (
-            <Tabs.Trigger
-              key={index}
-              value={value}
-              className={cn(
-                "p-2",
-                "border-b border-transparent",
-                "data-[state=active]:border-orange-500"
-              )}
-            >
-              {value.toUpperCase()}
-            </Tabs.Trigger>
-          ))}
-        </Tabs.List>
-        <Tabs.Content
-          forceMount
-          className="data-[state=inactive]:hidden"
-          value="game"
-        >
+      <Tabs
+        tabs={tabs}
+        rootClassName={"gap-4"}
+        triggerClassName={"border-b data-[state=active]:border-orange-500"}
+      >
+        <Tabs.Content value="game">
           <MatchQuestAutoGamer />
         </Tabs.Content>
-        <Tabs.Content
-          forceMount
-          className="data-[state=inactive]:hidden"
-          value="tasks"
-        >
+        <Tabs.Content value="tasks">
           <MatchQuestAutoTasks />
         </Tabs.Content>
-      </Tabs.Root>
+      </Tabs>
     </div>
   );
 });
