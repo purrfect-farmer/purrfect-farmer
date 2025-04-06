@@ -5,10 +5,10 @@ import { CgSpinner } from "react-icons/cg";
 import { cn, delay } from "@/lib/utils";
 import { memo } from "react";
 import { useEffect } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 
 import useFunaticGameQuery from "../hooks/useFunaticGameQuery";
 import useFunaticTapMutation from "../hooks/useFunaticTapMutation";
-import { useQueryClient } from "@tanstack/react-query";
 
 export default memo(function FunaticGamer() {
   const process = useProcessLock("funatic.game");
@@ -54,7 +54,7 @@ export default memo(function FunaticGamer() {
   }, [process, energy]);
 
   /** Auto-Game */
-  useFarmerAutoProcess("game", gameQuery.isLoading === false, process);
+  useFarmerAutoProcess("game", process, [gameQuery.isLoading === false]);
 
   return (
     <div className="flex flex-col gap-2 p-4">

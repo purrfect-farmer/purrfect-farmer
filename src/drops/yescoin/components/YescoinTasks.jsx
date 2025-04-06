@@ -124,7 +124,7 @@ export default memo(function YescoinTasks() {
   }, [process]);
 
   /** Auto-Complete Tasks */
-  useFarmerAutoProcess("tasks", !tasksQuery.isLoading, process);
+  useFarmerAutoProcess("tasks", process, [tasksQuery.isLoading === false]);
 
   return tasksQuery.isPending ? (
     <CgSpinner className="w-5 h-5 mx-auto animate-spin" />

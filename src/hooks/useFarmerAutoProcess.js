@@ -1,16 +1,17 @@
 import useFarmerContext from "@/hooks/useFarmerContext";
-import { useRef } from "react";
+import { useMemo, useRef } from "react";
 
 import useFarmerAutoTask from "./useFarmerAutoTask";
 
-export default function useFarmerAutoProcess(task, check, process) {
+export default function useFarmerAutoProcess(task, process, checks = []) {
   const { processNextTask } = useFarmerContext();
   const ref = useRef(null);
+  const canProcess = useMemo(() => checks.every(Boolean), [...checks]);
 
   return useFarmerAutoTask(
     task,
     () => {
-      if (check) {
+      if (canProcess) {
         /** Start the Process */
         process.start(({ controller }) => {
           /** Set Ref */
@@ -28,6 +29,6 @@ export default function useFarmerAutoProcess(task, check, process) {
         };
       }
     },
-    [check, process.start, process.stop, processNextTask]
+    [canProcess, process.start, process.stop, processNextTask]
   );
 }

@@ -106,7 +106,7 @@ export default memo(function WontonAutoBadges() {
   }, [process, unclaimedBadges]);
 
   /** Auto-Complete Badges */
-  useFarmerAutoProcess("badges", !badgesQuery.isLoading, process);
+  useFarmerAutoProcess("badges", process, [badgesQuery.isLoading === false]);
 
   return (
     <>

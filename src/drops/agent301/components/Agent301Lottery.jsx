@@ -43,7 +43,7 @@ export default memo(function Agent301Lottery() {
   }, [process, tickets]);
 
   /** Auto-Spin */
-  useFarmerAutoProcess("tickets", !balanceQuery.isLoading, process);
+  useFarmerAutoProcess("tickets", process, [balanceQuery.isLoading === false]);
 
   return (
     <div className="p-4">

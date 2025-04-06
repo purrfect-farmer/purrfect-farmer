@@ -208,7 +208,7 @@ export default memo(function WontonAutoTasks() {
   }, [user]);
 
   /** Auto-Complete Tasks */
-  useFarmerAutoProcess("tasks", !taskQuery.isLoading, process);
+  useFarmerAutoProcess("tasks", process, [taskQuery.isLoading === false]);
 
   return (
     <>

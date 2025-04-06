@@ -192,7 +192,7 @@ export default memo(function TsubasaCards() {
   }, [process, upgradableCards, levelZeroCards, requiredCards]);
 
   /** Auto-Upgrade */
-  useFarmerAutoProcess("cards", true, process);
+  useFarmerAutoProcess("cards", process, [true]);
 
   return (
     <div className="flex flex-col gap-2 p-4">

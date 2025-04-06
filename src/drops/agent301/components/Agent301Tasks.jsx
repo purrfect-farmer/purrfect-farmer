@@ -193,7 +193,7 @@ export default memo(function Agent301Tasks() {
   }, [process]);
 
   /** Auto-Complete */
-  useFarmerAutoProcess("tasks", !tasksQuery.isLoading, process);
+  useFarmerAutoProcess("tasks", process, [tasksQuery.isLoading === false]);
 
   return (
     <div className="p-4">

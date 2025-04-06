@@ -95,7 +95,7 @@ export default memo(function HrumAutoTasks({ queries }) {
   }, [process, pendingTasks, setCurrentTask, reset, refetchBalance]);
 
   /** Auto-Complete Tasks */
-  useFarmerAutoProcess("tasks", true, process);
+  useFarmerAutoProcess("tasks", process, [true]);
 
   return (
     <>

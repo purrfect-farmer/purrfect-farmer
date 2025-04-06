@@ -113,7 +113,7 @@ export default memo(function TruecoinLottery() {
   );
 
   /** Auto-Spin */
-  useFarmerAutoProcess("lottery", !authQuery.isLoading, process);
+  useFarmerAutoProcess("lottery", process, [authQuery.isLoading === false]);
 
   return (
     <div className="flex flex-col gap-2 p-4">

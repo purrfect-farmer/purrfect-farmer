@@ -101,7 +101,7 @@ export default memo(function DreamCoinRewards() {
   }, [process, joinTelegramLink]);
 
   /** Auto-Complete Quests */
-  useFarmerAutoProcess("rewards", !rewardsQuery.isLoading, process);
+  useFarmerAutoProcess("rewards", process, [rewardsQuery.isLoading === false]);
 
   return (
     <div className="p-4">

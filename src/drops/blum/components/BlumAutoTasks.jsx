@@ -351,7 +351,7 @@ export default memo(function BlumAutoTasks() {
   ]);
 
   /** Auto-Complete Tasks */
-  useFarmerAutoProcess("tasks", !query.isLoading, process);
+  useFarmerAutoProcess("tasks", process, [query.isLoading === false]);
 
   return (
     <>

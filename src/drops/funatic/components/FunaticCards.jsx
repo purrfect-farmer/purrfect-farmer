@@ -115,7 +115,7 @@ export default memo(function FunaticCards() {
   }, [process, upgradableCards, levelZeroCards]);
 
   /** Auto-Upgrade */
-  useFarmerAutoProcess("cards", cardsQuery.isLoading === false, process);
+  useFarmerAutoProcess("cards", process, [cardsQuery.isLoading === false]);
 
   return (
     <div className="flex flex-col gap-2 p-4">

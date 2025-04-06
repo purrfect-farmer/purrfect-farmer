@@ -264,13 +264,10 @@ export default memo(function CEXTasks() {
   }, [process, action, joinTelegramLink]);
 
   /** Auto-Complete Tasks */
-  useFarmerAutoProcess(
-    "tasks",
-    [tasksQuery.isLoading, configQuery.isLoading].every(
-      (status) => status === false
-    ),
-    process
-  );
+  useFarmerAutoProcess("tasks", process, [
+    tasksQuery.isLoading === false,
+    configQuery.isLoading === false,
+  ]);
 
   return (
     <>

@@ -93,11 +93,7 @@ export default function DiggerChests() {
   }, [process]);
 
   /** Auto-Complete Points */
-  useFarmerAutoProcess(
-    "chests",
-    [statusQuery.isLoading].every((status) => status === false),
-    process
-  );
+  useFarmerAutoProcess("chests", process, [statusQuery.isLoading === false]);
 
   return (
     <div className="p-4">

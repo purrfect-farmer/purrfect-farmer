@@ -97,7 +97,7 @@ export default memo(function MatchQuestAutoGamer() {
   }, [tickets, process]);
 
   /** Auto-Game */
-  useFarmerAutoProcess("game", !gameRuleQuery.isLoading, process);
+  useFarmerAutoProcess("game", process, [gameRuleQuery.isLoading === false]);
 
   return (
     <div className="flex flex-col gap-2">

@@ -188,7 +188,7 @@ export default memo(function BirdTonTasks() {
   }, [process]);
 
   /** Auto-Complete */
-  useFarmerAutoProcess("tasks", true, process);
+  useFarmerAutoProcess("tasks", process, []);
 
   return (
     <div className="flex flex-col">

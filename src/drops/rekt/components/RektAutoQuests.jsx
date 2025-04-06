@@ -246,15 +246,11 @@ export default memo(function RektAutoQuests() {
   }, [process, action, joinTelegramLink]);
 
   /** Auto-Complete Quests */
-  useFarmerAutoProcess(
-    "quests",
-    [
-      userQuery.isLoading,
-      referredUsersQuery.isLoading,
-      questQuery.isLoading,
-    ].every((status) => !status),
-    process
-  );
+  useFarmerAutoProcess("quests", process, [
+    userQuery.isLoading === false,
+    questQuery.isLoading === false,
+    referredUsersQuery.isLoading === false,
+  ]);
 
   return (
     <>

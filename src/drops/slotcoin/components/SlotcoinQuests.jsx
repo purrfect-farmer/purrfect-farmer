@@ -91,7 +91,7 @@ export default memo(function SlotcoinQuests() {
   }, [process, joinTelegramLink]);
 
   /** Auto-Complete Quests */
-  useFarmerAutoProcess("quests", !questsQuery.isLoading, process);
+  useFarmerAutoProcess("quests", process, [questsQuery.isLoading === false]);
 
   return (
     <div className="p-4">

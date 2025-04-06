@@ -174,7 +174,7 @@ export default memo(function MidasAutoTasks() {
   }, [process, action, joinTelegramLink]);
 
   /** Auto-Complete Tasks */
-  useFarmerAutoProcess("tasks", !taskQuery.isLoading, process);
+  useFarmerAutoProcess("tasks", process, [taskQuery.isLoading === false]);
 
   return (
     <>

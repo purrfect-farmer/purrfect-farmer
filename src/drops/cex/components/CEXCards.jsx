@@ -162,16 +162,11 @@ export default memo(function CEXCards() {
   }, [process, upgradableCards, levelZeroCards]);
 
   /** Auto-Upgrade */
-  useFarmerAutoProcess(
-    "cards",
-    [
-      /** Status */
-      userQuery.isLoading,
-      cardsQuery.isLoading,
-      configQuery.isLoading,
-    ].every((status) => status === false),
-    process
-  );
+  useFarmerAutoProcess("cards", process, [
+    userQuery.isLoading === false,
+    cardsQuery.isLoading === false,
+    configQuery.isLoading === false,
+  ]);
 
   return (
     <div className="flex flex-col gap-2 p-4">

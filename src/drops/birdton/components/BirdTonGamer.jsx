@@ -233,7 +233,7 @@ export default memo(function BirdTonGamer() {
   }, [process, energy, gameId, startGame, reset, gameSpeedRef]);
 
   /** Auto-Play */
-  useFarmerAutoProcess("game", true, process);
+  useFarmerAutoProcess("game", process, []);
 
   return (
     <div className="flex flex-col gap-4">

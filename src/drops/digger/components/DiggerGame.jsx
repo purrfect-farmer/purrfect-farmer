@@ -95,13 +95,10 @@ export default memo(function DiggerGame() {
   }, [process, uid, energy]);
 
   /** Auto-Game */
-  useFarmerAutoProcess(
-    "game",
-    [userQuery.isLoading, chestsQuery.isLoading].every(
-      (status) => status === false
-    ),
-    process
-  );
+  useFarmerAutoProcess("game", process, [
+    userQuery.isLoading === false,
+    chestsQuery.isLoading === false,
+  ]);
 
   return (
     <div className="flex flex-col gap-2 p-4">

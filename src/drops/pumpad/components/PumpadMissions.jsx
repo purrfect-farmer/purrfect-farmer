@@ -90,7 +90,9 @@ export default memo(function PumpadMissions() {
   }, [process, joinTelegramLink]);
 
   /** Auto-Complete Missions */
-  useFarmerAutoProcess("missions", !missionsQuery.isLoading, process);
+  useFarmerAutoProcess("missions", process, [
+    missionsQuery.isLoading === false,
+  ]);
 
   return (
     <div className="p-4">

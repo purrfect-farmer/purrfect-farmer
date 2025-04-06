@@ -94,13 +94,10 @@ export default memo(function RektAutoGame() {
   }, [process, trades, timestamp]);
 
   /** Auto-Play Game */
-  useFarmerAutoProcess(
-    "game",
-    [userQuery.isLoading, currentPriceQuery.isLoading].every(
-      (status) => !status
-    ),
-    process
-  );
+  useFarmerAutoProcess("game", process, [
+    userQuery.isLoading === false,
+    currentPriceQuery.isLoading === false,
+  ]);
 
   return (
     <div className="flex flex-col gap-2 py-2">

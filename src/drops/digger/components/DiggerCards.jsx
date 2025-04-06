@@ -95,11 +95,7 @@ export default memo(function DiggerCards() {
   }, [process, upgradableCards, levelZeroCards]);
 
   /** Auto-Upgrade */
-  useFarmerAutoProcess(
-    "cards",
-    [cardsQuery.isLoading].every((status) => status === false),
-    process
-  );
+  useFarmerAutoProcess("cards", process, [cardsQuery.isLoading === false]);
 
   return (
     <div className="flex flex-col gap-2 p-4">

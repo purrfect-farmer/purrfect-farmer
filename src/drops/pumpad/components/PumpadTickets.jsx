@@ -46,7 +46,7 @@ export default memo(function PumpadTickets() {
   }, [process, ticketsCount, farmingSpeed]);
 
   /** Auto-Spin */
-  useFarmerAutoProcess("tickets", !query.isLoading, process);
+  useFarmerAutoProcess("tickets", process, [query.isLoading === false]);
 
   return (
     <div className="p-4">

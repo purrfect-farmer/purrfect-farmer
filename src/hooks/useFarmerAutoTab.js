@@ -6,21 +6,22 @@ import useFarmerContext from "./useFarmerContext";
 export default function useFarmerAutoTab(tabs) {
   const { zoomies } = useFarmerContext();
   const tasks = useMemo(() => zoomies.current.drop?.tasks || [], []);
+  const currentTab = useMemo(
+    () => zoomies.current.task && zoomies.current.task.split(".")[0],
+    [zoomies.current.task]
+  );
 
   /** Auto-Tab */
   tasks.forEach((task) => {
     useFarmerAutoTask(
       task,
-      (zoomies) => {
-        /** Split to Get Tab */
-        const tab = zoomies.current.task?.split(".")[0];
-
+      () => {
         /** Set the Tab */
-        if (tabs.list.includes(tab)) {
-          tabs.setValue(tab);
+        if (tabs.list.includes(currentTab)) {
+          tabs.setValue(currentTab);
         }
       },
-      [tabs.list, tabs.setValue]
+      [currentTab, tabs.list, tabs.setValue]
     );
   });
 }

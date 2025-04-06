@@ -151,7 +151,7 @@ export default memo(function TsubasaTasks() {
   }, [process, action, joinTelegramLink]);
 
   /** Auto-Complete Tasks */
-  useFarmerAutoProcess("tasks", true, process);
+  useFarmerAutoProcess("tasks", process, [true]);
 
   return (
     <>

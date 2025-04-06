@@ -1,16 +1,16 @@
 import useFarmerAutoProcess from "@/hooks/useFarmerAutoProcess";
+import useFarmerContext from "@/hooks/useFarmerContext";
 import useProcessLock from "@/hooks/useProcessLock";
 import { canJoinTelegramLink, cn, delay } from "@/lib/utils";
 import { memo } from "react";
 import { useCallback } from "react";
 import { useEffect } from "react";
 import { useMemo } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 
-import useBattleBullsTasksQuery from "../hooks/useBattleBullsTasksQuery";
 import useBattleBullsClaimTaskMutation from "../hooks/useBattleBullsClaimTaskMutation";
-import { useQueryClient } from "@tanstack/react-query";
-import useFarmerContext from "@/hooks/useFarmerContext";
+import useBattleBullsTasksQuery from "../hooks/useBattleBullsTasksQuery";
 import useBattleBullsUserQuery from "../hooks/useBattleBullsUserQuery";
 
 export default memo(function BattleBullsTasks() {
@@ -110,7 +110,7 @@ export default memo(function BattleBullsTasks() {
   }, [process, joinTelegramLink]);
 
   /** Auto-Complete Tasks */
-  useFarmerAutoProcess("tasks", !tasksQuery.isLoading, process);
+  useFarmerAutoProcess("tasks", process, [tasksQuery.isLoading === false]);
 
   return (
     <div className="p-4">

@@ -6,8 +6,8 @@ import { cn, delayForSeconds } from "@/lib/utils";
 import { memo } from "react";
 import { useEffect } from "react";
 
-import useMidasUserQuery from "../hooks/useMidasUserQuery";
 import useMidasPlayGameMutation from "../hooks/useMidasPlayGameMutation";
+import useMidasUserQuery from "../hooks/useMidasUserQuery";
 
 export default memo(function Midas() {
   const process = useProcessLock("midas.game");
@@ -44,7 +44,7 @@ export default memo(function Midas() {
   }, [process, tickets]);
 
   /** Auto-Game */
-  useFarmerAutoProcess("game", !userQuery.isLoading, process);
+  useFarmerAutoProcess("game", process, [userQuery.isLoading === false]);
 
   return (
     <div className="flex flex-col gap-2">

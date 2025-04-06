@@ -141,7 +141,7 @@ export default memo(function DiggerTasks() {
   }, [process, action, joinTelegramLink]);
 
   /** Auto-Complete Tasks */
-  useFarmerAutoProcess("tasks", !tasksQuery.isLoading, process);
+  useFarmerAutoProcess("tasks", process, [tasksQuery.isLoading === false]);
 
   return (
     <div className="flex flex-col gap-2 p-4">

@@ -161,7 +161,7 @@ export default memo(function FunaticQuests() {
   }, [process, action, joinTelegramLink]);
 
   /** Auto-Complete Quests */
-  useFarmerAutoProcess("quests", questsQuery.isLoading === false, process);
+  useFarmerAutoProcess("quests", process, [questsQuery.isLoading === false]);
 
   return (
     <>

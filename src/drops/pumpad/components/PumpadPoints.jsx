@@ -7,11 +7,11 @@ import { useEffect } from "react";
 import { useMemo } from "react";
 import { useState } from "react";
 
-import usePumpadExposureMutation from "../hooks/usePumpadExposureMutation";
-import usePumpadCompletePointTaskMutation from "../hooks/usePumpadCompletePointTaskMutation";
-import usePumpadRemainingAdsQuery from "../hooks/usePumpadRemainingAdsQuery";
 import usePumpadAdIncrementMutation from "../hooks/usePumpadAdIncrementMutation";
 import usePumpadAdTasksQuery from "../hooks/usePumpadAdTasksQuery";
+import usePumpadCompletePointTaskMutation from "../hooks/usePumpadCompletePointTaskMutation";
+import usePumpadExposureMutation from "../hooks/usePumpadExposureMutation";
+import usePumpadRemainingAdsQuery from "../hooks/usePumpadRemainingAdsQuery";
 
 export default memo(function PumpadPoints() {
   const adsQuery = usePumpadAdTasksQuery();
@@ -161,13 +161,10 @@ export default memo(function PumpadPoints() {
   }, [process]);
 
   /** Auto-Complete Points */
-  useFarmerAutoProcess(
-    "points",
-    [remainingAdsQuery.isLoading, adsQuery.isLoading].every(
-      (status) => status === false
-    ),
-    process
-  );
+  useFarmerAutoProcess("points", process, [
+    remainingAdsQuery.isLoading === false,
+    adsQuery.isLoading === false,
+  ]);
 
   return (
     <div className="p-4">

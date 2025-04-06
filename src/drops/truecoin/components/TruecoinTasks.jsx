@@ -114,7 +114,9 @@ export default memo(function TruecoinTasks() {
   }, [process]);
 
   /** Auto-Complete Tasks */
-  useFarmerAutoProcess("tasks", !partnerTasksQuery.isLoading, process);
+  useFarmerAutoProcess("tasks", process, [
+    partnerTasksQuery.isLoading === false,
+  ]);
 
   return (
     <div className="p-4">

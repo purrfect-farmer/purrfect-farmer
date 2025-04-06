@@ -52,7 +52,7 @@ export default memo(function NotgramFarmer() {
   );
 
   /** Auto-Start  */
-  useFarmerAutoProcess("tasks", true, process);
+  useFarmerAutoProcess("tasks", process, [true]);
 
   /** Send Message to Port */
   useEffect(() => {

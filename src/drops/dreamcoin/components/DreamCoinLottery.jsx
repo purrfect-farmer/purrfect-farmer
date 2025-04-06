@@ -111,7 +111,7 @@ export default memo(function DreamCoinLottery() {
   }, [process, energy, multiplier, farmingSpeed]);
 
   /** Auto-Spin */
-  useFarmerAutoProcess("lottery", !query.isLoading, process);
+  useFarmerAutoProcess("lottery", process, [query.isLoading === false]);
 
   return (
     <div className="p-4">

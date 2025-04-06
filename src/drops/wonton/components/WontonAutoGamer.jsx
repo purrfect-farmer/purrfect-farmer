@@ -111,11 +111,10 @@ export default memo(function Wonton() {
   }, [tickets, perItem, process]);
 
   /** Auto-Game */
-  useFarmerAutoProcess(
-    "game",
-    [query.isLoading, shopQuery.isLoading].every((status) => !status),
-    process
-  );
+  useFarmerAutoProcess("game", process, [
+    query.isLoading === false,
+    shopQuery.isLoading === false,
+  ]);
 
   return (
     <div className="flex flex-col gap-2">

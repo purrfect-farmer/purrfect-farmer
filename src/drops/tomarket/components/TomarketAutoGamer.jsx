@@ -99,7 +99,7 @@ export default memo(function Tomarket({ tomarket }) {
   }, [process, tickets]);
 
   /** Auto-Game */
-  useFarmerAutoProcess("game", !query.isLoading, process);
+  useFarmerAutoProcess("game", process, [query.isLoading === false]);
 
   return (
     <div className="flex flex-col gap-2">

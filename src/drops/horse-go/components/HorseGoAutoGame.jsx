@@ -71,11 +71,7 @@ export default memo(function HorseGoAutoGame() {
   }, [process, energy, mode]);
 
   /** Auto-Play Game */
-  useFarmerAutoProcess(
-    "game",
-    [userQuery.isLoading].every((status) => status === false),
-    process
-  );
+  useFarmerAutoProcess("game", process, [userQuery.isLoading === false]);
 
   return (
     <div className="flex flex-col gap-2 py-2">
