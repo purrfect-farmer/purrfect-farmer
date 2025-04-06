@@ -1,8 +1,9 @@
+import { createFarmer } from "@/lib/createFarmer";
 import { createLazyElement } from "@/lib/createLazyElement";
 
 import icon from "./assets/images/icon.png?format=webp&w=80&h=80";
 
-export default {
+export default createFarmer({
   id: "slotcoin",
   title: "Slotcoin",
   icon,
@@ -40,4 +41,4 @@ export default {
     ["tickets"]: false,
     ["lottery"]: false,
   },
-};
+});

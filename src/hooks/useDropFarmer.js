@@ -23,6 +23,7 @@ import useTelegramWebApp from "./useTelegramWebApp";
 import useValuesMemo from "./useValuesMemo";
 
 export default function useDropFarmer() {
+  const farmer = useTabContext();
   const {
     id,
     host,
@@ -41,12 +42,12 @@ export default function useDropFarmer() {
     fetchMeta,
     authQueryOptions,
     metaQueryOptions,
-  } = useTabContext();
+  } = farmer;
 
   /** Zoomies */
   const {
     zoomies,
-    joinTelegramLink: coreJoinTelegramLink,
+    joinTelegramLink: appJoinTelegramLink,
     setActiveTab,
     settings,
   } = useAppContext();
@@ -270,21 +271,19 @@ export default function useDropFarmer() {
   }, []);
 
   /**  Next task callback */
-  const processNextTask = useRefCallback(zoomies.processNextTask, [
-    zoomies.processNextTask,
-  ]);
+  const processNextTask = useRefCallback(zoomies.processNextTask);
 
   /** Join Telegram Link */
   const joinTelegramLink = useCallback(
     async (...args) => {
       try {
-        await coreJoinTelegramLink(...args);
+        await appJoinTelegramLink(...args);
       } catch {}
 
       /** Restore Tab */
       setActiveTab(id);
     },
-    [id, coreJoinTelegramLink, setActiveTab]
+    [id, appJoinTelegramLink, setActiveTab]
   );
 
   /** Save Auth Data in Storage */
@@ -419,14 +418,14 @@ export default function useDropFarmer() {
     }
   }, [started, isZooming, zoomies.setFarmerHasStarted]);
 
-  /** Process Next Task After 3 Init Reset */
+  /** Process Next Drop After 3 Init Reset */
   useLayoutEffect(() => {
     if (isZooming && initResetCount >= 3) {
       zoomies.skipToNextDrop();
     }
   }, [isZooming, initResetCount, zoomies.skipToNextDrop]);
 
-  /** Process Next Task if Unable to Start within 30sec */
+  /** Process Next Drop if Unable to Start within 30sec */
   useLayoutEffect(() => {
     if (isZooming && telegramWebApp && !started) {
       /** Set Timeout */
@@ -462,11 +461,11 @@ export default function useDropFarmer() {
   }, [
     id,
     api,
-    hasPreparedAuth,
+    title,
     farmerTitle,
+    hasPreparedAuth,
     shouldSyncToCloud,
     telegramWebApp,
-    title,
   ]);
 
   /** Clean Up */
@@ -492,6 +491,7 @@ export default function useDropFarmer() {
     zoomies,
     isZooming,
     started,
+    farmer,
     reset,
     resetInit,
     resetTelegramWebApp,

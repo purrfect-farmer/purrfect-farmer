@@ -1,9 +1,10 @@
+import { createFarmer } from "@/lib/createFarmer";
 import { createLazyElement } from "@/lib/createLazyElement";
 
 import icon from "./assets/images/icon.png?format=webp&w=80&h=80";
 import { getHrumHeaders } from "./lib/utils";
 
-export default {
+export default createFarmer({
   id: "hrum",
   title: "Hrum",
   icon,
@@ -44,4 +45,4 @@ export default {
     ["daily.riddle"]: true,
     ["daily.cookie"]: true,
   },
-};
+});

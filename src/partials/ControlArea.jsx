@@ -38,6 +38,7 @@ export default memo(function ControlArea() {
               "border-t dark:border-neutral-700"
             )}
           >
+            {/* Drop Button */}
             <button
               className="relative shrink-0"
               onClick={() => setActiveTab(zoomies.current.drop.id)}
@@ -47,11 +48,14 @@ export default memo(function ControlArea() {
                 className="w-8 h-8 rounded-full shrink-0"
               />
             </button>
+
             <div className="flex flex-col min-w-0 min-h-0 truncate grow">
+              {/* Title */}
               <h4 className="font-bold">{zoomies.current.drop.title}</h4>
+
+              {/* Offset / Count */}
               <p className="text-neutral-400">
-                {zoomies.current.drop.tasks.indexOf(zoomies.current.task) + 1}{" "}
-                of {zoomies.current.drop.tasks.length}
+                {zoomies.currentTaskOffset} of {zoomies.tasksCount}
               </p>
             </div>
 

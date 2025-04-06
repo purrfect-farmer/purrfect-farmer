@@ -1,10 +1,11 @@
+import { createFarmer } from "@/lib/createFarmer";
 import { createLazyElement } from "@/lib/createLazyElement";
 import { customLogger } from "@/lib/utils";
 
 import icon from "./assets/images/icon.png?format=webp&w=80&h=80";
 import { getGoldEagleGame } from "./lib/utils";
 
-export default {
+export default createFarmer({
   id: "gold-eagle",
   title: "Gold Eagle",
   icon,
@@ -59,4 +60,4 @@ export default {
   tasks: {
     ["game"]: true,
   },
-};
+});

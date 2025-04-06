@@ -23,9 +23,9 @@ export default memo(function BirdTonGamer() {
   const { settings } = useAppContext();
   const process = useProcessLock("birdton.game");
   const {
-    zoomies,
-    sendMessage,
     user,
+    isZooming,
+    sendMessage,
     queryClient,
     authQueryKey,
     refreshTasks,
@@ -143,15 +143,15 @@ export default memo(function BirdTonGamer() {
       await delay(1000);
 
       /** Callback */
-      saveGameCallback?.(zoomies.enabled);
+      saveGameCallback?.(isZooming);
     },
     [
       reset,
+      isZooming,
       authQueryKey,
       refreshTasks,
       saveGameCallback,
       queryClient.setQueryData,
-      zoomies.enabled,
     ]
   );
 

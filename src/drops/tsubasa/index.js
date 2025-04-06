@@ -1,9 +1,10 @@
+import { createFarmer } from "@/lib/createFarmer";
 import { createLazyElement } from "@/lib/createLazyElement";
 
 import icon from "./assets/images/icon.png?format=webp&w=80&h=80";
 import { getTsubasaHeaders } from "./lib/utils";
 
-export default {
+export default createFarmer({
   id: "tsubasa",
   title: "Tsubasa",
   icon,
@@ -37,4 +38,4 @@ export default {
     ["tasks"]: false,
     ["cards"]: false,
   },
-};
+});

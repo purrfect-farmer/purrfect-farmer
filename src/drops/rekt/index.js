@@ -1,10 +1,11 @@
+import { createFarmer } from "@/lib/createFarmer";
 import { createLazyElement } from "@/lib/createLazyElement";
 
 import icon from "./assets/images/icon.png?format=webp&w=80&h=80";
 
 export const DOCUMENT_TYPES = ["TERMS_OF_CONDITIONS", "PRIVACY_POLICY"];
 
-export default {
+export default createFarmer({
   id: "rekt",
   title: "Rekt.me",
   icon,
@@ -56,4 +57,4 @@ export default {
     ["quests"]: false,
     ["game"]: false,
   },
-};
+});

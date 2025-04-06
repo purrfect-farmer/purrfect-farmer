@@ -1,10 +1,11 @@
+import { createFarmer } from "@/lib/createFarmer";
 import { createLazyElement } from "@/lib/createLazyElement";
 import { customLogger } from "@/lib/utils";
 
 import icon from "./assets/images/icon.png?format=webp&w=80&h=80";
 import { getTomarketGame } from "./lib/utils";
 
-export default {
+export default createFarmer({
   id: "tomarket",
   title: "Tomarket",
   icon,
@@ -57,4 +58,4 @@ export default {
     ["tickets"]: false,
     ["game"]: false,
   },
-};
+});

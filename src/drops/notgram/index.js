@@ -1,9 +1,10 @@
+import { createFarmer } from "@/lib/createFarmer";
 import { createLazyElement } from "@/lib/createLazyElement";
 import { delayForSeconds } from "@/lib/utils";
 
 import icon from "./assets/images/icon.png?format=webp&w=80&h=80";
 
-export default {
+export default createFarmer({
   id: "notgram",
   title: "Notgram",
   icon,
@@ -24,4 +25,4 @@ export default {
     ["tasks"]: false,
   },
   closeBotInZoomies: false,
-};
+});

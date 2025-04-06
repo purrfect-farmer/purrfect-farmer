@@ -1,8 +1,9 @@
+import { createFarmer } from "@/lib/createFarmer";
 import { createLazyElement } from "@/lib/createLazyElement";
 
 import icon from "./assets/images/icon.png?format=webp&w=80&h=80";
 
-export default {
+export default createFarmer({
   id: "horse-go",
   title: "HorseGo",
   icon,
@@ -36,4 +37,4 @@ export default {
     ["complete-tasks"]: true,
     ["game"]: false,
   },
-};
+});

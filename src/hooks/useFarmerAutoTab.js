@@ -4,15 +4,15 @@ import { useMemo } from "react";
 import useFarmerContext from "./useFarmerContext";
 
 export default function useFarmerAutoTab(tabs) {
-  const { zoomies } = useFarmerContext();
-  const tasks = useMemo(() => zoomies.current.drop?.tasks || [], []);
+  const { farmer, zoomies } = useFarmerContext();
+  const currentTask = zoomies.current.task;
   const currentTab = useMemo(
-    () => zoomies.current.task && zoomies.current.task.split(".")[0],
-    [zoomies.current.task]
+    () => currentTask && currentTask.split(".")[0],
+    [currentTask]
   );
 
   /** Auto-Tab */
-  tasks.forEach((task) => {
+  farmer.tasks.all.forEach((task) => {
     useFarmerAutoTask(
       task,
       () => {

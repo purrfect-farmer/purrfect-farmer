@@ -21,7 +21,7 @@ export default memo(function BlumAutoTasks() {
   const client = useQueryClient();
   const query = useBlumTasksQuery();
 
-  const { zoomies, dataQuery, joinTelegramLink } = useFarmerContext();
+  const { isZooming, dataQuery, joinTelegramLink } = useFarmerContext();
 
   /** Validate Task Kind */
   const validateTaskKind = useCallback(
@@ -282,7 +282,7 @@ export default memo(function BlumAutoTasks() {
 
             try {
               if (!keyword) {
-                keyword = zoomies.enabled
+                keyword = isZooming
                   ? keyword
                   : (await getResolvedValue(task.id)) ||
                     (await dispatchAndPrompt(task.id));
@@ -339,7 +339,7 @@ export default memo(function BlumAutoTasks() {
       return true;
     });
   }, [
-    zoomies.enabled,
+    isZooming,
     process,
     action,
     dataQuery.data,

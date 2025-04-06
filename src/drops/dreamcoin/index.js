@@ -1,8 +1,9 @@
+import { createFarmer } from "@/lib/createFarmer";
 import { createLazyElement } from "@/lib/createLazyElement";
 
 import icon from "./assets/images/icon.png?format=webp&w=80&h=80";
 
-export default {
+export default createFarmer({
   id: "dreamcoin",
   title: "DreamCoin",
   icon,
@@ -49,4 +50,4 @@ export default {
     ["lottery"]: false,
     ["upgrade-all-level"]: false,
   },
-};
+});

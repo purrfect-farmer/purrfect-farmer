@@ -1,8 +1,9 @@
+import { createFarmer } from "@/lib/createFarmer";
 import { createLazyElement } from "@/lib/createLazyElement";
 
 import icon from "./assets/images/icon.png?format=webp&w=80&h=80";
 
-export default {
+export default createFarmer({
   id: "agent301",
   title: "Agent 301",
   icon,
@@ -33,4 +34,4 @@ export default {
     ["wheel"]: false,
     ["tickets"]: false,
   },
-};
+});

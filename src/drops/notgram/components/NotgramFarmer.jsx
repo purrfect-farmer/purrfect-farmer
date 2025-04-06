@@ -18,7 +18,8 @@ export default memo(function NotgramFarmer() {
     preferredTelegramWebVersion,
   } = useAppContext();
 
-  const { id, port, host } = useFarmerContext();
+  const { farmer, port } = useFarmerContext();
+  const { id, host } = farmer;
   const process = useProcessLock("notgram.tasks");
 
   /** Handle Message */

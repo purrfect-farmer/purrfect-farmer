@@ -1,8 +1,9 @@
+import { createFarmer } from "@/lib/createFarmer";
 import { createLazyElement } from "@/lib/createLazyElement";
 
 import icon from "./assets/images/icon.png?format=webp&w=80&h=80";
 
-export default {
+export default createFarmer({
   id: "pett",
   mode: "session",
   title: "PettAI",
@@ -14,4 +15,4 @@ export default {
     return messenger.waitForReply(() => message.click(0));
   },
   tasks: {},
-};
+});
