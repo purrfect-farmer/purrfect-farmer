@@ -30,6 +30,7 @@ import {
   HiOutlineBars3BottomRight,
   HiOutlineCog6Tooth,
   HiOutlineCurrencyDollar,
+  HiOutlineGlobeAlt,
   HiOutlinePower,
   HiOutlinePuzzlePiece,
 } from "react-icons/hi2";
@@ -97,6 +98,7 @@ export default memo(function Welcome() {
     drops,
     settings,
     mirror,
+    farmerMode,
     telegramClient,
     telegramUser,
     openNewTab,
@@ -248,13 +250,15 @@ export default memo(function Welcome() {
 
           {/* App Title */}
           <div className="flex items-center justify-center gap-2">
-            {telegramClient.hasSession ? (
+            {farmerMode === "session" ? (
               telegramClient.connected ? (
                 <HiBolt className="size-5 shrink-0 text-green-500" />
               ) : (
                 <HiBoltSlash className="size-5 shrink-0 text-red-500" />
               )
-            ) : null}
+            ) : (
+              <HiOutlineGlobeAlt className="size-5 shrink-0 text-blue-500" />
+            )}
             <h3
               className={cn(
                 "leading-none font-turret-road",
