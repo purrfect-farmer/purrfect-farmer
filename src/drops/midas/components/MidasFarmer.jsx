@@ -100,7 +100,6 @@ export default memo(function MidasFarmer() {
 
       <Tabs
         tabs={tabs}
-        rootClassName={"gap-4"}
         triggerClassName={"data-[state=active]:border-orange-500"}
       >
         <Tabs.Content value="game">
