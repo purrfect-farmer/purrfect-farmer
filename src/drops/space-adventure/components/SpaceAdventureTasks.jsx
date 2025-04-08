@@ -1,48 +1,68 @@
 import useFarmerAutoProcess from "@/hooks/useFarmerAutoProcess";
 import useFarmerContext from "@/hooks/useFarmerContext";
 import useProcessLock from "@/hooks/useProcessLock";
-import { cn, delay } from "@/lib/utils";
+import { canJoinTelegramLink, cn, customLogger, delay } from "@/lib/utils";
 import { memo } from "react";
 import { useCallback } from "react";
 import { useEffect } from "react";
 import { useMemo } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 
-import useDiggerChannelStatusQuery from "../hooks/useDiggerChannelStatusQuery";
-import useDiggerCheckTaskMutation from "../hooks/useDiggerCheckTaskMutation";
-import useDiggerChestsQuery from "../hooks/useDiggerChestsQuery";
-import useDiggerTasksQuery from "../hooks/useDiggerTasksQuery";
-import useDiggerUpdateTaskMutation from "../hooks/useDiggerUpdateTaskMutation";
-import useDiggerUserQuery from "../hooks/useDiggerUserQuery";
+import useSpaceAdventureClaimTaskMutation from "../hooks/useSpaceAdventureClaimTaskMutation";
+import useSpaceAdventureStartTaskMutation from "../hooks/useSpaceAdventureStartTaskMutation";
+import useSpaceAdventureUserQuery from "../hooks/useSpaceAdventureUserQuery";
+import {
+  TASK_CATEGORIES,
+  useSpaceAdventureAllTasksQueries,
+} from "../hooks/useSpaceAdventureTasksQuery";
 
-export default memo(function DiggerTasks() {
+export default memo(function SpaceAdventureTasks() {
   const { joinTelegramLink } = useFarmerContext();
-  const process = useProcessLock("digger.tasks");
+  const process = useProcessLock("space-adventure.tasks");
 
-  const userQuery = useDiggerUserQuery();
-  const chestsQuery = useDiggerChestsQuery();
-  const tasksQuery = useDiggerTasksQuery();
-  const channelStatusQuery = useDiggerChannelStatusQuery();
-  const subscribed = channelStatusQuery?.data?.["subscribe_to_channel"];
+  const queryClient = useQueryClient();
+  const userQuery = useSpaceAdventureUserQuery();
+  const allTasksQuery = useSpaceAdventureAllTasksQueries();
 
   /** All Tasks */
-  const tasks = useMemo(() => tasksQuery.data || [], [tasksQuery.data]);
+  const allTasks = useMemo(
+    () =>
+      allTasksQuery.isSuccess
+        ? allTasksQuery.data.reduce(
+            (result, current, index) =>
+              result.concat(
+                current.listActive.map((item) => ({
+                  ...item,
+                  ["task_category"]: Object.keys(TASK_CATEGORIES)[index],
+                }))
+              ),
+            []
+          )
+        : [],
+    [allTasksQuery.data]
+  );
+
+  /** Tasks */
+  const tasks = useMemo(
+    () =>
+      allTasks.filter(
+        (item) =>
+          item.title.includes("Watch 3 ads") === false &&
+          ["name_tag"].includes(item["type_api"]) === false
+      ),
+    [allTasks]
+  );
 
   /** Pending Tasks */
   const pendingTasks = useMemo(
-    () => tasks.filter((item) => item.status === "progress"),
+    () => tasks.filter((item) => item.status === "not_completed"),
     [tasks]
   );
 
   /** Unclaimed Tasks */
   const unclaimedTasks = useMemo(
-    () => tasks.filter((item) => item.status === "waiting_reward"),
-    [tasks]
-  );
-
-  /** Finished Tasks */
-  const finishedTasks = useMemo(
-    () => tasks.filter((item) => item.status === "completed"),
+    () => tasks.filter((item) => item.status === "proccess"),
     [tasks]
   );
 
@@ -50,8 +70,8 @@ export default memo(function DiggerTasks() {
   const [taskOffset, setTaskOffset] = useState(null);
   const [action, setAction] = useState(null);
 
-  const updateTaskMutation = useDiggerUpdateTaskMutation();
-  const checkTaskMutation = useDiggerCheckTaskMutation();
+  const startTaskMutation = useSpaceAdventureStartTaskMutation();
+  const claimTaskMutation = useSpaceAdventureClaimTaskMutation();
 
   /** Reset Task */
   const resetTask = useCallback(() => {
@@ -64,6 +84,13 @@ export default memo(function DiggerTasks() {
     resetTask();
     setAction(null);
   }, [resetTask, setAction]);
+
+  /** Log Tasks */
+  useEffect(() => {
+    customLogger("SPACE ADVENTURE TASKS", tasks);
+    customLogger("SPACE ADVENTURE PENDING TASKS", pendingTasks);
+    customLogger("SPACE ADVENTURE UNCLAIMED TASKS", unclaimedTasks);
+  }, [tasks, pendingTasks, unclaimedTasks]);
 
   /** Reset */
   useEffect(reset, [process.started, reset]);
@@ -78,58 +105,44 @@ export default memo(function DiggerTasks() {
     process.execute(async function () {
       const refetch = async () => {
         try {
-          await userQuery.refetch();
-          await chestsQuery.refetch();
-          await tasksQuery.refetch();
+          await queryClient.refetchQueries({
+            queryKey: ["space-adventure"],
+          });
         } catch {}
       };
 
-      if (!action) {
-        setAction("start");
-        return;
+      /** Beginning of Start Action */
+      setAction("start");
+      for (let [index, task] of Object.entries(pendingTasks)) {
+        if (process.controller.signal.aborted) return;
+
+        setTaskOffset(index);
+        setCurrentTask(task);
+
+        if (task.type === "subscribe" && canJoinTelegramLink(task.link)) {
+          await joinTelegramLink(task.link);
+        }
+
+        try {
+          await startTaskMutation.mutateAsync(task.id);
+        } catch {}
+
+        /** Delay */
+        await delay(3000);
       }
-      switch (action) {
-        case "start":
-          /** Beginning of Start Action */
-          setAction("start");
-          for (let [index, task] of Object.entries(pendingTasks)) {
-            if (process.controller.signal.aborted) return;
 
-            setTaskOffset(index);
-            setCurrentTask(task);
+      /** Claim */
+      setAction("claim");
+      for (let [index, task] of Object.entries(pendingTasks)) {
+        if (process.controller.signal.aborted) return;
+        setTaskOffset(index);
+        setCurrentTask(task);
+        try {
+          await claimTaskMutation.mutateAsync(task.id);
+        } catch {}
 
-            try {
-              await updateTaskMutation.mutateAsync(task.type);
-            } catch {}
-
-            /** Delay */
-            await delay(5_000);
-          }
-
-          /** Set Next Action */
-          try {
-            await tasksQuery.refetch();
-          } catch {}
-
-          resetTask();
-          setAction("claim");
-
-          return;
-
-        case "claim":
-          /** Claim */
-          for (let [index, task] of Object.entries(unclaimedTasks)) {
-            if (process.controller.signal.aborted) return;
-            setTaskOffset(index);
-            setCurrentTask(task);
-            try {
-              await checkTaskMutation.mutateAsync(task.type);
-            } catch {}
-
-            /** Delay */
-            await delay(5_000);
-          }
-          break;
+        /** Delay */
+        await delay(3000);
       }
 
       await refetch();
@@ -138,25 +151,22 @@ export default memo(function DiggerTasks() {
       /** Stop */
       return true;
     });
-  }, [process, action, joinTelegramLink]);
+  }, [process, joinTelegramLink]);
 
   /** Auto-Complete Tasks */
-  useFarmerAutoProcess("tasks", process, [tasksQuery.isLoading === false]);
+  useFarmerAutoProcess("tasks", process, [allTasksQuery.isLoading === false]);
 
   return (
     <div className="flex flex-col gap-2 p-4">
       <div className="flex flex-col">
-        {tasksQuery.isPending ? (
+        {allTasksQuery.isPending ? (
           <h4 className="font-bold">Fetching tasks...</h4>
-        ) : tasksQuery.isError ? (
+        ) : allTasksQuery.isError ? (
           <h4 className="font-bold text-red-500">Failed to fetch tasks...</h4>
         ) : (
           <>
             {/* Tasks Info */}
             <h4 className="font-bold">Total Tasks: {tasks.length}</h4>
-            <h4 className="font-bold text-green-500">
-              Finished Tasks: {finishedTasks.length}
-            </h4>
             <h4 className="font-bold text-yellow-500">
               Pending Tasks: {pendingTasks.length}
             </h4>
@@ -170,7 +180,7 @@ export default memo(function DiggerTasks() {
               <button
                 className={cn(
                   "font-bold p-2 rounded-lg text-white",
-                  process.started ? "bg-red-500" : "bg-green-500"
+                  process.started ? "bg-red-500" : "bg-purple-500"
                 )}
                 onClick={() => process.dispatchAndToggle(!process.started)}
                 disabled={
@@ -196,7 +206,7 @@ export default memo(function DiggerTasks() {
                     </span>
                   </h4>
                   <h5 className="font-bold text-purple-500">
-                    {currentTask["en_text"]}
+                    {currentTask.title}
                   </h5>
                   <p
                     className={cn(
@@ -206,14 +216,14 @@ export default memo(function DiggerTasks() {
                         error: "text-red-500",
                       }[
                         action === "start"
-                          ? updateTaskMutation.status
-                          : checkTaskMutation.status
+                          ? startTaskMutation.status
+                          : claimTaskMutation.status
                       ]
                     )}
                   >
                     {action === "start"
-                      ? updateTaskMutation.status
-                      : checkTaskMutation.status}
+                      ? startTaskMutation.status
+                      : claimTaskMutation.status}
                   </p>
                 </div>
               ) : null}
