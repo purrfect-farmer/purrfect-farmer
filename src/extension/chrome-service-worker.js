@@ -132,9 +132,6 @@ const updateDynamicRules = async () => {
 
 /** Setup Extension */
 const setupExtension = async () => {
-  /** Update User-Agent */
-  await updateDynamicRules();
-
   /** Configure Settings */
   await configureExtension(await getSettings());
 };
@@ -201,6 +198,9 @@ chrome.runtime.onStartup.addListener(async () => {
 chrome.runtime.onInstalled.addListener(async (ev) => {
   /** Log */
   customLogger("ON-INSTALLED INVOKED", new Date());
+
+  /** Update Dynamic Rules */
+  await updateDynamicRules();
 
   /** Should Open In new Window */
   if (await shouldOpenInNewWindow()) {
