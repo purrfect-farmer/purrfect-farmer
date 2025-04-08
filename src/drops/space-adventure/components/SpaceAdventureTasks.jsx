@@ -46,11 +46,7 @@ export default memo(function SpaceAdventureTasks() {
   /** Tasks */
   const tasks = useMemo(
     () =>
-      allTasks.filter(
-        (item) =>
-          item.title.includes("Watch 3 ads") === false &&
-          ["name_tag"].includes(item["type_api"]) === false
-      ),
+      allTasks.filter((item) => item.title.includes("Watch 3 ads") === false),
     [allTasks]
   );
 
