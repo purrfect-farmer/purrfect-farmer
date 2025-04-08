@@ -93,11 +93,6 @@
         "id": "core",
         "enabled": true,
         "path": "rule_resources/core.json"
-      },
-      {
-        "id": "farmers",
-        "enabled": true,
-        "path": "rule_resources/farmers.json"
       }
     ]
   },

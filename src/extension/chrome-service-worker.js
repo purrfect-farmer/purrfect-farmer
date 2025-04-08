@@ -6,6 +6,8 @@ import {
   getWindowCoords,
 } from "@/lib/utils";
 
+import rules from "./rule-resources";
+
 /**
  * Close Previous Popups
  * @param {chrome.windows.Window[]} windows
@@ -87,8 +89,8 @@ const configureExtension = async ({ openFarmerInNewWindow }) => {
   }
 };
 
-/** Update User-Agent */
-const updateUserAgent = async () => {
+/** Update Dynamic Rules */
+const updateDynamicRules = async () => {
   const userAgent = await getUserAgent();
 
   const oldRules = await chrome.declarativeNetRequest.getDynamicRules();
@@ -99,7 +101,6 @@ const updateUserAgent = async () => {
     removeRuleIds: oldRuleIds,
     addRules: [
       {
-        id: 1,
         action: {
           type: "modifyHeaders",
           requestHeaders: [
@@ -114,7 +115,8 @@ const updateUserAgent = async () => {
           urlFilter: "*",
         },
       },
-    ],
+      ...rules,
+    ].map((item, index) => ({ ...item, id: index + 1 })),
   });
 
   /** Store User-Agent */
@@ -126,7 +128,7 @@ const updateUserAgent = async () => {
 /** Setup Extension */
 const setupExtension = async () => {
   /** Update User-Agent */
-  await updateUserAgent();
+  await updateDynamicRules();
 
   /** Configure Settings */
   await configureExtension(await getSettings());
