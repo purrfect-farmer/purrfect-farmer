@@ -94,6 +94,18 @@ const rules = [
 ].map((item) => ({
   action: {
     type: "modifyHeaders",
+    responseHeaders: [
+      {
+        header: "access-control-allow-origin",
+        operation: "set",
+        value: "*",
+      },
+      {
+        header: "access-control-allow-methods",
+        operation: "set",
+        value: "*",
+      },
+    ],
     requestHeaders: [
       {
         header: "x-requested-with",
