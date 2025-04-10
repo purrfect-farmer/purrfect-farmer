@@ -51,14 +51,16 @@ export default memo(function SpaceAdventureFarmer() {
         new Date(),
         new Date(user["claimed_last"])
       );
-      const remainingFuel = differenceInSeconds(
+      const lowFuelInSeconds = 10 * 60;
+      const remainingFuelInSeconds = differenceInSeconds(
         new Date(user["fuel_last_at"] + user["fuel"] * 1000),
         new Date()
       );
+
       const unclaimed = user["claim"] * timePassed;
 
       const canBuyFuel =
-        remainingFuel <= 10 &&
+        remainingFuelInSeconds <= lowFuelInSeconds &&
         isAfter(new Date(), new Date(user["fuel_free_at"]));
 
       const canClaim = unclaimed >= user["claim_max"];
@@ -84,7 +86,7 @@ export default memo(function SpaceAdventureFarmer() {
         user,
         boosts,
         unclaimed,
-        remainingFuel,
+        remainingFuel: remainingFuelInSeconds,
         canClaim,
         canBuyFuel,
         canBuyShield,
