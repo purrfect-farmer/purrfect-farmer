@@ -58,7 +58,7 @@ export default memo(function SpaceAdventureFarmer() {
       const unclaimed = user["claim"] * timePassed;
 
       const canBuyFuel =
-        remainingFuel <= user["fuel"] / 2 &&
+        remainingFuel <= 10 &&
         isAfter(new Date(), new Date(user["fuel_free_at"]));
 
       const canClaim = unclaimed >= user["claim_max"];
@@ -66,10 +66,9 @@ export default memo(function SpaceAdventureFarmer() {
         user["shield_damage"] === 1 &&
         isAfter(new Date(), new Date(user["shield_free_at"]));
 
-      const canBuyImmunity = isAfter(
-        new Date(),
-        new Date(user["shield_free_immunity_at"])
-      );
+      const canBuyImmunity =
+        isAfter(new Date(), new Date(user["shield_immunity_at"])) &&
+        isAfter(new Date(), new Date(user["shield_free_immunity_at"]));
 
       const canSpin = isAfter(new Date(), new Date(user["spin_after_at"]));
 
