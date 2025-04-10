@@ -9,14 +9,14 @@ import {
 import rules from "./rule-resources";
 
 /** Should Open In New Window */
-const shouldOpenInNewWindow = async () => {
+const shouldOpenInNewWindow = async (force = false) => {
   /** Get Platform */
   const platform = await chrome.runtime.getPlatformInfo();
 
   /** Get Settings */
   const { openFarmerInNewWindow } = await getSettings();
 
-  return platform.os !== "android" && openFarmerInNewWindow;
+  return (force || platform.os !== "android") && openFarmerInNewWindow;
 };
 
 /**
@@ -203,7 +203,7 @@ chrome.runtime.onInstalled.addListener(async (ev) => {
   await updateDynamicRules();
 
   /** Should Open In new Window */
-  if (await shouldOpenInNewWindow()) {
+  if (await shouldOpenInNewWindow(true)) {
     /** Open Farmer Window */
     await openFarmerWindow();
   }
