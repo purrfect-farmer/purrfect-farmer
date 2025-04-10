@@ -1,4 +1,4 @@
-const glob = import.meta.glob("@/drops/*/index.js", {
+const glob = import.meta.glob("@/drops/space-adventure/index.js", {
   eager: true,
   import: "default",
 });

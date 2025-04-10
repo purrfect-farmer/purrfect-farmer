@@ -10,7 +10,7 @@ export const TASK_CATEGORIES = {
 };
 
 export function useSpaceAdventureAllTasksQueries() {
-  const { api } = useFarmerContext();
+  const { api, getApiHeaders } = useFarmerContext();
   const combine = useCallback((results) => {
     return {
       query: results,
@@ -26,12 +26,13 @@ export function useSpaceAdventureAllTasksQueries() {
     combine,
     queries: Object.values(TASK_CATEGORIES).map((category) => ({
       queryKey: ["space-adventure", "tasks", category],
-      queryFn: ({ signal }) =>
+      queryFn: async ({ signal }) =>
         api
           .get(
             "https://space-adventure.online/api/tasks/get?category=" + category,
             {
               signal,
+              headers: await getApiHeaders(),
             }
           )
           .then((res) => res.data),
@@ -40,15 +41,16 @@ export function useSpaceAdventureAllTasksQueries() {
 }
 
 export default function useSpaceAdventureTasksQuery(category) {
-  const { api } = useFarmerContext();
+  const { api, getApiHeaders } = useFarmerContext();
   return useQuery({
     queryKey: ["space-adventure", "tasks", category],
-    queryFn: ({ signal }) =>
+    queryFn: async ({ signal }) =>
       api
         .get(
           "https://space-adventure.online/api/tasks/get?category=" + category,
           {
             signal,
+            headers: await getApiHeaders(),
           }
         )
         .then((res) => res.data),

@@ -2,6 +2,7 @@ import { createFarmer } from "@/lib/createFarmer";
 import { createLazyElement } from "@/lib/createLazyElement";
 
 import icon from "./assets/images/icon.png?format=webp&w=80&h=80";
+import { getSpaceAdventureHeaders } from "./lib/utils";
 
 export default createFarmer({
   id: "space-adventure",
@@ -14,16 +15,27 @@ export default createFarmer({
   embedWebPage: true,
   cacheAuth: false,
   cacheTelegramWebApp: false,
+  apiOptions: {
+    withCredentials: true,
+    withXSRFToken: true,
+  },
 
   /**
    * Fetch Auth
    * @param {import("axios").AxiosInstance} api
    */
-  fetchAuth(api, telegramWebApp) {
+  async fetchAuth(api, telegramWebApp) {
+    await api.get("https://space-adventure.online/sanctum/csrf-cookie");
+
     return api
       .post(
         "https://space-adventure.online/api/auth/telegram",
-        new URLSearchParams(telegramWebApp.initData)
+        new URLSearchParams(telegramWebApp.initData),
+        {
+          headers: await getSpaceAdventureHeaders({
+            authId: telegramWebApp.initDataUnsafe.user.id,
+          }),
+        }
       )
       .then((res) => res.data);
   },

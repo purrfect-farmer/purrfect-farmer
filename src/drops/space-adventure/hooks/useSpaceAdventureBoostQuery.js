@@ -2,13 +2,14 @@ import useFarmerContext from "@/hooks/useFarmerContext";
 import { useQuery } from "@tanstack/react-query";
 
 export default function useSpaceAdventureBoostQuery() {
-  const { api } = useFarmerContext();
+  const { api, getApiHeaders } = useFarmerContext();
   return useQuery({
     queryKey: ["space-adventure", "boost"],
-    queryFn: ({ signal }) =>
+    queryFn: async ({ signal }) =>
       api
         .get("https://space-adventure.online/api/boost/get/", {
           signal,
+          headers: await getApiHeaders(),
         })
         .then((res) => res.data),
   });

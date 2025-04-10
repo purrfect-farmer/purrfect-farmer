@@ -118,6 +118,11 @@ const rules = [
         value: item.origin,
       },
       {
+        header: "origins",
+        operation: "set",
+        value: item.origin,
+      },
+      {
         header: "referer",
         operation: "set",
         value: item.origin + "/",

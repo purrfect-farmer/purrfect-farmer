@@ -2,12 +2,14 @@ import useFarmerContext from "@/hooks/useFarmerContext";
 import { useMutation } from "@tanstack/react-query";
 
 export default function useSpaceAdventureRewardVideoMutation() {
-  const { api } = useFarmerContext();
+  const { api, getApiHeaders } = useFarmerContext();
   return useMutation({
     mutationKey: ["space-adventure", "reward-video"],
-    mutationFn: () =>
+    mutationFn: async () =>
       api
-        .put("https://space-adventure.online/api/tasks/reward-video/")
+        .put("https://space-adventure.online/api/tasks/reward-video/", null, {
+          headers: await getApiHeaders(),
+        })
         .then((res) => res.data),
   });
 }
