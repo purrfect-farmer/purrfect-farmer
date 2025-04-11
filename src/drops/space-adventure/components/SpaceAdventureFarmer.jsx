@@ -11,11 +11,12 @@ import { useEffect } from "react";
 import { useMemo } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 
+import SpaceAdventureBoosts from "./SpaceAdventureBoosts";
 import SpaceAdventureHourlyAds from "./SpaceAdventureHourlyAds";
 import SpaceAdventureIcon from "../assets/images/icon.png?format=webp&w=80";
 import SpaceAdventureInfoDisplay from "./SpaceAdventureInfoDisplay";
 import SpaceAdventureTasks from "./SpaceAdventureTasks";
-import useSpaceAdventureBoostQuery from "../hooks/useSpaceAdventureBoostQuery";
+import useSpaceAdventureBoostsQuery from "../hooks/useSpaceAdventureBoostsQuery";
 import useSpaceAdventureBuyBoostMutation from "../hooks/useSpaceAdventureBuyBoostMutation";
 import useSpaceAdventureBuyRouletteMutation from "../hooks/useSpaceAdventureBuyRouletteMutation";
 import useSpaceAdventureClaimMutation from "../hooks/useSpaceAdventureClaimMutation";
@@ -28,12 +29,13 @@ import useSpaceAdventureUserQuery from "../hooks/useSpaceAdventureUserQuery";
 export default memo(function SpaceAdventureFarmer() {
   const tabs = useMirroredTabs("space-adventure.farmer-tabs", [
     "hourly-ads",
+    "boosts",
     "tasks",
   ]);
 
   const queryClient = useQueryClient();
   const userQuery = useSpaceAdventureUserQuery();
-  const boostQuery = useSpaceAdventureBoostQuery();
+  const boostsQuery = useSpaceAdventureBoostsQuery();
   const getAdsMutation = useSpaceAdventureGetAdsMutation();
   const buyBoostMutation = useSpaceAdventureBuyBoostMutation();
   const buyRouletteMutation = useSpaceAdventureBuyRouletteMutation();
@@ -44,9 +46,9 @@ export default memo(function SpaceAdventureFarmer() {
 
   /** Get Status */
   const status = useMemo(() => {
-    if (userQuery.data && boostQuery.data) {
+    if (userQuery.data && boostsQuery.data) {
       const { user } = userQuery.data;
-      const boosts = boostQuery.data.list;
+      const boosts = boostsQuery.data.list;
       const timePassed = differenceInSeconds(
         new Date(),
         new Date(user["claimed_last"])
@@ -86,7 +88,7 @@ export default memo(function SpaceAdventureFarmer() {
         user,
         boosts,
         unclaimed,
-        remainingFuel: remainingFuelInSeconds,
+        remainingFuelInSeconds,
         canClaim,
         canBuyFuel,
         canBuyShield,
@@ -97,7 +99,7 @@ export default memo(function SpaceAdventureFarmer() {
         canClaimDailyReward,
       };
     }
-  }, [userQuery.data, boostQuery.data]);
+  }, [userQuery.data, boostsQuery.data]);
 
   /** Update User */
   const updateUser = useCallback(
@@ -113,7 +115,7 @@ export default memo(function SpaceAdventureFarmer() {
   const shopFreeItem = useCallback(
     async (type) => {
       /** Get Item */
-      const shopItem = boostQuery.data.list.find(
+      const shopItem = boostsQuery.data.list.find(
         (item) => item["single_type"] === type
       );
 
@@ -121,14 +123,14 @@ export default memo(function SpaceAdventureFarmer() {
       await getAdsMutation.mutateAsync("shop_free_" + type);
 
       /** Buy Item */
-      const { user } = await buyBoostMutation.mutateAsync(shopItem.id);
+      const { user } = await buyBoostMutation.mutateAsync({ id: shopItem.id });
 
       /** Update User */
       updateUser(user);
     },
     [
       updateUser,
-      boostQuery.data,
+      boostsQuery.data,
       queryClient.setQueryData,
       getAdsMutation.mutateAsync,
       buyBoostMutation.mutateAsync,
@@ -334,6 +336,11 @@ export default memo(function SpaceAdventureFarmer() {
         {/* Hourly Ads */}
         <Tabs.Content value="hourly-ads">
           <SpaceAdventureHourlyAds />
+        </Tabs.Content>
+
+        {/* Boosts */}
+        <Tabs.Content value="boosts">
+          <SpaceAdventureBoosts />
         </Tabs.Content>
 
         {/* Tasks */}

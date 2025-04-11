@@ -5,12 +5,12 @@ export default function useSpaceAdventureBuyBoostMutation() {
   const { api, getApiHeaders } = useFarmerContext();
   return useMutation({
     mutationKey: ["space-adventure", "boost", "buy"],
-    mutationFn: async (id) =>
+    mutationFn: async ({ id, method = "free" }) =>
       api
         .post(
           "https://space-adventure.online/api/boost/buy/",
           {
-            method: "free",
+            method,
             id,
           },
           {

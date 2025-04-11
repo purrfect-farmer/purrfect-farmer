@@ -13,6 +13,7 @@ export default createFarmer({
   telegramLink: "https://t.me/spaceadv_game_bot/play?startapp=1147265290",
   host: "space-adventure.online",
   embedWebPage: true,
+  embedInNewTab: true,
   cacheAuth: false,
   cacheTelegramWebApp: false,
   apiOptions: {
@@ -59,5 +60,6 @@ export default createFarmer({
     ["buy-immunity"]: true,
     ["hourly-ads"]: true,
     ["tasks"]: true,
+    ["boosts"]: true,
   },
 });

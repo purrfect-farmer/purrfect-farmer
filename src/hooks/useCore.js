@@ -742,6 +742,7 @@ export default function useCore() {
         browserTitle,
         browserIcon,
         embedWebPage = import.meta.env.DEV,
+        embedInNewTab = false,
         force = false,
       } = {}
     ) => {
@@ -755,19 +756,23 @@ export default function useCore() {
             (async function () {
               const webview = await telegramClient.getWebview(url);
 
-              /** Push the tab */
-              pushTab(
-                {
-                  id: `browser-${browserId}`,
-                  title: browserTitle,
-                  icon: browserIcon,
-                  component: createElement(Browser, {
-                    url: webview.url,
-                  }),
-                  reloadedAt: Date.now(),
-                },
-                true
-              );
+              if (embedInNewTab) {
+                window.open(webview.url);
+              } else {
+                /** Push the tab */
+                pushTab(
+                  {
+                    id: `browser-${browserId}`,
+                    title: browserTitle,
+                    icon: browserIcon,
+                    component: createElement(Browser, {
+                      url: webview.url,
+                    }),
+                    reloadedAt: Date.now(),
+                  },
+                  true
+                );
+              }
             })(),
             {
               loading: "Getting WebPage...",

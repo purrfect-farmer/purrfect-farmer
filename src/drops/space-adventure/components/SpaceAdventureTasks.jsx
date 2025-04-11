@@ -124,7 +124,7 @@ export default memo(function SpaceAdventureTasks() {
         } catch {}
 
         /** Delay */
-        await delay(3000);
+        await delay(1000, true);
       }
 
       /** Claim */
@@ -138,7 +138,7 @@ export default memo(function SpaceAdventureTasks() {
         } catch {}
 
         /** Delay */
-        await delay(3000);
+        await delay(1000, true);
       }
 
       await refetch();
