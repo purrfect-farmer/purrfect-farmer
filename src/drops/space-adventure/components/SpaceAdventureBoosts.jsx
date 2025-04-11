@@ -70,6 +70,20 @@ export default memo(function SpaceAdventureBoosts() {
     [boosts]
   );
 
+  /** Current Max Level */
+  const currentMaxLevel = useMemo(
+    () => Math.max(...levelBoosts.map((item) => item["level_current"])),
+    [levelBoosts]
+  );
+
+  /** Is Same Level */
+  const isSameLevel = useMemo(
+    () =>
+      levelBoosts.every((item) => item["level_current"] === currentMaxLevel),
+    [levelBoosts, currentMaxLevel]
+  );
+
+  /** Available Boosts */
   const availableBoosts = useMemo(
     () =>
       levelBoosts.filter(
@@ -79,21 +93,6 @@ export default memo(function SpaceAdventureBoosts() {
             item["next_level"]["price_gems"] <= gems)
       ),
     [levelBoosts, balance, gems]
-  );
-
-  /** Current Max Level */
-  const currentMaxLevel = useMemo(
-    () => Math.max(...availableBoosts.map((item) => item["level_current"])),
-    [availableBoosts]
-  );
-
-  /** Is Same Level */
-  const isSameLevel = useMemo(
-    () =>
-      availableBoosts.every(
-        (item) => item["level_current"] === currentMaxLevel
-      ),
-    [availableBoosts, currentMaxLevel]
   );
 
   /** Upgradable Boosts */
