@@ -188,6 +188,9 @@ export default memo(function SpaceAdventureBoosts() {
         <p className="text-center text-red-500">Error...</p>
       ) : (
         <>
+          <h3 className="text-purple-500 font-bold text-center">
+            CURRENT LEVEL: {currentMaxLevel}
+          </h3>
           <button
             onClick={() => process.dispatchAndToggle(!process.started)}
             className={cn(
