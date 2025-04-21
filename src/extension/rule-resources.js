@@ -1,5 +1,9 @@
 const rules = [
   {
+    origin: "https://game.genkiminer.xyz",
+    domains: "game.genkiminer.xyz",
+  },
+  {
     origin: "https://static.agent301.org",
     domains: "agent301.org",
   },
@@ -90,11 +94,19 @@ const rules = [
   {
     origin: "https://space-adventure.online",
     domains: "space-adventure.online",
+    requestHeaders: [
+      {
+        header: "origins",
+        operation: "set",
+        value: "https://space-adventure.online",
+      },
+    ],
   },
 ].map((item) => ({
   action: {
     type: "modifyHeaders",
     responseHeaders: [
+      ...(item.responseHeaders || []),
       {
         header: "access-control-allow-origin",
         operation: "set",
@@ -107,6 +119,7 @@ const rules = [
       },
     ],
     requestHeaders: [
+      ...(item.requestHeaders || []),
       {
         header: "x-requested-with",
         operation: "set",
@@ -114,11 +127,6 @@ const rules = [
       },
       {
         header: "origin",
-        operation: "set",
-        value: item.origin,
-      },
-      {
-        header: "origins",
         operation: "set",
         value: item.origin,
       },
