@@ -26,7 +26,6 @@ if (
 
   /** Check if is Chrome Port */
   const isChromePort = (obj) => {
-    console.log(obj);
     return obj && typeof obj === "object" && typeof obj.__PORT__ === "string";
   };
 
