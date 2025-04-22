@@ -55,28 +55,30 @@ const removeFunction = (id) => {
 
 chrome.runtime.onConnectExternal.addListener((port) => {
   port.onMessage.addListener(async (message) => {
-    const target = message.method.reduce(
-      (current, item) =>
-        typeof current[item] === "function"
-          ? current[item].bind(current)
-          : current[item],
-      message.port ? portsMap.get(message.port) : chrome
-    );
+    if (message.action === "execute") {
+      const target = message.method.reduce(
+        (current, item) =>
+          typeof current[item] === "function"
+            ? current[item].bind(current)
+            : current[item],
+        message.port ? portsMap.get(message.port) : chrome
+      );
 
-    const result = await target(
-      ...message.args.map((item) =>
-        typeof item === "string" && item.startsWith("__FUNCTION__")
-          ? message.method.at(-1) === "addListener"
-            ? createFunction(item, port)
-            : removeFunction(item)
-          : item
-      )
-    );
+      const result = await target(
+        ...message.args.map((item) =>
+          typeof item === "string" && item.startsWith("__FUNCTION__")
+            ? message.method.at(-1) === "addListener"
+              ? createFunction(item, port)
+              : removeFunction(item)
+            : item
+        )
+      );
 
-    port.postMessage({
-      id: message.id,
-      result,
-    });
+      port.postMessage({
+        id: message.id,
+        result,
+      });
+    }
   });
 
   port.onDisconnect.addListener(() => {
