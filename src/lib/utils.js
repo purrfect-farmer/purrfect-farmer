@@ -5,6 +5,10 @@ import { clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
 import { v4 as uuidv4 } from "uuid";
 
+export function isExtension() {
+  return window.location.protocol === "chrome-extension:";
+}
+
 export function cn(...inputs) {
   return twMerge(clsx(inputs));
 }

@@ -36,6 +36,13 @@
     "type": "module"
   },
   "host_permissions": ["*://*/*", "wss://*/*"],
+  "externally_connectable": {
+    "matches": [
+      "*://purrfectfarmer.com/*",
+      "*://purrfect-farmer.github.io/*",
+      "*://localhost/*"
+    ]
+  },
   "content_scripts": [
     {
       "matches": ["*://*/*"],

@@ -1,7 +1,7 @@
-import { uuid } from "./utils";
+import { isExtension, uuid } from "./utils";
 
 if (
-  window.location.protocol !== "chrome-extension:" &&
+  isExtension() === false &&
   typeof chrome?.runtime?.connect !== "undefined"
 ) {
   /** Port */
