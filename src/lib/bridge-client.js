@@ -125,4 +125,13 @@ if (
       );
     }
   });
+
+  /** Ping Port */
+  setInterval(() => {
+    try {
+      port.postMessage({ type: "ping" });
+    } catch (e) {
+      console.warn("Port is disconnected:", e);
+    }
+  }, 5000);
 }

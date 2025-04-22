@@ -1,3 +1,5 @@
+import "@/lib/bridge-service-worker";
+
 import {
   closeWindow,
   customLogger,

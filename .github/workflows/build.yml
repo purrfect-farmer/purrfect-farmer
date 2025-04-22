@@ -34,6 +34,8 @@ jobs:
         run: pnpm install
 
       - name: Build
+        env:
+          VITE_BRIDGE_EXTENSION_ID: ${{ secrets.BRIDGE_EXTENSION_ID }}
         run: pnpm run build:index --base="https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}"
 
       - name: Setup 404 page

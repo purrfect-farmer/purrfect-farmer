@@ -1,3 +1,4 @@
+import "@/lib/bridge-client";
 import "@/lib/polyfills";
 
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
