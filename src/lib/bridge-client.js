@@ -114,21 +114,35 @@ if (
     },
   });
 
+  /** Bridged Fetch */
+  window.bridgedFetch = (args) => {
+    return sendMessage({
+      action: "fetch",
+      args,
+    });
+  };
+
   /** Listen for Message */
   port.onMessage.addListener((message) => {
     if (message.action === "execute") {
-      callableMap.get(message.method)(
-        ...message.args.map((item) =>
-          isChromePort(item) ? bridgePort(item) : item
-        )
-      );
+      const callable = callableMap.get(message.method);
+
+      if (callable) {
+        callable(
+          ...message.args.map((item) =>
+            isChromePort(item) ? bridgePort(item) : item
+          )
+        );
+      } else {
+        console.error(message);
+      }
     }
   });
 
   /** Ping Port */
   setInterval(() => {
     try {
-      port.postMessage({ type: "ping" });
+      sendMessage({ type: "ping" });
     } catch (e) {
       console.warn("Port is disconnected:", e);
     }
