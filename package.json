@@ -5,8 +5,9 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "npm-run-all build:* && npm-run-all build-ext:*",
-    "build-bridge": "VITE_BRIDGE=true npm-run-all build-ext:*",
+    "build": "npm-run-all build-extension build-bridge",
+    "build-bridge": "VITE_BRIDGE=true npm-run-all build-ext:* bundle-ext",
+    "build-extension": "npm-run-all build:index build-ext:* bundle-ext",
     "build:index": "VITE_ENTRY=index vite build",
     "build-ext:chrome-service-worker": "VITE_ENTRY=chrome-service-worker vite build",
     "build-ext:telegram-web-main": "VITE_ENTRY=telegram-web-main vite build",
@@ -16,7 +17,7 @@
     "build-ext:content-script-isolated": "VITE_ENTRY=content-script-isolated vite build",
     "build-ext:mini-app-toolbar-isolated": "VITE_ENTRY=mini-app-toolbar-isolated vite build",
     "build-ext:notgram-main": "VITE_ENTRY=notgram-main vite build",
-    "build-ext:bundle": "node bundle-extension.js",
+    "bundle-ext": "node bundle-extension.js",
     "lint": "eslint .",
     "preview": "vite preview"
   },
