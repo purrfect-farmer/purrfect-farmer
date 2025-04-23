@@ -2,6 +2,35 @@ import { getUserAgent, uuid } from "@/lib/utils";
 
 import { decryptData, encryptData } from "./content-script-utils";
 
+/** Check if is externally connectable */
+const isExternallyConnectable = () => {
+  const manifest = chrome.runtime.getManifest();
+  const patterns = manifest["externally_connectable"]["matches"].map(
+    (glob) =>
+      new RegExp(
+        "^" +
+          glob
+            .replace(/\./g, "\\.")
+            .replace(/\*/g, ".*")
+            .replace(/\//g, "\\/") +
+          "$"
+      )
+  );
+
+  const url = new URL(window.location.href);
+  const strippedUrl = `${url.protocol}//${url.hostname}${url.pathname}`;
+
+  return patterns.some((pattern) => {
+    return pattern.test(strippedUrl);
+  });
+};
+
+/** Post Bridge ID */
+window.postMessage({
+  bridgeId: chrome.runtime.id,
+  expose: isExternallyConnectable(),
+});
+
 if (/tgWebAppPlatform=android/.test(location.href)) {
   /** Initial Location Href */
   const initLocationHref = location.href;

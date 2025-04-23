@@ -5,7 +5,7 @@ if (
   typeof chrome?.runtime?.connect !== "undefined"
 ) {
   /** Port */
-  const port = chrome.runtime.connect(import.meta.env.VITE_BRIDGE_EXTENSION_ID);
+  const port = chrome.runtime.connect(window.BRIDGE_ID);
 
   /** Callable Bridge Map */
   const callableMap = new Map();
