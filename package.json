@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "npm-run-all build-extension build-bridge",
+    "build": "npm-run-all clean build-extension build-bridge",
     "build-pwa": "VITE_PWA=true npm-run-all build:index",
     "build-bridge": "VITE_BRIDGE=true npm-run-all build-ext:* bundle-ext",
     "build-extension": "npm-run-all build:index build-ext:* bundle-ext",
@@ -19,6 +19,7 @@
     "build-ext:mini-app-toolbar-isolated": "VITE_ENTRY=mini-app-toolbar-isolated vite build",
     "build-ext:notgram-main": "VITE_ENTRY=notgram-main vite build",
     "bundle-ext": "node bundle-extension.js",
+    "clean": "rimraf dist dist-bridge dist-extension",
     "generate-pwa-assets": "pwa-assets-generator --preset minimal public/icon.png",
     "lint": "eslint .",
     "preview": "vite preview"
@@ -55,6 +56,7 @@
     "react-hot-toast": "^2.5.2",
     "react-icons": "^5.5.0",
     "react-use": "^17.6.0",
+    "rimraf": "^6.0.1",
     "socket.io-client": "^4.8.1",
     "styled-components": "^6.1.17",
     "tailwind-merge": "^3.2.0",
