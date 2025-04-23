@@ -13,7 +13,7 @@ export default function CloudSubscription() {
   const subscription = data?.subscription;
 
   return enabled ? (
-    <p className="px-2">
+    <div className="px-2">
       <Alert
         variant={
           status === "pending"
@@ -47,6 +47,6 @@ export default function CloudSubscription() {
           "No Cloud Subscription"
         )}
       </Alert>
-    </p>
+    </div>
   ) : null;
 }
