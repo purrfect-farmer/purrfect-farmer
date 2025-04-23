@@ -8,19 +8,19 @@ if (
   const port = chrome.runtime.connect(window.BRIDGE_ID);
 
   /** Callable Bridge Map */
-  const callableMap = new Map();
+  const callables = new Map();
 
   /** Create Bridged Function */
   const createFunction = (callable) => {
     const id = "__FUNCTION__" + uuid();
-    callableMap.set(id, callable);
+    callables.set(id, callable);
     return id;
   };
 
   /** Remove Bridged Function */
   const removeFunction = (callable) => {
-    const id = callableMap.entries().find(([, v]) => v === callable)[0];
-    callableMap.delete(id);
+    const id = callables.entries().find(([, v]) => v === callable)[0];
+    callables.delete(id);
     return id;
   };
 
@@ -125,7 +125,7 @@ if (
   /** Listen for Message */
   port.onMessage.addListener((message) => {
     if (message.action === "execute") {
-      const callable = callableMap.get(message.method);
+      const callable = callables.get(message.method);
 
       if (callable) {
         callable(
