@@ -80,9 +80,6 @@ const openFarmerWindow = async () => {
 
 /** Configure Extension */
 const configureExtension = async ({ openFarmerInNewWindow }) => {
-  /** Get Platform */
-  const platform = await chrome.runtime.getPlatformInfo();
-
   /** Remove Popup */
   await chrome.action.setPopup({ popup: "" });
 
