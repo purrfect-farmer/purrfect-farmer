@@ -1,6 +1,7 @@
-import fs from "node:fs/promises";
 import path from "path";
 import { fileURLToPath } from "url";
+
+import getPackageJson from "./getPackageJson";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -13,17 +14,13 @@ export default function generateChromeManifest(env) {
   const isPWA = typeof process.env.VITE_PWA !== "undefined";
   const isBridge = typeof process.env.VITE_BRIDGE !== "undefined";
   const isIndex = process.env.VITE_ENTRY === "index";
-  const isServiceWorker = process.env.VITE_ENTRY === "chrome-service-worker";
-  const canApply =
-    (isPWA === false && isIndex) || (isBridge && isServiceWorker);
+  const canApply = isPWA === false && isIndex;
 
   return {
     name: "generate-chrome-manifest",
     async generateBundle() {
-      const pkg = JSON.parse(
-        await fs.readFile(path.join(__dirname, "package.json"), "utf8")
-      );
-      const json = JSON.stringify(
+      const pkg = await getPackageJson();
+      const manifestJson = JSON.stringify(
         {
           manifest_version: 3,
           name: env.VITE_APP_NAME + (isBridge ? " Bridge" : ""),
@@ -49,20 +46,14 @@ export default function generateChromeManifest(env) {
             "declarativeNetRequest",
             "system.display",
           ],
-          action:
-            isBridge === false
-              ? {
-                  default_icon: "icon-48.png",
-                  default_title: "Open Purrfect Farmer",
-                  default_popup: "index.html",
-                }
-              : undefined,
-          side_panel:
-            isBridge === false
-              ? {
-                  default_path: "index.html",
-                }
-              : undefined,
+          action: {
+            default_icon: "icon-48.png",
+            default_title: "Open Purrfect Farmer",
+            default_popup: isBridge ? "pwa-iframe.html" : "index.html",
+          },
+          side_panel: {
+            default_path: isBridge ? "pwa-iframe.html" : "index.html",
+          },
           background: {
             service_worker: "chrome-service-worker.js",
             type: "module",
@@ -129,7 +120,13 @@ export default function generateChromeManifest(env) {
           ],
 
           declarative_net_request: {
-            rule_resources: [],
+            rule_resources: [
+              {
+                id: "core",
+                enabled: true,
+                path: "rule_resources/core.json",
+              },
+            ],
           },
           content_security_policy: {
             extension_pages:
@@ -144,11 +141,91 @@ export default function generateChromeManifest(env) {
         null,
         2
       );
+      const resourceJson = JSON.stringify(
+        [
+          {
+            id: 1,
+            priority: 1,
+            action: {
+              type: "modifyHeaders",
+              requestHeaders: [
+                {
+                  header: "sec-ch-ua",
+                  operation: "set",
+                  value:
+                    '"Android WebView";v="131", "Chromium";v="131", "Not_A Brand";v="24"',
+                },
+                {
+                  header: "sec-ch-ua-mobile",
+                  operation: "set",
+                  value: "?0",
+                },
+                {
+                  header: "sec-ch-ua-platform",
+                  operation: "set",
+                  value: '"Android"',
+                },
+                {
+                  header: "sec-ch-ua-arch",
+                  operation: "set",
+                  value: '""',
+                },
+                {
+                  header: "sec-ch-ua-arch-full-version",
+                  operation: "set",
+                  value: '""',
+                },
+                {
+                  header: "sec-ch-ua-platform-version",
+                  operation: "set",
+                  value: '""',
+                },
+                {
+                  header: "sec-ch-ua-full-version-list",
+                  operation: "set",
+                  value: "",
+                },
+                {
+                  header: "sec-ch-ua-bitness",
+                  operation: "set",
+                  value: '""',
+                },
+                {
+                  header: "sec-ch-ua-model",
+                  operation: "set",
+                  value: '""',
+                },
+              ],
+              responseHeaders: [
+                {
+                  header: "content-security-policy",
+                  operation: "remove",
+                },
+                {
+                  header: "x-frame-options",
+                  operation: "remove",
+                },
+              ],
+            },
+            condition: {
+              urlFilter: "*",
+            },
+          },
+        ],
+        null,
+        2
+      );
 
       this.emitFile({
         type: "asset",
         fileName: "manifest.json",
-        source: json,
+        source: manifestJson,
+      });
+
+      this.emitFile({
+        type: "asset",
+        fileName: "rule_resources/core.json",
+        source: resourceJson,
       });
     },
     apply(config, { command }) {

@@ -35,7 +35,7 @@ import {
   HiOutlinePuzzlePiece,
 } from "react-icons/hi2";
 import { RiRemoteControlLine } from "react-icons/ri";
-import { cn } from "@/lib/utils";
+import { cn, isExtension } from "@/lib/utils";
 import { forwardRef, memo } from "react";
 import { useCallback } from "react";
 import { useEffect } from "react";
@@ -280,9 +280,16 @@ export default memo(function Welcome() {
           {/* App Version */}
           <p className="text-lg leading-none text-center">
             <span className={cn("font-turret-road font-bold text-orange-500")}>
-              v{manifestQuery.data?.version || "0.0.1"}
+              v{__APP_VERSION__}
             </span>
           </p>
+
+          {/* Bridge Version */}
+          {isExtension() === false ? (
+            <p className="text-center font-bold text-purple-500">
+              Bridge v{manifestQuery.data?.version || "0.0.1"}
+            </p>
+          ) : null}
 
           {/* Farmer Title */}
           <p

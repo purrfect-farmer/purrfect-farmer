@@ -10,12 +10,16 @@ import { loadEnv } from "vite";
 import { nodePolyfills } from "vite-plugin-node-polyfills";
 
 import generateChromeManifest from "./generateChromeManifest";
+import getPackageJson from "./getPackageJson";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 // https://vitejs.dev/config/
-export default defineConfig(({ mode }) => {
+export default defineConfig(async ({ mode }) => {
+  /** Pkg */
+  const pkg = await getPackageJson();
+
   /** Env */
   const env = loadEnv(mode, process.cwd());
 
@@ -27,7 +31,15 @@ export default defineConfig(({ mode }) => {
         [
           /** Entries */
           "index",
-        ].map((item) => [item, path.resolve(__dirname, `./${item}.html`)])
+        ].map((item) => [
+          item,
+          path.resolve(
+            __dirname,
+            `./${
+              item === "index" && process.env.VITE_BRIDGE ? "pwa-iframe" : item
+            }.html`
+          ),
+        ])
       );
       break;
     default:
@@ -42,6 +54,7 @@ export default defineConfig(({ mode }) => {
 
   return {
     define: {
+      __APP_VERSION__: `"${pkg.version}"`,
       __ENCRYPTION_KEY__: `"${new Date().toISOString().split("T")[0]}"`,
     },
     resolve: {
