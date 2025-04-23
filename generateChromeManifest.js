@@ -1,8 +1,6 @@
 import path from "path";
 import { fileURLToPath } from "url";
 
-import getPackageJson from "./getPackageJson";
-
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
@@ -10,7 +8,7 @@ const __dirname = path.dirname(__filename);
  * Generate Chrome Manifest
  * @returns {import("vite").Plugin}
  */
-export default function generateChromeManifest(env) {
+export default function generateChromeManifest(env, pkg) {
   const isPWA = typeof process.env.VITE_PWA !== "undefined";
   const isBridge = typeof process.env.VITE_BRIDGE !== "undefined";
   const isIndex = process.env.VITE_ENTRY === "index";
@@ -19,7 +17,6 @@ export default function generateChromeManifest(env) {
   return {
     name: "generate-chrome-manifest",
     async generateBundle() {
-      const pkg = await getPackageJson();
       const manifestJson = JSON.stringify(
         {
           manifest_version: 3,
@@ -48,7 +45,8 @@ export default function generateChromeManifest(env) {
           ],
           action: {
             default_icon: "icon-48.png",
-            default_title: "Open Purrfect Farmer",
+            default_title:
+              (isBridge ? "(Bridge) " : "") + "Open Purrfect Farmer",
             default_popup: isBridge ? "pwa-iframe.html" : "index.html",
           },
           side_panel: {
@@ -62,9 +60,7 @@ export default function generateChromeManifest(env) {
           externally_connectable: isBridge
             ? {
                 matches: [
-                  "*://*.purrfectfarmer.com/*",
-                  "*://purrfectfarmer.com/*",
-                  "*://purrfect-farmer.github.io/*",
+                  `*://${new URL(env.VITE_APP_PWA_URL).hostname}/*`,
                   "*://localhost/*",
                 ],
               }

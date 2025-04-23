@@ -93,7 +93,7 @@ export default defineConfig(async ({ mode }) => {
     },
     plugins: [
       /** Plugins */
-      generateChromeManifest(env),
+      generateChromeManifest(env, pkg),
       VitePWA({
         registerType: "prompt",
         workbox: {
