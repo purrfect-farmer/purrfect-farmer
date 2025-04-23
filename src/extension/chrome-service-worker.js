@@ -10,7 +10,7 @@ import {
 const isBridge = typeof import.meta.env.VITE_BRIDGE !== "undefined";
 
 /** Should Open In New Window */
-const shouldOpenInNewWindow = async (force = false) => {
+const shouldOpenInNewWindow = async () => {
   /** Get Platform */
   const platform = await chrome.runtime.getPlatformInfo();
 
@@ -18,8 +18,7 @@ const shouldOpenInNewWindow = async (force = false) => {
   const { openFarmerInNewWindow } = await getSettings();
 
   return (
-    (force || platform.os !== chrome.runtime.PlatformOs.ANDROID) &&
-    openFarmerInNewWindow
+    openFarmerInNewWindow || platform.os === chrome.runtime.PlatformOs.ANDROID
   );
 };
 
@@ -84,18 +83,16 @@ const configureExtension = async ({ openFarmerInNewWindow }) => {
   /** Get Platform */
   const platform = await chrome.runtime.getPlatformInfo();
 
-  if (platform.os !== chrome.runtime.PlatformOs.ANDROID) {
-    /** Remove Popup */
-    await chrome.action.setPopup({ popup: "" });
+  /** Remove Popup */
+  await chrome.action.setPopup({ popup: "" });
 
-    try {
-      /** Configure Side Panel */
-      await chrome.sidePanel.setPanelBehavior({
-        openPanelOnActionClick: openFarmerInNewWindow === false,
-      });
-    } catch (e) {
-      console.error(e);
-    }
+  try {
+    /** Configure Side Panel */
+    await chrome.sidePanel.setPanelBehavior({
+      openPanelOnActionClick: openFarmerInNewWindow === false,
+    });
+  } catch (e) {
+    console.error(e);
   }
 };
 
@@ -132,11 +129,7 @@ chrome.runtime.onStartup.addListener(async () => {
     closeMainWindowOnStartup,
   } = await getSettings();
 
-  if (
-    platform.os !== chrome.runtime.PlatformOs.ANDROID &&
-    openFarmerOnStartup &&
-    openFarmerInNewWindow
-  ) {
+  if (openFarmerOnStartup && openFarmerInNewWindow) {
     /** Open Window */
     await openFarmerWindow();
 
@@ -169,7 +162,7 @@ chrome.runtime.onInstalled.addListener(async (ev) => {
   customLogger("ON-INSTALLED INVOKED", new Date());
 
   /** Should Open In new Window */
-  if (await shouldOpenInNewWindow(true)) {
+  if (await shouldOpenInNewWindow()) {
     /** Open Farmer Window */
     await openFarmerWindow();
   }
