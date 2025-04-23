@@ -414,13 +414,17 @@ export default function useCore() {
   const [navigateToTelegramWeb, dispatchAndNavigateToTelegramWeb] =
     useMirroredCallback(
       "core.navigate-to-telegram-web",
-      (v) =>
-        chrome?.tabs?.query({ active: true, currentWindow: true }, (tabs) => {
-          chrome?.tabs?.update(tabs[0].id, {
-            url: `https://web.telegram.org/${v}`,
-            active: true,
-          });
-        }),
+      async (v) => {
+        const tabs = await chrome?.tabs?.query({
+          active: true,
+          currentWindow: true,
+        });
+
+        await chrome?.tabs?.update(tabs[0].id, {
+          url: `https://web.telegram.org/${v}`,
+          active: true,
+        });
+      },
       [],
       /** Mirror */
       mirror
