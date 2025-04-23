@@ -79,7 +79,6 @@ export default defineConfig(async ({ mode }) => {
                       "node-forge",
                       "crypto-js",
                       "axios",
-                      "buffer",
                     ].find((item) => id.includes(item));
 
                     return lib ? `vendor-${lib}` : "vendor";
