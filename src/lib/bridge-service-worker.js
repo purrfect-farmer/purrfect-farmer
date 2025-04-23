@@ -4,18 +4,18 @@ import { uuid } from "@/lib/utils";
 if (typeof import.meta.env.VITE_BRIDGE !== "undefined") {
   chrome.runtime.onConnectExternal.addListener((port) => {
     /** Create Maps */
-    const callableMap = new Map();
-    const portsMap = new Map();
+    const callables = new Map();
+    const ports = new Map();
 
     /**
      * @param {chrome.runtime.Port} port
      */
     const bridgePort = (port) => {
       const id = "__PORT__" + uuid();
-      portsMap.set(id, port);
+      ports.set(id, port);
 
       port.onDisconnect.addListener(() => {
-        portsMap.delete(id);
+        ports.delete(id);
       });
 
       return {
@@ -39,7 +39,7 @@ if (typeof import.meta.env.VITE_BRIDGE !== "undefined") {
     };
 
     /** Create Function */
-    const createFunction = (id, port) => {
+    const createFunction = (id, method, target) => {
       const handler = (...args) => {
         port.postMessage({
           action: "execute",
@@ -50,34 +50,45 @@ if (typeof import.meta.env.VITE_BRIDGE !== "undefined") {
         });
       };
 
-      callableMap.set(id, handler);
+      callables.set(id, { target, method, handler });
 
       return handler;
     };
 
     /** Remove Function */
     const removeFunction = (id) => {
-      const callable = callableMap.get(id);
-      callableMap.delete(id);
-      return callable;
+      const callable = callables.get(id);
+      callables.delete(id);
+      return callable.handler;
     };
+
+    /** Resolve Target */
+    const resolveTarget = (method, target) =>
+      method.reduce(
+        (current, item) =>
+          typeof current[item] === "function"
+            ? current[item].bind(current)
+            : current[item],
+        target
+      );
 
     /** Listen for Message */
     port.onMessage.addListener(async (message) => {
       if (message.action === "execute") {
-        const target = message.method.reduce(
-          (current, item) =>
-            typeof current[item] === "function"
-              ? current[item].bind(current)
-              : current[item],
-          message.port ? portsMap.get(message.port) : chrome
+        const target = resolveTarget(
+          message.method,
+          message.port ? ports.get(message.port) : chrome
         );
 
         const result = await target(
           ...message.args.map((item) =>
             typeof item === "string" && item.startsWith("__FUNCTION__")
               ? message.method.at(-1) === "addListener"
-                ? createFunction(item, port)
+                ? createFunction(
+                    item,
+                    message.method,
+                    message.port ? ports.get(message.port) : chrome
+                  )
                 : removeFunction(item)
               : item
           )
@@ -153,7 +164,7 @@ if (typeof import.meta.env.VITE_BRIDGE !== "undefined") {
     /** Cleanup on Disconnect */
     port.onDisconnect.addListener(() => {
       /** Disconnect Ports */
-      portsMap.forEach(
+      ports.forEach(
         /**
          * @param {chrome.runtime.Port} port
          */
@@ -162,9 +173,17 @@ if (typeof import.meta.env.VITE_BRIDGE !== "undefined") {
         }
       );
 
+      /** Unregister Callbacks */
+      callables.forEach((item) => {
+        const method = [...item.method.slice(0, -1), "removeListener"];
+        const target = resolveTarget(method, item.target);
+
+        target(item.handler);
+      });
+
       /** Clear  */
-      callableMap.clear();
-      portsMap.clear();
+      callables.clear();
+      ports.clear();
     });
   });
 }
