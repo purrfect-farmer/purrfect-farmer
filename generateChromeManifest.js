@@ -141,7 +141,7 @@ export default function generateChromeManifest(env) {
           },
         },
         null,
-        "\t"
+        2
       );
 
       this.emitFile({
