@@ -4,6 +4,7 @@ import useMirroredCallback from "@/hooks/useMirroredCallback";
 import { SlWallet } from "react-icons/sl";
 import { cn } from "@/lib/utils";
 import { memo, useMemo } from "react";
+
 import useGoldEagleClaimMutation from "../hooks/useGoldEagleClaimMutation";
 import useGoldEagleRefillMutation from "../hooks/useGoldEagleRefillMutation";
 import useGoldEagleTasksQuery from "../hooks/useGoldEagleTasksQuery";
@@ -49,10 +50,11 @@ export default memo(function GoldEagleGamer() {
   useFarmerAsyncTask(
     "refill",
     async function () {
-      const { energy } = query.data;
+      const energy = query.data["energy"];
+      const maxEnergy = query.data["max_energy"];
 
       /** Refill */
-      if (energy <= 10) {
+      if (energy < maxEnergy * 0.2) {
         try {
           /** Refill */
           await refillMutation.mutateAsync();
