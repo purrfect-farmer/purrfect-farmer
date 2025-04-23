@@ -17,7 +17,10 @@ const shouldOpenInNewWindow = async (force = false) => {
   /** Get Settings */
   const { openFarmerInNewWindow } = await getSettings();
 
-  return (force || platform.os !== "android") && openFarmerInNewWindow;
+  return (
+    (force || platform.os !== chrome.runtime.PlatformOs.ANDROID) &&
+    openFarmerInNewWindow
+  );
 };
 
 /**
@@ -81,7 +84,7 @@ const configureExtension = async ({ openFarmerInNewWindow }) => {
   /** Get Platform */
   const platform = await chrome.runtime.getPlatformInfo();
 
-  if (platform.os !== "android") {
+  if (platform.os !== chrome.runtime.PlatformOs.ANDROID) {
     /** Remove Popup */
     await chrome.action.setPopup({ popup: "" });
 
@@ -130,7 +133,7 @@ chrome.runtime.onStartup.addListener(async () => {
   } = await getSettings();
 
   if (
-    platform.os !== "android" &&
+    platform.os !== chrome.runtime.PlatformOs.ANDROID &&
     openFarmerOnStartup &&
     openFarmerInNewWindow
   ) {
