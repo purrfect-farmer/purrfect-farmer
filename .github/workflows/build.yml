@@ -36,7 +36,7 @@ jobs:
       - name: Build
         env:
           VITE_SEEKER_SERVER: ${{ secrets.SEEKER_SERVER }}
-        run: pnpm run build:index --base="https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}"
+        run: pnpm run build-pwa --base="https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}"
 
       - name: Setup 404 page
         run: cp dist/index.html dist/404.html

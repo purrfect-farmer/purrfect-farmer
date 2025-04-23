@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "vite",
     "build": "npm-run-all build-extension build-bridge",
+    "build-pwa": "VITE_PWA=true npm-run-all build:index",
     "build-bridge": "VITE_BRIDGE=true npm-run-all build-ext:* bundle-ext",
     "build-extension": "npm-run-all build:index build-ext:* bundle-ext",
     "build:index": "VITE_ENTRY=index vite build",
@@ -18,6 +19,7 @@
     "build-ext:mini-app-toolbar-isolated": "VITE_ENTRY=mini-app-toolbar-isolated vite build",
     "build-ext:notgram-main": "VITE_ENTRY=notgram-main vite build",
     "bundle-ext": "node bundle-extension.js",
+    "generate-pwa-assets": "pwa-assets-generator --preset minimal public/icon.png",
     "lint": "eslint .",
     "preview": "vite preview"
   },
@@ -27,6 +29,7 @@
     "@paystack/inline-js": "^2.22.3",
     "@tailwindcss/vite": "^4.1.4",
     "@tanstack/react-query": "^5.74.3",
+    "@vite-pwa/assets-generator": "^1.0.0",
     "axios": "^1.8.4",
     "buffer": "^6.0.3",
     "clsx": "^2.1.1",
@@ -60,6 +63,7 @@
     "use-deep-compare": "^1.3.0",
     "uuid": "^11.1.0",
     "vite-plugin-ejs": "^1.7.0",
+    "vite-plugin-pwa": "^1.0.0",
     "yup": "^1.6.1",
     "zip-a-folder": "^3.1.9"
   },

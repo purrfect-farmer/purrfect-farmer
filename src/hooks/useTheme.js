@@ -6,9 +6,11 @@ export default function useTheme(theme) {
 
   /** Apply Theme */
   useEffect(() => {
-    document.documentElement.classList.toggle(
-      "dark",
-      theme === "dark" || (theme === "system" && systemIsDark)
-    );
+    const isDark = theme === "dark" || (theme === "system" && systemIsDark);
+
+    document.documentElement.classList.toggle("dark", isDark);
+    document
+      .querySelector("meta[name=theme-color]")
+      .setAttribute("content", isDark ? "#262626" : "#ffffff");
   }, [theme, systemIsDark]);
 }

@@ -2,6 +2,7 @@ import path from "path";
 import react from "@vitejs/plugin-react";
 import tailwindcss from "@tailwindcss/vite";
 import { ViteEjsPlugin } from "vite-plugin-ejs";
+import { VitePWA } from "vite-plugin-pwa";
 import { defineConfig } from "vite";
 import { fileURLToPath } from "url";
 import { imagetools } from "vite-imagetools";
@@ -52,15 +53,60 @@ export default defineConfig(({ mode }) => {
       emptyOutDir: process.env.VITE_ENTRY === "index",
       rollupOptions: {
         input,
-        output: Object.assign(
-          {
-            entryFileNames: "[name].js",
-          },
-          process.env.VITE_ENTRY !== "index" ? { format: "iife" } : null
-        ),
+        output:
+          process.env.VITE_ENTRY !== "index"
+            ? {
+                entryFileNames: "[name].js",
+                format: "iife",
+              }
+            : undefined,
       },
     },
     plugins: [
+      /** Plugins */
+      ...VitePWA({
+        registerType: "autoUpdate",
+        workbox: {
+          globPatterns: ["**/*.*"],
+          maximumFileSizeToCacheInBytes: 5 * 1024 ** 2,
+        },
+        manifest: {
+          name: env.VITE_APP_NAME,
+          short_name: env.VITE_APP_NAME,
+          description: env.VITE_APP_DESCRIPTION,
+          theme_color: "#ffffff",
+          icons: [
+            {
+              src: "pwa-64x64.png",
+              sizes: "64x64",
+              type: "image/png",
+            },
+            {
+              src: "pwa-192x192.png",
+              sizes: "192x192",
+              type: "image/png",
+            },
+            {
+              src: "pwa-512x512.png",
+              sizes: "512x512",
+              type: "image/png",
+            },
+            {
+              src: "maskable-icon-512x512.png",
+              sizes: "512x512",
+              type: "image/png",
+              purpose: "maskable",
+            },
+          ],
+        },
+      }).map((plugin) => ({
+        ...plugin,
+        apply(config, { command }) {
+          return (
+            command === "build" && typeof process.env.VITE_PWA !== "undefined"
+          );
+        },
+      })),
       /** Plugins */
       nodePolyfills({
         globals: {
