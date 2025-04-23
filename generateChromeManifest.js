@@ -209,6 +209,27 @@ export default function generateChromeManifest(env, pkg) {
               urlFilter: "*",
             },
           },
+          {
+            id: 2,
+            action: {
+              type: "modifyHeaders",
+              responseHeaders: [
+                {
+                  header: "access-control-allow-origin",
+                  operation: "set",
+                  value: "*",
+                },
+                {
+                  header: "access-control-allow-methods",
+                  operation: "set",
+                  value: "*",
+                },
+              ],
+            },
+            condition: {
+              requestDomains: ["web.telegram.org"],
+            },
+          },
         ],
         null,
         2
