@@ -69,12 +69,27 @@ export default defineConfig(async ({ mode }) => {
       rollupOptions: {
         input,
         output:
-          process.env.VITE_ENTRY !== "index"
+          process.env.VITE_ENTRY === "index"
             ? {
+                manualChunks(id) {
+                  if (id.includes("node_modules")) {
+                    const lib = [
+                      "react",
+                      "telegram",
+                      "node-forge",
+                      "crypto-js",
+                      "axios",
+                      "buffer",
+                    ].find((item) => id.includes(item));
+
+                    return lib ? `vendor-${lib}` : "vendor";
+                  }
+                },
+              }
+            : {
                 entryFileNames: "[name].js",
                 format: "iife",
-              }
-            : undefined,
+              },
       },
     },
     plugins: [
