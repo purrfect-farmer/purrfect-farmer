@@ -4,11 +4,8 @@ import {
   closeWindow,
   customLogger,
   getSettings,
-  getUserAgent,
   getWindowCoords,
 } from "@/lib/utils";
-
-import rules from "./rule-resources";
 
 /** Should Open In New Window */
 const shouldOpenInNewWindow = async (force = false) => {
@@ -95,43 +92,6 @@ const configureExtension = async ({ openFarmerInNewWindow }) => {
   }
 };
 
-/** Update Dynamic Rules */
-const updateDynamicRules = async () => {
-  const userAgent = await getUserAgent();
-
-  const oldRules = await chrome.declarativeNetRequest.getDynamicRules();
-  const oldRuleIds = oldRules.map((rule) => rule.id);
-  const newRules = [
-    {
-      action: {
-        type: "modifyHeaders",
-        requestHeaders: [
-          {
-            header: "user-agent",
-            operation: "set",
-            value: userAgent,
-          },
-        ],
-      },
-      condition: {
-        urlFilter: "*",
-      },
-    },
-    ...rules,
-  ].map((item, index) => ({ ...item, id: index + 1 }));
-
-  /** Update Rules */
-  await chrome.declarativeNetRequest.updateDynamicRules({
-    removeRuleIds: oldRuleIds,
-    addRules: newRules,
-  });
-
-  /** Store User-Agent */
-  await chrome.storage.local.set({
-    userAgent,
-  });
-};
-
 /** Setup Extension */
 const setupExtension = async () => {
   /** Configure Settings */
@@ -200,9 +160,6 @@ chrome.runtime.onStartup.addListener(async () => {
 chrome.runtime.onInstalled.addListener(async (ev) => {
   /** Log */
   customLogger("ON-INSTALLED INVOKED", new Date());
-
-  /** Update Dynamic Rules */
-  await updateDynamicRules();
 
   /** Should Open In new Window */
   if (await shouldOpenInNewWindow(true)) {

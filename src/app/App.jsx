@@ -5,6 +5,7 @@ import TabButtonList from "@/components/TabButtonList";
 import TabContent from "@/components/TabContent";
 import useApp from "@/hooks/useApp";
 import useCloudSessionCheck from "@/hooks/useCloudSessionCheck";
+import useDynamicRules from "@/hooks/useDynamicRules";
 import useMiniAppToolbar from "@/hooks/useMiniAppToolbar";
 import useSeeker from "@/hooks/useSeeker";
 import useTelegramWebAppEvents from "@/hooks/useTelegramWebAppEvents";
@@ -20,6 +21,9 @@ function App() {
   const hasRestoredSettings = app.hasRestoredSettings;
   const theme = app.settings.theme;
   const onboarded = app.settings.onboarded;
+
+  /** Use Dynamic Rules */
+  useDynamicRules();
 
   /** Use Seeker */
   useSeeker(app);
