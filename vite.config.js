@@ -9,6 +9,8 @@ import { imagetools } from "vite-imagetools";
 import { loadEnv } from "vite";
 import { nodePolyfills } from "vite-plugin-node-polyfills";
 
+import generateChromeManifest from "./generateChromeManifest";
+
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
@@ -64,7 +66,8 @@ export default defineConfig(({ mode }) => {
     },
     plugins: [
       /** Plugins */
-      ...VitePWA({
+      generateChromeManifest(env),
+      VitePWA({
         registerType: "autoUpdate",
         workbox: {
           globPatterns: ["**/*.*"],

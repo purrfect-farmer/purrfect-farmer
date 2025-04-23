@@ -14,20 +14,6 @@ const outDir = "dist-extension";
 const pkg = JSON.parse(await fs.readFile("./package.json", "utf8"));
 const file = `${pkg.name + (isBridge ? "-bridge" : "")}-v${pkg.version}`;
 
-/** Rewrite Manifest.json */
-if (isBridge) {
-  const manifestFile = `${baseDir}/manifest.json`;
-  const manifest = JSON.parse(await fs.readFile(manifestFile, "utf8"));
-
-  delete manifest["action"];
-  delete manifest["side_panel"];
-
-  manifest["name"] += " Bridge";
-  manifest["description"] += " Bridge";
-
-  await fs.writeFile(manifestFile, JSON.stringify(manifest, null, "\t"));
-}
-
 /** Create Directory */
 try {
   await fs.mkdir(path.join(__dirname, outDir), { recursive: true });
