@@ -17,11 +17,12 @@ export default function generateChromeManifest(env, pkg) {
   return {
     name: "generate-chrome-manifest",
     async generateBundle() {
+      const namePrefix = isBridge ? "(Bridge) " : "";
       const manifestJson = JSON.stringify(
         {
           manifest_version: 3,
-          name: env.VITE_APP_NAME + (isBridge ? " Bridge" : ""),
-          description: (isBridge ? "(Bridge) " : "") + env.VITE_APP_DESCRIPTION,
+          name: namePrefix + env.VITE_APP_NAME,
+          description: namePrefix + env.VITE_APP_DESCRIPTION,
           version: pkg.version,
           icons: {
             16: "icon-16.png",
@@ -45,8 +46,7 @@ export default function generateChromeManifest(env, pkg) {
           ],
           action: {
             default_icon: "icon-48.png",
-            default_title:
-              (isBridge ? "(Bridge) " : "") + "Open Purrfect Farmer",
+            default_title: namePrefix + "Open Purrfect Farmer",
             default_popup: isBridge ? "pwa-iframe.html" : "index.html",
           },
           side_panel: {
