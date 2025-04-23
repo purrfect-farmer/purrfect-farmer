@@ -8,6 +8,7 @@ import useApp from "@/hooks/useApp";
 import useCloudSessionCheck from "@/hooks/useCloudSessionCheck";
 import useDynamicRules from "@/hooks/useDynamicRules";
 import useMiniAppToolbar from "@/hooks/useMiniAppToolbar";
+import useMirroredCallback from "@/hooks/useMirroredCallback";
 import useSeeker from "@/hooks/useSeeker";
 import useTelegramWebAppEvents from "@/hooks/useTelegramWebAppEvents";
 import useTheme from "@/hooks/useTheme";
@@ -19,15 +20,29 @@ import { useRegisterSW } from "virtual:pwa-register/react";
 import Onboarding from "./Onboarding";
 
 function App() {
+  const app = useApp();
+  const hasRestoredSettings = app.hasRestoredSettings;
+  const theme = app.settings.theme;
+  const onboarded = app.settings.onboarded;
+
+  /** Service Worker */
   const {
     offlineReady: [offlineReady, setOfflineReady],
     needRefresh: [needRefresh, setNeedRefresh],
     updateServiceWorker,
   } = useRegisterSW();
-  const app = useApp();
-  const hasRestoredSettings = app.hasRestoredSettings;
-  const theme = app.settings.theme;
-  const onboarded = app.settings.onboarded;
+
+  /** Dispatch and Update Service Worker */
+  const [, dispatchAndUpdateServiceWorker] = useMirroredCallback(
+    "app.update-service-worker",
+    () => {
+      if (needRefresh) {
+        updateServiceWorker(true);
+      }
+    },
+    [needRefresh, updateServiceWorker],
+    app.mirror
+  );
 
   /** Use Dynamic Rules */
   useDynamicRules();
@@ -58,7 +73,7 @@ function App() {
             {needRefresh ? (
               <PrimaryButton
                 className="bg-orange-500 rounded-none"
-                onClick={() => updateServiceWorker(true)}
+                onClick={() => dispatchAndUpdateServiceWorker()}
               >
                 Click to Update
               </PrimaryButton>
