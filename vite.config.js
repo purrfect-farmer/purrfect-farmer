@@ -75,6 +75,7 @@ export default defineConfig(async ({ mode }) => {
                   if (id.includes("node_modules")) {
                     const lib = [
                       "react",
+                      "telegram",
                       "node-forge",
                       "crypto-js",
                       "axios",
@@ -138,11 +139,7 @@ export default defineConfig(async ({ mode }) => {
         },
       })),
       /** Plugins */
-      nodePolyfills({
-        globals: {
-          Buffer: false,
-        },
-      }),
+      nodePolyfills(),
       ViteEjsPlugin(env),
       react(),
       tailwindcss(),
