@@ -75,8 +75,8 @@ export default memo(function GoldEagleGamer() {
       <button
         className={cn(
           "px-4 py-2 rounded-lg",
-          "text-orange-500",
-          "bg-orange-100 dark:bg-black",
+          "text-white",
+          "bg-orange-600",
           "font-bold flex justify-center items-center gap-2"
         )}
         onClick={() => dispatchAndClaim()}
