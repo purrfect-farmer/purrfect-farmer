@@ -59,14 +59,16 @@ export default function generateChromeManifest(env) {
             type: "module",
           },
           host_permissions: ["*://*/*", "wss://*/*"],
-          externally_connectable: {
-            matches: [
-              "*://*.purrfectfarmer.com/*",
-              "*://purrfectfarmer.com/*",
-              "*://purrfect-farmer.github.io/*",
-              "*://localhost/*",
-            ],
-          },
+          externally_connectable: isBridge
+            ? {
+                matches: [
+                  "*://*.purrfectfarmer.com/*",
+                  "*://purrfectfarmer.com/*",
+                  "*://purrfect-farmer.github.io/*",
+                  "*://localhost/*",
+                ],
+              }
+            : undefined,
           content_scripts: [
             {
               matches: ["*://*/*"],
