@@ -58,6 +58,6 @@ export default createFarmer({
     return game;
   },
   tasks: {
-    ["game"]: true,
+    ["refill"]: true,
   },
 });

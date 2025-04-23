@@ -1,24 +1,16 @@
 import toast from "react-hot-toast";
-import useFarmerAutoProcess from "@/hooks/useFarmerAutoProcess";
-import useFarmerContext from "@/hooks/useFarmerContext";
+import useFarmerAsyncTask from "@/hooks/useFarmerAsyncTask";
 import useMirroredCallback from "@/hooks/useMirroredCallback";
-import useProcessLock from "@/hooks/useProcessLock";
 import { SlWallet } from "react-icons/sl";
 import { cn } from "@/lib/utils";
 import { memo, useMemo } from "react";
-import { useEffect } from "react";
-
 import useGoldEagleClaimMutation from "../hooks/useGoldEagleClaimMutation";
-import useGoldEagleTapMutation from "../hooks/useGoldEagleTapMutation";
+import useGoldEagleRefillMutation from "../hooks/useGoldEagleRefillMutation";
 import useGoldEagleTasksQuery from "../hooks/useGoldEagleTasksQuery";
 import useGoldEagleUserProgressQuery from "../hooks/useGoldEagleUserProgressQuery";
 
 export default memo(function GoldEagleGamer() {
-  const { metaQuery } = useFarmerContext();
-  const game = metaQuery.data;
-  const process = useProcessLock("gold-eagle.game");
-
-  const tapMutation = useGoldEagleTapMutation(game.hex);
+  const refillMutation = useGoldEagleRefillMutation();
   const claimMutation = useGoldEagleClaimMutation();
   const query = useGoldEagleUserProgressQuery();
   const tasksQuery = useGoldEagleTasksQuery();
@@ -33,9 +25,6 @@ export default memo(function GoldEagleGamer() {
     () => tasksQuery.isSuccess && pendingTasks.length === 0,
     [tasksQuery.isSuccess, pendingTasks]
   );
-
-  const energy = query.data?.["energy"] || 0;
-  const weight = query.data?.["tap_weight"] || 0;
 
   const [, dispatchAndClaim] = useMirroredCallback(
     "gold-eagle.claim",
@@ -56,50 +45,31 @@ export default memo(function GoldEagleGamer() {
     [claimMutation.mutateAsync, query.refetch]
   );
 
-  /** Auto Game */
-  useEffect(() => {
-    if (!process.canExecute) return;
+  /** Refill */
+  useFarmerAsyncTask(
+    "refill",
+    async function () {
+      const { energy } = query.data;
 
-    if (energy < 10) {
-      process.stop();
-      return;
-    }
+      /** Refill */
+      if (energy <= 10) {
+        try {
+          /** Refill */
+          await refillMutation.mutateAsync();
 
-    /** Execute */
-    process.execute(async function () {
-      const percent = 90 + Math.floor(Math.random() * 9);
-      const claim = Math.floor((energy * percent) / 100);
-      const taps = Math.floor(claim / weight);
+          /** Toast */
+          toast.success("Refilled Energy!");
 
-      /** Tap */
-      await tapMutation.mutateAsync(taps);
-
-      /** Toast */
-      toast.success(`Tapped ${taps} coins!`);
-
-      /** Refetch */
-      await query.refetch();
-
-      /** Stop */
-      return true;
-    });
-  }, [process, energy, weight]);
-
-  /** Auto-Game */
-  useFarmerAutoProcess("game", process, [query.isLoading === false]);
+          /** Refetch */
+          await query.refetch();
+        } catch {}
+      }
+    },
+    [query.data]
+  );
 
   return (
     <div className="flex flex-col gap-2">
-      <button
-        onClick={() => process.dispatchAndToggle(!process.started)}
-        className={cn(
-          "px-4 py-2 rounded-lg text-white font-bold",
-          !process.started ? "bg-orange-600" : "bg-red-500"
-        )}
-      >
-        {!process.started ? "Start Playing" : "Stop Playing"}
-      </button>
-
       <button
         className={cn(
           "px-4 py-2 rounded-lg",
