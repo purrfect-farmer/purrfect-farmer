@@ -81,7 +81,7 @@ export default defineConfig(async ({ mode }) => {
       /** Plugins */
       generateChromeManifest(env),
       VitePWA({
-        registerType: "autoUpdate",
+        registerType: "prompt",
         workbox: {
           globPatterns: ["**/*.*"],
           maximumFileSizeToCacheInBytes: 5 * 1024 ** 2,
@@ -119,7 +119,8 @@ export default defineConfig(async ({ mode }) => {
         ...plugin,
         apply(config, { command }) {
           return (
-            command === "build" && typeof process.env.VITE_PWA !== "undefined"
+            plugin.name === "vite-plugin-pwa" ||
+            (command === "build" && typeof process.env.VITE_PWA !== "undefined")
           );
         },
       })),

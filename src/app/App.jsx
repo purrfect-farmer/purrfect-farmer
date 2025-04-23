@@ -1,6 +1,7 @@
 import AppContext from "@/contexts/AppContext";
 import ControlArea from "@/partials/ControlArea";
 import FullSpinner from "@/components/FullSpinner";
+import PrimaryButton from "@/components/PrimaryButton";
 import TabButtonList from "@/components/TabButtonList";
 import TabContent from "@/components/TabContent";
 import useApp from "@/hooks/useApp";
@@ -13,10 +14,16 @@ import useTheme from "@/hooks/useTheme";
 import useWakeLock from "@/hooks/useWakeLock";
 import { Toaster } from "react-hot-toast";
 import { memo } from "react";
+import { useRegisterSW } from "virtual:pwa-register/react";
 
 import Onboarding from "./Onboarding";
 
 function App() {
+  const {
+    offlineReady: [offlineReady, setOfflineReady],
+    needRefresh: [needRefresh, setNeedRefresh],
+    updateServiceWorker,
+  } = useRegisterSW();
   const app = useApp();
   const hasRestoredSettings = app.hasRestoredSettings;
   const theme = app.settings.theme;
@@ -48,6 +55,14 @@ function App() {
       {hasRestoredSettings ? (
         onboarded ? (
           <div className="flex flex-col h-dvh">
+            {needRefresh ? (
+              <PrimaryButton
+                className="bg-orange-500 rounded-none"
+                onClick={() => updateServiceWorker(true)}
+              >
+                Click to Update
+              </PrimaryButton>
+            ) : null}
             {app.openedTabs.length > 1 ? (
               <TabButtonList tabs={app.openedTabs} />
             ) : null}

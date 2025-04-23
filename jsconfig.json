@@ -2,8 +2,15 @@
     "compilerOptions": {
         "baseUrl": ".",
         "paths": {
-            "@/*": ["src/*"]
-        }
+            "@/*": [
+                "src/*"
+            ]
+        },
+        "types": [
+            "vite-plugin-pwa/react"
+        ]
     },
-    "exclude": ["node_modules"]
+    "exclude": [
+        "node_modules"
+    ]
 }
