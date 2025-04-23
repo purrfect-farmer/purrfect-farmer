@@ -1,22 +1,24 @@
 import { core, decryptData, encryptData } from "./content-script-utils";
 
-/**
- * @param {MessageEvent} ev
- */
-const handleBridge = (ev) => {
-  if (ev.source === window && ev.data?.bridgeId) {
-    /** Remove Listener */
-    window.removeEventListener("message", handleBridge);
+if (import.meta.env.VITE_BRIDGE) {
+  /**
+   * @param {MessageEvent} ev
+   */
+  const handleBridge = (ev) => {
+    if (ev.source === window && ev.data?.bridgeId) {
+      /** Remove Listener */
+      window.removeEventListener("message", handleBridge);
 
-    /** Expose */
-    if (ev.data.expose) {
-      window.BRIDGE_ID = ev.data?.bridgeId;
+      /** Expose */
+      if (ev.data.expose) {
+        window.BRIDGE_ID = ev.data?.bridgeId;
+      }
     }
-  }
-};
+  };
 
-/** Listen for Bridge */
-window.addEventListener("message", handleBridge);
+  /** Listen for Bridge */
+  window.addEventListener("message", handleBridge);
+}
 
 if (location.hash.includes("tgWebAppData")) {
   const webPlatFormRegExp = /tgWebAppPlatform=(webk|weba|web)/;
