@@ -119,6 +119,14 @@ export default memo(function Welcome() {
     "seeker",
   ]);
 
+  /** Manifest Query */
+  const manifestQuery = useAppQuery({
+    refetchOnMount: false,
+    refetchOnWindowFocus: false,
+    queryKey: ["app", "manifest"],
+    queryFn: () => chrome?.runtime?.getManifest(),
+  });
+
   /** Bots Query */
   const botsQuery = useAppQuery({
     refetchOnMount: false,
@@ -272,7 +280,7 @@ export default memo(function Welcome() {
           {/* App Version */}
           <p className="text-lg leading-none text-center">
             <span className={cn("font-turret-road font-bold text-orange-500")}>
-              v{chrome?.runtime?.getManifest().version || "0.0.1"}
+              v{manifestQuery.data?.version || "0.0.1"}
             </span>
           </p>
 
