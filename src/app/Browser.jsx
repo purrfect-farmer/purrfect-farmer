@@ -6,7 +6,7 @@ export default memo(function Browser({ url }) {
       src={url}
       className="w-full h-full border-0 outline-0"
       referrerPolicy="no-referrer"
-      allow="camera; microphone; geolocation; fullscreen; autoplay; clipboard-write; encrypted-media; accelerometer; gyroscope; magnetometer; midi; payment; usb; vr; xr-spatial-tracking; picture-in-picture; screen-wake-lock"
+      allow="accelerometer; autoplay; camera; clipboard-write; encrypted-media; fullscreen; geolocation; gyroscope; magnetometer; microphone; midi; payment; picture-in-picture; usb; vr; xr-spatial-tracking; screen-wake-lock; web-share; idle-detection"
     />
   );
 });
