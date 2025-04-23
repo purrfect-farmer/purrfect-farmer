@@ -370,8 +370,13 @@ export default function useCore() {
   /** Reload App */
   const [reloadApp, dispatchAndReloadApp] = useMirroredCallback(
     "core.reload-app",
-    () => {
-      window.location.reload();
+    async () => {
+      const currentWindow = await chrome?.windows?.getCurrent();
+      if (currentWindow?.type === "popup") {
+        chrome.runtime.reload();
+      } else {
+        window.location.reload();
+      }
     },
     [],
     /** Mirror */
