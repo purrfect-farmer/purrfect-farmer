@@ -48,6 +48,7 @@ export default defineConfig(({ mode }) => {
       },
     },
     build: {
+      outDir: process.env.VITE_BRIDGE ? "dist-bridge" : "dist",
       emptyOutDir: process.env.VITE_ENTRY === "index",
       rollupOptions: {
         input,

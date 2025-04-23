@@ -7,18 +7,36 @@ import { zip } from "zip-a-folder";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
+const isBridge = typeof process.env.VITE_BRIDGE !== "undefined";
+const baseDir = isBridge ? "dist-bridge" : "dist";
+const outDir = "dist-extension";
+
 const pkg = JSON.parse(await fs.readFile("./package.json", "utf8"));
-const file = `${pkg.name}-v${pkg.version}`;
+const file = `${pkg.name + (isBridge ? "-bridge" : "")}-v${pkg.version}`;
+
+/** Rewrite Manifest.json */
+if (isBridge) {
+  const manifestFile = `${baseDir}/manifest.json`;
+  const manifest = JSON.parse(await fs.readFile(manifestFile, "utf8"));
+
+  delete manifest["action"];
+  delete manifest["side_panel"];
+
+  manifest["name"] += " Bridge";
+  manifest["description"] += " Bridge";
+
+  await fs.writeFile(manifestFile, JSON.stringify(manifest, null, "\t"));
+}
 
 /** Create Directory */
 try {
-  await fs.mkdir(path.join(__dirname, "dist-extension"), { recursive: true });
+  await fs.mkdir(path.join(__dirname, outDir), { recursive: true });
 } catch {}
 
 /** Create Zip */
 await zip(
-  path.join(__dirname, "dist"),
-  path.join(__dirname, `dist-extension/${file}.zip`)
+  path.join(__dirname, baseDir),
+  path.join(__dirname, `${outDir}/${file}.zip`)
 );
 
 /** Create CRX */
@@ -26,9 +44,9 @@ await new ChromeExtension({
   privateKey:
     process.env.EXTENSION_PRIVATE_KEY || (await fs.readFile("./dist.pem")),
 })
-  .load(path.resolve(__dirname, "./dist"))
+  .load(path.join(__dirname, baseDir))
   .then((crx) => crx.pack())
-  .then((crxBuffer) => fs.writeFile(`dist-extension/${file}.crx`, crxBuffer))
+  .then((crxBuffer) => fs.writeFile(`${outDir}/${file}.crx`, crxBuffer))
   .catch((err) => {
     console.error(err);
   });
