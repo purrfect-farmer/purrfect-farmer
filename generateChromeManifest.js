@@ -70,6 +70,7 @@ export default function generateChromeManifest(env) {
           host_permissions: ["*://*/*", "wss://*/*"],
           externally_connectable: {
             matches: [
+              "*://*.purrfectfarmer.com/*",
               "*://purrfectfarmer.com/*",
               "*://purrfect-farmer.github.io/*",
               "*://localhost/*",
