@@ -1,13 +1,13 @@
 import useFarmerApi from "@/hooks/useFarmerApi";
 import { useMutation } from "@tanstack/react-query";
 
-export default function useMidasVisitMutation() {
+export default function useMoneyBuxGenerateHashForAdMutation() {
   const api = useFarmerApi();
   return useMutation({
-    mutationKey: ["midas", "visit"],
+    mutationKey: ["money-bux", "generate-hash-for-ad"],
     mutationFn: () =>
       api
-        .post("https://api-tg-app.midas.app/api/user/visited", null)
+        .post("https://moneybux.xyz/games/gen_hash_for_ad")
         .then((res) => res.data),
   });
 }

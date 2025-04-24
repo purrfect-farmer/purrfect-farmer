@@ -1,5 +1,9 @@
 const rules = [
   {
+    origin: "https://moneybux.xyz",
+    domains: ["moneybux.xyz"],
+  },
+  {
     origin: "https://game.genkiminer.xyz",
     domains: ["game.genkiminer.xyz"],
   },

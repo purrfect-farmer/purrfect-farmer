@@ -28,7 +28,11 @@ const shouldOpenInNewWindow = async () => {
  */
 const closePreviousPopups = async (windows) => {
   const windowsToClose = windows.filter((window) =>
-    window.tabs.some((tab) => tab.url === "chrome://newtab/")
+    window.tabs.some(
+      (tab) =>
+        tab.url ===
+        (isBridge ? import.meta.env.VITE_APP_PWA_URL : "chrome://newtab/")
+    )
   );
 
   for (const window of windowsToClose) {
