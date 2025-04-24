@@ -75,13 +75,14 @@ export default defineConfig(async ({ mode }) => {
                   if (id.includes("node_modules")) {
                     const lib = [
                       "react",
-                      "telegram",
                       "node-forge",
                       "crypto-js",
                       "axios",
                     ].find((item) => id.includes(item));
 
-                    return lib ? `vendor-${lib}` : "vendor";
+                    if (lib) {
+                      return `vendor-${lib}`;
+                    }
                   }
                 },
               }
@@ -139,7 +140,11 @@ export default defineConfig(async ({ mode }) => {
         },
       })),
       /** Plugins */
-      nodePolyfills(),
+      nodePolyfills({
+        globals: {
+          Buffer: false,
+        },
+      }),
       ViteEjsPlugin(env),
       react(),
       tailwindcss(),
