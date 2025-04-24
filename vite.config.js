@@ -130,15 +130,8 @@ export default defineConfig(async ({ mode }) => {
             },
           ],
         },
-      }).map((plugin) => ({
-        ...plugin,
-        apply(config, { command }) {
-          return (
-            plugin.name === "vite-plugin-pwa" ||
-            (command === "build" && typeof process.env.VITE_PWA !== "undefined")
-          );
-        },
-      })),
+        disable: typeof process.env.VITE_PWA === "undefined",
+      }),
       /** Plugins */
       nodePolyfills({
         globals: {
