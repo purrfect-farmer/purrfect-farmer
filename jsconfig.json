@@ -5,10 +5,7 @@
             "@/*": [
                 "src/*"
             ]
-        },
-        "types": [
-            "vite-plugin-pwa/react"
-        ]
+        }
     },
     "exclude": [
         "node_modules"
