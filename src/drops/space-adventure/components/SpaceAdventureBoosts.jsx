@@ -70,17 +70,17 @@ export default memo(function SpaceAdventureBoosts() {
     [boosts]
   );
 
-  /** Current Max Level */
-  const currentMaxLevel = useMemo(
-    () => Math.max(...levelBoosts.map((item) => item["level_current"])),
+  /** Current Min Level */
+  const currentMinLevel = useMemo(
+    () => Math.min(...levelBoosts.map((item) => item["level_current"])),
     [levelBoosts]
   );
 
   /** Is Same Level */
   const isSameLevel = useMemo(
     () =>
-      levelBoosts.every((item) => item["level_current"] === currentMaxLevel),
-    [levelBoosts, currentMaxLevel]
+      levelBoosts.every((item) => item["level_current"] === currentMinLevel),
+    [levelBoosts, currentMinLevel]
   );
 
   /** Available Boosts */
@@ -99,9 +99,9 @@ export default memo(function SpaceAdventureBoosts() {
   const upgradableBoosts = useMemo(
     () =>
       availableBoosts.filter(
-        (item) => isSameLevel || item["level_current"] < currentMaxLevel
+        (item) => isSameLevel || item["level_current"] === currentMinLevel
       ),
-    [availableBoosts, isSameLevel, currentMaxLevel]
+    [availableBoosts, isSameLevel, currentMinLevel]
   );
 
   /** Log All Boosts */
@@ -111,7 +111,7 @@ export default memo(function SpaceAdventureBoosts() {
     customLogger("SPACE-ADVENTURE AVAILABLE BOOSTS", availableBoosts);
     customLogger("SPACE-ADVENTURE UPGRADABLE BOOSTS", upgradableBoosts);
     customLogger("SPACE-ADVENTURE BOOSTS SAME-LEVEL", isSameLevel);
-    customLogger("SPACE-ADVENTURE BOOSTS CURRENT-MAX-LEVEL", currentMaxLevel);
+    customLogger("SPACE-ADVENTURE BOOSTS CURRENT-MIN-LEVEL", currentMinLevel);
   }, [
     /** Deps */
     boosts,
@@ -119,7 +119,7 @@ export default memo(function SpaceAdventureBoosts() {
     availableBoosts,
     upgradableBoosts,
     isSameLevel,
-    currentMaxLevel,
+    currentMinLevel,
   ]);
 
   /** Reset Boost */
@@ -188,7 +188,7 @@ export default memo(function SpaceAdventureBoosts() {
       ) : (
         <>
           <h3 className="text-purple-500 font-bold text-center">
-            CURRENT LEVEL: {currentMaxLevel}
+            CURRENT LEVEL: {currentMinLevel}
           </h3>
           <button
             onClick={() => process.dispatchAndToggle(!process.started)}
