@@ -1,5 +1,9 @@
 const rules = [
   {
+    origin: "https://unijump.xyz",
+    domains: ["unijump.xyz"],
+  },
+  {
     origin: "https://moneybux.xyz",
     domains: ["moneybux.xyz"],
   },
