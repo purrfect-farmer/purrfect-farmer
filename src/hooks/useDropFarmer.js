@@ -268,6 +268,9 @@ export default function useDropFarmer() {
 
   /** Clear API Queue */
   const clearApiQueue = useCallback(() => {
+    apiQueueRef.current.requestQueue.forEach((item) =>
+      item.reject(new Error("Queue Cleared!"))
+    );
     apiQueueRef.current.requestQueue = [];
     apiQueueRef.current.isRequestInProgress = false;
   }, []);
