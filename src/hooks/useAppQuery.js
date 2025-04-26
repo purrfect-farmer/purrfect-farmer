@@ -6,9 +6,11 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 /**
  * App Query
  * @param {import("@tanstack/react-query").UseQueryOptions} options
+ * @param {import("@tanstack/react-query").QueryClient | null} client
  */
-export default function useAppQuery(options) {
-  const queryClient = useQueryClient();
+export default function useAppQuery(options, client) {
+  const contextClient = useQueryClient();
+  const queryClient = client || contextClient;
 
   const queryKey = useDeepCompareMemo(
     () => options.queryKey,

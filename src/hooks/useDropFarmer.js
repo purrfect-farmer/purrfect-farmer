@@ -2,6 +2,7 @@ import FarmerNotification from "@/components/FarmerNotification";
 import axios from "axios";
 import toast from "react-hot-toast";
 import { createElement, useCallback } from "react";
+import { createQueryClient } from "@/lib/createQueryClient";
 import {
   delay,
   getChromeLocalStorage,
@@ -9,7 +10,7 @@ import {
   removeChromeLocalStorage,
   setChromeLocalStorage,
 } from "@/lib/utils";
-import { useIsMutating, useQueryClient } from "@tanstack/react-query";
+import { useIsMutating } from "@tanstack/react-query";
 import { useLayoutEffect } from "react";
 import { useMemo } from "react";
 import { useRef } from "react";
@@ -18,6 +19,7 @@ import { useState } from "react";
 import useAppContext from "./useAppContext";
 import useAppQuery from "./useAppQuery";
 import useCloudSyncMutation from "./useCloudSyncMutation";
+import useFarmerDataQuery from "./useFarmerDataQuery";
 import useRefCallback from "./useRefCallback";
 import useTabContext from "./useTabContext";
 import useTelegramWebApp from "./useTelegramWebApp";
@@ -59,9 +61,6 @@ export default function useDropFarmer() {
   /** Should Sync To Cloud */
   const shouldSyncToCloud = settings.enableCloud && syncToCloud;
 
-  /** Cloud Sync Mutation */
-  const cloudSyncMutation = useCloudSyncMutation(id);
-
   /** Has Configured Auth Headers? */
   const [hasConfiguredAuthHeaders, setHasConfiguredAuthHeaders] = useState(
     typeof configureAuthHeaders === "undefined"
@@ -95,15 +94,21 @@ export default function useDropFarmer() {
   const isZooming = zoomies.enabled && zoomies.current.drop?.id === id;
 
   /** QueryClient */
-  const queryClient = useQueryClient();
+  const queryClient = useMemo(() => createQueryClient(), []);
 
   /** Telegram Hash */
   const telegramHash = telegramWebApp?.initDataUnsafe?.hash;
 
+  /** Cloud Sync Mutation */
+  const cloudSyncMutation = useCloudSyncMutation(id, queryClient);
+
   /** IsMutating */
-  const isMutating = useIsMutating({
-    mutationKey: [id],
-  });
+  const isMutating = useIsMutating(
+    {
+      mutationKey: [id],
+    },
+    queryClient
+  );
 
   /** Auth Chrome Storage Key */
   const authChromeStorageKey = `farmer-auth:${id}`;
@@ -133,17 +138,20 @@ export default function useDropFarmer() {
   );
 
   /** Auth Query */
-  const authQuery = useAppQuery({
-    refetchOnMount: false,
-    refetchOnReconnect: false,
-    refetchOnWindowFocus: false,
-    refetchInterval: false,
-    retry: false,
-    ...authQueryOptions,
-    enabled: typeof fetchAuth !== "undefined" && Boolean(telegramWebApp),
-    queryKey: authQueryKey,
-    queryFn: authQueryFn,
-  });
+  const authQuery = useAppQuery(
+    {
+      refetchOnMount: false,
+      refetchOnReconnect: false,
+      refetchOnWindowFocus: false,
+      refetchInterval: false,
+      retry: false,
+      ...authQueryOptions,
+      enabled: typeof fetchAuth !== "undefined" && Boolean(telegramWebApp),
+      queryKey: authQueryKey,
+      queryFn: authQueryFn,
+    },
+    queryClient
+  );
 
   /** Auth */
   const hasPreparedAuth =
@@ -164,32 +172,23 @@ export default function useDropFarmer() {
   );
 
   /** Meta Query */
-  const metaQuery = useAppQuery({
-    refetchOnMount: false,
-    refetchOnReconnect: false,
-    refetchOnWindowFocus: false,
-    refetchInterval: false,
-    retry: false,
-    ...metaQueryOptions,
-    enabled: typeof fetchMeta !== "undefined" && hasPreparedAuth,
-    queryKey: metaQueryKey,
-    queryFn: metaQueryFn,
-  });
+  const metaQuery = useAppQuery(
+    {
+      refetchOnMount: false,
+      refetchOnReconnect: false,
+      refetchOnWindowFocus: false,
+      refetchInterval: false,
+      retry: false,
+      ...metaQueryOptions,
+      enabled: typeof fetchMeta !== "undefined" && hasPreparedAuth,
+      queryKey: metaQueryKey,
+      queryFn: metaQueryFn,
+    },
+    queryClient
+  );
 
   /** Data Query */
-  const dataQuery = useAppQuery({
-    refetchOnMount: false,
-    refetchOnWindowFocus: false,
-    refetchInterval: 5 * 60 * 1000,
-
-    queryKey: ["app", "farmer", "data"],
-    queryFn: ({ signal }) =>
-      axios
-        .get(`${import.meta.env.VITE_APP_FARMER_DATA_URL}?time=${Date.now()}`, {
-          signal,
-        })
-        .then((res) => res.data),
-  });
+  const dataQuery = useFarmerDataQuery();
 
   /** Meta */
   const hasPreparedMeta =
@@ -220,14 +219,14 @@ export default function useDropFarmer() {
 
   /** Update Auth Query Data */
   const updateAuthQueryData = useCallback(
-    (...args) => updateQueryData(authQueryKey, ...args),
-    [updateQueryData, authQueryKey]
+    (...args) => authQuery.updateQueryData(...args),
+    [authQuery.updateQueryData]
   );
 
   /** Update Meta Query Data */
   const updateMetaQueryData = useCallback(
-    (...args) => updateQueryData(metaQueryKey, ...args),
-    [updateQueryData, metaQueryKey]
+    (...args) => metaQuery.updateQueryData(...args),
+    [metaQuery.updateQueryData]
   );
 
   /** Remove Queries */
@@ -532,8 +531,10 @@ export default function useDropFarmer() {
     telegramWebApp,
   ]);
 
-  /** Clean Up */
-  useLayoutEffect(() => () => removeQueries(), [removeQueries]);
+  /** Cleanup */
+  useLayoutEffect(() => {
+    return () => queryClient.cancelQueries();
+  }, [queryClient]);
 
   return useValuesMemo({
     id,

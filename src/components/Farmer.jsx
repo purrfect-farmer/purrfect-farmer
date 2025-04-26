@@ -1,4 +1,5 @@
 import FarmerContext from "@/contexts/FarmerContext";
+import { QueryClientProvider } from "@tanstack/react-query";
 import { cn } from "@/lib/utils";
 import { memo } from "react";
 
@@ -12,19 +13,21 @@ export default memo(function Farmer({
 }) {
   return (
     <FarmerContext.Provider value={farmer}>
-      <div className={cn("flex flex-col min-w-0 min-h-0 grow", className)}>
-        {farmer.started ? (
-          children
-        ) : (
-          <FarmerInit
-            mode={farmer.mode}
-            title={farmer.title}
-            icon={farmer.icon}
-            status={farmer.status}
-            className={initClassName}
-          />
-        )}
-      </div>
+      <QueryClientProvider client={farmer.queryClient}>
+        <div className={cn("flex flex-col min-w-0 min-h-0 grow", className)}>
+          {farmer.started ? (
+            children
+          ) : (
+            <FarmerInit
+              mode={farmer.mode}
+              title={farmer.title}
+              icon={farmer.icon}
+              status={farmer.status}
+              className={initClassName}
+            />
+          )}
+        </div>
+      </QueryClientProvider>
     </FarmerContext.Provider>
   );
 });
