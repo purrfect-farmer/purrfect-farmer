@@ -57,23 +57,23 @@ const openFarmerWindow = async () => {
   });
 
   /** Find Previous Window */
-  let window = windows.find((window) =>
+  let currentWindow = windows.find((window) =>
     window.tabs.some((tab) => tab.url.startsWith(indexPage))
   );
 
   /** Get Coords */
   const coords = await getWindowCoords();
 
-  if (window) {
+  if (currentWindow) {
     /** Focus Previous Window */
-    await chrome.windows.update(window.id, {
+    await chrome.windows.update(currentWindow.id, {
       ...coords,
       focused: true,
       state: "normal",
     });
   } else {
     /** Create a new window */
-    window = await chrome.windows.create({
+    currentWindow = await chrome.windows.create({
       ...coords,
       type: "popup",
       focused: true,
@@ -82,7 +82,7 @@ const openFarmerWindow = async () => {
   }
 
   /** Close Previous Popups */
-  await closePreviousPopups(windows, window);
+  await closePreviousPopups(windows, currentWindow);
 };
 
 /** Configure Extension */
