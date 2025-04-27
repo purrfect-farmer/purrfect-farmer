@@ -25,14 +25,17 @@ const shouldOpenInNewWindow = async () => {
 /**
  * Close Previous Popups
  * @param {chrome.windows.Window[]} windows
+ * @param {chrome.windows.Window} currentWindow
  */
-const closePreviousPopups = async (windows) => {
-  const windowsToClose = windows.filter((window) =>
-    window.tabs.some((tab) =>
-      tab.url.startsWith(
-        isBridge ? import.meta.env.VITE_APP_PWA_URL : "chrome://newtab/"
+const closePreviousPopups = async (windows, currentWindow) => {
+  const windowsToClose = windows.filter(
+    (window) =>
+      window.id !== currentWindow.id &&
+      window.tabs.some((tab) =>
+        tab.url.startsWith(
+          isBridge ? import.meta.env.VITE_APP_PWA_URL : "chrome://newtab/"
+        )
       )
-    )
   );
 
   for (const window of windowsToClose) {
@@ -54,7 +57,7 @@ const openFarmerWindow = async () => {
   });
 
   /** Find Previous Window */
-  const window = windows.find((window) =>
+  let window = windows.find((window) =>
     window.tabs.some((tab) => tab.url.startsWith(indexPage))
   );
 
@@ -70,7 +73,7 @@ const openFarmerWindow = async () => {
     });
   } else {
     /** Create a new window */
-    await chrome.windows.create({
+    window = await chrome.windows.create({
       ...coords,
       type: "popup",
       focused: true,
@@ -79,7 +82,7 @@ const openFarmerWindow = async () => {
   }
 
   /** Close Previous Popups */
-  await closePreviousPopups(windows);
+  await closePreviousPopups(windows, window);
 };
 
 /** Configure Extension */
