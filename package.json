@@ -5,8 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "npm-run-all clean build-extension",
-    "build-all": "npm-run-all clean build-extension build-bridge",
+    "build": "npm-run-all clean build-extension build-bridge",
     "build-extension": "npm-run-all build:index build-ext:* bundle-ext",
     "build-bridge": "VITE_BRIDGE=true npm-run-all build-extension",
     "build-pwa": "VITE_PWA=true npm-run-all build:index",
