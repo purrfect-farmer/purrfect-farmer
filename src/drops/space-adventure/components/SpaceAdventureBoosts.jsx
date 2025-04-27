@@ -70,17 +70,13 @@ export default memo(function SpaceAdventureBoosts() {
     [boosts]
   );
 
-  /** Current Min Level */
-  const currentMinLevel = useMemo(
-    () => Math.min(...levelBoosts.map((item) => item["level_current"])),
-    [levelBoosts]
-  );
+  /** Current Level */
+  const currentLevel = user?.["level_global"] || 0;
 
   /** Is Same Level */
   const isSameLevel = useMemo(
-    () =>
-      levelBoosts.every((item) => item["level_current"] === currentMinLevel),
-    [levelBoosts, currentMinLevel]
+    () => levelBoosts.every((item) => item["level_current"] === currentLevel),
+    [levelBoosts, currentLevel]
   );
 
   /** Available Boosts */
@@ -99,9 +95,9 @@ export default memo(function SpaceAdventureBoosts() {
   const upgradableBoosts = useMemo(
     () =>
       availableBoosts.filter(
-        (item) => isSameLevel || item["level_current"] === currentMinLevel
+        (item) => isSameLevel || item["level_current"] === currentLevel
       ),
-    [availableBoosts, isSameLevel, currentMinLevel]
+    [availableBoosts, isSameLevel, currentLevel]
   );
 
   /** Log All Boosts */
@@ -111,7 +107,7 @@ export default memo(function SpaceAdventureBoosts() {
     customLogger("SPACE-ADVENTURE AVAILABLE BOOSTS", availableBoosts);
     customLogger("SPACE-ADVENTURE UPGRADABLE BOOSTS", upgradableBoosts);
     customLogger("SPACE-ADVENTURE BOOSTS SAME-LEVEL", isSameLevel);
-    customLogger("SPACE-ADVENTURE BOOSTS CURRENT-MIN-LEVEL", currentMinLevel);
+    customLogger("SPACE-ADVENTURE BOOSTS CURRENT-MIN-LEVEL", currentLevel);
   }, [
     /** Deps */
     boosts,
@@ -119,7 +115,7 @@ export default memo(function SpaceAdventureBoosts() {
     availableBoosts,
     upgradableBoosts,
     isSameLevel,
-    currentMinLevel,
+    currentLevel,
   ]);
 
   /** Reset Boost */
@@ -188,7 +184,7 @@ export default memo(function SpaceAdventureBoosts() {
       ) : (
         <>
           <h3 className="text-purple-500 font-bold text-center">
-            CURRENT LEVEL: {currentMinLevel}
+            CURRENT LEVEL: {currentLevel}
           </h3>
           <button
             onClick={() => process.dispatchAndToggle(!process.started)}
