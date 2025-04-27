@@ -54,12 +54,15 @@ export default memo(function SpaceAdventureFarmer() {
       const { user } = userQuery.data;
       const boosts = boostsQuery.data.list;
       const timePassed = differenceInSeconds(
-        new Date(),
+        user["shield_ended_at"]
+          ? new Date(user["shield_ended_at"])
+          : new Date(),
         new Date(user["claimed_last"])
       );
       const lowFuelInSeconds = 10 * 60;
+      const fuelEnd = user["fuel_last_at"] + user["fuel"] * 1000;
       const remainingFuelInSeconds = differenceInSeconds(
-        new Date(user["fuel_last_at"] + user["fuel"] * 1000),
+        new Date(fuelEnd),
         new Date()
       );
 
