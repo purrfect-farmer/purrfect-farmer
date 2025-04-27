@@ -1,6 +1,5 @@
 /** Drops Status */
 const dropsStatus = {
-  ["unijump"]: true,
   ["money-bux"]: true,
   ["space-adventure"]: true,
   ["digger"]: true,

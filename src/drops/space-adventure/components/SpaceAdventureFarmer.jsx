@@ -22,7 +22,9 @@ import useSpaceAdventureBuyRouletteMutation from "../hooks/useSpaceAdventureBuyR
 import useSpaceAdventureClaimMutation from "../hooks/useSpaceAdventureClaimMutation";
 import useSpaceAdventureDailyClaimMutation from "../hooks/useSpaceAdventureDailyClaimMutation";
 import useSpaceAdventureGetAdsMutation from "../hooks/useSpaceAdventureGetAdsMutation";
+import useSpaceAdventureGetCaptchaMutation from "../hooks/useSpaceAdventureGetCaptchaMutation";
 import useSpaceAdventureNewsMutation from "../hooks/useSpaceAdventureNewsMutation";
+import useSpaceAdventureSolveCaptchaMutation from "../hooks/useSpaceAdventureSolveCaptchaMutation";
 import useSpaceAdventureTutorialMutation from "../hooks/useSpaceAdventureTutorialMutation";
 import useSpaceAdventureUserQuery from "../hooks/useSpaceAdventureUserQuery";
 
@@ -43,6 +45,8 @@ export default memo(function SpaceAdventureFarmer() {
   const claimMutation = useSpaceAdventureClaimMutation();
   const dailyClaimMutation = useSpaceAdventureDailyClaimMutation();
   const newsMutation = useSpaceAdventureNewsMutation();
+  const getCaptchaMutation = useSpaceAdventureGetCaptchaMutation();
+  const solveCaptchaMutation = useSpaceAdventureSolveCaptchaMutation();
 
   /** Get Status */
   const status = useMemo(() => {
@@ -213,6 +217,18 @@ export default memo(function SpaceAdventureFarmer() {
     async function () {
       if (status.canClaim) {
         const collectCoins = async () => {
+          /** Get Ad */
+          await getAdsMutation.mutateAsync("claim_coins");
+
+          /** Get Captcha */
+          const { captchaTrue, captchaList } =
+            await getCaptchaMutation.mutateAsync();
+
+          /** Solve Captcha */
+          await solveCaptchaMutation.mutateAsync(
+            captchaList.find((item) => item.img === captchaTrue).value
+          );
+
           /** Mutate */
           const { user } = await claimMutation.mutateAsync();
 
@@ -223,7 +239,7 @@ export default memo(function SpaceAdventureFarmer() {
         await toast.promise(collectCoins(), {
           loading: "Claiming...",
           success: "Successfully claimed...",
-          error: "Can't dig now",
+          error: "Can't collect coin!",
         });
       }
     },
