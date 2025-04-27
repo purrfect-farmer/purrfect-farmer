@@ -44,7 +44,7 @@ const closePreviousPopups = async (windows, currentWindow) => {
 };
 
 /** Open Farmer */
-const openFarmerWindow = async () => {
+const openFarmerWindow = async (newWindow = false) => {
   /** Index Page */
   const indexPage = isBridge
     ? import.meta.env.VITE_APP_PWA_URL
@@ -57,9 +57,12 @@ const openFarmerWindow = async () => {
   });
 
   /** Find Previous Window */
-  let currentWindow = windows.find((window) =>
-    window.tabs.some((tab) => tab.url.startsWith(indexPage))
-  );
+  let currentWindow =
+    newWindow === false
+      ? windows.find((window) =>
+          window.tabs.some((tab) => tab.url.startsWith(indexPage))
+        )
+      : null;
 
   /** Get Coords */
   const coords = await getWindowCoords();
@@ -123,9 +126,6 @@ chrome.runtime.onStartup.addListener(async () => {
   /** Log */
   customLogger("ON-STARTUP INVOKED", new Date());
 
-  /** Get Platform */
-  const platform = await chrome.runtime.getPlatformInfo();
-
   /** Get Settings */
   const {
     openFarmerOnStartup,
@@ -168,7 +168,7 @@ chrome.runtime.onInstalled.addListener(async (ev) => {
   /** Should Open In new Window */
   if (await shouldOpenInNewWindow()) {
     /** Open Farmer Window */
-    await openFarmerWindow();
+    await openFarmerWindow(true);
   }
 });
 
