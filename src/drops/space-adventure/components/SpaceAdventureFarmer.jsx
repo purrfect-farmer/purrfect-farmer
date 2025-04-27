@@ -71,7 +71,7 @@ export default memo(function SpaceAdventureFarmer() {
 
       const canClaim = unclaimed >= user["claim_max"];
       const canBuyShield =
-        user["shield_damage"] === 1 &&
+        user["shield_damage"] > 0 &&
         isAfter(new Date(), new Date(user["shield_free_at"]));
 
       const canBuyImmunity =
