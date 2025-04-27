@@ -114,14 +114,6 @@ if (
     },
   });
 
-  /** Bridged Fetch */
-  window.bridgedFetch = (args) => {
-    return sendMessage({
-      action: "fetch",
-      args,
-    });
-  };
-
   /** Listen for Message */
   port.onMessage.addListener((message) => {
     if (message.action === "execute") {

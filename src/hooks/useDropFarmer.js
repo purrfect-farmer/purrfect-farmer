@@ -6,7 +6,6 @@ import { createQueryClient } from "@/lib/createQueryClient";
 import {
   delay,
   getChromeLocalStorage,
-  isExtension,
   removeChromeLocalStorage,
   setChromeLocalStorage,
 } from "@/lib/utils";
@@ -15,7 +14,6 @@ import { useLayoutEffect } from "react";
 import { useMemo } from "react";
 import { useRef } from "react";
 import { useState } from "react";
-
 import useAppContext from "./useAppContext";
 import useAppQuery from "./useAppQuery";
 import useCloudSyncMutation from "./useCloudSyncMutation";
@@ -350,65 +348,6 @@ export default function useDropFarmer() {
       api.interceptors.response.eject(responseInterceptor);
     };
   }, [api, apiDelay]);
-
-  /** Bridge Credentials */
-  useLayoutEffect(() => {
-    if (isExtension() || apiOptions?.withCredentials !== true) return;
-
-    const requestInterceptor = api.interceptors.request.use(
-      (config) => {
-        return Promise.reject({
-          config,
-          bridge: true,
-        });
-      },
-      (error) => {
-        return Promise.reject(error);
-      }
-    );
-
-    const responseInterceptor = api.interceptors.response.use(
-      (response) => response,
-      async (error) => {
-        if (error.bridge) {
-          const { url, method, data, headers } = error.config;
-          const transformData =
-            data instanceof URLSearchParams ? "URLSearchParams" : null;
-          const args = {
-            url,
-            method,
-            data:
-              transformData === "URLSearchParams"
-                ? Object.fromEntries(data.entries())
-                : data,
-            headers,
-            transformData,
-            withCredentials: true,
-          };
-
-          const result = await window.bridgedFetch(args);
-
-          if (result.status) {
-            return Promise.resolve({
-              ...result.response,
-              config: error.config,
-            });
-          } else {
-            return Promise.reject({
-              ...result.error,
-              config: error.config,
-            });
-          }
-        }
-        return Promise.reject(error);
-      }
-    );
-
-    return () => {
-      api.interceptors.request.eject(requestInterceptor);
-      api.interceptors.response.eject(responseInterceptor);
-    };
-  }, [apiOptions, api]);
 
   /** Response Interceptor */
   useLayoutEffect(() => {

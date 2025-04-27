@@ -1,4 +1,3 @@
-import axios from "axios";
 import { uuid } from "@/lib/utils";
 
 if (typeof import.meta.env.VITE_BRIDGE !== "undefined") {
@@ -99,57 +98,6 @@ if (typeof import.meta.env.VITE_BRIDGE !== "undefined") {
           id: message.id,
           result,
         });
-      } else if (message.action === "fetch") {
-        try {
-          const { data, transformData, ...options } = message.args;
-
-          /** Get Response */
-          const response = await axios.request({
-            ...options,
-            data:
-              transformData === "URLSearchParams"
-                ? new URLSearchParams(data)
-                : data,
-          });
-
-          /** Post Response */
-          port.postMessage({
-            id: message.id,
-            result: {
-              status: true,
-              response: {
-                status: response.status,
-                statusText: response.statusText,
-                headers: response.headers,
-                data: response.data,
-              },
-            },
-          });
-        } catch (error) {
-          /** Log Error */
-          console.error(error);
-
-          /** Post Error */
-          port.postMessage({
-            id: message.id,
-            result: {
-              status: false,
-              error: {
-                status: error.status,
-                code: error.code,
-                message: error.message,
-                response: error.response
-                  ? {
-                      status: error.response.status,
-                      statusText: error.response.statusText,
-                      headers: error.response.headers,
-                      data: error.response.data,
-                    }
-                  : undefined,
-              },
-            },
-          });
-        }
       } else {
         /** Post Pong */
         port.postMessage({
