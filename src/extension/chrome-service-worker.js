@@ -28,10 +28,10 @@ const shouldOpenInNewWindow = async () => {
  */
 const closePreviousPopups = async (windows) => {
   const windowsToClose = windows.filter((window) =>
-    window.tabs.some(
-      (tab) =>
-        tab.url ===
-        (isBridge ? import.meta.env.VITE_APP_PWA_URL : "chrome://newtab/")
+    window.tabs.some((tab) =>
+      tab.url.startsWith(
+        isBridge ? import.meta.env.VITE_APP_PWA_URL : "chrome://newtab/"
+      )
     )
   );
 
@@ -55,7 +55,7 @@ const openFarmerWindow = async () => {
 
   /** Find Previous Window */
   const window = windows.find((window) =>
-    window.tabs.some((tab) => tab.url === indexPage)
+    window.tabs.some((tab) => tab.url.startsWith(indexPage))
   );
 
   /** Get Coords */
