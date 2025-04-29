@@ -115,7 +115,9 @@ export default memo(function TsubasaTasks() {
 
             try {
               await startTaskMutation.mutateAsync(task.id);
-            } catch {}
+            } catch (e) {
+              console.error(e);
+            }
 
             /** Delay */
             await delay(5_000);
@@ -135,7 +137,9 @@ export default memo(function TsubasaTasks() {
             setCurrentTask(task);
             try {
               await claimTaskMutation.mutateAsync(task.id);
-            } catch {}
+            } catch (e) {
+              console.error(e);
+            }
 
             /** Delay */
             await delay(5_000);

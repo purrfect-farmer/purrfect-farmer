@@ -30,12 +30,16 @@ export default memo(function Agent301Lottery() {
       /** Spin */
       try {
         await spinMutation.mutateAsync();
-      } catch {}
+      } catch (e) {
+        console.error(e);
+      }
 
       /** Refetch Balance */
       try {
         await balanceQuery.refetch();
-      } catch {}
+      } catch (e) {
+        console.error(e);
+      }
 
       /** Delay */
       await delay(10_000);

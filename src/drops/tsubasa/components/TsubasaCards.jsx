@@ -184,7 +184,9 @@ export default memo(function TsubasaCards() {
         if (result["is_combo"]) {
           toast.success("Tsubasa - Unlocked Combo");
         }
-      } catch {}
+      } catch (e) {
+        console.error(e);
+      }
 
       /** Delay */
       await delay(2000);

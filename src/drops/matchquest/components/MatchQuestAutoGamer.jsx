@@ -83,7 +83,9 @@ export default memo(function MatchQuestAutoGamer() {
 
         /** Claim Game */
         await claimGameMutation.mutateAsync(game["game_id"]);
-      } catch {}
+      } catch (e) {
+        console.error(e);
+      }
 
       /** Add a little delay */
       await delay(EXTRA_DELAY);
@@ -92,7 +94,9 @@ export default memo(function MatchQuestAutoGamer() {
       try {
         await gameRuleQuery.refetch();
         await userQuery.refetch();
-      } catch {}
+      } catch (e) {
+        console.error(e);
+      }
     });
   }, [tickets, process]);
 

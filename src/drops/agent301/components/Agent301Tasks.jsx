@@ -115,7 +115,9 @@ export default memo(function Agent301Tasks() {
           await completeTaskMutation.mutateAsync({
             type: task["type"],
           });
-        } catch {}
+        } catch (e) {
+          console.error(e);
+        }
 
         /** Delay */
         await delay(10_000);
@@ -132,7 +134,9 @@ export default memo(function Agent301Tasks() {
           await completeTaskMutation.mutateAsync({
             type: videoTask["type"],
           });
-        } catch {}
+        } catch (e) {
+          console.error(e);
+        }
 
         /** Delay */
         await delay(15_000);
@@ -152,7 +156,9 @@ export default memo(function Agent301Tasks() {
           await completeTaskMutation.mutateAsync({
             type: task["type"],
           });
-        } catch {}
+        } catch (e) {
+          console.error(e);
+        }
 
         /** Delay */
         await delay(10_000);
@@ -172,7 +178,9 @@ export default memo(function Agent301Tasks() {
           await completeTaskMutation.mutateAsync({
             type: task["type"],
           });
-        } catch {}
+        } catch (e) {
+          console.error(e);
+        }
 
         /** Delay */
         await delay(10_000);
@@ -182,7 +190,9 @@ export default memo(function Agent301Tasks() {
         await client.refetchQueries({
           queryKey: ["agent301"],
         });
-      } catch {}
+      } catch (e) {
+        console.error(e);
+      }
 
       /** Reset */
       reset();

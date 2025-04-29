@@ -81,13 +81,17 @@ export default memo(function DiggerCards() {
       try {
         /** Buy Card */
         await buyCardMutation.mutateAsync(selected.card.id);
-      } catch {}
+      } catch (e) {
+        console.error(e);
+      }
 
       try {
         /** Refetch */
         await cardsQuery.refetch();
         await userQuery.refetch();
-      } catch {}
+      } catch (e) {
+        console.error(e);
+      }
 
       /** Delay */
       await delay(2000);

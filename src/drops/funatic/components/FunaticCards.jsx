@@ -101,13 +101,17 @@ export default memo(function FunaticCards() {
           cardId: card.id,
           isUpgrade: card.level !== null,
         });
-      } catch {}
+      } catch (e) {
+        console.error(e);
+      }
 
       /** Refetch */
       try {
         await gameQuery.refetch();
         await cardsQuery.refetch();
-      } catch {}
+      } catch (e) {
+        console.error(e);
+      }
 
       /** Delay */
       await delay(2000);

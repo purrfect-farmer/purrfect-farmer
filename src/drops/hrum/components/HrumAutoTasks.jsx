@@ -75,7 +75,9 @@ export default memo(function HrumAutoTasks({ queries }) {
         try {
           /** Claim */
           await claimTaskMutation.mutateAsync([task.key, null]);
-        } catch {}
+        } catch (e) {
+          console.error(e);
+        }
 
         /** Delay */
         await delay(5_000);
@@ -84,7 +86,9 @@ export default memo(function HrumAutoTasks({ queries }) {
       /** Refetch Balance */
       try {
         await refetchBalance();
-      } catch {}
+      } catch (e) {
+        console.error(e);
+      }
 
       /** Stop */
       reset();

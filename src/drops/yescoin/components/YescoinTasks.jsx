@@ -106,7 +106,9 @@ export default memo(function YescoinTasks() {
 
         try {
           await runTask(task.taskId);
-        } catch {}
+        } catch (e) {
+          console.error(e);
+        }
 
         /** Delay */
         await delay(3_000);
@@ -116,7 +118,9 @@ export default memo(function YescoinTasks() {
         await tasksQuery.refetch();
         await accountInfoQuery.refetch();
         await finishTaskBonusInfoQuery.refetch();
-      } catch {}
+      } catch (e) {
+        console.error(e);
+      }
 
       /** Stop */
       return true;

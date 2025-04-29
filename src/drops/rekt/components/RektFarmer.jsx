@@ -6,6 +6,7 @@ import useMirroredTabs from "@/hooks/useMirroredTabs";
 import { delay } from "@/lib/utils";
 import { isAfter, subHours } from "date-fns";
 import { memo, useMemo } from "react";
+
 import RektAutoGame from "./RektAutoGame";
 import RektAutoQuests from "./RektAutoQuests";
 import RektBalanceDisplay from "./RektBalanceDisplay";
@@ -58,7 +59,9 @@ export default memo(function RektFarmer() {
           /** Refetch */
           await userQuery.refetch();
         }
-      } catch {}
+      } catch (e) {
+        console.error(e);
+      }
     },
     []
   );

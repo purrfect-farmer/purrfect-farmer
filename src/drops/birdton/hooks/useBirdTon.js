@@ -132,7 +132,9 @@ export default function useBirdTon(farmer) {
     return () => {
       try {
         socketRef.current?.close(3000);
-      } catch {}
+      } catch (e) {
+        console.error(e);
+      }
       socketRef.current = null;
       setConnected(false);
     };

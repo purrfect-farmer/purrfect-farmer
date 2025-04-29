@@ -257,7 +257,9 @@ if (location.hash.includes("tgWebAppData")) {
               break;
           }
         }
-      } catch {}
+      } catch (e) {
+        console.error(e);
+      }
     });
 
     /** Get TelegramWebApp */

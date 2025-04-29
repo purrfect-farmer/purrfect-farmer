@@ -14,6 +14,7 @@ import { useLayoutEffect } from "react";
 import { useMemo } from "react";
 import { useRef } from "react";
 import { useState } from "react";
+
 import useAppContext from "./useAppContext";
 import useAppQuery from "./useAppQuery";
 import useCloudSyncMutation from "./useCloudSyncMutation";
@@ -281,7 +282,9 @@ export default function useDropFarmer() {
     async (...args) => {
       try {
         await appJoinTelegramLink(...args);
-      } catch {}
+      } catch (e) {
+        console.error(e);
+      }
 
       /** Restore Tab */
       setActiveTab(id);

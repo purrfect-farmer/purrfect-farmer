@@ -141,7 +141,9 @@ export default memo(function BattleBullsCards() {
 
         /** Update Tasks */
         queryClient.setQueryData(["battle-bulls", "cards"], () => result.cards);
-      } catch {}
+      } catch (e) {
+        console.error(e);
+      }
 
       /** Delay */
       await delay(2000);

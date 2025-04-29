@@ -98,7 +98,9 @@ export default memo(function MatchQuestFarmer() {
 
               /** Delay */
               await delay(1000);
-            } catch {}
+            } catch (e) {
+              console.error(e);
+            }
           }
         }
 

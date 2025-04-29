@@ -144,7 +144,9 @@ export default memo(function PumpadPoints() {
           /** Complete Task */
           await completePointTaskMutation.mutateAsync(point["task_id"]);
         }
-      } catch {}
+      } catch (e) {
+        console.error(e);
+      }
 
       /** CoolDown */
       setNextClaimTime((prev) => ({
@@ -156,7 +158,9 @@ export default memo(function PumpadPoints() {
       try {
         await remainingAdsQuery.refetch();
         await adsQuery.refetch();
-      } catch {}
+      } catch (e) {
+        console.error(e);
+      }
     });
   }, [process]);
 

@@ -98,7 +98,9 @@ export default memo(function BattleBullsTasks() {
                 : item
             )
           );
-        } catch {}
+        } catch (e) {
+          console.error(e);
+        }
 
         /** Delay */
         await delay(5_000);

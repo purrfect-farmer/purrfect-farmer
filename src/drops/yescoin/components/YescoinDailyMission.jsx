@@ -111,7 +111,9 @@ export default memo(function YescoinDailyMission() {
 
         try {
           await runMission(mission.missionId);
-        } catch {}
+        } catch (e) {
+          console.error(e);
+        }
 
         /** Delay */
         await delay(3_000);
@@ -121,7 +123,9 @@ export default memo(function YescoinDailyMission() {
         await missionsQuery.refetch();
         await accountInfoQuery.refetch();
         await finishTaskBonusInfoQuery.refetch();
-      } catch {}
+      } catch (e) {
+        console.error(e);
+      }
 
       /** Stop */
       return true;

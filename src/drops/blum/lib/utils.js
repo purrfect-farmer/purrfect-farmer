@@ -38,5 +38,7 @@ export async function getBlumGame() {
       workerBlobURL,
       wasmBlobURL,
     });
-  } catch {}
+  } catch (e) {
+    console.error(e);
+  }
 }

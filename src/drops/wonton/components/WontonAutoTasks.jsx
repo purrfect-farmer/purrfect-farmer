@@ -109,7 +109,9 @@ export default memo(function WontonAutoTasks() {
         try {
           await refetchTasks();
           await refetchBalance();
-        } catch {}
+        } catch (e) {
+          console.error(e);
+        }
       };
 
       if (!action) {
@@ -134,7 +136,9 @@ export default memo(function WontonAutoTasks() {
 
             try {
               await startTaskMutation.mutateAsync(task.id);
-            } catch {}
+            } catch (e) {
+              console.error(e);
+            }
 
             /** Delay */
             await delay(5_000);
@@ -143,7 +147,9 @@ export default memo(function WontonAutoTasks() {
           // Set Next Action
           try {
             await refetchTasks();
-          } catch {}
+          } catch (e) {
+            console.error(e);
+          }
           resetTask();
           setAction("claim");
 
@@ -157,7 +163,9 @@ export default memo(function WontonAutoTasks() {
             setCurrentTask(task);
             try {
               await claimTaskMutation.mutateAsync(task.id);
-            } catch {}
+            } catch (e) {
+              console.error(e);
+            }
 
             /** Delay */
             await delay(5_000);

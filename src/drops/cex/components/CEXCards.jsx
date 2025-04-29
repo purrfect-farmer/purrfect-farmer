@@ -154,7 +154,9 @@ export default memo(function CEXCards() {
         /** Refetch */
         await cardsQuery.refetch();
         await userQuery.refetch();
-      } catch {}
+      } catch (e) {
+        console.error(e);
+      }
 
       /** Delay */
       await delay(2000);

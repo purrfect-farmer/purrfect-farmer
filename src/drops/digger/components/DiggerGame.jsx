@@ -87,7 +87,9 @@ export default memo(function DiggerGame() {
               : item
           )
         );
-      } catch {}
+      } catch (e) {
+        console.error(e);
+      }
 
       /** Delay */
       await delay(500);

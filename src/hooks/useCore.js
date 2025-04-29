@@ -723,7 +723,9 @@ export default function useCore() {
           postPortMessage(telegramWebPort, {
             action: "join-conversation",
           });
-        } catch {}
+        } catch (e) {
+          console.error(e);
+        }
       }
 
       /** Extra Delay */

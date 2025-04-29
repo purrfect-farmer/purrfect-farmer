@@ -94,7 +94,9 @@ export default memo(function TruecoinTasks() {
         setCurrentTask(task);
         try {
           await earnTaskMutation.mutateAsync(task.id);
-        } catch {}
+        } catch (e) {
+          console.error(e);
+        }
 
         /** Delay */
         await delay(5_000);
@@ -103,7 +105,9 @@ export default memo(function TruecoinTasks() {
       try {
         await partnerTasksQuery.refetch();
         await userArchivesQuery.refetch();
-      } catch {}
+      } catch (e) {
+        console.error(e);
+      }
 
       /** Little Delay */
       await delay(1000);

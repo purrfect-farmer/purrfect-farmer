@@ -90,7 +90,9 @@ export default memo(function MoneyBuxWheel() {
           ...prev,
           ["spins"]: result["spins"] || prev["spins"],
         }));
-      } catch {}
+      } catch (e) {
+        console.error(e);
+      }
 
       /** Delay */
       await delayForSeconds(farmingSpeed);

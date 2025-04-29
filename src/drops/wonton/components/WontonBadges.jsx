@@ -88,7 +88,9 @@ export default memo(function WontonAutoBadges() {
         try {
           await refetchBadges();
           await refetchBalance();
-        } catch {}
+        } catch (e) {
+          console.error(e);
+        }
       };
 
       /** Set Badge */

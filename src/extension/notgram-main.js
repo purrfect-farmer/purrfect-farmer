@@ -64,10 +64,14 @@ const startTasks = async () => {
         /** Run Tasks */
         try {
           await runTasks();
-        } catch {}
+        } catch (e) {
+          console.error(e);
+        }
       }
     }
-  } catch {}
+  } catch (e) {
+    console.error(e);
+  }
 
   /** Stop Tasks */
   stopTasks();
@@ -238,5 +242,7 @@ window.addEventListener("message", (ev) => {
           break;
       }
     }
-  } catch {}
+  } catch (e) {
+    console.error(e);
+  }
 });

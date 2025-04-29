@@ -72,7 +72,9 @@ export default memo(function PumpadMissions() {
               id: mission.id,
             });
           }
-        } catch {}
+        } catch (e) {
+          console.error(e);
+        }
 
         /** Delay */
         await delay(5_000);
@@ -82,7 +84,9 @@ export default memo(function PumpadMissions() {
         await queryClient.refetchQueries({
           queryKey: ["pumpad"],
         });
-      } catch {}
+      } catch (e) {
+        console.error(e);
+      }
 
       /** Stop */
       return true;

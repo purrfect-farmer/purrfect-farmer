@@ -81,7 +81,9 @@ export default memo(function DiggerTasks() {
           await userQuery.refetch();
           await chestsQuery.refetch();
           await tasksQuery.refetch();
-        } catch {}
+        } catch (e) {
+          console.error(e);
+        }
       };
 
       if (!action) {
@@ -100,7 +102,9 @@ export default memo(function DiggerTasks() {
 
             try {
               await updateTaskMutation.mutateAsync(task.type);
-            } catch {}
+            } catch (e) {
+              console.error(e);
+            }
 
             /** Delay */
             await delay(5_000);
@@ -109,7 +113,9 @@ export default memo(function DiggerTasks() {
           /** Set Next Action */
           try {
             await tasksQuery.refetch();
-          } catch {}
+          } catch (e) {
+            console.error(e);
+          }
 
           resetTask();
           setAction("claim");
@@ -124,7 +130,9 @@ export default memo(function DiggerTasks() {
             setCurrentTask(task);
             try {
               await checkTaskMutation.mutateAsync(task.type);
-            } catch {}
+            } catch (e) {
+              console.error(e);
+            }
 
             /** Delay */
             await delay(5_000);

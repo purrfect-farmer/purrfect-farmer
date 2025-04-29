@@ -115,7 +115,9 @@ export default memo(function FunaticQuests() {
             /** Start Quest */
             try {
               await startQuestMutation.mutateAsync(quest["id"]);
-            } catch {}
+            } catch (e) {
+              console.error(e);
+            }
 
             /** Delay */
             await delay(5_000);
@@ -124,7 +126,9 @@ export default memo(function FunaticQuests() {
           /** Refetch */
           try {
             await questsQuery.refetch();
-          } catch {}
+          } catch (e) {
+            console.error(e);
+          }
 
           // Set Next Action
           resetQuest();
@@ -140,7 +144,9 @@ export default memo(function FunaticQuests() {
             setCurrentQuest(quest);
             try {
               await claimQuestMutation.mutateAsync(quest.id);
-            } catch {}
+            } catch (e) {
+              console.error(e);
+            }
 
             /** Delay */
             await delay(5_000);
@@ -152,7 +158,9 @@ export default memo(function FunaticQuests() {
       try {
         await questsQuery.refetch();
         await gameQuery.refetch();
-      } catch {}
+      } catch (e) {
+        console.error(e);
+      }
 
       resetQuest();
 

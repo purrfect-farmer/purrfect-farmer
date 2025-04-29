@@ -56,7 +56,9 @@ if (/tgWebAppPlatform=android/.test(location.href)) {
           }
           callback(decryptData(ev.data.payload));
         }
-      } catch {}
+      } catch (e) {
+        console.error(e);
+      }
     };
 
     window.addEventListener("message", respond);
@@ -140,7 +142,9 @@ if (/tgWebAppPlatform=android/.test(location.href)) {
           },
         },
       });
-    } catch {}
+    } catch (e) {
+      console.error(e);
+    }
   };
 
   /** Listen for TelegramWebApp */
@@ -159,7 +163,9 @@ if (/tgWebAppPlatform=android/.test(location.href)) {
           action: `custom-message:${location.host}`,
           data: decryptData(ev.data?.payload),
         });
-      } catch {}
+      } catch (e) {
+        console.error(e);
+      }
     }
   };
 
@@ -184,7 +190,9 @@ if (/tgWebAppPlatform=android/.test(location.href)) {
                 id,
                 data: response,
               });
-            } catch {}
+            } catch (e) {
+              console.error(e);
+            }
           }
         );
 
@@ -197,7 +205,9 @@ if (/tgWebAppPlatform=android/.test(location.href)) {
             id,
             data: true,
           });
-        } catch {}
+        } catch (e) {
+          console.error(e);
+        }
         break;
 
       case "close-bot":
@@ -207,7 +217,9 @@ if (/tgWebAppPlatform=android/.test(location.href)) {
             id,
             data: true,
           });
-        } catch {}
+        } catch (e) {
+          console.error(e);
+        }
         break;
 
       default:
@@ -219,7 +231,9 @@ if (/tgWebAppPlatform=android/.test(location.href)) {
                 id,
                 data: response,
               });
-            } catch {}
+            } catch (e) {
+              console.error(e);
+            }
           },
           false
         );

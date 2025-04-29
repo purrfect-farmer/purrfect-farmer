@@ -371,7 +371,9 @@ port.onMessage?.addListener(async (message) => {
           id,
           data: true,
         });
-      } catch {}
+      } catch (e) {
+        console.error(e);
+      }
       break;
 
     case "close-other-popups":
@@ -381,7 +383,9 @@ port.onMessage?.addListener(async (message) => {
           id,
           data: true,
         });
-      } catch {}
+      } catch (e) {
+        console.error(e);
+      }
       break;
 
     case "open-webview-bot":
@@ -391,7 +395,9 @@ port.onMessage?.addListener(async (message) => {
           id,
           data: true,
         });
-      } catch {}
+      } catch (e) {
+        console.error(e);
+      }
       break;
 
     case "open-farmer-bot":
@@ -401,7 +407,9 @@ port.onMessage?.addListener(async (message) => {
           id,
           data: true,
         });
-      } catch {}
+      } catch (e) {
+        console.error(e);
+      }
       break;
 
     case "join-conversation":
@@ -411,7 +419,9 @@ port.onMessage?.addListener(async (message) => {
           id,
           data: true,
         });
-      } catch {}
+      } catch (e) {
+        console.error(e);
+      }
       break;
   }
 });

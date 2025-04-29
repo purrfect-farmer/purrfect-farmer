@@ -98,7 +98,9 @@ export default memo(function Wonton() {
 
         /** Claim Game */
         await claimGameMutation.mutateAsync({ bonusRound });
-      } catch {}
+      } catch (e) {
+        console.error(e);
+      }
 
       /** Add a little delay */
       await delay(EXTRA_DELAY);
@@ -106,7 +108,9 @@ export default memo(function Wonton() {
       /** Reset Mutation */
       try {
         await query.refetch();
-      } catch {}
+      } catch (e) {
+        console.error(e);
+      }
     });
   }, [tickets, perItem, process]);
 

@@ -82,13 +82,17 @@ export default function DiggerChests() {
           status: "reward",
           uid: result["uid"],
         });
-      } catch {}
+      } catch (e) {
+        console.error(e);
+      }
 
       /** Refetch */
       try {
         await chestsQuery.refetch();
         await statusQuery.refetch();
-      } catch {}
+      } catch (e) {
+        console.error(e);
+      }
     });
   }, [process]);
 

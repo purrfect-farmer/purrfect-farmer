@@ -232,7 +232,9 @@ export default memo(function BlumAutoTasks() {
         try {
           await refetchTasks();
           await refetchBalance();
-        } catch {}
+        } catch (e) {
+          console.error(e);
+        }
       };
 
       if (!action) {
@@ -256,7 +258,9 @@ export default memo(function BlumAutoTasks() {
 
             try {
               await startTaskMutation.mutateAsync(task.id);
-            } catch {}
+            } catch (e) {
+              console.error(e);
+            }
 
             /** Delay */
             await delay(5_000);
@@ -265,7 +269,9 @@ export default memo(function BlumAutoTasks() {
           // Set Next Action
           try {
             await refetchTasks();
-          } catch {}
+          } catch (e) {
+            console.error(e);
+          }
           resetTask();
           setAction("verify");
 
@@ -298,7 +304,9 @@ export default memo(function BlumAutoTasks() {
                   await removeResolvedValue(task.id);
                 }
               } else continue;
-            } catch {}
+            } catch (e) {
+              console.error(e);
+            }
 
             /** Delay */
             await delay(5_000);
@@ -307,7 +315,9 @@ export default memo(function BlumAutoTasks() {
           /** Set Next Action */
           try {
             await refetchTasks();
-          } catch {}
+          } catch (e) {
+            console.error(e);
+          }
           resetTask();
           setAction("claim");
 
@@ -321,7 +331,9 @@ export default memo(function BlumAutoTasks() {
             setCurrentTask(task);
             try {
               await claimTaskMutation.mutateAsync({ id: task.id });
-            } catch {}
+            } catch (e) {
+              console.error(e);
+            }
 
             /** Delay */
             await delay(5_000);

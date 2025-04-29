@@ -46,12 +46,16 @@ export default memo(function SlotcoinLottery() {
       /** Spin */
       try {
         await spinMutation.mutateAsync();
-      } catch {}
+      } catch (e) {
+        console.error(e);
+      }
 
       /** Refetch Balance */
       try {
         await query.refetch();
-      } catch {}
+      } catch (e) {
+        console.error(e);
+      }
 
       /** Delay */
       await delayForSeconds(farmingSpeed);

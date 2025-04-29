@@ -183,7 +183,9 @@ export default memo(function RektAutoQuests() {
         try {
           await refetchQuests();
           await refetchBalance();
-        } catch {}
+        } catch (e) {
+          console.error(e);
+        }
       };
 
       if (!action) {
@@ -206,7 +208,9 @@ export default memo(function RektAutoQuests() {
 
             try {
               await startQuestMutation.mutateAsync(quest.quest.id);
-            } catch {}
+            } catch (e) {
+              console.error(e);
+            }
 
             /** Delay */
             await delay(5_000);
@@ -215,7 +219,9 @@ export default memo(function RektAutoQuests() {
           // Set Next Action
           try {
             await refetchQuests();
-          } catch {}
+          } catch (e) {
+            console.error(e);
+          }
           resetQuest();
           setAction("claim");
 
@@ -229,7 +235,9 @@ export default memo(function RektAutoQuests() {
             setCurrentQuest(quest);
             try {
               await claimQuestMutation.mutateAsync(quest.quest.id);
-            } catch {}
+            } catch (e) {
+              console.error(e);
+            }
 
             /** Delay */
             await delay(5_000);

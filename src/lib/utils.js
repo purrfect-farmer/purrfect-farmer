@@ -203,7 +203,9 @@ export function connectPortMessage(port, message, callback, once = true) {
         }
         callback(response);
       }
-    } catch {}
+    } catch (e) {
+      console.error(e);
+    }
   };
 
   /** Add Listener */
@@ -215,7 +217,9 @@ export function connectPortMessage(port, message, callback, once = true) {
       id,
       once,
     });
-  } catch {}
+  } catch (e) {
+    console.error(e);
+  }
 }
 
 /**

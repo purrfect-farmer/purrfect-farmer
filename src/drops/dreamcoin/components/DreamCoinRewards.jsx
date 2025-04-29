@@ -93,7 +93,9 @@ export default memo(function DreamCoinRewards() {
         await queryClient.refetchQueries({
           queryKey: ["dreamcoin"],
         });
-      } catch {}
+      } catch (e) {
+        console.error(e);
+      }
 
       /** Stop */
       return true;

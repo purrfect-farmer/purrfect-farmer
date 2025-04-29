@@ -104,7 +104,9 @@ export default memo(function SpaceAdventureTasks() {
           await queryClient.refetchQueries({
             queryKey: ["space-adventure"],
           });
-        } catch {}
+        } catch (e) {
+          console.error(e);
+        }
       };
 
       /** Beginning of Start Action */
@@ -121,7 +123,9 @@ export default memo(function SpaceAdventureTasks() {
 
         try {
           await startTaskMutation.mutateAsync(task.id);
-        } catch {}
+        } catch (e) {
+          console.error(e);
+        }
 
         /** Delay */
         await delay(1000, true);
@@ -135,7 +139,9 @@ export default memo(function SpaceAdventureTasks() {
         setCurrentTask(task);
         try {
           await claimTaskMutation.mutateAsync(task.id);
-        } catch {}
+        } catch (e) {
+          console.error(e);
+        }
 
         /** Delay */
         await delay(1000, true);

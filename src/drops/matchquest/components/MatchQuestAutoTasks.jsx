@@ -103,7 +103,9 @@ export default memo(function MatchQuestAutoTasks() {
         try {
           await refetchTasks();
           await refetchBalance();
-        } catch {}
+        } catch (e) {
+          console.error(e);
+        }
       };
 
       for (let [index, task] of Object.entries(pendingTasks)) {
@@ -125,7 +127,9 @@ export default memo(function MatchQuestAutoTasks() {
 
           /** Claim */
           await claimTaskMutation.mutateAsync(task.name);
-        } catch {}
+        } catch (e) {
+          console.error(e);
+        }
 
         /** Delay */
         await delay(5_000);

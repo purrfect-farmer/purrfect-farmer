@@ -6,6 +6,7 @@ import useMirroredTabs from "@/hooks/useMirroredTabs";
 import { customLogger, delay } from "@/lib/utils";
 import { isAfter } from "date-fns";
 import { memo } from "react";
+
 import WontonAutoBadges from "./WontonBadges";
 import WontonAutoGamer from "./WontonAutoGamer";
 import WontonAutoTasks from "./WontonAutoTasks";
@@ -50,7 +51,9 @@ export default memo(function WontonFarmer() {
         if (data.newCheckin) {
           toast.success("Wonton Daily Check-In");
         }
-      } catch {}
+      } catch (e) {
+        console.error(e);
+      }
     },
     []
   );

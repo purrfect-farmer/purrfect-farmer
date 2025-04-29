@@ -82,7 +82,9 @@ export default memo(function FarmerLinks() {
           icon: imageMeta.getAttribute("content"),
           description: descriptionMeta.getAttribute("content"),
         };
-      } catch {}
+      } catch (e) {
+        console.error(e);
+      }
       return data;
     },
   });

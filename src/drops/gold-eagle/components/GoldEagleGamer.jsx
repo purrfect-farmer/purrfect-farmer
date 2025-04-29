@@ -64,7 +64,9 @@ export default memo(function GoldEagleGamer() {
 
           /** Refetch */
           await query.refetch();
-        } catch {}
+        } catch (e) {
+          console.error(e);
+        }
       }
     },
     [query.data]

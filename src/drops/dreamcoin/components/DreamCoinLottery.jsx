@@ -97,13 +97,17 @@ export default memo(function DreamCoinLottery() {
               break;
           }
         }
-      } catch {}
+      } catch (e) {
+        console.error(e);
+      }
 
       /** Refetch Balance */
       try {
         await levelQuery.refetch();
         await query.refetch();
-      } catch {}
+      } catch (e) {
+        console.error(e);
+      }
 
       /** Delay */
       await delayForSeconds(farmingSpeed);

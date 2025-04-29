@@ -39,12 +39,16 @@ export default memo(function TomarketTickets() {
       try {
         await spinMutation.mutateAsync();
         await delayForSeconds(farmingSpeed);
-      } catch {}
+      } catch (e) {
+        console.error(e);
+      }
 
       /** Refetch Balance */
       try {
         await query.refetch();
-      } catch {}
+      } catch (e) {
+        console.error(e);
+      }
     });
   }, [process, ticketsCount, farmingSpeed]);
 

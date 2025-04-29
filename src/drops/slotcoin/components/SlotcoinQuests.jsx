@@ -73,7 +73,9 @@ export default memo(function SlotcoinQuests() {
             await joinTelegramLink(task["task_data"]?.["channel_url"]);
           }
           await checkTaskMutation.mutateAsync(task.id);
-        } catch {}
+        } catch (e) {
+          console.error(e);
+        }
 
         /** Delay */
         await delay(5_000);
@@ -83,7 +85,9 @@ export default memo(function SlotcoinQuests() {
         await queryClient.refetchQueries({
           queryKey: ["slotcoin"],
         });
-      } catch {}
+      } catch (e) {
+        console.error(e);
+      }
 
       /** Stop */
       return true;

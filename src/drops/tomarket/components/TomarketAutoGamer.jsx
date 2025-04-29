@@ -86,7 +86,9 @@ export default memo(function Tomarket({ tomarket }) {
         if (game["stars"] > 0) {
           toast.success(`Tomarket Stars - ${game["stars"]}`);
         }
-      } catch {}
+      } catch (e) {
+        console.error(e);
+      }
 
       /** Add a little delay */
       await delay(EXTRA_DELAY);
@@ -94,7 +96,9 @@ export default memo(function Tomarket({ tomarket }) {
       /** Reset Mutation */
       try {
         await query.refetch();
-      } catch {}
+      } catch (e) {
+        console.error(e);
+      }
     });
   }, [process, tickets]);
 

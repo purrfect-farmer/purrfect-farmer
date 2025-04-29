@@ -66,7 +66,9 @@ export default memo(function HorseGoAutoGame() {
 
         /** Update Data */
         queryClient.setQueryData(["horse-go", "user"], () => data);
-      } catch {}
+      } catch (e) {
+        console.error(e);
+      }
     });
   }, [process, energy, mode]);
 

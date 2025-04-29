@@ -63,7 +63,9 @@ export default memo(function Agent301Wheel() {
             await completeWheelTaskMutation.mutateAsync({
               type: "hour",
             });
-          } catch {}
+          } catch (e) {
+            console.error(e);
+          }
 
           /** Delay */
           await delay(15_000);
@@ -78,7 +80,9 @@ export default memo(function Agent301Wheel() {
           await completeWheelTaskMutation.mutateAsync({
             type: "daily",
           });
-        } catch {}
+        } catch (e) {
+          console.error(e);
+        }
 
         /** Delay */
         await delay(10_000);
@@ -95,7 +99,9 @@ export default memo(function Agent301Wheel() {
           await completeWheelTaskMutation.mutateAsync({
             type: k,
           });
-        } catch {}
+        } catch (e) {
+          console.error(e);
+        }
 
         /** Delay */
         await delay(10_000);
@@ -108,7 +114,9 @@ export default memo(function Agent301Wheel() {
         await client.refetchQueries({
           queryKey: ["agent301", "balance"],
         });
-      } catch {}
+      } catch (e) {
+        console.error(e);
+      }
 
       /** Stop */
       return true;

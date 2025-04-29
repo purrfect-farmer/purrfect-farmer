@@ -182,7 +182,9 @@ export default memo(function CEXTasks() {
             /** Start Task */
             try {
               await startTaskMutation.mutateAsync(task.key);
-            } catch {}
+            } catch (e) {
+              console.error(e);
+            }
 
             /** Delay */
             await delay(2_000);
@@ -191,7 +193,9 @@ export default memo(function CEXTasks() {
           /** Refetch */
           try {
             await tasksQuery.refetch();
-          } catch {}
+          } catch (e) {
+            console.error(e);
+          }
 
           // Set Next Action
           resetTask();
@@ -218,7 +222,9 @@ export default memo(function CEXTasks() {
             /** Verify Task */
             try {
               await checkTaskMutation.mutateAsync(task.key);
-            } catch {}
+            } catch (e) {
+              console.error(e);
+            }
 
             /** Delay */
             await delay(2_000);
@@ -227,7 +233,9 @@ export default memo(function CEXTasks() {
           /** Refetch */
           try {
             await tasksQuery.refetch();
-          } catch {}
+          } catch (e) {
+            console.error(e);
+          }
 
           // Set Next Action
           resetTask();
@@ -243,7 +251,9 @@ export default memo(function CEXTasks() {
             setCurrentTask(task);
             try {
               await claimTaskMutation.mutateAsync(task.key);
-            } catch {}
+            } catch (e) {
+              console.error(e);
+            }
 
             /** Delay */
             await delay(2_000);
@@ -255,7 +265,9 @@ export default memo(function CEXTasks() {
       try {
         await tasksQuery.refetch();
         await userQuery.refetch();
-      } catch {}
+      } catch (e) {
+        console.error(e);
+      }
 
       resetTask();
 

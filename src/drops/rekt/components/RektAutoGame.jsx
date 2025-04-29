@@ -89,7 +89,9 @@ export default memo(function RektAutoGame() {
         /** Refetch */
         await userQuery.refetch();
         await currentPriceQuery.refetch();
-      } catch {}
+      } catch (e) {
+        console.error(e);
+      }
     });
   }, [process, trades, timestamp]);
 

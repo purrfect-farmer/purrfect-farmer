@@ -34,7 +34,9 @@ export default function LocalTelegramSession() {
 
             /** Destroy */
             await client.destroy();
-          } catch {}
+          } catch (e) {
+            console.error(e);
+          }
 
           /** Remove Session */
           setLocalTelegramSession(null);

@@ -17,7 +17,9 @@ const file = `${pkg.name + (isBridge ? "-bridge" : "")}-v${pkg.version}`;
 /** Create Directory */
 try {
   await fs.mkdir(path.join(__dirname, outDir), { recursive: true });
-} catch {}
+} catch (e) {
+  console.error(e);
+}
 
 /** Create Zip */
 await zip(

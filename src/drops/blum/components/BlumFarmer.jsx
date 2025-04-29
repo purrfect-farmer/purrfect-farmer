@@ -5,6 +5,7 @@ import useFarmerAutoTab from "@/hooks/useFarmerAutoTab";
 import useMirroredTabs from "@/hooks/useMirroredTabs";
 import { delay } from "@/lib/utils";
 import { memo } from "react";
+
 import BlumAutoTasks from "./BlumAutoTasks";
 import BlumBalanceDisplay from "./BlumBalanceDisplay";
 import BlumFarmerHeader from "./BlumFarmerHeader";
@@ -42,7 +43,9 @@ export default memo(function BlumFarmer() {
         try {
           await claimDailyRewardMutation.mutateAsync();
           toast.success("Blum - Daily Check-In");
-        } catch {}
+        } catch (e) {
+          console.error(e);
+        }
       }
     },
     [dailyRewardQuery.data]
@@ -64,7 +67,9 @@ export default memo(function BlumFarmer() {
           /** Refetch */
           await friendsBalanceQuery.refetch();
         }
-      } catch {}
+      } catch (e) {
+        console.error(e);
+      }
     },
     [friendsBalanceQuery.data]
   );

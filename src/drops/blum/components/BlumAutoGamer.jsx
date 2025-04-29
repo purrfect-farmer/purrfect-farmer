@@ -204,7 +204,9 @@ export default memo(function BlumAutoGamer({ workerRef }) {
 
         /** Show Success */
         toast.success(`+${finalPoints} - Blum Points`);
-      } catch {}
+      } catch (e) {
+        console.error(e);
+      }
 
       /** Add a little delay */
       await delay(EXTRA_DELAY);

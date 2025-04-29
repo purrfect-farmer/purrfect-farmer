@@ -8,7 +8,9 @@ export default function useWakeLock() {
       try {
         wakeLockRef.current?.release();
         wakeLockRef.current = await navigator.wakeLock.request("screen");
-      } catch {}
+      } catch (e) {
+        console.error(e);
+      }
     };
 
     const handleVisibilityChange = async () => {

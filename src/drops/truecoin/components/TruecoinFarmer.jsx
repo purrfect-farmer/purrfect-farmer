@@ -39,7 +39,9 @@ export default memo(function TruecoinFarmer() {
           await collectDailyRewardMutation.mutateAsync();
           toast.success("Truecoin - Daily Reward");
         }
-      } catch {}
+      } catch (e) {
+        console.error(e);
+      }
     },
     [lastDailyRewardQuery.data]
   );

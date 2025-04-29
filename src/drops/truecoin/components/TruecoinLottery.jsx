@@ -57,7 +57,9 @@ export default memo(function TruecoinLottery() {
         await claim50Boost();
         await delay(1000);
       }
-    } catch {}
+    } catch (e) {
+      console.error(e);
+    }
 
     /** Process Next Task */
     processNextTask();
