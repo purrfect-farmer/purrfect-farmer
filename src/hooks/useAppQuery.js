@@ -14,9 +14,10 @@ export default function useAppQuery(options, client) {
 
   const queryKey = useDeepCompareMemo(
     () => options.queryKey,
-    [options.queryKey]
+    [...options.queryKey]
   );
-  const query = useQuery(options);
+
+  const query = useQuery(options, queryClient);
 
   const updateQueryData = useCallback(
     (...args) => queryClient.setQueryData(queryKey, ...args),
