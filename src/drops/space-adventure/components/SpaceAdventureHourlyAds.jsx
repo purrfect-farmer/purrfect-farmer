@@ -54,6 +54,9 @@ export default function SpaceAdventureHourlyAds() {
 
       await tasksQuery.refetch();
       await userQuery.refetch();
+
+      /** Stop */
+      return true;
     });
   }, [process, canClaim, videoTasksCount]);
 
