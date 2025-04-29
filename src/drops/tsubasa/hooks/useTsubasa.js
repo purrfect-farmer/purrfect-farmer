@@ -65,7 +65,7 @@ export default function useTsubasa(farmer) {
                   );
                 }
               } else if (key in result && value) {
-                result[key] = value;
+                result[key] = value || result[key];
               }
             }
 
