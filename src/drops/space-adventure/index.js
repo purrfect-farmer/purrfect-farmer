@@ -59,7 +59,7 @@ export default createFarmer({
     ["buy-shield"]: true,
     ["buy-immunity"]: true,
     ["hourly-ads"]: true,
-    ["tasks"]: true,
-    ["boosts"]: true,
+    ["tasks"]: false,
+    ["boosts"]: false,
   },
 });
