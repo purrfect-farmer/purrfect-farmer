@@ -8,7 +8,7 @@
     "build": "npm-run-all clean build-extension build-bridge",
     "build-extension": "npm-run-all build:index build-ext:* bundle-ext",
     "build-bridge": "VITE_BRIDGE=true npm-run-all build-extension",
-    "build-pwa": "VITE_PWA=true npm-run-all build:index",
+    "build-pwa": "VITE_PWA=true VITE_ENTRY=index vite build",
     "build:index": "VITE_ENTRY=index vite build",
     "build-ext:chrome-service-worker": "VITE_ENTRY=chrome-service-worker vite build",
     "build-ext:telegram-web-main": "VITE_ENTRY=telegram-web-main vite build",
