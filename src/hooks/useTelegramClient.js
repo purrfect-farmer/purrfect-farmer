@@ -68,7 +68,11 @@ export default function useTelegramClient(mode, session) {
     /**
      * @param {import("telegram").TelegramClient} client
      */
-    async (client, { entity, startParam = "" }, replyOptions) => {
+    async (
+      client,
+      { entity, startParam = "", shouldWaitForReply = true } = {},
+      replyOptions
+    ) => {
       /** Start the Bot */
       const result = await client.invoke(
         new Api.messages.StartBot({
@@ -82,34 +86,28 @@ export default function useTelegramClient(mode, session) {
       customLogger("START BOT", result);
 
       /** Wait for Reply */
-      return waitForReply(client, entity, replyOptions);
+      if (shouldWaitForReply) {
+        return waitForReply(client, entity, replyOptions);
+      }
     },
     [waitForReply]
   );
 
   /** Start Bot */
   const startBot = useCallback(
-    ({ entity, startParam = "" }, replyOptions) =>
+    (startOptions, replyOptions) =>
       execute(
         /**
          * @param {import("telegram").TelegramClient} client
          */
-        (client) =>
-          baseStartBot(
-            client,
-            {
-              entity,
-              startParam,
-            },
-            replyOptions
-          )
+        (client) => baseStartBot(client, startOptions, replyOptions)
       ),
     [execute, baseStartBot]
   );
 
   /** Start Bot from Link */
   const startBotFromLink = useCallback(
-    (link, replyOptions) =>
+    (link, startOptions, replyOptions) =>
       execute(
         /**
          * @param {import("telegram").TelegramClient} client
@@ -119,6 +117,7 @@ export default function useTelegramClient(mode, session) {
           return baseStartBot(
             client,
             {
+              ...startOptions,
               entity,
               startParam,
             },
