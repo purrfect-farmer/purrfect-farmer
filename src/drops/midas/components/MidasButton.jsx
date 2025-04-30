@@ -9,7 +9,7 @@ export default memo(function MidasButton({ color = "primary", ...props }) {
         "px-4 py-2",
         "rounded-lg",
         {
-          primary: "bg-purple-500 text-black",
+          primary: "bg-purple-500 text-white",
           danger: "bg-red-500 text-white",
         }[color],
         props.disabled && "opacity-50",
