@@ -113,19 +113,7 @@ const rules = [
 ].map((item) => ({
   action: {
     type: "modifyHeaders",
-    responseHeaders: [
-      ...(item.responseHeaders || []),
-      {
-        header: "access-control-allow-origin",
-        operation: "set",
-        value: "*",
-      },
-      {
-        header: "access-control-allow-methods",
-        operation: "set",
-        value: "*",
-      },
-    ],
+    responseHeaders: item.responseHeaders,
     requestHeaders: [
       ...(item.requestHeaders || []),
       {
