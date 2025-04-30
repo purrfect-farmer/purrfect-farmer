@@ -3,13 +3,12 @@ import defaultSettings from "@/core/defaultSettings";
 import toast from "react-hot-toast";
 import tabs, { Browser, TelegramWeb, farmers } from "@/core/tabs";
 import { createElement } from "react";
-import { delay, isBotURL, isExtension, postPortMessage } from "@/lib/utils";
+import { delay, isBotURL, postPortMessage } from "@/lib/utils";
 import { useCallback } from "react";
 import { useDeepCompareMemo } from "use-deep-compare";
 import { useMemo } from "react";
 import { useRef } from "react";
 import { useState } from "react";
-
 import useCloudAuth from "./useCloudAuth";
 import useCloudTelegramSession from "./useCloudTelegramSession";
 import useLocalTelegramSession from "./useLocalTelegramSession";
@@ -766,7 +765,7 @@ export default function useCore() {
             (async function () {
               const webview = await telegramClient.getWebview(url);
 
-              if (embedInNewTab && isExtension()) {
+              if (embedInNewTab) {
                 window.open(webview.url);
               } else {
                 /** Push the tab */
