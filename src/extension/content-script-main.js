@@ -100,7 +100,7 @@ if (location.hash.includes("tgWebAppData")) {
                   inputs[1] = "*";
                 }
               }
-              target.postMessage(...inputs);
+              core.parent.postMessage(...inputs);
             };
           } else {
             if (typeof window[p] === "function") {
