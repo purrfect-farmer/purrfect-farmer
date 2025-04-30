@@ -3,7 +3,7 @@ import defaultSettings from "@/core/defaultSettings";
 import toast from "react-hot-toast";
 import tabs, { Browser, TelegramWeb, farmers } from "@/core/tabs";
 import { createElement } from "react";
-import { delay, isBotURL, postPortMessage } from "@/lib/utils";
+import { delay, isBotURL, isExtension, postPortMessage } from "@/lib/utils";
 import { useCallback } from "react";
 import { useDeepCompareMemo } from "use-deep-compare";
 import { useMemo } from "react";
@@ -766,7 +766,7 @@ export default function useCore() {
             (async function () {
               const webview = await telegramClient.getWebview(url);
 
-              if (embedInNewTab) {
+              if (embedInNewTab && isExtension()) {
                 window.open(webview.url);
               } else {
                 /** Push the tab */
