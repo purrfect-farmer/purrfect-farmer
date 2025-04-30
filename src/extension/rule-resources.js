@@ -27,6 +27,11 @@ const rules = farmers
                 value: location.origin,
               },
               {
+                header: "access-control-allow-credentials",
+                operation: "set",
+                value: "true",
+              },
+              {
                 header: "access-control-allow-methods",
                 operation: "set",
                 value: "*",
