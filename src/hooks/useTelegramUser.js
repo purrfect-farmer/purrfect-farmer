@@ -39,24 +39,29 @@ export default function useTelegramUser(core) {
     [storeTelegramInitData]
   );
 
-  const updateTelegramUser = useCallback(async () => {
-    await telegramClient.startBotFromLink(
-      import.meta.env.VITE_APP_BOT_MINI_APP,
-      {
-        shouldWaitForReply: false,
+  const updateTelegramUser = useCallback(
+    async (isUpdate = false) => {
+      if (isUpdate === false) {
+        await telegramClient.startBotFromLink(
+          import.meta.env.VITE_APP_BOT_MINI_APP,
+          {
+            shouldWaitForReply: false,
+          }
+        );
       }
-    );
 
-    const telegramWebApp = await telegramClient.getTelegramWebApp(
-      import.meta.env.VITE_APP_BOT_MINI_APP
-    );
+      const telegramWebApp = await telegramClient.getTelegramWebApp(
+        import.meta.env.VITE_APP_BOT_MINI_APP
+      );
 
-    await configureInitData({ telegramWebApp });
-  }, [
-    telegramClient.startBotFromLink,
-    telegramClient.getTelegramWebApp,
-    configureInitData,
-  ]);
+      await configureInitData({ telegramWebApp });
+    },
+    [
+      telegramClient.startBotFromLink,
+      telegramClient.getTelegramWebApp,
+      configureInitData,
+    ]
+  );
 
   /** Handler */
   useMessageHandlers(
@@ -77,7 +82,7 @@ export default function useTelegramUser(core) {
       farmerMode === "session" &&
       (telegramUser === null || telegramUser.shouldUpdate)
     ) {
-      updateTelegramUser();
+      updateTelegramUser(telegramUser?.shouldUpdate);
     }
   }, [farmerMode, telegramUser, updateTelegramUser]);
 
