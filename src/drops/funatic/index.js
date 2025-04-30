@@ -14,7 +14,7 @@ export default createFarmer({
   host: "clicker.funtico.com",
   netRequest: {
     origin: "https://clicker.funtico.com",
-    domains: ["*.funtico.com"],
+    domains: ["clicker.api.funtico.com", "*.funtico.com"],
   },
   embedWebPage: true,
 
