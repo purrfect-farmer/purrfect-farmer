@@ -1,7 +1,6 @@
 import farmers from "@/core/farmers";
 import setCookie from "set-cookie-parser";
 import { customLogger } from "@/lib/utils";
-import { isBefore } from "date-fns";
 import { useLayoutEffect } from "react";
 import { useMemo } from "react";
 
@@ -18,6 +17,9 @@ export default function useChromeCookies() {
   );
 
   useLayoutEffect(() => {
+    /** Log Targets */
+    customLogger("COOKIE TARGETS", targets);
+
     const listeners = targets.map(({ origin, urls }) => {
       /** Callback */
       const listener = (ev) => {
@@ -32,7 +34,7 @@ export default function useChromeCookies() {
               path: parsed.path,
               value: parsed.value,
               httpOnly: parsed.httpOnly,
-              secure: parsed.secure,
+              secure: true,
               sameSite: "no_restriction",
             };
 
@@ -48,9 +50,10 @@ export default function useChromeCookies() {
             /** Log */
             customLogger("COOKIE", header, parsed, cookie);
 
+            /** If expired, then remove */
             if (
-              typeof cookie.expirationDate !== "undefined" &&
-              isBefore(new Date(cookie.expirationDate * 1000), new Date())
+              cookie.expirationDate &&
+              cookie.expirationDate < Date.now() / 1000
             ) {
               chrome.cookies.remove({ url: origin, name: parsed.name });
             } else {
@@ -67,9 +70,6 @@ export default function useChromeCookies() {
 
       return listener;
     });
-
-    console.log(targets);
-    console.log(listeners);
 
     return () =>
       listeners.forEach((listener) =>
