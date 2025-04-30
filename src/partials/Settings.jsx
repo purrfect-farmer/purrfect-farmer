@@ -658,6 +658,22 @@ export default memo(function Settings({ tabs }) {
                         </div>
                       </SettingsGroup>
                     </SettingsContainer>
+
+                    <button
+                      type="button"
+                      title="Restore Default Settings"
+                      onClick={() => dispatchAndRestoreSettings()}
+                      className={cn(
+                        "my-1",
+                        "bg-red-100 dark:bg-red-700",
+                        "text-red-900 dark:text-red-100",
+                        "p-2.5 rounded-xl shrink-0 font-bold",
+                        "flex items-center justify-center gap-2"
+                      )}
+                    >
+                      <HiOutlineArrowPath className="w-4 h-4" /> Restore Default
+                      Settings
+                    </button>
                   </form>
                 </Tabs.Content>
 
@@ -778,17 +794,6 @@ export default memo(function Settings({ tabs }) {
               </Tabs>
             </div>
             <div className="flex gap-2 p-4 font-bold shrink-0">
-              <button
-                title="Restore Default Settings"
-                onClick={() => dispatchAndRestoreSettings()}
-                className={cn(
-                  "bg-blue-100 dark:bg-blue-900",
-                  "text-blue-900 dark:text-blue-100",
-                  "p-2.5 rounded-xl shrink-0"
-                )}
-              >
-                <HiOutlineArrowPath className="w-4 h-4" />
-              </button>
               <Dialog.Close className="p-2.5 text-white bg-blue-500 rounded-xl grow">
                 Close
               </Dialog.Close>

@@ -12,6 +12,7 @@ import Tabs from "@/components/Tabs";
 import TelegramUser from "@/partials/TelegramUser";
 import TelegramWebAIcon from "@/assets/images/telegram-web-a.png?format=webp&w=80";
 import TelegramWebKIcon from "@/assets/images/telegram-web-k.png?format=webp&w=80";
+import ToolbarButton from "@/components/ToolbarButton";
 import WelcomeIcon from "@/assets/images/icon-unwrapped-cropped.png?format=webp&h=224";
 import axios from "axios";
 import defaultSettings from "@/core/defaultSettings";
@@ -58,26 +59,6 @@ const TelegramWebButton = memo(
       )}
     >
       <img src={icon} className="w-6 h-6" />
-      {children}
-    </button>
-  ))
-);
-
-/** Toolbar Button */
-const ToolbarButton = memo(
-  forwardRef(({ icon: Icon, children, ...props }, ref) => (
-    <button
-      {...props}
-      ref={ref}
-      className={cn(
-        "p-2 rounded-full shrink-0",
-        "bg-neutral-50 dark:bg-neutral-700",
-        "hover:bg-neutral-100 dark:hover:bg-neutral-600",
-
-        props.className
-      )}
-    >
-      <Icon className="size-5" />
       {children}
     </button>
   ))
