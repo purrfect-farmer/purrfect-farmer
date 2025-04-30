@@ -31,6 +31,7 @@ export default defineConfig(async ({ mode }) => {
         [
           /** Entries */
           "index",
+          "browser-sandbox",
         ].map((item) => [
           item,
           path.resolve(

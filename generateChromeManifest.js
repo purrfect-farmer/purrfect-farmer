@@ -18,6 +18,10 @@ export default function generateChromeManifest(env, pkg) {
     name: "generate-chrome-manifest",
     async generateBundle() {
       const namePrefix = isBridge ? "(Bridge) " : "";
+      const matches = [
+        `*://${new URL(env.VITE_APP_PWA_URL).hostname}/*`,
+        "*://localhost/*",
+      ];
       const manifestJson = JSON.stringify(
         {
           manifest_version: 3,
@@ -57,14 +61,15 @@ export default function generateChromeManifest(env, pkg) {
             type: "module",
           },
           host_permissions: ["*://*/*", "wss://*/*"],
-          externally_connectable: isBridge
-            ? {
-                matches: [
-                  `*://${new URL(env.VITE_APP_PWA_URL).hostname}/*`,
-                  "*://localhost/*",
-                ],
-              }
+          web_accessible_resources: isBridge
+            ? [
+                {
+                  resources: ["browser-sandbox.html"],
+                  matches,
+                },
+              ]
             : undefined,
+          externally_connectable: isBridge ? { matches } : undefined,
           content_scripts: [
             {
               matches: ["*://*/*"],
