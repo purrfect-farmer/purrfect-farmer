@@ -17,6 +17,7 @@ import { useState } from "react";
 
 import useAppContext from "./useAppContext";
 import useAppQuery from "./useAppQuery";
+import useChromeCookies from "./useChromeCookies";
 import useCloudSyncMutation from "./useCloudSyncMutation";
 import useFarmerDataQuery from "./useFarmerDataQuery";
 import useRefCallback from "./useRefCallback";
@@ -291,6 +292,9 @@ export default function useDropFarmer() {
     },
     [id, appJoinTelegramLink, setActiveTab]
   );
+
+  /** Set Chrome Cookies */
+  useChromeCookies(apiOptions?.withCredentials === true, farmer.netRequest);
 
   /** Save Auth Data in Storage */
   useLayoutEffect(() => {

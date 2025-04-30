@@ -1,5 +1,6 @@
 import Pbf from "pbf";
 import { useMutation } from "@tanstack/react-query";
+
 import { getSession, writeCreateSession } from "../lib/utils";
 
 export default function useUnijumpCreateSessionMutation() {
@@ -17,6 +18,7 @@ export default function useUnijumpCreateSessionMutation() {
         "https://unijump.xyz/api/v1/gameplay/session/octet/create",
         {
           method: "POST",
+          credentials: "include",
           body: pbf.finish(),
           headers: {
             "Content-Type": "application/octet-stream",

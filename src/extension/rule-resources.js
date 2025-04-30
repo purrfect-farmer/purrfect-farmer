@@ -1,4 +1,5 @@
 import farmers from "@/core/farmers";
+import { isExtension } from "@/lib/utils";
 
 const rules = farmers
   .map((item) => item.netRequest)
@@ -9,32 +10,54 @@ const rules = farmers
       domains: ["game.genkiminer.xyz"],
     },
   ])
-  .map((item) => ({
-    action: {
-      type: "modifyHeaders",
-      responseHeaders: item.responseHeaders,
-      requestHeaders: [
-        ...(item.requestHeaders || []),
-        {
-          header: "x-requested-with",
-          operation: "set",
-          value: "org.telegram.messenger",
-        },
-        {
-          header: "origin",
-          operation: "set",
-          value: item.origin,
-        },
-        {
-          header: "referer",
-          operation: "set",
-          value: item.origin + "/",
-        },
-      ],
-    },
-    condition: {
-      requestDomains: item.domains,
-    },
-  }));
+  .map(
+    /**
+     * @returns {chrome.declarativeNetRequest.Rule}
+     */
+    (item) => ({
+      action: {
+        type: "modifyHeaders",
+        responseHeaders: isExtension()
+          ? item.responseHeaders
+          : [
+              ...(item.responseHeaders || []),
+              {
+                header: "access-control-allow-origin",
+                operation: "set",
+                value: location.origin,
+              },
+              {
+                header: "access-control-allow-methods",
+                operation: "set",
+                value: "*",
+              },
+            ],
+        requestHeaders: [
+          ...(item.requestHeaders || []),
+          {
+            header: "x-requested-with",
+            operation: "set",
+            value: "org.telegram.messenger",
+          },
+          {
+            header: "origin",
+            operation: "set",
+            value: item.origin,
+          },
+          {
+            header: "referer",
+            operation: "set",
+            value: item.origin + "/",
+          },
+        ],
+      },
+      condition: {
+        requestDomains: item.domains,
+        excludedInitiatorDomains: item.domains,
+        initiatorDomains:
+          isExtension() === false ? [location.hostname] : undefined,
+      },
+    })
+  );
 
 export default rules;

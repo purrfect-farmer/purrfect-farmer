@@ -18,6 +18,7 @@ export default function useUnijumpUpdateSessionMutation() {
         "https://unijump.xyz/api/v1/gameplay/session/octet/update",
         {
           method: "POST",
+          credentials: "include",
           body: pbf.finish(),
           headers: {
             "Content-Type": "application/octet-stream",
