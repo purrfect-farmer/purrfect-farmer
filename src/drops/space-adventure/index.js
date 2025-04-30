@@ -24,7 +24,6 @@ export default createFarmer({
     ],
   },
   embedWebPage: true,
-  embedInNewTab: true,
   cacheAuth: false,
   cacheTelegramWebApp: false,
   apiOptions: {

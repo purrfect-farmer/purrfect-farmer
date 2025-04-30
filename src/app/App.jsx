@@ -5,6 +5,7 @@ import PrimaryButton from "@/components/PrimaryButton";
 import TabButtonList from "@/components/TabButtonList";
 import TabContent from "@/components/TabContent";
 import useApp from "@/hooks/useApp";
+import useChromeCookies from "@/hooks/useChromeCookies";
 import useCloudSessionCheck from "@/hooks/useCloudSessionCheck";
 import useMiniAppToolbar from "@/hooks/useMiniAppToolbar";
 import useMirroredCallback from "@/hooks/useMirroredCallback";
@@ -46,6 +47,9 @@ function App() {
 
   /** Use Net Rules */
   useNetRules();
+
+  /** Set Chrome Cookies */
+  useChromeCookies();
 
   /** Use Seeker */
   useSeeker(app);
