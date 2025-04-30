@@ -14,7 +14,7 @@ export default createFarmer({
   host: "www.wonton.restaurant",
   netRequest: {
     origin: "https://www.wonton.restaurant",
-    domains: ["wonton.restaurant"],
+    domains: ["wonton.food", "wonton.restaurant"],
   },
   apiDelay: 3000,
   embedWebPage: true,
