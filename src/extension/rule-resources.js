@@ -53,7 +53,6 @@ const rules = farmers
       },
       condition: {
         requestDomains: item.domains,
-        excludedInitiatorDomains: item.domains,
         initiatorDomains:
           isExtension() === false ? [location.hostname] : undefined,
       },
