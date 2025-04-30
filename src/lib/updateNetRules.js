@@ -2,7 +2,7 @@ import rules from "@/extension/rule-resources";
 
 import { getUserAgent } from "./utils";
 
-export default async function updateDynamicRules() {
+export default async function updateNetRules() {
   const userAgent = await getUserAgent();
 
   const oldRules = await chrome.declarativeNetRequest.getDynamicRules();
@@ -23,8 +23,9 @@ export default async function updateDynamicRules() {
         urlFilter: "*",
       },
     },
-    ...rules,
-  ].map((item, index) => ({ ...item, id: index + 1 }));
+  ]
+    .concat(rules)
+    .map((item, index) => ({ ...item, id: index + 1 }));
 
   /** Update Rules */
   await chrome.declarativeNetRequest.updateDynamicRules({

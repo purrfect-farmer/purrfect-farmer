@@ -12,6 +12,11 @@ export default createFarmer({
   telegramLink:
     "https://t.me/LuckyFunaticBot/lucky_funatic?startapp=1147265290",
   host: "clicker.funtico.com",
+  netRequest: {
+    origin: "https://clicker.funtico.com",
+    domains: ["*.funtico.com"],
+  },
+  embedWebPage: true,
 
   /**
    * Fetch Auth

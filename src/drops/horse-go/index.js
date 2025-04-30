@@ -10,6 +10,10 @@ export default createFarmer({
   component: createLazyElement(() => import("./HorseGo")),
   telegramLink: "https://t.me/HorseGo_bot/HorseFever?startapp=code_G6ZAC6",
   host: "horsego.vip",
+  netRequest: {
+    origin: "https://horsego.vip",
+    domains: ["horsego.vip"],
+  },
   embedWebPage: true,
   cacheAuth: false,
 

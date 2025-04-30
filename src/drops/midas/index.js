@@ -11,6 +11,10 @@ export default createFarmer({
   telegramLink:
     "https://t.me/MidasRWA_bot/app?startapp=ref_746a3d4f-5108-4931-af18-5589b9a07af9",
   host: "prod-tg-app.midas.app",
+  netRequest: {
+    origin: "https://prod-tg-app.midas.app",
+    domains: ["midas.app"],
+  },
   apiDelay: 3000,
   apiOptions: {
     withCredentials: true,

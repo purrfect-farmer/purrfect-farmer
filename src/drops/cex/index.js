@@ -10,6 +10,10 @@ export default createFarmer({
   component: createLazyElement(() => import("./CEX")),
   telegramLink: "https://t.me/cexio_tap_bot?start=1717159919141996",
   host: "app.cexptap.com",
+  netRequest: {
+    origin: "https://app.cexptap.com",
+    domains: ["app.cexptap.com"],
+  },
   authHeaders: ["x-appl-version", "x-request-userhash"],
   embedWebPage: true,
   cacheAuth: false,

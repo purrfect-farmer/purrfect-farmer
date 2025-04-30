@@ -12,6 +12,17 @@ export default createFarmer({
   component: createLazyElement(() => import("./SpaceAdventure")),
   telegramLink: "https://t.me/spaceadv_game_bot/play?startapp=1147265290",
   host: "space-adventure.online",
+  netRequest: {
+    origin: "https://space-adventure.online",
+    domains: ["space-adventure.online"],
+    requestHeaders: [
+      {
+        header: "origins",
+        operation: "set",
+        value: "https://space-adventure.online",
+      },
+    ],
+  },
   embedWebPage: true,
   embedInNewTab: true,
   cacheAuth: false,

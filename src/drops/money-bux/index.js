@@ -10,6 +10,10 @@ export default createFarmer({
   component: createLazyElement(() => import("./MoneyBux")),
   telegramLink: "https://t.me/moneybux_bot/app?startapp=r_1147265290",
   host: "moneybux.xyz",
+  netRequest: {
+    origin: "https://moneybux.xyz",
+    domains: ["moneybux.xyz"],
+  },
   embedWebPage: true,
   apiOptions: {
     withCredentials: true,

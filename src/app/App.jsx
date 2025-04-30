@@ -6,9 +6,9 @@ import TabButtonList from "@/components/TabButtonList";
 import TabContent from "@/components/TabContent";
 import useApp from "@/hooks/useApp";
 import useCloudSessionCheck from "@/hooks/useCloudSessionCheck";
-import useDynamicRules from "@/hooks/useDynamicRules";
 import useMiniAppToolbar from "@/hooks/useMiniAppToolbar";
 import useMirroredCallback from "@/hooks/useMirroredCallback";
+import useNetRules from "@/hooks/useNetRules";
 import useSeeker from "@/hooks/useSeeker";
 import useTelegramWebAppEvents from "@/hooks/useTelegramWebAppEvents";
 import useTheme from "@/hooks/useTheme";
@@ -44,8 +44,8 @@ function App() {
     app.mirror
   );
 
-  /** Use Dynamic Rules */
-  useDynamicRules();
+  /** Use Net Rules */
+  useNetRules();
 
   /** Use Seeker */
   useSeeker(app);

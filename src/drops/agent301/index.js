@@ -10,6 +10,10 @@ export default createFarmer({
   component: createLazyElement(() => import("./Agent301")),
   telegramLink: "https://t.me/Agent301Bot/app?startapp=onetime1147265290",
   host: "static.agent301.org",
+  netRequest: {
+    origin: "https://static.agent301.org",
+    domains: ["agent301.org"],
+  },
   cacheAuth: false,
 
   /**

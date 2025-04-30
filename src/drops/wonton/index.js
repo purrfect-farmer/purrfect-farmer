@@ -12,6 +12,10 @@ export default createFarmer({
   telegramLink:
     "https://t.me/WontonOrgBot/gameapp?startapp=referralCode=K45JQRG7",
   host: "www.wonton.restaurant",
+  netRequest: {
+    origin: "https://www.wonton.restaurant",
+    domains: ["wonton.restaurant"],
+  },
   apiDelay: 3000,
   embedWebPage: true,
 

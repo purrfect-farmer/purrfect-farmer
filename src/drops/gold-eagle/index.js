@@ -13,6 +13,10 @@ export default createFarmer({
   component: createLazyElement(() => import("./GoldEagle")),
   telegramLink: "https://t.me/gold_eagle_coin_bot/main?startapp=r_ubdOBYN6KX",
   host: "telegram.geagle.online",
+  netRequest: {
+    origin: "https://telegram.geagle.online",
+    domains: ["telegram.geagle.online", "gold-eagle-api.fly.dev"],
+  },
   embedWebPage: true,
 
   /**

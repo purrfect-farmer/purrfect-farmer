@@ -11,8 +11,11 @@ export default createFarmer({
   icon,
   component: createLazyElement(() => import("./Tomarket")),
   telegramLink: "https://t.me/Tomarket_ai_bot/app?startapp=00003s0r",
-
   host: "mini-app.tomarket.ai",
+  netRequest: {
+    origin: "https://mini-app.tomarket.ai",
+    domains: ["tomarket.ai"],
+  },
   apiDelay: 500,
 
   /**

@@ -11,6 +11,10 @@ export default createFarmer({
   component: createLazyElement(() => import("./Digger")),
   telegramLink: "https://t.me/diggerton_bot/dig?startapp=bro1147265290",
   host: "diggergame.app",
+  netRequest: {
+    origin: "https://diggergame.app",
+    domains: ["api.diggergame.app"],
+  },
   embedWebPage: true,
   cacheTelegramWebApp: false,
 

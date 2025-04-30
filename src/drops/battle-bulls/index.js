@@ -11,6 +11,10 @@ export default createFarmer({
   telegramLink:
     "https://t.me/battle_games_com_bot/start?startapp=frndId1147265290",
   host: "tg.battle-games.com",
+  netRequest: {
+    origin: "https://tg.battle-games.com",
+    domains: ["battle-games.com"],
+  },
   embedWebPage: true,
   cacheAuth: false,
 

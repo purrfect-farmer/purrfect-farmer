@@ -10,6 +10,10 @@ export default createFarmer({
   component: createLazyElement(() => import("./Yescoin")),
   telegramLink: "https://t.me/theYescoin_bot/Yescoin?startapp=bH7bto",
   host: "www.yescoin.fun",
+  netRequest: {
+    origin: "https://www.yescoin.fun",
+    domains: ["yescoin.fun"],
+  },
   embedWebPage: true,
   authHeaders: ["token"],
 

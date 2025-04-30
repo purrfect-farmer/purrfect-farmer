@@ -13,6 +13,10 @@ export default createFarmer({
     "https://t.me/MatchQuestBot/start?startapp=775f1cc48a46ce5221f1d9476233dc33",
   host: "tgapp.matchain.io",
   embedWebPage: true,
+  netRequest: {
+    origin: "https://tgapp.matchain.io",
+    domains: ["tgapp-api.matchain.io"],
+  },
 
   /**
    * Fetch Auth

@@ -10,6 +10,10 @@ export default createFarmer({
   component: createLazyElement(() => import("./Blum")),
   telegramLink: "https://t.me/BlumCryptoBot/app?startapp=ref_3AIqvLlFFK",
   host: "telegram.blum.codes",
+  netRequest: {
+    origin: "https://telegram.blum.codes",
+    domains: ["blum.codes"],
+  },
 
   /**
    * Fetch Auth

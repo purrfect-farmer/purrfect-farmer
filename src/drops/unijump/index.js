@@ -10,6 +10,10 @@ export default createFarmer({
   component: createLazyElement(() => import("./Unijump")),
   telegramLink: "https://t.me/unijump_bot/game?startapp=ref5859194569569580966",
   host: "unijump.xyz",
+  netRequest: {
+    origin: "https://unijump.xyz",
+    domains: ["unijump.xyz"],
+  },
   apiOptions: {
     withCredentials: true,
   },

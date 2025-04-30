@@ -10,6 +10,10 @@ export default createFarmer({
   component: createLazyElement(() => import("./BirdTon")),
   telegramLink: "https://t.me/BIRDTonBot/app?startapp=1147265290",
   host: "birdton.site",
+  netRequest: {
+    origin: "https://birdton.site",
+    domains: ["birdton.site"],
+  },
   embedWebPage: true,
   cacheAuth: false,
 

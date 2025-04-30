@@ -12,6 +12,10 @@ export default createFarmer({
   component: createLazyElement(() => import("./Rekt")),
   telegramLink: "https://t.me/rektme_bot/rektapp?startapp=UJ740H",
   host: "rekt-mini-app.vercel.app",
+  netRequest: {
+    origin: "https://rekt-mini-app.vercel.app",
+    domains: ["rekt-mini-app.vercel.app"],
+  },
   authHeaders: ["auth-token"],
   embedWebPage: true,
   cacheAuth: false,

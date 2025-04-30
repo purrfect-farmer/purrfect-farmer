@@ -10,6 +10,10 @@ export default createFarmer({
   component: createLazyElement(() => import("./Truecoin")),
   telegramLink: "https://t.me/true_coin_bot?start=1147265290",
   host: "bot.true.world",
+  netRequest: {
+    origin: "https://bot.true.world",
+    domains: ["true.world"],
+  },
   embedWebPage: true,
   cacheAuth: false,
 

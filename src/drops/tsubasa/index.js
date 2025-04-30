@@ -13,6 +13,11 @@ export default createFarmer({
   telegramLink:
     "https://t.me/TsubasaRivalsBot/start?startapp=inviter_id-1147265290",
   host: "web.app.ton.tsubasa-rivals.com",
+  netRequest: {
+    origin: "https://web.app.ton.tsubasa-rivals.com",
+    domains: ["app.ton.tsubasa-rivals.com"],
+  },
+
   embedWebPage: true,
   cacheAuth: false,
 
