@@ -24,7 +24,7 @@ export default function useChromeCookies() {
       /** Callback */
       const listener = (ev) => {
         ev.responseHeaders
-          .filter((item) => item.name === "set-cookie")
+          .filter((item) => item.name.toLowerCase() === "set-cookie")
           .forEach((header) => {
             const parsed = setCookie.parseString(header.value);
             const cookie = {
