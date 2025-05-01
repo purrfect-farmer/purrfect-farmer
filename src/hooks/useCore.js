@@ -9,6 +9,7 @@ import { useDeepCompareMemo } from "use-deep-compare";
 import { useMemo } from "react";
 import { useRef } from "react";
 import { useState } from "react";
+
 import useCloudAuth from "./useCloudAuth";
 import useCloudTelegramSession from "./useCloudTelegramSession";
 import useLocalTelegramSession from "./useLocalTelegramSession";
@@ -791,7 +792,7 @@ export default function useCore() {
           );
         } else {
           /** Is Mini App Start Page */
-          const isStartPage = !/(http|https):\/\/t\.me\/[^\/]+\/.+/.test(url);
+          const isStartPage = !/^(http|https):\/\/t\.me\/[^\/]+\/.+/.test(url);
 
           /** Open Telegram Link */
           await openTelegramLink(url, { version, force: isStartPage || force });
