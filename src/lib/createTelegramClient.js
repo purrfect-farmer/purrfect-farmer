@@ -11,7 +11,7 @@ export const createTelegramClient = (session = "") => {
     2496,
     "8da85b0d5bfe62527e5b244c209159c3",
     {
-      connectionRetries: 5,
+      connectionRetries: -1,
       appVersion: "2.2 K",
       deviceModel: navigator.userAgent,
       systemVersion: navigator.platform,
