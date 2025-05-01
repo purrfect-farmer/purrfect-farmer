@@ -371,10 +371,11 @@ export default function useCore() {
   const [reloadApp, dispatchAndReloadApp] = useMirroredCallback(
     "core.reload-app",
     async (reloadExtension = false) => {
+      window.location.reload();
+
       if (reloadExtension) {
         chrome.runtime.reload();
       }
-      window.location.reload();
     },
     [],
     /** Mirror */
