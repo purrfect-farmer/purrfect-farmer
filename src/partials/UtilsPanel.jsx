@@ -2,11 +2,9 @@ import CoreSystemIcon from "@/assets/images/core-system.png?format=webp&w=128";
 import Input from "@/components/Input";
 import LabelToggle from "@/components/LabelToggle";
 import Tabs from "@/components/Tabs";
-import ToolbarButton from "@/components/ToolbarButton";
 import useAppContext from "@/hooks/useAppContext";
 import { Dialog } from "radix-ui";
 import { HiArrowTopRightOnSquare, HiUserPlus } from "react-icons/hi2";
-import { TbProgressCheck } from "react-icons/tb";
 import { cn, isBotURL } from "@/lib/utils";
 import { memo, useState } from "react";
 import { utils } from "@/core/tabs";
@@ -19,7 +17,6 @@ export default memo(function UtilsPanel({ tabs, onOpenChange }) {
     dispatchAndOpenTelegramBot,
     dispatchAndOpenTelegramLink,
     dispatchAndJoinTelegramLink,
-    dispatchAndReloadApp,
   } = useAppContext();
 
   const [telegramLink, setTelegramLink] = useState("");
@@ -38,14 +35,6 @@ export default memo(function UtilsPanel({ tabs, onOpenChange }) {
         <>
           <div className="flex flex-col min-w-0 min-h-0 gap-2 p-4 overflow-auto grow">
             <div className="flex relative">
-              {/* Reload Button */}
-              <ToolbarButton
-                title="Reload Extension"
-                icon={TbProgressCheck}
-                onClick={() => dispatchAndReloadApp(true)}
-                className="absolute right-0"
-              />
-
               {/* Icon */}
               <img src={CoreSystemIcon} className="w-10 mx-auto" />
             </div>

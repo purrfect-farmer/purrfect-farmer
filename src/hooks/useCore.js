@@ -373,9 +373,8 @@ export default function useCore() {
     async (reloadExtension = false) => {
       if (reloadExtension) {
         chrome.runtime.reload();
-      } else {
-        window.location.reload();
       }
+      window.location.reload();
     },
     [],
     /** Mirror */

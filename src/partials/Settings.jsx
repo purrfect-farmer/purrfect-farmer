@@ -23,6 +23,7 @@ import {
   HiOutlineSquares2X2,
 } from "react-icons/hi2";
 import { Reorder, useDragControls } from "motion/react";
+import { TbProgressCheck } from "react-icons/tb";
 import { cn, resizeFarmerWindow } from "@/lib/utils";
 import { memo, useCallback, useLayoutEffect, useState } from "react";
 
@@ -114,6 +115,7 @@ export default memo(function Settings({ tabs }) {
     telegramClient,
     settings,
     configureSettings,
+    dispatchAndReloadApp,
     dispatchAndRestoreSettings,
     dispatchAndConfigureSettings,
     dropsStatus,
@@ -661,10 +663,26 @@ export default memo(function Settings({ tabs }) {
 
                     <button
                       type="button"
+                      title="Force Reload Extension"
+                      onClick={() => dispatchAndReloadApp(true)}
+                      className={cn(
+                        "mt-1",
+                        "bg-purple-100 dark:bg-purple-700",
+                        "text-purple-900 dark:text-purple-100",
+                        "p-2.5 rounded-xl shrink-0 font-bold",
+                        "flex items-center justify-center gap-2"
+                      )}
+                    >
+                      <TbProgressCheck className="w-4 h-4" /> Force Reload
+                      Extension
+                    </button>
+
+                    {/* Restore Settings */}
+                    <button
+                      type="button"
                       title="Restore Default Settings"
                       onClick={() => dispatchAndRestoreSettings()}
                       className={cn(
-                        "my-1",
                         "bg-red-100 dark:bg-red-700",
                         "text-red-900 dark:text-red-100",
                         "p-2.5 rounded-xl shrink-0 font-bold",
