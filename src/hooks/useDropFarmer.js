@@ -14,6 +14,7 @@ import { useLayoutEffect } from "react";
 import { useMemo } from "react";
 import { useRef } from "react";
 import { useState } from "react";
+
 import useAppContext from "./useAppContext";
 import useAppQuery from "./useAppQuery";
 import useCloudSyncMutation from "./useCloudSyncMutation";
@@ -49,6 +50,7 @@ export default function useDropFarmer() {
   const {
     zoomies,
     joinTelegramLink: appJoinTelegramLink,
+    farmerMode,
     setActiveTab,
     settings,
   } = useAppContext();
@@ -286,9 +288,11 @@ export default function useDropFarmer() {
       }
 
       /** Restore Tab */
-      setActiveTab(id);
+      if (farmerMode === "web") {
+        setActiveTab(id);
+      }
     },
-    [id, appJoinTelegramLink, setActiveTab]
+    [id, farmerMode, appJoinTelegramLink, setActiveTab]
   );
 
   /** Save Auth Data in Storage */
