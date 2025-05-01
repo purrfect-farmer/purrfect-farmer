@@ -1,3 +1,4 @@
+import FarmerHeader from "@/components/FarmerHeader";
 import Tabs from "@/components/Tabs";
 import toast from "react-hot-toast";
 import useFarmerAsyncTask from "@/hooks/useFarmerAsyncTask";
@@ -16,7 +17,7 @@ import useTruecoinCollectDailyRewardMutation from "../hooks/useTruecoinCollectDa
 import useTruecoinLastDailyRewardQuery from "../hooks/useTruecoinLastDailyRewardQuery";
 
 export default memo(function TruecoinFarmer() {
-  const { authQuery } = useFarmerContext();
+  const { authQuery, telegramUser } = useFarmerContext();
 
   const user = authQuery.data?.user;
 
@@ -52,14 +53,13 @@ export default memo(function TruecoinFarmer() {
   return (
     <div className="flex flex-col gap-2 py-4">
       {/* Header */}
-      <div className="flex items-center justify-center gap-2">
-        <img
-          src={TruecoinIcon}
-          alt="Truecoin Farmer"
-          className="w-8 h-8 rounded-full"
-        />
-        <h1 className="font-bold">Truecoin Farmer</h1>
-      </div>
+      <FarmerHeader
+        title={"Truecoin Farmer"}
+        icon={TruecoinIcon}
+        referralLink={`https://t.me/true_coin_bot?start=${telegramUser["id"]}`}
+      />
+
+      {/* Username */}
       <h2 className="font-bold text-center text-purple-500">{user.username}</h2>
 
       <>

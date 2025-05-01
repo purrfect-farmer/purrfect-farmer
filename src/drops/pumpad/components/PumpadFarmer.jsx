@@ -1,3 +1,4 @@
+import FarmerHeader from "@/components/FarmerHeader";
 import Tabs from "@/components/Tabs";
 import toast from "react-hot-toast";
 import useFarmerAsyncTask from "@/hooks/useFarmerAsyncTask";
@@ -14,10 +15,12 @@ import PumpadTickets from "./PumpadTickets";
 import PumpadUsernameDisplay from "./PumpadUsernameDisplay";
 import usePumpadCheckInMutation from "../hooks/usePumpadCheckInMutation";
 import usePumpadCheckInQuery from "../hooks/usePumpadCheckInQuery";
+import usePumpadUserQuery from "../hooks/usePumpadUserQuery";
 
 export default memo(function PumpadFarmer() {
   const checkInQuery = usePumpadCheckInQuery();
   const claimCheckInMutation = usePumpadCheckInMutation();
+  const userQuery = usePumpadUserQuery();
 
   const tabs = useMirroredTabs("pumpad.farmer-tabs", [
     "lottery",
@@ -46,14 +49,15 @@ export default memo(function PumpadFarmer() {
   return (
     <div className="flex flex-col gap-2 py-4">
       {/* Header */}
-      <div className="flex items-center justify-center gap-2">
-        <img
-          src={PumpadIcon}
-          alt="Pumpad Farmer"
-          className="w-8 h-8 rounded-full"
-        />
-        <h1 className="font-bold">Pumpad Farmer</h1>
-      </div>
+      <FarmerHeader
+        title={"Pumpad Farmer"}
+        icon={PumpadIcon}
+        referralLink={
+          userQuery.data
+            ? `https://t.me/Pumpad_Bot/Lucky?startapp=${userQuery.data["code"]}`
+            : null
+        }
+      />
 
       {/* Username */}
       <PumpadUsernameDisplay />

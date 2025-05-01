@@ -1,7 +1,9 @@
+import FarmerHeader from "@/components/FarmerHeader";
 import Tabs from "@/components/Tabs";
 import toast from "react-hot-toast";
 import useFarmerAsyncTask from "@/hooks/useFarmerAsyncTask";
 import useFarmerAutoTab from "@/hooks/useFarmerAutoTab";
+import useFarmerContext from "@/hooks/useFarmerContext";
 import useMirroredTabs from "@/hooks/useMirroredTabs";
 import { memo } from "react";
 
@@ -15,6 +17,7 @@ import useDiggerDigMutation from "../hooks/useDiggerDigMutation";
 import useDiggerUserQuery from "../hooks/useDiggerUserQuery";
 
 export default memo(function DiggerFarmer() {
+  const { telegramUser } = useFarmerContext();
   const tabs = useMirroredTabs("digger.farmer-tabs", [
     "game",
     "chests",
@@ -44,14 +47,11 @@ export default memo(function DiggerFarmer() {
   return (
     <div className="flex flex-col gap-2 py-4">
       {/* Header */}
-      <div className="flex items-center justify-center gap-2">
-        <img
-          src={DiggerIcon}
-          alt="Digger Farmer"
-          className="w-8 h-8 rounded-full"
-        />
-        <h1 className="font-bold">Digger Farmer</h1>
-      </div>
+      <FarmerHeader
+        title={"Digger Farmer"}
+        icon={DiggerIcon}
+        referralLink={`https://t.me/diggerton_bot/dig?startapp=bro${telegramUser["id"]}`}
+      />
 
       {/* Info */}
       <DiggerInfoDisplay />

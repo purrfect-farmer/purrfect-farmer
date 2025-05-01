@@ -1,8 +1,9 @@
+import FarmerHeader from "@/components/FarmerHeader";
 import Tabs from "@/components/Tabs";
 import useFarmerAutoTab from "@/hooks/useFarmerAutoTab";
+import useFarmerContext from "@/hooks/useFarmerContext";
 import useMirroredTabs from "@/hooks/useMirroredTabs";
 import { memo } from "react";
-
 import Agent301BalanceDisplay from "./Agent301BalanceDisplay";
 import Agent301Icon from "../assets/images/icon.png?format=webp&w=80";
 import Agent301Lottery from "./Agent301Lottery";
@@ -11,6 +12,7 @@ import Agent301Tasks from "./Agent301Tasks";
 import Agent301Wheel from "./Agent301Wheel";
 
 export default memo(function Agent301Farmer() {
+  const { telegramUser } = useFarmerContext();
   const tabs = useMirroredTabs("agent301.farmer-tabs", [
     "tickets",
     "wheel",
@@ -23,10 +25,11 @@ export default memo(function Agent301Farmer() {
   return (
     <div className="flex flex-col gap-2 py-4">
       {/* Header */}
-      <div className="flex items-center justify-center gap-2 p-2">
-        <img src={Agent301Icon} alt="Agent301 Farmer" className="w-8 h-8" />
-        <h1 className="font-bold">Agent301 Farmer</h1>
-      </div>
+      <FarmerHeader
+        title={"Agent301 Farmer"}
+        icon={Agent301Icon}
+        referralLink={`https://t.me/Agent301Bot/app?startapp=onetime${telegramUser["id"]}`}
+      />
 
       {/* Balance Display */}
       <Agent301BalanceDisplay />

@@ -1,14 +1,21 @@
+import FarmerHeader from "@/components/FarmerHeader";
 import { memo } from "react";
 
 import BlumIcon from "../assets/images/icon.png?format=webp&w=80";
+import useBlumFriendsBalanceQuery from "../hooks/useBlumFriendsBalanceQuery";
 
 export default memo(function BlumFarmerHeader() {
+  const query = useBlumFriendsBalanceQuery();
+
   return (
-    <div className="flex flex-col gap-1 py-4 border-b border-gray-500">
-      <div className="flex items-center justify-center">
-        <img src={BlumIcon} alt="Blum Farmer" className="w-8 h-8" />
-        <h1 className="font-bold">Blum Farmer</h1>
-      </div>
-    </div>
+    <FarmerHeader
+      title={"Blum Farmer"}
+      icon={BlumIcon}
+      referralLink={
+        query.data
+          ? `https://t.me/BlumCryptoBot/app?startapp=ref_${query.data["referralToken"]}`
+          : null
+      }
+    />
   );
 });

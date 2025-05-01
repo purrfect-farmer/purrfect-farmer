@@ -1,18 +1,21 @@
+import FarmerHeader from "@/components/FarmerHeader";
 import { memo } from "react";
 
 import MatchQuestIcon from "../assets/images/icon.png?format=webp&w=80";
+import useMatchQuestUserQuery from "../hooks/useMatchQuestUserQuery";
 
 export default memo(function MatchQuestFarmerHeader() {
+  const query = useMatchQuestUserQuery();
+
   return (
-    <div className="flex flex-col gap-1 py-4 border-b border-gray-500">
-      <div className="flex items-center justify-center gap-2">
-        <img
-          src={MatchQuestIcon}
-          alt="MatchQuest Farmer"
-          className="w-8 h-8 rounded-full"
-        />
-        <h1 className="font-bold">MatchQuest Farmer</h1>
-      </div>
-    </div>
+    <FarmerHeader
+      title={"MatchQuest Farmer"}
+      icon={MatchQuestIcon}
+      referralLink={
+        query.data
+          ? `https://t.me/MatchQuestBot/start?startapp=${query.data["InviteCode"]}`
+          : null
+      }
+    />
   );
 });

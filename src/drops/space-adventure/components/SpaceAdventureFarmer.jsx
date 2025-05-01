@@ -1,7 +1,9 @@
+import FarmerHeader from "@/components/FarmerHeader";
 import Tabs from "@/components/Tabs";
 import toast from "react-hot-toast";
 import useFarmerAsyncTask from "@/hooks/useFarmerAsyncTask";
 import useFarmerAutoTab from "@/hooks/useFarmerAutoTab";
+import useFarmerContext from "@/hooks/useFarmerContext";
 import useMirroredTabs from "@/hooks/useMirroredTabs";
 import { customLogger } from "@/lib/utils";
 import { differenceInSeconds, isAfter } from "date-fns";
@@ -29,6 +31,7 @@ import useSpaceAdventureTutorialMutation from "../hooks/useSpaceAdventureTutoria
 import useSpaceAdventureUserQuery from "../hooks/useSpaceAdventureUserQuery";
 
 export default memo(function SpaceAdventureFarmer() {
+  const { telegramUser } = useFarmerContext();
   const tabs = useMirroredTabs("space-adventure.farmer-tabs", [
     "hourly-ads",
     "boosts",
@@ -334,14 +337,11 @@ export default memo(function SpaceAdventureFarmer() {
   return (
     <div className="flex flex-col gap-2 py-4">
       {/* Header */}
-      <div className="flex items-center justify-center gap-2">
-        <img
-          src={SpaceAdventureIcon}
-          alt="SpaceAdventure Farmer"
-          className="w-8 h-8 rounded-full"
-        />
-        <h1 className="font-bold">Space Adventure Farmer</h1>
-      </div>
+      <FarmerHeader
+        title={"SpaceAdventure Farmer"}
+        icon={SpaceAdventureIcon}
+        referralLink={`https://t.me/spaceadv_game_bot/play?startapp=${telegramUser["id"]}`}
+      />
 
       {/* Info */}
       <SpaceAdventureInfoDisplay />

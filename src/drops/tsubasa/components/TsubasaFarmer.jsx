@@ -1,3 +1,4 @@
+import FarmerHeader from "@/components/FarmerHeader";
 import Tabs from "@/components/Tabs";
 import toast from "react-hot-toast";
 import useFarmerAsyncTask from "@/hooks/useFarmerAsyncTask";
@@ -15,7 +16,7 @@ import useTsubasaClaimDailyRewardMutation from "../hooks/useTsubasaClaimDailyRew
 
 export default memo(function TsubasaFarmer() {
   const tabs = useMirroredTabs("tsubasa.farmer-tabs", ["cards", "tasks"]);
-  const { authQuery } = useFarmerContext();
+  const { authQuery, telegramUser } = useFarmerContext();
   const claimDailyRewardMutation = useTsubasaClaimDailyRewardMutation();
 
   /** Auto Claim Daily Reward */
@@ -38,14 +39,11 @@ export default memo(function TsubasaFarmer() {
   return (
     <div className="flex flex-col gap-2 py-4">
       {/* Header */}
-      <div className="flex items-center justify-center gap-2">
-        <img
-          src={TsubasaIcon}
-          alt="Tsubasa Farmer"
-          className="w-8 h-8 rounded-full"
-        />
-        <h1 className="font-bold">Tsubasa Farmer</h1>
-      </div>
+      <FarmerHeader
+        title={"Tsubasa Farmer"}
+        icon={TsubasaIcon}
+        referralLink={`https://t.me/TsubasaRivalsBot/start?startapp=inviter_id-${telegramUser["id"]}`}
+      />
 
       {/* Info */}
       <TsubasaInfoDisplay />

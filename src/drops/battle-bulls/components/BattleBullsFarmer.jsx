@@ -1,10 +1,14 @@
+import FarmerHeader from "@/components/FarmerHeader";
+import Tabs from "@/components/Tabs";
 import toast from "react-hot-toast";
 import useFarmerAsyncTask from "@/hooks/useFarmerAsyncTask";
 import useFarmerAutoTab from "@/hooks/useFarmerAutoTab";
+import useFarmerContext from "@/hooks/useFarmerContext";
 import useMirroredTabs from "@/hooks/useMirroredTabs";
 import { isToday } from "date-fns";
 import { memo } from "react";
 import { useQueryClient } from "@tanstack/react-query";
+
 import BattleBullsCards from "./BattleBullsCards";
 import BattleBullsIcon from "../assets/images/icon.png?format=webp&w=80";
 import BattleBullsInfoDisplay from "./BattleBullsInfoDisplay";
@@ -13,9 +17,9 @@ import useBattleBullsBlockchainMutation from "../hooks/useBattleBullsBlockchainM
 import useBattleBullsClaimDailyRewardMutation from "../hooks/useBattleBullsClaimDailyRewardMutation";
 import useBattleBullsTasksQuery from "../hooks/useBattleBullsTasksQuery";
 import useBattleBullsUserQuery from "../hooks/useBattleBullsUserQuery";
-import Tabs from "@/components/Tabs";
 
 export default memo(function BattleBullsFarmer() {
+  const { telegramUser } = useFarmerContext();
   const tabs = useMirroredTabs("battle-bulls.farmer-tabs", ["cards", "tasks"]);
   const queryClient = useQueryClient();
   const userQuery = useBattleBullsUserQuery();
@@ -91,14 +95,11 @@ export default memo(function BattleBullsFarmer() {
   return (
     <div className="flex flex-col gap-2 py-4">
       {/* Header */}
-      <div className="flex items-center justify-center gap-2">
-        <img
-          src={BattleBullsIcon}
-          alt="BattleBulls Farmer"
-          className="w-8 h-8 rounded-full"
-        />
-        <h1 className="font-bold">BattleBulls Farmer</h1>
-      </div>
+      <FarmerHeader
+        title={"BattleBulls Farmer"}
+        icon={BattleBullsIcon}
+        referralLink={`https://t.me/battle_games_com_bot/start?startapp=frndId${telegramUser["id"]}`}
+      />
 
       {/* Info */}
       <BattleBullsInfoDisplay />

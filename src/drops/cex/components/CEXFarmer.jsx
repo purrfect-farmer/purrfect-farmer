@@ -1,3 +1,4 @@
+import FarmerHeader from "@/components/FarmerHeader";
 import Tabs from "@/components/Tabs";
 import useFarmerAutoTab from "@/hooks/useFarmerAutoTab";
 import useMirroredTabs from "@/hooks/useMirroredTabs";
@@ -7,9 +8,11 @@ import CEXCards from "./CEXCards";
 import CEXIcon from "../assets/images/icon.png?format=webp&w=80";
 import CEXInfoDisplay from "./CEXInfoDisplay";
 import CEXTasks from "./CEXTasks";
+import useCEXUserQuery from "../hooks/useCEXUserQuery";
 
 export default memo(function CEXFarmer() {
   const tabs = useMirroredTabs("cex.farmer-tabs", ["cards", "tasks"]);
+  const userQuery = useCEXUserQuery();
 
   /** Switch Tab Automatically */
   useFarmerAutoTab(tabs);
@@ -17,10 +20,15 @@ export default memo(function CEXFarmer() {
   return (
     <div className="flex flex-col gap-3 py-4">
       {/* Header */}
-      <div className="flex items-center justify-center gap-2">
-        <img src={CEXIcon} alt="CEX Farmer" className="w-8 h-8 rounded-full" />
-        <h1 className="font-bold">CEX Farmer</h1>
-      </div>
+      <FarmerHeader
+        title={"CEX Farmer"}
+        icon={CEXIcon}
+        referralLink={
+          userQuery.data
+            ? `https://t.me/cexio_tap_bot?start=${userQuery.data.refId}`
+            : null
+        }
+      />
 
       {/* Info */}
       <CEXInfoDisplay />

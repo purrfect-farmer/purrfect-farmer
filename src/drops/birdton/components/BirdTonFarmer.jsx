@@ -1,3 +1,4 @@
+import FarmerHeader from "@/components/FarmerHeader";
 import FullSpinner from "@/components/FullSpinner";
 import Tabs from "@/components/Tabs";
 import toast from "react-hot-toast";
@@ -15,7 +16,7 @@ import EnergyIcon from "../assets/images/energy.png?format=webp&w=80";
 import useBirdTonClaimDailyRewardMutation from "../hooks/useBirdTonClaimDailyRewardMutation";
 
 export default memo(function BirdTonFarmer() {
-  const { connected, user } = useFarmerContext();
+  const { connected, user, telegramUser } = useFarmerContext();
 
   const energy = user?.["energy"] || 0;
   const maxEnergy = user?.["energy_capacity"] || 0;
@@ -41,14 +42,11 @@ export default memo(function BirdTonFarmer() {
   return user && connected ? (
     <div className="flex flex-col gap-2 p-4">
       {/* Header */}
-      <div className="flex items-center justify-center gap-2 p-2">
-        <img
-          src={BirdTonIcon}
-          alt="BirdTON Farmer"
-          className="w-5 h-5 rounded-full"
-        />
-        <h1 className="font-bold">BirdTON Farmer</h1>
-      </div>
+      <FarmerHeader
+        title={"BirdTON Farmer"}
+        icon={BirdTonIcon}
+        referralLink={`https://t.me/BIRDTonBot/app?startapp=${telegramUser["id"]}`}
+      />
 
       {/* Balance */}
       <h3 className="flex items-center justify-center gap-2 text-3xl font-bold text-center">

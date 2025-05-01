@@ -1,7 +1,9 @@
+import FarmerHeader from "@/components/FarmerHeader";
 import Tabs from "@/components/Tabs";
 import toast from "react-hot-toast";
 import useFarmerAsyncTask from "@/hooks/useFarmerAsyncTask";
 import useFarmerAutoTab from "@/hooks/useFarmerAutoTab";
+import useFarmerContext from "@/hooks/useFarmerContext";
 import useMirroredTabs from "@/hooks/useMirroredTabs";
 import { delay } from "@/lib/utils";
 import { memo } from "react";
@@ -21,6 +23,7 @@ import useFunaticSetExchangeMutation from "../hooks/useFunaticSetExchangeMutatio
 import useFunaticUserQuery from "../hooks/useFunaticUserQuery";
 
 export default memo(function FunaticFarmer() {
+  const { telegramUser } = useFarmerContext();
   const tabs = useMirroredTabs("funatic.farmer-tabs", [
     "game",
     "cards",
@@ -119,14 +122,11 @@ export default memo(function FunaticFarmer() {
   return (
     <div className="flex flex-col gap-3 py-4">
       {/* Header */}
-      <div className="flex items-center justify-center gap-2">
-        <img
-          src={FunaticIcon}
-          alt="Funatic Farmer"
-          className="w-8 h-8 rounded-full"
-        />
-        <h1 className="font-bold">Funatic Farmer</h1>
-      </div>
+      <FarmerHeader
+        title={"Funatic Farmer"}
+        icon={FunaticIcon}
+        referralLink={`https://t.me/LuckyFunaticBot/lucky_funatic?startapp=${telegramUser["id"]}`}
+      />
 
       {/* Info */}
       <FunaticInfoDisplay />

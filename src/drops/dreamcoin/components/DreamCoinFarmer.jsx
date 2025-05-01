@@ -1,7 +1,9 @@
+import FarmerHeader from "@/components/FarmerHeader";
 import Tabs from "@/components/Tabs";
 import toast from "react-hot-toast";
 import useFarmerAsyncTask from "@/hooks/useFarmerAsyncTask";
 import useFarmerAutoTab from "@/hooks/useFarmerAutoTab";
+import useFarmerContext from "@/hooks/useFarmerContext";
 import useMirroredTabs from "@/hooks/useMirroredTabs";
 import { customLogger, delay } from "@/lib/utils";
 import { memo } from "react";
@@ -20,6 +22,7 @@ import useDreamCoinUpgradeAllLevelMutation from "../hooks/useDreamCoinUpgradeAll
 import useDreamCoinUserQuery from "../hooks/useDreamCoinUserQuery";
 
 export default memo(function DreamCoinFarmer() {
+  const { telegramUser } = useFarmerContext();
   const tabs = useMirroredTabs("dreamcoin.farmer-tabs", ["lottery", "rewards"]);
 
   const userQuery = useDreamCoinUserQuery();
@@ -135,14 +138,11 @@ export default memo(function DreamCoinFarmer() {
     <>
       <div className="flex flex-col gap-2 py-4">
         {/* Header */}
-        <div className="flex items-center justify-center gap-2">
-          <img
-            src={DreamCoinIcon}
-            alt="DreamCoin Farmer"
-            className="w-8 h-8 rounded-full"
-          />
-          <h1 className="font-bold">DreamCoin Farmer</h1>
-        </div>
+        <FarmerHeader
+          title={"DreamCoin Farmer"}
+          icon={DreamCoinIcon}
+          referralLink={`https://t.me/DreamCoinOfficial_bot?start=${telegramUser["id"]}`}
+        />
 
         {/* Info */}
         <DreamCoinInfoDisplay />

@@ -1,18 +1,20 @@
+import FarmerHeader from "@/components/FarmerHeader";
 import { memo } from "react";
 
 import MidasIcon from "../assets/images/icon.png?format=webp&w=80";
+import useMidasUserQuery from "../hooks/useMidasUserQuery";
 
 export default memo(function MidasFarmerHeader() {
+  const query = useMidasUserQuery();
   return (
-    <div className="flex flex-col gap-1">
-      <div className="flex items-center justify-center gap-2">
-        <img
-          src={MidasIcon}
-          alt="Midas Farmer"
-          className="w-8 h-8 rounded-full"
-        />
-        <h1 className="font-bold">Midas Farmer</h1>
-      </div>
-    </div>
+    <FarmerHeader
+      title={"Midas Farmer"}
+      icon={MidasIcon}
+      referralLink={
+        query.data
+          ? `https://t.me/MidasRWA_bot/app?startapp=ref_${query.data["referralCode"]}`
+          : null
+      }
+    />
   );
 });

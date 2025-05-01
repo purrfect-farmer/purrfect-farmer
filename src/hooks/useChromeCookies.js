@@ -63,7 +63,7 @@ export default function useChromeCookies() {
       };
 
       /** Register Callback */
-      chrome.webRequest.onHeadersReceived.addListener(listener, { urls }, [
+      chrome?.webRequest?.onHeadersReceived?.addListener(listener, { urls }, [
         "responseHeaders",
         "extraHeaders",
       ]);
@@ -73,7 +73,7 @@ export default function useChromeCookies() {
 
     return () =>
       listeners.forEach((listener) =>
-        chrome.webRequest.onHeadersReceived.removeListener(listener)
+        chrome?.webRequest?.onHeadersReceived?.removeListener(listener)
       );
   }, [targets]);
 }

@@ -1,5 +1,7 @@
+import FarmerHeader from "@/components/FarmerHeader";
 import Tabs from "@/components/Tabs";
 import useFarmerAutoTab from "@/hooks/useFarmerAutoTab";
+import useFarmerContext from "@/hooks/useFarmerContext";
 import useMirroredTabs from "@/hooks/useMirroredTabs";
 import { CgSpinner } from "react-icons/cg";
 import { memo } from "react";
@@ -14,6 +16,7 @@ import useHrumDailyClaim from "../hooks/useHrumDailyClaim";
 import useHrumDataQueries from "../hooks/useHrumDataQueries";
 
 export default memo(function () {
+  const { telegramUser } = useFarmerContext();
   const dataQueries = useHrumDataQueries();
 
   const hero = dataQueries.data?.[0]?.hero;
@@ -36,14 +39,12 @@ export default memo(function () {
   ) : (
     <div className="flex flex-col gap-2 p-4">
       {/* Header */}
-      <div className="flex items-center justify-center gap-2 p-2">
-        <img
-          src={HrumIcon}
-          alt="Hrum Farmer"
-          className="w-8 h-8 rounded-full"
-        />
-        <h1 className="font-bold">Hrum Farmer</h1>
-      </div>
+      <FarmerHeader
+        title={"Hrum Farmer"}
+        icon={HrumIcon}
+        referralLink={`https://t.me/hrummebot/game?startapp=ref${telegramUser["id"]}`}
+      />
+
       {/* Balance */}
       <HrumBalanceDisplay balance={hero.token} />
 

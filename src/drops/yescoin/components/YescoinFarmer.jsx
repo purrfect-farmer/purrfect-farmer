@@ -1,3 +1,4 @@
+import FarmerHeader from "@/components/FarmerHeader";
 import Tabs from "@/components/Tabs";
 import useFarmerAutoTab from "@/hooks/useFarmerAutoTab";
 import useMirroredTabs from "@/hooks/useMirroredTabs";
@@ -10,6 +11,7 @@ import YescoinIcon from "../assets/images/icon.png?format=webp&w=80";
 import YescoinTasks from "./YescoinTasks";
 import useYescoinAccountInfoQuery from "../hooks/useYescoinAccountInfoQuery";
 import useYescoinDailyCheckIn from "../hooks/useYescoinDailyCheckIn";
+import useYescoinInviteGiftBoxInfoQuery from "../hooks/useYescoinInviteGiftBoxInfoQuery";
 import useYescoinOfflineQuery from "../hooks/useYescoinOfflineQuery";
 import useYescoinSpecialBoxClaim from "../hooks/useYescoinSpecialBoxClaim";
 import useYescoinTaskBonusClaim from "../hooks/useYescoinTaskBonusClaim";
@@ -17,6 +19,7 @@ import useYescoinTaskBonusClaim from "../hooks/useYescoinTaskBonusClaim";
 export default memo(function YescoinFarmer() {
   const accountInfoQuery = useYescoinAccountInfoQuery();
   const tabs = useMirroredTabs("yescoin.farmer-tabs", ["missions", "tasks"]);
+  const inviteGiftBoxInfoQuery = useYescoinInviteGiftBoxInfoQuery();
 
   useYescoinDailyCheckIn();
   useYescoinSpecialBoxClaim();
@@ -29,14 +32,15 @@ export default memo(function YescoinFarmer() {
   return (
     <div className="flex flex-col gap-2 p-4">
       {/* Header */}
-      <div className="flex items-center justify-center gap-2 p-2">
-        <img
-          src={YescoinIcon}
-          alt="Yescoin Farmer"
-          className="w-8 h-8 rounded-full"
-        />
-        <h1 className="font-bold">Yescoin Farmer</h1>
-      </div>
+      <FarmerHeader
+        title={"Yescoin Farmer"}
+        icon={YescoinIcon}
+        referralLink={
+          inviteGiftBoxInfoQuery.data
+            ? `https://t.me/theYescoin_bot/Yescoin?startapp=${inviteGiftBoxInfoQuery.data["inviteCode"]}`
+            : null
+        }
+      />
 
       {accountInfoQuery.isSuccess ? (
         <>

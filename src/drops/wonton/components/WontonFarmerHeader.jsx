@@ -1,14 +1,20 @@
+import FarmerHeader from "@/components/FarmerHeader";
 import { memo } from "react";
 
 import WontonIcon from "../assets/images/icon.png?format=webp&w=80";
+import useWontonUserQuery from "../hooks/useWontonUserQuery";
 
 export default memo(function WontonFarmerHeader() {
+  const query = useWontonUserQuery();
   return (
-    <div className="flex flex-col gap-1 py-4">
-      <div className="flex items-center justify-center gap-2">
-        <img src={WontonIcon} alt="Wonton Farmer" className="w-8 h-8" />
-        <h1 className="font-bold">Wonton Farmer</h1>
-      </div>
-    </div>
+    <FarmerHeader
+      title={"Wonton Farmer"}
+      icon={WontonIcon}
+      referralLink={
+        query.data
+          ? `https://t.me/WontonOrgBot/gameapp?startapp=referralCode=${query.data["inviteCode"]}`
+          : null
+      }
+    />
   );
 });

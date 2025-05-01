@@ -99,6 +99,9 @@ export default function useDropFarmer() {
   /** Telegram Hash */
   const telegramHash = telegramWebApp?.initDataUnsafe?.hash;
 
+  /** Telegram User */
+  const telegramUser = telegramWebApp?.initDataUnsafe?.user;
+
   /** Cloud Sync Mutation */
   const cloudSyncMutation = useCloudSyncMutation(id, queryClient);
 
@@ -500,6 +503,7 @@ export default function useDropFarmer() {
     dataQuery,
     queryClient,
     telegramWebApp,
+    telegramUser,
     isMutating,
     zoomies,
     isZooming,

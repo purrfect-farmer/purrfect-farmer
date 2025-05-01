@@ -1,3 +1,4 @@
+import FarmerHeader from "@/components/FarmerHeader";
 import Tabs from "@/components/Tabs";
 import toast from "react-hot-toast";
 import useFarmerAsyncTask from "@/hooks/useFarmerAsyncTask";
@@ -50,14 +51,20 @@ export default memo(function SlotcoinFarmer() {
   return (
     <div className="flex flex-col gap-2 py-4">
       {/* Header */}
-      <div className="flex items-center justify-center gap-2">
-        <img
-          src={SlotcoinIcon}
-          alt="Slotcoin Farmer"
-          className="w-8 h-8 rounded-full"
-        />
-        <h1 className="font-bold">Slotcoin Farmer</h1>
-      </div>
+      <FarmerHeader
+        title={"Slotcoin Farmer"}
+        icon={SlotcoinIcon}
+        referralLink={
+          infoQuery.data
+            ? `https://t.me/SlotCoinApp_bot/app?startapp=${btoa(
+                JSON.stringify({
+                  ["ref_code"]: infoQuery.data["referral_code"],
+                  ["utm_id"]: "refferal_link_share",
+                })
+              )}`
+            : null
+        }
+      />
 
       {/* Info */}
       <SlotcoinInfoDisplay />

@@ -1,18 +1,20 @@
+import FarmerHeader from "@/components/FarmerHeader";
 import { memo } from "react";
 
 import UnijumpIcon from "../assets/images/icon.png?format=webp&w=80";
+import useUnijumpPlayerStateQuery from "../hooks/useUnijumpPlayerStateQuery";
 
 export default memo(function MoneyBuxFarmerHeader() {
+  const query = useUnijumpPlayerStateQuery();
   return (
-    <div className="flex flex-col gap-1">
-      <div className="flex items-center justify-center gap-2">
-        <img
-          src={UnijumpIcon}
-          alt="Unijump Farmer"
-          className="w-8 h-8 rounded-full"
-        />
-        <h1 className="font-bold">Unijump Farmer</h1>
-      </div>
-    </div>
+    <FarmerHeader
+      title={"Unijump Farmer"}
+      icon={UnijumpIcon}
+      referralLink={
+        query.data
+          ? `https://t.me/unijump_bot/game?startapp=ref${query.data["reflink"]}`
+          : null
+      }
+    />
   );
 });
