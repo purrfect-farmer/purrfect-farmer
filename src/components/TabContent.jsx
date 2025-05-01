@@ -3,6 +3,7 @@ import TabContext from "@/contexts/TabContext";
 import TelegramWebAIcon from "@/assets/images/telegram-web-a.png?format=webp&w=80";
 import TelegramWebKIcon from "@/assets/images/telegram-web-k.png?format=webp&w=80";
 import useAppContext from "@/hooks/useAppContext";
+import useStorageState from "@/hooks/useStorageState";
 import { ErrorBoundary } from "react-error-boundary";
 import { Suspense, memo } from "react";
 import { cn } from "@/lib/utils";
@@ -17,6 +18,11 @@ export default memo(function TabContent({ tab }) {
     preferredTelegramWebVersion,
     dispatchAndOpenTelegramBot,
   } = useAppContext();
+
+  const { value: referralLink } = useStorageState(
+    `farmer-referral-link:${tab.id}`,
+    null
+  );
 
   return (
     <TabContext.Provider value={tab}>
@@ -38,7 +44,7 @@ export default memo(function TabContent({ tab }) {
               "shrink-0"
             )}
             onClick={() =>
-              dispatchAndOpenTelegramBot(tab.telegramLink, {
+              dispatchAndOpenTelegramBot(referralLink || tab.telegramLink, {
                 browserId: tab.id,
                 browserTitle: tab.title,
                 browserIcon: tab.icon,
@@ -59,7 +65,7 @@ export default memo(function TabContent({ tab }) {
               }
               className="size-5 shrink-0"
             />
-            Open Bot
+            Open Bot {referralLink ? "(R)" : null}
           </button>
         ) : null}
 
