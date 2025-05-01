@@ -17,6 +17,7 @@ export default createFarmer({
     origin: "https://tgapp.matchain.io",
     domains: ["tgapp-api.matchain.io"],
   },
+  cacheAuth: false,
 
   /**
    * Fetch Auth
