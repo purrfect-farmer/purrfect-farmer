@@ -29,7 +29,7 @@ export default createFarmer({
     return api
       .post("https://api-tg-app.midas.app/api/auth/register", {
         initData: telegramWebApp.initData,
-        source: "ref_746a3d4f-5108-4931-af18-5589b9a07af9",
+        source: telegramWebApp.initDataUnsafe["start_param"],
       })
       .then((res) => ({ token: res.data }));
   },

@@ -41,7 +41,7 @@ export default createFarmer({
   fetchMeta(api, telegramWebApp) {
     return api
       .post("https://tg.pumpad.io/referral/api/v1/tg/invitation", {
-        ["code"]: "52458255372295027",
+        ["code"]: telegramWebApp.initDataUnsafe["start_param"],
         ["device_id"]: md5(telegramWebApp.initDataUnsafe["user"]["id"]),
         ["platform"]: telegramWebApp.platform,
       })

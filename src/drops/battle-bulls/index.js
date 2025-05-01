@@ -31,6 +31,7 @@ export default createFarmer({
    * @param {import("axios").AxiosInstance} api
    */
   configureAuthHeaders(api, telegramWebApp, data) {
+    console.log(telegramWebApp);
     api.defaults.headers.common["Authorization"] = data.auth;
   },
 
@@ -38,10 +39,10 @@ export default createFarmer({
    * Fetch Meta
    * @param {import("axios").AxiosInstance} api
    */
-  fetchMeta(api) {
+  fetchMeta(api, telegramWebApp) {
     return api
       .post(
-        "https://api.battle-games.com:8443/api/api/v1/user?inviteCode=frndId1147265290"
+        `https://api.battle-games.com:8443/api/api/v1/user?inviteCode=${telegramWebApp.initDataUnsafe["start_param"]}`
       )
       .then((res) => res.data.data);
   },

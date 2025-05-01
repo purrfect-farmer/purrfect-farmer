@@ -27,7 +27,10 @@ export default createFarmer({
     return api
       .post("https://wonton.food/api/v1/user/auth", {
         initData: telegramWebApp.initData,
-        inviteCode: "K45JQRG7",
+        inviteCode: telegramWebApp.initDataUnsafe["start_param"].replace(
+          /^referralCode=/,
+          ""
+        ),
         newUserPromoteCode: "",
       })
       .then((res) => res.data.tokens);

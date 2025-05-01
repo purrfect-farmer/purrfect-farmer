@@ -26,7 +26,11 @@ export default createFarmer({
     return api
       .post("https://api.slotcoin.app/v1/clicker/auth", {
         initData: telegramWebApp.initData,
-        referralCode: "a2dd-60f7",
+        referralCode: telegramWebApp.initDataUnsafe["start_param"]
+          ? JSON.parse(atob(telegramWebApp.initDataUnsafe["start_param"]))[
+              "ref_code"
+            ]
+          : "",
       })
       .then((res) => res.data);
   },

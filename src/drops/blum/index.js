@@ -27,7 +27,10 @@ export default createFarmer({
         payload: {
           initData: telegramWebApp.initData,
         },
-        referralToken: "3AIqvLlFFK",
+        referralToken: telegramWebApp.initDataUnsafe["start_param"].replace(
+          /^ref_/,
+          ""
+        ),
       })
       .then((res) => res.data.token);
   },

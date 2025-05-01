@@ -26,7 +26,7 @@ export default createFarmer({
     return api
       .post("https://api-web.tomarket.ai/tomarket-game/v1/user/login", {
         ["init_data"]: telegramWebApp.initData,
-        ["invite_code"]: "00003s0r",
+        ["invite_code"]: telegramWebApp.initDataUnsafe["start_param"],
         ["from"]: "",
         ["is_bot"]: false,
       })

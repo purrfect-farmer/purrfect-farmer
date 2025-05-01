@@ -30,7 +30,7 @@ export default createFarmer({
         "https://moneybux.xyz/authorization",
         new URLSearchParams({
           initData: telegramWebApp.initData,
-          tgUplineId: "r_1147265290",
+          tgUplineId: telegramWebApp.initDataUnsafe["start_param"],
         })
       )
       .then((res) => res.data);
