@@ -18,6 +18,7 @@ export const createTelegramClient = (session = "") => {
       systemVersion: navigator.platform,
       systemLangCode: "en-US",
       langCode: "en",
+      useWSS: true,
     }
   );
 
