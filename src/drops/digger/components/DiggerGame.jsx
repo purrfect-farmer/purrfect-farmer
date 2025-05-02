@@ -22,8 +22,8 @@ export default memo(function DiggerGame() {
   const chests = useMemo(
     () =>
       chestsQuery.data
-        ?.filter((item) => item.status === "progress")
-        .sort((a, b) => b.chest.id - a.chest.id),
+        ?.filter((item) => item.chest && item.status === "progress")
+        ?.sort((a, b) => b.chest.id - a.chest.id),
     [chestsQuery.data]
   );
 
