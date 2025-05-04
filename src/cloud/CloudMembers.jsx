@@ -1,4 +1,5 @@
 import Input from "@/components/Input";
+import UserIcon from "@/assets/images/user-icon.png?format=webp&w=256";
 import useCloudMembersQuery from "@/hooks/useCloudMembersQuery";
 import { Dialog } from "radix-ui";
 import { HiCheckCircle, HiXCircle } from "react-icons/hi2";
@@ -6,18 +7,6 @@ import { cn, filterCloudUsers } from "@/lib/utils";
 import { useMemo, useState } from "react";
 
 import CloudMemberDialog from "./CloudMemberDialog";
-
-const CLOUD_FARMERS = Object.fromEntries(
-  Object.values(
-    import.meta.glob("@/drops/*/index.js", { eager: true, import: "default" })
-  ).map(({ id, title, icon }) => [
-    id,
-    {
-      title: `${title} Farmer`,
-      icon,
-    },
-  ])
-);
 
 export default function CloudMembers() {
   const [search, setSearch] = useState("");
@@ -77,7 +66,7 @@ export default function CloudMembers() {
                   >
                     {/* Photo */}
                     <img
-                      src={user["photo_url"]}
+                      src={user["photo_url"] || UserIcon}
                       className="w-6 h-6 rounded-full shrink-0"
                     />{" "}
                     {/* Username */}

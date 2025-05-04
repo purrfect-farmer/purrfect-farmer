@@ -1,4 +1,5 @@
 import Input from "@/components/Input";
+import UserIcon from "@/assets/images/user-icon.png?format=webp&w=256";
 import toast from "react-hot-toast";
 import useCloudDisconnectFarmerMutation from "@/hooks/useCloudDisconnectFarmerMutation";
 import useCloudFarmersQuery from "@/hooks/useCloudFarmersQuery";
@@ -116,7 +117,7 @@ export default function CloudFarmers() {
                         >
                           {/* Photo */}
                           <img
-                            src={user["photo_url"]}
+                            src={user["photo_url"] || UserIcon}
                             className="w-6 h-6 rounded-full shrink-0"
                           />{" "}
                           {/* Username */}

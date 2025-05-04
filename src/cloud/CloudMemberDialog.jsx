@@ -1,4 +1,5 @@
 import Alert from "@/components/Alert";
+import UserIcon from "@/assets/images/user-icon.png?format=webp&w=256";
 import toast from "react-hot-toast";
 import useCloudKickMemberMutation from "@/hooks/useCloudKickMemberMutation";
 import { Dialog } from "radix-ui";
@@ -37,7 +38,7 @@ export default function CloudMemberDialog({ user, farmer }) {
       >
         <div className="flex flex-col min-w-0 min-h-0 gap-2 p-4 overflow-auto grow">
           <img
-            src={user["photo_url"]}
+            src={user["photo_url"] || UserIcon}
             className="w-24 h-24 rounded-full mx-auto"
           />
 
