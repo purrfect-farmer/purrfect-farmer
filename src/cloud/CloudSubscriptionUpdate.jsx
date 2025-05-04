@@ -2,66 +2,73 @@ import * as yup from "yup";
 import Input from "@/components/Input";
 import PrimaryButton from "@/components/PrimaryButton";
 import toast from "react-hot-toast";
-import useCloudPasswordUpdateMutation from "@/hooks/useCloudPasswordUpdateMutation";
+import useCloudMemberSubscriptionMutation from "@/hooks/useCloudMemberSubscriptionMutation";
 import { Controller, FormProvider, useForm } from "react-hook-form";
+import { useQueryClient } from "@tanstack/react-query";
 import { yupResolver } from "@hookform/resolvers/yup";
+
 import CloudCenteredDialog from "./CloudCenteredDialog";
 
 /** Schema */
 const schema = yup
   .object({
-    ["current_password"]: yup.string().required().label("Current Password"),
-    ["new_password"]: yup.string().required().label("New Password"),
+    ["user_id"]: yup.string().required().label("User ID"),
+    ["date"]: yup.string().required().label("Date"),
   })
   .required();
 
-export default function CloudPasswordUpdate() {
+export default function CloudSubscriptionUpdate() {
+  const queryClient = useQueryClient();
   /** Form */
   const form = useForm({
     resolver: yupResolver(schema),
     defaultValues: {
-      ["current_password"]: "",
-      ["new_password"]: "",
+      ["user_id"]: "",
+      ["date"]: "",
     },
   });
 
-  const passwordUpdateMutation = useCloudPasswordUpdateMutation(form);
-  const isPending = passwordUpdateMutation.isPending;
+  const subscriptionMutation = useCloudMemberSubscriptionMutation(form);
+  const isPending = subscriptionMutation.isPending;
 
   /** Handle Form Submit */
   const handleFormSubmit = (data) => {
-    passwordUpdateMutation.mutateAsync(data, {
+    subscriptionMutation.mutateAsync(data, {
       onSuccess() {
         /** Reset Form */
         form.reset();
 
         /** Toast */
-        toast.success("Password updated!");
+        toast.success("Subscription updated!");
+
+        /** Refetch Queries */
+        queryClient.refetchQueries({
+          queryKey: ["app", "cloud"],
+        });
       },
     });
   };
 
   return (
     <CloudCenteredDialog
-      title={"Update Password"}
-      description={"Set a new password"}
+      title={"Subscription"}
+      description={"Create or update member's subscription"}
     >
       <FormProvider {...form}>
         <form
           onSubmit={form.handleSubmit(handleFormSubmit)}
           className="flex flex-col gap-2"
         >
-          {/* Current Password */}
+          {/* User ID */}
           <Controller
             disabled={isPending}
-            name="current_password"
+            name="user_id"
             render={({ field, fieldState }) => (
               <>
                 <Input
                   {...field}
-                  type="password"
                   autoComplete="off"
-                  placeholder="Current Password"
+                  placeholder="Telegram User ID"
                 />
                 {fieldState.error?.message ? (
                   <p className="text-red-500">{fieldState.error?.message}</p>
@@ -70,17 +77,17 @@ export default function CloudPasswordUpdate() {
             )}
           />
 
-          {/* New Password */}
+          {/* Date */}
           <Controller
             disabled={isPending}
-            name="new_password"
+            name="date"
             render={({ field, fieldState }) => (
               <>
                 <Input
                   {...field}
-                  type="password"
+                  type="date"
                   autoComplete="off"
-                  placeholder="New Password"
+                  placeholder="Expiration Date"
                 />
                 {fieldState.error?.message ? (
                   <p className="text-red-500">{fieldState.error?.message}</p>

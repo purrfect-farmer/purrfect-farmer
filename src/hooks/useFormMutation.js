@@ -10,11 +10,13 @@ export default function useFormMutation(form, options) {
   return useMutation({
     onError(error) {
       /** Set Errors */
-      Object.entries(error.response?.data?.errors || {}).forEach(([k, v]) =>
-        form.setError(k, {
-          message: v[0],
-        })
-      );
+      if (form) {
+        Object.entries(error.response?.data?.errors || {}).forEach(([k, v]) =>
+          form.setError(k, {
+            message: v[0],
+          })
+        );
+      }
 
       /** Toast Error */
       toast.error(error.response?.data.message || "An error occurred!");
