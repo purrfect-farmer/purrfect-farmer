@@ -2,13 +2,14 @@ import Input from "@/components/Input";
 import toast from "react-hot-toast";
 import useCloudDisconnectFarmerMutation from "@/hooks/useCloudDisconnectFarmerMutation";
 import useCloudFarmersQuery from "@/hooks/useCloudFarmersQuery";
-import useCloudKickMemberMutation from "@/hooks/useCloudKickMemberMutation";
 import { Collapsible } from "radix-ui";
 import { Dialog } from "radix-ui";
 import { HiOutlineXMark } from "react-icons/hi2";
-import { cn } from "@/lib/utils";
+import { cn, filterCloudUsers } from "@/lib/utils";
 import { useCallback } from "react";
 import { useMemo, useState } from "react";
+
+import CloudMemberDialog from "./CloudMemberDialog";
 
 const CLOUD_FARMERS = Object.fromEntries(
   Object.values(
@@ -22,9 +23,8 @@ const CLOUD_FARMERS = Object.fromEntries(
   ])
 );
 
-export default function CloudAccounts() {
+export default function CloudFarmers() {
   const [search, setSearch] = useState("");
-  const kickMemberMutation = useCloudKickMemberMutation();
   const disconnectFarmerMutation = useCloudDisconnectFarmerMutation();
   const farmersQuery = useCloudFarmersQuery();
 
@@ -34,20 +34,9 @@ export default function CloudAccounts() {
         ? Object.entries(farmersQuery.data).map(([k, v]) => ({
             ...v,
             id: k,
-            users: search
-              ? v.users.filter(
-                  (user) =>
-                    user["username"]
-                      ?.toString()
-                      ?.replaceAll("@", "")
-                      ?.toLowerCase()
-                      ?.includes(search.replaceAll("@", "").toLowerCase()) ||
-                    user["title"]
-                      ?.toLowerCase()
-                      ?.includes(search.toLowerCase()) ||
-                    user["user_id"].toString().includes(search)
-                )
-              : v.users,
+            icon: CLOUD_FARMERS[k]?.icon,
+            title: CLOUD_FARMERS[k]?.title || "(Unknown) Farmer",
+            users: search ? filterCloudUsers(v.users) : v.users,
           }))
         : [],
     [search, farmersQuery.data]
@@ -64,19 +53,6 @@ export default function CloudAccounts() {
         .finally(farmersQuery.refetch);
     },
     [disconnectFarmerMutation.mutateAsync, farmersQuery.refetch]
-  );
-
-  const kickMember = useCallback(
-    (id) => {
-      toast
-        .promise(kickMemberMutation.mutateAsync(id), {
-          success: "Successfully kicked",
-          loading: "Kicking...",
-          error: "Error...",
-        })
-        .finally(farmersQuery.refetch);
-    },
-    [kickMemberMutation.mutateAsync, farmersQuery.refetch]
   );
 
   return farmersQuery.isPending ? (
@@ -104,13 +80,8 @@ export default function CloudAccounts() {
                 "data-[state=open]:border-blue-500"
               )}
             >
-              <img
-                src={CLOUD_FARMERS[group.id]?.icon}
-                className="w-6 h-6 rounded-full shrink-0"
-              />
-              <span className="font-bold grow">
-                {CLOUD_FARMERS[group.id]?.title || "(Unknown) Farmer"}
-              </span>
+              <img src={group.icon} className="w-6 h-6 rounded-full shrink-0" />
+              <span className="font-bold grow">{group.title}</span>
               <span className="px-2 py-px text-xs text-white bg-purple-500 rounded-full shrink-0">
                 {group.users.length}
               </span>
@@ -165,72 +136,7 @@ export default function CloudAccounts() {
                           ) : null}
                         </Dialog.Trigger>
 
-                        <Dialog.Portal>
-                          <Dialog.Overlay
-                            className={cn(
-                              "fixed inset-0 z-40",
-                              "flex items-center justify-center",
-                              "p-4 overflow-auto bg-black/50"
-                            )}
-                          >
-                            <Dialog.Content className="flex flex-col w-full max-w-sm gap-6 p-4 bg-white dark:bg-neutral-800 rounded-xl">
-                              <img
-                                src={user["photo_url"]}
-                                className="w-24 h-24 rounded-full mx-auto"
-                              />
-
-                              <div className="flex flex-col">
-                                {/* Title */}
-                                <Dialog.Title
-                                  className={cn(
-                                    "inline-flex items-center justify-center gap-2",
-                                    "text-center",
-                                    "text-xl truncate",
-                                    "text-blue-500 font-bold"
-                                  )}
-                                >
-                                  {user["title"] || "TGUser"}
-                                </Dialog.Title>
-
-                                {/* Description */}
-                                <Dialog.Description className="px-2 text-lg text-center text-orange-500 font-turret-road">
-                                  @{user["username"]}
-                                </Dialog.Description>
-
-                                {/* User ID */}
-                                <p className="px-2 font-bold text-purple-500 text-center">
-                                  User ID: {user["user_id"]}
-                                </p>
-                              </div>
-
-                              <div className="flex flex-col gap-2 mt-2">
-                                {/* Kick Button */}
-                                <button
-                                  title="Kick User"
-                                  disabled={kickMemberMutation.isPending}
-                                  onClick={() => kickMember(user["user_id"])}
-                                  className={cn(
-                                    "px-4 py-2 bg-red-500 text-white rounded-lg",
-                                    "disabled:opacity-60"
-                                  )}
-                                >
-                                  Kick User
-                                </button>
-
-                                {/* Cancel Button */}
-                                <Dialog.Close
-                                  disabled={kickMemberMutation.isPending}
-                                  className={cn(
-                                    "px-4 py-2 bg-neutral-200 dark:bg-neutral-900 rounded-lg",
-                                    "disabled:opacity-60"
-                                  )}
-                                >
-                                  Cancel
-                                </Dialog.Close>
-                              </div>
-                            </Dialog.Content>
-                          </Dialog.Overlay>
-                        </Dialog.Portal>
+                        <CloudMemberDialog user={user} farmer={group} />
                       </Dialog.Root>
                       {/* Terminate Button */}
                       <button

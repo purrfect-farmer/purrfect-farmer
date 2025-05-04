@@ -338,7 +338,7 @@ export default memo(function SpaceAdventureFarmer() {
     <div className="flex flex-col gap-2 py-4">
       {/* Header */}
       <FarmerHeader
-        title={"SpaceAdventure Farmer"}
+        title={"Space Adventure Farmer"}
         icon={SpaceAdventureIcon}
         referralLink={`https://t.me/spaceadv_game_bot/play?startapp=${telegramUser["id"]}`}
       />

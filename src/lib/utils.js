@@ -414,3 +414,17 @@ export function extractInitDataUnsafe(initData) {
     user: JSON.parse(parsedInitData.user),
   };
 }
+
+/** Filter Cloud Users */
+export function filterCloudUsers(users, search) {
+  return users.filter(
+    (user) =>
+      user["username"]
+        ?.toString()
+        ?.replaceAll("@", "")
+        ?.toLowerCase()
+        ?.includes(search.replaceAll("@", "").toLowerCase()) ||
+      user["title"]?.toLowerCase()?.includes(search.toLowerCase()) ||
+      user["user_id"].toString().includes(search)
+  );
+}

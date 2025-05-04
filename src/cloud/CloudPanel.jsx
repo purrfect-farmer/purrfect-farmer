@@ -1,12 +1,16 @@
 import AppIcon from "@/assets/images/icon.png?format=webp&w=56";
+import Tabs from "@/components/Tabs";
 import useAppContext from "@/hooks/useAppContext";
+import useMirroredTabs from "@/hooks/useMirroredTabs";
 
 import CloudFarmers from "./CloudFarmers";
+import CloudMembers from "./CloudMembers";
 import CloudServerDisplay from "./CloudServerDisplay";
 import CloudUserDisplay from "./CloudUserDisplay";
 
 export default function CloudPanel() {
   const { settings } = useAppContext();
+  const tabs = useMirroredTabs("farmers", ["farmers", "members"]);
   const address = settings.cloudServer;
 
   return (
@@ -32,7 +36,15 @@ export default function CloudPanel() {
         <CloudUserDisplay />
 
         {/* Farmer */}
-        <CloudFarmers />
+        <Tabs tabs={tabs}>
+          <Tabs.Content value="farmers">
+            <CloudFarmers />
+          </Tabs.Content>
+
+          <Tabs.Content value="members">
+            <CloudMembers />
+          </Tabs.Content>
+        </Tabs>
       </div>
     </div>
   );
