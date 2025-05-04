@@ -27,7 +27,7 @@ export default function CloudMembers() {
     () =>
       membersQuery.data
         ? search
-          ? filterCloudUsers(membersQuery.data)
+          ? filterCloudUsers(membersQuery.data, search)
           : membersQuery.data
         : [],
     [search, membersQuery.data]

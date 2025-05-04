@@ -36,7 +36,7 @@ export default function CloudFarmers() {
             id: k,
             icon: CLOUD_FARMERS[k]?.icon,
             title: CLOUD_FARMERS[k]?.title || "(Unknown) Farmer",
-            users: search ? filterCloudUsers(v.users) : v.users,
+            users: search ? filterCloudUsers(v.users, search) : v.users,
           }))
         : [],
     [search, farmersQuery.data]
