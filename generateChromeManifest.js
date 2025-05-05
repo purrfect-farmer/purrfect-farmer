@@ -206,6 +206,18 @@ export default function generateChromeManifest(env, pkg) {
                 header: "x-frame-options",
                 operation: "remove",
               },
+              {
+                header: "cross-origin-embedder-policy",
+                operation: "remove",
+              },
+              {
+                header: "cross-origin-opener-policy",
+                operation: "remove",
+              },
+              {
+                header: "cross-origin-resource-policy",
+                operation: "remove",
+              },
             ],
           },
           condition: {
