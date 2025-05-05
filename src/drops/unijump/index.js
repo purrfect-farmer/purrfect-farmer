@@ -18,7 +18,7 @@ export default createFarmer({
     withCredentials: true,
   },
   embedWebPage: true,
-  embedInNewTab: true,
+  embedInNewWindow: true,
 
   /**
    * Fetch Auth

@@ -200,7 +200,7 @@ export default function useZoomies(core) {
           browserTitle: current.drop.title,
           browserIcon: current.drop.icon,
           embedWebPage: current.drop.embedWebPage,
-          embedInNewTab: current.drop.embedInNewTab,
+          embedInNewWindow: current.drop.embedInNewWindow,
         });
       }
     },

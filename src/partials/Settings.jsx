@@ -390,19 +390,6 @@ export default memo(function Settings({ tabs }) {
                           ))}
                         </div>
 
-                        {/* Enable In-App Browser */}
-                        <LabelToggle
-                          onChange={(ev) =>
-                            dispatchAndConfigureSettings(
-                              "enableInAppBrowser",
-                              ev.target.checked
-                            )
-                          }
-                          checked={settings?.enableInAppBrowser}
-                        >
-                          Enable In-App Browser
-                        </LabelToggle>
-
                         {/* Show User Info */}
                         <LabelToggle
                           onChange={(ev) =>
@@ -427,6 +414,51 @@ export default memo(function Settings({ tabs }) {
                           checked={settings?.showMiniAppToolbar}
                         >
                           Show Mini-App Toolbar
+                        </LabelToggle>
+                      </SettingsGroup>
+
+                      {/* Bot Options */}
+                      <SettingsGroup id={"bot"} title={"Bot Options"}>
+                        {/* Enable In-App Browser */}
+                        <LabelToggle
+                          onChange={(ev) =>
+                            dispatchAndConfigureSettings(
+                              "enableInAppBrowser",
+                              ev.target.checked
+                            )
+                          }
+                          checked={settings?.enableInAppBrowser}
+                        >
+                          Enable In-App Browser
+                        </LabelToggle>
+
+                        {/* Mini-App in New Tab */}
+                        <LabelToggle
+                          onChange={(ev) =>
+                            dispatchAndConfigureSettings(
+                              "miniAppInNewWindow",
+                              ev.target.checked
+                            )
+                          }
+                          checked={settings?.miniAppInNewWindow}
+                        >
+                          Mini-App in New Window
+                        </LabelToggle>
+
+                        {/* Auto-Start Bot */}
+                        <LabelToggle
+                          onChange={(ev) =>
+                            dispatchAndConfigureSettings(
+                              "autoStartBot",
+                              ev.target.checked
+                            )
+                          }
+                          checked={settings?.autoStartBot}
+                        >
+                          Auto-Start Bot{" "}
+                          <span className="text-orange-500">
+                            (Session Mode)
+                          </span>
                         </LabelToggle>
 
                         {/* Close Other Bots */}

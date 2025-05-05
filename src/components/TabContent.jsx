@@ -49,7 +49,7 @@ export default memo(function TabContent({ tab }) {
                 browserTitle: tab.title,
                 browserIcon: tab.icon,
                 embedWebPage: tab.embedWebPage,
-                embedInNewTab: tab.embedInNewTab,
+                embedInNewWindow: tab.embedInNewWindow,
               })
             }
           >

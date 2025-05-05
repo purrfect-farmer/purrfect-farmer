@@ -3,7 +3,7 @@ import defaultSettings from "@/core/defaultSettings";
 import toast from "react-hot-toast";
 import tabs, { Browser, TelegramWeb, farmers } from "@/core/tabs";
 import { createElement } from "react";
-import { delay, isBotURL, postPortMessage } from "@/lib/utils";
+import { delay, getWindowCoords, isBotURL, postPortMessage } from "@/lib/utils";
 import { useCallback } from "react";
 import { useDeepCompareMemo } from "use-deep-compare";
 import { useMemo } from "react";
@@ -316,16 +316,20 @@ export default function useCore() {
     "core.close-tab",
     (id) => {
       setOpenedTabs((previous) => {
-        const previousIndex = previous.findIndex((tab) => tab.id === id);
+        if (previous.some((tab) => tab.id === id)) {
+          const previousIndex = previous.findIndex((tab) => tab.id === id);
 
-        const newTabs = previous
-          .filter((item) => item.id !== id)
-          .map((item, index) => ({
-            ...item,
-            active: index === Math.max(previousIndex - 1, 0),
-          }));
+          const newTabs = previous
+            .filter((item) => item.id !== id)
+            .map((item, index) => ({
+              ...item,
+              active: index === Math.max(previousIndex - 1, 0),
+            }));
 
-        return newTabs;
+          return newTabs;
+        } else {
+          return previous;
+        }
       });
 
       /** Cancel Telegram Handlers When Closed */
@@ -752,7 +756,7 @@ export default function useCore() {
         browserTitle,
         browserIcon,
         embedWebPage = import.meta.env.DEV,
-        embedInNewTab = false,
+        embedInNewWindow = false,
         force = false,
       } = {}
     ) => {
@@ -766,8 +770,16 @@ export default function useCore() {
             (async function () {
               const webview = await telegramClient.getWebview(url);
 
-              if (embedInNewTab) {
-                window.open(webview.url);
+              if (settings.miniAppInNewWindow || embedInNewWindow) {
+                /** Get Coords */
+                const coords = await getWindowCoords();
+
+                await chrome.windows.create({
+                  ...coords,
+                  type: "popup",
+                  focused: true,
+                  url: webview.url,
+                });
               } else {
                 /** Push the tab */
                 pushTab(
@@ -821,6 +833,7 @@ export default function useCore() {
       farmerMode,
       messaging.ports,
       settings.enableInAppBrowser,
+      settings.miniAppInNewWindow,
       telegramClient.getEntity,
       telegramClient.getWebview,
       preferredTelegramWebVersion,
