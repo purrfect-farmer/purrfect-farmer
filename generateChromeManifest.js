@@ -73,6 +73,13 @@ export default function generateChromeManifest(env, pkg) {
         content_scripts: [
           {
             matches: ["*://*/*"],
+            js: ["webview-proxy-main.js"],
+            run_at: "document_start",
+            world: "MAIN",
+            all_frames: true,
+          },
+          {
+            matches: ["*://*/*"],
             js: ["content-script-main.js"],
             run_at: "document_start",
             world: "MAIN",
