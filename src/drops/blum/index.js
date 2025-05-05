@@ -14,6 +14,7 @@ export default createFarmer({
     origin: "https://telegram.blum.codes",
     domains: ["blum.codes"],
   },
+  embedWebPage: true,
 
   /**
    * Fetch Auth
