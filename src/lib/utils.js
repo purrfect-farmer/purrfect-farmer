@@ -428,3 +428,21 @@ export function filterCloudUsers(users, search) {
       user["user_id"].toString().includes(search)
   );
 }
+
+/** With Value */
+export function withValue(value, callback) {
+  return callback ? callback(value) : (callback) => callback(value);
+}
+
+/** Tap Value */
+export function tapValue(value, callback) {
+  if (callback) {
+    callback(value);
+  }
+  return callback
+    ? value
+    : (callback) => {
+        callback(value);
+        return value;
+      };
+}

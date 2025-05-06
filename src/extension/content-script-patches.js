@@ -1,12 +1,11 @@
-import { core } from "./content-script-utils";
-
 if (/tgWebAppPlatform=android/.test(location.href)) {
   switch (location.host) {
     /** Bypass KittyVerse on Desktop */
     case "play.kittyverse.ai":
       /** Override Match Media */
+      window.__matchMedia = window.matchMedia;
       window.matchMedia = (...args) => {
-        const result = core.matchMedia(...args);
+        const result = this.__matchMedia(...args);
 
         if (result.media === "(pointer: coarse)") {
           return new Proxy(result, {

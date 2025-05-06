@@ -78,18 +78,6 @@ if (/tgWebAppPlatform=android/.test(location.href)) {
     });
   };
 
-  const getRequestData = async ({ id, ...data }, callback) => {
-    connectWindowMessage(
-      {
-        id,
-        action: "get-request-data",
-        data,
-      },
-      callback,
-      false
-    );
-  };
-
   const openTelegramLink = async ({ id, url }) => {
     return await postWindowMessage({
       id,
@@ -176,26 +164,6 @@ if (/tgWebAppPlatform=android/.test(location.href)) {
       case `get-telegram-web-app:${location.host}`:
         const telegramWebApp = await getTelegramWebApp();
         dispatchTelegramWebApp(telegramWebApp);
-        break;
-
-      case "get-request-data":
-        getRequestData(
-          {
-            id,
-            ...data,
-          },
-          (response) => {
-            try {
-              port.postMessage({
-                id,
-                data: response,
-              });
-            } catch (e) {
-              console.error(e);
-            }
-          }
-        );
-
         break;
 
       case "open-telegram-link":
