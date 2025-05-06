@@ -17,6 +17,7 @@ export default createFarmer({
   apiOptions: {
     withCredentials: true,
   },
+  syncToCloud: true,
   embedWebPage: true,
   embedInNewWindow: true,
 
@@ -33,5 +34,10 @@ export default createFarmer({
       )
       .then((res) => res.data);
   },
-  tasks: {},
+  tasks: {
+    ["daily-reward"]: true,
+    ["claim-leagues"]: true,
+    ["farming"]: true,
+    ["lootbox"]: true,
+  },
 });
