@@ -1,26 +1,31 @@
+import { withValue } from "@/lib/utils";
+
 if (/tgWebAppPlatform=android/.test(location.href)) {
   switch (location.host) {
     /** Bypass KittyVerse on Desktop */
     case "play.kittyverse.ai":
       /** Override Match Media */
-      window.__matchMedia = window.matchMedia;
-      window.matchMedia = (...args) => {
-        const result = this.__matchMedia(...args);
+      window.matchMedia = withValue(
+        window.matchMedia.bind(window),
+        (matchMedia) =>
+          (...args) => {
+            const result = matchMedia(...args);
 
-        if (result.media === "(pointer: coarse)") {
-          return new Proxy(result, {
-            get(target, p) {
-              if (p === "matches") {
-                return true;
-              } else {
-                return target[p];
-              }
-            },
-          });
-        } else {
-          return result;
-        }
-      };
+            if (result.media === "(pointer: coarse)") {
+              return new Proxy(result, {
+                get(target, p) {
+                  if (p === "matches") {
+                    return true;
+                  } else {
+                    return target[p];
+                  }
+                },
+              });
+            } else {
+              return result;
+            }
+          }
+      );
 
       /** Override Element */
       HTMLDivElement.prototype.__addEventListener =
