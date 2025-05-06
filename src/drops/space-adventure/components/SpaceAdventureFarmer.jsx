@@ -56,41 +56,51 @@ export default memo(function SpaceAdventureFarmer() {
     if (userQuery.data && boostsQuery.data) {
       const { user } = userQuery.data;
       const boosts = boostsQuery.data.list;
+
+      const localeTime = user["locale_time"];
+
       const timePassed = differenceInSeconds(
         user["shield_ended_at"]
           ? new Date(user["shield_ended_at"])
-          : new Date(),
+          : new Date(localeTime),
         new Date(user["claimed_last"])
       );
+      
       const lowFuelInSeconds = 10 * 60;
       const fuelEnd = user["fuel_last_at"] + user["fuel"] * 1000;
       const remainingFuelInSeconds = differenceInSeconds(
         new Date(fuelEnd),
-        new Date()
+        new Date(localeTime)
       );
 
       const unclaimed = user["claim"] * timePassed;
 
       const canBuyFuel =
         remainingFuelInSeconds <= lowFuelInSeconds &&
-        isAfter(new Date(), new Date(user["fuel_free_at"]));
+        isAfter(new Date(localeTime), new Date(user["fuel_free_at"]));
 
       const canClaim = unclaimed >= user["claim_max"];
       const canBuyShield =
         user["shield_damage"] > 0 &&
-        isAfter(new Date(), new Date(user["shield_free_at"]));
+        isAfter(new Date(localeTime), new Date(user["shield_free_at"]));
 
       const canBuyImmunity =
-        isAfter(new Date(), new Date(user["shield_immunity_at"])) &&
-        isAfter(new Date(), new Date(user["shield_free_immunity_at"]));
+        isAfter(new Date(localeTime), new Date(user["shield_immunity_at"])) &&
+        isAfter(
+          new Date(localeTime),
+          new Date(user["shield_free_immunity_at"])
+        );
 
-      const canSpin = isAfter(new Date(), new Date(user["spin_after_at"]));
+      const canSpin = isAfter(
+        new Date(localeTime),
+        new Date(user["spin_after_at"])
+      );
 
       const canSkipTutorial = user["tutorial"] !== true;
       const canReadNews = user["new_post"] !== true;
 
       const canClaimDailyReward = isAfter(
-        new Date(),
+        new Date(localeTime),
         new Date(user["daily_next_at"])
       );
 
