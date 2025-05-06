@@ -8,7 +8,7 @@ export default function useUnijumpUpdateSessionMutation() {
     mutationKey: ["unijump", "update-session"],
     mutationFn: async ({ id, chunks, score }) => {
       const pbf = new Pbf();
-      writeSessionUpdate(pbd, {
+      writeSessionUpdate(pbf, {
         id,
         chunks,
         score,

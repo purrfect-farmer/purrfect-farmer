@@ -130,7 +130,7 @@ export function getSession(buffer) {
 }
 
 /**
- * Write Sesison Update
+ * Write Sessison Update
  * @param {import("pbf").default} pbf
  * @param {object} session
  */
@@ -138,4 +138,27 @@ export function writeSessionUpdate(pbf, session) {
   if ((session.id && pbf.writeVarintField(1, session.id), session.chunks))
     for (const i of session.chunks) pbf.writeMessage(2, writeChunkUpdate, i);
   session.score && pbf.writeVarintField(10, session.score);
+}
+
+/**
+ * Write Chunk Update
+ * @param {object} chunk
+ * @param {import("pbf").default} pbf
+ */
+export function writeChunkUpdate(chunk, pbf) {
+  if ((chunk.index && pbf.writeVarintField(1, chunk.index), chunk.entities))
+    for (const i of chunk.entities) pbf.writeMessage(2, writeEntityUpdate, i);
+}
+
+/**
+ * Write Entity Update
+ * @param {object} entity
+ * @param {import("pbf").default} pbf
+ */
+export function writeEntityUpdate(entity, pbf) {
+  entity.update_type && pbf.writeVarintField(1, entity.update_type),
+    entity.entity_index && pbf.writeVarintField(2, entity.entity_index),
+    entity.position_x && pbf.writeFloatField(3, entity.position_x),
+    entity.position_y && pbf.writeFloatField(4, entity.position_y),
+    entity.time && pbf.writeVarintField(5, entity.time);
 }

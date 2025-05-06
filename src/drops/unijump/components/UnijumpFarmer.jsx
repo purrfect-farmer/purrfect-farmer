@@ -2,27 +2,37 @@ import toast from "react-hot-toast";
 import useFarmerAsyncTask from "@/hooks/useFarmerAsyncTask";
 import { customLogger } from "@/lib/utils";
 import { memo } from "react";
-
 import UnijumpFarmerHeader from "./UnijumpFarmerHeader";
 import useUnijumpClaimDailyRewardMutation from "../hooks/useUnijumpClaimDailyRewardMutation";
 import useUnijumpClaimFarmingMutation from "../hooks/useUnijumpClaimFarmingMutation";
 import useUnijumpClaimLeagueMutation from "../hooks/useUnijumpClaimLeagueMutation";
+import useUnijumpCreateSessionMutation from "../hooks/useUnijumpCreateSessionMutation";
+import useUnijumpFreeSpinMutation from "../hooks/useUnijumpFreeSpinMutation";
 import useUnijumpGetFreeLootboxMutation from "../hooks/useUnijumpGetFreeLootboxMutation";
 import useUnijumpOpenLootboxMutation from "../hooks/useUnijumpOpenLootboxMutation";
 import useUnijumpPlayerStateQuery from "../hooks/useUnijumpPlayerStateQuery";
 import useUnijumpStartFarmingMutation from "../hooks/useUnijumpStartFarmingMutation";
+import useUnijumpUpdateSessionMutation from "../hooks/useUnijumpUpdateSessionMutation";
 import useUnijumpUtcQuery from "../hooks/useUnijumpUtcQuery";
 
 export default memo(function UnijumpFarmer() {
   const utcQuery = useUnijumpUtcQuery();
   const playerStateQuery = useUnijumpPlayerStateQuery();
+
   const claimDailyRewardMutation = useUnijumpClaimDailyRewardMutation();
+
   const claimLeagueMutation = useUnijumpClaimLeagueMutation();
+
+  const freeSpinMutation = useUnijumpFreeSpinMutation();
+
   const startFarmingMutation = useUnijumpStartFarmingMutation();
   const claimFarmingMutation = useUnijumpClaimFarmingMutation();
 
   const getFreeLootboxMutation = useUnijumpGetFreeLootboxMutation();
   const openLootboxMutation = useUnijumpOpenLootboxMutation();
+
+  const createSessionMutation = useUnijumpCreateSessionMutation();
+  const updateSessionMutation = useUnijumpUpdateSessionMutation();
 
   /** Farming */
   useFarmerAsyncTask(
@@ -101,6 +111,22 @@ export default memo(function UnijumpFarmer() {
     [utcQuery.data, playerStateQuery.data]
   );
 
+  /** Free Spin */
+  useFarmerAsyncTask(
+    "free-spin",
+    async () => {
+      const { utc } = utcQuery.data;
+      const { wheelSpins } = playerStateQuery.data;
+      const { freeAvailableAt } = wheelSpins;
+
+      /** Get Free Spin */
+      if (freeAvailableAt < utc) {
+        await freeSpinMutation.mutateAsync();
+      }
+    },
+    [utcQuery.data, playerStateQuery.data]
+  );
+
   /** Claim Daily Reward */
   useFarmerAsyncTask(
     "daily-reward",
@@ -129,6 +155,7 @@ export default memo(function UnijumpFarmer() {
     },
     [playerStateQuery.data]
   );
+
   return (
     <div className="flex flex-col p-4">
       <UnijumpFarmerHeader />

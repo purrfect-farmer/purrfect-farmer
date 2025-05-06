@@ -39,5 +39,6 @@ export default createFarmer({
     ["claim-leagues"]: true,
     ["farming"]: true,
     ["lootbox"]: true,
+    ["free-spin"]: true,
   },
 });
