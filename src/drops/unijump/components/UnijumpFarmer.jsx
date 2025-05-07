@@ -2,6 +2,7 @@ import toast from "react-hot-toast";
 import useFarmerAsyncTask from "@/hooks/useFarmerAsyncTask";
 import { customLogger } from "@/lib/utils";
 import { memo } from "react";
+
 import UnijumpFarmerHeader from "./UnijumpFarmerHeader";
 import useUnijumpClaimDailyRewardMutation from "../hooks/useUnijumpClaimDailyRewardMutation";
 import useUnijumpClaimFarmingMutation from "../hooks/useUnijumpClaimFarmingMutation";
@@ -150,7 +151,7 @@ export default memo(function UnijumpFarmer() {
       );
 
       if (currentReward && !currentReward.claimed) {
-        await claimDailyRewardMutation();
+        await claimDailyRewardMutation.mutateAsync();
       }
     },
     [playerStateQuery.data]

@@ -11,7 +11,7 @@ export default memo(function MoneyBuxFarmerHeader() {
       title={"Unijump Farmer"}
       icon={UnijumpIcon}
       referralLink={
-        query.data
+        query.data?.["reflink"]
           ? `https://t.me/unijump_bot/game?startapp=ref${query.data["reflink"]}`
           : null
       }

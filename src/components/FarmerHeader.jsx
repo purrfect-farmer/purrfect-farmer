@@ -3,6 +3,7 @@ import useReferralLink from "@/hooks/useReferralLink";
 import useStorageState from "@/hooks/useStorageState";
 import { CgSpinnerAlt } from "react-icons/cg";
 import { IoCopyOutline } from "react-icons/io5";
+import { customLogger } from "@/lib/utils";
 import { useEffect } from "react";
 
 export default function FarmerHeader({ title, icon, referralLink }) {
@@ -17,10 +18,13 @@ export default function FarmerHeader({ title, icon, referralLink }) {
 
   /** Store Referral Link */
   useEffect(() => {
+    /** Log Link */
+    customLogger(`${id.toUpperCase()} - REFERRAL LINK`, referralLink);
+
     if (referralLink && referralLink !== currentReferralLink) {
       storeReferralLink(referralLink);
     }
-  }, [referralLink, currentReferralLink, storeReferralLink]);
+  }, [id, referralLink, currentReferralLink, storeReferralLink]);
 
   return (
     <div
