@@ -11,14 +11,11 @@ export const createTelegramClient = (session = "") => {
     2496,
     "8da85b0d5bfe62527e5b244c209159c3",
     {
-      connectionRetries: Infinity,
-      retryDelay: 500,
       appVersion: "2.2 K",
       deviceModel: navigator.userAgent,
       systemVersion: navigator.platform,
       systemLangCode: "en-US",
       langCode: "en",
-      useWSS: true,
     }
   );
 
