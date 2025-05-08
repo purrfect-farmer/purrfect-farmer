@@ -27,6 +27,8 @@ export const BOT_TELEGRAM_WEB_APP_ACTION = `set-telegram-web-app:${
 
 export const defaultOpenedTabs = () => [{ ...tabs[0], active: true }];
 
+const browserWindows = new Map();
+
 export default function useCore() {
   /** Settings */
   const { settings, hasRestoredSettings, configureSettings, restoreSettings } =
@@ -470,15 +472,27 @@ export default function useCore() {
   const launchInAppBrowser = useCallback(
     async ({ id, url, title, icon, embedInNewWindow }) => {
       if (settings.miniAppInNewWindow || embedInNewWindow) {
+        /** Get Previous Window */
+        const previousWindow = browserWindows.get(`browser-${id}`);
+
+        if (previousWindow) {
+          /** Remove Previous Window */
+          await chrome.windows.remove(previousWindow.id);
+        }
+
         /** Get Coords */
         const coords = await getWindowCoords();
 
-        await chrome.windows.create({
-          ...coords,
-          type: "popup",
-          focused: true,
-          url,
-        });
+        /** Create New Window */
+        browserWindows.set(
+          `browser-${id}`,
+          await chrome.windows.create({
+            ...coords,
+            type: "popup",
+            focused: true,
+            url,
+          })
+        );
       } else {
         /** Push the tab */
         pushTab(
