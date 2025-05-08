@@ -14,7 +14,7 @@ export default function useMiniAppToolbar(core) {
         port.onMessage.addListener((message) => {
           if (message.action.startsWith("farmer:") === false) {
             mirror.dispatch({
-              action: "mini-app-toolbar:handle-message",
+              action: "mini-app-toolbar:handle-mirror-message",
               data: {
                 name: port.name,
                 message,
@@ -56,15 +56,19 @@ export default function useMiniAppToolbar(core) {
   );
 
   /** Focus Farmer */
-  const focusFarmer = useCallback(() => {
-    window.focus();
+  const focusFarmer = useCallback(async () => {
+    const currentWindow = await chrome.windows.getCurrent();
+
+    await chrome.windows.update(currentWindow.id, {
+      focused: true,
+    });
   }, []);
 
   /** Handle Message */
   useMirroredHandlers(
     useMemo(
       () => ({
-        ["mini-app-toolbar:handle-message"]: handleToolbarMessage,
+        ["mini-app-toolbar:handle-mirror-message"]: handleToolbarMessage,
       }),
       [handleToolbarMessage]
     ),
