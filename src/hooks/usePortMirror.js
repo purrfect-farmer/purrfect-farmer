@@ -1,6 +1,7 @@
 import { useCallback } from "react";
 import { useLayoutEffect } from "react";
 import { useMemo } from "react";
+
 import useEventEmitter from "./useEventEmitter";
 
 /**
@@ -16,7 +17,10 @@ export default function usePortMirror(port) {
   /** Dispatch */
   const dispatch = useCallback(
     (message) => {
-      port?.postMessage(message);
+      port?.postMessage({
+        action: "mirror:" + message.action,
+        ...message,
+      });
     },
     [port]
   );

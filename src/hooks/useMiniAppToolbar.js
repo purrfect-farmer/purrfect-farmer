@@ -1,3 +1,4 @@
+import BrowserIcon from "@/assets/images/browser.png?w=80&format=webp";
 import { useCallback } from "react";
 import { useMemo } from "react";
 
@@ -11,30 +12,47 @@ export default function useMiniAppToolbar(core) {
     (port) => {
       if (port.name.startsWith("mini-app-toolbar:")) {
         port.onMessage.addListener((message) => {
-          mirror.dispatch({
-            action: "mini-app-toolbar:handle-message",
-            data: {
-              name: port.name,
-              message,
-            },
-          });
+          if (message.action.startsWith("mirror:")) {
+            mirror.dispatch({
+              action: "mini-app-toolbar:handle-message",
+              data: {
+                name: port.name,
+                message,
+              },
+            });
+          }
         });
       }
     },
     [mirror]
   );
 
+  /** Handle Toolbar Message */
   const handleToolbarMessage = useCallback(
     (message) => {
-      const port = messaging.ports
+      messaging.ports
         .values()
-        .find((port) => port.name === message.data.name);
-
-      if (port) {
-        port.postMessage(message.data.message);
-      }
+        .filter((port) => port.name === message.data.name)
+        .forEach((port) => {
+          port.postMessage(message.data.message);
+        });
     },
     [messaging.ports]
+  );
+
+  /** Launch in Farmer */
+  const launchInAppBrowser = useCallback(
+    (message) => {
+      const { id, url, icon, title } = message.data;
+
+      core.launchInAppBrowser({
+        id,
+        url,
+        title,
+        icon: icon || BrowserIcon,
+      });
+    },
+    [core.launchInAppBrowser]
   );
 
   /** Handle Message */
@@ -53,8 +71,9 @@ export default function useMiniAppToolbar(core) {
     useMemo(
       () => ({
         ["port-connected"]: dispatchToolbarMessage,
+        ["launch-in-app-browser"]: launchInAppBrowser,
       }),
-      [dispatchToolbarMessage]
+      [dispatchToolbarMessage, launchInAppBrowser]
     ),
     messaging
   );

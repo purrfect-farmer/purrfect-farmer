@@ -135,10 +135,17 @@ export default memo(function AutoClicker() {
     null
   );
 
-  const [, dispatchAndAddPoint] = useMirroredCallback(
-    "mini-app-toolbar:clicker-add-point",
-    () => {
-      storePoints([
+  const [, dispatchAndStorePoints] = useMirroredCallback(
+    "mini-app-toolbar:clicker-store-points",
+    (points) => {
+      storePoints(points);
+    },
+    [storePoints]
+  );
+
+  const dispatchAndAddPoint = useCallback(
+    () =>
+      dispatchAndStorePoints([
         ...points,
         {
           x: Math.floor(window.innerWidth / 2),
@@ -146,27 +153,18 @@ export default memo(function AutoClicker() {
           interval: DEFAULT_INTERVAL,
           unit: DEFAULT_UNIT,
         },
-      ]);
-    },
-    [points]
+      ]),
+    [points, dispatchAndStorePoints]
   );
 
-  const [, dispatchAndRemovePoint] = useMirroredCallback(
-    "mini-app-toolbar:clicker-remove-point",
-    () => {
-      const result = [...points];
-
-      result.pop();
-
-      storePoints(result);
-    },
-    [points]
+  const dispatchAndRemovePoint = useCallback(
+    () => dispatchAndStorePoints(points.slice(0, -1)),
+    [points, dispatchAndStorePoints]
   );
 
-  const [, dispatchAndUpdatePointData] = useMirroredCallback(
-    "mini-app-toolbar:clicker-update-point",
+  const dispatchAndUpdatePointData = useCallback(
     (index, data) =>
-      storePoints(
+      dispatchAndStorePoints(
         points.map((item, itemIndex) =>
           itemIndex === index
             ? {
@@ -176,7 +174,7 @@ export default memo(function AutoClicker() {
             : item
         )
       ),
-    [points]
+    [points, dispatchAndStorePoints]
   );
 
   const clickPoint = useCallback((point) => {

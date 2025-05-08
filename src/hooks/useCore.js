@@ -466,6 +466,38 @@ export default function useCore() {
     [messaging.ports]
   );
 
+  /** Launch In-App Browser */
+  const launchInAppBrowser = useCallback(
+    async ({ id, url, title, icon, embedInNewWindow }) => {
+      if (settings.miniAppInNewWindow || embedInNewWindow) {
+        /** Get Coords */
+        const coords = await getWindowCoords();
+
+        await chrome.windows.create({
+          ...coords,
+          type: "popup",
+          focused: true,
+          url,
+        });
+      } else {
+        /** Push the tab */
+        pushTab(
+          {
+            id: `browser-${id}`,
+            title,
+            icon,
+            component: createElement(Browser, {
+              url,
+            }),
+            reloadedAt: Date.now(),
+          },
+          true
+        );
+      }
+    },
+    [settings.miniAppInNewWindow, pushTab]
+  );
+
   const closeOtherBots = useCallback(async () => {
     const ports = getMiniAppPorts();
     const farmerBotPortName = `mini-app:${import.meta.env.VITE_APP_BOT_HOST}`;
@@ -770,31 +802,13 @@ export default function useCore() {
             (async function () {
               const webview = await telegramClient.getWebview(url);
 
-              if (settings.miniAppInNewWindow || embedInNewWindow) {
-                /** Get Coords */
-                const coords = await getWindowCoords();
-
-                await chrome.windows.create({
-                  ...coords,
-                  type: "popup",
-                  focused: true,
-                  url: webview.url,
-                });
-              } else {
-                /** Push the tab */
-                pushTab(
-                  {
-                    id: `browser-${browserId}`,
-                    title: browserTitle,
-                    icon: browserIcon,
-                    component: createElement(Browser, {
-                      url: webview.url,
-                    }),
-                    reloadedAt: Date.now(),
-                  },
-                  true
-                );
-              }
+              await launchInAppBrowser({
+                id: browserId,
+                icon: browserIcon,
+                title: browserTitle,
+                url: webview.url,
+                embedInNewWindow,
+              });
             })(),
             {
               loading: "Getting WebPage...",
@@ -839,6 +853,7 @@ export default function useCore() {
       preferredTelegramWebVersion,
       openTelegramLink,
       disconnectTelegramObservers,
+      launchInAppBrowser,
     ],
     /** Mirror */
     mirror
@@ -875,6 +890,7 @@ export default function useCore() {
     getFarmerBotPort,
     closeOtherBots,
     getMiniAppPorts,
+    launchInAppBrowser,
     setLocalTelegramSession,
     setCloudTelegramSession,
     dispatchAndOpenURL,

@@ -23,13 +23,11 @@ const DialogContent = styled(Dialog.Content)`
   background-color: white;
   color: black;
   border-radius: 12px;
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
-    Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
+  font-family: "Product Sans";
 `;
 
 const DialogTitle = styled(Dialog.Title)`
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
-    Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
+  font-family: "Product Sans";
   font-size: 14px;
   font-weight: bold;
   text-align: center;
@@ -38,8 +36,7 @@ const DialogTitle = styled(Dialog.Title)`
 `;
 
 const DialogDescription = styled(Dialog.Description)`
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
-    Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
+  font-family: "Product Sans";
   font-size: 12px;
   text-align: center;
   color: #252525;

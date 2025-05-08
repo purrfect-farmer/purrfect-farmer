@@ -31,8 +31,7 @@ const Point = styled.button`
   align-items: center;
   font-weight: bold;
   font-size: 16px;
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
-    Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
+  font-family: "Product Sans";
 
   &:disabled {
     pointer-events: none;
