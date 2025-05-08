@@ -472,12 +472,16 @@ export default function useCore() {
   const launchInAppBrowser = useCallback(
     async ({ id, url, title, icon, embedInNewWindow }) => {
       if (settings.miniAppInNewWindow || embedInNewWindow) {
-        /** Get Previous Window */
-        const previousWindow = browserWindows.get(`browser-${id}`);
+        try {
+          /** Get Previous Window */
+          const previousWindow = browserWindows.get(`browser-${id}`);
 
-        if (previousWindow) {
-          /** Remove Previous Window */
-          await chrome.windows.remove(previousWindow.id);
+          if (previousWindow) {
+            /** Remove Previous Window */
+            await chrome.windows.remove(previousWindow.id);
+          }
+        } catch (e) {
+          console.error(e);
         }
 
         /** Get Coords */
