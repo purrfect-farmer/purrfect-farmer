@@ -73,13 +73,16 @@ const BaseToolbarButton = styled.button`
   padding: 10px;
   font-weight: bold;
   font-size: 12px;
+  border: 0px;
+  outline: 0px;
+  cursor: pointer;
+  box-sizing: border-box;
 
   &:hover,
   &:focus,
   &.active {
     background-color: oklch(0.768 0.233 130.85);
     color: black;
-    outline: 0px;
   }
 `;
 

@@ -76,8 +76,8 @@ export default function useMiniAppToolbar(core) {
     useMemo(
       () => ({
         ["port-connected"]: dispatchToolbarMessage,
-        ["launch-in-app-browser"]: launchInAppBrowser,
-        ["focus-farmer"]: focusFarmer,
+        ["farmer:launch-in-app-browser"]: launchInAppBrowser,
+        ["farmer:focus-farmer"]: focusFarmer,
       }),
       [dispatchToolbarMessage, launchInAppBrowser, focusFarmer]
     ),
