@@ -12,7 +12,7 @@ export default function useMiniAppToolbar(core) {
     (port) => {
       if (port.name.startsWith("mini-app-toolbar:")) {
         port.onMessage.addListener((message) => {
-          if (message.action.startsWith("mirror:")) {
+          if (message.action.startsWith("farmer:") === false) {
             mirror.dispatch({
               action: "mini-app-toolbar:handle-message",
               data: {
@@ -55,6 +55,11 @@ export default function useMiniAppToolbar(core) {
     [core.launchInAppBrowser]
   );
 
+  /** Focus Farmer */
+  const focusFarmer = useCallback(() => {
+    window.focus();
+  }, []);
+
   /** Handle Message */
   useMirroredHandlers(
     useMemo(
@@ -72,8 +77,9 @@ export default function useMiniAppToolbar(core) {
       () => ({
         ["port-connected"]: dispatchToolbarMessage,
         ["launch-in-app-browser"]: launchInAppBrowser,
+        ["focus-farmer"]: focusFarmer,
       }),
-      [dispatchToolbarMessage, launchInAppBrowser]
+      [dispatchToolbarMessage, launchInAppBrowser, focusFarmer]
     ),
     messaging
   );

@@ -31,7 +31,6 @@ export default createFarmer({
    * @param {import("axios").AxiosInstance} api
    */
   configureAuthHeaders(api, telegramWebApp, data) {
-    console.log(telegramWebApp);
     api.defaults.headers.common["Authorization"] = data.auth;
   },
 

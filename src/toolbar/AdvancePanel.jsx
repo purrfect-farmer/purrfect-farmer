@@ -5,6 +5,7 @@ import useAppContext from "@/hooks/useAppContext";
 import useMirroredCallback from "@/hooks/useMirroredCallback";
 import { Dialog } from "radix-ui";
 import {
+  HiOutlineArrowLeft,
   HiOutlineArrowTopRightOnSquare,
   HiOutlineClipboard,
   HiOutlineGlobeAlt,
@@ -102,10 +103,11 @@ const ButtonsContainer = styled.div`
   gap: 8px;
 `;
 
-const [CopyIcon, OpenURLIcon, GlobeIcon] = [
+const [CopyIcon, OpenURLIcon, GlobeIcon, ArrowLeftIcon] = [
   HiOutlineClipboard,
   HiOutlineArrowTopRightOnSquare,
   HiOutlineGlobeAlt,
+  HiOutlineArrowLeft,
 ].map(
   (item) => styled(item)`
     flex-shrink: 0px;
@@ -139,7 +141,7 @@ export default memo(function AdvancePanel() {
         (link) => new URL(link.href, url).href
       );
       port.postMessage({
-        action: "launch-in-app-browser",
+        action: "farmer:launch-in-app-browser",
         data: {
           id: host,
           title: document.title,
@@ -149,6 +151,19 @@ export default memo(function AdvancePanel() {
       });
     },
     [url, host, port]
+  );
+
+  const [, dispatchAndFocusFarmer] = useMirroredCallback(
+    "mini-app-toolbar:focus-farmer",
+    () => {
+      port.postMessage({
+        action: "farmer:focus-farmer",
+        data: {
+          status: true,
+        },
+      });
+    },
+    [port]
   );
 
   return (
@@ -181,6 +196,14 @@ export default memo(function AdvancePanel() {
             {/* Open URL */}
             <ToolbarButton icon={OpenURLIcon} onClick={() => openURL()}>
               Open URL
+            </ToolbarButton>
+
+            {/* Return to Farmer */}
+            <ToolbarButton
+              icon={ArrowLeftIcon}
+              onClick={() => dispatchAndFocusFarmer()}
+            >
+              Return to Farmer
             </ToolbarButton>
           </ButtonsContainer>
         </DialogMainArea>

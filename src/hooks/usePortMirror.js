@@ -17,10 +17,7 @@ export default function usePortMirror(port) {
   /** Dispatch */
   const dispatch = useCallback(
     (message) => {
-      port?.postMessage({
-        action: "mirror:" + message.action,
-        ...message,
-      });
+      port?.postMessage(message);
     },
     [port]
   );
