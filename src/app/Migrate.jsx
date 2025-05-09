@@ -25,10 +25,15 @@ export default function Migrate() {
         toast.error("Bridge is Missing!");
       } else {
         /** Get Updated Key */
-        const getUpdatedKey = (key) =>
-          `account-${account.id}:${
-            /^[a-zA-Z]+$/.test(key) ? kebabCase(key) : key
-          }`;
+        const getUpdatedKey = (key) => {
+          if (key.startsWith("clicker:")) {
+            return `shared:${k}`;
+          } else {
+            return `account-${account.id}:${
+              /^[a-zA-Z]+$/.test(key) ? kebabCase(key) : key
+            }`;
+          }
+        };
 
         /** Retrieve Storage */
         const storage = await chrome.storage.local.get(null);
@@ -45,16 +50,13 @@ export default function Migrate() {
 
         /** Mapped Items */
         const mapped = Object.fromEntries(
-          Object.entries(items).map(([k, v]) => [
-            k.startsWith("clicker:") ? `shared:${k}` : getUpdatedKey(k),
-            v,
-          ])
+          Object.entries(items).map(([k, v]) => [getUpdatedKey(k), v])
         );
 
         /** New Account Data */
         const newAccountData = {
-          title: items?.["settings"]?.["farmerTitle"] || account.title,
-          telegramInitData:
+          ["title"]: items?.["settings"]?.["farmerTitle"] || account.title,
+          ["telegramInitData"]:
             items?.["telegramInitData"] || account.telegramInitData,
         };
 
@@ -77,20 +79,21 @@ export default function Migrate() {
             )
           );
 
-          /** Remove Unused Keys */
+          /** Update Settings */
           mapped[getUpdatedKey("settings")] = {
             ...settings,
             ...importedSettings,
           };
 
-          /** Store Updated Shared Settings */
+          /** Update Shared Settings */
           await storeSharedSettings({
             ...sharedSettings,
             ...importedSharedSettings,
           });
         }
 
-        /** Remove TelegramInitData */
+        /** Delete Items */
+        delete mapped[getUpdatedKey("blum.keywords")];
         delete mapped[getUpdatedKey("telegramInitData")];
 
         await chrome.storage.local.set(mapped);
@@ -119,14 +122,14 @@ export default function Migrate() {
       <div className="flex flex-col gap-2 justify-center items-center">
         <img src={AppIcon} className="size-24" />
         <h1 className="font-turret-road text-center text-3xl text-orange-500">
-          Migrate to V2+
+          Migrate to V2
         </h1>
       </div>
 
       <Alert variant={"warning"}>
         You are about to migrate all previous data from{" "}
         <span className="font-bold">v1</span> to{" "}
-        <span className="font-bold">v2+</span>
+        <span className="font-bold">v2</span>
       </Alert>
 
       <PrimaryButton onClick={() => dispatchAndMigrate()}>

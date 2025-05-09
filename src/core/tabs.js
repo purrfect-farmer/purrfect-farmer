@@ -83,7 +83,7 @@ export const utils = [
   /** Migrate */
   {
     id: "migrate-to-v2",
-    title: "Migrate to V2+",
+    title: "Migrate to V2",
     icon: AppIcon,
     component: createElement(Migrate),
   },

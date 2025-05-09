@@ -138,13 +138,8 @@ export default memo(function BlumAutoTasks() {
   const [action, setAction] = useState(null);
 
   /** Keyword Tasks */
-  const {
-    valuePrompt,
-    dispatchAndPrompt,
-    dispatchAndSubmitPrompt,
-    getResolvedValue,
-    removeResolvedValue,
-  } = useValueTasks("blum-keywords");
+  const { valuePrompt, dispatchAndPrompt, dispatchAndSubmitPrompt } =
+    useValueTasks("blum.keywords");
 
   /** Prompted Task */
   const promptedTask = useMemo(
@@ -290,8 +285,7 @@ export default memo(function BlumAutoTasks() {
               if (!keyword) {
                 keyword = isZooming
                   ? keyword
-                  : (await getResolvedValue(task.id)) ||
-                    (await dispatchAndPrompt(task.id));
+                  : await dispatchAndPrompt(task.id);
               }
 
               if (keyword) {
@@ -300,8 +294,8 @@ export default memo(function BlumAutoTasks() {
                     id: task.id,
                     keyword,
                   });
-                } catch {
-                  await removeResolvedValue(task.id);
+                } catch (e) {
+                  console.error(e);
                 }
               } else continue;
             } catch (e) {
@@ -356,8 +350,6 @@ export default memo(function BlumAutoTasks() {
     action,
     dataQuery.data,
     getKeyword,
-    getResolvedValue,
-    removeResolvedValue,
     dispatchAndPrompt,
     joinTelegramLink,
   ]);
