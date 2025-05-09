@@ -24,7 +24,8 @@ export default function useMirroredTabs(
   const [reset, dispatchAndReset] = useMirroredCallback(
     key + ":reset",
     () => setValue(list[0]),
-    [list, setValue]
+    [list, setValue],
+    mirror
   );
 
   return useValuesMemo({
