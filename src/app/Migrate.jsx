@@ -24,8 +24,8 @@ export default function Migrate() {
       if (typeof chrome?.storage?.local === "undefined") {
         toast.error("Bridge is Missing!");
       } else {
-        /** Is PascalCase */
-        const isPascalCase = (key) => /^[a-zA-Z]+$/.test(key);
+        /** Is CamelCase */
+        const isCamelCase = (key) => /^[a-zA-Z]+$/.test(key);
 
         /** Get Updated Key */
         const getUpdatedKey = (key) => {
@@ -33,7 +33,7 @@ export default function Migrate() {
             return `shared:${key}`;
           } else {
             return `account-${account.id}:${
-              isPascalCase(key) ? kebabCase(key) : key
+              isCamelCase(key) ? kebabCase(key) : key
             }`;
           }
         };
