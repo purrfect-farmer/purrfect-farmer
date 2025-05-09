@@ -24,13 +24,16 @@ export default function Migrate() {
       if (typeof chrome?.storage?.local === "undefined") {
         toast.error("Bridge is Missing!");
       } else {
+        /** Is PascalCase */
+        const isPascalCase = (key) => /^[a-zA-Z]+$/.test(key);
+
         /** Get Updated Key */
         const getUpdatedKey = (key) => {
           if (key.startsWith("clicker:")) {
-            return `shared:${k}`;
+            return `shared:${key}`;
           } else {
             return `account-${account.id}:${
-              /^[a-zA-Z]+$/.test(key) ? kebabCase(key) : key
+              isPascalCase(key) ? kebabCase(key) : key
             }`;
           }
         };
