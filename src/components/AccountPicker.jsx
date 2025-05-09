@@ -121,8 +121,8 @@ export default memo(function AccountPicker() {
           <Dialog.Close
             onClick={() => addAccount()}
             className={cn(
-              "bg-purple-100 dark:bg-purple-700",
-              "text-purple-900 dark:text-purple-100",
+              "bg-purple-100 ",
+              "text-purple-900",
               "p-2.5 rounded-xl shrink-0 font-bold",
               "flex items-center justify-center gap-2"
             )}

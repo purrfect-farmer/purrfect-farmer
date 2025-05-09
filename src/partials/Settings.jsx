@@ -723,8 +723,8 @@ export default memo(function Settings({ tabs }) {
                       onClick={() => dispatchAndReloadApp(true)}
                       className={cn(
                         "mt-1",
-                        "bg-purple-100 dark:bg-purple-700",
-                        "text-purple-900 dark:text-purple-100",
+                        "bg-purple-100 ",
+                        "text-purple-900",
                         "p-2.5 rounded-xl shrink-0 font-bold",
                         "flex items-center justify-center gap-2"
                       )}
@@ -739,8 +739,8 @@ export default memo(function Settings({ tabs }) {
                       title="Restore Default Settings"
                       onClick={() => dispatchAndRestoreSettings()}
                       className={cn(
-                        "bg-neutral-100 dark:bg-neutral-700",
-                        "text-orange-500",
+                        "bg-orange-100",
+                        "text-orange-900",
                         "p-2.5 rounded-xl shrink-0 font-bold",
                         "flex items-center justify-center gap-2"
                       )}
@@ -755,8 +755,8 @@ export default memo(function Settings({ tabs }) {
                         type="button"
                         onClick={() => removeActiveAccount()}
                         className={cn(
-                          "bg-neutral-100 dark:bg-neutral-700",
-                          "text-red-500",
+                          "bg-red-100 dark:bg-red-600",
+                          "text-red-900 dark:text-red-100",
                           "p-2.5 rounded-xl shrink-0 font-bold",
                           "flex items-center justify-center gap-2"
                         )}
