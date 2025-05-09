@@ -75,11 +75,11 @@ export default memo(function AccountPicker() {
         className={cn(
           "bg-white dark:bg-neutral-800",
           "fixed z-50 inset-x-0 bottom-0 flex flex-col h-3/4 rounded-t-xl",
-          "flex flex-col p-4 gap-4"
+          "flex flex-col"
         )}
         onOpenAutoFocus={(ev) => ev.preventDefault()}
       >
-        <div className="flex flex-col min-w-0 min-h-0 gap-2 overflow-auto grow">
+        <div className="flex flex-col min-w-0 min-h-0 gap-2 overflow-auto grow p-4">
           <div className="flex flex-col">
             <Dialog.Title className="text-lg font-bold text-center">
               <span
@@ -116,7 +116,7 @@ export default memo(function AccountPicker() {
         </div>
 
         {/* Add Account / Close Dialog */}
-        <div className="flex flex-col gap-2">
+        <div className="flex flex-col gap-2 p-4">
           {/* Add Account */}
           <Dialog.Close
             onClick={() => addAccount()}
