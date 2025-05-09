@@ -1,4 +1,5 @@
 import { useCallback } from "react";
+
 import useCore from "./useCore";
 import useMirroredState from "./useMirroredState";
 import useMirroredTabs from "./useMirroredTabs";
@@ -18,23 +19,26 @@ export default function useApp() {
   /** Utils Panel Tabs */
   const utilsPanelTabs = useMirroredTabs(
     "app.utils-panel-tabs",
-    ["farmer", "system"],
-    "farmer",
+    ["utils", "system"],
+    "utils",
     core.mirror
   );
 
   const { dispatchAndSetValue: dispatchAndSetUtilsPanelTabValue } =
     utilsPanelTabs;
 
-  /** Show System Utils */
-  const dispatchAndShowSystemUtils = useCallback(() => {
-    dispatchAndSetUtilsPanelTabValue("system");
-    dispatchAndSetShowUtilsPanel(true);
-  }, [
-    /** Deps */
-    dispatchAndSetUtilsPanelTabValue,
-    dispatchAndSetShowUtilsPanel,
-  ]);
+  /** Open Utils Panel */
+  const dispatchAndOpenUtilsPanel = useCallback(
+    (tab = "utils") => {
+      dispatchAndSetUtilsPanelTabValue(tab);
+      dispatchAndSetShowUtilsPanel(true);
+    },
+    [
+      /** Deps */
+      dispatchAndSetUtilsPanelTabValue,
+      dispatchAndSetShowUtilsPanel,
+    ]
+  );
 
   return useValuesMemo({
     ...core,
@@ -44,6 +48,6 @@ export default function useApp() {
     showUtilsPanel,
     setShowUtilsPanel,
     dispatchAndSetShowUtilsPanel,
-    dispatchAndShowSystemUtils,
+    dispatchAndOpenUtilsPanel,
   });
 }

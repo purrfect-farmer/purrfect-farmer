@@ -9,12 +9,12 @@ import { cn, isBotURL } from "@/lib/utils";
 import { memo, useState } from "react";
 import { utils } from "@/core/tabs";
 
-export default memo(function UtilsPanel({ tabs, onOpenChange }) {
+export default memo(function UtilsPanel() {
   const {
-    settings,
+    utilsPanelTabs,
     sharedSettings,
-    dispatchAndConfigureSettings,
     dispatchAndConfigureSharedSettings,
+    dispatchAndSetShowUtilsPanel,
     dispatchAndSetActiveTab,
     dispatchAndOpenTelegramBot,
     dispatchAndOpenTelegramLink,
@@ -60,12 +60,12 @@ export default memo(function UtilsPanel({ tabs, onOpenChange }) {
             </Dialog.Description>
 
             <Tabs
-              tabs={tabs}
+              tabs={utilsPanelTabs}
               rootClassName={"gap-4"}
               triggerClassName={"data-[state=active]:border-blue-500"}
             >
-              {/* Farmer */}
-              <Tabs.Content value="farmer">
+              {/* Utils */}
+              <Tabs.Content value="utils">
                 <div className="flex flex-col gap-2">
                   {/* (SHARED) Show Mini-App Toolbar */}
                   <LabelToggle
@@ -101,7 +101,7 @@ export default memo(function UtilsPanel({ tabs, onOpenChange }) {
                       )}
                       onClick={() => {
                         dispatchAndJoinTelegramLink(telegramLink);
-                        onOpenChange(false);
+                        dispatchAndSetShowUtilsPanel(false);
                       }}
                     >
                       <HiUserPlus className="w-4 h-4 " /> Join
@@ -118,7 +118,7 @@ export default memo(function UtilsPanel({ tabs, onOpenChange }) {
                         isBotURL(telegramLink)
                           ? dispatchAndOpenTelegramBot(telegramLink)
                           : dispatchAndOpenTelegramLink(telegramLink);
-                        onOpenChange(false);
+                        dispatchAndSetShowUtilsPanel(false);
                       }}
                     >
                       <HiArrowTopRightOnSquare className="w-4 h-4 " /> Open

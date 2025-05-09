@@ -181,15 +181,16 @@ export default memo(function ControlArea() {
           open={showUtilsPanel}
           onOpenChange={dispatchAndSetShowUtilsPanel}
         >
-          <Dialog.Trigger className="flex items-center justify-center w-10 h-10 shrink-0">
+          {/* Trigger */}
+          <Dialog.Trigger
+            onClick={() => utilsPanelTabs.reset()}
+            className="flex items-center justify-center w-10 h-10 shrink-0"
+          >
             <img src={CoreSystemIcon} className="w-7 h-7" />
           </Dialog.Trigger>
 
           {/* Utils */}
-          <UtilsPanel
-            tabs={utilsPanelTabs}
-            onOpenChange={dispatchAndSetShowUtilsPanel}
-          />
+          <UtilsPanel />
         </Dialog.Root>
       </div>
     </>

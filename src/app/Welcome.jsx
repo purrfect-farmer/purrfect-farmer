@@ -89,7 +89,7 @@ export default memo(function Welcome() {
     dispatchAndReloadApp,
     dispatchAndOpenFarmerBot,
     dispatchAndOpenTelegramBot,
-    dispatchAndShowSystemUtils,
+    dispatchAndOpenUtilsPanel,
   } = useAppContext();
 
   const tabs = useMirroredTabs("app", ["farmers", "bots"]);
@@ -206,7 +206,7 @@ export default memo(function Welcome() {
             {/* Open System Utils */}
             <ToolbarButton
               title="Open System Utils"
-              onClick={dispatchAndShowSystemUtils}
+              onClick={() => dispatchAndOpenUtilsPanel("system")}
               icon={HiOutlineBars3BottomRight}
             />
 

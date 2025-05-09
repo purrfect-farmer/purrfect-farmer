@@ -1,5 +1,6 @@
 import { useMemo } from "react";
 
+import useMirroredCallback from "./useMirroredCallback";
 import useMirroredState from "./useMirroredState";
 import useValuesMemo from "./useValuesMemo";
 
@@ -19,10 +20,19 @@ export default function useMirroredTabs(
     mirror
   );
 
+  /** Reset Tab */
+  const [reset, dispatchAndReset] = useMirroredCallback(
+    key + ":reset",
+    () => setValue(list[0]),
+    [list, setValue]
+  );
+
   return useValuesMemo({
     value,
     list,
+    reset,
     setValue,
+    dispatchAndReset,
     dispatchAndSetValue,
     rootProps: useValuesMemo({ value, onValueChange: dispatchAndSetValue }),
   });
