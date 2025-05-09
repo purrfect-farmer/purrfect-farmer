@@ -94,6 +94,8 @@ export default function Migrate() {
 
         /** Delete Items */
         delete mapped[getUpdatedKey("blum.keywords")];
+        delete mapped[getUpdatedKey("userAgent")];
+        delete mapped[getUpdatedKey("telegramUser")];
         delete mapped[getUpdatedKey("telegramInitData")];
 
         await chrome.storage.local.set(mapped);
