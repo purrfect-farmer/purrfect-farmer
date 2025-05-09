@@ -1,5 +1,5 @@
 import axios from "axios";
-import defaultSettings from "@/core/defaultSettings";
+import defaultSharedSettings from "@/core/defaultSharedSettings";
 import userAgents from "@/core/userAgents";
 import { clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
@@ -72,6 +72,18 @@ export function delayForMinutes(length, precised = false) {
   return delay(length * 60 * 1000, precised);
 }
 
+/** Remove Account Storage */
+export async function removeAccountStorage(id) {
+  /** Get all Keys */
+  const keys = await chrome.storage.local.getKeys();
+
+  /** Keys to Remove */
+  const keysToRemove = keys.filter((item) => item.startsWith(`account-${id}:`));
+
+  /** Remove Keys */
+  await chrome.storage.local.remove(keysToRemove);
+}
+
 export async function getChromeLocalStorage(key, defaultValue) {
   if (typeof chrome?.storage?.local !== "undefined") {
     const { [key]: value } = await chrome?.storage?.local.get({
@@ -93,20 +105,27 @@ export async function removeChromeLocalStorage(key) {
   await chrome?.storage?.local.remove(key);
 }
 
-export async function getSettings() {
-  const settings = await getChromeLocalStorage("settings", defaultSettings);
+export async function getSharedSettings() {
+  const sharedSettings = await getChromeLocalStorage(
+    "shared:settings",
+    defaultSharedSettings
+  );
 
   return {
-    ...defaultSettings,
-    ...settings,
+    ...defaultSharedSettings,
+    ...sharedSettings,
   };
 }
 
 export async function getUserAgent() {
   return await getChromeLocalStorage(
-    "userAgent",
+    "shared:user-agent",
     userAgents[Math.floor(Math.random() * userAgents.length)]
   );
+}
+
+export async function storeUserAgent(value) {
+  return await setChromeLocalStorage("shared:user-agent", value);
 }
 
 export function isElementVisible(element) {
@@ -340,7 +359,7 @@ export async function resizeFarmerWindow() {
 
 /** Get Window Coords */
 export async function getWindowCoords() {
-  const settings = await getSettings();
+  const sharedSettings = await getSharedSettings();
   const displays = await chrome.system.display.getInfo();
   const primaryDisplay =
     displays.find((display) => display.isPrimary) || displays[0];
@@ -348,11 +367,14 @@ export async function getWindowCoords() {
   const maxWidth = primaryDisplay.workArea.width;
   const maxHeight = primaryDisplay.workArea.height;
 
-  const position = settings.farmerPosition || defaultSettings.farmerPosition;
+  const position =
+    sharedSettings.farmerPosition || defaultSharedSettings.farmerPosition;
   const width = Math.max(
     270,
     Math.floor(
-      maxWidth / (settings.farmersPerWindow || defaultSettings.farmersPerWindow)
+      maxWidth /
+        (sharedSettings.farmersPerWindow ||
+          defaultSharedSettings.farmersPerWindow)
     )
   );
   const left = Math.max(1, Math.floor(position * width) - width);

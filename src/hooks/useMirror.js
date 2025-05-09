@@ -11,7 +11,8 @@ import useSyncedRef from "./useSyncedRef";
 
 export default function useMirror(
   enabled = false,
-  address = import.meta.env.VITE_MIRROR_SERVER
+  address = import.meta.env.VITE_MIRROR_SERVER,
+  isActive = false
 ) {
   const socketRef = useRef(null);
   const [connected, setConnected] = useState(false);
@@ -22,12 +23,12 @@ export default function useMirror(
     removeListeners: removeCommandHandlers,
   } = useEventEmitter();
 
-  /** Store Mirroring State in Ref */
-  const mirroringRef = useSyncedRef(mirroring);
+  /** Store Active State in Ref */
+  const activeStateRef = useSyncedRef(isActive && mirroring);
 
   /** Dispatch */
   const dispatch = useCallback((data) => {
-    if (mirroringRef.current && socketRef.current?.connected) {
+    if (activeStateRef.current && socketRef.current?.connected) {
       socketRef.current?.send(data);
     }
   }, []);
@@ -64,7 +65,7 @@ export default function useMirror(
   useLayoutEffect(() => {
     if (enabled && address) {
       const actionHandler = (arg) => {
-        if (mirroring) {
+        if (activeStateRef.current) {
           handler.emit(arg.action, arg);
         }
       };
@@ -75,7 +76,7 @@ export default function useMirror(
         socketRef.current?.off("command", actionHandler);
       };
     }
-  }, [enabled, address, handler, mirroring]);
+  }, [enabled, address, handler]);
 
   return useMemo(
     () => ({

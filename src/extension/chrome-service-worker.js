@@ -3,7 +3,7 @@ import "@/lib/bridge-service-worker";
 import {
   closeWindow,
   customLogger,
-  getSettings,
+  getSharedSettings,
   getWindowCoords,
 } from "@/lib/utils";
 
@@ -14,8 +14,8 @@ const shouldOpenInNewWindow = async () => {
   /** Get Platform */
   const platform = await chrome.runtime.getPlatformInfo();
 
-  /** Get Settings */
-  const { openFarmerInNewWindow } = await getSettings();
+  /** Get Shared Settings */
+  const { openFarmerInNewWindow } = await getSharedSettings();
 
   return (
     openFarmerInNewWindow || platform.os === chrome.runtime.PlatformOs.ANDROID
@@ -105,8 +105,8 @@ const configureExtension = async ({ openFarmerInNewWindow }) => {
 
 /** Setup Extension */
 const setupExtension = async () => {
-  /** Configure Settings */
-  await configureExtension(await getSettings());
+  /** Configure Shared Settings */
+  await configureExtension(await getSharedSettings());
 };
 
 /** Action */
@@ -126,12 +126,12 @@ chrome.runtime.onStartup.addListener(async () => {
   /** Log */
   customLogger("ON-STARTUP INVOKED", new Date());
 
-  /** Get Settings */
+  /** Get Shared Settings */
   const {
     openFarmerOnStartup,
     openFarmerInNewWindow,
     closeMainWindowOnStartup,
-  } = await getSettings();
+  } = await getSharedSettings();
 
   if (openFarmerOnStartup && openFarmerInNewWindow) {
     /** Open Window */

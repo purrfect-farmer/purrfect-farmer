@@ -1,24 +1,27 @@
 import useMirroredCallback from "@/hooks/useMirroredCallback";
+import { setChromeLocalStorage } from "@/lib/utils";
 import { useCallback } from "react";
 import { useMemo } from "react";
 import { useState } from "react";
 
 import useAppContext from "./useAppContext";
+import useChromeStorageKey from "./useChromeStorageKey";
 
 export default function useValueTasks(key) {
   const { mirror } = useAppContext();
   const [valuePrompt, setValuePrompt] = useState(null);
+  const storageKey = useChromeStorageKey(key, true);
 
   /** Get stored values */
   const getValues = useCallback(
     () =>
       new Promise((res, rej) => {
         chrome?.storage?.local
-          .get(key)
-          .then((settings) => res(settings[key] || {}))
+          .get(storageKey)
+          .then((settings) => res(settings[storageKey] || {}))
           .catch(rej);
       }),
-    [key]
+    [storageKey]
   );
 
   /** Get a resolved value */
@@ -45,16 +48,11 @@ export default function useValueTasks(key) {
             newValues[id] = value;
 
             /** Update the values */
-            chrome?.storage?.local
-              .set({
-                [key]: newValues,
-              })
-              .then(res)
-              .catch(rej);
+            setChromeLocalStorage(storageKey, newValues).then(res).catch(rej);
           })
           .catch(rej);
       }),
-    [key, getValues]
+    [storageKey, getValues]
   );
 
   /** Remove Value */
@@ -69,21 +67,18 @@ export default function useValueTasks(key) {
             delete newValues[id];
 
             /** Update the values */
-            chrome?.storage?.local
-              .set({
-                [key]: newValues,
-              })
+            setChromeLocalStorage(storageKey, newValues)
               .then(resolve)
               .catch(reject);
           })
           .catch(reject);
       }),
-    [key, getValues]
+    [storageKey, getValues]
   );
 
   /** Prompt Value */
   const [, dispatchAndPrompt] = useMirroredCallback(
-    key + ":prompt",
+    storageKey + ":prompt",
     (id) =>
       new Promise((resolve, reject) => {
         setValuePrompt({
@@ -96,7 +91,7 @@ export default function useValueTasks(key) {
 
   /** Handle value Prompt Submit */
   const [submitPrompt, dispatchAndSubmitPrompt] = useMirroredCallback(
-    key + ":submit",
+    storageKey + ":submit",
     (value) => {
       if (!valuePrompt) return;
 
@@ -115,7 +110,7 @@ export default function useValueTasks(key) {
         if (value) {
           /** Dispatch for others to store */
           mirror.dispatch({
-            action: `${key}.store`,
+            action: `${storageKey}.store`,
             data: {
               id,
               value,
@@ -124,7 +119,7 @@ export default function useValueTasks(key) {
         }
       });
     },
-    [key, mirror.dispatch, getResolvedValue]
+    [storageKey, mirror.dispatch, getResolvedValue]
   );
 
   /** Store Value Request */

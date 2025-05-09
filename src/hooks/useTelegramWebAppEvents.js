@@ -3,7 +3,7 @@ import toast from "react-hot-toast";
 import { customLogger } from "@/lib/utils";
 import { useEffect } from "react";
 
-export default function useTelegramWebAppEvents(app) {
+export default function useTelegramWebAppEvents() {
   useEffect(() => {
     /**
      * Handles event

@@ -144,7 +144,7 @@ export default memo(function BlumAutoTasks() {
     dispatchAndSubmitPrompt,
     getResolvedValue,
     removeResolvedValue,
-  } = useValueTasks("blum.keywords");
+  } = useValueTasks("blum-keywords");
 
   /** Prompted Task */
   const promptedTask = useMemo(

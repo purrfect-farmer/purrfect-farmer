@@ -122,7 +122,8 @@ export default memo(function AutoClicker() {
 
   const { value: points, storeValue: storePoints } = useStorageState(
     `clicker:${host}`,
-    []
+    [],
+    true
   );
 
   const [enabled, , dispatchAndSetEnabled] = useMirroredState(

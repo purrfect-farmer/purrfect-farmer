@@ -17,6 +17,7 @@ import { useState } from "react";
 
 import useAppContext from "./useAppContext";
 import useAppQuery from "./useAppQuery";
+import useChromeStorageKey from "./useChromeStorageKey";
 import useCloudSyncMutation from "./useCloudSyncMutation";
 import useFarmerDataQuery from "./useFarmerDataQuery";
 import useRefCallback from "./useRefCallback";
@@ -53,10 +54,12 @@ export default function useDropFarmer() {
     farmerMode,
     setActiveTab,
     settings,
+    account,
+    dispatchAndSetActiveTab,
   } = useAppContext();
 
   /** Farmer Title */
-  const farmerTitle = settings.farmerTitle;
+  const farmerTitle = account.title;
 
   /** Should Sync To Cloud */
   const shouldSyncToCloud = settings.enableCloud && syncToCloud;
@@ -114,7 +117,7 @@ export default function useDropFarmer() {
   );
 
   /** Auth Chrome Storage Key */
-  const authChromeStorageKey = `farmer-auth:${id}`;
+  const authChromeStorageKey = useChromeStorageKey(`farmer-auth:${id}`);
 
   /** Auth Query Key */
   const authQueryKey = useMemo(
@@ -407,6 +410,7 @@ export default function useDropFarmer() {
             t,
             id,
             title,
+            onClick: () => dispatchAndSetActiveTab(id),
           }),
         {
           icon: createElement("img", {

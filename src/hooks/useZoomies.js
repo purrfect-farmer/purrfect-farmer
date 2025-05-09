@@ -17,7 +17,7 @@ export default function useZoomies(core) {
     value: zoomiesState,
     hasRestoredValue: hasRestoredZoomiesState,
     storeValue: storeZoomiesState,
-  } = useStorageState("zoomiesState", defaultZoomiesState);
+  } = useStorageState("zoomies-state", defaultZoomiesState);
 
   /** Farmer Mode */
   const farmerMode = core.farmerMode;

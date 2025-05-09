@@ -1,42 +1,30 @@
-import { extractInitDataUnsafe } from "@/lib/utils";
-import { isBefore, subMinutes } from "date-fns";
 import { useCallback } from "react";
 import { useEffect } from "react";
 import { useMemo } from "react";
 
 import useMessageHandlers from "./useMessageHandlers";
-import useStorageState from "./useStorageState";
+import useTelegramInitData from "./useTelegramInitData";
 import { BOT_TELEGRAM_WEB_APP_ACTION } from "./useCore";
 
 export default function useTelegramUser(core) {
-  const { farmerMode, messaging, telegramClient } = core;
-  const { value: telegramInitData, storeValue: storeTelegramInitData } =
-    useStorageState("telegramInitData", null);
-
-  const telegramUser = useMemo(() => {
-    if (telegramInitData) {
-      const parsed = extractInitDataUnsafe(telegramInitData);
-      const shouldUpdate = isBefore(
-        new Date(parsed["auth_date"] * 1000),
-        subMinutes(new Date(), 10)
-      );
-
-      return {
-        user: parsed["user"],
-        initData: telegramInitData,
-        shouldUpdate,
-      };
-    } else {
-      return null;
-    }
-  }, [telegramInitData]);
+  const {
+    account,
+    farmerMode,
+    messaging,
+    telegramClient,
+    updateActiveAccount,
+  } = core;
+  const { telegramInitData } = account;
+  const telegramUser = useTelegramInitData(telegramInitData);
 
   /** Configure InitData */
   const configureInitData = useCallback(
     ({ telegramWebApp }) => {
-      storeTelegramInitData(telegramWebApp.initData);
+      updateActiveAccount({
+        telegramInitData: telegramWebApp.initData,
+      });
     },
-    [storeTelegramInitData]
+    [updateActiveAccount]
   );
 
   const updateTelegramUser = useCallback(

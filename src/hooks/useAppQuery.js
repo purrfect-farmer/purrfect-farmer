@@ -1,5 +1,4 @@
 import { useCallback } from "react";
-import { useDeepCompareMemo } from "use-deep-compare";
 import { useMemo } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 
@@ -12,11 +11,7 @@ export default function useAppQuery(options, client) {
   const contextClient = useQueryClient();
   const queryClient = client || contextClient;
 
-  const queryKey = useDeepCompareMemo(
-    () => options.queryKey,
-    [...options.queryKey]
-  );
-
+  const queryKey = useMemo(() => options.queryKey, [...options.queryKey]);
   const query = useQuery(options, queryClient);
 
   const updateQueryData = useCallback(

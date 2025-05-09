@@ -1,5 +1,5 @@
-import { useDeepCompareMemo } from "use-deep-compare";
+import { useMemo } from "react";
 
 export default function useValuesMemo(data) {
-  return useDeepCompareMemo(() => data, [data]);
+  return useMemo(() => data, Object.values(data));
 }

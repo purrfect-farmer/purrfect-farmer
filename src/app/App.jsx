@@ -5,16 +5,11 @@ import PrimaryButton from "@/components/PrimaryButton";
 import TabButtonList from "@/components/TabButtonList";
 import TabContent from "@/components/TabContent";
 import useApp from "@/hooks/useApp";
-import useChromeCookies from "@/hooks/useChromeCookies";
 import useCloudSessionCheck from "@/hooks/useCloudSessionCheck";
 import useMiniAppToolbar from "@/hooks/useMiniAppToolbar";
 import useMirroredCallback from "@/hooks/useMirroredCallback";
-import useNetRules from "@/hooks/useNetRules";
 import useSeeker from "@/hooks/useSeeker";
-import useTelegramWebAppEvents from "@/hooks/useTelegramWebAppEvents";
 import useTheme from "@/hooks/useTheme";
-import useWakeLock from "@/hooks/useWakeLock";
-import { Toaster } from "react-hot-toast";
 import { memo } from "react";
 import { useRegisterSW } from "virtual:pwa-register/react";
 
@@ -23,8 +18,8 @@ import Onboarding from "./Onboarding";
 function App() {
   const app = useApp();
   const hasRestoredSettings = app.hasRestoredSettings;
-  const theme = app.settings.theme;
-  const onboarded = app.settings.onboarded;
+  const { account, settings } = app;
+  const { theme, onboarded } = settings;
 
   /** Service Worker */
   const {
@@ -45,12 +40,6 @@ function App() {
     app.mirror
   );
 
-  /** Use Net Rules */
-  useNetRules();
-
-  /** Set Chrome Cookies */
-  useChromeCookies();
-
   /** Use Seeker */
   useSeeker(app);
 
@@ -60,14 +49,8 @@ function App() {
   /** Use Toolbar */
   useMiniAppToolbar(app);
 
-  /** Use TelegramWebApp Events */
-  useTelegramWebAppEvents(app);
-
   /** Apply Theme */
-  useTheme(theme);
-
-  /** Acquire WakeLock */
-  useWakeLock();
+  useTheme(theme, account.active);
 
   return (
     <AppContext.Provider value={app}>
@@ -82,9 +65,7 @@ function App() {
                 Click to Update
               </PrimaryButton>
             ) : null}
-            {app.openedTabs.length > 1 ? (
-              <TabButtonList tabs={app.openedTabs} />
-            ) : null}
+            <TabButtonList tabs={app.openedTabs} />
 
             {/* Tabs Contents Wrapper */}
             <div className="relative min-w-0 min-h-0 overflow-auto grow">
@@ -106,15 +87,6 @@ function App() {
           <FullSpinner />
         </div>
       )}
-      <Toaster
-        position="top-center"
-        toastOptions={{
-          duration: 2000,
-          loading: {
-            duration: Infinity,
-          },
-        }}
-      />
     </AppContext.Provider>
   );
 }

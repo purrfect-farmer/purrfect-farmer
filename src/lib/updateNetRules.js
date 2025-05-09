@@ -1,6 +1,6 @@
 import rules from "@/extension/rule-resources";
 
-import { getUserAgent } from "./utils";
+import { getUserAgent, storeUserAgent } from "./utils";
 
 export default async function updateNetRules() {
   const userAgent = await getUserAgent();
@@ -34,7 +34,5 @@ export default async function updateNetRules() {
   });
 
   /** Store User-Agent */
-  await chrome.storage.local.set({
-    userAgent,
-  });
+  await storeUserAgent(userAgent);
 }

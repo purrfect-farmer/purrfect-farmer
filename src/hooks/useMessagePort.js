@@ -3,8 +3,10 @@ import { useLayoutEffect } from "react";
 import { useMemo } from "react";
 
 import useEventEmitter from "./useEventEmitter";
+import useSyncedRef from "./useSyncedRef";
 
-export default function useMessagePort() {
+export default function useMessagePort(isActive = true) {
+  const ref = useSyncedRef(isActive);
   const ports = useMemo(() => new Set(), []);
   const {
     emitter: handler,
@@ -15,9 +17,11 @@ export default function useMessagePort() {
   /** Dispatch */
   const dispatch = useCallback(
     (message) => {
-      ports.forEach((port) => {
-        port.portMessage(message);
-      });
+      if (ref.current) {
+        ports.forEach((port) => {
+          port.portMessage(message);
+        });
+      }
     },
     [ports]
   );
@@ -28,9 +32,11 @@ export default function useMessagePort() {
       /** Add Port */
       ports.add(port);
 
-      /** Emit Event */
-      handler.emit(`port-connected:${port.name}`, port);
-      handler.emit("port-connected", port);
+      if (ref.current) {
+        /** Emit Event */
+        handler.emit(`port-connected:${port.name}`, port);
+        handler.emit("port-connected", port);
+      }
     },
     [handler, ports]
   );
@@ -38,7 +44,9 @@ export default function useMessagePort() {
   /** Handle Port Message */
   const portMessageHandler = useCallback(
     (message, port) => {
-      handler.emit(message.action, message, port);
+      if (ref.current) {
+        handler.emit(message.action, message, port);
+      }
     },
     [handler]
   );
@@ -54,8 +62,10 @@ export default function useMessagePort() {
       ports.delete(port);
 
       /** Emit Event */
-      handler.emit(`port-disconnected:${port?.name}`, port);
-      handler.emit("port-disconnected", port);
+      if (ref.current) {
+        handler.emit(`port-disconnected:${port?.name}`, port);
+        handler.emit("port-disconnected", port);
+      }
     },
     [handler, ports, portMessageHandler]
   );

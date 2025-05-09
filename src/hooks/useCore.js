@@ -10,6 +10,7 @@ import { useMemo } from "react";
 import { useRef } from "react";
 import { useState } from "react";
 
+import useAccountContext from "./useAccountContext";
 import useCloudAuth from "./useCloudAuth";
 import useCloudTelegramSession from "./useCloudTelegramSession";
 import useLocalTelegramSession from "./useLocalTelegramSession";
@@ -17,6 +18,7 @@ import useMessagePort from "./useMessagePort";
 import useMirror from "./useMirror";
 import useMirroredCallback from "./useMirroredCallback";
 import useSettings from "./useSettings";
+import useSharedContext from "./useSharedContext";
 import useTelegramClient from "./useTelegramClient";
 import useUserAgent from "./useUserAgent";
 import useValuesMemo from "./useValuesMemo";
@@ -27,9 +29,16 @@ export const BOT_TELEGRAM_WEB_APP_ACTION = `set-telegram-web-app:${
 
 export const defaultOpenedTabs = () => [{ ...tabs[0], active: true }];
 
-const browserWindows = new Map();
-
 export default function useCore() {
+  /** Shared Context */
+  const shared = useSharedContext();
+
+  /** Account */
+  const account = useAccountContext();
+
+  /** Destructure Shared */
+  const { updateAccount, removeAccount, configureSharedSettings } = shared;
+
   /** Settings */
   const { settings, hasRestoredSettings, configureSettings, restoreSettings } =
     useSettings();
@@ -77,9 +86,15 @@ export default function useCore() {
     [settings.seekerServer]
   );
 
+  const browserWindows = useMemo(() => new Map(), []);
+
   const telegramClient = useTelegramClient(farmerMode, localTelegramSession);
-  const mirror = useMirror(settings.enableMirror, settings.mirrorServer);
-  const messaging = useMessagePort();
+  const mirror = useMirror(
+    settings.enableMirror,
+    settings.mirrorServer,
+    account.active
+  );
+  const messaging = useMessagePort(account.active);
 
   const preferredTelegramWebVersion =
     settings.preferredTelegramWebVersion ||
@@ -388,6 +403,16 @@ export default function useCore() {
     mirror
   );
 
+  /** Configure Shared Settings */
+  const [, dispatchAndConfigureSharedSettings] = useMirroredCallback(
+    "core.configure-shared-settings",
+    /** Configure Shared Settings */
+    configureSharedSettings,
+    [configureSharedSettings],
+    /** Mirror */
+    mirror
+  );
+
   /** Configure Settings */
   const [, dispatchAndConfigureSettings] = useMirroredCallback(
     "core.configure-settings",
@@ -431,11 +456,11 @@ export default function useCore() {
         });
 
         await chrome?.tabs?.update(tabs[0].id, {
-          url: `https://web.telegram.org/${v}`,
+          url: `https://web.telegram.org/${v}?account=${account.id}`,
           active: true,
         });
       },
-      [],
+      [account.id],
       /** Mirror */
       mirror
     );
@@ -513,7 +538,7 @@ export default function useCore() {
         );
       }
     },
-    [settings.miniAppInNewWindow, pushTab]
+    [settings.miniAppInNewWindow, browserWindows, pushTab]
   );
 
   const closeOtherBots = useCallback(async () => {
@@ -877,8 +902,23 @@ export default function useCore() {
     mirror
   );
 
+  /** Update Active Account */
+  const updateActiveAccount = useCallback(
+    (data) => {
+      updateAccount(account.id, data);
+    },
+    [account.id, updateAccount]
+  );
+
+  /** Remove Active Account */
+  const removeActiveAccount = useCallback(() => {
+    removeAccount(account.id);
+  }, [account.id, removeAccount]);
+
   return useValuesMemo({
     /** Data */
+    ...shared,
+    account,
     farmers,
     drops,
     dropsStatus,
@@ -909,6 +949,8 @@ export default function useCore() {
     closeOtherBots,
     getMiniAppPorts,
     launchInAppBrowser,
+    updateActiveAccount,
+    removeActiveAccount,
     setLocalTelegramSession,
     setCloudTelegramSession,
     dispatchAndOpenURL,
@@ -916,6 +958,7 @@ export default function useCore() {
     dispatchAndReloadApp,
     dispatchAndConfigureSettings,
     dispatchAndRestoreSettings,
+    dispatchAndConfigureSharedSettings,
 
     /** Telegram Web */
     openFarmerBot,

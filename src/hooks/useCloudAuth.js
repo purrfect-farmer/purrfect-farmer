@@ -7,7 +7,7 @@ export default function useCloudAuth() {
     hasRestoredValue: hasRestoredToken,
     storeValue: storeToken,
     removeValue: removeToken,
-  } = useStorageState("cloudAuthToken", null);
+  } = useStorageState("cloud-auth-token", null);
 
   return useValuesMemo({
     token,

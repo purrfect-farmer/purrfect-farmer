@@ -1,58 +1,32 @@
 import defaultSettings from "@/core/defaultSettings";
 import toast from "react-hot-toast";
+import { removeAccountStorage } from "@/lib/utils";
 import { useCallback } from "react";
-import { useMemo } from "react";
 
-import useStorageState from "./useStorageState";
+import useAccountContext from "./useAccountContext";
+import useBaseSettings from "./useBaseSettings";
 import useValuesMemo from "./useValuesMemo";
 
 export default function useSettings() {
-  const {
-    value,
-    hasRestoredValue: hasRestoredSettings,
-    storeValue,
-  } = useStorageState("settings", defaultSettings);
-
-  /** Transform Value */
-  const settings = useMemo(() => ({ ...defaultSettings, ...value }), [value]);
-
-  /** Configure Settings */
-  const configureSettings = useCallback(
-    async (k, v, shouldToast = true) => {
-      const newSettings = {
-        ...settings,
-        [k]: v,
-      };
-
-      /** Update Value */
-      await storeValue(newSettings);
-
-      /** Toast */
-      if (shouldToast) {
-        toast.dismiss();
-        toast.success("Settings Updated");
-      }
-    },
-    [settings, storeValue]
-  );
+  const account = useAccountContext();
+  const { settings, storeSettings, configureSettings, hasRestoredSettings } =
+    useBaseSettings("settings", defaultSettings);
 
   /** Restore Settings */
   const restoreSettings = useCallback(async () => {
-    /** Clear Storage */
-    await chrome.storage.local.clear();
-
-    /** Restore */
-    await storeValue(defaultSettings);
+    /** Remove Storage */
+    await removeAccountStorage(account.id);
 
     /** Toast */
     toast.dismiss();
     toast.success("Settings Restored");
-  }, [defaultSettings, storeValue]);
+  }, [account.id, storeSettings]);
 
   return useValuesMemo({
     settings,
-    hasRestoredSettings,
+    storeSettings,
     configureSettings,
     restoreSettings,
+    hasRestoredSettings,
   });
 }

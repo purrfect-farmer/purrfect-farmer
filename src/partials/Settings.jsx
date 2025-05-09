@@ -7,6 +7,7 @@ import Tabs from "@/components/Tabs";
 import TelegramWebAIcon from "@/assets/images/telegram-web-a.png?format=webp&w=80";
 import TelegramWebKIcon from "@/assets/images/telegram-web-k.png?format=webp&w=80";
 import defaultSettings from "@/core/defaultSettings";
+import defaultSharedSettings from "@/core/defaultSharedSettings";
 import useAppContext from "@/hooks/useAppContext";
 import useMirroredCallback from "@/hooks/useMirroredCallback";
 import useMirroredState from "@/hooks/useMirroredState";
@@ -22,6 +23,7 @@ import {
   HiOutlineListBullet,
   HiOutlineSquares2X2,
 } from "react-icons/hi2";
+import { PiTrashBold } from "react-icons/pi";
 import { Reorder, useDragControls } from "motion/react";
 import { TbProgressCheck } from "react-icons/tb";
 import { cn, resizeFarmerWindow } from "@/lib/utils";
@@ -111,41 +113,70 @@ const SettingsGroup = ({ id, title, children }) => {
 
 export default memo(function Settings({ tabs }) {
   const {
+    account,
+    accounts: farmerAccounts,
+    updateActiveAccount,
     farmerMode,
     telegramClient,
     settings,
+    sharedSettings,
     configureSettings,
+    removeActiveAccount,
+    configureSharedSettings,
     dispatchAndReloadApp,
     dispatchAndRestoreSettings,
     dispatchAndConfigureSettings,
+    dispatchAndConfigureSharedSettings,
     dropsStatus,
     dropsOrder,
     orderedDrops,
   } = useAppContext();
 
+  const {
+    mirrorServer: defaultMirrorServer,
+    cloudServer: defaultCloudServer,
+    seekerServer: defaultSeekerServer,
+  } = defaultSettings;
+
+  const {
+    mirrorServer: currentMirrorServer,
+    cloudServer: currentCloudServer,
+    seekerServer: currentSeekerServer,
+  } = settings;
+
+  const {
+    farmersPerWindow: defaultFarmersPerWindow,
+    farmerPosition: defaultFarmerPosition,
+  } = defaultSharedSettings;
+
+  const {
+    farmersPerWindow: currentFarmersPerWindow,
+    farmerPosition: currentFarmerPosition,
+  } = sharedSettings;
+
   /** Mirror Server */
   const [mirrorServer, setMirrorServer] = useState(
-    settings.mirrorServer || defaultSettings.mirrorServer
+    currentMirrorServer || defaultMirrorServer
   );
 
   /** Cloud Server */
   const [cloudServer, setCloudServer] = useState(
-    settings.cloudServer || defaultSettings.cloudServer
+    currentCloudServer || defaultCloudServer
   );
 
   /** Seeker Server */
   const [seekerServer, setSeekerServer] = useState(
-    settings.seekerServer || defaultSettings.seekerServer
+    currentSeekerServer || defaultSeekerServer
   );
 
-  /** Farmers Per Window */
+  /**(SHARED) Farmers Per Window */
   const [farmersPerWindow, setFarmersPerWindow] = useState(
-    settings.farmersPerWindow || defaultSettings.farmersPerWindow
+    currentFarmersPerWindow || defaultFarmersPerWindow
   );
 
-  /** Farmer Position */
+  /** (SHARED) Farmer Position */
   const [farmerPosition, setFarmerPosition] = useState(
-    settings.farmerPosition || defaultSettings.farmerPosition
+    currentFarmerPosition || defaultFarmerPosition
   );
 
   /** Resize Page */
@@ -168,28 +199,33 @@ export default memo(function Settings({ tabs }) {
     dispatchAndConfigureSettings("seekerServer", seekerServer);
   }, [seekerServer, dispatchAndConfigureSettings]);
 
-  /** Set Farmers Per Window */
+  /** (SHARED) Set Farmers Per Window */
   const [, dispatchAndSetFarmersPerWindow] = useMirroredCallback(
-    "settings.farmers-per-window",
+    "shared-settings.farmers-per-window",
     (amount) => {
-      /** Store Settings */
-      configureSettings("farmersPerWindow", Math.max(3, Number(amount)));
+      /** Store Shared Settings */
+      configureSharedSettings("farmersPerWindow", Math.max(3, Number(amount)));
 
       /** Resize Page */
       resizeSettingsPage();
     },
-    [configureSettings, resizeSettingsPage]
+    [configureSharedSettings, resizeSettingsPage]
   );
 
-  /** Set Farmer Position */
+  /** (SHARED) Set Farmer Position */
   const handleSetFarmerPosition = useCallback(() => {
-    configureSettings(
+    configureSharedSettings(
       "farmerPosition",
       Math.max(1, Math.min(farmersPerWindow, Number(farmerPosition) || 1))
     );
 
     resizeSettingsPage();
-  }, [resizeSettingsPage, farmersPerWindow, farmerPosition, configureSettings]);
+  }, [
+    resizeSettingsPage,
+    farmersPerWindow,
+    farmerPosition,
+    configureSharedSettings,
+  ]);
 
   /** Toggle Drop */
   const toggleDrop = useCallback(
@@ -205,26 +241,23 @@ export default memo(function Settings({ tabs }) {
   /** Update Settings */
   useLayoutEffect(() => {
     /** Set Mirror Server */
-    setMirrorServer(settings.mirrorServer || defaultSettings.mirrorServer);
+    setMirrorServer(currentMirrorServer || defaultMirrorServer);
 
     /** Set Cloud Server */
-    setCloudServer(settings.cloudServer || defaultSettings.cloudServer);
+    setCloudServer(currentCloudServer || defaultCloudServer);
 
     /** Set Seeker Server */
-    setSeekerServer(settings.seekerServer || defaultSettings.seekerServer);
+    setSeekerServer(currentSeekerServer || defaultSeekerServer);
 
     /** Set Farmers Per Window */
-    setFarmersPerWindow(
-      settings.farmersPerWindow || defaultSettings.farmersPerWindow
-    );
+    setFarmersPerWindow(currentFarmersPerWindow || defaultFarmersPerWindow);
 
     /** Set Farmer Position */
-    setFarmerPosition(
-      settings.farmerPosition || defaultSettings.farmerPosition
-    );
+    setFarmerPosition(currentFarmerPosition || defaultFarmerPosition);
   }, [
     /** Deps */
     settings,
+    sharedSettings,
     setMirrorServer,
     setCloudServer,
     setSeekerServer,
@@ -285,13 +318,9 @@ export default memo(function Settings({ tabs }) {
                         {/* Farmer Title */}
                         <SettingsLabel>Farmer Title</SettingsLabel>
                         <Input
-                          value={settings?.farmerTitle}
+                          value={account.title}
                           onChange={(ev) =>
-                            configureSettings(
-                              "farmerTitle",
-                              ev.target.value,
-                              false
-                            )
+                            updateActiveAccount({ title: ev.target.value })
                           }
                           placeholder="Farmer Title"
                         />
@@ -403,15 +432,15 @@ export default memo(function Settings({ tabs }) {
                           Display User Info
                         </LabelToggle>
 
-                        {/* Show Mini-App Toolbar */}
+                        {/* (SHARED) - Show Mini-App Toolbar */}
                         <LabelToggle
                           onChange={(ev) =>
-                            dispatchAndConfigureSettings(
+                            dispatchAndConfigureSharedSettings(
                               "showMiniAppToolbar",
                               ev.target.checked
                             )
                           }
-                          checked={settings?.showMiniAppToolbar}
+                          checked={sharedSettings?.showMiniAppToolbar}
                         >
                           Show Mini-App Toolbar
                         </LabelToggle>
@@ -506,9 +535,7 @@ export default memo(function Settings({ tabs }) {
 
                           {/* Reset Button */}
                           <ResetButton
-                            onClick={() =>
-                              setCloudServer(defaultSettings.cloudServer)
-                            }
+                            onClick={() => setCloudServer(defaultCloudServer)}
                           />
 
                           {/* Set Button */}
@@ -567,9 +594,7 @@ export default memo(function Settings({ tabs }) {
 
                           {/* Reset Button */}
                           <ResetButton
-                            onClick={() =>
-                              setSeekerServer(defaultSettings.seekerServer)
-                            }
+                            onClick={() => setSeekerServer(defaultSeekerServer)}
                           />
 
                           {/* Set Button */}
@@ -577,43 +602,43 @@ export default memo(function Settings({ tabs }) {
                         </div>
                       </SettingsGroup>
 
-                      {/* PC Options */}
+                      {/* (SHARED) PC Options */}
                       <SettingsGroup id="pc" title="PC Options">
                         {/* Open Farmer in new Window */}
                         <LabelToggle
                           onChange={(ev) =>
-                            dispatchAndConfigureSettings(
+                            dispatchAndConfigureSharedSettings(
                               "openFarmerInNewWindow",
                               ev.target.checked
                             )
                           }
-                          checked={settings?.openFarmerInNewWindow}
+                          checked={sharedSettings?.openFarmerInNewWindow}
                         >
                           Open Farmer in new Window
                         </LabelToggle>
 
-                        {/* Open Farmer on StartUp */}
+                        {/* (SHARED) Open Farmer on StartUp */}
                         <LabelToggle
                           onChange={(ev) =>
-                            dispatchAndConfigureSettings(
+                            dispatchAndConfigureSharedSettings(
                               "openFarmerOnStartup",
                               ev.target.checked
                             )
                           }
-                          checked={settings?.openFarmerOnStartup}
+                          checked={sharedSettings?.openFarmerOnStartup}
                         >
                           Open Farmer on Startup
                         </LabelToggle>
 
-                        {/* Close Main Window on Startup */}
+                        {/* (SHARED) Close Main Window on Startup */}
                         <LabelToggle
                           onChange={(ev) =>
-                            dispatchAndConfigureSettings(
+                            dispatchAndConfigureSharedSettings(
                               "closeMainWindowOnStartup",
                               ev.target.checked
                             )
                           }
-                          checked={settings?.closeMainWindowOnStartup}
+                          checked={sharedSettings?.closeMainWindowOnStartup}
                         >
                           Close Main Window on Startup
                         </LabelToggle>
@@ -644,16 +669,14 @@ export default memo(function Settings({ tabs }) {
 
                           {/* Reset Button */}
                           <ResetButton
-                            onClick={() =>
-                              setMirrorServer(defaultSettings.mirrorServer)
-                            }
+                            onClick={() => setMirrorServer(defaultMirrorServer)}
                           />
 
                           {/* Set Button */}
                           <ConfirmButton onClick={handleSetMirrorServer} />
                         </div>
 
-                        {/* Farmers Per Windows */}
+                        {/* (SHARED) Farmers Per Windows */}
                         <label className="mt-4 text-neutral-400">
                           Farmers Per Window (Min - 3)
                         </label>
@@ -675,7 +698,7 @@ export default memo(function Settings({ tabs }) {
                           />
                         </div>
 
-                        {/* Farmer Postion */}
+                        {/* (SHARED) Farmer Postion */}
                         <SettingsLabel>Farmer Position</SettingsLabel>
                         <div className="flex gap-2">
                           <Input
@@ -693,6 +716,7 @@ export default memo(function Settings({ tabs }) {
                       </SettingsGroup>
                     </SettingsContainer>
 
+                    {/* Force Reload Extension */}
                     <button
                       type="button"
                       title="Force Reload Extension"
@@ -715,8 +739,8 @@ export default memo(function Settings({ tabs }) {
                       title="Restore Default Settings"
                       onClick={() => dispatchAndRestoreSettings()}
                       className={cn(
-                        "bg-red-100 dark:bg-red-700",
-                        "text-red-900 dark:text-red-100",
+                        "bg-neutral-100 dark:bg-neutral-700",
+                        "text-orange-500",
                         "p-2.5 rounded-xl shrink-0 font-bold",
                         "flex items-center justify-center gap-2"
                       )}
@@ -724,6 +748,23 @@ export default memo(function Settings({ tabs }) {
                       <HiOutlineArrowPath className="w-4 h-4" /> Restore Default
                       Settings
                     </button>
+
+                    {/* Remove Account */}
+                    {farmerAccounts.length > 1 ? (
+                      <button
+                        type="button"
+                        onClick={() => removeActiveAccount()}
+                        className={cn(
+                          "bg-neutral-100 dark:bg-neutral-700",
+                          "text-red-500",
+                          "p-2.5 rounded-xl shrink-0 font-bold",
+                          "flex items-center justify-center gap-2"
+                        )}
+                      >
+                        <PiTrashBold className="size-4" />
+                        Remove Current Account
+                      </button>
+                    ) : null}
                   </form>
                 </Tabs.Content>
 

@@ -9,8 +9,8 @@ import { isAfter, subMinutes } from "date-fns";
 import { useCallback, useMemo } from "react";
 import { useEffect } from "react";
 import { useState } from "react";
-
 import useAppContext from "./useAppContext";
+import useChromeStorageKey from "./useChromeStorageKey";
 import useMessageHandlers from "./useMessageHandlers";
 
 /**
@@ -28,7 +28,9 @@ export default function useTelegramWebApp({
   const { settings, messaging, farmerMode, telegramClient } = useAppContext();
 
   /** WebApp Chrome Storage Key */
-  const webAppChromeStorageKey = `farmer-telegram-web-app:${id}`;
+  const webAppChromeStorageKey = useChromeStorageKey(
+    `farmer-telegram-web-app:${id}`
+  );
 
   /** Reset TelegramWebApp */
   const resetTelegramWebApp = useCallback(async () => {

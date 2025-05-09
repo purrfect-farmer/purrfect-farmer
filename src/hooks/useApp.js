@@ -1,5 +1,4 @@
 import { useCallback } from "react";
-
 import useCore from "./useCore";
 import useMirroredState from "./useMirroredState";
 import useMirroredTabs from "./useMirroredTabs";

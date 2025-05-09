@@ -12,7 +12,9 @@ import { utils } from "@/core/tabs";
 export default memo(function UtilsPanel({ tabs, onOpenChange }) {
   const {
     settings,
+    sharedSettings,
     dispatchAndConfigureSettings,
+    dispatchAndConfigureSharedSettings,
     dispatchAndSetActiveTab,
     dispatchAndOpenTelegramBot,
     dispatchAndOpenTelegramLink,
@@ -65,15 +67,15 @@ export default memo(function UtilsPanel({ tabs, onOpenChange }) {
               {/* Farmer */}
               <Tabs.Content value="farmer">
                 <div className="flex flex-col gap-2">
-                  {/* Show Mini-App Toolbar */}
+                  {/* (SHARED) Show Mini-App Toolbar */}
                   <LabelToggle
                     onChange={(ev) => {
-                      dispatchAndConfigureSettings(
+                      dispatchAndConfigureSharedSettings(
                         "showMiniAppToolbar",
                         ev.target.checked
                       );
                     }}
-                    checked={settings?.showMiniAppToolbar}
+                    checked={sharedSettings?.showMiniAppToolbar}
                   >
                     Show Mini-App Toolbar
                   </LabelToggle>

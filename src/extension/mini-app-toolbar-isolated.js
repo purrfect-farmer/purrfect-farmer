@@ -1,7 +1,7 @@
 import MiniAppToolbar from "@/app/MiniAppToolbar.jsx";
 import { createElement } from "react";
 import { createRoot } from "react-dom/client";
-import { getSettings } from "@/lib/utils";
+import { getSharedSettings } from "@/lib/utils";
 
 /** Initial Location */
 const INITIAL_HOST = location.host;
@@ -53,7 +53,7 @@ if (/tgWebAppPlatform=android/.test(location.href)) {
   /** Watch Ready State */
   document.addEventListener("readystatechange", async (ev) => {
     if (document.readyState === "interactive") {
-      const { showMiniAppToolbar } = await getSettings();
+      const { showMiniAppToolbar } = await getSharedSettings();
 
       /** Create Initial Toolbar */
       if (showMiniAppToolbar) {
@@ -61,9 +61,9 @@ if (/tgWebAppPlatform=android/.test(location.href)) {
       }
 
       /** Watch Storage for Settings Change */
-      chrome.storage.local.onChanged.addListener(({ settings }) => {
-        if (settings?.newValue) {
-          const { showMiniAppToolbar } = settings.newValue;
+      chrome.storage.local.onChanged.addListener(({ sharedSettings }) => {
+        if (sharedSettings?.newValue) {
+          const { showMiniAppToolbar } = sharedSettings.newValue;
 
           if (showMiniAppToolbar) {
             createToolbar();

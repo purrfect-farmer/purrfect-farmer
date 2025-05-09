@@ -15,7 +15,6 @@ import TelegramWebKIcon from "@/assets/images/telegram-web-k.png?format=webp&w=8
 import ToolbarButton from "@/components/ToolbarButton";
 import WelcomeIcon from "@/assets/images/icon-unwrapped-cropped.png?format=webp&h=224";
 import axios from "axios";
-import defaultSettings from "@/core/defaultSettings";
 import useAppContext from "@/hooks/useAppContext";
 import useAppQuery from "@/hooks/useAppQuery";
 import useMirroredState from "@/hooks/useMirroredState";
@@ -75,6 +74,7 @@ export default memo(function Welcome() {
     useMirroredState("app.toggle-links-panel", false);
 
   const {
+    account,
     farmers,
     drops,
     settings,
@@ -159,10 +159,12 @@ export default memo(function Welcome() {
 
   /** Update Title */
   useEffect(() => {
-    document.title = `${
-      settings.farmerTitle || defaultSettings.farmerTitle
-    } - ${import.meta.env.VITE_APP_NAME}`;
-  }, [settings.farmerTitle, defaultSettings.farmerTitle]);
+    if (account.active) {
+      document.title = `${account.title || "TGUser"} - ${
+        import.meta.env.VITE_APP_NAME
+      }`;
+    }
+  }, [account.active, account.title]);
 
   return (
     <>
@@ -277,7 +279,7 @@ export default memo(function Welcome() {
             onClick={configureAppSettings}
             className="font-bold leading-none text-center text-blue-500 cursor-pointer"
           >
-            {settings.farmerTitle || defaultSettings.farmerTitle}
+            {account.title || "TGUser"}
           </p>
 
           {/* Mirror Status */}
