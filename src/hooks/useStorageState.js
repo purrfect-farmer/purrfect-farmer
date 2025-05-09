@@ -50,16 +50,6 @@ export default function useStorageState(key, defaultValue, shared = false) {
   useLayoutEffect(() => {
     /** Restore Value */
     getChromeLocalStorage(storageKey, defaultValue).then(async (value) => {
-      /** Get Keys */
-      const keys = (await chrome?.storage?.local?.getKeys?.()) ?? [];
-
-      /** Save in Storage */
-      if (!keys.includes(storageKey)) {
-        await chrome?.storage?.local?.set({
-          [storageKey]: value,
-        });
-      }
-
       /** Set Value */
       setValue(value);
       setHasRestoredValue(true);

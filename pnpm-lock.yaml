@@ -44,6 +44,9 @@ importers:
       crypto-js:
         specifier: ^4.2.0
         version: 4.2.0
+      crypto-random-string:
+        specifier: ^5.0.0
+        version: 5.0.0
       date-fns:
         specifier: ^4.1.0
         version: 4.1.0
@@ -2495,6 +2498,10 @@ packages:
   crypto-random-string@2.0.0:
     resolution: {integrity: sha512-v1plID3y9r/lPhviJ1wrXpLeyUIGAZ2SHNYTEapm7/8A9nLPoyvVp3RK/EPFqn5kEznyWgYZNsRtYYIWbuG8KA==}
     engines: {node: '>=8'}
+
+  crypto-random-string@5.0.0:
+    resolution: {integrity: sha512-KWjTXWwxFd6a94m5CdRGW/t82Tr8DoBc9dNnPCAbFI1EBweN6v1tv8y4Y1m7ndkp/nkIBRxUxAzpaBnR2k3bcQ==}
+    engines: {node: '>=14.16'}
 
   css-color-keywords@1.0.0:
     resolution: {integrity: sha512-FyyrDHZKEjXDpNJYvVsV960FiqQyXc/LlYmsxl2BcdMb2WPx0OGRVgTg55rPSyLSNMqP52R9r8geSp7apN3Ofg==}
@@ -7177,6 +7184,10 @@ snapshots:
   crypto-js@4.2.0: {}
 
   crypto-random-string@2.0.0: {}
+
+  crypto-random-string@5.0.0:
+    dependencies:
+      type-fest: 2.19.0
 
   css-color-keywords@1.0.0: {}
 

@@ -32,11 +32,9 @@ export default function useMessagePort(isActive = true) {
       /** Add Port */
       ports.add(port);
 
-      if (ref.current) {
-        /** Emit Event */
-        handler.emit(`port-connected:${port.name}`, port);
-        handler.emit("port-connected", port);
-      }
+      /** Emit Event */
+      handler.emit(`port-connected:${port.name}`, port);
+      handler.emit("port-connected", port);
     },
     [handler, ports]
   );
@@ -62,10 +60,8 @@ export default function useMessagePort(isActive = true) {
       ports.delete(port);
 
       /** Emit Event */
-      if (ref.current) {
-        handler.emit(`port-disconnected:${port?.name}`, port);
-        handler.emit("port-disconnected", port);
-      }
+      handler.emit(`port-disconnected:${port?.name}`, port);
+      handler.emit("port-disconnected", port);
     },
     [handler, ports, portMessageHandler]
   );
@@ -76,23 +72,29 @@ export default function useMessagePort(isActive = true) {
      * @param {chrome.runtime.Port} port
      */
     const portConnectHandler = (port) => {
-      /** Message Handler */
-      port.onMessage?.addListener(portMessageHandler);
+      if (ref.current) {
+        /** Message Handler */
+        port.onMessage?.addListener(portMessageHandler);
 
-      /** Register Disconnect */
-      port.onDisconnect?.addListener(removePort);
+        /** Register Disconnect */
+        port.onDisconnect?.addListener(removePort);
 
-      /** Add Port */
-      addPort(port);
+        /** Add Port */
+        addPort(port);
+      }
     };
 
     /** Listen for Port Connection */
     chrome?.runtime?.onConnect.addListener(portConnectHandler);
 
     return () => {
+      /** Unregister Listener */
       chrome?.runtime?.onConnect.removeListener(portConnectHandler);
+
+      /** Remove all ports */
+      ports.values().forEach((port) => removePort(port));
     };
-  }, [portMessageHandler, addPort, removePort]);
+  }, [ports, portMessageHandler, addPort, removePort]);
 
   return useMemo(
     () => ({

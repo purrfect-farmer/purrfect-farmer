@@ -38,6 +38,7 @@
     "copy-to-clipboard": "^3.3.3",
     "crx": "^5.0.1",
     "crypto-js": "^4.2.0",
+    "crypto-random-string": "^5.0.0",
     "date-fns": "^4.1.0",
     "events": "^3.3.0",
     "md5": "^2.3.0",

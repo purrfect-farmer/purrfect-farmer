@@ -1,6 +1,7 @@
+import cryptoRandomString from "crypto-random-string";
 import defaultAccounts from "@/core/defaultAccounts";
 import defaultSharedSettings from "@/core/defaultSharedSettings";
-import { extractInitDataUnsafe, removeAccountStorage, uuid } from "@/lib/utils";
+import { extractInitDataUnsafe, removeAccountStorage } from "@/lib/utils";
 import { useCallback } from "react";
 import { useLayoutEffect } from "react";
 import { useMemo } from "react";
@@ -52,7 +53,9 @@ export default function useSharedCore() {
   const addAccount = useCallback(async () => {
     /** New Account */
     const newPersistedAccount = {
-      id: uuid(),
+      id: cryptoRandomString({
+        length: 10,
+      }),
       title: `Account ${persistedAccounts.length + 1}`,
       telegramInitData: null,
     };

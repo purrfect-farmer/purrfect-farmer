@@ -30,7 +30,7 @@ export default memo(function TabContent({ tab }) {
         className={cn(
           "absolute inset-0",
           "flex flex-col",
-          !tab.active ? "pointer-events-none opacity-0" : null
+          !tab.active ? "invisible" : null
         )}
       >
         {/* Open Telegram Link Button */}

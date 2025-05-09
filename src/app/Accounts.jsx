@@ -18,12 +18,7 @@ const FarmerAccount = ({ account }) => {
   const client = useMemo(() => createQueryClient(), []);
 
   return (
-    <div
-      className={cn(
-        "absolute inset-0",
-        !account.active && "pointer-events-none opacity-0"
-      )}
-    >
+    <div className={cn("absolute inset-0", !account.active && "invisible")}>
       <AccountContext.Provider value={account}>
         <QueryClientProvider client={client}>
           <App />
@@ -35,7 +30,7 @@ const FarmerAccount = ({ account }) => {
 
 export default function Accounts() {
   const shared = useSharedCore();
-  const { accounts, hasRestoredAccounts, activeAccount } = shared;
+  const { accounts, hasRestoredAccounts } = shared;
 
   /** Use Net Rules */
   useNetRules();
@@ -53,13 +48,7 @@ export default function Accounts() {
     <SharedContext.Provider value={shared}>
       {hasRestoredAccounts ? (
         accounts.map((account) => (
-          <FarmerAccount
-            key={account.id}
-            account={{
-              ...account,
-              active: account.id === activeAccount,
-            }}
-          />
+          <FarmerAccount key={account.id} account={account} />
         ))
       ) : (
         <div className="flex flex-col h-dvh">
