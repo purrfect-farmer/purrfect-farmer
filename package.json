@@ -34,6 +34,7 @@
     "@vite-pwa/assets-generator": "^1.0.0",
     "axios": "^1.8.4",
     "buffer": "^6.0.3",
+    "change-case": "^5.4.4",
     "clsx": "^2.1.1",
     "copy-to-clipboard": "^3.3.3",
     "crx": "^5.0.1",

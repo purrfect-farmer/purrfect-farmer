@@ -3,6 +3,10 @@ import rules from "@/extension/rule-resources";
 import { getUserAgent, storeUserAgent } from "./utils";
 
 export default async function updateNetRules() {
+  if (typeof chrome?.declarativeNetRequest === "undefined") {
+    return;
+  }
+
   const userAgent = await getUserAgent();
 
   const oldRules = await chrome.declarativeNetRequest.getDynamicRules();

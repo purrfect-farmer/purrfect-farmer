@@ -18,10 +18,11 @@ const dropsOrder = Object.keys(dropsStatus);
 
 /** Default Settings */
 const defaultSettings = {
+  dropsStatus,
+  dropsOrder,
   theme: "system",
   preferredTelegramWebVersion: "k",
   farmerMode: import.meta.env.VITE_SETTING_FARMER_MODE || "web",
-  farmerTitle: "TGUser",
   onboarded: import.meta.env.VITE_SETTING_ONBOARDED || false,
   enableInAppBrowser: true,
   miniAppInNewWindow: false,
@@ -38,8 +39,6 @@ const defaultSettings = {
   displayUserInfo: true,
   showLinksAsGrid: false,
   uncappedPoints: false,
-  dropsStatus,
-  dropsOrder,
   repeatZoomiesCycle: true,
 };
 

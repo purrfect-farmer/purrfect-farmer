@@ -12,6 +12,7 @@ import farmers from "./farmers";
 export const Welcome = lazy(() => import("@/app/Welcome"));
 export const Browser = lazy(() => import("@/app/Browser"));
 export const TelegramWeb = lazy(() => import("@/app/TelegramWeb"));
+export const Migrate = lazy(() => import("@/app/Migrate"));
 export const PayForCloud = lazy(() => import("@/app/PayForCloud"));
 export const CloudManager = lazy(() => import("@/app/CloudManager"));
 export const CloudTelegramSession = lazy(() =>
@@ -78,6 +79,13 @@ export const utils = [
     title: "Local Telegram Session",
     icon: LocalTelegramSessionIcon,
     component: createElement(LocalTelegramSession),
+  },
+  /** Migrate */
+  {
+    id: "migrate-to-v2",
+    title: "Migrate to V2+",
+    icon: AppIcon,
+    component: createElement(Migrate),
   },
 ];
 
