@@ -28,7 +28,10 @@ export default function useCloudTelegramSessionQuery(context) {
           {
             auth: initData,
           },
-          { signal }
+          {
+            signal,
+            ignoreUnauthorizedError: true,
+          }
         )
         .then((res) => res.data),
   });

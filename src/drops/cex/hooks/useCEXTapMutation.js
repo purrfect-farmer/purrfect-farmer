@@ -18,7 +18,7 @@ export default function useCEXTapMutation() {
             },
           },
           {
-            ignoreUnauthenticatedError: true,
+            ignoreUnauthorizedError: true,
           }
         )
         .then((res) => res.data),

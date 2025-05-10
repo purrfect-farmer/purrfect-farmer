@@ -7,6 +7,7 @@ import {
   delay,
   getChromeLocalStorage,
   removeChromeLocalStorage,
+  requestIsUnauthorized,
   setChromeLocalStorage,
 } from "@/lib/utils";
 import { useIsMutating } from "@tanstack/react-query";
@@ -368,10 +369,7 @@ export default function useDropFarmer() {
         return Promise.resolve(response);
       },
       (error) => {
-        if (
-          error.config.ignoreUnauthenticatedError !== true &&
-          [401, 403, 418].includes(error?.response?.status)
-        ) {
+        if (requestIsUnauthorized(error)) {
           toast.dismiss();
           toast.error("Unauthenticated - Please reload the Bot or Farmer");
           clearApiQueue();

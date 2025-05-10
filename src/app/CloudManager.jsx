@@ -2,6 +2,7 @@ import CloudLoginForm from "@/cloud/CloudLoginForm";
 import CloudPanel from "@/cloud/CloudPanel";
 import toast from "react-hot-toast";
 import useAppContext from "@/hooks/useAppContext";
+import { requestIsUnauthorized } from "@/lib/utils";
 import { useEffect } from "react";
 
 export default function CloudManager() {
@@ -13,7 +14,7 @@ export default function CloudManager() {
     const id = cloudBackend.interceptors.response.use(
       (response) => Promise.resolve(response),
       (error) => {
-        if ([401, 403, 418].includes(error?.response?.status)) {
+        if (requestIsUnauthorized(error)) {
           /** Remove Token */
           cloudAuth.removeToken();
 

@@ -468,3 +468,15 @@ export function tapValue(value, callback) {
         return value;
       };
 }
+
+/**
+ * Check if request is unauthenticated
+ * @param {import("axios").AxiosError} error
+ * @returns {boolean}
+ */
+export function requestIsUnauthorized(error) {
+  return (
+    error.config.ignoreUnauthorizedError !== true &&
+    [401, 403, 418].includes(error?.response?.status)
+  );
+}
