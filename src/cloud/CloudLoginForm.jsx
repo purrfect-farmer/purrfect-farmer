@@ -64,25 +64,20 @@ export default function CloudLoginForm() {
       <img src={WelcomeIcon} className="mx-auto h-28" />
 
       <div className="flex flex-col">
-        {/* Title */}
-        <h1 className="text-2xl text-center font-turret-road">
-          {import.meta.env.VITE_APP_ORG_NAME}
-        </h1>
-
         {/* Sub Title */}
-        <h2 className="text-3xl text-center font-turret-road text-orange-500">
+        <h2 className="text-3xl text-center font-turret-road text-orange-500 leading-none">
           Cloud Manager
         </h2>
       </div>
 
-      <div className="flex flex-col gap-2 my-2">
+      <div className="flex flex-col gap-2">
+        {/* Display Server */}
+        <CloudServerDisplay />
+
         {/* Display Address */}
         <p className="p-2 text-center text-orange-800 bg-orange-100 rounded-lg">
           <span className="font-bold">Server</span>: {address}
         </p>
-
-        {/* Display Server */}
-        <CloudServerDisplay />
       </div>
 
       <FormProvider {...form}>
