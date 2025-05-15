@@ -1,6 +1,5 @@
 import { memo } from "react";
 
-import TicketIcon from "../assets/images/ticket.webp";
 import useBlumBalanceQuery from "../hooks/useBlumBalanceQuery";
 
 export default memo(function BlumBalanceDisplay() {
@@ -15,9 +14,6 @@ export default memo(function BlumBalanceDisplay() {
           <h3 className="text-xl font-bold">
             {Intl.NumberFormat().format(query.data.availableBalance)}
           </h3>
-          <h4 className="flex items-center justify-center gap-2">
-            <img src={TicketIcon} className="h-4" /> {query.data.playPasses}
-          </h4>
         </>
       ) : (
         "Error..."

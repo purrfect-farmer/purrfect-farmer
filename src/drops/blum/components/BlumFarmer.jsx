@@ -9,7 +9,6 @@ import { memo } from "react";
 import BlumAutoTasks from "./BlumAutoTasks";
 import BlumBalanceDisplay from "./BlumBalanceDisplay";
 import BlumFarmerHeader from "./BlumFarmerHeader";
-import BlumGamer from "./BlumGamer";
 import BlumUsernameDisplay from "./BlumUsernameDisplay";
 import useBlumBalanceQuery from "../hooks/useBlumBalanceQuery";
 import useBlumClaimDailyRewardMutation from "../hooks/useBlumClaimDailyRewardMutation";
@@ -20,7 +19,7 @@ import useBlumFriendsBalanceQuery from "../hooks/useBlumFriendsBalanceQuery";
 import useBlumStartFarmingMutation from "../hooks/useBlumStartFarmingMutation";
 
 export default memo(function BlumFarmer() {
-  const tabs = useMirroredTabs("blum.farmer-tabs", ["game", "tasks"]);
+  const tabs = useMirroredTabs("blum.farmer-tabs", ["tasks"]);
   const balanceQuery = useBlumBalanceQuery();
 
   const dailyRewardQuery = useBlumDailyRewardQuery();
@@ -121,9 +120,6 @@ export default memo(function BlumFarmer() {
         rootClassName={"gap-4"}
         triggerClassName={"data-[state=active]:border-blum-green-500"}
       >
-        <Tabs.Content value="game">
-          <BlumGamer />
-        </Tabs.Content>
         <Tabs.Content value="tasks">
           <BlumAutoTasks />
         </Tabs.Content>

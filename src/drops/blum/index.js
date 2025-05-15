@@ -49,6 +49,5 @@ export default createFarmer({
     ["friends-reward"]: true,
     ["farming"]: true,
     ["tasks"]: false,
-    ["game"]: false,
   },
 });
