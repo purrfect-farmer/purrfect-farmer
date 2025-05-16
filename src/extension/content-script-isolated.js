@@ -1,10 +1,6 @@
 import { getChromeLocalStorage, getUserAgent, uuid } from "@/lib/utils";
 
-import {
-  decryptData,
-  encryptData,
-  isTelegramMiniApp,
-} from "./content-script-utils";
+import { decryptData, encryptData } from "./content-script-utils";
 
 /** Initial Location Href */
 const INITIAL_LOCATION = location.href;
