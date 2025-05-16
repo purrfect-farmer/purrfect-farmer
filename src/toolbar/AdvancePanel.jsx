@@ -56,12 +56,14 @@ const DialogTitle = styled(Dialog.Title)`
   font-size: 16px;
   font-weight: bold;
   font-family: "Turret Road";
+  margin: 0px;
 `;
 
 const DialogDescription = styled(Dialog.Description)`
   color: #ccc;
   text-align: center;
   font-size: 12px;
+  margin: 0px;
 `;
 
 const BaseToolbarButton = styled.button`
