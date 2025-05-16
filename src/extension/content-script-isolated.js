@@ -87,101 +87,101 @@ function isTelegramMiniApp() {
   });
 }
 
+/** Post Mini-App Status */
+function postMiniAppStatus(status) {
+  window.postMessage(
+    {
+      isTelegramMiniApp: status,
+    },
+    "*"
+  );
+}
+
+/** Connect window message */
+function connectWindowMessage(data, callback, once = true) {
+  /** Generate ID */
+  const id = data.id || uuid();
+
+  /**
+   * @param {MessageEvent} ev
+   */
+  const respond = (ev) => {
+    try {
+      if (
+        ev.source === window &&
+        ev.data?.id === id &&
+        ev.data?.type === "response"
+      ) {
+        if (once) {
+          window.removeEventListener("message", respond);
+        }
+        callback(decryptData(ev.data.payload));
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  window.addEventListener("message", respond);
+  window.postMessage(
+    {
+      id,
+      type: "request",
+      payload: encryptData(data),
+    },
+    "*"
+  );
+}
+
+/** Post window message */
+function postWindowMessage(data) {
+  return new Promise((resolve) => {
+    connectWindowMessage(data, resolve);
+  });
+}
+
+/** Open Telegram Link */
+async function openTelegramLink({ id, url }) {
+  return await postWindowMessage({
+    id,
+    action: "open-telegram-link",
+    data: {
+      url,
+    },
+  });
+}
+
+/** Update User-Agent */
+async function updateUserAgent() {
+  const userAgent = await getUserAgent();
+
+  return await postWindowMessage({
+    action: "set-user-agent",
+    data: {
+      userAgent,
+    },
+  });
+}
+
+/** Get Telegram WebApp */
+async function getTelegramWebApp() {
+  return await postWindowMessage({
+    action: "get-telegram-web-app",
+  });
+}
+
+/** Close Bot */
+async function closeBot({ id }) {
+  return await postWindowMessage({
+    id,
+    action: "close-bot",
+  });
+}
+
 /** Initialize */
 function initialize() {
   /** Post Message */
   postMiniAppStatus(true);
-
-  /** Connect window message */
-  const connectWindowMessage = (data, callback, once = true) => {
-    /** Generate ID */
-    const id = data.id || uuid();
-
-    /**
-     * @param {MessageEvent} ev
-     */
-    const respond = (ev) => {
-      try {
-        if (
-          ev.source === window &&
-          ev.data?.id === id &&
-          ev.data?.type === "response"
-        ) {
-          if (once) {
-            window.removeEventListener("message", respond);
-          }
-          callback(decryptData(ev.data.payload));
-        }
-      } catch (e) {
-        console.error(e);
-      }
-    };
-
-    window.addEventListener("message", respond);
-    window.postMessage(
-      {
-        id,
-        type: "request",
-        payload: encryptData(data),
-      },
-      "*"
-    );
-  };
-
-  /** Post window message */
-  const postWindowMessage = (data) => {
-    return new Promise((resolve) => {
-      connectWindowMessage(data, resolve);
-    });
-  };
-
-  /** Post Mini-App Status */
-  const postMiniAppStatus = (status) => {
-    window.postMessage(
-      {
-        isTelegramMiniApp: status,
-      },
-      "*"
-    );
-  };
-
-  /** Open Telegram Link */
-  const openTelegramLink = async ({ id, url }) => {
-    return await postWindowMessage({
-      id,
-      action: "open-telegram-link",
-      data: {
-        url,
-      },
-    });
-  };
-
-  /** Update User-Agent */
-  const updateUserAgent = async () => {
-    const userAgent = await getUserAgent();
-
-    return await postWindowMessage({
-      action: "set-user-agent",
-      data: {
-        userAgent,
-      },
-    });
-  };
-
-  /** Get Telegram WebApp */
-  const getTelegramWebApp = async () => {
-    return await postWindowMessage({
-      action: "get-telegram-web-app",
-    });
-  };
-
-  /** Close Bot */
-  const closeBot = async ({ id }) => {
-    return await postWindowMessage({
-      id,
-      action: "close-bot",
-    });
-  };
 
   /** Dispatch TelegramWebApp */
   const dispatchTelegramWebApp = async (data) => {
