@@ -11,6 +11,7 @@ import { nodePolyfills } from "vite-plugin-node-polyfills";
 
 import { generateChromeManifest } from "./plugins/generate-chrome-manifest";
 import { getPackageJson } from "./scripts/get-package-json";
+import { transformCssBundle } from "./plugins/transform-css-bundle";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -57,8 +58,11 @@ export default defineConfig(async ({ mode }) => {
                   ),
                 ])
               )
-            : process.env.VITE_ENTRY === "fonts"
-            ? path.resolve(__dirname, `./src/fonts.css`)
+            : process.env.VITE_ENTRY.endsWith("styles")
+            ? path.resolve(
+                __dirname,
+                `./src/extension/${process.env.VITE_ENTRY}.css`
+              )
             : path.resolve(
                 __dirname,
                 `./src/extension/${process.env.VITE_ENTRY}.js`
@@ -81,11 +85,11 @@ export default defineConfig(async ({ mode }) => {
                   }
                 },
               }
-            : process.env.VITE_ENTRY === "fonts"
+            : process.env.VITE_ENTRY.endsWith("styles")
             ? {
                 assetFileNames: (assetInfo) => {
-                  if (assetInfo.name === "fonts.css") {
-                    return "[name][extname]";
+                  if (assetInfo.name.endsWith(".css")) {
+                    return "extension/[name][extname]";
                   }
 
                   return "assets/[name][extname]";
@@ -100,6 +104,9 @@ export default defineConfig(async ({ mode }) => {
     plugins: [
       /** Plugins */
       generateChromeManifest(env, pkg),
+      transformCssBundle({
+        enable: process.env.VITE_ENTRY.endsWith("styles"),
+      }),
       VitePWA({
         registerType: "prompt",
         workbox: {

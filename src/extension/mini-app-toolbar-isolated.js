@@ -2,26 +2,17 @@ import MiniAppToolbar from "@/app/MiniAppToolbar.jsx";
 import { createElement } from "react";
 import { createRoot } from "react-dom/client";
 
+import { watchTelegramMiniApp } from "./content-script-utils";
+
 /** Initial Location */
 const INITIAL_HOST = location.host;
 const INITIAL_LOCATION = location.href;
 
-if (/tgWebAppPlatform=android/.test(location.href)) {
+function initialize() {
   /** Connect to Messaging */
   const port = chrome.runtime.connect(chrome.runtime.id, {
     name: `mini-app-toolbar:${location.host}`,
   });
-
-  /** Link fonts stylesheet */
-  const fonts = chrome.runtime.getURL("fonts.css");
-  const link = document.createElement("link");
-
-  link.href = fonts;
-  link.rel = "stylesheet";
-  link.type = "text/css";
-
-  /** Append to head */
-  document.head.appendChild(link);
 
   /** Create Container */
   const container = document.createElement("div");
@@ -38,3 +29,13 @@ if (/tgWebAppPlatform=android/.test(location.href)) {
     })
   );
 }
+
+watchTelegramMiniApp().then(() => {
+  if (document.body) {
+    initialize();
+  } else {
+    window.addEventListener("DOMContentLoaded", () => {
+      initialize();
+    });
+  }
+});

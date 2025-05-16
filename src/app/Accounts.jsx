@@ -2,6 +2,7 @@ import AccountContext from "@/contexts/AccountContext";
 import FullSpinner from "@/components/FullSpinner";
 import SharedContext from "@/contexts/SharedContext";
 import useChromeCookies from "@/hooks/useChromeCookies";
+import useFarmerHosts from "@/hooks/useFarmerHosts";
 import useNetRules from "@/hooks/useNetRules";
 import useSharedCore from "@/hooks/useSharedCore";
 import useTelegramWebAppEvents from "@/hooks/useTelegramWebAppEvents";
@@ -31,6 +32,9 @@ const FarmerAccount = ({ account }) => {
 export default function Accounts() {
   const shared = useSharedCore();
   const { accounts, hasRestoredAccounts } = shared;
+
+  /** Set Farmer Hosts */
+  useFarmerHosts();
 
   /** Use Net Rules */
   useNetRules();

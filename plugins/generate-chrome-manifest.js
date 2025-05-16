@@ -12,7 +12,7 @@ export function generateChromeManifest(env, pkg) {
   const isPWA = typeof process.env.VITE_PWA !== "undefined";
   const isBridge = typeof process.env.VITE_BRIDGE !== "undefined";
   const isIndex = process.env.VITE_ENTRY === "index";
-  const canApply = isPWA === false && isIndex;
+  const enabled = isPWA === false && isIndex;
 
   return {
     name: "generate-chrome-manifest",
@@ -50,7 +50,7 @@ export function generateChromeManifest(env, pkg) {
         ],
         action: {
           default_icon: "icon-48.png",
-          default_title: namePrefix + "Open Purrfect Farmer",
+          default_title: namePrefix + `Open ${env.VITE_APP_NAME}`,
           default_popup: isBridge ? "pwa-iframe.html" : "index.html",
         },
         side_panel: {
@@ -64,7 +64,6 @@ export function generateChromeManifest(env, pkg) {
         web_accessible_resources: [
           {
             resources: [
-              "fonts.css",
               "assets/*.woff",
               "assets/*.woff2",
               "browser-sandbox.html",
@@ -111,8 +110,9 @@ export function generateChromeManifest(env, pkg) {
           },
           {
             matches: ["*://*/*"],
+            css: ["extension/mini-app-toolbar-styles.css"],
             js: ["extension/mini-app-toolbar-isolated.js"],
-            run_at: "document_end",
+            run_at: "document_start",
             world: "ISOLATED",
             all_frames: true,
           },
@@ -268,7 +268,7 @@ export function generateChromeManifest(env, pkg) {
       });
     },
     apply(config, { command }) {
-      return command === "build" && canApply;
+      return command === "build" && enabled;
     },
   };
 }

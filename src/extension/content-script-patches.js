@@ -1,6 +1,8 @@
 import { withValue } from "@/lib/utils";
 
-if (/tgWebAppPlatform=android/.test(location.href)) {
+import { watchTelegramMiniApp } from "./content-script-utils";
+
+watchTelegramMiniApp().then(() => {
   switch (location.host) {
     /** Bypass KittyVerse on Desktop */
     case "play.kittyverse.ai":
@@ -46,4 +48,4 @@ if (/tgWebAppPlatform=android/.test(location.href)) {
 
       break;
   }
-}
+});
