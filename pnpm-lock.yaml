@@ -99,7 +99,7 @@ importers:
         specifier: ^6.0.0
         version: 6.0.0(react@19.1.0)
       react-hook-form:
-        specifier: 7.56.3
+        specifier: ^7.56.3
         version: 7.56.3(react@19.1.0)
       react-hot-toast:
         specifier: ^2.5.2
