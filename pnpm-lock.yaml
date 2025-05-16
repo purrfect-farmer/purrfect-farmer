@@ -8,6 +8,9 @@ importers:
 
   .:
     dependencies:
+      '@fontsource/noto-sans':
+        specifier: ^5.2.7
+        version: 5.2.7
       '@fontsource/turret-road':
         specifier: ^5.2.5
         version: 5.2.5
@@ -939,6 +942,9 @@ packages:
 
   '@floating-ui/utils@0.2.9':
     resolution: {integrity: sha512-MDWhGtE+eHw5JW7lq4qhc5yRLS11ERl1c7Z6Xd0a58DozHES6EnNNwUWbMiG4J9Cgj053Bhk8zvlhFYKVhULwg==}
+
+  '@fontsource/noto-sans@5.2.7':
+    resolution: {integrity: sha512-mTpMSMft6Nb+ZSF4DSiJVYnLzKCRjHNFieZ/swuxSDQK+v1hjUeDTBxLHKUdfmC+ZPg6TUEWw4oRq2ltnDbSjQ==}
 
   '@fontsource/turret-road@5.2.5':
     resolution: {integrity: sha512-XvZSA+KEuXNS9uVb9pIfS2T10FwfVa9GD7hlXgPUNnbMVXfhRY4Ln6LqsPnfB4mG2qkQlov7Om45lxfmJ7pxcg==}
@@ -5555,6 +5561,8 @@ snapshots:
       react-dom: 19.1.0(react@19.1.0)
 
   '@floating-ui/utils@0.2.9': {}
+
+  '@fontsource/noto-sans@5.2.7': {}
 
   '@fontsource/turret-road@5.2.5': {}
 

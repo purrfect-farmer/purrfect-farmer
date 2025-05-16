@@ -10,9 +10,9 @@
     "build-bridge": "VITE_BRIDGE=true npm-run-all build-extension",
     "build-pwa": "VITE_PWA=true VITE_ENTRY=index vite build",
     "build:index": "VITE_ENTRY=index vite build",
+    "build:fonts": "VITE_ENTRY=fonts vite build",
     "build-ext:chrome-service-worker": "VITE_ENTRY=chrome-service-worker vite build",
     "build-ext:webview-proxy-main": "VITE_ENTRY=webview-proxy-main vite build",
-    "build-ext:telegram-web-main": "VITE_ENTRY=telegram-web-main vite build",
     "build-ext:telegram-web-isolated": "VITE_ENTRY=telegram-web-isolated vite build",
     "build-ext:content-script-main": "VITE_ENTRY=content-script-main vite build",
     "build-ext:content-script-patches": "VITE_ENTRY=content-script-patches vite build",
@@ -26,6 +26,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@fontsource/noto-sans": "^5.2.7",
     "@fontsource/turret-road": "^5.2.5",
     "@hookform/resolvers": "^5.0.1",
     "@paystack/inline-js": "^2.22.3",
