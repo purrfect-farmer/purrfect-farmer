@@ -115,13 +115,6 @@ export default function generateChromeManifest(env, pkg) {
           },
           {
             matches: ["*://web.telegram.org/*"],
-            js: ["telegram-web-main.js"],
-            run_at: "document_start",
-            world: "MAIN",
-            all_frames: true,
-          },
-          {
-            matches: ["*://web.telegram.org/*"],
             js: ["telegram-web-isolated.js"],
             run_at: "document_start",
             world: "ISOLATED",
