@@ -58,11 +58,15 @@ export default function TelegramLoginCodeForm({
         </Alert>
         {/* Code */}
         <Controller
-          disabled={form.formState.isSubmitting}
           name="code"
           render={({ field, fieldState }) => (
             <>
-              <Input {...field} autoComplete="off" placeholder="Code" />
+              <Input
+                {...field}
+                disabled={form.formState.isSubmitting}
+                autoComplete="off"
+                placeholder="Code"
+              />
               <FieldStateError fieldState={fieldState} />
             </>
           )}

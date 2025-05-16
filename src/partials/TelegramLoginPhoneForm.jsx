@@ -57,12 +57,12 @@ export default function TelegramLoginPhoneForm({
 
         {/* Phone */}
         <Controller
-          disabled={form.formState.isSubmitting}
           name="phone"
           render={({ field, fieldState }) => (
             <>
               <Input
                 {...field}
+                disabled={form.formState.isSubmitting}
                 autoComplete="off"
                 placeholder="Phone (e.g +234...)"
               />

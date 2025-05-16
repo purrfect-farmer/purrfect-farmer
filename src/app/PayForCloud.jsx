@@ -100,12 +100,12 @@ export default memo(function PayForCloud() {
 
                   {/* Email */}
                   <Controller
-                    disabled={form.formState.isSubmitting}
                     name="email"
                     render={({ field, fieldState }) => (
                       <>
                         <Input
                           {...field}
+                          disabled={form.formState.isSubmitting}
                           autoComplete="off"
                           placeholder="Email"
                         />

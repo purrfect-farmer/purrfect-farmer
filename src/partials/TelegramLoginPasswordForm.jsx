@@ -55,11 +55,15 @@ export default function TelegramLoginPasswordForm({
         <Alert variant={"info"}>Enter your Telegram 2FA Password</Alert>
         {/* Password */}
         <Controller
-          disabled={form.formState.isSubmitting}
           name="password"
           render={({ field, fieldState }) => (
             <>
-              <Input {...field} autoComplete="off" placeholder="Password" />
+              <Input
+                {...field}
+                disabled={form.formState.isSubmitting}
+                autoComplete="off"
+                placeholder="Password"
+              />
               <FieldStateError fieldState={fieldState} />
             </>
           )}
