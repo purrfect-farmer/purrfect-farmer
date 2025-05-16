@@ -5,22 +5,10 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 @theme {
-  --font-sans: Product Sans, ui-sans-serif, system-ui, sans-serif,
+  --font-sans: "Noto Sans", ui-sans-serif, system-ui, sans-serif,
     "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
-  --font-turret-road: Turret Road;
-
-  --color-notgram-gold-50: #ffffff;
-  --color-notgram-gold-100: #fffcf9;
-  --color-notgram-gold-200: #fcecd2;
-  --color-notgram-gold-300: #fadcac;
-  --color-notgram-gold-400: #f7cb85;
-  --color-notgram-gold-500: #f5bb5f;
-  --color-notgram-gold-600: #f2a52a;
-  --color-notgram-gold-700: #d6890d;
-  --color-notgram-gold-800: #a2670a;
-  --color-notgram-gold-900: #6d4507;
-  --color-notgram-gold-950: #523505;
-  --color-notgram-gold: #f5bb5f;
+  --font-noto-sans: "Noto Sans";
+  --font-turret-road: "Turret Road";
 
   --color-birdton-blue-50: #ffffff;
   --color-birdton-blue-100: #f0faff;
@@ -89,26 +77,30 @@
   ::before,
   ::backdrop,
   ::file-selector-button {
-    border-color: var(--color-gray-200, currentColor);
+    @apply border-neutral-200;
   }
-}
 
-@layer base {
-  button:not(:disabled),
-  [role="button"]:not(:disabled) {
-    cursor: pointer;
-  }
-}
-
-@layer base {
+  /* Override scrollbar styles */
   *,
   ::after,
   ::before {
-    @apply [&::-webkit-scrollbar]:w-2
+    @apply /* Applied Styles */
+    [&::-webkit-scrollbar]:w-2
     [&::-webkit-scrollbar]:h-2
-    [&::-webkit-scrollbar-track]:bg-gray-100
-    [&::-webkit-scrollbar-thumb]:bg-gray-300
+    [&::-webkit-scrollbar-track]:bg-neutral-100
+    [&::-webkit-scrollbar-thumb]:bg-neutral-300
     dark:[&::-webkit-scrollbar-track]:bg-neutral-700
     dark:[&::-webkit-scrollbar-thumb]:bg-neutral-500;
   }
+
+  /* Set cursor to pointer for all buttons and elements with role="button" */
+  button:not(:disabled),
+  [role="button"]:not(:disabled) {
+    @apply cursor-pointer;
+  }
+}
+
+/* Override injected styles */
+body {
+  @apply font-sans text-xs;
 }
