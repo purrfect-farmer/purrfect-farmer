@@ -4,21 +4,20 @@ import usePortMirror from "@/hooks/usePortMirror";
 import useStorageState from "@/hooks/useStorageState";
 
 const defaultSharedSettings = {
-  showMiniAppToolbar: import.meta.env.DEV,
+  showMiniAppToolbar: true,
 };
 
 export default function MiniAppToolbar({ host, url, port }) {
   const mirror = usePortMirror(port);
-  const { value: settings } = useStorageState(
-    "settings",
-    defaultSharedSettings,
-    true
-  );
+  const { value: settings, hasRestoredValue: hasRestoredSharedSettings } =
+    useStorageState("settings", defaultSharedSettings, true);
   const { showMiniAppToolbar } = settings;
 
   return (
     <AppContext.Provider value={{ port, host, url, mirror, settings }}>
-      {showMiniAppToolbar ? <ToolbarPanel /> : null}
+      {hasRestoredSharedSettings && showMiniAppToolbar ? (
+        <ToolbarPanel />
+      ) : null}
     </AppContext.Provider>
   );
 }
