@@ -95,8 +95,8 @@ const isStartButton = (element) =>
 const isJoinButton = (element) =>
   JOIN_BUTTON_TEXT_CONTENT.includes(element.textContent.trim().toUpperCase());
 
-/** Apply FullScreen */
-const applyFullScreen = (node) => {
+/** Update Iframe Element */
+const updateIframeElement = (node) => {
   if (!node) return; // Ensure node exists
 
   /** Get existing permissions, handle null case */
@@ -110,6 +110,9 @@ const applyFullScreen = (node) => {
     permissions.push("fullscreen");
   }
 
+  /** Remove Sandbox */
+  node.removeAttribute("sandbox");
+
   /** Set updated 'allow' attribute */
   node.setAttribute("allow", permissions.join("; "));
 
@@ -117,15 +120,16 @@ const applyFullScreen = (node) => {
   node.src += "";
 };
 
-const findAndApplyFullScreen = (node) => {
+/** Find and Update Iframe */
+const findAndUpdateIframe = (node) => {
   /** Matches Iframe */
   if (node.tagName === "IFRAME") {
-    return applyFullScreen(node);
+    return updateIframeElement(node);
   }
 
   /** Descendant Iframe */
   for (const element of node.querySelectorAll("iframe")) {
-    applyFullScreen(element);
+    updateIframeElement(element);
   }
 };
 
@@ -276,36 +280,16 @@ const openFarmerBot = () => {
   return openBot();
 };
 
-/** Auto Confirm Dialog */
-const autoConfirm = () => {
+/** Observe Page Elements */
+const observePageElements = () => {
   /** Start Observing */
   const observer = new MutationObserver(function (mutationList, observer) {
     for (const mutation of mutationList) {
       if (mutation.type === "childList") {
         for (const node of mutation.addedNodes) {
           if (node.nodeType === Node.ELEMENT_NODE) {
+            findAndUpdateIframe(node);
             findAndConfirmPopup(node);
-          }
-        }
-      }
-    }
-  });
-
-  observer.observe(document.documentElement, {
-    childList: true,
-    subtree: true,
-  });
-};
-
-/** Allow FullScreen */
-const observeAndAllowFullScreen = () => {
-  /** Start Observing */
-  const observer = new MutationObserver(function (mutationList, observer) {
-    for (const mutation of mutationList) {
-      if (mutation.type === "childList") {
-        for (const node of mutation.addedNodes) {
-          if (node.nodeType === Node.ELEMENT_NODE) {
-            findAndApplyFullScreen(node);
           }
         }
       }
@@ -426,10 +410,5 @@ port.onMessage?.addListener(async (message) => {
   }
 });
 
-/** Enable auto confirm */
-autoConfirm();
-
-/** Allow Fullscreen */
-if (WEB_VERSION === "a") {
-  observeAndAllowFullScreen();
-}
+/** Observe Page Elements */
+observePageElements();

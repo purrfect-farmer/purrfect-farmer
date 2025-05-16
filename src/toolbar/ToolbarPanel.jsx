@@ -64,11 +64,11 @@ const Image = styled.img`
 const Button = styled(BaseButton)`
   background-color: #262626;
   color: white;
-  font-family: "Product Sans";
+  font-family: "Noto Sans";
 
   &:hover,
   &.active {
-    background-color: oklch(0.768 0.233 130.85);
+    background-color: oklch(0.78 0.16 64.67);
     color: black;
   }
 `;

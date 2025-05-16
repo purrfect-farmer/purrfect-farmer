@@ -1,7 +1,6 @@
 import MiniAppToolbar from "@/app/MiniAppToolbar.jsx";
 import { createElement } from "react";
 import { createRoot } from "react-dom/client";
-import { getSharedSettings } from "@/lib/utils";
 
 /** Initial Location */
 const INITIAL_HOST = location.host;
@@ -13,65 +12,29 @@ if (/tgWebAppPlatform=android/.test(location.href)) {
     name: `mini-app-toolbar:${location.host}`,
   });
 
-  /** Initial State */
-  let toolbar = null;
+  /** Link fonts stylesheet */
+  const fonts = chrome.runtime.getURL("fonts.css");
+  const link = document.createElement("link");
 
-  /** Create Toolbar */
-  const createToolbar = () => {
-    /** Prevent Duplicates */
-    if (toolbar) return;
+  link.href = fonts;
+  link.rel = "stylesheet";
+  link.type = "text/css";
 
-    /** Create Container */
-    const container = document.createElement("div");
+  /** Append to head */
+  document.head.appendChild(link);
 
-    /** Append Root */
-    document.body.appendChild(container);
+  /** Create Container */
+  const container = document.createElement("div");
 
-    const root = createRoot(container);
-    root.render(
-      createElement(MiniAppToolbar, {
-        url: INITIAL_LOCATION,
-        host: INITIAL_HOST,
-        port,
-      })
-    );
+  /** Append Root */
+  document.body.appendChild(container);
 
-    /** Save Toolbar */
-    toolbar = {
-      container,
-      root,
-    };
-  };
-
-  /** Remove Toolbar */
-  const removeToolbar = () => {
-    toolbar?.root?.unmount();
-    toolbar?.container?.remove();
-    toolbar = null;
-  };
-
-  /** Watch Ready State */
-  document.addEventListener("readystatechange", async (ev) => {
-    if (document.readyState === "interactive") {
-      const { showMiniAppToolbar } = await getSharedSettings();
-
-      /** Create Initial Toolbar */
-      if (showMiniAppToolbar) {
-        createToolbar();
-      }
-
-      /** Watch Storage for Settings Change */
-      chrome.storage.local.onChanged.addListener(({ sharedSettings }) => {
-        if (sharedSettings?.newValue) {
-          const { showMiniAppToolbar } = sharedSettings.newValue;
-
-          if (showMiniAppToolbar) {
-            createToolbar();
-          } else {
-            removeToolbar();
-          }
-        }
-      });
-    }
-  });
+  /** Render React App */
+  createRoot(container).render(
+    createElement(MiniAppToolbar, {
+      url: INITIAL_LOCATION,
+      host: INITIAL_HOST,
+      port,
+    })
+  );
 }

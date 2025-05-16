@@ -9,8 +9,8 @@ import { imagetools } from "vite-imagetools";
 import { loadEnv } from "vite";
 import { nodePolyfills } from "vite-plugin-node-polyfills";
 
-import generateChromeManifest from "./generateChromeManifest";
-import getPackageJson from "./getPackageJson";
+import { generateChromeManifest } from "./plugins/generate-chrome-manifest";
+import { getPackageJson } from "./scripts/get-package-json";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -22,36 +22,6 @@ export default defineConfig(async ({ mode }) => {
 
   /** Env */
   const env = loadEnv(mode, process.cwd());
-
-  let input;
-
-  switch (process.env.VITE_ENTRY) {
-    case "index":
-      input = Object.fromEntries(
-        [
-          /** Entries */
-          "index",
-          "browser-sandbox",
-        ].map((item) => [
-          item,
-          path.resolve(
-            __dirname,
-            `./${
-              item === "index" && process.env.VITE_BRIDGE ? "pwa-iframe" : item
-            }.html`
-          ),
-        ])
-      );
-      break;
-    default:
-      input = {
-        [process.env.VITE_ENTRY]: path.resolve(
-          __dirname,
-          `./src/extension/${process.env.VITE_ENTRY}.js`
-        ),
-      };
-      break;
-  }
 
   return {
     define: {
@@ -68,7 +38,31 @@ export default defineConfig(async ({ mode }) => {
       outDir: process.env.VITE_BRIDGE ? "dist-bridge" : "dist",
       emptyOutDir: process.env.VITE_ENTRY === "index",
       rollupOptions: {
-        input,
+        input:
+          process.env.VITE_ENTRY === "index"
+            ? Object.fromEntries(
+                [
+                  /** Entries */
+                  "index",
+                  "browser-sandbox",
+                ].map((item) => [
+                  item,
+                  path.resolve(
+                    __dirname,
+                    `./${
+                      item === "index" && process.env.VITE_BRIDGE
+                        ? "pwa-iframe"
+                        : item
+                    }.html`
+                  ),
+                ])
+              )
+            : process.env.VITE_ENTRY === "fonts"
+            ? path.resolve(__dirname, `./src/fonts.css`)
+            : path.resolve(
+                __dirname,
+                `./src/extension/${process.env.VITE_ENTRY}.js`
+              ),
         output:
           process.env.VITE_ENTRY === "index"
             ? {
@@ -87,8 +81,18 @@ export default defineConfig(async ({ mode }) => {
                   }
                 },
               }
+            : process.env.VITE_ENTRY === "fonts"
+            ? {
+                assetFileNames: (assetInfo) => {
+                  if (assetInfo.name === "fonts.css") {
+                    return "[name][extname]";
+                  }
+
+                  return "assets/[name][extname]";
+                },
+              }
             : {
-                entryFileNames: "[name].js",
+                entryFileNames: "extension/[name].js",
                 format: "iife",
               },
       },

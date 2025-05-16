@@ -6,7 +6,6 @@ export default memo(function Browser({ url }) {
       src={url}
       className="w-full h-full border-0 outline-0"
       referrerPolicy="no-referrer"
-      sandbox="allow-scripts allow-same-origin allow-popups allow-forms allow-top-navigation-by-user-activation"
       allow="accelerometer; autoplay; camera; clipboard-write; encrypted-media; fullscreen; gamepad; geolocation; gyroscope; magnetometer; microphone; midi; payment; picture-in-picture; usb; xr-spatial-tracking; screen-wake-lock; web-share; idle-detection"
     />
   );

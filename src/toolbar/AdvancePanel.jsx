@@ -34,7 +34,7 @@ const DialogContent = styled(Dialog.Content)`
   padding: 16px;
   gap: 16px;
   font-size: 12px;
-  font-family: "Product Sans";
+  font-family: "Noto Sans";
 `;
 
 const DialogHeader = styled.div`
@@ -81,7 +81,7 @@ const BaseToolbarButton = styled.button`
   &:hover,
   &:focus,
   &.active {
-    background-color: oklch(0.768 0.233 130.85);
+    background-color: oklch(0.78 0.16 64.67);
     color: black;
   }
 `;

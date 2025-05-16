@@ -1,10 +1,13 @@
 const originalPostMessage = window.parent.postMessage.bind(window.parent);
 
+const getLocalStorageKey = () =>
+  "__telegram_webview_proxy_" + window.Telegram.WebApp.initDataUnsafe.user.id;
+
 const getStorage = () =>
-  JSON.parse(localStorage.getItem("__telegram_webview_proxy")) || {};
+  JSON.parse(localStorage.getItem(getLocalStorageKey())) || {};
 
 const saveStorage = (data) =>
-  localStorage.setItem("__telegram_webview_proxy", JSON.stringify(data));
+  localStorage.setItem(getLocalStorageKey(), JSON.stringify(data));
 
 function postEvent(eventType, eventData) {
   const sendEvent = (eventType, eventData) => {

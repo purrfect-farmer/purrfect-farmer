@@ -8,7 +8,7 @@ const __dirname = path.dirname(__filename);
  * Generate Chrome Manifest
  * @returns {import("vite").Plugin}
  */
-export default function generateChromeManifest(env, pkg) {
+export function generateChromeManifest(env, pkg) {
   const isPWA = typeof process.env.VITE_PWA !== "undefined";
   const isBridge = typeof process.env.VITE_BRIDGE !== "undefined";
   const isIndex = process.env.VITE_ENTRY === "index";
@@ -57,66 +57,62 @@ export default function generateChromeManifest(env, pkg) {
           default_path: isBridge ? "pwa-iframe.html" : "index.html",
         },
         background: {
-          service_worker: "chrome-service-worker.js",
+          service_worker: "extension/chrome-service-worker.js",
           type: "module",
         },
         host_permissions: ["*://*/*", "ws://*/*", "wss://*/*"],
-        web_accessible_resources: isBridge
-          ? [
-              {
-                resources: ["browser-sandbox.html"],
-                matches,
-              },
-            ]
-          : undefined,
+        web_accessible_resources: [
+          {
+            resources: [
+              "fonts.css",
+              "assets/*.woff",
+              "assets/*.woff2",
+              "browser-sandbox.html",
+            ],
+            matches: ["*://*/*"],
+          },
+        ],
         externally_connectable: isBridge ? { matches } : undefined,
         content_scripts: [
           {
             matches: ["*://*/*"],
-            js: ["webview-proxy-main.js"],
+            js: ["extension/webview-proxy-main.js"],
             run_at: "document_start",
             world: "MAIN",
             all_frames: true,
           },
           {
             matches: ["*://*/*"],
-            js: ["content-script-main.js"],
+            js: ["extension/content-script-main.js"],
             run_at: "document_start",
             world: "MAIN",
             all_frames: true,
           },
           {
             matches: ["*://*/*"],
-            js: ["content-script-isolated.js"],
+            js: ["extension/content-script-isolated.js"],
             run_at: "document_start",
             world: "ISOLATED",
             all_frames: true,
           },
           {
             matches: ["*://*/*"],
-            js: ["content-script-patches.js"],
-            run_at: "document_start",
-            world: "MAIN",
-            all_frames: true,
-          },
-          {
-            matches: ["*://*/*"],
-            js: ["mini-app-toolbar-isolated.js"],
-            run_at: "document_start",
-            world: "ISOLATED",
-            all_frames: true,
-          },
-          {
-            matches: ["*://notgramgame.fun/*"],
-            js: ["notgram-main.js"],
+            js: ["extension/content-script-patches.js"],
             run_at: "document_start",
             world: "MAIN",
             all_frames: true,
           },
           {
             matches: ["*://web.telegram.org/*"],
-            js: ["telegram-web-isolated.js"],
+            js: ["extension/telegram-web-isolated.js"],
             run_at: "document_start",
+            world: "ISOLATED",
+            all_frames: true,
+          },
+          {
+            matches: ["*://*/*"],
+            js: ["extension/mini-app-toolbar-isolated.js"],
+            run_at: "document_end",
             world: "ISOLATED",
             all_frames: true,
           },

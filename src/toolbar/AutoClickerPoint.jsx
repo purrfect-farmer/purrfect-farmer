@@ -31,7 +31,7 @@ const Point = styled.button`
   align-items: center;
   font-weight: bold;
   font-size: 16px;
-  font-family: "Product Sans";
+  font-family: "Noto Sans";
 
   &:disabled {
     pointer-events: none;

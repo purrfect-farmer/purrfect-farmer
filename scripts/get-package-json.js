@@ -8,8 +8,8 @@ const __dirname = path.dirname(__filename);
 /**
  * Get package.json
  */
-export default async function getPackageJson() {
+export async function getPackageJson() {
   return JSON.parse(
-    await fs.readFile(path.join(__dirname, "package.json"), "utf8")
+    await fs.readFile(path.join(__dirname, "../package.json"), "utf8")
   );
 }

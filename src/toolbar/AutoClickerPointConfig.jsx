@@ -23,11 +23,11 @@ const DialogContent = styled(Dialog.Content)`
   background-color: white;
   color: black;
   border-radius: 12px;
-  font-family: "Product Sans";
+  font-family: "Noto Sans";
 `;
 
 const DialogTitle = styled(Dialog.Title)`
-  font-family: "Product Sans";
+  font-family: "Noto Sans";
   font-size: 14px;
   font-weight: bold;
   text-align: center;
@@ -36,7 +36,7 @@ const DialogTitle = styled(Dialog.Title)`
 `;
 
 const DialogDescription = styled(Dialog.Description)`
-  font-family: "Product Sans";
+  font-family: "Noto Sans";
   font-size: 12px;
   text-align: center;
   color: #252525;
