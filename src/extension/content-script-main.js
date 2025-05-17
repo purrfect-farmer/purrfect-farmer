@@ -36,7 +36,7 @@ if (import.meta.env.VITE_BRIDGE) {
   window.addEventListener("message", handleBridge);
 }
 
-watchTelegramMiniApp().then(() => {
+watchTelegramMiniApp(() => {
   /** Override User Agent */
   const overrideUserAgent = (userAgent) => {
     /** Override User Agent */

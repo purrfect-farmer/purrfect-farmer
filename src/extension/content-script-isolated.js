@@ -44,25 +44,18 @@ if (location.hash.includes("tgWebAppData")) {
 
   /** Replace Platform */
   if (webPlatFormRegExp.test(location.href)) {
-    /** Warn */
-    console.warn("Reloading...");
-
-    /** Replace Platform */
-    const url = new URL(
-      location.href.replace(webPlatFormRegExp, "tgWebAppPlatform=android")
+    location.hash = location.hash.replace(
+      webPlatFormRegExp,
+      "tgWebAppPlatform=android"
     );
-
-    /** Add Search Param */
-    url.searchParams.set("tgWebAppInitDate", Date.now());
-
-    /** Force Reload */
-    location.href = url.href;
+    location.reload();
   } else {
     initialize();
   }
 } else {
-  isTelegramMiniApp()
+  isKnownMiniAppHost()
     .then(() => {
+      postMiniAppStatus(true);
       initialize();
     })
     .catch(() => {
@@ -70,20 +63,16 @@ if (location.hash.includes("tgWebAppData")) {
     });
 }
 
-/** Check if it's a Telegram Mini-App */
-function isTelegramMiniApp() {
+/** Check if it's a known Mini-App Host */
+function isKnownMiniAppHost() {
   return new Promise((resolve, reject) => {
-    if (/tgWebAppPlatform=android/.test(location.href)) {
-      resolve(true);
-    } else {
-      getChromeLocalStorage("shared:hosts", []).then((hosts) => {
-        if (hosts.includes(location.host)) {
-          resolve(true);
-        } else {
-          reject(false);
-        }
-      });
-    }
+    getChromeLocalStorage("shared:hosts", []).then((hosts) => {
+      if (hosts.includes(location.host)) {
+        resolve(true);
+      } else {
+        reject(false);
+      }
+    });
   });
 }
 
@@ -180,8 +169,10 @@ async function closeBot({ id }) {
 
 /** Initialize */
 function initialize() {
-  /** Post Message */
-  postMiniAppStatus(true);
+  /** Connect to Messaging */
+  const port = chrome.runtime.connect(chrome.runtime.id, {
+    name: `mini-app:${location.host}`,
+  });
 
   /** Dispatch TelegramWebApp */
   const dispatchTelegramWebApp = async (data) => {
@@ -222,11 +213,6 @@ function initialize() {
       }
     }
   };
-
-  /** Connect to Messaging */
-  const port = chrome.runtime.connect(chrome.runtime.id, {
-    name: `mini-app:${location.host}`,
-  });
 
   /** Set Port */
   port.onMessage?.addListener(async (message) => {

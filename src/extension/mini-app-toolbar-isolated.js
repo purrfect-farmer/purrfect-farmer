@@ -30,7 +30,7 @@ function initialize() {
   );
 }
 
-watchTelegramMiniApp().then(() => {
+watchTelegramMiniApp(() => {
   if (document.body) {
     initialize();
   } else {

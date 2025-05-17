@@ -2,7 +2,7 @@ import { withValue } from "@/lib/utils";
 
 import { watchTelegramMiniApp } from "./content-script-utils";
 
-watchTelegramMiniApp().then(() => {
+watchTelegramMiniApp(() => {
   switch (location.host) {
     /** Bypass KittyVerse on Desktop */
     case "play.kittyverse.ai":

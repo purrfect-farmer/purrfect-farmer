@@ -1,3 +1,4 @@
+import { customLogger } from "@/lib/utils";
 import { useCallback } from "react";
 import { useLayoutEffect } from "react";
 import { useMemo } from "react";
@@ -52,6 +53,8 @@ export default function useMessagePort(isActive = true) {
   /** Remove a Port */
   const removePort = useCallback(
     (port) => {
+      customLogger("Port Disconnected", port);
+
       /** Remove Listeners */
       port.onDisconnect?.removeListener(removePort);
       port.onMessage?.removeListener(portMessageHandler);
@@ -72,6 +75,8 @@ export default function useMessagePort(isActive = true) {
      * @param {chrome.runtime.Port} port
      */
     const portConnectHandler = (port) => {
+      customLogger("Port Connected", port);
+
       if (ref.current) {
         /** Message Handler */
         port.onMessage?.addListener(portMessageHandler);
