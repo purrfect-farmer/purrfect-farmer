@@ -4,6 +4,7 @@ export function watchTelegramMiniApp(callback) {
   if (/tgWebAppPlatform=android/.test(location.href)) {
     return callback(true);
   }
+
   /**
    * @param {MessageEvent} ev
    */
