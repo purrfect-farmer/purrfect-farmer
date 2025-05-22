@@ -12,9 +12,16 @@ const __dirname = path.dirname(__filename);
 const pkg = await getPackageJson();
 
 const isBridge = typeof process.env.VITE_BRIDGE !== "undefined";
-const baseDir = isBridge ? "../dist-bridge" : "../dist";
+const isWhisker = typeof process.env.VITE_WHISKER !== "undefined";
+const baseDir = isWhisker
+  ? "../dist-whisker"
+  : isBridge
+  ? "../dist-bridge"
+  : "../dist";
 const outDir = "../dist-extension";
-const file = `${pkg.name + (isBridge ? "-bridge" : "")}-v${pkg.version}`;
+const file = `${
+  pkg.name + (isWhisker ? "-whisker" : isBridge ? "-bridge" : "")
+}-v${pkg.version}`;
 
 /** Create Directory */
 try {

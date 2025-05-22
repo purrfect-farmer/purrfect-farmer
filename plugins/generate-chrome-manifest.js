@@ -11,13 +11,14 @@ const __dirname = path.dirname(__filename);
 export function generateChromeManifest(env, pkg) {
   const isPWA = typeof process.env.VITE_PWA !== "undefined";
   const isBridge = typeof process.env.VITE_BRIDGE !== "undefined";
+  const isWhisker = typeof process.env.VITE_WHISKER !== "undefined";
   const isIndex = process.env.VITE_ENTRY === "index";
   const enabled = isPWA === false && isIndex;
 
   return {
     name: "generate-chrome-manifest",
     async generateBundle() {
-      const namePrefix = isBridge ? "(Bridge) " : "";
+      const namePrefix = isWhisker ? "(Whisker) " : isBridge ? "(Bridge) " : "";
       const matches = [
         `*://${new URL(env.VITE_APP_PWA_URL).hostname}/*`,
         "*://localhost/*",
@@ -36,30 +37,40 @@ export function generateChromeManifest(env, pkg) {
         },
         permissions: [
           "tabs",
-          "cookies",
-          "windows",
           "activeTab",
           "storage",
           "unlimitedStorage",
-          "sidePanel",
-          "notifications",
-          "webRequest",
-          "webNavigation",
           "declarativeNetRequest",
           "system.display",
-        ],
-        action: {
-          default_icon: "icon-48.png",
-          default_title: namePrefix + `Open ${env.VITE_APP_NAME}`,
-          default_popup: isBridge ? "pwa-iframe.html" : "index.html",
-        },
-        side_panel: {
-          default_path: isBridge ? "pwa-iframe.html" : "index.html",
-        },
+          "webRequest",
+        ].concat(
+          !isWhisker
+            ? [
+                "cookies",
+                "windows",
+                "sidePanel",
+                "notifications",
+                "webNavigation",
+              ]
+            : []
+        ),
         background: {
           service_worker: "extension/chrome-service-worker.js",
           type: "module",
         },
+        ...(!isWhisker
+          ? {
+              action: {
+                default_icon: "icon-48.png",
+                default_title: namePrefix + `Open ${env.VITE_APP_NAME}`,
+                default_popup: isBridge ? "pwa-iframe.html" : "index.html",
+              },
+              side_panel: {
+                default_path: isBridge ? "pwa-iframe.html" : "index.html",
+              },
+            }
+          : {}),
+
         host_permissions: ["*://*/*", "ws://*/*", "wss://*/*"],
         web_accessible_resources: [
           {

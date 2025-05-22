@@ -173,12 +173,17 @@ export default memo(function Welcome() {
         <div className="flex justify-between w-full gap-1 mx-auto overflow-auto max-w-96">
           <div className="flex gap-1">
             {/* Shutdown */}
-            <Dialog.Root>
-              <Dialog.Trigger asChild>
-                <ToolbarButton icon={HiOutlinePower} title="Shutdown Farmer" />
-              </Dialog.Trigger>
-              <Shutdown />
-            </Dialog.Root>
+            {!import.meta.env.VITE_WHISKER ? (
+              <Dialog.Root>
+                <Dialog.Trigger asChild>
+                  <ToolbarButton
+                    icon={HiOutlinePower}
+                    title="Shutdown Farmer"
+                  />
+                </Dialog.Trigger>
+                <Shutdown />
+              </Dialog.Root>
+            ) : null}
 
             {/* Toggle Fullscreen */}
             <ToolbarButton
@@ -197,11 +202,13 @@ export default memo(function Welcome() {
 
           <div className="flex gap-1">
             {/* Open New Tab */}
-            <ToolbarButton
-              title="Open New Tab"
-              onClick={openNewTab}
-              icon={HiOutlineArrowUpRight}
-            />
+            {!import.meta.env.VITE_WHISKER ? (
+              <ToolbarButton
+                title="Open New Tab"
+                onClick={openNewTab}
+                icon={HiOutlineArrowUpRight}
+              />
+            ) : null}
 
             {/* Open System Utils */}
             <ToolbarButton
@@ -211,11 +218,13 @@ export default memo(function Welcome() {
             />
 
             {/* Open Extensions Page */}
-            <ToolbarButton
-              title="Open Extensions Page"
-              onClick={openExtensionsPage}
-              icon={HiOutlinePuzzlePiece}
-            />
+            {!import.meta.env.VITE_WHISKER ? (
+              <ToolbarButton
+                title="Open Extensions Page"
+                onClick={openExtensionsPage}
+                icon={HiOutlinePuzzlePiece}
+              />
+            ) : null}
 
             {/* Settings */}
             <Dialog.Root
@@ -275,12 +284,14 @@ export default memo(function Welcome() {
           ) : null}
 
           {/* Farmer Title */}
-          <p
-            onClick={configureAppSettings}
-            className="font-bold leading-none text-center text-blue-500 cursor-pointer"
-          >
-            {account.title || "TGUser"}
-          </p>
+          {!import.meta.env.VITE_WHISKER ? (
+            <p
+              onClick={configureAppSettings}
+              className="font-bold leading-none text-center text-blue-500 cursor-pointer"
+            >
+              {account.title || "TGUser"}
+            </p>
+          ) : null}
 
           {/* Mirror Status */}
           {settings.enableMirror ? (

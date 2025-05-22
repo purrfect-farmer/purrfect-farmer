@@ -5,9 +5,10 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "npm-run-all clean build-extension build-bridge",
+    "build": "npm-run-all clean build-extension build-whisker build-bridge",
     "build-extension": "npm-run-all build:index build-extension:* bundle-extension",
     "build-bridge": "VITE_BRIDGE=true npm-run-all build-extension",
+    "build-whisker": "VITE_WHISKER=true npm-run-all build-extension",
     "build-pwa": "VITE_PWA=true VITE_ENTRY=index vite build",
     "build:index": "VITE_ENTRY=index vite build",
     "build-extension:chrome-service-worker": "VITE_ENTRY=chrome-service-worker vite build",

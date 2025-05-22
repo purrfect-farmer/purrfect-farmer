@@ -30,7 +30,7 @@ const defaultSettings = {
   closeOtherBots: true,
   enableCloud: false,
   enableSeeker: false,
-  enableMirror: false,
+  enableMirror: typeof import.meta.env.VITE_WHISKER !== "undefined",
   mirrorServer: import.meta.env.VITE_MIRROR_SERVER,
   cloudServer: import.meta.env.VITE_CLOUD_SERVER,
   seekerServer: import.meta.env.VITE_SEEKER_SERVER,

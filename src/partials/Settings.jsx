@@ -316,14 +316,18 @@ export default memo(function Settings({ tabs }) {
                       {/* Farmer Options */}
                       <SettingsGroup id={"farmer"} title={"Farmer Options"}>
                         {/* Farmer Title */}
-                        <SettingsLabel>Farmer Title</SettingsLabel>
-                        <Input
-                          value={account.title}
-                          onChange={(ev) =>
-                            updateActiveAccount({ title: ev.target.value })
-                          }
-                          placeholder="Farmer Title"
-                        />
+                        {!import.meta.env.VITE_WHISKER ? (
+                          <>
+                            <SettingsLabel>Farmer Title</SettingsLabel>
+                            <Input
+                              value={account.title}
+                              onChange={(ev) =>
+                                updateActiveAccount({ title: ev.target.value })
+                              }
+                              placeholder="Farmer Title"
+                            />
+                          </>
+                        ) : null}
 
                         {/* Preferred Theme */}
                         <SettingsLabel>Preferred Theme</SettingsLabel>
@@ -602,118 +606,129 @@ export default memo(function Settings({ tabs }) {
                         </div>
                       </SettingsGroup>
 
-                      {/* (SHARED) PC Options */}
-                      <SettingsGroup id="pc" title="PC Options">
-                        {/* Open Farmer in new Window */}
-                        <LabelToggle
-                          onChange={(ev) =>
-                            dispatchAndConfigureSharedSettings(
-                              "openFarmerInNewWindow",
-                              ev.target.checked
-                            )
-                          }
-                          checked={sharedSettings?.openFarmerInNewWindow}
-                        >
-                          Open Farmer in new Window
-                        </LabelToggle>
+                      {!import.meta.env.VITE_WHISKER ? (
+                        <>
+                          {/* (SHARED) PC Options */}
+                          <SettingsGroup id="pc" title="PC Options">
+                            {/* Open Farmer in new Window */}
+                            <LabelToggle
+                              onChange={(ev) =>
+                                dispatchAndConfigureSharedSettings(
+                                  "openFarmerInNewWindow",
+                                  ev.target.checked
+                                )
+                              }
+                              checked={sharedSettings?.openFarmerInNewWindow}
+                            >
+                              Open Farmer in new Window
+                            </LabelToggle>
 
-                        {/* (SHARED) Open Farmer on StartUp */}
-                        <LabelToggle
-                          onChange={(ev) =>
-                            dispatchAndConfigureSharedSettings(
-                              "openFarmerOnStartup",
-                              ev.target.checked
-                            )
-                          }
-                          checked={sharedSettings?.openFarmerOnStartup}
-                        >
-                          Open Farmer on Startup
-                        </LabelToggle>
+                            {/* (SHARED) Open Farmer on StartUp */}
+                            <LabelToggle
+                              onChange={(ev) =>
+                                dispatchAndConfigureSharedSettings(
+                                  "openFarmerOnStartup",
+                                  ev.target.checked
+                                )
+                              }
+                              checked={sharedSettings?.openFarmerOnStartup}
+                            >
+                              Open Farmer on Startup
+                            </LabelToggle>
 
-                        {/* (SHARED) Close Main Window on Startup */}
-                        <LabelToggle
-                          onChange={(ev) =>
-                            dispatchAndConfigureSharedSettings(
-                              "closeMainWindowOnStartup",
-                              ev.target.checked
-                            )
-                          }
-                          checked={sharedSettings?.closeMainWindowOnStartup}
-                        >
-                          Close Main Window on Startup
-                        </LabelToggle>
-                      </SettingsGroup>
+                            {/* (SHARED) Close Main Window on Startup */}
+                            <LabelToggle
+                              onChange={(ev) =>
+                                dispatchAndConfigureSharedSettings(
+                                  "closeMainWindowOnStartup",
+                                  ev.target.checked
+                                )
+                              }
+                              checked={sharedSettings?.closeMainWindowOnStartup}
+                            >
+                              Close Main Window on Startup
+                            </LabelToggle>
+                          </SettingsGroup>
+                          {/* Mirror Options */}
+                          <SettingsGroup id="mirror" title={"Mirror Options"}>
+                            <LabelToggle
+                              onChange={(ev) =>
+                                dispatchAndConfigureSettings(
+                                  "enableMirror",
+                                  ev.target.checked
+                                )
+                              }
+                              checked={settings?.enableMirror}
+                            >
+                              Enable Mirror
+                            </LabelToggle>
 
-                      {/* Mirror Options */}
-                      <SettingsGroup id="mirror" title={"Mirror Options"}>
-                        <LabelToggle
-                          onChange={(ev) =>
-                            dispatchAndConfigureSettings(
-                              "enableMirror",
-                              ev.target.checked
-                            )
-                          }
-                          checked={settings?.enableMirror}
-                        >
-                          Enable Mirror
-                        </LabelToggle>
+                            {/* Mirror Server */}
+                            <SettingsLabel>Mirror Server</SettingsLabel>
+                            <div className="flex gap-2">
+                              <Input
+                                value={mirrorServer}
+                                onChange={(ev) =>
+                                  setMirrorServer(ev.target.value)
+                                }
+                                placeholder="Mirror Server"
+                              />
 
-                        {/* Mirror Server */}
-                        <SettingsLabel>Mirror Server</SettingsLabel>
-                        <div className="flex gap-2">
-                          <Input
-                            value={mirrorServer}
-                            onChange={(ev) => setMirrorServer(ev.target.value)}
-                            placeholder="Mirror Server"
-                          />
+                              {/* Reset Button */}
+                              <ResetButton
+                                onClick={() =>
+                                  setMirrorServer(defaultMirrorServer)
+                                }
+                              />
 
-                          {/* Reset Button */}
-                          <ResetButton
-                            onClick={() => setMirrorServer(defaultMirrorServer)}
-                          />
+                              {/* Set Button */}
+                              <ConfirmButton onClick={handleSetMirrorServer} />
+                            </div>
 
-                          {/* Set Button */}
-                          <ConfirmButton onClick={handleSetMirrorServer} />
-                        </div>
+                            {/* (SHARED) Farmers Per Windows */}
+                            <label className="mt-4 text-neutral-400">
+                              Farmers Per Window (Min - 3)
+                            </label>
+                            <div className="flex gap-2">
+                              <Input
+                                value={farmersPerWindow}
+                                type="number"
+                                onChange={(ev) =>
+                                  setFarmersPerWindow(ev.target.value)
+                                }
+                                placeholder="Farmers Per Window"
+                              />
 
-                        {/* (SHARED) Farmers Per Windows */}
-                        <label className="mt-4 text-neutral-400">
-                          Farmers Per Window (Min - 3)
-                        </label>
-                        <div className="flex gap-2">
-                          <Input
-                            value={farmersPerWindow}
-                            type="number"
-                            onChange={(ev) =>
-                              setFarmersPerWindow(ev.target.value)
-                            }
-                            placeholder="Farmers Per Window"
-                          />
+                              {/* Set Button */}
+                              <ConfirmButton
+                                onClick={() =>
+                                  dispatchAndSetFarmersPerWindow(
+                                    farmersPerWindow
+                                  )
+                                }
+                              />
+                            </div>
 
-                          {/* Set Button */}
-                          <ConfirmButton
-                            onClick={() =>
-                              dispatchAndSetFarmersPerWindow(farmersPerWindow)
-                            }
-                          />
-                        </div>
+                            {/* (SHARED) Farmer Postion */}
+                            <SettingsLabel>Farmer Position</SettingsLabel>
+                            <div className="flex gap-2">
+                              <Input
+                                value={farmerPosition}
+                                type="number"
+                                onChange={(ev) =>
+                                  setFarmerPosition(ev.target.value)
+                                }
+                                placeholder="Farmer Position"
+                              />
 
-                        {/* (SHARED) Farmer Postion */}
-                        <SettingsLabel>Farmer Position</SettingsLabel>
-                        <div className="flex gap-2">
-                          <Input
-                            value={farmerPosition}
-                            type="number"
-                            onChange={(ev) =>
-                              setFarmerPosition(ev.target.value)
-                            }
-                            placeholder="Farmer Position"
-                          />
-
-                          {/* Set Button */}
-                          <ConfirmButton onClick={handleSetFarmerPosition} />
-                        </div>
-                      </SettingsGroup>
+                              {/* Set Button */}
+                              <ConfirmButton
+                                onClick={handleSetFarmerPosition}
+                              />
+                            </div>
+                          </SettingsGroup>
+                        </>
+                      ) : null}
                     </SettingsContainer>
 
                     {/* Force Reload Extension */}

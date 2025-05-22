@@ -36,7 +36,11 @@ export default defineConfig(async ({ mode }) => {
       },
     },
     build: {
-      outDir: process.env.VITE_BRIDGE ? "dist-bridge" : "dist",
+      outDir: process.env.VITE_WHISKER
+        ? "dist-whisker"
+        : process.env.VITE_BRIDGE
+        ? "dist-bridge"
+        : "dist",
       emptyOutDir: process.env.VITE_ENTRY === "index",
       rollupOptions: {
         input:
