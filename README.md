@@ -16,6 +16,16 @@ An extension private key is required and should be saved as `dist.pem` at the ro
 
 You can load the extension through the `dist` folder or (crx/zip) file inside `dist-extension` folder.
 
+## Whisker
+
+Whisker should only be used within [Purrfect Whisker](https://github.com/purrfect-farmer/purrfect-whiskers).
+
+```bash
+pnpm build-whisker
+```
+
+You should set the extension path in [Purrfect Whisker](https://github.com/purrfect-farmer/purrfect-whiskers) settings to the `dist-whisker` folder.
+
 ## PWA
 
 Building as PWA requires the bridge, simply run the command below to build a PWA.
