@@ -18,13 +18,13 @@ You can load the extension through the `dist` folder or (crx/zip) file inside `d
 
 ## Whisker
 
-Whisker should only be used within [Purrfect Whisker](https://github.com/purrfect-farmer/purrfect-whiskers).
+Whisker should only be used within [Purrfect Whiskers](https://github.com/purrfect-farmer/purrfect-whiskers).
 
 ```bash
 pnpm build-whisker
 ```
 
-You should set the extension path in [Purrfect Whisker](https://github.com/purrfect-farmer/purrfect-whiskers) settings to the `dist-whisker` folder.
+You should set the extension path in [Purrfect Whiskers](https://github.com/purrfect-farmer/purrfect-whiskers) settings to the `dist-whisker` folder.
 
 ## PWA
 
