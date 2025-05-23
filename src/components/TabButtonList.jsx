@@ -54,33 +54,31 @@ export default memo(function TabButtonList({ tabs }) {
       </div>
 
       {/* Account Picker */}
-      {!import.meta.env.VITE_WHISKER ? (
-        <Dialog.Root>
-          {account.user ? (
-            <Dialog.Trigger
-              title={userFullName}
-              className="shrink-0 rounded-full"
-            >
-              <img
-                src={account.user["photo_url"]}
-                className="rounded-full size-8"
-              />
-            </Dialog.Trigger>
-          ) : (
-            <Dialog.Trigger
-              className={cn(
-                "flex items-center justify-center",
-                "shrink-0 p-2 rounded-full",
-                "bg-neutral-100 dark:bg-neutral-700"
-              )}
-            >
-              <LiaUser className="size-5" />
-            </Dialog.Trigger>
-          )}
+      <Dialog.Root>
+        {account.user ? (
+          <Dialog.Trigger
+            title={userFullName}
+            className="shrink-0 rounded-full"
+          >
+            <img
+              src={account.user["photo_url"]}
+              className="rounded-full size-8"
+            />
+          </Dialog.Trigger>
+        ) : (
+          <Dialog.Trigger
+            className={cn(
+              "flex items-center justify-center",
+              "shrink-0 p-2 rounded-full",
+              "bg-neutral-100 dark:bg-neutral-700"
+            )}
+          >
+            <LiaUser className="size-5" />
+          </Dialog.Trigger>
+        )}
 
-          <AccountPicker />
-        </Dialog.Root>
-      ) : null}
+        <AccountPicker />
+      </Dialog.Root>
     </div>
   );
 });

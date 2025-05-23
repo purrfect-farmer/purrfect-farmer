@@ -118,18 +118,20 @@ export default memo(function AccountPicker() {
         {/* Add Account / Close Dialog */}
         <div className="flex flex-col gap-2 p-4">
           {/* Add Account */}
-          <Dialog.Close
-            onClick={() => addAccount()}
-            className={cn(
-              "bg-purple-100 ",
-              "text-purple-900",
-              "p-2.5 rounded-xl shrink-0 font-bold",
-              "flex items-center justify-center gap-2"
-            )}
-          >
-            <PiUserCirclePlusBold className="size-4" />
-            Add Account
-          </Dialog.Close>
+          {!import.meta.env.VITE_WHISKER ? (
+            <Dialog.Close
+              onClick={() => addAccount()}
+              className={cn(
+                "bg-purple-100 ",
+                "text-purple-900",
+                "p-2.5 rounded-xl shrink-0 font-bold",
+                "flex items-center justify-center gap-2"
+              )}
+            >
+              <PiUserCirclePlusBold className="size-4" />
+              Add Account
+            </Dialog.Close>
+          ) : null}
 
           {/* Close Dialog */}
           <Dialog.Close
