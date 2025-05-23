@@ -284,14 +284,12 @@ export default memo(function Welcome() {
           ) : null}
 
           {/* Farmer Title */}
-          {!import.meta.env.VITE_WHISKER ? (
-            <p
-              onClick={configureAppSettings}
-              className="font-bold leading-none text-center text-blue-500 cursor-pointer"
-            >
-              {account.title || "TGUser"}
-            </p>
-          ) : null}
+          <p
+            onClick={configureAppSettings}
+            className="font-bold leading-none text-center text-blue-500 cursor-pointer"
+          >
+            {account.title || "TGUser"}
+          </p>
 
           {/* Mirror Status */}
           {settings.enableMirror ? (
