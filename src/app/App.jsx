@@ -10,6 +10,7 @@ import useMiniAppToolbar from "@/hooks/useMiniAppToolbar";
 import useMirroredCallback from "@/hooks/useMirroredCallback";
 import useSeeker from "@/hooks/useSeeker";
 import useTheme from "@/hooks/useTheme";
+import useWhiskerData from "@/hooks/useWhiskerData";
 import { memo } from "react";
 import { useRegisterSW } from "virtual:pwa-register/react";
 
@@ -39,6 +40,9 @@ function App() {
     [needRefresh, updateServiceWorker],
     app.mirror
   );
+
+  /** Whisker Data */
+  useWhiskerData(app);
 
   /** Use Seeker */
   useSeeker(app);
