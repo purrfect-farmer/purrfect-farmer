@@ -96,7 +96,7 @@ export default defineConfig(async ({ mode }) => {
                     return "extension/[name][extname]";
                   }
 
-                  return "assets/[name][extname]";
+                  return "assets/[name]-[hash][extname]";
                 },
               }
             : {
