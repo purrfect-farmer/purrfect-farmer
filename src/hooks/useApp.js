@@ -13,7 +13,7 @@ export default function useApp() {
   const zoomies = useZoomies(core);
   const telegramUser = useTelegramUser(core);
 
-  const { updateActiveAccount } = core;
+  const { configureSettings, hasRestoredSettings, updateActiveAccount } = core;
 
   /** Utils Panel State */
   const [showUtilsPanel, setShowUtilsPanel, dispatchAndSetShowUtilsPanel] =
@@ -46,15 +46,17 @@ export default function useApp() {
   /** Whisker Message */
   useEffect(() => {
     if (import.meta.env.VITE_WHISKER) {
+      if (!hasRestoredSettings) return;
       const listener = (ev) => {
         if (
           typeof ev.data === "object" &&
-          ev.data.action === "set-whisker-account"
+          ev.data.action === "set-whisker-data"
         ) {
-          const { data } = ev.data;
+          const { account, theme } = ev.data.data;
           updateActiveAccount({
-            title: data.title,
+            title: account.title,
           });
+          configureSettings("theme", theme, false);
         }
       };
 
@@ -63,7 +65,7 @@ export default function useApp() {
 
       return () => window.removeEventListener("message", listener);
     }
-  }, [updateActiveAccount]);
+  }, [configureSettings, hasRestoredSettings, updateActiveAccount]);
 
   return useValuesMemo({
     ...core,

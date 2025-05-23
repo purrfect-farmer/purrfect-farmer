@@ -327,28 +327,32 @@ export default memo(function Settings({ tabs }) {
                         />
 
                         {/* Preferred Theme */}
-                        <SettingsLabel>Preferred Theme</SettingsLabel>
+                        {!import.meta.env.VITE_WHISKER ? (
+                          <>
+                            <SettingsLabel>Preferred Theme</SettingsLabel>
 
-                        <div className="grid grid-cols-3 gap-2">
-                          {["system", "light", "dark"].map((theme) => (
-                            <button
-                              onClick={() =>
-                                dispatchAndConfigureSettings("theme", theme)
-                              }
-                              key={theme}
-                              className={cn(
-                                settings.theme === theme
-                                  ? "bg-blue-200 dark:bg-blue-800"
-                                  : "bg-neutral-100 dark:bg-neutral-700",
-                                "p-2 rounded-lg",
-                                "flex gap-1 items-center justify-center",
-                                "uppercase"
-                              )}
-                            >
-                              {theme}
-                            </button>
-                          ))}
-                        </div>
+                            <div className="grid grid-cols-3 gap-2">
+                              {["system", "light", "dark"].map((theme) => (
+                                <button
+                                  onClick={() =>
+                                    dispatchAndConfigureSettings("theme", theme)
+                                  }
+                                  key={theme}
+                                  className={cn(
+                                    settings.theme === theme
+                                      ? "bg-blue-200 dark:bg-blue-800"
+                                      : "bg-neutral-100 dark:bg-neutral-700",
+                                    "p-2 rounded-lg",
+                                    "flex gap-1 items-center justify-center",
+                                    "uppercase"
+                                  )}
+                                >
+                                  {theme}
+                                </button>
+                              ))}
+                            </div>
+                          </>
+                        ) : null}
 
                         {/* Farmer Mode */}
                         <SettingsLabel>Farmer Mode</SettingsLabel>
