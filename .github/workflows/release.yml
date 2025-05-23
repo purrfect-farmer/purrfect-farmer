@@ -1,0 +1,40 @@
+name: Build/release Extension
+
+on:
+  push:
+    tags:
+      - v*.*.*
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: latest
+          run_install: false
+
+      - name: Install Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "lts/*"
+          cache: "pnpm"
+
+      - name: Install dependencies
+        run: pnpm install
+
+      - name: Build
+        run: pnpm run build"
+
+      - name: release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            dist-extension/*.crx
+            dist-extension/*.zip
+        env:
+          GITHUB_TOKEN: ${{ secrets.ACCESS_TOKEN }}
