@@ -1,36 +1,43 @@
 import { useEffect } from "react";
 
+import useRefCallback from "./useRefCallback";
+
 export default function useWhiskerData(app) {
-  const { configureSettings, hasRestoredSettings, updateActiveAccount } = app;
+  const { hasRestoredSettings } = app;
+  const configureSettings = useRefCallback(app.configureSettings);
+  const updateActiveAccount = useRefCallback(app.updateActiveAccount);
 
   /** Whisker Message */
   useEffect(() => {
     if (import.meta.env.VITE_WHISKER) {
       if (!hasRestoredSettings) return;
-      const listener = (_event, { action, data }) => {
-        if (action === "set-whisker-data") {
-          const { account, theme } = data;
+      else {
+        /** Message Listener */
+        const listener = (_event, { action, data }) => {
+          if (action === "set-whisker-data") {
+            const { account, theme } = data;
 
-          /** Update Account */
-          updateActiveAccount({
-            title: account.title,
-          });
+            /** Update Account */
+            updateActiveAccount({
+              title: account.title,
+            });
 
-          /** Configure Theme */
-          configureSettings("theme", theme, false);
-        }
-      };
+            /** Configure Theme */
+            configureSettings("theme", theme, false);
+          }
+        };
 
-      /** Add Listener */
-      window.electron.ipcRenderer.on("host-message", listener);
+        /** Add Listener */
+        window.electron.ipcRenderer.on("host-message", listener);
 
-      /** Request for Whisker Data */
-      window.electron.ipcRenderer.sendToHost("webview-message", {
-        action: "get-whisker-data",
-      });
+        /** Request for Whisker Data */
+        window.electron.ipcRenderer.sendToHost("webview-message", {
+          action: "get-whisker-data",
+        });
 
-      return () =>
-        window.electron.ipcRenderer.removeListener("host-message", listener);
+        return () =>
+          window.electron.ipcRenderer.removeListener("host-message", listener);
+      }
     }
-  }, [configureSettings, hasRestoredSettings, updateActiveAccount]);
+  }, [hasRestoredSettings, configureSettings, updateActiveAccount]);
 }
