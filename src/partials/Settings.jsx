@@ -316,18 +316,15 @@ export default memo(function Settings({ tabs }) {
                       {/* Farmer Options */}
                       <SettingsGroup id={"farmer"} title={"Farmer Options"}>
                         {/* Farmer Title */}
-                        {!import.meta.env.VITE_WHISKER ? (
-                          <>
-                            <SettingsLabel>Farmer Title</SettingsLabel>
-                            <Input
-                              value={account.title}
-                              onChange={(ev) =>
-                                updateActiveAccount({ title: ev.target.value })
-                              }
-                              placeholder="Farmer Title"
-                            />
-                          </>
-                        ) : null}
+                        <SettingsLabel>Farmer Title</SettingsLabel>
+                        <Input
+                          readOnly={Boolean(import.meta.env.VITE_WHISKER)}
+                          value={account.title}
+                          onChange={(ev) =>
+                            updateActiveAccount({ title: ev.target.value })
+                          }
+                          placeholder="Farmer Title"
+                        />
 
                         {/* Preferred Theme */}
                         <SettingsLabel>Preferred Theme</SettingsLabel>
