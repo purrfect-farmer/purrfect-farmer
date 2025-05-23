@@ -29,7 +29,8 @@ export default function useWhiskerData(app) {
         action: "get-whisker-data",
       });
 
-      return () => window.electron.ipcRenderer.off("host-message", listener);
+      return () =>
+        window.electron.ipcRenderer.removeListener("host-message", listener);
     }
   }, [configureSettings, hasRestoredSettings, updateActiveAccount]);
 }
