@@ -20,7 +20,7 @@ export function generateChromeManifest(env, pkg) {
     async generateBundle() {
       const namePrefix = isWhisker ? "(Whisker) " : isBridge ? "(Bridge) " : "";
       const matches = [
-        `*://${new URL(env.VITE_APP_PWA_URL).hostname}/*`,
+        `*://${new URL(env.VITE_PWA_URL).hostname}/*`,
         "*://localhost/*",
       ];
 

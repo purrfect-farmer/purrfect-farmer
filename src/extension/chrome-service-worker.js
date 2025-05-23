@@ -35,7 +35,7 @@ if (!isWhisker) {
         window.id !== currentWindow.id &&
         window.tabs.some((tab) =>
           tab.url.startsWith(
-            isBridge ? import.meta.env.VITE_APP_PWA_URL : "chrome://newtab/"
+            isBridge ? import.meta.env.VITE_PWA_URL : "chrome://newtab/"
           )
         )
     );
@@ -49,7 +49,7 @@ if (!isWhisker) {
   const openFarmerWindow = async (newWindow = false) => {
     /** Index Page */
     const indexPage = isBridge
-      ? import.meta.env.VITE_APP_PWA_URL
+      ? import.meta.env.VITE_PWA_URL
       : chrome.runtime.getURL("index.html");
 
     /** Get All Windows */

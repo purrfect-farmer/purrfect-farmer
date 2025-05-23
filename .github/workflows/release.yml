@@ -30,6 +30,8 @@ jobs:
       - name: Build
         env:
           EXTENSION_PRIVATE_KEY: ${{ secrets.EXTENSION_PRIVATE_KEY }}
+          VITE_SEEKER_SERVER: ${{ secrets.VITE_SEEKER_SERVER }}
+          VITE_PWA_URL: ${{ secrets.VITE_PWA_URL }}
         run: pnpm run build
 
       - name: release
