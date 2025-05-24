@@ -4,18 +4,29 @@ import { useCallback } from "react";
 import { useMemo } from "react";
 
 export default function useBackupAndRestore(app) {
-  const { messaging, setActiveTab, closeTab } = useAppContext() || app;
+  const { messaging, setActiveTab, closeTab, configureSettings } =
+    useAppContext() || app;
+
+  /** Skip Onboarding */
+  const skipOnboarding = useCallback(
+    () => configureSettings("onboarded", true, false),
+    [configureSettings]
+  );
 
   const closeTelegramWeb = useCallback(() => {
     closeTab("telegram-web-k");
     closeTab("telegram-web-a");
   }, [closeTab]);
 
+  /** Get Backup Data */
   const getBackupData = useCallback(
     () =>
       new Promise(async (resolve, reject) => {
+        /** Skip Onboarding */
+        await skipOnboarding();
+
         /** Close Telegram Web */
-        closeTelegramWeb();
+        await closeTelegramWeb();
 
         messaging.handler.once(
           `port-connected:telegram-web-k`,
@@ -44,17 +55,18 @@ export default function useBackupAndRestore(app) {
 
         setActiveTab("telegram-web-k");
       }),
-    [messaging.handler, closeTelegramWeb, setActiveTab]
+    [messaging.handler, setActiveTab, skipOnboarding, closeTelegramWeb]
   );
 
+  /** Restore Backup Data */
   const restoreBackupData = useCallback(
     (data) =>
       new Promise(async (resolve, reject) => {
-        /** Restore Chrome Local Storage */
-        await chrome.storage.local.set(data.chromeLocalStorage);
+        /** Skip Onboarding */
+        await skipOnboarding();
 
         /** Close Telegram Web */
-        closeTelegramWeb();
+        await closeTelegramWeb();
 
         /** Wait for Port */
         messaging.handler.once(
@@ -69,6 +81,9 @@ export default function useBackupAndRestore(app) {
             /** Close Telegram Web */
             closeTelegramWeb();
 
+            /** Restore Chrome Local Storage */
+            await chrome.storage.local.set(data.chromeLocalStorage);
+
             /** Resolve */
             resolve(true);
           }
@@ -76,7 +91,7 @@ export default function useBackupAndRestore(app) {
 
         setActiveTab("telegram-web-k");
       }),
-    [messaging.handler, closeTelegramWeb, setActiveTab]
+    [messaging.handler, setActiveTab, skipOnboarding, closeTelegramWeb]
   );
 
   return useMemo(
