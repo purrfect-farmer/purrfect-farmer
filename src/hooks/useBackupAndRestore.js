@@ -50,9 +50,13 @@ export default function useBackupAndRestore(app) {
   const restoreBackupData = useCallback(
     (data) =>
       new Promise(async (resolve, reject) => {
+        /** Restore Chrome Local Storage */
+        await chrome.storage.local.set(data.chromeLocalStorage);
+
         /** Close Telegram Web */
         closeTelegramWeb();
 
+        /** Wait for Port */
         messaging.handler.once(
           `port-connected:telegram-web-k`,
           async (port) => {
@@ -64,9 +68,6 @@ export default function useBackupAndRestore(app) {
 
             /** Close Telegram Web */
             closeTelegramWeb();
-
-            /** Restore Chrome Local Storage */
-            await chrome.storage.local.set(data.chromeLocalStorage);
 
             /** Resolve */
             resolve(true);
