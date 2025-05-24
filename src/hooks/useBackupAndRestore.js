@@ -3,8 +3,8 @@ import { postPortMessage } from "@/lib/utils";
 import { useCallback } from "react";
 import { useMemo } from "react";
 
-export default function useBackupAndRestore() {
-  const { messaging, setActiveTab, closeTab } = useAppContext();
+export default function useBackupAndRestore(app) {
+  const { messaging, setActiveTab, closeTab } = useAppContext() || app;
 
   const closeTelegramWeb = useCallback(() => {
     closeTab("telegram-web-k");
