@@ -41,7 +41,7 @@ export default function useBackupAndRestore(app) {
 
             const chromeLocalStorage = await chrome.storage.local.get(null);
             const data = {
-              version: __APP_VERSION__,
+              version: __APP_PACKAGE_VERSION__,
               time: Date.now(),
               data: {
                 telegramWebLocalStorage,

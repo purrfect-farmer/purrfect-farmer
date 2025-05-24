@@ -119,6 +119,9 @@ importers:
       rollup-plugin-visualizer:
         specifier: ^5.14.0
         version: 5.14.0(rollup@2.79.2)
+      semver:
+        specifier: ^7.7.2
+        version: 7.7.2
       set-cookie-parser:
         specifier: ^2.7.1
         version: 2.7.1

@@ -27,7 +27,7 @@ export default defineConfig(async ({ mode }) => {
   return {
     define: {
       __APP_PACKAGE_NAME__: `"${pkg.name}"`,
-      __APP_VERSION__: `"${pkg.version}"`,
+      __APP_PACKAGE_VERSION__: `"${pkg.version}"`,
       __ENCRYPTION_KEY__: `"${new Date().toISOString().split("T")[0]}"`,
     },
     resolve: {

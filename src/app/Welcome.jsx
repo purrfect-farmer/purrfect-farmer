@@ -272,7 +272,7 @@ export default memo(function Welcome() {
           {/* App Version */}
           <p className="text-lg leading-none text-center">
             <span className={cn("font-turret-road font-bold text-orange-500")}>
-              v{__APP_VERSION__}
+              v{__APP_PACKAGE_VERSION__}
             </span>
           </p>
 
