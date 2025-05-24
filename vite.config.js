@@ -25,6 +25,7 @@ export default defineConfig(async ({ mode }) => {
   const env = loadEnv(mode, process.cwd());
 
   return {
+    base: Boolean(process.env.VITE_PWA) ? process.env.BASE_URL : "/",
     define: {
       __APP_PACKAGE_NAME__: `"${pkg.name}"`,
       __APP_PACKAGE_VERSION__: `"${pkg.version}"`,
@@ -41,6 +42,8 @@ export default defineConfig(async ({ mode }) => {
         ? "dist-whisker"
         : process.env.VITE_BRIDGE
         ? "dist-bridge"
+        : process.env.VITE_EXTENSION
+        ? "dist-extension"
         : "dist",
       emptyOutDir: process.env.VITE_ENTRY === "index",
       rollupOptions: {

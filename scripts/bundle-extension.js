@@ -11,14 +11,17 @@ const __dirname = path.dirname(__filename);
 
 const pkg = await getPackageJson();
 
-const isBridge = typeof process.env.VITE_BRIDGE !== "undefined";
-const isWhisker = typeof process.env.VITE_WHISKER !== "undefined";
+const isBridge = Boolean(process.env.VITE_BRIDGE);
+const isWhisker = Boolean(process.env.VITE_WHISKER);
+
 const baseDir = isWhisker
   ? "../dist-whisker"
   : isBridge
   ? "../dist-bridge"
-  : "../dist";
-const outDir = "../dist-extension";
+  : "../dist-extension";
+
+const outDir = "../dist-bundle";
+
 const file = `${
   pkg.name + (isWhisker ? "-whisker" : isBridge ? "-bridge" : "")
 }-v${pkg.version}`;

@@ -14,7 +14,7 @@ pnpm build-extension
 
 An extension private key is required and should be saved as `dist.pem` at the root of the project.
 
-You can load the extension through the `dist` folder or (crx/zip) file inside `dist-extension` folder.
+You can load the extension through the `dist-extension` folder or (crx/zip) file inside `dist-bundle` folder.
 
 ## Whisker
 
@@ -44,4 +44,4 @@ Bridge allows the PWA to call Chrome APIs directly, bridge must be installed sep
 pnpm build-bridge
 ```
 
-You can load the extension through the `dist-bridge` folder or (crx/zip) file inside `dist-extension` folder.
+You can load the extension through the `dist-bridge` folder or (crx/zip) file inside `dist-bundle` folder.
