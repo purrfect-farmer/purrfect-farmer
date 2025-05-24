@@ -365,7 +365,6 @@ port.onMessage?.addListener(async (message) => {
       break;
 
     case "set-local-storage":
-      console.log(data);
       Object.entries(data).forEach(([k, v]) => localStorage.setItem(k, v));
       try {
         reply(true);
