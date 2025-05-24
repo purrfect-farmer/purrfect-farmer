@@ -347,14 +347,36 @@ const port = chrome.runtime.connect(chrome.runtime.id, {
 /** Listen for Port Message */
 port.onMessage?.addListener(async (message) => {
   const { id, action, data } = message;
+
+  const reply = (data) => {
+    port.postMessage({
+      id,
+      data,
+    });
+  };
+
   switch (action) {
+    case "get-local-storage":
+      try {
+        reply(localStorage);
+      } catch (e) {
+        console.error(e);
+      }
+      break;
+
+    case "set-local-storage":
+      console.log(data);
+      Object.entries(data).forEach(([k, v]) => localStorage.setItem(k, v));
+      try {
+        reply(true);
+      } catch (e) {
+        console.error(e);
+      }
+      break;
     case "disconnect-observers":
       await disconnectObservers();
       try {
-        port.postMessage({
-          id,
-          data: true,
-        });
+        reply(true);
       } catch (e) {
         console.error(e);
       }
@@ -363,10 +385,7 @@ port.onMessage?.addListener(async (message) => {
     case "close-other-popups":
       await closeOtherPopups();
       try {
-        port.postMessage({
-          id,
-          data: true,
-        });
+        reply(true);
       } catch (e) {
         console.error(e);
       }
@@ -375,10 +394,7 @@ port.onMessage?.addListener(async (message) => {
     case "open-webview-bot":
       await openBot(true);
       try {
-        port.postMessage({
-          id,
-          data: true,
-        });
+        reply(true);
       } catch (e) {
         console.error(e);
       }
@@ -387,10 +403,7 @@ port.onMessage?.addListener(async (message) => {
     case "open-farmer-bot":
       await openFarmerBot();
       try {
-        port.postMessage({
-          id,
-          data: true,
-        });
+        reply(true);
       } catch (e) {
         console.error(e);
       }
@@ -399,10 +412,7 @@ port.onMessage?.addListener(async (message) => {
     case "join-conversation":
       await joinConversation();
       try {
-        port.postMessage({
-          id,
-          data: true,
-        });
+        reply(true);
       } catch (e) {
         console.error(e);
       }

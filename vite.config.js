@@ -26,6 +26,7 @@ export default defineConfig(async ({ mode }) => {
 
   return {
     define: {
+      __APP_PACKAGE_NAME__: `"${pkg.name}"`,
       __APP_VERSION__: `"${pkg.version}"`,
       __ENCRYPTION_KEY__: `"${new Date().toISOString().split("T")[0]}"`,
     },
@@ -62,7 +63,7 @@ export default defineConfig(async ({ mode }) => {
                   ),
                 ])
               )
-            : process.env.VITE_ENTRY.endsWith("styles")
+            : process.env.VITE_ENTRY?.endsWith("styles")
             ? path.resolve(
                 __dirname,
                 `./src/extension/${process.env.VITE_ENTRY}.css`
@@ -89,7 +90,7 @@ export default defineConfig(async ({ mode }) => {
                   }
                 },
               }
-            : process.env.VITE_ENTRY.endsWith("styles")
+            : process.env.VITE_ENTRY?.endsWith("styles")
             ? {
                 assetFileNames: (assetInfo) => {
                   if (assetInfo.name.endsWith(".css")) {
@@ -109,7 +110,7 @@ export default defineConfig(async ({ mode }) => {
       /** Plugins */
       generateChromeManifest(env, pkg),
       transformCssBundle({
-        enable: process.env.VITE_ENTRY.endsWith("styles"),
+        enable: process.env.VITE_ENTRY?.endsWith("styles"),
       }),
       VitePWA({
         registerType: "prompt",

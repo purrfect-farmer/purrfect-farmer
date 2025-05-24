@@ -217,6 +217,13 @@ function initialize() {
   /** Set Port */
   port.onMessage?.addListener(async (message) => {
     const { id, action, data } = message;
+    const reply = (data) => {
+      port.postMessage({
+        id,
+        data,
+      });
+    };
+
     switch (action) {
       case `get-telegram-web-app:${location.host}`:
         const telegramWebApp = await getTelegramWebApp();
@@ -226,10 +233,7 @@ function initialize() {
       case "open-telegram-link":
         await openTelegramLink({ id, ...data });
         try {
-          port.postMessage({
-            id,
-            data: true,
-          });
+          reply(true);
         } catch (e) {
           console.error(e);
         }
@@ -238,10 +242,7 @@ function initialize() {
       case "close-bot":
         await closeBot({ id });
         try {
-          port.postMessage({
-            id,
-            data: true,
-          });
+          reply(true);
         } catch (e) {
           console.error(e);
         }
@@ -252,10 +253,7 @@ function initialize() {
           message,
           (response) => {
             try {
-              return port.postMessage({
-                id,
-                data: response,
-              });
+              return reply(response);
             } catch (e) {
               console.error(e);
             }
