@@ -8,6 +8,7 @@ import PrimaryButton from "./PrimaryButton";
 export default memo(function AppUpdate() {
   const currentVersion = `v${__APP_PACKAGE_VERSION__}`;
   const { data } = useQuery({
+    enabled: !import.meta.env.VITE_WHISKER,
     queryKey: ["app", "release", "latest"],
     queryFn: ({ signal }) =>
       axios
