@@ -650,42 +650,43 @@ export default memo(function Settings({ tabs }) {
                               Close Main Window on Startup
                             </LabelToggle>
                           </SettingsGroup>
-                          {/* Mirror Options */}
-                          <SettingsGroup id="mirror" title={"Mirror Options"}>
-                            <LabelToggle
-                              onChange={(ev) =>
-                                dispatchAndConfigureSettings(
-                                  "enableMirror",
-                                  ev.target.checked
-                                )
-                              }
-                              checked={settings?.enableMirror}
-                            >
-                              Enable Mirror
-                            </LabelToggle>
+                        </>
+                      ) : null}
 
-                            {/* Mirror Server */}
-                            <SettingsLabel>Mirror Server</SettingsLabel>
-                            <div className="flex gap-2">
-                              <Input
-                                value={mirrorServer}
-                                onChange={(ev) =>
-                                  setMirrorServer(ev.target.value)
-                                }
-                                placeholder="Mirror Server"
-                              />
+                      {/* Mirror Options */}
+                      <SettingsGroup id="mirror" title={"Mirror Options"}>
+                        <LabelToggle
+                          onChange={(ev) =>
+                            dispatchAndConfigureSettings(
+                              "enableMirror",
+                              ev.target.checked
+                            )
+                          }
+                          checked={settings?.enableMirror}
+                        >
+                          Enable Mirror
+                        </LabelToggle>
 
-                              {/* Reset Button */}
-                              <ResetButton
-                                onClick={() =>
-                                  setMirrorServer(defaultMirrorServer)
-                                }
-                              />
+                        {/* Mirror Server */}
+                        <SettingsLabel>Mirror Server</SettingsLabel>
+                        <div className="flex gap-2">
+                          <Input
+                            value={mirrorServer}
+                            onChange={(ev) => setMirrorServer(ev.target.value)}
+                            placeholder="Mirror Server"
+                          />
 
-                              {/* Set Button */}
-                              <ConfirmButton onClick={handleSetMirrorServer} />
-                            </div>
+                          {/* Reset Button */}
+                          <ResetButton
+                            onClick={() => setMirrorServer(defaultMirrorServer)}
+                          />
 
+                          {/* Set Button */}
+                          <ConfirmButton onClick={handleSetMirrorServer} />
+                        </div>
+
+                        {!import.meta.env.VITE_WHISKER ? (
+                          <>
                             {/* (SHARED) Farmers Per Windows */}
                             <label className="mt-4 text-neutral-400">
                               Farmers Per Window (Min - 3)
@@ -727,9 +728,9 @@ export default memo(function Settings({ tabs }) {
                                 onClick={handleSetFarmerPosition}
                               />
                             </div>
-                          </SettingsGroup>
-                        </>
-                      ) : null}
+                          </>
+                        ) : null}
+                      </SettingsGroup>
                     </SettingsContainer>
 
                     {/* Force Reload Extension */}
