@@ -55,7 +55,10 @@ export default memo(function BattleBullsCards() {
   /** Available Cards */
   const availableCards = useMemo(
     () =>
-      cards.filter((card) => card.available && card.nextLevel.cost <= balance),
+      cards.filter(
+        (card) =>
+          card.available && card.nextLevel && card.nextLevel.cost <= balance
+      ),
     [balance, cards]
   );
 

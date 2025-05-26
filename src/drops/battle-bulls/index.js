@@ -17,6 +17,7 @@ export default createFarmer({
   },
   embedWebPage: true,
   cacheAuth: false,
+  syncToCloud: true,
 
   /**
    * Fetch Auth
