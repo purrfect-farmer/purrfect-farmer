@@ -20,12 +20,12 @@ export async function getSpaceAdventureHeaders({
   token = "",
 } = {}) {
   const cookies = await getSpaceAdventureCookies();
-  console.log(cookies);
   const xsrf = decodeURIComponent(
     cookies.find((item) => item.name === "XSRF-TOKEN")?.value || ""
   );
   const headers = {
-    "x-xsrf-token": xsrf,
+    ["origins"]: "https://space-adventure.online",
+    ["x-xsrf-token"]: xsrf,
   };
 
   if (authId) {
