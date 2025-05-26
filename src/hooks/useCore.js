@@ -496,7 +496,10 @@ export default function useCore() {
   /** Launch In-App Browser */
   const launchInAppBrowser = useCallback(
     async ({ id, url, title, icon, embedInNewWindow }) => {
-      if (settings.miniAppInNewWindow || embedInNewWindow) {
+      if (
+        !import.meta.env.VITE_WHISKER &&
+        (settings.miniAppInNewWindow || embedInNewWindow)
+      ) {
         try {
           /** Get Previous Window */
           const previousWindow = browserWindows.get(`browser-${id}`);
