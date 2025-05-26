@@ -17,6 +17,7 @@ export default function useChromeCookies() {
   );
 
   useLayoutEffect(() => {
+    if (import.meta.env.VITE_WHISKER) return;
     /** Log Targets */
     customLogger("COOKIE TARGETS", targets);
 

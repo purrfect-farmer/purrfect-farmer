@@ -2,7 +2,17 @@ import sha256 from "crypto-js/sha256";
 import { customLogger, uuid } from "@/lib/utils";
 
 export async function getSpaceAdventureCookies() {
-  return chrome.cookies.getAll({ domain: "space-adventure.online" });
+  if (import.meta.env.VITE_WHISKER) {
+    return window.electron.ipcRenderer.invoke(
+      "get-session-cookie",
+      window.WHISKER_PARTITION,
+      {
+        domain: "space-adventure.online",
+      }
+    );
+  } else {
+    return chrome.cookies.getAll({ domain: "space-adventure.online" });
+  }
 }
 
 export async function getSpaceAdventureHeaders({
@@ -10,6 +20,7 @@ export async function getSpaceAdventureHeaders({
   token = "",
 } = {}) {
   const cookies = await getSpaceAdventureCookies();
+  console.log(cookies);
   const xsrf = decodeURIComponent(
     cookies.find((item) => item.name === "XSRF-TOKEN")?.value || ""
   );

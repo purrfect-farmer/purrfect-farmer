@@ -52,6 +52,9 @@ export default function useWhiskerData(app) {
             case "set-whisker-data":
               const { account, theme } = data;
 
+              /** Expose Partition */
+              window.WHISKER_PARTITION = account.partition;
+
               /** Update Account */
               updateActiveAccount({
                 title: account.title,
