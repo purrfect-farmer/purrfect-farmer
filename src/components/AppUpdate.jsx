@@ -22,7 +22,7 @@ export default memo(function AppUpdate() {
   return show ? (
     <PrimaryButton
       as={"a"}
-      href={import.meta.env.VITE_APP_RELEASE_URL}
+      href={import.meta.env.VITE_APP_RELEASE_PAGE_URL}
       target="_blank"
       className="bg-orange-500 rounded-none text-center"
     >
