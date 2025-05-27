@@ -6,6 +6,7 @@ import Connect from "@/partials/Connect";
 import Donate from "@/partials/Donate";
 import DropButton from "@/components/DropButton";
 import FarmerLinks from "@/partials/FarmerLinks";
+import IPStatus from "@/partials/IPStatus";
 import Settings from "@/partials/Settings";
 import Shutdown from "@/partials/Shutdown";
 import Tabs from "@/components/Tabs";
@@ -34,7 +35,6 @@ import {
   HiOutlinePower,
   HiOutlinePuzzlePiece,
 } from "react-icons/hi2";
-import { LiaUserNinjaSolid } from "react-icons/lia";
 import { RiRemoteControlLine } from "react-icons/ri";
 import { cn, isExtension } from "@/lib/utils";
 import { forwardRef, memo } from "react";
@@ -100,29 +100,6 @@ export default memo(function Welcome() {
     "farmers",
     "seeker",
   ]);
-
-  /** IP Query */
-  const ipQuery = useAppQuery({
-    refetchOnMount: false,
-    refetchOnWindowFocus: false,
-    enabled: settings.displayIpAddress,
-    queryKey: [
-      "app",
-      "ip",
-      settings.displayIpAddress,
-      account.proxyEnabled,
-      account.proxyHost,
-      account.proxyPort,
-      account.proxyUsername,
-      account.proxyPassword,
-    ],
-    queryFn: ({ signal }) =>
-      axios
-        .get("https://api.ipify.org/?format=json", {
-          signal,
-        })
-        .then((res) => res.data),
-  });
 
   /** Manifest Query */
   const manifestQuery = useAppQuery({
@@ -316,37 +293,7 @@ export default memo(function Welcome() {
           </p>
 
           {/* IP Address */}
-          {settings.displayIpAddress ? (
-            <p
-              className={cn(
-                "text-center flex items-center justify-center gap-2",
-                "text-purple-600 dark:text-purple-500"
-              )}
-            >
-              <LiaUserNinjaSolid className="w-4 h-4" />{" "}
-              {import.meta.env.VITE_WHISKER && account.proxyEnabled
-                ? "Proxy"
-                : "IP"}
-              :{" "}
-              <span
-                className={cn(
-                  {
-                    pending: "text-orange-500",
-                    success: "text-green-600 dark:text-green-500",
-                    error: "text-red-500",
-                  }[ipQuery.status]
-                )}
-              >
-                {ipQuery.isPending ? (
-                  <>Checking</>
-                ) : ipQuery.isError ? (
-                  <>Error!</>
-                ) : (
-                  ipQuery.data.ip
-                )}
-              </span>
-            </p>
-          ) : null}
+          <IPStatus />
 
           {/* Mirror Status */}
           {settings.enableMirror ? (
