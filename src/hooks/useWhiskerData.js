@@ -1,6 +1,8 @@
 import { useEffect } from "react";
+import { useMemo } from "react";
 
 import useBackupAndRestore from "./useBackupAndRestore";
+import useCloudSubscriptionQuery from "./useCloudSubscriptionQuery";
 import useRefCallback from "./useRefCallback";
 
 /** Send Webview Message */
@@ -8,7 +10,8 @@ const sendWebviewMessage = (data) =>
   window.electron.ipcRenderer.sendToHost("webview-message", data);
 
 export default function useWhiskerData(app) {
-  const { hasRestoredSettings } = app;
+  const { account, settings, hasRestoredSettings } = app;
+  const { shareCloudProxy } = settings;
   const backupAndRestore = useBackupAndRestore(app);
 
   const getBackupData = useRefCallback(backupAndRestore[0]);
@@ -16,6 +19,22 @@ export default function useWhiskerData(app) {
 
   const configureSettings = useRefCallback(app.configureSettings);
   const updateActiveAccount = useRefCallback(app.updateActiveAccount);
+
+  const subscriptionQuery = useCloudSubscriptionQuery(app);
+  const cloudProxy = subscriptionQuery.data?.account?.proxy;
+  const parsedCloudProxy = useMemo(() => {
+    if (!cloudProxy) return null;
+    const [user, server] = cloudProxy.split("@");
+    const [proxyHost, proxyPort] = server.split(":");
+    const [proxyUsername, proxyPassword] = user.split(":");
+
+    return {
+      proxyHost,
+      proxyPort,
+      proxyUsername,
+      proxyPassword,
+    };
+  }, [cloudProxy]);
 
   /** Whisker Message */
   useEffect(() => {
@@ -83,5 +102,33 @@ export default function useWhiskerData(app) {
     updateActiveAccount,
     getBackupData,
     restoreBackupData,
+  ]);
+
+  /** Update Proxy */
+  useEffect(() => {
+    if (!import.meta.env.VITE_WHISKER || !shareCloudProxy || !parsedCloudProxy)
+      return;
+
+    if (
+      parsedCloudProxy.proxyHost !== account.proxyHost ||
+      parsedCloudProxy.proxyPort !== account.proxyPort ||
+      parsedCloudProxy.proxyUsername !== account.proxyUsername ||
+      parsedCloudProxy.proxyPassword !== account.proxyPassword
+    ) {
+      sendWebviewMessage({
+        action: "set-proxy",
+        data: {
+          proxyEnabled: true,
+          ...parsedCloudProxy,
+        },
+      });
+    }
+  }, [
+    shareCloudProxy,
+    parsedCloudProxy,
+    account.proxyHost,
+    account.proxyPort,
+    account.proxyUsername,
+    account.proxyPassword,
   ]);
 }

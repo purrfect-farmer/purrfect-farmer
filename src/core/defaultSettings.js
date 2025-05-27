@@ -36,6 +36,7 @@ const defaultSettings = {
   seekerServer: import.meta.env.VITE_SEEKER_SERVER,
   seekerId: null,
   farmersLayout: "grid",
+  shareCloudProxy: true,
   displayUserInfo: true,
   displayIpAddress: true,
   showLinksAsGrid: false,

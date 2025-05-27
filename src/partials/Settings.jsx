@@ -561,6 +561,20 @@ export default memo(function Settings({ tabs }) {
                           {/* Set Button */}
                           <ConfirmButton onClick={handleSetCloudServer} />
                         </div>
+
+                        {/* Share Cloud Proxy */}
+                        <SettingsLabel>Cloud Proxy</SettingsLabel>
+                        <LabelToggle
+                          onChange={(ev) =>
+                            dispatchAndConfigureSettings(
+                              "shareCloudProxy",
+                              ev.target.checked
+                            )
+                          }
+                          checked={settings?.shareCloudProxy}
+                        >
+                          Share Cloud Proxy
+                        </LabelToggle>
                       </SettingsGroup>
 
                       {/* Seeker Options */}
