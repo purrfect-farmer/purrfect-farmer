@@ -563,18 +563,22 @@ export default memo(function Settings({ tabs }) {
                         </div>
 
                         {/* Share Cloud Proxy */}
-                        <SettingsLabel>Cloud Proxy</SettingsLabel>
-                        <LabelToggle
-                          onChange={(ev) =>
-                            dispatchAndConfigureSettings(
-                              "shareCloudProxy",
-                              ev.target.checked
-                            )
-                          }
-                          checked={settings?.shareCloudProxy}
-                        >
-                          Share Cloud Proxy
-                        </LabelToggle>
+                        {import.meta.env.VITE_WHISKER ? (
+                          <>
+                            <SettingsLabel>Cloud Proxy</SettingsLabel>
+                            <LabelToggle
+                              onChange={(ev) =>
+                                dispatchAndConfigureSettings(
+                                  "shareCloudProxy",
+                                  ev.target.checked
+                                )
+                              }
+                              checked={settings?.shareCloudProxy}
+                            >
+                              Share Cloud Proxy
+                            </LabelToggle>
+                          </>
+                        ) : null}
                       </SettingsGroup>
 
                       {/* Seeker Options */}
