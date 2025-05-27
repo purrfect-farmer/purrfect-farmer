@@ -320,7 +320,11 @@ export default memo(function Welcome() {
               "text-purple-600 dark:text-purple-500"
             )}
           >
-            <LiaUserNinjaSolid className="w-4 h-4" /> IP:{" "}
+            <LiaUserNinjaSolid className="w-4 h-4" />{" "}
+            {import.meta.env.VITE_WHISKER && account.proxyEnabled
+              ? "Proxy"
+              : "IP"}
+            :{" "}
             <span
               className={cn(
                 {
