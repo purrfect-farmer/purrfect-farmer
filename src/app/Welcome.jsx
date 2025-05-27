@@ -34,6 +34,7 @@ import {
   HiOutlinePower,
   HiOutlinePuzzlePiece,
 } from "react-icons/hi2";
+import { LiaUserNinjaSolid } from "react-icons/lia";
 import { RiRemoteControlLine } from "react-icons/ri";
 import { cn, isExtension } from "@/lib/utils";
 import { forwardRef, memo } from "react";
@@ -290,6 +291,18 @@ export default memo(function Welcome() {
           >
             {account.title || "TGUser"}
           </p>
+
+          {/* Proxy */}
+          {import.meta.env.VITE_WHISKER && account.proxyEnabled ? (
+            <p
+              className={cn(
+                "text-center flex items-center justify-center gap-2",
+                "text-purple-600 dark:text-purple-500"
+              )}
+            >
+              <LiaUserNinjaSolid className="w-4 h-4" /> Proxy: Enabled
+            </p>
+          ) : null}
 
           {/* Mirror Status */}
           {settings.enableMirror ? (
