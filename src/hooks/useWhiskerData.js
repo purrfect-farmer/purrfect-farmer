@@ -110,22 +110,24 @@ export default function useWhiskerData(app) {
       return;
 
     if (
-      parsedCloudProxy.proxyHost !== account.proxyHost ||
-      parsedCloudProxy.proxyPort !== account.proxyPort ||
-      parsedCloudProxy.proxyUsername !== account.proxyUsername ||
-      parsedCloudProxy.proxyPassword !== account.proxyPassword
+      !account.proxyEnabled ||
+      account.proxyHost !== parsedCloudProxy.proxyHost ||
+      account.proxyPort !== parsedCloudProxy.proxyPort ||
+      account.proxyUsername !== parsedCloudProxy.proxyUsername ||
+      account.proxyPassword !== parsedCloudProxy.proxyPassword
     ) {
       sendWebviewMessage({
         action: "set-proxy",
         data: {
-          proxyEnabled: true,
           ...parsedCloudProxy,
+          proxyEnabled: true,
         },
       });
     }
   }, [
     shareCloudProxy,
     parsedCloudProxy,
+    account.proxyEnabled,
     account.proxyHost,
     account.proxyPort,
     account.proxyUsername,
