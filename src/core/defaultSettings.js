@@ -37,6 +37,7 @@ const defaultSettings = {
   seekerId: null,
   farmersLayout: "grid",
   displayUserInfo: true,
+  displayIpAddress: true,
   showLinksAsGrid: false,
   uncappedPoints: false,
   repeatZoomiesCycle: true,

@@ -437,6 +437,19 @@ export default memo(function Settings({ tabs }) {
                           Display User Info
                         </LabelToggle>
 
+                        {/* Show IP Address */}
+                        <LabelToggle
+                          onChange={(ev) =>
+                            dispatchAndConfigureSettings(
+                              "displayIpAddress",
+                              ev.target.checked
+                            )
+                          }
+                          checked={settings?.displayIpAddress}
+                        >
+                          Display IP Address
+                        </LabelToggle>
+
                         {/* (SHARED) - Show Mini-App Toolbar */}
                         <LabelToggle
                           onChange={(ev) =>

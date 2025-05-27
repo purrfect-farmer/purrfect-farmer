@@ -105,9 +105,11 @@ export default memo(function Welcome() {
   const ipQuery = useAppQuery({
     refetchOnMount: false,
     refetchOnWindowFocus: false,
+    enabled: settings.displayIpAddress,
     queryKey: [
       "app",
       "ip",
+      settings.displayIpAddress,
       account.proxyEnabled,
       account.proxyHost,
       account.proxyPort,
@@ -314,35 +316,37 @@ export default memo(function Welcome() {
           </p>
 
           {/* IP Address */}
-          <p
-            className={cn(
-              "text-center flex items-center justify-center gap-2",
-              "text-purple-600 dark:text-purple-500"
-            )}
-          >
-            <LiaUserNinjaSolid className="w-4 h-4" />{" "}
-            {import.meta.env.VITE_WHISKER && account.proxyEnabled
-              ? "Proxy"
-              : "IP"}
-            :{" "}
-            <span
+          {settings.displayIpAddress ? (
+            <p
               className={cn(
-                {
-                  pending: "text-orange-500",
-                  success: "text-green-600 dark:text-green-500",
-                  error: "text-red-500",
-                }[ipQuery.status]
+                "text-center flex items-center justify-center gap-2",
+                "text-purple-600 dark:text-purple-500"
               )}
             >
-              {ipQuery.isPending ? (
-                <>Checking</>
-              ) : ipQuery.isError ? (
-                <>Error!</>
-              ) : (
-                ipQuery.data.ip
-              )}
-            </span>
-          </p>
+              <LiaUserNinjaSolid className="w-4 h-4" />{" "}
+              {import.meta.env.VITE_WHISKER && account.proxyEnabled
+                ? "Proxy"
+                : "IP"}
+              :{" "}
+              <span
+                className={cn(
+                  {
+                    pending: "text-orange-500",
+                    success: "text-green-600 dark:text-green-500",
+                    error: "text-red-500",
+                  }[ipQuery.status]
+                )}
+              >
+                {ipQuery.isPending ? (
+                  <>Checking</>
+                ) : ipQuery.isError ? (
+                  <>Error!</>
+                ) : (
+                  ipQuery.data.ip
+                )}
+              </span>
+            </p>
+          ) : null}
 
           {/* Mirror Status */}
           {settings.enableMirror ? (
