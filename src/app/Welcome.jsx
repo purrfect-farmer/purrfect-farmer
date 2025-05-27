@@ -101,6 +101,29 @@ export default memo(function Welcome() {
     "seeker",
   ]);
 
+  /** Proxy Query */
+  const proxyQuery = useAppQuery({
+    refetchOnMount: false,
+    refetchOnWindowFocus: false,
+    enabled: import.meta.env.VITE_WHISKER && account.proxyEnabled,
+    queryKey: [
+      "app",
+      "proxy",
+      "ip",
+      account.proxyEnabled,
+      account.proxyHost,
+      account.proxyPort,
+      account.proxyUsername,
+      account.proxyPassword,
+    ],
+    queryFn: ({ signal }) =>
+      axios
+        .get("https://api.ipify.org/?format=json", {
+          signal,
+        })
+        .then((res) => res.data),
+  });
+
   /** Manifest Query */
   const manifestQuery = useAppQuery({
     refetchOnMount: false,
@@ -300,7 +323,24 @@ export default memo(function Welcome() {
                 "text-purple-600 dark:text-purple-500"
               )}
             >
-              <LiaUserNinjaSolid className="w-4 h-4" /> Proxy: Enabled
+              <LiaUserNinjaSolid className="w-4 h-4" /> Proxy:{" "}
+              <span
+                className={cn(
+                  {
+                    pending: "text-orange-500",
+                    success: "text-green-600 dark:text-green-500",
+                    error: "text-red-500",
+                  }[proxyQuery.status]
+                )}
+              >
+                {proxyQuery.isPending ? (
+                  <>Checking</>
+                ) : proxyQuery.isError ? (
+                  <>Error!</>
+                ) : (
+                  proxyQuery.data.ip
+                )}
+              </span>
             </p>
           ) : null}
 
