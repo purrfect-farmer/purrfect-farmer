@@ -53,9 +53,7 @@ export default function useWhiskerData(app) {
             window.WHISKER_PARTITION = account.partition;
 
             /** Update Account */
-            updateActiveAccount({
-              title: account.title,
-            });
+            updateActiveAccount(account);
 
             /** Update Proxy */
             updateSharedSettings(sharedSettings, false);
