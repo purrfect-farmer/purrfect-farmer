@@ -6,8 +6,8 @@ import { LiaUserNinjaSolid } from "react-icons/lia";
 import { cn } from "@/lib/utils";
 
 export default function IPStatus() {
-  const { settings, account } = useAppContext();
-  const isProxied = import.meta.env.VITE_WHISKER && account.proxyEnabled;
+  const { settings, sharedSettings } = useAppContext();
+  const isProxied = sharedSettings.proxyEnabled;
 
   /** IP Query */
   const { data: ipInfo, ...ipQuery } = useAppQuery({
@@ -18,11 +18,11 @@ export default function IPStatus() {
       "app",
       "ip",
       settings.displayIpAddress,
-      account.proxyEnabled,
-      account.proxyHost,
-      account.proxyPort,
-      account.proxyUsername,
-      account.proxyPassword,
+      sharedSettings.proxyEnabled,
+      sharedSettings.proxyHost,
+      sharedSettings.proxyPort,
+      sharedSettings.proxyUsername,
+      sharedSettings.proxyPassword,
     ],
     queryFn: ({ signal }) =>
       axios

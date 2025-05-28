@@ -17,6 +17,7 @@ export default function useSharedCore() {
     settings: sharedSettings,
     storeSettings: storeSharedSettings,
     configureSettings: configureSharedSettings,
+    updateSettings: updateSharedSettings,
     hasRestoredSettings: hasRestoredSharedSettings,
   } = useBaseSettings("settings", defaultSharedSettings, true);
 
@@ -117,6 +118,7 @@ export default function useSharedCore() {
     hasRestoredAccounts,
     hasRestoredSharedSettings,
     configureSharedSettings,
+    updateSharedSettings,
     storePersistedAccounts,
     storeSharedSettings,
   });

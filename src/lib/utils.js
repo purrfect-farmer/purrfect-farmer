@@ -480,3 +480,6 @@ export function requestIsUnauthorized(error) {
     [401, 403, 418].includes(error?.response?.status)
   );
 }
+/** Send Webview Message */
+export const sendWebviewMessage = (data) =>
+  window.electron.ipcRenderer.sendToHost("webview-message", data);

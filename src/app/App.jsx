@@ -8,6 +8,7 @@ import TabContent from "@/components/TabContent";
 import useApp from "@/hooks/useApp";
 import useCloudSessionCheck from "@/hooks/useCloudSessionCheck";
 import useMiniAppToolbar from "@/hooks/useMiniAppToolbar";
+import useProxy from "@/hooks/useProxy";
 import useSeeker from "@/hooks/useSeeker";
 import useTheme from "@/hooks/useTheme";
 import useWhiskerData from "@/hooks/useWhiskerData";
@@ -20,6 +21,9 @@ function App() {
   const hasRestoredSettings = app.hasRestoredSettings;
   const { account, settings } = app;
   const { theme, onboarded } = settings;
+
+  /** Proxy */
+  useProxy(app);
 
   /** Whisker Data */
   useWhiskerData(app);

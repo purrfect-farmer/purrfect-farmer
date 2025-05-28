@@ -15,12 +15,12 @@ export default function useBaseSettings(key, defaultValue, shared = false) {
   /** Transform Value */
   const settings = useMemo(() => ({ ...defaultValue, ...value }), [value]);
 
-  /** Configure Settings */
-  const configureSettings = useCallback(
-    async (k, v, shouldToast = true) => {
+  /** Update Settings */
+  const updateSettings = useCallback(
+    async (data, shouldToast = true) => {
       const newSettings = {
         ...settings,
-        [k]: v,
+        ...data,
       };
 
       /** Update Value */
@@ -35,10 +35,23 @@ export default function useBaseSettings(key, defaultValue, shared = false) {
     [settings, storeSettings]
   );
 
+  /** Configure Settings */
+  const configureSettings = useCallback(
+    async (k, v, shouldToast = true) =>
+      updateSettings(
+        {
+          [k]: v,
+        },
+        shouldToast
+      ),
+    [updateSettings]
+  );
+
   return useValuesMemo({
     settings,
     storeSettings,
     hasRestoredSettings,
     configureSettings,
+    updateSettings,
   });
 }

@@ -464,6 +464,79 @@ export default memo(function Settings({ tabs }) {
                         </LabelToggle>
                       </SettingsGroup>
 
+                      {/* Proxy Options */}
+                      <SettingsGroup id={"proxy"} title={"Proxy Options"}>
+                        {/* Enable Proxy */}
+                        <LabelToggle
+                          readOnly={Boolean(import.meta.env.VITE_WHISKER)}
+                          onChange={(ev) =>
+                            configureSharedSettings(
+                              "proxyEnabled",
+                              ev.target.checked
+                            )
+                          }
+                          checked={sharedSettings.proxyEnabled}
+                        >
+                          Enable Proxy
+                        </LabelToggle>
+
+                        {/* Proxy Host */}
+                        <SettingsLabel>Proxy Host</SettingsLabel>
+                        <Input
+                          readOnly={Boolean(import.meta.env.VITE_WHISKER)}
+                          value={sharedSettings.proxyHost}
+                          onChange={(ev) =>
+                            configureSharedSettings(
+                              "proxyHost",
+                              ev.target.value
+                            )
+                          }
+                          placeholder="Proxy Host"
+                        />
+
+                        {/* Proxy Port */}
+                        <SettingsLabel>Proxy Port</SettingsLabel>
+                        <Input
+                          readOnly={Boolean(import.meta.env.VITE_WHISKER)}
+                          value={sharedSettings.proxyPort}
+                          onChange={(ev) =>
+                            configureSharedSettings(
+                              "proxyPort",
+                              ev.target.value
+                            )
+                          }
+                          placeholder="Proxy Port"
+                        />
+
+                        {/* Proxy Username */}
+                        <SettingsLabel>Proxy Username</SettingsLabel>
+                        <Input
+                          readOnly={Boolean(import.meta.env.VITE_WHISKER)}
+                          value={sharedSettings.proxyUsername}
+                          onChange={(ev) =>
+                            configureSharedSettings(
+                              "proxyUsername",
+                              ev.target.value
+                            )
+                          }
+                          placeholder="Proxy Username"
+                        />
+
+                        {/* Proxy Password */}
+                        <SettingsLabel>Proxy Password</SettingsLabel>
+                        <Input
+                          readOnly={Boolean(import.meta.env.VITE_WHISKER)}
+                          value={sharedSettings.proxyPassword}
+                          onChange={(ev) =>
+                            configureSharedSettings(
+                              "proxyPassword",
+                              ev.target.value
+                            )
+                          }
+                          placeholder="Proxy Password"
+                        />
+                      </SettingsGroup>
+
                       {/* Bot Options */}
                       <SettingsGroup id={"bot"} title={"Bot Options"}>
                         {/* Enable In-App Browser */}
@@ -563,22 +636,18 @@ export default memo(function Settings({ tabs }) {
                         </div>
 
                         {/* Share Cloud Proxy */}
-                        {import.meta.env.VITE_WHISKER ? (
-                          <>
-                            <SettingsLabel>Cloud Proxy</SettingsLabel>
-                            <LabelToggle
-                              onChange={(ev) =>
-                                dispatchAndConfigureSettings(
-                                  "shareCloudProxy",
-                                  ev.target.checked
-                                )
-                              }
-                              checked={settings?.shareCloudProxy}
-                            >
-                              Share Cloud Proxy
-                            </LabelToggle>
-                          </>
-                        ) : null}
+                        <SettingsLabel>Cloud Proxy</SettingsLabel>
+                        <LabelToggle
+                          onChange={(ev) =>
+                            dispatchAndConfigureSettings(
+                              "shareCloudProxy",
+                              ev.target.checked
+                            )
+                          }
+                          checked={settings?.shareCloudProxy}
+                        >
+                          Share Cloud Proxy
+                        </LabelToggle>
                       </SettingsGroup>
 
                       {/* Seeker Options */}

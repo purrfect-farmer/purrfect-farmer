@@ -91,14 +91,38 @@ if (!isWhisker) {
   };
 
   /** Configure Extension */
-  const configureExtension = async ({ openFarmerInNewWindow }) => {
+  const configureExtension = async (sharedSettings) => {
     /** Remove Popup */
     await chrome.action.setPopup({ popup: "" });
 
+    /** Side Panel */
     try {
       /** Configure Side Panel */
       await chrome.sidePanel.setPanelBehavior({
-        openPanelOnActionClick: openFarmerInNewWindow === false,
+        openPanelOnActionClick: sharedSettings.openFarmerInNewWindow === false,
+      });
+    } catch (e) {
+      console.error(e);
+    }
+
+    /** Proxy */
+    try {
+      /** Proxy Config */
+      const proxyConfig = sharedSettings.proxyEnabled
+        ? {
+            mode: "fixed_servers",
+            rules: {
+              singleProxy: {
+                host: sharedSettings.proxyHost,
+                port: Number(sharedSettings.proxyPort || 80),
+              },
+            },
+          }
+        : { mode: "direct" };
+
+      /** Set Proxy */
+      await chrome.proxy.settings.set({
+        value: proxyConfig,
       });
     } catch (e) {
       console.error(e);
@@ -174,12 +198,36 @@ if (!isWhisker) {
     }
   });
 
-  /** Watch Storage for Settings Change */
-  chrome.storage.local.onChanged.addListener(({ settings }) => {
-    if (settings?.newValue) {
-      configureExtension(settings.newValue);
+  /** Watch Storage for Shared Settings Change */
+  chrome.storage.local.onChanged.addListener(
+    ({ ["shared:settings"]: sharedSettings }) => {
+      if (sharedSettings?.newValue) {
+        configureExtension(sharedSettings.newValue);
+      }
     }
-  });
+  );
+
+  /** Authenticate Proxy */
+  chrome.webRequest.onAuthRequired.addListener(
+    async (details, callback) => {
+      if (details.isProxy) {
+        const sharedSettings = await getSharedSettings();
+
+        if (sharedSettings.proxyEnabled) {
+          callback({
+            authCredentials: {
+              username: sharedSettings.proxyUsername,
+              password: sharedSettings.proxyPassword,
+            },
+          });
+        }
+      }
+    },
+    {
+      urls: ["<all_urls>"],
+    },
+    ["asyncBlocking"]
+  );
 
   /** Always Setup Extension  */
   setupExtension();

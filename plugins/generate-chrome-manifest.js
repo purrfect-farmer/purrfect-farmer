@@ -46,11 +46,13 @@ export function generateChromeManifest(env, pkg) {
         ].concat(
           !isWhisker
             ? [
+                "proxy",
                 "cookies",
                 "windows",
                 "sidePanel",
                 "notifications",
                 "webNavigation",
+                "webRequestAuthProvider",
               ]
             : []
         ),
