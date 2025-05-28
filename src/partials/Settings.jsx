@@ -480,6 +480,11 @@ export default memo(function Settings({ tabs }) {
                           Enable Proxy
                         </LabelToggle>
 
+                        <p className="text-neutral-500 dark:text-neutral-400">
+                          To enable this option, first turn off proxy sharing in
+                          Cloud options.
+                        </p>
+
                         {/* Proxy Host */}
                         <SettingsLabel>Proxy Host</SettingsLabel>
                         <Input

@@ -28,7 +28,13 @@ export default function useProxy(app) {
 
   /** Update Proxy */
   useEffect(() => {
-    if (!account.active || !shareCloudProxy || !parsedCloudProxy) return;
+    if (
+      !account.active ||
+      !shareCloudProxy ||
+      !parsedCloudProxy ||
+      (import.meta.env.VITE_WHISKER && !sharedSettings.allowProxies)
+    )
+      return;
     else if (
       !sharedSettings.proxyEnabled ||
       sharedSettings.proxyHost !== parsedCloudProxy.proxyHost ||
@@ -56,13 +62,14 @@ export default function useProxy(app) {
     }
   }, [
     account.active,
+    sharedSettings.allowProxies,
     sharedSettings.proxyEnabled,
     sharedSettings.proxyHost,
     sharedSettings.proxyPort,
     sharedSettings.proxyUsername,
     sharedSettings.proxyPassword,
+    updateSharedSettings,
     parsedCloudProxy,
     shareCloudProxy,
-    updateSharedSettings,
   ]);
 }
