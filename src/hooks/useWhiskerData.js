@@ -11,7 +11,7 @@ export default function useWhiskerData(app) {
   const getBackupData = useRefCallback(backupAndRestore[0]);
   const restoreBackupData = useRefCallback(backupAndRestore[1]);
 
-  const configureSettings = useRefCallback(app.configureSettings);
+  const updateSettings = useRefCallback(app.updateSettings);
   const updateSharedSettings = useRefCallback(app.updateSharedSettings);
   const updateActiveAccount = useRefCallback(app.updateActiveAccount);
 
@@ -47,14 +47,7 @@ export default function useWhiskerData(app) {
 
           /** Set Whisker Data */
           case "set-whisker-data":
-            const { account, theme } = data;
-            const {
-              proxyEnabled,
-              proxyHost,
-              proxyPort,
-              proxyUsername,
-              proxyPassword,
-            } = account;
+            const { account, sharedSettings, settings } = data;
 
             /** Expose Partition */
             window.WHISKER_PARTITION = account.partition;
@@ -65,16 +58,10 @@ export default function useWhiskerData(app) {
             });
 
             /** Update Proxy */
-            updateSharedSettings({
-              proxyEnabled,
-              proxyHost,
-              proxyPort,
-              proxyUsername,
-              proxyPassword,
-            });
+            updateSharedSettings(sharedSettings, false);
 
-            /** Configure Theme */
-            configureSettings("theme", theme, false);
+            /** Update Settings */
+            updateSettings(settings, false);
 
             break;
         }
@@ -94,7 +81,7 @@ export default function useWhiskerData(app) {
   }, [
     hasRestoredSettings,
     getBackupData,
-    configureSettings,
+    updateSettings,
     updateSharedSettings,
     updateActiveAccount,
     restoreBackupData,
