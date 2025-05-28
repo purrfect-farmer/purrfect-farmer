@@ -56,12 +56,12 @@ export function generateChromeManifest(env, pkg) {
               ]
             : []
         ),
-        background: {
-          service_worker: "extension/chrome-service-worker.js",
-          type: "module",
-        },
         ...(!isWhisker
           ? {
+              background: {
+                service_worker: "extension/chrome-service-worker.js",
+                type: "module",
+              },
               action: {
                 default_icon: "icon-48.png",
                 default_title: namePrefix + `Open ${env.VITE_APP_NAME}`,
