@@ -468,7 +468,7 @@ export default memo(function Settings({ tabs }) {
                       <SettingsGroup id={"proxy"} title={"Proxy Options"}>
                         {/* Enable Proxy */}
                         <LabelToggle
-                          readOnly={Boolean(import.meta.env.VITE_WHISKER)}
+                          disabled={Boolean(import.meta.env.VITE_WHISKER)}
                           onChange={(ev) =>
                             configureSharedSettings(
                               "proxyEnabled",
