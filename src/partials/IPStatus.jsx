@@ -7,9 +7,13 @@ import { cn } from "@/lib/utils";
 
 export default function IPStatus() {
   const { settings, sharedSettings } = useAppContext();
-  const allowProxies =
+
+  /** Is Proxy Allowed? */
+  const isProxyAllowed =
     !import.meta.env.VITE_WHISKER || sharedSettings.allowProxies;
-  const isProxied = allowProxies && sharedSettings.proxyEnabled;
+
+  /** Is Proxied? */
+  const isProxied = isProxyAllowed && sharedSettings.proxyEnabled;
 
   /** IP Query */
   const { data: ipInfo, ...ipQuery } = useAppQuery({
@@ -20,6 +24,7 @@ export default function IPStatus() {
       "app",
       "ip",
       settings.displayIpAddress,
+      sharedSettings.allowProxies,
       sharedSettings.proxyEnabled,
       sharedSettings.proxyHost,
       sharedSettings.proxyPort,
