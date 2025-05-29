@@ -1,7 +1,7 @@
-import TelegramWorkerClient from "@/lib/TelegramWorkerClient";
 import toast from "react-hot-toast";
 import useAppContext from "@/hooks/useAppContext";
 import { CgSpinner } from "react-icons/cg";
+import { createTelegramClient } from "@/lib/createTelegramClient";
 import { useCallback } from "react";
 import { useEffect } from "react";
 import { useRef } from "react";
@@ -99,7 +99,7 @@ export default function TelegramLogin({
       });
 
       /** Create Client */
-      const client = new TelegramWorkerClient();
+      const client = createTelegramClient();
 
       /** Start Client */
       client
@@ -111,8 +111,12 @@ export default function TelegramLogin({
           onError: (error) => {
             /** Log Error */
             console.error(error);
+
+            /** Reject */
             processingRef.current?.reject?.(error);
-            toast.error(error.message);
+
+            /** Toast */
+            toast.error(error?.message || "An error occurred!");
           },
         })
         .then((session) => {

@@ -47,6 +47,7 @@ const joinTelegramLink = (link) =>
 /** Create Handler */
 const createHandler = (name) => (data) =>
   new Promise((resolve, reject) => {
+    /** Log Handler Name */
     console.log("Handling:", name);
 
     /** Set Handler */
@@ -65,6 +66,7 @@ const createHandler = (name) => (data) =>
     });
   });
 
+/** Start Client */
 const startClient = async () => {
   if (client === null) {
     throw new Error("No Telegram Client!");
