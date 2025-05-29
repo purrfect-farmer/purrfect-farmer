@@ -5,6 +5,128 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 /**
+ * Get Core Net Rules
+ * @returns {chrome.declarativeNetRequest.Rule[]}
+ */
+function getCoreNetRules() {
+  return [
+    {
+      id: 1,
+      priority: 1,
+      action: {
+        type: "modifyHeaders",
+        requestHeaders: [
+          {
+            header: "sec-ch-ua",
+            operation: "set",
+            value:
+              '"Android WebView";v="131", "Chromium";v="131", "Not_A Brand";v="24"',
+          },
+          {
+            header: "sec-ch-ua-mobile",
+            operation: "set",
+            value: "?0",
+          },
+          {
+            header: "sec-ch-ua-platform",
+            operation: "set",
+            value: '"Android"',
+          },
+          {
+            header: "sec-ch-ua-arch",
+            operation: "set",
+            value: '""',
+          },
+          {
+            header: "sec-ch-ua-arch-full-version",
+            operation: "set",
+            value: '""',
+          },
+          {
+            header: "sec-ch-ua-platform-version",
+            operation: "set",
+            value: '""',
+          },
+          {
+            header: "sec-ch-ua-full-version-list",
+            operation: "set",
+            value: "",
+          },
+          {
+            header: "sec-ch-ua-bitness",
+            operation: "set",
+            value: '""',
+          },
+          {
+            header: "sec-ch-ua-model",
+            operation: "set",
+            value: '""',
+          },
+        ],
+        responseHeaders: [
+          {
+            header: "content-security-policy",
+            operation: "remove",
+          },
+          {
+            header: "x-frame-options",
+            operation: "remove",
+          },
+          {
+            header: "cross-origin-embedder-policy",
+            operation: "remove",
+          },
+          {
+            header: "cross-origin-opener-policy",
+            operation: "remove",
+          },
+          {
+            header: "cross-origin-resource-policy",
+            operation: "remove",
+          },
+        ],
+      },
+      condition: {
+        urlFilter: "*",
+      },
+    },
+    {
+      id: 2,
+      action: {
+        type: "modifyHeaders",
+        requestHeaders: [
+          {
+            header: "origin",
+            operation: "set",
+            value: "https://web.telegram.org",
+          },
+          {
+            header: "referer",
+            operation: "set",
+            value: "https://web.telegram.org/",
+          },
+        ],
+        responseHeaders: [
+          {
+            header: "access-control-allow-origin",
+            operation: "set",
+            value: "*",
+          },
+          {
+            header: "access-control-allow-methods",
+            operation: "set",
+            value: "*",
+          },
+        ],
+      },
+      condition: {
+        requestDomains: ["vesta.web.telegram.org", "web.telegram.org"],
+      },
+    },
+  ];
+}
+
+/**
  * Generate Chrome Manifest
  * @returns {import("vite").Plugin}
  */
@@ -40,8 +162,6 @@ export function generateChromeManifest(env, pkg) {
           "activeTab",
           "storage",
           "unlimitedStorage",
-          "declarativeNetRequest",
-          "system.display",
           "webRequest",
         ].concat(
           !isWhisker
@@ -53,6 +173,8 @@ export function generateChromeManifest(env, pkg) {
                 "notifications",
                 "webNavigation",
                 "webRequestAuthProvider",
+                "declarativeNetRequest",
+                "system.display",
               ]
             : []
         ),
@@ -69,6 +191,15 @@ export function generateChromeManifest(env, pkg) {
               },
               side_panel: {
                 default_path: isBridge ? "pwa-iframe.html" : "index.html",
+              },
+              declarative_net_request: {
+                rule_resources: [
+                  {
+                    id: "core",
+                    enabled: true,
+                    path: "rule_resources/core.json",
+                  },
+                ],
               },
             }
           : {}),
@@ -131,15 +262,6 @@ export function generateChromeManifest(env, pkg) {
           },
         ],
 
-        declarative_net_request: {
-          rule_resources: [
-            {
-              id: "core",
-              enabled: true,
-              path: "rule_resources/core.json",
-            },
-          ],
-        },
         content_security_policy: {
           extension_pages:
             "script-src 'self' 'wasm-unsafe-eval'; object-src 'self';",
@@ -151,133 +273,21 @@ export function generateChromeManifest(env, pkg) {
         },
       };
 
-      /** @type {chrome.declarativeNetRequest.Rule[]} */
-      const netRules = [
-        {
-          id: 1,
-          priority: 1,
-          action: {
-            type: "modifyHeaders",
-            requestHeaders: [
-              {
-                header: "sec-ch-ua",
-                operation: "set",
-                value:
-                  '"Android WebView";v="131", "Chromium";v="131", "Not_A Brand";v="24"',
-              },
-              {
-                header: "sec-ch-ua-mobile",
-                operation: "set",
-                value: "?0",
-              },
-              {
-                header: "sec-ch-ua-platform",
-                operation: "set",
-                value: '"Android"',
-              },
-              {
-                header: "sec-ch-ua-arch",
-                operation: "set",
-                value: '""',
-              },
-              {
-                header: "sec-ch-ua-arch-full-version",
-                operation: "set",
-                value: '""',
-              },
-              {
-                header: "sec-ch-ua-platform-version",
-                operation: "set",
-                value: '""',
-              },
-              {
-                header: "sec-ch-ua-full-version-list",
-                operation: "set",
-                value: "",
-              },
-              {
-                header: "sec-ch-ua-bitness",
-                operation: "set",
-                value: '""',
-              },
-              {
-                header: "sec-ch-ua-model",
-                operation: "set",
-                value: '""',
-              },
-            ],
-            responseHeaders: [
-              {
-                header: "content-security-policy",
-                operation: "remove",
-              },
-              {
-                header: "x-frame-options",
-                operation: "remove",
-              },
-              {
-                header: "cross-origin-embedder-policy",
-                operation: "remove",
-              },
-              {
-                header: "cross-origin-opener-policy",
-                operation: "remove",
-              },
-              {
-                header: "cross-origin-resource-policy",
-                operation: "remove",
-              },
-            ],
-          },
-          condition: {
-            urlFilter: "*",
-          },
-        },
-        {
-          id: 2,
-          action: {
-            type: "modifyHeaders",
-            requestHeaders: [
-              {
-                header: "origin",
-                operation: "set",
-                value: "https://web.telegram.org",
-              },
-              {
-                header: "referer",
-                operation: "set",
-                value: "https://web.telegram.org/",
-              },
-            ],
-            responseHeaders: [
-              {
-                header: "access-control-allow-origin",
-                operation: "set",
-                value: "*",
-              },
-              {
-                header: "access-control-allow-methods",
-                operation: "set",
-                value: "*",
-              },
-            ],
-          },
-          condition: {
-            requestDomains: ["vesta.web.telegram.org", "web.telegram.org"],
-          },
-        },
-      ];
+      /** @type {chrome.declarativeNetRequest.Rule[] | null} */
+      const netRules = !isWhisker ? getCoreNetRules() : null;
+
+      if (!isWhisker) {
+        this.emitFile({
+          type: "asset",
+          fileName: "rule_resources/core.json",
+          source: JSON.stringify(netRules, null, 2),
+        });
+      }
 
       this.emitFile({
         type: "asset",
         fileName: "manifest.json",
         source: JSON.stringify(manifest, null, 2),
-      });
-
-      this.emitFile({
-        type: "asset",
-        fileName: "rule_resources/core.json",
-        source: JSON.stringify(netRules, null, 2),
       });
     },
     apply(config, { command }) {

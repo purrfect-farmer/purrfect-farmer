@@ -4,6 +4,8 @@ export default function useWakeLock() {
   const wakeLockRef = useRef(null);
 
   useEffect(() => {
+    if (import.meta.env.VITE_WHISKER) return;
+
     const requestWakeLock = async () => {
       try {
         wakeLockRef.current?.release();

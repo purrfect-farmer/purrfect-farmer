@@ -318,7 +318,7 @@ export default memo(function Settings({ tabs }) {
                         {/* Farmer Title */}
                         <SettingsLabel>Farmer Title</SettingsLabel>
                         <Input
-                          readOnly={Boolean(import.meta.env.VITE_WHISKER)}
+                          disabled={Boolean(import.meta.env.VITE_WHISKER)}
                           value={account.title}
                           onChange={(ev) =>
                             updateActiveAccount({ title: ev.target.value })
@@ -488,7 +488,7 @@ export default memo(function Settings({ tabs }) {
                         {/* Proxy Host */}
                         <SettingsLabel>Proxy Host</SettingsLabel>
                         <Input
-                          readOnly={Boolean(import.meta.env.VITE_WHISKER)}
+                          disabled={Boolean(import.meta.env.VITE_WHISKER)}
                           value={sharedSettings.proxyHost}
                           onChange={(ev) =>
                             configureSharedSettings(
@@ -502,7 +502,7 @@ export default memo(function Settings({ tabs }) {
                         {/* Proxy Port */}
                         <SettingsLabel>Proxy Port</SettingsLabel>
                         <Input
-                          readOnly={Boolean(import.meta.env.VITE_WHISKER)}
+                          disabled={Boolean(import.meta.env.VITE_WHISKER)}
                           value={sharedSettings.proxyPort}
                           onChange={(ev) =>
                             configureSharedSettings(
@@ -516,7 +516,7 @@ export default memo(function Settings({ tabs }) {
                         {/* Proxy Username */}
                         <SettingsLabel>Proxy Username</SettingsLabel>
                         <Input
-                          readOnly={Boolean(import.meta.env.VITE_WHISKER)}
+                          disabled={Boolean(import.meta.env.VITE_WHISKER)}
                           value={sharedSettings.proxyUsername}
                           onChange={(ev) =>
                             configureSharedSettings(
@@ -530,7 +530,7 @@ export default memo(function Settings({ tabs }) {
                         {/* Proxy Password */}
                         <SettingsLabel>Proxy Password</SettingsLabel>
                         <Input
-                          readOnly={Boolean(import.meta.env.VITE_WHISKER)}
+                          disabled={Boolean(import.meta.env.VITE_WHISKER)}
                           value={sharedSettings.proxyPassword}
                           onChange={(ev) =>
                             configureSharedSettings(
