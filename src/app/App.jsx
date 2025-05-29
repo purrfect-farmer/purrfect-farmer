@@ -1,7 +1,6 @@
 import AppContext from "@/contexts/AppContext";
 import AppUpdate from "@/components/AppUpdate";
 import ControlArea from "@/partials/ControlArea";
-import FullSpinner from "@/components/FullSpinner";
 import PWAUpdate from "@/components/PWAUpdate";
 import TabButtonList from "@/components/TabButtonList";
 import TabContent from "@/components/TabContent";
@@ -18,7 +17,6 @@ import Onboarding from "./Onboarding";
 
 function App() {
   const app = useApp();
-  const hasRestoredSettings = app.hasRestoredSettings;
   const { account, settings } = app;
   const { theme, onboarded } = settings;
 
@@ -42,34 +40,28 @@ function App() {
 
   return (
     <AppContext.Provider value={app}>
-      {hasRestoredSettings ? (
-        onboarded ? (
-          <div className="flex flex-col h-dvh">
-            {/* PWA Update */}
-            {import.meta.env.VITE_PWA ? <PWAUpdate /> : <AppUpdate />}
-
-            {/* Tab Button List */}
-            <TabButtonList tabs={app.openedTabs} />
-
-            {/* Tabs Contents Wrapper */}
-            <div className="relative min-w-0 min-h-0 overflow-auto grow">
-              {app.openedTabs.map((tab) => (
-                <TabContent
-                  key={tab.reloadedAt ? `${tab.id}-${tab.reloadedAt}` : tab.id}
-                  tab={tab}
-                />
-              ))}
-            </div>
-
-            <ControlArea />
-          </div>
-        ) : (
-          <Onboarding />
-        )
-      ) : (
+      {onboarded ? (
         <div className="flex flex-col h-dvh">
-          <FullSpinner />
+          {/* PWA Update */}
+          {import.meta.env.VITE_PWA ? <PWAUpdate /> : <AppUpdate />}
+
+          {/* Tab Button List */}
+          <TabButtonList tabs={app.openedTabs} />
+
+          {/* Tabs Contents Wrapper */}
+          <div className="relative min-w-0 min-h-0 overflow-auto grow">
+            {app.openedTabs.map((tab) => (
+              <TabContent
+                key={tab.reloadedAt ? `${tab.id}-${tab.reloadedAt}` : tab.id}
+                tab={tab}
+              />
+            ))}
+          </div>
+
+          <ControlArea />
         </div>
+      ) : (
+        <Onboarding />
       )}
     </AppContext.Provider>
   );

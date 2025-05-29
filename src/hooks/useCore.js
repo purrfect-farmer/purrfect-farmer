@@ -40,8 +40,7 @@ export default function useCore() {
   const { updateAccount, removeAccount, configureSharedSettings } = shared;
 
   /** Settings */
-  const { settings, hasRestoredSettings, configureSettings, restoreSettings } =
-    useSettings();
+  const { settings, configureSettings, restoreSettings } = useSettings();
 
   /** Local Telegram Session */
   const [localTelegramSession, setLocalTelegramSession] =
@@ -929,7 +928,7 @@ export default function useCore() {
     orderedDrops,
     settings,
     farmerMode,
-    hasRestoredSettings,
+
     mirror,
     telegramClient,
     cloudAuth,

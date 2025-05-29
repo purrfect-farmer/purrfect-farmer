@@ -3,7 +3,6 @@ import defaultAccounts from "@/core/defaultAccounts";
 import defaultSharedSettings from "@/core/defaultSharedSettings";
 import { extractInitDataUnsafe, removeAccountStorage } from "@/lib/utils";
 import { useCallback } from "react";
-import { useLayoutEffect } from "react";
 import { useMemo } from "react";
 import { useState } from "react";
 
@@ -18,15 +17,11 @@ export default function useSharedCore() {
     storeSettings: storeSharedSettings,
     configureSettings: configureSharedSettings,
     updateSettings: updateSharedSettings,
-    hasRestoredSettings: hasRestoredSharedSettings,
   } = useBaseSettings("settings", defaultSharedSettings, true);
 
   /** Persisted Accounts */
-  const {
-    value: persistedAccounts,
-    hasRestoredValue: hasRestoredAccounts,
-    storeValue: storePersistedAccounts,
-  } = useStorageState("accounts", defaultAccounts, true);
+  const { value: persistedAccounts, storeValue: storePersistedAccounts } =
+    useStorageState("accounts", defaultAccounts, true);
 
   /** Active Account */
   const [activeAccount, setActiveAccount] = useState(persistedAccounts[0].id);
@@ -100,13 +95,6 @@ export default function useSharedCore() {
     [persistedAccounts, storePersistedAccounts, setActiveAccount]
   );
 
-  /** Set First Account as Active */
-  useLayoutEffect(() => {
-    if (hasRestoredAccounts) {
-      setActiveAccount(persistedAccounts[0].id);
-    }
-  }, [hasRestoredAccounts]);
-
   return useValuesMemo({
     accounts,
     activeAccount,
@@ -115,8 +103,7 @@ export default function useSharedCore() {
     updateAccount,
     removeAccount,
     setActiveAccount,
-    hasRestoredAccounts,
-    hasRestoredSharedSettings,
+
     configureSharedSettings,
     updateSharedSettings,
     storePersistedAccounts,

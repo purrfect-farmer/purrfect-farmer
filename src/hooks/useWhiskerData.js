@@ -5,9 +5,7 @@ import useBackupAndRestore from "./useBackupAndRestore";
 import useRefCallback from "./useRefCallback";
 
 export default function useWhiskerData(app) {
-  const { hasRestoredSettings } = app;
   const backupAndRestore = useBackupAndRestore(app);
-
   const getBackupData = useRefCallback(backupAndRestore[0]);
   const restoreBackupData = useRefCallback(backupAndRestore[1]);
 
@@ -17,8 +15,7 @@ export default function useWhiskerData(app) {
 
   /** Whisker Message */
   useEffect(() => {
-    if (!hasRestoredSettings) return;
-    else if (import.meta.env.VITE_WHISKER) {
+    if (import.meta.env.VITE_WHISKER) {
       /** Message Listener */
       const listener = (_event, { action, data }) => {
         /** Reply to Message */
@@ -77,7 +74,6 @@ export default function useWhiskerData(app) {
         window.electron.ipcRenderer.removeListener("host-message", listener);
     }
   }, [
-    hasRestoredSettings,
     getBackupData,
     updateSettings,
     updateSharedSettings,

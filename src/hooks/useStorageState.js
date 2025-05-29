@@ -1,4 +1,9 @@
-import { getChromeLocalStorage } from "@/lib/utils";
+import {
+  removeStorageValue,
+  setStorageValue,
+  storageCache,
+  storageEmitter,
+} from "@/lib/chrome-storage";
 import { useCallback } from "react";
 import { useLayoutEffect } from "react";
 import { useState } from "react";
@@ -8,72 +13,48 @@ import useValuesMemo from "./useValuesMemo";
 
 export default function useStorageState(key, defaultValue, shared = false) {
   const storageKey = useChromeStorageKey(key, shared);
-  const [hasRestoredValue, setHasRestoredValue] = useState(false);
-  const [value, setValue] = useState(defaultValue);
+  const [value, setValue] = useState(
+    () => storageCache.get(storageKey) || defaultValue
+  );
 
   /** Configure Value */
   const storeValue = useCallback(
-    async (newValue) => {
-      if (typeof chrome?.storage?.local !== "undefined") {
-        return await chrome?.storage?.local.set({
-          [storageKey]: newValue,
-        });
-      } else {
-        return setValue(newValue);
-      }
-    },
+    async (newValue) => setValue(await setStorageValue(storageKey, newValue)),
     [storageKey, setValue]
   );
 
   /** Remove Value */
-  const removeValue = useCallback(async () => {
-    if (typeof chrome?.storage?.local !== "undefined") {
-      return await chrome?.storage?.local.remove(storageKey);
-    } else {
-      return setValue(null);
-    }
-  }, [storageKey, setValue]);
+  const removeValue = useCallback(
+    async () => setValue(await removeStorageValue(storageKey)),
+    [storageKey, setValue]
+  );
 
   /** Watch Storage */
   const watchStorage = useCallback(
-    ({ [storageKey]: item }) => {
-      if (item) {
-        setValue(
-          typeof item.newValue !== "undefined" ? item.newValue : defaultValue
-        );
-      }
+    (newValue) => {
+      setValue(typeof newValue === "undefined" ? defaultValue : newValue);
     },
     [storageKey, defaultValue, setValue]
   );
 
   /** Restore Value and Watch Storage */
   useLayoutEffect(() => {
-    /** Restore Value */
-    getChromeLocalStorage(storageKey, defaultValue).then(async (value) => {
-      /** Set Value */
-      setValue(value);
-      setHasRestoredValue(true);
-    });
-
     /** Listen for change */
-    chrome?.storage?.local?.onChanged?.addListener(watchStorage);
+    storageEmitter.on(storageKey, watchStorage);
 
     return () => {
       /** Remove Listener */
-      chrome?.storage?.local?.onChanged?.removeListener(watchStorage);
+      storageEmitter.off(storageKey, watchStorage);
     };
   }, [
     /** Deps */
     storageKey,
     setValue,
     watchStorage,
-    getChromeLocalStorage,
-    setHasRestoredValue,
   ]);
 
   return useValuesMemo({
     value,
-    hasRestoredValue,
     setValue,
     storeValue,
     removeValue,

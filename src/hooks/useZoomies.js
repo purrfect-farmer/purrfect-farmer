@@ -13,11 +13,8 @@ import useValuesMemo from "./useValuesMemo";
 const INITIAL_POSITION = 0;
 
 export default function useZoomies(core) {
-  const {
-    value: zoomiesState,
-    hasRestoredValue: hasRestoredZoomiesState,
-    storeValue: storeZoomiesState,
-  } = useStorageState("zoomies-state", defaultZoomiesState);
+  const { value: zoomiesState, storeValue: storeZoomiesState } =
+    useStorageState("zoomies-state", defaultZoomiesState);
 
   /** Farmer Mode */
   const farmerMode = core.farmerMode;
@@ -47,25 +44,31 @@ export default function useZoomies(core) {
   const drops = quickRun ? quickRunDrops : zoomiesDrops;
 
   /** Tasks List */
-  const TASK_LIST = quickRun ? "quick" : "all";
+  const taskList = quickRun ? "quick" : "all";
 
   /** Current State */
-  const [current, setCurrent] = useState({
-    drop: drops[INITIAL_POSITION],
-    task: drops[INITIAL_POSITION]?.tasks?.[TASK_LIST]?.[0],
-    cycles: 0,
+  const [current, setCurrent] = useState(() => {
+    return {
+      drop: drops.find(
+        (item) =>
+          item.id === zoomiesState.dropId &&
+          item.tasks[taskList].includes(zoomiesState.task)
+      ),
+      task: zoomiesState.task,
+      cycles: 0,
+    };
   });
 
   /** Tasks Count */
   const tasksCount = useMemo(
-    () => current.drop?.tasks?.[TASK_LIST]?.length,
-    [TASK_LIST, current.drop?.tasks]
+    () => current.drop?.tasks?.[taskList]?.length,
+    [taskList, current.drop?.tasks]
   );
 
   /** Current Task Offset */
   const currentTaskOffset = useMemo(
-    () => current.drop?.tasks?.[TASK_LIST]?.indexOf?.(current.task) + 1,
-    [TASK_LIST, current.drop?.tasks, current.task]
+    () => current.drop?.tasks?.[taskList]?.indexOf?.(current.task) + 1,
+    [taskList, current.drop?.tasks, current.task]
   );
 
   /** Repeat Zoomies Cycle */
@@ -116,12 +119,12 @@ export default function useZoomies(core) {
       setCurrent(() => {
         return {
           drop: drops[INITIAL_POSITION],
-          task: drops[INITIAL_POSITION]?.tasks?.[TASK_LIST]?.[0],
+          task: drops[INITIAL_POSITION]?.tasks?.[taskList]?.[0],
           cycles: 0,
         };
       });
     },
-    [TASK_LIST, drops, setCurrent],
+    [taskList, drops, setCurrent],
 
     /** Mirror */
     core.mirror
@@ -136,10 +139,10 @@ export default function useZoomies(core) {
       return {
         cycles,
         drop,
-        task: drop?.tasks?.[TASK_LIST]?.[0],
+        task: drop?.tasks?.[taskList]?.[0],
       };
     });
-  }, [TASK_LIST, drops, setCurrent]);
+  }, [taskList, drops, setCurrent]);
 
   /** Process task Offset */
   const processTaskOffset = useCallback(
@@ -148,11 +151,11 @@ export default function useZoomies(core) {
         setCurrent((prev) => {
           if (
             prev.task ===
-            prev.drop?.tasks?.[TASK_LIST]?.at(direction === 1 ? -1 : 0)
+            prev.drop?.tasks?.[taskList]?.at(direction === 1 ? -1 : 0)
           ) {
             const index = (drops.indexOf(prev.drop) + direction) % drops.length;
             const drop = drops.at(index);
-            const task = drop?.tasks?.[TASK_LIST]?.at(direction === 1 ? 0 : -1);
+            const task = drop?.tasks?.[taskList]?.at(direction === 1 ? 0 : -1);
             const cycles =
               prev.cycles + (direction === 1 && drop === drops.at(0) ? 1 : 0);
 
@@ -162,7 +165,7 @@ export default function useZoomies(core) {
               cycles,
             };
           } else {
-            const tasks = prev.drop.tasks[TASK_LIST];
+            const tasks = prev.drop.tasks[taskList];
             const index = (tasks.indexOf(prev.task) + direction) % tasks.length;
 
             return {
@@ -173,7 +176,7 @@ export default function useZoomies(core) {
         });
       }
     },
-    [TASK_LIST, process.started, drops, setCurrent]
+    [taskList, process.started, drops, setCurrent]
   );
 
   /** Process the next task */
@@ -310,7 +313,7 @@ export default function useZoomies(core) {
         drops.some(
           (item) =>
             item.id === prev?.drop?.id &&
-            item.tasks[TASK_LIST].includes(prev?.task)
+            item.tasks[taskList].includes(prev?.task)
         )
       ) {
         return prev;
@@ -318,11 +321,11 @@ export default function useZoomies(core) {
         return {
           ...prev,
           drop: drops[INITIAL_POSITION],
-          task: drops[INITIAL_POSITION]?.tasks?.[TASK_LIST]?.[0],
+          task: drops[INITIAL_POSITION]?.tasks?.[taskList]?.[0],
         };
       }
     });
-  }, [TASK_LIST, drops, setCurrent]);
+  }, [taskList, drops, setCurrent]);
 
   /** Stop When There's no Drop */
   useLayoutEffect(() => {
@@ -332,41 +335,13 @@ export default function useZoomies(core) {
     }
   }, [process.started, process.stop, current.drop]);
 
-  /** Restore State */
-  useLayoutEffect(() => {
-    if (hasRestoredZoomiesState) {
-      const prevState = zoomiesState;
-      const task = prevState.task;
-      const drop = drops.find(
-        (item) =>
-          item.id === prevState.dropId &&
-          item.tasks[TASK_LIST].includes(prevState.task)
-      );
-
-      if (drop) {
-        setCurrent((prev) => ({
-          ...prev,
-          drop,
-          task,
-        }));
-      }
-    }
-  }, [TASK_LIST, hasRestoredZoomiesState, setCurrent]);
-
   /** Store in Settings */
   useLayoutEffect(() => {
-    if (hasRestoredZoomiesState) {
-      storeZoomiesState({
-        dropId: current?.drop?.id,
-        task: current?.task,
-      });
-    }
-  }, [
-    hasRestoredZoomiesState,
-    storeZoomiesState,
-    current?.drop?.id,
-    current?.task,
-  ]);
+    storeZoomiesState({
+      dropId: current?.drop?.id,
+      task: current?.task,
+    });
+  }, [storeZoomiesState, current?.drop?.id, current?.task]);
 
   return useValuesMemo({
     drops,

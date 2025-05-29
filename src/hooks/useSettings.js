@@ -9,13 +9,8 @@ import useValuesMemo from "./useValuesMemo";
 
 export default function useSettings() {
   const account = useAccountContext();
-  const {
-    settings,
-    storeSettings,
-    configureSettings,
-    updateSettings,
-    hasRestoredSettings,
-  } = useBaseSettings("settings", defaultSettings);
+  const { settings, storeSettings, configureSettings, updateSettings } =
+    useBaseSettings("settings", defaultSettings);
 
   /** Restore Settings */
   const restoreSettings = useCallback(async () => {
@@ -33,6 +28,5 @@ export default function useSettings() {
     configureSettings,
     updateSettings,
     restoreSettings,
-    hasRestoredSettings,
   });
 }

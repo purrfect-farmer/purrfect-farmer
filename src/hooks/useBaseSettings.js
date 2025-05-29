@@ -6,11 +6,11 @@ import useStorageState from "./useStorageState";
 import useValuesMemo from "./useValuesMemo";
 
 export default function useBaseSettings(key, defaultValue, shared = false) {
-  const {
-    value,
-    hasRestoredValue: hasRestoredSettings,
-    storeValue: storeSettings,
-  } = useStorageState(key, defaultValue, shared);
+  const { value, storeValue: storeSettings } = useStorageState(
+    key,
+    defaultValue,
+    shared
+  );
 
   /** Transform Value */
   const settings = useMemo(() => ({ ...defaultValue, ...value }), [value]);
@@ -50,7 +50,7 @@ export default function useBaseSettings(key, defaultValue, shared = false) {
   return useValuesMemo({
     settings,
     storeSettings,
-    hasRestoredSettings,
+
     configureSettings,
     updateSettings,
   });

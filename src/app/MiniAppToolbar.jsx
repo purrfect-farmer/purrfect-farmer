@@ -9,15 +9,16 @@ const defaultSharedSettings = {
 
 export default function MiniAppToolbar({ host, url, port }) {
   const mirror = usePortMirror(port);
-  const { value: settings, hasRestoredValue: hasRestoredSharedSettings } =
-    useStorageState("settings", defaultSharedSettings, true);
+  const { value: settings } = useStorageState(
+    "settings",
+    defaultSharedSettings,
+    true
+  );
   const { showMiniAppToolbar } = settings;
 
   return (
     <AppContext.Provider value={{ port, host, url, mirror, settings }}>
-      {hasRestoredSharedSettings && showMiniAppToolbar ? (
-        <ToolbarPanel />
-      ) : null}
+      {showMiniAppToolbar ? <ToolbarPanel /> : null}
     </AppContext.Provider>
   );
 }

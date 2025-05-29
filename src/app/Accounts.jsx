@@ -1,5 +1,4 @@
 import AccountContext from "@/contexts/AccountContext";
-import FullSpinner from "@/components/FullSpinner";
 import SharedContext from "@/contexts/SharedContext";
 import useChromeCookies from "@/hooks/useChromeCookies";
 import useFarmerHosts from "@/hooks/useFarmerHosts";
@@ -31,7 +30,7 @@ const FarmerAccount = ({ account }) => {
 
 export default function Accounts() {
   const shared = useSharedCore();
-  const { accounts, hasRestoredAccounts } = shared;
+  const { accounts } = shared;
 
   /** Set Farmer Hosts */
   useFarmerHosts();
@@ -50,15 +49,9 @@ export default function Accounts() {
 
   return (
     <SharedContext.Provider value={shared}>
-      {hasRestoredAccounts ? (
-        accounts.map((account) => (
-          <FarmerAccount key={account.id} account={account} />
-        ))
-      ) : (
-        <div className="flex flex-col h-dvh">
-          <FullSpinner />
-        </div>
-      )}
+      {accounts.map((account) => (
+        <FarmerAccount key={account.id} account={account} />
+      ))}
 
       {/* Toaster */}
       <Toaster
