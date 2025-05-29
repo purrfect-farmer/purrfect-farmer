@@ -30,12 +30,12 @@ export default function useTelegramUser(core) {
   const updateTelegramUser = useCallback(
     async (isUpdate = false) => {
       if (isUpdate === false) {
-        await telegramClient.startBotFromLink(
-          import.meta.env.VITE_APP_BOT_MINI_APP,
-          {
+        await telegramClient.startBotFromLink({
+          link: import.meta.env.VITE_APP_BOT_MINI_APP,
+          startOptions: {
             shouldWaitForReply: false,
-          }
-        );
+          },
+        });
       }
 
       const telegramWebApp = await telegramClient.getTelegramWebApp(

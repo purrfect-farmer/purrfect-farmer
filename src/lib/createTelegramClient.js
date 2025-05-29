@@ -1,3 +1,5 @@
+import { ConnectionTCPObfuscated } from "telegram/network";
+import { PromisedWebSockets } from "telegram/extensions";
 import { StringSession } from "telegram/sessions";
 import { TelegramClient } from "telegram";
 
@@ -16,6 +18,8 @@ export const createTelegramClient = (session = "") => {
       systemVersion: navigator.platform,
       systemLangCode: "en-US",
       langCode: "en",
+      connection: ConnectionTCPObfuscated,
+      networkSocket: PromisedWebSockets,
     }
   );
 

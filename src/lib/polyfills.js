@@ -1,3 +1,7 @@
 import { Buffer } from "buffer";
 
-window.Buffer = Buffer;
+if (typeof window === "undefined") {
+  globalThis.window = globalThis;
+}
+
+globalThis.Buffer = Buffer;

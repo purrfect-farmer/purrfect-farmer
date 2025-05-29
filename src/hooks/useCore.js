@@ -893,7 +893,6 @@ export default function useCore() {
       messaging.ports,
       settings.enableInAppBrowser,
       settings.miniAppInNewWindow,
-      telegramClient.getEntity,
       telegramClient.getWebview,
       preferredTelegramWebVersion,
       openTelegramLink,
