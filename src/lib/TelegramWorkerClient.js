@@ -6,6 +6,12 @@ import { uuid } from "./utils";
 export default class TelegramWorkerClient {
   constructor(session) {
     this.connected = false;
+    this.handlers = {
+      phone: null,
+      code: null,
+      password: null,
+      error: null,
+    };
     this.emitter = new EventEmitter();
 
     /** @type {Worker} */
@@ -14,6 +20,15 @@ export default class TelegramWorkerClient {
       const { id, action, data } = ev.data;
 
       switch (action) {
+        case "handler-phone":
+        case "handler-code":
+        case "handler-password":
+        case "handler-error":
+          const handler = this.handlers[action.split("-")[1]];
+          if (handler) {
+            handler(data);
+          }
+          break;
         case "update-connection-state":
           this.connected = data;
           this.emitter.emit("update-connection-state", this.connected);
@@ -27,6 +42,36 @@ export default class TelegramWorkerClient {
     });
 
     this.message("initialize-client", session);
+  }
+
+  createHandler(name, callback) {
+    this.handlers[name] = async (response) => {
+      try {
+        const result = await callback(response);
+        this.worker.postMessage({
+          action: "handler-" + name,
+          data: {
+            result,
+          },
+        });
+      } catch (error) {
+        this.worker.postMessage({
+          action: "handler-" + name,
+          data: {
+            error: { message: error?.message || "An error occurred!" },
+          },
+        });
+      }
+    };
+  }
+
+  start(options) {
+    this.createHandler("phone", options.phoneNumber);
+    this.createHandler("code", options.phoneCode);
+    this.createHandler("password", options.password);
+    this.createHandler("error", options.onError);
+
+    return this.message("start-client");
   }
 
   message(action, data) {
@@ -59,6 +104,14 @@ export default class TelegramWorkerClient {
 
   logout() {
     return this.message("logout");
+  }
+
+  isUserAuthorized() {
+    return this.message("is-user-authorized");
+  }
+
+  getConnectionState() {
+    return this.message("get-connection-state");
   }
 
   destroy() {

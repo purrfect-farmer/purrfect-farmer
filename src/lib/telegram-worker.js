@@ -10,8 +10,16 @@ import { customLogger, extractTgWebAppData, parseTelegramLink } from "./utils";
 /** @type {import("telegram").TelegramClient | null} */
 let client = null;
 
+/** Start Handlers */
+let handlers = {
+  phone: null,
+  code: null,
+  password: null,
+  error: null,
+};
+
 /**
- * Executes a callback with the Telegram Worker Client instance.
+ * Executes a callback with the Telegram Client instance.
  *
  * @param {(client: import("telegram").TelegramClient) => any} callback - The function to execute with the client.
  * @returns {Promise<any>} The result of the callback.
@@ -263,6 +271,58 @@ const joinTelegramLink = (link) =>
     }
   });
 
+const createHandler = (name) => (data) =>
+  new Promise((resolve, reject) => {
+    console.log("Handling:", name);
+
+    /** Set Handler */
+    handlers[name] = ({ result, error }) => {
+      if (error) {
+        reject(error);
+      } else {
+        resolve(result);
+      }
+    };
+    postMessage({
+      action: "handler-" + name,
+      data,
+    });
+  });
+
+const startClient = async () => {
+  if (client === null) {
+    throw new Error("No Telegram Client!");
+  }
+
+  return client
+    .start({
+      phoneNumber: createHandler("phone"),
+      phoneCode: createHandler("code"),
+      password: createHandler("password"),
+      onError: createHandler("error"),
+    })
+    .then(() => client.session.save());
+};
+
+/** Initialize Client */
+const initializeClient = (session) => {
+  /** Create client */
+  client = createTelegramClient(session);
+
+  /** Add Connected Event Handler */
+  client.addEventHandler(
+    (event) => {
+      postMessage({
+        action: "update-connection-state",
+        data: event.state === UpdateConnectionState.connected,
+      });
+    },
+    new Raw({
+      types: [UpdateConnectionState],
+    })
+  );
+};
+
 /** Listen for Message */
 addEventListener("message", async (ev) => {
   const { id, action, data } = ev.data;
@@ -278,14 +338,55 @@ addEventListener("message", async (ev) => {
         },
       });
     } catch (error) {
+      /** Log Error */
+      console.error(error);
+
       postMessage({
         id,
-        data: { error: error.message || "An error occurred!" },
+        data: { error: { message: error?.message || "An error occurred!" } },
       });
     }
   };
 
+  /**
+   * Executes a callback with the Telegram Client instance.
+   *
+   * @param {(client: import("telegram").TelegramClient) => any} callback - The function to execute with the client.
+   * @returns {Promise<any>} The result of the callback.
+   */
+  const replyClientMethod = (callback) => {
+    if (client) {
+      reply(callback(client));
+    } else {
+      reply(false);
+    }
+  };
+
   switch (action) {
+    case "initialize-client":
+      /** Initialize Client */
+      initializeClient();
+
+      /** Reply */
+      reply(true);
+      break;
+
+    /** Start Client */
+    case "start-client":
+      reply(startClient());
+      break;
+
+    case "handler-phone":
+    case "handler-code":
+    case "handler-password":
+    case "handler-error":
+      const handler = handlers[action.split("-")[1]];
+
+      if (handler) {
+        handler(data);
+      }
+      break;
+
     case "join-telegram-group":
       reply(joinTelegramLink(data));
       break;
@@ -306,57 +407,24 @@ addEventListener("message", async (ev) => {
       reply(getEntity(data));
       break;
 
-    case "initialize-client":
-      /** Create client */
-      client = createTelegramClient(data);
-
-      /** Add Connected Event Handler */
-      client.addEventHandler(
-        (event) => {
-          postMessage({
-            action: "update-connection-state",
-            data: event.state === UpdateConnectionState.connected,
-          });
-        },
-        new Raw({
-          types: [UpdateConnectionState],
-        })
-      );
-
-      /** Reply */
-      reply(true);
+    case "get-connection-state":
+      replyClientMethod((client) => client.connected);
       break;
 
-    case "get-connection-state":
-      if (client) {
-        reply(client.connected);
-      } else {
-        reply(false);
-      }
+    case "is-user-authorized":
+      replyClientMethod((client) => client.isUserAuthorized());
       break;
 
     case "connect":
-      if (client) {
-        reply(client.connect());
-      } else {
-        reply(false);
-      }
+      replyClientMethod((client) => client.connect());
       break;
 
     case "disconnect":
-      if (client) {
-        reply(client.disconnect());
-      } else {
-        reply(false);
-      }
+      replyClientMethod((client) => client.disconnect());
       break;
 
     case "logout":
-      if (client) {
-        reply(client.invoke(new Api.auth.LogOut({})));
-      } else {
-        reply(false);
-      }
+      replyClientMethod((client) => client.invoke(new Api.auth.LogOut({})));
       break;
   }
 });
