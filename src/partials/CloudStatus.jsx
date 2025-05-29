@@ -1,11 +1,10 @@
-import AppContext from "@/contexts/AppContext";
+import useAppContext from "@/hooks/useAppContext";
 import useCloudServerQuery from "@/hooks/useCloudServerQuery";
 import { HiBolt, HiBoltSlash, HiOutlineCloud } from "react-icons/hi2";
 import { cn } from "@/lib/utils";
-import { useContext } from "react";
 
 export default function CloudStatus(props) {
-  const { settings, cloudTelegramSession } = useContext(AppContext);
+  const { settings, cloudTelegramSession } = useAppContext();
   const { status, data } = useCloudServerQuery();
 
   return settings.enableCloud ? (

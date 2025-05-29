@@ -1,11 +1,10 @@
 import Alert from "@/components/Alert";
-import AppContext from "@/contexts/AppContext";
+import useAppContext from "@/hooks/useAppContext";
 import useCloudSubscriptionQuery from "@/hooks/useCloudSubscriptionQuery";
 import { differenceInHours, formatDate } from "date-fns";
-import { useContext } from "react";
 
 export default function CloudSubscription() {
-  const { telegramUser, settings } = useContext(AppContext);
+  const { telegramUser, settings } = useAppContext();
   const initData = telegramUser?.initData;
   const enabled = settings.enableCloud && Boolean(initData);
 

@@ -1,9 +1,9 @@
-import AppContext from "@/contexts/AppContext";
-import { useContext } from "react";
 import { useMutation } from "@tanstack/react-query";
 
+import useAppContext from "./useAppContext";
+
 export default function useCloudSyncMutation(id, client) {
-  const { cloudBackend } = useContext(AppContext);
+  const { cloudBackend } = useAppContext();
 
   return useMutation(
     {

@@ -1,9 +1,9 @@
-import AppContext from "@/contexts/AppContext";
-import { useContext } from "react";
 import { useQuery } from "@tanstack/react-query";
 
+import useAppContext from "./useAppContext";
+
 export default function useSeekerQuery() {
-  const { settings, seekerBackend } = useContext(AppContext);
+  const { settings, seekerBackend } = useAppContext();
 
   return useQuery({
     refetchOnMount: false,
