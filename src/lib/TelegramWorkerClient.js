@@ -5,14 +5,14 @@ import { uuid } from "./utils";
 
 export default class TelegramWorkerClient {
   constructor(session) {
-    this.connected = false;
+    this.emitter = new EventEmitter();
     this.handlers = {
       phone: null,
       code: null,
       password: null,
       error: null,
     };
-    this.emitter = new EventEmitter();
+    this.connected = false;
 
     /** @type {Worker} */
     this.worker = new TelegramWorker();
@@ -44,6 +44,7 @@ export default class TelegramWorkerClient {
     this.message("initialize-client", session);
   }
 
+  /** Create Handler */
   createHandler(name, callback) {
     this.handlers[name] = async (response) => {
       try {
@@ -65,6 +66,7 @@ export default class TelegramWorkerClient {
     };
   }
 
+  /** Start */
   start(options) {
     this.createHandler("phone", options.phoneNumber);
     this.createHandler("code", options.phoneCode);
@@ -74,6 +76,7 @@ export default class TelegramWorkerClient {
     return this.message("start-client");
   }
 
+  /** Send Message */
   message(action, data) {
     return new Promise((resolve, reject) => {
       const id = uuid();
@@ -94,34 +97,63 @@ export default class TelegramWorkerClient {
     });
   }
 
+  /** Add Connection Listener */
+  onConnectionState(callback) {
+    return this.emitter.addListener("update-connection-state", callback);
+  }
+
+  /** Remove Connection Listener */
+  offConnectionState(callback) {
+    return this.emitter.removeListener("update-connection-state", callback);
+  }
+
+  /** Connect */
   connect() {
     return this.message("connect");
   }
 
+  /** Disconnect */
   disconnect() {
     return this.message("disconnect");
   }
 
+  /** Logout */
   logout() {
     return this.message("logout");
   }
 
+  /** Is User Authorized */
   isUserAuthorized() {
     return this.message("is-user-authorized");
   }
 
+  /** Get Connection State */
   getConnectionState() {
     return this.message("get-connection-state");
   }
 
+  /** Destroy */
   destroy() {
     this.worker.terminate();
   }
 
-  addEventListener(event, callback) {
-    return this.emitter.addListener(event, callback);
+  /** Start Bot from Link */
+  startBotFromLink(options) {
+    return this.message("start-bot-from-link", options);
   }
-  removeEventListener(event, callback) {
-    return this.emitter.removeListener(event, callback);
+
+  /** Get Webview */
+  getWebview(link) {
+    return this.message("get-webview", link);
+  }
+
+  /** Get Telegram WebApp */
+  getTelegramWebApp(link) {
+    return this.message("get-telegram-web-app", link);
+  }
+
+  /** Join Telegram Link */
+  joinTelegramLink(link) {
+    return this.message("join-telegram-link", link);
   }
 }

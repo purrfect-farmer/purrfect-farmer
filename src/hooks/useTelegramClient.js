@@ -1,4 +1,6 @@
+import TelegramWebClient from "@/lib/TelegramWebClient";
 import TelegramWorkerClient from "@/lib/TelegramWorkerClient";
+import { createTelegramClient } from "@/lib/createTelegramClient";
 import { customLogger } from "@/lib/utils";
 import { useCallback, useLayoutEffect } from "react";
 import { useRef } from "react";
@@ -15,7 +17,7 @@ export default function useTelegramClient(mode, session) {
     /**
      * Executes a callback with the Telegram Worker Client instance.
      *
-     * @param {(client: TelegramWorkerClient) => any} callback - The function to execute with the client.
+     * @param {(client: TelegramWebClient | TelegramWorkerClient) => any} callback - The function to execute with the client.
      * @returns {Promise<any>} The result of the callback.
      */
     async (callback) => {
@@ -30,49 +32,48 @@ export default function useTelegramClient(mode, session) {
 
   /** Start Bot from Link */
   const startBotFromLink = useCallback(
-    (options) =>
-      execute((client) => client.message("start-bot-from-link", options)),
+    (options) => execute((client) => client.startBotFromLink(options)),
     [execute]
   );
 
   /** Get Webview */
   const getWebview = useCallback(
-    (link) => execute((client) => client.message("get-webview", link)),
+    (link) => execute((client) => client.getWebview(link)),
     [execute]
   );
 
   /** Get Telegram WebApp */
   const getTelegramWebApp = useCallback(
-    (link) => execute((client) => client.message("get-telegram-web-app", link)),
+    (link) => execute((client) => client.getTelegramWebApp(link)),
     [execute]
   );
 
   /** Join Telegram Link */
   const joinTelegramLink = useCallback(
-    (link) => execute((client) => client.message("join-telegram-link", link)),
+    (link) => execute((client) => client.joinTelegramLink(link)),
     [execute]
   );
 
+  /** Initiate Client */
   useLayoutEffect(() => {
     if (mode === "session" && session) {
       /** Log Session */
       customLogger("TG CLIENT SESSION", session);
 
-      const client = new TelegramWorkerClient(session);
-
-      /** Set Ref */
-      ref.current = client;
+      /** Create Client */
+      const client = createTelegramClient(session);
 
       /** Set Connection State */
       setConnected(client.connected);
 
       /** Add Connected Event Handler */
-      client.addEventListener("update-connection-state", (connected) =>
-        setConnected(connected)
-      );
+      client.onConnectionState((connected) => setConnected(connected));
 
       /** Connect */
       client.connect();
+
+      /** Set Ref */
+      ref.current = client;
 
       return () => {
         client?.destroy();
