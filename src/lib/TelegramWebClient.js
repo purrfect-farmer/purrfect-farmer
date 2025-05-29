@@ -10,6 +10,7 @@ import { UpdateConnectionState } from "telegram/network";
 import { customLogger, extractTgWebAppData, parseTelegramLink } from "./utils";
 
 export default class TelegramWebClient extends TelegramClient {
+  /** Construct Class */
   constructor(session) {
     const stringSession = new StringSession(session);
     super(stringSession, 2496, "8da85b0d5bfe62527e5b244c209159c3", {
