@@ -1,6 +1,6 @@
 import axios from "axios";
 import useAppContext from "@/hooks/useAppContext";
-import useAppQuery from "@/hooks/useAppQuery";
+import useStaticQuery from "@/hooks/useStaticQuery";
 import { HiOutlineMapPin } from "react-icons/hi2";
 import { LiaUserNinjaSolid } from "react-icons/lia";
 import { cn } from "@/lib/utils";
@@ -16,9 +16,7 @@ export default function IPStatus() {
   const isProxied = isProxyAllowed && sharedSettings.proxyEnabled;
 
   /** IP Query */
-  const { data: ipInfo, ...ipQuery } = useAppQuery({
-    refetchOnMount: false,
-    refetchOnWindowFocus: false,
+  const { data: ipInfo, ...ipQuery } = useStaticQuery({
     enabled: settings.displayIpAddress,
     queryKey: [
       "app",
