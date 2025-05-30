@@ -1,4 +1,5 @@
 import useAppContext from "@/hooks/useAppContext";
+import useMirroredState from "@/hooks/useMirroredState";
 import { Dialog } from "radix-ui";
 import { LiaUser } from "react-icons/lia";
 import { cn } from "@/lib/utils";
@@ -19,6 +20,12 @@ export default memo(function TabButtonList({ tabs }) {
         : "",
     [account]
   );
+
+  const [
+    showAccountPicker,
+    setShowAccountPicker,
+    dispatchAndSetShowAccountPicker,
+  ] = useMirroredState("app.toggle-account-picker", false);
 
   return (
     <div
@@ -54,7 +61,10 @@ export default memo(function TabButtonList({ tabs }) {
       </div>
 
       {/* Account Picker */}
-      <Dialog.Root>
+      <Dialog.Root
+        open={showAccountPicker}
+        onOpenChange={dispatchAndSetShowAccountPicker}
+      >
         {account.user ? (
           <Dialog.Trigger
             title={userFullName}
