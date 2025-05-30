@@ -37,10 +37,16 @@ export default function useCore() {
   const account = useAccountContext();
 
   /** Destructure Shared */
-  const { updateAccount, removeAccount, configureSharedSettings } = shared;
+  const {
+    updateAccount,
+    removeAccount,
+    updateSharedSettings,
+    configureSharedSettings,
+  } = shared;
 
   /** Settings */
-  const { settings, configureSettings, restoreSettings } = useSettings();
+  const { settings, updateSettings, configureSettings, restoreSettings } =
+    useSettings();
 
   /** Local Telegram Session */
   const [localTelegramSession, setLocalTelegramSession] =
@@ -402,22 +408,38 @@ export default function useCore() {
     mirror
   );
 
-  /** Configure Shared Settings */
+  /** Dispatch and Configure Shared Settings */
   const [, dispatchAndConfigureSharedSettings] = useMirroredCallback(
     "core.configure-shared-settings",
-    /** Configure Shared Settings */
     configureSharedSettings,
     [configureSharedSettings],
     /** Mirror */
     mirror
   );
 
-  /** Configure Settings */
+  /** Dispatch And Update Shared Settings */
+  const [, dispatchAndUpdateSharedSettings] = useMirroredCallback(
+    "core.update-shared-settings",
+    updateSharedSettings,
+    [updateSharedSettings],
+    /** Mirror */
+    mirror
+  );
+
+  /** Dispatch and Configure Settings */
   const [, dispatchAndConfigureSettings] = useMirroredCallback(
     "core.configure-settings",
-    /** Configure Settings */
     configureSettings,
     [configureSettings],
+    /** Mirror */
+    mirror
+  );
+
+  /** Dispatch and Update Settings */
+  const [, dispatchAndUpdateSettings] = useMirroredCallback(
+    "core.update-settings",
+    updateSettings,
+    [updateSettings],
     /** Mirror */
     mirror
   );
@@ -425,7 +447,6 @@ export default function useCore() {
   /** Restore Settings */
   const [, dispatchAndRestoreSettings] = useMirroredCallback(
     "core.restore-settings",
-    /** Restore Settings */
     restoreSettings,
     [restoreSettings],
     /** Mirror */
@@ -942,9 +963,11 @@ export default function useCore() {
     /** App Methods */
     shutdown,
     reloadApp,
+    restoreSettings,
+    updateSettings,
     configureSettings,
-    openNewTab,
     openURL,
+    openNewTab,
     openExtensionsPage,
     getFarmerBotPort,
     closeOtherBots,
@@ -957,8 +980,10 @@ export default function useCore() {
     dispatchAndOpenURL,
     dispatchAndShutdown,
     dispatchAndReloadApp,
+    dispatchAndUpdateSettings,
     dispatchAndConfigureSettings,
     dispatchAndRestoreSettings,
+    dispatchAndUpdateSharedSettings,
     dispatchAndConfigureSharedSettings,
 
     /** Telegram Web */

@@ -44,7 +44,7 @@ export default function useWhiskerData(app) {
 
           /** Set Whisker Data */
           case "set-whisker-data":
-            const { account, sharedSettings, settings } = data;
+            const { account, settings, sharedSettings } = data;
 
             /** Expose Partition */
             window.WHISKER_PARTITION = account.partition;
@@ -52,11 +52,11 @@ export default function useWhiskerData(app) {
             /** Update Account */
             updateActiveAccount(account);
 
-            /** Update Proxy */
-            updateSharedSettings(sharedSettings, false);
-
             /** Update Settings */
             updateSettings(settings, false);
+
+            /** Update Shared Settings */
+            updateSharedSettings(sharedSettings, false);
 
             break;
         }
