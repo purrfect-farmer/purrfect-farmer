@@ -1,3 +1,4 @@
+import { sendWebviewMessage } from "@/lib/utils";
 import { useCallback } from "react";
 import { useEffect } from "react";
 import { useMemo } from "react";
@@ -73,6 +74,16 @@ export default function useTelegramUser(core) {
       updateTelegramUser(telegramUser?.shouldUpdate);
     }
   }, [farmerMode, telegramUser, updateTelegramUser]);
+
+  /** Set Init Data */
+  useEffect(() => {
+    if (import.meta.env.VITE_WHISKER) {
+      sendWebviewMessage({
+        action: "set-telegram-init-data",
+        data: { telegramInitData },
+      });
+    }
+  }, [telegramInitData]);
 
   return telegramUser;
 }
