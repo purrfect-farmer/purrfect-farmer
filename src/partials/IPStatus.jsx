@@ -3,7 +3,8 @@ import useAppContext from "@/hooks/useAppContext";
 import useStaticQuery from "@/hooks/useStaticQuery";
 import { HiOutlineMapPin } from "react-icons/hi2";
 import { LiaUserNinjaSolid } from "react-icons/lia";
-import { cn } from "@/lib/utils";
+import { cn, customLogger } from "@/lib/utils";
+import { useEffect } from "react";
 
 export default function IPStatus() {
   const { settings, sharedSettings } = useAppContext();
@@ -36,6 +37,10 @@ export default function IPStatus() {
         })
         .then((res) => res.data),
   });
+
+  useEffect(() => {
+    customLogger("IP INFO", ipInfo);
+  }, [ipInfo]);
 
   return settings.displayIpAddress ? (
     <p
@@ -71,7 +76,9 @@ export default function IPStatus() {
             {ipInfo.ip}
 
             {/* Flag */}
-            <img className="w-5 h-4 rounded-xl" src={ipInfo.flag.img} />
+            {ipInfo?.flag?.img ? (
+              <img className="w-5 h-4 rounded-xl" src={ipInfo?.flag?.img} />
+            ) : null}
           </>
         )}
       </span>
