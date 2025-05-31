@@ -2,7 +2,6 @@ import Alert from "@/components/Alert";
 import LocalTelegramSessionIcon from "@/assets/images/local-telegram-session.png?format=webp&w=192";
 import TelegramLogin from "@/partials/TelegramLogin";
 import TelegramWebClient from "@/lib/TelegramWebClient";
-import TelegramWorkerClient from "@/lib/TelegramWorkerClient";
 import toast from "react-hot-toast";
 import useAppContext from "@/hooks/useAppContext";
 import { cn } from "@/lib/utils";
@@ -20,7 +19,7 @@ export default function LocalTelegramSession() {
     toast
       .promise(
         (async function () {
-          /** @type {TelegramWebClient | TelegramWorkerClient} */
+          /** @type {TelegramWebClient} */
           const client =
             telegramClient.ref.current ||
             createTelegramClient(localTelegramSession);
