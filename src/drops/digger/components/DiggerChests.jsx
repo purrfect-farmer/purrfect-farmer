@@ -10,12 +10,7 @@ import useDiggerChestStatusQuery from "../hooks/useDiggerChestStatusQuery";
 import useDiggerChestsQuery from "../hooks/useDiggerChestsQuery";
 import useDiggerIntentMutation from "../hooks/useDiggerIntentMutation";
 import useDiggerUpdateMutation from "../hooks/useDiggerUpdateMutation";
-
-const CHEST_TYPES = {
-  7: "usdt_chest",
-  3: "adamant_chest",
-  2: "gold_chest",
-};
+import { CHEST_TYPES } from "../resources/resources";
 
 export default function DiggerChests() {
   const process = useProcessLock("digger.chests");
@@ -25,6 +20,7 @@ export default function DiggerChests() {
     () =>
       statusQuery.data?.["chest_statuses"]?.filter(
         (item) =>
+          item["chest_id"] in CHEST_TYPES &&
           item["remaining_cooldown_sec"] === 0 &&
           item["ads_watched"] < item["ads_required"]
       ),
