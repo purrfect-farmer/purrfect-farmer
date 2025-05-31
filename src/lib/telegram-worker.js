@@ -1,7 +1,5 @@
 import "@/lib/polyfills";
 
-import { Api } from "telegram";
-
 import TelegramWebClient from "./TelegramWebClient";
 
 /** @type {TelegramWebClient | null} */
@@ -191,7 +189,7 @@ addEventListener("message", async (ev) => {
       break;
 
     case "logout":
-      replyClientMethod((client) => client.invoke(new Api.auth.LogOut({})));
+      replyClientMethod((client) => client.logout());
       break;
   }
 });

@@ -120,7 +120,7 @@ function getCoreNetRules() {
         ],
       },
       condition: {
-        requestDomains: ["vesta.web.telegram.org", "web.telegram.org"],
+        requestDomains: ["web.telegram.org"],
       },
     },
   ];
