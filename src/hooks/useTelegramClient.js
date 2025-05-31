@@ -1,3 +1,4 @@
+import toast from "react-hot-toast";
 import { createTelegramClient } from "@/lib/createTelegramClient";
 import { customLogger } from "@/lib/utils";
 import { useLayoutEffect } from "react";
@@ -26,6 +27,7 @@ export default function useTelegramClient(mode, session, setSession) {
           setAuthorized(authorized);
         } else {
           setSession(null);
+          toast.error("Local Telegram Session was logged out!");
         }
       });
 
