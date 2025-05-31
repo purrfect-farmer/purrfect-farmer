@@ -1492,7 +1492,7 @@ export class TelegramClient extends TelegramBaseClient {
                 case 1:
                     return {
                         id: 1,
-                        ipAddress: `zws1${
+                        ipAddress: `kws1${
                             downloadDC ? "-1" : ""
                         }.web.telegram.org`,
                         port: 443,
@@ -1500,7 +1500,7 @@ export class TelegramClient extends TelegramBaseClient {
                 case 2:
                     return {
                         id: 2,
-                        ipAddress: `zws2${
+                        ipAddress: `kws2${
                             downloadDC ? "-1" : ""
                         }.web.telegram.org`,
                         port: 443,
@@ -1508,7 +1508,7 @@ export class TelegramClient extends TelegramBaseClient {
                 case 3:
                     return {
                         id: 3,
-                        ipAddress: `zws3${
+                        ipAddress: `kws3${
                             downloadDC ? "-1" : ""
                         }.web.telegram.org`,
                         port: 443,
@@ -1516,7 +1516,7 @@ export class TelegramClient extends TelegramBaseClient {
                 case 4:
                     return {
                         id: 4,
-                        ipAddress: `zws4${
+                        ipAddress: `kws4${
                             downloadDC ? "-1" : ""
                         }.web.telegram.org`,
                         port: 443,
@@ -1524,7 +1524,7 @@ export class TelegramClient extends TelegramBaseClient {
                 case 5:
                     return {
                         id: 5,
-                        ipAddress: `zws5${
+                        ipAddress: `kws5${
                             downloadDC ? "-1" : ""
                         }.web.telegram.org`,
                         port: 443,
