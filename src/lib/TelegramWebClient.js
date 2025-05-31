@@ -30,25 +30,26 @@ export default class TelegramWebClient extends TelegramClient {
     this._callQueue = [];
 
     /** Custom Emitter */
-    this._emitter = new EventEmitter();
+    this.emitter = new EventEmitter();
 
     /** Add Connected Event Handler */
     this.addEventHandler(
       async (event) => {
         /** Status */
-        const status = event.state === UpdateConnectionState.connected;
+        const connected = event.state === UpdateConnectionState.connected;
 
         /** Emit Status */
-        this._emitter.emit("update-connection-state", status);
+        this.emitter.emit("update-connection-state", connected);
 
         /** Connected */
-        if (status) {
-          /** Check Authorization State */
-          await this._checkUserAuthorizedState();
+        if (connected) {
+          /** Authorized */
+          this._isAuthorized = await this.isUserAuthorized();
 
           /** Flush Queue */
-          this._flushQueue();
+          this.flushQueue();
         } else {
+          /** Unauthorized */
           this._isAuthorized = false;
         }
       },
@@ -58,63 +59,23 @@ export default class TelegramWebClient extends TelegramClient {
     );
   }
 
-  /** Get Authorized State */
-  get authorized() {
-    return this._isAuthorized;
-  }
-
   /** Add Connection Listener */
   onConnectionState(callback) {
-    return this._emitter.addListener("update-connection-state", callback);
+    return this.emitter.addListener("update-connection-state", callback);
   }
 
   /** Remove Connection Listener */
   offConnectionState(callback) {
-    return this._emitter.removeListener("update-connection-state", callback);
-  }
-
-  /** Add Authorized Listener */
-  onUserIsAuthorized(callback) {
-    return this._emitter.addListener("user-is-authorized", callback);
-  }
-
-  /** Remove Authorized Listener */
-  offUserIsAuthorized(callback) {
-    return this._emitter.removeListener("user-is-authorized", callback);
-  }
-
-  /** Check User Authorized State */
-  async _checkUserAuthorizedState() {
-    /** Get Authorized State  */
-    this._isAuthorized = await this.isUserAuthorized();
-
-    /** Emit Authorized Event */
-    this._emitter.emit("user-is-authorized", this._isAuthorized);
+    return this.emitter.removeListener("update-connection-state", callback);
   }
 
   /** Start */
-  async start(params) {
-    /** Call super Start */
-    await super.start(params);
-
-    /** Check Authorized State */
-    await this._checkUserAuthorizedState();
-
-    /** Return Saved Session */
-    return this.session.save();
-  }
-
-  /** Connect */
-  async connect() {
-    /** Call super Connect */
-    await super.connect();
-
-    /** Check Authorized State */
-    await this._checkUserAuthorizedState();
+  start(params) {
+    return super.start(params).then(() => this.session.save());
   }
 
   /** Flush Queue */
-  async _flushQueue() {
+  async flushQueue() {
     if (this._flushing) return;
     this._flushing = true;
 
@@ -139,7 +100,7 @@ export default class TelegramWebClient extends TelegramClient {
    *
    * @returns {Promise<any>} The result of the callback.
    */
-  async _execute(callback) {
+  async execute(callback) {
     if (this.connected) {
       if (this._isAuthorized) {
         return callback();
@@ -157,7 +118,7 @@ export default class TelegramWebClient extends TelegramClient {
   }
 
   /** Wait for Reply */
-  _waitForReply(entity, { filter } = {}) {
+  waitForReply(entity, { filter } = {}) {
     return new Promise((resolve) => {
       /** Event to Handle */
       const telegramEvent = new NewMessage({
@@ -182,7 +143,7 @@ export default class TelegramWebClient extends TelegramClient {
   }
 
   /** Core Start Bot */
-  async _coreStartBot(
+  async coreStartBot(
     { entity, startParam = "", shouldWaitForReply = true } = {},
     replyOptions = {}
   ) {
@@ -200,15 +161,15 @@ export default class TelegramWebClient extends TelegramClient {
 
     /** Wait for Reply */
     if (shouldWaitForReply) {
-      return this._waitForReply(entity, replyOptions);
+      return this.waitForReply(entity, replyOptions);
     }
   }
 
   /** Start Bot from Link */
   startBotFromLink({ link, startOptions, replyOptions }) {
-    return this._execute(() => {
+    return this.execute(() => {
       const { entity, startParam } = parseTelegramLink(link);
-      return this._coreStartBot(
+      return this.coreStartBot(
         {
           ...startOptions,
           entity,
@@ -221,7 +182,7 @@ export default class TelegramWebClient extends TelegramClient {
 
   /** Get Webview */
   getWebview(link) {
-    return this._execute(async () => {
+    return this.execute(async () => {
       let parsed = parseTelegramLink(link);
       const themeParams = new Api.DataJSON({
         data: JSON.stringify({
@@ -236,7 +197,7 @@ export default class TelegramWebClient extends TelegramClient {
 
       /** Start the Bot */
       if (!parsed.shortName) {
-        await this._coreStartBot({
+        await this.coreStartBot({
           entity: parsed.entity,
           startParam: parsed.startParam,
         });
@@ -289,7 +250,7 @@ export default class TelegramWebClient extends TelegramClient {
 
   /** Join Telegram Link */
   joinTelegramLink(link) {
-    return this._execute(async () => {
+    return this.execute(async () => {
       try {
         const parsed = parseTelegramLink(link);
         const result = await this.invoke(
@@ -323,6 +284,6 @@ export default class TelegramWebClient extends TelegramClient {
 
   /** Logout */
   logout() {
-    return this._execute(() => this.invoke(new Api.auth.LogOut({})));
+    return this.execute(() => this.invoke(new Api.auth.LogOut({})));
   }
 }

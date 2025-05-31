@@ -252,7 +252,7 @@ export default memo(function Welcome() {
           {/* App Title */}
           <div className="flex items-center justify-center gap-2">
             {farmerMode === "session" ? (
-              telegramClient.authorized ? (
+              telegramClient.connected ? (
                 <HiBolt className="size-5 shrink-0 text-green-500" />
               ) : (
                 <HiBoltSlash className="size-5 shrink-0 text-red-500" />

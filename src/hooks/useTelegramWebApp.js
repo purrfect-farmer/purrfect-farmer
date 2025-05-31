@@ -100,11 +100,9 @@ export default function useTelegramWebApp({
 
     /** Set From Session */
     const setWebAppFromSession = () => {
-      telegramClient.ref.current
-        .getTelegramWebApp(telegramLink)
-        .then((result) => {
-          setTelegramWebApp(result);
-        });
+      telegramClient.getTelegramWebApp(telegramLink).then((result) => {
+        setTelegramWebApp(result);
+      });
     };
 
     /** Set From Session or Port */
@@ -153,6 +151,7 @@ export default function useTelegramWebApp({
     setTelegramWebApp,
     cacheTelegramWebApp,
     webAppChromeStorageKey,
+    telegramClient.getTelegramWebApp,
     messaging.ports,
     settings.autoStartBot,
   ]);

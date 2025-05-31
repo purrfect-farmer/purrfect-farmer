@@ -93,11 +93,7 @@ export default function useCore() {
 
   const browserWindows = useMemo(() => new Map(), []);
 
-  const telegramClient = useTelegramClient(
-    farmerMode,
-    localTelegramSession,
-    setLocalTelegramSession
-  );
+  const telegramClient = useTelegramClient(farmerMode, localTelegramSession);
   const mirror = useMirror(
     settings.enableMirror,
     settings.mirrorServer,
@@ -806,14 +802,11 @@ export default function useCore() {
         return;
       } else if (farmerMode === "session") {
         try {
-          await toast.promise(
-            telegramClient.ref.current.joinTelegramLink(url),
-            {
-              loading: "Joining...",
-              success: "Joined...",
-              error: "Failed to Join...",
-            }
-          );
+          await toast.promise(telegramClient.joinTelegramLink(url), {
+            loading: "Joining...",
+            success: "Joined...",
+            error: "Failed to Join...",
+          });
         } catch (e) {
           console.error(e);
         }
@@ -844,6 +837,7 @@ export default function useCore() {
       openTelegramLink,
       preferredTelegramWebVersion,
       messaging.ports,
+      telegramClient.joinTelegramLink,
     ],
     /** Mirror */
     mirror
@@ -872,7 +866,7 @@ export default function useCore() {
         ) {
           toast.promise(
             (async function () {
-              const webview = await telegramClient.ref.current.getWebview(url);
+              const webview = await telegramClient.getWebview(url);
 
               await launchInAppBrowser({
                 id: browserId,
@@ -920,6 +914,7 @@ export default function useCore() {
       messaging.ports,
       settings.enableInAppBrowser,
       settings.miniAppInNewWindow,
+      telegramClient.getWebview,
       preferredTelegramWebVersion,
       openTelegramLink,
       disconnectTelegramObservers,
