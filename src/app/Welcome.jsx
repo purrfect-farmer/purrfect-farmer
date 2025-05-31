@@ -130,7 +130,7 @@ export default memo(function Welcome() {
       botsQuery.data?.map((bot) => ({
         ...bot,
         icon: new URL(
-          bot.icon + ".png",
+          bot.id + ".png",
           import.meta.env.VITE_APP_FARMER_BOTS_ICON_BASE_URL
         ).toString(),
       })),
@@ -454,7 +454,13 @@ export default memo(function Welcome() {
                       key={index}
                       drop={bot}
                       onClick={() =>
-                        dispatchAndOpenTelegramBot(bot.telegramLink)
+                        dispatchAndOpenTelegramBot(bot.telegramLink, {
+                          browserId: bot.id,
+                          browserTitle: bot.title,
+                          browserIcon: bot.icon,
+                          embedWebPage: bot.embedWebPage,
+                          embedInNewWindow: bot.embedInNewWindow,
+                        })
                       }
                     />
                   ))}
