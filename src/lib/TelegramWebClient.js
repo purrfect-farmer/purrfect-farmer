@@ -1,9 +1,9 @@
 import EventEmitter from "events";
-import { Api } from "telegram";
-import { NewMessage, Raw } from "telegram/events";
-import { StringSession } from "telegram/sessions";
-import { TelegramClient } from "telegram";
-import { UpdateConnectionState } from "telegram/network";
+import { Api } from "@/lib/gramjs";
+import { NewMessage, Raw } from "@/lib/gramjs/events";
+import { StringSession } from "@/lib/gramjs/sessions";
+import { TelegramClient } from "@/lib/gramjs";
+import { UpdateConnectionState } from "@/lib/gramjs/network";
 
 import { customLogger, extractTgWebAppData, parseTelegramLink } from "./utils";
 
