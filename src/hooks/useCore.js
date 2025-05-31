@@ -93,7 +93,11 @@ export default function useCore() {
 
   const browserWindows = useMemo(() => new Map(), []);
 
-  const telegramClient = useTelegramClient(farmerMode, localTelegramSession);
+  const telegramClient = useTelegramClient(
+    farmerMode,
+    localTelegramSession,
+    setLocalTelegramSession
+  );
   const mirror = useMirror(
     settings.enableMirror,
     settings.mirrorServer,

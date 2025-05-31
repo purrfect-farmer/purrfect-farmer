@@ -6,10 +6,10 @@ import { useState } from "react";
 
 import useValuesMemo from "./useValuesMemo";
 
-export default function useTelegramClient(mode, session) {
+export default function useTelegramClient(mode, session, setSession) {
   const ref = useRef(null);
   const hasSession = Boolean(session);
-  const [connected, setConnected] = useState(false);
+  const [authorized, setAuthorized] = useState(false);
 
   /** Initiate Client */
   useLayoutEffect(() => {
@@ -21,7 +21,13 @@ export default function useTelegramClient(mode, session) {
       const client = createTelegramClient(session);
 
       /** Add Connected Event Handler */
-      client.onConnectionState((connected) => setConnected(connected));
+      client.onUserIsAuthorized((authorized) => {
+        if (authorized) {
+          setAuthorized(authorized);
+        } else {
+          setSession(null);
+        }
+      });
 
       /** Connect */
       client.connect();
@@ -29,17 +35,20 @@ export default function useTelegramClient(mode, session) {
       /** Set Ref */
       ref.current = client;
 
+      /** Set Authorized State */
+      setAuthorized(client.authorized);
+
       return () => {
         client?.destroy();
         ref.current = null;
-        setConnected(false);
+        setAuthorized(false);
       };
     }
-  }, [session, mode, setConnected]);
+  }, [session, mode, setSession, setAuthorized]);
 
   return useValuesMemo({
     ref,
     hasSession,
-    connected,
+    authorized,
   });
 }

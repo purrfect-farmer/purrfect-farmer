@@ -88,6 +88,14 @@ const initializeClient = (session) => {
       data: connected,
     });
   });
+
+  /** Add Authorized Event Handler */
+  client.onUserIsAuthorized((authorized) => {
+    postMessage({
+      action: "user-is-authorized",
+      data: authorized,
+    });
+  });
 };
 
 /** Listen for Message */
