@@ -70,8 +70,15 @@ export default class TelegramWebClient extends TelegramClient {
   }
 
   /** Start */
-  start(params) {
-    return super.start(params).then(() => this.session.save());
+  async start(params) {
+    /** Call super Start */
+    await super.start(params);
+
+    /** Check Authorization */
+    this._isAuthorized = await this.isUserAuthorized();
+
+    /** Return Saved Session */
+    return this.session.save();
   }
 
   /** Flush Queue */
