@@ -66,16 +66,14 @@ const createHandler = (name) => (data) =>
 
 /** Start Client */
 const startClient = async () => {
-  if (client === null) {
-    throw new Error("No Telegram Client!");
-  }
-
-  return client.start({
-    phoneNumber: createHandler("phone"),
-    phoneCode: createHandler("code"),
-    password: createHandler("password"),
-    onError: createHandler("error"),
-  });
+  return execute((client) =>
+    client.start({
+      phoneNumber: createHandler("phone"),
+      phoneCode: createHandler("code"),
+      password: createHandler("password"),
+      onError: createHandler("error"),
+    })
+  );
 };
 
 /** Initialize Client */
@@ -88,6 +86,14 @@ const initializeClient = (session) => {
     postMessage({
       action: "update-connection-state",
       data: connected,
+    });
+  });
+
+  /** Add Authorized Event Handler */
+  client.onUserIsAuthorized((authorized) => {
+    postMessage({
+      action: "user-is-authorized",
+      data: authorized,
     });
   });
 };
