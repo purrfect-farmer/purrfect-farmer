@@ -2,7 +2,8 @@ import { isExtension, uuid } from "./utils";
 
 if (
   isExtension() === false &&
-  typeof chrome?.runtime?.connect !== "undefined"
+  typeof chrome?.runtime?.connect !== "undefined" &&
+  window.BRIDGE_ID
 ) {
   /** Port */
   const port = chrome.runtime.connect(window.BRIDGE_ID);

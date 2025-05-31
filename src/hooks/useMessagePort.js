@@ -90,11 +90,11 @@ export default function useMessagePort(isActive = true) {
     };
 
     /** Listen for Port Connection */
-    chrome?.runtime?.onConnect.addListener(portConnectHandler);
+    chrome?.runtime?.onConnect?.addListener(portConnectHandler);
 
     return () => {
       /** Unregister Listener */
-      chrome?.runtime?.onConnect.removeListener(portConnectHandler);
+      chrome?.runtime?.onConnect?.removeListener(portConnectHandler);
 
       /** Remove all ports */
       ports.values().forEach((port) => removePort(port));
