@@ -1,3 +1,4 @@
+import md5 from "md5";
 import toast from "react-hot-toast";
 import useAppContext from "@/hooks/useAppContext";
 import useMirroredCallback from "@/hooks/useMirroredCallback";
@@ -243,7 +244,13 @@ export default memo(function FarmerLinks() {
                           )}
                           onClick={() =>
                             isBotURL(link.telegramLink)
-                              ? dispatchAndOpenTelegramBot(link.telegramLink)
+                              ? dispatchAndOpenTelegramBot(link.telegramLink, {
+                                  browserId: `farmer-link-${md5(
+                                    link.telegramLink
+                                  )}`,
+                                  browserTitle: link.title,
+                                  browserIcon: link.icon,
+                                })
                               : dispatchAndOpenTelegramLink(link.telegramLink)
                           }
                         >
