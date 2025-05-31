@@ -1,8 +1,6 @@
 import EventEmitter from "events";
 import { Api } from "telegram";
-import { ConnectionTCPObfuscated } from "telegram/network";
 import { NewMessage, Raw } from "telegram/events";
-import { PromisedWebSockets } from "telegram/extensions";
 import { StringSession } from "telegram/sessions";
 import { TelegramClient } from "telegram";
 import { UpdateConnectionState } from "telegram/network";
@@ -19,8 +17,6 @@ export default class TelegramWebClient extends TelegramClient {
       systemVersion: navigator.platform,
       systemLangCode: "en-US",
       langCode: "en",
-      connection: ConnectionTCPObfuscated,
-      networkSocket: PromisedWebSockets,
     });
 
     /** Custom Emitter */
