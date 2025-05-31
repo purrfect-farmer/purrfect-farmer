@@ -5,20 +5,18 @@ import { uuid } from "./utils";
 
 export default class TelegramWorkerClient {
   constructor(session) {
-    this._emitter = new EventEmitter();
-    this._handlers = {
+    this.emitter = new EventEmitter();
+    this.handlers = {
       phone: null,
       code: null,
       password: null,
       error: null,
     };
-
-    this._connected = false;
-    this._isAuthorized = false;
+    this.connected = false;
 
     /** @type {Worker} */
-    this._worker = new TelegramWorker();
-    this._worker.addEventListener("message", (ev) => {
+    this.worker = new TelegramWorker();
+    this.worker.addEventListener("message", (ev) => {
       const { id, action, data } = ev.data;
 
       switch (action) {
@@ -26,55 +24,39 @@ export default class TelegramWorkerClient {
         case "handler-code":
         case "handler-password":
         case "handler-error":
-          const handler = this._handlers[action.split("-")[1]];
+          const handler = this.handlers[action.split("-")[1]];
           if (handler) {
             handler(data);
           }
           break;
         case "update-connection-state":
-        case "user-is-authorized":
-          if (action === "update-connection-state") {
-            this._connected = data;
-          } else {
-            this._isAuthorized = data;
-          }
-          this._emitter.emit(action, data);
+          this.connected = data;
+          this.emitter.emit("update-connection-state", this.connected);
           break;
 
         default:
           if (id) {
-            this._emitter.emit(id, data);
+            this.emitter.emit(id, data);
           }
       }
     });
 
-    /** Initialize Client */
-    this._message("initialize-client", session);
-  }
-
-  /** Get Connected State */
-  get connected() {
-    return this._connected;
-  }
-
-  /** Get Authorized State */
-  get authorized() {
-    return this._isAuthorized;
+    this.message("initialize-client", session);
   }
 
   /** Create Handler */
-  _createHandler(name, callback) {
-    this._handlers[name] = async (response) => {
+  createHandler(name, callback) {
+    this.handlers[name] = async (response) => {
       try {
         const result = await callback(response);
-        this._worker.postMessage({
+        this.worker.postMessage({
           action: "handler-" + name,
           data: {
             result,
           },
         });
       } catch (error) {
-        this._worker.postMessage({
+        this.worker.postMessage({
           action: "handler-" + name,
           data: {
             error: { message: error?.message || "An error occurred!" },
@@ -86,20 +68,20 @@ export default class TelegramWorkerClient {
 
   /** Start */
   start(options) {
-    this._createHandler("phone", options.phoneNumber);
-    this._createHandler("code", options.phoneCode);
-    this._createHandler("password", options.password);
-    this._createHandler("error", options.onError);
+    this.createHandler("phone", options.phoneNumber);
+    this.createHandler("code", options.phoneCode);
+    this.createHandler("password", options.password);
+    this.createHandler("error", options.onError);
 
-    return this._message("start-client");
+    return this.message("start-client");
   }
 
   /** Send Message */
-  _message(action, data) {
+  message(action, data) {
     return new Promise((resolve, reject) => {
       const id = uuid();
 
-      this._emitter.once(id, (data) => {
+      this.emitter.once(id, (data) => {
         if (data.error) {
           reject(data.error);
         } else {
@@ -107,7 +89,7 @@ export default class TelegramWorkerClient {
         }
       });
 
-      this._worker.postMessage({
+      this.worker.postMessage({
         id,
         action,
         data,
@@ -117,71 +99,61 @@ export default class TelegramWorkerClient {
 
   /** Add Connection Listener */
   onConnectionState(callback) {
-    return this._emitter.addListener("update-connection-state", callback);
+    return this.emitter.addListener("update-connection-state", callback);
   }
 
   /** Remove Connection Listener */
   offConnectionState(callback) {
-    return this._emitter.removeListener("update-connection-state", callback);
-  }
-
-  /** Add Authorized Listener */
-  onUserIsAuthorized(callback) {
-    return this._emitter.addListener("user-is-authorized", callback);
-  }
-
-  /** Remove Authorized Listener */
-  offUserIsAuthorized(callback) {
-    return this._emitter.removeListener("user-is-authorized", callback);
+    return this.emitter.removeListener("update-connection-state", callback);
   }
 
   /** Connect */
   connect() {
-    return this._message("connect");
+    return this.message("connect");
   }
 
   /** Disconnect */
   disconnect() {
-    return this._message("disconnect");
+    return this.message("disconnect");
   }
 
   /** Logout */
   logout() {
-    return this._message("logout");
+    return this.message("logout");
   }
 
   /** Is User Authorized */
   isUserAuthorized() {
-    return this._message("is-user-authorized");
+    return this.message("is-user-authorized");
   }
 
   /** Get Connection State */
   getConnectionState() {
-    return this._message("get-connection-state");
+    return this.message("get-connection-state");
   }
 
   /** Destroy */
   destroy() {
-    this._worker.terminate();
+    this.worker.terminate();
   }
 
   /** Start Bot from Link */
   startBotFromLink(options) {
-    return this._message("start-bot-from-link", options);
+    return this.message("start-bot-from-link", options);
   }
 
   /** Get Webview */
   getWebview(link) {
-    return this._message("get-webview", link);
+    return this.message("get-webview", link);
   }
 
   /** Get Telegram WebApp */
   getTelegramWebApp(link) {
-    return this._message("get-telegram-web-app", link);
+    return this.message("get-telegram-web-app", link);
   }
 
   /** Join Telegram Link */
   joinTelegramLink(link) {
-    return this._message("join-telegram-link", link);
+    return this.message("join-telegram-link", link);
   }
 }

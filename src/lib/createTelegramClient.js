@@ -1,6 +1,6 @@
-import TelegramWorkerClient from "./TelegramWorkerClient";
+import TelegramWebClient from "./TelegramWebClient";
 
 /** Create Telegram Client */
 export const createTelegramClient = (session = "") => {
-  return new TelegramWorkerClient(session);
+  return new TelegramWebClient(session);
 };

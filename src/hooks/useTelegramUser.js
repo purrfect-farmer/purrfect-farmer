@@ -31,7 +31,7 @@ export default function useTelegramUser(core) {
   const updateTelegramUser = useCallback(
     async (isUpdate = false) => {
       if (isUpdate === false) {
-        await telegramClient.ref.current.startBotFromLink({
+        await telegramClient.startBotFromLink({
           link: import.meta.env.VITE_APP_BOT_MINI_APP,
           startOptions: {
             shouldWaitForReply: false,
@@ -39,13 +39,17 @@ export default function useTelegramUser(core) {
         });
       }
 
-      const telegramWebApp = await telegramClient.ref.current.getTelegramWebApp(
+      const telegramWebApp = await telegramClient.getTelegramWebApp(
         import.meta.env.VITE_APP_BOT_MINI_APP
       );
 
       await configureInitData({ telegramWebApp });
     },
-    [configureInitData]
+    [
+      telegramClient.startBotFromLink,
+      telegramClient.getTelegramWebApp,
+      configureInitData,
+    ]
   );
 
   /** Handler */
