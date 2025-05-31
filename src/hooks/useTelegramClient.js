@@ -15,14 +15,14 @@ export default function useTelegramClient(mode, session) {
 
   const execute = useCallback(
     /**
-     * Executes a callback with the Telegram Worker Client instance.
+     * Executes a callback with the Telegram Client instance.
      *
      * @param {(client: TelegramWebClient | TelegramWorkerClient) => any} callback - The function to execute with the client.
      * @returns {Promise<any>} The result of the callback.
      */
     async (callback) => {
       if (ref.current === null) {
-        throw new Error("No Telegram Worker Client!");
+        throw new Error("No Telegram Client!");
       }
 
       return callback(ref.current);
@@ -63,9 +63,6 @@ export default function useTelegramClient(mode, session) {
       /** Create Client */
       const client = createTelegramClient(session);
 
-      /** Set Connection State */
-      setConnected(client.connected);
-
       /** Add Connected Event Handler */
       client.onConnectionState((connected) => setConnected(connected));
 
@@ -74,6 +71,9 @@ export default function useTelegramClient(mode, session) {
 
       /** Set Ref */
       ref.current = client;
+
+      /** Set Connection State */
+      setConnected(client.connected);
 
       return () => {
         client?.destroy();

@@ -1,9 +1,9 @@
 import EventEmitter from "events";
-import { Api } from "@/lib/gramjs";
-import { NewMessage, Raw } from "@/lib/gramjs/events";
-import { StringSession } from "@/lib/gramjs/sessions";
-import { TelegramClient } from "@/lib/gramjs";
-import { UpdateConnectionState } from "@/lib/gramjs/network";
+import { Api } from "telegram";
+import { NewMessage, Raw } from "telegram/events";
+import { StringSession } from "telegram/sessions";
+import { TelegramClient } from "telegram";
+import { UpdateConnectionState } from "telegram/network";
 
 import { customLogger, extractTgWebAppData, parseTelegramLink } from "./utils";
 
@@ -17,18 +17,41 @@ export default class TelegramWebClient extends TelegramClient {
       systemVersion: navigator.platform,
       systemLangCode: "en-US",
       langCode: "en",
+      useWSS: true,
     });
+
+    /** Is Authorized */
+    this._isAuthorized = false;
+
+    /** Is Flushing */
+    this._flushing = false;
+
+    /** Call Queue */
+    this._callQueue = [];
 
     /** Custom Emitter */
     this.emitter = new EventEmitter();
 
     /** Add Connected Event Handler */
     this.addEventHandler(
-      (event) => {
-        this.emitter.emit(
-          "update-connection-state",
-          event.state === UpdateConnectionState.connected
-        );
+      async (event) => {
+        /** Status */
+        const connected = event.state === UpdateConnectionState.connected;
+
+        /** Emit Status */
+        this.emitter.emit("update-connection-state", connected);
+
+        /** Connected */
+        if (connected) {
+          /** Authorized */
+          this._isAuthorized = await this.isUserAuthorized();
+
+          /** Flush Queue */
+          this.flushQueue();
+        } else {
+          /** Unauthorized */
+          this._isAuthorized = false;
+        }
       },
       new Raw({
         types: [UpdateConnectionState],
@@ -51,20 +74,46 @@ export default class TelegramWebClient extends TelegramClient {
     return super.start(params).then(() => this.session.save());
   }
 
+  /** Flush Queue */
+  async flushQueue() {
+    if (this._flushing) return;
+    this._flushing = true;
+
+    for (const { callback, resolve, reject } of this._callQueue) {
+      try {
+        if (this._isAuthorized) {
+          const result = await callback();
+          resolve(result);
+        } else {
+          throw new Error("User is not authorized!");
+        }
+      } catch (error) {
+        reject(error);
+      }
+    }
+    this._callQueue.length = 0;
+    this._flushing = false;
+  }
+
   /**
    * Executes a callback with the Telegram Client instance.
    *
    * @returns {Promise<any>} The result of the callback.
    */
   async execute(callback) {
-    /** Connect  */
-    await this.connect();
-
-    /** Ensure User is Authorized  */
-    if (await this.isUserAuthorized()) {
-      return callback();
+    if (this.connected) {
+      if (this._isAuthorized) {
+        return callback();
+      } else {
+        throw new Error("User is not authorized!");
+      }
     } else {
-      throw new Error("Not connected!");
+      console.warn("Queuing call — client not connected.");
+      console.log("Queue length:", this._callQueue.length + 1);
+
+      return new Promise((resolve, reject) => {
+        this._callQueue.push({ callback, resolve, reject });
+      });
     }
   }
 
@@ -135,7 +184,6 @@ export default class TelegramWebClient extends TelegramClient {
   getWebview(link) {
     return this.execute(async () => {
       let parsed = parseTelegramLink(link);
-      let url;
       const themeParams = new Api.DataJSON({
         data: JSON.stringify({
           bg_color: "#ffffff",
@@ -236,6 +284,6 @@ export default class TelegramWebClient extends TelegramClient {
 
   /** Logout */
   logout() {
-    return this.invoke(new Api.auth.LogOut({}));
+    return this.execute(() => this.invoke(new Api.auth.LogOut({})));
   }
 }

@@ -7,6 +7,7 @@ import { defineConfig } from "vite";
 import { fileURLToPath } from "url";
 import { imagetools } from "vite-imagetools";
 import { loadEnv } from "vite";
+import { nodePolyfills } from "vite-plugin-node-polyfills";
 
 import { generateChromeManifest } from "./plugins/generate-chrome-manifest";
 import { getPackageJson } from "./scripts/get-package-json";
@@ -152,6 +153,11 @@ export default defineConfig(async ({ mode }) => {
         disable: typeof process.env.VITE_PWA === "undefined",
       }),
       /** Plugins */
+      nodePolyfills({
+        globals: {
+          Buffer: false,
+        },
+      }),
       ViteEjsPlugin(env),
       react(),
       tailwindcss(),
