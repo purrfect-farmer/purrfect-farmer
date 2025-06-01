@@ -19,14 +19,14 @@ export default function useStorageState(key, defaultValue, shared = false) {
 
   /** Configure Value */
   const storeValue = useCallback(
-    async (newValue) => setValue(await setStorageValue(storageKey, newValue)),
-    [storageKey, setValue]
+    (newValue) => setStorageValue(storageKey, newValue),
+    [storageKey]
   );
 
   /** Remove Value */
   const removeValue = useCallback(
-    async () => setValue(await removeStorageValue(storageKey)),
-    [storageKey, setValue]
+    () => removeStorageValue(storageKey),
+    [storageKey]
   );
 
   /** Watch Storage */

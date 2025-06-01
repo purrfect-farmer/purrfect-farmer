@@ -19,7 +19,11 @@ export function setupEmitter() {
       const newValue = changes[storageKey].newValue;
 
       if (!isEqual(newValue, storageCache.get(storageKey))) {
-        storageCache.set(storageKey, newValue);
+        if (typeof newValue !== "undefined") {
+          storageCache.set(storageKey, newValue);
+        } else {
+          storageCache.delete(storageKey);
+        }
         storageEmitter.emit(storageKey, newValue);
       }
     }
@@ -30,24 +34,24 @@ export async function setStorageValue(storageKey, newValue) {
   /** Set in Cache */
   storageCache.set(storageKey, newValue);
 
+  /** Emit New Value */
+  storageEmitter.emit(storageKey, newValue);
+
   /** Store in Chrome Local Storage */
   await chrome?.storage?.local?.set?.({
     [storageKey]: newValue,
   });
-
-  /** Return new value */
-  return newValue;
 }
 
 export async function removeStorageValue(storageKey) {
   /** Set in Cache */
-  storageCache.set(storageKey, undefined);
+  storageCache.delete(storageKey);
+
+  /** Emit New Value */
+  storageEmitter.emit(storageKey, undefined);
 
   /** Remove Storage */
   await chrome?.storage?.local?.remove?.(storageKey);
-
-  /** Return Undefined */
-  return undefined;
 }
 
 export async function setupChromeStorage() {
