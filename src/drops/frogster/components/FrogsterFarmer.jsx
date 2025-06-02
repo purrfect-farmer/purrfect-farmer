@@ -46,7 +46,7 @@ export default memo(function FrogsterFarmer() {
         toast.success("Frogster - Joined Community!");
       }
     },
-    [userQuery.data]
+    [userQuery.data, joinTelegramLink]
   );
 
   return (

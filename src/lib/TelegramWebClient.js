@@ -279,6 +279,7 @@ export default class TelegramWebClient extends TelegramClient {
         /** Return Result */
         return result;
       } catch (error) {
+        console.error(error);
         if (
           error.message.includes("USER_ALREADY_PARTICIPANT") === false &&
           error.message.includes("INVITE_REQUEST_SENT") === false

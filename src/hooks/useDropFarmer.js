@@ -286,20 +286,22 @@ export default function useDropFarmer() {
   const processNextTask = useRefCallback(zoomies.processNextTask);
 
   /** Join Telegram Link */
-  const joinTelegramLink = useCallback(
-    async (...args) => {
-      try {
-        await app.JoinTelegramLink(...args);
-      } catch (e) {
-        console.error(e);
-      }
+  const joinTelegramLink = useRefCallback(
+    useCallback(
+      async (...args) => {
+        try {
+          await app.joinTelegramLink(...args);
+        } catch (e) {
+          console.error(e);
+        }
 
-      /** Restore Tab */
-      if (farmerMode === "web") {
-        setActiveTab(id);
-      }
-    },
-    [id, farmerMode, app.JoinTelegramLink, setActiveTab]
+        /** Restore Tab */
+        if (farmerMode === "web") {
+          setActiveTab(id);
+        }
+      },
+      [id, farmerMode, app.joinTelegramLink, setActiveTab]
+    )
   );
 
   /** Save Auth Data in Storage */
