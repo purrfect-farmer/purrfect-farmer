@@ -1,3 +1,4 @@
+import BasicFarmerInfo from "@/components/BasicFarmerInfo";
 import FarmerHeader from "@/components/FarmerHeader";
 import toast from "react-hot-toast";
 import useFarmerAsyncTask from "@/hooks/useFarmerAsyncTask";
@@ -18,9 +19,9 @@ export default memo(function MetaLottFarmer() {
   useFarmerAsyncTask(
     "sign-in",
     async function () {
-      const signedIn = signInQuery.data === "TRUE";
+      const canSignIn = signInQuery.data === "FALSE";
 
-      if (!signedIn) {
+      if (canSignIn) {
         await doSignInMutation.mutateAsync();
         await userQuery.refetch();
 
@@ -42,6 +43,7 @@ export default memo(function MetaLottFarmer() {
 
       <>
         <MetaLottBalanceDisplay />
+        <BasicFarmerInfo />
       </>
     </div>
   );
