@@ -39,13 +39,15 @@ export default function useFarmerAsyncTask(task, effect, deps = []) {
       /** Mark as Running */
       setIsRunning(true);
 
-      effectCallback().finally(() => {
-        /** Mark as Processed */
-        setIsProcessed(true);
+      effectCallback()
+        .catch((e) => console.error(e))
+        .finally(() => {
+          /** Mark as Processed */
+          setIsProcessed(true);
 
-        /** Unlock */
-        setIsRunning(false);
-      });
+          /** Unlock */
+          setIsRunning(false);
+        });
     }
   }, [shouldSkip, isRunning, canProcess, effectCallback]);
 

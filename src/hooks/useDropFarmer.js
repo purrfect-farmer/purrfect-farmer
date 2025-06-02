@@ -27,6 +27,7 @@ import useTelegramWebApp from "./useTelegramWebApp";
 import useValuesMemo from "./useValuesMemo";
 
 export default function useDropFarmer() {
+  const app = useAppContext();
   const farmer = useTabContext();
   const {
     id,
@@ -51,13 +52,12 @@ export default function useDropFarmer() {
   /** Zoomies */
   const {
     zoomies,
-    joinTelegramLink: appJoinTelegramLink,
     farmerMode,
     setActiveTab,
     settings,
     account,
     dispatchAndSetActiveTab,
-  } = useAppContext();
+  } = app;
 
   /** Farmer Title */
   const farmerTitle = account.title;
@@ -289,7 +289,7 @@ export default function useDropFarmer() {
   const joinTelegramLink = useCallback(
     async (...args) => {
       try {
-        await appJoinTelegramLink(...args);
+        await app.JoinTelegramLink(...args);
       } catch (e) {
         console.error(e);
       }
@@ -299,7 +299,7 @@ export default function useDropFarmer() {
         setActiveTab(id);
       }
     },
-    [id, farmerMode, appJoinTelegramLink, setActiveTab]
+    [id, farmerMode, app.JoinTelegramLink, setActiveTab]
   );
 
   /** Save Auth Data in Storage */
