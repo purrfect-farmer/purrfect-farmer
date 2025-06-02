@@ -1,6 +1,7 @@
 import MiniAppToolbar from "@/app/MiniAppToolbar.jsx";
 import { createElement } from "react";
 import { createRoot } from "react-dom/client";
+import { setupChromeStorage } from "@/lib/chrome-storage";
 
 import { watchTelegramMiniApp } from "./content-script-utils";
 
@@ -21,12 +22,14 @@ function initialize() {
   document.body.appendChild(container);
 
   /** Render React App */
-  createRoot(container).render(
-    createElement(MiniAppToolbar, {
-      url: INITIAL_LOCATION,
-      host: INITIAL_HOST,
-      port,
-    })
+  setupChromeStorage().then(() =>
+    createRoot(container).render(
+      createElement(MiniAppToolbar, {
+        url: INITIAL_LOCATION,
+        host: INITIAL_HOST,
+        port,
+      })
+    )
   );
 }
 
