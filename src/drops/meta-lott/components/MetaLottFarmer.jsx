@@ -22,6 +22,7 @@ export default memo(function MetaLottFarmer() {
 
       if (!signedIn) {
         await doSignInMutation.mutateAsync();
+        await userQuery.refetch();
 
         /** Toast */
         toast.success("Meta Lott - Signed In");
