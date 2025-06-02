@@ -1,6 +1,6 @@
 /** Drops Status */
 const dropsStatus = {
-  ["money-bux"]: true,
+  ["meta-lott"]: true,
   ["space-adventure"]: true,
   ["digger"]: true,
   ["gold-eagle"]: true,
