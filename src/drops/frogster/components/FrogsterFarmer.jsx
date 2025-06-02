@@ -22,11 +22,12 @@ export default memo(function FrogsterFarmer() {
     "claim",
     async function () {
       const balance = balanceQuery.data;
+      const lastClaimedDate = new Date(balance["last_claimed_at"] + "Z");
+      const anHourAgo = subHours(new Date(), 1);
 
-      if (
-        isBefore(new Date(balance["last_claimed_at"]), subHours(new Date(), 1))
-      ) {
+      if (isBefore(lastClaimedDate, anHourAgo)) {
         await claimMutation.mutateAsync();
+        await balanceQuery.refetch();
 
         toast.success("Frogster Claim!");
       }
