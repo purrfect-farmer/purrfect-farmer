@@ -17,17 +17,22 @@ export default memo(function VoxelMissions() {
   const queryClient = useQueryClient();
   const userQuery = useVoxelUserQuery();
   const verifyMissionMutation = useVoxelVerifyMissionMutation();
+
+  const user = userQuery.data?.user;
+  const allMissions = useMemo(
+    () => (userQuery.data ? userQuery.data.configuration.Missions : []),
+    [userQuery.data]
+  );
+
   const missions = useMemo(
     () =>
-      userQuery.data
-        ? userQuery.data.configuration.Missions.filter(
-            (item) =>
-              item.Enabled &&
-              ["socials", "partners"].includes(item.Group) &&
-              !(item.ID in userQuery.data.user.MissionsData)
-          )
-        : [],
-    [userQuery.data]
+      allMissions.filter(
+        (item) =>
+          item.Enabled &&
+          ["socials", "partners"].includes(item.Group) &&
+          !(item.ID in user.MissionsData)
+      ),
+    [user, allMissions]
   );
 
   const process = useProcessLock("voxel.missions");
@@ -41,8 +46,9 @@ export default memo(function VoxelMissions() {
 
   /** Log */
   useEffect(() => {
-    customLogger("VOXEL MISSIONS", missions);
-  }, [missions]);
+    customLogger("VOXEL ALL MISSIONS", allMissions);
+    customLogger("VOXEL AVAILABLE MISSIONS", missions);
+  }, [allMissions, missions]);
 
   /** Reset */
   useEffect(reset, [process.started, reset]);
@@ -124,24 +130,30 @@ export default memo(function VoxelMissions() {
 
           {process.started && currentMission ? (
             <div className="flex flex-col gap-2 p-4 text-white rounded-lg bg-neutral-900">
-              <h4 className="font-bold">
-                <span className="text-yellow-500">
-                  Running Mission{" "}
-                  {missionOffset !== null ? +missionOffset + 1 : null}
-                </span>
-              </h4>
-              <h5 className="font-bold">{currentMission.Description.EN}</h5>
-              <p
-                className={cn(
-                  "capitalize",
-                  {
-                    success: "text-green-500",
-                    error: "text-red-500",
-                  }[verifyMissionMutation.status]
-                )}
-              >
-                {verifyMissionMutation.status}
-              </p>
+              {/* Mission Details */}
+              <div className="flex gap-2">
+                <img src={currentMission.Icon} className="size-10" />
+                <div className="grow flex flex-col gap-2">
+                  <h4 className="font-bold">
+                    <span className="text-yellow-500">
+                      Running Mission{" "}
+                      {missionOffset !== null ? +missionOffset + 1 : null}
+                    </span>
+                  </h4>
+                  <h5 className="font-bold">{currentMission.Description.EN}</h5>
+                  <p
+                    className={cn(
+                      "capitalize",
+                      {
+                        success: "text-green-500",
+                        error: "text-red-500",
+                      }[verifyMissionMutation.status]
+                    )}
+                  >
+                    {verifyMissionMutation.status}
+                  </p>
+                </div>
+              </div>
             </div>
           ) : null}
         </div>
