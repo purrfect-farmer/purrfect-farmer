@@ -24,15 +24,36 @@ export default memo(function VoxelMissions() {
     [userQuery.data]
   );
 
+  const validateReferrals = useCallback(
+    (item) => {
+      return (
+        item.Group !== "friends" ||
+        Number(item.Payload) <= user.Referral.Referrals.length
+      );
+    },
+    [user]
+  );
+
+  const validateGroup = useCallback(
+    (item) => ["socials", "partners"].includes(item.Group),
+    []
+  );
+
+  const validateAvailability = useCallback(
+    (item) => !(item.ID in user.MissionsData),
+    [user]
+  );
+
   const missions = useMemo(
     () =>
       allMissions.filter(
         (item) =>
           item.Enabled &&
-          ["socials", "partners"].includes(item.Group) &&
-          !(item.ID in user.MissionsData)
+          validateGroup(item) &&
+          validateReferrals(item) &&
+          validateAvailability(item)
       ),
-    [user, allMissions]
+    [user, allMissions, validateGroup, validateReferrals, validateAvailability]
   );
 
   const process = useProcessLock("voxel.missions");

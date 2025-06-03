@@ -18,6 +18,7 @@ export default createFarmer({
   embedWebPage: true,
 
   tasks: {
+    ["claim-all-inventory"]: true,
     ["missions"]: false,
   },
 });
