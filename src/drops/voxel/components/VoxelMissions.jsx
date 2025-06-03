@@ -35,7 +35,7 @@ export default memo(function VoxelMissions() {
   );
 
   const validateGroup = useCallback(
-    (item) => ["socials", "partners"].includes(item.Group),
+    (item) => ["friends", "socials", "partners"].includes(item.Group),
     []
   );
 
@@ -49,9 +49,9 @@ export default memo(function VoxelMissions() {
       allMissions.filter(
         (item) =>
           item.Enabled &&
-          validateGroup(item) &&
+          validateAvailability(item) &&
           validateReferrals(item) &&
-          validateAvailability(item)
+          validateGroup(item)
       ),
     [user, allMissions, validateGroup, validateReferrals, validateAvailability]
   );
