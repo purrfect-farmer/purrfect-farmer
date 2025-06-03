@@ -164,7 +164,7 @@ export default function useDropFarmer() {
   const hasPreparedAuth =
     typeof fetchAuth !== "undefined"
       ? authQuery.isSuccess && hasConfiguredAuthHeaders
-      : true;
+      : Boolean(telegramWebApp);
 
   /** Meta Query Key */
   const metaQueryKey = useMemo(
