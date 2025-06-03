@@ -1,0 +1,17 @@
+import useFarmerContext from "@/hooks/useFarmerContext";
+import { useMutation } from "@tanstack/react-query";
+
+import { getResponseData } from "../lib/utils";
+
+export default function useVoxelAdMutation() {
+  const { api, telegramWebApp } = useFarmerContext();
+  return useMutation({
+    mutationKey: ["voxel", "ad"],
+    mutationFn: () =>
+      api
+        .post("https://api.voxelplay.app/voxel/listen-ad-postback", {
+          initData: telegramWebApp.initData,
+        })
+        .then((res) => getResponseData(res.data)),
+  });
+}
