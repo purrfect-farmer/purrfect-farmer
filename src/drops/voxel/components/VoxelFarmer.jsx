@@ -39,7 +39,7 @@ export default memo(function VoxelFarmer() {
         icon={VoxelIcon}
         referralLink={
           telegramUser
-            ? `https://t.me/voxel_verse_bot/app?startapp${telegramUser.id}`
+            ? `https://t.me/voxel_verse_bot/app?startapp=${telegramUser.id}`
             : null
         }
       />
