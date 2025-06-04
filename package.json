@@ -10,12 +10,12 @@
     "test": "node --test test/**/*.test.js",
     "start": "fastify start -l info app.js",
     "dev": "fastify start -w -l info -P app.js",
-    "migrate": "sequelize-cli db:migrate",
-    "migrate:undo": "sequelize-cli db:migrate:undo",
-    "migrate:undo:all": "sequelize-cli db:migrate:undo:all",
-    "seed": "sequelize-cli db:seed:all",
-    "seed:undo": "sequelize-cli db:seed:undo",
-    "seed:undo:all": "sequelize-cli db:seed:undo:all"
+    "db:migrate": "sequelize-cli db:migrate",
+    "db:migrate:undo": "sequelize-cli db:migrate:undo",
+    "db:migrate:undo:all": "sequelize-cli db:migrate:undo:all",
+    "db:seed": "sequelize-cli db:seed:all",
+    "db:seed:undo": "sequelize-cli db:seed:undo",
+    "db:seed:undo:all": "sequelize-cli db:seed:undo:all"
   },
   "keywords": [],
   "author": "",
