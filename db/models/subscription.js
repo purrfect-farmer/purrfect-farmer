@@ -17,7 +17,7 @@ module.exports = (sequelize, DataTypes) => {
   Subscription.init(
     {
       telegramUserId: DataTypes.BIGINT,
-      status: DataTypes.ENUM,
+      status: DataTypes.ENUM("active", "expired"),
       startsAt: DataTypes.DATE,
       endsAt: DataTypes.DATE,
     },
