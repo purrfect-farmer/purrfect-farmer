@@ -5,9 +5,6 @@
  * @param {object} opts
  */
 module.exports = async function (fastify, opts) {
-  fastify.register(require("./auth"));
-  fastify.register(require("./telegram"));
-
   fastify.get("/server", async function (request, reply) {
     return {
       name: process.env.APP_NAME,
@@ -21,22 +18,47 @@ module.exports = async function (fastify, opts) {
       schema: {
         body: {
           type: "object",
-          required: ["initData"],
+          required: ["auth"],
           properties: {
-            initData: { type: "string" },
+            auth: { type: "string" },
           },
         },
       },
       preHandler: [fastify.validateWebAppData],
     },
     async function (request, reply) {
-      const { user } = request.initDataUnsafe;
+      const { user } = request.auth;
       const account = await fastify.db.Account.findWithActiveSubscription(
         user.id,
         false
       );
 
       return { account, subscription: account.subscription };
+    }
+  );
+
+  /** Get Session */
+  fastify.post(
+    "/session",
+    {
+      schema: {
+        body: {
+          type: "object",
+          required: ["auth"],
+          properties: {
+            auth: { type: "string" },
+          },
+        },
+      },
+      preHandler: [fastify.validateWebAppData],
+    },
+    async function (request, reply) {
+      const { user } = request.auth;
+      const account = await fastify.db.Account.findByPk(user.id);
+
+      return reply.send({
+        session: account ? account.session : null,
+      });
     }
   );
 

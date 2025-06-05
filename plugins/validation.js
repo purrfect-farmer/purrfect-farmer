@@ -11,12 +11,11 @@ const fp = require("fastify-plugin");
  */
 module.exports = fp(async function (fastify, opts) {
   fastify.decorate("validateWebAppData", async function (request, reply) {
-    if (!fastify.utils.isValidEd25519InitData(request.body.initData)) {
+    if (!fastify.utils.isValidEd25519InitData(request.body.auth)) {
       return reply.forbidden("Invalid InitData!");
     } else {
-      request.initDataUnsafe = fastify.utils.getInitDataUnsafe(
-        request.body.initData
-      );
+      console.log(request.auth);
+      request.auth = fastify.utils.getInitDataUnsafe(request.body.auth);
     }
   });
 });
