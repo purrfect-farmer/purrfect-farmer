@@ -11,6 +11,7 @@ module.exports = (sequelize, DataTypes) => {
       Subscription.belongsTo(models.Account, {
         foreignKey: "telegramUserId",
         targetKey: "telegramUserId",
+        as: "account",
       });
     }
   }

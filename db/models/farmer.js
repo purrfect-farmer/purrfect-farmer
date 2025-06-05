@@ -11,6 +11,30 @@ module.exports = (sequelize, DataTypes) => {
       Farmer.belongsTo(models.Account, {
         foreignKey: "telegramUserId",
         targetKey: "telegramUserId",
+        as: "account",
+      });
+    }
+
+    static findWithActiveSubscription(farmer, telegramUserId) {
+      return this.findOne({
+        where: {
+          farmer,
+          telegramUserId,
+        },
+        include: [
+          {
+            required: true,
+            association: "account",
+            include: [
+              {
+                association: "subscriptions",
+                where: {
+                  status: "active",
+                },
+              },
+            ],
+          },
+        ],
       });
     }
   }

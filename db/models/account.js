@@ -11,16 +11,36 @@ module.exports = (sequelize, DataTypes) => {
       Account.hasMany(models.Subscription, {
         foreignKey: "telegramUserId",
         targetKey: "telegramUserId",
+        as: "subscriptions",
       });
 
       Account.hasMany(models.Farmer, {
         foreignKey: "telegramUserId",
         targetKey: "telegramUserId",
+        as: "farmers",
       });
 
-      Account.hasMany(models.Subscription, {
+      Account.hasMany(models.Payment, {
         foreignKey: "telegramUserId",
         targetKey: "telegramUserId",
+        as: "payments",
+      });
+    }
+
+    static findWithActiveSubscription(telegramUserId) {
+      return this.findOne({
+        where: {
+          telegramUserId,
+        },
+        include: [
+          {
+            required: true,
+            association: "subscriptions",
+            where: {
+              status: "active",
+            },
+          },
+        ],
       });
     }
   }
