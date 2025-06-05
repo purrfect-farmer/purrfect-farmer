@@ -11,7 +11,7 @@ module.exports = (sequelize, DataTypes) => {
       Farmer.belongsTo(models.Account, { as: "account" });
     }
 
-    static findWithActiveSubscription(farmer, accountId, required = false) {
+    static findWithActiveSubscription(farmer, accountId, required = true) {
       return this.findOne({
         where: {
           farmer,
