@@ -11,27 +11,40 @@ module.exports = (sequelize, DataTypes) => {
       Farmer.belongsTo(models.Account, { as: "account" });
     }
 
+    static _getSubscriptionInclude(required) {
+      return [
+        {
+          required: true,
+          association: "account",
+          include: [
+            {
+              required,
+              association: "subscriptions",
+              where: {
+                active: true,
+              },
+            },
+          ],
+        },
+      ];
+    }
+
     static findWithActiveSubscription(farmer, accountId, required = true) {
       return this.findOne({
         where: {
           farmer,
           accountId,
         },
-        include: [
-          {
-            required: true,
-            association: "account",
-            include: [
-              {
-                required,
-                association: "subscriptions",
-                where: {
-                  active: true,
-                },
-              },
-            ],
-          },
-        ],
+        include: this._getSubscriptionInclude(required),
+      });
+    }
+
+    static findAllWithActiveSubscription(required = true) {
+      return this.findAll({
+        attributes: {
+          exclude: ["headers", "initData"],
+        },
+        include: this._getSubscriptionInclude(required),
       });
     }
   }

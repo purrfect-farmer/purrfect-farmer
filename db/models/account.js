@@ -27,6 +27,41 @@ module.exports = (sequelize, DataTypes) => {
       });
     }
 
+    static findAllWithActiveSubscription(required = true) {
+      return this.findAll({
+        include: [
+          {
+            required,
+            association: "subscriptions",
+            where: {
+              active: true,
+            },
+          },
+        ],
+      });
+    }
+
+    static findAllFarmers() {
+      return this.findAll({
+        include: [
+          {
+            required: true,
+            association: "farmers",
+            attributes: {
+              exclude: ["headers", "initData"],
+            },
+          },
+          {
+            required: true,
+            association: "subscriptions",
+            where: {
+              active: true,
+            },
+          },
+        ],
+      });
+    }
+
     get subscription() {
       return this.subscriptions?.find((item) => item.active);
     }

@@ -5,6 +5,7 @@
  * @param {object} opts
  */
 module.exports = async function (fastify, opts) {
+  /** Get Server */
   fastify.get("/server", async function (request, reply) {
     return {
       name: process.env.APP_NAME,

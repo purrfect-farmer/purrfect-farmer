@@ -9,6 +9,9 @@ const options = {};
 
 module.exports = async function (fastify, opts) {
   // Place here your custom code!
+  fastify.register(require("@fastify/jwt"), {
+    secret: process.env.JWT_SECRET_KEY,
+  });
 
   // Do not touch the following lines
 
