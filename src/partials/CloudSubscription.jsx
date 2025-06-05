@@ -20,8 +20,7 @@ export default function CloudSubscription() {
             : status === "error"
             ? "danger"
             : subscription &&
-              differenceInHours(new Date(subscription["ends_at"]), new Date()) >
-                168
+              differenceInHours(new Date(subscription.endsAt), new Date()) > 168
             ? "success"
             : "warning"
         }
@@ -35,10 +34,7 @@ export default function CloudSubscription() {
             Cloud Subscription is active.{" "}
             <b>
               (Expires:{" "}
-              {formatDate(
-                new Date(subscription["ends_at"]),
-                "EEEE - do MMM, yyyy"
-              )}
+              {formatDate(new Date(subscription.endsAt), "EEEE - do MMM, yyyy")}
               )
             </b>
           </>

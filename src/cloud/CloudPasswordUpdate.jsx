@@ -2,16 +2,17 @@ import * as yup from "yup";
 import Input from "@/components/Input";
 import PrimaryButton from "@/components/PrimaryButton";
 import toast from "react-hot-toast";
-import useCloudPasswordUpdateMutation from "@/hooks/useCloudPasswordUpdateMutation";
+import useCloudManagerPasswordUpdateMutation from "@/hooks/useCloudManagerPasswordUpdateMutation";
 import { Controller, FormProvider, useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
+
 import CloudCenteredDialog from "./CloudCenteredDialog";
 
 /** Schema */
 const schema = yup
   .object({
-    ["current_password"]: yup.string().required().label("Current Password"),
-    ["new_password"]: yup.string().required().label("New Password"),
+    ["currentPassword"]: yup.string().required().label("Current Password"),
+    ["newPassword"]: yup.string().required().label("New Password"),
   })
   .required();
 
@@ -20,12 +21,12 @@ export default function CloudPasswordUpdate() {
   const form = useForm({
     resolver: yupResolver(schema),
     defaultValues: {
-      ["current_password"]: "",
-      ["new_password"]: "",
+      ["currentPassword"]: "",
+      ["newPassword"]: "",
     },
   });
 
-  const passwordUpdateMutation = useCloudPasswordUpdateMutation(form);
+  const passwordUpdateMutation = useCloudManagerPasswordUpdateMutation(form);
   const isPending = passwordUpdateMutation.isPending;
 
   /** Handle Form Submit */
@@ -54,7 +55,7 @@ export default function CloudPasswordUpdate() {
           {/* Current Password */}
           <Controller
             disabled={isPending}
-            name="current_password"
+            name="currentPassword"
             render={({ field, fieldState }) => (
               <>
                 <Input
@@ -73,7 +74,7 @@ export default function CloudPasswordUpdate() {
           {/* New Password */}
           <Controller
             disabled={isPending}
-            name="new_password"
+            name="newPassword"
             render={({ field, fieldState }) => (
               <>
                 <Input

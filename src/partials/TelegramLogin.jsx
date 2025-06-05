@@ -34,7 +34,7 @@ export default function TelegramLogin({
   /** Phone Login */
   const handleCloudPhoneLogin = (data) => {
     /** Set Session */
-    setTempSession(data["session"]);
+    setTempSession(data.session);
 
     /** Set Stage */
     setStage("code");
@@ -47,7 +47,7 @@ export default function TelegramLogin({
 
   /** Code Confirmation */
   const handleCloudCodeConfirmation = (data) => {
-    if (data["status"] === "account.password") {
+    if (data.stage === "password") {
       /** Set Stage */
       setStage("password");
     } else {

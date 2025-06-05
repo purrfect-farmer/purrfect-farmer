@@ -1,8 +1,6 @@
 import UserIcon from "@/assets/images/user-icon.png?format=webp&w=256";
-import toast from "react-hot-toast";
 import useAppContext from "@/hooks/useAppContext";
-import useCloudLogoutMutation from "@/hooks/useCloudLogoutMutation";
-import useCloudUserQuery from "@/hooks/useCloudUserQuery";
+import useCloudManagerUserQuery from "@/hooks/useCloudManagerUserQuery";
 import { Dialog } from "radix-ui";
 import { useCallback } from "react";
 
@@ -10,24 +8,12 @@ import CloudPasswordUpdate from "./CloudPasswordUpdate";
 
 export default function CloudUserDisplay() {
   const { cloudAuth } = useAppContext();
-  const logoutMutation = useCloudLogoutMutation();
-  const userQuery = useCloudUserQuery();
+  const userQuery = useCloudManagerUserQuery();
   const user = userQuery.data;
 
   const logout = useCallback(() => {
-    toast.promise(
-      logoutMutation.mutateAsync(null, {
-        onSuccess() {
-          cloudAuth.removeToken();
-        },
-      }),
-      {
-        success: "Successfully logged out...",
-        error: "Error...",
-        loading: "Logging out...",
-      }
-    );
-  }, [logoutMutation.mutateAsync, cloudAuth.removeToken]);
+    cloudAuth.removeToken();
+  }, [cloudAuth.removeToken]);
 
   return (
     <div>

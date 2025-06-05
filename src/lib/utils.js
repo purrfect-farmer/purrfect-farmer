@@ -437,17 +437,15 @@ export function extractInitDataUnsafe(initData) {
   };
 }
 
-/** Filter Cloud Users */
-export function filterCloudUsers(users, search) {
-  return users.filter(
-    (user) =>
-      user["username"]
-        ?.toString()
-        ?.replaceAll("@", "")
-        ?.toLowerCase()
-        ?.includes(search.replaceAll("@", "").toLowerCase()) ||
-      user["title"]?.toLowerCase()?.includes(search.toLowerCase()) ||
-      user["user_id"].toString().includes(search)
+export function matchesAccountSearch(search, account) {
+  return (
+    account.user?.["username"]
+      ?.toString()
+      ?.replaceAll("@", "")
+      ?.toLowerCase()
+      ?.includes(search.replaceAll("@", "").toLowerCase()) ||
+    account.title?.toLowerCase()?.includes(search.toLowerCase()) ||
+    account.id.toString().includes(search)
   );
 }
 

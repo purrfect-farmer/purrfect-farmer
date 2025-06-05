@@ -1,16 +1,16 @@
 import { useEffect } from "react";
 
 import useAppContext from "./useAppContext";
-import useCloudTelegramSessionQuery from "./useCloudTelegramSessionQuery";
+import useCloudSubscriptionQuery from "./useCloudSubscriptionQuery";
 
 export default function useCloudSessionCheck(context) {
   const app = useAppContext();
   const { setCloudTelegramSession } = context || app;
-  const { data, isSuccess } = useCloudTelegramSessionQuery(context);
+  const { data, isSuccess } = useCloudSubscriptionQuery(context);
 
   useEffect(() => {
     if (isSuccess) {
-      setCloudTelegramSession(data.session);
+      setCloudTelegramSession(data.account.session);
     }
   }, [isSuccess, data]);
 }

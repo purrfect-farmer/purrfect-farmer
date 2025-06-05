@@ -2,7 +2,7 @@ import * as yup from "yup";
 import Input from "@/components/Input";
 import PrimaryButton from "@/components/PrimaryButton";
 import toast from "react-hot-toast";
-import useCloudMemberSubscriptionMutation from "@/hooks/useCloudMemberSubscriptionMutation";
+import useCloudManagerMemberSubscriptionMutation from "@/hooks/useCloudManagerMemberSubscriptionMutation";
 import { Controller, FormProvider, useForm } from "react-hook-form";
 import { useQueryClient } from "@tanstack/react-query";
 import { yupResolver } from "@hookform/resolvers/yup";
@@ -12,8 +12,8 @@ import CloudCenteredDialog from "./CloudCenteredDialog";
 /** Schema */
 const schema = yup
   .object({
-    ["user_id"]: yup.string().required().label("User ID"),
-    ["date"]: yup.string().required().label("Date"),
+    ["id"]: yup.string().required().label("User ID"),
+    ["date"]: yup.string().nullable().label("Date"),
   })
   .required();
 
@@ -23,12 +23,12 @@ export default function CloudSubscriptionUpdate() {
   const form = useForm({
     resolver: yupResolver(schema),
     defaultValues: {
-      ["user_id"]: "",
+      ["id"]: "",
       ["date"]: "",
     },
   });
 
-  const subscriptionMutation = useCloudMemberSubscriptionMutation(form);
+  const subscriptionMutation = useCloudManagerMemberSubscriptionMutation(form);
   const isPending = subscriptionMutation.isPending;
 
   /** Handle Form Submit */
@@ -62,7 +62,7 @@ export default function CloudSubscriptionUpdate() {
           {/* User ID */}
           <Controller
             disabled={isPending}
-            name="user_id"
+            name="id"
             render={({ field, fieldState }) => (
               <>
                 <Input

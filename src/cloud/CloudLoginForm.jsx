@@ -4,7 +4,7 @@ import PrimaryButton from "@/components/PrimaryButton";
 import WelcomeIcon from "@/assets/images/icon-unwrapped-cropped.png?format=webp&h=224";
 import toast from "react-hot-toast";
 import useAppContext from "@/hooks/useAppContext";
-import useCloudLoginMutation from "@/hooks/useCloudLoginMutation";
+import useCloudManagerLoginMutation from "@/hooks/useCloudManagerLoginMutation";
 import { Controller, FormProvider, useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 
@@ -22,7 +22,7 @@ export default function CloudLoginForm() {
   const { settings, cloudAuth } = useAppContext();
   const address = settings.cloudServer;
 
-  const loginMutation = useCloudLoginMutation();
+  const loginMutation = useCloudManagerLoginMutation();
   const isPending = loginMutation.isPending;
 
   /** Form */

@@ -59,9 +59,6 @@ export default function useDropFarmer() {
     dispatchAndSetActiveTab,
   } = app;
 
-  /** Farmer Title */
-  const farmerTitle = account.title;
-
   /** Should Sync To Cloud */
   const shouldSyncToCloud = settings.enableCloud && syncToCloud;
 
@@ -458,19 +455,13 @@ export default function useDropFarmer() {
   /** Sync to Cloud */
   useLayoutEffect(() => {
     if (shouldSyncToCloud && hasPreparedAuth) {
-      const { initData, initDataUnsafe } = telegramWebApp;
-
       cloudSyncMutation
         .mutateAsync({
-          id,
-          userId: initDataUnsafe.user.id,
-          telegramWebApp: {
-            initData,
-            farmerTitle,
-          },
-          headers: {
-            ...api.defaults.headers.common,
-          },
+          title: account.title,
+          farmer: id,
+          userId: telegramWebApp.initDataUnsafe.user.id,
+          initData: telegramWebApp.initData,
+          headers: api.defaults.headers.common,
         })
         .then(() => {
           toast.success(`${title} - Synced to Cloud`);
@@ -480,7 +471,7 @@ export default function useDropFarmer() {
     id,
     api,
     title,
-    farmerTitle,
+    account.title,
     hasPreparedAuth,
     shouldSyncToCloud,
     telegramWebApp,

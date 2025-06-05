@@ -2,14 +2,14 @@ import { useMutation } from "@tanstack/react-query";
 
 import useAppContext from "./useAppContext";
 
-export default function useCloudDisconnectFarmerMutation() {
+export default function useCloudManagerKickMemberMutation() {
   const { cloudBackend } = useAppContext();
 
   return useMutation({
-    mutationKey: ["app", "cloud", "farmer", "disconnect"],
+    mutationKey: ["app", "cloud", "manager", "member", "kick"],
     mutationFn: (id) =>
       cloudBackend
-        .post(`/api/farmers/${id}/disconnect`)
+        .post(`/api/manager/members/kick`, { id })
         .then((res) => res.data),
   });
 }

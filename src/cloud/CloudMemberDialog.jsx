@@ -1,16 +1,16 @@
 import Alert from "@/components/Alert";
 import UserIcon from "@/assets/images/user-icon.png?format=webp&w=256";
 import toast from "react-hot-toast";
-import useCloudKickMemberMutation from "@/hooks/useCloudKickMemberMutation";
+import useCloudManagerKickMemberMutation from "@/hooks/useCloudManagerKickMemberMutation";
 import { Dialog } from "radix-ui";
 import { cn } from "@/lib/utils";
 import { formatDate } from "date-fns";
 import { useCallback } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 
-export default function CloudMemberDialog({ user, farmer }) {
+export default function CloudMemberDialog({ account, farmer }) {
   const queryClient = useQueryClient();
-  const kickMemberMutation = useCloudKickMemberMutation();
+  const kickMemberMutation = useCloudManagerKickMemberMutation();
   const kickMember = useCallback(
     (id) => {
       toast
@@ -38,7 +38,7 @@ export default function CloudMemberDialog({ user, farmer }) {
       >
         <div className="flex flex-col min-w-0 min-h-0 gap-2 p-4 overflow-auto grow">
           <img
-            src={user["photo_url"] || UserIcon}
+            src={account.user?.["photo_url"] || UserIcon}
             className="w-24 h-24 rounded-full mx-auto"
           />
 
@@ -50,36 +50,36 @@ export default function CloudMemberDialog({ user, farmer }) {
                 "text-center",
                 "text-xl truncate",
                 "text-blue-500 font-bold",
-                "title" in user ? "inline-flex" : "hidden"
+                "title" in account ? "inline-flex" : "hidden"
               )}
             >
-              {user["title"] || "TGUser"}
+              {account.title || "TGUser"}
             </Dialog.Title>
 
             {/* Description */}
             <Dialog.Description className="px-2 font-bold text-base text-center text-orange-500">
-              @{user["username"]}
+              @{account.user?.["username"] || account.id}
             </Dialog.Description>
 
             {/* User ID */}
             <p className="px-2 font-bold text-purple-500 text-center">
-              User ID: <span>{user["user_id"]}</span>
+              User ID: <span>{account.id}</span>
             </p>
           </div>
 
           {/* Show Subscription */}
-          {"subscription" in user ? (
+          {"subscriptions" in account ? (
             <Alert
-              variant={user["subscription"] ? "success" : "warning"}
+              variant={account.subscriptions.length ? "success" : "warning"}
               className="mt-1"
             >
-              {user["subscription"] ? (
+              {account.subscriptions.length ? (
                 <>
                   Subscription is active. <br />
                   <b>
                     (Expires:{" "}
                     {formatDate(
-                      new Date(user["subscription"]["ends_at"]),
+                      new Date(account.subscriptions[0].endsAt),
                       "EEEE - do MMM, yyyy"
                     )}
                     )
@@ -108,10 +108,10 @@ export default function CloudMemberDialog({ user, farmer }) {
                   <h1 className="font-bold">{farmer.title}</h1>
                   <p
                     className={
-                      user["is_connected"] ? "text-green-500" : "text-red-500"
+                      farmer.active ? "text-green-500" : "text-red-500"
                     }
                   >
-                    {user["is_connected"] ? "Connected" : "Disconnected"}
+                    {farmer.active ? "Connected" : "Disconnected"}
                   </p>
                 </div>
               </div>
@@ -119,8 +119,8 @@ export default function CloudMemberDialog({ user, farmer }) {
           ) : null}
 
           {/* Session */}
-          <Alert variant={user["session_id"] ? "success" : "warning"}>
-            {user["session_id"]
+          <Alert variant={account.session ? "success" : "warning"}>
+            {account.session
               ? "Telegram Session is active."
               : "No Cloud Telegram Session."}
           </Alert>
@@ -131,7 +131,7 @@ export default function CloudMemberDialog({ user, farmer }) {
           <button
             title="Kick User"
             disabled={kickMemberMutation.isPending}
-            onClick={() => kickMember(user["user_id"])}
+            onClick={() => kickMember(account.id)}
             className={cn(
               "px-4 py-2 bg-red-500 text-white rounded-lg",
               "disabled:opacity-60"

@@ -1,22 +1,24 @@
 import Input from "@/components/Input";
 import UserIcon from "@/assets/images/user-icon.png?format=webp&w=256";
-import useCloudMembersQuery from "@/hooks/useCloudMembersQuery";
+import useCloudManagerMembersQuery from "@/hooks/useCloudManagerMembersQuery";
 import { Dialog } from "radix-ui";
 import { HiCheckCircle, HiXCircle } from "react-icons/hi2";
-import { cn, filterCloudUsers } from "@/lib/utils";
+import { cn, matchesAccountSearch } from "@/lib/utils";
 import { useMemo, useState } from "react";
 
 import CloudMemberDialog from "./CloudMemberDialog";
 
 export default function CloudMembers() {
   const [search, setSearch] = useState("");
-  const membersQuery = useCloudMembersQuery();
+  const membersQuery = useCloudManagerMembersQuery();
 
   const members = useMemo(
     () =>
       membersQuery.data
         ? search
-          ? filterCloudUsers(membersQuery.data, search)
+          ? membersQuery.data.filter((item) =>
+              matchesAccountSearch(search, item)
+            )
           : membersQuery.data
         : [],
     [search, membersQuery.data]
@@ -39,10 +41,10 @@ export default function CloudMembers() {
       <div className="flex flex-col gap-2">
         {members.length ? (
           <div className="flex flex-col gap-1">
-            {members.map((user) => (
-              <div key={user["id"]} className="flex gap-2">
+            {members.map((account) => (
+              <div key={account.id} className="flex gap-2">
                 {/* Title */}
-                {user["title"] ? (
+                {account.title ? (
                   <h4
                     className={cn(
                       "font-bold",
@@ -52,7 +54,7 @@ export default function CloudMembers() {
                       "bg-neutral-100 dark:bg-neutral-700"
                     )}
                   >
-                    {user["title"]}
+                    {account.title}
                   </h4>
                 ) : null}{" "}
                 {/* Details */}
@@ -66,16 +68,16 @@ export default function CloudMembers() {
                   >
                     {/* Photo */}
                     <img
-                      src={user["photo_url"] || UserIcon}
+                      src={account.user?.["photo_url"] || UserIcon}
                       className="w-6 h-6 rounded-full shrink-0"
                     />{" "}
                     {/* Username */}
                     <h5 className="grow min-w-0 min-h-0 truncate">
-                      {user["username"] || user["user_id"]}
+                      {account.user?.["username"] || account.id}
                     </h5>
                   </Dialog.Trigger>
 
-                  <CloudMemberDialog user={user} />
+                  <CloudMemberDialog account={account} />
                 </Dialog.Root>
                 {/* Terminate Button */}
                 <span
@@ -85,7 +87,7 @@ export default function CloudMembers() {
                     "px-3 rounded-lg shrink-0"
                   )}
                 >
-                  {user.subscription ? (
+                  {account.subscriptions.length ? (
                     <HiCheckCircle className="size-5 text-green-500" />
                   ) : (
                     <HiXCircle className="size-5 text-red-500" />
