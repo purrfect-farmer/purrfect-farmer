@@ -26,7 +26,7 @@ module.exports = {
         allowNull: false,
         type: Sequelize.STRING,
       },
-      telegramInitData: {
+      initData: {
         type: Sequelize.STRING,
       },
       headers: {
