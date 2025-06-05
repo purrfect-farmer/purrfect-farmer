@@ -9,10 +9,6 @@ module.exports = {
         primaryKey: true,
         type: Sequelize.INTEGER,
       },
-      farmer: {
-        allowNull: false,
-        type: Sequelize.STRING,
-      },
       accountId: {
         allowNull: false,
         references: {
@@ -22,15 +18,19 @@ module.exports = {
         onUpdate: "CASCADE",
         type: Sequelize.BIGINT,
       },
+      active: {
+        allowNull: false,
+        type: Sequelize.BOOLEAN,
+      },
+      farmer: {
+        allowNull: false,
+        type: Sequelize.STRING,
+      },
       telegramInitData: {
         type: Sequelize.STRING,
       },
       headers: {
         type: Sequelize.JSON,
-      },
-      active: {
-        allowNull: false,
-        type: Sequelize.BOOLEAN,
       },
       createdAt: {
         allowNull: false,
@@ -43,7 +43,7 @@ module.exports = {
     });
 
     await queryInterface.addConstraint("Farmers", {
-      fields: ["farmer", "accountId"],
+      fields: ["accountId", "farmer"],
       type: "unique",
     });
   },

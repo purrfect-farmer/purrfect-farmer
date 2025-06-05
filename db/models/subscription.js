@@ -14,7 +14,7 @@ module.exports = (sequelize, DataTypes) => {
   Subscription.init(
     {
       accountId: DataTypes.BIGINT,
-      status: DataTypes.ENUM("active", "expired"),
+      active: DataTypes.BOOLEAN,
       startsAt: DataTypes.DATE,
       endsAt: DataTypes.DATE,
     },

@@ -28,7 +28,7 @@ module.exports = (sequelize, DataTypes) => {
     }
 
     get subscription() {
-      return this.subscriptions?.find((item) => item.status === "active");
+      return this.subscriptions?.find((item) => item.active);
     }
   }
   Account.init(

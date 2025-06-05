@@ -37,11 +37,11 @@ module.exports = (sequelize, DataTypes) => {
   }
   Farmer.init(
     {
-      farmer: DataTypes.STRING,
       accountId: DataTypes.BIGINT,
-      telegramInitData: DataTypes.STRING,
-      headers: DataTypes.JSON,
       active: DataTypes.BOOLEAN,
+      farmer: DataTypes.STRING,
+      initData: DataTypes.STRING,
+      headers: DataTypes.JSON,
     },
     {
       sequelize,

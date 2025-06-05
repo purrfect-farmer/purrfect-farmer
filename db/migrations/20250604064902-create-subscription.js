@@ -18,9 +18,9 @@ module.exports = {
         onUpdate: "CASCADE",
         type: Sequelize.BIGINT,
       },
-      status: {
+      active: {
         allowNull: false,
-        type: Sequelize.ENUM("active", "expired"),
+        type: Sequelize.BOOLEAN,
       },
       startsAt: {
         allowNull: false,
