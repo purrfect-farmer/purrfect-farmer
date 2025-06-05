@@ -8,16 +8,12 @@ module.exports = (sequelize, DataTypes) => {
      * The `models/index` file will call this method automatically.
      */
     static associate(models) {
-      Payment.belongsTo(models.Account, {
-        foreignKey: "telegramUserId",
-        targetKey: "telegramUserId",
-        as: "account",
-      });
+      Payment.belongsTo(models.Account, { as: "account" });
     }
   }
   Payment.init(
     {
-      telegramUserId: DataTypes.BIGINT,
+      accountId: DataTypes.BIGINT,
       reference: DataTypes.STRING,
       data: DataTypes.JSON,
     },

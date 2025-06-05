@@ -8,33 +8,16 @@ module.exports = (sequelize, DataTypes) => {
      * The `models/index` file will call this method automatically.
      */
     static associate(models) {
-      Account.hasMany(models.Subscription, {
-        foreignKey: "telegramUserId",
-        targetKey: "telegramUserId",
-        as: "subscriptions",
-      });
-
-      Account.hasMany(models.Farmer, {
-        foreignKey: "telegramUserId",
-        targetKey: "telegramUserId",
-        as: "farmers",
-      });
-
-      Account.hasMany(models.Payment, {
-        foreignKey: "telegramUserId",
-        targetKey: "telegramUserId",
-        as: "payments",
-      });
+      Account.hasMany(models.Subscription, { as: "subscriptions" });
+      Account.hasMany(models.Farmer, { as: "farmers" });
+      Account.hasMany(models.Payment, { as: "payments" });
     }
 
-    static findWithActiveSubscription(telegramUserId) {
-      return this.findOne({
-        where: {
-          telegramUserId,
-        },
+    static findWithActiveSubscription(id, required = true) {
+      return this.findByPk(id, {
         include: [
           {
-            required: true,
+            required,
             association: "subscriptions",
             where: {
               status: "active",
@@ -43,13 +26,17 @@ module.exports = (sequelize, DataTypes) => {
         ],
       });
     }
+
+    get subscription() {
+      return this.subscriptions?.find((item) => item.status === "active");
+    }
   }
   Account.init(
     {
-      telegramUserId: DataTypes.BIGINT,
-      telegramSessionId: DataTypes.STRING,
+      title: DataTypes.STRING,
+      session: DataTypes.STRING,
       proxy: DataTypes.STRING,
-      data: DataTypes.JSON,
+      user: DataTypes.JSON,
     },
     {
       sequelize,

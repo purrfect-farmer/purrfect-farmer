@@ -13,23 +13,22 @@ module.exports = {
         allowNull: false,
         type: Sequelize.STRING,
       },
-      telegramUserId: {
+      accountId: {
         allowNull: false,
         references: {
-          key: "telegramUserId",
           model: "Accounts",
         },
         onDelete: "CASCADE",
         onUpdate: "CASCADE",
         type: Sequelize.BIGINT,
       },
-      telegramWebApp: {
-        type: Sequelize.JSON,
+      telegramInitData: {
+        type: Sequelize.STRING,
       },
       headers: {
         type: Sequelize.JSON,
       },
-      isConnected: {
+      active: {
         allowNull: false,
         type: Sequelize.BOOLEAN,
       },
@@ -44,7 +43,7 @@ module.exports = {
     });
 
     await queryInterface.addConstraint("Farmers", {
-      fields: ["farmer", "telegramUserId"],
+      fields: ["farmer", "accountId"],
       type: "unique",
     });
   },

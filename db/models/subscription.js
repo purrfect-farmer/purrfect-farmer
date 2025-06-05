@@ -8,16 +8,12 @@ module.exports = (sequelize, DataTypes) => {
      * The `models/index` file will call this method automatically.
      */
     static associate(models) {
-      Subscription.belongsTo(models.Account, {
-        foreignKey: "telegramUserId",
-        targetKey: "telegramUserId",
-        as: "account",
-      });
+      Subscription.belongsTo(models.Account, { as: "account" });
     }
   }
   Subscription.init(
     {
-      telegramUserId: DataTypes.BIGINT,
+      accountId: DataTypes.BIGINT,
       status: DataTypes.ENUM("active", "expired"),
       startsAt: DataTypes.DATE,
       endsAt: DataTypes.DATE,

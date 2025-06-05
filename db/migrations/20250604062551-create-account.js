@@ -7,20 +7,18 @@ module.exports = {
         allowNull: false,
         autoIncrement: true,
         primaryKey: true,
-        type: Sequelize.INTEGER,
-      },
-      telegramUserId: {
-        unique: true,
-        allowNull: false,
         type: Sequelize.BIGINT,
       },
-      telegramSessionId: {
+      title: {
+        type: Sequelize.STRING,
+      },
+      session: {
         type: Sequelize.STRING,
       },
       proxy: {
         type: Sequelize.STRING,
       },
-      data: {
+      user: {
         type: Sequelize.JSON,
       },
       createdAt: {

@@ -8,18 +8,14 @@ module.exports = (sequelize, DataTypes) => {
      * The `models/index` file will call this method automatically.
      */
     static associate(models) {
-      Farmer.belongsTo(models.Account, {
-        foreignKey: "telegramUserId",
-        targetKey: "telegramUserId",
-        as: "account",
-      });
+      Farmer.belongsTo(models.Account, { as: "account" });
     }
 
-    static findWithActiveSubscription(farmer, telegramUserId) {
+    static findWithActiveSubscription(farmer, accountId, required = false) {
       return this.findOne({
         where: {
           farmer,
-          telegramUserId,
+          accountId,
         },
         include: [
           {
@@ -27,6 +23,7 @@ module.exports = (sequelize, DataTypes) => {
             association: "account",
             include: [
               {
+                required,
                 association: "subscriptions",
                 where: {
                   status: "active",
@@ -41,10 +38,10 @@ module.exports = (sequelize, DataTypes) => {
   Farmer.init(
     {
       farmer: DataTypes.STRING,
-      telegramUserId: DataTypes.BIGINT,
-      telegramWebApp: DataTypes.JSON,
+      accountId: DataTypes.BIGINT,
+      telegramInitData: DataTypes.STRING,
       headers: DataTypes.JSON,
-      isConnected: DataTypes.BOOLEAN,
+      active: DataTypes.BOOLEAN,
     },
     {
       sequelize,

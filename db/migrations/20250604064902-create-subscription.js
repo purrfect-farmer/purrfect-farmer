@@ -9,10 +9,9 @@ module.exports = {
         primaryKey: true,
         type: Sequelize.INTEGER,
       },
-      telegramUserId: {
+      accountId: {
         allowNull: false,
         references: {
-          key: "telegramUserId",
           model: "Accounts",
         },
         onDelete: "CASCADE",
