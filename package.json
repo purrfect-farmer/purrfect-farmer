@@ -25,6 +25,7 @@
     "@fastify/autoload": "^6.0.0",
     "@fastify/jwt": "^9.1.0",
     "@fastify/sensible": "^6.0.0",
+    "base64url": "^3.0.1",
     "bcryptjs": "^3.0.2",
     "dotenv": "^16.5.0",
     "fastify": "^5.0.0",
@@ -34,6 +35,8 @@
     "mariadb": "^3.4.2",
     "sequelize": "^6.37.7",
     "sequelize-cli": "^6.6.3",
-    "sqlite3": "^5.1.7"
+    "sqlite3": "^5.1.7",
+    "tweetnacl": "^1.0.3",
+    "tweetnacl-util": "^0.15.1"
   }
 }
