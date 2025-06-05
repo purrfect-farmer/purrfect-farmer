@@ -209,17 +209,22 @@ module.exports = async function (fastify, opts) {
         if (account) {
           if (account.session) {
             try {
+              /** Create Client */
               const client = await fastify.lib.GramClient.create(
                 account.session
               );
 
+              /** Connect */
               await client.connect();
+
+              /** Logout */
               await client.logout();
             } catch (e) {
               console.error(e);
             }
           }
 
+          /** Destroy Account */
           await account.destroy();
         }
       }
