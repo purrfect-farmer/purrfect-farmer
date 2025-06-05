@@ -20,7 +20,7 @@ module.exports = (sequelize, DataTypes) => {
             required,
             association: "subscriptions",
             where: {
-              status: "active",
+              active: true,
             },
           },
         ],
