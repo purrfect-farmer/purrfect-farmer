@@ -5,8 +5,8 @@ const nacl = require("tweetnacl");
 const base64url = require("base64url");
 
 const crypto = require("crypto");
-const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN || "";
-const TELEGRAM_BOT_ID = process.env.TELEGRAM_BOT_ID || "7592929753";
+const FARMER_BOT_TOKEN = process.env.FARMER_BOT_TOKEN || "";
+const FARMER_BOT_ID = process.env.FARMER_BOT_ID || "7592929753";
 const TELEGRAM_PUBLIC_KEY =
   "e7bf03a2fa4602af4580703d88dda5bb59f32ed8b02a56c187fe7d34caed242d";
 
@@ -33,7 +33,7 @@ module.exports = fp(async function (fastify, opts) {
     isValidInitData(initData) {
       const secret = crypto
         .createHmac("sha256", "WebAppData")
-        .update(TELEGRAM_BOT_TOKEN)
+        .update(FARMER_BOT_TOKEN)
         .digest();
 
       const data = Object.fromEntries(new URLSearchParams(initData));
@@ -63,7 +63,7 @@ module.exports = fp(async function (fastify, opts) {
       delete data.signature;
       delete data.hash;
 
-      const prefix = `${TELEGRAM_BOT_ID}:WebAppData\n`;
+      const prefix = `${FARMER_BOT_ID}:WebAppData\n`;
 
       const sortedKeys = Object.keys(data).sort();
       const check = sortedKeys.map((k) => `${k}=${data[k]}`).join("\n");
