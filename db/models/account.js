@@ -13,8 +13,12 @@ module.exports = (sequelize, DataTypes) => {
       Account.hasMany(models.Payment, { as: "payments" });
     }
 
-    static findWithActiveSubscription(id, required = true) {
+    static findWithActiveSubscription(
+      id,
+      { required = true, ...options } = {}
+    ) {
       return this.findByPk(id, {
+        ...options,
         include: [
           {
             required,
@@ -27,8 +31,9 @@ module.exports = (sequelize, DataTypes) => {
       });
     }
 
-    static findAllWithActiveSubscription(required = true) {
+    static findAllWithActiveSubscription({ required = true, ...options } = {}) {
       return this.findAll({
+        ...options,
         include: [
           {
             required,

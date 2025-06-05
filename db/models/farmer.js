@@ -39,13 +39,19 @@ module.exports = (sequelize, DataTypes) => {
       });
     }
 
-    static findAllWithActiveSubscription(required = true) {
+    static findAllWithActiveSubscription({ required = true, ...options } = {}) {
       return this.findAll({
-        attributes: {
-          exclude: ["headers", "initData"],
-        },
+        ...options,
         include: this._getSubscriptionInclude(required),
       });
+    }
+
+    setAuthorizationHeader(value) {
+      this.headers = Object.assign(this.headers || {}, {
+        Authorization: value,
+      });
+
+      return this;
     }
   }
   Farmer.init(

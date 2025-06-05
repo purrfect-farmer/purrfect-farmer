@@ -135,9 +135,9 @@ module.exports = async function (fastify, opts) {
 
     /** Get Members */
     fastify.get("/members", async (request) => {
-      const accounts = await fastify.db.Account.findAllWithActiveSubscription(
-        false
-      );
+      const accounts = await fastify.db.Account.findAllWithActiveSubscription({
+        required: false,
+      });
       return accounts;
     });
 
