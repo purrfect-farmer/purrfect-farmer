@@ -1,0 +1,19 @@
+#!/usr/bin/env node
+const { Command } = require("commander");
+const fs = require("fs");
+const { default: inquirer } = require("inquirer");
+const path = require("path");
+const program = new Command();
+
+program.name("cli").description("Purrfect Cloud CLI").version("1.0.0");
+
+const commandsDir = path.join(__dirname, "commands");
+fs.readdirSync(commandsDir)
+  .filter((file) => file.endsWith(".js"))
+  .forEach((file) => {
+    const commandPath = path.join(commandsDir, file);
+    const registerCommand = require(commandPath);
+    registerCommand(program, inquirer);
+  });
+
+program.parse(process.argv);
