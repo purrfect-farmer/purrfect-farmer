@@ -31,7 +31,7 @@ module.exports = (program, inquirer) => {
             required: false,
             association: "subscriptions",
             where: {
-              status: "active",
+              active: true,
             },
           },
         ],
@@ -45,7 +45,7 @@ module.exports = (program, inquirer) => {
         });
       } else {
         await account.createSubscription({
-          status: "active",
+          active: true,
           startsAt: new Date(),
           endsAt: endDate ? new Date(endDate) : dateFns.addDays(new Date(), 30),
         });
