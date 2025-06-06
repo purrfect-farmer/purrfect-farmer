@@ -30,7 +30,7 @@ module.exports = class DreamcoinFarmer extends BaseFarmer {
 
   async process() {
     await this.checkIn();
-    await this.claimRewards();
+    await this.claimFreeRewards();
 
     const user = await this.api
       .get("https://api.dreamcoin.ai/Users/current")
@@ -111,8 +111,8 @@ module.exports = class DreamcoinFarmer extends BaseFarmer {
     await this.api.post(`https://api.dreamcoin.ai/Cases/${freeCaseId}/open`);
   }
 
-  /** Claim Rewards */
-  async claimRewards() {
+  /** Claim Free Rewards */
+  async claimFreeRewards() {
     const rewardsList = await this.api
       .get("https://api.dreamcoin.ai/FreeReward/current")
       .then((res) => res.data);
