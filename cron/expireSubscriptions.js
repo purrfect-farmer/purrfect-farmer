@@ -14,7 +14,7 @@ async function expireSubscriptions() {
 
     console.log(chalk.bold.green("Subscriptions successfully expired!"));
   } catch (error) {
-    console.error("Failed to expire subscriptions:", error.message);
+    console.error("Failed to expire subscriptions:", error);
   }
 }
 

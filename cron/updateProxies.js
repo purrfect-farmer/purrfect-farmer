@@ -88,7 +88,7 @@ async function updateProxies() {
     console.log(chalk.bold.green("Proxies updated successfully."));
   } catch (error) {
     console.log(chalk.bold.red("Failed to update proxies"));
-    console.error(error.message);
+    console.error(error);
   }
 }
 

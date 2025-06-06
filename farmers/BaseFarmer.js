@@ -103,7 +103,7 @@ class BaseFarmer {
 
             return this.api.request(originalRequest);
           } catch (error) {
-            console.error("Failed to refresh auth:", error.message);
+            console.error("Failed to refresh auth:", error);
             return Promise.reject(error);
           }
         }
@@ -138,7 +138,7 @@ class BaseFarmer {
       try {
         await this.joinTelegramLink(link);
       } catch (error) {
-        console.error(error.message);
+        console.error(error);
       }
     }
   }
@@ -186,7 +186,7 @@ class BaseFarmer {
         await this.farmer.save();
       }
     } catch (error) {
-      this.constructor.error("Error:", error.message);
+      this.constructor.error("Error:", error);
     }
   }
 
@@ -210,7 +210,7 @@ class BaseFarmer {
       await instance.process();
     } catch (error) {
       await instance.disconnect();
-      this.error("Error:", error.message);
+      this.error("Error:", error);
     }
   }
 
@@ -255,7 +255,7 @@ class BaseFarmer {
         endDate: new Date(),
       });
     } catch (error) {
-      this.error("Error during run:", error.message);
+      this.error("Error during run:", error);
     } finally {
       this._isRunning = false;
       this.log("Completed Farming!");

@@ -220,7 +220,7 @@ module.exports = async function (fastify, opts) {
               /** Logout */
               await client.logout();
             } catch (error) {
-              console.error(error.message);
+              console.error(error);
             }
           }
 

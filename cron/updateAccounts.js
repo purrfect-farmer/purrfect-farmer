@@ -54,7 +54,7 @@ async function updateAccounts() {
       endDate: new Date(),
     });
   } catch (error) {
-    console.log("Failed to update account user:", error.message);
+    console.log("Failed to update account user:", error);
   }
 }
 

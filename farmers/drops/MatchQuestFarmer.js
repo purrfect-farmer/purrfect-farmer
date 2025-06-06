@@ -85,7 +85,7 @@ module.exports = class MatchQuestFarmer extends BaseFarmer {
             /** Update Balance */
             balance -= task["point"];
           } catch (error) {
-            console.error(error.message);
+            console.error(error);
           }
         }
       }
