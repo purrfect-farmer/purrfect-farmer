@@ -32,6 +32,9 @@ importers:
       chalk:
         specifier: ^5.4.1
         version: 5.4.1
+      close-with-grace:
+        specifier: ^2.2.0
+        version: 2.2.0
       commander:
         specifier: ^14.0.0
         version: 14.0.0
