@@ -37,7 +37,7 @@ export async function getSpaceAdventureHeaders({
     const nonce = uuid() + "-" + timestamp;
     const sign = await getXsrfSign(xsrf, timestamp);
     const signature = sha256(
-      `${timestamp}:${token}:${nonce}:${timestamp}:${sign}`
+      `${timestamp}:${timestamp}:${token}:${nonce}:${sign}`
     ).toString();
 
     headers["x-timestamp"] = timestamp;
