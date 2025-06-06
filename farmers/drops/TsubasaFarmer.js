@@ -108,7 +108,7 @@ module.exports = class TsubasaFarmer extends BaseFarmer {
     const card = utils.randomItem(collection);
 
     if (card) {
-      await this.post(
+      await this.api.post(
         "https://api.app.ton.tsubasa-rivals.com/api/card/levelup",
         {
           ["card_id"]: card.id,
