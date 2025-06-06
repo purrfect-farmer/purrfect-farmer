@@ -85,8 +85,8 @@ class BaseFarmer {
             };
 
             return this.api.request(originalRequest);
-          } catch (e) {
-            console.error("Failed to refresh auth:", e);
+          } catch (error) {
+            console.error("Failed to refresh auth:", error.message);
 
             return Promise.reject(error);
           }

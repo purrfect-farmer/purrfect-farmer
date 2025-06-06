@@ -219,8 +219,8 @@ module.exports = async function (fastify, opts) {
 
               /** Logout */
               await client.logout();
-            } catch (e) {
-              console.error(e);
+            } catch (error) {
+              console.error(error.message);
             }
           }
 
