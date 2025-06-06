@@ -94,7 +94,7 @@ const app = {
       },
     },
     {
-      id: "match-quest",
+      id: "matchquest",
       title: "🌾 MatchQuest Farmer",
       enabled: process.env.FARMER_MATCHQUEST_ENABLED ?? true,
       threadId: process.env.FARMER_MATCHQUEST_THREAD_ID ?? "",
