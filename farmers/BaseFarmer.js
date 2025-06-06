@@ -113,6 +113,36 @@ class BaseFarmer {
     );
   }
 
+  /** Validate Telegram Task */
+  validateTelegramTask(link) {
+    return !utils.isTelegramLink(link) || this.canJoinTelegramLink(link);
+  }
+
+  /** Can Join Telegram Link */
+  canJoinTelegramLink(link) {
+    return utils.canJoinTelegramLink(link) && Boolean(this.client);
+  }
+
+  /** Join Telegram Link */
+  joinTelegramLink(link) {
+    const { entity } = utils.parseTelegramLink(link);
+
+    return this.client.joinTelegramLink({
+      entity,
+    });
+  }
+
+  /** Try to join Telegram Link */
+  async tryToJoinTelegramLink(link) {
+    if (this.canJoinTelegramLink(link)) {
+      try {
+        await this.joinTelegramLink(link);
+      } catch (error) {
+        console.error(error.message);
+      }
+    }
+  }
+
   async init() {
     /** Update WebAppData */
     if (this.farmer.account.session) {
