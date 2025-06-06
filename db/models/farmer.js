@@ -47,6 +47,12 @@ module.exports = (sequelize, DataTypes) => {
       });
     }
 
+    setHeaders(headers = {}) {
+      this.headers = Object.assign(this.headers || {}, headers);
+
+      return this;
+    }
+
     setAuthorizationHeader(value) {
       this.headers = Object.assign(this.headers || {}, {
         Authorization: value,
