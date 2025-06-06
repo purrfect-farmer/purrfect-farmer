@@ -1,5 +1,6 @@
 "use strict";
 require("dotenv/config");
+require("./cron");
 
 const path = require("node:path");
 const AutoLoad = require("@fastify/autoload");

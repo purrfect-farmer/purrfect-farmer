@@ -1,5 +1,6 @@
 "use strict";
 const { Model } = require("sequelize");
+const utils = require("../../lib/utils");
 module.exports = (sequelize, DataTypes) => {
   class Farmer extends Model {
     /**
@@ -52,6 +53,10 @@ module.exports = (sequelize, DataTypes) => {
       });
 
       return this;
+    }
+
+    get initDataUnsafe() {
+      return utils.getInitDataUnsafe(this.initData);
     }
   }
   Farmer.init(

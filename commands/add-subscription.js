@@ -1,7 +1,7 @@
 /**
  *
  * @param {import("commander").Command} program
- * @param {typeof import("inquirer")} inquirer
+ * @param {typeof import("inquirer").default} inquirer
  */
 module.exports = (program, inquirer) => {
   program
