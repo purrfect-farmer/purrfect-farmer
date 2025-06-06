@@ -2,14 +2,10 @@ require("dotenv/config");
 
 const { CronJob } = require("cron");
 const app = require("./config/app");
+const farmers = require("./farmers");
 const expireSubscriptions = require("./cron/expireSubscriptions");
 const updateAccounts = require("./cron/updateAccounts");
 const updateProxies = require("./cron/updateProxies");
-
-const farmers = {
-  ["wonton"]: require("./farmers/drops/WontonFarmer"),
-  ["space-adventure"]: require("./farmers/drops/SpaceAdventureFarmer"),
-};
 
 /** Expire Subscriptions */
 new CronJob("0 0 * * *", expireSubscriptions, null, true);

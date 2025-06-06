@@ -2,6 +2,7 @@ const BaseFarmer = require("../BaseFarmer");
 const utils = require("../../lib/utils");
 
 module.exports = class SpaceAdventureFarmer extends BaseFarmer {
+  static id = "space-adventure";
   static origin = "https://space-adventure.online";
 
   /** Get Headers */
