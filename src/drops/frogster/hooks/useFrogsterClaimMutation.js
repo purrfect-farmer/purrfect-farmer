@@ -8,7 +8,7 @@ export default function useFrogsterClaimMutation() {
     mutationFn: () =>
       api
         .post(
-          "https://frogster.app/api/wallets/claim-ton-new?claim_plan_type=1"
+          "https://frogster.app/api/wallets/claim?claim_plan_type=1&currency=TON"
         )
         .then((res) => res.data.result),
   });
