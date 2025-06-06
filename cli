@@ -1,4 +1,6 @@
 #!/usr/bin/env node
+require("dotenv/config");
+
 const { Command } = require("commander");
 const fs = require("fs");
 const { default: inquirer } = require("inquirer");
