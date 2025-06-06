@@ -67,10 +67,13 @@ module.exports = class DreamcoinFarmer extends BaseFarmer {
 
   /** Spin Lottery */
   async spinLottery(user) {
-    let energy = Number(user.energy.current);
+    /** Multipliers */
     const sortedMultipliers = user.availableSpinMultipliers.sort(
       (a, b) => b - a
     );
+
+    /** Initial Energy */
+    let energy = Number(user.energy.current);
 
     while (energy > 0) {
       /** Available Multipliers */

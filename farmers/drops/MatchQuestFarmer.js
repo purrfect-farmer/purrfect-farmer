@@ -24,6 +24,7 @@ module.exports = class MatchQuestFarmer extends BaseFarmer {
     return this.farmer.setAuthorizationHeader(accessToken);
   }
 
+  /** Process */
   async process() {
     await this.starOrClaimFarming();
     await this.purchaseDailyBoosts();
