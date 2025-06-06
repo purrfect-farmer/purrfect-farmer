@@ -98,7 +98,7 @@ module.exports = class GoldEagleFarmer extends BaseFarmer {
     const txLink = `https://stellar.expert/explorer/public/tx/${hash}`;
 
     await bot.sendPrivateMessage(this.farmer.account, [
-      `<b>${this.config.name}</b>\n`,
+      `<b>${this.config.title}</b>\n`,
       `<b>🗓️ Date</b>: ${utils.dateFns.format(
         new Date(),
         "yyyy-MM-dd HH:mm:ss"
