@@ -1,6 +1,5 @@
 const { default: axios } = require("axios");
-const HttpsProxyAgent = require("https-proxy-agent");
-const { wrapper } = require("axios-cookiejar-support");
+const hpAgent = require("hpagent");
 const { CookieJar } = require("tough-cookie");
 const seedrandom = require("seedrandom");
 
@@ -9,6 +8,14 @@ const GramClient = require("../lib/GramClient");
 const userAgents = require("../lib/userAgents");
 const utils = require("../lib/utils");
 const bot = require("../lib/bot");
+const {
+  createCookieAgent,
+  HttpCookieAgent,
+  HttpsCookieAgent,
+} = require("http-cookie-agent/http");
+
+const HttpProxyAgent = createCookieAgent(hpAgent.HttpProxyAgent);
+const HttpsProxyAgent = createCookieAgent(hpAgent.HttpsProxyAgent);
 
 class BaseFarmer {
   static _isRunning = false;
@@ -19,30 +26,38 @@ class BaseFarmer {
 
     this.random = seedrandom(this.farmer.account.id);
     this.userAgent = userAgents[Math.floor(this.random() * userAgents.length)];
-
-    this.proxyAgent = this.farmer.account.proxy
-      ? new HttpsProxyAgent("http://" + this.farmer.account.proxy)
-      : null;
     this.jar = new CookieJar();
-    this.api = wrapper(
-      axios.create({
-        timeout: 60_000,
-        httpsAgent: this.proxyAgent,
-        httpAgent: this.proxyAgent,
-        proxy: false,
-        jar: this.jar,
-        headers: {
-          common: {
-            ["User-Agent"]: this.userAgent,
-            ["Origin"]: this.constructor.origin,
-            ["Referer"]: this.constructor.origin + "/",
-            ["Referrer-Policy"]: "strict-origin-when-cross-origin",
-            ["Cache-Control"]: "no-cache",
-            ["X-Requested-With"]: "org.telegram.messenger",
-          },
+
+    /** Proxy URL */
+    this.proxy = this.farmer.account.proxy
+      ? `http://${this.farmer.account.proxy}`
+      : null;
+
+    this.httpAgent = this.proxy
+      ? new HttpProxyAgent({ proxy: this.proxy, cookies: { jar: this.jar } })
+      : new HttpCookieAgent({ cookies: { jar: this.jar } });
+
+    /** HttpsAgent */
+    this.httpsAgent = this.proxy
+      ? new HttpsProxyAgent({ proxy: this.proxy, cookies: { jar: this.jar } })
+      : new HttpsCookieAgent({ cookies: { jar: this.jar } });
+
+    /** Create API */
+    this.api = axios.create({
+      timeout: 60_000,
+      httpAgent: this.httpAgent,
+      httpsAgent: this.httpsAgent,
+      headers: {
+        common: {
+          ["User-Agent"]: this.userAgent,
+          ["Origin"]: this.constructor.origin,
+          ["Referer"]: this.constructor.origin + "/",
+          ["Referrer-Policy"]: "strict-origin-when-cross-origin",
+          ["Cache-Control"]: "no-cache",
+          ["X-Requested-With"]: "org.telegram.messenger",
         },
-      })
-    );
+      },
+    });
 
     /** Apply Delay */
     this.api.interceptors.request.use((config) =>
@@ -55,6 +70,7 @@ class BaseFarmer {
 
     /** Set Headers */
     this.api.interceptors.request.use((config) => {
+      /** Apply Headers */
       config.headers = {
         ...config.headers,
         ...this.farmer.headers,
@@ -63,6 +79,7 @@ class BaseFarmer {
       return config;
     });
 
+    /** Refetch Auth */
     this.api.interceptors.response.use(
       (response) => response,
       async (error) => {
@@ -87,7 +104,6 @@ class BaseFarmer {
             return this.api.request(originalRequest);
           } catch (error) {
             console.error("Failed to refresh auth:", error.message);
-
             return Promise.reject(error);
           }
         }
@@ -139,8 +155,8 @@ class BaseFarmer {
         this.farmer.active = false;
         await this.farmer.save();
       }
-    } catch (e) {
-      this.constructor.error("Error:", e);
+    } catch (error) {
+      this.constructor.error("Error:", error.message);
     }
   }
 
@@ -162,9 +178,9 @@ class BaseFarmer {
     try {
       await instance.init();
       await instance.process();
-    } catch (e) {
+    } catch (error) {
       await instance.disconnect();
-      this.error("Error:", e);
+      this.error("Error:", error.message);
     }
   }
 
@@ -208,8 +224,8 @@ class BaseFarmer {
         startDate,
         endDate: new Date(),
       });
-    } catch (err) {
-      this.error("Error during run:", err);
+    } catch (error) {
+      this.error("Error during run:", error.message);
     } finally {
       this._isRunning = false;
       this.log("Completed Farming!");

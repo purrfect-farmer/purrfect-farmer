@@ -1,5 +1,5 @@
 const { default: chalk } = require("chalk");
-const ProxyProvider = require("../lib/ProxyProvider");
+const proxy = require("../lib/proxy");
 
 /**
  *
@@ -11,7 +11,6 @@ module.exports = (program, inquirer) => {
     .command("test-proxies")
     .description("Test Proxies")
     .action(async () => {
-      const proxy = new ProxyProvider();
       const result = await proxy.testProxies();
 
       const working = result.filter((item) => item.status);

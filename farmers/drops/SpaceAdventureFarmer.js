@@ -27,7 +27,7 @@ module.exports = class SpaceAdventureFarmer extends BaseFarmer {
       const nonce = utils.uuid() + "-" + timestamp;
       const sign = this.getXsrfSign(xsrf, timestamp);
       const signature = utils.sha256(
-        `${timestamp}:${token}:${nonce}:${timestamp}:${sign}`
+        `${timestamp}:${timestamp}:${token}:${nonce}:${sign}`
       );
 
       headers["x-timestamp"] = timestamp;
@@ -72,13 +72,15 @@ module.exports = class SpaceAdventureFarmer extends BaseFarmer {
     /** Fetch CSRF */
     await this.fetchCSRF();
 
-    let result = await this.fetchWithStatus(() =>
-      this.api.get("https://space-adventure.online/api/user/get")
-    );
-
+    /** Boosts */
     const boosts = await this.api
       .get("https://space-adventure.online/api/boost/get/")
       .then((res) => res.data.list);
+
+    /** Initial Result */
+    let result = await this.fetchWithStatus(() =>
+      this.api.get("https://space-adventure.online/api/user/get")
+    );
 
     /** Skip Tutorial */
     if (result.status.canSkipTutorial) {

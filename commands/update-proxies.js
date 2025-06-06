@@ -1,5 +1,5 @@
 const { default: chalk } = require("chalk");
-const ProxyProvider = require("../lib/ProxyProvider");
+const proxy = require("../lib/proxy");
 
 /**
  *
@@ -11,7 +11,6 @@ module.exports = (program, inquirer) => {
     .command("update-proxies")
     .description("Update Proxies")
     .action(async () => {
-      const proxy = new ProxyProvider();
       const list = await proxy.updateList();
 
       console.log(chalk.bold.green("List Updated!"));
