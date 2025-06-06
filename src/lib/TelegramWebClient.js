@@ -20,14 +20,14 @@ export default class TelegramWebClient extends TelegramClient {
       useWSS: true,
     });
 
+    /** Connection Queue */
+    this._connectionQueue = [];
+
+    /** Is Connecting */
+    this._isConnecting = false;
+
     /** Is Authorized */
     this._isAuthorized = false;
-
-    /** Is Flushing */
-    this._flushing = false;
-
-    /** Call Queue */
-    this._callQueue = [];
 
     /** Custom Emitter */
     this.emitter = new EventEmitter();
@@ -45,9 +45,6 @@ export default class TelegramWebClient extends TelegramClient {
         if (connected) {
           /** Authorized */
           this._isAuthorized = await this.isUserAuthorized();
-
-          /** Flush Queue */
-          this.flushQueue();
         } else {
           /** Unauthorized */
           this._isAuthorized = false;
@@ -69,6 +66,27 @@ export default class TelegramWebClient extends TelegramClient {
     return this.emitter.removeListener("update-connection-state", callback);
   }
 
+  async connect() {
+    if (this.connected) return;
+    else if (this._isConnecting) {
+      return new Promise((resolve, reject) => {
+        this._connectionQueue.push({ resolve, reject });
+      });
+    } else {
+      this._isConnecting = true;
+
+      try {
+        await super.connect();
+        this._connectionQueue.forEach((item) => item.resolve());
+      } catch (error) {
+        this._connectionQueue.forEach((item) => item.reject(error));
+      } finally {
+        this._connectionQueue.length = 0;
+        this._isConnecting = false;
+      }
+    }
+  }
+
   /** Start */
   async start(params) {
     /** Call super Start */
@@ -81,47 +99,14 @@ export default class TelegramWebClient extends TelegramClient {
     return this.session.save();
   }
 
-  /** Flush Queue */
-  async flushQueue() {
-    if (this._flushing) return;
-    this._flushing = true;
-
-    for (const { callback, resolve, reject } of this._callQueue) {
-      try {
-        if (this._isAuthorized) {
-          const result = await callback();
-          resolve(result);
-        } else {
-          throw new Error("User is not authorized!");
-        }
-      } catch (error) {
-        reject(error);
-      }
-    }
-    this._callQueue.length = 0;
-    this._flushing = false;
-  }
-
   /**
    * Executes a callback with the Telegram Client instance.
    *
    * @returns {Promise<any>} The result of the callback.
    */
   async execute(callback) {
-    if (this.connected) {
-      if (this._isAuthorized) {
-        return callback();
-      } else {
-        throw new Error("User is not authorized!");
-      }
-    } else {
-      console.warn("Queuing call — client not connected.");
-      console.log("Queue length:", this._callQueue.length + 1);
-
-      return new Promise((resolve, reject) => {
-        this._callQueue.push({ callback, resolve, reject });
-      });
-    }
+    await this.connect();
+    return callback();
   }
 
   /** Wait for Reply */
