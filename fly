@@ -8,7 +8,7 @@ const { default: chalk } = require("chalk");
 const path = require("path");
 const program = new Command();
 
-program.name("cli").description("Purrfect Cloud CLI").version("1.0.0");
+program.name("cli").description("Purrfect Fly CLI").version("1.0.0");
 
 const commandsDir = path.join(__dirname, "commands");
 fs.readdirSync(commandsDir)
