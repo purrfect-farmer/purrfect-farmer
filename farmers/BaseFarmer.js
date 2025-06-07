@@ -125,11 +125,7 @@ class BaseFarmer {
 
   /** Join Telegram Link */
   joinTelegramLink(link) {
-    const { entity } = utils.parseTelegramLink(link);
-
-    return this.client.joinTelegramLink({
-      entity,
-    });
+    return this.client.joinTelegramLink(link);
   }
 
   /** Try to join Telegram Link */
@@ -165,15 +161,7 @@ class BaseFarmer {
   }
 
   async updateWebAppData() {
-    const { entity, shortName, startParam } = utils.parseTelegramLink(
-      this.config.telegramLink
-    );
-    const { url } = await this.client.webview({
-      bot: entity,
-      shortName,
-      startParam,
-    });
-
+    const { url } = await this.client.webview(this.config.telegramLink);
     const { initData } = utils.extractTgWebAppData(url);
 
     this.farmer.initData = initData;

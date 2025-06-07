@@ -12,39 +12,43 @@ async function updateAccounts() {
 
     await Promise.allSettled(
       accounts
-        .filter((item) => item.session)
-        .map(async (item) => {
-          /** Set all farmers active */
-          await db.Farmer.update(
-            { active: true },
-            {
-              where: {
-                accountId: item.id,
-                active: false,
-              },
-            }
-          );
+        .filter((account) => account.session)
+        .map(async (account) => {
+          try {
+            /** Create and Connect Client */
+            const client = await GramClient.create(account.session);
+            await client.connect();
 
-          const {
-            entity: bot,
-            shortName,
-            startParam,
-          } = utils.parseTelegramLink(app.farmerBotLink);
+            const webview = await client.webview(app.farmerBotLink);
+            const { initDataUnsafe } = utils.extractTgWebAppData(webview.url);
+            const { user } = initDataUnsafe;
 
-          /** Create and Connect Client */
-          const client = await GramClient.create(item.session);
-          await client.connect();
+            /** Update User */
+            account.user = user;
 
-          const webview = await client.webview({
-            bot,
-            shortName,
-            startParam,
-          });
-          const { initDataUnsafe } = utils.extractTgWebAppData(webview.url);
-          const { user } = initDataUnsafe;
+            /** Save Item */
+            await account.save();
 
-          item.user = user;
-          await item.save();
+            /** Set all farmers active */
+            await db.Farmer.update(
+              { active: true },
+              {
+                where: {
+                  accountId: account.id,
+                  active: false,
+                },
+              }
+            );
+          } catch (error) {
+            /** Log Error */
+            console.error(error);
+
+            /** Remove Session */
+            account.session = null;
+
+            /** Save */
+            await account.save();
+          }
         })
     );
 
