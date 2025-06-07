@@ -131,6 +131,6 @@ module.exports = class HrumFarmer extends BaseFarmer {
         chatType: initDataUnsafe["chat_type"] ?? "",
         chatInstance: initDataUnsafe["chat_instance"] ?? "",
       })
-      .then((res) => res.data);
+      .then((res) => res.data.data);
   }
 };

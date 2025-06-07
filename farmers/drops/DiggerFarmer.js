@@ -34,7 +34,7 @@ module.exports = class DiggerFarmer extends BaseFarmer {
         ["platform"]: "android",
       });
     } catch (error) {
-      console.error(error);
+      console.error("Unable to dig:", error);
     }
 
     /** Complete Tasks */

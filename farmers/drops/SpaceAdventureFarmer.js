@@ -69,6 +69,7 @@ module.exports = class SpaceAdventureFarmer extends BaseFarmer {
     /** Set Headers */
     return this.farmer.setAuthorizationHeader("Bearer " + accessToken);
   }
+
   async process() {
     /** Fetch CSRF */
     await this.fetchCSRF();
@@ -149,10 +150,7 @@ module.exports = class SpaceAdventureFarmer extends BaseFarmer {
 
     /** Available Boosts */
     const availableBoosts = levelBoosts.filter(
-      (item) =>
-        item["next_level"] &&
-        (item["next_level"]["price_coin"] <= balance ||
-          item["next_level"]["price_gems"] <= gems)
+      (item) => item["next_level"] && this.validateBoostNextLevel(item)
     );
 
     /** Upgradable Boosts */
@@ -165,10 +163,17 @@ module.exports = class SpaceAdventureFarmer extends BaseFarmer {
       const method = item["next_level"]["price_gems"] <= gems ? "gems" : "coin";
 
       await this.api.post("https://space-adventure.online/api/boost/buy/", {
-        method,
         id: item.id,
+        method,
       });
     }
+  }
+
+  validateBoostNextLevel(item, balance, gems) {
+    return (
+      item["next_level"]["price_coin"] <= balance ||
+      item["next_level"]["price_gems"] <= gems
+    );
   }
 
   async completeVideoTasks(result) {

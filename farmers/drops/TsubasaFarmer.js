@@ -35,9 +35,7 @@ module.exports = class TsubasaFarmer extends BaseFarmer {
     if (!utils.dateFns.isToday(lastUpdate * 1000)) {
       await this.api.post(
         "https://api.app.ton.tsubasa-rivals.com/api/daily_reward/claim",
-        {
-          initData: this.farmer.initData,
-        }
+        { initData: this.farmer.initData }
       );
     }
 
@@ -51,9 +49,8 @@ module.exports = class TsubasaFarmer extends BaseFarmer {
         result.concat(
           category["card_list"].map((card) => ({
             ...card,
-            ["next_profit_per_hour_difference"]: card["next_profit_per_hour"]
-              ? card["next_profit_per_hour"] - card["profit_per_hour"]
-              : 0,
+            ["next_profit_per_hour_difference"]:
+              this.getNextCardPphDifference(card),
             ["category_id"]: category["category_id"],
             ["category_name"]: category["category_name"],
           }))
@@ -116,6 +113,15 @@ module.exports = class TsubasaFarmer extends BaseFarmer {
           ["initData"]: this.farmer.initData,
         }
       );
+    }
+  }
+
+  /** Get Card Next PPH Difference */
+  getNextCardPphDifference(card) {
+    if (card["next_profit_per_hour"]) {
+      return card["next_profit_per_hour"] - card["profit_per_hour"];
+    } else {
+      return 0;
     }
   }
 

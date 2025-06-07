@@ -32,27 +32,29 @@ module.exports = class SlotcoinFarmer extends BaseFarmer {
       .post("https://api.slotcoin.app/v1/clicker/api/info")
       .then((res) => res.data);
 
-    /** Tickets */
-    let tickets = Number(info["user"]["daily_roulette_count"]);
-
-    /** Energy */
-    let energy = Number(info["user"]["spins"]);
+    /** Bid */
     const bid = Number(info["user"]["bid"]);
 
-    while (energy >= bid || tickets > 0) {
-      if (tickets > 0) {
-        /** Subtract Ticket */
-        tickets -= 1;
+    /** Initial Tickets */
+    let tickets = Number(info["user"]["daily_roulette_count"]);
 
-        /** Spin Ticket */
-        await this.api.post("https://api.slotcoin.app/v1/clicker/daily/spin");
-      }
+    /** Initial Energy */
+    let energy = Number(info["user"]["spins"]);
+
+    while (tickets > 0) {
+      /** Subtract Ticket */
+      tickets -= 1;
+
+      /** Spin Ticket */
+      await this.api.post("https://api.slotcoin.app/v1/clicker/daily/spin");
+    }
+
+    while (energy >= bid) {
+      /** Subtract Energy */
+      energy -= bid;
 
       /** Spin */
-      if (energy >= bid) {
-        energy -= bid;
-        await this.api.post("https://api.slotcoin.app/v1/clicker/api/spin");
-      }
+      await this.api.post("https://api.slotcoin.app/v1/clicker/api/spin");
     }
   }
 };

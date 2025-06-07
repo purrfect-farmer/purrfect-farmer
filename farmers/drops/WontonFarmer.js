@@ -80,9 +80,13 @@ module.exports = class WontonFarmer extends BaseFarmer {
           }, bowls[0])
         : null;
 
+    /** Initial Skin */
     let selectedSkin = skins.find((item) => item.inUse);
+
+    /** Initial Bowl */
     let selectedBowl = bowls.find((item) => item.bowlDisplay);
 
+    /** Use Top Skin */
     if (topSkin && topSkin.id !== selectedSkin?.id) {
       await this.useShopItem(topSkin.id);
 
@@ -90,6 +94,7 @@ module.exports = class WontonFarmer extends BaseFarmer {
       selectedSkin = topSkin;
     }
 
+    /** Use Top Bowl */
     if (topBowl && topBowl.id !== selectedBowl?.id) {
       await this.useShopItem(topBowl.id);
 
@@ -168,7 +173,7 @@ module.exports = class WontonFarmer extends BaseFarmer {
       .get("https://wonton.food/api/v1/user")
       .then((res) => res.data);
 
-    const tickets = user.ticketCount;
+    const tickets = Number(user.ticketCount);
 
     if (tickets > 0) {
       const perItem = Math.max(...selectedSkin.stats.map(Number));

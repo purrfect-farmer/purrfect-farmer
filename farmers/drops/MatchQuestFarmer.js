@@ -46,6 +46,7 @@ module.exports = class MatchQuestFarmer extends BaseFarmer {
         .then((res) => res.data.data);
 
       await utils.delayForSeconds(30);
+
       await this.api.post(
         "https://tgapp-api.matchain.io/api/tgapp/v1/game/claim",
         {
@@ -75,10 +76,12 @@ module.exports = class MatchQuestFarmer extends BaseFarmer {
         if (balance >= task["point"]) {
           try {
             /** Purchase */
-            const isSuccess = await this.api.post(
-              "https://tgapp-api.matchain.io/api/tgapp/v1/daily/task/purchase",
-              { uid, type: task["type"] }
-            );
+            const isSuccess = await this.api
+              .post(
+                "https://tgapp-api.matchain.io/api/tgapp/v1/daily/task/purchase",
+                { uid, type: task["type"] }
+              )
+              .then((res) => res.data.data);
 
             if (!isSuccess) break;
 
