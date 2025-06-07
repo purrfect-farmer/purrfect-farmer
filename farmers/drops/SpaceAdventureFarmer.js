@@ -126,6 +126,24 @@ module.exports = class SpaceAdventureFarmer extends BaseFarmer {
 
     await this.completeVideoTasks(result);
     await this.upgradeLevel(result, boosts);
+    await this.watchAds();
+  }
+
+  async watchAds() {
+    try {
+      for (let i = 0; i < 5; i++) {
+        await this.makeAdsRequest(
+          utils.randomItem([
+            "claim_coins",
+            "spin_roulete",
+            "tasks_reward",
+            "shop_free_shield",
+            "shop_free_immunity",
+            "shop_free_fuel",
+          ])
+        );
+      }
+    } catch {}
   }
 
   async upgradeLevel(result, boosts) {
