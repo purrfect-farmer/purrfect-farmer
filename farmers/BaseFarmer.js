@@ -117,34 +117,46 @@ class BaseFarmer {
     /** Log API Response */
     this.api.interceptors.response.use(
       (response) => {
-        const title = app.displayAccountTitle
-          ? this.farmer.account.title
-          : this.farmer.account.user?.username ?? this.farmer.account.id;
-        const status = response.status;
         const url = response.config.url;
-        const method = response.config.method.toUpperCase();
+        const title = utils.truncateAndPad(
+          app.displayAccountTitle
+            ? this.farmer.account.title
+            : this.farmer.account.user?.username ?? this.farmer.account.id,
+          10
+        );
+        const status = utils.truncateAndPad(response.status, 3);
+        const method = utils.truncateAndPad(
+          response.config.method.toUpperCase(),
+          4
+        );
 
         /** Log to Console */
         console.log(
-          `${chalk.bold.blue(`[${title}]`)} ${chalk.bold.green(
-            `[${method}] [${status}] ${url}`
-          )}`
+          `${chalk.bold.blue(`${title}`)} ${chalk.bold.cyan(
+            `${method}`
+          )} ${chalk.bold.green(`${status} ${url}`)}`
         );
         return response;
       },
       (error) => {
-        const title = app.displayAccountTitle
-          ? this.farmer.account.title
-          : this.farmer.account.user?.username ?? this.farmer.account.id;
-        const status = error.response?.status || "FAIL";
         const url = error.config.url;
-        const method = error.config.method.toUpperCase();
+        const title = utils.truncateAndPad(
+          app.displayAccountTitle
+            ? this.farmer.account.title
+            : this.farmer.account.user?.username ?? this.farmer.account.id,
+          10
+        );
+        const status = utils.truncateAndPad(error.response?.status ?? "ERR", 3);
+        const method = utils.truncateAndPad(
+          error.config.method.toUpperCase(),
+          4
+        );
 
         /** Log to Console */
         console.log(
-          `${chalk.bold.blue(`[${title}]`)} ${chalk.bold.red(
-            `[${method}] [${status}] ${url}`
-          )}`
+          `${chalk.bold.blue(`${title}`)} ${chalk.bold.cyan(
+            `${method}`
+          )} ${chalk.bold.red(`${status} ${url}`)}`
         );
         return Promise.reject(error);
       }
