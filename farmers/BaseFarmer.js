@@ -126,8 +126,8 @@ class BaseFarmer {
 
         /** Log to Console */
         console.log(
-          `${chalk.bold.blue(`[${title}]`)}${chalk.bold.green(
-            `[${method}][${status}] ${url}`
+          `${chalk.bold.blue(`[${title}]`)} ${chalk.bold.green(
+            `[${method}] [${status}] ${url}`
           )}`
         );
         return response;
@@ -142,8 +142,8 @@ class BaseFarmer {
 
         /** Log to Console */
         console.log(
-          `${chalk.bold.blue(`[${title}]`)}${chalk.bold.red(
-            `[${method}][${status}] ${url}`
+          `${chalk.bold.blue(`[${title}]`)} ${chalk.bold.red(
+            `[${method}] [${status}] ${url}`
           )}`
         );
         return Promise.reject(error);
