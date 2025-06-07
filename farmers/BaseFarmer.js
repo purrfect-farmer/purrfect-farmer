@@ -13,6 +13,8 @@ const {
   HttpCookieAgent,
   HttpsCookieAgent,
 } = require("http-cookie-agent/http");
+const { default: chalk } = require("chalk");
+const app = require("../config/app");
 
 const HttpProxyAgent = createCookieAgent(hpAgent.HttpProxyAgent);
 const HttpsProxyAgent = createCookieAgent(hpAgent.HttpsProxyAgent);
@@ -108,6 +110,42 @@ class BaseFarmer {
           }
         }
 
+        return Promise.reject(error);
+      }
+    );
+
+    /** Log API Response */
+    this.api.interceptors.response.use(
+      (response) => {
+        const title = app.displayAccountTitle
+          ? this.farmer.account.title
+          : this.farmer.account.user?.username ?? this.farmer.account.id;
+        const status = response.status;
+        const url = response.config.url;
+        const method = response.config.method.toUpperCase();
+
+        /** Log to Console */
+        console.log(
+          `${chalk.bold.blue(`[${title}]`)}${chalk.bold.green(
+            `[${method}][${status}] ${url}`
+          )}`
+        );
+        return response;
+      },
+      (error) => {
+        const title = app.displayAccountTitle
+          ? this.farmer.account.title
+          : this.farmer.account.user?.username ?? this.farmer.account.id;
+        const status = error.response?.status || "FAIL";
+        const url = error.config.url;
+        const method = error.config.method.toUpperCase();
+
+        /** Log to Console */
+        console.log(
+          `${chalk.bold.blue(`[${title}]`)}${chalk.bold.red(
+            `[${method}][${status}] ${url}`
+          )}`
+        );
         return Promise.reject(error);
       }
     );
