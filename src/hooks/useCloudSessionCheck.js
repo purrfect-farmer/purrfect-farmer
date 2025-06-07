@@ -10,7 +10,7 @@ export default function useCloudSessionCheck(context) {
 
   useEffect(() => {
     if (isSuccess) {
-      setCloudTelegramSession(data.account.session);
+      setCloudTelegramSession(data.account?.session);
     }
   }, [isSuccess, data]);
 }
