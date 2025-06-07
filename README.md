@@ -96,3 +96,29 @@ git pull && \
 pnpm install && \
 pm2 reload ecosystem.config.cjs
 ```
+
+### Nginx
+
+You can use this snippet to setup reverse-proxy on nginx.
+
+```nginx
+server {
+    listen 80;
+    listen [::]:80;
+    server_name _; # Change if needed
+
+    add_header Strict-Transport-Security "max-age=63072000" always;
+
+    location / {
+        proxy_http_version 1.1;
+        proxy_cache_bypass $http_upgrade;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection 'upgrade';
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_pass http://127.0.0.1:3000;
+    }
+}
+```
