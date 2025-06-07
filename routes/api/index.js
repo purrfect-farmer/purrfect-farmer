@@ -34,7 +34,7 @@ module.exports = async function (fastify, opts) {
         false
       );
 
-      return { account, subscription: account.subscription };
+      return { account, subscription: account?.subscription };
     }
   );
 
