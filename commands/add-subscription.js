@@ -1,9 +1,9 @@
 /**
- *
  * @param {import("commander").Command} program
  * @param {typeof import("inquirer").default} inquirer
+ * @param {typeof import("chalk").default} chalk
  */
-module.exports = (program, inquirer) => {
+module.exports = (program, inquirer, chalk) => {
   program
     .command("add-subscription [user] [date]")
     .description("Adds a subscription")

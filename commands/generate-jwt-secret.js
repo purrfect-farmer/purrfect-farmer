@@ -1,12 +1,9 @@
-const { default: chalk } = require("chalk");
-const proxy = require("../lib/proxy");
-
 /**
- *
  * @param {import("commander").Command} program
  * @param {typeof import("inquirer").default} inquirer
+ * @param {typeof import("chalk").default} chalk
  */
-module.exports = (program, inquirer) => {
+module.exports = (program, inquirer, chalk) => {
   program
     .command("generate-jwt-secret")
     .description("Generate JWT Secret")

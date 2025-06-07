@@ -1,18 +1,17 @@
-const fs = require("fs");
-const db = require("../db/models");
-const { default: chalk } = require("chalk");
-
 /**
- *
  * @param {import("commander").Command} program
  * @param {typeof import("inquirer").default} inquirer
+ * @param {typeof import("chalk").default} chalk
  */
-module.exports = (program, inquirer) => {
+module.exports = (program, inquirer, chalk) => {
   program
     .command("import-backup <file>")
     .description("Import Backup")
     .usage("import-backup fly-backup.json")
     .action(async (file) => {
+      const fs = require("fs");
+      const db = require("../db/models");
+
       const backup = JSON.parse(fs.readFileSync(file, "utf-8"));
 
       await db.Account.bulkCreate(backup.accounts, { ignoreDuplicates: true });
