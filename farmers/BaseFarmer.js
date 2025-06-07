@@ -14,7 +14,6 @@ const {
   HttpsCookieAgent,
 } = require("http-cookie-agent/http");
 const { default: chalk } = require("chalk");
-const app = require("../config/app");
 
 const HttpProxyAgent = createCookieAgent(hpAgent.HttpProxyAgent);
 const HttpsProxyAgent = createCookieAgent(hpAgent.HttpsProxyAgent);
@@ -118,12 +117,7 @@ class BaseFarmer {
     this.api.interceptors.response.use(
       (response) => {
         const url = response.config.url;
-        const title = utils.truncateAndPad(
-          app.displayAccountTitle
-            ? this.farmer.account.title
-            : this.farmer.account.user?.username ?? this.farmer.account.id,
-          10
-        );
+        const title = utils.truncateAndPad(this.farmer.account.id, 10);
         const status = utils.truncateAndPad(response.status, 3);
         const method = utils.truncateAndPad(
           response.config.method.toUpperCase(),
@@ -140,12 +134,7 @@ class BaseFarmer {
       },
       (error) => {
         const url = error.config.url;
-        const title = utils.truncateAndPad(
-          app.displayAccountTitle
-            ? this.farmer.account.title
-            : this.farmer.account.user?.username ?? this.farmer.account.id,
-          10
-        );
+        const title = utils.truncateAndPad(this.farmer.account.id, 10);
         const status = utils.truncateAndPad(error.response?.status ?? "ERR", 3);
         const method = utils.truncateAndPad(
           error.config.method.toUpperCase(),
