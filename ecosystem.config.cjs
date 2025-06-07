@@ -2,7 +2,9 @@ module.exports = {
   apps: [
     {
       name: "purrfect-fly",
-      script: "./server.js",
+      script: "npm",
+      args: "start",
+      interpreter: "none",
       cwd: __dirname,
     },
   ],
