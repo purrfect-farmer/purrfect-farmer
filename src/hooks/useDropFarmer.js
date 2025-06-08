@@ -76,9 +76,6 @@ export default function useDropFarmer() {
   /** Has Started Manually */
   const [hasStartedManually, setHasStartedManually] = useState(false);
 
-  /** Has Initialized? */
-  const hasInitialized = hasConfiguredApi && Boolean(telegramWebApp);
-
   /** Init Reset Count */
   const [initResetCount, setInitResetCount] = useState(0);
 
@@ -117,6 +114,9 @@ export default function useDropFarmer() {
 
   /** IsMutating */
   const isMutating = useIsMutating({ mutationKey: [id] }, queryClient);
+
+  /** Has Initialized? */
+  const hasInitialized = hasConfiguredApi && Boolean(telegramWebApp);
 
   /** Auth Chrome Storage Key */
   const authChromeStorageKey = useChromeStorageKey(`farmer-auth:${id}`);
@@ -389,17 +389,21 @@ export default function useDropFarmer() {
 
   /** Configure API  */
   useLayoutEffect(() => {
-    if (configureApi) {
-      configureApi(api);
+    if (configureApi && telegramWebApp) {
+      const cleanup = configureApi(api, telegramWebApp);
       setHasConfiguredApi(true);
+
+      return cleanup;
     }
-  }, [api, configureApi, setHasConfiguredApi]);
+  }, [api, configureApi, telegramWebApp, setHasConfiguredApi]);
 
   /** Handle Auth Data  */
   useLayoutEffect(() => {
     if (authQuery.isSuccess && configureAuthHeaders) {
-      configureAuthHeaders(api, telegramWebApp, authQuery.data);
+      const cleanup = configureAuthHeaders(api, telegramWebApp, authQuery.data);
       setHasConfiguredAuthHeaders(true);
+
+      return cleanup;
     }
   }, [
     api,
