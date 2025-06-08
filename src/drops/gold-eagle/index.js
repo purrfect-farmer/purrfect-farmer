@@ -1,9 +1,7 @@
 import { createFarmer } from "@/lib/createFarmer";
 import { createLazyElement } from "@/lib/createLazyElement";
-import { customLogger } from "@/lib/utils";
 
 import icon from "./assets/images/icon.png?format=webp&w=80&h=80";
-import { getGoldEagleGame } from "./lib/utils";
 
 export default createFarmer({
   id: "gold-eagle",
@@ -47,20 +45,6 @@ export default createFarmer({
     ] = `Bearer ${data["access_token"]}`;
   },
 
-  /** Fetch Meta */
-  async fetchMeta() {
-    const game = await getGoldEagleGame();
-
-    /** Log it */
-    customLogger("GOLD-EAGLE", game);
-
-    /** Throw Error */
-    if (!game) {
-      throw new Error("Unable to setup Gold Eagle");
-    }
-
-    return game;
-  },
   tasks: {
     ["refill"]: true,
   },
