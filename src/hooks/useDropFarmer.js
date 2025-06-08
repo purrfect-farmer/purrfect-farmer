@@ -42,6 +42,7 @@ export default function useDropFarmer() {
     cacheAuth = true,
     cacheTelegramWebApp = true,
     telegramLink,
+    configureApi,
     configureAuthHeaders,
     fetchAuth,
     fetchMeta,
@@ -62,6 +63,11 @@ export default function useDropFarmer() {
   /** Should Sync To Cloud */
   const shouldSyncToCloud = settings.enableCloud && syncToCloud;
 
+  /** Has Configured Api? */
+  const [hasConfiguredApi, setHasConfiguredApi] = useState(
+    typeof configureApi === "undefined"
+  );
+
   /** Has Configured Auth Headers? */
   const [hasConfiguredAuthHeaders, setHasConfiguredAuthHeaders] = useState(
     typeof configureAuthHeaders === "undefined"
@@ -69,6 +75,9 @@ export default function useDropFarmer() {
 
   /** Has Started Manually */
   const [hasStartedManually, setHasStartedManually] = useState(false);
+
+  /** Has Initialized? */
+  const hasInitialized = hasConfiguredApi && Boolean(telegramWebApp);
 
   /** Init Reset Count */
   const [initResetCount, setInitResetCount] = useState(0);
@@ -107,12 +116,7 @@ export default function useDropFarmer() {
   const cloudSyncMutation = useCloudSyncMutation(id, queryClient);
 
   /** IsMutating */
-  const isMutating = useIsMutating(
-    {
-      mutationKey: [id],
-    },
-    queryClient
-  );
+  const isMutating = useIsMutating({ mutationKey: [id] }, queryClient);
 
   /** Auth Chrome Storage Key */
   const authChromeStorageKey = useChromeStorageKey(`farmer-auth:${id}`);
@@ -150,7 +154,7 @@ export default function useDropFarmer() {
       refetchInterval: false,
       retry: false,
       ...authQueryOptions,
-      enabled: typeof fetchAuth !== "undefined" && Boolean(telegramWebApp),
+      enabled: typeof fetchAuth !== "undefined" && hasInitialized,
       queryKey: authQueryKey,
       queryFn: authQueryFn,
     },
@@ -161,7 +165,7 @@ export default function useDropFarmer() {
   const hasPreparedAuth =
     typeof fetchAuth !== "undefined"
       ? authQuery.isSuccess && hasConfiguredAuthHeaders
-      : Boolean(telegramWebApp);
+      : hasInitialized;
 
   /** Meta Query Key */
   const metaQueryKey = useMemo(
@@ -382,6 +386,14 @@ export default function useDropFarmer() {
       api.interceptors.response.eject(interceptor);
     };
   }, [api, clearApiQueue, reset]);
+
+  /** Configure API  */
+  useLayoutEffect(() => {
+    if (configureApi) {
+      configureApi(api);
+      setHasConfiguredApi(true);
+    }
+  }, [api, configureApi, setHasConfiguredApi]);
 
   /** Handle Auth Data  */
   useLayoutEffect(() => {
