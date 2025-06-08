@@ -1,4 +1,5 @@
 const app = {
+  name: process.env.APP_NAME,
   farmerBotId: process.env.FARMER_BOT_ID ?? "7592929753",
   farmerBotToken: process.env.FARMER_BOT_TOKEN ?? "",
   farmerBotLink:
@@ -31,6 +32,12 @@ const app = {
     apiKey: process.env.PROXY_API_KEY ?? "",
     page: process.env.PROXY_PAGE ?? 1,
     pageSize: process.env.PROXY_PAGE_SIZE ?? 100,
+  },
+
+  seeker: {
+    enabled: process.env.SEEKER_ENABLED === "true",
+    server: process.env.SEEKER_SERVER ?? "",
+    key: process.env.SEEKER_KEY ?? "",
   },
 
   drops: [
