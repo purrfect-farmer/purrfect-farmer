@@ -5,7 +5,7 @@ module.exports = {
     {
       name: process.env.PM2_APP_NAME ?? "purrfect-fly",
       script: "pnpm",
-      args: "start",
+      args: "start --options",
       interpreter: "none",
       cwd: __dirname,
       env: {

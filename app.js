@@ -6,7 +6,9 @@ const path = require("node:path");
 const AutoLoad = require("@fastify/autoload");
 
 // Pass --options via CLI arguments in command to enable these options.
-const options = {};
+const options = {
+  logger: process.env.NODE_ENV !== "production",
+};
 
 module.exports = async function (fastify, opts) {
   // Place here your custom code!
