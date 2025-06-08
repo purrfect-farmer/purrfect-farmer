@@ -5,9 +5,7 @@ module.exports = class HrumFarmer extends BaseFarmer {
   static id = "hrum";
   static origin = "https://game.hrum.me";
 
-  constructor(config, farmer) {
-    super(config, farmer);
-
+  configureApi() {
     this.api.interceptors.request.use((config) => {
       config.data = { data: config.data };
       config.headers = {

@@ -5,8 +5,7 @@ module.exports = class TsubasaFarmer extends BaseFarmer {
   static id = "tsubasa";
   static origin = "https://web.app.ton.tsubasa-rivals.com";
 
-  constructor(config, farmer) {
-    super(config, farmer);
+  configureApi() {
     this.api.interceptors.response.use((response) => {
       if (response.data["master_hash"]) {
         this.masterHash = response.data["master_hash"];

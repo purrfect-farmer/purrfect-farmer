@@ -150,6 +150,11 @@ class BaseFarmer {
         return Promise.reject(error);
       }
     );
+
+    /** Register extra interceptors */
+    if (this.configureApi) {
+      this.configureApi();
+    }
   }
 
   /** Validate Telegram Task */
