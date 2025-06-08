@@ -20,13 +20,32 @@ export default createFarmer({
   cacheAuth: false,
 
   /**
+   * Configure API
+   * @param {import("axios").AxiosInstance} api
+   */
+  configureApi(api, telegramWebApp) {
+    const interceptor = api.interceptors.request.use((config) => {
+      config.data = { data: config.data };
+      config.headers = {
+        ...config.headers,
+        ...getHrumHeaders(config.data, telegramWebApp.initDataUnsafe.hash),
+      };
+
+      return config;
+    });
+
+    return () => api.interceptors.request.eject(interceptor);
+  },
+
+  /**
    * Fetch Auth
    * @param {import("axios").AxiosInstance} api
    */
   fetchAuth(api, telegramWebApp) {
     const { platform, initData, initDataUnsafe } = telegramWebApp;
-    const body = {
-      data: {
+
+    return api
+      .post("https://api.hrum.me/telegram/auth", {
         platform,
         initData,
         startParam: initDataUnsafe["start_param"] ?? "",
@@ -34,11 +53,6 @@ export default createFarmer({
         chatId: initDataUnsafe["chat"]?.["id"] ?? "",
         chatType: initDataUnsafe["chat_type"] ?? "",
         chatInstance: initDataUnsafe["chat_instance"] ?? "",
-      },
-    };
-    return api
-      .post("https://api.hrum.me/telegram/auth", body, {
-        headers: getHrumHeaders(body),
       })
       .then((res) => res.data.data);
   },

@@ -22,6 +22,37 @@ export default createFarmer({
   cacheAuth: false,
 
   /**
+   * Configure API
+   * @param {import("axios").AxiosInstance} api
+   */
+  configureApi(api, telegramWebApp) {
+    let masterHash;
+    let playerId = telegramWebApp.initDataUnsafe.user.id;
+
+    const requestInterceptor = api.interceptors.request.use((config) => {
+      config.headers = {
+        ...config.headers,
+        "X-Masterhash": masterHash,
+        "X-Player-Id": playerId,
+      };
+
+      return config;
+    });
+
+    const responseInterceptor = api.interceptors.response.use((response) => {
+      if (response.data["master_hash"]) {
+        masterHash = response.data["master_hash"];
+      }
+      return response;
+    });
+
+    return () => {
+      api.interceptors.request.eject(requestInterceptor);
+      api.interceptors.response.eject(responseInterceptor);
+    };
+  },
+
+  /**
    * @param {import("axios").AxiosInstance} api
    */
   fetchAuth(api, telegramWebApp) {

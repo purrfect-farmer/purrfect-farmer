@@ -2,10 +2,8 @@ import useFarmerContext from "@/hooks/useFarmerContext";
 import { useCallback } from "react";
 import { useQueries } from "@tanstack/react-query";
 
-import { getHrumHeaders } from "../lib/utils";
-
 export default function useHrumDataQueries() {
-  const { api, telegramWebApp } = useFarmerContext();
+  const { api } = useFarmerContext();
 
   const combine = useCallback((results) => {
     return {
@@ -23,36 +21,20 @@ export default function useHrumDataQueries() {
       {
         queryKey: ["hrum", "all"],
         queryFn: ({ signal }) => {
-          const body = {
-            data: {},
-          };
-
           return api
-            .post("https://api.hrum.me/user/data/all", body, {
-              signal,
-              headers: getHrumHeaders(
-                body,
-                telegramWebApp.initDataUnsafe["hash"]
-              ),
-            })
+            .post("https://api.hrum.me/user/data/all", {}, { signal })
             .then((res) => res.data.data);
         },
       },
       {
         queryKey: ["hrum", "after"],
         queryFn: ({ signal }) => {
-          const body = {
-            data: { lang: "en" },
-          };
-
           return api
-            .post("https://api.hrum.me/user/data/after", body, {
-              signal,
-              headers: getHrumHeaders(
-                body,
-                telegramWebApp.initDataUnsafe["hash"]
-              ),
-            })
+            .post(
+              "https://api.hrum.me/user/data/after",
+              { lang: "en" },
+              { signal }
+            )
             .then((res) => res.data.data);
         },
       },

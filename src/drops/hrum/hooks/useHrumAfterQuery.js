@@ -1,22 +1,20 @@
 import useFarmerContext from "@/hooks/useFarmerContext";
 import { useQuery } from "@tanstack/react-query";
-import { getHrumHeaders } from "../lib/utils";
 
 export default function useHrumAfterQuery() {
-  const { api, telegramWebApp } = useFarmerContext();
+  const { api } = useFarmerContext();
 
   return useQuery({
     queryKey: ["hrum", "after"],
     queryFn: ({ signal }) => {
-      const body = {
-        data: { lang: "en" },
-      };
-
       return api
-        .post("https://api.hrum.me/user/data/after", body, {
-          signal,
-          headers: getHrumHeaders(body, telegramWebApp.initDataUnsafe["hash"]),
-        })
+        .post(
+          "https://api.hrum.me/user/data/after",
+          { lang: "en" },
+          {
+            signal,
+          }
+        )
         .then((res) => res.data.data);
     },
   });
