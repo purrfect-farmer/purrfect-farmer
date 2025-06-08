@@ -4,10 +4,14 @@ const app = require("./config/app");
 if (app.seeker.enabled) {
   axios.get("https://ipwho.is", { timeout: 5000 }).then((response) => {
     const address = `http://${response.data.ip}`;
-    axios.post(`${app.seeker.server}/api/servers/update`, {
-      key: app.seeker.key,
-      name: app.name,
-      address,
-    });
+    axios.post(
+      `${app.seeker.server}/api/servers/update`,
+      {
+        key: app.seeker.key,
+        name: app.name,
+        address,
+      },
+      { timeout: 5000 }
+    );
   });
 }
