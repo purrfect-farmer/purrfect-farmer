@@ -1,31 +1,30 @@
 const app = {
   name: process.env.APP_NAME,
-  farmerBotId: process.env.FARMER_BOT_ID ?? "7592929753",
-  farmerBotToken: process.env.FARMER_BOT_TOKEN ?? "",
-  farmerBotLink:
-    process.env.FARMER_BOT_LINK ??
-    "https://t.me/purrfect_little_bot/app?startapp=purrfect",
-  farmerChannelLink:
-    process.env.FARMER_CHANNEL_LINK ?? "https://t.me/purrfect_community",
+  farmer: {
+    botId: process.env.FARMER_BOT_ID ?? "7592929753",
+    botToken: process.env.FARMER_BOT_TOKEN ?? "",
+    botLink:
+      process.env.FARMER_BOT_LINK ??
+      "https://t.me/purrfect_little_bot/app?startapp=purrfect",
+    channelLink:
+      process.env.FARMER_CHANNEL_LINK ?? "https://t.me/purrfect_community",
+    groupLink:
+      process.env.FARMER_GROUP_LINK ?? "https://t.me/purrfect_community_chat",
+  },
 
   /** Telegram Public Key*/
   telegramPublicKey:
     process.env.TELEGRAM_PUBLIC_KEY ??
     "e7bf03a2fa4602af4580703d88dda5bb59f32ed8b02a56c187fe7d34caed242d",
 
-  chatId: process.env.TELEGRAM_CHAT_ID ?? "",
-  announcementThreadId: process.env.TELEGRAM_ANNOUNCEMENT_THREAD_ID ?? "",
-  errorThreadId: process.env.TELEGRAM_ERROR_THREAD_ID ?? "",
+  chat: {
+    id: process.env.TELEGRAM_CHAT_ID ?? "",
+    announcement: process.env.TELEGRAM_ANNOUNCEMENT_THREAD_ID ?? "",
+    error: process.env.TELEGRAM_ERROR_THREAD_ID ?? "",
+  },
 
   displayAccountTitle: process.env.DISPLAY_ACCOUNT_TITLE === "true",
   disableTelegramMessages: process.env.DISABLE_TELEGRAM_MESSAGES === "true",
-
-  logApiCalls: process.env.LOG_API_CALLS === "true",
-
-  payments: {
-    enabled: process.env.PAYMENTS_ENABLED === "true",
-    amount: process.env.PAYMENTS_AMOUNT ?? 1550,
-  },
 
   proxy: {
     enabled: process.env.PROXY_ENABLED === "true",
@@ -99,10 +98,10 @@ const app = {
       telegramLink:
         process.env.FARMER_TSUBASA_LINK ??
         "https://t.me/TsubasaRivalsBot/start?startapp=inviter_id-1147265290",
-      interval: "*/30 * * * *",
       options: {
         upgradeCards: process.env.FARMER_TSUBASA_UPGRADE_CARDS !== "false",
       },
+      interval: "*/30 * * * *",
     },
     {
       id: "matchquest",
