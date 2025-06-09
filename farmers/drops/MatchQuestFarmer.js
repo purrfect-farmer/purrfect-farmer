@@ -3,6 +3,7 @@ const utils = require("../../lib/utils");
 
 module.exports = class MatchQuestFarmer extends BaseFarmer {
   static id = "matchquest";
+  static title = "🌾 MatchQuest Farmer";
   static origin = "https://tgapp.matchain.io";
 
   async setAuth() {

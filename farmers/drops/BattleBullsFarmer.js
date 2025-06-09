@@ -3,6 +3,7 @@ const utils = require("../../lib/utils");
 
 module.exports = class BattleBullsFarmer extends BaseFarmer {
   static id = "battle-bulls";
+  static title = "🐂 Battle Bulls Farmer";
   static origin = "https://tg.battle-games.com";
   static shouldSetAuth = true;
 

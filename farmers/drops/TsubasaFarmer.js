@@ -3,6 +3,7 @@ const utils = require("../../lib/utils");
 
 module.exports = class TsubasaFarmer extends BaseFarmer {
   static id = "tsubasa";
+  static title = "⚽️ Tsubasa Farmer";
   static origin = "https://web.app.ton.tsubasa-rivals.com";
 
   configureApi() {

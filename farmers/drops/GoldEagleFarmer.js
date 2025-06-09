@@ -4,6 +4,7 @@ const bot = require("../../lib/bot");
 
 module.exports = class GoldEagleFarmer extends BaseFarmer {
   static id = "gold-eagle";
+  static title = "🥇 Gold Eagle Farmer";
   static origin = "https://telegram.geagle.online";
 
   async setAuth() {

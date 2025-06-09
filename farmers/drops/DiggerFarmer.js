@@ -3,6 +3,7 @@ const utils = require("../../lib/utils");
 
 module.exports = class DiggerFarmer extends BaseFarmer {
   static id = "digger";
+  static title = "🏴‍☠️ Digger Farmer";
   static origin = "https://diggergame.app";
   static delay = 2;
   static shouldSetAuth = true;

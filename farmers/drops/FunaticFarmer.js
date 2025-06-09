@@ -3,6 +3,7 @@ const utils = require("../../lib/utils");
 
 module.exports = class FunaticFarmer extends BaseFarmer {
   static id = "funatic";
+  static title = "🤡 Funatic Farmer";
   static origin = "https://clicker.funtico.com";
   static delay = 1;
 

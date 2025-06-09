@@ -3,6 +3,7 @@ const utils = require("../../lib/utils");
 
 module.exports = class HrumFarmer extends BaseFarmer {
   static id = "hrum";
+  static title = "🥠 Hrum Farmer";
   static origin = "https://game.hrum.me";
 
   configureApi() {

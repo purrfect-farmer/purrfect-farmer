@@ -3,6 +3,7 @@ const utils = require("../../lib/utils");
 
 module.exports = class MetaLottFarmer extends BaseFarmer {
   static id = "meta-lott";
+  static title = "🕹️ Meta Lott Farmer";
   static origin = "https://www.metalott.com";
   static shouldSetAuth = true;
 

@@ -282,10 +282,12 @@ class BaseFarmer {
 
       /** Send Farming Complete Message */
       await bot.sendFarmingCompleteMessage({
-        config,
+        id: this.id,
+        title: this.title,
+        telegramLink: config.telegramLink,
         farmers: await db.Farmer.findAllWithActiveSubscription({
           where: {
-            farmer: config.id,
+            farmer: this.id,
           },
         }),
         startDate,

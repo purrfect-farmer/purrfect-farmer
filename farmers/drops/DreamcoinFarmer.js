@@ -3,6 +3,7 @@ const utils = require("../../lib/utils");
 
 module.exports = class DreamcoinFarmer extends BaseFarmer {
   static id = "dreamcoin";
+  static title = "🔋 DreamCoin Farmer";
   static origin = "https://dreamcoin.ai";
   static delay = 2;
 

@@ -3,6 +3,7 @@ const utils = require("../../lib/utils");
 
 module.exports = class WontonFarmer extends BaseFarmer {
   static id = "wonton";
+  static title = "👨‍🍳 Wonton Farmer";
   static origin = "https://www.wonton.restaurant";
   static delay = 5;
   static shouldSetAuth = true;

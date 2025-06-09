@@ -3,6 +3,7 @@ const utils = require("../../lib/utils");
 
 module.exports = class SpaceAdventureFarmer extends BaseFarmer {
   static id = "space-adventure";
+  static title = "🚀 Space Adventure Farmer";
   static origin = "https://space-adventure.online";
 
   /** Get Headers */
@@ -126,24 +127,26 @@ module.exports = class SpaceAdventureFarmer extends BaseFarmer {
 
     await this.completeVideoTasks(result);
     await this.upgradeLevel(result, boosts);
-    await this.watchAds();
+    await this.watchExtraAds();
   }
 
-  async watchAds() {
-    try {
-      for (let i = 0; i < 5; i++) {
-        await this.makeAdsRequest(
-          utils.randomItem([
-            "claim_coins",
-            "spin_roulete",
-            "tasks_reward",
-            "shop_free_shield",
-            "shop_free_immunity",
-            "shop_free_fuel",
-          ])
-        );
-      }
-    } catch {}
+  async watchExtraAds() {
+    if (this.config.options.watchExtraAds) {
+      try {
+        for (let i = 0; i < 5; i++) {
+          await this.makeAdsRequest(
+            utils.randomItem([
+              "claim_coins",
+              "spin_roulete",
+              "tasks_reward",
+              "shop_free_shield",
+              "shop_free_immunity",
+              "shop_free_fuel",
+            ])
+          );
+        }
+      } catch {}
+    }
   }
 
   async upgradeLevel(result, boosts) {
@@ -168,7 +171,8 @@ module.exports = class SpaceAdventureFarmer extends BaseFarmer {
 
     /** Available Boosts */
     const availableBoosts = levelBoosts.filter(
-      (item) => item["next_level"] && this.validateBoostNextLevel(item)
+      (item) =>
+        item["next_level"] && this.validateBoostNextLevel(item, balance, gems)
     );
 
     /** Upgradable Boosts */
