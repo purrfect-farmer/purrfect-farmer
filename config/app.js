@@ -19,8 +19,10 @@ const app = {
 
   chat: {
     id: process.env.TELEGRAM_CHAT_ID ?? "",
-    announcement: process.env.TELEGRAM_ANNOUNCEMENT_THREAD_ID ?? "",
-    error: process.env.TELEGRAM_ERROR_THREAD_ID ?? "",
+    threads: {
+      announcement: process.env.TELEGRAM_ANNOUNCEMENT_THREAD_ID ?? "",
+      error: process.env.TELEGRAM_ERROR_THREAD_ID ?? "",
+    },
   },
 
   displayAccountTitle: process.env.DISPLAY_ACCOUNT_TITLE === "true",
