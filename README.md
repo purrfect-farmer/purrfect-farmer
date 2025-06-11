@@ -83,6 +83,11 @@ micro .env
 pm2 start ecosystem.config.cjs
 ```
 
+##### Save PM2 Processes
+```bash
+pm2 save
+```
+
 ### Updating
 
 ##### Change PWD
@@ -94,7 +99,8 @@ cd ~/purrfect-fly
 ```bash
 git pull && \
 pnpm install && \
-pm2 reload ecosystem.config.cjs
+pm2 reload ecosystem.config.cjs && \
+pm2 save
 ```
 
 ### Nginx
