@@ -1,6 +1,6 @@
 /** Drops Status */
 const dropsStatus = {
-  ["voxel"]: true,
+  ["neubeat"]: true,
   ["meta-lott"]: true,
   ["frogster"]: true,
   ["space-adventure"]: true,
