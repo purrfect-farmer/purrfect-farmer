@@ -1,36 +1,35 @@
 require("dotenv/config");
 
-const { CronJob } = require("cron");
+const CronRunner = require("./lib/CronRunner");
+
 const app = require("./config/app");
 const farmers = require("./farmers");
 const expireSubscriptions = require("./cron/expireSubscriptions");
 const updateAccounts = require("./cron/updateAccounts");
 const updateProxies = require("./cron/updateProxies");
 
-/** Expire Subscriptions */
-new CronJob("0 0 * * *", expireSubscriptions, null, true);
+const runner = new CronRunner(app.cron.mode);
 
-/** Update Account User */
-new CronJob("*/20 * * * *", updateAccounts, null, true);
+// Register jobs
+runner.register("0 0 * * *", expireSubscriptions, "Expire Subscriptions");
+runner.register("*/20 * * * *", updateAccounts, "Update Accounts");
+runner.register("*/20 * * * *", updateProxies, "Update Proxies");
 
-/** Update Proxies */
-new CronJob("*/20 * * * *", updateProxies, null, true);
-
-/** Farmers */
+// Farmers
 app.drops
   .filter((item) => item.enabled)
   .forEach((item) => {
     const FarmerClass = farmers[item.id];
-
     if (!FarmerClass) {
-      console.warn(`No farmer class found for id "${item.id}"`);
+      console.warn(`⚠️ No farmer class found for "${item.id}"`);
       return;
     }
-
-    new CronJob(
+    runner.register(
       item.interval ?? "*/10 * * * *",
       () => FarmerClass.run(item),
-      null,
-      true
+      FarmerClass.title
     );
   });
+
+// Start Runner
+runner.start();

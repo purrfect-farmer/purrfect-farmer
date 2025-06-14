@@ -25,6 +25,10 @@ const app = {
     },
   },
 
+  cron: {
+    mode: process.env.CRON_MODE ?? "sequential",
+  },
+
   displayAccountTitle: process.env.DISPLAY_ACCOUNT_TITLE === "true",
   disableTelegramMessages: process.env.DISABLE_TELEGRAM_MESSAGES === "true",
 
