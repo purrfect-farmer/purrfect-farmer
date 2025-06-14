@@ -1,6 +1,6 @@
 "use strict";
 require("dotenv/config");
-require("./seeker");
+require("./startup");
 require("./cron");
 
 const path = require("node:path");

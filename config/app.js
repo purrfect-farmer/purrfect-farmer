@@ -29,6 +29,10 @@ const app = {
     mode: process.env.CRON_MODE ?? "sequential",
   },
 
+  startup: {
+    sendServerAddress: process.env.STARTUP_SEND_SERVER_ADDRESS !== "false",
+  },
+
   displayAccountTitle: process.env.DISPLAY_ACCOUNT_TITLE === "true",
   disableTelegramMessages: process.env.DISABLE_TELEGRAM_MESSAGES === "true",
 
