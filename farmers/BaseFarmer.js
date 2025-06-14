@@ -232,11 +232,11 @@ class BaseFarmer {
   }
 
   static log(msg, ...args) {
-    console.log(`[${this.name}] ${msg}`, ...args);
+    console.log(`[${this.title}] ${msg}`, ...args);
   }
 
   static error(msg, ...args) {
-    console.error(`[${this.name}] ${msg}`, ...args);
+    console.error(`[${this.title}] ${msg}`, ...args);
   }
 
   static async farm(config, farmer) {
