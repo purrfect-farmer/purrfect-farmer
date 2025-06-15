@@ -86,8 +86,7 @@ const BaseToolbarButton = styled.button`
   &:hover,
   &:focus,
   &.active {
-    background-color: oklch(0.78 0.16 64.67);
-    color: black;
+    background-color: #193cb8;
   }
 `;
 
