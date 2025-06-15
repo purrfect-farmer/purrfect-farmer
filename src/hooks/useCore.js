@@ -666,11 +666,7 @@ export default function useCore() {
           ...tab,
           component: createElement(TelegramWeb, {
             version,
-            hash: `#${
-              version === "k"
-                ? import.meta.env.VITE_APP_BOT_USERNAME
-                : import.meta.env.VITE_APP_BOT_CHAT_ID
-            }`,
+            tgaddr: import.meta.env.VITE_APP_BOT_MINI_APP,
           }),
           reloadedAt: Date.now(),
         },

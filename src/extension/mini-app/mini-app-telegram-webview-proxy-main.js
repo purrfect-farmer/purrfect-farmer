@@ -2,7 +2,7 @@ const getLocalStorageKey = () =>
   "__telegram_webview_proxy_" + window.Telegram.WebApp.initDataUnsafe.user.id;
 
 const getStorage = () =>
-  JSON.parse(localStorage.getItem(getLocalStorageKey())) || {};
+  JSON.parse(localStorage.getItem(getLocalStorageKey()) || "{}");
 
 const saveStorage = (data) =>
   localStorage.setItem(getLocalStorageKey(), JSON.stringify(data));

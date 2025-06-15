@@ -1,10 +1,8 @@
 import AccountContext from "@/contexts/AccountContext";
 import SharedContext from "@/contexts/SharedContext";
 import useChromeCookies from "@/hooks/useChromeCookies";
-import useFarmerHosts from "@/hooks/useFarmerHosts";
 import useNetRules from "@/hooks/useNetRules";
 import useSharedCore from "@/hooks/useSharedCore";
-import useTelegramWebAppEvents from "@/hooks/useTelegramWebAppEvents";
 import useWakeLock from "@/hooks/useWakeLock";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "react-hot-toast";
@@ -32,9 +30,6 @@ export default function Accounts() {
   const shared = useSharedCore();
   const { accounts } = shared;
 
-  /** Set Farmer Hosts */
-  useFarmerHosts();
-
   /** Use Net Rules */
   useNetRules();
 
@@ -43,9 +38,6 @@ export default function Accounts() {
 
   /** Acquire WakeLock */
   useWakeLock();
-
-  /** Use TelegramWebApp Events */
-  useTelegramWebAppEvents();
 
   return (
     <SharedContext.Provider value={shared}>

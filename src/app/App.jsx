@@ -14,6 +14,7 @@ import useWhiskerData from "@/hooks/useWhiskerData";
 import { memo } from "react";
 
 import Onboarding from "./Onboarding";
+import useTelegramWebAppEvents from "@/hooks/useTelegramWebAppEvents";
 
 function App() {
   const app = useApp();
@@ -37,6 +38,9 @@ function App() {
 
   /** Apply Theme */
   useTheme(theme, account.active);
+
+  /** Use TelegramWebApp Events */
+  useTelegramWebAppEvents();
 
   return (
     <AppContext.Provider value={app}>

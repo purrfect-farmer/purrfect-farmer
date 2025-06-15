@@ -3,13 +3,12 @@ import { memo } from "react";
 
 import Browser from "./Browser";
 
-export default memo(function TelegramWeb({ version, hash = "" }) {
+export default memo(function TelegramWeb({ version, tgaddr }) {
   const account = useAccountContext();
+  const search = new URLSearchParams({ account: account.index + 1 }).toString();
+  const hash = new URLSearchParams({ tgaddr }).toString();
+
   return (
-    <Browser
-      url={`https://web.telegram.org/${version}?account=${
-        account.index + 1
-      }${hash}`}
-    />
+    <Browser url={`https://web.telegram.org/${version}?${search}#?${hash}`} />
   );
 });
