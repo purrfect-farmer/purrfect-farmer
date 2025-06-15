@@ -71,14 +71,17 @@ const BaseToolbarButton = styled.button`
   color: white;
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 8px;
   border-radius: 12px;
   padding: 10px;
   font-size: 12px;
   border: 0px;
   outline: 0px;
-  cursor: pointer;
   box-sizing: border-box;
+  font-weight: bold;
+  text-align: center;
+  cursor: pointer;
 
   &:hover,
   &:focus,
