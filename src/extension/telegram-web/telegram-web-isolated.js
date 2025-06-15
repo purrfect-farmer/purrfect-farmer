@@ -442,6 +442,10 @@ if (location.host === "web.telegram.org") {
 
     switch (eventType) {
       case "web_app_request_viewport":
+        /** Stop Propagation */
+        ev.stopImmediatePropagation();
+
+        /** Return Mocked Height */
         ev.source.postMessage(
           JSON.stringify({
             eventType: "viewport_changed",
