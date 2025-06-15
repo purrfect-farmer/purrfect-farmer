@@ -55,9 +55,7 @@ export default memo(function TabContent({ tab }) {
           >
             <img
               src={
-                farmerMode === "session" &&
-                tab.embedWebPage &&
-                settings.enableInAppBrowser
+                farmerMode === "session" && settings.enableInAppBrowser
                   ? BrowserIcon
                   : preferredTelegramWebVersion === "k"
                   ? TelegramWebKIcon
