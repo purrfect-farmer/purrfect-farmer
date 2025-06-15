@@ -1,11 +1,12 @@
 import "./bridge/bridge-main";
 import "./mini-app/mini-app-telegram-webview-proxy-main";
-import { decryptData, encryptData } from "./content-script-utils";
 
 import { extractInitDataUnsafe } from "@/lib/utils";
 import { retrieveRawLaunchParams } from "@telegram-apps/bridge";
 
-if (location.host !== "web.telegram.org") {
+import { decryptData, encryptData } from "./content-script-utils";
+
+if (!["web.telegram.org", "walletbot.me"].includes(location.host)) {
   /** Post Mini-App Status */
   const postMiniAppStatus = (status) => {
     window.postMessage({ isTelegramMiniApp: status }, "*");

@@ -1,14 +1,16 @@
 import "./bridge/bridge-isolated";
 import "./telegram-web/telegram-web-isolated";
+
 import { createListener, customLogger, getUserAgent, uuid } from "@/lib/utils";
+
 import {
-  encryptData,
   decryptData,
+  encryptData,
   watchTelegramMiniApp,
 } from "./content-script-utils";
 import { setupMiniAppToolbar } from "./mini-app/mini-app-toolbar-isolated";
 
-if (location.host !== "web.telegram.org") {
+if (!["web.telegram.org", "walletbot.me"].includes(location.host)) {
   /** Initial Location Href */
   const INITIAL_LOCATION = location.href;
 
