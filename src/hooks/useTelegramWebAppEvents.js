@@ -16,7 +16,7 @@ export default function useTelegramWebAppEvents(ref) {
      */
     const handler = (ev) => {
       if (ref.current && ev.source === ref.current.contentWindow) {
-        /** Stop Propagation */
+        /** Stop Immediate Propagation */
         ev.stopImmediatePropagation();
 
         if (typeof ev.data !== "string") return;

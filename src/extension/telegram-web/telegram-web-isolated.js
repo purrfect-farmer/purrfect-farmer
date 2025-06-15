@@ -442,7 +442,7 @@ if (location.host === "web.telegram.org") {
 
     switch (eventType) {
       case "web_app_request_viewport":
-        /** Stop Propagation */
+        /** Stop Immediate Propagation */
         ev.stopImmediatePropagation();
 
         /** Return Mocked Height */
