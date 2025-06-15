@@ -1,25 +1,22 @@
-import copy from "copy-to-clipboard";
-import toast from "react-hot-toast";
 import { customLogger } from "@/lib/utils";
-import { useEffect } from "react";
-import useApp from "./useApp";
+import { useLayoutEffect } from "react";
 
-export default function useTelegramWebAppEvents() {
-  const app = useApp();
-  const { account, settings, openTelegramLink } = app;
+import useAppContext from "./useAppContext";
 
-  useEffect(() => {
-    if (account.active) {
-      /**
-       * Handles event
-       * @param {MessageEvent} ev
-       */
-      const handler = (ev) => {
-        if (
-          ev.source !== window &&
-          typeof ev.data === "string" &&
-          ev.data.includes("eventType")
-        ) {
+export default function useTelegramWebAppEvents(ref) {
+  const app = useAppContext();
+
+  /** Open Telegram Link */
+  const { openTelegramLink } = app;
+
+  useLayoutEffect(() => {
+    /**
+     * Handles event
+     * @param {MessageEvent} ev
+     */
+    const handler = (ev) => {
+      if (ref.current && ev.source === ref.current.contentWindow) {
+        if (typeof ev.data === "string" && ev.data.includes("eventType")) {
           /** Parse Event */
           const event = JSON.parse(ev.data);
 
@@ -35,33 +32,22 @@ export default function useTelegramWebAppEvents() {
               window.open(eventData.url);
               break;
             case "web_app_open_tg_link":
-              const params = new URL(eventData["path_full"], "https://t.me")
-                .searchParams;
+              const finalUrl = new URL(eventData["path_full"], "https://t.me")
+                .href;
 
-              const url = params.get("url");
-
-              const finalUrl = /^(http|https):\/\//.test(url)
-                ? url
-                : "https://" + url;
-
-              /** Copy URL */
-              copy(finalUrl);
-
-              /** Toast */
-              toast.success("Copied URL!");
+              customLogger("TELEGRAM LINK", finalUrl);
 
               /** Open Link */
-              openTelegramLink(finalUrl);
-
+              openTelegramLink(finalUrl, { force: true });
               break;
           }
         }
-      };
+      }
+    };
 
-      /** Listen for Events */
-      window.addEventListener("message", handler, false);
+    /** Listen for Events */
+    window.addEventListener("message", handler);
 
-      return () => window.removeEventListener("message", handler, false);
-    }
-  }, [account.active, openTelegramLink]);
+    return () => window.removeEventListener("message", handler);
+  }, [openTelegramLink]);
 }

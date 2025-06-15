@@ -1,5 +1,7 @@
+import BrowserIcon from "@/assets/images/browser.png?w=80&format=webp";
 import axios from "axios";
 import defaultSettings from "@/core/defaultSettings";
+import md5 from "md5";
 import toast from "react-hot-toast";
 import tabs, { Browser, TelegramWeb, farmers } from "@/core/tabs";
 import { createElement } from "react";
@@ -674,9 +676,8 @@ export default function useCore() {
       );
     },
     [
-      tabs,
-      setActiveTab,
       pushTab,
+      setActiveTab,
       getFarmerBotPort,
       getMiniAppPorts,
       resetOpenFarmerBotHandler,
@@ -867,9 +868,9 @@ export default function useCore() {
               const webview = await telegramClient.ref.current.getWebview(url);
 
               await launchInAppBrowser({
-                id: browserId,
-                icon: browserIcon,
-                title: browserTitle,
+                id: browserId || md5(new URL(url).host),
+                icon: browserIcon || BrowserIcon,
+                title: browserTitle || "Web App",
                 url: webview.url,
                 embedInNewWindow,
               });
