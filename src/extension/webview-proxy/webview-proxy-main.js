@@ -67,5 +67,23 @@ if (location.host !== "web.telegram.org") {
       /** Receive Event */
       window.Telegram?.WebView?.receiveEvent?.(eventType, eventData);
     });
+
+    /** Mimic Telegram Webview Proxy */
+    window.TelegramWebviewProxy = {
+      postEvent(type, data) {
+        const eventType = type;
+        const eventData = typeof data !== "undefined" ? JSON.parse(data) : data;
+
+        customLogger("TELEGRAM WEBVIEW PROXY", eventType, eventData);
+
+        return window.parent.postMessage(
+          JSON.stringify({
+            eventType,
+            eventData,
+          }),
+          "*"
+        );
+      },
+    };
   }
 }
