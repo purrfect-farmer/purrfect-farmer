@@ -16,6 +16,9 @@ export default createFarmer({
     domains: ["frogster.app"],
   },
 
+  cacheAuth: false,
+  cacheTelegramWebApp: false,
+
   /**
    * Fetch Auth
    * @param {import("axios").AxiosInstance} api
