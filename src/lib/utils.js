@@ -215,46 +215,34 @@ export function scrollElementIntoView(element) {
 /**
  *
  * @param {chrome.runtime.Port} port
- * @param {object} message
- * @returns
- */
-export function connectPortMessage(port, message, callback, once = true) {
-  const id = uuid();
-  const respond = (response) => {
-    try {
-      if (response.id === id) {
-        if (once) {
-          port.onMessage?.removeListener(respond);
-        }
-        callback(response);
-      }
-    } catch (e) {
-      console.error(e);
-    }
-  };
-
-  /** Add Listener */
-  port.onMessage?.addListener(respond);
-
-  try {
-    port?.postMessage({
-      ...message,
-      id,
-      once,
-    });
-  } catch (e) {
-    console.error(e);
-  }
-}
-
-/**
- *
- * @param {chrome.runtime.Port} port
  * @param {object} data
  */
 export function postPortMessage(port, data) {
   return new Promise((resolve) => {
-    connectPortMessage(port, data, resolve);
+    const id = uuid();
+
+    /** Add Listener */
+    port.onMessage?.addListener(
+      createListener((listener, response) => {
+        try {
+          if (response.id === id) {
+            port.onMessage?.removeListener(listener);
+            resolve(response);
+          }
+        } catch (e) {
+          console.error(e);
+        }
+      })
+    );
+
+    try {
+      port?.postMessage({
+        ...data,
+        id,
+      });
+    } catch (e) {
+      console.error(e);
+    }
   });
 }
 

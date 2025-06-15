@@ -1,6 +1,6 @@
 import "./bridge/bridge-isolated";
 import "./telegram-web/telegram-web-isolated";
-import { getUserAgent, uuid } from "@/lib/utils";
+import { createListener, getUserAgent, uuid } from "@/lib/utils";
 import {
   decryptData,
   encryptData,
@@ -12,50 +12,39 @@ if (location.host !== "web.telegram.org") {
   /** Initial Location Href */
   const INITIAL_LOCATION = location.href;
 
-  watchTelegramMiniApp(initialize);
-
-  /** Connect window message */
-  function connectWindowMessage(data, callback, once = true) {
-    /** Generate ID */
-    const id = data.id || uuid();
-
-    /**
-     * @param {MessageEvent} ev
-     */
-    const respond = (ev) => {
-      try {
-        if (
-          ev.source === window &&
-          ev.data?.id === id &&
-          ev.data?.type === "response"
-        ) {
-          if (once) {
-            window.removeEventListener("message", respond);
-          }
-          callback(decryptData(ev.data.payload));
-        }
-      } catch (e) {
-        console.error(e);
-      }
-    };
-
-    window.addEventListener("message", respond);
-    window.postMessage(
-      {
-        id,
-        type: "request",
-        payload: encryptData(data),
-      },
-      "*"
-    );
-  }
-
   /** Post window message */
-  function postWindowMessage(data) {
+  const postWindowMessage = (data) => {
     return new Promise((resolve) => {
-      connectWindowMessage(data, resolve);
+      /** Generate ID */
+      const id = data.id || uuid();
+
+      window.addEventListener(
+        "message",
+        createListener((listener, ev) => {
+          try {
+            if (
+              ev.source === window &&
+              ev.data?.id === id &&
+              ev.data?.type === "response"
+            ) {
+              window.removeEventListener("message", listener);
+              resolve(decryptData(ev.data.payload));
+            }
+          } catch (e) {
+            console.error(e);
+          }
+        })
+      );
+      window.postMessage(
+        {
+          id,
+          type: "request",
+          payload: encryptData(data),
+        },
+        "*"
+      );
     });
-  }
+  };
 
   /** Open Telegram Link */
   async function openTelegramLink({ id, url }) {
@@ -128,21 +117,7 @@ if (location.host !== "web.telegram.org") {
       }
     };
 
-    /** Listen for Port Message */
-    const listenForPortMessage = (ev) => {
-      if (ev.source === window && ev.data?.type === "port") {
-        try {
-          port.postMessage({
-            action: `custom-message:${location.host}`,
-            data: decryptData(ev.data?.payload),
-          });
-        } catch (e) {
-          console.error(e);
-        }
-      }
-    };
-
-    /** Set Port */
+    /** Handle Port Messages */
     port.onMessage?.addListener(async (message) => {
       const { id, action, data } = message;
       const reply = (data) => {
@@ -175,33 +150,19 @@ if (location.host !== "web.telegram.org") {
             console.error(e);
           }
           break;
-
-        default:
-          connectWindowMessage(
-            message,
-            (response) => {
-              try {
-                return reply(response);
-              } catch (e) {
-                console.error(e);
-              }
-            },
-            false
-          );
-          break;
       }
     });
-
-    /** Update User-Agent */
-    updateUserAgent();
 
     /** Listen for TelegramWebApp */
     window.addEventListener("message", listenForTelegramWeb);
 
-    /** Listen for Port Message */
-    window.addEventListener("message", listenForPortMessage);
+    /** Update User-Agent */
+    updateUserAgent();
 
     /** Setup Mini-App Toolbar */
     setupMiniAppToolbar(port);
   }
+
+  /** Watch Mini-App */
+  watchTelegramMiniApp(initialize);
 }

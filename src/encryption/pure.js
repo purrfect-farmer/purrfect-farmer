@@ -3,5 +3,5 @@ export function encryptData(data) {
 }
 
 export function decryptData(data) {
-  return JSON.parse(data);
+  return typeof data !== "undefined" ? JSON.parse(data) : null;
 }
