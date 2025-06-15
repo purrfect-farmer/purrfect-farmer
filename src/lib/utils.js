@@ -17,6 +17,12 @@ export function uuid() {
   return uuidv4();
 }
 
+export function createListener(callback) {
+  const listener = (...args) => callback(listener, ...args);
+
+  return listener;
+}
+
 export function createMutexFunction(callback) {
   let locked = false;
   return function (...args) {

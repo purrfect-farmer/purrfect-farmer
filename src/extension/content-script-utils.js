@@ -1,31 +1,34 @@
-import { decryptData, encryptData } from "@/encryption/pure";
+import { createListener } from "@/lib/utils";
+export { encryptData, decryptData } from "@/encryption/pure";
 
-export function watchTelegramMiniApp(callback) {
+export const watchTelegramMiniApp = (callback) => {
   if (/tgWebAppPlatform=android/.test(location.href)) {
     return callback(true);
   }
 
-  /**
-   * @param {MessageEvent} ev
-   */
-  const handleTelegramMiniApp = (ev) => {
-    if (
-      ev.source === window &&
-      typeof ev.data === "object" &&
-      "isTelegramMiniApp" in ev.data
-    ) {
-      /** Remove Listener */
-      window.removeEventListener("message", handleTelegramMiniApp);
+  /** Listen for Mini-App */
+  window.addEventListener(
+    "message",
+    createListener(
+      /**
+       * @param {Function} listener
+       * @param {MessageEvent} ev
+       */
+      (listener, ev) => {
+        if (
+          ev.source === window &&
+          typeof ev.data === "object" &&
+          "isTelegramMiniApp" in ev.data
+        ) {
+          /** Remove Listener */
+          window.removeEventListener("message", listener);
 
-      /** Resolve */
-      if (ev.data.isTelegramMiniApp) {
-        callback(ev.data.isTelegramMiniApp);
+          /** Resolve */
+          if (ev.data.isTelegramMiniApp) {
+            callback(ev.data.isTelegramMiniApp);
+          }
+        }
       }
-    }
-  };
-
-  /** Listen for Bridge */
-  window.addEventListener("message", handleTelegramMiniApp);
-}
-
-export { encryptData, decryptData };
+    )
+  );
+};

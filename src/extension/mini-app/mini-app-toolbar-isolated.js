@@ -1,20 +1,13 @@
-import MiniAppToolbar from "@/app/MiniAppToolbar.jsx";
 import { createElement } from "react";
 import { createRoot } from "react-dom/client";
 import { setupChromeStorage } from "@/lib/chrome-storage";
-
-import { watchTelegramMiniApp } from "./content-script-utils";
+import MiniAppToolbar from "@/app/MiniAppToolbar.jsx";
 
 /** Initial Location */
 const INITIAL_HOST = location.host;
 const INITIAL_LOCATION = location.href;
 
-function initialize() {
-  /** Connect to Messaging */
-  const port = chrome.runtime.connect(chrome.runtime.id, {
-    name: `mini-app-toolbar:${location.host}`,
-  });
-
+function renderMiniAppToolbar(port) {
   /** Create Container */
   const container = document.createElement("div");
 
@@ -33,12 +26,12 @@ function initialize() {
   );
 }
 
-watchTelegramMiniApp(() => {
+export function setupMiniAppToolbar(port) {
   if (document.body) {
-    initialize();
+    renderMiniAppToolbar(port);
   } else {
-    window.addEventListener("DOMContentLoaded", () => {
-      initialize();
-    });
+    document.addEventListener("DOMContentLoaded", () =>
+      renderMiniAppToolbar(port)
+    );
   }
-});
+}

@@ -1,5 +1,3 @@
-const originalPostMessage = window.parent.postMessage.bind(window.parent);
-
 const getLocalStorageKey = () =>
   "__telegram_webview_proxy_" + window.Telegram.WebApp.initDataUnsafe.user.id;
 
@@ -15,26 +13,6 @@ function postEvent(eventType, eventData) {
   };
 
   switch (eventType) {
-    case "web_app_request_viewport":
-      return sendEvent("viewport_changed", {
-        width: window.innerWidth,
-        height: window.innerHeight,
-      });
-
-    case "web_app_request_safe_area":
-    case "web_app_request_content_safe_area":
-      return sendEvent(
-        eventType === "web_app_request_safe_area"
-          ? "safe_area_changed"
-          : "content_safe_area_changed",
-        {
-          top: 0,
-          botttom: 0,
-          left: 0,
-          right: 0,
-        }
-      );
-
     case "web_app_invoke_custom_method":
       const respond = (result) => {
         sendEvent("custom_method_invoked", {
@@ -77,7 +55,7 @@ function postEvent(eventType, eventData) {
       break;
   }
 
-  return originalPostMessage(
+  return window.parent.postMessage(
     JSON.stringify({ eventType: eventType, eventData: eventData }),
     "*"
   );
