@@ -17,7 +17,6 @@ export default createFarmer({
     domains: ["wonton.food", "wonton.restaurant"],
   },
   apiDelay: 3000,
-  embedWebPage: true,
 
   /**
    * Fetch Auth

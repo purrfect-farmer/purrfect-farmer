@@ -16,7 +16,7 @@ export default createFarmer({
     origin: "https://game.hrum.me",
     domains: ["hrum.me"],
   },
-  embedWebPage: true,
+
   cacheAuth: false,
 
   /**

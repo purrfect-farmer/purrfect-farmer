@@ -15,7 +15,6 @@ export default createFarmer({
     origin: "https://frogster.app",
     domains: ["frogster.app"],
   },
-  embedWebPage: true,
 
   /**
    * Fetch Auth

@@ -19,7 +19,6 @@ export default createFarmer({
   apiOptions: {
     withCredentials: true,
   },
-  embedWebPage: true,
 
   /**
    * Fetch Auth

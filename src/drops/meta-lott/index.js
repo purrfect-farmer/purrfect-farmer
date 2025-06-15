@@ -15,7 +15,7 @@ export default createFarmer({
     origin: "https://www.metalott.com",
     domains: ["www.metalott.com"],
   },
-  embedWebPage: true,
+
   cacheAuth: false,
 
   apiOptions: {

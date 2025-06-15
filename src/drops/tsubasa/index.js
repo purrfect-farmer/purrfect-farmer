@@ -18,7 +18,6 @@ export default createFarmer({
     domains: ["app.ton.tsubasa-rivals.com"],
   },
 
-  embedWebPage: true,
   cacheAuth: false,
 
   /**

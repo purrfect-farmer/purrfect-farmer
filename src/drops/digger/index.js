@@ -15,7 +15,7 @@ export default createFarmer({
     origin: "https://diggergame.app",
     domains: ["api.diggergame.app"],
   },
-  embedWebPage: true,
+
   cacheTelegramWebApp: false,
 
   /**

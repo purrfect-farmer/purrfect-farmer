@@ -15,7 +15,6 @@ export default createFarmer({
     origin: "https://telegram.geagle.online",
     domains: ["telegram.geagle.online", "gold-eagle-api.fly.dev"],
   },
-  embedWebPage: true,
 
   /**
    * Fetch Auth

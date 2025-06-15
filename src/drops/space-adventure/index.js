@@ -23,7 +23,7 @@ export default createFarmer({
       },
     ],
   },
-  embedWebPage: true,
+
   cacheAuth: false,
   cacheTelegramWebApp: false,
   apiOptions: {

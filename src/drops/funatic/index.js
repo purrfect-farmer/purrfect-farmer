@@ -16,7 +16,6 @@ export default createFarmer({
     origin: "https://clicker.funtico.com",
     domains: ["clicker.api.funtico.com", "*.funtico.com"],
   },
-  embedWebPage: true,
 
   /**
    * Fetch Auth

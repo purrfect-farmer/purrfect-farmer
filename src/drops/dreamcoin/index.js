@@ -16,7 +16,6 @@ export default createFarmer({
     domains: ["dreamcoin.ai"],
   },
   authHeaders: ["authorization", "baggage", "sentry-trace"],
-  embedWebPage: true,
 
   /**
    * Fetch Auth

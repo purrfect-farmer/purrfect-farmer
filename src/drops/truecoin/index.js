@@ -14,7 +14,7 @@ export default createFarmer({
     origin: "https://bot.true.world",
     domains: ["true.world"],
   },
-  embedWebPage: true,
+
   cacheAuth: false,
 
   /**

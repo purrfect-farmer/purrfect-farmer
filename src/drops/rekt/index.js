@@ -17,7 +17,7 @@ export default createFarmer({
     domains: ["rekt-mini-app.vercel.app"],
   },
   authHeaders: ["auth-token"],
-  embedWebPage: true,
+
   cacheAuth: false,
 
   /**

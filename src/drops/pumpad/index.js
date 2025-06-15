@@ -15,7 +15,7 @@ export default createFarmer({
     origin: "https://tg-home.pumpad.io",
     domains: ["pumpad.io"],
   },
-  embedWebPage: true,
+
   cacheAuth: false,
 
   /**

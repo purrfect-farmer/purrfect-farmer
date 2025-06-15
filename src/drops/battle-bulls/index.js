@@ -15,7 +15,7 @@ export default createFarmer({
     origin: "https://tg.battle-games.com",
     domains: ["battle-games.com"],
   },
-  embedWebPage: true,
+
   cacheAuth: false,
   syncToCloud: true,
 

@@ -16,7 +16,6 @@ export default createFarmer({
     origin: "https://app.slotcoin.app",
     domains: ["slotcoin.app"],
   },
-  embedWebPage: true,
 
   /**
    * Fetch Auth
