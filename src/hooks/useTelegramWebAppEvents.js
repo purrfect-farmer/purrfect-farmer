@@ -16,31 +16,46 @@ export default function useTelegramWebAppEvents(ref) {
      */
     const handler = (ev) => {
       if (ref.current && ev.source === ref.current.contentWindow) {
-        if (typeof ev.data === "string" && ev.data.includes("eventType")) {
-          /** Parse Event */
-          const event = JSON.parse(ev.data);
+        if (typeof ev.data !== "string") return;
 
-          /** Log Event */
-          customLogger("TELEGRAM WEB APP EVENT", event);
+        let event;
+        try {
+          event = JSON.parse(ev.data);
+        } catch (e) {
+          return;
+        }
 
-          /** Destructure Event */
-          const { eventType, eventData } = event;
+        const { eventType, eventData } = event || {};
+        if (!eventType) return;
 
-          /** Handle Event */
-          switch (eventType) {
-            case "web_app_open_link":
-              window.open(eventData.url);
-              break;
-            case "web_app_open_tg_link":
-              const finalUrl = new URL(eventData["path_full"], "https://t.me")
-                .href;
+        /** Handle Event */
+        switch (eventType) {
+          case "web_app_request_viewport":
+            ev.source.postMessage(
+              JSON.stringify({
+                eventType: "viewport_changed",
+                eventData: {
+                  height: 600,
+                  is_state_stable: false,
+                  is_expanded: true,
+                },
+              }),
+              "*"
+            );
+            break;
 
-              customLogger("TELEGRAM LINK", finalUrl);
+          case "web_app_open_link":
+            window.open(eventData.url);
+            break;
+          case "web_app_open_tg_link":
+            const finalUrl = new URL(eventData["path_full"], "https://t.me")
+              .href;
 
-              /** Open Link */
-              openTelegramLink(finalUrl, { force: true });
-              break;
-          }
+            customLogger("TELEGRAM LINK", finalUrl);
+
+            /** Open Link */
+            openTelegramLink(finalUrl, { force: true });
+            break;
         }
       }
     };

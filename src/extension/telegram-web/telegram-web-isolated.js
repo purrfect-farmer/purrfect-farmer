@@ -426,6 +426,37 @@ if (location.host === "web.telegram.org") {
     }
   });
 
+  /** Handle Viewport */
+  window.addEventListener("message", (ev) => {
+    if (typeof ev.data !== "string") return;
+
+    let event;
+    try {
+      event = JSON.parse(ev.data);
+    } catch (e) {
+      return;
+    }
+
+    const { eventType } = event || {};
+    if (!eventType) return;
+
+    switch (eventType) {
+      case "web_app_request_viewport":
+        ev.source.postMessage(
+          JSON.stringify({
+            eventType: "viewport_changed",
+            eventData: {
+              height: 600,
+              is_state_stable: false,
+              is_expanded: true,
+            },
+          }),
+          "*"
+        );
+        break;
+    }
+  });
+
   /** Observe Page Elements */
   observePageElements();
 }
