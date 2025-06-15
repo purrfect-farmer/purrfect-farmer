@@ -28,6 +28,7 @@
     "@paystack/inline-js": "^2.22.6",
     "@tailwindcss/vite": "^4.1.10",
     "@tanstack/react-query": "^5.80.7",
+    "@telegram-apps/bridge": "^2.8.3",
     "@vite-pwa/assets-generator": "^1.0.0",
     "axios": "^1.9.0",
     "buffer": "^6.0.3",

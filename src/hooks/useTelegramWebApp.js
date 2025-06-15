@@ -57,7 +57,7 @@ export default function useTelegramWebApp({
           setPort(port);
         },
         [`set-telegram-web-app:${host}`]: (message, port) => {
-          if (telegramWebApp === null) {
+          if (!telegramWebApp) {
             configureTelegramWebApp(message, port);
           }
         },
@@ -80,7 +80,7 @@ export default function useTelegramWebApp({
 
   /** Get Telegram WebApp from Storage, Session or Bot */
   useEffect(() => {
-    if (telegramWebApp !== null) {
+    if (telegramWebApp) {
       return;
     }
 

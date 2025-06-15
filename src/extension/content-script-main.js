@@ -2,6 +2,9 @@ import "./bridge/bridge-main";
 import "./mini-app/mini-app-telegram-webview-proxy-main";
 import { decryptData, encryptData } from "./content-script-utils";
 
+import { extractInitDataUnsafe } from "@/lib/utils";
+import { retrieveRawLaunchParams } from "@telegram-apps/bridge";
+
 if (location.host !== "web.telegram.org") {
   /** Post Mini-App Status */
   const postMiniAppStatus = (status) => {
@@ -10,17 +13,18 @@ if (location.host !== "web.telegram.org") {
 
   /** Get TelegramWebApp */
   const getTelegramWebApp = () => {
-    if (window.Telegram?.WebApp) {
-      const { initData, initDataUnsafe, platform, version } =
-        window.Telegram?.WebApp;
+    const params = new URLSearchParams(retrieveRawLaunchParams());
+    const platform = params.get("tgWebAppPlatform");
+    const version = params.get("tgWebAppVersion");
+    const initData = params.get("tgWebAppData");
+    const initDataUnsafe = extractInitDataUnsafe(initData);
 
-      return {
-        initData,
-        initDataUnsafe,
-        platform,
-        version,
-      };
-    }
+    return {
+      initData,
+      initDataUnsafe,
+      platform,
+      version,
+    };
   };
 
   /** Dispatch TelegramWebApp */
@@ -47,7 +51,11 @@ if (location.host !== "web.telegram.org") {
     /** Handle Messages */
     window.addEventListener("message", (ev) => {
       try {
-        if (ev.source === window && ev.data?.payload) {
+        if (
+          ev.source === window &&
+          ev.data?.type === "request" &&
+          ev.data?.payload
+        ) {
           const { id, payload } = ev.data;
           const { action, data } = decryptData(payload);
           const reply = (data) => {
@@ -100,16 +108,28 @@ if (location.host !== "web.telegram.org") {
       );
       location.reload();
     } else {
+      /** Post Status */
       postMiniAppStatus(true);
+
+      /** Initialize */
       initialize();
+
+      /** Dispatch Web-App */
       document.addEventListener("DOMContentLoaded", dispatchTelegramWebApp);
     }
   } else {
     document.addEventListener("DOMContentLoaded", () => {
       if (typeof window.Telegram !== "undefined") {
+        /** Post Status */
         postMiniAppStatus(true);
+
+        /** Initialize */
         initialize();
+
+        /** Dispatch Web-App */
+        dispatchTelegramWebApp();
       } else {
+        /** Post Status */
         postMiniAppStatus(false);
       }
     });

@@ -1,9 +1,9 @@
 import "./bridge/bridge-isolated";
 import "./telegram-web/telegram-web-isolated";
-import { createListener, getUserAgent, uuid } from "@/lib/utils";
+import { createListener, customLogger, getUserAgent, uuid } from "@/lib/utils";
 import {
-  decryptData,
   encryptData,
+  decryptData,
   watchTelegramMiniApp,
 } from "./content-script-utils";
 import { setupMiniAppToolbar } from "./mini-app/mini-app-toolbar-isolated";
@@ -113,7 +113,11 @@ if (location.host !== "web.telegram.org") {
     const listenForTelegramWeb = (ev) => {
       if (ev.source === window && ev.data?.type === "init") {
         window.removeEventListener("message", listenForTelegramWeb);
-        dispatchTelegramWebApp(decryptData(ev.data?.payload));
+
+        const telegramWebApp = decryptData(ev.data?.payload);
+
+        customLogger(`TELEGRAM WEB APP: ${location.host}`, telegramWebApp);
+        dispatchTelegramWebApp(telegramWebApp);
       }
     };
 

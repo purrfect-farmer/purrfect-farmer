@@ -421,14 +421,18 @@ export function extractTgWebAppData(url) {
 
 /** Extract InitDataUnsafe */
 export function extractInitDataUnsafe(initData) {
-  const parsedInitData = Object.fromEntries(
-    new URLSearchParams(initData).entries()
-  );
+  const params = new URLSearchParams(initData);
+  const data = {};
 
-  return {
-    ...parsedInitData,
-    user: JSON.parse(parsedInitData.user),
-  };
+  for (const [key, value] of params.entries()) {
+    try {
+      data[key] = JSON.parse(value);
+    } catch {
+      data[key] = value;
+    }
+  }
+
+  return data;
 }
 
 export function matchesAccountSearch(search, account) {

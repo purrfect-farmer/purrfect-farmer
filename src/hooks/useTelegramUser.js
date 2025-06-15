@@ -65,7 +65,7 @@ export default function useTelegramUser(core) {
   useEffect(() => {
     if (
       farmerMode === "session" &&
-      (telegramUser === null || telegramUser.shouldUpdate)
+      (!telegramUser || telegramUser.shouldUpdate)
     ) {
       updateTelegramUser(telegramUser?.shouldUpdate);
     }
