@@ -10,7 +10,7 @@ import {
 } from "./content-script-utils";
 import { setupMiniAppToolbar } from "./mini-app/mini-app-toolbar-isolated";
 
-if (!["web.telegram.org", "walletbot.me"].includes(location.host)) {
+if (location.host !== "web.telegram.org") {
   /** Initial Location Href */
   const INITIAL_LOCATION = location.href;
 

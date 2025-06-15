@@ -1,12 +1,12 @@
 import "./bridge/bridge-main";
-import "./mini-app/mini-app-telegram-webview-proxy-main";
+import "./webview-proxy/webview-proxy-main";
 
 import { extractInitDataUnsafe } from "@/lib/utils";
 import { retrieveRawLaunchParams } from "@telegram-apps/bridge";
 
 import { decryptData, encryptData } from "./content-script-utils";
 
-if (!["web.telegram.org", "walletbot.me"].includes(location.host)) {
+if (location.host !== "web.telegram.org") {
   /** Post Mini-App Status */
   const postMiniAppStatus = (status) => {
     window.postMessage({ isTelegramMiniApp: status }, "*");
@@ -119,6 +119,7 @@ if (!["web.telegram.org", "walletbot.me"].includes(location.host)) {
       document.addEventListener("DOMContentLoaded", dispatchTelegramWebApp);
     }
   } else {
+    /** Wait for load */
     document.addEventListener("DOMContentLoaded", () => {
       if (typeof window.Telegram !== "undefined") {
         /** Post Status */
