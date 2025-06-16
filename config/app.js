@@ -54,6 +54,14 @@ const app = {
 
   drops: [
     {
+      id: "dragonz-land",
+      enabled: process.env.FARMER_DRAGONZ_LAND_ENABLED !== "false",
+      threadId: process.env.FARMER_DRAGONZ_LAND_THREAD_ID ?? "",
+      telegramLink:
+        process.env.FARMER_DRAGONZ_LAND_LINK ??
+        "https://t.me/dragonz_land_bot/app?startapp=ref-6850578f6a48d249772e2f35",
+    },
+    {
       id: "digger",
       enabled: process.env.FARMER_DIGGER_ENABLED !== "false",
       threadId: process.env.FARMER_DIGGER_THREAD_ID ?? "",

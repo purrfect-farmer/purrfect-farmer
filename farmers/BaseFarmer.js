@@ -281,18 +281,22 @@ class BaseFarmer {
       );
 
       /** Send Farming Complete Message */
-      await bot.sendFarmingCompleteMessage({
-        id: this.id,
-        title: this.title,
-        farmers: await db.Farmer.findAllWithActiveSubscription({
-          where: {
-            farmer: this.id,
-          },
-        }),
-        config,
-        startDate,
-        endDate: new Date(),
-      });
+      try {
+        await bot?.sendFarmingCompleteMessage({
+          id: this.id,
+          title: this.title,
+          farmers: await db.Farmer.findAllWithActiveSubscription({
+            where: {
+              farmer: this.id,
+            },
+          }),
+          config,
+          startDate,
+          endDate: new Date(),
+        });
+      } catch (error) {
+        this.error("Failed to send farming notification:", error);
+      }
     } catch (error) {
       this.error("Error during run:", error);
     } finally {
