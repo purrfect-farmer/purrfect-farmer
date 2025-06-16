@@ -6,8 +6,9 @@ import { IoCopyOutline } from "react-icons/io5";
 import { customLogger } from "@/lib/utils";
 import { useEffect } from "react";
 
-export default function FarmerHeader({ title, icon, referralLink }) {
-  const { id } = useFarmerContext();
+export default function FarmerHeader({ referralLink }) {
+  const { id, farmer } = useFarmerContext();
+  const { icon, title } = farmer;
 
   /** Chrome Storage of Referral Link */
   const { value: currentReferralLink, storeValue: storeReferralLink } =
@@ -32,7 +33,7 @@ export default function FarmerHeader({ title, icon, referralLink }) {
       onClick={copyReferralLink}
     >
       <img src={icon} alt={title} className="w-8 h-8 rounded-full" />
-      <h1 className="font-bold">{title}</h1>
+      <h1 className="font-bold">{title} Farmer</h1>
       {referralLink ? (
         <IoCopyOutline />
       ) : (
