@@ -25,10 +25,13 @@ const app = {
     },
   },
 
+  /** Cron */
   cron: {
+    enabled: process.env.CRON_ENABLED !== "false",
     mode: process.env.CRON_MODE ?? "sequential",
   },
 
+  /** Startup */
   startup: {
     sendServerAddress: process.env.STARTUP_SEND_SERVER_ADDRESS !== "false",
   },
