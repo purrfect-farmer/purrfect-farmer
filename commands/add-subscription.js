@@ -14,7 +14,7 @@ module.exports = (program, inquirer, chalk) => {
 
       if (!userId) {
         const answers = await inquirer.prompt([
-          { name: "userId", message: "Telegram User ID:" },
+          { name: "userId", message: "Telegram User ID:", required: true },
           { name: "endDate", message: "End Date (Optional):" },
         ]);
 
