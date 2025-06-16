@@ -1,12 +1,17 @@
 import "./bridge/bridge-main";
 import "./webview-proxy/webview-proxy-main";
 
+import {
+  TELEGRAM_WEB_HOST,
+  WEB_PLATFORM_EXCLUDED_HOSTS,
+  WEB_PLATFORM_REGEXP,
+} from "@/constants";
 import { extractInitDataUnsafe } from "@/lib/utils";
 import { retrieveRawLaunchParams } from "@telegram-apps/bridge";
 
 import { decryptData, encryptData } from "./content-script-utils";
 
-if (location.host !== "web.telegram.org") {
+if (location.host !== TELEGRAM_WEB_HOST) {
   /** Post Mini-App Status */
   const postMiniAppStatus = (status) => {
     window.postMessage({ isTelegramMiniApp: status }, "*");
@@ -99,12 +104,13 @@ if (location.host !== "web.telegram.org") {
   };
 
   if (location.hash.includes("tgWebAppData")) {
-    const webPlatFormRegExp = /tgWebAppPlatform=(webk|weba|web)/;
-
     /** Replace Platform */
-    if (webPlatFormRegExp.test(location.href)) {
+    if (
+      WEB_PLATFORM_EXCLUDED_HOSTS.includes(location.host) === false &&
+      WEB_PLATFORM_REGEXP.test(location.href)
+    ) {
       location.hash = location.hash.replace(
-        webPlatFormRegExp,
+        WEB_PLATFORM_REGEXP,
         "tgWebAppPlatform=android"
       );
       location.reload();

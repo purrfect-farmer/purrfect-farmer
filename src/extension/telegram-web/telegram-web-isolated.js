@@ -1,6 +1,7 @@
+import { TELEGRAM_WEB_HOST } from "@/constants";
 import { clickElementCenter, isElementVisible } from "@/lib/utils";
 
-if (location.host === "web.telegram.org") {
+if (location.host === TELEGRAM_WEB_HOST) {
   /** Web Version */
   const WEB_VERSION = location.pathname.startsWith("/k/") ? "k" : "a";
 
