@@ -54,6 +54,14 @@ const app = {
 
   drops: [
     {
+      id: "string-drive",
+      enabled: process.env.FARMER_STRING_DRIVE_ENABLED !== "false",
+      threadId: process.env.FARMER_STRING_DRIVE_THREAD_ID ?? "",
+      telegramLink:
+        process.env.FARMER_STRING_DRIVE_LINK ??
+        "https://t.me/stringdrive_bot/startapp?startapp=1147265290",
+    },
+    {
       id: "dragonz-land",
       enabled: process.env.FARMER_DRAGONZ_LAND_ENABLED !== "false",
       threadId: process.env.FARMER_DRAGONZ_LAND_THREAD_ID ?? "",
