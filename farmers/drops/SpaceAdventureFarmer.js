@@ -127,26 +127,6 @@ module.exports = class SpaceAdventureFarmer extends BaseFarmer {
 
     await this.completeVideoTasks(result);
     await this.upgradeLevel(result, boosts);
-    await this.watchExtraAds();
-  }
-
-  async watchExtraAds() {
-    if (this.config.options.watchExtraAds) {
-      try {
-        for (let i = 0; i < 5; i++) {
-          await this.makeAdsRequest(
-            utils.randomItem([
-              "claim_coins",
-              "spin_roulete",
-              "tasks_reward",
-              "shop_free_shield",
-              "shop_free_immunity",
-              "shop_free_fuel",
-            ])
-          );
-        }
-      } catch {}
-    }
   }
 
   async upgradeLevel(result, boosts) {
@@ -306,9 +286,11 @@ module.exports = class SpaceAdventureFarmer extends BaseFarmer {
   }
 
   async makeAdsRequest(type) {
-    return this.api.post("https://space-adventure.online/api/user/get_ads/", {
-      type,
-    });
+    if (this.config.watchAds) {
+      return this.api.post("https://space-adventure.online/api/user/get_ads/", {
+        type,
+      });
+    }
   }
 
   getStatus(user) {

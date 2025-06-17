@@ -140,8 +140,7 @@ const app = {
         process.env.FARMER_SPACE_ADVENTURE_LINK ??
         "https://t.me/spaceadv_game_bot/play?startapp=1147265290",
       options: {
-        watchExtraAds:
-          process.env.FARMER_SPACE_ADVENTURE_WATCH_EXTRA_ADS === "true",
+        watchAds: process.env.FARMER_SPACE_ADVENTURE_WATCH_ADS === "true",
       },
       interval: "*/4 * * * *",
     },
