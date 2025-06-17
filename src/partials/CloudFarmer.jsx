@@ -10,6 +10,10 @@ const CloudFarmerContent = () => {
   const context = useFarmerContext();
   const { id, farmer, api, telegramWebApp } = context;
   const referralLinkQuery = useQuery({
+    refetchOnMount: false,
+    refetchOnReconnect: false,
+    refetchOnWindowFocus: false,
+    refetchInterval: false,
     queryKey: [id, "referral-link"],
     queryFn: () => farmer.getReferralLink(api, telegramWebApp, context),
   });
