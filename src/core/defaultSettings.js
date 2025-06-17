@@ -1,5 +1,6 @@
 /** Drops Status */
 const dropsStatus = {
+  ["string-drive"]: true,
   ["dragonz-land"]: true,
   ["meta-lott"]: true,
   ["frogster"]: true,
