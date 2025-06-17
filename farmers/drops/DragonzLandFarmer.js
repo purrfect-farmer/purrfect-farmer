@@ -1,5 +1,6 @@
 const BaseFarmer = require("../BaseFarmer");
 const utils = require("../../lib/utils");
+const fs = require("fs");
 
 module.exports = class DragonzLandFarmer extends BaseFarmer {
   static id = "dragonz-land";
@@ -47,25 +48,44 @@ module.exports = class DragonzLandFarmer extends BaseFarmer {
       )
     );
 
-    const cards = result.flat(1);
-
-    const availableCards = cards.filter((item) => {
+    const cards = result.flat(1).map((item) => {
       const currentPosition = item.levelRecord ? item.levelRecord.level : 0;
       const currentLevel = item.levels[currentPosition];
       const nextLevel = item.levels[currentPosition + 1];
-
-      if (!nextLevel) {
-        return false;
-      } else if (nextLevel.currency === "diamond") {
-        return nextLevel.cost <= diamonds;
-      } else {
-        return nextLevel.cost <= coins;
-      }
+      return {
+        ...item,
+        currentPosition,
+        currentLevel,
+        nextLevel,
+      };
     });
+
+    const availableCards = cards
+      .filter((item) => {
+        const nextLevel = item.nextLevel;
+
+        if (!nextLevel) {
+          return false;
+        } else if (nextLevel.currency === "diamond") {
+          return nextLevel.cost <= diamonds;
+        } else {
+          return nextLevel.cost <= coins;
+        }
+      })
+      .filter((item) =>
+        item.nextLevel.tasks.every(
+          (task) =>
+            task.type === "visit" && this.validateTelegramTask(task.data?.url)
+        )
+      );
 
     const card = utils.randomItem(availableCards);
 
     if (card) {
+      for (const task of card.nextLevel.tasks) {
+        await this.tryToJoinTelegramLink(task.data?.url);
+        await this.verifyTask(task.id);
+      }
       await this.buyCard(card.id);
     }
   }
