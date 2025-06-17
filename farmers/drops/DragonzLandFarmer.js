@@ -33,9 +33,6 @@ module.exports = class DragonzLandFarmer extends BaseFarmer {
   }
 
   async upgradeCards(user) {
-    const coins = user.coins;
-    const diamonds = user.diamonds;
-
     const categories = await this.api
       .get("https://app.dragonz.land/api/card-categories")
       .then((res) => res.data);
@@ -48,7 +45,7 @@ module.exports = class DragonzLandFarmer extends BaseFarmer {
       )
     );
 
-    const cards = result.flat(1).map((item) => {
+    let cards = result.flat(1).map((item) => {
       const currentPosition = item.levelRecord ? item.levelRecord.level : 0;
       const currentLevel = item.levels[currentPosition];
       const nextLevel = item.levels[currentPosition + 1];
@@ -60,34 +57,47 @@ module.exports = class DragonzLandFarmer extends BaseFarmer {
       };
     });
 
-    const availableCards = cards
-      .filter((item) => {
-        const nextLevel = item.nextLevel;
+    let coins = user.coins;
+    let diamonds = user.diamonds;
+    let card;
 
-        if (!nextLevel) {
-          return false;
-        } else if (nextLevel.currency === "diamond") {
-          return nextLevel.cost <= diamonds;
-        } else {
-          return nextLevel.cost <= coins;
-        }
-      })
-      .filter((item) =>
-        item.nextLevel.tasks.every(
-          (task) =>
-            task.type === "visit" && this.validateTelegramTask(task.data?.url)
-        )
-      );
+    while ((card = this.getAvailableCard(cards, coins, diamonds))) {
+      /** Exclude Card */
+      cards = cards.filter((item) => item.id !== card.id);
 
-    const card = utils.randomItem(availableCards);
+      if (card.nextLevel.currency === "diamond") {
+        diamonds -= card.nextLevel.cost;
+      } else {
+        coins -= card.nextLevel.cost;
+      }
 
-    if (card) {
       for (const task of card.nextLevel.tasks) {
         await this.tryToJoinTelegramLink(task.data?.url);
         await this.verifyTask(task.id);
       }
       await this.buyCard(card.id);
     }
+  }
+
+  getAvailableCard(cards, coins, diamonds) {
+    const availableCards = cards.filter((item) => {
+      const nextLevel = item.nextLevel;
+      if (!nextLevel) return false;
+
+      const affordable =
+        nextLevel.currency === "diamond"
+          ? nextLevel.cost <= diamonds
+          : nextLevel.cost <= coins;
+
+      const allTasksValid = nextLevel.tasks.every(
+        (task) =>
+          task.type === "visit" && this.validateTelegramTask(task.data?.url)
+      );
+
+      return affordable && allTasksValid;
+    });
+
+    return utils.randomItem(availableCards);
   }
 
   async buyCard(cardId) {
@@ -139,7 +149,9 @@ module.exports = class DragonzLandFarmer extends BaseFarmer {
     /** Other Tasks */
     const availableTasks = tasks.filter(
       (item) =>
-        item.type === "visit" && this.validateTelegramTask(item.data?.url)
+        item.type === "visit" &&
+        this.validateTelegramTask(item.data?.url) &&
+        this.validateTaskLevel(item)
     );
 
     for (const task of availableTasks) {
