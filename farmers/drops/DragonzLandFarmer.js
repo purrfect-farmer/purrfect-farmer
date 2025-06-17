@@ -99,11 +99,27 @@ module.exports = class DragonzLandFarmer extends BaseFarmer {
       .get("https://app.dragonz.land/api/tasks")
       .then((res) => res.data);
 
+    /** Claim Daily Reward */
+    const dailyReward = tasks.find((item) => item.id === "daily-claim");
+
+    if (
+      !dailyReward.levelRecord ||
+      !utils.dateFns.isToday(new Date(dailyReward.levelRecord.attemptedAt))
+    ) {
+      await this.verifyTask(dailyReward.id);
+    }
+
+    /** Ad Task */
+    const adTask = tasks.find((item) => item.id === "daily-watch-adsgram-ad");
+
+    if (this.validateTaskLevel(adTask)) {
+      await this.verifyTask(adTask.id);
+    }
+
+    /** Other Tasks */
     const availableTasks = tasks.filter(
       (item) =>
-        ["visit", "claim", "watch-adsgram-ad"].includes(item.type) &&
-        this.validateTaskLevel(item) &&
-        this.validateTelegramTask(item.data?.url)
+        item.type === "visit" && this.validateTelegramTask(item.data?.url)
     );
 
     for (const task of availableTasks) {
@@ -114,12 +130,23 @@ module.exports = class DragonzLandFarmer extends BaseFarmer {
 
   validateTaskLevel(item) {
     if (item.attemptsLimit === item.levelRecord?.attempts) {
-      return false;
+      if (
+        item.recurrence === "daily" &&
+        !utils.dateFns.isToday(new Date(item.levelRecord.attemptedAt))
+      ) {
+        return true;
+      } else {
+        return false;
+      }
     }
 
     const currentPosition = item.levelRecord ? item.levelRecord.level : 0;
-    const currentLevel = item.levels[currentPosition];
-    const nextLevel = item.levels[currentPosition + 1];
+    const currentLevel = item.levels.find(
+      (level) => level.index === currentPosition
+    );
+    const nextLevel = item.levels.find(
+      (level) => level.index === currentPosition + 1
+    );
 
     if (!nextLevel) {
       return false;
