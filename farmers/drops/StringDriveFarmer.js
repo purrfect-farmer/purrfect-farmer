@@ -27,6 +27,12 @@ module.exports = class StringDriveFarmer extends BaseFarmer {
   }
 
   async process() {
+    await this.completeTasks();
+    await this.completeAds();
+    await this.playGame();
+  }
+
+  async completeTasks() {
     /** Tasks */
     const completedTasks = await this.getCompletedUserTasks();
     const userTasks = await this.getUserTasks();
@@ -38,24 +44,25 @@ module.exports = class StringDriveFarmer extends BaseFarmer {
         )
     );
 
-    /** Ads */
-    const userAds = await this.api
-      .get(this.path("https://st-ba-drive.stringdrive.io/api/auth/getUserads"))
-      .then((res) => res.data.data);
-
-    for (const ad of userAds) {
-      await this.completeUserAd(ad["_id"]);
-      await utils.delayForSeconds(20);
-    }
-
     for (const task of availableTasks) {
       await this.tryToJoinTelegramLink(task["Sitelink"]);
       await this.completeUserTask(task["_id"]);
       await utils.delayForSeconds(20);
     }
+  }
 
-    /** Game */
-    await this.playGame();
+  async completeAds() {
+    /** Ads */
+    const userAds = await this.api
+      .get(this.path("https://st-ba-drive.stringdrive.io/api/auth/getUserads"))
+      .then((res) => res.data.data);
+
+    const availableAds = userAds;
+
+    for (const ad of availableAds) {
+      await this.completeUserAd(ad["_id"]);
+      await utils.delayForSeconds(20);
+    }
   }
 
   async playGame() {
@@ -107,9 +114,7 @@ module.exports = class StringDriveFarmer extends BaseFarmer {
     return await this.api
       .post(
         this.path("https://st-ba-drive.stringdrive.io/api/auth/completeUserAD"),
-        {
-          AdId,
-        }
+        { AdId }
       )
       .then((res) => res.data);
   }
@@ -130,7 +135,8 @@ module.exports = class StringDriveFarmer extends BaseFarmer {
           "https://st-ba-drive.stringdrive.io/api/auth/getUserCompletedAds"
         )
       )
-      .then((res) => res.data.completedAds);
+      .then((res) => res.data.completedAds || [])
+      .catch(() => []);
   }
 
   async getCompletedUserTasks() {
