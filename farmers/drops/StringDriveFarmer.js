@@ -130,7 +130,7 @@ module.exports = class StringDriveFarmer extends BaseFarmer {
           "https://st-ba-drive.stringdrive.io/api/auth/getUserCompletedAds"
         )
       )
-      .then((res) => res.data);
+      .then((res) => res.data.completedAds);
   }
 
   async getCompletedUserTasks() {
