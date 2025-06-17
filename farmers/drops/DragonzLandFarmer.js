@@ -126,11 +126,13 @@ module.exports = class DragonzLandFarmer extends BaseFarmer {
     }
 
     return (
-      currentLevel.waitingTime === null ||
+      !currentLevel.waitingTime ||
       utils.dateFns.isAfter(
         new Date(),
         utils.dateFns.addSeconds(
-          new Date(item.levelRecord?.attemptedAt),
+          item.levelRecord?.attemptedAt
+            ? new Date(item.levelRecord?.attemptedAt)
+            : new Date(),
           currentLevel.waitingTime
         )
       )
