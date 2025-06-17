@@ -89,7 +89,7 @@ module.exports = class StringDriveFarmer extends BaseFarmer {
         .post(this.path("https://st-ba-drive.stringdrive.io/api/auth/game"), {
           gameHistoryId,
           playedStatus: utils.randomItem(["WON", "LOSE"]),
-          winAmount: utils.extraGamePoints(max),
+          winAmount: utils.extraGamePoints(max * 2),
         })
         .then((res) => res.data.data);
     }
