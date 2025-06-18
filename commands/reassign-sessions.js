@@ -19,6 +19,7 @@ module.exports = (program, inquirer, chalk) => {
         const user = await client.getSelf();
 
         if (user) {
+          await client.destroy();
           await db.Account.update(
             { session },
             {
