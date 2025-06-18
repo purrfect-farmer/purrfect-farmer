@@ -89,7 +89,11 @@ module.exports = class StringDriveFarmer extends BaseFarmer {
     const balance = Number(user.ticketBalance);
 
     if (balance >= max) {
-      for (let i = 0; i < 5; i++) {
+      const TOTAL_GAMES = 5;
+      const LOSE_INDEX = Math.floor(Math.random() * TOTAL_GAMES);
+
+      for (let i = 0; i < TOTAL_GAMES; i++) {
+        const isWin = i !== LOSE_INDEX;
         const bet = await this.api
           .post(this.path("https://st-ba-drive.stringdrive.io/api/auth/game"), {
             betAmount: String(max),
@@ -99,13 +103,15 @@ module.exports = class StringDriveFarmer extends BaseFarmer {
 
         const gameHistoryId = bet.gameHistoryId;
 
-        await utils.delayForSeconds(60);
+        await utils.delayForSeconds(isWin ? 60 : 20);
 
         await this.api
           .post(this.path("https://st-ba-drive.stringdrive.io/api/auth/game"), {
             gameHistoryId,
-            playedStatus: utils.randomItem(["WON", "LOSE"]),
-            winAmount: utils.extraGamePoints(max * 2),
+            playedStatus: isWin ? "WON" : "LOSE",
+            winAmount: utils.extraGamePoints(
+              isWin ? max * 2 : Math.floor(max / 2)
+            ),
           })
           .then((res) => res.data.data);
       }
