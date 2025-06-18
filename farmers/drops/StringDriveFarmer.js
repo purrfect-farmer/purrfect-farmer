@@ -103,13 +103,16 @@ module.exports = class StringDriveFarmer extends BaseFarmer {
 
         const gameHistoryId = bet.gameHistoryId;
 
-        await utils.delayForSeconds(isWin ? 60 : 20);
+        await utils.delayForSeconds(isWin ? 120 : 60);
 
         await this.api
           .post(this.path("https://st-ba-drive.stringdrive.io/api/auth/game"), {
             gameHistoryId,
             playedStatus: isWin ? "WON" : "LOSE",
-            winAmount: utils.extraGamePoints(isWin ? max * 4 : Math.floor(max)),
+            winAmount: utils.extraGamePoints(
+              isWin ? max * 6 : Math.floor(max * 2),
+              40
+            ),
           })
           .then((res) => res.data.data);
       }
