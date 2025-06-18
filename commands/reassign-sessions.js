@@ -21,16 +21,15 @@ module.exports = (program, inquirer, chalk) => {
           if (assigned.includes(user.id)) {
             await client.logout();
           } else {
-            await client.destroy();
-            await db.Account.update(
-              { session },
-              {
-                where: {
-                  id: user.id,
-                },
-              }
-            );
-            await assigned.push(user.id);
+            const account = await db.Account.findByPk(user.id);
+
+            if (!account) {
+              await client.logout();
+            } else {
+              await client.destroy();
+              await account.update({ session });
+              await assigned.push(user.id);
+            }
           }
         } else {
           await client.logout();
