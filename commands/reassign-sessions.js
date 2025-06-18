@@ -11,29 +11,32 @@ module.exports = (program, inquirer, chalk) => {
       const GramClient = require("../lib/GramClient");
       const sessions = await GramClient.getSessions();
       const db = require("../db/models");
-
-      let count = 0;
+      const assigned = [];
 
       for (const session of sessions) {
         const client = await GramClient.create(session);
         const user = await client.getSelf();
 
         if (user) {
-          await client.destroy();
-          await db.Account.update(
-            { session },
-            {
-              where: {
-                id: user.id,
-              },
-            }
-          );
-          count++;
+          if (assigned.includes(user.id)) {
+            await client.logout();
+          } else {
+            await client.destroy();
+            await db.Account.update(
+              { session },
+              {
+                where: {
+                  id: user.id,
+                },
+              }
+            );
+            await assigned.push(user.id);
+          }
         } else {
           await client.logout();
         }
       }
 
-      console.log(chalk.green.bold(`Reassigned sessions: ${count}`));
+      console.log(chalk.green.bold(`Reassigned sessions: ${assigned.length}`));
     });
 };
