@@ -89,24 +89,26 @@ module.exports = class StringDriveFarmer extends BaseFarmer {
     const balance = Number(user.ticketBalance);
 
     if (balance >= max) {
-      const bet = await this.api
-        .post(this.path("https://st-ba-drive.stringdrive.io/api/auth/game"), {
-          betAmount: String(max),
-          gameId,
-        })
-        .then((res) => res.data.data);
+      for (let i = 0; i < 5; i++) {
+        const bet = await this.api
+          .post(this.path("https://st-ba-drive.stringdrive.io/api/auth/game"), {
+            betAmount: String(max),
+            gameId,
+          })
+          .then((res) => res.data.data);
 
-      const gameHistoryId = bet.gameHistoryId;
+        const gameHistoryId = bet.gameHistoryId;
 
-      await utils.delayForSeconds(60);
+        await utils.delayForSeconds(60);
 
-      await this.api
-        .post(this.path("https://st-ba-drive.stringdrive.io/api/auth/game"), {
-          gameHistoryId,
-          playedStatus: utils.randomItem(["WON", "LOSE"]),
-          winAmount: utils.extraGamePoints(max * 2),
-        })
-        .then((res) => res.data.data);
+        await this.api
+          .post(this.path("https://st-ba-drive.stringdrive.io/api/auth/game"), {
+            gameHistoryId,
+            playedStatus: utils.randomItem(["WON", "LOSE"]),
+            winAmount: utils.extraGamePoints(max * 2),
+          })
+          .then((res) => res.data.data);
+      }
     }
   }
 
