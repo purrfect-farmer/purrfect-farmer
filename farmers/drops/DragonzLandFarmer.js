@@ -1,6 +1,5 @@
 const BaseFarmer = require("../BaseFarmer");
 const utils = require("../../lib/utils");
-const fs = require("fs");
 
 module.exports = class DragonzLandFarmer extends BaseFarmer {
   static id = "dragonz-land";
