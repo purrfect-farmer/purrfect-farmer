@@ -64,7 +64,11 @@ module.exports = class StringDriveFarmer extends BaseFarmer {
         await this.completeUserAd(ad["_id"]);
         await utils.delayForSeconds(60);
       } catch (error) {
-        console.error("Failed to complete ad:", ad, error.message);
+        console.error(
+          "Failed to complete ad:",
+          ad,
+          error.response?.data?.message || error.message
+        );
       }
     }
   }
