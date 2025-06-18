@@ -150,7 +150,6 @@ const app = {
       options: {
         watchAds: process.env.FARMER_SPACE_ADVENTURE_WATCH_ADS === "true",
       },
-      interval: "*/4 * * * *",
     },
     {
       id: "wonton",
