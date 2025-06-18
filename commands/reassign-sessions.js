@@ -12,29 +12,37 @@ module.exports = (program, inquirer, chalk) => {
       const db = require("../db/models");
 
       const sessions = await GramClient.getSessions();
-      const assigned = [];
+      const assigned = new Set();
 
       for (const session of sessions) {
-        const client = await GramClient.create(session);
-        const user = await client.getSelf();
+        try {
+          const client = await GramClient.create(session);
+          const user = await client.getSelf();
+          const userId = user?.id?.toString();
 
-        if (!user || assigned.includes(user.id)) {
-          await client.logout();
-          continue;
+          if (!userId || assigned.has(userId)) {
+            await client.logout();
+            continue;
+          }
+
+          const account = await db.Account.findByPk(userId);
+
+          if (!account) {
+            await client.logout();
+            continue;
+          }
+
+          await client.destroy();
+          await account.update({ session });
+          assigned.add(userId);
+        } catch (error) {
+          console.error(
+            chalk.red(`Error processing session "${session}":`),
+            error
+          );
         }
-
-        const account = await db.Account.findByPk(user.id);
-
-        if (!account) {
-          await client.logout();
-          continue;
-        }
-
-        await client.destroy();
-        await account.update({ session });
-        assigned.push(user.id);
       }
 
-      console.log(chalk.green.bold(`Reassigned sessions: ${assigned.length}`));
+      console.log(chalk.green.bold(`Reassigned sessions: ${assigned.size}`));
     });
 };
