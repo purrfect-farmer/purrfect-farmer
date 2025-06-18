@@ -60,7 +60,7 @@ module.exports = class StringDriveFarmer extends BaseFarmer {
     const availableAds = userAds;
 
     for (const ad of availableAds) {
-      await utils.delayForSeconds(60);
+      await utils.delayForSeconds(30);
       try {
         await this.completeUserAd(ad["_id"]);
       } catch (error) {
