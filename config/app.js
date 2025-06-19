@@ -87,15 +87,6 @@ const app = {
       interval: "0 * * * *",
     },
     {
-      id: "meta-lott",
-      enabled: process.env.FARMER_META_LOTT_ENABLED !== "false",
-      threadId: process.env.FARMER_META_LOTT_THREAD_ID ?? "",
-      telegramLink:
-        process.env.FARMER_META_LOTT_LINK ??
-        "https://t.me/meta_lott_bot?start=51835690",
-      interval: "0 * * * *",
-    },
-    {
       id: "battle-bulls",
       enabled: process.env.FARMER_BATTLE_BULLS_ENABLED !== "false",
       threadId: process.env.FARMER_BATTLE_BULLS_THREAD_ID ?? "",
@@ -131,14 +122,6 @@ const app = {
         upgradeCards: process.env.FARMER_TSUBASA_UPGRADE_CARDS !== "false",
       },
       interval: "*/30 * * * *",
-    },
-    {
-      id: "matchquest",
-      enabled: process.env.FARMER_MATCHQUEST_ENABLED !== "false",
-      threadId: process.env.FARMER_MATCHQUEST_THREAD_ID ?? "",
-      telegramLink:
-        process.env.FARMER_MATCHQUEST_LINK ??
-        "https://t.me/MatchQuestBot/start?startapp=775f1cc48a46ce5221f1d9476233dc33",
     },
     {
       id: "space-adventure",
