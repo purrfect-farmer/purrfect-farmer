@@ -2,13 +2,11 @@
 const dropsStatus = {
   ["string-drive"]: true,
   ["dragonz-land"]: true,
-  ["meta-lott"]: true,
   ["frogster"]: true,
   ["space-adventure"]: true,
   ["digger"]: true,
   ["gold-eagle"]: true,
   ["funatic"]: true,
-  ["matchquest"]: true,
   ["hrum"]: true,
   ["tsubasa"]: true,
   ["wonton"]: true,
