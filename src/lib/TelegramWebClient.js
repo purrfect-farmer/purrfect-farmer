@@ -109,7 +109,6 @@ export default class TelegramWebClient extends TelegramClient {
    */
   async execute(callback) {
     const result = this._executionQueue.then(async () => {
-      this._resetDestroyTimeout();
       await this.connect();
       return await callback();
     });
