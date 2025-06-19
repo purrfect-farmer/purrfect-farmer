@@ -23,9 +23,6 @@ export default class TelegramWebClient extends TelegramClient {
     /** Connection Queue */
     this._connectionQueue = [];
 
-    /** Execution Queue */
-    this._executionQueue = Promise.resolve();
-
     /** Is Connecting */
     this._isConnecting = false;
 
@@ -108,14 +105,8 @@ export default class TelegramWebClient extends TelegramClient {
    * @returns {Promise<any>} The result of the callback.
    */
   async execute(callback) {
-    const result = this._executionQueue.then(async () => {
-      await this.connect();
-      return await callback();
-    });
-
-    this._executionQueue = result.catch(() => {});
-
-    return result;
+    await this.connect();
+    return callback();
   }
 
   /** Wait for Reply */
