@@ -108,7 +108,11 @@ module.exports = async function (fastify, opts) {
 
     /** Get Farmers */
     fastify.get("/farmers", async (request) => {
-      const accounts = await fastify.db.Account.findAllFarmers();
+      const accounts = await fastify.db.Account.findAllFarmers({
+        attributes: {
+          exclude: !fastify.app.displayAccountTitle ? ["title"] : [],
+        },
+      });
       return accounts;
     });
 
@@ -137,6 +141,9 @@ module.exports = async function (fastify, opts) {
     fastify.get("/members", async (request) => {
       const accounts = await fastify.db.Account.findAllWithActiveSubscription({
         required: false,
+        attributes: {
+          exclude: !fastify.app.displayAccountTitle ? ["title"] : [],
+        },
       });
 
       return accounts.sort((a, b) => {

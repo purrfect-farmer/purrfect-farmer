@@ -46,8 +46,9 @@ module.exports = (sequelize, DataTypes) => {
       });
     }
 
-    static findAllFarmers() {
+    static findAllFarmers(options) {
       return this.findAll({
+        ...options,
         include: [
           {
             required: true,
