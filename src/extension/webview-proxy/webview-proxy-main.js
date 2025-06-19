@@ -1,6 +1,6 @@
 import { customLogger, withValue } from "@/lib/utils";
 
-export function injectTelegramWebviewProxy() {
+export function overrideMessageEvent() {
   const NativeMessageEvent = MessageEvent;
 
   /** Custom Message Event */
@@ -44,7 +44,9 @@ export function injectTelegramWebviewProxy() {
     /** Receive Event */
     window.Telegram?.WebView?.receiveEvent?.(eventType, eventData);
   });
+}
 
+export function injectTelegramWebviewProxy() {
   /** Mimic Telegram Webview Proxy */
   window.TelegramWebviewProxy = {
     postEvent(type, data) {
