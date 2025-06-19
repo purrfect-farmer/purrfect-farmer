@@ -138,7 +138,16 @@ module.exports = async function (fastify, opts) {
       const accounts = await fastify.db.Account.findAllWithActiveSubscription({
         required: false,
       });
-      return accounts;
+
+      return accounts.sort((a, b) => {
+        if (fastify.app.displayAccountTitle) {
+          return (a.title || "TGUser").localeCompare(b.title || "TGUser");
+        } else {
+          return (a.user?.username || a.id)
+            .toString()
+            .localeCompare((b.user?.username || b.id).toString());
+        }
+      });
     });
 
     /** Update Subscription */
