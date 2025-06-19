@@ -1,6 +1,6 @@
-import rules from "@/extension/rule-resources";
+import { getNetRules } from "@/extension/rule-resources";
 
-import { getUserAgent, storeUserAgent } from "./utils";
+import { customLogger, getUserAgent, storeUserAgent } from "./utils";
 
 export default async function updateNetRules() {
   if (typeof chrome?.declarativeNetRequest === "undefined") {
@@ -11,25 +11,13 @@ export default async function updateNetRules() {
 
   const oldRules = await chrome.declarativeNetRequest.getDynamicRules();
   const oldRuleIds = oldRules.map((rule) => rule.id);
-  const newRules = [
-    {
-      action: {
-        type: "modifyHeaders",
-        requestHeaders: [
-          {
-            header: "user-agent",
-            operation: "set",
-            value: userAgent,
-          },
-        ],
-      },
-      condition: {
-        urlFilter: "*",
-      },
-    },
-  ]
-    .concat(rules)
-    .map((item, index) => ({ ...item, id: index + 1 }));
+  const newRules = getNetRules(userAgent).map((item, index) => ({
+    ...item,
+    id: index + 1,
+  }));
+
+  /** Log */
+  customLogger("DECLARATIVE NET RULES", newRules);
 
   /** Update Rules */
   await chrome.declarativeNetRequest.updateDynamicRules({
