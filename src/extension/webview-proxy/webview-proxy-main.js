@@ -1,6 +1,6 @@
 import { customLogger, withValue } from "@/lib/utils";
 
-if (location.host !== "web.telegram.org") {
+export function injectTelegramWebviewProxy() {
   /** Cross Origin */
   if (window.self !== window.top) {
     /** Custom Message Event */
