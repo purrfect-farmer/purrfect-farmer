@@ -1,5 +1,6 @@
 /** Drops Status */
 const dropsStatus = {
+  ["ultima-bulls"]: true,
   ["string-drive"]: true,
   ["dragonz-land"]: true,
   ["frogster"]: true,
