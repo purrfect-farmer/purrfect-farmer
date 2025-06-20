@@ -54,6 +54,14 @@ const app = {
 
   drops: [
     {
+      id: "ultima-bulls",
+      enabled: process.env.FARMER_ULTIMA_BULLS_ENABLED !== "false",
+      threadId: process.env.FARMER_ULTIMA_BULLS_THREAD_ID ?? "",
+      telegramLink:
+        process.env.FARMER_ULTIMA_BULLS_LINK ??
+        "https://t.me/UltimaBulls_com_bot/start?startapp=frndId1147265290",
+    },
+    {
       id: "string-drive",
       enabled: process.env.FARMER_STRING_DRIVE_ENABLED !== "false",
       threadId: process.env.FARMER_STRING_DRIVE_THREAD_ID ?? "",
