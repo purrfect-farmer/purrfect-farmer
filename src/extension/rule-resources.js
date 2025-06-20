@@ -21,6 +21,36 @@ export function getNetRules(userAgent) {
     {
       action: {
         type: "modifyHeaders",
+        responseHeaders: [
+          {
+            header: "content-security-policy",
+            operation: "remove",
+          },
+          {
+            header: "x-frame-options",
+            operation: "remove",
+          },
+          {
+            header: "cross-origin-embedder-policy",
+            operation: "remove",
+          },
+          {
+            header: "cross-origin-opener-policy",
+            operation: "remove",
+          },
+          {
+            header: "cross-origin-resource-policy",
+            operation: "remove",
+          },
+        ],
+      },
+      condition: {
+        urlFilter: "*",
+      },
+    },
+    {
+      action: {
+        type: "modifyHeaders",
         requestHeaders: [
           {
             header: "user-agent",
@@ -77,28 +107,6 @@ export function getNetRules(userAgent) {
             header: "sec-ch-ua-model",
             operation: "set",
             value: '""',
-          },
-        ],
-        responseHeaders: [
-          {
-            header: "content-security-policy",
-            operation: "remove",
-          },
-          {
-            header: "x-frame-options",
-            operation: "remove",
-          },
-          {
-            header: "cross-origin-embedder-policy",
-            operation: "remove",
-          },
-          {
-            header: "cross-origin-opener-policy",
-            operation: "remove",
-          },
-          {
-            header: "cross-origin-resource-policy",
-            operation: "remove",
           },
         ],
       },
