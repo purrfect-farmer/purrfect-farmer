@@ -171,9 +171,10 @@ export function generateChromeManifest(env, pkg) {
         content_scripts: [
           {
             matches: ["*://*/*"],
-            js: ["extension/webview-proxy-main.js"],
+            js: ["extension/content-script-isolated.js"],
+            css: ["extension/content-script-styles.css"],
             run_at: "document_start",
-            world: "MAIN",
+            world: "ISOLATED",
             all_frames: true,
           },
           {
@@ -181,35 +182,6 @@ export function generateChromeManifest(env, pkg) {
             js: ["extension/content-script-main.js"],
             run_at: "document_start",
             world: "MAIN",
-            all_frames: true,
-          },
-          {
-            matches: ["*://*/*"],
-            js: ["extension/content-script-isolated.js"],
-            run_at: "document_start",
-            world: "ISOLATED",
-            all_frames: true,
-          },
-          {
-            matches: ["*://*/*"],
-            js: ["extension/content-script-patches.js"],
-            run_at: "document_start",
-            world: "MAIN",
-            all_frames: true,
-          },
-          {
-            matches: ["*://web.telegram.org/*"],
-            js: ["extension/telegram-web-isolated.js"],
-            run_at: "document_start",
-            world: "ISOLATED",
-            all_frames: true,
-          },
-          {
-            matches: ["*://*/*"],
-            css: ["extension/mini-app-toolbar-styles.css"],
-            js: ["extension/mini-app-toolbar-isolated.js"],
-            run_at: "document_start",
-            world: "ISOLATED",
             all_frames: true,
           },
         ],
