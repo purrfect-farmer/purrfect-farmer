@@ -191,9 +191,13 @@ class BaseFarmer {
   async init() {
     /** Update WebAppData */
     if (this.farmer.account.session) {
-      this.client = await GramClient.create(this.farmer.account.session);
-      await this.client.connect();
-      await this.updateWebAppData();
+      try {
+        this.client = await GramClient.create(this.farmer.account.session);
+        await this.client.connect();
+        await this.updateWebAppData();
+      } catch {
+        console.error("Failed to update WebAppData");
+      }
     }
 
     /** Set Auth */
