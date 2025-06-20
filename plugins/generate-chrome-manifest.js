@@ -5,6 +5,80 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 /**
+ * Get Core Net Rules
+ * @returns {chrome.declarativeNetRequest.Rule[]}
+ */
+function getCoreNetRules() {
+  return [
+    {
+      id: 1,
+      priority: 1,
+      action: {
+        type: "modifyHeaders",
+        responseHeaders: [
+          {
+            header: "content-security-policy",
+            operation: "remove",
+          },
+          {
+            header: "x-frame-options",
+            operation: "remove",
+          },
+          {
+            header: "cross-origin-embedder-policy",
+            operation: "remove",
+          },
+          {
+            header: "cross-origin-opener-policy",
+            operation: "remove",
+          },
+          {
+            header: "cross-origin-resource-policy",
+            operation: "remove",
+          },
+        ],
+      },
+      condition: {
+        urlFilter: "*",
+      },
+    },
+    {
+      id: 2,
+      action: {
+        type: "modifyHeaders",
+        requestHeaders: [
+          {
+            header: "origin",
+            operation: "set",
+            value: "https://web.telegram.org",
+          },
+          {
+            header: "referer",
+            operation: "set",
+            value: "https://web.telegram.org/",
+          },
+        ],
+        responseHeaders: [
+          {
+            header: "access-control-allow-origin",
+            operation: "set",
+            value: "*",
+          },
+          {
+            header: "access-control-allow-methods",
+            operation: "set",
+            value: "*",
+          },
+        ],
+      },
+      condition: {
+        requestDomains: ["vesta.web.telegram.org", "web.telegram.org"],
+      },
+    },
+  ];
+}
+
+/**
  * Generate Chrome Manifest
  * @returns {import("vite").Plugin}
  */
@@ -70,6 +144,15 @@ export function generateChromeManifest(env, pkg) {
               side_panel: {
                 default_path: isBridge ? "pwa-iframe.html" : "index.html",
               },
+              declarative_net_request: {
+                rule_resources: [
+                  {
+                    id: "core",
+                    enabled: true,
+                    path: "rule_resources/core.json",
+                  },
+                ],
+              },
             }
           : {}),
 
@@ -88,10 +171,9 @@ export function generateChromeManifest(env, pkg) {
         content_scripts: [
           {
             matches: ["*://*/*"],
-            js: ["extension/content-script-isolated.js"],
-            css: ["extension/content-script-styles.css"],
+            js: ["extension/webview-proxy-main.js"],
             run_at: "document_start",
-            world: "ISOLATED",
+            world: "MAIN",
             all_frames: true,
           },
           {
@@ -99,6 +181,35 @@ export function generateChromeManifest(env, pkg) {
             js: ["extension/content-script-main.js"],
             run_at: "document_start",
             world: "MAIN",
+            all_frames: true,
+          },
+          {
+            matches: ["*://*/*"],
+            js: ["extension/content-script-isolated.js"],
+            run_at: "document_start",
+            world: "ISOLATED",
+            all_frames: true,
+          },
+          {
+            matches: ["*://*/*"],
+            js: ["extension/content-script-patches.js"],
+            run_at: "document_start",
+            world: "MAIN",
+            all_frames: true,
+          },
+          {
+            matches: ["*://web.telegram.org/*"],
+            js: ["extension/telegram-web-isolated.js"],
+            run_at: "document_start",
+            world: "ISOLATED",
+            all_frames: true,
+          },
+          {
+            matches: ["*://*/*"],
+            css: ["extension/mini-app-toolbar-styles.css"],
+            js: ["extension/mini-app-toolbar-isolated.js"],
+            run_at: "document_start",
+            world: "ISOLATED",
             all_frames: true,
           },
         ],
@@ -113,6 +224,17 @@ export function generateChromeManifest(env, pkg) {
           pages: [],
         },
       };
+
+      /** @type {chrome.declarativeNetRequest.Rule[] | null} */
+      const netRules = !isWhisker ? getCoreNetRules() : null;
+
+      if (!isWhisker) {
+        this.emitFile({
+          type: "asset",
+          fileName: "rule_resources/core.json",
+          source: JSON.stringify(netRules, null, 2),
+        });
+      }
 
       this.emitFile({
         type: "asset",
