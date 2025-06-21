@@ -54,6 +54,14 @@ const app = {
 
   drops: [
     {
+      id: "midas",
+      enabled: process.env.FARMER_MIDAS_ENABLED !== "false",
+      threadId: process.env.FARMER_MIDAS_THREAD_ID ?? "",
+      telegramLink:
+        process.env.FARMER_MIDAS_LINK ??
+        "https://t.me/MidasRWA_bot/app?startapp=ref_746a3d4f-5108-4931-af18-5589b9a07af9",
+    },
+    {
       id: "ultima-bulls",
       enabled: process.env.FARMER_ULTIMA_BULLS_ENABLED !== "false",
       threadId: process.env.FARMER_ULTIMA_BULLS_THREAD_ID ?? "",

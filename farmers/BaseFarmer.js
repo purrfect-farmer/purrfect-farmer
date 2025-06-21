@@ -89,9 +89,11 @@ class BaseFarmer {
         if (
           [401, 403, 418].includes(error?.response?.status) &&
           !originalRequest._retry &&
+          !this._fetchingAuth &&
           typeof this.setAuth === "function"
         ) {
           try {
+            this._fetchingAuth = true;
             await this.setAuth();
             await this.farmer.save();
 
@@ -106,6 +108,8 @@ class BaseFarmer {
           } catch (error) {
             console.error("Failed to refresh auth:", error);
             return Promise.reject(error);
+          } finally {
+            this._fetchingAuth = false;
           }
         }
 
@@ -201,7 +205,7 @@ class BaseFarmer {
     }
 
     /** Set Auth */
-    if (this.constructor.shouldSetAuth) {
+    if (this.constructor.auth) {
       await this.setAuth();
     }
 

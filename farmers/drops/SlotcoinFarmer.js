@@ -6,7 +6,7 @@ module.exports = class SlotcoinFarmer extends BaseFarmer {
   static title = "🎰 Slotcoin Farmer";
   static origin = "https://app.slotcoin.app";
   static delay = 2;
-  static shouldSetAuth = true;
+  static auth = true;
 
   async setAuth() {
     /** Get Access Token */

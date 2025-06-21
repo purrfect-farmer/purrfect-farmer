@@ -5,7 +5,7 @@ module.exports = class UltimaBullsFarmer extends BaseFarmer {
   static id = "ultima-bulls";
   static title = "🐂 Ultima Bulls Farmer";
   static origin = "https://ub.battle-games.com";
-  static shouldSetAuth = true;
+  static auth = true;
 
   async setAuth() {
     /** Set Headers */

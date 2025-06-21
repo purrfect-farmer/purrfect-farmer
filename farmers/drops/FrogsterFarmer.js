@@ -5,7 +5,7 @@ module.exports = class FrogsterFarmer extends BaseFarmer {
   static id = "frogster";
   static title = "🐸 Frogster";
   static origin = "https://frogster.app";
-  static shouldSetAuth = true;
+  static auth = true;
 
   async setAuth() {
     /** Get Access Token */

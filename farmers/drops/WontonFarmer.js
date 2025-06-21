@@ -6,7 +6,7 @@ module.exports = class WontonFarmer extends BaseFarmer {
   static title = "👨‍🍳 Wonton Farmer";
   static origin = "https://www.wonton.restaurant";
   static delay = 5;
-  static shouldSetAuth = true;
+  static auth = true;
 
   async setAuth() {
     /** Get Access Token */

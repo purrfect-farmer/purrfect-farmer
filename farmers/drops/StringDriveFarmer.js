@@ -5,7 +5,7 @@ module.exports = class StringDriveFarmer extends BaseFarmer {
   static id = "string-drive";
   static title = "🚘 String Drive Farmer";
   static origin = "https://st-fr-drive.stringdrive.io";
-  static shouldSetAuth = true;
+  static auth = true;
 
   async setAuth() {
     const initDataUnsafe = this.farmer.initDataUnsafe;

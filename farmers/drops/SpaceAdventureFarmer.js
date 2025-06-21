@@ -5,6 +5,7 @@ module.exports = class SpaceAdventureFarmer extends BaseFarmer {
   static id = "space-adventure";
   static title = "🚀 Space Adventure Farmer";
   static origin = "https://space-adventure.online";
+  static cookies = true;
 
   /** Get Headers */
   getExtraHeaders() {

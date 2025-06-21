@@ -6,7 +6,7 @@ module.exports = class DiggerFarmer extends BaseFarmer {
   static title = "🏴‍☠️ Digger Farmer";
   static origin = "https://diggergame.app";
   static delay = 2;
-  static shouldSetAuth = true;
+  static auth = true;
 
   static CHEST_TYPES = {
     7: "usdt_chest",
