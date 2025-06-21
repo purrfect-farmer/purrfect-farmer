@@ -93,8 +93,6 @@ export default function useCore() {
     [settings.seekerServer]
   );
 
-  const browserWindows = useMemo(() => new Map(), []);
-
   const telegramClient = useTelegramClient(farmerMode, localTelegramSession);
   const mirror = useMirror(
     settings.enableMirror,
@@ -518,35 +516,24 @@ export default function useCore() {
   /** Launch In-App Browser */
   const launchInAppBrowser = useCallback(
     async ({ id, url, title, icon, embedInNewWindow }) => {
-      if (
-        !import.meta.env.VITE_WHISKER &&
-        (settings.miniAppInNewWindow || embedInNewWindow)
-      ) {
+      if (settings.miniAppInNewWindow || embedInNewWindow) {
         try {
-          /** Get Previous Window */
-          const previousWindow = browserWindows.get(`browser-${id}`);
+          if (import.meta.env.VITE_WHISKER) {
+            window.open(url);
+          } else {
+            /** Get Coords */
+            const coords = await getWindowCoords();
 
-          if (previousWindow) {
-            /** Remove Previous Window */
-            await chrome.windows.remove(previousWindow.id);
+            await chrome.windows.create({
+              ...coords,
+              type: "popup",
+              focused: true,
+              url,
+            });
           }
         } catch (e) {
           console.error(e);
         }
-
-        /** Get Coords */
-        const coords = await getWindowCoords();
-
-        /** Create New Window */
-        browserWindows.set(
-          `browser-${id}`,
-          await chrome.windows.create({
-            ...coords,
-            type: "popup",
-            focused: true,
-            url,
-          })
-        );
       } else {
         /** Push the tab */
         pushTab(
@@ -563,7 +550,7 @@ export default function useCore() {
         );
       }
     },
-    [settings.miniAppInNewWindow, browserWindows, pushTab]
+    [settings.miniAppInNewWindow, pushTab]
   );
 
   const closeOtherBots = useCallback(async () => {
