@@ -16,6 +16,7 @@ export default createFarmer({
     domains: ["frogster.app"],
   },
 
+  embedInNewWindow: true,
   cacheAuth: false,
   cacheTelegramWebApp: false,
 
