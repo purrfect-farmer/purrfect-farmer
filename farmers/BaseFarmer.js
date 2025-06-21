@@ -14,9 +14,11 @@ const {
   HttpsCookieAgent,
 } = require("http-cookie-agent/http");
 const { default: chalk } = require("chalk");
+const { HttpProxyAgent } = require("hpagent");
+const { HttpsProxyAgent } = require("hpagent");
 
-const HttpProxyAgent = createCookieAgent(hpAgent.HttpProxyAgent);
-const HttpsProxyAgent = createCookieAgent(hpAgent.HttpsProxyAgent);
+const HttpProxyAgentWithCookies = createCookieAgent(HttpProxyAgent);
+const HttpsProxyAgentWithCookies = createCookieAgent(HttpsProxyAgent);
 
 class BaseFarmer {
   static _isRunning = false;
@@ -25,9 +27,10 @@ class BaseFarmer {
     this.config = config;
     this.farmer = farmer;
 
+    this.cookies = this.constructor.cookies;
     this.random = seedrandom(this.farmer.account.id);
     this.userAgent = userAgents[Math.floor(this.random() * userAgents.length)];
-    this.jar = new CookieJar();
+    this.jar = this.cookies ? new CookieJar() : null;
 
     /** Proxy URL */
     this.proxy = this.farmer.account.proxy
@@ -35,13 +38,27 @@ class BaseFarmer {
       : null;
 
     this.httpAgent = this.proxy
-      ? new HttpProxyAgent({ proxy: this.proxy, cookies: { jar: this.jar } })
-      : new HttpCookieAgent({ cookies: { jar: this.jar } });
+      ? this.cookies
+        ? new HttpProxyAgentWithCookies({
+            proxy: this.proxy,
+            cookies: { jar: this.jar },
+          })
+        : new HttpProxyAgent({ proxy: this.proxy })
+      : this.cookies
+      ? new HttpCookieAgent({ cookies: { jar: this.jar } })
+      : null;
 
     /** HttpsAgent */
     this.httpsAgent = this.proxy
-      ? new HttpsProxyAgent({ proxy: this.proxy, cookies: { jar: this.jar } })
-      : new HttpsCookieAgent({ cookies: { jar: this.jar } });
+      ? this.cookies
+        ? new HttpsProxyAgentWithCookies({
+            proxy: this.proxy,
+            cookies: { jar: this.jar },
+          })
+        : new HttpsProxyAgent({ proxy: this.proxy })
+      : this.cookies
+      ? new HttpsCookieAgent({ cookies: { jar: this.jar } })
+      : null;
 
     /** Create API */
     this.api = axios.create({
