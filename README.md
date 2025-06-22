@@ -3,6 +3,7 @@
 <h1 align="center">⚡ Purrfect Fly</h1>
 
 ### Requirements
+
 - Telegram Bot Token
 - Telegram Group with Topics
 - Telegram Bot must be an admin of the group
@@ -11,7 +12,19 @@
 
 ### Setup
 
+##### Install Packages
+
+```bash
+sudo apt-get update
+sudo apt-get install \
+nginx \
+nano \
+micro \
+-y
+```
+
 ##### Setup Node.js
+
 ```bash
 curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.2/install.sh | bash
 
@@ -25,7 +38,9 @@ npm i -g pm2
 ```
 
 ##### Setup PM2 (Required)
+
 Run the following command and follow the instructions it generates:
+
 ```bash
 pm2 startup
 ```
@@ -35,31 +50,37 @@ pm2 startup
 ### Installation
 
 ##### Clone the repository
+
 ```bash
 git clone https://github.com/purrfect-farmer/purrfect-fly.git ~/purrfect-fly
 ```
 
 ##### Change Working Directory to Purrfect Fly
+
 ```bash
 cd ~/purrfect-fly
 ```
 
-##### Install  Packages
+##### Install Packages
+
 ```bash
 pnpm install
 ```
 
 ##### Setup .env
+
 ```bash
 cp .env.example .env
 ```
 
 ##### Run migrations and seed
+
 ```bash
 pnpm db:migrate && pnpm db:seed
 ```
 
 ##### Generate Key
+
 ```bash
 ./fly generate-jwt-secret
 ```
@@ -75,37 +96,31 @@ For **`nano`**: press (**`Ctrl+S`** then **`Ctrl+X`)** to save.
 ```bash
 micro .env
 ```
+
 **Fill every required fields then save.**
 
-
 ##### Start Server
+
 ```bash
 pm2 start ecosystem.config.cjs
 ```
 
 ##### Save PM2 Processes
-```bash
-pm2 save
-```
 
-### Updating
-
-##### Change PWD
 ```bash
-cd ~/purrfect-fly
-```
-
-##### Pull Changes and Update
-```bash
-git pull && \
-pnpm install && \
-pm2 reload ecosystem.config.cjs && \
 pm2 save
 ```
 
 ### Nginx
 
-You can use this snippet to setup reverse-proxy on nginx.
+##### Create Purrfect Fly Nginx Server Block
+```bash
+sudo micro /etc/nginx/sites-available/purrfect-fly
+```
+
+##### Add Block Code
+
+Paste the following block and save.
 
 ```nginx
 server {
@@ -128,3 +143,37 @@ server {
     }
 }
 ```
+
+##### Disable Default Nginx Server
+```bash
+sudo rm /etc/nginx/sites-enabled/default
+```
+
+##### Enable Purrfect Fly Server
+```bash
+sudo ln -s /etc/nginx/sites-available/purrfect-fly /etc/nginx/sites-enabled/
+```
+
+##### Reload Nginx
+```bash
+sudo nginx -t
+sudo systemctl reload nginx
+```
+
+### Updating
+
+##### Change PWD
+
+```bash
+cd ~/purrfect-fly
+```
+
+##### Pull Changes and Update
+
+```bash
+git pull && \
+pnpm install && \
+pm2 reload ecosystem.config.cjs && \
+pm2 save
+```
+
