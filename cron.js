@@ -4,9 +4,9 @@ const app = require("./config/app");
 
 if (app.cron.enabled) {
   const farmers = require("./farmers");
-  const expireSubscriptions = require("./cron/expireSubscriptions");
-  const updateAccounts = require("./cron/updateAccounts");
-  const updateProxies = require("./cron/updateProxies");
+  const expireSubscriptions = require("./actions/expireSubscriptions");
+  const updateAccounts = require("./actions/updateAccounts");
+  const updateProxies = require("./actions/updateProxies");
   const CronRunner = require("./lib/CronRunner");
 
   const runner = new CronRunner(app.cron.mode);
