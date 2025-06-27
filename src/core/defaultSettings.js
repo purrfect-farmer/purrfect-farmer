@@ -1,10 +1,15 @@
 /** Drops Status */
 const dropsStatus = {
-  ["dragonz-land"]: true,
   ["ultima-bulls"]: true,
+  ["string-drive"]: true,
+  ["dragonz-land"]: true,
   ["frogster"]: true,
+  ["space-adventure"]: true,
   ["digger"]: true,
+  ["gold-eagle"]: true,
+  ["funatic"]: true,
   ["hrum"]: true,
+  ["tsubasa"]: true,
   ["wonton"]: true,
   ["slotcoin"]: true,
   ["dreamcoin"]: true,
