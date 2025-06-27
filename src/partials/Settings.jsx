@@ -480,19 +480,17 @@ export default memo(function Settings({ tabs }) {
                         </LabelToggle>
 
                         {/* Mini-App in New Tab */}
-                        {!import.meta.env.VITE_WHISKER ? (
-                          <LabelToggle
-                            onChange={(ev) =>
-                              dispatchAndConfigureSettings(
-                                "miniAppInNewWindow",
-                                ev.target.checked
-                              )
-                            }
-                            checked={settings?.miniAppInNewWindow}
-                          >
-                            Mini-App in New Window
-                          </LabelToggle>
-                        ) : null}
+                        <LabelToggle
+                          onChange={(ev) =>
+                            dispatchAndConfigureSettings(
+                              "miniAppInNewWindow",
+                              ev.target.checked
+                            )
+                          }
+                          checked={settings?.miniAppInNewWindow}
+                        >
+                          Mini-App in New Window
+                        </LabelToggle>
 
                         {/* Auto-Start Bot */}
                         <LabelToggle
