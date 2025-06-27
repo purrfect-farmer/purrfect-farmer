@@ -54,28 +54,12 @@ const app = {
 
   drops: [
     {
-      id: "midas",
-      enabled: process.env.FARMER_MIDAS_ENABLED !== "false",
-      threadId: process.env.FARMER_MIDAS_THREAD_ID ?? "",
-      telegramLink:
-        process.env.FARMER_MIDAS_LINK ??
-        "https://t.me/MidasRWA_bot/app?startapp=ref_746a3d4f-5108-4931-af18-5589b9a07af9",
-    },
-    {
       id: "ultima-bulls",
       enabled: process.env.FARMER_ULTIMA_BULLS_ENABLED !== "false",
       threadId: process.env.FARMER_ULTIMA_BULLS_THREAD_ID ?? "",
       telegramLink:
         process.env.FARMER_ULTIMA_BULLS_LINK ??
         "https://t.me/UltimaBulls_com_bot/start?startapp=frndId1147265290",
-    },
-    {
-      id: "string-drive",
-      enabled: process.env.FARMER_STRING_DRIVE_ENABLED !== "false",
-      threadId: process.env.FARMER_STRING_DRIVE_THREAD_ID ?? "",
-      telegramLink:
-        process.env.FARMER_STRING_DRIVE_LINK ??
-        "https://t.me/stringdrive_bot/startapp?startapp=1147265290",
     },
     {
       id: "dragonz-land",
@@ -111,14 +95,6 @@ const app = {
         "https://t.me/battle_games_com_bot/start?startapp=frndId1147265290",
     },
     {
-      id: "gold-eagle",
-      enabled: process.env.FARMER_GOLD_EAGLE_ENABLED !== "false",
-      threadId: process.env.FARMER_GOLD_EAGLE_THREAD_ID ?? "",
-      telegramLink:
-        process.env.FARMER_GOLD_EAGLE_LINK ??
-        "https://t.me/gold_eagle_coin_bot/main?startapp=r_ubdOBYN6KX",
-    },
-    {
       id: "hrum",
       enabled: process.env.FARMER_HRUM_ENABLED !== "false",
       threadId: process.env.FARMER_HRUM_THREAD_ID ?? "",
@@ -128,29 +104,6 @@ const app = {
       interval: "*/30 * * * *",
     },
     {
-      id: "tsubasa",
-      enabled: process.env.FARMER_TSUBASA_ENABLED !== "false",
-      threadId: process.env.FARMER_TSUBASA_THREAD_ID ?? "",
-      telegramLink:
-        process.env.FARMER_TSUBASA_LINK ??
-        "https://t.me/TsubasaRivalsBot/start?startapp=inviter_id-1147265290",
-      options: {
-        upgradeCards: process.env.FARMER_TSUBASA_UPGRADE_CARDS !== "false",
-      },
-      interval: "*/30 * * * *",
-    },
-    {
-      id: "space-adventure",
-      enabled: process.env.FARMER_SPACE_ADVENTURE_ENABLED !== "false",
-      threadId: process.env.FARMER_SPACE_ADVENTURE_THREAD_ID ?? "",
-      telegramLink:
-        process.env.FARMER_SPACE_ADVENTURE_LINK ??
-        "https://t.me/spaceadv_game_bot/play?startapp=1147265290",
-      options: {
-        watchAds: process.env.FARMER_SPACE_ADVENTURE_WATCH_ADS === "true",
-      },
-    },
-    {
       id: "wonton",
       enabled: process.env.FARMER_WONTON_ENABLED !== "false",
       threadId: process.env.FARMER_WONTON_THREAD_ID ?? "",
@@ -158,14 +111,6 @@ const app = {
         process.env.FARMER_WONTON_LINK ??
         "https://t.me/WontonOrgBot/gameapp?startapp=referralCode=K45JQRG7",
       interval: "*/30 * * * *",
-    },
-    {
-      id: "funatic",
-      enabled: process.env.FARMER_FUNATIC_ENABLED !== "false",
-      threadId: process.env.FARMER_FUNATIC_THREAD_ID ?? "",
-      telegramLink:
-        process.env.FARMER_FUNATIC_LINK ??
-        "https://t.me/LuckyFunaticBot/lucky_funatic?startapp=1147265290",
     },
     {
       id: "slotcoin",
