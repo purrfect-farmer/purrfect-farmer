@@ -1,5 +1,7 @@
 const BaseFarmer = require("../BaseFarmer");
 const utils = require("../../lib/utils");
+const cryptoJS = require("crypto-js");
+const cryptoJs = require("crypto-js");
 
 module.exports = class StringDriveFarmer extends BaseFarmer {
   static id = "string-drive";
@@ -26,7 +28,19 @@ module.exports = class StringDriveFarmer extends BaseFarmer {
     return this.farmer.setAuthorizationHeader("Bearer " + accessToken);
   }
 
+  getExtraHeaders() {
+    const timestamp = new Date().getTime();
+    const key = "StringW_Key@2025";
+    const data = `${key}&TimeStamp=${timestamp}`;
+    const clientId = cryptoJs.AES.encrypt(data, key).toString();
+
+    return {
+      clientId,
+    };
+  }
+
   async process() {
+    await this.claimDailyReward();
     await this.completeTasks();
     await this.completeAds();
     await this.playGame();
@@ -154,6 +168,25 @@ module.exports = class StringDriveFarmer extends BaseFarmer {
       )
       .then((res) => res.data.completedAds || [])
       .catch(() => []);
+  }
+
+  async claimDailyReward() {
+    await this.api
+      .get(
+        this.path("https://st-ba-drive.stringdrive.io/api/auth/GetDailyReward")
+      )
+      .then((res) => res.data);
+
+    try {
+      await this.api.post(
+        this.path(
+          "https://st-ba-drive.stringdrive.io/api/auth/claimdailyReward"
+        ),
+        {}
+      );
+    } catch {
+      // Probably claimed already
+    }
   }
 
   async getCompletedUserTasks() {
