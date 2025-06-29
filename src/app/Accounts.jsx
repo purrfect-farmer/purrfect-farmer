@@ -12,6 +12,13 @@ import { useMemo } from "react";
 
 import App from "./App";
 
+const withPro = Object.values(
+  import.meta.glob("@/../pro/src/hoc/withPro", {
+    eager: true,
+    import: "default",
+  })
+)[0];
+
 const FarmerAccount = ({ account }) => {
   const client = useMemo(() => createQueryClient(), []);
 
@@ -26,8 +33,8 @@ const FarmerAccount = ({ account }) => {
   );
 };
 
-export default function Accounts() {
-  const shared = useSharedCore();
+function Accounts({ isPro = false }) {
+  const shared = useSharedCore(isPro);
   const { accounts } = shared;
 
   /** Use Net Rules */
@@ -58,3 +65,5 @@ export default function Accounts() {
     </SharedContext.Provider>
   );
 }
+
+export default withPro ? withPro(Accounts) : Accounts;

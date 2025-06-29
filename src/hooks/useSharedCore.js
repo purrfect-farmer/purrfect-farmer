@@ -10,7 +10,7 @@ import useBaseSettings from "./useBaseSettings";
 import useStorageState from "./useStorageState";
 import useValuesMemo from "./useValuesMemo";
 
-export default function useSharedCore() {
+export default function useSharedCore(isPro = false) {
   /** Shared Settings */
   const {
     settings: sharedSettings,
@@ -96,6 +96,7 @@ export default function useSharedCore() {
   );
 
   return useValuesMemo({
+    isPro,
     accounts,
     activeAccount,
     sharedSettings,

@@ -6,7 +6,7 @@ import useAppContext from "@/hooks/useAppContext";
 import { cn } from "@/lib/utils";
 
 export default function Onboarding() {
-  const { dispatchAndConfigureSettings } = useAppContext();
+  const { isPro, dispatchAndConfigureSettings } = useAppContext();
   return (
     <div className="flex flex-col gap-2 justify-center min-h-dvh max-w-96 mx-auto p-4">
       {/* App Icon */}
@@ -20,7 +20,10 @@ export default function Onboarding() {
           "text-orange-500"
         )}
       >
-        {import.meta.env.VITE_APP_NAME}
+        {import.meta.env.VITE_APP_NAME}{" "}
+        {isPro ? (
+          <sup className="text-sm font-bold text-orange-500">Pro</sup>
+        ) : null}
       </h3>
 
       {/* Warning */}
