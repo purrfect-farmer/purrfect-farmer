@@ -47,6 +47,9 @@ importers:
       date-fns:
         specifier: ^4.1.0
         version: 4.1.0
+      deepmerge:
+        specifier: ^4.3.1
+        version: 4.3.1
       dotenv:
         specifier: ^16.5.0
         version: 16.5.0
@@ -622,6 +625,10 @@ packages:
   deep-extend@0.6.0:
     resolution: {integrity: sha512-LOHxIOaPYdHlJRtCQfDIVZtfw/ufM8+rVj649RIHzcm/vGwQRXFt6OPqIFWsm2XEMrNIEtWR64sY1LEKD2vAOA==}
     engines: {node: '>=4.0.0'}
+
+  deepmerge@4.3.1:
+    resolution: {integrity: sha512-3sUqbMEc77XqpdNO7FRyRog+eW3ph+GYCbj+rK+uYyRMuwsVy0rMiVtPn+QJlKFvWP/1PYpapqYn0Me2knFn+A==}
+    engines: {node: '>=0.10.0'}
 
   delayed-stream@1.0.0:
     resolution: {integrity: sha512-ZySD7Nf91aLB0RxL4KGrKHBXl7Eds1DAmEdcoVawXnLD7SDhpNgtuII2aAkg7a7QS41jxPSZ17p4VdGnMHk3MQ==}
@@ -2437,6 +2444,8 @@ snapshots:
       mimic-response: 3.1.0
 
   deep-extend@0.6.0: {}
+
+  deepmerge@4.3.1: {}
 
   delayed-stream@1.0.0: {}
 
