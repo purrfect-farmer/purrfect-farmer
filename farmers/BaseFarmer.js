@@ -26,6 +26,7 @@ class BaseFarmer {
   constructor(config, farmer) {
     this.config = config;
     this.farmer = farmer;
+    this.utils = require("../lib/utils");
 
     this.cookies = this.constructor.cookies;
     this.random = seedrandom(this.farmer.account.id);
