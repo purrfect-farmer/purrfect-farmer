@@ -8,9 +8,9 @@ const proFarmers = import.meta.glob("@/../pro/src/drops/*/index.js", {
   import: "default",
 });
 
-const farmers = {
+const farmers = [
   ...Object.values(standardFarmers),
   ...Object.values(proFarmers),
-};
+];
 
 export default farmers;
