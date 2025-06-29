@@ -115,6 +115,7 @@ export function generateChromeManifest(env, pkg) {
           "storage",
           "unlimitedStorage",
           "webRequest",
+          "declarativeNetRequest",
         ].concat(
           !isWhisker
             ? [
@@ -125,7 +126,6 @@ export function generateChromeManifest(env, pkg) {
                 "notifications",
                 "webNavigation",
                 "webRequestAuthProvider",
-                "declarativeNetRequest",
                 "system.display",
               ]
             : []
@@ -198,15 +198,13 @@ export function generateChromeManifest(env, pkg) {
       };
 
       /** @type {chrome.declarativeNetRequest.Rule[] | null} */
-      const netRules = !isWhisker ? getCoreNetRules() : null;
+      const netRules = getCoreNetRules();
 
-      if (!isWhisker) {
-        this.emitFile({
-          type: "asset",
-          fileName: "rule_resources/core.json",
-          source: JSON.stringify(netRules, null, 2),
-        });
-      }
+      this.emitFile({
+        type: "asset",
+        fileName: "rule_resources/core.json",
+        source: JSON.stringify(netRules, null, 2),
+      });
 
       this.emitFile({
         type: "asset",
