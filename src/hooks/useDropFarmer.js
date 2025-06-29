@@ -312,6 +312,13 @@ export default function useDropFarmer() {
     }
   }, [cacheAuth, authChromeStorageKey, authQuery.isSuccess, authQuery.data]);
 
+  /** Set Whisker Origin */
+  useLayoutEffect(() => {
+    if (import.meta.env.VITE_WHISKER) {
+      api.defaults.headers.common["x-whisker-origin"] = `https://${host}`;
+    }
+  }, [api, host]);
+
   /** Enforce only one request */
   useLayoutEffect(() => {
     const processNextRequest = () => {
@@ -477,7 +484,11 @@ export default function useDropFarmer() {
           farmer: id,
           userId: telegramWebApp.initDataUnsafe.user.id,
           initData: telegramWebApp.initData,
-          headers: api.defaults.headers.common,
+          headers: Object.fromEntries(
+            Object.entries(api.defaults.headers.common).filter(
+              ([k]) => !["x-whisker-origin"].includes(k)
+            )
+          ),
         })
         .then(() => {
           toast.success(`${title} - Synced to Cloud`);
