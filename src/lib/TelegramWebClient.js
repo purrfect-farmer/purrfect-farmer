@@ -5,7 +5,12 @@ import { StringSession } from "telegram/sessions";
 import { TelegramClient } from "telegram";
 import { UpdateConnectionState } from "telegram/network";
 
-import { customLogger, extractTgWebAppData, parseTelegramLink } from "./utils";
+import {
+  customLogger,
+  delayForSeconds,
+  extractTgWebAppData,
+  parseTelegramLink,
+} from "./utils";
 
 export default class TelegramWebClient extends TelegramClient {
   /** Construct Class */
@@ -76,6 +81,7 @@ export default class TelegramWebClient extends TelegramClient {
       this._isConnecting = true;
 
       try {
+        await delayForSeconds(1);
         await super.connect();
         this._connectionQueue.forEach((item) => item.resolve());
       } catch (error) {
