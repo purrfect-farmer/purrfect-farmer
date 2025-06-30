@@ -31,6 +31,8 @@ export default createFarmer({
     withXSRFToken: true,
   },
 
+  embedInNewWindow: true,
+
   /**
    * Fetch Auth
    * @param {import("axios").AxiosInstance} api
