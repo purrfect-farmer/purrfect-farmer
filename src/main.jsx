@@ -8,9 +8,13 @@ import { setupChromeStorage } from "@/lib/chrome-storage.js";
 import Accounts from "./app/Accounts.jsx";
 
 setupChromeStorage().then(() => {
-  createRoot(document.getElementById("root")).render(
-    <StrictMode>
-      <Accounts />
-    </StrictMode>
-  );
+  import("@/lib/TelegramWebClient.js").then((module) => {
+    globalThis.TelegramWebClient = module.default;
+
+    createRoot(document.getElementById("root")).render(
+      <StrictMode>
+        <Accounts />
+      </StrictMode>
+    );
+  });
 });
