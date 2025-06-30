@@ -118,7 +118,7 @@ export default defineConfig(async ({ mode }) => {
       VitePWA({
         registerType: "prompt",
         workbox: {
-          globPatterns: ["**/*.*"],
+          globPatterns: ["**/*"],
           maximumFileSizeToCacheInBytes: 5 * 1024 ** 2,
         },
         manifest: {
