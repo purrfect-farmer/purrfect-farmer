@@ -131,6 +131,7 @@ if (location.host !== TELEGRAM_WEB_HOST) {
         port.postMessage({
           id,
           data,
+          type: "response",
         });
       };
 
@@ -167,7 +168,7 @@ if (location.host !== TELEGRAM_WEB_HOST) {
     updateUserAgent();
 
     /** Setup Mini-App Toolbar */
-    setupMiniAppToolbar(port);
+    setupMiniAppToolbar();
   }
 
   /** Watch Mini-App */

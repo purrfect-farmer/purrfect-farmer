@@ -10,9 +10,9 @@ export default function useMiniAppToolbar(core) {
 
   const dispatchToolbarMessage = useCallback(
     (port) => {
-      if (port.name.startsWith("mini-app:")) {
+      if (port.name.startsWith("mini-app-toolbar:")) {
         port.onMessage.addListener((message) => {
-          if (!message.action.startsWith("farmer:")) {
+          if (message.action.startsWith("farmer:") === false) {
             mirror.dispatch({
               action: "mini-app-toolbar:handle-mirror-message",
               data: {
