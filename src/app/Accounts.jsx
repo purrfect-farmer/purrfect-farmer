@@ -13,7 +13,7 @@ import { useMemo } from "react";
 import App from "./App";
 
 const withPro = Object.values(
-  import.meta.glob("@/../pro/src/hoc/withPro", {
+  import.meta.glob("@/../pro/src/hoc/withPro.js", {
     eager: true,
     import: "default",
   })
