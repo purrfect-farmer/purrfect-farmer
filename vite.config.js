@@ -19,7 +19,7 @@ const __dirname = path.dirname(__filename);
 // https://vitejs.dev/config/
 export default defineConfig(async ({ mode }) => {
   /** Pkg */
-  const pkg = await getPackageJson();
+  const pkg = getPackageJson();
 
   /** Env */
   const env = loadEnv(mode, process.cwd());
