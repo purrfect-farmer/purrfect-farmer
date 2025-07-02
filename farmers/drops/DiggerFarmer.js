@@ -61,11 +61,11 @@ module.exports = class DiggerFarmer extends BaseFarmer {
   }
 
   async spinWheel() {
-    const cooldown = await this.api
+    const coolDown = await this.api
       .get("https://api.diggergame.app/api/wheel/remainingColdDown")
       .then((res) => res.data.result);
 
-    for (let i = 0; i < cooldown["ticket_count"]; i++) {
+    for (let i = 0; i < coolDown["ticket_count"]; i++) {
       const result = await this.api
         .get("https://api.diggergame.app/api/wheel/getWinItem")
         .then((res) => res.data.result);
