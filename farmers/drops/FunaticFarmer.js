@@ -99,13 +99,14 @@ module.exports = class FunaticFarmer extends BaseFarmer {
   /** Check-In */
   async checkIn() {
     const dailyBonus = await this.api
-      .get("https://api2.funtico.com/api/lucky-funatic/daily-bonus/config")
+      .get("https://clicker.api.funtico.com/daily-bonus")
       .then((res) => res.data.data);
 
     if (dailyBonus.cooldown === 0) {
-      await this.api.post(
-        "https://api2.funtico.com/api/lucky-funatic/daily-bonus/claim"
-      );
+      const ip = await this.api.get("https://ipwho.is").then((res) => res.data);
+      await this.api.post("https://clicker.api.funtico.com/daily-bonus/claim", {
+        timezone: ip.timezone.id,
+      });
     }
   }
 
