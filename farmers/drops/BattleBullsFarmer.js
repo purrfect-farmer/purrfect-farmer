@@ -32,6 +32,15 @@ module.exports = class BattleBullsFarmer extends BaseFarmer {
     await this.tapGame(user);
   }
 
+  async buyBoost(boostId) {
+    return await this.api
+      .post("https://ub-api.battle-games.com/api/v1/boosts/buy", {
+        boostId,
+        requestedAt: Date.now(),
+      })
+      .then((res) => res.data.data);
+  }
+
   /** Tap Game */
   async tapGame(user) {
     if (user.availableEnergy > 0) {
