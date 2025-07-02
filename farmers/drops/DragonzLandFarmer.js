@@ -32,7 +32,7 @@ module.exports = class DragonzLandFarmer extends BaseFarmer {
     await this.upgradeCards(user);
   }
 
-  async claimChests() {
+  async claimChests(user) {
     for (const chest of user.chestRecords) {
       await this.api
         .get(`https://app.dragonz.land/api/chests/${chest.chestId}`)
