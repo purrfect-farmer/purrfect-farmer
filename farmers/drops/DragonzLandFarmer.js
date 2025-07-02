@@ -26,9 +26,23 @@ module.exports = class DragonzLandFarmer extends BaseFarmer {
       .get("https://app.dragonz.land/api/me")
       .then((res) => res.data);
 
+    await this.claimChests(user);
     await this.tap(user);
     await this.completeTasks();
     await this.upgradeCards(user);
+  }
+
+  async claimChests() {
+    for (const chest of user.chestRecords) {
+      await this.api
+        .get(`https://app.dragonz.land/api/chests/${chest.chestId}`)
+        .then((res) => res.data);
+      await this.api
+        .post("https://app.dragonz.land/api/me/chests/unlock", {
+          chestRecordId: chest.chestRecordId,
+        })
+        .then((res) => res.data);
+    }
   }
 
   async upgradeCards(user) {
