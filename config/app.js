@@ -111,14 +111,6 @@ const app = {
         "https://t.me/battle_games_com_bot/start?startapp=frndId1147265290",
     },
     {
-      id: "gold-eagle",
-      enabled: process.env.FARMER_GOLD_EAGLE_ENABLED !== "false",
-      threadId: process.env.FARMER_GOLD_EAGLE_THREAD_ID ?? "",
-      telegramLink:
-        process.env.FARMER_GOLD_EAGLE_LINK ??
-        "https://t.me/gold_eagle_coin_bot/main?startapp=r_ubdOBYN6KX",
-    },
-    {
       id: "hrum",
       enabled: process.env.FARMER_HRUM_ENABLED !== "false",
       threadId: process.env.FARMER_HRUM_THREAD_ID ?? "",
