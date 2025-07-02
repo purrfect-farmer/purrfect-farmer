@@ -9,6 +9,7 @@ module.exports = class DiggerFarmer extends BaseFarmer {
   static auth = true;
 
   static CHEST_TYPES = {
+    9: "gift_chest",
     7: "usdt_chest",
     3: "adamant_chest",
     2: "gold_chest",
@@ -52,8 +53,33 @@ module.exports = class DiggerFarmer extends BaseFarmer {
     /** Watch Chest Ads */
     await this.watchChestAds();
 
+    /** Spin-Wheel */
+    await this.spinWheel();
+
     /** Tap Chest */
     await this.tapChest();
+  }
+
+  async spinWheel() {
+    const cooldown = await this.api
+      .get("https://api.diggergame.app/api/wheel/remainingColdDown")
+      .then((res) => res.data.result);
+
+    for (let i = 0; i < cooldown["ticket_count"]; i++) {
+      const result = await this.api
+        .get("https://api.diggergame.app/api/wheel/getWinItem")
+        .then((res) => res.data.result);
+    }
+
+    const currentTicketCount = await this.api
+      .get("https://api.diggergame.app/api/wheel/currentTicketCount")
+      .then((res) => res.data.result);
+
+    if (currentTicketCount["possible"]) {
+      for (let i = currentTicketCount["count_AD"]; i < 5; i++) {
+        await this.watchAd("ticket");
+      }
+    }
   }
 
   async tapChest() {
