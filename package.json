@@ -51,6 +51,7 @@
     "jsonwebtoken": "^9.0.2",
     "keyv": "^5.3.4",
     "mariadb": "^3.4.2",
+    "pako": "^2.1.0",
     "seedrandom": "^3.0.5",
     "sequelize": "^6.37.7",
     "sequelize-cli": "^6.6.3",
