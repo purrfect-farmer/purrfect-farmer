@@ -275,6 +275,7 @@ class BaseFarmer {
       await instance.disconnect();
       this.error(
         "Error:",
+        farmer.accountId,
         isAxiosError(error)
           ? error?.response?.data || error.message
           : error.message
