@@ -1,4 +1,4 @@
-const { default: axios } = require("axios");
+const { default: axios, isAxiosError } = require("axios");
 const hpAgent = require("hpagent");
 const { CookieJar } = require("tough-cookie");
 const seedrandom = require("seedrandom");
@@ -273,7 +273,12 @@ class BaseFarmer {
       await instance.process();
     } catch (error) {
       await instance.disconnect();
-      this.error("Error:", error);
+      this.error(
+        "Error:",
+        isAxiosError(error)
+          ? error?.response?.data || error.message
+          : error.message
+      );
     }
   }
 
