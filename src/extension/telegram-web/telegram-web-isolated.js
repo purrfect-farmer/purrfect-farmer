@@ -5,9 +5,6 @@ if (location.host === TELEGRAM_WEB_HOST) {
   /** Web Version */
   const WEB_VERSION = location.pathname.startsWith("/k/") ? "k" : "a";
 
-  /** Farmer Bot URL */
-  const FARMER_BOT_URL = import.meta.env.VITE_APP_BOT_URL;
-
   /** Button Text */
   const JOIN_BUTTON_TEXT_CONTENT = [
     "SUBSCRIBE",
@@ -44,26 +41,29 @@ if (location.host === TELEGRAM_WEB_HOST) {
         };
 
   /** Observers */
-  const OBSERVERS = {};
+  const mutationObservers = new Map();
 
   /** Click Timeouts */
-  const CLICK_TIMEOUTS = {};
+  const clickTimeouts = new Map();
 
   /** Click Telegram Web Button */
   const clickTelegramWebButton = (key, button, timeout = 0) => {
     if (isElementVisible(button)) {
-      if (CLICK_TIMEOUTS[key]) {
-        clearTimeout(CLICK_TIMEOUTS[key]);
+      if (clickTimeouts.has(key)) {
+        clearTimeout(clickTimeouts.get(key));
       }
 
       /** Set Timeout */
-      CLICK_TIMEOUTS[key] = setTimeout(() => {
-        /** Remove Timeout */
-        delete CLICK_TIMEOUTS[key];
+      clickTimeouts.set(
+        key,
+        setTimeout(() => {
+          /** Remove Timeout */
+          clickTimeouts.delete(key);
 
-        /** Dispatch the Click Event */
-        clickElementCenter(button);
-      }, timeout);
+          /** Dispatch the Click Event */
+          clickElementCenter(button);
+        }, timeout)
+      );
 
       return true;
     } else {
@@ -184,12 +184,12 @@ if (location.host === TELEGRAM_WEB_HOST) {
 
   /** Disconnect Observers */
   const disconnectObservers = () => {
-    for (const key in OBSERVERS) {
+    for (const [key, observer] of mutationObservers.entries()) {
       /** Disconnect Observer */
-      OBSERVERS[key].disconnect();
+      observer.disconnect();
 
       /** Delete the Key */
-      delete OBSERVERS[key];
+      mutationObservers.delete(key);
     }
   };
 
@@ -220,7 +220,7 @@ if (location.host === TELEGRAM_WEB_HOST) {
     });
 
     /** Store Observer */
-    OBSERVERS["join"] = observer;
+    mutationObservers.set("join", observer);
 
     /** Observe */
     observer.observe(document.documentElement, {
@@ -268,7 +268,7 @@ if (location.host === TELEGRAM_WEB_HOST) {
     });
 
     /** Store Observer */
-    OBSERVERS["bot"] = observer;
+    mutationObservers.set("bot", observer);
 
     /** Observe */
     observer.observe(document.documentElement, {
@@ -279,11 +279,6 @@ if (location.host === TELEGRAM_WEB_HOST) {
 
     /** Disconnect Observer */
     setTimeout(() => observer.disconnect(), 20_000);
-  };
-
-  /** Open Farmer Bot */
-  const openFarmerBot = () => {
-    return openBot();
   };
 
   /** Observe Page Elements */
@@ -306,45 +301,6 @@ if (location.host === TELEGRAM_WEB_HOST) {
       childList: true,
       subtree: true,
     });
-  };
-
-  /** Farmer Bot Is Running */
-  const farmerBotIsRunning = (iframes) => {
-    for (const iframe of iframes) {
-      if (iframe.src.startsWith(FARMER_BOT_URL)) {
-        return true;
-      }
-    }
-  };
-
-  /** Close Popup */
-  const closePopup = (iframe) => {
-    clickElementCenter(
-      iframe.parentElement.previousElementSibling.querySelector(".popup-close")
-    );
-  };
-
-  /** Close Other Popups */
-  const closeOtherPopups = () => {
-    const iframes = document.querySelectorAll(
-      ".popup-body.web-app-body iframe"
-    );
-    if (iframes.length <= 1) return;
-
-    if (farmerBotIsRunning(iframes)) {
-      Object.values(iframes)
-        .filter((iframe) => !iframe.src.startsWith(FARMER_BOT_URL))
-        .forEach((iframe) => {
-          closePopup(iframe);
-        });
-    } else {
-      Object.values(iframes)
-        .slice(1)
-        .reverse()
-        .forEach((iframe) => {
-          closePopup(iframe);
-        });
-    }
   };
 
   /** Connect to Messaging */
@@ -389,26 +345,8 @@ if (location.host === TELEGRAM_WEB_HOST) {
         }
         break;
 
-      case "close-other-popups":
-        await closeOtherPopups();
-        try {
-          reply(true);
-        } catch (e) {
-          console.error(e);
-        }
-        break;
-
       case "open-webview-bot":
         await openBot(true);
-        try {
-          reply(true);
-        } catch (e) {
-          console.error(e);
-        }
-        break;
-
-      case "open-farmer-bot":
-        await openFarmerBot();
         try {
           reply(true);
         } catch (e) {

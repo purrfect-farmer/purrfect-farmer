@@ -245,9 +245,7 @@ export default memo(function FarmerLinks() {
                           onClick={() =>
                             isBotURL(link.telegramLink)
                               ? dispatchAndOpenTelegramBot(link.telegramLink, {
-                                  browserId: `farmer-link-${md5(
-                                    link.telegramLink
-                                  )}`,
+                                  browserId: `farmer-link-${link.id}`,
                                   browserTitle: link.title,
                                   browserIcon: link.icon,
                                 })

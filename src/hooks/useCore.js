@@ -582,15 +582,20 @@ export default function useCore() {
           /** Open Telegram Link */
           await openTelegramLink(url, { version });
 
+          /** Delay */
+          await delay(2000);
+
           /** Get Port */
           const telegramWebPort = messaging.ports
             .values()
             .find((port) => port.name === `telegram-web-${version}`);
 
           /** Join Conversation */
-          postPortMessage(telegramWebPort, {
-            action: "join-conversation",
-          });
+          if (telegramWebPort) {
+            postPortMessage(telegramWebPort, {
+              action: "join-conversation",
+            });
+          }
         } catch (e) {
           console.error(e);
         }
@@ -625,7 +630,7 @@ export default function useCore() {
       } = {}
     ) => {
       try {
-        /** Is Mini App Start Page */
+        /** Is Short App */
         const isShortApp = /^(http|https):\/\/t\.me\/[^\/]+\/.+/.test(url);
 
         /** Should it use Webview? */
@@ -659,7 +664,7 @@ export default function useCore() {
           /** Open Telegram Link */
           await openTelegramLink(url, { version });
 
-          if (!isShortApp) {
+          if (forceWebview && isShortApp === false) {
             /** Wait */
             await delay(1000);
 
