@@ -184,6 +184,13 @@ class BaseFarmer {
     }
   }
 
+  /** Wrap Error */
+  wrapError(error) {
+    return isAxiosError(error)
+      ? error.response?.data || error.message
+      : error.message;
+  }
+
   /** Validate Telegram Task */
   validateTelegramTask(link) {
     return !utils.isTelegramLink(link) || this.canJoinTelegramLink(link);
