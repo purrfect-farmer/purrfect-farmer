@@ -9,7 +9,7 @@ const proDefaultSettings = Object.values(
 
 /** Drops Status */
 const dropsStatus = {
-  ["monkey-rush"]: true,
+  ...(proDefaultSettings?.dropsStatus || {}),
   ["ultima-bulls"]: true,
   ["string-drive"]: true,
   ["dragonz-land"]: true,
