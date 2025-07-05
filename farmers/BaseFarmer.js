@@ -184,6 +184,16 @@ class BaseFarmer {
     }
   }
 
+  /** Log Task Error */
+  logTaskError(task, error) {
+    console.error(
+      "Failed to complete task:",
+      this.farmer.accountId,
+      task,
+      this.wrapError(error)
+    );
+  }
+
   /** Wrap Error */
   wrapError(error) {
     return isAxiosError(error)

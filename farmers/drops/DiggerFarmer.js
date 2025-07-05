@@ -200,17 +200,27 @@ module.exports = class DiggerFarmer extends BaseFarmer {
     /** Start Pending Task */
     if (pendingTasks.length > 0) {
       const task = utils.randomItem(pendingTasks);
-      await this.api.post("https://api.diggergame.app/api/user-task/update", {
-        type: task.type,
-      });
+
+      try {
+        await this.api.post("https://api.diggergame.app/api/user-task/update", {
+          type: task.type,
+        });
+      } catch (e) {
+        this.logTaskError(task, e);
+      }
     }
 
     /** Claim Task */
     if (unclaimedTasks.length > 0) {
       const task = utils.randomItem(unclaimedTasks);
-      await this.api.post("https://api.diggergame.app/api/user-task/check", {
-        type: task.type,
-      });
+
+      try {
+        await this.api.post("https://api.diggergame.app/api/user-task/check", {
+          type: task.type,
+        });
+      } catch (e) {
+        this.logTaskError(task, e);
+      }
     }
   }
 };

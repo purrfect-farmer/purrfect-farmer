@@ -48,8 +48,13 @@ module.exports = class FrogsterFarmer extends BaseFarmer {
 
     if (uncompletedTasks.length > 0) {
       const task = utils.randomItem(uncompletedTasks);
-      await this.tryToJoinTelegramLink(task.url);
-      await this.api.get(`https://frogster.app/api/tasks/assign/${task.id}`);
+
+      try {
+        await this.tryToJoinTelegramLink(task.url);
+        await this.api.get(`https://frogster.app/api/tasks/assign/${task.id}`);
+      } catch (e) {
+        this.logTaskError(task, e);
+      }
     }
 
     const balance = await this.api

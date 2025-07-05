@@ -85,8 +85,12 @@ module.exports = class DragonzLandFarmer extends BaseFarmer {
       }
 
       for (const task of card.nextLevel.tasks) {
-        await this.tryToJoinTelegramLink(task.data?.url);
-        await this.verifyTask(task.id);
+        try {
+          await this.tryToJoinTelegramLink(task.data?.url);
+          await this.verifyTask(task.id);
+        } catch (e) {
+          this.logTaskError(task, e);
+        }
       }
       await this.buyCard(card.id);
     }
@@ -149,14 +153,22 @@ module.exports = class DragonzLandFarmer extends BaseFarmer {
       !dailyReward.levelRecord ||
       !utils.dateFns.isToday(new Date(dailyReward.levelRecord.attemptedAt))
     ) {
-      await this.verifyTask(dailyReward.id);
+      try {
+        await this.verifyTask(dailyReward.id);
+      } catch (e) {
+        this.logTaskError(dailyReward, e);
+      }
     }
 
     /** Ad Task */
     const adTask = tasks.find((item) => item.id === "daily-watch-adsgram-ad");
 
     if (this.validateTaskLevel(adTask)) {
-      await this.verifyTask(adTask.id);
+      try {
+        await this.verifyTask(adTask.id);
+      } catch (e) {
+        this.logTaskError(adTask, e);
+      }
     }
 
     /** Other Tasks */
@@ -168,8 +180,12 @@ module.exports = class DragonzLandFarmer extends BaseFarmer {
     );
 
     for (const task of availableTasks) {
-      await this.tryToJoinTelegramLink(task.data?.url);
-      await this.verifyTask(task.id);
+      try {
+        await this.tryToJoinTelegramLink(task.data?.url);
+        await this.verifyTask(task.id);
+      } catch (e) {
+        this.logTaskError(task, e);
+      }
     }
   }
 

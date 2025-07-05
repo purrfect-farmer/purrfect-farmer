@@ -128,17 +128,27 @@ module.exports = class WontonFarmer extends BaseFarmer {
     /** Verify Task */
     if (pendingTasks.length > 0) {
       const task = utils.randomItem(pendingTasks);
-      await this.api.post("https://wonton.food/api/v1/task/verify", {
-        taskId: task.id,
-      });
+
+      try {
+        await this.api.post("https://wonton.food/api/v1/task/verify", {
+          taskId: task.id,
+        });
+      } catch (e) {
+        this.logTaskError(task, e);
+      }
     }
 
     /** Claim Task */
     if (unclaimedTasks.length > 0) {
       const task = utils.randomItem(unclaimedTasks);
-      await this.api.post("https://wonton.food/api/v1/task/claim", {
-        taskId: task.id,
-      });
+
+      try {
+        await this.api.post("https://wonton.food/api/v1/task/claim", {
+          taskId: task.id,
+        });
+      } catch (e) {
+        this.logTaskError(task, e);
+      }
     }
 
     /** Claim Progress */

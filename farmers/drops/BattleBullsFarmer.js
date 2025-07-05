@@ -96,10 +96,14 @@ module.exports = class BattleBullsFarmer extends BaseFarmer {
     if (uncompletedTasks.length > 0) {
       const task = utils.randomItem(uncompletedTasks);
 
-      await this.tryToJoinTelegramLink(task.link);
-      await this.api.post(
-        `https://api.battle-games.com:8443/api/api/v1/tasks/${task.id}/complete`
-      );
+      try {
+        await this.tryToJoinTelegramLink(task.link);
+        await this.api.post(
+          `https://api.battle-games.com:8443/api/api/v1/tasks/${task.id}/complete`
+        );
+      } catch (e) {
+        this.logTaskError(task, e);
+      }
     }
   }
 
