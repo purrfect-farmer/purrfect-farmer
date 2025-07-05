@@ -70,14 +70,6 @@ const app = {
         "https://t.me/UltimaBulls_com_bot/start?startapp=frndId1147265290",
     },
     {
-      id: "string-drive",
-      enabled: process.env.FARMER_STRING_DRIVE_ENABLED !== "false",
-      threadId: process.env.FARMER_STRING_DRIVE_THREAD_ID ?? "",
-      telegramLink:
-        process.env.FARMER_STRING_DRIVE_LINK ??
-        "https://t.me/stringdrive_bot/startapp?startapp=1147265290",
-    },
-    {
       id: "dragonz-land",
       enabled: process.env.FARMER_DRAGONZ_LAND_ENABLED !== "false",
       threadId: process.env.FARMER_DRAGONZ_LAND_THREAD_ID ?? "",
@@ -117,18 +109,6 @@ const app = {
       telegramLink:
         process.env.FARMER_HRUM_LINK ??
         "https://t.me/hrummebot/game?startapp=ref1147265290",
-      interval: "*/30 * * * *",
-    },
-    {
-      id: "tsubasa",
-      enabled: process.env.FARMER_TSUBASA_ENABLED !== "false",
-      threadId: process.env.FARMER_TSUBASA_THREAD_ID ?? "",
-      telegramLink:
-        process.env.FARMER_TSUBASA_LINK ??
-        "https://t.me/TsubasaRivalsBot/start?startapp=inviter_id-1147265290",
-      options: {
-        upgradeCards: process.env.FARMER_TSUBASA_UPGRADE_CARDS !== "false",
-      },
       interval: "*/30 * * * *",
     },
     {
