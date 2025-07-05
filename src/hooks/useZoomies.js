@@ -221,7 +221,6 @@ export default function useZoomies(core) {
   useLayoutEffect(() => {
     if (process.started && repeatZoomiesCycle === false) {
       process.stop();
-      core.cancelTelegramHandlers();
       core.resetTabs();
       setQuickRun(false);
       setCurrent((prev) => ({
@@ -232,7 +231,6 @@ export default function useZoomies(core) {
   }, [
     process.started,
     repeatZoomiesCycle,
-    core.cancelTelegramHandlers,
     core.resetTabs,
     setCurrent,
     setQuickRun,

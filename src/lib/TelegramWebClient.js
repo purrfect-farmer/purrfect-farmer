@@ -116,7 +116,7 @@ export default class TelegramWebClient extends TelegramClient {
   }
 
   /** Wait for Reply */
-  waitForReply(entity, { filter } = {}) {
+  _waitForReply(entity, { filter } = {}) {
     return new Promise((resolve) => {
       /** Event to Handle */
       const telegramEvent = new NewMessage({
@@ -140,8 +140,8 @@ export default class TelegramWebClient extends TelegramClient {
     });
   }
 
-  /** Core Start Bot */
-  async coreStartBot(
+  /** Start Bot */
+  async startBot(
     { entity, startParam = "", shouldWaitForReply = true } = {},
     replyOptions = {}
   ) {
@@ -159,7 +159,7 @@ export default class TelegramWebClient extends TelegramClient {
 
     /** Wait for Reply */
     if (shouldWaitForReply) {
-      return this.waitForReply(entity, replyOptions);
+      return this._waitForReply(entity, replyOptions);
     }
   }
 
@@ -167,7 +167,7 @@ export default class TelegramWebClient extends TelegramClient {
   startBotFromLink({ link, startOptions, replyOptions }) {
     return this.execute(() => {
       const { entity, startParam } = parseTelegramLink(link);
-      return this.coreStartBot(
+      return this.startBot(
         {
           ...startOptions,
           entity,
@@ -195,7 +195,7 @@ export default class TelegramWebClient extends TelegramClient {
 
       /** Start the Bot */
       if (!parsed.shortName) {
-        await this.coreStartBot({
+        await this.startBot({
           entity: parsed.entity,
           startParam: parsed.startParam,
         });

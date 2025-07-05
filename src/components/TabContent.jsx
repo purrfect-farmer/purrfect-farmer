@@ -50,6 +50,7 @@ export default memo(function TabContent({ tab }) {
                 browserIcon: tab.icon,
                 embedWebPage: tab.embedWebPage,
                 embedInNewWindow: tab.embedInNewWindow,
+                forceWebview: true,
               })
             }
           >

@@ -57,7 +57,7 @@ export default function useTelegramWebAppEvents(ref) {
             customLogger("TELEGRAM LINK", finalUrl);
 
             /** Open Link */
-            openTelegramLink(finalUrl, { force: true });
+            openTelegramLink(finalUrl);
             break;
         }
       }
