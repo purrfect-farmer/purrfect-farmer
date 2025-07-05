@@ -1,3 +1,0 @@
-GET https://gold-eagle-api.fly.dev/user/me/progress
-GET https://gold-eagle-api.fly.dev/task/my/available
-POST https://gold-eagle-api.fly.dev/tap
