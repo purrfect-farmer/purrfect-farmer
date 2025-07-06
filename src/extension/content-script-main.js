@@ -14,7 +14,7 @@ import { injectTelegramWebviewProxy } from "./webview-proxy/webview-proxy-main";
 if (location.host !== TELEGRAM_WEB_HOST) {
   if (
     location.hash.includes("tgWebAppData") &&
-    WEB_PLATFORM_EXCLUDED_HOSTS.includes(location.host) === false &&
+    !WEB_PLATFORM_EXCLUDED_HOSTS.includes(location.host) &&
     WEB_PLATFORM_REGEXP.test(location.href)
   ) {
     /** Replace Platform */
@@ -70,7 +70,9 @@ if (location.host !== TELEGRAM_WEB_HOST) {
       /** Initialize */
       const initialize = () => {
         /** Inject Webview Proxy */
-        injectTelegramWebviewProxy();
+        if (!WEB_PLATFORM_EXCLUDED_HOSTS.includes(location.host)) {
+          injectTelegramWebviewProxy();
+        }
 
         /** Handle Messages */
         window.addEventListener("message", (ev) => {
