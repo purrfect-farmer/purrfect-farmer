@@ -11,12 +11,10 @@ import { retrieveRawLaunchParams } from "@telegram-apps/bridge";
 import { decryptData, encryptData } from "./content-script-utils";
 import { injectTelegramWebviewProxy } from "./webview-proxy/webview-proxy-main";
 
+const IS_ALLOWED_HOST = !WEB_PLATFORM_EXCLUDED_HOSTS.includes(location.host);
+
 if (location.host !== TELEGRAM_WEB_HOST) {
-  if (
-    location.hash.includes("tgWebAppData") &&
-    !WEB_PLATFORM_EXCLUDED_HOSTS.includes(location.host) &&
-    WEB_PLATFORM_REGEXP.test(location.href)
-  ) {
+  if (IS_ALLOWED_HOST && WEB_PLATFORM_REGEXP.test(location.href)) {
     /** Replace Platform */
     location.hash = location.hash.replace(
       WEB_PLATFORM_REGEXP,
@@ -61,16 +59,18 @@ if (location.host !== TELEGRAM_WEB_HOST) {
 
       const overrideUserAgent = (userAgent) => {
         /** Override User Agent */
-        Object.defineProperty(navigator, "userAgent", {
-          get: () => userAgent,
-          configurable: true,
-        });
+        if (IS_ALLOWED_HOST) {
+          Object.defineProperty(navigator, "userAgent", {
+            get: () => userAgent,
+            configurable: true,
+          });
+        }
       };
 
       /** Initialize */
       const initialize = () => {
         /** Inject Webview Proxy */
-        if (!WEB_PLATFORM_EXCLUDED_HOSTS.includes(location.host)) {
+        if (IS_ALLOWED_HOST) {
           injectTelegramWebviewProxy();
         }
 
