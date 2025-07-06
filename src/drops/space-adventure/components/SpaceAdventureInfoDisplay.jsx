@@ -9,6 +9,7 @@ export default memo(function SpaceAdventureInfoDisplay() {
   const user = userQuery?.data?.user;
   const coinBalance = user?.["balance"];
   const gemsBalance = user?.["gems"];
+  const banned = Boolean(user?.["block_account"]);
 
   return (
     <div className="flex flex-col text-center ">
@@ -24,6 +25,11 @@ export default memo(function SpaceAdventureInfoDisplay() {
             <img src={GemsIcon} className="inline-flex size-4" />{" "}
             {Intl.NumberFormat().format(gemsBalance || 0)}
           </h3>
+          {banned ? (
+            <p className="text-center">
+              <span className="text-red-500 border border-red-500">BANNED</span>
+            </p>
+          ) : null}
         </div>
       ) : (
         "Error..."
