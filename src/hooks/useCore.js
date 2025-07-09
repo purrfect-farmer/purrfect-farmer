@@ -7,6 +7,7 @@ import tabs, { Browser, TelegramWeb, farmers } from "@/core/tabs";
 import { createElement } from "react";
 import {
   delay,
+  delayForSeconds,
   getWindowCoords,
   postPortMessage,
   toastAndDelayForMinutes,
@@ -650,7 +651,14 @@ export default function useCore() {
           embedWebPage === true &&
           settings.enableInAppBrowser === true
         ) {
-          toast.promise(
+          /** Delay Webview */
+          const duration = Math.floor(Math.random() * 60);
+          await toast.promise(delayForSeconds(duration), {
+            loading: `Retrieving Webview in ${duration}s...`,
+          });
+
+          /** Get Webview */
+          await toast.promise(
             (async function () {
               const webview = await telegramClient.ref.current.getWebview(url);
 
