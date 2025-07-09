@@ -18,7 +18,7 @@ export default memo(function ControlArea() {
   return (
     <>
       {/* Utils Control */}
-      <div className="flex gap-2 px-2 border-t dark:border-neutral-700 shrink-0">
+      <div className="flex gap-2 px-2 pl-12 border-t dark:border-neutral-700 shrink-0">
         {/* Mirror */}
         {settings.enableMirror ? (
           <Mirror />
