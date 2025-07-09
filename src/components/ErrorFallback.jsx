@@ -1,20 +1,7 @@
 import ShockedCat from "@/assets/images/shocked-cat.png?format=webp";
-import useAppContext from "@/hooks/useAppContext";
-import { memo, useEffect } from "react";
+import { memo } from "react";
 
 export default memo(function ErrorFallback({ error, resetErrorBoundary }) {
-  const { zoomies } = useAppContext();
-
-  useEffect(() => {
-    if (zoomies.enabled) {
-      /** Process to Next Drop */
-      zoomies.skipToNextDrop();
-
-      /** Reset the Error */
-      resetErrorBoundary();
-    }
-  }, [zoomies.enabled, zoomies.skipToNextDrop, resetErrorBoundary]);
-
   return (
     <div
       role="alert"

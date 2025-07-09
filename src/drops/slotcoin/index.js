@@ -1,14 +1,11 @@
-import { createFarmer } from "@/lib/createFarmer";
-import { createLazyElement } from "@/lib/createLazyElement";
+import { createCloudFarmer } from "@/lib/createCloudFarmer";
 
 import icon from "./assets/images/icon.png?format=webp&w=80&h=80";
 
-export default createFarmer({
+export default createCloudFarmer({
   id: "slotcoin",
   title: "Slotcoin",
   icon,
-  syncToCloud: true,
-  component: createLazyElement(() => import("./Slotcoin")),
   telegramLink:
     "https://t.me/SlotCoinApp_bot/app?startapp=eyJyZWZfY29kZSI6ImEyZGQtNjBmNyIsInV0bV9pZCI6InJlZmZlcmFsX2xpbmtfc2hhcmUifQ==",
   host: "app.slotcoin.app",
@@ -42,10 +39,17 @@ export default createFarmer({
     api.defaults.headers.common["Authorization"] = data.accessToken;
   },
 
-  tasks: {
-    ["daily-check-in"]: true,
-    ["quests"]: false,
-    ["tickets"]: false,
-    ["lottery"]: false,
+  /** Get Referral Link */
+  getReferralLink(api, telegramWebApp, context) {
+    return api
+      .post("https://api.slotcoin.app/v1/clicker/api/info", null)
+      .then((res) => {
+        return `https://t.me/SlotCoinApp_bot/app?startapp=${btoa(
+          JSON.stringify({
+            ["ref_code"]: res.data["referral_code"],
+            ["utm_id"]: "refferal_link_share",
+          })
+        )}`;
+      });
   },
 });

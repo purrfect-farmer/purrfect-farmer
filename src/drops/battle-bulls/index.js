@@ -1,13 +1,11 @@
-import { createFarmer } from "@/lib/createFarmer";
-import { createLazyElement } from "@/lib/createLazyElement";
+import { createCloudFarmer } from "@/lib/createCloudFarmer";
 
 import icon from "./assets/images/icon.png?format=webp&w=80&h=80";
 
-export default createFarmer({
+export default createCloudFarmer({
   id: "battle-bulls",
   title: "Battle Bulls",
   icon,
-  component: createLazyElement(() => import("./BattleBulls")),
   telegramLink:
     "https://t.me/battle_games_com_bot/start?startapp=frndId1147265290",
   host: "tg.battle-games.com",
@@ -15,9 +13,6 @@ export default createFarmer({
     origin: "https://tg.battle-games.com",
     domains: ["battle-games.com"],
   },
-
-  cacheAuth: false,
-  syncToCloud: true,
 
   /**
    * Fetch Auth
@@ -47,10 +42,8 @@ export default createFarmer({
       .then((res) => res.data.data);
   },
 
-  tasks: {
-    ["daily-reward"]: true,
-    ["choose-blockchain"]: true,
-    ["tasks"]: false,
-    ["cards"]: false,
+  /** Get Referral Link */
+  getReferralLink(api, telegramWebApp, context) {
+    return `https://t.me/battle_games_com_bot/start?startapp=frndId${telegramWebApp.initDataUnsafe.user.id}`;
   },
 });

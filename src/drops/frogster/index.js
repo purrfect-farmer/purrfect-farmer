@@ -1,14 +1,11 @@
-import { createFarmer } from "@/lib/createFarmer";
-import { createLazyElement } from "@/lib/createLazyElement";
+import { createCloudFarmer } from "@/lib/createCloudFarmer";
 
 import icon from "./assets/images/icon.png?format=webp&w=80&h=80";
 
-export default createFarmer({
+export default createCloudFarmer({
   id: "frogster",
   title: "Frogster",
   icon,
-  syncToCloud: true,
-  component: createLazyElement(() => import("./Frogster")),
   telegramLink: "https://t.me/FrogstersBot?startapp=775f1cc48a46ce",
   host: "frogster.app",
   netRequest: {
@@ -17,8 +14,6 @@ export default createFarmer({
   },
 
   embedInNewWindow: true,
-  cacheAuth: false,
-  cacheTelegramWebApp: false,
 
   /**
    * Fetch Auth
@@ -41,7 +36,10 @@ export default createFarmer({
     api.defaults.headers.common["Authorization"] = `Bearer ${data.token}`;
   },
 
-  tasks: {
-    ["claim"]: true,
+  /** Get Referral Link */
+  getReferralLink(api, telegramWebApp, context) {
+    return api.get("https://frogster.app/api/me").then((res) => {
+      return `https://t.me/FrogstersBot?startapp=${res.data["ref_code"]}`;
+    });
   },
 });

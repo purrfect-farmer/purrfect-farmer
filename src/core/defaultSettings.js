@@ -50,7 +50,6 @@ const defaultSettings = {
   displayIpAddress: true,
   showLinksAsGrid: false,
   uncappedPoints: false,
-  repeatZoomiesCycle: true,
 };
 
 export default deepMerge(defaultSettings, proDefaultSettings || {});

@@ -1,22 +1,17 @@
-import { createFarmer } from "@/lib/createFarmer";
-import { createLazyElement } from "@/lib/createLazyElement";
+import { createCloudFarmer } from "@/lib/createCloudFarmer";
 
 import icon from "./assets/images/icon.png?format=webp&w=80&h=80";
 
-export default createFarmer({
+export default createCloudFarmer({
   id: "digger",
   title: "Digger",
   icon,
-  syncToCloud: true,
-  component: createLazyElement(() => import("./Digger")),
   telegramLink: "https://t.me/diggerton_bot/dig?startapp=bro1147265290",
   host: "diggergame.app",
   netRequest: {
     origin: "https://diggergame.app",
     domains: ["api.diggergame.app"],
   },
-
-  cacheTelegramWebApp: false,
 
   /**
    * Fetch Auth
@@ -39,11 +34,8 @@ export default createFarmer({
     api.defaults.headers.common["Authorization"] = `Bearer ${data.token}`;
   },
 
-  tasks: {
-    ["dig"]: true,
-    ["tasks"]: false,
-    ["chests"]: false,
-    ["game"]: false,
-    ["cards"]: false,
+  /** Get Referral Link */
+  getReferralLink(api, telegramWebApp, context) {
+    return `https://t.me/diggerton_bot/dig?startapp=bro${telegramWebApp.initDataUnsafe.user.id}`;
   },
 });

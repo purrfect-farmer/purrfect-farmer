@@ -1,23 +1,32 @@
-import { createFarmer } from "@/lib/createFarmer";
-import { createLazyElement } from "@/lib/createLazyElement";
+import md5 from "md5";
+import { createCloudFarmer } from "@/lib/createCloudFarmer";
 
 import icon from "./assets/images/icon.png?format=webp&w=80&h=80";
-import { getHrumHeaders } from "./lib/utils";
 
-export default createFarmer({
+export function getHrumHeaders(data, key) {
+  const apiTime = Math.floor(Date.now() / 1000);
+  const apiHash = md5(
+    encodeURIComponent(`${apiTime}_${JSON.stringify(data || "")}`)
+  );
+
+  return {
+    "Api-Key": key || "empty",
+    "Api-Time": apiTime,
+    "Api-Hash": apiHash,
+    "Is-Beta-Server": null,
+  };
+}
+
+export default createCloudFarmer({
   id: "hrum",
   title: "Hrum",
   icon,
-  syncToCloud: true,
-  component: createLazyElement(() => import("./Hrum")),
   telegramLink: "https://t.me/hrummebot/game?startapp=ref1147265290",
   host: "game.hrum.me",
   netRequest: {
     origin: "https://game.hrum.me",
     domains: ["hrum.me"],
   },
-
-  cacheAuth: false,
 
   /**
    * Configure API
@@ -57,10 +66,8 @@ export default createFarmer({
       .then((res) => res.data.data);
   },
 
-  tasks: {
-    ["daily.check-in"]: true,
-    ["tasks"]: true,
-    ["daily.riddle"]: true,
-    ["daily.cookie"]: true,
+  /** Get Referral Link */
+  getReferralLink(api, telegramWebApp, context) {
+    return `https://t.me/hrummebot/game?startapp=ref${telegramWebApp.initDataUnsafe.user.id}`;
   },
 });

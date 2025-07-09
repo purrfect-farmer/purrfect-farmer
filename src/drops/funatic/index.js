@@ -1,14 +1,11 @@
-import { createFarmer } from "@/lib/createFarmer";
-import { createLazyElement } from "@/lib/createLazyElement";
+import { createCloudFarmer } from "@/lib/createCloudFarmer";
 
 import icon from "./assets/images/icon.png?format=webp&w=80&h=80";
 
-export default createFarmer({
+export default createCloudFarmer({
   id: "funatic",
   title: "Funatic",
   icon,
-  syncToCloud: true,
-  component: createLazyElement(() => import("./Funatic")),
   telegramLink:
     "https://t.me/LuckyFunaticBot/lucky_funatic?startapp=1147265290",
   host: "clicker.funtico.com",
@@ -16,6 +13,8 @@ export default createFarmer({
     origin: "https://clicker.funtico.com",
     domains: ["clicker.api.funtico.com", "*.funtico.com"],
   },
+
+  cacheAuth: true,
 
   /**
    * Fetch Auth
@@ -37,13 +36,8 @@ export default createFarmer({
     api.defaults.headers.common["Authorization"] = `Bearer ${data.token}`;
   },
 
-  apiDelay: 200,
-  tasks: {
-    ["set-exchange"]: true,
-    ["daily-bonus"]: true,
-    ["boosters"]: false,
-    ["quests"]: false,
-    ["game"]: false,
-    ["cards"]: false,
+  /** Get Referral Link */
+  getReferralLink(api, telegramWebApp, context) {
+    return `https://t.me/LuckyFunaticBot/lucky_funatic?startapp=${telegramWebApp.initDataUnsafe.user.id}`;
   },
 });

@@ -921,19 +921,6 @@ export default memo(function Settings({ tabs }) {
                     <LabelToggle
                       onChange={(ev) =>
                         dispatchAndConfigureSettings(
-                          "repeatZoomiesCycle",
-                          ev.target.checked
-                        )
-                      }
-                      checked={settings?.repeatZoomiesCycle}
-                    >
-                      Repeat Zoomies Cycle
-                    </LabelToggle>
-
-                    {/* Repeat Cycle */}
-                    <LabelToggle
-                      onChange={(ev) =>
-                        dispatchAndConfigureSettings(
                           "uncappedPoints",
                           ev.target.checked
                         )

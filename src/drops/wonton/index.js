@@ -1,14 +1,11 @@
-import { createFarmer } from "@/lib/createFarmer";
-import { createLazyElement } from "@/lib/createLazyElement";
+import { createCloudFarmer } from "@/lib/createCloudFarmer";
 
 import icon from "./assets/images/icon.png?format=webp&w=80&h=80";
 
-export default createFarmer({
+export default createCloudFarmer({
   id: "wonton",
   title: "Wonton",
   icon,
-  syncToCloud: true,
-  component: createLazyElement(() => import("./Wonton")),
   telegramLink:
     "https://t.me/WontonOrgBot/gameapp?startapp=referralCode=K45JQRG7",
   host: "www.wonton.restaurant",
@@ -43,13 +40,10 @@ export default createFarmer({
     api.defaults.headers.common["Authorization"] = `Bearer ${data.accessToken}`;
   },
 
-  tasks: {
-    ["daily-check-in"]: true,
-    ["farming"]: true,
-    ["use-top-shop-item"]: false,
-    ["tasks"]: false,
-    ["badges"]: false,
-    ["game"]: false,
-    ["draw-basic-box"]: true,
+  /** Get Referral Link */
+  getReferralLink(api, telegramWebApp, context) {
+    return api.get("https://wonton.food/api/v1/user").then((res) => {
+      return `https://t.me/WontonOrgBot/gameapp?startapp=referralCode=${res.data["inviteCode"]}`;
+    });
   },
 });
