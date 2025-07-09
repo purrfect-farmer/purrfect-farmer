@@ -33,7 +33,7 @@ export default function useDropFarmer() {
     id,
     host,
     apiOptions,
-    apiDelay = 200,
+    apiDelay = 500,
     title,
     icon,
     usesPort = false,
