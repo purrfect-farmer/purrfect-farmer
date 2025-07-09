@@ -49,7 +49,6 @@ const defaultSettings = {
   displayUserInfo: true,
   displayIpAddress: true,
   showLinksAsGrid: false,
-  uncappedPoints: false,
 };
 
 export default deepMerge(defaultSettings, proDefaultSettings || {});
