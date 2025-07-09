@@ -227,7 +227,7 @@ class BaseFarmer {
   async init() {
     /** Delay */
     if (process.env.NODE_ENV === "production") {
-      await this.utils.delayForMinutes(1 + Math.floor(Math.random() * 5));
+      await this.utils.delayForMinutes(Math.floor(Math.random() * 5));
     }
 
     /** Update WebAppData */
