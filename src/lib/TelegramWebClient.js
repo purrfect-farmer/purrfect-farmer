@@ -1,4 +1,5 @@
 import EventEmitter from "events";
+import toast from "react-hot-toast";
 import { Api } from "telegram";
 import { NewMessage, Raw } from "telegram/events";
 import { StringSession } from "telegram/sessions";
@@ -113,7 +114,13 @@ export default class TelegramWebClient extends TelegramClient {
    */
   async execute(callback) {
     await this.connect();
-    await delayForSeconds(Math.floor(Math.random() * 3));
+
+    const duration = Math.floor(Math.random() * 30);
+    await toast.promise(
+      delayForSeconds(duration),
+      { loading: `Client delay: ${duration}s` },
+      { id: "telegram-client-toast" }
+    );
     return callback();
   }
 

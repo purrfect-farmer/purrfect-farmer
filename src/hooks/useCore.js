@@ -5,11 +5,15 @@ import md5 from "md5";
 import toast from "react-hot-toast";
 import tabs, { Browser, TelegramWeb, farmers } from "@/core/tabs";
 import { createElement } from "react";
-import { delay, getWindowCoords, isBotURL, postPortMessage } from "@/lib/utils";
+import {
+  delay,
+  getWindowCoords,
+  postPortMessage,
+  toastAndDelay,
+} from "@/lib/utils";
 import { useCallback } from "react";
 import { useDeepCompareMemo } from "use-deep-compare";
 import { useMemo } from "react";
-import { useRef } from "react";
 import { useState } from "react";
 
 import useAccountContext from "./useAccountContext";
@@ -579,6 +583,9 @@ export default function useCore() {
         }
       } else {
         try {
+          /** Delay */
+          await toastAndDelay(2);
+
           /** Open Telegram Link */
           await openTelegramLink(url, { version });
 
