@@ -10,6 +10,7 @@ import {
   delayForSeconds,
   extractTgWebAppData,
   parseTelegramLink,
+  toastAndDelay,
 } from "./utils";
 
 export default class TelegramWebClient extends TelegramClient {
@@ -112,6 +113,7 @@ export default class TelegramWebClient extends TelegramClient {
    */
   async execute(callback) {
     await this.connect();
+    await delayForSeconds(Math.floor(Math.random() * 3));
     return callback();
   }
 
@@ -249,6 +251,7 @@ export default class TelegramWebClient extends TelegramClient {
   /** Join Telegram Link */
   joinTelegramLink(link) {
     return this.execute(async () => {
+      await toastAndDelay(5);
       try {
         const parsed = parseTelegramLink(link);
         const result = await this.invoke(

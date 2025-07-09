@@ -1,5 +1,6 @@
 import axios from "axios";
 import defaultSharedSettings from "@/core/defaultSharedSettings";
+import toast from "react-hot-toast";
 import userAgents from "@/core/userAgents";
 import { clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
@@ -57,6 +58,13 @@ export function delay(length, precised = false) {
         ? length
         : (length * (Math.floor(Math.random() * 50) + 100)) / 100
     );
+  });
+}
+
+export function toastAndDelay(length = 1) {
+  const duration = 1 + Math.floor(Math.random() * length);
+  return toast.promise(delayForMinutes(duration), {
+    loading: `Delaying for ${duration}+ minute(s)`,
   });
 }
 
