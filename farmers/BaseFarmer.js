@@ -79,13 +79,10 @@ class BaseFarmer {
     });
 
     /** Apply Delay */
-    this.api.interceptors.request.use((config) =>
-      this.constructor.delay
-        ? new Promise((resolve) =>
-            setTimeout(resolve, this.constructor.delay * 1000, config)
-          )
-        : config
-    );
+    this.api.interceptors.request.use(async (config) => {
+      await this.utils.delayForSeconds(this.constructor.delay || 1);
+      return config;
+    });
 
     /** Set Headers */
     this.api.interceptors.request.use((config) => {
@@ -228,6 +225,11 @@ class BaseFarmer {
   }
 
   async init() {
+    /** Delay */
+    if (process.env.NODE_ENV === "production") {
+      await this.utils.delayForMinutes(1 + Math.floor(Math.random() * 5));
+    }
+
     /** Update WebAppData */
     if (this.farmer.account.session) {
       try {
