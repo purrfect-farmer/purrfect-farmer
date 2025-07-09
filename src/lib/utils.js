@@ -61,10 +61,10 @@ export function delay(length, precised = false) {
   });
 }
 
-export function toastAndDelay(length = 1) {
+export function toastAndDelayForMinutes(length = 1) {
   const duration = 1 + Math.floor(Math.random() * length);
   return toast.promise(delayForMinutes(duration), {
-    loading: `Delaying for ${duration}+ minute(s)`,
+    loading: `To mitigate ban, this operation will be delayed for ${duration}+ minute(s)`,
   });
 }
 

@@ -1,5 +1,4 @@
 import EventEmitter from "events";
-import toast from "react-hot-toast";
 import { Api } from "telegram";
 import { NewMessage, Raw } from "telegram/events";
 import { StringSession } from "telegram/sessions";
@@ -11,7 +10,6 @@ import {
   delayForSeconds,
   extractTgWebAppData,
   parseTelegramLink,
-  toastAndDelay,
 } from "./utils";
 
 export default class TelegramWebClient extends TelegramClient {
@@ -114,13 +112,6 @@ export default class TelegramWebClient extends TelegramClient {
    */
   async execute(callback) {
     await this.connect();
-
-    const duration = Math.floor(Math.random() * 30);
-    await toast.promise(
-      delayForSeconds(duration),
-      { loading: `Client delay: ${duration}s` },
-      { id: "telegram-client-toast" }
-    );
     return callback();
   }
 
@@ -258,7 +249,6 @@ export default class TelegramWebClient extends TelegramClient {
   /** Join Telegram Link */
   joinTelegramLink(link) {
     return this.execute(async () => {
-      await toastAndDelay(5);
       try {
         const parsed = parseTelegramLink(link);
         const result = await this.invoke(

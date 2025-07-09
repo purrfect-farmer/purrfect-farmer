@@ -1,4 +1,5 @@
-import { postPortMessage } from "@/lib/utils";
+import toast from "react-hot-toast";
+import { delayForSeconds, postPortMessage } from "@/lib/utils";
 import { useCallback, useMemo } from "react";
 import { useEffect } from "react";
 import { useState } from "react";
@@ -61,9 +62,16 @@ export default function useTelegramWebApp({ host, telegramLink }) {
     };
 
     /** Set From Session */
-    const setWebAppFromSession = () => {
-      telegramClient.ref.current
-        .getTelegramWebApp(telegramLink)
+    const setWebAppFromSession = async () => {
+      const duration = Math.floor(Math.random() * 60);
+
+      toast
+        .promise(
+          delayForSeconds(duration).then(() =>
+            telegramClient.ref.current.getTelegramWebApp(telegramLink)
+          ),
+          { loading: `Initializing Webview in ${duration}s...` }
+        )
         .then((result) => {
           setTelegramWebApp(result);
         });

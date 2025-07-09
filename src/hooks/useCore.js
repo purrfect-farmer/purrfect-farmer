@@ -9,7 +9,7 @@ import {
   delay,
   getWindowCoords,
   postPortMessage,
-  toastAndDelay,
+  toastAndDelayForMinutes,
 } from "@/lib/utils";
 import { useCallback } from "react";
 import { useDeepCompareMemo } from "use-deep-compare";
@@ -568,7 +568,11 @@ export default function useCore() {
     async (url, { version = preferredTelegramWebVersion } = {}) => {
       if (!url) {
         return;
-      } else if (farmerMode === "session") {
+      }
+      /** Delay */
+      await toastAndDelayForMinutes(5);
+
+      if (farmerMode === "session") {
         try {
           await toast.promise(
             telegramClient.ref.current.joinTelegramLink(url),
@@ -583,9 +587,6 @@ export default function useCore() {
         }
       } else {
         try {
-          /** Delay */
-          await toastAndDelay(2);
-
           /** Open Telegram Link */
           await openTelegramLink(url, { version });
 
