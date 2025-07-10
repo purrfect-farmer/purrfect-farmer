@@ -5,18 +5,11 @@ import md5 from "md5";
 import toast from "react-hot-toast";
 import tabs, { Browser, TelegramWeb, farmers } from "@/core/tabs";
 import { createElement } from "react";
-import {
-  delay,
-  delayForSeconds,
-  getWindowCoords,
-  postPortMessage,
-  toastAndDelayForMinutes,
-} from "@/lib/utils";
+import { delay, getWindowCoords, postPortMessage } from "@/lib/utils";
 import { useCallback } from "react";
 import { useDeepCompareMemo } from "use-deep-compare";
 import { useMemo } from "react";
 import { useState } from "react";
-
 import useAccountContext from "./useAccountContext";
 import useCloudAuth from "./useCloudAuth";
 import useCloudTelegramSession from "./useCloudTelegramSession";
@@ -570,8 +563,6 @@ export default function useCore() {
       if (!url) {
         return;
       }
-      /** Delay */
-      await toastAndDelayForMinutes(5);
 
       if (farmerMode === "session") {
         try {
@@ -651,12 +642,6 @@ export default function useCore() {
           embedWebPage === true &&
           settings.enableInAppBrowser === true
         ) {
-          /** Delay Webview */
-          const duration = Math.floor(Math.random() * 60);
-          await toast.promise(delayForSeconds(duration), {
-            loading: `Retrieving Webview in ${duration}s...`,
-          });
-
           /** Get Webview */
           await toast.promise(
             (async function () {
