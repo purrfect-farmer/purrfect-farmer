@@ -21,7 +21,7 @@ const HttpProxyAgentWithCookies = createCookieAgent(HttpProxyAgent);
 const HttpsProxyAgentWithCookies = createCookieAgent(HttpsProxyAgent);
 
 class BaseFarmer {
-  static _isRunning = false;
+  static runners = new Map();
 
   constructor(config, farmer) {
     this.config = config;
@@ -38,28 +38,9 @@ class BaseFarmer {
       ? `http://${this.farmer.account.proxy}`
       : null;
 
-    this.httpAgent = this.proxy
-      ? this.cookies
-        ? new HttpProxyAgentWithCookies({
-            proxy: this.proxy,
-            cookies: { jar: this.jar },
-          })
-        : new HttpProxyAgent({ proxy: this.proxy })
-      : this.cookies
-      ? new HttpCookieAgent({ cookies: { jar: this.jar } })
-      : null;
-
-    /** HttpsAgent */
-    this.httpsAgent = this.proxy
-      ? this.cookies
-        ? new HttpsProxyAgentWithCookies({
-            proxy: this.proxy,
-            cookies: { jar: this.jar },
-          })
-        : new HttpsProxyAgent({ proxy: this.proxy })
-      : this.cookies
-      ? new HttpsCookieAgent({ cookies: { jar: this.jar } })
-      : null;
+    /** Agent */
+    this.httpAgent = this.createAgent(this.proxy, false);
+    this.httpsAgent = this.createAgent(this.proxy, true);
 
     /** Create API */
     this.api = axios.create({
@@ -80,7 +61,9 @@ class BaseFarmer {
 
     /** Apply Delay */
     this.api.interceptors.request.use(async (config) => {
-      await this.utils.delayForSeconds(this.constructor.delay || 1);
+      if (this.constructor.delay) {
+        await this.utils.delayForSeconds(this.constructor.delay);
+      }
       return config;
     });
 
@@ -181,6 +164,24 @@ class BaseFarmer {
     }
   }
 
+  createAgent(proxy, isHttps) {
+    const proxyAgentType = isHttps ? HttpsProxyAgent : HttpProxyAgent;
+    const cookieAgentType = isHttps
+      ? HttpsProxyAgentWithCookies
+      : HttpProxyAgentWithCookies;
+    const defaultAgentType = isHttps ? HttpsCookieAgent : HttpCookieAgent;
+
+    if (proxy) {
+      return this.cookies
+        ? new cookieAgentType({ proxy, cookies: { jar: this.jar } })
+        : new proxyAgentType({ proxy });
+    } else {
+      return this.cookies
+        ? new defaultAgentType({ cookies: { jar: this.jar } })
+        : null;
+    }
+  }
+
   /** Log Task Error */
   logTaskError(task, error) {
     console.error(
@@ -225,11 +226,6 @@ class BaseFarmer {
   }
 
   async init() {
-    /** Delay */
-    if (process.env.NODE_ENV === "production") {
-      await this.utils.delayForMinutes(Math.floor(Math.random() * 5));
-    }
-
     /** Update WebAppData */
     if (this.farmer.account.session) {
       try {
@@ -284,7 +280,7 @@ class BaseFarmer {
     console.error(`[${this.title}] ${msg}`, ...args);
   }
 
-  static async farm(config, farmer) {
+  static async execute(config, farmer) {
     const instance = new this(config, farmer);
 
     try {
@@ -299,21 +295,19 @@ class BaseFarmer {
           ? error?.response?.data || error.message
           : error.message
       );
+    } finally {
+      this.runners.delete(farmer.accountId);
     }
   }
 
-  static async run(config) {
-    this.log("Starting Farmer");
-
-    /** Currently Running */
-    if (this._isRunning) {
-      this.log("Skipping run because previous run is still in progress.");
-      return;
+  static async farm(config, farmer) {
+    if (!this.runners.has(farmer.accountId)) {
+      this.runners.set(farmer.accountId, this.execute(config, farmer));
     }
+    return this.runners.get(farmer.accountId);
+  }
 
-    /** Mark as Running */
-    this._isRunning = true;
-
+  static async run(config) {
     try {
       /** Start Date */
       const startDate = new Date();
@@ -351,7 +345,6 @@ class BaseFarmer {
     } catch (error) {
       this.error("Error during run:", error);
     } finally {
-      this._isRunning = false;
       this.log("Completed Farming!");
     }
   }
