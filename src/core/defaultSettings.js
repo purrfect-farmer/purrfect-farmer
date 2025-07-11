@@ -11,9 +11,7 @@ const proDefaultSettings = Object.values(
 const dropsStatus = {
   ...(proDefaultSettings?.dropsStatus || {}),
   ["ultima-bulls"]: true,
-  ["dragonz-land"]: true,
   ["frogster"]: true,
-  ["space-adventure"]: true,
   ["digger"]: true,
   ["funatic"]: true,
   ["hrum"]: true,
