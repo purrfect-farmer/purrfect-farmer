@@ -1,12 +1,10 @@
 const { default: axios, isAxiosError } = require("axios");
-const hpAgent = require("hpagent");
 const { CookieJar } = require("tough-cookie");
 const seedrandom = require("seedrandom");
 
 const db = require("../db/models");
 const GramClient = require("../lib/GramClient");
 const userAgents = require("../lib/userAgents");
-const utils = require("../lib/utils");
 const bot = require("../lib/bot");
 const {
   createCookieAgent,
@@ -14,8 +12,7 @@ const {
   HttpsCookieAgent,
 } = require("http-cookie-agent/http");
 const { default: chalk } = require("chalk");
-const { HttpProxyAgent } = require("hpagent");
-const { HttpsProxyAgent } = require("hpagent");
+const { HttpProxyAgent, HttpsProxyAgent } = require("hpagent");
 
 const HttpProxyAgentWithCookies = createCookieAgent(HttpProxyAgent);
 const HttpsProxyAgentWithCookies = createCookieAgent(HttpsProxyAgent);
@@ -23,9 +20,9 @@ const HttpsProxyAgentWithCookies = createCookieAgent(HttpsProxyAgent);
 class BaseFarmer {
   static runners = new Map();
 
-  constructor(config, farmer) {
-    this.config = config;
+  constructor(farmer, config) {
     this.farmer = farmer;
+    this.config = config;
     this.utils = require("../lib/utils");
 
     this.cookies = this.constructor.cookies;
@@ -120,9 +117,9 @@ class BaseFarmer {
       this.api.interceptors.response.use(
         (response) => {
           const url = response.config.url;
-          const title = utils.truncateAndPad(this.farmer.account.id, 10);
-          const status = utils.truncateAndPad(response.status, 3);
-          const method = utils.truncateAndPad(
+          const title = this.utils.truncateAndPad(this.farmer.account.id, 10);
+          const status = this.utils.truncateAndPad(response.status, 3);
+          const method = this.utils.truncateAndPad(
             response.config.method.toUpperCase(),
             4
           );
@@ -137,12 +134,12 @@ class BaseFarmer {
         },
         (error) => {
           const url = error.config.url;
-          const title = utils.truncateAndPad(this.farmer.account.id, 10);
-          const status = utils.truncateAndPad(
+          const title = this.utils.truncateAndPad(this.farmer.account.id, 10);
+          const status = this.utils.truncateAndPad(
             error.response?.status ?? "ERR",
             3
           );
-          const method = utils.truncateAndPad(
+          const method = this.utils.truncateAndPad(
             error.config.method.toUpperCase(),
             4
           );
@@ -201,12 +198,12 @@ class BaseFarmer {
 
   /** Validate Telegram Task */
   validateTelegramTask(link) {
-    return !utils.isTelegramLink(link) || this.canJoinTelegramLink(link);
+    return !this.utils.isTelegramLink(link) || this.canJoinTelegramLink(link);
   }
 
   /** Can Join Telegram Link */
   canJoinTelegramLink(link) {
-    return utils.canJoinTelegramLink(link) && Boolean(this.client);
+    return this.utils.canJoinTelegramLink(link) && Boolean(this.client);
   }
 
   /** Join Telegram Link */
@@ -252,7 +249,7 @@ class BaseFarmer {
 
   async updateWebAppData() {
     const { url } = await this.client.webview(this.config.telegramLink);
-    const { initData } = utils.extractTgWebAppData(url);
+    const { initData } = this.utils.extractTgWebAppData(url);
 
     this.farmer.initData = initData;
   }
@@ -280,8 +277,8 @@ class BaseFarmer {
     console.error(`[${this.title}] ${msg}`, ...args);
   }
 
-  static async execute(config, farmer) {
-    const instance = new this(config, farmer);
+  static async execute(farmer, config) {
+    const instance = new this(farmer, config);
 
     try {
       await instance.init();
@@ -300,44 +297,34 @@ class BaseFarmer {
     }
   }
 
-  static async farm(config, farmer) {
+  static async farm(farmer, config) {
     if (!this.runners.has(farmer.accountId)) {
-      this.runners.set(farmer.accountId, this.execute(config, farmer));
+      this.runners.set(farmer.accountId, this.execute(farmer, config));
     }
     return this.runners.get(farmer.accountId);
   }
 
   static async run(config) {
     try {
-      /** Start Date */
-      const startDate = new Date();
-
       /** Retrieve active farmers */
       const farmers = await db.Farmer.findAllWithActiveSubscription({
         where: {
-          farmer: config.id,
-          active: true,
+          farmer: this.id,
         },
       });
 
       /** Run all farmer */
-      await Promise.allSettled(
-        farmers.map((farmer) => this.farm(config, farmer))
-      );
+      farmers
+        .filter((item) => item.active)
+        .map((farmer) => this.farm(farmer, config));
 
       /** Send Farming Complete Message */
       try {
-        await bot?.sendFarmingCompleteMessage({
+        await bot?.sendFarmingInitiatedMessage({
           id: this.id,
           title: this.title,
-          farmers: await db.Farmer.findAllWithActiveSubscription({
-            where: {
-              farmer: this.id,
-            },
-          }),
+          farmers,
           config,
-          startDate,
-          endDate: new Date(),
         });
       } catch (error) {
         this.error("Failed to send farming notification:", error);
