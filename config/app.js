@@ -70,14 +70,6 @@ const app = {
         "https://t.me/UltimaBulls_com_bot/start?startapp=frndId1147265290",
     },
     {
-      id: "dragonz-land",
-      enabled: process.env.FARMER_DRAGONZ_LAND_ENABLED !== "false",
-      threadId: process.env.FARMER_DRAGONZ_LAND_THREAD_ID ?? "",
-      telegramLink:
-        process.env.FARMER_DRAGONZ_LAND_LINK ??
-        "https://t.me/dragonz_land_bot/app?startapp=ref-6850578f6a48d249772e2f35",
-    },
-    {
       id: "digger",
       enabled: process.env.FARMER_DIGGER_ENABLED !== "false",
       threadId: process.env.FARMER_DIGGER_THREAD_ID ?? "",
@@ -110,17 +102,6 @@ const app = {
         process.env.FARMER_HRUM_LINK ??
         "https://t.me/hrummebot/game?startapp=ref1147265290",
       interval: "*/30 * * * *",
-    },
-    {
-      id: "space-adventure",
-      enabled: process.env.FARMER_SPACE_ADVENTURE_ENABLED !== "false",
-      threadId: process.env.FARMER_SPACE_ADVENTURE_THREAD_ID ?? "",
-      telegramLink:
-        process.env.FARMER_SPACE_ADVENTURE_LINK ??
-        "https://t.me/spaceadv_game_bot/play?startapp=1147265290",
-      options: {
-        watchAds: process.env.FARMER_SPACE_ADVENTURE_WATCH_ADS !== "false",
-      },
     },
     {
       id: "wonton",
