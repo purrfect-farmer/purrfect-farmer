@@ -332,7 +332,7 @@ class BaseFarmer {
     } catch (error) {
       this.error("Error during run:", error);
     } finally {
-      this.log("Completed Farming!");
+      this.log("Initiated Farming!");
     }
   }
 }
