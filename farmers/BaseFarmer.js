@@ -179,6 +179,20 @@ class BaseFarmer {
     }
   }
 
+  async action(name, action) {
+    try {
+      return await action;
+    } catch (error) {
+      console.error(
+        `Failed action: ${name}`,
+        this.farmer.accountId,
+        this.wrapError(error)
+      );
+
+      throw error;
+    }
+  }
+
   /** Log Task Error */
   logTaskError(task, error) {
     console.error(

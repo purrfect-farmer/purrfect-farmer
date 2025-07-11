@@ -22,11 +22,11 @@ module.exports = class WontonFarmer extends BaseFarmer {
     return this.farmer.setAuthorizationHeader("bearer " + accessToken);
   }
   async process() {
-    await this.checkIn();
-    await this.startOrClaimFarming();
-    await this.completeTasks();
-    await this.claimBadges();
-    await this.playGame();
+    await this.action("CHECK-IN", this.checkIn());
+    await this.action("FARMING", this.startOrClaimFarming());
+    await this.action("TASKS", this.completeTasks());
+    await this.action("BADGES", this.claimBadges());
+    await this.action("GAME", this.playGame());
   }
 
   /** Daily Check-In */
