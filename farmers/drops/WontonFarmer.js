@@ -165,7 +165,8 @@ module.exports = class WontonFarmer extends BaseFarmer {
 
     const badges = Object.values(list.badges);
     const unclaimedBadges = badges.filter(
-      (item) => Number(item.progress) >= Number(item.target)
+      (item) =>
+        item.owned === false && Number(item.progress) >= Number(item.target)
     );
 
     if (unclaimedBadges.length > 0) {
