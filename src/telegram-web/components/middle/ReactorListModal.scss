@@ -1,0 +1,76 @@
+.ReactorListModal {
+  --color-reaction: var(--color-message-reaction);
+  --hover-color-reaction: var(--color-message-reaction-hover);
+  --accent-color: var(--color-primary);
+
+  .modal-content {
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+
+    height: min(92vh, 32rem);
+    padding: 0.5rem 0 !important;
+  }
+
+  .reactor-list-wrapper {
+    flex-grow: 1;
+    min-height: 0;
+  }
+
+  .confirm-dialog-button {
+    align-self: flex-end;
+    margin: 0 0.5rem;
+  }
+
+  .Reactions {
+    justify-content: space-between;
+    margin-bottom: 0.5rem;
+    padding: 0 1rem;
+
+    &::after {
+      content: '';
+      flex-grow: 1;
+    }
+  }
+
+  .icon-heart {
+    width: 1.125rem;
+    height: 1.125rem;
+    margin-inline-end: 0.25rem;
+  }
+
+  .reaction-filter-emoji {
+    margin-inline-end: 0.25rem;
+  }
+
+  .reactor-list {
+    overflow: auto;
+    overflow-x: hidden;
+    max-height: 100%;
+    padding: 0 0.5rem;
+  }
+
+  .reactors-list-item {
+    margin: 0;
+  }
+
+  .reactors-list-item .ListItem-button {
+    display: flex;
+    align-items: center;
+  }
+
+  .reactors-list-emoji {
+    width: 1.5rem;
+    height: 1.5rem;
+    margin-inline-start: auto;
+  }
+
+  .status {
+    display: flex;
+    align-items: center;
+
+    font-size: 0.875rem !important;
+    line-height: 1.25rem;
+    color: var(--color-text-secondary);
+  }
+}

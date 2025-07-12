@@ -1,0 +1,28 @@
+import { memo, useCallback, useMemo } from '../../lib/teact/teact';
+import { MEMO_EMPTY_ARRAY } from '../../util/memo';
+import useOldLang from '../../hooks/useOldLang';
+import Button from '../ui/Button';
+import RadioGroup from '../ui/RadioGroup';
+const SavedPaymentCredentials = ({ state, savedCredentials, dispatch, onNewCardClick, }) => {
+    const lang = useOldLang();
+    const options = useMemo(() => {
+        return savedCredentials?.length
+            ? savedCredentials.map(({ id, title }) => ({ label: title, value: id }))
+            : MEMO_EMPTY_ARRAY;
+    }, [savedCredentials]);
+    const onChange = useCallback((value) => {
+        dispatch({ type: 'changeSavedCredentialId', payload: value });
+    }, [dispatch]);
+    return (<div className="PaymentInfo">
+      <form>
+        <h5>{lang('PaymentCardTitle')}</h5>
+
+        <RadioGroup name="saved-credentials" options={options} selected={state.savedCredentialId} onChange={onChange}/>
+
+        <Button isText onClick={onNewCardClick}>
+          {lang('PaymentCheckoutMethodNewCard')}
+        </Button>
+      </form>
+    </div>);
+};
+export default memo(SavedPaymentCredentials);

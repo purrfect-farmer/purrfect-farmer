@@ -1,0 +1,47 @@
+import { memo, useCallback, useState } from '../../lib/teact/teact';
+import { getActions, withGlobal } from '../../global';
+import { pick } from '../../util/iteratees';
+import useLang from '../../hooks/useLang';
+import AvatarEditable from '../ui/AvatarEditable';
+import Button from '../ui/Button';
+import InputText from '../ui/InputText';
+const AuthRegister = ({ authIsLoading, authErrorKey, }) => {
+    const { signUp, clearAuthErrorKey, uploadProfilePhoto } = getActions();
+    const lang = useLang();
+    const [isButtonShown, setIsButtonShown] = useState(false);
+    const [croppedFile, setCroppedFile] = useState();
+    const [firstName, setFirstName] = useState('');
+    const [lastName, setLastName] = useState('');
+    const handleFirstNameChange = useCallback((event) => {
+        if (authErrorKey) {
+            clearAuthErrorKey();
+        }
+        const { target } = event;
+        setFirstName(target.value);
+        setIsButtonShown(target.value.length > 0);
+    }, [authErrorKey]);
+    const handleLastNameChange = useCallback((event) => {
+        const { target } = event;
+        setLastName(target.value);
+    }, []);
+    function handleSubmit(event) {
+        event.preventDefault();
+        signUp({ firstName, lastName });
+        if (croppedFile) {
+            uploadProfilePhoto({ file: croppedFile });
+        }
+    }
+    return (<div id="auth-registration-form" className="custom-scroll">
+      <div className="auth-form">
+        <form action="" method="post" onSubmit={handleSubmit}>
+          <AvatarEditable onChange={setCroppedFile}/>
+          <h2>{lang('YourName')}</h2>
+          <p className="note">{lang('LoginRegisterDesc')}</p>
+          <InputText id="registration-first-name" label={lang('LoginRegisterFirstNamePlaceholder')} onChange={handleFirstNameChange} value={firstName} error={authErrorKey && lang.withRegular(authErrorKey)} autoComplete="given-name"/>
+          <InputText id="registration-last-name" label={lang('LoginRegisterLastNamePlaceholder')} onChange={handleLastNameChange} value={lastName} autoComplete="family-name"/>
+          {isButtonShown && (<Button size="smaller" type="submit" ripple isLoading={authIsLoading}>{lang('Next')}</Button>)}
+        </form>
+      </div>
+    </div>);
+};
+export default memo(withGlobal((global) => pick(global, ['authIsLoading', 'authErrorKey']))(AuthRegister));

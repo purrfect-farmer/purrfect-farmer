@@ -1,0 +1,1 @@
+export const MOCK_STARTING_DATE = 1_66_69_69_420;

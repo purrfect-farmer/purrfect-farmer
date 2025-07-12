@@ -1,0 +1,10 @@
+.AddChatMembers {
+  position: relative;
+  overflow: hidden;
+  height: 100%;
+
+  &-inner {
+    overflow: hidden;
+    height: 100%;
+  }
+}

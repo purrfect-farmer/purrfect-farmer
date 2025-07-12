@@ -12,17 +12,11 @@
     <meta property="og:description" content="<%= VITE_APP_DESCRIPTION %>" />
     <meta property="og:image" content="/maskable-icon-512x512.png" />
     <meta name="theme-color" content="#ffffff" />
-    <link href="/src/index.css" rel="stylesheet" />
+    <script src="/telegram-web/public/compatTest.js"></script>
+    <script type="module" src="/src/index.js"></script>
+    <!-- <link href="/src/index.css" rel="stylesheet" /> -->
   </head>
-  <body
-    class="max-h-full overscroll-none bg-white dark:bg-neutral-800 dark:text-white"
-  >
-    <div id="root">
-      <div class="flex flex-col items-center justify-center gap-4 min-h-dvh">
-        <img src="/icon.png" class="w-28 h-28" />
-        <h1 class="text-lg font-bold font-turret-road"><%= VITE_APP_NAME %></h1>
-      </div>
-    </div>
-    <script type="module" src="/src/main.jsx"></script>
+  <body id="root">
+    <div id="portals"></div>
   </body>
 </html>

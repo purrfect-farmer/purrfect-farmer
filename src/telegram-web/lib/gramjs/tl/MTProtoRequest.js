@@ -1,0 +1,34 @@
+export class MTProtoRequest {
+    sent;
+    sequence;
+    msgId;
+    dirty;
+    sendTime;
+    confirmReceived;
+    constructorId;
+    confirmed;
+    responded;
+    constructor() {
+        this.sent = false;
+        this.msgId = 0; // long
+        this.sequence = 0;
+        this.dirty = false;
+        this.sendTime = 0;
+        this.confirmReceived = false;
+        // These should be overrode
+        this.constructorId = 0;
+        this.confirmed = false;
+        this.responded = false;
+    }
+    // These should not be overrode
+    onSendSuccess() {
+        this.sendTime = new Date().getTime();
+        this.sent = true;
+    }
+    onConfirm() {
+        this.confirmReceived = true;
+    }
+    needResend() {
+        return this.dirty || (this.confirmed && !this.confirmReceived && new Date().getTime() - this.sendTime > 3000);
+    }
+}

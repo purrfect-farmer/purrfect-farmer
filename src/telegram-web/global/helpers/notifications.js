@@ -1,0 +1,37 @@
+import { isUserId } from '../../util/entities/ids';
+import { omitUndefined } from '../../util/iteratees';
+import { getServerTime } from '../../util/serverTime';
+import { isChatChannel } from './chats';
+export function getIsChatMuted(chat, notifyDefaults, notifyException) {
+    const settings = getChatNotifySettings(chat, notifyDefaults, notifyException);
+    if (!settings?.mutedUntil)
+        return false;
+    return getServerTime() < settings.mutedUntil;
+}
+export function getIsChatSilent(chat, notifyDefaults, notifyException) {
+    const settings = getChatNotifySettings(chat, notifyDefaults, notifyException);
+    if (!settings)
+        return false;
+    return !settings.hasSound;
+}
+export function getShouldShowMessagePreview(chat, notifyDefaults, notifyException) {
+    const settings = getChatNotifySettings(chat, notifyDefaults, notifyException);
+    return Boolean(settings?.shouldShowPreviews);
+}
+export function getChatNotifySettings(chat, notifyDefaults, notifyException) {
+    const defaults = notifyDefaults?.[getNotificationPeerType(chat)];
+    if (!notifyException && !defaults) {
+        return undefined;
+    }
+    return {
+        ...defaults,
+        ...(notifyException && omitUndefined(notifyException)),
+    };
+}
+export function getNotificationPeerType(peer) {
+    if (isUserId(peer.id)) {
+        return 'users';
+    }
+    const chat = peer;
+    return isChatChannel(chat) ? 'channels' : 'groups';
+}

@@ -1,0 +1,88 @@
+@use '../../../../styles/mixins';
+
+.root {
+  cursor: var(--custom-cursor, pointer);
+
+  display: flex;
+  gap: 0.75rem;
+
+  padding: 0.25rem 0.75rem 0.25rem 0.25rem;
+  border-radius: 0.5rem;
+
+  transition: background-color 0.25s ease-out;
+
+  &:hover {
+    background-color: var(--color-chat-hover);
+  }
+}
+
+.info {
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+}
+
+.stars {
+  display: flex;
+  flex-shrink: 0;
+  gap: 0.25rem;
+  align-items: center;
+}
+
+.amount {
+  font-weight: var(--font-weight-medium);
+}
+
+.title, .description, .date {
+  margin-bottom: 0;
+  line-height: 1.25;
+}
+
+.title {
+  font-size: 0.9375rem;
+}
+
+.description, .date {
+  font-size: 0.8125rem;
+}
+
+.date {
+  color: var(--color-text-secondary);
+}
+
+.positive {
+  color: var(--color-success);
+}
+
+.negative {
+  color: var(--color-error);
+}
+
+.preview {
+  position: relative;
+  align-self: center;
+}
+
+.subscriptionStar {
+  position: absolute;
+  z-index: 1;
+  right: 0;
+  bottom: 0;
+
+  @include mixins.filter-outline(1px, var(--color-background));
+}
+
+.uniqueGiftBackground {
+  position: absolute;
+  top: 0;
+  right: 0;
+  left: 0;
+
+  aspect-ratio: 1 / 1;
+  border-radius: 0.25rem;
+}
+
+.giftSticker {
+  margin-top: 0.25rem;
+  margin-inline: 0.25rem;
+}

@@ -1,0 +1,135 @@
+@use "../../../styles/mixins";
+
+.ChatOrUserPicker {
+  .modal-dialog {
+    overflow: hidden;
+    max-width: 25rem;
+    height: 70%;
+
+    @media (max-width: 600px) {
+      height: 90%;
+    }
+  }
+
+  &_slide {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .modal-header {
+    display: flex;
+    align-items: center;
+    padding: 0.25rem 0.5rem;
+
+    .Button {
+      margin-right: 0.5rem;
+    }
+
+    .input-group {
+      flex: 1;
+      margin: 0;
+    }
+
+    .form-control {
+      unicode-bidi: plaintext;
+
+      height: 2.75rem;
+      padding: 0.5rem;
+      border: none;
+
+      font-size: 1.25rem;
+      line-height: 1.75rem;
+
+      box-shadow: none !important;
+    }
+  }
+
+  .modal-content {
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    padding: 0 !important;
+
+    > .Transition {
+      overflow: hidden;
+      height: 100%;
+    }
+
+    .picker-list {
+      overflow-x: hidden;
+      overflow-y: auto;
+      height: 100%;
+      padding-inline: 0.5rem;
+
+      @include mixins.adapt-padding-to-scrollbar(0.5rem);
+
+      body.is-ios &,
+      body.is-android & {
+        padding: 0;
+      }
+
+      @media (max-width: 600px) {
+        padding: 0;
+      }
+    }
+  }
+
+  .no-results {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    height: 100%;
+    margin: 0;
+    padding: 1rem 1rem;
+
+    color: var(--color-text-secondary);
+  }
+
+  .scroll-container {
+    position: relative;
+  }
+
+  .ChatOrUserPicker-item {
+    position: absolute;
+    width: 100%;
+
+    .online {
+      color: var(--color-primary);
+    }
+  }
+
+  .topic-icon {
+    --custom-emoji-size: 2.75rem;
+
+    width: 2.75rem;
+    height: 2.75rem;
+    margin-inline-end: 0.25rem !important;
+    font-size: 2.75rem !important;
+  }
+
+  .topic-icon-letter {
+    font-size: 1.5rem;
+  }
+
+  .topic-item {
+    .ListItem-button {
+      display: flex;
+      align-items: center;
+
+      font-size: 1rem;
+      font-weight: var(--font-weight-medium);
+      line-height: 1.6875rem;
+    }
+
+    .fullName {
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .emoji-small {
+      width: 1rem;
+      height: 1rem;
+    }
+  }
+}

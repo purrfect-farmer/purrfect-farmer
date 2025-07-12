@@ -1,0 +1,8 @@
+import { Bundles } from '../../../util/moduleLoader';
+import useModuleLoader from '../../../hooks/useModuleLoader';
+const ChatInviteModalAsync = (props) => {
+    const { modal } = props;
+    const ChatInviteModal = useModuleLoader(Bundles.Extra, 'ChatInviteModal', !modal);
+    return ChatInviteModal ? <ChatInviteModal {...props}/> : undefined;
+};
+export default ChatInviteModalAsync;

@@ -1,0 +1,48 @@
+.root :global(.modal-dialog) {
+  overflow: hidden;
+  width: 26.25rem;
+}
+
+.title, .description {
+  padding-inline: 1.5rem;
+  text-align: center !important;
+  text-wrap: pretty;
+}
+
+.secondary {
+  color: var(--color-text-secondary);
+}
+
+.topIcon {
+  --premium-gradient: linear-gradient(88.39deg, #6C93FF -2.56%, #976FFF 51.27%, #DF69D1 107.39%);
+
+  display: grid;
+  flex-shrink: 0;
+  place-items: center;
+
+  width: 6rem;
+  height: 6rem;
+  margin-bottom: 1rem;
+  border-radius: 50%;
+
+  font-size: 4rem;
+  color: white;
+
+  background: var(--premium-gradient);
+}
+
+.listItemIcon {
+  color: var(--accent-color) !important;
+}
+
+.content {
+  overflow-x: hidden;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.separator {
+  width: calc(100% + 2rem); // Hack to cover modal paddings
+  margin-block: 1rem;
+}

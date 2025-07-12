@@ -1,0 +1,113 @@
+import { wrapError } from '../helpers/misc';
+import { sendApiUpdate } from '../updates/apiUpdateEmitter';
+const authController = {};
+export function onWebAuthTokenFailed() {
+    sendApiUpdate({
+        '@type': 'updateWebAuthTokenFailed',
+    });
+}
+export function onRequestPhoneNumber() {
+    sendApiUpdate(buildAuthStateUpdate('authorizationStateWaitPhoneNumber'));
+    return new Promise((resolve, reject) => {
+        authController.resolve = resolve;
+        authController.reject = reject;
+    });
+}
+export function onRequestCode(isCodeViaApp = false) {
+    sendApiUpdate({
+        ...buildAuthStateUpdate('authorizationStateWaitCode'),
+        isCodeViaApp,
+    });
+    return new Promise((resolve, reject) => {
+        authController.resolve = resolve;
+        authController.reject = reject;
+    });
+}
+export function onRequestPassword(hint, noReset) {
+    sendApiUpdate({
+        ...buildAuthStateUpdate('authorizationStateWaitPassword'),
+        hint,
+        noReset,
+    });
+    return new Promise((resolve) => {
+        authController.resolve = resolve;
+    });
+}
+export function onRequestRegistration() {
+    sendApiUpdate(buildAuthStateUpdate('authorizationStateWaitRegistration'));
+    return new Promise((resolve) => {
+        authController.resolve = resolve;
+    });
+}
+export function onRequestQrCode(qrCode) {
+    sendApiUpdate({
+        ...buildAuthStateUpdate('authorizationStateWaitQrCode'),
+        qrCode: {
+            token: btoa(String.fromCharCode(...qrCode.token)).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, ''),
+            expires: qrCode.expires,
+        },
+    });
+    return new Promise((resolve, reject) => {
+        authController.reject = reject;
+    });
+}
+export function onAuthError(err) {
+    const { messageKey } = wrapError(err);
+    sendApiUpdate({
+        '@type': 'updateAuthorizationError',
+        errorKey: messageKey,
+    });
+}
+export function onAuthReady() {
+    sendApiUpdate(buildAuthStateUpdate('authorizationStateReady'));
+}
+export function onCurrentUserUpdate(currentUser, currentUserFullInfo) {
+    sendApiUpdate({
+        '@type': 'updateCurrentUser',
+        currentUser,
+        currentUserFullInfo,
+    });
+}
+export function buildAuthStateUpdate(authorizationState) {
+    return {
+        '@type': 'updateAuthorizationState',
+        authorizationState,
+    };
+}
+export function provideAuthPhoneNumber(phoneNumber) {
+    if (!authController.resolve) {
+        return;
+    }
+    authController.resolve(phoneNumber);
+}
+export function provideAuthCode(code) {
+    if (!authController.resolve) {
+        return;
+    }
+    authController.resolve(code);
+}
+export function provideAuthPassword(password) {
+    if (!authController.resolve) {
+        return;
+    }
+    authController.resolve(password);
+}
+export function provideAuthRegistration(registration) {
+    const { firstName, lastName } = registration;
+    if (!authController.resolve) {
+        return;
+    }
+    authController.resolve([firstName, lastName]);
+}
+export function restartAuth() {
+    if (!authController.reject) {
+        return;
+    }
+    authController.reject(new Error('RESTART_AUTH'));
+}
+export function restartAuthWithQr() {
+    if (!authController.reject) {
+        return;
+    }
+    authController.reject(new Error('RESTART_AUTH_WITH_QR'));
+}

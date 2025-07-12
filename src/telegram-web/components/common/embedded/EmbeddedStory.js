@@ -1,0 +1,60 @@
+import { useRef } from '../../../lib/teact/teact';
+import { getActions } from '../../../global';
+import { getStoryMediaHash, } from '../../../global/helpers';
+import { getPeerTitle } from '../../../global/helpers/peers';
+import buildClassName from '../../../util/buildClassName';
+import { getPictogramDimensions } from '../helpers/mediaDimensions';
+import renderText from '../helpers/renderText';
+import { useFastClick } from '../../../hooks/useFastClick';
+import { useIsIntersecting } from '../../../hooks/useIntersectionObserver';
+import useLastCallback from '../../../hooks/useLastCallback';
+import useMedia from '../../../hooks/useMedia';
+import useOldLang from '../../../hooks/useOldLang';
+import Icon from '../icons/Icon';
+import PeerColorWrapper from '../PeerColorWrapper';
+import './EmbeddedMessage.scss';
+const NBSP = '\u00A0';
+const EmbeddedStory = ({ story, sender, noUserColors, isProtected, observeIntersectionForLoading, onClick, }) => {
+    const { showNotification } = getActions();
+    const lang = useOldLang();
+    const ref = useRef();
+    const isIntersecting = useIsIntersecting(ref, observeIntersectionForLoading);
+    const isFullStory = story && 'content' in story;
+    const isExpiredStory = story && 'isDeleted' in story;
+    const isVideoStory = isFullStory && Boolean(story.content.video);
+    const title = isFullStory ? 'Story' : (isExpiredStory ? 'ExpiredStory' : 'Loading');
+    const mediaBlobUrl = useMedia(isFullStory && getStoryMediaHash(story, 'pictogram'), !isIntersecting);
+    const mediaThumbnail = isVideoStory ? story.content.video.thumbnail?.dataUri : undefined;
+    const pictogramUrl = mediaBlobUrl || mediaThumbnail;
+    const senderTitle = sender ? getPeerTitle(lang, sender) : undefined;
+    const handleFastClick = useLastCallback(() => {
+        if (story && !isExpiredStory) {
+            onClick();
+        }
+        else {
+            showNotification({
+                message: lang('StoryNotFound'),
+            });
+        }
+    });
+    const { handleClick, handleMouseDown } = useFastClick(handleFastClick);
+    return (<PeerColorWrapper ref={ref} peerColor={sender?.color} noUserColors={noUserColors} shouldReset className={buildClassName('EmbeddedMessage', pictogramUrl && 'with-thumb')} onClick={handleClick} onMouseDown={handleMouseDown}>
+      {pictogramUrl && renderPictogram(pictogramUrl, isProtected)}
+      <div className="message-text with-message-color">
+        <p className="embedded-text-wrapper">
+          {isExpiredStory && (<Icon name="story-expired" className="embedded-origin-icon"/>)}
+          {isFullStory && (<Icon name="story-reply" className="embedded-origin-icon"/>)}
+          {lang(title)}
+        </p>
+        <div className="message-title">{renderText(senderTitle || NBSP)}</div>
+      </div>
+    </PeerColorWrapper>);
+};
+function renderPictogram(srcUrl, isProtected) {
+    const { width, height } = getPictogramDimensions();
+    return (<div className="embedded-thumb">
+      <img src={srcUrl} width={width} height={height} alt="" className="pictogram" draggable={false}/>
+      {isProtected && <span className="protector"/>}
+    </div>);
+}
+export default EmbeddedStory;

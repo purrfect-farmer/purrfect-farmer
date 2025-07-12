@@ -1,4 +1,6 @@
 onlyBuiltDependencies:
+  - '@parcel/watcher'
+  - '@swc/core'
   - '@tailwindcss/oxide'
   - bufferutil
   - es5-ext

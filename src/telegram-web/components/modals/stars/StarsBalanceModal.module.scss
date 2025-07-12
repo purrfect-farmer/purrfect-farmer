@@ -1,0 +1,294 @@
+@use '../../../styles/mixins';
+
+.root {
+  z-index: calc(var(--z-modal-low-priority) + 1);
+}
+
+.root :global(.modal-content) {
+  padding: 0;
+}
+
+.root :global(.modal-dialog) {
+  max-width: 26.25rem;
+  height: min(45rem, 90vh);
+}
+
+.minimal :global(.modal-dialog) {
+  height: auto;
+}
+
+.root :global(.modal-dialog),
+.root :global(.modal-content),
+.transition {
+  overflow: hidden;
+}
+
+.main {
+  overflow-y: scroll;
+  height: 100%;
+}
+
+.container {
+  display: flex;
+  flex-direction: column-reverse;
+}
+
+.section {
+  position: relative;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+
+  padding: 0.5rem;
+
+  @include mixins.adapt-padding-to-scrollbar(0.5rem);
+  @include mixins.side-panel-section;
+}
+
+.sectionTitle {
+  align-self: flex-start;
+
+  padding: 0.25rem 0.75rem;
+
+  font-size: 1rem;
+  font-weight: var(--font-weight-medium);
+  color: var(--color-primary);
+}
+
+.tos {
+  padding: 0.5rem 1rem;
+  padding-top: 0;
+
+  font-size: 0.875rem;
+  color: var(--color-text-secondary);
+
+  background-color: var(--color-background-secondary);
+}
+
+.logo {
+  width: 6.25rem;
+  height: 6.25rem;
+  min-height: 6.25rem;
+  margin: 1rem;
+}
+
+.logoBackground {
+  position: absolute;
+  top: 0.75rem;
+  left: 50%;
+  transform: translateX(-50%);
+
+  height: 8rem;
+}
+
+.headerHext {
+  margin-inline: 0.5rem;
+  font-size: 1.5rem;
+  font-weight: var(--font-weight-medium);
+  text-align: center;
+}
+
+.description {
+  margin-bottom: 1rem;
+  margin-inline: 0.5rem;
+
+  line-height: 1.375;
+  text-align: center;
+  text-wrap: balance;
+}
+
+.header {
+  position: absolute;
+  z-index: 2;
+  top: 0;
+  left: 0;
+
+  display: flex;
+  align-items: center;
+
+  width: 100%;
+  height: 3.5rem;
+  padding: 0.5rem;
+  border-bottom: 0.0625rem solid var(--color-borders);
+
+  background: var(--color-background);
+
+  transition: 0.25s ease-out transform;
+}
+
+.starHeaderText {
+  unicode-bidi: plaintext;
+  margin: 0 0 0 3rem;
+  font-size: 1.25rem;
+  font-weight: var(--font-weight-medium);
+}
+
+.botItem {
+  margin-bottom: 0.75rem;
+}
+
+.hiddenHeader {
+  transform: translateY(-100%);
+}
+
+.closeButton {
+  position: absolute;
+  z-index: 3;
+  top: 0.5rem;
+  left: 0.5rem;
+}
+
+.addStarsButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  width: 1rem;
+  height: 1rem;
+  margin-top: 0.0625rem;
+  padding: 0;
+  border-radius: 50%;
+
+  opacity: 1;
+
+  transition: opacity 0.15s;
+
+  &:hover,
+  &:active {
+    opacity: 0.75;
+  }
+}
+
+.addStarsIcon {
+  font-size: 0.75rem !important;
+}
+
+.balanceBlock {
+  display: flex;
+  align-items: center;
+}
+
+.balanceInfo {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  line-height: 1;
+}
+
+.smallerText {
+  font-size: 0.875rem;
+}
+
+.balanceBottom {
+  display: flex;
+  gap: 0.25rem;
+  align-items: center;
+
+  font-weight: var(--font-weight-medium);
+  line-height: 1.5;
+}
+
+.modalBalance {
+  position: absolute;
+  z-index: 3;
+  top: 0.75rem;
+  right: 1.25rem;
+}
+
+.starButton {
+  grid-column: 1/-1;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+  font-weight: var(--font-weight-medium);
+}
+
+.paymentContent {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.paymentImages {
+  position: relative;
+
+  display: grid;
+  grid-auto-columns: 3.5rem;
+  grid-auto-flow: column;
+  place-items: center;
+
+  margin-bottom: 1rem;
+}
+
+.paymentPhoto {
+  z-index: 1;
+  outline: 0.25rem solid var(--color-background);
+}
+
+.avatarStar {
+  position: absolute;
+  z-index: 1;
+  right: -1rem;
+  bottom: 0;
+
+  font-size: 2rem;
+
+  @include mixins.filter-outline(1px, var(--color-background));
+}
+
+.paymentImageBackground {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+
+  height: 7rem;
+}
+
+.paymentButton {
+  display: flex;
+  align-items: center;
+  margin-top: 1rem;
+}
+
+.paymentButtonStar {
+  --color-fill: white !important;
+}
+
+.transactions, .subscriptions {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+}
+
+.tabs {
+  // Disable tabs rounded corners
+  --border-radius-messages-small: 0;
+
+  top: 3.5rem;
+  padding-inline: 0;
+}
+
+.disclaimer {
+  margin-top: 0.5rem;
+  color: var(--color-text-secondary);
+}
+
+.amountBadge {
+  background-image: var(--stars-gradient);
+}
+
+.loadMore {
+  gap: 0.75rem;
+  justify-content: flex-start;
+}
+
+.loadMoreIcon {
+  display: grid;
+  place-items: center;
+
+  width: 2.75rem;
+  height: 2.75rem;
+
+  font-size: 1.5rem;
+}

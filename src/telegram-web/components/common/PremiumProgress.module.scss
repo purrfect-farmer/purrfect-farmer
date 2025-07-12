@@ -1,0 +1,162 @@
+.root {
+  --percent: calc(var(--progress, 0.5) * 100%);
+
+  position: relative;
+
+  display: flex;
+
+  height: 2rem;
+  border-radius: 0.625rem;
+
+  background: var(--color-background-menu-separator);
+}
+
+.withBadge {
+  margin-top: 3rem;
+}
+
+.badgeContainer {
+  position: absolute;
+  top: -1.5rem;
+  right: 0;
+  left: 0;
+  transform: translate(calc(var(--shift-x) * 100% - 50%), -20px);
+
+  display: flex;
+  justify-content: center;
+
+  transition: transform 0.2s ease-in-out;
+  animation: slide-in 0.5s ease-in-out;
+}
+
+@keyframes slide-in {
+  from {
+    transform: translate(-50%, -20px);
+  }
+
+  to {
+    transform: translate(calc(var(--shift-x) * 100% - 50%), -20px);
+  }
+}
+
+.floating-badge-wrapper {
+  position: relative;
+
+  overflow: hidden;
+
+  height: 2.6875rem;
+  border-radius: 0.5rem;
+
+  animation: rotate-in 0.5s ease-in-out;
+}
+
+@keyframes rotate-in {
+  0% {
+    transform: rotate(0deg);
+  }
+
+  50% {
+    // Rotate more if progress is higher
+    transform: rotate(calc(-20deg * var(--progress)));
+  }
+
+  100% {
+    transform: rotate(0deg);
+  }
+}
+
+.floating-badge {
+  position: relative;
+  z-index: 1;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 0.25rem 0.75rem;
+  border-radius: 1rem;
+
+  color: #ffffff;
+
+  background-color: #7E85FF;
+}
+
+.floating-badge-triangle {
+  position: absolute;
+  bottom: -4px;
+  left: calc(var(--tail-position, 0.5) * 100%);
+  transform: translateX(-50%);
+
+  display: inline-block;
+}
+
+.floating-badge-icon {
+  margin-right: 0.25rem;
+  font-size: 1.25rem;
+}
+
+.floating-badge-value {
+  font-size: 16px;
+  font-weight: var(--font-weight-medium);
+}
+
+.left, .right {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+
+  display: flex;
+  align-items: center;
+
+  font-weight: var(--font-weight-medium);
+}
+
+.left {
+  left: 0.75rem;
+}
+
+.right {
+  right: 0.75rem;
+}
+
+.progress {
+  --multiplier: calc(1 / var(--progress) - 1);
+
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+
+  overflow: hidden;
+
+  width: max(var(--percent), 0.625rem);
+  border-top-left-radius: 0.625rem;
+  border-bottom-left-radius: 0.625rem;
+
+  background-image: var(--premium-gradient);
+  background-size: calc(1 / var(--progress) * 100%) 100%;
+
+  .left, .right {
+    color: white;
+    white-space: nowrap;
+  }
+
+  .right {
+    right: calc(-100% * var(--multiplier) + 0.75rem);
+  }
+}
+
+.fullProgress {
+  border-radius: 0.625rem;
+}
+
+.primary {
+  .progress {
+    background-color: var(--color-primary);
+    background-image: none;
+  }
+
+  .floating-badge {
+    background-color: var(--color-primary);
+  }
+}

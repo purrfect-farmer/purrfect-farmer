@@ -1,0 +1,49 @@
+import { memo } from '../../lib/teact/teact';
+import buildClassName from '../../util/buildClassName';
+import useLastCallback from '../../hooks/useLastCallback';
+import Checkbox from './Checkbox';
+const CheckboxGroup = ({ id, options, selected, disabled, nestedCheckbox, loadingOptions, isRound, onChange, onClickLabel, className, }) => {
+    const handleChange = useLastCallback((event, nestedOptionList) => {
+        const { value, checked } = event.currentTarget;
+        let newValues;
+        if (checked) {
+            newValues = [...selected, value];
+            if (nestedOptionList && value) {
+                newValues.push(nestedOptionList.value);
+            }
+            if (nestedOptionList && value === nestedOptionList.value) {
+                nestedOptionList.nestedOptions?.forEach((nestedOption) => {
+                    if (!newValues.includes(nestedOption.value)) {
+                        newValues.push(nestedOption.value);
+                    }
+                });
+            }
+        }
+        else {
+            newValues = selected.filter((v) => v !== value);
+            if (nestedOptionList && value === nestedOptionList.value) {
+                nestedOptionList.nestedOptions?.forEach((nestedOption) => {
+                    newValues = newValues.filter((v) => v !== nestedOption.value);
+                });
+            }
+            else if (nestedOptionList) {
+                const nestedOptionValues = nestedOptionList.nestedOptions?.map((nestedOption) => nestedOption.value) || [];
+                const hasOtherNestedValuesChecked = nestedOptionValues.some((nestedValue) => newValues.includes(nestedValue));
+                if (!hasOtherNestedValuesChecked) {
+                    newValues = newValues.filter((v) => v !== nestedOptionList.value);
+                }
+            }
+        }
+        onChange(newValues);
+    });
+    const getCheckedNestedCount = useLastCallback((nestedOptions) => {
+        const checkedCount = nestedOptions?.filter((nestedOption) => selected.includes(nestedOption.value)).length;
+        return checkedCount > 0 ? checkedCount : nestedOptions.length;
+    });
+    return (<div id={id} className={buildClassName('radio-group', className)}>
+      {options.map((option) => {
+            return (<Checkbox label={option.label} subLabel={option.subLabel} value={option.value} user={option.user} checked={selected?.indexOf(option.value) !== -1} disabled={option.disabled || disabled} isLoading={loadingOptions ? loadingOptions.indexOf(option.value) !== -1 : undefined} onChange={handleChange} onClickLabel={onClickLabel} nestedCheckbox={nestedCheckbox} nestedCheckboxCount={getCheckedNestedCount(option.nestedOptions ?? [])} nestedOptionList={option} values={selected} isRound={isRound}/>);
+        })}
+    </div>);
+};
+export default memo(CheckboxGroup);

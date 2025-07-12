@@ -1,0 +1,40 @@
+import { memo, useEffect, useRef, } from '../../../lib/teact/teact';
+import { getActions, withGlobal } from '../../../global';
+import { SLIDE_TRANSITION_DURATION } from '../../../config';
+import { selectCurrentMessageList, selectIsChatWithSelf } from '../../../global/selectors';
+import { IS_TOUCH_ENV } from '../../../util/browser/windowEnvironment';
+import buildClassName from '../../../util/buildClassName';
+import { useIntersectionObserver } from '../../../hooks/useIntersectionObserver';
+import useLastCallback from '../../../hooks/useLastCallback';
+import useAsyncRendering from '../../right/hooks/useAsyncRendering';
+import GifButton from '../../common/GifButton';
+import Loading from '../../ui/Loading';
+import './GifPicker.scss';
+const INTERSECTION_DEBOUNCE = 300;
+const GifPicker = ({ className, loadAndPlay, canSendGifs, savedGifs, isSavedMessages, onGifSelect, }) => {
+    const { loadSavedGifs, saveGif } = getActions();
+    const containerRef = useRef();
+    const { observe: observeIntersection, } = useIntersectionObserver({ rootRef: containerRef, debounceMs: INTERSECTION_DEBOUNCE });
+    useEffect(() => {
+        if (loadAndPlay) {
+            loadSavedGifs();
+        }
+    }, [loadAndPlay, loadSavedGifs]);
+    const handleUnsaveClick = useLastCallback((gif) => {
+        saveGif({ gif, shouldUnsave: true });
+    });
+    const canRenderContents = useAsyncRendering([], SLIDE_TRANSITION_DURATION);
+    return (<div>
+      <div ref={containerRef} className={buildClassName('GifPicker', className, IS_TOUCH_ENV ? 'no-scrollbar' : 'custom-scroll')}>
+        {!canSendGifs ? (<div className="picker-disabled">Sending GIFs is not allowed in this chat.</div>) : canRenderContents && savedGifs && savedGifs.length ? (savedGifs.map((gif) => (<GifButton key={gif.id} gif={gif} observeIntersection={observeIntersection} isDisabled={!loadAndPlay} onClick={canSendGifs ? onGifSelect : undefined} onUnsaveClick={handleUnsaveClick} isSavedMessages={isSavedMessages}/>))) : canRenderContents && savedGifs ? (<div className="picker-disabled">No saved GIFs.</div>) : (<Loading />)}
+      </div>
+    </div>);
+};
+export default memo(withGlobal((global) => {
+    const { chatId } = selectCurrentMessageList(global) || {};
+    const isSavedMessages = Boolean(chatId) && selectIsChatWithSelf(global, chatId);
+    return {
+        savedGifs: global.gifs.saved.gifs,
+        isSavedMessages,
+    };
+})(GifPicker));

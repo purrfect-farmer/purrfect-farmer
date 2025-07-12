@@ -1,0 +1,80 @@
+@use '../../../../styles/mixins';
+
+.root {
+  cursor: var(--custom-cursor, pointer);
+
+  display: flex;
+  gap: 0.75rem;
+
+  padding: 0.25rem 0.75rem 0.25rem 0.25rem;
+  border-radius: 0.5rem;
+
+  transition: background-color 0.25s ease-out;
+
+  &:hover {
+    background-color: var(--color-chat-hover);
+  }
+}
+
+.info {
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+}
+
+.status {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  justify-content: center;
+}
+
+.statusPricing {
+  display: flex;
+  flex-shrink: 0;
+  gap: 0.25rem;
+  align-items: center;
+}
+
+.amount {
+  font-weight: var(--font-weight-medium);
+}
+
+.title, .description, .subtitle {
+  margin-bottom: 0;
+  line-height: 1.25;
+}
+
+.title {
+  font-size: 0.9375rem;
+}
+
+.subtitle {
+  display: flex;
+  gap: 0.125rem;
+  align-items: center;
+  font-size: 0.8125rem;
+}
+
+.description, .statusPeriod, .statusEnded {
+  font-size: 0.8125rem;
+  color: var(--color-text-secondary);
+}
+
+.statusEnded {
+  color: var(--color-error);
+}
+
+.preview {
+  position: relative;
+  align-self: center;
+}
+
+.subscriptionStar {
+  position: absolute;
+  z-index: 1;
+  right: 0;
+  bottom: 0;
+
+  @include mixins.filter-outline(1px, var(--color-background));
+}

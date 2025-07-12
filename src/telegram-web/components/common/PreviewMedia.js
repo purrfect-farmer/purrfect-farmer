@@ -1,0 +1,28 @@
+import { memo, useRef } from '../../lib/teact/teact';
+import { getMessageMediaHash, getMessageMediaThumbDataUri, } from '../../global/helpers';
+import buildClassName from '../../util/buildClassName';
+import { formatMediaDuration } from '../../util/dates/dateFormat';
+import stopEvent from '../../util/stopEvent';
+import { useIsIntersecting } from '../../hooks/useIntersectionObserver';
+import useLastCallback from '../../hooks/useLastCallback';
+import useMedia from '../../hooks/useMedia';
+import useMediaTransitionDeprecated from '../../hooks/useMediaTransitionDeprecated';
+import './Media.scss';
+const PreviewMedia = ({ media, idPrefix = 'preview-media', isProtected, observeIntersection, onClick, index, }) => {
+    const ref = useRef();
+    const isIntersecting = useIsIntersecting(ref, observeIntersection);
+    const thumbDataUri = getMessageMediaThumbDataUri(media);
+    const mediaBlobUrl = useMedia(getMessageMediaHash(media, 'preview'), !isIntersecting);
+    const transitionClassNames = useMediaTransitionDeprecated(mediaBlobUrl);
+    const video = media.content.video;
+    const handleClick = useLastCallback(() => {
+        onClick(index);
+    });
+    return (<div ref={ref} id={`${idPrefix}${index}`} className="Media scroll-item" onClick={handleClick}>
+      <img src={thumbDataUri} className="media-miniature" alt="" draggable={!isProtected} decoding="async" onContextMenu={isProtected ? stopEvent : undefined}/>
+      <img src={mediaBlobUrl} className={buildClassName('full-media', 'media-miniature', transitionClassNames)} alt="" draggable={!isProtected} decoding="async" onContextMenu={isProtected ? stopEvent : undefined}/>
+      {video && <span className="video-duration">{video.isGif ? 'GIF' : formatMediaDuration(video.duration)}</span>}
+      {isProtected && <span className="protector"/>}
+    </div>);
+};
+export default memo(PreviewMedia);

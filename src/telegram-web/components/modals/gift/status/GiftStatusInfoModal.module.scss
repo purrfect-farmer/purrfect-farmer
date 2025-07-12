@@ -1,0 +1,75 @@
+.header,
+.profileBlock {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+}
+
+.titleContainer {
+  padding-bottom: 0.5rem;
+}
+
+.profileBlock {
+  position: relative;
+  margin-bottom: 0.5rem;
+  padding-bottom: 1rem;
+}
+
+.radialPattern {
+  position: absolute;
+  z-index: -1;
+  top: -3rem;
+  inset-inline-start: -1.5rem;
+
+  width: calc(100% + 3rem);
+  height: calc(100% + 2rem);
+}
+
+.lockIcon {
+  margin-left: 0.25rem;
+  font-size: 1rem;
+}
+
+.avatar {
+  margin-top: 2rem;
+}
+
+.userTitle {
+  justify-content: center;
+
+  width: 100%;
+  margin-top: auto;
+  padding-top: 1rem;
+
+  font-size: 1.25rem;
+  color: white;
+}
+
+.status {
+  padding-bottom: 1rem;
+  font-size: 0.875rem;
+  text-align: center;
+}
+
+.userTitle, .status {
+  z-index: 1;
+  margin-bottom: 0;
+}
+
+.giftTitle {
+  padding-bottom: 0.5rem;
+  font-size: 1.5rem;
+  font-weight: var(--font-weight-medium);
+  text-align: center;
+}
+
+.infoDescription {
+  text-align: center;
+}
+
+.footer {
+  display: flex;
+  align-self: stretch;
+  margin-top: 0.5rem;
+}

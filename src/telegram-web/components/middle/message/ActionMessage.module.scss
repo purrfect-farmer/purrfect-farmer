@@ -1,0 +1,203 @@
+.root {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  justify-items: center;
+
+  padding-block: 0.125rem;
+
+  overflow-wrap: anywhere;
+
+  :global(.star-amount-icon) {
+    margin-inline: 0 !important;
+    vertical-align: text-bottom;
+  }
+}
+
+.contentBox {
+  position: relative;
+  z-index: 0;
+
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  align-items: center;
+
+  max-width: 15rem;
+  padding: 0.5rem 0.75rem;
+  border-radius: var(--border-radius-messages);
+
+  color: white;
+
+  background-color: var(--action-message-bg);
+}
+
+.textContent {
+  position: relative;
+  z-index: 0;
+
+  display: inline-block;
+
+  max-width: 100%;
+  padding: 0.1875rem 0.5rem;
+  border-radius: var(--border-radius-messages);
+
+  color: white;
+
+  background-color: var(--action-message-bg);
+}
+
+.hasFullContent {
+  & > .textContent,
+  & > .inlineWrapper {
+    margin-bottom: 0.5rem;
+  }
+}
+
+.singleLine .textContent {
+  display: inline-flex;
+  white-space: pre;
+}
+
+.strong {
+  font-weight: var(--font-weight-medium);
+}
+
+.messageLink {
+  overflow: hidden;
+  min-width: 1ch;
+}
+
+.noEllipsis {
+  overflow: visible;
+  min-width: auto;
+}
+
+.singleLine, .messageLink {
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.inlineWrapper {
+  grid-area: 1 / 1;
+  max-width: 100%;
+}
+
+.contextContainer {
+  grid-area: 1 / 1;
+}
+
+.fluidMultiline {
+  background-color: transparent;
+
+  // These two elements should align perfectly
+  .fluidBackground, .textContent {
+    display: inline;
+
+    padding: 0.1875rem 0.5rem;
+    border-radius: var(--border-radius-messages);
+
+    text-wrap: pretty;
+
+    box-decoration-break: clone;
+  }
+
+  .fluidBackground {
+    pointer-events: none;
+    color: black;
+    // Solid color for filter
+    background-color: black;
+  }
+
+  .textContent {
+    background-color: transparent !important;
+  }
+}
+
+.info {
+  position: relative;
+  font-size: 0.9375rem;
+}
+
+.stickerWrapper {
+  position: relative;
+}
+
+.channelPhoto {
+  --radius: var(--border-radius-messages);
+}
+
+.suggestedAvatar {
+  margin-top: 0.25rem 0.125rem;
+}
+
+.suggestedText {
+  text-wrap: balance;
+}
+
+.actionButton {
+  cursor: var(--custom-cursor, pointer);
+
+  position: relative;
+
+  display: inline-block;
+
+  padding: 0.5rem 1.25rem;
+  border-radius: 1.25rem;
+
+  font-weight: var(--font-weight-semibold);
+
+  background-color: var(--action-message-bg);
+
+  transition: opacity 0.15s;
+
+  &:hover,
+  &:focus {
+    opacity: 0.8;
+  }
+}
+
+.title {
+  margin-bottom: 0;
+  font-size: inherit;
+}
+
+.subtitle {
+  font-size: 0.8125rem;
+  text-wrap: balance;
+}
+
+.starGift {
+  width: 13.75rem;
+}
+
+.uniqueGift {
+  margin-block: 0.25rem;
+
+  &::before {
+    content: "";
+
+    position: absolute;
+    z-index: -1;
+    inset: -0.25rem;
+
+    border-radius: calc(var(--border-radius-messages) + 0.25rem);
+
+    background: var(--action-message-bg);
+  }
+}
+
+.uniqueBackgroundWrapper {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  border-radius: inherit;
+}
+
+.uniqueBackground {
+  position: absolute;
+  inset: -6rem 0 0 0;
+}
+
+.uniqueValue {
+  color: white;
+}

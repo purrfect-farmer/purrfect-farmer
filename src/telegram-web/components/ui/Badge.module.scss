@@ -1,0 +1,23 @@
+.root {
+  flex-shrink: 0;
+
+  min-width: 1.5rem;
+  height: 1.5rem;
+  padding: 0 0.4375rem;
+  border-radius: 0.75rem;
+
+  font-size: 0.875rem;
+  font-weight: var(--font-weight-medium);
+  line-height: 1.5625rem;
+  text-align: center;
+}
+
+.default {
+  color: var(--color-white);
+  background: var(--color-gray);
+}
+
+.alternate {
+  color: var(--color-chat-active);
+  background: var(--color-white);
+}

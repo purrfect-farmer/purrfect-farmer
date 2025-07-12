@@ -1,0 +1,46 @@
+import { memo, useCallback, useEffect, useRef, useState, } from '../../lib/teact/teact';
+import { CardType, detectCardType } from '../common/helpers/detectCardType';
+import { formatCardNumber } from '../middle/helpers/inputFormatters';
+import useFocusAfterAnimation from '../../hooks/useFocusAfterAnimation';
+import useOldLang from '../../hooks/useOldLang';
+import InputText from '../ui/InputText';
+import './CardInput.scss';
+import mastercardIconPath from '../../assets/mastercard.svg';
+import mirIconPath from '../../assets/mir.svg';
+import visaIconPath from '../../assets/visa.svg';
+const CARD_NUMBER_MAX_LENGTH = 19;
+const CardInput = ({ value, error, onChange }) => {
+    const lang = useOldLang();
+    const cardNumberRef = useRef();
+    useFocusAfterAnimation(cardNumberRef);
+    const [cardType, setCardType] = useState(CardType.Default);
+    useEffect(() => {
+        const newCardType = detectCardType(value);
+        setCardType(newCardType);
+        // eslint-disable-next-line
+    }, []);
+    const handleChange = useCallback((e) => {
+        const newValue = formatCardNumber(e.target.value);
+        const newCardType = detectCardType(e.target.value);
+        setCardType(newCardType);
+        onChange(newValue);
+    }, [onChange]);
+    const cardIcon = getCardIcon(cardType);
+    return (<div className="CardInput">
+      <InputText ref={cardNumberRef} label={lang('PaymentCardNumber')} onChange={handleChange} value={value} inputMode="numeric" className={cardType ? 'has-right-addon' : ''} error={error} tabIndex={0} maxLength={CARD_NUMBER_MAX_LENGTH} teactExperimentControlled/>
+      <span className="right-addon">{cardIcon}</span>
+    </div>);
+};
+export default memo(CardInput);
+function getCardIcon(cardType) {
+    switch (cardType) {
+        case CardType.Mastercard:
+            return <img src={mastercardIconPath} draggable={false} alt=""/>;
+        case CardType.Visa:
+            return <img src={visaIconPath} draggable={false} alt=""/>;
+        case CardType.Mir:
+            return <img src={mirIconPath} draggable={false} alt=""/>;
+        default:
+            return undefined;
+    }
+}

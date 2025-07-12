@@ -1,0 +1,70 @@
+.businessLocation {
+  flex-shrink: 0;
+
+  width: 3rem;
+  height: 3rem;
+  margin-inline-start: 0.25rem;
+  border-radius: 0.25rem;
+
+  object-fit: cover;
+}
+
+.personalChannel {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  grid-template-rows: auto auto;
+  column-gap: 0.5rem;
+
+  margin-bottom: 0.5rem;
+}
+
+.personalChannelTitle {
+  grid-column: 1;
+  grid-row: 1;
+
+  margin-bottom: 0;
+  margin-inline-start: 0.5rem;
+
+  font-size: 0.875rem;
+  color: var(--color-text-secondary);
+}
+
+.botVerificationSection,
+.sectionInfo {
+  font-size: 0.875rem;
+  color: var(--color-text-secondary);
+}
+
+.botVerificationSection {
+  padding-inline: 1.25rem;
+}
+
+.botVerificationIcon {
+  --custom-emoji-size: 1rem;
+
+  margin-inline-end: 0.25rem;
+}
+
+.personalChannelSubscribers {
+  grid-column: 2;
+  grid-row: 1;
+
+  margin-inline-end: 0.5rem;
+
+  font-size: 0.875rem;
+  color: var(--color-text-secondary);
+}
+
+.personalChannelItem {
+  grid-column: 1 / span 2;
+  grid-row: 2;
+
+  :global(.Avatar) {
+    margin-right: 0.9375rem !important;
+  }
+}
+
+.openAppButton {
+  margin-top: 0.5rem;
+  margin-bottom: 0.5rem;
+}

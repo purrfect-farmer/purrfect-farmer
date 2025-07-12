@@ -1,0 +1,21 @@
+import { memo } from '../../lib/teact/teact';
+import { GENERAL_TOPIC_ID } from '../../config';
+import buildClassName from '../../util/buildClassName';
+import { getTopicDefaultIcon } from '../../util/forumColors';
+import { getFirstLetters } from '../../util/textFormat';
+import renderText from './helpers/renderText';
+import Icon from './icons/Icon';
+import styles from './TopicDefaultIcon.module.scss';
+const TopicDefaultIcon = ({ className, letterClassName, topicId, iconColor, title, onClick, }) => {
+    const iconSrc = getTopicDefaultIcon(iconColor);
+    if (topicId === GENERAL_TOPIC_ID) {
+        return (<Icon name="hashtag" className={buildClassName(styles.root, className, 'general-forum-icon')} onClick={onClick}/>);
+    }
+    return (<div className={buildClassName(styles.root, className)} onClick={onClick}>
+      <img className={styles.icon} src={iconSrc} alt="" draggable={false}/>
+      <div className={buildClassName(styles.title, letterClassName, 'topic-icon-letter')}>
+        {renderText(getFirstLetters(title, 1))}
+      </div>
+    </div>);
+};
+export default memo(TopicDefaultIcon);

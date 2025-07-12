@@ -1,0 +1,94 @@
+import { memo, useCallback, useMemo } from '../../../lib/teact/teact';
+import { getActions, withGlobal } from '../../../global';
+import { CHAT_HEIGHT_PX } from '../../../config';
+import { getMainUsername } from '../../../global/helpers';
+import buildClassName from '../../../util/buildClassName';
+import { isUserId } from '../../../util/entities/ids';
+import { formatPhoneNumberWithCode } from '../../../util/phoneNumber';
+import useFlag from '../../../hooks/useFlag';
+import useHistoryBack from '../../../hooks/useHistoryBack';
+import useOldLang from '../../../hooks/useOldLang';
+import Avatar from '../../common/Avatar';
+import FullNameTitle from '../../common/FullNameTitle';
+import Icon from '../../common/icons/Icon';
+import FloatingActionButton from '../../ui/FloatingActionButton';
+import ListItem from '../../ui/ListItem';
+import Loading from '../../ui/Loading';
+import BlockUserModal from './BlockUserModal';
+const SettingsPrivacyBlockedUsers = ({ isActive, onReset, chatsByIds, usersByIds, blockedIds, phoneCodeList, }) => {
+    const { unblockUser } = getActions();
+    const lang = useOldLang();
+    const [isBlockUserModalOpen, openBlockUserModal, closeBlockUserModal] = useFlag();
+    const handleUnblockClick = useCallback((userId) => {
+        unblockUser({ userId });
+    }, [unblockUser]);
+    useHistoryBack({
+        isActive,
+        onBack: onReset,
+    });
+    const blockedUsernamesById = useMemo(() => {
+        return blockedIds.reduce((acc, userId) => {
+            const isPrivate = isUserId(userId);
+            const user = isPrivate ? usersByIds[userId] : undefined;
+            const mainUsername = user && !user.phoneNumber && getMainUsername(user);
+            if (mainUsername) {
+                acc[userId] = mainUsername;
+            }
+            return acc;
+        }, {});
+    }, [blockedIds, usersByIds]);
+    function renderContact(contactId, i, viewportOffset) {
+        const isPrivate = isUserId(contactId);
+        const user = usersByIds[contactId];
+        const chat = chatsByIds[contactId];
+        const peer = user || chat;
+        const className = buildClassName('Chat chat-item-clickable blocked-list-item small-icon', isPrivate ? 'private' : 'group');
+        const userMainUsername = blockedUsernamesById[contactId];
+        return (<ListItem key={`blocked_${contactId}`} className={className} ripple narrow contextActions={[{
+                    title: 'Unblock',
+                    icon: 'unlock',
+                    handler: () => {
+                        handleUnblockClick(contactId);
+                    },
+                }]} style={`top: ${(viewportOffset + i) * CHAT_HEIGHT_PX}px;`}>
+        <Avatar size="medium" peer={peer}/>
+        <div className="contact-info" dir="auto">
+          {peer && <FullNameTitle peer={peer}/>}
+          {user?.phoneNumber && (<div className="contact-phone" dir="auto">{formatPhoneNumberWithCode(phoneCodeList, user.phoneNumber)}</div>)}
+          {userMainUsername && (<div className="contact-username" dir="auto">
+              @
+              {userMainUsername}
+            </div>)}
+        </div>
+      </ListItem>);
+    }
+    return (<div className="settings-fab-wrapper">
+      <div className="settings-content infinite-scroll">
+        <div className="settings-item no-border">
+          <p className="settings-item-description-larger mt-0 mb-2" dir={lang.isRtl ? 'rtl' : undefined}>
+            {lang('BlockedUsersInfo')}
+          </p>
+        </div>
+
+        <div className="chat-list custom-scroll">
+          {blockedIds?.length ? (<div className="scroll-container settings-item">
+              {blockedIds.map((contactId, i) => renderContact(contactId, i, 0))}
+            </div>) : blockedIds && !blockedIds.length ? (<div className="no-results" dir="auto">{lang('NoBlocked')}</div>) : (<Loading key="loading"/>)}
+        </div>
+      </div>
+
+      <FloatingActionButton isShown className="block-user-button" onClick={openBlockUserModal} ariaLabel={lang('BlockContact')}>
+        <Icon name="add"/>
+      </FloatingActionButton>
+      <BlockUserModal isOpen={isBlockUserModalOpen} onClose={closeBlockUserModal}/>
+    </div>);
+};
+export default memo(withGlobal((global) => {
+    const { chats: { byId: chatsByIds, }, users: { byId: usersByIds, }, blocked: { ids, }, countryList: { phoneCodes: phoneCodeList, }, } = global;
+    return {
+        chatsByIds,
+        usersByIds,
+        blockedIds: ids,
+        phoneCodeList,
+    };
+})(SettingsPrivacyBlockedUsers));

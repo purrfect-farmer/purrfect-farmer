@@ -1,6 +1,7 @@
 import path from "path";
 import react from "@vitejs/plugin-react";
 import tailwindcss from "@tailwindcss/vite";
+import topLevelAwait from "vite-plugin-top-level-await";
 import { ViteEjsPlugin } from "vite-plugin-ejs";
 import { VitePWA } from "vite-plugin-pwa";
 import { defineConfig } from "vite";
@@ -8,6 +9,7 @@ import { fileURLToPath } from "url";
 import { imagetools } from "vite-imagetools";
 import { loadEnv } from "vite";
 import { nodePolyfills } from "vite-plugin-node-polyfills";
+import { viteStaticCopy } from "vite-plugin-static-copy";
 
 import { generateChromeManifest } from "./plugins/generate-chrome-manifest";
 import { getPackageJson } from "./scripts/get-package-json";
@@ -15,6 +17,16 @@ import { transformCssBundle } from "./plugins/transform-css-bundle";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+const EMOJI_STATIC_ASSETS = [
+  {
+    src: "node_modules/emoji-data-ios/img-apple-64",
+    dest: ".",
+  },
+  {
+    src: "node_modules/emoji-data-ios/img-apple-160",
+    dest: ".",
+  },
+];
 
 // https://vitejs.dev/config/
 export default defineConfig(async ({ mode }) => {
@@ -27,14 +39,25 @@ export default defineConfig(async ({ mode }) => {
   return {
     base: Boolean(process.env.VITE_PWA) ? process.env.BASE_URL : "/",
     define: {
-      __APP_PACKAGE_NAME__: `"${pkg.name}"`,
-      __APP_PACKAGE_VERSION__: `"${pkg.version}"`,
-      __ENCRYPTION_KEY__: `"${new Date().toISOString().split("T")[0]}"`,
+      APP_VERSION: JSON.stringify("10.9.55"),
+      APP_REVISION: JSON.stringify("master"),
+      __APP_PACKAGE_NAME__: JSON.stringify(pkg.name),
+      __APP_PACKAGE_VERSION__: JSON.stringify(pkg.version),
+      __ENCRYPTION_KEY__: JSON.stringify(
+        new Date().toISOString().split("T")[0]
+      ),
     },
     resolve: {
       alias: {
-        "@": path.resolve(__dirname, "./src"),
+        "@teact": path.resolve(__dirname, "src/telegram-web/lib/teact"),
         "~@fontsource": "@fontsource",
+        "@": path.resolve(__dirname, "./src"),
+      },
+    },
+    css: {
+      modules: {
+        localsConvention: "camelCaseOnly",
+        generateScopedName: "[name]__[local]",
       },
     },
     build: {
@@ -115,6 +138,18 @@ export default defineConfig(async ({ mode }) => {
       transformCssBundle({
         enable: process.env.VITE_ENTRY?.endsWith("styles"),
       }),
+      viteStaticCopy({
+        targets: [
+          {
+            src: "src/telegram-web/lib/rlottie/rlottie-wasm.wasm",
+            dest: "assets",
+          },
+          {
+            src: "node_modules/opus-recorder/dist/decoderWorker.min.wasm",
+            dest: "assets",
+          },
+        ],
+      }),
       VitePWA({
         registerType: "prompt",
         workbox: {
@@ -150,7 +185,7 @@ export default defineConfig(async ({ mode }) => {
             },
           ],
         },
-        disable: typeof process.env.VITE_PWA === "undefined",
+        disable: true || typeof process.env.VITE_PWA === "undefined",
       }),
       /** Plugins */
       nodePolyfills({
@@ -159,14 +194,30 @@ export default defineConfig(async ({ mode }) => {
         },
       }),
       ViteEjsPlugin(env),
-      react(),
+      react({
+        jsxImportSource: "@teact",
+        include: /src\/.*\.jsx?$/,
+      }),
       tailwindcss(),
       imagetools(),
+      topLevelAwait(),
+    ],
+    assetsInclude: [
+      "**/*.tgs",
+      "**/*.wasm",
+      "**/*.woff",
+      "**/*.woff2",
+      "**/*.eot",
+      "**/*.ttf",
+      "**/*.svg",
+      "**/*.txt",
+      "**/*.tl",
+      "**/*.strings",
     ],
     esbuild: {
-      supported: {
-        "top-level-await": true,
-      },
+      loader: "jsx",
+      include: /src\/.*\.jsx?$/,
+      exclude: [],
     },
   };
 });

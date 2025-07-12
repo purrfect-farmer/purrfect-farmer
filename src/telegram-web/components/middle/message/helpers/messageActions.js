@@ -1,0 +1,96 @@
+import { getActions } from '../../../../global';
+import { getMessageContent } from '../../../../global/helpers';
+import { IS_SAFARI } from '../../../../util/browser/windowEnvironment';
+import buildClassName from '../../../../util/buildClassName';
+import renderText from '../../../common/helpers/renderText';
+import Link from '../../../ui/Link';
+import styles from '../ActionMessage.module.scss';
+export function translateWithYou(lang, key, isYou, variables, options) {
+    const { pluralValue, asText, withMarkdown, renderTextFilters } = options || {};
+    const translationKey = isYou ? `${key}You` : key;
+    return lang(
+    // @ts-ignore -- I have no idea if this even possible to type correctly
+    translationKey, variables, {
+        withNodes: !asText, withMarkdown, pluralValue, renderTextFilters,
+    });
+}
+export function getPinnedMediaValue(lang, message) {
+    const { audio, contact, document, game, giveaway, giveawayResults, paidMedia, storyData, invoice, location, photo, pollId, sticker, video, voice, } = getMessageContent(message);
+    if (message.groupedId || paidMedia)
+        return lang('ActionPinnedMediaAlbum');
+    if (photo)
+        return lang('ActionPinnedMediaPhoto');
+    if (audio)
+        return lang('ActionPinnedMediaAudio');
+    if (voice)
+        return lang('ActionPinnedMediaVoice');
+    if (video?.isRound)
+        return lang('ActionPinnedMediaVideoMessage');
+    if (video?.isGif)
+        return lang('ActionPinnedMediaGif');
+    if (video)
+        return lang('ActionPinnedMediaVideo');
+    if (sticker)
+        return lang('ActionPinnedMediaSticker');
+    if (document)
+        return lang('ActionPinnedMediaFile');
+    if (contact)
+        return lang('ActionPinnedMediaContact');
+    if (location)
+        return lang('ActionPinnedMediaLocation');
+    if (storyData)
+        return lang('ActionPinnedMediaStory');
+    if (invoice)
+        return lang('ActionPinnedMediaInvoice');
+    if (game)
+        return lang('ActionPinnedMediaGame', { game: game.title });
+    if (pollId)
+        return lang('ActionPinnedMediaPoll');
+    if (giveaway)
+        return lang('ActionPinnedMediaGiveaway');
+    if (giveawayResults)
+        return lang('ActionPinnedMediaGiveawayResults');
+    return undefined;
+}
+export function renderPeerLink(peerId, text, asPreview) {
+    if (!peerId || asPreview) {
+        return renderText(text);
+    }
+    return (<Link className={buildClassName(styles.peerLink, styles.strong)} onClick={(e) => {
+            e.stopPropagation();
+            getActions().openChat({ id: peerId });
+        }} 
+    // box-decoration-break: clone; is broken when child has `dir` attribute
+    withMultilineFix={IS_SAFARI}>
+      {renderText(text)}
+    </Link>);
+}
+export function renderMessageLink(targetMessage, text, asPreview, params) {
+    const { noEllipsis } = params || {};
+    if (asPreview || !targetMessage)
+        return text;
+    return (<Link className={buildClassName(styles.messageLink, noEllipsis && styles.noEllipsis)} onClick={(e) => {
+            e.stopPropagation();
+            getActions().focusMessage({ chatId: targetMessage.chatId, messageId: targetMessage.id });
+        }} withMultilineFix={IS_SAFARI}>
+      {text}
+    </Link>);
+}
+export function getCallMessageKey(action, isOutgoing) {
+    const isMissed = action.reason === 'missed';
+    const isCancelled = action.reason === 'busy' || action.duration === undefined;
+    if (action.isVideo) {
+        if (isMissed)
+            return isOutgoing ? 'CallMessageVideoOutgoingMissed' : 'CallMessageVideoIncomingMissed';
+        if (isCancelled)
+            return 'CallMessageVideoIncomingDeclined';
+        return isOutgoing ? 'CallMessageVideoOutgoing' : 'CallMessageVideoIncoming';
+    }
+    else {
+        if (isMissed)
+            return isOutgoing ? 'CallMessageOutgoingMissed' : 'CallMessageIncomingMissed';
+        if (isCancelled)
+            return 'CallMessageIncomingDeclined';
+        return isOutgoing ? 'CallMessageOutgoing' : 'CallMessageIncoming';
+    }
+}

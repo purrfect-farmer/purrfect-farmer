@@ -1,0 +1,48 @@
+import { useCallback, useMemo, useRef, useState, } from '../../lib/teact/teact';
+import Icon from '../common/icons/Icon';
+import Button from './Button';
+import Menu from './Menu';
+import './DropdownMenu.scss';
+const DropdownMenu = ({ trigger, className, bubbleClassName, children, transformOriginX, transformOriginY, positionX = 'left', positionY = 'top', footer, forceOpen, onOpen, onClose, onTransitionEnd, onMouseEnterBackdrop, onHide, autoClose = true, }) => {
+    const menuRef = useRef();
+    const [isOpen, setIsOpen] = useState(false);
+    const toggleIsOpen = () => {
+        setIsOpen(!isOpen);
+        if (isOpen) {
+            onClose?.();
+        }
+        else {
+            onOpen?.();
+        }
+    };
+    const handleKeyDown = (e) => {
+        const menu = menuRef.current;
+        if (!isOpen || e.keyCode !== 40 || !menu) {
+            return;
+        }
+        const focusedElement = document.activeElement;
+        const elementChildren = Array.from(menu.children);
+        if (!focusedElement || elementChildren.indexOf(focusedElement) === -1) {
+            elementChildren[0].focus();
+        }
+    };
+    const handleClose = useCallback(() => {
+        setIsOpen(false);
+        onClose?.();
+    }, [onClose]);
+    const triggerComponent = useMemo(() => {
+        if (trigger)
+            return trigger;
+        return ({ onTrigger, isOpen: isMenuOpen }) => (<Button round size="smaller" color="translucent" className={isMenuOpen ? 'active' : ''} onClick={onTrigger} ariaLabel="More actions">
+        <Icon name="more"/>
+      </Button>);
+    }, [trigger]);
+    return (<div className={`DropdownMenu ${className || ''}`} onKeyDown={handleKeyDown} onTransitionEnd={onTransitionEnd}>
+      {triggerComponent({ onTrigger: toggleIsOpen, isOpen })}
+
+      <Menu ref={menuRef} isOpen={isOpen || Boolean(forceOpen)} className={className || ''} bubbleClassName={bubbleClassName || ''} transformOriginX={transformOriginX} transformOriginY={transformOriginY} positionX={positionX} positionY={positionY} footer={footer} autoClose={autoClose} onClose={handleClose} onCloseAnimationEnd={onHide} onMouseEnterBackdrop={onMouseEnterBackdrop}>
+        {children}
+      </Menu>
+    </div>);
+};
+export default DropdownMenu;

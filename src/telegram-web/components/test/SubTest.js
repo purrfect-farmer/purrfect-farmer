@@ -1,0 +1,31 @@
+import { useState } from '../../lib/teact/teact';
+const SubTest = ({ authState, parentRand }) => {
+    // eslint-disable-next-line no-console
+    console.log('rendering `SubTest`', authState, parentRand);
+    const [value, setValue] = useState(0);
+    return (<div>
+      <h3>
+        THIS IS `SubTest` Component
+      </h3>
+      <div>
+        authState:
+        {' '}
+        {authState}
+        !
+      </div>
+      <div>
+        parentRand:
+        {' '}
+        {parentRand}
+        !
+      </div>
+      <div>
+        state value:
+        {' '}
+        {value}
+        !
+        <input type="button" onClick={() => setValue(value + 1)} value=" + "/>
+      </div>
+    </div>);
+};
+export default SubTest;

@@ -1,0 +1,118 @@
+.settings-folders-recommended-item {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+  justify-content: space-between;
+
+  width: 100%;
+}
+
+.settings-folders-blocked-icon {
+  margin-left: 0.25rem;
+  color: var(--color-text-secondary);
+}
+
+.settings-folders-list-item {
+  .ListItem-main-icon {
+    margin-inline-end: 1.875rem !important;
+  }
+
+  .ChatInfo {
+    display: flex;
+    align-items: center;
+    width: 100%;
+
+    .Avatar {
+      margin-right: 1.5rem;
+      margin-left: -0.25rem;
+    }
+
+    .title {
+      display: flex;
+      align-items: center;
+      justify-content: flex-start;
+
+      h3 {
+        overflow: hidden;
+
+        margin: 0;
+
+        font-size: 1rem;
+        font-weight: var(--font-weight-medium);
+        line-height: 1.3125;
+        text-align: left;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+    }
+
+    .info {
+      overflow: hidden;
+    }
+
+    .status {
+      display: none;
+    }
+
+    &[dir="rtl"] {
+      .title h3 {
+        text-align: right;
+      }
+    }
+  }
+
+  .ListItem-button {
+    .icon {
+      opacity: 0.9;
+    }
+  }
+
+  &.color-primary .ListItem-button {
+    color: var(--color-primary);
+
+    .icon {
+      color: inherit;
+      opacity: 1;
+    }
+  }
+
+  &[dir="rtl"] {
+    .Avatar {
+      margin-right: -0.25rem;
+      margin-left: 1.5rem;
+    }
+  }
+}
+
+.settings-item .ShowMoreButton {
+  width: calc(100% + 2rem);
+  margin: 0 -1rem;
+  padding-left: 1rem !important;
+}
+
+.settings-sortable-container {
+  position: relative;
+}
+
+.settings-sortable-item .multiline-item {
+  padding-inline-end: 3rem;
+}
+
+.settings-sortable-item .Button {
+  margin-right: -1rem;
+  &:hover,
+  &:active {
+    background-color: transparent !important;
+  }
+}
+
+.picker-category-title {
+  padding-top: 0.75rem;
+}
+
+.Picker {
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
