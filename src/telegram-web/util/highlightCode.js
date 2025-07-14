@@ -1,6 +1,7 @@
 import { createLowlight } from "lowlight";
 
 import Teact from "../lib/teact/teact";
+
 const SUPPORTED_LANGUAGES = {
   "1c": ["1с"], // Allow cyrillic
   ada: [],
@@ -103,7 +104,7 @@ function loadFirstPartyLanguage(langCode) {
   // Funky webpack bug https://github.com/webpack/webpack/issues/13865
   const languagePromise = import(
     /* webpackChunkName: "Highlight for [request]" */
-    `highlight.js/lib/languages/${langCode}`
+    `highlight.js/lib/languages/${langCode}.js`
   );
   languagePromises.set(langCode, languagePromise);
   return languagePromise;
