@@ -65,19 +65,27 @@ export default class BaseFarmer {
   }
 
   /** Execute a task with logging */
-  async executeTask(task, callback) {
+  async executeTask(task, callback, allowInQuickRun = true) {
+    this.logger.newline();
+
     if (this.signal?.aborted) {
       this.logger.warn(`Task aborted: ${task}`);
       return;
     }
 
+    const skipInQuickRun = this.quickRun && !allowInQuickRun;
+
+    if (skipInQuickRun) {
+      this.logger.warn(`Skipping task in quick run: ${task}`);
+      return;
+    }
+
     try {
-      this.logger.newline();
-      this.logger.log(`Executing: [${task}]`);
+      this.logger.log(`Executing task: ${task}`);
       await callback();
-      this.logger.success(`Completed: [${task}]`);
+      this.logger.success(`Completed task: ${task}`);
     } catch (error) {
-      this.logger.error(`Error executing [${task}]: ${error.message}`);
+      this.logger.error(`Error executing task: ${task} - ${error.message}`);
       throw error;
     }
   }

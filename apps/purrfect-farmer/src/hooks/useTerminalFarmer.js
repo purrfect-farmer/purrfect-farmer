@@ -77,6 +77,9 @@ export default function useTerminalFarmer() {
 
         /** Abort */
         controllerRef.current?.abort();
+
+        /** Reset Quick Run */
+        instance.setQuickRun(false);
       };
     }
   }, [isZooming, zoomies.quickRun, startFarmer, processNextTask]);

@@ -263,8 +263,13 @@ export default class BattleBullsFarmer extends BaseFarmer {
     const user = await this.getUser();
 
     this.logUserInfo(user);
+
     await this.executeTask("Complete Tasks", () => this.completeTasks(user));
-    await this.executeTask("Upgrade Cards", () => this.upgradeCards(user));
+    await this.executeTask(
+      "Upgrade Cards",
+      () => this.upgradeCards(user),
+      false
+    );
     await this.executeTask("Tap Game", () => this.tapGame(user));
   }
 
