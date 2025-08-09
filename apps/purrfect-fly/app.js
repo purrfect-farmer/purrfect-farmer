@@ -1,5 +1,4 @@
-import "dotenv/config";
-
+import "./config/env.js";
 import "./startup.js";
 import "./cron.js";
 

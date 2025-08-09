@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-import "dotenv/config";
+import "./config/env.js";
 
 import chalk from "chalk";
 import fs from "node:fs";
