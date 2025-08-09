@@ -1,15 +1,5 @@
-import deepMerge from "deepmerge";
-
-const proDefaultSettings = Object.values(
-  import.meta.glob("@/../pro/src/core/defaultSettings.js", {
-    eager: true,
-    import: "default",
-  })
-)[0];
-
 /** Drops Status */
 const dropsStatus = {
-  ...(proDefaultSettings?.dropsStatus || {}),
   ["ultima-bulls"]: true,
   ["dragonz-land"]: true,
   ["frogster"]: true,
@@ -53,4 +43,4 @@ const defaultSettings = {
   repeatZoomiesCycle: true,
 };
 
-export default deepMerge(defaultSettings, proDefaultSettings || {});
+export default defaultSettings;

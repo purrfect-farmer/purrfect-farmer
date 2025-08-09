@@ -75,7 +75,6 @@ export default memo(function Welcome() {
     useMirroredState("app.toggle-links-panel", false);
 
   const {
-    isPro,
     account,
     farmers,
     drops,
@@ -267,10 +266,7 @@ export default memo(function Welcome() {
                 "text-2xl text-center"
               )}
             >
-              {import.meta.env.VITE_APP_NAME}{" "}
-              {isPro ? (
-                <sup className="text-sm font-bold text-orange-500">Pro</sup>
-              ) : null}
+              {import.meta.env.VITE_APP_NAME}
             </h3>
           </div>
 
