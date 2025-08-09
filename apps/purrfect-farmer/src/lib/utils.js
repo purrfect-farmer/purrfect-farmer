@@ -5,6 +5,8 @@ import userAgents from "@purrfect/shared/resources/userAgents.js";
 import { clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
 
+import { uuid } from "./utils";
+
 export function isExtension() {
   return window.location.protocol === "chrome-extension:";
 }

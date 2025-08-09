@@ -1,4 +1,3 @@
-import md5 from "md5";
 import toast from "react-hot-toast";
 import useAppContext from "@/hooks/useAppContext";
 import useMirroredCallback from "@/hooks/useMirroredCallback";
@@ -17,7 +16,6 @@ import { memo, useCallback } from "react";
 import { useEffect } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { useState } from "react";
-
 import TelegramLinkForm from "./TelegramLinkForm";
 import TelegramLogo from "../assets/images/telegram-logo.svg";
 
