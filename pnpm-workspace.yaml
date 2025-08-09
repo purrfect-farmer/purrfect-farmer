@@ -1,9 +1,13 @@
 packages:
-  - 'apps/*'
-  - 'packages/*'
+  - apps/*
+  - packages/*
 
 onlyBuiltDependencies:
+  - '@tailwindcss/oxide'
   - bufferutil
   - es5-ext
+  - esbuild
+  - protobufjs
+  - sharp
   - sqlite3
   - utf-8-validate
