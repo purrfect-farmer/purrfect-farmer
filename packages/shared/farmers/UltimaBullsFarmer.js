@@ -124,7 +124,7 @@ export default class UltimaBullsFarmer extends BaseFarmer {
 
   logUserInfo(user) {
     this.logger.newline();
-    this.logger.keyValue("User", `${user.username} (${user.id})`);
+    this.logCurrentUser();
     this.logger.keyValue("Balance", user.balance);
     this.logger.keyValue("Energy", user.availableEnergy);
   }

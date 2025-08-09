@@ -46,9 +46,19 @@ export default class BaseFarmer {
     this.logger = logger;
   }
 
+  /** Get Init Data */
+  getInitData() {
+    return this.telegramWebApp?.initData;
+  }
+
+  /** Get Init Data Unsafe */
+  getInitDataUnsafe() {
+    return this.telegramWebApp?.initDataUnsafe;
+  }
+
   /** Get Telegram User */
   getTelegramUser() {
-    return this.telegramWebApp?.initDataUnsafe?.user;
+    return this.getInitDataUnsafe()?.user;
   }
   /** Get User ID */
   getUserId() {
@@ -62,7 +72,7 @@ export default class BaseFarmer {
 
   /** Get Start Parameter */
   getStartParam() {
-    return this.telegramWebApp?.initDataUnsafe?.["start_param"];
+    return this.getInitDataUnsafe()?.["start_param"];
   }
 
   /** Start the farmer */
@@ -130,6 +140,12 @@ export default class BaseFarmer {
   /** Get Auth Headers */
   getAuthHeaders(data) {
     return {};
+  }
+
+  /** Log Current User */
+  logCurrentUser() {
+    const user = this.getTelegramUser();
+    this.logger.keyValue("User", `${user.username} (${user.id})`);
   }
 
   /** Process */

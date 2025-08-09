@@ -112,7 +112,7 @@ export default class DreamcoinProFarmer extends BaseFarmer {
     )?.character;
 
     this.logger.newline();
-    this.logger.keyValue("User", `${this.getUsername()} (${this.getUserId()})`);
+    this.logCurrentUser();
     this.logger.keyValue("Balance", `DC ${balance.dc}, USDT $${balance.usdt}`);
     this.logger.keyValue("Characters", characters["owned_characters"].length);
     this.logger.keyValue("Active", activeCharacter?.name || "None");

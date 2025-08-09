@@ -9,6 +9,7 @@ import {
   customLogger,
   delayForSeconds,
   extractTgWebAppData,
+  isBotURL,
   parseTelegramLink,
 } from "./utils";
 
@@ -193,15 +194,27 @@ export default class TelegramWebClient extends TelegramClient {
         }),
       });
 
+      let result = null;
+
       /** Start the Bot */
       if (!parsed.shortName) {
-        await this.startBot({
+        const message = await this.startBot({
           entity: parsed.entity,
           startParam: parsed.startParam,
         });
+
+        const urls = message.buttons.flat().map((btn) => btn.url);
+
+        for (const url of urls) {
+          if (isBotURL(url)) {
+            parsed = parseTelegramLink(url);
+            break;
+          }
+        }
       }
 
-      const result = await this.invoke(
+      /** Request Webview */
+      result = await this.invoke(
         !parsed.shortName
           ? new Api.messages.RequestMainWebView({
               platform: "android",
