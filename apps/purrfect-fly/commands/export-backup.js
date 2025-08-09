@@ -1,18 +1,25 @@
+import fs from "node:fs";
+import path from "node:path";
+import { formatDate } from "date-fns";
+
+import { getCurrentPath } from "../lib/path.js";
+
+const { __dirname, __filename } = getCurrentPath(import.meta.url);
+
 /**
  * @param {import("commander").Command} program
  * @param {typeof import("inquirer").default} inquirer
  * @param {typeof import("chalk").default} chalk
  */
-module.exports = (program, inquirer, chalk) => {
+export default (program, inquirer, chalk) => {
   program
     .command("export-backup")
     .description("Export Backup")
     .action(async () => {
-      const fs = require("fs");
-      const path = require("path");
-      const db = require("../db/models");
-      const GramClient = require("../lib/GramClient");
-      const { formatDate } = require("date-fns");
+      const db = await import("../db/models/index.js").then((m) => m.default);
+      const GramClient = await import("../lib/GramClient.js").then(
+        (m) => m.default
+      );
 
       const users = await db.User.findAll();
       const accounts = await db.Account.findAll();

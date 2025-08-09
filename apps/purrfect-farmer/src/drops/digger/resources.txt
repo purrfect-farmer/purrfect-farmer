@@ -1,7 +1,0 @@
-POST https://api.diggergame.app/api/auth
---init_data
---platform
-
---- response.data.result.auth.token
-
-

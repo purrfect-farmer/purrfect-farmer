@@ -1,12 +1,11 @@
-"use strict";
-const bcrypt = require("bcryptjs");
-const dateFns = require("date-fns");
+import * as bcrypt from "bcryptjs";
+import * as dateFns from "date-fns";
 
 /**
  * @param {import("fastify").FastifyInstance} fastify
  * @param {object} opts
  */
-module.exports = async function (fastify, opts) {
+export default async function (fastify, opts) {
   /** Login */
   fastify.post(
     "/login",
@@ -246,4 +245,4 @@ module.exports = async function (fastify, opts) {
       }
     );
   });
-};
+}

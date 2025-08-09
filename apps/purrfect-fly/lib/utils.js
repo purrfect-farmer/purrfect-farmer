@@ -1,10 +1,9 @@
-const dateFns = require("date-fns");
-const nacl = require("tweetnacl");
-const base64url = require("base64url");
+import base64url from "base64url";
+import crypto from "crypto";
+import sharedUtils from "@purrfect/shared/utils/index.js";
+import tweetnacl from "tweetnacl";
 
-const crypto = require("crypto");
-const { v4 } = require("uuid");
-const app = require("../config/app");
+import app from "../config/app.js";
 
 function sha256(data) {
   return crypto.createHash("sha256").update(data).digest("hex");
@@ -12,54 +11,6 @@ function sha256(data) {
 
 function md5(data) {
   return crypto.createHash("md5").update(data).digest("hex");
-}
-
-/** Parse Telegram Link */
-function parseTelegramLink(url) {
-  const parsedUrl = new URL(url);
-  const [entity, shortName = ""] = parsedUrl.pathname
-    .replace(/^\//, "")
-    .split("/");
-
-  return {
-    url,
-    entity,
-    shortName,
-    startParam:
-      parsedUrl.searchParams.get("start") ||
-      parsedUrl.searchParams.get("startapp") ||
-      "",
-  };
-}
-
-/** Extract Telegram WebAppData */
-function extractTgWebAppData(url) {
-  const parsedUrl = new URL(url);
-  const params = new URLSearchParams(parsedUrl.hash.replace(/^#/, ""));
-  const initData = params.get("tgWebAppData");
-  const initDataUnsafe = getInitDataUnsafe(initData);
-
-  return {
-    platform: params.get("tgWebAppPlatform"),
-    version: params.get("tgWebAppVersion"),
-    initData,
-    initDataUnsafe,
-  };
-}
-
-function getInitDataUnsafe(initData) {
-  const params = new URLSearchParams(initData);
-  const data = {};
-
-  for (const [key, value] of params.entries()) {
-    try {
-      data[key] = JSON.parse(value);
-    } catch {
-      data[key] = value;
-    }
-  }
-
-  return data;
 }
 
 function isValidInitData(initData) {
@@ -103,60 +54,8 @@ function isValidEd25519InitData(initData) {
   const message = Buffer.from(prefix + check, "utf-8");
   const publicKey = Buffer.from(app.telegramPublicKey, "hex");
 
-  const isValid = nacl.sign.detached.verify(message, signature, publicKey);
+  const isValid = tweetnacl.sign.detached.verify(message, signature, publicKey);
   return isValid;
-}
-
-/** Check if it's a Telegram Link */
-function isTelegramLink(link) {
-  return link && /^(http|https):\/\/t\.me\/.+/i.test(link);
-}
-
-/** Check if it's a bot URL */
-function isBotURL(url) {
-  return url && /_*bot|startapp=|start=/i.test(url);
-}
-
-/** Can Join Telegram Link */
-function canJoinTelegramLink(link) {
-  return link && /^(http|https):\/\/t\.me\/[^\/\?]+$/i.test(link);
-}
-
-function randomItem(items) {
-  return items[Math.floor(Math.random() * items.length)];
-}
-
-function randomPercent(value, min = 0, max = 100) {
-  return Math.floor(
-    (value * (min + Math.floor(Math.random() * (max - min)))) / 100
-  );
-}
-
-function extraGamePoints(points, percent = 20) {
-  return points + randomPercent(points, 0, percent);
-}
-
-function delay(length, precised = false) {
-  return new Promise((res) => {
-    setTimeout(
-      () => res(),
-      precised
-        ? length
-        : (length * (Math.floor(Math.random() * 50) + 100)) / 100
-    );
-  });
-}
-
-function delayForSeconds(length, precised = false) {
-  return delay(length * 1000, precised);
-}
-
-function delayForMinutes(length, precised = false) {
-  return delay(length * 60 * 1000, precised);
-}
-
-function uuid() {
-  return v4();
 }
 
 function truncateAndPad(input, width) {
@@ -218,28 +117,13 @@ function escapeHtml(text) {
   return text.replace(/[&<>"']/g, (m) => map[m]);
 }
 
-const utils = {
-  dateFns,
+export default {
+  ...sharedUtils,
   md5,
   sha256,
-  escapeHtml,
-  formatUsers,
-  truncateAndPad,
-  uuid,
-  delay,
-  delayForSeconds,
-  delayForMinutes,
-  randomItem,
-  randomPercent,
-  extraGamePoints,
-  parseTelegramLink,
-  extractTgWebAppData,
-  getInitDataUnsafe,
-  isTelegramLink,
-  isBotURL,
-  canJoinTelegramLink,
   isValidInitData,
   isValidEd25519InitData,
+  truncateAndPad,
+  formatUsers,
+  escapeHtml,
 };
-
-module.exports = utils;

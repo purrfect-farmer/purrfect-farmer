@@ -1,19 +1,22 @@
-"use strict";
-require("dotenv/config");
-require("./startup");
-require("./cron");
+import "dotenv/config";
 
-const path = require("node:path");
-const AutoLoad = require("@fastify/autoload");
+import "./startup.js";
+import "./cron.js";
+
+import AutoLoad from "@fastify/autoload";
+import jwt from "@fastify/jwt";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 // Pass --options via CLI arguments in command to enable these options.
-const options = {
-  logger: process.env.NODE_ENV !== "production",
-};
+export const options = {};
 
-module.exports = async function (fastify, opts) {
+export default async function (fastify, opts) {
   // Place here your custom code!
-  fastify.register(require("@fastify/jwt"), {
+  fastify.register(jwt, {
     secret: process.env.JWT_SECRET_KEY,
   });
 
@@ -33,6 +36,4 @@ module.exports = async function (fastify, opts) {
     dir: path.join(__dirname, "routes"),
     options: Object.assign({}, opts),
   });
-};
-
-module.exports.options = options;
+}

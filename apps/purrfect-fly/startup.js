@@ -1,8 +1,9 @@
-const app = require("./config/app");
+import axios from "axios";
+
+import app from "./config/app.js";
+import bot from "./lib/bot.js";
 
 if (app.seeker.enabled || app.startup.sendServerAddress) {
-  const { default: axios } = require("axios");
-
   axios
     .get("http://checkip.amazonaws.com", { timeout: 5000 })
     .then((response) => {
@@ -28,8 +29,7 @@ if (app.seeker.enabled || app.startup.sendServerAddress) {
       /** Send to Group */
       if (app.startup.sendServerAddress) {
         try {
-          const bot = require("./lib/bot");
-          bot.sendServerAddress(address);
+          bot?.sendServerAddress(address);
         } catch (error) {
           console.error("Failed Send IP Address Notification:", error);
         }

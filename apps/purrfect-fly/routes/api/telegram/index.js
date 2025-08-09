@@ -1,6 +1,4 @@
-"use strict";
-const crypto = require("crypto");
-
+import crypto from "crypto";
 /** Session Schema */
 const sessionSchema = {
   type: "string",
@@ -17,7 +15,7 @@ const phoneSchema = {
  * @param {import("fastify").FastifyInstance} fastify
  * @param {object} opts
  */
-module.exports = async function (fastify, opts) {
+export default async function (fastify, opts) {
   fastify
     .post(
       "/login",
@@ -177,4 +175,4 @@ module.exports = async function (fastify, opts) {
         };
       }
     );
-};
+}

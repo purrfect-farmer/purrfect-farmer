@@ -3,14 +3,14 @@
  * @param {typeof import("inquirer").default} inquirer
  * @param {typeof import("chalk").default} chalk
  */
-module.exports = (program, inquirer, chalk) => {
+export default (program, inquirer, chalk) => {
   program
     .command("add-subscription [user] [date]")
     .description("Adds a subscription")
     .usage("12345678 2030-01-01")
     .action(async (userId, endDate) => {
-      const dateFns = require("date-fns");
-      const db = require("../db/models");
+      const dateFns = await import("date-fns");
+      const db = await import("../db/models/index.js").then((m) => m.default);
 
       if (!userId) {
         const answers = await inquirer.prompt([

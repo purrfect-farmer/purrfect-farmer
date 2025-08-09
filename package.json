@@ -1,0 +1,6 @@
+{
+  "scripts": {
+    "build:farmer": "pnpm -F purrfect-farmer build",
+    "start:fly": "pnpm -F purrfect-fly start"
+  }
+}

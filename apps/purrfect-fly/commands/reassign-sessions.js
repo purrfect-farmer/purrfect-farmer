@@ -1,15 +1,21 @@
+import { getCurrentPath } from "../lib/path.js";
+
+const { __dirname, __filename } = getCurrentPath(import.meta.url);
+
 /**
  * @param {import("commander").Command} program
  * @param {typeof import("inquirer").default} inquirer
  * @param {typeof import("chalk").default} chalk
  */
-module.exports = (program, inquirer, chalk) => {
+export default (program, inquirer, chalk) => {
   program
     .command("reassign-sessions")
     .description("Reassign Telegram Sessions")
     .action(async () => {
-      const GramClient = require("../lib/GramClient");
-      const db = require("../db/models");
+      const db = await import("../db/models/index.js").then((m) => m.default);
+      const GramClient = await import("../lib/GramClient.js").then(
+        (m) => m.default
+      );
 
       const sessions = await GramClient.getSessions();
       const assigned = new Set();

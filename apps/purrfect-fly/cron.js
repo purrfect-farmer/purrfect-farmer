@@ -1,14 +1,19 @@
-require("dotenv/config");
+import "dotenv/config";
 
-const app = require("./config/app");
+import path from "node:path";
+import { fileURLToPath } from "node:url";
+
+import CronRunner from "./lib/CronRunner.js";
+import app from "./config/app.js";
+import expireSubscriptions from "./actions/expireSubscriptions.js";
+import farmers from "./farmers/index.js";
+import updateAccounts from "./actions/updateAccounts.js";
+import updateProxies from "./actions/updateProxies.js";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 if (app.cron.enabled) {
-  const farmers = require("./farmers");
-  const expireSubscriptions = require("./actions/expireSubscriptions");
-  const updateProxies = require("./actions/updateProxies");
-  const updateAccounts = require("./actions/updateAccounts");
-  const CronRunner = require("./lib/CronRunner");
-
   const runner = new CronRunner(app.cron.mode);
 
   // Register jobs

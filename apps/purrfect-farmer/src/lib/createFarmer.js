@@ -1,9 +1,20 @@
-export function createFarmer(options) {
+import { createElement, lazy } from "react";
+
+const TerminalFarmer = lazy(() => import("@/partials/TerminalFarmer"));
+
+export function createFarmer(FarmerClass, options) {
   return {
     ...options,
-    tasks: {
-      all: Object.keys(options.tasks),
-      quick: Object.keys(options.tasks).filter((item) => options.tasks[item]),
+    FarmerClass,
+    id: FarmerClass.id,
+    title: FarmerClass.title,
+    host: FarmerClass.host,
+    domains: FarmerClass.domains,
+    telegramLink: FarmerClass.telegramLink,
+    netRequest: {
+      origin: `https://${FarmerClass.host}`,
+      domains: FarmerClass.domains,
     },
+    component: createElement(TerminalFarmer),
   };
 }

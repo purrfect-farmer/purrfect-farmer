@@ -1,9 +1,10 @@
-const axios = require("axios");
-const app = require("../config/app");
-const cache = require("./cache");
-const db = require("../db/models");
-const utils = require("./utils");
-const { HttpProxyAgent, HttpsProxyAgent } = require("hpagent");
+import axios from "axios";
+import { HttpProxyAgent, HttpsProxyAgent } from "hpagent";
+
+import app from "../config/app.js";
+import cache from "./cache.js";
+import db from "../db/models/index.js";
+import utils from "./utils.js";
 
 class ProxyProvider {
   /**
@@ -120,4 +121,4 @@ class ProxyProvider {
 
 const proxy = new ProxyProvider();
 
-module.exports = proxy;
+export default proxy;

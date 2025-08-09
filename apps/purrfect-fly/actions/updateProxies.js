@@ -1,7 +1,8 @@
-const { default: chalk } = require("chalk");
-const proxy = require("../lib/proxy");
-const db = require("../db/models");
-const app = require("../config/app");
+import chalk from "chalk";
+
+import app from "../config/app.js";
+import db from "../db/models/index.js";
+import proxy from "../lib/proxy.js";
 
 /** Update Proxies */
 async function updateProxies() {
@@ -95,4 +96,4 @@ async function updateProxies() {
   }
 }
 
-module.exports = updateProxies;
+export default updateProxies;

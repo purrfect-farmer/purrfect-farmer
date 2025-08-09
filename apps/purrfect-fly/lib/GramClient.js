@@ -1,9 +1,13 @@
-const fs = require("node:fs/promises");
-const path = require("node:path");
-const { Api, TelegramClient, Logger } = require("telegram");
-const { StringSession } = require("telegram/sessions/index.js");
-const { globby } = require("globby");
-const utils = require("./utils");
+import fsp from "node:fs/promises";
+import path from "node:path";
+import { Api, Logger, TelegramClient } from "telegram";
+import { StringSession } from "telegram/sessions/index.js";
+import { globby } from "globby";
+
+import utils from "./utils.js";
+import { getCurrentPath } from "./path.js";
+
+const { __dirname } = getCurrentPath(import.meta.url);
 
 const config = {
   apiId: 2496,
@@ -347,7 +351,7 @@ class GramClient extends TelegramClient {
   /** Save Session */
   async _saveSession() {
     /** Write to File */
-    await fs.writeFile(
+    await fsp.writeFile(
       this._sessionFilePath,
       JSON.stringify(this.session.save())
     );
@@ -360,7 +364,7 @@ class GramClient extends TelegramClient {
   async _deleteSession() {
     /** Delete File */
     if (this._sessionFileExists) {
-      await fs.unlink(this._sessionFilePath);
+      await fsp.unlink(this._sessionFilePath);
     }
 
     /** Mark as Removed */
@@ -379,7 +383,7 @@ class GramClient extends TelegramClient {
     const sessionFileExists = await GramClient.sessionFileExists(name);
 
     const sessionData = sessionFileExists
-      ? JSON.parse(await fs.readFile(sessionFilePath))
+      ? JSON.parse(await fsp.readFile(sessionFilePath))
       : "";
 
     const stringSession = new StringSession(sessionData);
@@ -412,7 +416,7 @@ class GramClient extends TelegramClient {
 
   /** Check if session file exists */
   static async sessionFileExists(name) {
-    return await fs
+    return await fsp
       .access(GramClient.getSessionPath(name))
       .then(() => true)
       .catch(() => false);
@@ -434,4 +438,4 @@ class GramClient extends TelegramClient {
   }
 }
 
-module.exports = GramClient;
+export default GramClient;

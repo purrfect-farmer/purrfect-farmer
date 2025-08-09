@@ -1,12 +1,4 @@
-let proConfig;
-
-const deepMerge = require("deepmerge");
-
-try {
-  proConfig = require("../pro/config/app");
-} catch {}
-
-const app = {
+export default {
   name: process.env.APP_NAME,
   farmer: {
     botId: process.env.FARMER_BOT_ID ?? "7592929753",
@@ -138,5 +130,3 @@ const app = {
     },
   ],
 };
-
-module.exports = deepMerge(app, proConfig || {});

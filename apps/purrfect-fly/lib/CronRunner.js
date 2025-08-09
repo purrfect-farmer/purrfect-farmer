@@ -1,4 +1,4 @@
-const { CronJob } = require("cron");
+import { CronJob } from "cron";
 
 class CronRunner {
   constructor(mode = "sequential") {
@@ -79,4 +79,4 @@ class CronRunner {
   }
 }
 
-module.exports = CronRunner;
+export default CronRunner;

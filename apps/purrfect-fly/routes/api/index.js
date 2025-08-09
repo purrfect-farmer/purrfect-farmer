@@ -1,10 +1,8 @@
-"use strict";
-
 /**
  * @param {import("fastify").FastifyInstance} fastify
  * @param {object} opts
  */
-module.exports = async function (fastify, opts) {
+export default async function (fastify, opts) {
   /** Get Server */
   fastify.get("/server", async function (request, reply) {
     return {
@@ -120,4 +118,4 @@ module.exports = async function (fastify, opts) {
       }
     }
   );
-};
+}

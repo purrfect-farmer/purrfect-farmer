@@ -4,9 +4,49 @@ import isEqual from "fast-deep-equal";
 export const storageCache = new Map();
 export const storageEmitter = new EventEmitter();
 
+const getBrowserLocalStorage = () => {
+  const storage = localStorage.getItem("chrome-local-storage");
+  return storage ? JSON.parse(storage) : {};
+};
+
+const setBrowserStorage = (data) =>
+  localStorage.setItem("chrome-local-storage", JSON.stringify(data));
+
+const getAllChromeStorage = () => {
+  if (typeof chrome?.storage?.local !== "undefined") {
+    return chrome?.storage?.local?.get(null);
+  } else {
+    return getBrowserLocalStorage();
+  }
+};
+
+const setChromeStorage = (key, value) => {
+  if (typeof chrome?.storage?.local !== "undefined") {
+    return chrome?.storage?.local?.set?.({
+      [key]: value,
+    });
+  } else {
+    const data = getBrowserLocalStorage();
+    data[key] = value;
+    setBrowserStorage(data);
+  }
+};
+
+const removeChromeStorage = (key) => {
+  if (typeof chrome?.storage?.local !== "undefined") {
+    return chrome?.storage?.local?.remove?.(key);
+  } else {
+    const data = getBrowserLocalStorage();
+
+    delete data[key];
+
+    setBrowserStorage(data);
+  }
+};
+
 /** Preload Storage */
 export async function preloadStorage() {
-  const data = await chrome?.storage?.local?.get(null);
+  const data = await getAllChromeStorage();
   for (const storageKey in data) {
     storageCache.set(storageKey, data[storageKey]);
   }
@@ -38,9 +78,7 @@ export async function setStorageValue(storageKey, newValue) {
   storageEmitter.emit(storageKey, newValue);
 
   /** Store in Chrome Local Storage */
-  await chrome?.storage?.local?.set?.({
-    [storageKey]: newValue,
-  });
+  await setChromeStorage(storageKey, newValue);
 }
 
 export async function removeStorageValue(storageKey) {
@@ -51,7 +89,7 @@ export async function removeStorageValue(storageKey) {
   storageEmitter.emit(storageKey, undefined);
 
   /** Remove Storage */
-  await chrome?.storage?.local?.remove?.(storageKey);
+  await removeChromeStorage(storageKey);
 }
 
 export async function setupChromeStorage() {

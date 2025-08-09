@@ -1,18 +1,16 @@
-'use strict'
+import * as assert from "node:assert";
+import Fastify from "fastify";
+import { test } from "node:test";
 
-const { test } = require('node:test')
-const assert = require('node:assert')
+import Support from "../../plugins/support.js";
 
-const Fastify = require('fastify')
-const Support = require('../../plugins/support')
+test("support works standalone", async (t) => {
+  const fastify = Fastify();
+  fastify.register(Support);
 
-test('support works standalone', async (t) => {
-  const fastify = Fastify()
-  fastify.register(Support)
-
-  await fastify.ready()
-  assert.equal(fastify.someSupport(), 'hugs')
-})
+  await fastify.ready();
+  assert.equal(fastify.someSupport(), "hugs");
+});
 
 // You can also use plugin with opts in fastify v2
 //

@@ -1,8 +1,8 @@
-const { Bot } = require("grammy");
+import { Bot } from "grammy";
 
-const utils = require("./utils");
-const cache = require("./cache");
-const app = require("../config/app");
+import app from "../config/app.js";
+import cache from "./cache.js";
+import utils from "./utils.js";
 
 class GroupBot extends Bot {
   /** Send Group Message */
@@ -138,4 +138,4 @@ const bot = process.env.TELEGRAM_BOT_TOKEN
   ? new GroupBot(process.env.TELEGRAM_BOT_TOKEN)
   : null;
 
-module.exports = bot;
+export default bot;

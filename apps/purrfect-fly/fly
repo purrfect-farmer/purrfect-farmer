@@ -1,22 +1,31 @@
 #!/usr/bin/env node
-require("dotenv/config");
 
-const { Command } = require("commander");
-const fs = require("fs");
-const { default: inquirer } = require("inquirer");
-const { default: chalk } = require("chalk");
-const path = require("path");
+import "dotenv/config";
+
+import chalk from "chalk";
+import fs from "node:fs";
+import inquirer from "inquirer";
+import path from "node:path";
+import { Command } from "commander";
+import { fileURLToPath } from "node:url";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
 const program = new Command();
 
 program.name("fly").description("Purrfect Fly CLI").version("1.0.0");
 
 const commandsDir = path.join(__dirname, "commands");
-fs.readdirSync(commandsDir)
-  .filter((file) => file.endsWith(".js"))
-  .forEach((file) => {
-    const commandPath = path.join(commandsDir, file);
-    const registerCommand = require(commandPath);
-    registerCommand(program, inquirer, chalk);
-  });
+const commandFiles = fs
+  .readdirSync(commandsDir)
+  .filter((file) => file.endsWith(".js"));
+
+for (const file of commandFiles) {
+  const registerCommand = await import(path.join(commandsDir, file)).then(
+    (m) => m.default
+  );
+  registerCommand(program, inquirer, chalk);
+}
 
 program.parse(process.argv);

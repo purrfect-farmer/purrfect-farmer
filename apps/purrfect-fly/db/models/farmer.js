@@ -1,7 +1,10 @@
 "use strict";
-const { Model } = require("sequelize");
-const utils = require("../../lib/utils");
-module.exports = (sequelize, DataTypes) => {
+
+import { Model } from "sequelize";
+
+import utils from "../../lib/utils.js";
+
+export default (sequelize, DataTypes) => {
   class Farmer extends Model {
     /**
      * Helper method for defining associations.
@@ -63,6 +66,13 @@ module.exports = (sequelize, DataTypes) => {
 
     get initDataUnsafe() {
       return utils.getInitDataUnsafe(this.initData);
+    }
+
+    get telegramWebApp() {
+      return {
+        initData: this.initData,
+        initDataUnsafe: this.initDataUnsafe,
+      };
     }
   }
   Farmer.init(

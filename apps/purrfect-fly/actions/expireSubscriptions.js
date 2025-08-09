@@ -1,5 +1,6 @@
-const { default: chalk } = require("chalk");
-const db = require("../db/models");
+import { default as chalk } from "chalk";
+
+import db from "../db/models/index.js";
 
 async function expireSubscriptions() {
   try {
@@ -18,4 +19,4 @@ async function expireSubscriptions() {
   }
 }
 
-module.exports = expireSubscriptions;
+export default expireSubscriptions;

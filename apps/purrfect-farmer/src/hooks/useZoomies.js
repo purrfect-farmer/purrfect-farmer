@@ -2,7 +2,6 @@ import defaultZoomiesState from "@/core/defaultZoomiesState";
 import toast from "react-hot-toast";
 import { useCallback } from "react";
 import { useLayoutEffect } from "react";
-import { useMemo } from "react";
 import { useState } from "react";
 
 import useMirroredCallback from "./useMirroredCallback";
@@ -28,48 +27,16 @@ export default function useZoomies(core) {
   /** Quick Run */
   const [quickRun, setQuickRun] = useState(false);
 
-  /** All Drops */
-  const zoomiesDrops = useMemo(
-    () => core.drops.filter((item) => item.tasks.all.length > 0),
-    [farmerMode, core.drops]
-  );
-
-  /** Quick Run Drops */
-  const quickRunDrops = useMemo(
-    () => core.drops.filter((item) => item.tasks.quick.length > 0),
-    [core.drops]
-  );
-
   /** Drops */
-  const drops = quickRun ? quickRunDrops : zoomiesDrops;
-
-  /** Tasks List */
-  const taskList = quickRun ? "quick" : "all";
+  const drops = core.drops;
 
   /** Current State */
   const [current, setCurrent] = useState(() => {
     return {
-      drop: drops.find(
-        (item) =>
-          item.id === zoomiesState.dropId &&
-          item.tasks[taskList].includes(zoomiesState.task)
-      ),
-      task: zoomiesState.task,
+      drop: drops.find((item) => item.id === zoomiesState.dropId),
       cycles: 0,
     };
   });
-
-  /** Tasks Count */
-  const tasksCount = useMemo(
-    () => current.drop?.tasks?.[taskList]?.length,
-    [taskList, current.drop?.tasks]
-  );
-
-  /** Current Task Offset */
-  const currentTaskOffset = useMemo(
-    () => current.drop?.tasks?.[taskList]?.indexOf?.(current.task) + 1,
-    [taskList, current.drop?.tasks, current.task]
-  );
 
   /** Repeat Zoomies Cycle */
   const repeatZoomiesCycle = quickRun
@@ -93,10 +60,10 @@ export default function useZoomies(core) {
       core.setActiveTab(current.drop?.id);
     }
   }, [
-    setFarmerHasStarted,
     current.drop?.id,
     core.closeFarmerTabs,
     core.setActiveTab,
+    setFarmerHasStarted,
   ]);
 
   /** Toggle Zoomies */
@@ -119,67 +86,45 @@ export default function useZoomies(core) {
       setCurrent(() => {
         return {
           drop: drops[INITIAL_POSITION],
-          task: drops[INITIAL_POSITION]?.tasks?.[taskList]?.[0],
           cycles: 0,
         };
       });
     },
-    [taskList, drops, setCurrent],
+    [drops, setCurrent],
 
     /** Mirror */
     core.mirror
   );
-
-  /** Skip to Next Drop */
-  const skipToNextDrop = useCallback(() => {
-    setCurrent((prev) => {
-      const drop = drops[(drops.indexOf(prev.drop) + 1) % drops.length];
-      const cycles = prev.cycles + (drop === drops.at(0) ? 1 : 0);
-
-      return {
-        cycles,
-        drop,
-        task: drop?.tasks?.[taskList]?.[0],
-      };
-    });
-  }, [taskList, drops, setCurrent]);
 
   /** Process task Offset */
   const processTaskOffset = useCallback(
     (direction) => {
       if (process.started) {
         setCurrent((prev) => {
-          if (
-            prev.task ===
-            prev.drop?.tasks?.[taskList]?.at(direction === 1 ? -1 : 0)
-          ) {
-            const index = (drops.indexOf(prev.drop) + direction) % drops.length;
+          const index = (drops.indexOf(prev.drop) + direction) % drops.length;
+
+          if (prev.drop === drops.at(direction === 1 ? -1 : 0)) {
             const drop = drops.at(index);
-            const task = drop?.tasks?.[taskList]?.at(direction === 1 ? 0 : -1);
             const cycles =
               prev.cycles + (direction === 1 && drop === drops.at(0) ? 1 : 0);
 
             return {
               drop,
-              task,
               cycles,
             };
           } else {
-            const tasks = prev.drop.tasks[taskList];
-            const index = (tasks.indexOf(prev.task) + direction) % tasks.length;
-
             return {
               ...prev,
-              task: tasks.at(index),
+              drop: drops.at(index),
             };
           }
         });
       }
     },
-    [taskList, process.started, drops, setCurrent]
+    [process.started, drops, setCurrent]
   );
 
-  /** Process the next task */
+  /** Process the previous task */
   const processPreviousTask = useCallback(
     () => processTaskOffset(-1),
     [processTaskOffset]
@@ -191,10 +136,16 @@ export default function useZoomies(core) {
     [processTaskOffset]
   );
 
+  /** Skip to Next Drop */
+  const skipToNextDrop = useCallback(
+    () => processNextTask(),
+    [processNextTask]
+  );
+
   /** Open Bot */
   const openBot = useCallback(
     (force = true) => {
-      if (farmerMode === "web" || current.drop?.usesPort) {
+      if (farmerMode === "web") {
         core.setActiveTab(current.drop?.id);
         core.closeOtherBots();
         core.openTelegramBot(current.drop.telegramLink, {
@@ -211,7 +162,6 @@ export default function useZoomies(core) {
       farmerMode,
       current.drop?.id,
       current.drop?.telegramLink,
-      current.drop?.usesPort,
       core.closeOtherBots,
       core.openTelegramBot,
     ]
@@ -229,8 +179,8 @@ export default function useZoomies(core) {
       }));
     }
   }, [
-    process.started,
     repeatZoomiesCycle,
+    process.started,
     core.resetTabs,
     setCurrent,
     setQuickRun,
@@ -281,16 +231,14 @@ export default function useZoomies(core) {
 
   /** Handle Started */
   useLayoutEffect(() => {
-    if (!canProcessZoomies) return;
-
-    if (farmerHasStarted) {
+    if (canProcessZoomies && farmerHasStarted) {
       if (current.drop) {
         /** Close Other Bots */
         if (current.drop.closeBotInZoomies !== false) {
           core.closeOtherBots();
         }
 
-        /** Focus */
+        /** Focus on Farmer Tab */
         core.setActiveTab(current.drop.id);
       }
     }
@@ -307,29 +255,22 @@ export default function useZoomies(core) {
   useLayoutEffect(() => {
     /** Update current drop */
     setCurrent((prev) => {
-      if (
-        drops.some(
-          (item) =>
-            item.id === prev?.drop?.id &&
-            item.tasks[taskList].includes(prev?.task)
-        )
-      ) {
+      if (drops.some((item) => item.id === prev?.drop?.id)) {
         return prev;
       } else {
         return {
           ...prev,
           drop: drops[INITIAL_POSITION],
-          task: drops[INITIAL_POSITION]?.tasks?.[taskList]?.[0],
         };
       }
     });
-  }, [taskList, drops, setCurrent]);
+  }, [drops, setCurrent]);
 
   /** Stop When There's no Drop */
   useLayoutEffect(() => {
     if (process.started && !current.drop) {
       process.stop();
-      toast.error("No Farmer enabled in the Zoomies");
+      toast.error("No Farmer enabled in the Zoomies!");
     }
   }, [process.started, process.stop, current.drop]);
 
@@ -337,9 +278,8 @@ export default function useZoomies(core) {
   useLayoutEffect(() => {
     storeZoomiesState({
       dropId: current?.drop?.id,
-      task: current?.task,
     });
-  }, [storeZoomiesState, current?.drop?.id, current?.task]);
+  }, [storeZoomiesState, current?.drop?.id]);
 
   return useValuesMemo({
     drops,
@@ -348,8 +288,6 @@ export default function useZoomies(core) {
     current,
     toggle,
     refresh,
-    tasksCount,
-    currentTaskOffset,
     setCurrent,
     skipToNextDrop,
     setFarmerHasStarted,

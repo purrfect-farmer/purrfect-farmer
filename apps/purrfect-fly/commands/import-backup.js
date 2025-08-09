@@ -1,18 +1,21 @@
+import fs from "node:fs";
+import path from "node:path";
+import { getCurrentPath } from "../lib/path.js";
+
+const { __dirname, __filename } = getCurrentPath(import.meta.url);
+
 /**
  * @param {import("commander").Command} program
  * @param {typeof import("inquirer").default} inquirer
  * @param {typeof import("chalk").default} chalk
  */
-module.exports = (program, inquirer, chalk) => {
+export default (program, inquirer, chalk) => {
   program
     .command("import-backup <file>")
     .description("Import Backup")
     .usage("/path/to/fly-backup.json")
     .action(async (file) => {
-      const fs = require("fs");
-      const path = require("path");
-      const db = require("../db/models");
-
+      const db = await import("../db/models/index.js").then((m) => m.default);
       const backup = JSON.parse(fs.readFileSync(file, "utf-8"));
 
       await db.User.bulkCreate(backup.users, { ignoreDuplicates: true });

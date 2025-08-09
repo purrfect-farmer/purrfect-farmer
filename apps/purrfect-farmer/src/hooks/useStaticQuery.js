@@ -1,17 +1,20 @@
-import { useQuery } from "@tanstack/react-query";
+import useAppQuery from "./useAppQuery";
 
 /**
  * useStaticQuery
  * @param {import("@tanstack/react-query").UseQueryOptions} options
- * @returns
+ * @param {import("@tanstack/react-query").QueryClient | null} client
  */
-export default function useStaticQuery(options) {
-  return useQuery({
-    refetchOnMount: false,
-    refetchOnReconnect: false,
-    refetchOnWindowFocus: false,
-    refetchInterval: false,
-    retry: false,
-    ...options,
-  });
+export default function useStaticQuery(options, client) {
+  return useAppQuery(
+    {
+      refetchOnMount: false,
+      refetchOnReconnect: false,
+      refetchOnWindowFocus: false,
+      refetchInterval: false,
+      retry: false,
+      ...options,
+    },
+    client
+  );
 }

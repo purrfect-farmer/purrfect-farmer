@@ -1,8 +1,8 @@
-const app = require("../config/app");
-const db = require("../db/models");
-const utils = require("../lib/utils");
-const bot = require("../lib/bot");
-const GramClient = require("../lib/GramClient");
+import GramClient from "../lib/GramClient.js";
+import app from "../config/app.js";
+import bot from "../lib/bot.js";
+import db from "../db/models/index.js";
+import utils from "../lib/utils.js";
 
 /** Update Accounts */
 async function updateAccounts() {
@@ -62,4 +62,4 @@ async function updateAccounts() {
   }
 }
 
-module.exports = updateAccounts;
+export default updateAccounts;

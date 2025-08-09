@@ -1,28 +1,27 @@
-const fs = require("fs");
-const path = require("path");
+import fs from "node:fs";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
 
+import createRunner from "./Runner.js";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 const farmers = {};
-const dirs = [
-  path.join(__dirname, "drops"),
-  path.join(__dirname, "../pro/farmers/drops"),
-];
 
-for (const dir of dirs) {
-  if (!fs.existsSync(dir)) continue;
+const farmersDir = path.join(
+  __dirname,
+  "../node_modules/@purrfect/shared/farmers"
+);
+const farmerClasses = fs
+  .readdirSync(farmersDir)
+  .filter((file) => file.endsWith(".js"));
 
-  fs.readdirSync(dir)
-    .filter((file) => file.endsWith(".js"))
-    .forEach((file) => {
-      const farmerPath = path.join(dir, file);
-      try {
-        const FarmerClass = require(farmerPath);
-        if (FarmerClass?.id) {
-          farmers[FarmerClass.id] = FarmerClass;
-        }
-      } catch (err) {
-        console.warn(`Failed to load: ${farmerPath}`, err);
-      }
-    });
+for (const file of farmerClasses) {
+  const FarmerClass = await import(path.join(farmersDir, file)).then(
+    (m) => m.default
+  );
+
+  farmers[FarmerClass.id] = createRunner(FarmerClass);
 }
 
-module.exports = farmers;
+export default farmers;

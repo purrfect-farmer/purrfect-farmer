@@ -1,29 +1,25 @@
-import FarmerNotification from "@/components/FarmerNotification";
+import BrowserLogger from "@purrfect/shared/lib/BrowserLogger";
 import axios from "axios";
-import toast from "react-hot-toast";
-import { createElement, useCallback } from "react";
 import { createQueryClient } from "@/lib/createQueryClient";
-import {
-  delay,
-  getChromeLocalStorage,
-  removeChromeLocalStorage,
-  requestIsUnauthorized,
-  setChromeLocalStorage,
-} from "@/lib/utils";
-import { useIsMutating } from "@tanstack/react-query";
+import { useCallback } from "react";
 import { useLayoutEffect } from "react";
 import { useMemo } from "react";
-import { useRef } from "react";
-import { useState } from "react";
 
 import useAppContext from "./useAppContext";
-import useAppQuery from "./useAppQuery";
-import useChromeStorageKey from "./useChromeStorageKey";
-import useCloudSyncMutation from "./useCloudSyncMutation";
+import useDelayInterceptor from "./useDelayInterceptor";
+import useDropFarmerAuth from "./useDropFarmerAuth";
+import useDropFarmerCloudSync from "./useDropFarmerCloudSync";
+import useDropFarmerInstance from "./useDropFarmerInstance";
+import useDropFarmerMeta from "./useDropFarmerMeta";
+import useDropFarmerQueryHelper from "./useDropFarmerQueryHelper";
+import useDropFarmerState from "./useDropFarmerState";
+import useDropFarmerToast from "./useDropFarmerToast";
+import useDropFarmerZoomies from "./useDropFarmerZoomies";
 import useFarmerDataQuery from "./useFarmerDataQuery";
 import useRefCallback from "./useRefCallback";
 import useTabContext from "./useTabContext";
 import useTelegramWebApp from "./useTelegramWebApp";
+import useUnauthorizedInterceptor from "./useUnauthorizedInterceptor";
 import useValuesMemo from "./useValuesMemo";
 
 export default function useDropFarmer() {
@@ -32,259 +28,62 @@ export default function useDropFarmer() {
   const {
     id,
     host,
-    apiOptions,
-    apiDelay = 200,
-    title,
     icon,
-    usesPort = false,
-    syncToCloud = false,
-    startManually = false,
+    title,
+    apiDelay = 200,
+    apiOptions,
+    telegramLink,
     cacheAuth = true,
     cacheTelegramWebApp = true,
-    telegramLink,
-    configureApi,
-    configureAuthHeaders,
-    fetchAuth,
-    fetchMeta,
+    syncToCloud = true,
     authQueryOptions,
     metaQueryOptions,
+    FarmerClass,
   } = farmer;
 
   /** Zoomies */
+  const { zoomies, settings, account } = app;
+
   const {
-    zoomies,
-    farmerMode,
-    setActiveTab,
-    settings,
-    account,
-    dispatchAndSetActiveTab,
-  } = app;
-
-  /** Should Sync To Cloud */
-  const shouldSyncToCloud = settings.enableCloud && syncToCloud;
-
-  /** Has Configured Api? */
-  const [hasConfiguredApi, setHasConfiguredApi] = useState(
-    typeof configureApi === "undefined"
-  );
-
-  /** Has Configured Auth Headers? */
-  const [hasConfiguredAuthHeaders, setHasConfiguredAuthHeaders] = useState(
-    typeof configureAuthHeaders === "undefined"
-  );
-
-  /** Has Started Manually */
-  const [hasStartedManually, setHasStartedManually] = useState(false);
-
-  /** Init Reset Count */
-  const [initResetCount, setInitResetCount] = useState(0);
-
-  /** TelegramWebApp */
-  const { port, telegramWebApp, resetTelegramWebApp } = useTelegramWebApp({
-    id,
-    host,
-    usesPort,
-    telegramLink,
-    cacheTelegramWebApp,
-  });
-
-  /** Api Queue Ref */
-  const apiQueueRef = useRef({
-    isRequestInProgress: false,
-    requestQueue: [],
-  });
-
-  /** Axios Instance */
-  const api = useMemo(() => axios.create(apiOptions), [apiOptions]);
-
-  /** Is It Zooming? */
-  const isZooming = zoomies.enabled && zoomies.current.drop?.id === id;
+    resetStates,
+    initResetCount,
+    hasConfiguredAuthHeaders,
+    setInitResetCount,
+    setHasConfiguredAuthHeaders,
+  } = useDropFarmerState();
 
   /** QueryClient */
   const queryClient = useMemo(() => createQueryClient(), []);
 
-  /** Telegram Hash */
-  const telegramHash = telegramWebApp?.initDataUnsafe?.hash;
+  /** Logger Instance */
+  const logger = useMemo(() => new BrowserLogger(), []);
 
-  /** Telegram User */
-  const telegramUser = telegramWebApp?.initDataUnsafe?.user;
+  /** Axios Instance */
+  const api = useMemo(() => axios.create(apiOptions), [apiOptions]);
 
-  /** Cloud Sync Mutation */
-  const cloudSyncMutation = useCloudSyncMutation(id, queryClient);
+  /** Set Whisker Origin */
+  useLayoutEffect(() => {
+    if (import.meta.env.VITE_WHISKER) {
+      api.defaults.headers.common["x-whisker-origin"] = `https://${host}`;
+    }
+  }, [api, host]);
 
-  /** IsMutating */
-  const isMutating = useIsMutating({ mutationKey: [id] }, queryClient);
+  /** API Delay */
+  useDelayInterceptor(api, apiDelay);
 
-  /** Has Initialized? */
-  const hasInitialized = hasConfiguredApi && Boolean(telegramWebApp);
-
-  /** Auth Chrome Storage Key */
-  const authChromeStorageKey = useChromeStorageKey(`farmer-auth:${id}`);
-
-  /** Auth Query Key */
-  const authQueryKey = useMemo(
-    () => [id, "auth", telegramHash],
-    [id, telegramHash]
-  );
-
-  /** Auth QueryFn */
-  const authQueryFn = useCallback(
-    () =>
-      cacheAuth
-        ? getChromeLocalStorage(authChromeStorageKey, null).then(
-            (result) => result || fetchAuth(api, telegramWebApp)
-          )
-        : fetchAuth(api, telegramWebApp),
-    [
-      /** Deps */
-      api,
-      telegramWebApp,
-      fetchAuth,
-      authChromeStorageKey,
-      cacheAuth,
-    ]
-  );
-
-  /** Auth Query */
-  const authQuery = useAppQuery(
-    {
-      refetchOnMount: false,
-      refetchOnReconnect: false,
-      refetchOnWindowFocus: false,
-      refetchInterval: false,
-      retry: false,
-      ...authQueryOptions,
-      enabled: typeof fetchAuth !== "undefined" && hasInitialized,
-      queryKey: authQueryKey,
-      queryFn: authQueryFn,
-    },
-    queryClient
-  );
-
-  /** Auth */
-  const hasPreparedAuth =
-    typeof fetchAuth !== "undefined"
-      ? authQuery.isSuccess && hasConfiguredAuthHeaders
-      : hasInitialized;
-
-  /** Meta Query Key */
-  const metaQueryKey = useMemo(
-    () => [id, "meta", telegramHash],
-    [id, telegramHash]
-  );
-
-  /** Meta QueryFn */
-  const metaQueryFn = useCallback(
-    () => fetchMeta(api, telegramWebApp, authQuery.data),
-    [api, telegramWebApp, authQuery.data, fetchMeta]
-  );
-
-  /** Meta Query */
-  const metaQuery = useAppQuery(
-    {
-      refetchOnMount: false,
-      refetchOnReconnect: false,
-      refetchOnWindowFocus: false,
-      refetchInterval: false,
-      retry: false,
-      ...metaQueryOptions,
-      enabled: typeof fetchMeta !== "undefined" && hasPreparedAuth,
-      queryKey: metaQueryKey,
-      queryFn: metaQueryFn,
-    },
-    queryClient
-  );
-
-  /** Data Query */
-  const dataQuery = useFarmerDataQuery();
-
-  /** Meta */
-  const hasPreparedMeta =
-    (typeof fetchMeta !== "undefined" ? metaQuery.isSuccess : true) &&
-    hasPreparedAuth;
-
-  /** Started */
-  const started =
-    (startManually ? hasStartedManually : true) && hasPreparedMeta;
-
-  /** Status */
-  const status = useMemo(
-    () => (!telegramWebApp ? "pending-webapp" : "pending-init"),
-    [telegramWebApp]
-  );
-
-  /** Mark as Started */
-  const markAsStarted = useCallback(
-    (status = true) => setHasStartedManually(status),
-    [setHasStartedManually]
-  );
-
-  /** Update Query Data */
-  const updateQueryData = useCallback(
-    (...args) => queryClient.setQueryData(...args),
-    [queryClient.setQueryData]
-  );
-
-  /** Update Auth Query Data */
-  const updateAuthQueryData = useCallback(
-    (...args) => authQuery.updateQueryData(...args),
-    [authQuery.updateQueryData]
-  );
-
-  /** Update Meta Query Data */
-  const updateMetaQueryData = useCallback(
-    (...args) => metaQuery.updateQueryData(...args),
-    [metaQuery.updateQueryData]
-  );
-
-  /** Remove Queries */
-  const removeQueries = useCallback(() => {
-    queryClient.removeQueries({ queryKey: [id] });
-  }, [id, queryClient.removeQueries]);
-
-  /** Reset Queries */
-  const resetQueries = useCallback(() => {
-    queryClient.resetQueries({ queryKey: [id] });
-  }, [id, queryClient.resetQueries]);
-
-  /** Reset Chrome Local Storage */
-  const resetChromeLocalStorage = useCallback(
-    () => removeChromeLocalStorage(authChromeStorageKey),
-    [authChromeStorageKey]
-  );
-
-  /** Reset Init */
-  const resetInit = useCallback(async () => {
-    await resetChromeLocalStorage();
-    await resetQueries();
-    await setHasConfiguredAuthHeaders(false);
-    await setHasStartedManually(false);
-    await setInitResetCount((prev) => prev + 1);
-  }, [
-    resetQueries,
-    resetChromeLocalStorage,
-    setHasConfiguredAuthHeaders,
-    setHasStartedManually,
-    setInitResetCount,
-  ]);
-
-  /** Reset Farmer  */
-  const reset = useCallback(async () => {
-    await resetTelegramWebApp();
-    await resetInit();
-  }, [resetTelegramWebApp, resetInit]);
-
-  /** Clear API Queue */
-  const clearApiQueue = useCallback(() => {
-    apiQueueRef.current.requestQueue.forEach((item) =>
-      item.reject(new Error("Queue Cleared!"))
-    );
-    apiQueueRef.current.requestQueue = [];
-    apiQueueRef.current.isRequestInProgress = false;
-  }, []);
-
-  /**  Next task callback */
-  const processNextTask = useRefCallback(zoomies.processNextTask);
+  /** TelegramWebApp */
+  const {
+    port,
+    telegramWebApp,
+    telegramHash,
+    telegramUser,
+    resetTelegramWebApp,
+  } = useTelegramWebApp({
+    id,
+    host,
+    telegramLink,
+    cacheTelegramWebApp,
+  });
 
   /** Join Telegram Link */
   const joinTelegramLink = useRefCallback(
@@ -297,236 +96,141 @@ export default function useDropFarmer() {
         }
 
         /** Restore Tab */
-        if (farmerMode === "web") {
-          setActiveTab(id);
+        if (app.farmerMode === "web") {
+          app.setActiveTab(id);
         }
       },
-      [id, farmerMode, app.joinTelegramLink, setActiveTab]
+      [id, app.farmerMode, app.joinTelegramLink, app.setActiveTab]
     )
   );
 
-  /** Save Auth Data in Storage */
-  useLayoutEffect(() => {
-    if (cacheAuth && authQuery.isSuccess) {
-      setChromeLocalStorage(authChromeStorageKey, authQuery.data);
-    }
-  }, [cacheAuth, authChromeStorageKey, authQuery.isSuccess, authQuery.data]);
-
-  /** Set Whisker Origin */
-  useLayoutEffect(() => {
-    if (import.meta.env.VITE_WHISKER) {
-      api.defaults.headers.common["x-whisker-origin"] = `https://${host}`;
-    }
-  }, [api, host]);
-
-  /** Enforce only one request */
-  useLayoutEffect(() => {
-    const processNextRequest = () => {
-      if (apiQueueRef.current.requestQueue.length === 0) {
-        apiQueueRef.current.isRequestInProgress = false;
-        return;
-      }
-
-      /** Mark Request In Progress */
-      apiQueueRef.current.isRequestInProgress = true;
-
-      const { config, resolve } = apiQueueRef.current.requestQueue.shift();
-
-      delay(apiDelay).then(() => {
-        resolve(config);
-      });
-    };
-
-    const requestInterceptor = api.interceptors.request.use(
-      (config) => {
-        if (apiQueueRef.current.isRequestInProgress) {
-          return new Promise((resolve, reject) => {
-            apiQueueRef.current.requestQueue.push({ config, resolve, reject });
-          });
-        }
-
-        /** Mark Request In Progress */
-        apiQueueRef.current.isRequestInProgress = true;
-
-        return delay(apiDelay).then(() => Promise.resolve(config));
-      },
-      (error) => {
-        return Promise.reject(error);
-      }
-    );
-
-    const responseInterceptor = api.interceptors.response.use(
-      (response) => {
-        processNextRequest();
-        return response;
-      },
-      (error) => {
-        processNextRequest();
-        return Promise.reject(error);
-      }
-    );
-
-    return () => {
-      api.interceptors.request.eject(requestInterceptor);
-      api.interceptors.response.eject(responseInterceptor);
-    };
-  }, [api, apiDelay]);
-
-  /** Response Interceptor */
-  useLayoutEffect(() => {
-    const interceptor = api.interceptors.response.use(
-      (response) => {
-        return Promise.resolve(response);
-      },
-      (error) => {
-        if (requestIsUnauthorized(error)) {
-          toast.dismiss();
-          toast.error("Unauthenticated - Please reload the Bot or Farmer");
-          clearApiQueue();
-          reset();
-        }
-        return Promise.reject(error);
-      }
-    );
-
-    return () => {
-      api.interceptors.response.eject(interceptor);
-    };
-  }, [api, clearApiQueue, reset]);
-
-  /** Configure API  */
-  useLayoutEffect(() => {
-    if (configureApi && telegramWebApp) {
-      const cleanup = configureApi(api, telegramWebApp);
-      setHasConfiguredApi(true);
-
-      return cleanup;
-    }
-  }, [api, configureApi, telegramWebApp, setHasConfiguredApi]);
-
-  /** Handle Auth Data  */
-  useLayoutEffect(() => {
-    if (authQuery.isSuccess && configureAuthHeaders) {
-      const cleanup = configureAuthHeaders(api, telegramWebApp, authQuery.data);
-      setHasConfiguredAuthHeaders(true);
-
-      return cleanup;
-    }
-  }, [
+  /** Instance */
+  const instance = useDropFarmerInstance({
+    FarmerClass,
     api,
+    logger,
     telegramWebApp,
-    authQuery.isSuccess,
-    authQuery.data,
-    configureAuthHeaders,
+    joinTelegramLink,
+  });
+
+  /** Data Query */
+  const dataQuery = useFarmerDataQuery();
+
+  /** Auth Query */
+  const { authQuery, authQueryKey, resetAuthCache } = useDropFarmerAuth({
+    id,
+    instance,
+    cacheAuth,
+    queryClient,
+    telegramHash,
+    authQueryOptions,
     setHasConfiguredAuthHeaders,
-  ]);
+  });
 
-  /** Create Notification */
-  useLayoutEffect(() => {
-    if (started) {
-      toast.success(
-        (t) =>
-          createElement(FarmerNotification, {
-            t,
-            id,
-            title,
-            onClick: () => dispatchAndSetActiveTab(id),
-          }),
-        {
-          icon: createElement("img", {
-            src: icon,
-            className: "w-6 h-6 rounded-full",
-          }),
-          id: `${id}-farmer`,
-          duration: 2000,
-        }
-      );
-    }
+  /** Meta Query */
+  const { metaQuery, metaQueryKey } = useDropFarmerMeta({
+    id,
+    instance,
+    queryClient,
+    telegramHash,
+    metaQueryOptions,
+    authData: authQuery.data,
+    enabled: hasConfiguredAuthHeaders,
+  });
 
-    return () => {
-      toast.dismiss(`${id}-farmer`);
-    };
-  }, [id, started]);
+  /** Started */
+  const started = metaQuery.isSuccess;
 
-  /**  Zoomies */
-  /** Set Started */
-  useLayoutEffect(() => {
-    if (isZooming) {
-      zoomies.setFarmerHasStarted(started);
-    }
-  }, [started, isZooming, zoomies.setFarmerHasStarted]);
+  /** Status */
+  const status = telegramWebApp === null ? "pending-webapp" : "pending-init";
 
-  /** Process Next Drop After 3 Init Reset */
-  useLayoutEffect(() => {
-    if (isZooming && initResetCount >= 3) {
-      zoomies.skipToNextDrop();
-    }
-  }, [isZooming, initResetCount, zoomies.skipToNextDrop]);
+  /** Sync Enabled */
+  const syncEnabled = settings.enableCloud && syncToCloud;
 
-  /** Process Next Drop if Unable to Start within 30sec */
-  useLayoutEffect(() => {
-    if (isZooming && telegramWebApp && !started) {
-      /** Set Timeout */
-      const timeout = setTimeout(zoomies.skipToNextDrop, 30_000);
+  /** Should Sync To Cloud */
+  const shouldSyncToCloud = hasConfiguredAuthHeaders && syncEnabled;
 
-      return () => {
-        clearTimeout(timeout);
-      };
-    }
-  }, [started, telegramWebApp, isZooming, zoomies.skipToNextDrop]);
+  /** Zoomies */
+  const { isZooming, processNextTask } = useDropFarmerZoomies({
+    id,
+    zoomies,
+    started,
+    telegramWebApp,
+    initResetCount,
+  });
+
+  const {
+    updateQueryData,
+    updateAuthQueryData,
+    updateMetaQueryData,
+    removeQueries,
+    resetQueries,
+  } = useDropFarmerQueryHelper({
+    id,
+    queryClient,
+    authQuery,
+    metaQuery,
+  });
+
+  /** Reset Init */
+  const resetInit = useCallback(async () => {
+    await resetAuthCache();
+    await resetQueries();
+    await resetStates();
+    await setInitResetCount((prev) => prev + 1);
+  }, [resetQueries, resetAuthCache, resetStates, setInitResetCount]);
+
+  /** Reset Farmer  */
+  const reset = useCallback(async () => {
+    await resetTelegramWebApp();
+    await resetInit();
+  }, [resetTelegramWebApp, resetInit]);
 
   /** Sync to Cloud */
-  useLayoutEffect(() => {
-    if (shouldSyncToCloud && hasPreparedAuth) {
-      cloudSyncMutation
-        .mutateAsync({
-          title: account.title,
-          farmer: id,
-          userId: telegramWebApp.initDataUnsafe.user.id,
-          initData: telegramWebApp.initData,
-          headers: Object.fromEntries(
-            Object.entries(api.defaults.headers.common).filter(
-              ([k]) => !["x-whisker-origin"].includes(k)
-            )
-          ),
-        })
-        .then(() => {
-          toast.success(`${title} - Synced to Cloud`);
-        });
-    }
-  }, [
+  useDropFarmerCloudSync({
     id,
-    api,
     title,
-    account.title,
-    hasPreparedAuth,
+    account,
+    instance,
     shouldSyncToCloud,
-    telegramWebApp,
-  ]);
+  });
+
+  /** Create Notification */
+  useDropFarmerToast({
+    id,
+    title,
+    icon,
+    started,
+    onClick: useCallback(() => {
+      return app.dispatchAndSetActiveTab(id);
+    }, [id, app.dispatchAndSetActiveTab]),
+  });
+
+  /** Response Interceptor */
+  useUnauthorizedInterceptor(api, reset);
 
   /** Cleanup */
-  useLayoutEffect(() => {
-    return () => queryClient.cancelQueries();
-  }, [queryClient]);
+  useLayoutEffect(() => () => queryClient.cancelQueries(), [queryClient]);
 
   return useValuesMemo({
     id,
-    host,
-    status,
     port,
-    title,
     icon,
+    title,
+    status,
     api,
-    auth: hasPreparedAuth,
+    instance,
+    logger,
+    queryClient,
+    telegramWebApp,
+    telegramUser,
+    telegramHash,
+    auth: hasConfiguredAuthHeaders,
     authQuery,
     authQueryKey,
     metaQuery,
     metaQueryKey,
     dataQuery,
-    queryClient,
-    telegramWebApp,
-    telegramUser,
-    isMutating,
     zoomies,
     isZooming,
     started,
@@ -540,7 +244,5 @@ export default function useDropFarmer() {
     updateMetaQueryData,
     processNextTask,
     joinTelegramLink,
-    markAsStarted,
-    setHasStartedManually,
   });
 }

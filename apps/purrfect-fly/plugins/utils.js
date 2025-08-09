@@ -1,10 +1,10 @@
-"use strict";
+import fp from "fastify-plugin";
 
-const fp = require("fastify-plugin");
+import utils from "../lib/utils.js";
 
 // the use of fastify-plugin is required to be able
 // to export the decorators to the outer scope
 
-module.exports = fp(async function (fastify, opts) {
-  fastify.decorate("utils", require("../lib/utils"));
+export default fp(async function (fastify, opts) {
+  fastify.decorate("utils", utils);
 });

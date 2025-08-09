@@ -1,9 +1,9 @@
-import axios from "axios";
+export * from "@purrfect/shared/utils/index.js";
+
 import defaultSharedSettings from "@/core/defaultSharedSettings";
-import userAgents from "@/core/userAgents";
+import userAgents from "@purrfect/shared/resources/userAgents.js";
 import { clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
-import { v4 as uuidv4 } from "uuid";
 
 export function isExtension() {
   return window.location.protocol === "chrome-extension:";
@@ -11,10 +11,6 @@ export function isExtension() {
 
 export function cn(...inputs) {
   return twMerge(clsx(inputs));
-}
-
-export function uuid() {
-  return uuidv4();
 }
 
 export function createListener(callback) {
@@ -47,35 +43,6 @@ export function customLogger(...args) {
     }
   });
   console.log("\n");
-}
-
-export function delay(length, precised = false) {
-  return new Promise((res) => {
-    setTimeout(
-      () => res(),
-      precised
-        ? length
-        : (length * (Math.floor(Math.random() * 50) + 100)) / 100
-    );
-  });
-}
-
-export function randomPercent(value, min = 0, max = 100) {
-  return Math.floor(
-    (value * (min + Math.floor(Math.random() * (max - min)))) / 100
-  );
-}
-
-export function extraGamePoints(points) {
-  return points + randomPercent(points, 0, 20);
-}
-
-export function delayForSeconds(length, precised = false) {
-  return delay(length * 1000, precised);
-}
-
-export function delayForMinutes(length, precised = false) {
-  return delay(length * 60 * 1000, precised);
 }
 
 /** Remove Account Storage */
@@ -246,26 +213,6 @@ export function postPortMessage(port, data) {
   });
 }
 
-/** Check if it's a Telegram Link */
-export function isTelegramLink(link) {
-  return link && /^(http|https):\/\/t\.me\/.+/i.test(link);
-}
-
-/** Check if it's a bot URL */
-export function isBotURL(url) {
-  return url && /_*bot|startapp=|start=/i.test(url);
-}
-
-/** Can Join Telegram Link */
-export function canJoinTelegramLink(link) {
-  return link && /^(http|https):\/\/t\.me\/[^\/\?]+$/i.test(link);
-}
-
-/** Fetch Content */
-export function fetchContent(url, ...options) {
-  return axios.get(url, ...options).then((res) => res.data);
-}
-
 /** Find Drop Main Script */
 export async function findDropMainScript(url, name = "index") {
   const htmlResponse = await fetchContent(url);
@@ -386,55 +333,6 @@ export function taskWordIsValid(word, list) {
   return list.every((item) => word.toUpperCase().includes(item) === false);
 }
 
-/** Parse Telegram Link */
-export function parseTelegramLink(url) {
-  const parsedUrl = new URL(url);
-  const [entity, shortName = ""] = parsedUrl.pathname
-    .replace(/^\//, "")
-    .split("/");
-
-  return {
-    url,
-    entity,
-    shortName,
-    startParam:
-      parsedUrl.searchParams.get("start") ||
-      parsedUrl.searchParams.get("startapp") ||
-      "",
-  };
-}
-
-/** Extract Telegram WebAppData */
-export function extractTgWebAppData(url) {
-  const parsedUrl = new URL(url);
-  const params = new URLSearchParams(parsedUrl.hash.replace(/^#/, ""));
-  const initData = params.get("tgWebAppData");
-  const initDataUnsafe = extractInitDataUnsafe(initData);
-
-  return {
-    platform: params.get("tgWebAppPlatform"),
-    version: params.get("tgWebAppVersion"),
-    initData,
-    initDataUnsafe,
-  };
-}
-
-/** Extract InitDataUnsafe */
-export function extractInitDataUnsafe(initData) {
-  const params = new URLSearchParams(initData);
-  const data = {};
-
-  for (const [key, value] of params.entries()) {
-    try {
-      data[key] = JSON.parse(value);
-    } catch {
-      data[key] = value;
-    }
-  }
-
-  return data;
-}
-
 export function matchesAccountSearch(search, account) {
   return (
     account.user?.["username"]
@@ -445,24 +343,6 @@ export function matchesAccountSearch(search, account) {
     account.title?.toLowerCase()?.includes(search.toLowerCase()) ||
     account.id.toString().includes(search)
   );
-}
-
-/** With Value */
-export function withValue(value, callback) {
-  return callback ? callback(value) : (callback) => callback(value);
-}
-
-/** Tap Value */
-export function tapValue(value, callback) {
-  if (callback) {
-    callback(value);
-  }
-  return callback
-    ? value
-    : (callback) => {
-        callback(value);
-        return value;
-      };
 }
 
 /**

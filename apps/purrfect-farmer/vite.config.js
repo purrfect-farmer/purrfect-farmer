@@ -24,12 +24,86 @@ export default defineConfig(async ({ mode }) => {
   /** Env */
   const env = loadEnv(mode, process.cwd());
 
+  const isIndexEntry = process.env.VITE_ENTRY === "index";
+  const isPWA = Boolean(process.env.VITE_PWA);
+  const isBridge = Boolean(process.env.VITE_BRIDGE);
+  const isStylesEntry = process.env.VITE_ENTRY?.endsWith("styles");
+
+  const outDir = process.env.VITE_WHISKER
+    ? "dist-whisker"
+    : process.env.VITE_BRIDGE
+    ? "dist-bridge"
+    : process.env.VITE_EXTENSION
+    ? "dist-extension"
+    : "dist";
+
+  let input, output;
+
+  if (isIndexEntry) {
+    /** Index HTML */
+    const indexHtml = isBridge
+      ? path.resolve(__dirname, "./pwa-iframe.html")
+      : path.resolve(__dirname, "./index.html");
+
+    /** Browser Sandbox HTML */
+    const browserSandboxHtml = path.resolve(
+      __dirname,
+      "./browser-sandbox.html"
+    );
+
+    /** Input */
+    input = [indexHtml, browserSandboxHtml];
+  } else if (isStylesEntry) {
+    input = path.resolve(
+      __dirname,
+      `./src/extension/${process.env.VITE_ENTRY}.css`
+    );
+  } else {
+    input = path.resolve(
+      __dirname,
+      `./src/extension/${process.env.VITE_ENTRY}.js`
+    );
+  }
+
+  if (isIndexEntry) {
+    output = {
+      manualChunks(id) {
+        if (id.includes("node_modules")) {
+          const lib = ["react", "node-forge", "crypto-js", "axios"].find(
+            (item) => id.includes(item)
+          );
+
+          if (lib) {
+            return `vendor-${lib}`;
+          }
+        }
+      },
+    };
+  } else if (isStylesEntry) {
+    output = {
+      assetFileNames: (assetInfo) => {
+        if (assetInfo.name.endsWith(".css")) {
+          return "extension/[name][extname]";
+        }
+
+        return "assets/[name]-[hash][extname]";
+      },
+    };
+  } else {
+    output = {
+      entryFileNames: "extension/[name].js",
+      format: "iife",
+    };
+  }
+
   return {
     base: Boolean(process.env.VITE_PWA) ? process.env.BASE_URL : "/",
     define: {
-      __APP_PACKAGE_NAME__: `"${pkg.name}"`,
-      __APP_PACKAGE_VERSION__: `"${pkg.version}"`,
-      __ENCRYPTION_KEY__: `"${new Date().toISOString().split("T")[0]}"`,
+      __APP_PACKAGE_NAME__: JSON.stringify(pkg.name),
+      __APP_PACKAGE_VERSION__: JSON.stringify(pkg.version),
+      __ENCRYPTION_KEY__: JSON.stringify(
+        new Date().toISOString().split("T")[0]
+      ),
     },
     resolve: {
       alias: {
@@ -38,75 +112,11 @@ export default defineConfig(async ({ mode }) => {
       },
     },
     build: {
-      outDir: process.env.VITE_WHISKER
-        ? "dist-whisker"
-        : process.env.VITE_BRIDGE
-        ? "dist-bridge"
-        : process.env.VITE_EXTENSION
-        ? "dist-extension"
-        : "dist",
-      emptyOutDir: process.env.VITE_ENTRY === "index",
+      outDir,
+      emptyOutDir: isIndexEntry,
       rollupOptions: {
-        input:
-          process.env.VITE_ENTRY === "index"
-            ? Object.fromEntries(
-                [
-                  /** Entries */
-                  "index",
-                  "browser-sandbox",
-                ].map((item) => [
-                  item,
-                  path.resolve(
-                    __dirname,
-                    `./${
-                      item === "index" && process.env.VITE_BRIDGE
-                        ? "pwa-iframe"
-                        : item
-                    }.html`
-                  ),
-                ])
-              )
-            : process.env.VITE_ENTRY?.endsWith("styles")
-            ? path.resolve(
-                __dirname,
-                `./src/extension/${process.env.VITE_ENTRY}.css`
-              )
-            : path.resolve(
-                __dirname,
-                `./src/extension/${process.env.VITE_ENTRY}.js`
-              ),
-        output:
-          process.env.VITE_ENTRY === "index"
-            ? {
-                manualChunks(id) {
-                  if (id.includes("node_modules")) {
-                    const lib = [
-                      "react",
-                      "node-forge",
-                      "crypto-js",
-                      "axios",
-                    ].find((item) => id.includes(item));
-
-                    if (lib) {
-                      return `vendor-${lib}`;
-                    }
-                  }
-                },
-              }
-            : process.env.VITE_ENTRY?.endsWith("styles")
-            ? {
-                assetFileNames: (assetInfo) => {
-                  if (assetInfo.name.endsWith(".css")) {
-                    return "extension/[name][extname]";
-                  }
-
-                  return "assets/[name]-[hash][extname]";
-                },
-              }
-            : {
-                entryFileNames: "extension/[name].js",
-                format: "iife",
-              },
+        input,
+        output,
       },
     },
     plugins: [
@@ -150,7 +160,7 @@ export default defineConfig(async ({ mode }) => {
             },
           ],
         },
-        disable: typeof process.env.VITE_PWA === "undefined",
+        disable: !isPWA,
       }),
       /** Plugins */
       nodePolyfills({

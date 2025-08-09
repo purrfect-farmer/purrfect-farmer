@@ -52,11 +52,6 @@ export default memo(function ControlArea() {
             <div className="flex flex-col min-w-0 min-h-0 truncate grow">
               {/* Title */}
               <h4 className="font-bold">{zoomies.current.drop.title}</h4>
-
-              {/* Offset / Count */}
-              <p className="text-neutral-400">
-                {zoomies.currentTaskOffset} of {zoomies.tasksCount}
-              </p>
             </div>
 
             {/* Refresh Button */}
@@ -98,18 +93,6 @@ export default memo(function ControlArea() {
             >
               {zoomies.current.cycles > 9 ? "9+" : zoomies.current.cycles}
             </span>
-          </div>
-
-          {/* Task Indicator */}
-          <div
-            className={cn(
-              "flex justify-center items-center gap-2 p-1",
-              "text-white text-center bg-purple-500 font-bold"
-            )}
-          >
-            <h1 className="min-w-0 min-h-0 text-xs truncate grow">
-              {zoomies.current.task.replaceAll(".", "-").toUpperCase()}
-            </h1>
           </div>
         </>
       ) : null}

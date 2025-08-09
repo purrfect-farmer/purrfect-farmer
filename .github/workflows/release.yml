@@ -1,0 +1,75 @@
+name: Build/Release App
+
+on:
+  push:
+    tags:
+      - v*.*.*
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: latest
+          run_install: false
+
+      - name: Install Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "lts/*"
+          cache: "pnpm"
+
+      - name: Install dependencies
+        run: pnpm install
+
+      - name: Get GitHub Pages URL
+        id: pages_url
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          url=$(gh api "repos/$GITHUB_REPOSITORY/pages" --jq '.html_url')
+          echo "homepage_url=$url" >> $GITHUB_OUTPUT
+
+      - name: Build and Bundle
+        env:
+          EXTENSION_PRIVATE_KEY: ${{ secrets.EXTENSION_PRIVATE_KEY }}
+          VITE_SEEKER_SERVER: ${{ secrets.VITE_SEEKER_SERVER }}
+          VITE_PWA_URL: ${{ secrets.VITE_PWA_URL }}
+          BASE_URL: ${{ steps.pages_url.outputs.homepage_url }}
+        run: pnpm run build:farmer
+
+      - name: Setup 404 page
+        run: cp apps/purrfect-farmer/dist/index.html apps/purrfect-farmer/dist/404.html
+
+      - name: Upload a Build Artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: apps/purrfect-farmer/dist
+
+      - name: Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            apps/purrfect-farmer/dist-bundle/*.crx
+            apps/purrfect-farmer/dist-bundle/*.zip
+        env:
+          GITHUB_TOKEN: ${{ secrets.ACCESS_TOKEN }}
+
+  deploy:
+    needs: build
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

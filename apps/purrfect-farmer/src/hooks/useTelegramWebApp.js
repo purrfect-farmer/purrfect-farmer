@@ -20,13 +20,18 @@ import useMessageHandlers from "./useMessageHandlers";
 export default function useTelegramWebApp({
   id,
   host,
-  usesPort,
   telegramLink,
   cacheTelegramWebApp,
 }) {
+  const { settings, messaging, farmerMode, telegramClient } = useAppContext();
   const [telegramWebApp, setTelegramWebApp] = useState(null);
   const [port, setPort] = useState(null);
-  const { settings, messaging, farmerMode, telegramClient } = useAppContext();
+
+  /** Telegram Hash */
+  const telegramHash = telegramWebApp?.initDataUnsafe?.hash;
+
+  /** Telegram User */
+  const telegramUser = telegramWebApp?.initDataUnsafe?.user;
 
   /** WebApp Chrome Storage Key */
   const webAppChromeStorageKey = useChromeStorageKey(
@@ -117,9 +122,7 @@ export default function useTelegramWebApp({
     };
 
     /** Get Web App */
-    if (usesPort) {
-      setWebAppFromPort();
-    } else if (cacheTelegramWebApp === false) {
+    if (cacheTelegramWebApp === false) {
       setWebAppFromSessionOrPort();
     } else {
       getChromeLocalStorage(webAppChromeStorageKey, null).then((result) => {
@@ -146,7 +149,6 @@ export default function useTelegramWebApp({
   }, [
     host,
     setPort,
-    usesPort,
     farmerMode,
     telegramLink,
     telegramWebApp,
@@ -157,8 +159,12 @@ export default function useTelegramWebApp({
     settings.autoStartBot,
   ]);
 
-  return useMemo(
-    () => ({ port, telegramWebApp, setTelegramWebApp, resetTelegramWebApp }),
-    [port, telegramWebApp, setTelegramWebApp, resetTelegramWebApp]
-  );
+  return {
+    port,
+    telegramWebApp,
+    telegramHash,
+    telegramUser,
+    setTelegramWebApp,
+    resetTelegramWebApp,
+  };
 }
