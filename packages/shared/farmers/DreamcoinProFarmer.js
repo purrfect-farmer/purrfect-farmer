@@ -87,6 +87,8 @@ export default class DreamcoinProFarmer extends BaseFarmer {
   }
 
   async process() {
+    this.logger.info(`Processing ${this.getUsername()}...`);
+
     const dailyBonus = await this.getDailyBonus();
     const login = await this.login();
     const balance = await this.getBalance();
@@ -110,12 +112,12 @@ export default class DreamcoinProFarmer extends BaseFarmer {
     )?.character;
 
     this.logger.newline();
-    this.logger.info(`User: ${this.getUsername()} (${this.getUserId()})`);
-    this.logger.info(`Balance: DC ${balance.dc}, USDT ${balance.usdt}`);
-    this.logger.info(`Characters: ${characters["owned_characters"].length}`);
-    this.logger.info(`Active: ${activeCharacter?.name || "None"}`);
-    this.logger.info(`Mining: ${mining.mining.status}`);
-    this.logger.info(`Last Boost: ${mining.last_boost_time || "Never"}`);
+    this.logger.keyValue("User", `${this.getUsername()} (${this.getUserId()})`);
+    this.logger.keyValue("Balance", `DC ${balance.dc}, USDT $${balance.usdt}`);
+    this.logger.keyValue("Characters", characters["owned_characters"].length);
+    this.logger.keyValue("Active", activeCharacter?.name || "None");
+    this.logger.keyValue("Mining", mining.mining.status);
+    this.logger.keyValue("Last Boost", mining.last_boost_time || "Never");
     this.logger.newline();
   }
 

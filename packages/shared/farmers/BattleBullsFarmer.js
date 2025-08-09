@@ -271,14 +271,14 @@ export default class BattleBullsFarmer extends BaseFarmer {
 
   logUserInfo(user) {
     this.logger.newline();
-    this.logger.info(`User: ${user.username} (${user.id})`);
-    this.logger.info(`Balance: ${user.balance}`);
-    this.logger.info(`Energy: ${user.availableEnergy}`);
+    this.logger.keyValue("User", `${user.username} (${user.id})`);
+    this.logger.keyValue("Balance", user.balance);
+    this.logger.keyValue("Energy", user.availableEnergy);
   }
 
   /** Tap Game */
   async tapGame(user) {
-    if (user.availableEnergy > 0) {
+    if (user.availableEnergy >= 1) {
       await this.claimTaps(user.availableEnergy);
     }
   }

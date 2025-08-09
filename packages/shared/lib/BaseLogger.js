@@ -11,6 +11,15 @@ export default class BaseLogger {
     return this.output(this.chalk.bold(...args));
   }
 
+  /** Log key-value pairs */
+  keyValue(label, value) {
+    const labelStyle = this.c.gray.bold;
+    const valueStyle = this.c.whiteBright;
+    return this.info(
+      `${labelStyle(label + ":").padEnd(12)} ${valueStyle(value)}`
+    );
+  }
+
   /** Newline */
   newline() {
     return this.output("");
