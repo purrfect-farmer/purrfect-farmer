@@ -52,13 +52,13 @@ pm2 startup
 ##### Clone the repository
 
 ```bash
-git clone https://github.com/purrfect-farmer/purrfect-fly.git ~/purrfect-fly
+git clone https://github.com/purrfect-farmer/purrfect-farmer.git ~/purrfect-farmer
 ```
 
 ##### Change Working Directory to Purrfect Fly
 
 ```bash
-cd ~/purrfect-fly
+cd ~/purrfect-farmer
 ```
 
 ##### Install Packages
@@ -70,19 +70,19 @@ pnpm install
 ##### Setup .env
 
 ```bash
-cp .env.example .env
+cp apps/purrfect-fly/.env.example apps/purrfect-fly/.env
 ```
 
 ##### Run migrations and seed
 
 ```bash
-pnpm db:migrate && pnpm db:seed
+pnpm -F purrfect-fly db:migrate && pnpm -F purrfect-fly db:seed
 ```
 
 ##### Generate Key
 
 ```bash
-./fly generate-jwt-secret
+./apps/purrfect-fly/fly generate-jwt-secret
 ```
 
 **Note: You need to fill in the `JWT_SECRET_KEY` field with the generated value inside `.env`**
@@ -94,7 +94,7 @@ For **`micro`**: press (**`Ctrl+S`** then **`Ctrl+Q`)** to save.
 For **`nano`**: press (**`Ctrl+S`** then **`Ctrl+X`)** to save.
 
 ```bash
-micro .env
+micro apps/purrfect-fly/.env
 ```
 
 **Fill every required fields then save.**
@@ -102,7 +102,7 @@ micro .env
 ##### Start Server
 
 ```bash
-pm2 start ecosystem.config.cjs
+pm2 start apps/purrfect-fly/ecosystem.config.cjs
 ```
 
 ##### Save PM2 Processes
@@ -165,7 +165,7 @@ sudo systemctl reload nginx
 ##### Change PWD
 
 ```bash
-cd ~/purrfect-fly
+cd ~/purrfect-farmer
 ```
 
 ##### Pull Changes and Update
@@ -173,7 +173,7 @@ cd ~/purrfect-fly
 ```bash
 git pull && \
 pnpm install && \
-pm2 reload ecosystem.config.cjs && \
+pm2 reload apps/purrfect-fly/ecosystem.config.cjs --update-env && \
 pm2 save
 ```
 
