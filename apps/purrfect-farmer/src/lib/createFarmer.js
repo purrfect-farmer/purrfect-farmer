@@ -4,7 +4,6 @@ const TerminalFarmer = lazy(() => import("@/partials/TerminalFarmer"));
 
 export function createFarmer(FarmerClass, options) {
   return {
-    ...options,
     FarmerClass,
     id: FarmerClass.id,
     title: FarmerClass.title,
@@ -16,5 +15,7 @@ export function createFarmer(FarmerClass, options) {
       domains: FarmerClass.domains,
     },
     component: createElement(TerminalFarmer),
+    syncToCloud: true,
+    ...options,
   };
 }
