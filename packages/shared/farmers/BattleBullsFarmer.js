@@ -265,11 +265,7 @@ export default class BattleBullsFarmer extends BaseFarmer {
     this.logUserInfo(user);
 
     await this.executeTask("Complete Tasks", () => this.completeTasks(user));
-    await this.executeTask(
-      "Upgrade Cards",
-      () => this.upgradeCards(user),
-      false
-    );
+    await this.executeTask("Upgrade Cards", () => this.upgradeCards(), false);
     await this.executeTask("Tap Game", () => this.tapGame(user));
   }
 
@@ -306,9 +302,7 @@ export default class BattleBullsFarmer extends BaseFarmer {
 
     const { uncompletedTasks } = this.getTasksData(user, tasks);
 
-    if (uncompletedTasks.length > 0) {
-      const task = this.utils.randomItem(uncompletedTasks);
-
+    for (const task of uncompletedTasks) {
       try {
         await this.tryToJoinTelegramLink(task.link);
         await this.claimTask(task.id);
@@ -319,7 +313,24 @@ export default class BattleBullsFarmer extends BaseFarmer {
   }
 
   /** Upgrade Cards */
-  async upgradeCards(user) {
+  async upgradeCards() {
+    while (true) {
+      const card = await this.getCardToUpgrade();
+
+      if (!card) {
+        this.logger.log("No cards to upgrade.");
+        break;
+      }
+
+      await this.buyCard(card.id);
+      await this.utils.delay(1000);
+    }
+  }
+
+  async getCardToUpgrade() {
+    /** Get User */
+    const user = await this.getUser();
+
     /** Cards */
     const cards = await this.getCards();
 
@@ -336,8 +347,6 @@ export default class BattleBullsFarmer extends BaseFarmer {
     /** Pick First Card */
     const card = this.utils.randomItem(collection);
 
-    if (card) {
-      await this.buyCard(card.id);
-    }
+    return card;
   }
 }

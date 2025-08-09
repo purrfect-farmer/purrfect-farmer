@@ -306,7 +306,7 @@ export default function createRunner(FarmerClass) {
         try {
           await bot?.sendFarmingInitiatedMessage({
             id: this.id,
-            title: this.title,
+            title: `${this.emoji} ${this.title}`,
             farmers,
             config,
           });
