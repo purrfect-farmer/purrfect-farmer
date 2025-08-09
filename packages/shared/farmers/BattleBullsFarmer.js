@@ -8,7 +8,7 @@ export default class BattleBullsFarmer extends BaseFarmer {
   static domains = ["battle-games.com"];
   static telegramLink =
     "https://t.me/battle_games_com_bot/start?startapp=frndId1147265290";
-  static auth = true;
+  static cacheAuth = false;
 
   /** Get Referral Link */
   getReferralLink() {

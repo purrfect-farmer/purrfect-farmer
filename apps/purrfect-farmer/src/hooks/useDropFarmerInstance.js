@@ -1,5 +1,7 @@
 import { useLayoutEffect, useRef } from "react";
 
+import useUserAgent from "./useUserAgent";
+
 export default function useDropFarmerInstance({
   FarmerClass,
   api,
@@ -8,6 +10,7 @@ export default function useDropFarmerInstance({
   joinTelegramLink,
 }) {
   const instanceRef = useRef(null);
+  const userAgent = useUserAgent();
 
   if (!instanceRef.current && FarmerClass) {
     instanceRef.current = new (class extends FarmerClass {
@@ -25,11 +28,12 @@ export default function useDropFarmerInstance({
   useLayoutEffect(() => {
     if (!instance) return;
     instance.setLogger?.(logger);
+    instance.setUserAgent?.(userAgent);
     instance.setTelegramLinkHandler?.(joinTelegramLink);
     instance.setApi?.(api);
     instance.setTelegramWebApp?.(telegramWebApp);
     return instance.configureApi?.(api);
-  }, [instance, logger, joinTelegramLink, api, telegramWebApp]);
+  }, [instance, userAgent, logger, joinTelegramLink, api, telegramWebApp]);
 
   return instance;
 }

@@ -38,8 +38,9 @@ export default function createRunner(FarmerClass) {
       this.random = seedrandom(this.farmer.account.id);
 
       /** Select User-Agent */
-      this.userAgent =
-        userAgents[Math.floor(this.random() * userAgents.length)];
+      this.setUserAgent(
+        userAgents[Math.floor(this.random() * userAgents.length)]
+      );
 
       /** Cookie Jar */
       this.jar = this.cookies ? new CookieJar() : null;
@@ -228,7 +229,7 @@ export default function createRunner(FarmerClass) {
       this.setTelegramWebApp(this.farmer.telegramWebApp);
 
       /** Set Auth Headers */
-      if (this.constructor.auth) {
+      if (!this.constructor.cacheAuth) {
         await this.setAuth();
       }
 

@@ -10,6 +10,8 @@ export function createFarmer(FarmerClass, options) {
     host: FarmerClass.host,
     domains: FarmerClass.domains,
     telegramLink: FarmerClass.telegramLink,
+    cacheAuth: FarmerClass.cacheAuth,
+    cacheTelegramWebApp: FarmerClass.cacheTelegramWebApp,
     netRequest: {
       origin: `https://${FarmerClass.host}`,
       domains: FarmerClass.domains,

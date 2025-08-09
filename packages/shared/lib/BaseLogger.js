@@ -10,10 +10,6 @@ export default class BaseLogger {
   log(...args) {
     return this.output(this.chalk.bold(...args));
   }
-  /** Log messages with custom color */
-  logColor(color, ...args) {
-    return this.output(this.chalk.bold[color](...args));
-  }
 
   /** Newline */
   newline() {

@@ -1,6 +1,9 @@
 import utils from "../utils/index.js";
 
 export default class BaseFarmer {
+  static cacheAuth = true;
+  static cacheTelegramWebApp = true;
+
   constructor() {
     this.utils = utils;
   }
@@ -25,6 +28,10 @@ export default class BaseFarmer {
   /** Set the Telegram Web App  */
   setTelegramWebApp(telegramWebApp) {
     this.telegramWebApp = telegramWebApp;
+  }
+
+  setUserAgent(userAgent) {
+    this.userAgent = userAgent;
   }
 
   /** Set the Quick Run */
@@ -110,24 +117,24 @@ export default class BaseFarmer {
     }
   }
 
-  /** Fetch Auth */
-  async fetchAuth() {
-    throw new Error("fetchAuth method must be implemented in subclass");
+  /** Get Auth */
+  fetchAuth() {
+    return Promise.resolve(true);
   }
 
-  /** Get User */
-  async fetchMeta() {
-    throw new Error("fetchMeta method must be implemented in subclass");
+  /** Get Meta */
+  fetchMeta() {
+    return Promise.resolve(true);
+  }
+
+  /** Get Auth Headers */
+  getAuthHeaders(data) {
+    return {};
   }
 
   /** Process */
   async process() {
     throw new Error("process method must be implemented in subclass");
-  }
-
-  /** Get Auth Headers */
-  getAuthHeaders(auth) {
-    throw new Error("getAuthHeaders method must be implemented in subclass");
   }
 
   /** Join Telegram Link */
