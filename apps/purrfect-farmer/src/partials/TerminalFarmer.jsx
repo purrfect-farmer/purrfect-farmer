@@ -7,8 +7,7 @@ import { cn } from "@/lib/utils";
 import { memo } from "react";
 
 const TerminalFarmerContent = () => {
-  const { referralLink, terminalRef, started, start, stop } =
-    useTerminalFarmer();
+  const { referralLink, terminalRef, started, toggle } = useTerminalFarmer();
 
   return (
     <>
@@ -17,7 +16,7 @@ const TerminalFarmerContent = () => {
       </div>
 
       <button
-        onClick={started ? stop : start}
+        onClick={() => toggle()}
         className={cn(
           "flex items-center justify-center gap-2 p-2",
           started ? "text-red-500" : "text-green-500"

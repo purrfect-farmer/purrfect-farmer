@@ -50,6 +50,18 @@ export default function useTerminalFarmer() {
     [id, instance, stopFarmer]
   );
 
+  const [, dispatchAndToggleFarmer] = useMirroredCallback(
+    `${id}-toggle`,
+    () => {
+      if (started) {
+        stopFarmer();
+      } else {
+        startFarmer();
+      }
+    },
+    [id, started, startFarmer, stopFarmer]
+  );
+
   /** Initialize Logger */
   useLayoutEffect(() => {
     logger.setElement(terminalRef.current);
@@ -90,5 +102,6 @@ export default function useTerminalFarmer() {
     started,
     start: dispatchAndStartFarmer,
     stop: dispatchAndStopFarmer,
+    toggle: dispatchAndToggleFarmer,
   };
 }
