@@ -1,5 +1,6 @@
 export * from "@purrfect/shared/utils/index.js";
 
+import * as sharedUtils from "@purrfect/shared/utils/index.js";
 import defaultSharedSettings from "@/core/defaultSharedSettings";
 import userAgents from "@purrfect/shared/resources/userAgents.js";
 import { clsx } from "clsx";
@@ -215,12 +216,14 @@ export function postPortMessage(port, data) {
   });
 }
 
+export function parseHTML(html) {
+  return new DOMParser().parseFromString(html, "text/html");
+}
+
 /** Find Drop Main Script */
 export async function findDropMainScript(url, name = "index") {
   const htmlResponse = await fetchContent(url);
-
-  const parser = new DOMParser();
-  const html = parser.parseFromString(htmlResponse, "text/html");
+  const html = parseHTML(htmlResponse);
 
   const scripts = html.querySelectorAll("script");
 
@@ -361,3 +364,8 @@ export function requestIsUnauthorized(error) {
 /** Send Webview Message */
 export const sendWebviewMessage = (data) =>
   window.electron.ipcRenderer.sendToHost("webview-message", data);
+
+export default {
+  ...sharedUtils,
+  parseHTML,
+};

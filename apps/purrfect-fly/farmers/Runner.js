@@ -15,6 +15,7 @@ import bot from "../lib/bot.js";
 import db from "../db/models/index.js";
 import utils from "../lib/utils.js";
 
+const AUTO_START = process.env.FARMER_AUTO_START === "true";
 const HttpProxyAgentWithCookies = createCookieAgent(HttpProxyAgent);
 const HttpsProxyAgentWithCookies = createCookieAgent(HttpsProxyAgent);
 
@@ -32,14 +33,15 @@ export default function createRunner(FarmerClass) {
     static threadId = process.env[envKey + "_THREAD_ID"] ?? "";
     static telegramLink = process.env[envKey + "_LINK"] || this.telegramLink;
 
-    constructor(farmer) {
+    constructor(account) {
       super();
-      this.farmer = farmer;
+      this.account = account;
+      this.farmer = account.farmer;
       this.logger = this.constructor.logger;
       this.utils = this.constructor.utils;
 
       this.cookies = this.constructor.cookies;
-      this.random = seedrandom(this.farmer.account.id);
+      this.random = seedrandom(this.account.id);
 
       /** Select User-Agent */
       this.setUserAgent(
@@ -50,9 +52,7 @@ export default function createRunner(FarmerClass) {
       this.jar = this.cookies ? new CookieJar() : null;
 
       /** Proxy URL */
-      this.proxy = this.farmer.account.proxy
-        ? `http://${this.farmer.account.proxy}`
-        : null;
+      this.proxy = this.account.proxy ? `http://${this.account.proxy}` : null;
 
       /** Agent */
       this.httpAgent = this.createAgent(this.proxy, false);
@@ -88,7 +88,7 @@ export default function createRunner(FarmerClass) {
         /** Apply Headers */
         config.headers = {
           ...config.headers,
-          ...this.farmer.headers,
+          ...this.farmer?.headers,
           ...this.getExtraHeaders?.(),
         };
         return config;
@@ -133,7 +133,7 @@ export default function createRunner(FarmerClass) {
               originalRequest.__retry = true;
               originalRequest.headers = {
                 ...originalRequest.headers,
-                ...this.farmer.headers,
+                ...this.farmer?.headers,
                 ...this.getExtraHeaders?.(),
               };
 
@@ -155,7 +155,7 @@ export default function createRunner(FarmerClass) {
       this.api.interceptors.response.use(
         (response) => {
           const url = response.config.url;
-          const title = this.utils.truncateAndPad(this.farmer.account.id, 10);
+          const title = this.utils.truncateAndPad(this.account.id, 10);
           const status = this.utils.truncateAndPad(response.status, 3);
           const method = this.utils.truncateAndPad(
             response.config.method.toUpperCase(),
@@ -174,7 +174,7 @@ export default function createRunner(FarmerClass) {
         },
         (error) => {
           const url = error.config.url;
-          const title = this.utils.truncateAndPad(this.farmer.account.id, 10);
+          const title = this.utils.truncateAndPad(this.account.id, 10);
           const status = this.utils.truncateAndPad(
             error.response?.status ?? "ERR",
             3
@@ -226,10 +226,27 @@ export default function createRunner(FarmerClass) {
     }
 
     async init() {
+      let shouldSetAuth = !this.constructor.cacheAuth;
+
+      if (!this.farmer) {
+        if (this.account.session) {
+          this.farmer = await this.account.createFarmer({
+            active: true,
+            farmer: this.constructor.id,
+            headers: {},
+            initData: "",
+          });
+
+          shouldSetAuth = true;
+        } else {
+          throw new Error("No Telegram Session!");
+        }
+      }
+
       /** Update WebAppData */
-      if (this.farmer.account.session) {
+      if (this.account.session) {
         try {
-          this.client = await GramClient.create(this.farmer.account.session);
+          this.client = await GramClient.create(this.account.session);
           await this.client.connect();
           await this.updateWebAppData();
         } catch {
@@ -241,7 +258,7 @@ export default function createRunner(FarmerClass) {
       this.setTelegramWebApp(this.farmer.telegramWebApp);
 
       /** Set Auth Headers */
-      if (!this.constructor.cacheAuth) {
+      if (shouldSetAuth) {
         await this.setAuth();
       }
 
@@ -271,49 +288,47 @@ export default function createRunner(FarmerClass) {
 
     async disconnect() {
       try {
-        if (!this.farmer.account.session) {
-          this.farmer.active = false;
-          await this.farmer.save();
+        if (!this.account.session) {
+          if (this.farmer) {
+            this.farmer.active = false;
+            await this.farmer.save();
+          }
         }
       } catch (error) {
         this.logger.error("Error:", error);
       }
     }
 
-    static async execute(farmer) {
-      const instance = new this(farmer);
+    static async execute(account) {
+      const instance = new this(account);
 
       try {
         await instance.init();
         await instance.process();
       } catch (error) {
         await instance.disconnect();
-        this.logger.error("Error:", farmer.accountId, error);
+        this.logger.error("Error:", account.id, error);
       } finally {
-        this.runners.delete(farmer.accountId);
+        this.runners.delete(account.id);
       }
     }
 
-    static async farm(farmer) {
-      if (!this.runners.has(farmer.accountId)) {
-        this.runners.set(farmer.accountId, this.execute(farmer));
+    static async farm(account) {
+      if (!this.runners.has(account.id)) {
+        this.runners.set(account.id, this.execute(account));
       }
-      return this.runners.get(farmer.accountId);
+      return this.runners.get(account.id);
     }
 
     static async run() {
       try {
-        /** Retrieve active farmers */
-        const farmers = await db.Farmer.findAllWithActiveSubscription({
-          where: {
-            farmer: this.id,
-          },
-        });
+        const accounts = await db.Account.findSubscribedWithFarmer(
+          this.id,
+          !AUTO_START
+        );
 
         /** Run all farmer */
-        farmers
-          .filter((item) => item.active)
-          .map((farmer) => this.farm(farmer));
+        accounts.forEach((account) => this.farm(account));
 
         /** Send Farming Complete Message */
         try {
@@ -322,7 +337,7 @@ export default function createRunner(FarmerClass) {
             title: `${this.emoji} ${this.title}`,
             telegramLink: this.telegramLink,
             threadId: this.threadId,
-            farmers,
+            accounts,
           });
         } catch (error) {
           this.logger.error("Failed to send farming notification:", error);

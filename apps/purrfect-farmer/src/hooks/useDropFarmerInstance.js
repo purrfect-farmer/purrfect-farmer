@@ -1,3 +1,4 @@
+import utils from "@/lib/utils";
 import { useLayoutEffect, useRef } from "react";
 
 import useUserAgent from "./useUserAgent";
@@ -14,6 +15,11 @@ export default function useDropFarmerInstance({
 
   if (!instanceRef.current && FarmerClass) {
     instanceRef.current = new (class extends FarmerClass {
+      constructor() {
+        super();
+        this.utils = utils;
+      }
+
       setTelegramLinkHandler(handler) {
         this.joinTelegramLink = handler;
       }

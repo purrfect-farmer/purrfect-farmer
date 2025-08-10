@@ -8,6 +8,7 @@ export default class BaseFarmer {
   static apiDelay = 200;
   static cacheAuth = true;
   static cacheTelegramWebApp = true;
+  static cookies = false;
   static interval = "*/10 * * * *";
 
   constructor() {

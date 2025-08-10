@@ -2,6 +2,7 @@ import base64url from "base64url";
 import crypto from "crypto";
 import sharedUtils from "@purrfect/shared/utils/index.js";
 import tweetnacl from "tweetnacl";
+import { JSDOM } from "jsdom";
 
 import app from "../config/app.js";
 
@@ -117,6 +118,12 @@ function escapeHtml(text) {
   return text.replace(/[&<>"']/g, (m) => map[m]);
 }
 
+function parseHTML(html) {
+  const dom = new JSDOM(html);
+  const { document } = dom.window;
+  return document;
+}
+
 export default {
   ...sharedUtils,
   md5,
@@ -126,4 +133,5 @@ export default {
   truncateAndPad,
   formatUsers,
   escapeHtml,
+  parseHTML,
 };

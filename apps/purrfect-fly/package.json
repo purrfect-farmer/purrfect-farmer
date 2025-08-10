@@ -51,6 +51,7 @@
     "hpagent": "^1.2.0",
     "http-cookie-agent": "^7.0.2",
     "inquirer": "^12.9.1",
+    "jsdom": "^26.1.0",
     "jsonwebtoken": "^9.0.2",
     "keyv": "^5.5.0",
     "mariadb": "^3.4.5",

@@ -1,26 +1,19 @@
+import BaseTelegramWebClient from "@purrfect/shared/lib/BaseTelegramWebClient.js";
 import fsp from "node:fs/promises";
 import path from "node:path";
-import { Api, Logger, TelegramClient } from "telegram";
+import { Api, Logger } from "telegram";
 import { StringSession } from "telegram/sessions/index.js";
 import { globby } from "globby";
 
-import utils from "./utils.js";
 import { getCurrentPath } from "./path.js";
 
 const { __dirname } = getCurrentPath(import.meta.url);
 
-const config = {
-  apiId: 2496,
-  apiHash: "8da85b0d5bfe62527e5b244c209159c3",
-  appVersion: "2.2 K",
-  deviceModel:
-    "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36",
-  systemVersion: "Linux x86_64",
-  systemLangCode: "en-US",
-  langCode: "en",
-};
+const DEVICE_MODEL =
+  "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36";
+const SYSTEM_VERSION = "Linux x86_64";
 
-class GramClient extends TelegramClient {
+class GramClient extends BaseTelegramWebClient {
   /**
    * @type {Map<string, GramClient>}
    */
@@ -28,20 +21,13 @@ class GramClient extends TelegramClient {
 
   /** Constructor */
   constructor(name, session, sessionFilePath, sessionFileExists) {
-    super(session, config.apiId, config.apiHash, {
-      connectionRetries: 5,
-      appVersion: config.appVersion,
-      deviceModel: config.deviceModel,
-      systemVersion: config.systemVersion,
-      systemLangCode: config.systemLangCode,
-      langCode: config.langCode,
+    super(session, {
+      deviceModel: DEVICE_MODEL,
+      systemVersion: SYSTEM_VERSION,
       ...(process.env.NODE_ENV === "production" && {
         baseLogger: new Logger("error"),
       }),
     });
-
-    /** Connection Queue */
-    this._connectionQueue = [];
 
     /** Store Name */
     this._name = name;
@@ -57,9 +43,6 @@ class GramClient extends TelegramClient {
 
     /** Start Timeout */
     this._startTimeout = null;
-
-    /** Is Connecting */
-    this._isConnecting = false;
 
     /** Initial Start Stage */
     this._resetStartStage();
@@ -119,39 +102,11 @@ class GramClient extends TelegramClient {
   }
 
   /** Execute on Client */
-  async _execute(callback) {
+  async execute(callback) {
     /** Reset Destroy Timeout */
     this._resetDestroyTimeout();
 
-    /** Ensure to Connect */
-    await this.connect();
-
-    /** Execute Callback */
-    return callback();
-  }
-
-  /** Connect */
-  async connect() {
-    if (this.connected) return;
-
-    if (this._isConnecting) {
-      return new Promise((resolve, reject) =>
-        this._connectionQueue.push({ resolve, reject })
-      );
-    }
-
-    this._isConnecting = true;
-
-    try {
-      await super.connect();
-      this._connectionQueue.forEach(({ resolve }) => resolve());
-    } catch (error) {
-      this._connectionQueue.forEach(({ reject }) => reject(error));
-      throw error;
-    } finally {
-      this._connectionQueue = [];
-      this._isConnecting = false;
-    }
+    return super.execute(callback);
   }
 
   /** Destroy */
@@ -230,92 +185,10 @@ class GramClient extends TelegramClient {
     });
   }
 
-  /** Get Self */
-  getSelf() {
-    return this._execute(async () => {
-      try {
-        return await this.getMe();
-      } catch (error) {
-        console.error(error);
-        return null;
-      }
-    });
-  }
-
-  /** Get Webview */
-  webview(link) {
-    return this._execute(async () => {
-      const parsed = utils.parseTelegramLink(link);
-
-      /** Theme Params */
-      const themeParams = new Api.DataJSON({
-        data: JSON.stringify({
-          bg_color: "#ffffff",
-          text_color: "#000000",
-          hint_color: "#aaaaaa",
-          link_color: "#006aff",
-          button_color: "#2cab37",
-          button_text_color: "#ffffff",
-        }),
-      });
-
-      /** Get WebView */
-      return await this.invoke(
-        parsed.shortName
-          ? new Api.messages.RequestAppWebView({
-              themeParams,
-              platform: "android",
-              peer: parsed.entity,
-              startParam: parsed.startParam,
-              app: new Api.InputBotAppShortName({
-                botId: await this.getInputEntity(parsed.entity),
-                shortName: parsed.shortName,
-              }),
-            })
-          : new Api.messages.RequestMainWebView({
-              themeParams,
-              platform: "android",
-              bot: parsed.entity,
-              peer: parsed.entity,
-              startParam: parsed.startParam,
-            })
-      );
-    });
-  }
-
   /** Join Telegram Link */
   async joinTelegramLink(link) {
     this._joinQueue = this._joinQueue || Promise.resolve();
-
-    this._joinQueue = this._joinQueue.then(() =>
-      this._execute(async () => {
-        try {
-          const parsed = utils.parseTelegramLink(link);
-
-          await this.invoke(
-            parsed.entity.startsWith("+")
-              ? new Api.messages.ImportChatInvite({
-                  hash: parsed.entity.replace("+", ""),
-                })
-              : new Api.channels.JoinChannel({
-                  channel: parsed.entity,
-                })
-          );
-
-          return true;
-        } catch (error) {
-          if (
-            typeof error === "string" &&
-            !error.includes("USER_ALREADY_PARTICIPANT") &&
-            !error.includes("INVITE_REQUEST_SENT")
-          ) {
-            return false;
-          }
-
-          return true;
-        }
-      })
-    );
+    this._joinQueue = this._joinQueue.then(() => super.joinTelegramLink(link));
 
     return this._joinQueue;
   }
@@ -344,7 +217,7 @@ class GramClient extends TelegramClient {
       await this._deleteSession();
 
       /** Remove Instance */
-      await GramClient.delete(this._name);
+      await this.constructor.delete(this._name);
     }
   }
 
@@ -379,8 +252,8 @@ class GramClient extends TelegramClient {
   static async create(name) {
     if (this.instances.has(name)) return this.instances.get(name);
 
-    const sessionFilePath = await GramClient.getSessionPath(name);
-    const sessionFileExists = await GramClient.sessionFileExists(name);
+    const sessionFilePath = await this.getSessionPath(name);
+    const sessionFileExists = await this.sessionFileExists(name);
 
     const sessionData = sessionFileExists
       ? JSON.parse(await fsp.readFile(sessionFilePath))
@@ -391,16 +264,14 @@ class GramClient extends TelegramClient {
     return this.instances
       .set(
         name,
-        new GramClient(name, stringSession, sessionFilePath, sessionFileExists)
+        new this(name, stringSession, sessionFilePath, sessionFileExists)
       )
       .get(name);
   }
 
   /** Get Sessions */
   static async getSessions() {
-    const entries = await globby([
-      path.join(GramClient.getStoragePath(), "*.json"),
-    ]);
+    const entries = await globby([path.join(this.getStoragePath(), "*.json")]);
 
     const sessions = entries.map(
       (item) => path.basename(item, ".json").split("_")[1]
@@ -411,20 +282,20 @@ class GramClient extends TelegramClient {
 
   /** Check if session exists */
   static async sessionExists(name) {
-    return GramClient.instances.has(name) || GramClient.sessionFileExists(name);
+    return this.instances.has(name) || this.sessionFileExists(name);
   }
 
   /** Check if session file exists */
   static async sessionFileExists(name) {
     return await fsp
-      .access(GramClient.getSessionPath(name))
+      .access(this.getSessionPath(name))
       .then(() => true)
       .catch(() => false);
   }
 
   /** Get session file path */
   static getSessionPath(name) {
-    return path.join(GramClient.getStoragePath(), `session_${name}.json`);
+    return path.join(this.getStoragePath(), `session_${name}.json`);
   }
 
   /** Get storage directory for all sessions */

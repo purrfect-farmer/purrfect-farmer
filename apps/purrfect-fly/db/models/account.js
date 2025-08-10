@@ -67,8 +67,34 @@ export default (sequelize, DataTypes) => {
       });
     }
 
+    static findSubscribedWithFarmer(farmer, required = false, options) {
+      return this.findAll({
+        ...options,
+        include: [
+          {
+            required,
+            association: "farmers",
+            where: {
+              farmer,
+            },
+          },
+          {
+            required: true,
+            association: "subscriptions",
+            where: {
+              active: true,
+            },
+          },
+        ],
+      });
+    }
+
     get subscription() {
       return this.subscriptions?.find((item) => item.active);
+    }
+
+    get farmer() {
+      return this.farmers[0];
     }
   }
   Account.init(

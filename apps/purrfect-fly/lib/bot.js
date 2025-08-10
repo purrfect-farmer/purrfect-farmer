@@ -33,13 +33,13 @@ class GroupBot extends Bot {
   async sendFarmingInitiatedMessage(result) {
     try {
       const users = utils.formatUsers(
-        result.farmers.map((farmer) => {
+        result.accounts.map((account) => {
           return {
-            id: farmer.account.id,
-            status: farmer.active ? "✅" : "❌",
-            session: farmer.account.session ? "🟨" : "🟪",
-            username: farmer.account.user?.username ?? "",
-            title: farmer.account.title,
+            id: account.id,
+            status: account.farmer?.active ? "✅" : "❌",
+            session: account.session ? "🟨" : "🟪",
+            username: account.user?.username ?? "",
+            title: account.title,
           };
         })
       );
