@@ -83,10 +83,6 @@ export default class UltimateShibFarmer extends BaseFarmer {
       tgTasks,
     };
 
-    console.log(dom);
-    console.log(checkInButton);
-    console.log(status);
-
     this.logUserInfo(status);
 
     await this.claimCheckIn(status);
