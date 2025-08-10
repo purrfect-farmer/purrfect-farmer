@@ -105,7 +105,7 @@ export default class FunaticFarmer extends BaseFarmer {
     const collection = levelZeroCards.length ? levelZeroCards : upgradableCards;
 
     /** Pick Random Card */
-    const card = utils.randomItem(collection);
+    const card = this.utils.randomItem(collection);
 
     return card;
   }
