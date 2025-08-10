@@ -226,21 +226,16 @@ export default function createRunner(FarmerClass) {
     }
 
     async init() {
-      let shouldSetAuth = !this.constructor.cacheAuth;
+      const needsAuth = !this.constructor.cacheAuth || !this.farmer;
 
+      /** Create Farmer */
       if (!this.farmer) {
-        if (this.account.session) {
-          this.farmer = await this.account.createFarmer({
-            active: true,
-            farmer: this.constructor.id,
-            headers: {},
-            initData: "",
-          });
-
-          shouldSetAuth = true;
-        } else {
-          throw new Error("No Telegram Session!");
-        }
+        this.farmer = await this.account.createFarmer({
+          active: true,
+          farmer: this.constructor.id,
+          headers: {},
+          initData: "",
+        });
       }
 
       /** Update WebAppData */
@@ -258,7 +253,7 @@ export default function createRunner(FarmerClass) {
       this.setTelegramWebApp(this.farmer.telegramWebApp);
 
       /** Set Auth Headers */
-      if (shouldSetAuth) {
+      if (needsAuth) {
         await this.setAuth();
       }
 
@@ -324,11 +319,17 @@ export default function createRunner(FarmerClass) {
       try {
         const accounts = await db.Account.findSubscribedWithFarmer(
           this.id,
-          !AUTO_START
+          AUTO_START === false
         );
 
         /** Run all farmer */
-        accounts.forEach((account) => this.farm(account));
+        accounts
+          .filter((account) =>
+            AUTO_START
+              ? account.farmer?.active || account.session
+              : account.farmer?.active
+          )
+          .forEach((account) => this.farm(account));
 
         /** Send Farming Complete Message */
         try {
