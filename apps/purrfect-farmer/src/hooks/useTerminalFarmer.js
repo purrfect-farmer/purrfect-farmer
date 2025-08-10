@@ -39,6 +39,8 @@ export default function useTerminalFarmer() {
       const controller = new AbortController();
       controllerRef.current = controller;
 
+      logger.clear();
+      logger.info(`> Starting ${title} Farmer...`);
       instance.start(controller.signal).finally(() => {
         if (controllerRef.current === controller) {
           stopFarmer();
@@ -47,7 +49,7 @@ export default function useTerminalFarmer() {
 
       setStarted(true);
     },
-    [id, instance, stopFarmer]
+    [id, title, instance, logger, stopFarmer]
   );
 
   const [, dispatchAndToggleFarmer] = useMirroredCallback(
