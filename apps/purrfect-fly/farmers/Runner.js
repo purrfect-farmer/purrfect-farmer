@@ -77,8 +77,8 @@ export default function createRunner(FarmerClass) {
 
       /** Apply Delay */
       this.api.interceptors.request.use(async (config) => {
-        if (this.constructor.delay) {
-          await this.utils.delayForSeconds(this.constructor.delay);
+        if (this.constructor.apiDelay) {
+          await this.utils.delay(this.constructor.apiDelay);
         }
         return config;
       });
@@ -113,16 +113,24 @@ export default function createRunner(FarmerClass) {
         (response) => response,
         async (error) => {
           const originalRequest = error.config;
-          const isUnauthenticated = [401, 403, 418].includes(
+          const isUnauthenticatedError = [401, 403, 418].includes(
             error?.response?.status
           );
 
-          if (isUnauthenticated && !originalRequest._retry) {
+          if (
+            isUnauthenticatedError &&
+            !originalRequest.__retry &&
+            !this.__isRefreshingAuth
+          ) {
             try {
+              this.__isRefreshingAuth = true;
+              this.logger.warn("Refreshing auth...");
+
+              /** Fetch new auth */
               await this.setAuth();
               await this.farmer.save();
 
-              originalRequest._retry = true;
+              originalRequest.__retry = true;
               originalRequest.headers = {
                 ...originalRequest.headers,
                 ...this.farmer.headers,
@@ -134,7 +142,7 @@ export default function createRunner(FarmerClass) {
               this.logger.error("Failed to refresh auth:", error);
               return Promise.reject(error);
             } finally {
-              this._fetchingAuth = false;
+              this.__isRefreshingAuth = false;
             }
           }
 

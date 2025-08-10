@@ -31,7 +31,6 @@ export default function useDropFarmer() {
     icon,
     title,
     apiDelay = 200,
-    apiOptions,
     telegramLink,
     cacheAuth = true,
     cacheTelegramWebApp = true,
@@ -59,7 +58,7 @@ export default function useDropFarmer() {
   const logger = useMemo(() => new BrowserLogger(), []);
 
   /** Axios Instance */
-  const api = useMemo(() => axios.create(apiOptions), [apiOptions]);
+  const api = useMemo(() => axios.create(), []);
 
   /** Set Whisker Origin */
   useLayoutEffect(() => {
@@ -175,10 +174,10 @@ export default function useDropFarmer() {
   /** Reset Init */
   const resetInit = useCallback(async () => {
     await resetAuthCache();
-    await resetQueries();
+    await removeQueries();
     await resetStates();
     await setInitResetCount((prev) => prev + 1);
-  }, [resetQueries, resetAuthCache, resetStates, setInitResetCount]);
+  }, [removeQueries, resetAuthCache, resetStates, setInitResetCount]);
 
   /** Reset Farmer  */
   const reset = useCallback(async () => {

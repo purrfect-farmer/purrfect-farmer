@@ -10,6 +10,7 @@ export function createFarmer(FarmerClass, options) {
     host: FarmerClass.host,
     domains: FarmerClass.domains,
     telegramLink: FarmerClass.telegramLink,
+    apiDelay: FarmerClass.apiDelay,
     cacheAuth: FarmerClass.cacheAuth,
     cacheTelegramWebApp: FarmerClass.cacheTelegramWebApp,
     netRequest: {

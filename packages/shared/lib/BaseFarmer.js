@@ -5,6 +5,7 @@ export default class BaseFarmer {
   static title = "Base Farmer";
   static emoji = "🐾";
   static enabled = true;
+  static apiDelay = 200;
   static cacheAuth = true;
   static cacheTelegramWebApp = true;
   static interval = "*/10 * * * *";
