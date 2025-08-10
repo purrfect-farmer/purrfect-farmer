@@ -3,7 +3,7 @@ import BaseFarmer from "../lib/BaseFarmer.js";
 export default class UltimateShibFarmer extends BaseFarmer {
   static id = "ultimate-shib";
   static title = "Ultimate Shib";
-  static emoji = "🐂";
+  static emoji = "🦮";
   static host = "botsmother.com";
   static domains = ["botsmother.com"];
   static telegramLink = "https://t.me/ultimateshibbot?start=1147265290";
