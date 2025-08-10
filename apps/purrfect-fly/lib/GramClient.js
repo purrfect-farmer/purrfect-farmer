@@ -2,7 +2,6 @@ import BaseTelegramWebClient from "@purrfect/shared/lib/BaseTelegramWebClient.js
 import fsp from "node:fs/promises";
 import path from "node:path";
 import { Api, Logger } from "telegram";
-import { StringSession } from "telegram/sessions/index.js";
 import { globby } from "globby";
 
 import { getCurrentPath } from "./path.js";
@@ -20,7 +19,7 @@ class GramClient extends BaseTelegramWebClient {
   static instances = new Map();
 
   /** Constructor */
-  constructor(name, session, sessionFilePath, sessionFileExists) {
+  constructor({ name, session, sessionFilePath, sessionFileExists }) {
     super(session, {
       deviceModel: DEVICE_MODEL,
       systemVersion: SYSTEM_VERSION,
@@ -255,16 +254,14 @@ class GramClient extends BaseTelegramWebClient {
     const sessionFilePath = await this.getSessionPath(name);
     const sessionFileExists = await this.sessionFileExists(name);
 
-    const sessionData = sessionFileExists
+    const session = sessionFileExists
       ? JSON.parse(await fsp.readFile(sessionFilePath))
       : "";
-
-    const stringSession = new StringSession(sessionData);
 
     return this.instances
       .set(
         name,
-        new this(name, stringSession, sessionFilePath, sessionFileExists)
+        new this({ name, session, sessionFilePath, sessionFileExists })
       )
       .get(name);
   }

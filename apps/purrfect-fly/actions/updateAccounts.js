@@ -19,7 +19,7 @@ async function updateAccounts() {
             const client = await GramClient.create(account.session);
             await client.connect();
 
-            const webview = await client.webview(app.farmer.botLink);
+            const webview = await client.getWebview(app.farmer.botLink);
             const { initDataUnsafe } = utils.extractTgWebAppData(webview.url);
             const { user } = initDataUnsafe;
 

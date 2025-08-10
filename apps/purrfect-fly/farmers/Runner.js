@@ -244,8 +244,8 @@ export default function createRunner(FarmerClass) {
           this.client = await GramClient.create(this.account.session);
           await this.client.connect();
           await this.updateWebAppData();
-        } catch {
-          this.logger.error("Failed to update WebAppData");
+        } catch (e) {
+          this.logger.error("Failed to update WebAppData", e.message);
         }
       }
 
@@ -275,7 +275,9 @@ export default function createRunner(FarmerClass) {
     }
 
     async updateWebAppData() {
-      const { url } = await this.client.webview(this.telegramLink);
+      const { url } = await this.client.getWebview(
+        this.constructor.telegramLink
+      );
       const { initData } = this.utils.extractTgWebAppData(url);
 
       this.farmer.initData = initData;
