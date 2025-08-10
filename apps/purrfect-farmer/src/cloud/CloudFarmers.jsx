@@ -1,5 +1,6 @@
 import Input from "@/components/Input";
 import UserIcon from "@/assets/images/user-icon.png?format=webp&w=256";
+import farmers from "@/core/farmers";
 import toast from "react-hot-toast";
 import useCloudManagerDisconnectFarmerMutation from "@/hooks/useCloudManagerDisconnectFarmerMutation";
 import useCloudManagerFarmersQuery from "@/hooks/useCloudManagerFarmersQuery";
@@ -12,17 +13,13 @@ import { useMemo, useState } from "react";
 
 import CloudMemberDialog from "./CloudMemberDialog";
 
-const CLOUD_FARMERS = Object.fromEntries(
-  Object.values(
-    import.meta.glob("@/drops/*/index.js", { eager: true, import: "default" })
-  ).map(({ id, title, icon }) => [
-    id,
-    {
-      title: `${title} Farmer`,
-      icon,
-    },
-  ])
-);
+const CLOUD_FARMERS = farmers.reduce((result, farmer) => {
+  result.set(farmer.id, {
+    title: farmer.title,
+    icon: farmer.icon,
+  });
+  return result;
+}, new Map());
 
 export default function CloudFarmers() {
   const [search, setSearch] = useState("");
@@ -44,8 +41,8 @@ export default function CloudFarmers() {
           ).map(([k, v]) => {
             return {
               id: k,
-              icon: CLOUD_FARMERS[k]?.icon,
-              title: CLOUD_FARMERS[k]?.title || "(Unknown) Farmer",
+              icon: CLOUD_FARMERS?.get(k)?.icon,
+              title: CLOUD_FARMERS?.get(k)?.title || "(Unknown) Farmer",
               farmers: search
                 ? v.filter((item) => matchesAccountSearch(search, item.account))
                 : v,
