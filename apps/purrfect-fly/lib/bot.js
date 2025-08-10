@@ -49,13 +49,13 @@ class GroupBot extends Bot {
         [
           `<b>${result.title}</b>`,
           "<i>✅ Status: Initiated</i>",
-          `\n<blockquote><a href="${result.config.telegramLink}">Open Telegram Bot</a></blockquote>${users}`,
+          `\n<blockquote><a href="${result.telegramLink}">Open Telegram Bot</a></blockquote>${users}`,
           `<b>🗓️ Date</b>: ${utils.dateFns.format(
             new Date(),
             "yyyy-MM-dd HH:mm:ss"
           )}`,
         ],
-        { ["message_thread_id"]: result.config.threadId }
+        { ["message_thread_id"]: result.threadId }
       );
     } catch (error) {
       console.error(error);

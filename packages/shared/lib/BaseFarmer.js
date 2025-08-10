@@ -1,8 +1,13 @@
 import utils from "../utils/index.js";
 
 export default class BaseFarmer {
+  static id = "base-farmer";
+  static title = "Base Farmer";
+  static emoji = "🐾";
+  static enabled = true;
   static cacheAuth = true;
   static cacheTelegramWebApp = true;
+  static interval = "*/10 * * * *";
 
   constructor() {
     this.utils = utils;

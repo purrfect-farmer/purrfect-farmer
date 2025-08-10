@@ -1,5 +1,3 @@
-import app from "../config/app.js";
-
 /**
  * @param {import("commander").Command} program
  * @param {typeof import("inquirer").default} inquirer
@@ -15,7 +13,6 @@ export default (program, inquirer, chalk) => {
         (m) => m.default
       );
 
-      const config = app.drops.find((item) => item.id === farmer);
       const FarmerClass = farmers[farmer];
 
       if (!FarmerClass) {
@@ -23,6 +20,6 @@ export default (program, inquirer, chalk) => {
         return;
       }
 
-      FarmerClass.run(config);
+      FarmerClass.run();
     });
 };

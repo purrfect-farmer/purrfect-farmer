@@ -22,17 +22,12 @@ if (app.cron.enabled) {
   runner.register("*/20 * * * *", updateAccounts, "Update Accounts");
 
   // Farmers
-  app.drops
-    .filter((item) => item.enabled)
-    .forEach((item) => {
-      const FarmerClass = farmers[item.id];
-      if (!FarmerClass) {
-        console.warn(`⚠️ No farmer class found for "${item.id}"`);
-        return;
-      }
+  Object.values(farmers)
+    .filter((FarmerClass) => FarmerClass.enabled)
+    .forEach((FarmerClass) => {
       runner.register(
-        item.interval ?? "*/10 * * * *",
-        () => FarmerClass.run(item),
+        FarmerClass.interval ?? "*/10 * * * *",
+        () => FarmerClass.run(),
         FarmerClass.title
       );
     });

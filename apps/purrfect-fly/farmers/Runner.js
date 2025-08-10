@@ -22,15 +22,19 @@ const HttpsProxyAgentWithCookies = createCookieAgent(HttpsProxyAgent);
  * @param {import("@purrfect/shared/lib/BaseFarmer").default} FarmerClass
  */
 export default function createRunner(FarmerClass) {
+  const envKey = "FARMER_" + FarmerClass.id.replace(/-/g, "_").toUpperCase();
+
   return class Runner extends FarmerClass {
     static runners = new Map();
     static logger = new ConsoleLogger();
     static utils = utils;
+    static enabled = process.env[envKey + "_ENABLED"] !== "false";
+    static threadId = process.env[envKey + "_THREAD_ID"] ?? "";
+    static telegramLink = process.env[envKey + "_LINK"] || this.telegramLink;
 
-    constructor(farmer, config) {
+    constructor(farmer) {
       super();
       this.farmer = farmer;
-      this.config = config;
       this.logger = this.constructor.logger;
       this.utils = this.constructor.utils;
 
@@ -251,7 +255,7 @@ export default function createRunner(FarmerClass) {
     }
 
     async updateWebAppData() {
-      const { url } = await this.client.webview(this.config.telegramLink);
+      const { url } = await this.client.webview(this.telegramLink);
       const { initData } = this.utils.extractTgWebAppData(url);
 
       this.farmer.initData = initData;
@@ -268,8 +272,8 @@ export default function createRunner(FarmerClass) {
       }
     }
 
-    static async execute(farmer, config) {
-      const instance = new this(farmer, config);
+    static async execute(farmer) {
+      const instance = new this(farmer);
 
       try {
         await instance.init();
@@ -282,14 +286,14 @@ export default function createRunner(FarmerClass) {
       }
     }
 
-    static async farm(farmer, config) {
+    static async farm(farmer) {
       if (!this.runners.has(farmer.accountId)) {
-        this.runners.set(farmer.accountId, this.execute(farmer, config));
+        this.runners.set(farmer.accountId, this.execute(farmer));
       }
       return this.runners.get(farmer.accountId);
     }
 
-    static async run(config) {
+    static async run() {
       try {
         /** Retrieve active farmers */
         const farmers = await db.Farmer.findAllWithActiveSubscription({
@@ -301,15 +305,16 @@ export default function createRunner(FarmerClass) {
         /** Run all farmer */
         farmers
           .filter((item) => item.active)
-          .map((farmer) => this.farm(farmer, config));
+          .map((farmer) => this.farm(farmer));
 
         /** Send Farming Complete Message */
         try {
           await bot?.sendFarmingInitiatedMessage({
             id: this.id,
             title: `${this.emoji} ${this.title}`,
+            telegramLink: this.telegramLink,
+            threadId: this.threadId,
             farmers,
-            config,
           });
         } catch (error) {
           this.logger.error("Failed to send farming notification:", error);
