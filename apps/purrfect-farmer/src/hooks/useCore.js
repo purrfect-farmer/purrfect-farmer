@@ -5,11 +5,10 @@ import md5 from "md5";
 import toast from "react-hot-toast";
 import tabs, { Browser, TelegramWeb, farmers } from "@/core/tabs";
 import { createElement } from "react";
-import { delay, getWindowCoords, isBotURL, postPortMessage } from "@/lib/utils";
+import { delay, getWindowCoords, postPortMessage } from "@/lib/utils";
 import { useCallback } from "react";
 import { useDeepCompareMemo } from "use-deep-compare";
 import { useMemo } from "react";
-import { useRef } from "react";
 import { useState } from "react";
 
 import useAccountContext from "./useAccountContext";
@@ -109,28 +108,30 @@ export default function useCore() {
   /** Drops Status */
   const dropsStatus = useDeepCompareMemo(() => {
     return {
-      ...defaultSettings.dropsStatus,
       ...settings.dropsStatus,
+      ...Object.fromEntries(
+        farmers
+          .filter((item) => settings.dropsStatus[item.id] === undefined)
+          .map((item) => [item.id, true])
+      ),
     };
-  }, [defaultSettings.dropsStatus, settings.dropsStatus]);
+  }, [farmers, settings.dropsStatus]);
 
   /** Drops Order */
   const dropsOrder = useDeepCompareMemo(
     () =>
-      new Set([
-        /** Default Drops Order */
-        ...defaultSettings.dropsOrder.filter(
-          (item) => !settings.dropsOrder.includes(item)
-        ),
-        /** Modified Drops Order */
-        ...settings.dropsOrder,
+      Array.from(
+        new Set([
+          /** New Drops */
+          ...farmers
+            .filter((item) => !settings.dropsOrder.includes(item.id))
+            .map((item) => item.id),
 
-        /** Others */
-        ...farmers.reduce((result, item) => result.concat(item.id), []),
-      ])
-        .values()
-        .toArray(),
-    [farmers, defaultSettings.dropsOrder, settings.dropsOrder]
+          /** Current Drops Order */
+          ...settings.dropsOrder,
+        ])
+      ),
+    [farmers, settings.dropsOrder]
   );
 
   /** Ordered Drops */

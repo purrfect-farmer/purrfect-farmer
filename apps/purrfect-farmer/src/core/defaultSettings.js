@@ -1,24 +1,7 @@
-/** Drops Status */
-const dropsStatus = {
-  ["ultima-bulls"]: true,
-  ["dragonz-land"]: true,
-  ["frogster"]: true,
-  ["space-adventure"]: true,
-  ["digger"]: true,
-  ["funatic"]: true,
-  ["hrum"]: true,
-  ["wonton"]: true,
-  ["slotcoin"]: true,
-  ["dreamcoin"]: true,
-};
-
-/** Drops Order */
-const dropsOrder = Object.keys(dropsStatus);
-
 /** Default Settings */
 const defaultSettings = {
-  dropsStatus,
-  dropsOrder,
+  dropsStatus: {},
+  dropsOrder: [],
   theme: "system",
   preferredTelegramWebVersion: "k",
   farmerMode: import.meta.env.VITE_SETTING_FARMER_MODE || "web",
