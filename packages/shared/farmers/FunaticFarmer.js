@@ -76,6 +76,8 @@ export default class FunaticFarmer extends BaseFarmer {
 
         /** Tap */
         await this.api.post("https://clicker.api.funtico.com/tap", { taps });
+
+        this.logger.success("✓ Tapped " + taps + " times");
       }
     });
   }
@@ -134,8 +136,6 @@ export default class FunaticFarmer extends BaseFarmer {
         );
 
         this.logger.success("✓ Upgraded Card ");
-
-        await this.utils.delayForSeconds(1);
       }
     });
   }
