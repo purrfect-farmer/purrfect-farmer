@@ -13,10 +13,18 @@ export default (program, inquirer, chalk) => {
       );
 
       const db = await import("../db/models/index.js").then((m) => m.default);
+      const farmerIds = Object.keys(farmers);
 
+      const allFarmers = await db.Farmer.findAll({ attributes: ["farmer"] });
+      console.log(
+        "All Farmers:",
+        allFarmers.map((f) => f.farmer)
+      );
+
+      console.log("Farmer IDs:", farmerIds);
       await db.Farmer.destroy({
         where: {
-          farmer: { [db.Sequelize.Op.notIn]: Object.keys(farmers) },
+          farmer: { [db.Sequelize.Op.notIn]: farmerIds },
         },
       });
       console.log(chalk.green("Database cleaned successfully!"));
