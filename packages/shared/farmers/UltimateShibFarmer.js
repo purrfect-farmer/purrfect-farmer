@@ -52,7 +52,10 @@ export default class UltimateShibFarmer extends BaseFarmer {
   }
 
   getNumberValue(dom, id) {
-    return parseInt(dom.querySelector("#" + id).textContent, 10);
+    return parseInt(
+      dom.querySelector("#" + id).textContent.replace(/,/g, ""),
+      10
+    );
   }
 
   async process() {
