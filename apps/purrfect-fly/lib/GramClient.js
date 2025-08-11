@@ -223,10 +223,7 @@ class GramClient extends BaseTelegramWebClient {
   /** Save Session */
   async _saveSession() {
     /** Write to File */
-    await fsp.writeFile(
-      this._sessionFilePath,
-      JSON.stringify(this.session.save())
-    );
+    await this.constructor.writeSession(this._name, this.session.save());
 
     /** Mark as Saved */
     this._sessionFileExists = true;
@@ -288,6 +285,11 @@ class GramClient extends BaseTelegramWebClient {
       .access(this.getSessionPath(name))
       .then(() => true)
       .catch(() => false);
+  }
+
+  /** Write session */
+  static writeSession(session, content) {
+    return fsp.writeFile(this.getSessionPath(session), JSON.stringify(content));
   }
 
   /** Get session file path */
