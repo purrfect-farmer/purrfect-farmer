@@ -26,7 +26,7 @@ export default (program, inquirer, chalk) => {
 
       /** Get session string */
       const { sessionString } = await inquirer.prompt([
-        { name: "session", message: "Session:", required: true },
+        { name: "sessionString", message: "Session:", required: true },
       ]);
 
       /** Find or create account */
