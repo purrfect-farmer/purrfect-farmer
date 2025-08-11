@@ -134,7 +134,7 @@ export default class UltimateShibFarmer extends BaseFarmer {
 
   completeAds(status) {
     return this.executeTask("Complete Ads", async () => {
-      for (let i = status.hourlyTasks; i < 10; i++) {
+      for (let i = status.hourlyTasks; status.todayTasks < 40 && i < 10; i++) {
         const ad = await this.startAd();
         this.logger.success(`✓ Started Ad ${i + 1}`);
 
