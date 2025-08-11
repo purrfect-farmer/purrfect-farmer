@@ -65,12 +65,25 @@ export default function createRunner(FarmerClass) {
         httpsAgent: this.httpsAgent,
         headers: {
           common: {
+            ["sec-ch-ua"]:
+              '"Android WebView";v="131", "Chromium";v="131", "Not_A Brand";v="24"',
+            ["sec-ch-ua-arch"]: '""',
+            ["sec-ch-ua-arch-full-version"]: '""',
+            ["sec-ch-ua-bitness"]: '""',
+            ["sec-ch-ua-full-version-list"]: "",
+            ["sec-ch-ua-mobile"]: "?0",
+            ["sec-ch-ua-model"]: '""',
+            ["sec-ch-ua-platform"]: '"Android"',
+            ["sec-ch-ua-platform-version"]: '""',
+            ["sec-fetch-dest"]: "empty",
+            ["sec-fetch-mode"]: "cors",
+            ["sec-fetch-site"]: "same-origin",
+            ["x-requested-with"]: "org.telegram.messenger",
             ["User-Agent"]: this.userAgent,
             ["Origin"]: `https://${this.constructor.host}`,
             ["Referer"]: `https://${this.constructor.host}/`,
             ["Referrer-Policy"]: "strict-origin-when-cross-origin",
             ["Cache-Control"]: "no-cache",
-            ["X-Requested-With"]: "org.telegram.messenger",
           },
         },
       });

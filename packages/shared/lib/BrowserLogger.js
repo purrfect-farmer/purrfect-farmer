@@ -15,6 +15,11 @@ export default class BrowserLogger extends BaseLogger {
 
   /** Output messages with HTML conversion */
   output(...args) {
+    if (!this.terminalDiv) {
+      console.warn("Terminal element not set. Use setElement() to set it.");
+      console.log(...args);
+      return;
+    }
     const line = args.join(" ");
     const html = this.converter.toHtml(line);
     this.terminalDiv.innerHTML += html + "<br/>";
