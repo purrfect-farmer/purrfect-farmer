@@ -97,6 +97,9 @@ export default function createRunner(FarmerClass) {
       /** Refetch Auth */
       this.retryApiRequests();
 
+      /** Set XSRF */
+      this.registerXSRFInterceptor();
+
       /** Log API Response */
       if (process.env.NODE_ENV !== "production") {
         this.logApiRequests();
@@ -105,6 +108,21 @@ export default function createRunner(FarmerClass) {
       /** Register extra interceptors */
       if (this.configureApi) {
         this.configureApi();
+      }
+    }
+
+    registerXSRFInterceptor() {
+      if (this.constructor.withXSRFToken) {
+        this.api.interceptors.request.use(async (config) => {
+          const xsrfToken = (
+            await this.jar.getCookies(`https://${this.constructor.host}`)
+          ).find((cookie) => cookie.key === "XSRF-TOKEN")?.value;
+
+          if (xsrfToken) {
+            config.headers["X-XSRF-TOKEN"] = xsrfToken;
+          }
+          return config;
+        });
       }
     }
 
