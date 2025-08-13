@@ -294,6 +294,17 @@ export default class BaseTelegramWebClient extends TelegramClient {
     });
   }
 
+  /** Leave Conversation */
+  leaveConversation(id) {
+    return this.execute(() => {
+      return this.invoke(
+        new Api.channels.LeaveChannel({
+          channel: id,
+        })
+      );
+    });
+  }
+
   /** Logout */
   logout() {
     return this.execute(() => this.invoke(new Api.auth.LogOut({})));

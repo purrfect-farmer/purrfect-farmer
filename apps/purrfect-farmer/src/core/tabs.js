@@ -12,6 +12,7 @@ import farmers from "./farmers";
 export const Welcome = lazy(() => import("@/app/Welcome"));
 export const Browser = lazy(() => import("@/app/Browser"));
 export const TelegramWeb = lazy(() => import("@/app/TelegramWeb"));
+export const TelegramCleaner = lazy(() => import("@/app/TelegramCleaner"));
 export const BackupAndRestore = lazy(() => import("@/app/BackupAndRestore"));
 export const Migrate = lazy(() => import("@/app/Migrate"));
 export const PayForCloud = lazy(() => import("@/app/PayForCloud"));
@@ -81,6 +82,15 @@ export const utils = [
     icon: LocalTelegramSessionIcon,
     component: createElement(LocalTelegramSession),
   },
+
+  /** Telegram Cleaner */
+  {
+    id: "telegram-cleaner",
+    title: "Telegram Cleaner",
+    icon: TelegramWebKIcon,
+    component: createElement(TelegramCleaner),
+  },
+
   /** Backup and Restore */
   {
     id: "backup-and-restore",
