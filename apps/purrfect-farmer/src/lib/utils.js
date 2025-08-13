@@ -1,7 +1,7 @@
 export * from "@purrfect/shared/utils/index.js";
 
-import * as sharedUtils from "@purrfect/shared/utils/index.js";
 import defaultSharedSettings from "@/core/defaultSharedSettings";
+import sharedUtils from "@purrfect/shared/utils/index.js";
 import userAgents from "@purrfect/shared/resources/userAgents.js";
 import { clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
