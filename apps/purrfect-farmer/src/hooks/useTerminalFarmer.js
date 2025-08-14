@@ -54,11 +54,13 @@ export default function useTerminalFarmer() {
 
   const [, dispatchAndToggleFarmer] = useMirroredCallback(
     `${id}-toggle`,
-    () => {
-      if (started) {
-        stopFarmer();
+    (status) => {
+      if (typeof status === "boolean") {
+        return status ? startFarmer() : stopFarmer();
+      } else if (!started) {
+        return startFarmer();
       } else {
-        startFarmer();
+        return stopFarmer();
       }
     },
     [id, started, startFarmer, stopFarmer]

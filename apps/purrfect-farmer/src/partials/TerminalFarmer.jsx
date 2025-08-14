@@ -16,7 +16,7 @@ const TerminalFarmerContent = () => {
       </div>
 
       <button
-        onClick={() => toggle()}
+        onClick={() => toggle(!started)}
         className={cn(
           "flex items-center justify-center gap-2 p-2",
           started ? "text-red-500" : "text-green-500"
