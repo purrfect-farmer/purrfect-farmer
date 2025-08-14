@@ -105,7 +105,7 @@ export default class BaseTelegramWebClient extends TelegramClient {
    */
   async execute(callback) {
     await this.connect();
-    return callback();
+    return callback(this);
   }
 
   /** Get Self */
@@ -300,6 +300,24 @@ export default class BaseTelegramWebClient extends TelegramClient {
       return this.invoke(
         new Api.channels.LeaveChannel({
           channel: id,
+        })
+      );
+    });
+  }
+
+  /** Delete and Block Bot */
+  async deleteAndBlockBot(entity) {
+    return this.execute(async () => {
+      await this.invoke(
+        new Api.messages.DeleteHistory({
+          peer: entity,
+          revoke: true,
+        })
+      );
+
+      await this.invoke(
+        new Api.contacts.Block({
+          id: entity,
         })
       );
     });
