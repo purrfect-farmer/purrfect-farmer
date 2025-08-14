@@ -154,10 +154,7 @@ export default memo(function UtilsPanel() {
                       className={cn("w-6 h-6 rounded-full shrink-0")}
                     />
                     <h3 className={cn("min-w-0 truncate w-full", "font-bold")}>
-                      {tab.title}{" "}
-                      {tab.id === "cloud-telegram-session" ? (
-                        <span className="text-orange-500">(Access)</span>
-                      ) : null}
+                      {tab.title}
                     </h3>
                   </Dialog.Close>
                 ))}
