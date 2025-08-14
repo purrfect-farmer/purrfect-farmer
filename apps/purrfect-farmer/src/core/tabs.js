@@ -52,20 +52,12 @@ export const telegramWeb = [
 ];
 
 export const utils = [
-  /** Pay For Cloud */
+  /** Local Telegram Session */
   {
-    id: "pay-for-cloud",
-    title: "Pay For Cloud",
-    icon: CloudIcon,
-    component: createElement(PayForCloud),
-  },
-
-  /** Cloud Manager */
-  {
-    id: "cloud-manager",
-    title: "Cloud Manager",
-    icon: CloudIcon,
-    component: createElement(CloudManager),
+    id: "local-telegram-session",
+    title: "Local Telegram Session",
+    icon: LocalTelegramSessionIcon,
+    component: createElement(LocalTelegramSession),
   },
 
   /** Cloud Telegram Session */
@@ -76,12 +68,20 @@ export const utils = [
     component: createElement(CloudTelegramSession),
   },
 
-  /** Local Telegram Session */
+  /** Cloud Manager */
   {
-    id: "local-telegram-session",
-    title: "Local Telegram Session",
-    icon: LocalTelegramSessionIcon,
-    component: createElement(LocalTelegramSession),
+    id: "cloud-manager",
+    title: "Cloud Manager",
+    icon: CloudIcon,
+    component: createElement(CloudManager),
+  },
+
+  /** Pay For Cloud */
+  {
+    id: "pay-for-cloud",
+    title: "Pay For Cloud",
+    icon: CloudIcon,
+    component: createElement(PayForCloud),
   },
 
   /** Telegram Cleaner */
@@ -103,7 +103,7 @@ export const utils = [
   /** Migrate */
   {
     id: "migrate-to-v2",
-    title: "Migrate to V2",
+    title: "Migrate to V2+",
     icon: AppIcon,
     component: createElement(Migrate),
   },
