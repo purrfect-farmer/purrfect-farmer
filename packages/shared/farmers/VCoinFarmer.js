@@ -124,20 +124,22 @@ export default class VCoinFarmer extends BaseFarmer {
 
   async spinWheel() {
     return this.executeTask("Spin Wheel", async () => {
-      const wheel = await this.getWheel();
+      while (true) {
+        const wheel = await this.getWheel();
 
-      if (this.signal?.aborted) {
-        this.logger.warn("Wheel spinning aborted");
-        return;
-      }
+        if (this.signal?.aborted) {
+          this.logger.warn("Wheel spinning aborted");
+          return;
+        }
 
-      if (wheel.availableNum > 0) {
-        this.logger.log("Spinning the wheel...");
-        await this.drawWheel(wheel.id, wheel.payJson);
-        this.logger.success("Spun the wheel");
-      } else {
-        this.logger.warn("No spins available for the wheel");
-        return;
+        if (wheel.availableNum > 0) {
+          this.logger.log("Spinning the wheel...");
+          await this.drawWheel(wheel.id, wheel.payJson);
+          this.logger.success("Spun the wheel");
+        } else {
+          this.logger.warn("No spins available for the wheel");
+          return;
+        }
       }
     });
   }
