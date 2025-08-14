@@ -365,7 +365,7 @@ if (location.host === TELEGRAM_WEB_HOST) {
     }
   });
 
-  /** Handle Viewport */
+  /** Handle Events */
   window.addEventListener("message", (ev) => {
     if (typeof ev.data !== "string") return;
 
@@ -379,23 +379,32 @@ if (location.host === TELEGRAM_WEB_HOST) {
     const { eventType } = event || {};
     if (!eventType) return;
 
-    switch (eventType) {
-      case "web_app_request_viewport":
-        /** Stop Immediate Propagation */
-        ev.stopImmediatePropagation();
+    const reply = (eventType, eventData) => {
+      /** Stop Immediate Propagation */
+      ev.stopImmediatePropagation();
 
-        /** Return Mocked Height */
-        ev.source.postMessage(
-          JSON.stringify({
-            eventType: "viewport_changed",
-            eventData: {
-              height: 600,
-              is_state_stable: false,
-              is_expanded: true,
-            },
-          }),
-          "*"
-        );
+      /** Return Mocked Height */
+      ev.source.postMessage(
+        JSON.stringify({
+          eventType,
+          eventData,
+        }),
+        "*"
+      );
+    };
+
+    switch (eventType) {
+      case "web_app_request_fullscreen":
+        reply("fullscreen_failed", {
+          error: "UNSUPPORTED",
+        });
+        break;
+      case "web_app_request_viewport":
+        reply("viewport_changed", {
+          height: 600,
+          is_state_stable: false,
+          is_expanded: true,
+        });
         break;
     }
   });
