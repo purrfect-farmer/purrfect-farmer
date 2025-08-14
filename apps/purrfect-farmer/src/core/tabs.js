@@ -2,6 +2,7 @@ import AppIcon from "@/assets/images/icon.png?format=webp&w=80";
 import CloudIcon from "@/assets/images/cloud.png?format=webp&w=80";
 import CloudTelegramSessionIcon from "@/assets/images/cloud-telegram-session.png?format=webp&w=80";
 import LocalTelegramSessionIcon from "@/assets/images/local-telegram-session.png?format=webp&w=80";
+import TelegramCleanerIcon from "@/assets/images/telegram-cleaner.png?format=webp&w=80";
 import TelegramWebAIcon from "@/assets/images/telegram-web-a.png?format=webp&w=80";
 import TelegramWebKIcon from "@/assets/images/telegram-web-k.png?format=webp&w=80";
 import { createElement } from "react";
@@ -87,7 +88,7 @@ export const utils = [
   {
     id: "telegram-cleaner",
     title: "Telegram Cleaner",
-    icon: TelegramWebKIcon,
+    icon: TelegramCleanerIcon,
     component: createElement(TelegramCleaner),
   },
 
