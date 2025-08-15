@@ -110,7 +110,7 @@ export default class BaseTelegramWebClient extends TelegramClient {
 
   /** Get Self */
   getSelf() {
-    return this._execute(async () => {
+    return this.execute(async () => {
       try {
         return await this.getMe();
       } catch (error) {
