@@ -9,15 +9,18 @@ const farmersGlob = import.meta.glob(
   }
 );
 
-const farmersIconGlob = import.meta.glob("../assets/images/farmers/*.png", {
-  eager: true,
-  import: "default",
-  query: {
-    w: 80,
-    h: 80,
-    format: "webp",
-  },
-});
+const farmersIconGlob = import.meta.glob(
+  "../../node_modules/@purrfect/shared/assets/images/farmers/*.png",
+  {
+    eager: true,
+    import: "default",
+    query: {
+      w: 80,
+      h: 80,
+      format: "webp",
+    },
+  }
+);
 
 const icons = Object.entries(farmersIconGlob).reduce(
   (result, [filepath, icon]) => {
