@@ -133,7 +133,6 @@ export default class NexoFarmer extends BaseFarmer {
     if (csrfToken) {
       this.csrfToken = csrfToken[1];
       this.api.defaults.headers.common["x-csrf-token"] = this.csrfToken;
-      this.logger.log("CSRF Token set:", this.csrfToken);
     }
   }
 }
