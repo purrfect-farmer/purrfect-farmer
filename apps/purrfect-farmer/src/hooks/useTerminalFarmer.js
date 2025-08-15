@@ -21,23 +21,26 @@ export default function useTerminalFarmer() {
   const terminalRef = useRef();
   const controllerRef = useRef();
 
+  const startedRef = useRef(started);
+  startedRef.current = started;
+
   const [stopFarmer, dispatchAndStopFarmer] = useMirroredCallback(
     `${id}-stop`,
     () => {
-      if (!started) {
+      if (!startedRef.current) {
         return;
       }
       controllerRef.current?.abort();
       controllerRef.current = null;
       setStarted(false);
     },
-    [id, started, setStarted]
+    [id, setStarted]
   );
 
   const [startFarmer, dispatchAndStartFarmer] = useMirroredCallback(
     `${id}-start`,
     () => {
-      if (started) {
+      if (startedRef.current) {
         return;
       }
       controllerRef.current?.abort();
@@ -55,7 +58,7 @@ export default function useTerminalFarmer() {
 
       setStarted(true);
     },
-    [id, title, instance, logger, started, stopFarmer]
+    [id, title, instance, logger, stopFarmer]
   );
 
   const [, dispatchAndToggleFarmer] = useMirroredCallback(
