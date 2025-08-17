@@ -122,7 +122,13 @@ export default class BaseTelegramWebClient extends TelegramClient {
 
   /** Wait for Reply */
   _waitForReply(entity, { filter } = {}) {
-    return new Promise((resolve) => {
+    return new Promise((resolve, reject) => {
+      /** Rejection Timeout */
+      const timeout = setTimeout(() => {
+        this.removeEventHandler(handler, telegramEvent);
+        reject(new Error("TIMEOUT"));
+      }, 10_000);
+
       /** Event to Handle */
       const telegramEvent = new NewMessage({
         fromUsers: [entity],
@@ -133,6 +139,7 @@ export default class BaseTelegramWebClient extends TelegramClient {
        */
       const handler = (event) => {
         if (typeof filter !== "function" || filter(event.message)) {
+          clearTimeout(timeout);
           this.removeEventHandler(handler, telegramEvent);
           resolve(event.message);
         }
