@@ -57,7 +57,6 @@ export default class VCoinFarmer extends BaseFarmer {
     this.logUserInfo(user, asset, mining);
 
     await this.startOrClaimMining(mining);
-    await this.spinWheel();
     await this.completeTasks();
     await this.upgradeUserLevel();
   }
