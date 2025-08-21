@@ -2,6 +2,8 @@ import FarmerNotification from "@/components/FarmerNotification";
 import toast from "react-hot-toast";
 import { createElement, useLayoutEffect } from "react";
 
+import useRefCallback from "./useRefCallback";
+
 export default function useDropFarmerToast({
   id,
   title,
@@ -9,6 +11,8 @@ export default function useDropFarmerToast({
   started = false,
   onClick,
 }) {
+  const onToastClick = useRefCallback(onClick);
+
   useLayoutEffect(() => {
     if (started) {
       toast.success(
@@ -17,12 +21,12 @@ export default function useDropFarmerToast({
             t,
             id,
             title,
-            onClick,
+            onClick: onToastClick,
           }),
         {
           icon: createElement("img", {
             src: icon,
-            className: "w-6 h-6 rounded-full",
+            className: "size-6 rounded-full",
           }),
           id: `${id}-farmer`,
           duration: 2000,
@@ -33,5 +37,5 @@ export default function useDropFarmerToast({
     return () => {
       toast.dismiss(`${id}-farmer`);
     };
-  }, [id, title, icon, started, onClick]);
+  }, [id, title, icon, started, onToastClick]);
 }
