@@ -141,7 +141,7 @@ export default function useDropFarmer() {
   const started = metaQuery.isSuccess;
 
   /** Status */
-  const status = telegramWebApp === null ? "pending-webapp" : "pending-init";
+  const status = telegramWebApp === null ? "pending-mini-app" : "pending-init";
 
   /** Sync Enabled */
   const syncEnabled = settings.enableCloud && syncToCloud;

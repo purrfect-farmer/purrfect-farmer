@@ -25,8 +25,8 @@ export default memo(function FarmerInit({
       ) : (
         <>
           <h3 className="font-bold text-center">
-            {status === "pending-webapp" ? (
-              <>Getting Web App</>
+            {status === "pending-mini-app" ? (
+              <>Getting Mini App</>
             ) : (
               <>Preparing Farmer</>
             )}
@@ -36,7 +36,7 @@ export default memo(function FarmerInit({
               <>Sending /start Message</>
             ) : farmerMode === "session" ? (
               <>Please wait...</>
-            ) : status === "pending-webapp" ? (
+            ) : status === "pending-mini-app" ? (
               <>Please open/reload the bot</>
             ) : (
               <>If stuck for too long, you should reload the bot</>
