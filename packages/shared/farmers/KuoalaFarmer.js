@@ -200,14 +200,26 @@ export default class KuoalaFarmer extends BaseFarmer {
     });
   }
 
+  /** Check if video can be watched */
+  videoCanBeWatched(video) {
+    return (
+      !video["user_meta_data"]["is_watched"] ||
+      !video["user_meta_data"]["is_quiz_passed"]
+    );
+  }
+
+  /** Check if video quiz can be completed */
+  videoQuizCanBeCompleted(video) {
+    return video["user_meta_data"]["times_user_solved_quiz"] < 3;
+  }
+
   /** Complete Videos */
   completeVideos() {
     return this.executeTask("Complete Videos", async () => {
       const videos = await this.getVideos();
       const availableVideos = videos.filter(
         (video) =>
-          !video["user_meta_data"]["is_watched"] ||
-          !video["user_meta_data"]["is_quiz_passed"]
+          this.videoCanBeWatched(video) && this.videoQuizCanBeCompleted(video)
       );
 
       if (availableVideos.length === 0) {
