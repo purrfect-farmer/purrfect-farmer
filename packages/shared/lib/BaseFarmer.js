@@ -77,6 +77,15 @@ export default class BaseFarmer {
     return this.getTelegramUser()?.username;
   }
 
+  /** Get User Full Name */
+  getUserFullName() {
+    const user = this.getTelegramUser();
+    const firstName = user?.["first_name"] || "";
+    const lastName = user?.["last_name"] || "";
+
+    return `${firstName} ${lastName}`.trim();
+  }
+
   /** Get Start Parameter */
   getStartParam() {
     return this.getInitDataUnsafe()?.["start_param"];
@@ -84,7 +93,7 @@ export default class BaseFarmer {
 
   /** Start the farmer */
   start(signal) {
-    this.signal = signal;
+    this.signal = signal || new AbortController().signal;
     return this.process();
   }
 
