@@ -162,6 +162,18 @@ export default function TelegramCleaner() {
   console.log(dialogs);
   console.log(conversations);
 
+  if (farmerMode !== "session") {
+    return (
+      <div className="p-4 text-center">
+        <h2 className="text-2xl font-bold mb-4">Telegram Cleaner</h2>
+        <p>
+          Telegram Cleaner is only available in <strong>Session</strong> mode.
+          Please switch to Session mode to access this feature.
+        </p>
+      </div>
+    );
+  }
+
   return (
     <Tabs tabs={tabs} rootClassName="grow min-w-0 min-h-0 gap-0">
       <div className="p-2 grow min-w-0 min-h-0 flex flex-col overflow-auto">
