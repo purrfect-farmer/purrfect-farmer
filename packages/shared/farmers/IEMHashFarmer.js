@@ -69,6 +69,19 @@ export default class IEMHashFarmer extends BaseFarmer {
       .then((res) => res.data.data);
   }
 
+  doTask(taskId, signal = this.signal) {
+    return this.api
+      .post(
+        "https://appapi.iemhash.com/api/v1/task/dotask",
+        {
+          ["taskid"]: taskId,
+          ["time"]: Math.floor(Date.now() / 1000),
+        },
+        { signal }
+      )
+      .then((res) => res.data.data);
+  }
+
   receiveNewUserReward(signal = this.signal) {
     return this.api
       .post("https://appapi.iemhash.com/api/v1/user/receiveNewUser", null, {
