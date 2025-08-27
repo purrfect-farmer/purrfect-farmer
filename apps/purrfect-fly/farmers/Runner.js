@@ -256,7 +256,8 @@ export default function createRunner(FarmerClass) {
       return this.client.joinTelegramLink(link);
     }
 
-    async init() {
+    /** Prepare Instance */
+    async prepare() {
       const needsAuth = !this.constructor.cacheAuth || !this.farmer;
 
       /** Create Farmer */
@@ -331,8 +332,8 @@ export default function createRunner(FarmerClass) {
       const instance = new this(account);
 
       try {
-        await instance.init();
-        await instance.process();
+        await instance.prepare();
+        await instance.start();
       } catch (error) {
         await instance.disconnect();
         this.logger.error("Error:", account.id, error);
