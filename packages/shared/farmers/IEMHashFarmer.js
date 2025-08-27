@@ -90,6 +90,39 @@ export default class IEMHashFarmer extends BaseFarmer {
       .then((res) => res.data.data);
   }
 
+  getWeekTask(signal = this.signal) {
+    return this.api
+      .post("https://appapi.iemhash.com/api/v1/task/week_gettask", null, {
+        signal,
+      })
+      .then((res) => res.data.data);
+  }
+
+  checkWeekTask(signal = this.signal) {
+    return this.api
+      .post("https://appapi.iemhash.com/api/v1/task/week_task_check", null, {
+        signal,
+      })
+      .then((res) => res.data.data);
+  }
+
+  collectWeekTask(signal = this.signal) {
+    return this.api
+      .post("https://appapi.iemhash.com/api/v1/task/week_task_collect", null, {
+        signal,
+      })
+      .then((res) => res.data.data);
+  }
+
+  collectAd(signal = this.signal) {
+    return this.api
+      .get(
+        `https://appapi.iemhash.com/api/v1/advertisement/noticetest?userid=${this.getUserId()}`,
+        { signal }
+      )
+      .then((res) => res.data.data);
+  }
+
   /** Process Farmer */
   async process() {
     const { user } = await this.getUser();
@@ -97,6 +130,7 @@ export default class IEMHashFarmer extends BaseFarmer {
     this.logUserInfo(user);
 
     await this.claimReward(user);
+    await this.completeTasks();
     await this.mine();
   }
 
@@ -132,6 +166,48 @@ export default class IEMHashFarmer extends BaseFarmer {
         this.logger.success(`Mined successfully! - ${user.power}`);
 
         await this.utils.delayForSeconds(2);
+      }
+    });
+  }
+
+  completeTasks() {
+    return this.executeTask("Complete Tasks", async () => {
+      while (true) {
+        const weekTask = await this.getWeekTask();
+
+        if (weekTask["down_time"] > 0) {
+          return;
+        }
+
+        switch (weekTask.type) {
+          case "watch_ads":
+            const totalCount = weekTask["line"];
+            const userCount = weekTask["my_line"];
+
+            for (let i = userCount; i < totalCount; i++) {
+              await this.collectAd();
+              await this.utils.delayForSeconds(10);
+            }
+            break;
+
+          case "join_channel":
+          case "join_group":
+            const url = `https://t.me/${weekTask.jump}`;
+            await this.tryToJoinTelegramLink(url);
+            break;
+
+          default:
+            return;
+        }
+
+        const { data } = await this.checkWeekTask();
+
+        if (data.completed) {
+          await this.collectWeekTask();
+          this.logger.success(`COMPLETED: ${data.desc}`);
+        } else {
+          return;
+        }
       }
     });
   }
