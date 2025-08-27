@@ -109,7 +109,8 @@ export default class IEMHashFarmer extends BaseFarmer {
 
   claimReward(user) {
     return this.executeTask("Claim Reward", async () => {
-      if (!"mint_token" in user) {
+      const hasClaimedNewUserReward = "mint_token" in user;
+      if (!hasClaimedNewUserReward) {
         await this.receiveNewUserReward();
         this.logger.success("Received new user reward!");
       }
