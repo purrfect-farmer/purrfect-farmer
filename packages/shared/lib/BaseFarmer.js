@@ -1,3 +1,5 @@
+import * as changeKeys from "change-case/keys";
+
 import utils from "../utils/index.js";
 
 export default class BaseFarmer {
@@ -59,8 +61,10 @@ export default class BaseFarmer {
   }
 
   /** Get Init Data Unsafe */
-  getInitDataUnsafe() {
-    return this.telegramWebApp?.initDataUnsafe;
+  getInitDataUnsafe(camelCase = false) {
+    return camelCase
+      ? changeKeys.camelCase(this.telegramWebApp?.initDataUnsafe, Infinity)
+      : this.telegramWebApp?.initDataUnsafe;
   }
 
   /** Get Telegram User */
