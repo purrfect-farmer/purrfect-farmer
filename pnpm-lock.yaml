@@ -371,6 +371,9 @@ importers:
       chalk:
         specifier: ^5.5.0
         version: 5.5.0
+      change-case:
+        specifier: ^5.4.4
+        version: 5.4.4
       date-fns:
         specifier: ^4.1.0
         version: 4.1.0
@@ -2661,6 +2664,7 @@ packages:
 
   '@telegram-apps/bridge@2.10.3':
     resolution: {integrity: sha512-mjbpxynr6g5EOQlpxuKQxDN+UTrtKLWBfJQs8BLQX0dkZVL+r7nQNAVzY2NtJHLUUCA+eUccq+yF7NkesnY46g==}
+    deprecated: This package is not supported anymore. Use @tma.js/bridge instead
 
   '@telegram-apps/signals@1.1.2':
     resolution: {integrity: sha512-1P1kdCLX7MfETGPxH7f3UZKIsdE7Tz5S7QmN4Km1sbYQMakD5Bi1NecSMR7/wnHp50gWMI1JzENcMtCEmouhSg==}
