@@ -1,12 +1,15 @@
 export * from "@purrfect/shared/utils/index.js";
 
 import defaultSharedSettings from "@/core/defaultSharedSettings";
+import md5 from "md5";
 import sharedUtils from "@purrfect/shared/utils/index.js";
 import userAgents from "@purrfect/shared/resources/userAgents.js";
 import { clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
 
 import { uuid } from "./utils";
+
+export { md5 };
 
 export function isExtension() {
   return window.location.protocol === "chrome-extension:";
@@ -368,4 +371,5 @@ export const sendWebviewMessage = (data) =>
 export default {
   ...sharedUtils,
   parseHTML,
+  md5,
 };
