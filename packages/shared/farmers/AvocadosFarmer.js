@@ -182,9 +182,13 @@ export default class AvocadosFarmer extends BaseFarmer {
   logUserInfo(user) {
     this.logger.newline();
     this.logCurrentUser();
-    this.logger.keyValue("Balance", user["total_balance"]);
+    this.logger.keyValue("Balance", user["available_balance"]);
     this.logger.keyValue("Level", user["current_level"]);
     this.logger.keyValue("Peels", user["gold"]);
+    this.logger.keyValue(
+      "Seed",
+      `${user["withdraw_fragment"]}/${user["available_balance"] * 10}`
+    );
     this.logger.keyValue("Clicks", user["today_click_count"]);
   }
 
@@ -197,6 +201,7 @@ export default class AvocadosFarmer extends BaseFarmer {
       await this.claimTaps(
         currentLevel["gold_limit"] - user["today_click_count"]
       );
+      this.logger.info("Claimed taps for the day.");
     }
   }
 
@@ -209,8 +214,10 @@ export default class AvocadosFarmer extends BaseFarmer {
 
       if (canUpgrade && hasEnoughGold) {
         await this.upgradeBanna();
+        this.logger.info(`Upgraded to level ${nextLevel["level"]}.`);
       } else if (shortenCount > 0) {
         await this.useShorten();
+        this.logger.info("Used shorten to reduce upgrade cooldown.");
       }
     }
   }
@@ -219,6 +226,7 @@ export default class AvocadosFarmer extends BaseFarmer {
   async watchAd(user) {
     if (user["ad_countdown"] <= Date.now()) {
       await this.claimAdReward();
+      this.logger.info("Claimed ad reward.");
     }
   }
 }
