@@ -47,9 +47,6 @@ export default class YohiFarmer extends BaseFarmer {
       tgId: payload.tgId,
     });
 
-    console.log(data);
-    console.log(payload);
-
     return this.api
       .post("https://i.yohi.io/v1/api/user/login", payload)
       .then((res) => res.data.data);
