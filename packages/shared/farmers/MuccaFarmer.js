@@ -12,6 +12,7 @@ export default class MuccaFarmer extends BaseFarmer {
   ];
   static telegramLink = "https://t.me/MuccaAppBot/Mucca?startapp=1147265290";
   static cacheAuth = false;
+  static cacheTelegramWebApp = false;
   static interval = "0 * * * *";
 
   /** Extracted Firebase Project ID */
@@ -36,15 +37,30 @@ export default class MuccaFarmer extends BaseFarmer {
   async fetchAuth(signal = this.signal) {
     const { token } = await this.getUser();
 
-    const auth = await this.api
+    const auth = await this.signIn(token);
+    return this.getSecureToken(auth.refreshToken);
+  }
+
+  /** Sign In with Custom Token */
+  signIn(token, signal = this.signal) {
+    return this.api
       .post(
         `https://identitytoolkit.googleapis.com/v1/accounts:signInWithCustomToken?key=${this.constructor.firebaseProjectKey}`,
         { returnSecureToken: true, token },
         { signal }
       )
       .then((res) => res.data);
+  }
 
-    return this.getSecureToken(auth.refreshToken);
+  /** Account Lookup */
+  accountLookup(idToken, signal = this.signal) {
+    return this.api
+      .post(
+        `https://identitytoolkit.googleapis.com/v1/accounts:lookup?key=${this.constructor.firebaseProjectKey}`,
+        { idToken },
+        { signal }
+      )
+      .then((res) => res.data);
   }
 
   /** Get Auth Headers */
