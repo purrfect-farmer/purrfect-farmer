@@ -36,19 +36,21 @@ export default class MuccaFarmer extends BaseFarmer {
   async fetchAuth(signal = this.signal) {
     const { token } = await this.getUser();
 
-    return this.api
+    const auth = await this.api
       .post(
         `https://identitytoolkit.googleapis.com/v1/accounts:signInWithCustomToken?key=${this.constructor.firebaseProjectKey}`,
         { returnSecureToken: true, token },
         { signal }
       )
       .then((res) => res.data);
+
+    return this.getSecureToken(auth.refreshToken);
   }
 
   /** Get Auth Headers */
   getAuthHeaders(data) {
     return {
-      Authorization: `Bearer ${data.idToken}`,
+      Authorization: `Bearer ${data["access_token"]}`,
     };
   }
 
