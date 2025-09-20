@@ -350,11 +350,12 @@ export default function createRunner(FarmerClass) {
       return this.runners.get(account.id);
     }
 
-    static async run() {
+    static async run({ user } = {}) {
       try {
         const accounts = await db.Account.findSubscribedWithFarmer(
           this.id,
-          AUTO_START === false
+          AUTO_START === false,
+          user ? { where: { id: user } } : {}
         );
 
         /** Run all farmer */
