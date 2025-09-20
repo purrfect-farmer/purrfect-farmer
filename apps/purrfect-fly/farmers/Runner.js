@@ -128,9 +128,9 @@ export default function createRunner(FarmerClass) {
       this.api.interceptors.request.use((config) => {
         /** Apply Headers */
         config.headers = {
-          ...config.headers,
           ...(!this.__isFetchingAuth ? this.farmer?.headers : {}),
           ...this.getExtraHeaders?.(),
+          ...config.headers,
         };
         return config;
       });
