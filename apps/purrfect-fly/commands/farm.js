@@ -6,9 +6,10 @@
 export default (program, inquirer, chalk) => {
   program
     .command("farm <farmer>")
+    .option("-u, --user <user>", "Specify user by ID")
     .description("Run a farmer")
     .usage("farm example")
-    .action(async (farmer) => {
+    .action(async (farmer, options) => {
       const farmers = await import("../farmers/index.js").then(
         (m) => m.default
       );
@@ -20,6 +21,8 @@ export default (program, inquirer, chalk) => {
         return;
       }
 
-      FarmerClass.run();
+      const user = options.user;
+
+      FarmerClass.run({ user });
     });
 };
