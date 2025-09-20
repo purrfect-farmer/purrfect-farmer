@@ -59,7 +59,33 @@ export default function createRunner(FarmerClass) {
       this.httpsAgent = this.createAgent(this.proxy, true);
 
       /** Create API */
-      this.api = axios.create({
+      this.api = this.createApi();
+
+      /** Apply Delay */
+      this.registerDelayInterceptor();
+
+      /** Set Headers */
+      this.registerHeadersInterceptor();
+
+      /** Refetch Auth */
+      this.retryApiRequests();
+
+      /** Set XSRF */
+      this.registerXSRFInterceptor();
+
+      /** Log API Response */
+      if (process.env.NODE_ENV !== "production") {
+        this.logApiRequests();
+      }
+
+      /** Register extra interceptors */
+      if (this.configureApi) {
+        this.configureApi();
+      }
+    }
+
+    createApi() {
+      return axios.create({
         timeout: 60_000,
         httpAgent: this.httpAgent,
         httpsAgent: this.httpsAgent,
@@ -87,43 +113,27 @@ export default function createRunner(FarmerClass) {
           },
         },
       });
+    }
 
-      /** Apply Delay */
-      this.api.interceptors.request.use(async (config) => {
-        if (this.constructor.apiDelay) {
+    registerDelayInterceptor() {
+      if (this.constructor.apiDelay) {
+        this.api.interceptors.request.use(async (config) => {
           await this.utils.delay(this.constructor.apiDelay);
-        }
-        return config;
-      });
+          return config;
+        });
+      }
+    }
 
-      /** Set Headers */
+    registerHeadersInterceptor() {
       this.api.interceptors.request.use((config) => {
         /** Apply Headers */
-        if (!this.__isFetchingAuth) {
-          config.headers = {
-            ...config.headers,
-            ...this.farmer?.headers,
-            ...this.getExtraHeaders?.(),
-          };
-        }
+        config.headers = {
+          ...config.headers,
+          ...(!this.__isFetchingAuth ? this.farmer?.headers : {}),
+          ...this.getExtraHeaders?.(),
+        };
         return config;
       });
-
-      /** Refetch Auth */
-      this.retryApiRequests();
-
-      /** Set XSRF */
-      this.registerXSRFInterceptor();
-
-      /** Log API Response */
-      if (process.env.NODE_ENV !== "production") {
-        this.logApiRequests();
-      }
-
-      /** Register extra interceptors */
-      if (this.configureApi) {
-        this.configureApi();
-      }
     }
 
     registerXSRFInterceptor() {
@@ -209,6 +219,7 @@ export default function createRunner(FarmerClass) {
             error.response?.status ?? "ERR",
             3
           );
+
           const method = this.utils.truncateAndPad(
             error.config.method.toUpperCase(),
             4
