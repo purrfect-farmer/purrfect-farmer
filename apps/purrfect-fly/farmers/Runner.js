@@ -154,8 +154,9 @@ export default function createRunner(FarmerClass) {
             !this.__isRefreshingAuth
           ) {
             try {
-              this.__isRefreshingAuth = true;
               this.logger.warn("Refreshing auth...");
+              this.__isRefreshingAuth = true;
+              this.farmer.headers = {};
 
               /** Fetch new auth */
               await this.setAuth();
