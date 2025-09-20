@@ -99,11 +99,13 @@ export default function createRunner(FarmerClass) {
       /** Set Headers */
       this.api.interceptors.request.use((config) => {
         /** Apply Headers */
-        config.headers = {
-          ...config.headers,
-          ...this.farmer?.headers,
-          ...this.getExtraHeaders?.(),
-        };
+        if (!this.__isFetchingAuth) {
+          config.headers = {
+            ...config.headers,
+            ...this.farmer?.headers,
+            ...this.getExtraHeaders?.(),
+          };
+        }
         return config;
       });
 
@@ -151,12 +153,10 @@ export default function createRunner(FarmerClass) {
           if (
             isUnauthenticatedError &&
             !originalRequest.__retry &&
-            !this.__isRefreshingAuth
+            !this.__isFetchingAuth
           ) {
             try {
               this.logger.warn("Refreshing auth...");
-              this.__isRefreshingAuth = true;
-              this.farmer.headers = {};
 
               /** Fetch new auth */
               await this.setAuth();
@@ -173,8 +173,6 @@ export default function createRunner(FarmerClass) {
             } catch (error) {
               this.logger.error("Failed to refresh auth:", error);
               return Promise.reject(error);
-            } finally {
-              this.__isRefreshingAuth = false;
             }
           }
 
@@ -302,9 +300,14 @@ export default function createRunner(FarmerClass) {
     }
 
     async setAuth() {
-      const auth = await this.fetchAuth();
-      const headers = await this.getAuthHeaders(auth);
-      this.farmer.setHeaders(headers);
+      try {
+        this.__isFetchingAuth = true;
+        const auth = await this.fetchAuth();
+        const headers = await this.getAuthHeaders(auth);
+        this.farmer.setHeaders(headers);
+      } finally {
+        this.__isFetchingAuth = false;
+      }
     }
 
     async updateWebAppData() {
