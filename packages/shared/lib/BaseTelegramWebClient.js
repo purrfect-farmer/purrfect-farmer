@@ -189,7 +189,8 @@ export default class BaseTelegramWebClient extends TelegramClient {
   /** Get Webview */
   getWebview(link) {
     return this.execute(async () => {
-      let parsed = utils.parseTelegramLink(link);
+      let webviewButton,
+        parsed = utils.parseTelegramLink(link);
       const themeParams = new Api.DataJSON({
         data: JSON.stringify({
           bg_color: "#ffffff",
@@ -226,10 +227,17 @@ export default class BaseTelegramWebClient extends TelegramClient {
         });
 
         for (const msg of messagesWithButtons) {
-          const urls = msg.buttons.flat().map((btn) => btn.url);
-          for (const url of urls) {
-            if (utils.isBotURL(url)) {
-              parsed = utils.parseTelegramLink(url);
+          const buttons = msg.buttons.flat().map((btn) => btn.button);
+
+          for (const button of buttons) {
+            if (utils.isBotURL(button.url)) {
+              parsed = utils.parseTelegramLink(button.url);
+              break;
+            } else if (
+              button instanceof Api.KeyboardButtonWebView ||
+              button instanceof Api.KeyboardButtonSimpleWebView
+            ) {
+              webviewButton = button;
               break;
             }
           }
@@ -237,26 +245,45 @@ export default class BaseTelegramWebClient extends TelegramClient {
       }
 
       /** Request Webview */
-      result = await this.invoke(
-        !parsed.shortName
-          ? new Api.messages.RequestMainWebView({
-              platform: "android",
-              bot: parsed.entity,
-              peer: parsed.entity,
-              startParam: parsed.startParam,
-              themeParams,
-            })
-          : new Api.messages.RequestAppWebView({
-              platform: "android",
-              peer: parsed.entity,
-              startParam: parsed.startParam,
-              app: new Api.InputBotAppShortName({
-                botId: await this.getInputEntity(parsed.entity),
-                shortName: parsed.shortName,
-              }),
-              themeParams,
-            })
-      );
+      if (webviewButton) {
+        result = await this.invoke(
+          webviewButton instanceof Api.KeyboardButtonWebView
+            ? new Api.messages.RequestWebView({
+                platform: "android",
+                bot: parsed.entity,
+                peer: parsed.entity,
+                url: webviewButton.url,
+                themeParams,
+              })
+            : new Api.messages.RequestSimpleWebView({
+                platform: "android",
+                bot: parsed.entity,
+                url: webviewButton.url,
+                themeParams,
+              })
+        );
+      } else {
+        result = await this.invoke(
+          !parsed.shortName
+            ? new Api.messages.RequestMainWebView({
+                platform: "android",
+                bot: parsed.entity,
+                peer: parsed.entity,
+                startParam: parsed.startParam,
+                themeParams,
+              })
+            : new Api.messages.RequestAppWebView({
+                platform: "android",
+                peer: parsed.entity,
+                startParam: parsed.startParam,
+                app: new Api.InputBotAppShortName({
+                  botId: await this.getInputEntity(parsed.entity),
+                  shortName: parsed.shortName,
+                }),
+                themeParams,
+              })
+        );
+      }
 
       return result;
     });
