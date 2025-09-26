@@ -332,6 +332,7 @@ export default class HoneyFarmFarmer extends BaseFarmer {
     if (!lastTransaction["assistant-id"]) {
       const assistant = gameplay["assistants"].at(-1);
 
+      const currentTime = Math.floor(Date.now() / 1000);
       const newLastTransaction = { ...lastTransaction };
 
       newLastTransaction["assistant-id"] = assistant["assistant-id"];
