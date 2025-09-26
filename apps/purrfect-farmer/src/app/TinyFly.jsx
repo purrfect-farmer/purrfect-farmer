@@ -18,7 +18,6 @@ import useMirroredCallback from "@/hooks/useMirroredCallback";
  *
  * @param {Object} param0
  * @param {import("@purrfect/shared/lib/BaseFarmer.js").default} param0.FarmerClass
- * @param {Function} param0.joinTelegramLink
  * @param {string} param0.userAgent
  * @returns {import("@purrfect/shared/lib/BaseFarmer.js").default}
  */
