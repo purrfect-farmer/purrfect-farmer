@@ -62,6 +62,13 @@ class CronRunner {
     }
   }
 
+  stop() {
+    this.schedulers.forEach((scheduler) => scheduler.stop());
+    this.schedulers = [];
+    this.running = false;
+    console.log("🛑 All scheduled jobs stopped");
+  }
+
   wrapConcurrent(job) {
     let running = false;
     return async () => {

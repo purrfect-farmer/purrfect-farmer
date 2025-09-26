@@ -3,19 +3,31 @@ import { createElement, lazy } from "react";
 const TerminalFarmer = lazy(() => import("@/partials/TerminalFarmer"));
 
 export function createFarmer(FarmerClass, options) {
+  const {
+    id,
+    title,
+    host,
+    interval,
+    domains,
+    telegramLink,
+    apiDelay,
+    cacheAuth,
+    cacheTelegramWebApp,
+  } = FarmerClass;
   return {
     FarmerClass,
-    id: FarmerClass.id,
-    title: FarmerClass.title,
-    host: FarmerClass.host,
-    domains: FarmerClass.domains,
-    telegramLink: FarmerClass.telegramLink,
-    apiDelay: FarmerClass.apiDelay,
-    cacheAuth: FarmerClass.cacheAuth,
-    cacheTelegramWebApp: FarmerClass.cacheTelegramWebApp,
+    id,
+    title,
+    host,
+    interval,
+    domains,
+    apiDelay,
+    telegramLink,
+    cacheAuth,
+    cacheTelegramWebApp,
     netRequest: {
-      origin: `https://${FarmerClass.host}`,
-      domains: FarmerClass.domains,
+      origin: `https://${host}`,
+      domains,
     },
     component: createElement(TerminalFarmer),
     syncToCloud: true,

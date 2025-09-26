@@ -3,7 +3,7 @@ import "./config/env.js";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
-import CronRunner from "./lib/CronRunner.js";
+import CronRunner from "@purrfect/shared/lib/CronRunner.js";
 import app from "./config/app.js";
 import expireSubscriptions from "./actions/expireSubscriptions.js";
 import farmers from "./farmers/index.js";

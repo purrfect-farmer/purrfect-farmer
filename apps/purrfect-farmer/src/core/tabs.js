@@ -14,6 +14,7 @@ export const Welcome = lazy(() => import("@/app/Welcome"));
 export const Browser = lazy(() => import("@/app/Browser"));
 export const TelegramWeb = lazy(() => import("@/app/TelegramWeb"));
 export const TelegramCleaner = lazy(() => import("@/app/TelegramCleaner"));
+export const TinyFly = lazy(() => import("@/app/TinyFly"));
 export const BackupAndRestore = lazy(() => import("@/app/BackupAndRestore"));
 export const Migrate = lazy(() => import("@/app/Migrate"));
 export const PayForCloud = lazy(() => import("@/app/PayForCloud"));
@@ -90,6 +91,14 @@ export const utils = [
     title: "Telegram Cleaner",
     icon: TelegramCleanerIcon,
     component: createElement(TelegramCleaner),
+  },
+
+  /** Tiny Fly */
+  {
+    id: "tiny-fly",
+    title: "Tiny Fly",
+    icon: AppIcon,
+    component: createElement(TinyFly),
   },
 
   /** Backup and Restore */
