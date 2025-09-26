@@ -6,7 +6,6 @@ import { useRef } from "react";
 import CronRunner from "@purrfect/shared/lib/CronRunner.js";
 import useUserAgent from "@/hooks/useUserAgent";
 import utils from "@/lib/utils";
-import useRefCallback from "@/hooks/useRefCallback";
 import axios from "axios";
 import BrowserLogger from "@purrfect/shared/lib/BrowserLogger";
 import { useLayoutEffect } from "react";
@@ -28,7 +27,6 @@ const createInstance = ({
   logger,
   userAgent,
   controller,
-  joinTelegramLink,
   telegramClient,
 }) => {
   return new (class extends FarmerClass {
@@ -40,7 +38,6 @@ const createInstance = ({
       this.logger = logger;
       this.userAgent = userAgent;
       this.controller = controller;
-      this.joinTelegramLink = joinTelegramLink;
 
       if (import.meta.env.VITE_WHISKER) {
         this.api.defaults.headers.common[
@@ -52,8 +49,14 @@ const createInstance = ({
       this.configureApi?.();
     }
 
-    canJoinTelegramLink() {
-      return Boolean(this.joinTelegramLink);
+    /** Can Join Telegram Link */
+    canJoinTelegramLink(link) {
+      return Boolean(this.client.ref.current);
+    }
+
+    /** Join Telegram Link */
+    joinTelegramLink(link) {
+      return this.client.ref.current.joinTelegramLink(link);
     }
 
     registerDelayInterceptor() {
@@ -98,14 +101,12 @@ const createInstance = ({
 
 function TinyFly() {
   const logger = useMemo(() => new BrowserLogger(), []);
-  const { drops, telegramClient, joinTelegramLink } = useAppContext();
+  const { drops, telegramClient } = useAppContext();
   const userAgent = useUserAgent();
 
   const runnerRef = useRef(null);
   const terminalRef = useRef(null);
   const controllerRef = useRef(null);
-
-  const staticJoinTelegramLink = useRefCallback(joinTelegramLink);
 
   const [started, setStarted] = useState(false);
   const startedRef = useRef(started);
@@ -149,7 +150,6 @@ function TinyFly() {
             userAgent,
             controller,
             telegramClient,
-            joinTelegramLink: staticJoinTelegramLink,
           });
 
           await instance.run();
