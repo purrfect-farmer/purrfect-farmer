@@ -11,17 +11,47 @@ export default class HoneyFarmFarmer extends BaseFarmer {
   static cacheTelegramWebApp = false;
 
   configureApi() {
-    const interceptor = this.api.interceptors.request.use((config) => {
-      if (config.method === "get") {
-        config.url = this.updateUrl(config.url);
-      }
-
+    /** Inject User ID into all requests */
+    const userIdInterceptor = this.api.interceptors.request.use((config) => {
+      config.url = this.updateUrl(config.url);
       return config;
     });
 
+    /** Cast data types */
+    const dataCastInterceptor = this.api.interceptors.response.use((res) => {
+      if (res.data) {
+        res.data = this.deepCast(res.data);
+      }
+
+      return res;
+    });
+
     return () => {
-      this.api.interceptors.request.eject(interceptor);
+      this.api.interceptors.request.eject(userIdInterceptor);
+      this.api.interceptors.response.eject(dataCastInterceptor);
     };
+  }
+
+  autoType(value) {
+    if (value === "true") return true;
+    if (value === "false") return false;
+    if (value === "null") return null;
+    if (value === "undefined") return undefined;
+    if (value !== "" && !isNaN(value)) return Number(value);
+    return value;
+  }
+
+  deepCast(data) {
+    if (Array.isArray(data)) {
+      return data.map(this.deepCast.bind(this));
+    } else if (data && typeof data === "object") {
+      return Object.fromEntries(
+        Object.entries(data).map(([k, v]) => [k, this.deepCast(v)])
+      );
+    } else if (typeof data === "string") {
+      return this.autoType(data);
+    }
+    return data;
   }
 
   updateUrl(url) {
@@ -49,9 +79,11 @@ export default class HoneyFarmFarmer extends BaseFarmer {
   }
 
   /** Get User */
-  getUserInfo(signal = this.signal) {
+  getUserInfo(latest = true, signal = this.signal) {
     return this.api
-      .get("https://honey.masha.place/api/v1/user/info/?a=true", { signal })
+      .get(`https://honey.masha.place/api/v1/user/info/?a=${latest}`, {
+        signal,
+      })
       .then((res) => res.data);
   }
 
@@ -64,7 +96,7 @@ export default class HoneyFarmFarmer extends BaseFarmer {
   getTasks(signal = this.signal) {
     return this.api
       .get("https://honey.masha.place/api/v1/user/tasks/", { signal })
-      .then((res) => res.data);
+      .then((res) => res.data.data);
   }
 
   getDailyBonusStatus(signal = this.signal) {
@@ -100,6 +132,14 @@ export default class HoneyFarmFarmer extends BaseFarmer {
       .then((res) => res.data);
   }
 
+  getPromoCode(signal = this.signal) {
+    return this.api
+      .get("https://honey.masha.place/api/v1/partner/promocode/?lang=en", {
+        signal,
+      })
+      .then((res) => res.data);
+  }
+
   putHoney(payload, signal = this.signal) {
     return this.api
       .post(
@@ -110,14 +150,62 @@ export default class HoneyFarmFarmer extends BaseFarmer {
       .then((res) => res.data);
   }
 
+  updateUser(payload, signal = this.signal) {
+    return this.api
+      .post("https://honey.masha.place/api/v1/user/update/", payload, {
+        signal,
+      })
+      .then((res) => res.data);
+  }
+
+  claimTask(taskId, signal = this.signal) {
+    return this.api
+      .post(
+        `https://honey.masha.place/api/v1/user/tasks/claim/?task-id=${taskId}`,
+        null,
+        { signal }
+      )
+      .then((res) => res.data.data);
+  }
+
+  claimPromoCode(promocode, signal = this.signal) {
+    return this.api
+      .post(
+        "https://honey.masha.place/api/v1/user/promocode/",
+        new URLSearchParams({
+          "user-id": this.getUserId(),
+          lang: "en",
+          promocode,
+        }),
+        { signal }
+      )
+      .then((res) => res.data);
+  }
+
+  patchBoost(userBoostId, status = "active", signal = this.signal) {
+    return this.api
+      .post(
+        `https://honey.masha.place/api/v1/user/boosts/patch/?user-boost-id=${userBoostId}`,
+        { status },
+        { signal }
+      )
+      .then((res) => res.data);
+  }
+
   /** Process Farmer */
   async process() {
     const userInfo = await this.getUserInfo();
-    const gameplay = await this.getGameplay();
-    await this.getDailyBonusStatus();
-    await this.getDailyBonus();
 
     this.logUserInfo(userInfo);
+
+    await this.getDailyBonusStatus();
+    await this.getDailyBonus();
+    await this.executeTask("Collect Promo Code", () => this.collectPromoCode());
+    await this.executeTask("Complete Tasks", () => this.completeTasks());
+    await this.executeTask("Purchase Worker", () => this.purchaseWorker());
+    await this.executeTask("Purchase Assistant", () =>
+      this.purchaseAssistant()
+    );
   }
 
   logUserInfo(userInfo) {
@@ -130,39 +218,132 @@ export default class HoneyFarmFarmer extends BaseFarmer {
     this.logger.keyValue("Energy", lastTransaction["barrel-honey"]);
   }
 
-  /** Tap Barrel */
-  async tapBarrel(userInfo, signal = this.signal) {
+  async completeTasks() {
+    const tasks = await this.getTasks();
+    const unclaimedTasks = tasks.filter(
+      (task) => task.status === "pending" && task.currentScore >= task.goalScore
+    );
+
+    for (const task of unclaimedTasks) {
+      await this.claimTask(task.id);
+      this.logger.success(`Claimed Task: ${task.title}`);
+    }
+  }
+
+  async purchaseWorker() {
+    const userInfo = await this.getUserInfo();
+    const gameplay = await this.getGameplay();
+
+    const newSkills = userInfo.skills.map((skill) => {
+      const skillDefault = gameplay.equipment.find(
+        (item) => item["equipment-id"] === skill["equipment-id"]
+      );
+      const skillMaxLevel = Math.max(
+        ...Object.keys(skillDefault.levels).map(Number)
+      );
+      const skillNewLevel = Math.min(skill["level-number"] + 1, skillMaxLevel);
+      const skillLevelInfo = skillDefault.levels[skillNewLevel];
+
+      return {
+        ...skill,
+        "level-number": skillNewLevel,
+        delay: skillLevelInfo["time-delay"],
+      };
+    });
+
+    const workerDefault = gameplay.equipment.find(
+      (item) => item["equipment-id"] === "worker-default"
+    );
+
+    const workerMaxLevel = Math.max(
+      ...Object.keys(workerDefault.levels).map(Number)
+    );
+
+    const newWorkers = userInfo.workers.map((worker) => {
+      if (worker["equipment-id"]) {
+        const newLevel = Math.min(worker["level-number"] + 1, workerMaxLevel);
+        const levelInfo = workerDefault.levels[newLevel];
+        return {
+          ...worker,
+          "level-number": newLevel,
+          delay: levelInfo["time-delay"],
+        };
+      } else {
+        return {
+          ...worker,
+          "equipment-id": "worker-default",
+          "level-number": 1,
+          delay: 0,
+        };
+      }
+    });
+
     const lastTransaction = userInfo["last-transaction"];
-    let balance = Number(lastTransaction["account-honey"]);
-    let energy = Number(lastTransaction["barrel-honey"]);
 
-    while (energy > 0) {
-      const putAmount = Math.min(energy, 200 + Math.floor(Math.random() * 300));
+    const newLastTransaction = {
+      ...lastTransaction,
+      "earn-per-tap": newSkills.reduce(
+        (sum, skill) => sum + (skill["level-number"] || 0),
+        0
+      ),
+      "earn-per-hour": newWorkers.reduce(
+        (sum, worker) => sum + (worker["level-number"] || 0),
+        0
+      ),
+    };
 
-      if (putAmount <= 0) break;
+    const payload = {
+      ...userInfo,
+      "last-transaction": newLastTransaction,
+      skills: newSkills,
+      workers: newWorkers,
+    };
 
-      await this.putHoney({
-        "transaction-id": lastTransaction["transaction-id"],
-        "account-honey": balance + putAmount,
-        "barrel-level": Number(lastTransaction["barrel-level"]),
-        "earn-per-tap": Number(lastTransaction["earn-per-tap"]),
-        "earn-per-hour": Number(lastTransaction["earn-per-hour"]),
-        "barrel-honey": energy - putAmount,
-        "assistant-status": "false",
-        "assistant-id": "",
-        "assistant-time-start": "",
-        "assistant-time-end": "",
-        "transaction-type": "no-assistant",
-        "transaction-viewed": "false",
-        "user-id": this.getUserId().toString(),
+    await this.updateUser(payload);
+    this.logger.success("Purchased/Upgraded Worker");
+  }
+
+  async collectPromoCode() {
+    const list = await this.getPromoCode();
+
+    if (!list.length) {
+      this.logger.info("No promo codes available");
+      return;
+    }
+
+    for (const item of list) {
+      const code = item.title.split(" ").at(-1);
+      try {
+        await this.claimPromoCode(code);
+        this.logger.success(`Claimed promo code: ${code}`);
+      } catch (err) {
+        this.logger.error(`Failed to claim promo code ${code}: ${err.message}`);
+        continue;
+      }
+    }
+  }
+
+  async purchaseAssistant() {
+    const userInfo = await this.getUserInfo();
+    const gameplay = await this.getGameplay();
+
+    const lastTransaction = userInfo["last-transaction"];
+
+    if (!lastTransaction["assistant-id"]) {
+      const assistant = gameplay["assistants"].at(-1);
+
+      const newLastTransaction = { ...lastTransaction };
+
+      newLastTransaction["assistant-id"] = assistant["assistant-id"];
+      newLastTransaction["assistant-status"] = "true";
+      newLastTransaction["assistant-time-start"] = currentTime;
+      newLastTransaction["assistant-time-end"] =
+        currentTime + assistant["duration"];
+
+      await this.updateUser({
+        ...userInfo,
+        "last-transaction": newLastTransaction,
       });
-
-      balance += putAmount;
-      energy -= putAmount;
-
-      this.logger.keyValue("Tapped", putAmount);
-
-      break;
     }
   }
 }
