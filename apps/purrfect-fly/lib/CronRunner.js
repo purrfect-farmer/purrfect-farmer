@@ -1,4 +1,4 @@
-import { CronJob } from "cron";
+import { Cron } from "croner";
 
 class CronRunner {
   constructor(mode = "sequential") {
@@ -52,11 +52,11 @@ class CronRunner {
   start() {
     if (this.mode === "sequential") {
       console.log("⏱ Running in sequential mode");
-      new CronJob("*/10 * * * *", this.runner.bind(this), null, true);
+      new Cron("*/10 * * * *", this.runner.bind(this));
     } else {
       console.log("⏱ Running in concurrent mode");
       this.jobs.forEach((job) => {
-        new CronJob(job.interval, this.wrapConcurrent(job), null, true);
+        new Cron(job.interval, this.wrapConcurrent(job));
       });
     }
   }

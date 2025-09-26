@@ -39,6 +39,7 @@
     "close-with-grace": "^2.2.0",
     "commander": "^14.0.0",
     "cron": "^4.3.3",
+    "croner": "^9.1.0",
     "crypto-js": "^4.2.0",
     "date-fns": "^4.1.0",
     "deepmerge": "^4.3.1",
