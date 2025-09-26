@@ -5,6 +5,7 @@ class CronRunner {
     this.mode = mode;
     this.jobs = [];
     this.running = false;
+    this.schedulers = [];
   }
 
   register(interval, callback, name = "") {
@@ -52,11 +53,11 @@ class CronRunner {
   start() {
     if (this.mode === "sequential") {
       console.log("⏱ Running in sequential mode");
-      new Cron("*/10 * * * *", this.runner.bind(this));
+      this.schedulers.push(new Cron("*/10 * * * *", this.runner.bind(this)));
     } else {
       console.log("⏱ Running in concurrent mode");
       this.jobs.forEach((job) => {
-        new Cron(job.interval, this.wrapConcurrent(job));
+        this.schedulers.push(new Cron(job.interval, this.wrapConcurrent(job)));
       });
     }
   }
