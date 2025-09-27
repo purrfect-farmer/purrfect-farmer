@@ -283,11 +283,11 @@ export default class HoneyFarmFarmer extends BaseFarmer {
     const newLastTransaction = {
       ...lastTransaction,
       "earn-per-tap": newSkills.reduce(
-        (sum, skill) => sum + (skill["level-number"] || 0),
+        (sum, skill) => sum + (skill["profit"] || 0),
         0
       ),
       "earn-per-hour": newWorkers.reduce(
-        (sum, worker) => sum + (worker["level-number"] || 0),
+        (sum, worker) => sum + (worker["profit"] || 0),
         0
       ),
     };
