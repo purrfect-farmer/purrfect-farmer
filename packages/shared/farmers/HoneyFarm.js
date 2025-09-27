@@ -123,7 +123,7 @@ export default class HoneyFarmFarmer extends BaseFarmer {
   getBoosts(signal = this.signal) {
     return this.api
       .get("https://honey.masha.place/api/v1/boosts/", { signal })
-      .then((res) => res.data);
+      .then((res) => res.data.data);
   }
 
   getFriends(signal = this.signal) {
@@ -140,11 +140,30 @@ export default class HoneyFarmFarmer extends BaseFarmer {
       .then((res) => res.data);
   }
 
+  putBoost(boostId, signal = this.signal) {
+    return this.api
+      .post(
+        "https://honey.masha.place/api/v1/user/boosts/",
+        { boostId },
+        { signal }
+      )
+      .then((res) => res.data.data);
+  }
+
   putHoney(payload, signal = this.signal) {
     return this.api
       .post(
         "https://honey.masha.place/api/v1/user/transactions/put/",
         payload,
+        { signal }
+      )
+      .then((res) => res.data);
+  }
+
+  activateBoost(userBoostId, signal = this.signal) {
+    return this.api
+      .get(
+        `https://honey.masha.place/api/v1/user/boosts/?user-boost-id=${userBoostId}`,
         { signal }
       )
       .then((res) => res.data);
@@ -206,6 +225,7 @@ export default class HoneyFarmFarmer extends BaseFarmer {
     await this.executeTask("Purchase Assistant", () =>
       this.purchaseAssistant()
     );
+    await this.executeTask("Apply Boost", () => this.applyBoost());
   }
 
   logUserInfo(userInfo) {
@@ -234,6 +254,9 @@ export default class HoneyFarmFarmer extends BaseFarmer {
     const userInfo = await this.getUserInfo();
     const gameplay = await this.getGameplay();
 
+    let earnPerTap = 0;
+    let earnPerHour = 0;
+
     const newSkills = userInfo.skills.map((skill) => {
       const skillDefault = gameplay.equipment.find(
         (item) => item["equipment-id"] === skill["equipment-id"]
@@ -243,6 +266,8 @@ export default class HoneyFarmFarmer extends BaseFarmer {
       );
       const skillNewLevel = Math.min(skill["level-number"] + 1, skillMaxLevel);
       const skillLevelInfo = skillDefault.levels[skillNewLevel];
+
+      earnPerTap += skillLevelInfo["profit"] || 0;
 
       return {
         ...skill,
@@ -261,14 +286,24 @@ export default class HoneyFarmFarmer extends BaseFarmer {
 
     const newWorkers = userInfo.workers.map((worker) => {
       if (worker["equipment-id"]) {
-        const newLevel = Math.min(worker["level-number"] + 1, workerMaxLevel);
-        const levelInfo = workerDefault.levels[newLevel];
+        const newWorkerLevel = Math.min(
+          worker["level-number"] + 1,
+          workerMaxLevel
+        );
+        const workerLevelInfo = workerDefault.levels[newWorkerLevel];
+
+        earnPerHour += workerLevelInfo["profit"] || 0;
+
         return {
           ...worker,
-          "level-number": newLevel,
-          delay: levelInfo["time-delay"],
+          "level-number": newWorkerLevel,
+          delay: workerLevelInfo["time-delay"],
         };
       } else {
+        const workerLevelInfo = workerDefault.levels[1];
+
+        earnPerHour += workerLevelInfo["profit"] || 0;
+
         return {
           ...worker,
           "equipment-id": "worker-default",
@@ -282,14 +317,8 @@ export default class HoneyFarmFarmer extends BaseFarmer {
 
     const newLastTransaction = {
       ...lastTransaction,
-      "earn-per-tap": newSkills.reduce(
-        (sum, skill) => sum + (skill["profit"] || 0),
-        0
-      ),
-      "earn-per-hour": newWorkers.reduce(
-        (sum, worker) => sum + (worker["profit"] || 0),
-        0
-      ),
+      "earn-per-tap": earnPerTap,
+      "earn-per-hour": earnPerHour,
     };
 
     const payload = {
@@ -345,6 +374,22 @@ export default class HoneyFarmFarmer extends BaseFarmer {
         ...userInfo,
         "last-transaction": newLastTransaction,
       });
+    }
+  }
+
+  async applyBoost() {
+    const userBoosts = await this.getUserBoosts();
+    const boosts = await this.getBoosts();
+
+    const available = userBoosts.boosted.find((item) => !item.activated);
+    if (available) {
+      const boost = boosts.find((b) => b.id === available.boostId);
+      if (boost.current > 0) {
+        const { id } = await this.putBoost(available.boostId);
+        await this.utils.delayForSeconds(10);
+        await this.activateBoost(id);
+        this.logger.success(`Applied Boost`);
+      }
     }
   }
 }
