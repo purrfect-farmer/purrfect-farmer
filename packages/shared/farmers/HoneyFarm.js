@@ -225,7 +225,6 @@ export default class HoneyFarmFarmer extends BaseFarmer {
     await this.executeTask("Purchase Assistant", () =>
       this.purchaseAssistant()
     );
-    await this.executeTask("Apply Boost", () => this.applyBoost());
   }
 
   logUserInfo(userInfo) {
