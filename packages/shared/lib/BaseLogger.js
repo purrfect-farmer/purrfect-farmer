@@ -12,12 +12,13 @@ export default class BaseLogger {
   }
 
   /** Log key-value pairs */
-  keyValue(label, value) {
-    const labelStyle = this.c.gray.bold;
-    const valueStyle = this.c.whiteBright;
-    return this.info(
-      `${labelStyle(label + ":").padEnd(12)} ${valueStyle(value)}`
-    );
+  keyValue(label, value, labelDefaultStyle, valueDefaultStyle) {
+    const labelStyle = labelDefaultStyle || this.c.gray;
+    const valueStyle = valueDefaultStyle || this.c.cyan;
+
+    const rawLabel = label + ":";
+
+    return this.log(`${labelStyle(rawLabel.padEnd(8))} ${valueStyle(value)}`);
   }
 
   /** Newline */

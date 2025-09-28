@@ -106,27 +106,45 @@ export default class BaseFarmer {
     this.logger.newline();
 
     if (this.signal?.aborted) {
-      this.logger.warn(`Task aborted: ${task}`);
+      this.logger.warn(
+        `${this.logger.c.red("✖ Task aborted:")} ${this.logger.c.yellow(task)}`
+      );
       return;
     }
 
     const skipInQuickRun = this.quickRun && !allowInQuickRun;
 
     if (skipInQuickRun) {
-      this.logger.warn(`Skipping task in quick run: ${task}`);
+      this.logger.log(
+        `${this.logger.c.yellow(
+          "⚡ Skipping in quick run:"
+        )} ${this.logger.c.magenta(task)}`
+      );
       return;
     }
 
     try {
       this.logger.log(
-        `${this.logger.c.gray("Executing task:")} ${this.logger.c.magenta(
+        `${this.logger.c.gray("⚙ Executing task:")} ${this.logger.c.magenta(
           task
         )}`
       );
+
       await callback();
-      this.logger.success(`Completed task: ${task}`);
+
+      this.logger.log(
+        `${this.logger.c.green("✔ Completed task:")} ${this.logger.c.magenta(
+          task
+        )}`
+      );
     } catch (error) {
-      this.logger.error(`Error executing task: ${task} - ${error.message}`);
+      this.logger.log(
+        `${this.logger.c.red(
+          "✖ Error executing task:"
+        )} ${this.logger.c.magenta(task)}\n   ${this.logger.c.gray(
+          error.message
+        )}`
+      );
       throw error;
     }
   }
