@@ -118,7 +118,11 @@ export default class BaseFarmer {
     }
 
     try {
-      this.logger.log(`Executing task: ${task}`);
+      this.logger.log(
+        `${this.logger.c.gray("Executing task:")} ${this.logger.c.magenta(
+          task
+        )}`
+      );
       await callback();
       this.logger.success(`Completed task: ${task}`);
     } catch (error) {

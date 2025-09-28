@@ -13,6 +13,7 @@ import { useMemo } from "react";
 import { useEffect } from "react";
 import { useState } from "react";
 import useMirroredCallback from "@/hooks/useMirroredCallback";
+import { useCallback } from "react";
 
 /**
  *
@@ -111,6 +112,14 @@ function TinyFly() {
   const startedRef = useRef(started);
   startedRef.current = started;
 
+  /** Reset Logger */
+  const resetLogger = useCallback(() => {
+    logger.clear();
+    logger.success(`> Tiny Fly Initiated`);
+    logger.info('> Click "Start" to begin farming');
+  }, [logger]);
+
+  /** Stop Tiny Fly */
   const [stopTinyFly] = useMirroredCallback(
     `tiny-fly-stop`,
     () => {
@@ -120,10 +129,12 @@ function TinyFly() {
       controllerRef.current?.abort();
       controllerRef.current = null;
       setStarted(false);
+      resetLogger();
     },
-    [setStarted]
+    [setStarted, resetLogger]
   );
 
+  /** Start Tiny Fly */
   const [startTinyFly] = useMirroredCallback(
     `tiny-fly-start`,
     () => {
@@ -135,6 +146,9 @@ function TinyFly() {
       const controller = new AbortController();
       controllerRef.current = controller;
 
+      logger.clear();
+      logger.info(`> Started Tiny Fly`);
+
       const runner = new CronRunner("concurrent");
       runnerRef.current = runner;
 
@@ -143,6 +157,7 @@ function TinyFly() {
         const callback = async () => {
           if (controller.signal.aborted) return;
 
+          // Create Farmer Instance
           const instance = createInstance({
             FarmerClass,
             logger,
@@ -154,26 +169,33 @@ function TinyFly() {
           await instance.run();
         };
 
+        // Register Task
         runner.register(
           FarmerClass.interval ?? "*/10 * * * *",
           callback,
           FarmerClass.title
         );
+
+        // Initial Log
+        logger.success(`> ${FarmerClass.title}`);
       });
 
-      runner.start();
+      // Cleanup on abort
       controller.signal.addEventListener("abort", () => {
         runner.stop();
       });
 
-      logger.clear();
-      logger.info(`> Started Tiny Fly`);
-
+      // Start Runner
+      runner.start();
       setStarted(true);
+
+      // Initial Instructions
+      logger.warn('> Click "Stop" to halt farming');
     },
     [drops, logger, stopTinyFly, setStarted]
   );
 
+  /** Toggle Tiny Fly */
   const [, dispatchAndToggleTinyFly] = useMirroredCallback(
     `tiny-fly-toggle`,
     (status) => {
@@ -191,8 +213,8 @@ function TinyFly() {
   /** Initialize Logger */
   useLayoutEffect(() => {
     logger.setElement(terminalRef.current);
-    logger.success(`> Tiny Fly Initiated`);
-  }, [logger]);
+    resetLogger();
+  }, [logger, resetLogger]);
 
   /** Cleanup on unmount */
   useEffect(
