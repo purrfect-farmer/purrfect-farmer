@@ -238,6 +238,7 @@ export default function createRunner(FarmerClass) {
       );
     }
 
+    /** Create HTTP Agent */
     createAgent(proxy, isHttps) {
       const proxyAgentType = isHttps ? HttpsProxyAgent : HttpProxyAgent;
       const cookieAgentType = isHttps

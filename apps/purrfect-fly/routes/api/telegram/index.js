@@ -17,6 +17,7 @@ const phoneSchema = {
  */
 export default async function (fastify, opts) {
   fastify
+    // Login with Phone
     .post(
       "/login",
       {
@@ -47,6 +48,8 @@ export default async function (fastify, opts) {
         return { ...result, session };
       }
     )
+
+    // Verify Code
     .post(
       "/code",
       {
@@ -88,6 +91,8 @@ export default async function (fastify, opts) {
         return result;
       }
     )
+
+    // Verify 2FA Password
     .post(
       "/password",
       {
@@ -132,6 +137,8 @@ export default async function (fastify, opts) {
         return result;
       }
     )
+
+    // Logout
     .post(
       "/logout",
       {
