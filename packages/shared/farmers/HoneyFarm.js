@@ -114,6 +114,19 @@ export default class HoneyFarmFarmer extends BaseFarmer {
       .then((res) => res.data);
   }
 
+  claimDailyBonus(signal = this.signal) {
+    return this.api
+      .post(
+        "https://honey.masha.place/api/v1/user/bonus/daily/update/",
+        new URLSearchParams({
+          ["lang"]: "en",
+          ["user-id"]: this.getUserId(),
+        }),
+        { signal }
+      )
+      .then((res) => res.data);
+  }
+
   getUserBoosts(signal = this.signal) {
     return this.api
       .get("https://honey.masha.place/api/v1/user/boosts/", { signal })
@@ -192,9 +205,9 @@ export default class HoneyFarmFarmer extends BaseFarmer {
       .post(
         "https://honey.masha.place/api/v1/user/promocode/",
         new URLSearchParams({
-          "user-id": this.getUserId(),
-          lang: "en",
-          promocode,
+          ["user-id"]: this.getUserId(),
+          ["lang"]: "en",
+          ["promocode"]: promocode,
         }),
         { signal }
       )
@@ -217,8 +230,9 @@ export default class HoneyFarmFarmer extends BaseFarmer {
 
     this.logUserInfo(userInfo);
 
-    await this.getDailyBonusStatus();
-    await this.getDailyBonus();
+    await this.executeTask("Collect Daily Bonus", () =>
+      this.collectDailyBonus()
+    );
     await this.executeTask("Collect Promo Code", () => this.collectPromoCode());
     await this.executeTask("Complete Tasks", () => this.completeTasks());
     await this.executeTask("Purchase Worker", () => this.purchaseWorker());
@@ -329,6 +343,18 @@ export default class HoneyFarmFarmer extends BaseFarmer {
 
     await this.updateUser(payload);
     this.logger.success("Purchased/Upgraded Worker");
+  }
+
+  async collectDailyBonus() {
+    const status = await this.getDailyBonusStatus();
+    await this.getDailyBonus();
+
+    if (!status.isCollected) {
+      await this.claimDailyBonus();
+      this.logger.success("Collected Daily Bonus");
+    } else {
+      this.logger.info("Daily Bonus already collected");
+    }
   }
 
   async collectPromoCode() {
