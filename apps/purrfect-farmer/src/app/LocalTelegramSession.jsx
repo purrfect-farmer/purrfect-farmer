@@ -6,6 +6,7 @@ import toast from "react-hot-toast";
 import useAppContext from "@/hooks/useAppContext";
 import { cn } from "@/lib/utils";
 import { createTelegramClient } from "@/lib/createTelegramClient";
+import { useCallback } from "react";
 
 export default function LocalTelegramSession() {
   const {
@@ -56,6 +57,18 @@ export default function LocalTelegramSession() {
       });
   };
 
+  /** Login Success */
+  const handleLoginSuccess = useCallback(
+    (session) => {
+      /** Set Session */
+      setLocalTelegramSession(session);
+
+      /** Configure Settings */
+      configureSettings("farmerMode", "session", false);
+    },
+    [configureSettings, setLocalTelegramSession]
+  );
+
   return (
     <div
       className={cn(
@@ -87,10 +100,7 @@ export default function LocalTelegramSession() {
           </button>
         </div>
       ) : (
-        <TelegramLogin
-          mode="local"
-          storeTelegramSession={setLocalTelegramSession}
-        />
+        <TelegramLogin mode="local" storeTelegramSession={handleLoginSuccess} />
       )}
     </div>
   );
