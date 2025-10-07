@@ -357,7 +357,10 @@ export default class HoneyFarmFarmer extends BaseFarmer {
 
     const lastTransaction = userInfo["last-transaction"];
 
-    if (!lastTransaction["assistant-id"]) {
+    if (
+      !lastTransaction["assistant-id"] ||
+      lastTransaction["assistant-status"] !== true
+    ) {
       const assistant = gameplay["assistants"].at(-1);
 
       const currentTime = Math.floor(Date.now() / 1000);
