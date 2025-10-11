@@ -23,26 +23,37 @@ const HttpsProxyAgentWithCookies = createCookieAgent(HttpsProxyAgent);
  * @param {import("@purrfect/shared/lib/BaseFarmer").default} FarmerClass
  */
 export default function createRunner(FarmerClass) {
+  /** Environment Variables key */
   const envKey = "FARMER_" + FarmerClass.id.replace(/-/g, "_").toUpperCase();
 
+  /** Is Farmer Enabled */
+  const enabled = env(envKey + "_ENABLED", true);
+
+  /** Telegram message thread */
+  const threadId =
+    env(envKey + "_THREAD_ID", "") ?? env("TELEGRAM_FARMING_THREAD_ID", "");
+
+  /** Telegram bot link */
+  const telegramLink = env(envKey + "_LINK", FarmerClass.telegramLink);
+
   return class Runner extends FarmerClass {
-    static runners = new Map();
-    static logger = new ConsoleLogger();
     static utils = utils;
-    static enabled = env(envKey + "_ENABLED", true);
-    static threadId =
-      env(envKey + "_THREAD_ID", "") ?? env("TELEGRAM_FARMING_THREAD_ID", "");
-    static telegramLink = env(envKey + "_LINK", this.telegramLink);
+    static enabled = enabled;
+    static threadId = threadId;
+    static telegramLink = telegramLink;
+    static runners = new Map();
+    static logger = new ConsoleLogger(process.env.NODE_ENV !== "production");
 
     constructor(account) {
       super();
       this.account = account;
       this.farmer = account.farmer;
-      this.logger = this.constructor.logger;
-      this.utils = this.constructor.utils;
 
-      this.cookies = this.constructor.cookies;
-      this.random = seedrandom(this.account.id);
+      this.logger = this.constructor.logger; // Use static logger
+      this.utils = this.constructor.utils; // Use static utils
+
+      this.cookies = this.constructor.cookies; // Enable cookies if supported
+      this.random = seedrandom(this.account.id); // Seeded RNG
 
       /** Select User-Agent */
       this.setUserAgent(
