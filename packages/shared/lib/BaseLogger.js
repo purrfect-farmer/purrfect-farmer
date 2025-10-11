@@ -1,9 +1,20 @@
 import chalk from "chalk";
 
 export default class BaseLogger {
-  constructor() {
+  constructor(enabled = true) {
+    this.enabled = enabled; // Logger is enabled by default
     this.chalk = chalk;
-    this.c = this.chalk;
+    this.c = this.chalk; // Alias for convenience
+  }
+
+  /** Enable the logger */
+  enableLogger() {
+    this.enabled = true;
+  }
+
+  /** Disable the logger */
+  disableLogger() {
+    this.enabled = false;
   }
 
   /** Log messages */
