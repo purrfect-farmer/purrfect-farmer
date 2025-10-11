@@ -28,8 +28,10 @@ export default class BaseLogger {
     const valueStyle = valueDefaultStyle || this.c.cyan;
 
     const rawLabel = label + ":";
+    const displayedLabel = labelStyle(rawLabel.padEnd(8));
+    const displayedValue = valueStyle(value);
 
-    return this.log(`${labelStyle(rawLabel.padEnd(8))} ${valueStyle(value)}`);
+    return this.log(`${displayedLabel} ${displayedValue}`);
   }
 
   /** Newline */
