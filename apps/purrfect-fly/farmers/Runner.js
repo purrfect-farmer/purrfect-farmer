@@ -371,7 +371,7 @@ export default function createRunner(FarmerClass) {
       }
     }
 
-    static async farm(account) {
+    static farm(account) {
       if (!this.runners.has(account.id)) {
         this.runners.set(account.id, Date.now());
         this.execute(account).finally(() => {
