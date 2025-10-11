@@ -15,7 +15,7 @@ import bot from "../lib/bot.js";
 import db from "../db/models/index.js";
 import utils from "../lib/utils.js";
 
-const AUTO_START_FARMER = env("FARMER_AUTO_START", false);
+const AUTO_START_FARMER = env("AUTO_START_FARMER", false);
 const HttpProxyAgentWithCookies = createCookieAgent(HttpProxyAgent);
 const HttpsProxyAgentWithCookies = createCookieAgent(HttpsProxyAgent);
 
