@@ -1,8 +1,8 @@
 export default {
   name: env("APP_NAME", ""),
   farmer: {
-    botId: env("FARMER_BOT_ID", 7592929753) ?? "",
-    botToken: env("FARMER_BOT_TOKEN", "") ?? "",
+    botId: env("FARMER_BOT_ID", 7592929753),
+    botToken: env("FARMER_BOT_TOKEN", ""),
     botLink: env(
       "FARMER_BOT_LINK",
       "https://t.me/purrfect_little_bot/app?startapp=purrfect"
