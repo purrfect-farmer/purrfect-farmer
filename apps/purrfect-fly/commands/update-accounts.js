@@ -1,4 +1,4 @@
-import updateAccounts from "../actions/updateAccounts.js";
+import updateAccounts from "../actions/update-accounts.js";
 import { getCurrentPath } from "../lib/path.js";
 
 const { __dirname, __filename } = getCurrentPath(import.meta.url);
