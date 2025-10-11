@@ -12,6 +12,7 @@ export default class BaseFarmer {
   static cacheTelegramWebApp = true;
   static cookies = false;
   static interval = "*/10 * * * *";
+  static telegramLink = "";
 
   constructor() {
     this.utils = utils;
