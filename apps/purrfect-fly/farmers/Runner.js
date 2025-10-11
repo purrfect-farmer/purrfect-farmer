@@ -152,8 +152,8 @@ export default function createRunner(FarmerClass) {
       if (this.constructor.withXSRFToken) {
         this.api.interceptors.request.use(async (config) => {
           const xsrfToken = (
-            await this.jar.getCookies(`https://${this.constructor.host}`)
-          ).find((cookie) => cookie.key === "XSRF-TOKEN")?.value;
+            await this.getCookies({ url: `https://${this.constructor.host}` })
+          ).find((cookie) => cookie.name === "XSRF-TOKEN")?.value;
 
           if (xsrfToken) {
             config.headers["X-XSRF-TOKEN"] = xsrfToken;
@@ -277,6 +277,15 @@ export default function createRunner(FarmerClass) {
     /** Join Telegram Link */
     joinTelegramLink(link) {
       return this.client.joinTelegramLink(link);
+    }
+
+    /** Get Cookies */
+    async getCookies({ url }) {
+      const cookies = await this.jar.getCookies(url);
+      return cookies.map((cookie) => ({
+        name: cookie.key,
+        value: cookie.value,
+      }));
     }
 
     /** Prepare Instance */

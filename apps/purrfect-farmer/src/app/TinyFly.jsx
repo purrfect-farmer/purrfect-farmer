@@ -59,6 +59,11 @@ const createInstance = ({
       return this.client.ref.current.joinTelegramLink(link);
     }
 
+    /** Get Cookies */
+    async getCookies(options) {
+      return await this.utils.getCookies(options);
+    }
+
     registerDelayInterceptor() {
       if (this.constructor.apiDelay) {
         this.api.interceptors.request.use(async (config) => {

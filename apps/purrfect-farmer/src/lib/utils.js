@@ -8,8 +8,9 @@ import { clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
 
 import { uuid } from "./utils";
+import { sha256 } from "js-sha256";
 
-export { md5 };
+export { md5, sha256 };
 
 export function isExtension() {
   return window.location.protocol === "chrome-extension:";
@@ -368,8 +369,23 @@ export function requestIsUnauthorized(error) {
 export const sendWebviewMessage = (data) =>
   window.electron.ipcRenderer.sendToHost("webview-message", data);
 
+/** Get Cookies */
+export async function getCookies(options) {
+  if (import.meta.env.VITE_WHISKER) {
+    return await window.electron.ipcRenderer.invoke(
+      "get-session-cookie",
+      window.WHISKER_PARTITION,
+      options
+    );
+  }
+
+  return await chrome.cookies.getAll(options);
+}
+
 export default {
   ...sharedUtils,
-  parseHTML,
   md5,
+  sha256,
+  getCookies,
+  parseHTML,
 };

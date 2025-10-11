@@ -13,6 +13,7 @@ export default class BaseFarmer {
   static cookies = false;
   static interval = "*/10 * * * *";
   static telegramLink = "";
+  static withXSRFToken = false;
 
   constructor() {
     this.utils = utils;
@@ -209,7 +210,12 @@ export default class BaseFarmer {
   }
 
   /** Get Referral Link */
-  getReferralLink() {
+  async getReferralLink() {
     throw new Error("getReferralLink method must be implemented in subclass");
+  }
+
+  /** Get Cookies */
+  async getCookies(options) {
+    throw new Error("getCookies method must be implemented in subclass");
   }
 }

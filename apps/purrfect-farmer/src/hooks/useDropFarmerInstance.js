@@ -20,11 +20,19 @@ export default function useDropFarmerInstance({
         this.utils = utils;
       }
 
+      /** Set the Join Telegram Link Handler */
       setTelegramLinkHandler(handler) {
         this.joinTelegramLink = handler;
       }
+
+      /** Can Join Telegram Link */
       canJoinTelegramLink() {
         return Boolean(this.joinTelegramLink);
+      }
+
+      /** Get Cookies */
+      async getCookies(options) {
+        return await this.utils.getCookies(options);
       }
     })();
   }
