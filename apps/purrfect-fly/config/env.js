@@ -9,7 +9,7 @@ dotenv.config({
   path: path.resolve(__dirname, "../.env"),
 });
 
-global.env = function (key, defaultValue = null) {
+global.env = function (key, defaultValue) {
   let value = process.env[key];
 
   if (value === undefined) return defaultValue;
