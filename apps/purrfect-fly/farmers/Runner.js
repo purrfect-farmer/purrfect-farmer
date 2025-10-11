@@ -15,7 +15,7 @@ import bot from "../lib/bot.js";
 import db from "../db/models/index.js";
 import utils from "../lib/utils.js";
 
-const AUTO_START = process.env.FARMER_AUTO_START === "true";
+const AUTO_START_FARMER = process.env.FARMER_AUTO_START === "true";
 const HttpProxyAgentWithCookies = createCookieAgent(HttpProxyAgent);
 const HttpsProxyAgentWithCookies = createCookieAgent(HttpsProxyAgent);
 
@@ -369,14 +369,14 @@ export default function createRunner(FarmerClass) {
       try {
         const accounts = await db.Account.findSubscribedWithFarmer(
           this.id,
-          AUTO_START === false,
+          AUTO_START_FARMER === false,
           user ? { where: { id: user } } : {}
         );
 
         /** Run all farmer */
         accounts
           .filter((account) =>
-            AUTO_START
+            AUTO_START_FARMER
               ? account.farmer?.active || account.session
               : account.farmer?.active
           )
