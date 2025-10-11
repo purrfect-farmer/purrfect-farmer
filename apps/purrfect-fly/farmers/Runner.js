@@ -31,7 +31,7 @@ export default function createRunner(FarmerClass) {
 
   /** Telegram message thread */
   const threadId =
-    env(envKey + "_THREAD_ID", "") ?? env("TELEGRAM_FARMING_THREAD_ID", "");
+    env(envKey + "_THREAD_ID", "") || env("TELEGRAM_FARMING_THREAD_ID", "");
 
   /** Telegram bot link */
   const telegramLink = env(envKey + "_LINK", FarmerClass.telegramLink);
