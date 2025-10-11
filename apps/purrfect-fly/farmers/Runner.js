@@ -367,7 +367,7 @@ export default function createRunner(FarmerClass) {
         await instance.start();
       } catch (error) {
         await instance.disconnect();
-        this.logger.error("Error:", account.id, error);
+        this.logger.error("Error farming account:", account.id, error);
       }
     }
 
