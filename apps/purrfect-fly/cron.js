@@ -5,10 +5,10 @@ import { fileURLToPath } from "node:url";
 
 import CronRunner from "@purrfect/shared/lib/CronRunner.js";
 import app from "./config/app.js";
-import expireSubscriptions from "./actions/expireSubscriptions.js";
+import expireSubscriptions from "./actions/expire-subscriptions.js";
 import farmers from "./farmers/index.js";
-import updateAccounts from "./actions/updateAccounts.js";
-import updateProxies from "./actions/updateProxies.js";
+import updateAccounts from "./actions/update-accounts.js";
+import updateProxies from "./actions/update-proxies.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
