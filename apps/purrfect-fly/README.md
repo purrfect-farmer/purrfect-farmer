@@ -7,7 +7,7 @@
 - Telegram Bot Token
 - Telegram Group with Topics
 - Telegram Bot must be an admin of the group
-- Required Topics (Announcements, Errors)
+- Required Topics (Announcements, Errors, Farming)
 - Additional Topics for Each Farmer
 
 ### Setup
@@ -82,7 +82,7 @@ pnpm -F purrfect-fly db:migrate && pnpm -F purrfect-fly db:seed
 ##### Generate Key
 
 ```bash
-./apps/purrfect-fly/fly generate-jwt-secret
+pnpm -F purrfect-fly fly generate-jwt-secret
 ```
 
 **Note: You need to fill in the `JWT_SECRET_KEY` field with the generated value inside `.env`**
@@ -114,6 +114,7 @@ pm2 save
 ### Nginx
 
 ##### Create Purrfect Fly Nginx Server Block
+
 ```bash
 sudo micro /etc/nginx/sites-available/purrfect-fly
 ```
@@ -145,16 +146,19 @@ server {
 ```
 
 ##### Disable Default Nginx Server
+
 ```bash
 sudo rm /etc/nginx/sites-enabled/default
 ```
 
 ##### Enable Purrfect Fly Server
+
 ```bash
 sudo ln -s /etc/nginx/sites-available/purrfect-fly /etc/nginx/sites-enabled/
 ```
 
 ##### Reload Nginx
+
 ```bash
 sudo nginx -t
 sudo systemctl reload nginx
@@ -176,4 +180,3 @@ pnpm install && \
 pm2 reload apps/purrfect-fly/ecosystem.config.cjs --update-env && \
 pm2 save
 ```
-
