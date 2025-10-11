@@ -340,7 +340,7 @@ export default function createRunner(FarmerClass) {
           }
         }
       } catch (error) {
-        this.logger.error("Error:", error);
+        this.logger.error("Error disconnecting farmer:", error);
       }
     }
 
