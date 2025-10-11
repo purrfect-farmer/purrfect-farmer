@@ -6,6 +6,7 @@ import utils from "./utils.js";
 
 class GroupBot extends Bot {
   /** Send Group Message
+   *
    * This method will send a new message and automatically remove the previous message
    * with the same cache key
    */
@@ -150,8 +151,7 @@ class GroupBot extends Bot {
   }
 }
 
-const bot = process.env.TELEGRAM_BOT_TOKEN
-  ? new GroupBot(process.env.TELEGRAM_BOT_TOKEN)
-  : null;
+const token = env("TELEGRAM_BOT_TOKEN");
+const bot = token ? new GroupBot(token) : null;
 
 export default bot;

@@ -15,7 +15,7 @@ import bot from "../lib/bot.js";
 import db from "../db/models/index.js";
 import utils from "../lib/utils.js";
 
-const AUTO_START_FARMER = process.env.FARMER_AUTO_START === "true";
+const AUTO_START_FARMER = env("FARMER_AUTO_START", false);
 const HttpProxyAgentWithCookies = createCookieAgent(HttpProxyAgent);
 const HttpsProxyAgentWithCookies = createCookieAgent(HttpsProxyAgent);
 
@@ -29,9 +29,9 @@ export default function createRunner(FarmerClass) {
     static runners = new Map();
     static logger = new ConsoleLogger();
     static utils = utils;
-    static enabled = process.env[envKey + "_ENABLED"] !== "false";
-    static threadId = process.env[envKey + "_THREAD_ID"] ?? "";
-    static telegramLink = process.env[envKey + "_LINK"] || this.telegramLink;
+    static enabled = env(envKey + "_ENABLED", true);
+    static threadId = env(envKey + "_THREAD_ID", "");
+    static telegramLink = env(envKey + "_LINK", this.telegramLink);
 
     constructor(account) {
       super();
@@ -322,6 +322,9 @@ export default function createRunner(FarmerClass) {
       }
     }
 
+    /**
+     * Get and update the initData using the telegram link for this farmer
+     */
     async updateWebAppData() {
       const { url } = await this.client.getWebview(
         this.constructor.telegramLink
