@@ -30,7 +30,8 @@ export default function createRunner(FarmerClass) {
     static logger = new ConsoleLogger();
     static utils = utils;
     static enabled = env(envKey + "_ENABLED", true);
-    static threadId = env(envKey + "_THREAD_ID", "");
+    static threadId =
+      env(envKey + "_THREAD_ID", "") ?? env("TELEGRAM_FARMING_THREAD_ID", "");
     static telegramLink = env(envKey + "_LINK", this.telegramLink);
 
     constructor(account) {
