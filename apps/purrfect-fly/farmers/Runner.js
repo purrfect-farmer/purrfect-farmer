@@ -228,7 +228,7 @@ export default function createRunner(FarmerClass) {
           const url = error.config.url;
           const title = this.utils.truncateAndPad(this.account.id, 10);
           const status = this.utils.truncateAndPad(
-            error.response?.status ?? "ERR",
+            error.response?.status || "ERR",
             3
           );
 

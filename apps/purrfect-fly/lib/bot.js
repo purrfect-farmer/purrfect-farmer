@@ -53,7 +53,7 @@ class GroupBot extends Bot {
                 ? "☑️"
                 : "❌",
             session: account.session ? "🟨" : "🟪",
-            username: account.user?.username ?? "",
+            username: account.user?.username || "",
             title: account.title,
           };
         })
@@ -88,7 +88,7 @@ class GroupBot extends Bot {
             id: account.id,
             status: account.session ? "✅" : "❌",
             session: account.session ? "🟨" : "🟪",
-            username: account.user?.username ?? "",
+            username: account.user?.username || "",
             title: account.title,
           };
         })

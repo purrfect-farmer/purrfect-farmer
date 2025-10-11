@@ -60,7 +60,7 @@ function isValidEd25519InitData(initData) {
 }
 
 function truncateAndPad(input, width) {
-  const str = String(input ?? "");
+  const str = String(input || "");
   if (str.length > width) {
     return str.slice(0, width - 1) + "…";
   }

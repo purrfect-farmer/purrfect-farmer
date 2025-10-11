@@ -26,7 +26,7 @@ if (app.cron.enabled) {
     .filter((FarmerClass) => FarmerClass.enabled)
     .forEach((FarmerClass) => {
       runner.register(
-        FarmerClass.interval ?? "*/10 * * * *",
+        FarmerClass.interval || "*/10 * * * *",
         () => FarmerClass.run(),
         FarmerClass.title
       );
