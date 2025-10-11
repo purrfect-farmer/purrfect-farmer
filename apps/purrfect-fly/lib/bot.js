@@ -5,7 +5,10 @@ import cache from "./cache.js";
 import utils from "./utils.js";
 
 class GroupBot extends Bot {
-  /** Send Group Message */
+  /** Send Group Message
+   * This method will send a new message and automatically remove the previous message
+   * with the same cache key
+   */
   async sendGroupMessage(cacheKey, message, options = {}) {
     const previous = await cache.get(cacheKey);
     const sent = await this.api.sendMessage(app.chat.id, message.join("\n"), {
@@ -23,20 +26,31 @@ class GroupBot extends Bot {
         await this.api.deleteMessage(app.chat.id, previous);
       }
     } catch (error) {
-      console.error(error);
+      console.error("Failed to remove previous message:", error);
     }
 
     return message;
   }
 
   /** Send Farming Initiated Message */
-  async sendFarmingInitiatedMessage(result) {
+  async sendFarmingInitiatedMessage({
+    id,
+    title,
+    telegramLink,
+    threadId,
+    results,
+  }) {
     try {
       const users = utils.formatUsers(
-        result.accounts.map((account) => {
+        results.map(({ account, result }) => {
           return {
             id: account.id,
-            status: account.farmer?.active ? "✅" : "❌",
+            status:
+              result.status === "started"
+                ? "✅"
+                : result.status === "running"
+                ? "☑️"
+                : "❌",
             session: account.session ? "🟨" : "🟪",
             username: account.user?.username ?? "",
             title: account.title,
@@ -44,21 +58,23 @@ class GroupBot extends Bot {
         })
       );
 
+      const statusDate = utils.dateFns.format(
+        new Date(),
+        "yyyy-MM-dd HH:mm:ss"
+      );
+
       return await this.sendGroupMessage(
-        `messages.farming-initiated.${result.id}`,
+        `messages.farming-initiated.${id}`,
         [
-          `<b>${result.title}</b>`,
-          "<i>✅ Status: Initiated</i>",
-          `\n<blockquote><a href="${result.telegramLink}">Open Telegram Bot</a></blockquote>${users}`,
-          `<b>🗓️ Date</b>: ${utils.dateFns.format(
-            new Date(),
-            "yyyy-MM-dd HH:mm:ss"
-          )}`,
+          `<b>${title}</b>`,
+          "<i>✅ Status: Initiated</i>\n",
+          `<blockquote><a href="${telegramLink}">Open Telegram Bot</a></blockquote>${users}`,
+          `<b>🗓️ Date</b>: ${statusDate}`,
         ],
-        { ["message_thread_id"]: result.threadId }
+        { ["message_thread_id"]: threadId }
       );
     } catch (error) {
-      console.error(error);
+      console.error("Error sending farming initiated message:", error);
     }
   }
 

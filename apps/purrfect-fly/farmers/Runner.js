@@ -353,43 +353,64 @@ export default function createRunner(FarmerClass) {
       } catch (error) {
         await instance.disconnect();
         this.logger.error("Error:", account.id, error);
-      } finally {
-        this.runners.delete(account.id);
       }
     }
 
     static async farm(account) {
       if (!this.runners.has(account.id)) {
-        this.runners.set(account.id, this.execute(account));
+        this.runners.set(account.id, Date.now());
+        this.execute(account).finally(() => {
+          this.runners.delete(account.id);
+        });
+
+        return {
+          status: "started",
+          startedAt: this.runners.get(account.id),
+          elapsed: 0,
+        };
       }
-      return this.runners.get(account.id);
+
+      return {
+        status: "running",
+        startedAt: this.runners.get(account.id),
+        elapsed: Math.floor((Date.now() - this.runners.get(account.id)) / 1000),
+      };
     }
 
     static async run({ user } = {}) {
       try {
+        const farmerIsRequired = AUTO_START_FARMER === false;
+        const additionalQueryOptions = user ? { where: { id: user } } : {};
+
         const accounts = await db.Account.findSubscribedWithFarmer(
           this.id,
-          AUTO_START_FARMER === false,
-          user ? { where: { id: user } } : {}
+          farmerIsRequired,
+          additionalQueryOptions
         );
 
-        /** Run all farmer */
-        accounts
-          .filter((account) =>
-            AUTO_START_FARMER
-              ? account.farmer?.active || account.session
-              : account.farmer?.active
-          )
-          .forEach((account) => this.farm(account));
+        /** Run all accounts */
+        const results = accounts.map((account) => {
+          /**
+           * A farmer can be automatically created for an
+           * account with an active telegram session if auto start is enabled
+           */
+          const shouldRunAccount = AUTO_START_FARMER
+            ? account.farmer?.active || account.session
+            : account.farmer?.active;
 
-        /** Send Farming Complete Message */
+          return shouldRunAccount
+            ? { account, result: this.farm(account) }
+            : { account, result: { status: "skipped" } };
+        });
+
+        /** Send Farming Initiated Message */
         try {
           await bot?.sendFarmingInitiatedMessage({
             id: this.id,
             title: `${this.emoji} ${this.title}`,
             telegramLink: this.telegramLink,
             threadId: this.threadId,
-            accounts,
+            results,
           });
         } catch (error) {
           this.logger.error("Failed to send farming notification:", error);
