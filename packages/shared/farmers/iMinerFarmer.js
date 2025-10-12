@@ -49,6 +49,14 @@ export default class iMinerFarmer extends BaseFarmer {
       .then((res) => res.data.data);
   }
 
+  getLotteryDetails(signal = this.signal) {
+    return this.api
+      .get("https://apimain.iminer.fun/iapi/server/lottery/detail", {
+        signal,
+      })
+      .then((res) => res.data.data);
+  }
+
   /** Get Tasks */
   getTasks(signal = this.signal) {
     return this.api
@@ -62,6 +70,15 @@ export default class iMinerFarmer extends BaseFarmer {
   startMining(signal = this.signal) {
     return this.api
       .post("https://apimain.iminer.fun/iapi/server/user/start/miner", null, {
+        signal,
+      })
+      .then((res) => res.data.data);
+  }
+
+  /** Claim Mining Reward */
+  claimMiningReward(signal = this.signal) {
+    return this.api
+      .post("https://apimain.iminer.fun/iapi/server/user/claim", null, {
         signal,
       })
       .then((res) => res.data.data);
@@ -162,6 +179,14 @@ export default class iMinerFarmer extends BaseFarmer {
       .then((res) => res.data.data);
   }
 
+  drawLottery(signal = this.signal) {
+    return this.api
+      .post("https://apimain.iminer.fun/iapi/server/lottery/draw", null, {
+        signal,
+      })
+      .then((res) => res.data.data);
+  }
+
   /** Process Farmer */
   async process() {
     const user = await this.getUser();
@@ -172,6 +197,7 @@ export default class iMinerFarmer extends BaseFarmer {
     await this.executeTask("Tasks", () => this.completeTasks(user));
     await this.executeTask("SWAP USDT", () => this.swapUSDT(user));
     await this.executeTask("Levels", () => this.upgradeLevels(user));
+    await this.executeTask("Lottery", () => this.completeLottery(user));
   }
 
   logUserInfo(user) {
@@ -183,6 +209,9 @@ export default class iMinerFarmer extends BaseFarmer {
     if (user.claimStatus === 1) {
       await this.startMining();
       this.logger.success(`✅ Mining started successfully!`);
+    } else if (user.claimStatus === 3) {
+      await this.claimMiningReward();
+      this.logger.success(`✅ Mining reward claimed successfully!`);
     }
   }
 
@@ -249,5 +278,9 @@ export default class iMinerFarmer extends BaseFarmer {
         break; // Not enough balance to upgrade further
       }
     }
+  }
+
+  async completeLottery() {
+    const { ticketAmount, currentProbability } = await this.getLotteryDetails();
   }
 }
