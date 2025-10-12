@@ -83,11 +83,20 @@ export default class BaseFarmer {
     return this.getTelegramUser()?.username;
   }
 
+  /** Get User First Name */
+  getUserFirstName() {
+    return this.getTelegramUser()?.["first_name"] || "";
+  }
+
+  /** Get User Last Name */
+  getUserLastName() {
+    return this.getTelegramUser()?.["last_name"] || "";
+  }
+
   /** Get User Full Name */
   getUserFullName() {
-    const user = this.getTelegramUser();
-    const firstName = user?.["first_name"] || "";
-    const lastName = user?.["last_name"] || "";
+    const firstName = this.getUserFirstName();
+    const lastName = this.getUserLastName();
 
     return `${firstName} ${lastName}`.trim();
   }
