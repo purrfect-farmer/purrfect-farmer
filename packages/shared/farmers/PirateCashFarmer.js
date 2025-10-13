@@ -9,6 +9,13 @@ export default class PirateCashFarmer extends BaseFarmer {
   static telegramLink = "https://t.me/piratecash_bot?start=1147265290";
   static cacheAuth = false;
   static cacheTelegramWebApp = false;
+  static channels = [
+    { name: "pcash", check: "piratecash" },
+    { name: "PirateCash_ENG", check: "pcash" },
+    { name: "Cosanta_io", check: "cosanta" },
+    { name: "wdash", check: "wdash" },
+    { name: "cosanta_eng", check: "cosanta_group" },
+  ];
 
   /** Get Referral Link */
   getReferralLink() {
@@ -72,17 +79,24 @@ export default class PirateCashFarmer extends BaseFarmer {
       .then((res) => res.data);
   }
 
-  /** Get Onboardings */
-  getOnboardings(signal = this.signal) {
-    return this.api
-      .get("https://p.cash/miniapp/onboardings", { signal })
-      .then((res) => res.data);
-  }
-
   /** Get Active Skin */
   getActiveSkin(signal = this.signal) {
     return this.api
       .get("https://p.cash/miniapp/skins/active", { signal })
+      .then((res) => res.data);
+  }
+
+  /** Activate Skin */
+  activateSkin(skinId, signal = this.signal) {
+    return this.api
+      .put(`https://p.cash/miniapp/skins/${skinId}`, null, { signal })
+      .then((res) => res.data);
+  }
+
+  /** Get Onboardings */
+  getOnboardings(signal = this.signal) {
+    return this.api
+      .get("https://p.cash/miniapp/onboardings", { signal })
       .then((res) => res.data);
   }
 
@@ -100,6 +114,51 @@ export default class PirateCashFarmer extends BaseFarmer {
       .then((res) => res.data);
   }
 
+  /** Set Wallet Address */
+  setWalletAddress(walletAddress, signal = this.signal) {
+    return this.api
+      .post(
+        "https://p.cash/miniapp/users/wallet",
+        { walletAddress },
+        { signal }
+      )
+      .then((res) => res.data);
+  }
+
+  /** Force Check Subscriptions */
+  forceCheckSubscriptions(channel, signal = this.signal) {
+    return this.api
+      .post(
+        "https://p.cash/miniapp/users/force-check",
+        {
+          ["channel_name"]: channel,
+        },
+        { signal }
+      )
+      .then((res) => res.data);
+  }
+
+  /** Start Farming */
+  startFarming(signal = this.signal) {
+    return this.api
+      .post("https://p.cash/miniapp/stakings", null, { signal })
+      .then((res) => res.data);
+  }
+
+  /** Get Farming */
+  getFarming(signal = this.signal) {
+    return this.api
+      .get("https://p.cash/miniapp/stakings", { signal })
+      .then((res) => res.data);
+  }
+
+  /** Claim Farming */
+  claimFarming(signal = this.signal) {
+    return this.api
+      .patch("https://p.cash/miniapp/stakings", null, { signal })
+      .then((res) => res.data);
+  }
+
   /** Process Farmer */
   async process() {
     const { user } = this._userData;
@@ -107,12 +166,14 @@ export default class PirateCashFarmer extends BaseFarmer {
     this.logUserInfo(user);
     await this.executeTask("Onboarding", () => this.skipOnboarding(user));
     await this.executeTask("Tap Game", () => this.tapGame(user));
+    await this.executeTask("Upgrade Skin", () => this.upgradeSkin(user));
     await this.executeTask("Channels", () => this.joinRequiredChannels(user));
   }
 
   logUserInfo(user) {
     this.logger.newline();
     this.logCurrentUser();
+    this.logger.keyValue("Balance", user.balance / Math.pow(10, 8));
     this.logger.keyValue("Energy", user.energy);
   }
 
@@ -127,16 +188,14 @@ export default class PirateCashFarmer extends BaseFarmer {
   /** Join Required Channels */
   async joinRequiredChannels(user) {
     if (user["subscribed_status"] === "no") {
-      for (const channel of [
-        "pcash",
-        "PirateCash_ENG",
-        "Cosanta_io",
-        "wdash",
-        "cosanta_eng",
-      ]) {
+      for (const channel of this.constructor.channels) {
         /* Join Telegram Channel */
-        await this.tryToJoinTelegramLink(`https://t.me/${channel}`);
-        this.logger.info(`✅ Joined @${channel} successfully!`);
+        await this.tryToJoinTelegramLink(`https://t.me/${channel.name}`);
+        this.logger.info(`✅ Joined @${channel.name} successfully!`);
+
+        /* Force Check Subscription */
+        await this.forceCheckSubscriptions(channel.check);
+        this.logger.info(`🔄 Checked @${channel.name} subscription status!`);
 
         /* Random delay between joins to mimic human behavior */
         await this.utils.delayForSeconds(3);
@@ -159,6 +218,28 @@ export default class PirateCashFarmer extends BaseFarmer {
 
       /* Random delay between taps to mimic human behavior */
       await this.utils.delayForSeconds(2);
+    }
+  }
+
+  async upgradeSkin(user) {
+    const leagues = await this.getLeagues();
+    const skins = await this.getSkins();
+    const activeSkin = await this.getActiveSkin();
+
+    const currentLeague = leagues.findLast(
+      (league) => league.achievedAt !== null
+    );
+
+    if (currentLeague) {
+      const leagueSkin = skins.find(
+        (skin) => skin.conditions.league === currentLeague.id
+      );
+      if (leagueSkin && !leagueSkin.isActive) {
+        await this.activateSkin(leagueSkin.id);
+        this.logger.success(
+          `✅ Activated ${leagueSkin.name.toUpperCase()} skin successfully!`
+        );
+      }
     }
   }
 }
