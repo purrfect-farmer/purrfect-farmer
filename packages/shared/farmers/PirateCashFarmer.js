@@ -165,10 +165,10 @@ export default class PirateCashFarmer extends BaseFarmer {
 
     this.logUserInfo(user);
     await this.executeTask("Onboarding", () => this.skipOnboarding(user));
-    await this.executeTask("Tap Game", () => this.tapGame(user));
-    await this.executeTask("Upgrade Skin", () => this.upgradeSkin(user));
     await this.executeTask("Check Profile", () => this.checkProfile(user));
+    await this.executeTask("Upgrade Skin", () => this.upgradeSkin(user));
     await this.executeTask("Channels", () => this.joinRequiredChannels(user));
+    await this.executeTask("Tap Game", () => this.tapGame(user));
   }
 
   logUserInfo(user) {
@@ -199,7 +199,7 @@ export default class PirateCashFarmer extends BaseFarmer {
         this.logger.info(`🔄 Checked @${channel.name} subscription status!`);
 
         /* Random delay between joins to mimic human behavior */
-        await this.utils.delayForSeconds(3);
+        await this.utils.delayForSeconds(4);
       }
     }
   }
