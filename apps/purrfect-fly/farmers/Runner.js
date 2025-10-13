@@ -274,9 +274,19 @@ export default function createRunner(FarmerClass) {
       return Boolean(this.client);
     }
 
+    /** Can Update Profile */
+    canUpdateProfile(options) {
+      return Boolean(this.client);
+    }
+
     /** Join Telegram Link */
     joinTelegramLink(link) {
       return this.client.joinTelegramLink(link);
+    }
+
+    /** Update Profile */
+    updateProfile(options) {
+      return this.client.updateProfile(options);
     }
 
     /** Get Cookies */

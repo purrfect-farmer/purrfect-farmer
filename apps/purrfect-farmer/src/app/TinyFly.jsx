@@ -59,6 +59,16 @@ const createInstance = ({
       return this.client.ref.current.joinTelegramLink(link);
     }
 
+    /** Can Update Profile */
+    canUpdateProfile(options) {
+      return Boolean(this.client.ref.current);
+    }
+
+    /** Update Profile */
+    updateProfile(options) {
+      return this.client.ref.current.updateProfile(options);
+    }
+
     /** Get Cookies */
     async getCookies(options) {
       return await this.utils.getCookies(options);

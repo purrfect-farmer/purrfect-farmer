@@ -174,7 +174,20 @@ export default class BaseFarmer {
         await this.joinTelegramLink(link);
         return true;
       } catch (error) {
-        this.logger.error(error.message);
+        this.logger.error("Failed to join Telegram link:", error.message);
+        return false;
+      }
+    }
+  }
+
+  /** Try to update profile */
+  async tryToUpdateProfile(options) {
+    if (this.canUpdateProfile(options)) {
+      try {
+        await this.updateProfile(options);
+        return true;
+      } catch (error) {
+        this.logger.error("Failed to update profile:", error.message);
         return false;
       }
     }
