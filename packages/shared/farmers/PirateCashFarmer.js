@@ -151,11 +151,11 @@ export default class PirateCashFarmer extends BaseFarmer {
     while (energy > 0) {
       /* Determine tap amount (random between 10 and 40, but not exceeding available energy) */
       const tapAmount = Math.min(energy, 10 + Math.floor(Math.random() * 30));
-      energy -= tapAmount;
 
       /* Tap Coins */
-      await this.tapCoin(tapAmount);
-      this.logger.info(`🪙 Tapped ${tapAmount} coins.`);
+      const result = await this.tapCoin(tapAmount);
+      energy = result.energy;
+      this.logger.info(`🪙 Tapped ${tapAmount} coins. [${energy}] energy left`);
 
       /* Random delay between taps to mimic human behavior */
       await this.utils.delayForSeconds(2);
