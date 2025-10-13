@@ -9,6 +9,7 @@ export default function useDropFarmerInstance({
   logger,
   telegramWebApp,
   joinTelegramLink,
+  updateProfile,
 }) {
   const instanceRef = useRef(null);
   const userAgent = useUserAgent();
@@ -25,9 +26,19 @@ export default function useDropFarmerInstance({
         this.joinTelegramLink = handler;
       }
 
+      /** Set the Update Profile Handler */
+      setProfileUpdateHandler(handler) {
+        this.updateProfile = handler;
+      }
+
       /** Can Join Telegram Link */
       canJoinTelegramLink() {
         return Boolean(this.joinTelegramLink);
+      }
+
+      /** Can Update Profile */
+      canUpdateProfile() {
+        return Boolean(this.updateProfile);
       }
 
       /** Get Cookies */
@@ -44,10 +55,19 @@ export default function useDropFarmerInstance({
     instance.setLogger?.(logger);
     instance.setUserAgent?.(userAgent);
     instance.setTelegramLinkHandler?.(joinTelegramLink);
+    instance.setProfileUpdateHandler?.(updateProfile);
     instance.setApi?.(api);
     instance.setTelegramWebApp?.(telegramWebApp);
     return instance.configureApi?.(api);
-  }, [instance, userAgent, logger, joinTelegramLink, api, telegramWebApp]);
+  }, [
+    instance,
+    userAgent,
+    api,
+    logger,
+    joinTelegramLink,
+    updateProfile,
+    telegramWebApp,
+  ]);
 
   return instance;
 }

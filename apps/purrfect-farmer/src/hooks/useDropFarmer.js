@@ -103,6 +103,20 @@ export default function useDropFarmer() {
     )
   );
 
+  /** Update Profile */
+  const updateProfile = useRefCallback(
+    useCallback(
+      async (...args) => {
+        if (app.farmerMode === "session") {
+          const client = app.telegramClient.ref.current;
+          if (!client) return;
+          return client.updateProfile(...args);
+        }
+      },
+      [app.farmerMode, app.telegramClient]
+    )
+  );
+
   /** Instance */
   const instance = useDropFarmerInstance({
     FarmerClass,
@@ -110,6 +124,7 @@ export default function useDropFarmer() {
     logger,
     telegramWebApp,
     joinTelegramLink,
+    updateProfile,
   });
 
   /** Data Query */
