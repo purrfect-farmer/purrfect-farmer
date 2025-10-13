@@ -20,6 +20,9 @@ export default (program, inquirer, chalk) => {
       const sessions = await GramClient.getSessions();
       const assigned = new Set();
 
+      console.log(chalk.yellow.bold(`Found sessions: ${sessions.length}`));
+      console.table(sessions);
+
       for (const session of sessions) {
         try {
           console.log(chalk.blue(`Processing session: "${session}"`));
