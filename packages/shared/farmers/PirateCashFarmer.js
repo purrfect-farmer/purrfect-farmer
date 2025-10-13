@@ -153,15 +153,12 @@ export default class PirateCashFarmer extends BaseFarmer {
       const tapAmount = Math.min(energy, 10 + Math.floor(Math.random() * 30));
       energy -= tapAmount;
 
-      /** Get System Info */
-      await this.getSystemInfo();
-
       /* Tap Coins */
       await this.tapCoin(tapAmount);
       this.logger.info(`🪙 Tapped ${tapAmount} coins.`);
 
       /* Random delay between taps to mimic human behavior */
-      await this.utils.delayForSeconds(3);
+      await this.utils.delayForSeconds(2);
     }
   }
 }
