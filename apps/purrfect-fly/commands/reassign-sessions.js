@@ -23,36 +23,45 @@ export default (program, inquirer, chalk) => {
       console.log(chalk.yellow.bold(`Found sessions: ${sessions.length}`));
       console.table(sessions);
 
-      for (const session of sessions) {
-        try {
-          console.log(chalk.blue(`Processing session: "${session}"`));
-          const client = await GramClient.create(session);
-          const user = await client.getSelf();
-          const userId = user?.id?.toString();
-
-          console.log(chalk.gray(`User ID: ${userId || "N/A"}`));
-
-          if (!userId || assigned.has(userId)) {
-            await client.logout();
-            continue;
-          }
-
-          const account = await db.Account.findByPk(userId);
-
-          if (!account) {
-            await client.logout();
-            continue;
-          }
-
-          await client.destroy();
-          await account.update({ session });
-          assigned.add(userId);
-        } catch (error) {
-          console.error(
-            chalk.red(`Error processing session "${session}":`),
-            error
-          );
+      const chunkGenerator = function* () {
+        const chunkSize = 20;
+        for (let i = 0; i < sessions.length; i += chunkSize) {
+          yield sessions.slice(i, i + chunkSize);
         }
+      };
+
+      for (const chunk of chunkGenerator()) {
+        await Promise.allSettled(
+          chunk.map(async (session) => {
+            try {
+              console.log(chalk.blue(`Processing session: "${session}"`));
+              const client = await GramClient.create(session);
+              const user = await client.getSelf();
+              const userId = user?.id?.toString();
+
+              console.log(chalk.gray(`User ID: ${userId || "N/A"}`));
+
+              if (!userId || assigned.has(userId)) {
+                await client.logout();
+              }
+
+              const account = await db.Account.findByPk(userId);
+
+              if (!account) {
+                await client.logout();
+              }
+
+              await client.destroy();
+              await account.update({ session });
+              assigned.add(userId);
+            } catch (error) {
+              console.error(
+                chalk.red(`Error processing session "${session}":`),
+                error
+              );
+            }
+          })
+        );
       }
 
       console.log(chalk.green.bold(`Reassigned sessions: ${assigned.size}`));
