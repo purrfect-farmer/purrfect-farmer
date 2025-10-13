@@ -218,7 +218,7 @@ export default class PirateCashFarmer extends BaseFarmer {
       this.logger.info(`🪙 Tapped ${tapAmount} coins. [${energy}] energy left`);
 
       /* Random delay between taps to mimic human behavior */
-      await this.utils.delayForSeconds(2);
+      await this.utils.delayForSeconds(3);
     }
   }
 
