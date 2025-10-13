@@ -22,6 +22,7 @@ export default (program, inquirer, chalk) => {
 
       for (const session of sessions) {
         try {
+          console.log(chalk.blue(`Processing session: "${session}"`));
           const client = await GramClient.create(session);
           const user = await client.getSelf();
           const userId = user?.id?.toString();
