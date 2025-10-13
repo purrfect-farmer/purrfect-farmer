@@ -339,6 +339,13 @@ export default class BaseTelegramWebClient extends TelegramClient {
     });
   }
 
+  /** Update Profile */
+  updateProfile(options) {
+    return this.execute(() => {
+      return this.invoke(new Api.account.UpdateProfile(options));
+    });
+  }
+
   /** Delete and Block Bot */
   async deleteAndBlockBot(entity) {
     return this.execute(async () => {
