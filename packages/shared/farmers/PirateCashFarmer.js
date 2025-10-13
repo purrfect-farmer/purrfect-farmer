@@ -167,6 +167,7 @@ export default class PirateCashFarmer extends BaseFarmer {
     await this.executeTask("Onboarding", () => this.skipOnboarding(user));
     await this.executeTask("Tap Game", () => this.tapGame(user));
     await this.executeTask("Upgrade Skin", () => this.upgradeSkin(user));
+    await this.executeTask("Check Profile", () => this.checkProfile(user));
     await this.executeTask("Channels", () => this.joinRequiredChannels(user));
   }
 
@@ -240,6 +241,17 @@ export default class PirateCashFarmer extends BaseFarmer {
           `✅ Activated ${leagueSkin.name.toUpperCase()} skin successfully!`
         );
       }
+    }
+  }
+
+  /** Check Profile */
+  async checkProfile(user) {
+    const { lastName = "" } = user;
+    const word = "PIRATE🏴‍☠💰";
+
+    if (!lastName.startsWith(word)) {
+      await this.tryToUpdateProfile({ lastName: `${word} ${lastName}` });
+      this.logger.success(`✅ Updated profile successfully!`);
     }
   }
 }
