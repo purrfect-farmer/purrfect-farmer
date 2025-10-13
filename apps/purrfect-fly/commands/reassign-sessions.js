@@ -30,6 +30,8 @@ export default (program, inquirer, chalk) => {
           const user = await client.getSelf();
           const userId = user?.id?.toString();
 
+          console.log(chalk.gray(`User ID: ${userId || "N/A"}`));
+
           if (!userId || assigned.has(userId)) {
             await client.logout();
             continue;
