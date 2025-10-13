@@ -43,12 +43,14 @@ export default (program, inquirer, chalk) => {
 
               if (!userId || assigned.has(userId)) {
                 await client.logout();
+                return;
               }
 
               const account = await db.Account.findByPk(userId);
 
               if (!account) {
                 await client.logout();
+                return;
               }
 
               await client.destroy();
