@@ -163,11 +163,23 @@ export default class PirateCashFarmer extends BaseFarmer {
   /** Process Farmer */
   async process() {
     const { user } = this._userData;
+    const leagues = await this.getLeagues();
+    const skins = await this.getSkins();
+    const activeSkin = await this.getActiveSkin();
+
+    const currentLeague = leagues.findLast(
+      (league) => league.achievedAt !== null
+    );
 
     this.logUserInfo(user);
     await this.executeTask("Onboarding", () => this.skipOnboarding(user));
     await this.executeTask("Check Profile", () => this.checkProfile(user));
-    await this.executeTask("Upgrade Skin", () => this.upgradeSkin(user));
+    await this.executeTask("Upgrade Skin", () =>
+      this.upgradeSkin({ skins, currentLeague })
+    );
+    await this.executeTask("Farming", () =>
+      this.checkFarming({ currentLeague })
+    );
     await this.executeTask("Channels", () => this.joinRequiredChannels(user));
     await this.executeTask("Tap Game", () => this.tapGame(user));
   }
@@ -223,15 +235,7 @@ export default class PirateCashFarmer extends BaseFarmer {
     }
   }
 
-  async upgradeSkin(user) {
-    const leagues = await this.getLeagues();
-    const skins = await this.getSkins();
-    const activeSkin = await this.getActiveSkin();
-
-    const currentLeague = leagues.findLast(
-      (league) => league.achievedAt !== null
-    );
-
+  async upgradeSkin({ skins, currentLeague }) {
     if (currentLeague) {
       const leagueSkin = skins.find(
         (skin) => skin.conditions.league === currentLeague.id
@@ -253,6 +257,30 @@ export default class PirateCashFarmer extends BaseFarmer {
     if (!lastName.startsWith(word)) {
       await this.tryToUpdateProfile({ lastName: `${word} ${lastName}` });
       this.logger.success(`✅ Updated profile successfully!`);
+    }
+  }
+
+  /** Check Farming */
+  async checkFarming({ currentLeague }) {
+    if (currentLeague.id < 2) {
+      this.logger.info("Farming is available from League 2 and above.");
+      return;
+    }
+
+    const farming = await this.getFarming().catch(() => null);
+    const systemInfo = await this.getSystemInfo();
+
+    if (!farming) {
+      await this.startFarming();
+      this.logger.success(`✅ Started farming successfully!`);
+    } else if (
+      this.utils.dateFns.isAfter(
+        new Date(systemInfo.time),
+        new Date(farming.finishAt)
+      )
+    ) {
+      await this.claimFarming();
+      this.logger.success(`✅ Claimed farming rewards successfully!`);
     }
   }
 }
