@@ -251,7 +251,7 @@ export default class StringDriveFarmer extends BaseFarmer {
     this.logUserInfo(user);
     await this.executeTask("Daily Reward", () => this.completeDailyReward());
     await this.executeTask("Tasks", () => this.completeTasks());
-    await this.executeTask("Ads", () => this.completeAds());
+    await this.executeTask("Ads", () => this.completeStringDriveAds());
     await this.executeTask("Game", () => this.playGame());
   }
 
@@ -295,7 +295,8 @@ export default class StringDriveFarmer extends BaseFarmer {
     }
   }
 
-  async completeAds(signal = this.signal) {
+  /** Complete String Drive Ads */
+  async completeStringDriveAds(signal = this.signal) {
     /** Ads */
     const userAds = await this.getUserAds();
     const availableAds = userAds;
@@ -306,7 +307,7 @@ export default class StringDriveFarmer extends BaseFarmer {
         this.logger.success(`Ad Completed: ${ad["AdName"]}`);
         await this.utils.delayForSeconds(30, { signal });
       } catch (error) {
-        this.logger.error(`Failed to complete ad: ${ad["AdName"]}`);
+        this.logger.error(`Failed ad: ${ad["AdName"]}`);
       }
     }
   }
@@ -326,20 +327,23 @@ export default class StringDriveFarmer extends BaseFarmer {
 
       for (let i = 0; i < TOTAL_GAMES; i++) {
         const isWin = i !== LOSE_INDEX;
+
+        /* Place Bet */
         const bet = await this.betGame(String(max));
-
         const gameHistoryId = bet.gameHistoryId;
-
         this.logger.info(`Bet [${gameHistoryId}] - ${isWin ? "WIN" : "LOSE"}`);
 
+        /* Wait for game duration */
         await this.utils.delayForSeconds(isWin ? 120 : 60, { signal });
 
+        /* Submit Game Result */
         await this.submitGameResult(
           gameHistoryId,
           isWin ? "WON" : "LOSE",
           this.utils.extraGamePoints(isWin ? max * 6 : Math.floor(max * 2), 40)
         );
 
+        /* Log Result */
         this.logger.success(
           `Game ${isWin ? "Won" : "Lost"} [${gameHistoryId}]`
         );
