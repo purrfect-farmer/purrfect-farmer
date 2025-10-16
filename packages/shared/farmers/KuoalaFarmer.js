@@ -163,7 +163,7 @@ export default class KuoalaFarmer extends BaseFarmer {
   }
 
   /** Complete Tasks */
-  completeTasks() {
+  completeTasks(signal = this.signal) {
     return this.executeTask("Complete Tasks", async () => {
       const tasks = await this.getTasks();
       const availableTasks = tasks.filter(
@@ -190,7 +190,7 @@ export default class KuoalaFarmer extends BaseFarmer {
           this.logger.success(`Task completed: ${task.title}`);
 
           /** Delay to avoid hitting API limits */
-          await this.utils.delayForSeconds(1);
+          await this.utils.delayForSeconds(1, { signal });
         } catch (error) {
           this.logger.error(
             `Failed to complete task: ${task.title} - ${error.message}`
@@ -214,7 +214,7 @@ export default class KuoalaFarmer extends BaseFarmer {
   }
 
   /** Complete Videos */
-  completeVideos() {
+  completeVideos(signal = this.signal) {
     return this.executeTask("Complete Videos", async () => {
       const videos = await this.getVideos();
       const availableVideos = videos.filter(
@@ -246,7 +246,7 @@ export default class KuoalaFarmer extends BaseFarmer {
           await this.completeQuiz(video.id);
 
           /** Delay to avoid hitting API limits */
-          await this.utils.delayForSeconds(1);
+          await this.utils.delayForSeconds(1, { signal });
         } catch (error) {
           this.logger.error(
             `Failed to watch video: ${video.title} - ${error.message}`

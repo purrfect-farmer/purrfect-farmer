@@ -405,7 +405,7 @@ export default class HoneyFarmFarmer extends BaseFarmer {
     }
   }
 
-  async applyBoost() {
+  async applyBoost(signal = this.signal) {
     const userBoosts = await this.getUserBoosts();
     const boosts = await this.getBoosts();
 
@@ -414,7 +414,7 @@ export default class HoneyFarmFarmer extends BaseFarmer {
       const boost = boosts.find((b) => b.id === available.boostId);
       if (boost.current > 0) {
         const { id } = await this.putBoost(available.boostId);
-        await this.utils.delayForSeconds(10);
+        await this.utils.delayForSeconds(10, { signal });
         await this.activateBoost(id);
         this.logger.success(`Applied Boost`);
       }

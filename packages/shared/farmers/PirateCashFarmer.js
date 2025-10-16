@@ -200,7 +200,7 @@ export default class PirateCashFarmer extends BaseFarmer {
   }
 
   /** Join Required Channels */
-  async joinRequiredChannels(user) {
+  async joinRequiredChannels(user, signal = this.signal) {
     if (user["subscribed_status"] === "no") {
       for (const channel of this.constructor.channels) {
         /* Join Telegram Channel */
@@ -212,13 +212,13 @@ export default class PirateCashFarmer extends BaseFarmer {
         this.logger.info(`🔄 Checked @${channel.name} subscription status!`);
 
         /* Random delay between joins to mimic human behavior */
-        await this.utils.delayForSeconds(4);
+        await this.utils.delayForSeconds(4, { signal });
       }
     }
   }
 
   /** Tap Game */
-  async tapGame(user) {
+  async tapGame(user, signal = this.signal) {
     let energy = user.energy;
 
     while (energy > 0) {
@@ -231,7 +231,7 @@ export default class PirateCashFarmer extends BaseFarmer {
       this.logger.info(`🪙 Tapped ${tapAmount} coins. [${energy}] energy left`);
 
       /* Random delay between taps to mimic human behavior */
-      await this.utils.delayForSeconds(3);
+      await this.utils.delayForSeconds(3, { signal });
     }
   }
 

@@ -210,12 +210,12 @@ export default class BountyHashFarmer extends BaseFarmer {
     this.logCurrentUser();
   }
 
-  async watchAd(type) {
+  async watchAd(type, signal = this.signal) {
     const result = await this.api
       .get(`https://api.bountyhash.dev/api/ads/get/?type=${type}`)
       .then((res) => res.data);
 
-    await this.utils.delayForSeconds(5);
+    await this.utils.delayForSeconds(5, { signal });
 
     await this.api.put("https://api.bountyhash.dev/api/ads/update/", {
       ["duration_ms"]: 5000 + Math.floor(Math.random() * 3000),

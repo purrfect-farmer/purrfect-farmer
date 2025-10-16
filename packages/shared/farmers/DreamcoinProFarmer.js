@@ -401,7 +401,7 @@ export default class DreamcoinProFarmer extends BaseFarmer {
     await this.logger.info(
       `Visiting page: ${page} for account: ${this.getUsername()}`
     );
-    await this.utils.delayForSeconds(2);
+    await this.utils.delayForSeconds(2, { signal });
     await this.api
       .post(
         "https://api.dreamcoin.pro/api/users/action",

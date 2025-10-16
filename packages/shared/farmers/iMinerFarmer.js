@@ -251,7 +251,7 @@ export default class iMinerFarmer extends BaseFarmer {
     }
   }
 
-  async upgradeLevels() {
+  async upgradeLevels(signal = this.signal) {
     const user = await this.getUser();
     const wallets = await this.getWallets();
     const imrWallet = wallets.find((w) => w.currencyVO.currency === "IMR");
@@ -273,7 +273,7 @@ export default class iMinerFarmer extends BaseFarmer {
         this.logger.success(
           `🚀 Upgraded to level ${nextLevel.level} successfully!`
         );
-        await this.utils.delayForSeconds(2);
+        await this.utils.delayForSeconds(2, { signal });
       } else {
         break; // Not enough balance to upgrade further
       }

@@ -313,7 +313,7 @@ export default class BattleBullsFarmer extends BaseFarmer {
   }
 
   /** Upgrade Cards */
-  async upgradeCards() {
+  async upgradeCards(signal = this.signal) {
     while (true) {
       const card = await this.getCardToUpgrade();
 
@@ -323,7 +323,7 @@ export default class BattleBullsFarmer extends BaseFarmer {
       }
 
       await this.buyCard(card.id);
-      await this.utils.delay(1000);
+      await this.utils.delay(1000, { signal });
     }
   }
 

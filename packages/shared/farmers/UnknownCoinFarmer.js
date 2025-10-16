@@ -329,7 +329,7 @@ export default class UnknownCoinFarmer extends BaseFarmer {
     }
   }
 
-  async completeAdRewards(user) {
+  async completeAdRewards(user, signal = this.signal) {
     let rewards = 0;
 
     for (const [category, ads] of Object.entries(user["ads_rewards"])) {
@@ -344,19 +344,19 @@ export default class UnknownCoinFarmer extends BaseFarmer {
         } catch (error) {
           this.logger.error(`Failed [${category.toUpperCase()}]`);
         }
-        await this.utils.delayForSeconds(10);
+        await this.utils.delayForSeconds(10, { signal });
       }
     }
 
     this.logger.info(`Total +Energy from Ads: ${rewards}`);
   }
 
-  async completePopIt(user) {
+  async completePopIt(user, signal = this.signal) {
     for (let i = 0; i < user["energy_rounds"]; i++) {
       const energy = 150 + Math.floor(Math.random() * 50);
       await this.addEnergy(energy);
       this.logger.success(`+${energy} Energy from Pop It`);
-      await this.utils.delayForSeconds(10);
+      await this.utils.delayForSeconds(10, { signal });
     }
   }
 

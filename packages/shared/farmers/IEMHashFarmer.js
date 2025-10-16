@@ -151,7 +151,7 @@ export default class IEMHashFarmer extends BaseFarmer {
     });
   }
 
-  mine() {
+  mine(signal = this.signal) {
     return this.executeTask("Mine Planet", async () => {
       while (true) {
         if (this.signal.aborted) return;
@@ -165,12 +165,12 @@ export default class IEMHashFarmer extends BaseFarmer {
 
         this.logger.success(`Mined successfully! - ${user.power}`);
 
-        await this.utils.delayForSeconds(2);
+        await this.utils.delayForSeconds(2, { signal });
       }
     });
   }
 
-  completeTasks() {
+  completeTasks(signal = this.signal) {
     return this.executeTask("Complete Tasks", async () => {
       while (true) {
         const weekTask = await this.getWeekTask();
@@ -186,7 +186,7 @@ export default class IEMHashFarmer extends BaseFarmer {
 
             for (let i = userCount; i < totalCount; i++) {
               await this.collectAd();
-              await this.utils.delayForSeconds(10);
+              await this.utils.delayForSeconds(10, { signal });
             }
             break;
 
