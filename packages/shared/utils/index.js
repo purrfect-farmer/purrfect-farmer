@@ -8,8 +8,13 @@ import * as core from "./core.js";
 import * as delay from "./delay.js";
 import * as telegram from "./telegram.js";
 
+import CryptoJS from "crypto-js";
+
+export { CryptoJS };
+
 export default {
   dateFns,
+  CryptoJS,
   ...delay,
   ...telegram,
   ...core,
