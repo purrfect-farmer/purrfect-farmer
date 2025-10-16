@@ -241,7 +241,7 @@ export default class UnknownCoinFarmer extends BaseFarmer {
 
   /** Process Farmer */
   async process() {
-    const user = this._userData;
+    const user = await this.getUserInfo();
 
     this.logUserInfo(user);
     await this.executeTask("Lottery", () => this.completeLottery(user));
