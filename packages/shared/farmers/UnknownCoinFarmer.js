@@ -335,11 +335,7 @@ export default class UnknownCoinFarmer extends BaseFarmer {
           rewards += ads["reward"];
           await this.utils.delayForSeconds(5);
         } catch (error) {
-          this.logger.error(
-            `Failed to get +Energy from ${category.toUpperCase()} Ads: ${
-              error.message
-            }`
-          );
+          this.logger.error(`Failed [${category.toUpperCase()}]`);
         }
       }
     }
