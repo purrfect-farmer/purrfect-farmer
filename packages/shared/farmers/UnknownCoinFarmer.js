@@ -10,6 +10,7 @@ export default class UnknownCoinFarmer extends BaseFarmer {
     "https://t.me/coin_unk_bot/app?startapp=MTE0NzI2NTI5MA==";
   static cacheAuth = false;
   static cacheTelegramWebApp = false;
+  static apiDelay = 2000;
 
   static SECRET_KEY = "O0sN7rQcXoG5ylA6UYSQTJbZqYLV9X70PVn3hS86ceS";
 
@@ -106,7 +107,7 @@ export default class UnknownCoinFarmer extends BaseFarmer {
   getLotteryTickets(signal = this.signal) {
     return this.api
       .get("https://api.unknown-coin.com/api/lottery-tickets", { signal })
-      .then((res) => res.data);
+      .then((res) => res.data.data);
   }
 
   /** Add Coins */
@@ -186,6 +187,13 @@ export default class UnknownCoinFarmer extends BaseFarmer {
     return this.api
       .get("https://api.unknown-coin.com/api/tasks", { signal })
       .then((res) => res.data.data);
+  }
+
+  /** Claim Task Reward */
+  claimTaskReward(name, signal = this.signal) {
+    return this.api
+      .post("https://api.unknown-coin.com/api/tasks", { name }, { signal })
+      .then((res) => res.data);
   }
 
   /** Add Energy From Ads */
@@ -333,10 +341,10 @@ export default class UnknownCoinFarmer extends BaseFarmer {
           );
 
           rewards += ads["reward"];
-          await this.utils.delayForSeconds(5);
         } catch (error) {
           this.logger.error(`Failed [${category.toUpperCase()}]`);
         }
+        await this.utils.delayForSeconds(10);
       }
     }
 
@@ -348,7 +356,7 @@ export default class UnknownCoinFarmer extends BaseFarmer {
       const energy = 150 + Math.floor(Math.random() * 50);
       await this.addEnergy(energy);
       this.logger.success(`+${energy} Energy from Pop It`);
-      await this.utils.delayForSeconds(5);
+      await this.utils.delayForSeconds(10);
     }
   }
 
@@ -364,5 +372,12 @@ export default class UnknownCoinFarmer extends BaseFarmer {
 
   async completeTasks(user) {
     const tasks = await this.getTasks();
+
+    for (const task of tasks) {
+      if (task.status === "finished") {
+        await this.claimTaskReward(task.name);
+        this.logger.success(`Claimed task reward: ${task.description}`);
+      }
+    }
   }
 }
