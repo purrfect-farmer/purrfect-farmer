@@ -208,13 +208,21 @@ export default class UnknownCoinFarmer extends BaseFarmer {
   }
 
   async completeAdRewards(user) {
+    let rewards = 0;
+
     for (const [category, ads] of Object.entries(user["ads_rewards"])) {
       if (ads["count"] > ads["used"]) {
         await this.addEnergyFromAds(category);
-        this.logger.success(`+Energy from ${category.toUpperCase()} Ads`);
+        this.logger.success(
+          `+Energy (${ads["reward"]}) from ${category.toUpperCase()} Ads`
+        );
+
+        rewards += ads["reward"];
         await this.utils.delayForSeconds(5);
       }
     }
+
+    this.logger.info(`Total +Energy from Ads: ${rewards}`);
   }
 
   async completePopIt(user) {
