@@ -226,7 +226,7 @@ export default class UnknownCoinFarmer extends BaseFarmer {
   }
 
   async completeShake(user) {
-    const { time } = await this.getServerTime();
+    const time = user["timestamp"];
     const nextShake = user["challenges"]["next_shake_round_at"];
 
     if (time >= nextShake) {
