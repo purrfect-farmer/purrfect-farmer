@@ -382,6 +382,18 @@ export default function createRunner(FarmerClass) {
       const instance = new this(account);
 
       try {
+        if (process.env.NODE_ENV === "production") {
+          /**
+           * Random startup delay to avoid all accounts starting at the same time
+           */
+          const startupDelay = Math.floor(instance.random() * 300);
+          if (startupDelay) {
+            instance.logger.info(
+              `[${account.id}] Delaying startup by ${startupDelay} seconds...`
+            );
+            await instance.utils.delayForSeconds(startupDelay);
+          }
+        }
         await instance.prepare();
         await instance.start();
       } catch (error) {
