@@ -75,6 +75,8 @@ export default class UnknownCoinFarmer extends BaseFarmer {
     await this.setUnknownCoinUserAgent(this.userAgent || navigator?.userAgent);
     await this.getHappyHours();
     await this.getCurrencyPrice();
+    await this.getUserStoryEnergy();
+    await this.getUserStoryUSDT();
 
     return true;
   }
@@ -97,6 +99,42 @@ export default class UnknownCoinFarmer extends BaseFarmer {
   getUserStoryEnergy(signal = this.signal) {
     return this.api
       .get("https://api.unknown-coin.com/api/user/story/energy", { signal })
+      .then((res) => res.data);
+  }
+
+  /** Get Lottery Tickets */
+  getLotteryTickets(signal = this.signal) {
+    return this.api
+      .get("https://api.unknown-coin.com/api/lottery-tickets", { signal })
+      .then((res) => res.data);
+  }
+
+  /** Add Coins */
+  addCoins(amount, signal = this.signal) {
+    return this.api
+      .post(
+        "https://api.unknown-coin.com/api/add-coins",
+        { amount },
+        { signal }
+      )
+      .then((res) => res.data);
+  }
+
+  /** Claim Lottery Ticket */
+  claimLotteryTicket(ticketId, signal = this.signal) {
+    return this.api
+      .post(
+        `https://api.unknown-coin.com/api/lottery-tickets/${ticketId}`,
+        null,
+        { signal }
+      )
+      .then((res) => res.data);
+  }
+
+  /** Get User Story USDT */
+  getUserStoryUSDT(signal = this.signal) {
+    return this.api
+      .get("https://api.unknown-coin.com/api/user/story/usdt", { signal })
       .then((res) => res.data);
   }
 
@@ -158,6 +196,7 @@ export default class UnknownCoinFarmer extends BaseFarmer {
         { type },
         {
           signal,
+          ignoreUnauthorizedError: true,
         }
       )
       .then((res) => res.data);
@@ -185,11 +224,20 @@ export default class UnknownCoinFarmer extends BaseFarmer {
       .then((res) => res.data);
   }
 
+  /** Open Loot Box */
+  openLootBox(data = [], signal = this.signal) {
+    return this.api
+      .post("https://api.unknown-coin.com/api/loot-box", { data }, { signal })
+      .then((res) => res.data);
+  }
+
   /** Process Farmer */
   async process() {
     const user = this._userData;
 
     this.logUserInfo(user);
+    await this.executeTask("Lottery", () => this.completeLottery(user));
+    await this.executeTask("Loot Box", () => this.completeLootBox(user));
     await this.executeTask("Ads", () => this.completeAdRewards(user));
     await this.executeTask("Pop It", () => this.completePopIt(user));
     await this.executeTask("Shake", () => this.completeShake(user));
@@ -207,18 +255,92 @@ export default class UnknownCoinFarmer extends BaseFarmer {
     this.logger.keyValue("NOT", user["not_balance"]);
   }
 
+  /**
+   * Get Daily Numbers
+   *
+   * Generates 4 unique random numbers between 1 and 39 based on the current day (UTC).
+   *
+   * Source Searches: codes, 0x5265c00, 0x3c6ef35f, function aR4()
+   *
+   * Once located, use debugger to reveal the unobfuscated code, then deobfuscate the code with AI.
+   */
+  getDailyNumbers() {
+    // Use the current day (UTC) as the random seed
+    const daysSinceEpoch = Math.floor(Date.now() / 86_400_000);
+
+    // Create a simple deterministic pseudo-random number generator (LCG)
+    let state = daysSinceEpoch;
+    const nextRandom = () => {
+      state = (1664525 * state + 1013904223) % 2 ** 32;
+      return state / 2 ** 32;
+    };
+
+    // Generate 5 unique numbers between 1 and 39
+    const numbers = [];
+    while (numbers.length < 5) {
+      const value = Math.floor(nextRandom() * 39) + 1;
+      if (!numbers.includes(value)) numbers.push(value);
+    }
+
+    // Remove the first one and return the remaining 4
+    numbers.shift();
+    return numbers;
+  }
+
+  /** Complete Lottery */
+  async completeLottery(user) {
+    if (user["lottery_tickets_available"] > 0) {
+      const tickets = await this.getLotteryTickets();
+
+      for (const ticket of tickets) {
+        if (ticket.status === "available") {
+          await this.claimLotteryTicket(ticket.id);
+          this.logger.success(`Claimed lottery ticket ${ticket.id}`);
+        }
+      }
+    } else {
+      this.logger.info("No lottery tickets available to claim.");
+    }
+
+    if (Number(user["energy_amount"]) >= 15_000) {
+      const added = await this.addCoins(15_000);
+      this.logger.success(`Added ${added} coins for lottery tickets.`);
+    }
+  }
+
+  /** Complete Loot Box */
+  async completeLootBox(user) {
+    if (user["is_loot_box_available"]) {
+      const numbers = this.getDailyNumbers();
+      await this.openLootBox(numbers);
+      this.logger.success(
+        `Opened loot box with numbers: ${numbers.join(", ")}`
+      );
+    } else {
+      this.logger.info("Loot box not available to open.");
+    }
+  }
+
   async completeAdRewards(user) {
     let rewards = 0;
 
     for (const [category, ads] of Object.entries(user["ads_rewards"])) {
       if (ads["count"] > ads["used"]) {
-        await this.addEnergyFromAds(category);
-        this.logger.success(
-          `+Energy (${ads["reward"]}) from ${category.toUpperCase()} Ads`
-        );
+        try {
+          await this.addEnergyFromAds(category);
+          this.logger.success(
+            `+Energy (${ads["reward"]}) from ${category.toUpperCase()} Ads`
+          );
 
-        rewards += ads["reward"];
-        await this.utils.delayForSeconds(5);
+          rewards += ads["reward"];
+          await this.utils.delayForSeconds(5);
+        } catch (error) {
+          this.logger.error(
+            `Failed to get +Energy from ${category.toUpperCase()} Ads: ${
+              error.message
+            }`
+          );
+        }
       }
     }
 
