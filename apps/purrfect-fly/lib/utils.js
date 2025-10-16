@@ -10,6 +10,10 @@ function sha256(data) {
   return crypto.createHash("sha256").update(data).digest("hex");
 }
 
+function sha256Hmac(key, data) {
+  return crypto.createHmac("sha256", key).update(data).digest("hex");
+}
+
 function md5(data) {
   return crypto.createHash("md5").update(data).digest("hex");
 }
@@ -128,6 +132,7 @@ export default {
   ...sharedUtils,
   md5,
   sha256,
+  sha256Hmac,
   isValidInitData,
   isValidEd25519InitData,
   truncateAndPad,

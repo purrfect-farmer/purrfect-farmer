@@ -12,6 +12,10 @@ import { sha256 } from "js-sha256";
 
 export { md5, sha256 };
 
+export function sha256Hmac(key, data) {
+  return sha256.hmac(key, data);
+}
+
 export function isExtension() {
   return window.location.protocol === "chrome-extension:";
 }
@@ -386,6 +390,7 @@ export default {
   ...sharedUtils,
   md5,
   sha256,
+  sha256Hmac,
   getCookies,
   parseHTML,
 };
