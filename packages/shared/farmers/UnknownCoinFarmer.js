@@ -200,7 +200,8 @@ export default class UnknownCoinFarmer extends BaseFarmer {
     this.logger.newline();
     this.logCurrentUser();
     this.logger.keyValue("Balance", user.balance);
-    this.logger.keyValue("Energy Rounds", user["energy_rounds"]);
+    this.logger.keyValue("Energy", user["energy_amount"]);
+    this.logger.keyValue("Rounds", user["energy_rounds"]);
     this.logger.keyValue("USDT", user["usdt_balance"]);
     this.logger.keyValue("TON", user["ton_balance"]);
     this.logger.keyValue("NOT", user["not_balance"]);
