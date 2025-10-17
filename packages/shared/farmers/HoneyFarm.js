@@ -349,11 +349,15 @@ export default class HoneyFarmFarmer extends BaseFarmer {
     const status = await this.getDailyBonusStatus();
     await this.getDailyBonus();
 
-    if ("isCollected" in status && !status.isCollected) {
-      await this.claimDailyBonus();
-      this.logger.success("Collected Daily Bonus");
+    if (status.currentDay !== null) {
+      if (!status.isCollected) {
+        await this.claimDailyBonus();
+        this.logger.success("Collected Daily Bonus");
+      } else {
+        this.logger.info("Daily Bonus already collected");
+      }
     } else {
-      this.logger.info("Daily Bonus already collected");
+      this.logger.info("No Daily Bonus available");
     }
   }
 
