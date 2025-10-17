@@ -287,6 +287,8 @@ export default class KuoalaFarmer extends BaseFarmer {
   async completeQuiz(videoId) {
     const { quiz } = await this.getQuiz(videoId);
 
+    if (!quiz.questions) return;
+
     for (const question of quiz.questions) {
       const correctAnswer = question.answers.find(
         (answer) => answer["is_correct"] === true
