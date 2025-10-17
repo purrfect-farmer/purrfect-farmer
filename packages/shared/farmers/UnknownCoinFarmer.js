@@ -310,9 +310,12 @@ export default class UnknownCoinFarmer extends BaseFarmer {
       this.logger.info("No lottery tickets available to claim.");
     }
 
-    if (Number(user["energy_amount"]) >= 15_000) {
-      const added = await this.addCoins(15_000);
-      this.logger.success(`Added ${added} coins for lottery tickets.`);
+    /* Purchase Lottery Tickets */
+    const purchaseAmount = 15_000;
+
+    if (Number(user["energy_amount"]) >= purchaseAmount) {
+      await this.addCoins(purchaseAmount);
+      this.logger.success(`Added ${purchaseAmount} coins for lottery tickets.`);
     }
   }
 
