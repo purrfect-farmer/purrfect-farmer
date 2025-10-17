@@ -260,7 +260,7 @@ export default class BountyHashFarmer extends BaseFarmer {
     const lastMining = miningInfo["mining_last"];
     const miners = miningInfo["devices"]["miners"];
 
-    if (!miners["count"]) {
+    if (!miners?.["count"]) {
       this.logger.warn("No miner available!");
       return;
     }
