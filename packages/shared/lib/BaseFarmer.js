@@ -158,7 +158,7 @@ export default class BaseFarmer {
       );
       throw error;
     } finally {
-      await this.utils.delayForSeconds(5);
+      await this.utils.delayForSeconds(2);
     }
   }
 
