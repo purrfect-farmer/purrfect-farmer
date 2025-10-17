@@ -349,7 +349,7 @@ export default class HoneyFarmFarmer extends BaseFarmer {
     const status = await this.getDailyBonusStatus();
     await this.getDailyBonus();
 
-    if (!status.isCollected) {
+    if ("isCollected" in status && !status.isCollected) {
       await this.claimDailyBonus();
       this.logger.success("Collected Daily Bonus");
     } else {
