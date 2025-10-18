@@ -101,6 +101,20 @@ export default class BaseFarmer {
     return `${firstName} ${lastName}`.trim();
   }
 
+  /** Get Profile Photo URL */
+  getProfilePhotoUrl() {
+    const user = this.getTelegramUser();
+    if (user && user["photo_url"]) {
+      return user["photo_url"];
+    }
+    return null;
+  }
+
+  /** Get Is Premium User */
+  getIsPremiumUser() {
+    return this.getInitDataUnsafe()?.["is_premium"] || false;
+  }
+
   /** Get Start Parameter */
   getStartParam() {
     return this.getInitDataUnsafe()?.["start_param"];
