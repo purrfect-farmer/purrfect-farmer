@@ -4,6 +4,7 @@ import { useMemo } from "react";
 
 import useAppContext from "./useAppContext";
 import useCloudSubscriptionQuery from "./useCloudSubscriptionQuery";
+import updateNetRules from "@/lib/updateNetRules";
 
 export default function useProxy(app) {
   const { account, settings, sharedSettings, updateSharedSettings } =
@@ -71,5 +72,19 @@ export default function useProxy(app) {
     updateSharedSettings,
     parsedCloudProxy,
     shareCloudProxy,
+  ]);
+
+  /** Update Net Rules when Proxy Settings Change */
+  useEffect(() => {
+    if (import.meta.env.VITE_WHISKER) {
+      updateNetRules();
+    }
+  }, [
+    sharedSettings.allowProxies,
+    sharedSettings.proxyEnabled,
+    sharedSettings.proxyHost,
+    sharedSettings.proxyPort,
+    sharedSettings.proxyUsername,
+    sharedSettings.proxyPassword,
   ]);
 }
