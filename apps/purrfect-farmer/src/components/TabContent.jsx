@@ -27,6 +27,7 @@ export default memo(function TabContent({ tab }) {
   return (
     <TabContext.Provider value={tab}>
       <div
+        data-tab-id={tab.id}
         className={cn(
           "absolute inset-0",
           "flex flex-col",
