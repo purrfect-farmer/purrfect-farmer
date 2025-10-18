@@ -23,11 +23,7 @@ export default function useDropFarmerCloudSync({
           farmer: id,
           userId: instance.telegramWebApp.initDataUnsafe.user.id,
           initData: instance.telegramWebApp.initData,
-          headers: Object.fromEntries(
-            Object.entries(instance.api.defaults.headers.common).filter(
-              ([k]) => !["x-whisker-origin"].includes(k)
-            )
-          ),
+          headers: instance.api.defaults.headers.common,
         })
         .then(() => {
           toast.success(`${title} - Synced to Cloud`);

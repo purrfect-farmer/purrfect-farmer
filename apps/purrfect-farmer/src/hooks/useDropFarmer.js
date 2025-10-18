@@ -60,13 +60,6 @@ export default function useDropFarmer() {
   /** Axios Instance */
   const api = useMemo(() => axios.create(), []);
 
-  /** Set Whisker Origin */
-  useLayoutEffect(() => {
-    if (import.meta.env.VITE_WHISKER) {
-      api.defaults.headers.common["x-whisker-origin"] = `https://${host}`;
-    }
-  }, [api, host]);
-
   /** API Delay */
   useDelayInterceptor(api, apiDelay);
 
