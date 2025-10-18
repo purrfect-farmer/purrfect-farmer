@@ -378,7 +378,6 @@ export async function getCookies(options) {
   if (import.meta.env.VITE_WHISKER) {
     return await window.electron.ipcRenderer.invoke(
       "get-session-cookie",
-      window.WHISKER_PARTITION,
       options
     );
   }
