@@ -125,7 +125,7 @@ export default class StringDriveFarmer extends BaseFarmer {
         `https://st-ba-drive.stringdrive.io/api/auth/getCompletedTasks/${this.getStringDriveUserId()}`,
         { signal }
       )
-      .then((res) => res.data.completedTasks);
+      .then((res) => res.data.completedTasks || []);
   }
 
   /** Get User Completed Ads */
