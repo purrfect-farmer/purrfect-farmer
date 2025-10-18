@@ -39,12 +39,6 @@ const createInstance = ({
       this.userAgent = userAgent;
       this.controller = controller;
 
-      if (import.meta.env.VITE_WHISKER) {
-        this.api.defaults.headers.common[
-          "x-whisker-origin"
-        ] = `https://${this.constructor.host}`;
-      }
-
       this.registerDelayInterceptor();
       this.configureApi?.();
     }
