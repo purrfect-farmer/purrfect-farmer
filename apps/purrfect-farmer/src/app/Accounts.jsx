@@ -16,7 +16,10 @@ const FarmerAccount = ({ account }) => {
   const client = useMemo(() => createQueryClient(), []);
 
   return (
-    <div className={cn("absolute inset-0", !account.active && "invisible")}>
+    <div
+      className={cn("absolute inset-0", !account.active && "invisible")}
+      data-account-id={account.id}
+    >
       <AccountContext.Provider value={account}>
         <QueryClientProvider client={client}>
           <App />
@@ -28,7 +31,7 @@ const FarmerAccount = ({ account }) => {
 
 function Accounts() {
   const shared = useSharedCore();
-  const { accounts } = shared;
+  const { accounts, runningAccounts } = shared;
 
   /** Use Net Rules */
   useNetRules();
@@ -41,9 +44,12 @@ function Accounts() {
 
   return (
     <SharedContext.Provider value={shared}>
-      {accounts.map((account) => (
-        <FarmerAccount key={account.id} account={account} />
-      ))}
+      {accounts.map(
+        (account) =>
+          runningAccounts.includes(account.id) && (
+            <FarmerAccount key={account.id} account={account} />
+          )
+      )}
 
       {/* Toaster */}
       <Toaster

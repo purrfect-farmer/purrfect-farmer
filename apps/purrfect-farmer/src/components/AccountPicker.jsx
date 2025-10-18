@@ -6,7 +6,7 @@ import { cn } from "@/lib/utils";
 import { memo } from "react";
 import { useMemo } from "react";
 
-const AccountSelector = memo(({ account, setActiveAccount }) => {
+const AccountSelector = memo(({ account, launchAccount }) => {
   const { user } = account;
   const userFullName = useMemo(
     () =>
@@ -18,7 +18,7 @@ const AccountSelector = memo(({ account, setActiveAccount }) => {
 
   return (
     <Dialog.Close
-      onClick={() => setActiveAccount(account.id)}
+      onClick={() => launchAccount(account.id)}
       className={cn(
         "text-left",
         "px-2 py-1 rounded-xl",
@@ -66,7 +66,7 @@ const AccountSelector = memo(({ account, setActiveAccount }) => {
 });
 
 export default memo(function AccountPicker() {
-  const { accounts, addAccount, setActiveAccount } = useAppContext();
+  const { accounts, addAccount, launchAccount } = useAppContext();
 
   return (
     <Dialog.Portal>
@@ -110,7 +110,7 @@ export default memo(function AccountPicker() {
             <AccountSelector
               key={account.id}
               account={account}
-              setActiveAccount={setActiveAccount}
+              launchAccount={launchAccount}
             />
           ))}
         </div>

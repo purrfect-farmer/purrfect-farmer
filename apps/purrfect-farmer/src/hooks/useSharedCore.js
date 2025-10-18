@@ -26,6 +26,9 @@ export default function useSharedCore() {
   /** Active Account */
   const [activeAccount, setActiveAccount] = useState(persistedAccounts[0].id);
 
+  /** Running Accounts */
+  const [runningAccounts, setRunningAccounts] = useState([activeAccount]);
+
   /** Mapped Accounts */
   const accounts = useMemo(
     () =>
@@ -45,6 +48,20 @@ export default function useSharedCore() {
     [persistedAccounts, activeAccount]
   );
 
+  /** Launch Account */
+  const launchAccount = useCallback((id) => {
+    /** Add to Running Accounts */
+    setRunningAccounts((prev) => (prev.includes(id) ? prev : [...prev, id]));
+
+    /** Set Active Account */
+    setActiveAccount(id);
+  }, []);
+
+  /** Close Account */
+  const closeAccount = useCallback((id) => {
+    setRunningAccounts((prev) => prev.filter((item) => item !== id));
+  }, []);
+
   /** Add Account */
   const addAccount = useCallback(async () => {
     /** New Account */
@@ -59,9 +76,14 @@ export default function useSharedCore() {
     /** Store Account */
     await storePersistedAccounts([...persistedAccounts, newPersistedAccount]);
 
-    /** Set Active Account */
-    setActiveAccount(newPersistedAccount.id);
-  }, [persistedAccounts, storePersistedAccounts, setActiveAccount]);
+    /** Launch Account */
+    launchAccount(newPersistedAccount.id);
+  }, [
+    persistedAccounts,
+    storePersistedAccounts,
+    setActiveAccount,
+    launchAccount,
+  ]);
 
   /** Update Account */
   const updateAccount = useCallback(
@@ -88,20 +110,26 @@ export default function useSharedCore() {
         /** Remove Storage */
         await removeAccountStorage(id);
 
-        /** Set Active Account */
-        setActiveAccount(updated[0].id);
+        /** Close Account */
+        closeAccount(id);
+
+        /** Launch Another Account */
+        launchAccount(updated[0].id);
       }
     },
-    [persistedAccounts, storePersistedAccounts, setActiveAccount]
+    [persistedAccounts, storePersistedAccounts, launchAccount, closeAccount]
   );
 
   return useValuesMemo({
     accounts,
     activeAccount,
     sharedSettings,
+    runningAccounts,
     addAccount,
     updateAccount,
     removeAccount,
+    launchAccount,
+    closeAccount,
     setActiveAccount,
 
     configureSharedSettings,
