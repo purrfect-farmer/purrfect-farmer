@@ -25,6 +25,12 @@ export default function LocalTelegramSession() {
             telegramClient.ref.current ||
             createTelegramClient(localTelegramSession);
 
+          /** Remove Session */
+          setLocalTelegramSession(null);
+
+          /** Reset Farmer Mode */
+          configureSettings("farmerMode", "web", false);
+
           try {
             /** Try to reconnect */
             if (!client.connected) {
@@ -39,12 +45,6 @@ export default function LocalTelegramSession() {
           } catch (e) {
             console.error(e);
           }
-
-          /** Remove Session */
-          setLocalTelegramSession(null);
-
-          /** Reset Farmer Mode */
-          configureSettings("farmerMode", "web", false);
         })(),
         {
           success: "Successfully logged out...",
