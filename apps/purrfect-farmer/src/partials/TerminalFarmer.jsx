@@ -9,8 +9,20 @@ import { Dialog } from "radix-ui";
 import Input from "@/components/Input";
 import { useState } from "react";
 import useMirroredState from "@/hooks/useMirroredState";
+import useMirroredCallback from "@/hooks/useMirroredCallback";
 
 const TerminalFarmerTools = ({ context }) => {
+  const [, dispatchAndExecuteTool] = useMirroredCallback(
+    `${context.id}-execute-tool`,
+    (toolId) => {
+      const tool = context.instance.tools.find((t) => t.id === toolId);
+      if (tool) {
+        tool.action();
+      }
+    },
+    [context.id, context.instance]
+  );
+
   return (
     <Dialog.Portal>
       <Dialog.Overlay className="fixed inset-0 z-40 bg-black/50" />
@@ -51,7 +63,7 @@ const TerminalFarmerTools = ({ context }) => {
               {context.instance.tools.length > 0 ? (
                 context.instance.tools.map((tool) => (
                   <Dialog.Close
-                    onClick={() => tool.action()}
+                    onClick={() => dispatchAndExecuteTool(tool.id)}
                     key={tool.id}
                     className={cn(
                       "bg-neutral-100 dark:bg-neutral-700",
@@ -77,7 +89,7 @@ const TerminalFarmerTools = ({ context }) => {
   );
 };
 
-const TerminalFarmerPrompt = ({ userInputPrompt }) => {
+const TerminalFarmerPrompt = ({ context, userInputPrompt }) => {
   const { show, question, answer, cancel } = userInputPrompt;
   const [value, setValue] = useState("");
 
@@ -86,17 +98,28 @@ const TerminalFarmerPrompt = ({ userInputPrompt }) => {
   return (
     <Dialog.Root open={true} onOpenChange={() => cancel()}>
       <Dialog.Portal>
-        <Dialog.Overlay className="fixed inset-0 z-40 bg-black/50 grid place-items-center p-4 overflow-auto">
-          <Dialog.Content
-            className="bg-white dark:bg-neutral-800 p-6 rounded-lg shadow-lg w-full max-w-md"
-            onOpenAutoFocus={(ev) => ev.preventDefault()}
-          >
-            {/** Title */}
-            <Dialog.Title className="font-bold mb-4">{question}</Dialog.Title>
+        <Dialog.Overlay
+          className={cn(
+            "fixed inset-0 z-40",
+            "flex items-center justify-center",
+            "p-4 overflow-auto bg-black/50"
+          )}
+        >
+          <Dialog.Content className="flex flex-col w-full max-w-sm gap-2 p-4 bg-white dark:bg-neutral-800 rounded-xl">
+            {/* Title */}
+            <Dialog.Title
+              className={cn(
+                "inline-flex items-center justify-center gap-2",
+                "font-bold text-center"
+              )}
+            >
+              <img src={context.icon} className="w-8 h-8 rounded-full" />
+              {context.title}
+            </Dialog.Title>
 
             {/* Description */}
-            <Dialog.Description className="sr-only">
-              User Input Prompt
+            <Dialog.Description className="px-2 text-center text-neutral-500 dark:text-neutral-300">
+              {question}
             </Dialog.Description>
 
             {/* User Input */}
@@ -114,7 +137,7 @@ const TerminalFarmerPrompt = ({ userInputPrompt }) => {
                   cancel();
                   setValue("");
                 }}
-                className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600"
+                className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600"
               >
                 Cancel
               </Dialog.Close>
@@ -125,7 +148,7 @@ const TerminalFarmerPrompt = ({ userInputPrompt }) => {
                   answer(value);
                   setValue("");
                 }}
-                className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+                className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
               >
                 Submit
               </Dialog.Close>
@@ -154,7 +177,10 @@ const TerminalFarmerContent = () => {
   return (
     <>
       {/* User Input Prompt */}
-      <TerminalFarmerPrompt userInputPrompt={userInputPrompt} />
+      <TerminalFarmerPrompt
+        context={context}
+        userInputPrompt={userInputPrompt}
+      />
 
       {/* Terminal Farmer Header */}
       <div className="p-2 border-b dark:border-neutral-700">
