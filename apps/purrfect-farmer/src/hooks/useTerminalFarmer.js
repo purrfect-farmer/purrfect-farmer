@@ -3,9 +3,11 @@ import { useLayoutEffect, useRef, useState } from "react";
 import useFarmerContext from "./useFarmerContext";
 import useMirroredCallback from "./useMirroredCallback";
 import useStaticQuery from "./useStaticQuery";
+import usePrompt from "./usePrompt";
 
 export default function useTerminalFarmer() {
   const context = useFarmerContext();
+  const userInputPrompt = usePrompt();
 
   const { id, title, instance, logger, isZooming, zoomies, processNextTask } =
     context;
@@ -75,6 +77,15 @@ export default function useTerminalFarmer() {
     [id, started, startFarmer, stopFarmer]
   );
 
+  /** Configure Prompt */
+  useLayoutEffect(() => {
+    instance.setPromptFunctions({
+      promptInput: userInputPrompt.prompt,
+      promptAnswer: userInputPrompt.answer,
+      promptCancel: userInputPrompt.cancel,
+    });
+  }, [instance, userInputPrompt]);
+
   /** Initialize Logger */
   useLayoutEffect(() => {
     logger.setElement(terminalRef.current);
@@ -110,9 +121,12 @@ export default function useTerminalFarmer() {
   }, [isZooming, zoomies.quickRun, startFarmer, processNextTask]);
 
   return {
+    context,
+    instance,
     referralLink,
     terminalRef,
     started,
+    userInputPrompt,
     start: dispatchAndStartFarmer,
     stop: dispatchAndStopFarmer,
     toggle: dispatchAndToggleFarmer,

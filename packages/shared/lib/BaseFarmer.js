@@ -17,6 +17,14 @@ export default class BaseFarmer {
 
   constructor() {
     this.utils = utils;
+    this.tools = this.createTools?.() || [];
+  }
+
+  /** Set Prompt Functions */
+  setPromptFunctions(functions) {
+    this.promptInput = functions.promptInput;
+    this.promptAnswer = functions.promptAnswer;
+    this.promptCancel = functions.promptCancel;
   }
 
   /** Configure Auth Headers */
