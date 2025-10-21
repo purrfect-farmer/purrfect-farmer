@@ -160,6 +160,28 @@ export default class PirateCashFarmer extends BaseFarmer {
       .then((res) => res.data);
   }
 
+  createTools() {
+    return [
+      {
+        id: "set-wallet-address",
+        title: "💵 Set Wallet Address",
+        action: this.configureWalletAddress.bind(this),
+      },
+    ];
+  }
+
+  async configureWalletAddress() {
+    const walletAddress = await this.promptInput("Enter your wallet address:");
+
+    if (!walletAddress) {
+      this.logger.warn("⚠️ Wallet address not provided. Skipping...");
+      return null;
+    }
+    this.logger.info(`🔄 Setting wallet address ${walletAddress}...`);
+    await this.setWalletAddress(walletAddress);
+    this.logger.success("✅ Wallet address set successfully!");
+  }
+
   /** Process Farmer */
   async process() {
     const { user } = this._userData;
