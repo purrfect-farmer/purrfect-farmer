@@ -10,6 +10,7 @@ export default class MoneyTreeFarmer extends BaseFarmer {
   static telegramLink = "https://t.me/moneytree_game_bot?start=ref_1147265290";
   static cacheAuth = false;
   static cacheTelegramWebApp = false;
+  static interval = "*/3 * * * *";
 
   /** Get Referral Link */
   getReferralLink() {
@@ -220,6 +221,46 @@ export default class MoneyTreeFarmer extends BaseFarmer {
       .then((res) => res.data);
   }
 
+  /** Purchase Auto Bot */
+  purchaseAutoBot(itemId, levelId, signal = this.signal) {
+    return this.api
+      .post(
+        `https://moneytree.extensi.one/api/auto-bot/${itemId}/buy/${levelId}`,
+        {},
+        { signal }
+      )
+      .then((res) => res.data);
+  }
+
+  /** Use Auto Bot */
+  useAutoBot(signal = this.signal) {
+    return this.api
+      .post("https://moneytree.extensi.one/api/auto-bot/use", {}, { signal })
+      .then((res) => res.data);
+  }
+
+  /** Collect Auto Bot */
+  collectAutoBot(signal = this.signal) {
+    return this.api
+      .post(
+        "https://moneytree.extensi.one/api/auto-bot/collect",
+        {},
+        { signal }
+      )
+      .then((res) => res.data);
+  }
+
+  /** Use Free Boost */
+  useFreeBoost(boostId, signal = this.signal) {
+    return this.api
+      .post(
+        `https://moneytree.extensi.one/api/free-boosts/${boostId}/use`,
+        {},
+        { signal }
+      )
+      .then((res) => res.data);
+  }
+
   /** Process Farmer */
   async process() {
     const { player: user } = this._authData;
@@ -228,8 +269,10 @@ export default class MoneyTreeFarmer extends BaseFarmer {
     await this.executeTask("Check First Name", () => this.checkUserFirstName());
     await this.executeTask("Daily Bonus", () => this.claimDailyBonus());
     await this.executeTask("Claim Tickets", () => this.claimTickets());
+    await this.executeTask("Claim Free Boosts", () => this.claimFreeBoosts());
     await this.executeTask("Play Game", () => this.playGame());
     await this.executeTask("Upgrade Boosts", () => this.upgradeBoosts());
+    await this.executeTask("Auto Bot", () => this.claimOrPurchaseAutoBot());
   }
   /** Log User Info */
   logUserInfo(user) {
@@ -237,7 +280,80 @@ export default class MoneyTreeFarmer extends BaseFarmer {
     this.logCurrentUser();
     this.logger.keyValue("Balance", user.balance);
     this.logger.keyValue("Energy", user.energy);
+    this.logger.keyValue("Regeneration", user.regeneration);
     this.logger.keyValue("Damage", user.damage);
+  }
+
+  /** Claim or Purchase Auto Bot */
+  async claimOrPurchaseAutoBot() {
+    let { autoBots } = await this.getAutoBot();
+    let availableBots = autoBots.map((bot) => {
+      const nextLevel = bot.levels.find(
+        (level) => level.level === bot.currentLevel + 1
+      );
+      return {
+        ...bot,
+        nextLevel,
+      };
+    });
+
+    /** Upgrade Bot */
+    while (true) {
+      const balance = this._player.balance;
+      const availableUpgrades = availableBots.filter((bot) => {
+        return bot.nextLevel && bot.nextLevel.price <= balance;
+      });
+      const upgrade = this.utils.randomItem(availableUpgrades);
+
+      if (!upgrade) {
+        this.logger.info("No more affordable bot to upgrade.");
+        break;
+      } else {
+        await this.purchaseAutoBot(upgrade.id, upgrade.nextLevel.id);
+        this.logger.success(`⏫ AUTO BOT to LVL ${upgrade.nextLevel.level}`);
+
+        this._player.balance -= upgrade.nextLevel.price;
+        availableBots = availableBots.map((bot) => {
+          if (bot.id === upgrade.id) {
+            const nextLevel = bot.levels.find(
+              (level) => level.level === bot.nextLevel.level + 1
+            );
+            return {
+              ...bot,
+              currentLevel: bot.nextLevel.level,
+              nextLevel,
+            };
+          }
+          return bot;
+        });
+
+        await this.utils.delayForSeconds(2, { signal: this.signal });
+      }
+    }
+
+    const { playerAutoBot } = await this.getAutoBotPlayer();
+
+    if (playerAutoBot) {
+      if (!playerAutoBot.isActive) {
+        await this.useAutoBot();
+        this.logger.success("Started Auto Bot");
+      } else if (playerAutoBot.canCollect) {
+        await this.collectAutoBot();
+        this.logger.success("Collected Auto Bot");
+      }
+    }
+  }
+
+  /** Claim Free Boosts */
+  async claimFreeBoosts() {
+    const freeBoosts = await this.getFreeBoosts();
+
+    for (const boost of freeBoosts) {
+      if (boost.charge > 0) {
+        await this.useFreeBoost(boost.id);
+        this.logger.success(`Used Free Boost: ${boost.boostType}`);
+      }
+    }
   }
 
   /** Upgrade Boosts */
@@ -297,6 +413,22 @@ export default class MoneyTreeFarmer extends BaseFarmer {
         return reject(new Error("Signal already aborted"));
       }
 
+      /** Reset Cancel Timeout */
+      const resetCancelTimeout = () => {
+        clearCancelTimeout();
+        this._socketCancelTimeout = setTimeout(() => {
+          this.socket.close();
+          reject(new Error("Socket Timeout"));
+        }, 5000);
+      };
+
+      /** Clear Cancel Timeout */
+      const clearCancelTimeout = () => {
+        if (this._socketCancelTimeout) {
+          clearTimeout(this._socketCancelTimeout);
+        }
+      };
+
       /** Create Socket */
       this.socket = io("wss://moneytree.extensi.one/game", {
         auth: {
@@ -309,43 +441,55 @@ export default class MoneyTreeFarmer extends BaseFarmer {
 
       /* Handle Abort */
       this.signal.addEventListener("abort", () => {
+        clearCancelTimeout();
         this.socket.close();
       });
 
       /* On Connect */
       this.socket.on("connect", async () => {
+        /** Reset Cancel Timeout */
+        resetCancelTimeout();
+
         this.logger.info("Socket Connected");
-        while (this._player.energy >= 10) {
-          if (this.signal.aborted) {
-            this.socket.close();
-            return reject(new Error("Signal aborted during game play"));
-          }
-
-          /* Play Game */
-          this.socket.emit("leafClick");
-          this._player.energy -= 10;
-
-          /* Log Energy */
-          this.logger.info(`🎮 Game - Energy: [${this._player.energy}]`);
-
-          /* Wait 500ms */
-          await this.utils.delay(500, { signal: this.signal });
-        }
-
-        this.socket.close();
-        resolve();
       });
 
       /* Handle Errors */
       this.socket.on("connect_error", (err) => {
         this.logger.error("Socket Connection Error", err);
+        clearCancelTimeout();
         reject(err);
       });
 
       /* On Error */
       this.socket.on("error", (err) => {
         this.logger.error("Socket Error", err);
+        clearCancelTimeout();
         reject(err);
+      });
+
+      /** Update Player Stats */
+      this.socket.on("playerStats", (stats) => {
+        /** Reset Cancel Timeout */
+        resetCancelTimeout();
+
+        /** Update Balance */
+        this._player.balance = stats.balance;
+
+        if (stats.energy !== this._player.energy) {
+          this._player.energy = stats.energy;
+
+          /* Log Energy */
+          this.logger.info(`🎮 Game - Energy: [${this._player.energy}]`);
+
+          if (this._player.energy >= this._player.damage) {
+            /* Play Game */
+            this.socket.emit("leafClick");
+          } else {
+            this.socket.close();
+            clearCancelTimeout();
+            resolve();
+          }
+        }
       });
     });
   }
