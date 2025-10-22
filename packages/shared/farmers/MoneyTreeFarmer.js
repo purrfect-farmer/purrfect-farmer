@@ -468,27 +468,34 @@ export default class MoneyTreeFarmer extends BaseFarmer {
       });
 
       /** Update Player Stats */
-      this.socket.on("playerStats", (stats) => {
+      this.socket.on("playerStats", async (stats) => {
         /** Reset Cancel Timeout */
         resetCancelTimeout();
 
         /** Update Balance */
         this._player.balance = stats.balance;
+        this._player.energy = stats.energy;
 
-        if (stats.energy !== this._player.energy) {
-          this._player.energy = stats.energy;
+        if (this._player.energy >= this._player.damage) {
+          if (!this._isClicking) {
+            /** Prevent double click */
+            this._isClicking = true;
 
-          /* Log Energy */
-          this.logger.info(`🎮 Game - Energy: [${this._player.energy}]`);
+            /* Log Energy */
+            this.logger.info(`🎮 Game - Energy: [${this._player.energy}]`);
 
-          if (this._player.energy >= this._player.damage) {
+            /** Delay */
+            await this.utils.delay(200);
             /* Play Game */
             this.socket.emit("leafClick");
-          } else {
-            this.socket.close();
-            clearCancelTimeout();
-            resolve();
+
+            /** Release */
+            this._isClicking = false;
           }
+        } else {
+          this.socket.close();
+          clearCancelTimeout();
+          resolve();
         }
       });
     });
