@@ -39,16 +39,21 @@ await zip(
   path.resolve(__dirname, `${outDir}/${file}.zip`)
 );
 
+const privateKey =
+  process.env.EXTENSION_PRIVATE_KEY ||
+  (await fs.readFile("./dist.pem").catch(() => null));
+
 /** Create CRX */
-await new ChromeExtension({
-  privateKey:
-    process.env.EXTENSION_PRIVATE_KEY || (await fs.readFile("./dist.pem")),
-})
-  .load(path.resolve(__dirname, baseDir))
-  .then((crx) => crx.pack())
-  .then((crxBuffer) =>
-    fs.writeFile(path.resolve(__dirname, `${outDir}/${file}.crx`), crxBuffer)
-  )
-  .catch((err) => {
-    console.error(err);
-  });
+if (privateKey) {
+  await new ChromeExtension({
+    privateKey,
+  })
+    .load(path.resolve(__dirname, baseDir))
+    .then((crx) => crx.pack())
+    .then((crxBuffer) =>
+      fs.writeFile(path.resolve(__dirname, `${outDir}/${file}.crx`), crxBuffer)
+    )
+    .catch((err) => {
+      console.error(err);
+    });
+}
