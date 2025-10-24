@@ -26,7 +26,6 @@ export const TelegramToPurrfectGram = lazy(() =>
   import("@/app/TelegramToPurrfectGram")
 );
 export const Migrate = lazy(() => import("@/app/Migrate"));
-export const PayForCloud = lazy(() => import("@/app/PayForCloud"));
 export const CloudManager = lazy(() => import("@/app/CloudManager"));
 export const CloudTelegramSession = lazy(() =>
   import("@/app/CloudTelegramSession")
@@ -84,14 +83,6 @@ export const utils = [
     title: "Cloud Manager",
     icon: CloudIcon,
     component: createElement(CloudManager),
-  },
-
-  /** Pay For Cloud */
-  {
-    id: "pay-for-cloud",
-    title: "Pay For Cloud",
-    icon: CloudIcon,
-    component: createElement(PayForCloud),
   },
 
   /** Telegram Cleaner */
