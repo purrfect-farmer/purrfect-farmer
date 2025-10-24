@@ -39,26 +39,35 @@ const AccountSelector = memo(({ account, launchAccount }) => {
           <LiaUser className="size-5" />
         </div>
       )}
-      <div className="truncate grow basis-0 flex flex-col">
-        {/* Account Title */}
-        <h3 className="font-bold">{account.title}</h3>
 
-        {user ? (
-          <>
-            {/* Full Name */}
-            <h4>{userFullName}</h4>
-
-            {/* Username */}
-            {user["username"] ? (
-              <h5
-                className={cn(
-                  account.active ? "text-orange-200" : "text-neutral-400"
-                )}
-              >
-                @{user["username"]}
-              </h5>
-            ) : null}
-          </>
+      <div className="flex flex-col grow min-w-0">
+        {/* Title */}
+        <h1 className="font-bold truncate w-full">
+          {account.title}{" "}
+          {userFullName ? (
+            <span
+              className={cn(
+                account.active
+                  ? "text-orange-200"
+                  : "text-neutral-500 dark:text-neutral-400"
+              )}
+            >
+              ({userFullName})
+            </span>
+          ) : null}
+        </h1>
+        {/* Username */}
+        {user?.["username"] ? (
+          <h5
+            className={cn(
+              "truncate",
+              account.active
+                ? "text-orange-200"
+                : "text-neutral-500 dark:text-neutral-400"
+            )}
+          >
+            @{user["username"]}
+          </h5>
         ) : null}
       </div>
     </Dialog.Close>
