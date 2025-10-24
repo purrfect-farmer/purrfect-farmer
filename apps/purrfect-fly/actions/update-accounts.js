@@ -3,6 +3,7 @@ import app from "../config/app.js";
 import bot from "../lib/bot.js";
 import db from "../db/models/index.js";
 import utils from "../lib/utils.js";
+import seedrandom from "seedrandom";
 
 /** Update Accounts */
 async function updateAccounts() {
@@ -15,6 +16,13 @@ async function updateAccounts() {
         .filter((account) => account.session)
         .map(async (account) => {
           try {
+            const random = seedrandom(account.id);
+            const startupDelay = Math.floor(random() * 300);
+
+            if (startupDelay) {
+              await utils.delayForSeconds(startupDelay);
+            }
+
             /** Create and Connect Client */
             const client = await GramClient.create(account.session);
             await client.connect();
