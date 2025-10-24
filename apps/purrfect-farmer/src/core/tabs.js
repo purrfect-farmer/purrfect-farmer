@@ -16,6 +16,7 @@ export const TelegramWeb = lazy(() => import("@/app/TelegramWeb"));
 export const TelegramCleaner = lazy(() => import("@/app/TelegramCleaner"));
 export const TinyFly = lazy(() => import("@/app/TinyFly"));
 export const BackupAndRestore = lazy(() => import("@/app/BackupAndRestore"));
+export const WhiskersToFarmer = lazy(() => import("@/app/WhiskersToFarmer"));
 export const TelegramToPurrfectGram = lazy(() =>
   import("@/app/TelegramToPurrfectGram")
 );
@@ -118,6 +119,14 @@ export const utils = [
     title: "Telegram to Purrfect Gram",
     icon: AppIcon,
     component: createElement(TelegramToPurrfectGram),
+  },
+
+  /** Whiskers to Farmer */
+  {
+    id: "whiskers-to-farmer",
+    title: "Whiskers to Farmer",
+    icon: AppIcon,
+    component: createElement(WhiskersToFarmer),
   },
 
   /** Migrate */
