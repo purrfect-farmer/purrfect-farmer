@@ -5,6 +5,11 @@ import LocalTelegramSessionIcon from "@/assets/images/local-telegram-session.png
 import TelegramCleanerIcon from "@/assets/images/telegram-cleaner.png?format=webp&w=80";
 import TelegramWebAIcon from "@/assets/images/telegram-web-a.png?format=webp&w=80";
 import TelegramWebKIcon from "@/assets/images/telegram-web-k.png?format=webp&w=80";
+import WhiskersIcon from "@/assets/images/whiskers.png?format=webp&w=80";
+import TinyFlyIcon from "@/assets/images/fly.png?format=webp&w=80";
+import BackupAndRestoreIcon from "@/assets/images/backup-and-restore.png?format=webp&w=80";
+import TelegramToPurrfectGramIcon from "@/assets/images/telegram-to-purrfect-gram.png?format=webp&w=80";
+
 import { createElement } from "react";
 import { lazy } from "react";
 
@@ -101,23 +106,15 @@ export const utils = [
   {
     id: "tiny-fly",
     title: "Tiny Fly",
-    icon: AppIcon,
+    icon: TinyFlyIcon,
     component: createElement(TinyFly),
-  },
-
-  /** Backup and Restore */
-  {
-    id: "backup-and-restore",
-    title: "Backup and Restore",
-    icon: AppIcon,
-    component: createElement(BackupAndRestore),
   },
 
   /** Telegram to Purrfect Gram */
   {
     id: "telegram-to-purrfect-gram",
     title: "Telegram to Purrfect Gram",
-    icon: AppIcon,
+    icon: TelegramToPurrfectGramIcon,
     component: createElement(TelegramToPurrfectGram),
   },
 
@@ -125,8 +122,16 @@ export const utils = [
   {
     id: "whiskers-to-farmer",
     title: "Whiskers to Farmer",
-    icon: AppIcon,
+    icon: WhiskersIcon,
     component: createElement(WhiskersToFarmer),
+  },
+
+  /** Backup and Restore */
+  {
+    id: "backup-and-restore",
+    title: "Backup and Restore",
+    icon: BackupAndRestoreIcon,
+    component: createElement(BackupAndRestore),
   },
 
   /** Migrate */
