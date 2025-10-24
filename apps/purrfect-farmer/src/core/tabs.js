@@ -16,6 +16,9 @@ export const TelegramWeb = lazy(() => import("@/app/TelegramWeb"));
 export const TelegramCleaner = lazy(() => import("@/app/TelegramCleaner"));
 export const TinyFly = lazy(() => import("@/app/TinyFly"));
 export const BackupAndRestore = lazy(() => import("@/app/BackupAndRestore"));
+export const TelegramToPurrfectGram = lazy(() =>
+  import("@/app/TelegramToPurrfectGram")
+);
 export const Migrate = lazy(() => import("@/app/Migrate"));
 export const PayForCloud = lazy(() => import("@/app/PayForCloud"));
 export const CloudManager = lazy(() => import("@/app/CloudManager"));
@@ -107,6 +110,14 @@ export const utils = [
     title: "Backup and Restore",
     icon: AppIcon,
     component: createElement(BackupAndRestore),
+  },
+
+  /** Telegram to Purrfect Gram */
+  {
+    id: "telegram-to-purrfect-gram",
+    title: "Telegram to Purrfect Gram",
+    icon: AppIcon,
+    component: createElement(TelegramToPurrfectGram),
   },
 
   /** Migrate */
