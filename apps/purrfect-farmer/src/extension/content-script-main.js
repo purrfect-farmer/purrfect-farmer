@@ -1,7 +1,7 @@
 import "./bridge/bridge-main";
 
 import {
-  TELEGRAM_WEB_HOST,
+  TELEGRAM_WEB_HOSTS,
   WEB_PLATFORM_EXCLUDED_HOSTS,
   WEB_PLATFORM_REGEXP,
 } from "@/constants";
@@ -13,7 +13,7 @@ import { injectTelegramWebviewProxy } from "./webview-proxy/webview-proxy-main";
 
 const IS_ALLOWED_HOST = !WEB_PLATFORM_EXCLUDED_HOSTS.includes(location.host);
 
-if (location.host !== TELEGRAM_WEB_HOST) {
+if (!TELEGRAM_WEB_HOSTS.includes(location.host)) {
   if (IS_ALLOWED_HOST && WEB_PLATFORM_REGEXP.test(location.href)) {
     /** Replace Platform */
     location.hash = location.hash.replace(

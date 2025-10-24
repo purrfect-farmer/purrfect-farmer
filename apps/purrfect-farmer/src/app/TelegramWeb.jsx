@@ -9,6 +9,8 @@ export default memo(function TelegramWeb({ version, tgaddr }) {
   const hash = new URLSearchParams({ tgaddr }).toString();
 
   return (
-    <Browser url={`https://web.telegram.org/${version}?${search}#?${hash}`} />
+    <Browser
+      url={`https://gram.purrfectfarmer.com/${version}?${search}#?${hash}`}
+    />
   );
 });
