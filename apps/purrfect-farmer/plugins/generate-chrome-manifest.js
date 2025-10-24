@@ -42,39 +42,6 @@ function getCoreNetRules() {
         urlFilter: "*",
       },
     },
-    {
-      id: 2,
-      action: {
-        type: "modifyHeaders",
-        requestHeaders: [
-          {
-            header: "origin",
-            operation: "set",
-            value: "https://web.telegram.org",
-          },
-          {
-            header: "referer",
-            operation: "set",
-            value: "https://web.telegram.org/",
-          },
-        ],
-        responseHeaders: [
-          {
-            header: "access-control-allow-origin",
-            operation: "set",
-            value: "*",
-          },
-          {
-            header: "access-control-allow-methods",
-            operation: "set",
-            value: "*",
-          },
-        ],
-      },
-      condition: {
-        requestDomains: ["vesta.web.telegram.org", "web.telegram.org"],
-      },
-    },
   ];
 }
 
