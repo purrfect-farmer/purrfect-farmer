@@ -3,6 +3,7 @@ import axios from "axios";
 import app from "./config/app.js";
 import bot from "./lib/bot.js";
 import cleanDatabase from "./actions/clean-database.js";
+import GramClient from "./lib/GramClient.js";
 
 if (app.seeker.enabled || app.startup.sendServerAddress) {
   axios
@@ -41,3 +42,12 @@ if (app.seeker.enabled || app.startup.sendServerAddress) {
 
 /** Remove old farmers */
 await cleanDatabase();
+
+/** Handle Graceful Shutdown */
+process.on("SIGINT", async () => {
+  console.log("Gracefully shutting down...");
+  await Promise.allSettled(
+    [...GramClient.instances.values()].map((c) => c.destroy())
+  );
+  process.exit(0);
+});
