@@ -23,10 +23,7 @@ async function updateAccounts() {
             }
 
             /** Create and Connect Client */
-            const client = await GramClient.create(
-              account.session,
-              account.proxy
-            );
+            const client = await GramClient.create(account.session);
             await client.connect();
 
             const webview = await client.getWebview(app.farmer.botLink);

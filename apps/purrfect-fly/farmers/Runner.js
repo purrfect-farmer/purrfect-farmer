@@ -315,10 +315,7 @@ export default function createRunner(FarmerClass) {
       /** Update WebAppData */
       if (this.account.session) {
         try {
-          this.client = await GramClient.create(
-            this.account.session,
-            this.account.proxy
-          );
+          this.client = await GramClient.create(this.account.session);
           await this.client.connect();
           await this.updateWebAppData();
         } catch (e) {
