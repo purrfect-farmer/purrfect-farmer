@@ -134,14 +134,6 @@ export default class BaseFarmer {
     return this.process();
   }
 
-  /** Stop the farmer */
-  stop() {
-    if (this.signal && !this.signal.aborted) {
-      this.signal.abort();
-    }
-    this.signal = null;
-  }
-
   /** Execute a task with logging */
   async executeTask(task, callback, allowInQuickRun = true) {
     this.logger.newline();
