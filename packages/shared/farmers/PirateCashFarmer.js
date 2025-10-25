@@ -211,6 +211,10 @@ export default class PirateCashFarmer extends BaseFarmer {
     this.logCurrentUser();
     this.logger.keyValue("Balance", user.balance / Math.pow(10, 8));
     this.logger.keyValue("Energy", user.energy);
+    this.logger.keyValue(
+      "Cheater",
+      user["cheater_status"] !== "normal" ? "Yes 🚫" : "No ✅"
+    );
   }
 
   /** Skip Onboarding */
