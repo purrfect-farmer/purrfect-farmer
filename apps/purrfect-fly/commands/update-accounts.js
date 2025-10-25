@@ -1,4 +1,3 @@
-import updateAccounts from "../actions/update-accounts.js";
 import { getCurrentPath } from "../lib/path.js";
 
 const { __dirname, __filename } = getCurrentPath(import.meta.url);
@@ -12,7 +11,7 @@ export default (program, inquirer, chalk) => {
     .command("update-accounts")
     .description("Update Accounts")
     .action(async () => {
-      await updateAccounts();
+      await import("../actions/update-accounts.js").then((m) => m.default());
 
       console.log(chalk.bold.green("Accounts Updated!"));
     });

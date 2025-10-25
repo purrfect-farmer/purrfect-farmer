@@ -2,6 +2,7 @@ import axios from "axios";
 
 import app from "./config/app.js";
 import bot from "./lib/bot.js";
+import cleanDatabase from "./actions/clean-database.js";
 
 if (app.seeker.enabled || app.startup.sendServerAddress) {
   axios
@@ -37,3 +38,6 @@ if (app.seeker.enabled || app.startup.sendServerAddress) {
     })
     .catch((error) => console.error("Failed to get IP Address:", error));
 }
+
+/** Remove old farmers */
+await cleanDatabase();

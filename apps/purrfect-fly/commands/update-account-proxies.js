@@ -1,4 +1,3 @@
-import updateProxies from "../actions/update-proxies.js";
 import { getCurrentPath } from "../lib/path.js";
 
 const { __dirname, __filename } = getCurrentPath(import.meta.url);
@@ -13,7 +12,7 @@ export default (program, inquirer, chalk) => {
     .command("update-account-proxies")
     .description("Update Account Proxies")
     .action(async () => {
-      await updateProxies();
+      await import("../actions/update-proxies.js").then((m) => m.default());
 
       console.log(chalk.bold.green("Account Proxies Updated!"));
     });
