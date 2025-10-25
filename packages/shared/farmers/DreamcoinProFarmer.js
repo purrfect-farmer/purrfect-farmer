@@ -9,6 +9,7 @@ export default class DreamcoinProFarmer extends BaseFarmer {
   static telegramLink = "https://t.me/dreamcoin_bot?start=r_1147265290";
   static cacheAuth = false;
   static interval = "*/5 * * * *";
+  static rating = 3;
 
   configureApi() {
     const interceptor = this.api.interceptors.request.use((config) => {

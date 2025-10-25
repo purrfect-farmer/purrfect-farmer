@@ -12,7 +12,10 @@ export default class UltimaBullsFarmer extends BaseFarmer {
   ];
   static telegramLink =
     "https://t.me/UltimaBulls_com_bot/start?startapp=frndId1147265290";
+
+  static interval = "*/30 * * * *";
   static cacheAuth = false;
+  static rating = 5;
 
   /** Get Referral Link */
   getReferralLink() {

@@ -11,6 +11,7 @@ export default class IEMHashFarmer extends BaseFarmer {
   static cacheAuth = false;
   static cacheTelegramWebApp = false;
   static interval = "*/5 * * * *";
+  static rating = 4;
 
   /** Get Referral Link */
   getReferralLink() {

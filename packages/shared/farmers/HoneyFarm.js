@@ -9,6 +9,7 @@ export default class HoneyFarmFarmer extends BaseFarmer {
   static telegramLink = "https://t.me/mashabear_honey_bot?start=1147265290";
   static cacheAuth = false;
   static cacheTelegramWebApp = false;
+  static rating = 5;
 
   configureApi() {
     /** Inject User ID into all requests */

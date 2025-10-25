@@ -14,6 +14,7 @@ export default class MuccaFarmer extends BaseFarmer {
   static cacheAuth = false;
   static cacheTelegramWebApp = false;
   static interval = "0 * * * *";
+  static rating = 5;
 
   /** Extracted Firebase Project ID */
   static firebaseProjectId = "telegram-apps-0";

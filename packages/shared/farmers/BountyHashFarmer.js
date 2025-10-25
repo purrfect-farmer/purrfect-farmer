@@ -12,6 +12,7 @@ export default class BountyHashFarmer extends BaseFarmer {
   static cacheAuth = false;
   static cacheTelegramWebApp = false;
   static cookies = true;
+  static rating = 2;
 
   /** Get Referral Link */
   getReferralLink() {

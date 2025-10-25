@@ -11,6 +11,7 @@ export default class MoneyTreeFarmer extends BaseFarmer {
   static cacheAuth = false;
   static cacheTelegramWebApp = false;
   static interval = "*/3 * * * *";
+  static rating = 4;
 
   /** Get Referral Link */
   getReferralLink() {

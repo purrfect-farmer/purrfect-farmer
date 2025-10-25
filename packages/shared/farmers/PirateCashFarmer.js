@@ -17,6 +17,7 @@ export default class PirateCashFarmer extends BaseFarmer {
     { name: "wdash", check: "wdash" },
     { name: "cosanta_eng", check: "cosanta_group" },
   ];
+  static rating = 5;
 
   /** Get Referral Link */
   getReferralLink() {
