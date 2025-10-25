@@ -24,6 +24,7 @@ const defaultSettings = {
   showLinksAsGrid: false,
   uncappedPoints: false,
   repeatZoomiesCycle: true,
+  farmersRating: 0,
 };
 
 export default defaultSettings;

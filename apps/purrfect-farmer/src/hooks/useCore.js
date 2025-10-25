@@ -139,8 +139,9 @@ export default function useCore() {
     () =>
       farmers
         .slice()
-        .sort((a, b) => dropsOrder.indexOf(a.id) - dropsOrder.indexOf(b.id)),
-    [farmers, dropsOrder]
+        .sort((a, b) => dropsOrder.indexOf(a.id) - dropsOrder.indexOf(b.id))
+        .filter((item) => item.rating >= settings.farmersRating),
+    [farmers, dropsOrder, settings.farmersRating]
   );
 
   /** Drops */

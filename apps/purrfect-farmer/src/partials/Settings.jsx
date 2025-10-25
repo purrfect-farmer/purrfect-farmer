@@ -31,6 +31,10 @@ import { memo, useCallback, useLayoutEffect, useState } from "react";
 
 import Seeker from "./Seeker";
 
+import { Rating } from "@smastrom/react-rating";
+
+import "@smastrom/react-rating/style.css";
+
 const DropReorderItem = memo(({ children, ...props }) => {
   const dragControls = useDragControls();
   return (
@@ -947,6 +951,16 @@ export default memo(function Settings({ tabs }) {
                     <Alert variant={"info"}>
                       Enable the farmers you would like to include.
                     </Alert>
+
+                    <div className="flex items-center justify-center">
+                      <Rating
+                        style={{ maxWidth: 120 }}
+                        value={settings?.farmersRating}
+                        onChange={(value) =>
+                          dispatchAndConfigureSettings("farmersRating", value)
+                        }
+                      />
+                    </div>
 
                     <Reorder.Group
                       values={dropsOrder}
