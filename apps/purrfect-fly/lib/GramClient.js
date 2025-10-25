@@ -23,7 +23,7 @@ class GramClient extends BaseTelegramWebClient {
     super(session, {
       deviceModel: DEVICE_MODEL,
       systemVersion: SYSTEM_VERSION,
-      proxy: this.parseProxy(proxy),
+      proxy,
       ...(process.env.NODE_ENV === "production" && {
         baseLogger: new Logger("error"),
       }),
@@ -49,7 +49,7 @@ class GramClient extends BaseTelegramWebClient {
   }
 
   /** Parse Proxy */
-  parseProxy(proxy) {
+  static parseProxy(proxy) {
     if (!proxy) return null;
 
     const [creds, hostPort] = proxy.split("@");
@@ -279,7 +279,13 @@ class GramClient extends BaseTelegramWebClient {
     return this.instances
       .set(
         name,
-        new this({ name, session, proxy, sessionFilePath, sessionFileExists })
+        new this({
+          name,
+          session,
+          proxy: this.parseProxy(proxy),
+          sessionFilePath,
+          sessionFileExists,
+        })
       )
       .get(name);
   }
