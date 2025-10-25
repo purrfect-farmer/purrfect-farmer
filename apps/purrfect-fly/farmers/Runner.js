@@ -280,7 +280,7 @@ export default function createRunner(FarmerClass) {
 
     /** Join Telegram Link */
     async joinTelegramLink(link) {
-      await this.utils.delayForSeconds(Math.floor(Math.random() * 30));
+      await this.utils.delayForSeconds(Math.floor(Math.random() * 300));
       return this.client.joinTelegramLink(link);
     }
 
@@ -315,7 +315,10 @@ export default function createRunner(FarmerClass) {
       /** Update WebAppData */
       if (this.account.session) {
         try {
-          this.client = await GramClient.create(this.account.session);
+          this.client = await GramClient.create(
+            this.account.session,
+            this.account.proxy
+          );
           await this.client.connect();
           await this.updateWebAppData();
         } catch (e) {

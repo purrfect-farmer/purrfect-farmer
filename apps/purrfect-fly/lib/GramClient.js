@@ -19,10 +19,11 @@ class GramClient extends BaseTelegramWebClient {
   static instances = new Map();
 
   /** Constructor */
-  constructor({ name, session, sessionFilePath, sessionFileExists }) {
+  constructor({ name, session, proxy, sessionFilePath, sessionFileExists }) {
     super(session, {
       deviceModel: DEVICE_MODEL,
       systemVersion: SYSTEM_VERSION,
+      proxy: this.parseProxy(proxy),
       ...(process.env.NODE_ENV === "production" && {
         baseLogger: new Logger("error"),
       }),
@@ -45,6 +46,25 @@ class GramClient extends BaseTelegramWebClient {
 
     /** Initial Start Stage */
     this._resetStartStage();
+  }
+
+  /** Parse Proxy */
+  parseProxy(proxy) {
+    if (!proxy) return null;
+
+    const [creds, hostPort] = proxy.split("@");
+    const [username, password] = creds.split(":");
+    const [ip, port] = hostPort.split(":");
+
+    return {
+      ip,
+      username,
+      password,
+      port: parseInt(port, 10),
+      MTProxy: false,
+      socksType: 5,
+      timeout: 2,
+    };
   }
 
   /** Start Handler */
@@ -243,9 +263,10 @@ class GramClient extends BaseTelegramWebClient {
   /**
    * Starts a Client
    * @param {string} name
+   * @param {string|null} proxy
    * @returns {GramClient}
    */
-  static async create(name) {
+  static async create(name, proxy = null) {
     if (this.instances.has(name)) return this.instances.get(name);
 
     const sessionFilePath = await this.getSessionPath(name);
@@ -258,7 +279,7 @@ class GramClient extends BaseTelegramWebClient {
     return this.instances
       .set(
         name,
-        new this({ name, session, sessionFilePath, sessionFileExists })
+        new this({ name, session, proxy, sessionFilePath, sessionFileExists })
       )
       .get(name);
   }

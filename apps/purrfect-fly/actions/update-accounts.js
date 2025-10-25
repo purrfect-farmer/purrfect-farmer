@@ -15,7 +15,7 @@ async function updateAccounts() {
         .filter((account) => account.session)
         .map(async (account) => {
           try {
-            const startupDelay = Math.floor(account.random() * 300);
+            const startupDelay = Math.floor(Math.random() * 300);
 
             /** Delay Startup to avoid rate limits */
             if (startupDelay) {
@@ -23,7 +23,10 @@ async function updateAccounts() {
             }
 
             /** Create and Connect Client */
-            const client = await GramClient.create(account.session);
+            const client = await GramClient.create(
+              account.session,
+              account.proxy
+            );
             await client.connect();
 
             const webview = await client.getWebview(app.farmer.botLink);
