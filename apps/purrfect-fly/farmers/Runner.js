@@ -1,6 +1,5 @@
 import ConsoleLogger from "@purrfect/shared/lib/ConsoleLogger.js";
 import axios from "axios";
-import seedrandom from "seedrandom";
 import userAgents from "@purrfect/shared/resources/userAgents.js";
 import { CookieJar } from "tough-cookie";
 import {
@@ -53,7 +52,7 @@ export default function createRunner(FarmerClass) {
       this.utils = this.constructor.utils; // Use static utils
 
       this.cookies = this.constructor.cookies; // Enable cookies if supported
-      this.random = seedrandom(this.account.id); // Seeded RNG
+      this.random = this.account.random(); // Seeded RNG
 
       /** Select User-Agent */
       this.setUserAgent(
