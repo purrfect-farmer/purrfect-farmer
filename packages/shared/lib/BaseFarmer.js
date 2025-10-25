@@ -14,6 +14,7 @@ export default class BaseFarmer {
   static interval = "*/10 * * * *";
   static telegramLink = "";
   static withXSRFToken = false;
+  static rating = 1;
 
   constructor() {
     this.utils = utils;
