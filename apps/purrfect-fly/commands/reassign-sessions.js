@@ -31,37 +31,39 @@ export default (program, inquirer, chalk) => {
       };
 
       for (const chunk of chunkGenerator()) {
-        for (const session of chunk) {
-          try {
-            console.log(chalk.blue(`Processing session: "${session}"`));
-            const client = await GramClient.create(session);
-            const user = await client.getSelf();
-            const userId = user?.id?.toString();
+        await Promise.allSettled(
+          chunk.map(async (session) => {
+            try {
+              console.log(chalk.blue(`Processing session: "${session}"`));
+              const client = await GramClient.create(session);
+              const user = await client.getSelf();
+              const userId = user?.id?.toString();
 
-            console.log(chalk.gray(`User ID: ${userId || "N/A"}`));
+              console.log(chalk.gray(`User ID: ${userId || "N/A"}`));
 
-            if (!userId || assigned.has(userId)) {
-              await client.logout();
-              return;
+              if (!userId || assigned.has(userId)) {
+                await client.logout();
+                return;
+              }
+
+              const account = await db.Account.findByPk(userId);
+
+              if (!account) {
+                await client.logout();
+                return;
+              }
+
+              await client.destroy();
+              await account.update({ session });
+              assigned.add(userId);
+            } catch (error) {
+              console.error(
+                chalk.red(`Error processing session "${session}":`),
+                error
+              );
             }
-
-            const account = await db.Account.findByPk(userId);
-
-            if (!account) {
-              await client.logout();
-              return;
-            }
-
-            await client.destroy();
-            await account.update({ session });
-            assigned.add(userId);
-          } catch (error) {
-            console.error(
-              chalk.red(`Error processing session "${session}":`),
-              error
-            );
-          }
-        }
+          })
+        );
       }
 
       console.log(chalk.green.bold(`Reassigned sessions: ${assigned.size}`));
