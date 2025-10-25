@@ -139,9 +139,7 @@ export default class BaseFarmer {
     this.logger.newline();
 
     if (this.signal?.aborted) {
-      this.logger.warn(
-        `${this.logger.c.red("✖ Task aborted:")} ${this.logger.c.yellow(task)}`
-      );
+      this.logger.warn(`✖ Task aborted: ${this.logger.c.magenta(task)}`);
       return;
     }
 
