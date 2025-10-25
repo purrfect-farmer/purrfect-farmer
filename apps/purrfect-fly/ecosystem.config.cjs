@@ -10,6 +10,7 @@ module.exports = {
       script: "pnpm",
       args: "start --options",
       interpreter: "none",
+      kill_timeout: 3000,
       cwd: __dirname,
       env: {
         PORT: process.env.PORT || 3000,
