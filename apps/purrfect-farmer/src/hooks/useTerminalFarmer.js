@@ -34,9 +34,10 @@ export default function useTerminalFarmer() {
       }
       controllerRef.current?.abort();
       controllerRef.current = null;
+      instance.stop();
       setStarted(false);
     },
-    [id, setStarted]
+    [id, instance, setStarted]
   );
 
   const [startFarmer, dispatchAndStartFarmer] = useMirroredCallback(
