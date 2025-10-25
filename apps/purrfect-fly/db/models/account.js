@@ -1,3 +1,4 @@
+import seedrandom from "seedrandom";
 import { Model } from "sequelize";
 export default (sequelize, DataTypes) => {
   class Account extends Model {
@@ -95,6 +96,10 @@ export default (sequelize, DataTypes) => {
 
     get farmer() {
       return this.farmers[0];
+    }
+
+    random() {
+      return seedrandom(this.id);
     }
   }
   Account.init(
