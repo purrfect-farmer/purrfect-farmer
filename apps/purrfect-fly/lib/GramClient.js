@@ -117,7 +117,7 @@ class GramClient extends BaseTelegramWebClient {
   /** Reset Destroy Timeout */
   _resetDestroyTimeout() {
     clearTimeout(this._destroyTimeout);
-    this._destroyTimeout = setTimeout(() => this.destroy(), 1 * 60 * 1000);
+    this._destroyTimeout = setTimeout(() => this.destroy(), 15 * 60 * 1000);
   }
 
   /** Execute on Client */
