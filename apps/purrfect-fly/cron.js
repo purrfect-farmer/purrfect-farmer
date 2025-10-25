@@ -22,11 +22,12 @@ if (app.cron.enabled) {
   runner.register("*/20 * * * *", updateAccounts, "Update Accounts");
 
   // Farmers
-  const rating = env("MINIMUM_FARMER_RATING", 0);
+  const minimumRating = env("MINIMUM_FARMER_RATING", 0);
 
   Object.values(farmers)
     .filter(
-      (FarmerClass) => FarmerClass.enabled && FarmerClass.rating >= rating
+      (FarmerClass) =>
+        FarmerClass.enabled && FarmerClass.rating >= minimumRating
     )
     .forEach((FarmerClass) => {
       runner.register(
