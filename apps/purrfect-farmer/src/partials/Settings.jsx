@@ -18,7 +18,6 @@ import {
   HiBolt,
   HiChevronRight,
   HiOutlineArrowPath,
-  HiOutlineExclamationTriangle,
   HiOutlineGlobeAlt,
   HiOutlineListBullet,
   HiOutlineSquares2X2,
@@ -932,20 +931,6 @@ export default memo(function Settings({ tabs }) {
                       checked={settings?.repeatZoomiesCycle}
                     >
                       Repeat Zoomies Cycle
-                    </LabelToggle>
-
-                    {/* Repeat Cycle */}
-                    <LabelToggle
-                      onChange={(ev) =>
-                        dispatchAndConfigureSettings(
-                          "uncappedPoints",
-                          ev.target.checked
-                        )
-                      }
-                      checked={settings?.uncappedPoints}
-                    >
-                      Uncapped Points{" "}
-                      <HiOutlineExclamationTriangle className="inline w-4 h-4" />
                     </LabelToggle>
 
                     <Alert variant={"info"}>
