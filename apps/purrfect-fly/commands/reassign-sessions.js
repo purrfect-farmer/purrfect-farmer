@@ -18,15 +18,25 @@ export default (program, inquirer, chalk) => {
       );
 
       const sessions = await GramClient.getSessions();
+      const accounts = await db.Account.findAll();
+      const usedSessions = accounts
+        .map((account) => account.session)
+        .filter((session) => sessions.includes(session));
+      const unusedSessions = sessions.filter(
+        (session) => !usedSessions.includes(session)
+      );
+
       const assigned = new Set();
 
-      console.log(chalk.yellow.bold(`Found sessions: ${sessions.length}`));
-      console.table(sessions);
+      console.log(
+        chalk.yellow.bold(`Found unused sessions: ${unusedSessions.length}`)
+      );
+      console.table(unusedSessions);
 
       const chunkGenerator = function* () {
         const chunkSize = 20;
-        for (let i = 0; i < sessions.length; i += chunkSize) {
-          yield sessions.slice(i, i + chunkSize);
+        for (let i = 0; i < unusedSessions.length; i += chunkSize) {
+          yield unusedSessions.slice(i, i + chunkSize);
         }
       };
 
