@@ -49,14 +49,16 @@ export default function useWhiskerData(app) {
             /** Expose Partition */
             window.WHISKER_PARTITION = account.partition;
 
+            const { theme } = settings;
+
             /** Update Account */
             updateActiveAccount(account);
 
             /** Update Settings */
-            updateSettings(settings, false);
+            updateSettings({ ...settings, theme }, false);
 
             /** Update Shared Settings */
-            updateSharedSettings(sharedSettings, false);
+            updateSharedSettings({ ...sharedSettings, theme }, false);
 
             break;
         }

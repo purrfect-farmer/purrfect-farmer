@@ -1,5 +1,6 @@
 /** Default Settings */
 const defaultSharedSettings = {
+  theme: "system",
   showMiniAppToolbar: true,
   farmersPerWindow: 5,
   farmerPosition: 1,

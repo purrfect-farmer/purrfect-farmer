@@ -9,7 +9,6 @@ import useCloudSessionCheck from "@/hooks/useCloudSessionCheck";
 import useMiniAppToolbar from "@/hooks/useMiniAppToolbar";
 import useProxy from "@/hooks/useProxy";
 import useSeeker from "@/hooks/useSeeker";
-import useTheme from "@/hooks/useTheme";
 import useWhiskerData from "@/hooks/useWhiskerData";
 import { memo } from "react";
 
@@ -17,8 +16,8 @@ import Onboarding from "./Onboarding";
 
 function App() {
   const app = useApp();
-  const { account, settings } = app;
-  const { theme, onboarded } = settings;
+  const { settings } = app;
+  const { onboarded } = settings;
 
   /** Proxy */
   useProxy(app);
@@ -34,9 +33,6 @@ function App() {
 
   /** Use Toolbar */
   useMiniAppToolbar(app);
-
-  /** Apply Theme */
-  useTheme(theme, account.active);
 
   return (
     <AppContext.Provider value={app}>

@@ -2,7 +2,6 @@
 const defaultSettings = {
   dropsStatus: {},
   dropsOrder: [],
-  theme: "system",
   preferredTelegramWebVersion: "k",
   farmerMode: import.meta.env.VITE_SETTING_FARMER_MODE || "web",
   onboarded: import.meta.env.VITE_SETTING_ONBOARDED || false,

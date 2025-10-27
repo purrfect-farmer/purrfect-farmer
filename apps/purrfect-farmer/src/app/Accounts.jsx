@@ -12,6 +12,7 @@ import { useMemo } from "react";
 
 import App from "./App";
 import HeadlessMode from "./HeadlessMode";
+import useTheme from "@/hooks/useTheme";
 
 const FarmerAccount = ({ account }) => {
   const client = useMemo(() => createQueryClient(), []);
@@ -32,7 +33,8 @@ const FarmerAccount = ({ account }) => {
 
 function Accounts() {
   const shared = useSharedCore();
-  const { accounts, runningAccounts, headlessMode } = shared;
+  const { accounts, runningAccounts, headlessMode, sharedSettings } = shared;
+  const { theme } = sharedSettings;
 
   /** Use Net Rules */
   useNetRules();
@@ -42,6 +44,9 @@ function Accounts() {
 
   /** Acquire WakeLock */
   useWakeLock();
+
+  /** Apply Theme */
+  useTheme(theme);
 
   return (
     <SharedContext.Provider value={shared}>

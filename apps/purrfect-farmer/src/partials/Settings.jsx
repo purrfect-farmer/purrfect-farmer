@@ -338,11 +338,14 @@ export default memo(function Settings({ tabs }) {
                               {["system", "light", "dark"].map((theme) => (
                                 <button
                                   onClick={() =>
-                                    dispatchAndConfigureSettings("theme", theme)
+                                    dispatchAndConfigureSharedSettings(
+                                      "theme",
+                                      theme
+                                    )
                                   }
                                   key={theme}
                                   className={cn(
-                                    settings.theme === theme
+                                    sharedSettings.theme === theme
                                       ? "bg-blue-200 dark:bg-blue-800"
                                       : "bg-neutral-100 dark:bg-neutral-700",
                                     "p-2 rounded-lg",
