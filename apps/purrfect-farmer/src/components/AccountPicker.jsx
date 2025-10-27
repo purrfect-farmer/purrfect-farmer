@@ -5,6 +5,7 @@ import { PiUserCirclePlusBold } from "react-icons/pi";
 import { cn } from "@/lib/utils";
 import { memo } from "react";
 import { useMemo } from "react";
+import { HiOutlineCheckBadge } from "react-icons/hi2";
 
 const AccountSelector = memo(({ account, launchAccount }) => {
   const { user } = account;
@@ -20,12 +21,12 @@ const AccountSelector = memo(({ account, launchAccount }) => {
     <Dialog.Close
       onClick={() => launchAccount(account.id)}
       className={cn(
-        "text-left",
-        "px-2 py-1 rounded-xl",
-        "flex items-center gap-2",
-        account.active
-          ? "bg-orange-500 text-white"
-          : "bg-neutral-100 dark:bg-neutral-700"
+        "px-2 py-1 rounded-xl text-left",
+        "bg-neutral-100 dark:bg-neutral-700",
+        "hover:bg-orange-100 hover:text-orange-700",
+        "dark:hover:bg-orange-200 dark:hover:text-orange-500",
+        "min-w-0 min-h-0 flex items-center gap-2",
+        "group"
       )}
     >
       {/* User  */}
@@ -47,9 +48,8 @@ const AccountSelector = memo(({ account, launchAccount }) => {
           {userFullName ? (
             <span
               className={cn(
-                account.active
-                  ? "text-orange-200"
-                  : "text-neutral-500 dark:text-neutral-400"
+                "text-neutral-500 dark:text-neutral-400",
+                "group-hover:text-orange-900"
               )}
             >
               ({userFullName})
@@ -61,15 +61,18 @@ const AccountSelector = memo(({ account, launchAccount }) => {
           <h5
             className={cn(
               "truncate",
-              account.active
-                ? "text-orange-200"
-                : "text-neutral-500 dark:text-neutral-400"
+              "text-neutral-500 dark:text-neutral-400",
+              "group-hover:text-orange-900"
             )}
           >
             @{user["username"]}
           </h5>
         ) : null}
       </div>
+
+      {account.active ? (
+        <HiOutlineCheckBadge className="shrink-0 text-orange-500 size-4" />
+      ) : null}
     </Dialog.Close>
   );
 });
