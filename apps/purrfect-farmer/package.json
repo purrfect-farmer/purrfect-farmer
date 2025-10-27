@@ -1,7 +1,7 @@
 {
   "name": "purrfect-farmer",
   "private": true,
-  "version": "4.3.3",
+  "version": "4.3.4",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -73,6 +73,7 @@
     "react-use": "^17.6.0",
     "rimraf": "^6.0.1",
     "rollup-plugin-visualizer": "^6.0.4",
+    "seedrandom": "^3.0.5",
     "semver": "^7.7.3",
     "set-cookie-parser": "^2.7.1",
     "socket.io-client": "^4.8.1",
