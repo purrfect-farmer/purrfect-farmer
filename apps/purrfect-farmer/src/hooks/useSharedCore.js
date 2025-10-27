@@ -23,6 +23,24 @@ export default function useSharedCore() {
   const { value: persistedAccounts, storeValue: storePersistedAccounts } =
     useStorageState("accounts", defaultAccounts, true);
 
+  /** Headless Mode */
+  const [headlessMode, setHeadlessMode] = useState(false);
+
+  /** Headless Farmers */
+  const [headlessFarmers, setHeadlessFarmers] = useState([]);
+
+  /** Start Headless Mode */
+  const startHeadlessMode = useCallback((farmers) => {
+    setHeadlessFarmers(farmers);
+    setHeadlessMode(true);
+  }, []);
+
+  /** Stop Headless Mode */
+  const stopHeadlessMode = useCallback(() => {
+    setHeadlessFarmers([]);
+    setHeadlessMode(false);
+  }, []);
+
   /** Active Account */
   const [activeAccount, setActiveAccount] = useState(persistedAccounts[0].id);
 
@@ -131,6 +149,10 @@ export default function useSharedCore() {
     launchAccount,
     closeAccount,
     setActiveAccount,
+    headlessMode,
+    headlessFarmers,
+    startHeadlessMode,
+    stopHeadlessMode,
 
     configureSharedSettings,
     updateSharedSettings,

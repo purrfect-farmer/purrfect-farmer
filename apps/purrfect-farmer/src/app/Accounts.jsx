@@ -11,6 +11,7 @@ import { createQueryClient } from "@/lib/createQueryClient";
 import { useMemo } from "react";
 
 import App from "./App";
+import HeadlessMode from "./HeadlessMode";
 
 const FarmerAccount = ({ account }) => {
   const client = useMemo(() => createQueryClient(), []);
@@ -31,7 +32,7 @@ const FarmerAccount = ({ account }) => {
 
 function Accounts() {
   const shared = useSharedCore();
-  const { accounts, runningAccounts } = shared;
+  const { accounts, runningAccounts, headlessMode } = shared;
 
   /** Use Net Rules */
   useNetRules();
@@ -44,11 +45,15 @@ function Accounts() {
 
   return (
     <SharedContext.Provider value={shared}>
-      {accounts.map(
-        (account) =>
-          runningAccounts.includes(account.id) && (
-            <FarmerAccount key={account.id} account={account} />
-          )
+      {headlessMode ? (
+        <HeadlessMode />
+      ) : (
+        accounts.map(
+          (account) =>
+            runningAccounts.includes(account.id) && (
+              <FarmerAccount key={account.id} account={account} />
+            )
+        )
       )}
 
       {/* Toaster */}

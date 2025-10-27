@@ -20,6 +20,7 @@ export const Browser = lazy(() => import("@/app/Browser"));
 export const TelegramWeb = lazy(() => import("@/app/TelegramWeb"));
 export const TelegramCleaner = lazy(() => import("@/app/TelegramCleaner"));
 export const TinyFly = lazy(() => import("@/app/TinyFly"));
+export const HeadlessPicker = lazy(() => import("@/app/HeadlessPicker"));
 export const BackupAndRestore = lazy(() => import("@/app/BackupAndRestore"));
 export const WhiskersToFarmer = lazy(() => import("@/app/WhiskersToFarmer"));
 export const TelegramToPurrfectGram = lazy(() =>
@@ -61,6 +62,13 @@ export const telegramWeb = [
 ];
 
 export const utils = [
+  /** Headless Mode */
+  {
+    id: "headless-mode",
+    title: "Headless Mode",
+    icon: AppIcon,
+    component: createElement(HeadlessPicker),
+  },
   /** Local Telegram Session */
   {
     id: "local-telegram-session",
