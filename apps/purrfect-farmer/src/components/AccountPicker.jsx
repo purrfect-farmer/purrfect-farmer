@@ -5,9 +5,12 @@ import { PiUserCirclePlusBold } from "react-icons/pi";
 import { cn } from "@/lib/utils";
 import { memo } from "react";
 import { useMemo } from "react";
-import { HiOutlineCheckBadge } from "react-icons/hi2";
+import { HiCheckBadge, HiOutlineCheckBadge } from "react-icons/hi2";
+import { BsStopCircle } from "react-icons/bs";
+import Input from "./Input";
+import { useState } from "react";
 
-const AccountSelector = memo(({ account, launchAccount }) => {
+const AccountSelector = memo(({ account, launchAccount, closeAccount }) => {
   const { user } = account;
   const userFullName = useMemo(
     () =>
@@ -18,67 +21,103 @@ const AccountSelector = memo(({ account, launchAccount }) => {
   );
 
   return (
-    <Dialog.Close
-      onClick={() => launchAccount(account.id)}
-      className={cn(
-        "px-2 py-1 rounded-xl text-left",
-        "bg-neutral-100 dark:bg-neutral-700",
-        "hover:bg-orange-100 hover:text-orange-700",
-        "dark:hover:bg-orange-200 dark:hover:text-orange-500",
-        "min-w-0 min-h-0 flex items-center gap-2",
-        "group"
-      )}
-    >
-      {/* User  */}
-      {user?.["photo_url"] ? (
-        <img
-          src={user?.["photo_url"]}
-          className="size-8 shrink-0 rounded-full"
-        />
-      ) : (
-        <div className="p-1 shrink-0">
-          <LiaUser className="size-5" />
-        </div>
-      )}
+    <div className="flex gap-2">
+      <Dialog.Close
+        onClick={() => launchAccount(account.id)}
+        className={cn(
+          "px-2 py-1 rounded-xl text-left",
+          "bg-neutral-100 dark:bg-neutral-700",
+          "hover:bg-orange-100 hover:text-orange-700",
+          "dark:hover:bg-orange-200 dark:hover:text-orange-500",
+          "grow min-w-0 min-h-0 flex items-center gap-2",
+          "group"
+        )}
+      >
+        {/* User  */}
+        {user?.["photo_url"] ? (
+          <img
+            src={user?.["photo_url"]}
+            className="size-8 shrink-0 rounded-full"
+          />
+        ) : (
+          <div className="p-1 shrink-0">
+            <LiaUser className="size-5" />
+          </div>
+        )}
 
-      <div className="flex flex-col grow min-w-0">
-        {/* Title */}
-        <h1 className="font-bold truncate w-full">
-          {account.title}{" "}
-          {userFullName ? (
-            <span
+        <div className="flex flex-col grow min-w-0">
+          {/* Title */}
+          <h1 className="font-bold truncate w-full">
+            {account.title}{" "}
+            {userFullName ? (
+              <span
+                className={cn(
+                  "text-neutral-500 dark:text-neutral-400",
+                  "group-hover:text-orange-900"
+                )}
+              >
+                ({userFullName})
+              </span>
+            ) : null}
+          </h1>
+          {/* Username */}
+          {user?.["username"] ? (
+            <h5
               className={cn(
+                "truncate",
                 "text-neutral-500 dark:text-neutral-400",
                 "group-hover:text-orange-900"
               )}
             >
-              ({userFullName})
-            </span>
+              @{user["username"]}
+            </h5>
           ) : null}
-        </h1>
-        {/* Username */}
-        {user?.["username"] ? (
-          <h5
-            className={cn(
-              "truncate",
-              "text-neutral-500 dark:text-neutral-400",
-              "group-hover:text-orange-900"
-            )}
-          >
-            @{user["username"]}
-          </h5>
-        ) : null}
-      </div>
+        </div>
 
-      {account.active ? (
-        <HiOutlineCheckBadge className="shrink-0 text-orange-500 size-4" />
-      ) : null}
-    </Dialog.Close>
+        {account.active ? (
+          <HiCheckBadge className="shrink-0 text-orange-500 size-4" />
+        ) : account.running ? (
+          <HiOutlineCheckBadge className="shrink-0 text-orange-500 size-4" />
+        ) : null}
+      </Dialog.Close>
+
+      <button
+        onClick={() => closeAccount(account.id)}
+        className={cn(
+          "text-neutral-500 dark:text-neutral-400",
+          "bg-neutral-100 dark:bg-neutral-700",
+          "hover:bg-orange-100 hover:text-orange-700",
+          "dark:hover:bg-orange-200 dark:hover:text-orange-500",
+          "flex items-center justify-center",
+          "px-3 rounded-xl shrink-0"
+        )}
+      >
+        <BsStopCircle className="size-4" />
+      </button>
+    </div>
   );
 });
 
 export default memo(function AccountPicker() {
-  const { accounts, addAccount, launchAccount } = useAppContext();
+  const { accounts, addAccount, launchAccount, closeAccount } = useAppContext();
+  const [search, setSearch] = useState("");
+  const filteredAccounts = useMemo(() => {
+    if (!search.trim()) return accounts;
+
+    const lowerSearch = search.toLowerCase();
+    return accounts.filter(
+      (account) =>
+        account.title.toLowerCase().includes(lowerSearch) ||
+        (account.user &&
+          (account.user["username"]?.toLowerCase().includes(lowerSearch) ||
+            account.user["id"].toString().includes(lowerSearch))) ||
+        [account.user["first_name"], account.user["last_name"]]
+          .filter(Boolean)
+          .join(" ")
+          .toLowerCase()
+          .includes(lowerSearch)
+    );
+  }, [accounts, search]);
 
   return (
     <Dialog.Portal>
@@ -86,12 +125,12 @@ export default memo(function AccountPicker() {
       <Dialog.Content
         className={cn(
           "bg-white dark:bg-neutral-800",
-          "fixed z-50 inset-x-0 bottom-0 flex flex-col h-3/4 rounded-t-xl",
+          "fixed z-50 inset-x-0 bottom-0 flex flex-col h-10/12 rounded-t-xl",
           "flex flex-col"
         )}
         onOpenAutoFocus={(ev) => ev.preventDefault()}
       >
-        <div className="flex flex-col min-w-0 min-h-0 gap-2 overflow-auto grow p-4">
+        <div className="flex flex-col p-4 gap-4 shrink-0">
           <div className="flex flex-col">
             <Dialog.Title className="text-lg font-bold text-center">
               <span
@@ -117,18 +156,29 @@ export default memo(function AccountPicker() {
             </Dialog.Description>
           </div>
 
+          {/* Search Input */}
+          <Input
+            type="search"
+            placeholder="Search Accounts..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="w-full shrink-0"
+          />
+        </div>
+        <div className="flex flex-col min-w-0 min-h-0 gap-2 overflow-auto grow px-4">
           {/* Set Active Account */}
-          {accounts.map((account) => (
+          {filteredAccounts.map((account) => (
             <AccountSelector
               key={account.id}
               account={account}
               launchAccount={launchAccount}
+              closeAccount={closeAccount}
             />
           ))}
         </div>
 
         {/* Add Account / Close Dialog */}
-        <div className="flex flex-col gap-2 p-4">
+        <div className="flex flex-col gap-2 p-4 shrink-0">
           {/* Add Account */}
           {!import.meta.env.VITE_WHISKER ? (
             <Dialog.Close

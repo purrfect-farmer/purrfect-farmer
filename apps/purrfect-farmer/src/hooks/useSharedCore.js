@@ -61,9 +61,10 @@ export default function useSharedCore() {
           telegramInitDataUnsafe,
           user: telegramInitDataUnsafe?.["user"] || null,
           active: item.id === activeAccount,
+          running: runningAccounts.includes(item.id),
         };
       }),
-    [persistedAccounts, activeAccount]
+    [persistedAccounts, activeAccount, runningAccounts]
   );
 
   /** Launch Account */
@@ -76,9 +77,21 @@ export default function useSharedCore() {
   }, []);
 
   /** Close Account */
-  const closeAccount = useCallback((id) => {
-    setRunningAccounts((prev) => prev.filter((item) => item !== id));
-  }, []);
+  const closeAccount = useCallback(
+    (id) => {
+      if (runningAccounts.length > 1) {
+        /** If Closing Active Account, Set Another as Active */
+        if (id === activeAccount) {
+          const nextActive = runningAccounts.find((item) => item !== id);
+          setActiveAccount(nextActive);
+        }
+
+        /** Remove from Running Accounts */
+        setRunningAccounts((prev) => prev.filter((item) => item !== id));
+      }
+    },
+    [activeAccount, runningAccounts, setActiveAccount, setRunningAccounts]
+  );
 
   /** Add Account */
   const addAccount = useCallback(async () => {
