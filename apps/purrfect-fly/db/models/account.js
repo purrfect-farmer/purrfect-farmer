@@ -53,9 +53,6 @@ export default (sequelize, DataTypes) => {
           {
             required: true,
             association: "farmers",
-            attributes: {
-              exclude: ["headers", "initData"],
-            },
           },
           {
             required: true,
