@@ -129,6 +129,14 @@ export default class BaseFarmer {
     return this.getInitDataUnsafe()?.["start_param"];
   }
 
+  /** Get URL from Init Data */
+  static getUrlFromInitData(initData) {
+    const params = new URLSearchParams({
+      tgWebAppData: initData,
+    });
+    return `https://${this.host}#${params.toString()}`;
+  }
+
   /** Start the farmer */
   start(signal) {
     this.signal = signal || new AbortController().signal;

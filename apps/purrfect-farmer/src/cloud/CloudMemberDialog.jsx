@@ -7,8 +7,11 @@ import { cn } from "@/lib/utils";
 import { formatDate } from "date-fns";
 import { useCallback } from "react";
 import { useQueryClient } from "@tanstack/react-query";
+import { HiOutlineArrowUpRight } from "react-icons/hi2";
+import useAppContext from "@/hooks/useAppContext";
 
 export default function CloudMemberDialog({ account, farmer }) {
+  const { launchInAppBrowser } = useAppContext();
   const queryClient = useQueryClient();
   const kickMemberMutation = useCloudManagerKickMemberMutation();
   const kickMember = useCallback(
@@ -114,6 +117,30 @@ export default function CloudMemberDialog({ account, farmer }) {
                     {farmer.active ? "Connected" : "Disconnected"}
                   </p>
                 </div>
+
+                {/* Open in App Browser Button */}
+                {farmer.initData && farmer.FarmerClass ? (
+                  <Dialog.Close
+                    onClick={() =>
+                      launchInAppBrowser({
+                        id: `${account.id}-farmer-${farmer.id}`,
+                        icon: farmer.icon,
+                        title: `${account.title || "TGUser"}'s ${farmer.title}`,
+                        url: farmer.FarmerClass.getUrlFromInitData(
+                          farmer.initData
+                        ),
+                      })
+                    }
+                    className={cn(
+                      "shrink-0 flex items-center gap-2",
+                      "text-blue-500 hover:underline"
+                    )}
+                  >
+                    {" "}
+                    <HiOutlineArrowUpRight className="size-4" />
+                    Open
+                  </Dialog.Close>
+                ) : null}
               </div>
             </>
           ) : null}

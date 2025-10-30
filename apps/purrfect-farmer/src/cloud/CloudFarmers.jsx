@@ -17,6 +17,7 @@ const CLOUD_FARMERS = farmers.reduce((result, farmer) => {
   result.set(farmer.id, {
     title: farmer.title,
     icon: farmer.icon,
+    FarmerClass: farmer.FarmerClass,
   });
   return result;
 }, new Map());
@@ -43,6 +44,7 @@ export default function CloudFarmers() {
               id: k,
               icon: CLOUD_FARMERS?.get(k)?.icon,
               title: CLOUD_FARMERS?.get(k)?.title || "(Unknown) Farmer",
+              FarmerClass: CLOUD_FARMERS?.get(k)?.FarmerClass,
               farmers: search
                 ? v.filter((item) => matchesAccountSearch(search, item.account))
                 : v,
@@ -51,6 +53,8 @@ export default function CloudFarmers() {
         : [],
     [search, farmersQuery.data]
   );
+
+  console.log("Farmers Groups:", groups);
 
   const disconnectFarmer = useCallback(
     (id) => {
@@ -148,6 +152,7 @@ export default function CloudFarmers() {
                           account={account}
                           farmer={{
                             ...farmer,
+                            FarmerClass: group.FarmerClass,
                             title: group.title,
                             icon: group.icon,
                           }}
