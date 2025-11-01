@@ -3,7 +3,6 @@ import styled from "styled-components";
 import useAppContext from "@/hooks/useAppContext";
 import useMirroredCallback from "@/hooks/useMirroredCallback";
 import useMirroredState from "@/hooks/useMirroredState";
-import useStorageState from "@/hooks/useStorageState";
 import {
   HiOutlineMinus,
   HiOutlinePause,
@@ -19,6 +18,7 @@ import { useRef } from "react";
 
 import AutoClickerPoint from "./AutoClickerPoint";
 import AutoClickerPointConfig from "./AutoClickerPointConfig";
+import useSharedStorageState from "@/hooks/useSharedStorageState";
 
 const DEFAULT_INTERVAL = 100;
 const DEFAULT_UNIT = "ms";
@@ -120,10 +120,9 @@ export default memo(function AutoClicker() {
     }
   );
 
-  const { value: points, storeValue: storePoints } = useStorageState(
+  const { value: points, storeValue: storePoints } = useSharedStorageState(
     `clicker:${host}`,
-    [],
-    true
+    []
   );
 
   const [enabled, , dispatchAndSetEnabled] = useMirroredState(

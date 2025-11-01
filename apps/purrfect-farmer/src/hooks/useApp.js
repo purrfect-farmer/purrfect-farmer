@@ -14,14 +14,13 @@ export default function useApp() {
 
   /** Utils Panel State */
   const [showUtilsPanel, setShowUtilsPanel, dispatchAndSetShowUtilsPanel] =
-    useMirroredState("app.toggle-utils-panel", false, core.mirror);
+    useMirroredState("app.toggle-utils-panel", false);
 
   /** Utils Panel Tabs */
   const utilsPanelTabs = useMirroredTabs(
     "app.utils-panel-tabs",
     ["utils", "system"],
-    "utils",
-    core.mirror
+    "utils"
   );
 
   const { dispatchAndSetValue: dispatchAndSetUtilsPanelTabValue } =

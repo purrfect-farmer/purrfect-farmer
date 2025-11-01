@@ -7,8 +7,10 @@ import { useMemo } from "react";
 import { useState } from "react";
 
 import useBaseSettings from "./useBaseSettings";
-import useStorageState from "./useStorageState";
 import useValuesMemo from "./useValuesMemo";
+import useMirror from "./useMirror";
+import useMirroredCallback from "./useMirroredCallback";
+import useSharedStorageState from "./useSharedStorageState";
 
 export default function useSharedCore() {
   /** Shared Settings */
@@ -19,9 +21,15 @@ export default function useSharedCore() {
     updateSettings: updateSharedSettings,
   } = useBaseSettings("settings", defaultSharedSettings, true);
 
+  /** Mirror */
+  const mirror = useMirror(
+    sharedSettings.enableMirror,
+    sharedSettings.mirrorServer
+  );
+
   /** Persisted Accounts */
   const { value: persistedAccounts, storeValue: storePersistedAccounts } =
-    useStorageState("accounts", defaultAccounts, true);
+    useSharedStorageState("accounts", defaultAccounts);
 
   /** Headless Mode */
   const [headlessMode, setHeadlessMode] = useState(false);
@@ -30,16 +38,28 @@ export default function useSharedCore() {
   const [headlessFarmers, setHeadlessFarmers] = useState([]);
 
   /** Start Headless Mode */
-  const startHeadlessMode = useCallback((farmers) => {
-    setHeadlessFarmers(farmers);
-    setHeadlessMode(true);
-  }, []);
+  const [startHeadlessMode, dispatchAndStartHeadlessMode] = useMirroredCallback(
+    "headless-mode.start",
+    (ids) => {
+      setHeadlessFarmers(ids);
+      setHeadlessMode(true);
+    },
+    [],
+    /** Mirror */
+    mirror
+  );
 
   /** Stop Headless Mode */
-  const stopHeadlessMode = useCallback(() => {
-    setHeadlessFarmers([]);
-    setHeadlessMode(false);
-  }, []);
+  const [stopHeadlessMode, dispatchAndStopHeadlessMode] = useMirroredCallback(
+    "headless-mode.stop",
+    () => {
+      setHeadlessFarmers([]);
+      setHeadlessMode(false);
+    },
+    [],
+    /** Mirror */
+    mirror
+  );
 
   /** Active Account */
   const [activeAccount, setActiveAccount] = useState(persistedAccounts[0].id);
@@ -152,6 +172,7 @@ export default function useSharedCore() {
   );
 
   return useValuesMemo({
+    mirror,
     accounts,
     activeAccount,
     sharedSettings,
@@ -166,6 +187,8 @@ export default function useSharedCore() {
     headlessFarmers,
     startHeadlessMode,
     stopHeadlessMode,
+    dispatchAndStartHeadlessMode,
+    dispatchAndStopHeadlessMode,
 
     configureSharedSettings,
     updateSharedSettings,

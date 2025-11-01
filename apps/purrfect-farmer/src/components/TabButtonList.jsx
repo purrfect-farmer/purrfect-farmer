@@ -9,7 +9,7 @@ import AccountPicker from "./AccountPicker";
 import TabButton from "./TabButton";
 
 export default memo(function TabButtonList({ tabs }) {
-  const { account, mirror, settings } = useAppContext();
+  const { account, mirror, settings, sharedSettings } = useAppContext();
   const otherTabs = useMemo(() => tabs.slice(1), [tabs]);
   const userFullName = useMemo(
     () =>
@@ -30,7 +30,7 @@ export default memo(function TabButtonList({ tabs }) {
   return (
     <div
       className={cn(
-        "flex items-center gap-2 pr-2",
+        "flex items-center gap-2 pr-2 shrink-0",
         "border-b dark:border-neutral-700"
       )}
     >
@@ -47,7 +47,7 @@ export default memo(function TabButtonList({ tabs }) {
           <TabButton
             key={tabs[0].id}
             tab={tabs[0]}
-            showMirrorStatus={settings.enableMirror}
+            showMirrorStatus={sharedSettings.enableMirror}
             mirrorIsConnected={mirror.connected}
           />
         </div>

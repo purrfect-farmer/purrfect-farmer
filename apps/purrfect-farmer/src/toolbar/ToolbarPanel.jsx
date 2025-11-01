@@ -2,7 +2,6 @@ import AppIcon from "@/assets/images/icon.png?inline&format=webp&w=72&h=72";
 import AutoClicker from "@/toolbar/AutoClicker";
 import Draggable from "react-draggable";
 import styled from "styled-components";
-import useAppContext from "@/hooks/useAppContext";
 import useMirroredState from "@/hooks/useMirroredState";
 import { Dialog } from "radix-ui";
 import { HiOutlineArrowsPointingOut } from "react-icons/hi2";
@@ -89,7 +88,6 @@ const ClickerIcon = styled(PiHandTap)`
 `;
 
 export default function ToolbarPanel() {
-  const { url } = useAppContext();
   const dragHandleClass = "draggable-handle";
   const nodeRef = useRef(null);
   const [position, , dispatchAndSetPosition] = useMirroredState(

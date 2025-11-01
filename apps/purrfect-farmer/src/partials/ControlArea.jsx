@@ -20,6 +20,7 @@ export default memo(function ControlArea() {
   const {
     zoomies,
     settings,
+    sharedSettings,
     setActiveTab,
     utilsPanelTabs,
     showUtilsPanel,
@@ -150,7 +151,7 @@ export default memo(function ControlArea() {
         </ContextMenu.Root>
 
         {/* Mirror */}
-        {settings.enableMirror ? (
+        {sharedSettings.enableMirror ? (
           <Mirror />
         ) : (
           <div className="flex items-center justify-center min-w-0 min-h-0 gap-2 px-2 grow">

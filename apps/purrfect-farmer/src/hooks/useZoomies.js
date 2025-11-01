@@ -19,7 +19,7 @@ export default function useZoomies(core) {
   const farmerMode = core.farmerMode;
 
   /** Process */
-  const process = useProcessLock("zoomies", core.mirror);
+  const process = useProcessLock("zoomies");
 
   /** Farmer has Started */
   const [farmerHasStarted, setFarmerHasStarted] = useState(false);
@@ -73,10 +73,7 @@ export default function useZoomies(core) {
       setQuickRun(quick);
       process.toggle(state);
     },
-    [setQuickRun, process.toggle],
-
-    /** Mirror */
-    core.mirror
+    [setQuickRun, process.toggle]
   );
 
   /** Refresh Zoomies */
@@ -90,10 +87,7 @@ export default function useZoomies(core) {
         };
       });
     },
-    [drops, setCurrent],
-
-    /** Mirror */
-    core.mirror
+    [drops, setCurrent]
   );
 
   /** Process task Offset */

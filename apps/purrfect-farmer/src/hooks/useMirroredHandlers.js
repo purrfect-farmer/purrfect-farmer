@@ -1,10 +1,10 @@
 import { useLayoutEffect } from "react";
 
-import useAppContext from "./useAppContext";
+import useSharedContext from "./useSharedContext";
 
 export default function useMirroredHandlers(handlers, mirror) {
-  const app = useAppContext();
-  const mirrorToUse = mirror || app?.mirror;
+  const shared = useSharedContext();
+  const mirrorToUse = mirror || shared?.mirror;
 
   return useLayoutEffect(() => {
     mirrorToUse.addCommandHandlers(handlers);

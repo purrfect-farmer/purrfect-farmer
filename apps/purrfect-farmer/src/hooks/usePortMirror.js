@@ -1,13 +1,14 @@
 import { useCallback } from "react";
 import { useLayoutEffect } from "react";
-import { useMemo } from "react";
 
 import useEventEmitter from "./useEventEmitter";
+import useValuesMemo from "./useValuesMemo";
 
 /**
  * @param {chrome.runtime.Port} port
  */
 export default function usePortMirror(port) {
+  const mirroring = Boolean(port);
   const {
     emitter: handler,
     addListeners: addCommandHandlers,
@@ -35,21 +36,12 @@ export default function usePortMirror(port) {
     };
   }, [port, handler]);
 
-  return useMemo(
-    () => ({
-      port,
-      handler,
-      dispatch,
-      addCommandHandlers,
-      removeCommandHandlers,
-    }),
-    [
-      /** Deps */
-      port,
-      handler,
-      dispatch,
-      addCommandHandlers,
-      removeCommandHandlers,
-    ]
-  );
+  return useValuesMemo({
+    port,
+    mirroring,
+    handler,
+    dispatch,
+    addCommandHandlers,
+    removeCommandHandlers,
+  });
 }

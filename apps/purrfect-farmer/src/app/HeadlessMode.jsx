@@ -11,6 +11,7 @@ import axios from "axios";
 import userAgents from "@purrfect/shared/resources/userAgents";
 import TelegramWebClient from "@/lib/TelegramWebClient";
 import seedrandom from "seedrandom";
+import farmers from "@/core/farmers";
 
 /** Headless Telegram Client */
 class HeadlessTelegramClient extends TelegramWebClient {
@@ -184,7 +185,8 @@ const createRunner = ({ FarmerClass, logger, controller }) => {
 export default function HeadlessMode() {
   const terminalRef = useRef(null);
   const runnerRef = useRef(null);
-  const { accounts, headlessFarmers, stopHeadlessMode } = useSharedContext();
+  const { accounts, headlessFarmers, dispatchAndStopHeadlessMode } =
+    useSharedContext();
 
   useEffect(() => {
     const controller = new AbortController();
@@ -212,13 +214,15 @@ export default function HeadlessMode() {
     });
 
     /** Create Runners */
-    const runners = headlessFarmers.map(({ FarmerClass }) => {
-      return createRunner({
-        FarmerClass,
-        logger,
-        controller,
+    const runners = farmers
+      .filter((farmer) => headlessFarmers.includes(farmer.id))
+      .map(({ FarmerClass }) => {
+        return createRunner({
+          FarmerClass,
+          logger,
+          controller,
+        });
       });
-    });
 
     /** Register Runners */
     runners.forEach((Runner) => {
@@ -271,7 +275,10 @@ export default function HeadlessMode() {
           Headless Mode
         </h2>
 
-        <button onClick={stopHeadlessMode} className={cn("p-2 text-red-500")}>
+        <button
+          onClick={() => dispatchAndStopHeadlessMode()}
+          className={cn("p-2 text-red-500")}
+        >
           Stop Headless Mode
         </button>
       </div>

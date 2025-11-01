@@ -30,7 +30,7 @@ export default memo(function TabContent({ tab }) {
         data-tab-id={tab.id}
         className={cn(
           "absolute inset-0",
-          "flex flex-col",
+          "flex flex-col overflow-auto",
           !tab.active ? "invisible" : null
         )}
       >

@@ -3,7 +3,9 @@ import { useCallback } from "react";
 import { useLayoutEffect } from "react";
 import { useMemo } from "react";
 
-import useAppContext from "./useAppContext";
+import useSyncedRef from "./useSyncedRef";
+import useSharedContext from "./useSharedContext";
+import useAccountContext from "./useAccountContext";
 
 export default function useMirroredCallback(
   action,
@@ -11,8 +13,13 @@ export default function useMirroredCallback(
   deps = [],
   mirror
 ) {
-  const app = useAppContext();
-  const mirrorToUse = mirror || app?.mirror;
+  const shared = useSharedContext();
+  const account = useAccountContext();
+  const mirrorToUse = mirror || shared.mirror;
+  const isActive = !account || account.active;
+
+  /** Store Active State in Ref */
+  const activeStateRef = useSyncedRef(isActive && mirrorToUse.mirroring);
 
   /** Main Callback */
   const main = useCallback(callback, deps);
@@ -20,13 +27,15 @@ export default function useMirroredCallback(
   /** Dispatch Callback */
   const dispatch = useCallback(
     (...args) => {
-      try {
-        mirrorToUse.dispatch({
-          action,
-          data: args,
-        });
-      } catch (e) {
-        customLogger("DISPATCH ERROR", e);
+      if (activeStateRef.current) {
+        try {
+          mirrorToUse.dispatch({
+            action,
+            data: args,
+          });
+        } catch (e) {
+          customLogger("DISPATCH ERROR", e);
+        }
       }
 
       return main(...args);
@@ -37,7 +46,11 @@ export default function useMirroredCallback(
   /** Add Handler */
   useLayoutEffect(() => {
     /** Create Handler */
-    const handler = (command) => main(...command.data);
+    const handler = (command) => {
+      if (activeStateRef.current) {
+        main(...command.data);
+      }
+    };
 
     /** Add Handler */
     mirrorToUse.handler.on(action, handler);

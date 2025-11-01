@@ -1,7 +1,7 @@
 import userAgents from "@purrfect/shared/resources/userAgents";
 
-import useStorageState from "./useStorageState";
+import useSharedStorageState from "./useSharedStorageState";
 
 export default function useUserAgent() {
-  return useStorageState("user-agent", userAgents[0], true).value;
+  return useSharedStorageState("user-agent", userAgents[0]).value;
 }

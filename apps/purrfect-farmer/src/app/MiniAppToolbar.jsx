@@ -1,7 +1,8 @@
 import AppContext from "@/contexts/AppContext";
 import ToolbarPanel from "@/toolbar/ToolbarPanel";
 import usePortMirror from "@/hooks/usePortMirror";
-import useStorageState from "@/hooks/useStorageState";
+import SharedContext from "@/contexts/SharedContext";
+import useSharedStorageState from "@/hooks/useSharedStorageState";
 
 const defaultSharedSettings = {
   showMiniAppToolbar: true,
@@ -9,16 +10,17 @@ const defaultSharedSettings = {
 
 export default function MiniAppToolbar({ host, url, port }) {
   const mirror = usePortMirror(port);
-  const { value: settings } = useStorageState(
+  const { value: sharedSettings } = useSharedStorageState(
     "settings",
-    defaultSharedSettings,
-    true
+    defaultSharedSettings
   );
-  const { showMiniAppToolbar } = settings;
+  const { showMiniAppToolbar } = sharedSettings;
 
   return (
-    <AppContext.Provider value={{ port, host, url, mirror, settings }}>
-      {showMiniAppToolbar ? <ToolbarPanel /> : null}
-    </AppContext.Provider>
+    <SharedContext.Provider value={{ mirror, sharedSettings }}>
+      <AppContext.Provider value={{ port, host, url }}>
+        {showMiniAppToolbar ? <ToolbarPanel /> : null}
+      </AppContext.Provider>
+    </SharedContext.Provider>
   );
 }

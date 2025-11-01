@@ -16,7 +16,6 @@ import useCloudAuth from "./useCloudAuth";
 import useCloudTelegramSession from "./useCloudTelegramSession";
 import useLocalTelegramSession from "./useLocalTelegramSession";
 import useMessagePort from "./useMessagePort";
-import useMirror from "./useMirror";
 import useMirroredCallback from "./useMirroredCallback";
 import useSettings from "./useSettings";
 import useSharedContext from "./useSharedContext";
@@ -39,6 +38,7 @@ export default function useCore() {
 
   /** Destructure Shared */
   const {
+    mirror,
     updateAccount,
     removeAccount,
     updateSharedSettings,
@@ -93,11 +93,6 @@ export default function useCore() {
   );
 
   const telegramClient = useTelegramClient(farmerMode, localTelegramSession);
-  const mirror = useMirror(
-    settings.enableMirror,
-    settings.mirrorServer,
-    account.active
-  );
   const messaging = useMessagePort(account.active);
 
   const preferredTelegramWebVersion =
@@ -183,9 +178,7 @@ export default function useCore() {
         }
       });
     },
-    [setOpenedTabs],
-    /** Mirror */
-    mirror
+    [setOpenedTabs]
   );
 
   /** Update Tab */
@@ -198,9 +191,7 @@ export default function useCore() {
         );
       });
     },
-    [setOpenedTabs],
-    /** Mirror */
-    mirror
+    [setOpenedTabs]
   );
 
   /** Set Active Tab */
@@ -211,9 +202,7 @@ export default function useCore() {
         id.startsWith("browser") ? id : tabs.find((item) => item.id === id)
       );
     },
-    [tabs, pushTab],
-    /** Mirror */
-    mirror
+    [tabs, pushTab]
   );
 
   const [resetTabs, dispatchAndResetTabs] = useMirroredCallback(
@@ -222,9 +211,7 @@ export default function useCore() {
       /** Reset Tabs */
       setOpenedTabs(defaultOpenedTabs);
     },
-    [setOpenedTabs],
-    /** Mirror */
-    mirror
+    [setOpenedTabs]
   );
 
   const [closeFarmerTabs, dispatchAndCloseFarmerTabs] = useMirroredCallback(
@@ -236,9 +223,7 @@ export default function useCore() {
         )
       );
     },
-    [setOpenedTabs],
-    /** Mirror */
-    mirror
+    [setOpenedTabs]
   );
 
   const [reloadTab, dispatchAndReloadTab] = useMirroredCallback(
@@ -252,9 +237,7 @@ export default function useCore() {
         return newTabs;
       });
     },
-    [setOpenedTabs],
-    /** Mirror */
-    mirror
+    [setOpenedTabs]
   );
 
   const [closeTab, dispatchAndCloseTab] = useMirroredCallback(
@@ -277,9 +260,7 @@ export default function useCore() {
         }
       });
     },
-    [setOpenedTabs],
-    /** Mirror */
-    mirror
+    [setOpenedTabs]
   );
 
   /** Open New Tab */
@@ -306,9 +287,7 @@ export default function useCore() {
     () => {
       window.close();
     },
-    [],
-    /** Mirror */
-    mirror
+    []
   );
 
   /** Reload App */
@@ -321,54 +300,42 @@ export default function useCore() {
         chrome.runtime.reload();
       }
     },
-    [],
-    /** Mirror */
-    mirror
+    []
   );
 
   /** Dispatch and Configure Shared Settings */
   const [, dispatchAndConfigureSharedSettings] = useMirroredCallback(
     "core.configure-shared-settings",
     configureSharedSettings,
-    [configureSharedSettings],
-    /** Mirror */
-    mirror
+    [configureSharedSettings]
   );
 
   /** Dispatch And Update Shared Settings */
   const [, dispatchAndUpdateSharedSettings] = useMirroredCallback(
     "core.update-shared-settings",
     updateSharedSettings,
-    [updateSharedSettings],
-    /** Mirror */
-    mirror
+    [updateSharedSettings]
   );
 
   /** Dispatch and Configure Settings */
   const [, dispatchAndConfigureSettings] = useMirroredCallback(
     "core.configure-settings",
     configureSettings,
-    [configureSettings],
-    /** Mirror */
-    mirror
+    [configureSettings]
   );
 
   /** Dispatch and Update Settings */
   const [, dispatchAndUpdateSettings] = useMirroredCallback(
     "core.update-settings",
     updateSettings,
-    [updateSettings],
-    /** Mirror */
-    mirror
+    [updateSettings]
   );
 
   /** Restore Settings */
   const [, dispatchAndRestoreSettings] = useMirroredCallback(
     "core.restore-settings",
     restoreSettings,
-    [restoreSettings],
-    /** Mirror */
-    mirror
+    [restoreSettings]
   );
 
   /** Open URL */
@@ -378,9 +345,7 @@ export default function useCore() {
       chrome?.windows?.create({
         url,
       }),
-    [],
-    /** Mirror */
-    mirror
+    []
   );
 
   /** Navigate to Telegram Web */
@@ -398,9 +363,7 @@ export default function useCore() {
           active: true,
         });
       },
-      [account.id],
-      /** Mirror */
-      mirror
+      [account.id]
     );
 
   /** Open Telegram Web */
@@ -526,9 +489,7 @@ export default function useCore() {
         true
       );
     },
-    [pushTab],
-    /** Mirror */
-    mirror
+    [pushTab]
   );
 
   /** Open Telegram Link */
@@ -555,9 +516,7 @@ export default function useCore() {
         true
       );
     },
-    [pushTab, preferredTelegramWebVersion],
-    /** Mirror */
-    mirror
+    [pushTab, preferredTelegramWebVersion]
   );
 
   /** Join Telegram Link */
@@ -606,14 +565,7 @@ export default function useCore() {
       /** Extra Delay */
       await delay(5000);
     },
-    [
-      farmerMode,
-      openTelegramLink,
-      preferredTelegramWebVersion,
-      messaging.ports,
-    ],
-    /** Mirror */
-    mirror
+    [farmerMode, openTelegramLink, preferredTelegramWebVersion, messaging.ports]
   );
 
   /** Open Telegram Bot */
@@ -696,9 +648,7 @@ export default function useCore() {
       preferredTelegramWebVersion,
       openTelegramLink,
       launchInAppBrowser,
-    ],
-    /** Mirror */
-    mirror
+    ]
   );
 
   /** Update Active Account */

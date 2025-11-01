@@ -79,6 +79,7 @@ export default memo(function Welcome() {
     farmers,
     drops,
     settings,
+    sharedSettings,
     mirror,
     farmerMode,
     telegramClient,
@@ -296,7 +297,7 @@ export default memo(function Welcome() {
           <IPStatus />
 
           {/* Mirror Status */}
-          {settings.enableMirror ? (
+          {sharedSettings.enableMirror ? (
             <p
               className={cn(
                 "text-center flex items-center justify-center gap-2",

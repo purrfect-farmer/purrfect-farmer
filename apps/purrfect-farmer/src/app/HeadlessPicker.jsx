@@ -2,15 +2,15 @@ import LabelToggle from "@/components/LabelToggle";
 import PrimaryButton from "@/components/PrimaryButton";
 import farmers from "@/core/farmers";
 import useAppContext from "@/hooks/useAppContext";
-import useMirroredCallback from "@/hooks/useMirroredCallback";
 import useMirroredState from "@/hooks/useMirroredState";
 import { Rating } from "@smastrom/react-rating";
+import { useCallback } from "react";
 import { useMemo } from "react";
 import { useState } from "react";
 import { memo } from "react";
 
 function HeadlessPicker() {
-  const { settings, startHeadlessMode } = useAppContext();
+  const { settings, dispatchAndStartHeadlessMode } = useAppContext();
   const [rating, setRating, dispatchAndSetRating] = useMirroredState(
     "headless-picker.rating",
     settings.farmersRating
@@ -35,19 +35,17 @@ function HeadlessPicker() {
   };
 
   /** Start Headless Mode */
-  const [, dispatchAndStartHeadlessMode] = useMirroredCallback(
-    "app.start-headless-mode",
-    () => {
-      startHeadlessMode(
-        availableFarmers.filter((farmer) => selectedFarmers.includes(farmer.id))
-      );
-    },
-    [startHeadlessMode, availableFarmers, selectedFarmers]
-  );
+  const startHeadlessMode = useCallback(() => {
+    dispatchAndStartHeadlessMode(
+      availableFarmers
+        .filter((farmer) => selectedFarmers.includes(farmer.id))
+        .map((item) => item.id)
+    );
+  }, [dispatchAndStartHeadlessMode, availableFarmers, selectedFarmers]);
 
   return (
-    <div className="flex flex-col gap-2 p-4">
-      <PrimaryButton onClick={() => dispatchAndStartHeadlessMode()}>
+    <div className="flex flex-col gap-2 p-4 grow">
+      <PrimaryButton onClick={() => startHeadlessMode()}>
         Start Headless Mode
       </PrimaryButton>
 

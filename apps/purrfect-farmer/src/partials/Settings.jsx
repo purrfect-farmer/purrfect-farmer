@@ -137,25 +137,21 @@ export default memo(function Settings({ tabs }) {
 
   const {
     mirrorServer: defaultMirrorServer,
-    cloudServer: defaultCloudServer,
-    seekerServer: defaultSeekerServer,
-  } = defaultSettings;
-
-  const {
-    mirrorServer: currentMirrorServer,
-    cloudServer: currentCloudServer,
-    seekerServer: currentSeekerServer,
-  } = settings;
-
-  const {
     farmersPerWindow: defaultFarmersPerWindow,
     farmerPosition: defaultFarmerPosition,
   } = defaultSharedSettings;
 
   const {
+    mirrorServer: currentMirrorServer,
     farmersPerWindow: currentFarmersPerWindow,
     farmerPosition: currentFarmerPosition,
   } = sharedSettings;
+
+  const { cloudServer: defaultCloudServer, seekerServer: defaultSeekerServer } =
+    defaultSettings;
+
+  const { cloudServer: currentCloudServer, seekerServer: currentSeekerServer } =
+    settings;
 
   /** Mirror Server */
   const [mirrorServer, setMirrorServer] = useState(
@@ -189,8 +185,8 @@ export default memo(function Settings({ tabs }) {
 
   /** Handle Set Mirror Server */
   const handleSetMirrorServer = useCallback(() => {
-    dispatchAndConfigureSettings("mirrorServer", mirrorServer);
-  }, [mirrorServer, dispatchAndConfigureSettings]);
+    dispatchAndConfigureSharedSettings("mirrorServer", mirrorServer);
+  }, [mirrorServer, dispatchAndConfigureSharedSettings]);
 
   /** Handle Set Cloud Server */
   const handleSetCloudServer = useCallback(() => {
@@ -768,12 +764,12 @@ export default memo(function Settings({ tabs }) {
                       <SettingsGroup id="mirror" title={"Mirror Options"}>
                         <LabelToggle
                           onChange={(ev) =>
-                            dispatchAndConfigureSettings(
+                            dispatchAndConfigureSharedSettings(
                               "enableMirror",
                               ev.target.checked
                             )
                           }
-                          checked={settings?.enableMirror}
+                          checked={sharedSettings?.enableMirror}
                         >
                           Enable Mirror
                         </LabelToggle>
