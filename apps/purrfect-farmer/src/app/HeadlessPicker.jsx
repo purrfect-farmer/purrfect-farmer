@@ -44,7 +44,7 @@ function HeadlessPicker() {
   }, [dispatchAndStartHeadlessMode, availableFarmers, selectedFarmers]);
 
   return (
-    <div className="flex flex-col gap-2 p-4 grow">
+    <div className="flex flex-col gap-2 p-4">
       <PrimaryButton onClick={() => startHeadlessMode()}>
         Start Headless Mode
       </PrimaryButton>
