@@ -12,6 +12,7 @@ import {
 } from "react-icons/hi2";
 import { memo } from "react";
 import { useCallback } from "react";
+import { useState } from "react";
 
 const DialogOverlay = styled(Dialog.Overlay)`
   position: fixed;
@@ -132,6 +133,7 @@ const ToolbarButton = ({ icon: Icon, children, ...props }) => (
 
 export default memo(function AdvancePanel() {
   const { url, host, port } = useAppContext();
+  const [copied, setCopied] = useState(false);
 
   const openURL = useCallback(() => {
     window.open(url);
@@ -139,6 +141,8 @@ export default memo(function AdvancePanel() {
 
   const copyURL = useCallback(() => {
     copy(url);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
   }, [url]);
 
   const [, dispatchAndLaunchInFarmer] = useMirroredCallback(
@@ -183,7 +187,7 @@ export default memo(function AdvancePanel() {
               <DialogHeaderImage src={AppIcon} />{" "}
               {import.meta.env.VITE_APP_NAME}
             </DialogTitle>
-            <DialogDescription>Advance Toolbar Panel</DialogDescription>
+            <DialogDescription>Toolbar Panel</DialogDescription>
           </DialogHeader>
 
           <ButtonsContainer>
@@ -197,7 +201,7 @@ export default memo(function AdvancePanel() {
 
             {/* Copy URL */}
             <ToolbarButton icon={CopyIcon} onClick={() => copyURL()}>
-              Copy URL
+              {copied ? "Copied!" : "Copy URL"}
             </ToolbarButton>
 
             {/* Open URL */}
