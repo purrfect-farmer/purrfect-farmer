@@ -168,7 +168,21 @@ export default class PirateCashFarmer extends BaseFarmer {
         title: "💵 Set Wallet Address",
         action: this.configureWalletAddress.bind(this),
       },
+      {
+        id: "get-swap-wallet-address",
+        title: "🔄 Get Swap Wallet Address",
+        action: this.getSwapWalletAddress.bind(this),
+      },
     ];
+  }
+
+  async getSwapWalletAddress() {
+    const { quests } = await this.api
+      .get("https://p.cash/miniapp/swaps/active")
+      .then((res) => res.data);
+
+    this.logger.debug(`🔄 Your swap wallet address is:`);
+    this.logger.success(quests.wallet.data.walletAddress);
   }
 
   async configureWalletAddress() {
