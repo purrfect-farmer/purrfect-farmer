@@ -9,6 +9,7 @@ import { HiArrowTopRightOnSquare, HiUserPlus } from "react-icons/hi2";
 import { cn, isBotURL } from "@/lib/utils";
 import { memo, useState } from "react";
 import { utils } from "@/core/tabs";
+import { Fragment } from "react";
 
 export default memo(function UtilsPanel() {
   const {
@@ -108,24 +109,36 @@ export default memo(function UtilsPanel() {
 
         {/* System */}
         <Tabs.Content value="system" className="flex flex-col gap-2">
-          {utils.map((tab) => (
-            <Dialog.Close
-              onClick={() => dispatchAndSetActiveTab(tab.id)}
-              key={tab.id}
-              className={cn(
-                "bg-neutral-100 dark:bg-neutral-700",
-                "flex items-center gap-2 p-2 cursor-pointer rounded-xl",
-                "text-left"
-              )}
-            >
-              <img
-                src={tab.icon}
-                className={cn("w-6 h-6 rounded-full shrink-0")}
-              />
-              <h3 className={cn("min-w-0 truncate w-full", "font-bold")}>
-                {tab.title}
-              </h3>
-            </Dialog.Close>
+          {utils.map((group) => (
+            <Fragment key={group.name}>
+              <h2
+                className={cn(
+                  "text-neutral-500 dark:text-neutral-400",
+                  "font-bold px-4"
+                )}
+              >
+                {group.name}
+              </h2>
+              {group.list.map((tab) => (
+                <Dialog.Close
+                  onClick={() => dispatchAndSetActiveTab(tab.id)}
+                  key={tab.id}
+                  className={cn(
+                    "bg-neutral-100 dark:bg-neutral-700",
+                    "flex items-center gap-2 p-2 cursor-pointer rounded-xl",
+                    "text-left"
+                  )}
+                >
+                  <img
+                    src={tab.icon}
+                    className={cn("w-6 h-6 rounded-full shrink-0")}
+                  />
+                  <h3 className={cn("min-w-0 truncate w-full", "font-bold")}>
+                    {tab.title}
+                  </h3>
+                </Dialog.Close>
+              ))}
+            </Fragment>
           ))}
         </Tabs.Content>
       </Tabs>

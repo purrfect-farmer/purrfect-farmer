@@ -7,6 +7,7 @@ import TelegramWebAIcon from "@/assets/images/telegram-web-a.png?format=webp&w=8
 import TelegramWebKIcon from "@/assets/images/telegram-web-k.png?format=webp&w=80";
 import WhiskersIcon from "@/assets/images/whiskers.png?format=webp&w=80";
 import TinyFlyIcon from "@/assets/images/fly.png?format=webp&w=80";
+import SpiderIcon from "@/assets/images/spider-logo.png?format=webp&w=80";
 import BackupAndRestoreIcon from "@/assets/images/backup-and-restore.png?format=webp&w=80";
 import TelegramToPurrfectGramIcon from "@/assets/images/telegram-to-purrfect-gram.png?format=webp&w=80";
 
@@ -64,93 +65,127 @@ export const telegramWeb = [
 ];
 
 export const utils = [
-  /** Headless Mode */
+  /** Account */
   {
-    id: "headless-mode",
-    title: "Headless Mode",
-    icon: AppIcon,
-    component: createElement(HeadlessPicker),
+    name: "Account",
+    list: [
+      /** Spider */
+      {
+        id: "spider",
+        title: "Spider",
+        icon: SpiderIcon,
+        component: createElement(Spider),
+      },
+
+      /** Telegram Cleaner */
+      {
+        id: "telegram-cleaner",
+        title: "Telegram Cleaner",
+        icon: TelegramCleanerIcon,
+        component: createElement(TelegramCleaner),
+      },
+    ],
   },
-  /** Local Telegram Session */
   {
-    id: "local-telegram-session",
-    title: "Local Telegram Session",
-    icon: LocalTelegramSessionIcon,
-    component: createElement(LocalTelegramSession),
+    name: "Session",
+    list: [
+      /** Local Telegram Session */
+      {
+        id: "local-telegram-session",
+        title: "Local Telegram Session",
+        icon: LocalTelegramSessionIcon,
+        component: createElement(LocalTelegramSession),
+      },
+
+      /** Cloud Telegram Session */
+      {
+        id: "cloud-telegram-session",
+        title: "Cloud Telegram Session",
+        icon: CloudTelegramSessionIcon,
+        component: createElement(CloudTelegramSession),
+      },
+    ],
   },
 
-  /** Cloud Telegram Session */
+  /** Farming */
   {
-    id: "cloud-telegram-session",
-    title: "Cloud Telegram Session",
-    icon: CloudTelegramSessionIcon,
-    component: createElement(CloudTelegramSession),
+    name: "Farming",
+    list: [
+      /** Headless Mode */
+      {
+        id: "headless-mode",
+        title: "Headless Mode",
+        icon: AppIcon,
+        component: createElement(HeadlessPicker),
+      },
+
+      /** Tiny Fly */
+      {
+        id: "tiny-fly",
+        title: "Tiny Fly",
+        icon: TinyFlyIcon,
+        component: createElement(TinyFly),
+      },
+    ],
   },
 
-  /** Cloud Manager */
+  /** Cloud */
   {
-    id: "cloud-manager",
-    title: "Cloud Manager",
-    icon: CloudIcon,
-    component: createElement(CloudManager),
+    name: "Cloud",
+    list: [
+      /** Cloud Manager */
+      {
+        id: "cloud-manager",
+        title: "Cloud Manager",
+        icon: CloudIcon,
+        component: createElement(CloudManager),
+      },
+    ],
   },
 
-  /** Spider */
+  /** Data */
   {
-    id: "spider",
-    title: "Spider",
-    icon: AppIcon,
-    component: createElement(Spider),
-  },
+    name: "Data",
+    list: [
+      /** Telegram to Purrfect Gram */
+      {
+        id: "telegram-to-purrfect-gram",
+        title: "Telegram to Purrfect Gram",
+        icon: TelegramToPurrfectGramIcon,
+        component: createElement(TelegramToPurrfectGram),
+      },
 
-  /** Telegram Cleaner */
-  {
-    id: "telegram-cleaner",
-    title: "Telegram Cleaner",
-    icon: TelegramCleanerIcon,
-    component: createElement(TelegramCleaner),
-  },
+      /** Whiskers to Farmer */
+      {
+        id: "whiskers-to-farmer",
+        title: "Whiskers to Farmer",
+        icon: WhiskersIcon,
+        component: createElement(WhiskersToFarmer),
+      },
 
-  /** Tiny Fly */
-  {
-    id: "tiny-fly",
-    title: "Tiny Fly",
-    icon: TinyFlyIcon,
-    component: createElement(TinyFly),
-  },
+      /** Backup and Restore */
+      {
+        id: "backup-and-restore",
+        title: "Backup and Restore",
+        icon: BackupAndRestoreIcon,
+        component: createElement(BackupAndRestore),
+      },
 
-  /** Telegram to Purrfect Gram */
-  {
-    id: "telegram-to-purrfect-gram",
-    title: "Telegram to Purrfect Gram",
-    icon: TelegramToPurrfectGramIcon,
-    component: createElement(TelegramToPurrfectGram),
-  },
-
-  /** Whiskers to Farmer */
-  {
-    id: "whiskers-to-farmer",
-    title: "Whiskers to Farmer",
-    icon: WhiskersIcon,
-    component: createElement(WhiskersToFarmer),
-  },
-
-  /** Backup and Restore */
-  {
-    id: "backup-and-restore",
-    title: "Backup and Restore",
-    icon: BackupAndRestoreIcon,
-    component: createElement(BackupAndRestore),
-  },
-
-  /** Migrate */
-  {
-    id: "migrate-to-v2",
-    title: "Migrate to V2+",
-    icon: AppIcon,
-    component: createElement(Migrate),
+      /** Migrate */
+      {
+        id: "migrate-to-v2",
+        title: "Migrate to V2+",
+        icon: AppIcon,
+        component: createElement(Migrate),
+      },
+    ],
   },
 ];
 
 export { farmers };
-export default [...app, ...telegramWeb, ...utils, ...farmers];
+export default [
+  ...app,
+  ...telegramWeb,
+  ...utils.map((u) => u.list).flat(),
+  ...farmers,
+];
