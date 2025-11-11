@@ -45,26 +45,31 @@ export default function SpiderManager() {
 
   /* All Countries */
   const allCountries = useMemo(() => {
-    return countriesQuery.data
-      ? Object.entries(countriesQuery.data.countries).reduce(
-          (result, [group, list]) =>
-            result.concat(
-              Object.entries(list).map(([code, price]) => {
-                const country = getCountryData(code);
-                const emoji = getEmojiFlag(code);
-                const name = country?.name || code;
-                return {
-                  code,
-                  price: parseFloat(price),
-                  emoji,
-                  name,
-                  group,
-                };
-              })
-            ),
-          []
-        )
-      : [];
+    try {
+      return countriesQuery.data
+        ? Object.entries(countriesQuery.data.countries).reduce(
+            (result, [group, list]) =>
+              result.concat(
+                Object.entries(list).map(([code, price]) => {
+                  const country = getCountryData(code);
+                  const emoji = getEmojiFlag(code);
+                  const name = country?.name || code;
+                  return {
+                    code,
+                    price: parseFloat(price),
+                    emoji,
+                    name,
+                    group,
+                  };
+                })
+              ),
+            []
+          )
+        : [];
+    } catch (e) {
+      console.error("Error processing countries:", e);
+      return [];
+    }
   }, [countriesQuery.data]);
 
   /* Available Countries (Group 1) */
