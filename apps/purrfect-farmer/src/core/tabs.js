@@ -26,6 +26,8 @@ export const WhiskersToFarmer = lazy(() => import("@/app/WhiskersToFarmer"));
 export const TelegramToPurrfectGram = lazy(() =>
   import("@/app/TelegramToPurrfectGram")
 );
+
+export const Spider = lazy(() => import("@/app/Spider"));
 export const Migrate = lazy(() => import("@/app/Migrate"));
 export const CloudManager = lazy(() => import("@/app/CloudManager"));
 export const CloudTelegramSession = lazy(() =>
@@ -91,6 +93,14 @@ export const utils = [
     title: "Cloud Manager",
     icon: CloudIcon,
     component: createElement(CloudManager),
+  },
+
+  /** Spider */
+  {
+    id: "spider",
+    title: "Spider",
+    icon: AppIcon,
+    component: createElement(Spider),
   },
 
   /** Telegram Cleaner */

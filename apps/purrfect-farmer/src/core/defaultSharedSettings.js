@@ -9,6 +9,7 @@ const defaultSharedSettings = {
   closeMainWindowOnStartup: false,
   enableMirror: typeof import.meta.env.VITE_WHISKER !== "undefined",
   mirrorServer: import.meta.env.VITE_MIRROR_SERVER,
+  spiderApiKey: "",
 };
 
 export default defaultSharedSettings;

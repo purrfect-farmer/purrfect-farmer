@@ -11,6 +11,7 @@ export default memo(function PrimaryButton({
       className={cn(
         "bg-blue-500 text-white",
         "p-2 rounded-lg font-bold",
+        "flex justify-center items-center gap-2",
         "disabled:opacity-50",
         props.className
       )}

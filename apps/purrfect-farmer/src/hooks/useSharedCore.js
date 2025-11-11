@@ -176,6 +176,7 @@ export default function useSharedCore() {
     accounts,
     activeAccount,
     sharedSettings,
+    persistedAccounts,
     runningAccounts,
     addAccount,
     updateAccount,

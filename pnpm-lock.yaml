@@ -64,6 +64,9 @@ importers:
       copy-to-clipboard:
         specifier: ^3.3.3
         version: 3.3.3
+      countries-list:
+        specifier: ^3.2.0
+        version: 3.2.0
       croner:
         specifier: ^9.1.0
         version: 9.1.0
@@ -3312,6 +3315,9 @@ packages:
   core-util-is@1.0.3:
     resolution: {integrity: sha512-ZQBvi1DcpJ4GDqanjucZ2Hj3wEO5pZDS89BWbkcrvdxksJorwUDDZamX9ldFkp9aw2lmBDLgkObEA4DWNJ9FYQ==}
 
+  countries-list@3.2.0:
+    resolution: {integrity: sha512-HYHAo2fwEsG3TmbsNdVmIQPHizRlqeYMTtLEAl0IANG/3jRYX7p3NR6VapDqKP0n60TmsRy1dyRjVN5JbywDbA==}
+
   crc-32@1.2.2:
     resolution: {integrity: sha512-ROmzCKrTnOwybPcJApAA6WBWij23HVfGVNKqqrZpuyZOHqK2CwHSvpGuyt/UNNvaIjEd8X5IFGp4Mh+Ie1IHJQ==}
     engines: {node: '>=0.8'}
@@ -3360,6 +3366,7 @@ packages:
   crx@5.0.1:
     resolution: {integrity: sha512-n/PzBx/fR1+xZCiJBats9y5zw/a+YBcoJ0ABnUaY56xb1RpXuFhsiCMpNY6WjVtylLzhUUXSWsbitesVg7v2vg==}
     engines: {node: '>=10'}
+    deprecated: Package no longer supported. Contact Support at https://www.npmjs.com/support for more info.
     hasBin: true
 
   crypt@0.0.2:
@@ -9631,6 +9638,8 @@ snapshots:
       browserslist: 4.26.3
 
   core-util-is@1.0.3: {}
+
+  countries-list@3.2.0: {}
 
   crc-32@1.2.2: {}
 
