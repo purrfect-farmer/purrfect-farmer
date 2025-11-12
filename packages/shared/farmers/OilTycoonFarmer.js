@@ -196,7 +196,7 @@ export default class OilTycoonFarmer extends BaseFarmer {
       this.logger.info("Game started.");
     }
 
-    if (user["new_user"]) {
+    if (user["new_user"] !== "0") {
       await this.startUser();
       this.logger.info("New user started the game.");
     }
