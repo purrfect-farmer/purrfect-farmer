@@ -223,7 +223,9 @@ export default class OilTycoonFarmer extends BaseFarmer {
       } else {
         this.logger.warn(`Task "${task["name"]}" not completed yet.`);
       }
-      await this.utils.delayForSeconds(task["wait_time"] || 5);
+      await this.utils.delayForSeconds(task["wait_time"] || 5, {
+        signal: this.signal,
+      });
     }
   }
 }
