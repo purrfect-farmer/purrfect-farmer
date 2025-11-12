@@ -14,7 +14,7 @@ export default function BottomDialog({
       <Dialog.Content
         className={cn(
           "bg-white dark:bg-neutral-800",
-          "fixed z-50 inset-x-0 bottom-0 flex flex-col h-3/4 rounded-t-xl",
+          "fixed z-50 inset-x-0 bottom-0 flex flex-col h-5/6 rounded-t-xl",
           "flex flex-col"
         )}
         onOpenAutoFocus={(ev) => ev.preventDefault()}

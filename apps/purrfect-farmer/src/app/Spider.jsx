@@ -96,7 +96,7 @@ export default function SpiderManager() {
   };
 
   return (
-    <div className="flex flex-col gap-4 grow p-4">
+    <div className="flex flex-col gap-2 grow p-2 min-w-0 min-h-0">
       <SpiderKeyInput />
 
       {spiderApiKey ? (
