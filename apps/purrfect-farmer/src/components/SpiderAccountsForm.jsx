@@ -23,6 +23,7 @@ export default function SpiderAccountsForm({ country, clearSelection }) {
     sharedSettings,
     persistedAccounts,
     storePersistedAccounts,
+    dispatchAndSetShowAccountPicker,
   } = useAppContext();
 
   /** Close Telegram Web Tabs */
@@ -89,7 +90,7 @@ export default function SpiderAccountsForm({ country, clearSelection }) {
               closeTelegramWeb();
 
               /** Resolve */
-              resolve(true);
+              resolve(newAccountNumber);
             }
           );
 
@@ -102,10 +103,12 @@ export default function SpiderAccountsForm({ country, clearSelection }) {
       await closeTelegramWeb();
 
       /** Restore Data */
-      await updateTelegramWebLocalStorage();
+      const newAccountNumber = await updateTelegramWebLocalStorage();
 
       /** Activate Spider Tab */
       await setActiveTab("spider");
+
+      return newAccountNumber;
     },
     [messaging.handler, setActiveTab, closeTelegramWeb]
   );
@@ -250,8 +253,12 @@ export default function SpiderAccountsForm({ country, clearSelection }) {
 
       /* Toast Completion */
       toast.success("Account purchase process completed.");
+
+      /** Show Account Picker */
+      dispatchAndSetShowAccountPicker(true);
     },
     [
+      dispatchAndSetShowAccountPicker,
       enableLocalTelegramSession,
       numberOfAccounts,
       password,

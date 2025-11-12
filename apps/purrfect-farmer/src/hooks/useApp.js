@@ -12,6 +12,13 @@ export default function useApp() {
   const zoomies = useZoomies(core);
   const telegramUser = useTelegramUser(core);
 
+  /** Account Picker State */
+  const [
+    showAccountPicker,
+    setShowAccountPicker,
+    dispatchAndSetShowAccountPicker,
+  ] = useMirroredState("app.toggle-account-picker", false);
+
   /** Utils Panel State */
   const [showUtilsPanel, setShowUtilsPanel, dispatchAndSetShowUtilsPanel] =
     useMirroredState("app.toggle-utils-panel", false);
@@ -45,8 +52,11 @@ export default function useApp() {
     telegramUser,
     utilsPanelTabs,
     showUtilsPanel,
+    showAccountPicker,
+    setShowAccountPicker,
     setShowUtilsPanel,
     dispatchAndSetShowUtilsPanel,
+    dispatchAndSetShowAccountPicker,
     dispatchAndOpenUtilsPanel,
   });
 }

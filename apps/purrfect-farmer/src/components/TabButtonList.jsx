@@ -1,5 +1,4 @@
 import useAppContext from "@/hooks/useAppContext";
-import useMirroredState from "@/hooks/useMirroredState";
 import { Dialog } from "radix-ui";
 import { LiaUser } from "react-icons/lia";
 import { cn } from "@/lib/utils";
@@ -9,7 +8,15 @@ import AccountPicker from "./AccountPicker";
 import TabButton from "./TabButton";
 
 export default memo(function TabButtonList({ tabs }) {
-  const { account, mirror, settings, sharedSettings } = useAppContext();
+  const {
+    account,
+    mirror,
+    settings,
+    sharedSettings,
+    showAccountPicker,
+    setShowAccountPicker,
+    dispatchAndSetShowAccountPicker,
+  } = useAppContext();
   const otherTabs = useMemo(() => tabs.slice(1), [tabs]);
   const userFullName = useMemo(
     () =>
@@ -20,12 +27,6 @@ export default memo(function TabButtonList({ tabs }) {
         : "",
     [account]
   );
-
-  const [
-    showAccountPicker,
-    setShowAccountPicker,
-    dispatchAndSetShowAccountPicker,
-  ] = useMirroredState("app.toggle-account-picker", false);
 
   return (
     <div
