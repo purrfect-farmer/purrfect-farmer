@@ -20,6 +20,7 @@ import useMessageHandlers from "./useMessageHandlers";
 export default function useTelegramWebApp({
   id,
   host,
+  enabled = true,
   telegramLink,
   cacheTelegramWebApp,
 }) {
@@ -73,6 +74,9 @@ export default function useTelegramWebApp({
 
   /** Save WebApp in Storage */
   useEffect(() => {
+    if (!enabled) {
+      return;
+    }
     if (cacheTelegramWebApp && telegramWebApp !== null) {
       const { initData, platform, version } = telegramWebApp;
       setChromeLocalStorage(webAppChromeStorageKey, {
@@ -81,11 +85,11 @@ export default function useTelegramWebApp({
         version,
       });
     }
-  }, [cacheTelegramWebApp, telegramWebApp, webAppChromeStorageKey]);
+  }, [enabled, cacheTelegramWebApp, telegramWebApp, webAppChromeStorageKey]);
 
   /** Get Telegram WebApp from Storage, Session or Bot */
   useEffect(() => {
-    if (telegramWebApp) {
+    if (!enabled || telegramWebApp) {
       return;
     }
 
@@ -149,6 +153,7 @@ export default function useTelegramWebApp({
   }, [
     host,
     setPort,
+    enabled,
     farmerMode,
     telegramLink,
     telegramWebApp,

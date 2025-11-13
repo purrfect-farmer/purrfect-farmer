@@ -74,7 +74,8 @@ export default async function (fastify, opts) {
             title: { type: "string" },
             userId: { type: "string" },
             initData: { type: "string" },
-            header: { type: "object" },
+            headers: { type: "object" },
+            cookies: { type: "array", items: { type: "object" } },
           },
         },
       },
@@ -94,6 +95,7 @@ export default async function (fastify, opts) {
             active: true,
             farmer: request.body.farmer,
             headers: request.body.headers,
+            cookies: request.body.cookies || [],
             initData: request.body.initData,
           });
         } else {
@@ -110,6 +112,7 @@ export default async function (fastify, opts) {
             active: true,
             farmer: request.body.farmer,
             headers: request.body.headers,
+            cookies: request.body.cookies || [],
             initData: request.body.initData,
           });
         } else {

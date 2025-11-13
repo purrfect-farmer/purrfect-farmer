@@ -5,22 +5,12 @@ const TerminalFarmer = lazy(() => import("@/partials/TerminalFarmer"));
 export function createFarmer(FarmerClass, options) {
   return {
     FarmerClass,
-    id: FarmerClass.id,
-    title: FarmerClass.title,
-    host: FarmerClass.host,
-    interval: FarmerClass.interval,
-    rating: FarmerClass.rating,
-    domains: FarmerClass.domains,
-    apiDelay: FarmerClass.apiDelay,
-    telegramLink: FarmerClass.telegramLink,
-    cacheAuth: FarmerClass.cacheAuth,
-    cacheTelegramWebApp: FarmerClass.cacheTelegramWebApp,
+    ...FarmerClass,
     netRequest: {
       origin: `https://${FarmerClass.host}`,
       domains: FarmerClass.domains,
     },
     component: createElement(TerminalFarmer),
-    syncToCloud: true,
     ...options,
   };
 }

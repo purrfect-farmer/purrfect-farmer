@@ -12,6 +12,7 @@ import useStaticQuery from "./useStaticQuery";
 
 export default function useDropFarmerAuth({
   id,
+  enabled = true,
   instance,
   queryClient,
   telegramHash,
@@ -48,7 +49,7 @@ export default function useDropFarmerAuth({
   const authQuery = useStaticQuery(
     {
       ...authQueryOptions,
-      enabled: Boolean(telegramHash),
+      enabled,
       queryKey: authQueryKey,
       queryFn: authQueryFn,
     },

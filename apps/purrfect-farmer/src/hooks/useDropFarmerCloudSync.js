@@ -17,17 +17,22 @@ export default function useDropFarmerCloudSync({
   /** Sync to Cloud */
   useLayoutEffect(() => {
     if (shouldSyncToCloud) {
-      cloudSyncMutation
-        .mutateAsync({
-          title: account.title,
-          farmer: id,
-          userId: instance.telegramWebApp.initDataUnsafe.user.id,
-          initData: instance.telegramWebApp.initData,
-          headers: instance.api.defaults.headers.common,
-        })
-        .then(() => {
-          toast.success(`${title} - Synced to Cloud`);
-        });
+      (async () => {
+        const cookies = await instance.getCookiesForSync?.();
+
+        cloudSyncMutation
+          .mutateAsync({
+            title: account.title,
+            farmer: id,
+            userId: instance.getUserId() || account.user?.id,
+            initData: instance.getInitData() || account.telegramInitData,
+            headers: instance.api.defaults.headers.common,
+            cookies: cookies || [],
+          })
+          .then(() => {
+            toast.success(`${title} - Synced to Cloud`);
+          });
+      })();
     }
   }, [id, title, account, instance, shouldSyncToCloud]);
 }

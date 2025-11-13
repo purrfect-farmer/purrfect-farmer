@@ -14,7 +14,14 @@ export default function useTerminalFarmer() {
 
   const referralLinkQuery = useStaticQuery({
     queryKey: [id, "referral-link"],
-    queryFn: () => instance.getReferralLink(),
+    queryFn: async () => {
+      try {
+        const link = await instance.getReferralLink();
+        return link;
+      } catch (err) {
+        return null;
+      }
+    },
   });
 
   const referralLink = referralLinkQuery.data;

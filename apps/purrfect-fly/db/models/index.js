@@ -6,6 +6,7 @@ import path from "node:path";
 import process from "process";
 import { fileURLToPath } from "node:url";
 
+import "../../config/env.js";
 import databaseConfig from "../../config/database.js";
 
 const __filename = fileURLToPath(import.meta.url);

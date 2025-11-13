@@ -395,44 +395,46 @@ export default function useCore() {
   );
 
   /** Launch In-App Browser */
-  const launchInAppBrowser = useCallback(
-    async ({ id, url, title, icon, embedInNewWindow }) => {
-      if (settings.miniAppInNewWindow || embedInNewWindow) {
-        try {
-          if (import.meta.env.VITE_WHISKER) {
-            window.open(url);
-          } else {
-            /** Get Coords */
-            const coords = await getWindowCoords();
+  const [launchInAppBrowser, dispatchAndLaunchInAppBrowser] =
+    useMirroredCallback(
+      "core.launch-in-app-browser",
+      async ({ id, url, title, icon, embedInNewWindow }) => {
+        if (settings.miniAppInNewWindow || embedInNewWindow) {
+          try {
+            if (import.meta.env.VITE_WHISKER) {
+              window.open(url);
+            } else {
+              /** Get Coords */
+              const coords = await getWindowCoords();
 
-            await chrome.windows.create({
-              ...coords,
-              type: "popup",
-              focused: true,
-              url,
-            });
+              await chrome.windows.create({
+                ...coords,
+                type: "popup",
+                focused: true,
+                url,
+              });
+            }
+          } catch (e) {
+            console.error(e);
           }
-        } catch (e) {
-          console.error(e);
+        } else {
+          /** Push the tab */
+          pushTab(
+            {
+              id: `browser-${id}`,
+              title,
+              icon,
+              component: createElement(Browser, {
+                url,
+              }),
+              reloadedAt: Date.now(),
+            },
+            true
+          );
         }
-      } else {
-        /** Push the tab */
-        pushTab(
-          {
-            id: `browser-${id}`,
-            title,
-            icon,
-            component: createElement(Browser, {
-              url,
-            }),
-            reloadedAt: Date.now(),
-          },
-          true
-        );
-      }
-    },
-    [settings.miniAppInNewWindow, pushTab]
-  );
+      },
+      [settings.miniAppInNewWindow, pushTab]
+    );
 
   const closeOtherBots = useCallback(async () => {
     const ports = getMiniAppPorts();
@@ -712,6 +714,7 @@ export default function useCore() {
     dispatchAndRestoreSettings,
     dispatchAndUpdateSharedSettings,
     dispatchAndConfigureSharedSettings,
+    dispatchAndLaunchInAppBrowser,
 
     /** Telegram Web */
     openFarmerBot,

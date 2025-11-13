@@ -40,6 +40,9 @@ export default function useDropFarmer() {
     FarmerClass,
   } = farmer;
 
+  /** Is Telegram Farmer */
+  const isTelegramFarmer = Boolean(telegramLink);
+
   /** Zoomies */
   const { zoomies, settings, account } = app;
 
@@ -75,7 +78,11 @@ export default function useDropFarmer() {
     host,
     telegramLink,
     cacheTelegramWebApp,
+    enabled: isTelegramFarmer,
   });
+
+  /** Prepared */
+  const prepared = !isTelegramFarmer || telegramWebApp !== null;
 
   /** Join Telegram Link */
   const joinTelegramLink = useRefCallback(
@@ -125,6 +132,7 @@ export default function useDropFarmer() {
 
   /** Auth Query */
   const { authQuery, authQueryKey, resetAuthCache } = useDropFarmerAuth({
+    enabled: prepared,
     id,
     instance,
     cacheAuth,
@@ -149,7 +157,7 @@ export default function useDropFarmer() {
   const started = metaQuery.isSuccess;
 
   /** Status */
-  const status = telegramWebApp === null ? "pending-mini-app" : "pending-init";
+  const status = prepared ? "pending-init" : "pending-mini-app";
 
   /** Sync Enabled */
   const syncEnabled = settings.enableCloud && syncToCloud;
@@ -214,7 +222,7 @@ export default function useDropFarmer() {
   });
 
   /** Response Interceptor */
-  useUnauthorizedInterceptor(api, reset);
+  useUnauthorizedInterceptor(api, reset, initResetCount);
 
   /** Cleanup */
   useLayoutEffect(() => () => queryClient.cancelQueries(), [queryClient]);

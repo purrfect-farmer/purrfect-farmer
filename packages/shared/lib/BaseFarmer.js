@@ -10,6 +10,7 @@ export default class BaseFarmer {
   static apiDelay = 200;
   static cacheAuth = true;
   static cacheTelegramWebApp = true;
+  static syncToCloud = true;
   static cookies = false;
   static interval = "*/10 * * * *";
   static telegramLink = "";

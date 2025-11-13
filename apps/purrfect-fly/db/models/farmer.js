@@ -82,6 +82,7 @@ export default (sequelize, DataTypes) => {
       farmer: DataTypes.STRING,
       initData: DataTypes.STRING,
       headers: DataTypes.JSON,
+      cookies: DataTypes.JSON,
     },
     {
       sequelize,

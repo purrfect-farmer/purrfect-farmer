@@ -36,9 +36,9 @@ export default function FarmerHeader({ referralLink }) {
       <h1 className="font-bold">{title} Farmer</h1>
       {referralLink ? (
         <IoCopyOutline />
-      ) : (
+      ) : referralLink !== null ? (
         <CgSpinnerAlt className="animate-spin" />
-      )}
+      ) : null}
     </div>
   );
 }
