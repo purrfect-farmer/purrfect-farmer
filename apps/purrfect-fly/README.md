@@ -177,6 +177,8 @@ cd ~/purrfect-farmer
 ```bash
 git pull && \
 pnpm install && \
+pnpm -F purrfect-fly db:migrate && \
+pnpm -F purrfect-fly db:seed && \
 pm2 reload apps/purrfect-fly/ecosystem.config.cjs --update-env && \
 pm2 save
 ```
