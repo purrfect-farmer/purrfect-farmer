@@ -45,17 +45,19 @@ export default class GoldEagleFarmer extends BaseFarmer {
   async process() {
     const progress = await this.getProgress();
 
-    console.log(progress);
-    console.log(cookies);
-
     this.logUserInfo(progress);
   }
 
   /** Get Cookies for Sync */
-  getCookiesForSync() {
-    return this.getCookies({
-      url: "https://cloud.geagle.online",
-    });
+  async getCookiesForSync() {
+    return [
+      {
+        url: "https://cloud.geagle.online",
+        cookies: await this.getCookies({
+          url: "https://cloud.geagle.online",
+        }),
+      },
+    ];
   }
 
   /** Log User Info */

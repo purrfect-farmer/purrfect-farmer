@@ -1,7 +1,9 @@
 import ConsoleLogger from "@purrfect/shared/lib/ConsoleLogger.js";
 import axios from "axios";
-import userAgents from "@purrfect/shared/resources/userAgents.js";
-import { CookieJar } from "tough-cookie";
+import userAgents, {
+  regularMobileUserAgents,
+} from "@purrfect/shared/resources/userAgents.js";
+import { Cookie, CookieJar } from "tough-cookie";
 import {
   HttpCookieAgent,
   HttpsCookieAgent,
@@ -48,6 +50,9 @@ export default function createRunner(FarmerClass) {
       this.account = account;
       this.farmer = account.farmer;
 
+      this.telegramLink = this.constructor.telegramLink;
+      this.isTelegramFarmer = Boolean(this.telegramLink);
+
       this.logger = this.constructor.logger; // Use static logger
       this.utils = this.constructor.utils; // Use static utils
 
@@ -56,7 +61,11 @@ export default function createRunner(FarmerClass) {
 
       /** Select User-Agent */
       this.setUserAgent(
-        userAgents[Math.floor(this.random() * userAgents.length)]
+        this.isTelegramFarmer
+          ? userAgents[Math.floor(this.random() * userAgents.length)]
+          : regularMobileUserAgents[
+              Math.floor(this.random() * regularMobileUserAgents.length)
+            ]
       );
 
       /** Cookie Jar */
@@ -298,6 +307,24 @@ export default function createRunner(FarmerClass) {
       }));
     }
 
+    /** Restore Cookies */
+    async restoreCookies() {
+      const list = this.farmer.cookies || [];
+
+      for (const item of list) {
+        for (const cookie of item.cookies) {
+          await this.jar.setCookie(
+            new Cookie({
+              ...cookie,
+              key: cookie.key || cookie.name,
+              expiryTime: cookie.expiryTime || cookie.expirationDate,
+            }),
+            item.url
+          );
+        }
+      }
+    }
+
     /** Prepare Instance */
     async prepare() {
       const needsAuth = !this.constructor.cacheAuth || !this.farmer;
@@ -308,12 +335,13 @@ export default function createRunner(FarmerClass) {
           active: true,
           farmer: this.constructor.id,
           headers: {},
+          cookies: [],
           initData: "",
         });
       }
 
       /** Update WebAppData */
-      if (this.account.session) {
+      if (this.isTelegramFarmer && this.account.session) {
         try {
           this.client = await GramClient.create(this.account.session);
           await this.client.connect();
@@ -324,7 +352,14 @@ export default function createRunner(FarmerClass) {
       }
 
       /** Set Telegram Web App */
-      this.setTelegramWebApp(this.farmer.telegramWebApp);
+      if (this.isTelegramFarmer) {
+        this.setTelegramWebApp(this.farmer.telegramWebApp);
+      }
+
+      /** Restore Cookies */
+      if (this.cookies) {
+        await this.restoreCookies();
+      }
 
       /** Set Auth Headers */
       if (needsAuth) {
@@ -425,7 +460,8 @@ export default function createRunner(FarmerClass) {
 
     static async run({ user } = {}) {
       try {
-        const farmerIsRequired = AUTO_START_FARMER === false;
+        const isTelegramFarmer = Boolean(this.telegramLink);
+        const farmerIsRequired = !isTelegramFarmer || !AUTO_START_FARMER;
         const additionalQueryOptions = user ? { where: { id: user } } : {};
 
         const accounts = await db.Account.findSubscribedWithFarmer(
@@ -440,9 +476,10 @@ export default function createRunner(FarmerClass) {
            * A farmer can be automatically created for an
            * account with an active telegram session if auto start is enabled
            */
-          const shouldRunAccount = AUTO_START_FARMER
-            ? account.farmer?.active || account.session
-            : account.farmer?.active;
+          const shouldRunAccount =
+            isTelegramFarmer && AUTO_START_FARMER
+              ? account.farmer?.active || account.session
+              : account.farmer?.active;
 
           return shouldRunAccount
             ? { account, result: this.farm(account) }
