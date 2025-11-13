@@ -13,6 +13,7 @@ export default class BaseFarmer {
   static syncToCloud = true;
   static cookies = false;
   static interval = "*/10 * * * *";
+  static link = "";
   static telegramLink = "";
   static withXSRFToken = false;
   static rating = 1;

@@ -6,11 +6,10 @@ export default class GoldEagleFarmer extends BaseFarmer {
   static emoji = "🦅";
   static host = "game.geagle.online";
   static domains = ["game.geagle.online", "cloud.geagle.online"];
-  static interval = "*/30 * * * *";
+  static interval = "*/5 * * * *";
   static rating = 5;
   static cookies = true;
   static cacheAuth = false;
-  static cacheTelegramWebApp = false;
   static link = "https://game.geagle.online";
 
   /** Get Auth */
@@ -41,11 +40,50 @@ export default class GoldEagleFarmer extends BaseFarmer {
       .then((res) => res.data);
   }
 
-  /** Process Farmer */
-  async process() {
-    const progress = await this.getProgress();
+  /** Refill Energy */
+  refillEnergy(signal = this.signal) {
+    return this.api
+      .post("https://cloud.geagle.online/user/me/refill", null, { signal })
+      .then((res) => res.data);
+  }
 
-    this.logUserInfo(progress);
+  /** Get Boosters */
+  getBoosters(signal = this.signal) {
+    return this.api
+      .get("https://cloud.geagle.online/boosters", { signal })
+      .then((res) => res.data);
+  }
+
+  /** Get Wallet Info */
+  getWalletInfo(signal = this.signal) {
+    return this.api
+      .get("https://cloud.geagle.online/wallet/my", { signal })
+      .then((res) => res.data);
+  }
+
+  /** Get Wallet Transactions */
+  getWalletTransactions(signal = this.signal) {
+    return this.api
+      .get("https://cloud.geagle.online/wallet/my/transactions", { signal })
+      .then((res) => res.data);
+  }
+
+  /** Get Staking Options */
+  getStakingOptions(signal = this.signal) {
+    return this.api
+      .get("https://cloud.geagle.online/user/staking-options", { signal })
+      .then((res) => res.data);
+  }
+
+  /** Stake */
+  stake(packageId, signal = this.signal) {
+    return this.api
+      .post(
+        `https://cloud.geagle.online/wallet/claim?packageId=${packageId}`,
+        null,
+        { signal }
+      )
+      .then((res) => res.data);
   }
 
   /** Get Cookies for Sync */
@@ -58,6 +96,19 @@ export default class GoldEagleFarmer extends BaseFarmer {
         }),
       },
     ];
+  }
+
+  /** Process Farmer */
+  async process() {
+    const progress = await this.getProgress();
+
+    this.logUserInfo(progress);
+
+    /* Check Energy */
+    await this.executeTask("Enerygy Refill", () => this.checkEnergy(progress));
+
+    /* Claim Coins */
+    await this.executeTask("Claim Coins", () => this.claimCoins(progress));
   }
 
   /** Log User Info */
@@ -77,5 +128,54 @@ export default class GoldEagleFarmer extends BaseFarmer {
       "Energy From PRC",
       progress["allow_refill_energy_from_prc"]
     );
+  }
+
+  async checkEnergy(progress) {
+    if (
+      progress["energy"] === 0 &&
+      progress["coins_amount"] < progress["max_coins_amount"]
+    ) {
+      await this.refillEnergy();
+      this.logger.success("Energy refilled successfully.");
+    }
+  }
+
+  /** Claim Coins */
+  async claimCoins(progress) {
+    const stakingOptions = await this.getStakingOptions();
+    const plans = Object.values(stakingOptions.plans)[0];
+    const availablePlan = plans.find(
+      (item) =>
+        item["minAmount"] <= progress["coins_amount"] &&
+        item["maxAmount"] >= progress["coins_amount"] &&
+        item["staked"] < item["limit"]
+    );
+
+    if (availablePlan) {
+      const user = await this.getUserInfo();
+
+      if (user["wallet_status"] !== "Active") {
+        this.logger.warn("Wallet is not active. Cannot claim coins.");
+        return;
+      }
+
+      const boosters = await this.getBoosters();
+      const key = boosters.find(
+        (b) => b["booster_type"] === "Claim" && b.level > 0
+      );
+
+      if (!key) {
+        this.logger.warn("No Claim booster available.");
+        return;
+      }
+
+      /* Stake Coins */
+      await this.stake(availablePlan["id"]);
+
+      /* Log Success */
+      this.logger.success(
+        `Staked ${progress["coins_amount"]} coins successfully.`
+      );
+    }
   }
 }
