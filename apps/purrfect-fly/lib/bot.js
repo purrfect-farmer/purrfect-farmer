@@ -45,21 +45,19 @@ class GroupBot extends Bot {
     try {
       const users = utils.formatUsers(
         results.map(({ account, result }) => {
-          return Object.assign(
-            {
-              id: account.id,
-              status:
-                result.status === "started"
-                  ? "✅"
-                  : result.status === "running"
-                  ? "☑️"
-                  : "❌",
+          return {
+            id: account.id,
+            status:
+              result.status === "started"
+                ? "✅"
+                : result.status === "running"
+                ? "☑️"
+                : "❌",
+            session: telegramLink ? (account.session ? "🟨" : "🟪") : "",
 
-              username: account.user?.username || "",
-              title: account.title,
-            },
-            telegramLink ? { session: account.session ? "🟨" : "🟪" } : {}
-          );
+            username: account.user?.username || "",
+            title: account.title,
+          };
         })
       );
 
