@@ -491,6 +491,7 @@ export default function createRunner(FarmerClass) {
           await bot?.sendFarmingInitiatedMessage({
             id: this.id,
             title: `${this.emoji} ${this.title}`,
+            link: this.link,
             telegramLink: this.telegramLink,
             threadId: this.threadId,
             results,

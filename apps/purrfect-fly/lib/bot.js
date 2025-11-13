@@ -37,6 +37,7 @@ class GroupBot extends Bot {
   async sendFarmingInitiatedMessage({
     id,
     title,
+    link,
     telegramLink,
     threadId,
     results,
@@ -44,18 +45,21 @@ class GroupBot extends Bot {
     try {
       const users = utils.formatUsers(
         results.map(({ account, result }) => {
-          return {
-            id: account.id,
-            status:
-              result.status === "started"
-                ? "✅"
-                : result.status === "running"
-                ? "☑️"
-                : "❌",
-            session: account.session ? "🟨" : "🟪",
-            username: account.user?.username || "",
-            title: account.title,
-          };
+          return Object.assign(
+            {
+              id: account.id,
+              status:
+                result.status === "started"
+                  ? "✅"
+                  : result.status === "running"
+                  ? "☑️"
+                  : "❌",
+
+              username: account.user?.username || "",
+              title: account.title,
+            },
+            telegramLink ? { session: account.session ? "🟨" : "🟪" } : {}
+          );
         })
       );
 
@@ -69,7 +73,9 @@ class GroupBot extends Bot {
         [
           `<b>${title}</b>`,
           "<i>✅ Status: Initiated</i>\n",
-          `<blockquote><a href="${telegramLink}">Open Telegram Bot</a></blockquote>${users}`,
+          `<blockquote><a href="${link || telegramLink}">Open ${
+            link ? "Link" : "Telegram Bot"
+          }</a></blockquote>${users}`,
           `<b>🗓️ Date</b>: ${statusDate}`,
         ],
         { ["message_thread_id"]: threadId }
