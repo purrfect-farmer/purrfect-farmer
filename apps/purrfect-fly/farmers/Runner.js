@@ -421,7 +421,9 @@ export default function createRunner(FarmerClass) {
           /**
            * Random startup delay to avoid all accounts starting at the same time
            */
-          const startupDelay = Math.floor(instance.random() * 300);
+          const startupDelay = Math.floor(
+            instance.random() * this.startupDelay
+          );
           if (startupDelay) {
             instance.logger.info(
               `[${account.id}] Delaying startup by ${startupDelay} seconds...`

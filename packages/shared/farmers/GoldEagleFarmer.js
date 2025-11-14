@@ -11,6 +11,7 @@ export default class GoldEagleFarmer extends BaseFarmer {
   static cookies = true;
   static cacheAuth = false;
   static link = "https://game.geagle.online";
+  static startupDelay = 0;
 
   /** Get Auth */
   fetchAuth() {

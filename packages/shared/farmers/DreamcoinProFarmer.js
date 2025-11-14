@@ -10,6 +10,7 @@ export default class DreamcoinProFarmer extends BaseFarmer {
   static cacheAuth = false;
   static interval = "*/5 * * * *";
   static rating = 3;
+  static startupDelay = 60;
 
   configureApi() {
     const interceptor = this.api.interceptors.request.use((config) => {

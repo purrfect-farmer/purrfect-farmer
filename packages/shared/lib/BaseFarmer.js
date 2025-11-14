@@ -17,6 +17,7 @@ export default class BaseFarmer {
   static telegramLink = "";
   static withXSRFToken = false;
   static rating = 1;
+  static startupDelay = 300;
 
   constructor() {
     this.utils = utils;
