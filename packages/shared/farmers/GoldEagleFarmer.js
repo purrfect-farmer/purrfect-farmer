@@ -148,8 +148,7 @@ export default class GoldEagleFarmer extends BaseFarmer {
     const availablePlan = plans.find(
       (item) =>
         item["minAmount"] <= progress["coins_amount"] &&
-        item["maxAmount"] >= progress["coins_amount"] &&
-        item["staked"] < item["limit"]
+        item["staked"] + progress["coins_amount"] <= item["geLimit"]
     );
 
     if (availablePlan) {
