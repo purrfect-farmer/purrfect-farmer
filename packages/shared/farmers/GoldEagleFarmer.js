@@ -42,9 +42,16 @@ export default class GoldEagleFarmer extends BaseFarmer {
   }
 
   /** Refill Energy */
-  refillEnergy(signal = this.signal) {
+  async refillEnergy(signal = this.signal) {
+    const captchaToken = await this.getTurnstileToken();
+
     return this.api
-      .post("https://cloud.geagle.online/user/me/refill", null, { signal })
+      .post(
+        "https://cloud.geagle.online/user/me/refill?" +
+          new URLSearchParams({ captchaToken }).toString(),
+        null,
+        { signal }
+      )
       .then((res) => res.data);
   }
 
@@ -77,10 +84,15 @@ export default class GoldEagleFarmer extends BaseFarmer {
   }
 
   /** Stake */
-  stake(packageId, signal = this.signal) {
+  async stake(packageId, signal = this.signal) {
+    const captchaToken = await this.getTurnstileToken("/wallet");
     return this.api
       .post(
-        `https://cloud.geagle.online/wallet/claim?packageId=${packageId}`,
+        `https://cloud.geagle.online/wallet/claim?` +
+          new URLSearchParams({
+            packageId,
+            captchaToken,
+          }).toString(),
         null,
         { signal }
       )
@@ -136,6 +148,12 @@ export default class GoldEagleFarmer extends BaseFarmer {
       progress["energy"] === 0 &&
       progress["coins_amount"] < progress["max_coins_amount"]
     ) {
+      if (!this.canSolveTurnstile?.()) {
+        this.logger.warn("Cannot refill energy: No Captcha Solver configured.");
+        return;
+      }
+
+      this.logger.info("Refilling energy...");
       await this.refillEnergy();
       this.logger.success("Energy refilled successfully.");
     }
@@ -169,6 +187,15 @@ export default class GoldEagleFarmer extends BaseFarmer {
         return;
       }
 
+      if (!this.canSolveTurnstile?.()) {
+        this.logger.warn("Cannot claim coins: No Captcha Solver configured.");
+        return;
+      }
+
+      this.logger.info(
+        `Claiming ${progress["coins_amount"]} coins using Claim booster...`
+      );
+
       /* Stake Coins */
       await this.stake(availablePlan["id"]);
 
@@ -177,5 +204,13 @@ export default class GoldEagleFarmer extends BaseFarmer {
         `Staked ${progress["coins_amount"]} coins successfully.`
       );
     }
+  }
+
+  /** Get Turnstile Token */
+  getTurnstileToken(page = "/") {
+    return this.solveTurnstile({
+      siteKey: "0x4AAAAAACB-pQQ4y8fclk8S",
+      pageUrl: "https://game.geagle.online" + page,
+    });
   }
 }

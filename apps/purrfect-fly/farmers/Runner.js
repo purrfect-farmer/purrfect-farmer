@@ -15,6 +15,7 @@ import GramClient from "../lib/GramClient.js";
 import bot from "../lib/bot.js";
 import db from "../db/models/index.js";
 import utils from "../lib/utils.js";
+import captcha from "../lib/captcha.js";
 
 const AUTO_START_FARMER = env("AUTO_START_FARMER", false);
 const HttpProxyAgentWithCookies = createCookieAgent(HttpProxyAgent);
@@ -277,6 +278,16 @@ export default function createRunner(FarmerClass) {
       }
     }
 
+    /** Can Solve Turnstile */
+    canSolveTurnstile() {
+      return captcha.isConfigured();
+    }
+
+    /** Solve Turnstile */
+    solveTurnstile({ siteKey, pageUrl }) {
+      return captcha.solveTurnstile({ siteKey, pageUrl });
+    }
+
     /** Can Join Telegram Link */
     canJoinTelegramLink(link) {
       return Boolean(this.client);
@@ -402,7 +413,7 @@ export default function createRunner(FarmerClass) {
 
     async disconnect() {
       try {
-        if (!this.account.session) {
+        if (!this.isTelegramFarmer || !this.account.session) {
           if (this.farmer) {
             this.farmer.active = false;
             await this.farmer.save();
