@@ -1,8 +1,29 @@
 import axios from "axios";
 
 export default class CaptchaSolver {
-  constructor(apiKey) {
+  constructor(provider, apiKey) {
+    this.provider = provider;
     this.apiKey = apiKey;
+    let baseURL = "";
+
+    switch (this.provider) {
+      case "2captcha":
+        baseURL = "https://2captcha.com";
+        break;
+      case "captchaai":
+        baseURL = "https://ocr.captchaai.com";
+        break;
+      case "solvecaptcha":
+        baseURL = "https://api.solvecaptcha.com";
+        break;
+      default:
+        throw new Error(`Unsupported captcha provider: ${this.provider}`);
+    }
+
+    this.api = axios.create({
+      baseURL: baseURL,
+      timeout: 120_000,
+    });
   }
 
   /** Check if configured */
@@ -12,8 +33,8 @@ export default class CaptchaSolver {
 
   /** Get Turnstile Request */
   getTurnstileRequest({ siteKey, pageUrl }) {
-    return axios
-      .post("https://2captcha.com/in.php", {
+    return this.api
+      .post("/in.php", {
         key: this.apiKey,
         method: "turnstile",
         sitekey: siteKey,
@@ -25,8 +46,8 @@ export default class CaptchaSolver {
 
   /** Get Turnstile Result */
   getTurnstileResult(requestId) {
-    return axios
-      .get("https://2captcha.com/res.php", {
+    return this.api
+      .get("/res.php", {
         params: {
           key: this.apiKey,
           action: "get",
