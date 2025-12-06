@@ -5,22 +5,65 @@ import useAppContext from "@/hooks/useAppContext";
 import { useCallback } from "react";
 import TelegramIcon from "@/assets/images/telegram-logo.svg";
 import { createElement } from "react";
-import { postPortMessage } from "@/lib/utils";
+import { cn, postPortMessage } from "@/lib/utils";
 import toast from "react-hot-toast";
 import useMirroredCallback from "@/hooks/useMirroredCallback";
+import Tabs from "@/components/Tabs";
+import useMirroredTabs from "@/hooks/useMirroredTabs";
+
+const TabContent = ({ title, children, ...props }) => (
+  <Tabs.Content
+    {...props}
+    className={cn(
+      "flex flex-col justify-center min-w-0 min-h-0 gap-4 p-4 grow",
+      "overflow-auto"
+    )}
+  >
+    <div className="flex flex-col gap-2 justify-center items-center">
+      <img src={TelegramIcon} className="size-24" />
+      <h1 className="font-turret-road text-center text-2xl text-orange-500">
+        {title}
+      </h1>
+    </div>
+
+    {children}
+  </Tabs.Content>
+);
 
 export default function TelegramToPurrfectGram() {
-  const { messaging, setActiveTab, closeTab, pushTab } = useAppContext();
+  const tabs = useMirroredTabs("telegram-web-transfer", [
+    "purrfect-gram",
+    "telegram-web",
+  ]);
+  const { messaging, closeTab, pushTab } = useAppContext();
 
   const closeTelegramWeb = useCallback(() => {
     closeTab("telegram-web-k");
     closeTab("telegram-web-a");
-    closeTab("browser-telegram-web");
+    closeTab("telegram-web-browser");
   }, [closeTab]);
+
+  const openTelegramWeb = useCallback(
+    (url) => {
+      pushTab(
+        {
+          id: "telegram-web-browser",
+          title: "Telegram Web",
+          icon: TelegramIcon,
+          component: createElement(Browser, {
+            url,
+          }),
+          reloadedAt: Date.now(),
+        },
+        true
+      );
+    },
+    [pushTab]
+  );
 
   const [, dispatchAndTransferData] = useMirroredCallback(
     "app.telegram-to-purrfect-gram",
-    async () => {
+    async (receiver = "telegram-web") => {
       const getTelegramWebLocalStorage = () => {
         return new Promise((resolve) => {
           messaging.handler.once(
@@ -39,18 +82,11 @@ export default function TelegramToPurrfectGram() {
             }
           );
 
-          /** Open Telegram Web */
-          pushTab(
-            {
-              id: "browser-telegram-web",
-              title: "Telegram Web",
-              icon: TelegramIcon,
-              component: createElement(Browser, {
-                url: "https://web.telegram.org/k",
-              }),
-              reloadedAt: Date.now(),
-            },
-            true
+          /** Open Telegram Web (Sender) */
+          openTelegramWeb(
+            receiver === "telegram-web"
+              ? "https://gram.purrfectfarmer.com/k"
+              : "https://web.telegram.org/k"
           );
         });
       };
@@ -75,8 +111,12 @@ export default function TelegramToPurrfectGram() {
             }
           );
 
-          /** Open Purrfect Gram */
-          setActiveTab("telegram-web-k");
+          /** Open Telegram Web (Receiver) */
+          openTelegramWeb(
+            receiver === "telegram-web"
+              ? "https://web.telegram.org/k"
+              : "https://gram.purrfectfarmer.com/k"
+          );
         });
       };
 
@@ -94,18 +134,32 @@ export default function TelegramToPurrfectGram() {
       await transferData();
       toast.success("Data transferred successfully!");
     },
-    [messaging.handler, setActiveTab, pushTab, closeTelegramWeb]
+    [messaging.handler, openTelegramWeb, closeTelegramWeb]
   );
 
   return (
-    <div className="flex flex-col gap-4 grow p-4">
-      <Alert variant={"info"} className="text-center">
-        You are about to migrate all data from Telegram Web into Purrfect Gram.
-      </Alert>
+    <Tabs tabs={tabs} rootClassName="grow">
+      <TabContent value="purrfect-gram" title={"Purrfect Gram"}>
+        <Alert variant={"warning"} className="text-center">
+          You are about to migrate all data from Telegram Web into Purrfect
+          Gram.
+        </Alert>
 
-      <PrimaryButton onClick={() => dispatchAndTransferData()}>
-        Transfer Now
-      </PrimaryButton>
-    </div>
+        <PrimaryButton onClick={() => dispatchAndTransferData("purrfect-gram")}>
+          Transfer Now
+        </PrimaryButton>
+      </TabContent>
+
+      <TabContent value="telegram-web" title={"Telegram Web"}>
+        <Alert variant={"warning"} className="text-center">
+          You are about to migrate all data from Purrfect Gram into Telegram
+          Web.
+        </Alert>
+
+        <PrimaryButton onClick={() => dispatchAndTransferData("telegram-web")}>
+          Transfer Now
+        </PrimaryButton>
+      </TabContent>
+    </Tabs>
   );
 }
