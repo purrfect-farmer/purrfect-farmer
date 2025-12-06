@@ -11,6 +11,8 @@ const defaultSharedSettings = {
   mirrorServer: import.meta.env.VITE_MIRROR_SERVER,
   spiderApiKey: "",
   shareCloudProxy: false,
+  telegramClient: "purrfect-gram",
+  preferredTelegramWebVersion: "k",
 };
 
 export default defaultSharedSettings;

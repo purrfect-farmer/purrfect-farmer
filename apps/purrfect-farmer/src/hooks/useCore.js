@@ -1,6 +1,5 @@
 import BrowserIcon from "@/assets/images/browser.png?w=80&format=webp";
 import axios from "axios";
-import defaultSettings from "@/core/defaultSettings";
 import md5 from "md5";
 import toast from "react-hot-toast";
 import tabs, { Browser, TelegramWeb, farmers } from "@/core/tabs";
@@ -22,6 +21,7 @@ import useSharedContext from "./useSharedContext";
 import useTelegramClient from "./useTelegramClient";
 import useUserAgent from "./useUserAgent";
 import useValuesMemo from "./useValuesMemo";
+import defaultSharedSettings from "@/core/defaultSharedSettings";
 
 export const BOT_TELEGRAM_WEB_APP_ACTION = `set-telegram-web-app:${
   import.meta.env.VITE_APP_BOT_HOST
@@ -41,6 +41,7 @@ export default function useCore() {
     mirror,
     updateAccount,
     removeAccount,
+    sharedSettings,
     updateSharedSettings,
     configureSharedSettings,
   } = shared;
@@ -96,8 +97,8 @@ export default function useCore() {
   const messaging = useMessagePort(account.active);
 
   const preferredTelegramWebVersion =
-    settings.preferredTelegramWebVersion ||
-    defaultSettings.preferredTelegramWebVersion;
+    sharedSettings.preferredTelegramWebVersion ||
+    defaultSharedSettings.preferredTelegramWebVersion;
   const [openedTabs, setOpenedTabs] = useState(defaultOpenedTabs);
 
   /** Drops Status */

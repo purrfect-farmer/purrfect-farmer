@@ -85,6 +85,30 @@ export default memo(function FarmerOptionsGroup({
         ))}
       </div>
 
+      {/* Telegram */}
+      <SettingsLabel>Telegram Client</SettingsLabel>
+
+      <div className="grid grid-cols-2 gap-2">
+        {["purrfect-gram", "telegram-web"].map((client) => (
+          <button
+            onClick={() =>
+              dispatchAndConfigureSharedSettings("telegramClient", client)
+            }
+            key={client}
+            className={cn(
+              sharedSettings.telegramClient === client
+                ? "bg-orange-200 dark:bg-orange-500"
+                : "bg-neutral-100 dark:bg-neutral-700",
+              "p-2 rounded-lg",
+              "flex gap-1 items-center justify-center",
+              "uppercase"
+            )}
+          >
+            {client === "purrfect-gram" ? "Purrfect Gram" : "Telegram Web"}
+          </button>
+        ))}
+      </div>
+
       {/* Preferred Telegram Web Version */}
       <SettingsLabel>Preferred Telegram Web Version</SettingsLabel>
 
@@ -92,14 +116,14 @@ export default memo(function FarmerOptionsGroup({
         {["k", "a"].map((version) => (
           <button
             onClick={() =>
-              dispatchAndConfigureSettings(
+              dispatchAndConfigureSharedSettings(
                 "preferredTelegramWebVersion",
                 version
               )
             }
             key={version}
             className={cn(
-              settings.preferredTelegramWebVersion === version
+              sharedSettings.preferredTelegramWebVersion === version
                 ? "bg-blue-200 dark:bg-blue-800"
                 : "bg-neutral-100 dark:bg-neutral-700",
               "p-2 rounded-lg",
