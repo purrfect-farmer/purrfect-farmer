@@ -5,101 +5,141 @@ import { PiUserCirclePlusBold } from "react-icons/pi";
 import { cn } from "@/lib/utils";
 import { memo } from "react";
 import { useMemo } from "react";
-import { HiCheckBadge, HiOutlineCheckBadge } from "react-icons/hi2";
+import {
+  HiCheckBadge,
+  HiOutlineCheckBadge,
+  HiOutlineSquares2X2,
+} from "react-icons/hi2";
 import { BsStopCircle } from "react-icons/bs";
 import Input from "./Input";
 import { useState } from "react";
+import { Reorder, useDragControls } from "motion/react";
 
-const AccountSelector = memo(({ account, launchAccount, closeAccount }) => {
-  const { user } = account;
-  const userFullName = useMemo(
-    () =>
-      user
-        ? [user["first_name"], user["last_name"]].filter(Boolean).join(" ")
-        : "",
-    [user]
-  );
+const PickerButton = (props) => (
+  <button
+    {...props}
+    className={cn(
+      "text-neutral-500 dark:text-neutral-400",
+      "bg-neutral-100 dark:bg-neutral-700",
+      "hover:bg-orange-100 hover:text-orange-700",
+      "dark:hover:bg-orange-200 dark:hover:text-orange-500",
+      "flex items-center justify-center",
+      "px-3 rounded-xl shrink-0 touch-none",
+      props.className
+    )}
+  />
+);
 
-  return (
-    <div className="flex gap-2">
-      <Dialog.Close
-        onClick={() => launchAccount(account.id)}
-        className={cn(
-          "px-2 py-1 rounded-xl text-left",
-          "bg-neutral-100 dark:bg-neutral-700",
-          "hover:bg-orange-100 hover:text-orange-700",
-          "dark:hover:bg-orange-200 dark:hover:text-orange-500",
-          "grow min-w-0 min-h-0 flex items-center gap-2",
-          "group"
-        )}
+const AccountSelector = memo(
+  ({
+    account,
+    launchAccount,
+    closeAccount,
+    showStop = true,
+    showReorder = true,
+  }) => {
+    const dragControls = useDragControls();
+    const { user } = account;
+    const userFullName = useMemo(
+      () =>
+        user
+          ? [user["first_name"], user["last_name"]].filter(Boolean).join(" ")
+          : "",
+      [user]
+    );
+
+    return (
+      <Reorder.Item
+        value={account.persisted}
+        dragListener={false}
+        dragControls={dragControls}
       >
-        {/* User  */}
-        {user?.["photo_url"] ? (
-          <img
-            src={user?.["photo_url"]}
-            className="size-8 shrink-0 rounded-full"
-          />
-        ) : (
-          <div className="p-1 shrink-0">
-            <LiaUser className="size-5" />
-          </div>
-        )}
+        <div className="flex gap-2">
+          <Dialog.Close
+            onClick={() => launchAccount(account.id)}
+            className={cn(
+              "px-2 py-1 rounded-xl text-left",
+              "bg-neutral-100 dark:bg-neutral-700",
+              "hover:bg-orange-100 hover:text-orange-700",
+              "dark:hover:bg-orange-200 dark:hover:text-orange-500",
+              "grow min-w-0 min-h-0 flex items-center gap-2",
+              "group"
+            )}
+          >
+            {/* User  */}
+            {user?.["photo_url"] ? (
+              <img
+                src={user?.["photo_url"]}
+                className="size-8 shrink-0 rounded-full"
+              />
+            ) : (
+              <div className="p-1 shrink-0">
+                <LiaUser className="size-5" />
+              </div>
+            )}
 
-        <div className="flex flex-col grow min-w-0">
-          {/* Title */}
-          <h1 className="font-bold truncate w-full">
-            {account.title}{" "}
-            {userFullName ? (
-              <span
-                className={cn(
-                  "text-neutral-500 dark:text-neutral-400",
-                  "group-hover:text-orange-900"
-                )}
-              >
-                ({userFullName})
-              </span>
+            <div className="flex flex-col grow min-w-0">
+              {/* Title */}
+              <h1 className="font-bold truncate w-full">
+                {account.title}{" "}
+                {userFullName ? (
+                  <span
+                    className={cn(
+                      "text-neutral-500 dark:text-neutral-400",
+                      "group-hover:text-orange-900"
+                    )}
+                  >
+                    ({userFullName})
+                  </span>
+                ) : null}
+              </h1>
+              {/* Username */}
+              {user?.["username"] ? (
+                <h5
+                  className={cn(
+                    "truncate",
+                    "text-neutral-500 dark:text-neutral-400",
+                    "group-hover:text-orange-900"
+                  )}
+                >
+                  @{user["username"]}
+                </h5>
+              ) : null}
+            </div>
+
+            {account.active ? (
+              <HiCheckBadge className="shrink-0 text-orange-500 size-4" />
+            ) : account.running ? (
+              <HiOutlineCheckBadge className="shrink-0 text-orange-500 size-4" />
             ) : null}
-          </h1>
-          {/* Username */}
-          {user?.["username"] ? (
-            <h5
-              className={cn(
-                "truncate",
-                "text-neutral-500 dark:text-neutral-400",
-                "group-hover:text-orange-900"
-              )}
-            >
-              @{user["username"]}
-            </h5>
+          </Dialog.Close>
+
+          {showStop ? (
+            <PickerButton onClick={() => closeAccount(account.id)}>
+              <BsStopCircle className="size-4" />
+            </PickerButton>
+          ) : null}
+
+          {showReorder ? (
+            <PickerButton onPointerDown={(event) => dragControls.start(event)}>
+              <HiOutlineSquares2X2 className="size-4" />
+            </PickerButton>
           ) : null}
         </div>
-
-        {account.active ? (
-          <HiCheckBadge className="shrink-0 text-orange-500 size-4" />
-        ) : account.running ? (
-          <HiOutlineCheckBadge className="shrink-0 text-orange-500 size-4" />
-        ) : null}
-      </Dialog.Close>
-
-      <button
-        onClick={() => closeAccount(account.id)}
-        className={cn(
-          "text-neutral-500 dark:text-neutral-400",
-          "bg-neutral-100 dark:bg-neutral-700",
-          "hover:bg-orange-100 hover:text-orange-700",
-          "dark:hover:bg-orange-200 dark:hover:text-orange-500",
-          "flex items-center justify-center",
-          "px-3 rounded-xl shrink-0"
-        )}
-      >
-        <BsStopCircle className="size-4" />
-      </button>
-    </div>
-  );
-});
+      </Reorder.Item>
+    );
+  }
+);
 
 export default memo(function AccountPicker() {
-  const { accounts, addAccount, launchAccount, closeAccount } = useAppContext();
+  const {
+    accounts,
+    addAccount,
+    launchAccount,
+    closeAccount,
+    persistedAccounts,
+    storePersistedAccounts,
+  } = useAppContext();
   const [search, setSearch] = useState("");
   const filteredAccounts = useMemo(() => {
     if (!search.trim()) return accounts;
@@ -167,14 +207,22 @@ export default memo(function AccountPicker() {
         </div>
         <div className="flex flex-col min-w-0 min-h-0 gap-2 overflow-auto grow px-4">
           {/* Set Active Account */}
-          {filteredAccounts.map((account) => (
-            <AccountSelector
-              key={account.id}
-              account={account}
-              launchAccount={launchAccount}
-              closeAccount={closeAccount}
-            />
-          ))}
+          <Reorder.Group
+            values={persistedAccounts}
+            onReorder={storePersistedAccounts}
+            className="flex flex-col gap-2"
+          >
+            {filteredAccounts.map((account) => (
+              <AccountSelector
+                key={account.id}
+                account={account}
+                launchAccount={launchAccount}
+                closeAccount={closeAccount}
+                showStop={persistedAccounts.length > 1}
+                showReorder={persistedAccounts.length > 1 && !search.trim()}
+              />
+            ))}
+          </Reorder.Group>
         </div>
 
         {/* Add Account / Close Dialog */}

@@ -82,6 +82,7 @@ export default function useSharedCore() {
           user: telegramInitDataUnsafe?.["user"] || null,
           active: item.id === activeAccount,
           running: runningAccounts.includes(item.id),
+          persisted: item,
         };
       }),
     [persistedAccounts, activeAccount, runningAccounts]
