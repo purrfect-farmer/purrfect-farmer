@@ -114,7 +114,7 @@ const AccountSelector = memo(
             ) : null}
           </Dialog.Close>
 
-          {showStop ? (
+          {account.running && showStop ? (
             <PickerButton onClick={() => closeAccount(account.id)}>
               <BsStopCircle className="size-4" />
             </PickerButton>
