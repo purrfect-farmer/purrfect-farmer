@@ -7,9 +7,9 @@ import useCloudSubscriptionQuery from "./useCloudSubscriptionQuery";
 import updateNetRules from "@/lib/updateNetRules";
 
 export default function useProxy(app) {
-  const { account, settings, sharedSettings, updateSharedSettings } =
+  const { account, sharedSettings, updateSharedSettings } =
     useAppContext() || app;
-  const { shareCloudProxy } = settings;
+  const { shareCloudProxy } = sharedSettings;
 
   const subscriptionQuery = useCloudSubscriptionQuery(app);
   const cloudProxy = subscriptionQuery.data?.account?.proxy;

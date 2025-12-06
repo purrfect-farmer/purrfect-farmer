@@ -21,7 +21,7 @@ export default memo(function ProxyOptionsGroup({
       </LabelToggle>
 
       <p className="text-neutral-500 dark:text-neutral-400">
-        To enable this option, first turn off proxy sharing in Cloud options.
+        To enable this option, first turn off cloud proxy sharing.
       </p>
 
       {/* Proxy Host */}
@@ -63,6 +63,17 @@ export default memo(function ProxyOptionsGroup({
         }
         placeholder="Proxy Password"
       />
+
+      {/* Share Cloud Proxy */}
+      <SettingsLabel>Cloud Proxy</SettingsLabel>
+      <LabelToggle
+        onChange={(ev) =>
+          configureSharedSettings("shareCloudProxy", ev.target.checked)
+        }
+        checked={sharedSettings.shareCloudProxy}
+      >
+        Share Cloud Proxy
+      </LabelToggle>
     </SettingsGroup>
   );
 });

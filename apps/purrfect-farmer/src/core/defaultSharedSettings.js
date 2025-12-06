@@ -10,6 +10,7 @@ const defaultSharedSettings = {
   enableMirror: typeof import.meta.env.VITE_WHISKER !== "undefined",
   mirrorServer: import.meta.env.VITE_MIRROR_SERVER,
   spiderApiKey: "",
+  shareCloudProxy: false,
 };
 
 export default defaultSharedSettings;
