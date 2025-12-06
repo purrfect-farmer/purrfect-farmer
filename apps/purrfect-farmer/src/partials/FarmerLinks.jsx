@@ -5,11 +5,14 @@ import useStorageState from "@/hooks/useStorageState";
 import { ContextMenu } from "radix-ui";
 import { Dialog } from "radix-ui";
 import {
+  HiOutlineArrowUpRight,
+  HiOutlineGlobeAlt,
   HiOutlineListBullet,
   HiOutlinePencil,
   HiOutlinePlusCircle,
   HiOutlineSquares2X2,
   HiOutlineTrash,
+  HiOutlineUserPlus,
 } from "react-icons/hi2";
 import { cn, fetchContent, isBotURL, uuid } from "@/lib/utils";
 import { memo, useCallback } from "react";
@@ -47,12 +50,25 @@ const FarmerLinkIcon = memo(({ link, refetch, ...props }) => {
   return <img {...props} src={src || TelegramLogo} />;
 });
 
+const LinkContextItem = (props) => (
+  <ContextMenu.Item
+    {...props}
+    className={cn(
+      "flex items-center gap-2 p-2",
+      "rounded-lg cursor-pointer",
+      "bg-neutral-800 hover:bg-blue-500",
+      props.className
+    )}
+  />
+);
+
 export default memo(function FarmerLinks() {
   const {
     settings,
     dispatchAndConfigureSettings,
     dispatchAndOpenTelegramBot,
     dispatchAndOpenTelegramLink,
+    dispatchAndJoinTelegramLink,
   } = useAppContext();
   const { value: links, storeValue: storeLinks } = useStorageState("links", []);
   const [openModal, setOpenModal] = useState(false);
@@ -283,32 +299,57 @@ export default memo(function FarmerLinks() {
                           className={cn(
                             "flex flex-col gap-2 p-2",
                             "text-white rounded-lg bg-neutral-900",
-                            "w-[var(--radix-context-menu-content-available-width)]",
-                            "max-w-48",
+                            "max-w-[--(--radix-context-menu-content-available-width)]",
+                            "w-48",
                             "z-50"
                           )}
                         >
-                          <ContextMenu.Item
+                          {/* Open Link */}
+                          <LinkContextItem
+                            onClick={() =>
+                              dispatchAndOpenTelegramLink(link.telegramLink)
+                            }
+                          >
+                            <HiOutlineArrowUpRight className="w-4 h-4" /> Open
+                            Link
+                          </LinkContextItem>
+
+                          {/* Launch Bot */}
+                          <LinkContextItem
+                            onClick={() =>
+                              dispatchAndOpenTelegramBot(link.telegramLink, {
+                                browserId: `farmer-link-${link.id}`,
+                                browserTitle: link.title,
+                                browserIcon: link.icon,
+                              })
+                            }
+                          >
+                            <HiOutlineGlobeAlt className="w-4 h-4" /> Launch Bot
+                          </LinkContextItem>
+
+                          {/* Join */}
+                          <LinkContextItem
+                            onClick={() =>
+                              dispatchAndJoinTelegramLink(link.telegramLink)
+                            }
+                          >
+                            <HiOutlineUserPlus className="w-4 h-4" /> Join Link
+                          </LinkContextItem>
+
+                          {/* Edit */}
+                          <LinkContextItem
                             onClick={() => createOrEditLink(link)}
-                            className={cn(
-                              "flex items-center gap-2 p-2",
-                              "rounded-lg cursor-pointer",
-                              "bg-neutral-800 hover:bg-blue-500"
-                            )}
                           >
                             <HiOutlinePencil className="w-4 h-4" /> Edit
-                          </ContextMenu.Item>
+                          </LinkContextItem>
 
-                          <ContextMenu.Item
+                          {/* Delete */}
+                          <LinkContextItem
                             onClick={() => deleteLink(link)}
-                            className={cn(
-                              "flex items-center gap-2 p-2",
-                              "rounded-lg cursor-pointer",
-                              "bg-neutral-800 hover:bg-red-500"
-                            )}
+                            className={cn("bg-neutral-800 hover:bg-red-500")}
                           >
                             <HiOutlineTrash className="w-4 h-4" /> Delete
-                          </ContextMenu.Item>
+                          </LinkContextItem>
                         </ContextMenu.Content>
                       </ContextMenu.Portal>
                     </ContextMenu.Root>
