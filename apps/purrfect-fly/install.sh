@@ -66,7 +66,7 @@ pm2 save
 
 
 echo "Configuring Nginx as a reverse proxy..."
-echo <<EOF
+cat <<EOF | sudo tee /etc/nginx/sites-available/purrfect-fly > /dev/null
 server {
     listen 80;
     listen [::]:80;
@@ -76,19 +76,19 @@ server {
 
     location / {
         proxy_http_version 1.1;
-        proxy_cache_bypass $http_upgrade;
-        proxy_set_header Upgrade $http_upgrade;
+        proxy_cache_bypass \$http_upgrade;
+        proxy_set_header Upgrade \$http_upgrade;
         proxy_set_header Connection 'upgrade';
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_set_header Host \$host;
+        proxy_set_header X-Real-IP \$remote_addr;
+        proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto \$scheme;
         proxy_pass http://127.0.0.1:3000;
     }
 }
 EOF
-| sudo tee /etc/nginx/sites-available/purrfect-fly > /dev/null
 
+echo "Enabling Nginx site configuration..."
 sudo rm /etc/nginx/sites-enabled/default
 sudo ln -s /etc/nginx/sites-available/purrfect-fly /etc/nginx/sites-enabled/purrfect-fly
 
