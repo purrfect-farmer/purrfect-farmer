@@ -8,7 +8,7 @@ export default function CloudCenteredDialog({ title, description, children }) {
         className={cn(
           "fixed inset-0 z-40",
           "p-4 overflow-y-auto bg-black/50",
-          "grid place-items-center"
+          "flex justify-center items-center"
         )}
       >
         <Dialog.Content
