@@ -5,6 +5,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 export default {
+  basePath: path.resolve(__dirname, "../"),
   envPath: path.resolve(__dirname, "../.env"),
   name: env("APP_NAME", ""),
   farmer: {

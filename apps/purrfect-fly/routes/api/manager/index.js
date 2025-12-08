@@ -1,6 +1,11 @@
 import * as bcrypt from "bcryptjs";
 import * as dateFns from "date-fns";
 import fsp from "fs/promises";
+import { exec, spawn } from "child_process";
+import { promisify } from "util";
+import path from "path";
+
+const execAsync = promisify(exec);
 
 /**
  * @param {import("fastify").FastifyInstance} fastify
@@ -99,6 +104,32 @@ export default async function (fastify, opts) {
         }, 1000);
       }
     );
+
+    /** Update Server */
+    fastify.post("/update-server", async () => {
+      const scriptPath = path.resolve(fastify.app.basePath, "install.sh");
+
+      return new Promise((resolve) => {
+        const child = spawn("bash", [scriptPath]);
+
+        let stdout = "";
+        let stderr = "";
+
+        child.stdout.on("data", (data) => {
+          stdout += data.toString();
+          process.stdout.write(data); // log live to console
+        });
+
+        child.stderr.on("data", (data) => {
+          stderr += data.toString();
+          process.stderr.write(data);
+        });
+
+        child.on("close", (code) => {
+          resolve({ success: code === 0, code, stdout, stderr });
+        });
+      });
+    });
 
     /** Update Password */
     fastify.post(
