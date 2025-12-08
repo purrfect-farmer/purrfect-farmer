@@ -7,6 +7,18 @@ import { cn, matchesAccountSearch } from "@/lib/utils";
 import { useMemo, useState } from "react";
 
 import CloudMemberDialog from "./CloudMemberDialog";
+import useLocationToggle from "@/hooks/useLocationToggle";
+
+const AccountDetailsDialog = ({ account, children }) => {
+  const [open, setOpen] = useLocationToggle(
+    `cloud-member-details:${account.id}`
+  );
+  return (
+    <Dialog.Root open={open} onOpenChange={setOpen}>
+      {children}
+    </Dialog.Root>
+  );
+};
 
 export default function CloudMembers() {
   const [search, setSearch] = useState("");
@@ -58,7 +70,7 @@ export default function CloudMembers() {
                   </h4>
                 ) : null}{" "}
                 {/* Details */}
-                <Dialog.Root>
+                <AccountDetailsDialog account={account}>
                   <Dialog.Trigger
                     className={cn(
                       "flex items-center min-w-0 min-h-0",
@@ -78,7 +90,7 @@ export default function CloudMembers() {
                   </Dialog.Trigger>
 
                   <CloudMemberDialog account={account} />
-                </Dialog.Root>
+                </AccountDetailsDialog>
                 {/* Terminate Button */}
                 <span
                   className={cn(

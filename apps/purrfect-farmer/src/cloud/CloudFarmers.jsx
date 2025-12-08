@@ -25,7 +25,7 @@ const CLOUD_FARMERS = farmers.reduce((result, farmer) => {
 
 const AccountDetailsDialog = ({ account, children }) => {
   const [open, setOpen] = useLocationToggle(
-    `cloud-account-details:${account.id}`
+    `cloud-farmer-details:${account.id}`
   );
   return (
     <Dialog.Root open={open} onOpenChange={setOpen}>

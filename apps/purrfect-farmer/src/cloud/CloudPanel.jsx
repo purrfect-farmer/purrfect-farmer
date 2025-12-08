@@ -11,17 +11,25 @@ import CloudUserDisplay from "./CloudUserDisplay";
 import { TbCalendarUser } from "react-icons/tb";
 import { MdEditNote } from "react-icons/md";
 import CloudEnvUpdate from "./CloudEnvUpdate";
+import useLocationToggle from "@/hooks/useLocationToggle";
 
 export default function CloudPanel() {
   const { settings } = useAppContext();
   const tabs = useMirroredTabs("farmers", ["farmers", "members"]);
   const address = settings.cloudServer;
 
+  const [openEnvUpdate, setOpenEnvUpdate] =
+    useLocationToggle("cloud-env-update");
+
+  const [openSubscriptionUpdate, setOpenSubscriptionUpdate] = useLocationToggle(
+    "cloud-subscription-update"
+  );
+
   return (
     <div className="flex flex-col grow">
       {/* Heading */}
       <div className="p-2 border-b shrink-0 dark:border-neutral-700 flex items-center gap-2">
-        <Dialog.Root>
+        <Dialog.Root open={openEnvUpdate} onOpenChange={setOpenEnvUpdate}>
           <Dialog.Trigger className="text-orange-500 size-8 flex items-center justify-center">
             <MdEditNote className="size-5" />
           </Dialog.Trigger>
@@ -33,7 +41,10 @@ export default function CloudPanel() {
           <img src={AppIcon} className="w-7 h-7" /> Purrfect Cloud
         </h1>
 
-        <Dialog.Root>
+        <Dialog.Root
+          open={openSubscriptionUpdate}
+          onOpenChange={setOpenSubscriptionUpdate}
+        >
           <Dialog.Trigger className="text-orange-500 size-8 flex items-center justify-center">
             <TbCalendarUser className="size-5" />
           </Dialog.Trigger>

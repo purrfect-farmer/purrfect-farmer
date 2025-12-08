@@ -5,6 +5,7 @@ import { Dialog } from "radix-ui";
 import { useCallback } from "react";
 
 import CloudPasswordUpdate from "./CloudPasswordUpdate";
+import useLocationToggle from "@/hooks/useLocationToggle";
 
 export default function CloudUserDisplay() {
   const { cloudAuth } = useAppContext();
@@ -14,6 +15,10 @@ export default function CloudUserDisplay() {
   const logout = useCallback(() => {
     cloudAuth.removeToken();
   }, [cloudAuth.removeToken]);
+
+  const [openPasswordUpdate, setOpenPasswordUpdate] = useLocationToggle(
+    "cloud-password-update"
+  );
 
   return (
     <div>
@@ -42,7 +47,10 @@ export default function CloudUserDisplay() {
           </div>
 
           <div className="grid grid-cols-2 gap-2 mx-auto my-2 font-bold">
-            <Dialog.Root>
+            <Dialog.Root
+              open={openPasswordUpdate}
+              onOpenChange={setOpenPasswordUpdate}
+            >
               <Dialog.Trigger className="text-blue-500">
                 Password
               </Dialog.Trigger>
