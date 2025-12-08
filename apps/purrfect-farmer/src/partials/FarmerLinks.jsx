@@ -21,6 +21,7 @@ import { useMutation } from "@tanstack/react-query";
 import { useState } from "react";
 import TelegramLinkForm from "./TelegramLinkForm";
 import TelegramLogo from "../assets/images/telegram-logo.svg";
+import useLocationToggle from "@/hooks/useLocationToggle";
 
 /** Load Link Icon */
 const loadLinkIcon = function (src) {
@@ -71,7 +72,10 @@ export default memo(function FarmerLinks() {
     dispatchAndJoinTelegramLink,
   } = useAppContext();
   const { value: links, storeValue: storeLinks } = useStorageState("links", []);
-  const [openModal, setOpenModal] = useState(false);
+  const [openModal, setOpenModal] = useLocationToggle(
+    "app.toggle-link-modal",
+    false
+  );
   const [currentLink, setCurrentLink] = useState(null);
 
   /** Show as Grid */
