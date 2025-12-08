@@ -12,6 +12,15 @@
 
 ### Setup
 
+##### Quick Installation
+```bash
+curl -o- https://raw.githubusercontent.com/purrfect-farmer/purrfect-farmer/main/apps/purrfect-fly/install.sh | bash
+```
+
+```bash
+wget -qO- https://raw.githubusercontent.com/purrfect-farmer/purrfect-farmer/main/apps/purrfect-fly/install.sh | bash
+```
+
 ##### Install Packages
 
 ```bash
