@@ -321,6 +321,21 @@ export default class MuccaFarmer extends BaseFarmer {
           break;
         }
 
+        /**
+         * Purchase only every 4th hour to avoid rapid purchases
+         *
+         * Yes this is a loop but its intended to avoid flagging by purchasing
+         * multiple slots in a single run
+         *
+         * Remove this condition to purchase as many as possible in one run
+         */
+        if (new Date().getHours() % 4 !== 0) {
+          this.logger.info(
+            "Skipping land slot purchases outside of every 4th hour."
+          );
+          break;
+        }
+
         const slotToBuy = this.utils.randomItem(availableSlots);
         await this.purchaseLandSlot(slotToBuy.x, slotToBuy.y);
         /* Deduct price from balance */
