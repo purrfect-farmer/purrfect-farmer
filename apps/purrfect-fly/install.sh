@@ -68,7 +68,7 @@ echo "Running database migrations and seeders..."
 pnpm -F purrfect-fly db:migrate && pnpm -F purrfect-fly db:seed
 
 echo "Starting Purrfect Fly with PM2..."
-pm2 start apps/purrfect-fly/ecosystem.config.cjs
+pm2 restart apps/purrfect-fly/ecosystem.config.cjs --update-env
 pm2 save
 
 
