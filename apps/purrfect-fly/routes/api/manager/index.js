@@ -110,7 +110,10 @@ export default async function (fastify, opts) {
       const scriptPath = path.resolve(fastify.app.basePath, "install.sh");
 
       return new Promise((resolve) => {
-        const child = spawn("bash", [scriptPath]);
+        const child = spawn("bash", [scriptPath], {
+          cwd: fastify.app.rootPath,
+          env: process.env,
+        });
 
         let stdout = "";
         let stderr = "";

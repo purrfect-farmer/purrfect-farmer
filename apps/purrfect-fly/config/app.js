@@ -4,9 +4,14 @@ import { fileURLToPath } from "node:url";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
+const basePath = path.resolve(__dirname, "../");
+const rootPath = path.resolve(basePath, "../../");
+const envPath = path.resolve(basePath, ".env");
+
 export default {
-  basePath: path.resolve(__dirname, "../"),
-  envPath: path.resolve(__dirname, "../.env"),
+  rootPath,
+  basePath,
+  envPath,
   name: env("APP_NAME", ""),
   farmer: {
     botId: env("FARMER_BOT_ID", 7592929753),
