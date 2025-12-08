@@ -40,7 +40,7 @@ const ServerUpdateDetails = ({ data }) => {
         <ServerUpdateContent title="Output" output={data.stdout} />
       )}
       {data.stderr && (
-        <ServerUpdateContent title="Errors" output={data.stderr} />
+        <ServerUpdateContent title="Warnings / Errors" output={data.stderr} />
       )}
     </div>
   );
