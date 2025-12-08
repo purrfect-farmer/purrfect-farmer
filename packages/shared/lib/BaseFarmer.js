@@ -87,8 +87,8 @@ export default class BaseFarmer {
     return this.getInitDataUnsafe()?.user;
   }
 
-  /** Get User Random Number */
-  getRandomNumber() {
+  /** Get Fixed Random Number */
+  getFixedRandomNumber() {
     return this.getUserRandomGenerator()();
   }
 
