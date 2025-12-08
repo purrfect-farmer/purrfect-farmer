@@ -12,6 +12,7 @@
     "crypto-js": "^4.2.0",
     "date-fns": "^4.1.0",
     "events": "^3.3.0",
+    "seedrandom": "^3.0.5",
     "socket.io-client": "^4.8.1",
     "telegram": "^2.26.22",
     "uuid": "^11.1.0"

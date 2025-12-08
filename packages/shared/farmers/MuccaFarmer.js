@@ -306,7 +306,7 @@ export default class MuccaFarmer extends BaseFarmer {
   async buyLandSlot(user) {
     const LAND_SLOT_PRICE = 50;
     const PURCHASE_LIMIT = 1;
-    const PURCHASE_HOUR = 4 + Math.floor(Math.random() * 6); // Random hour between 4 and 9
+    const PURCHASE_HOUR = 4 + Math.floor(this.getRandomNumber() * 6); // Random hour between 4 and 9
     const SKIP_PURCHASES = new Date().getHours() % PURCHASE_HOUR !== 0;
 
     /**

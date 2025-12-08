@@ -1,6 +1,7 @@
 import * as changeKeys from "change-case/keys";
 
 import utils from "../utils/index.js";
+import seedrandom from "seedrandom";
 
 export default class BaseFarmer {
   static id = "base-farmer";
@@ -85,6 +86,17 @@ export default class BaseFarmer {
   getTelegramUser() {
     return this.getInitDataUnsafe()?.user;
   }
+
+  /** Get User Random Number */
+  getRandomNumber() {
+    return this.getUserRandomGenerator()();
+  }
+
+  /** Get User Random Generator */
+  getUserRandomGenerator() {
+    return seedrandom(this.getUserId());
+  }
+
   /** Get User ID */
   getUserId() {
     return this.getTelegramUser()?.id;
