@@ -272,7 +272,6 @@ export default class MoneyTreeFarmer extends BaseFarmer {
     await this.executeTask("Claim Tickets", () => this.claimTickets());
     await this.executeTask("Claim Free Boosts", () => this.claimFreeBoosts());
     await this.executeTask("Upgrade Boosts", () => this.upgradeBoosts());
-    await this.executeTask("Auto Bot", () => this.claimOrPurchaseAutoBot());
     await this.executeTask("Play Game", () => this.playGame());
   }
   /** Log User Info */
@@ -365,16 +364,18 @@ export default class MoneyTreeFarmer extends BaseFarmer {
   /** Upgrade Boosts */
   async upgradeBoosts() {
     let boosts = await this.getBoosts();
-    let availableBoosts = boosts.map(({ boost, currentLevel }) => {
-      const nextLevel = boost.levels.find(
-        (level) => level.level === currentLevel + 1
-      );
-      return {
-        ...boost,
-        currentLevel,
-        nextLevel,
-      };
-    });
+    let availableBoosts = boosts
+      .map(({ boost, currentLevel }) => {
+        const nextLevel = boost.levels.find(
+          (level) => level.level === currentLevel + 1
+        );
+        return {
+          ...boost,
+          currentLevel,
+          nextLevel,
+        };
+      })
+      .filter((boost) => ["ENERGY", "REGENERATION"].includes(boost.type));
 
     while (true) {
       const balance = this._player.balance;
