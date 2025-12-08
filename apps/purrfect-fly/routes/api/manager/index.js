@@ -110,7 +110,7 @@ export default async function (fastify, opts) {
       const scriptPath = path.resolve(fastify.app.basePath, "update.sh");
 
       return new Promise((resolve) => {
-        const child = spawn("bash", [scriptPath], {
+        const child = spawn("bash", [scriptPath, "--no-restart"], {
           cwd: fastify.app.rootPath,
           env: process.env,
         });
@@ -129,6 +129,7 @@ export default async function (fastify, opts) {
         });
 
         child.on("close", (code) => {
+          if (code === 0) setTimeout(() => process.exit(0), 1000);
           resolve({ success: code === 0, code, stdout, stderr });
         });
       });

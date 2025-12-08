@@ -24,9 +24,14 @@ pnpm install
 print_heading "Running database migrations and seeders..."
 pnpm -F purrfect-fly db:migrate && pnpm -F purrfect-fly db:seed
 
-print_heading "Restarting Purrfect Fly with PM2..."
-pm2 restart apps/purrfect-fly/ecosystem.config.cjs --update-env
-pm2 save
+# Check if --no-restart flag is provided
+if [[ "$*" != *"--no-restart"* ]]; then
+    print_heading "Restarting Purrfect Fly with PM2..."
+    pm2 restart apps/purrfect-fly/ecosystem.config.cjs --update-env
+    pm2 save
+else
+    print_subheading "Skipping PM2 restart (--no-restart flag specified)"
+fi
 
 
 print_heading "Server Address"
