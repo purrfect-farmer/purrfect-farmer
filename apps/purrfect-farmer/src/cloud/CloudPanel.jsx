@@ -9,6 +9,8 @@ import CloudServerDisplay from "./CloudServerDisplay";
 import CloudSubscriptionUpdate from "./CloudSubscriptionUpdate";
 import CloudUserDisplay from "./CloudUserDisplay";
 import { TbCalendarUser } from "react-icons/tb";
+import { MdEditNote } from "react-icons/md";
+import CloudEnvUpdate from "./CloudEnvUpdate";
 
 export default function CloudPanel() {
   const { settings } = useAppContext();
@@ -18,7 +20,15 @@ export default function CloudPanel() {
   return (
     <div className="flex flex-col grow">
       {/* Heading */}
-      <div className="p-2 border-b shrink-0 dark:border-neutral-700 flex items-center pl-10 gap-2">
+      <div className="p-2 border-b shrink-0 dark:border-neutral-700 flex items-center gap-2">
+        <Dialog.Root>
+          <Dialog.Trigger className="text-orange-500 size-8 flex items-center justify-center">
+            <MdEditNote className="size-5" />
+          </Dialog.Trigger>
+
+          <CloudEnvUpdate />
+        </Dialog.Root>
+
         <h1 className="flex items-center justify-center gap-2 font-bold grow">
           <img src={AppIcon} className="w-7 h-7" /> Purrfect Cloud
         </h1>

@@ -7,13 +7,13 @@ export default function CloudCenteredDialog({ title, description, children }) {
       <Dialog.Overlay
         className={cn(
           "fixed inset-0 z-40",
-          "flex items-center justify-center",
+          "grid place-items-center",
           "p-4 overflow-auto bg-black/50"
         )}
       >
         <Dialog.Content
           className={cn(
-            "flex flex-col w-full max-w-sm",
+            "flex flex-col w-full max-w-sm overflow-hidden",
             "gap-2 p-4 bg-white dark:bg-neutral-800 rounded-xl"
           )}
         >

@@ -1,5 +1,6 @@
 import * as bcrypt from "bcryptjs";
 import * as dateFns from "date-fns";
+import fsp from "fs/promises";
 
 /**
  * @param {import("fastify").FastifyInstance} fastify
@@ -70,6 +71,34 @@ export default async function (fastify, opts) {
       const user = await fastify.db.User.findByPk(request.user.id);
       return user;
     });
+
+    /** Get .env */
+    fastify.get("/env", async (request) => {
+      const env = await fsp.readFile(fastify.app.envPath, "utf-8");
+      return { content: env };
+    });
+
+    /** Update .env */
+    fastify.post(
+      "/env",
+      {
+        schema: {
+          body: {
+            type: "object",
+            required: ["content"],
+            properties: {
+              content: { type: "string" },
+            },
+          },
+        },
+      },
+      async (request) => {
+        await fsp.writeFile(fastify.app.envPath, request.body.content, "utf-8");
+        setTimeout(() => {
+          process.exit(0);
+        }, 1000);
+      }
+    );
 
     /** Update Password */
     fastify.post(

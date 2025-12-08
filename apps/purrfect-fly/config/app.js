@@ -1,4 +1,11 @@
+import path from "node:path";
+import { fileURLToPath } from "node:url";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
 export default {
+  envPath: path.resolve(__dirname, "../.env"),
   name: env("APP_NAME", ""),
   farmer: {
     botId: env("FARMER_BOT_ID", 7592929753),
