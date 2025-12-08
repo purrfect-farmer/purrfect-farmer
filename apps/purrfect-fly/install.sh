@@ -35,9 +35,16 @@ else
     echo "PM2 startup already configured or command not found."
 fi
 
-echo "Cloning Purrfect Farmer repository..."
-git clone https://github.com/purrfect-farmer/purrfect-farmer.git ~/purrfect-farmer
-cd ~/purrfect-farmer
+echo "Setting up Purrfect Farmer repository..."
+if [ -d "$HOME/purrfect-farmer/.git" ]; then
+    echo "Repository already exists. Pulling latest changes..."
+    cd ~/purrfect-farmer
+    git pull origin main
+else
+    echo "Cloning Purrfect Farmer repository..."
+    git clone https://github.com/purrfect-farmer/purrfect-farmer.git ~/purrfect-farmer
+    cd ~/purrfect-farmer
+fi
 
 echo "Installing project dependencies..."
 pnpm install
