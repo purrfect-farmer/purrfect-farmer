@@ -15,7 +15,7 @@ if [ -d "$HOME/.nvm" ]; then
     echo "NVM is already installed."
 else
     echo "NVM is not installed. Proceeding with installation..."
-    curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.2/install.sh | bash
+    curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.3/install.sh | bash
 
     \. "$HOME/.nvm/nvm.sh"
 
