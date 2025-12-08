@@ -9,11 +9,16 @@ import { cn } from "@/lib/utils";
 
 const ansiToHtml = new AnsiToHtml();
 
-const ServerUpdateDetails = ({ data }) => {
+const ServerUpdateContent = ({ title, output }) => {
   return (
-    <div className="flex flex-col gap-2">
-      <h3 className="font-semibold text-center uppercase text-neutral-500">
-        Update Details
+    <>
+      <h3
+        className={cn(
+          "font-semibold text-center uppercase",
+          "text-neutral-500 dark:text-neutral-400"
+        )}
+      >
+        {title}
       </h3>
       <pre
         className={cn(
@@ -21,22 +26,21 @@ const ServerUpdateDetails = ({ data }) => {
           "font-mono whitespace-pre-wrap wrap-break-word"
         )}
         dangerouslySetInnerHTML={{
-          __html: ansiToHtml.toHtml(data.stdout) || "No output available.",
+          __html: ansiToHtml.toHtml(output) || "No output available.",
         }}
       />
+    </>
+  );
+};
+
+const ServerUpdateDetails = ({ data }) => {
+  return (
+    <div className="flex flex-col gap-2">
+      {data.stdout && (
+        <ServerUpdateContent title="Output" output={data.stdout} />
+      )}
       {data.stderr && (
-        <>
-          <h4 className="font-semibold text-center uppercase text-neutral-500">
-            Errors
-          </h4>
-          <pre
-            className={cn(
-              "overflow-auto bg-black text-white p-2 max-h-96",
-              "font-mono whitespace-pre-wrap wrap-break-word"
-            )}
-            dangerouslySetInnerHTML={{ __html: ansiToHtml.toHtml(data.stderr) }}
-          />
-        </>
+        <ServerUpdateContent title="Errors" output={data.stderr} />
       )}
     </div>
   );
