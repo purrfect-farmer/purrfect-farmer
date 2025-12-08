@@ -97,7 +97,7 @@ server {
 EOF
 
 echo "Enabling Nginx site configuration..."
-sudo rm /etc/nginx/sites-enabled/default
+sudo rm /etc/nginx/sites-enabled/default 2>/dev/null || true
 sudo ln -s /etc/nginx/sites-available/purrfect-fly /etc/nginx/sites-enabled/purrfect-fly
 
 echo "Testing and reloading Nginx configuration..."
