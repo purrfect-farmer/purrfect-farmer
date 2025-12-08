@@ -305,7 +305,21 @@ export default class MuccaFarmer extends BaseFarmer {
 
   async buyLandSlot(user) {
     const LAND_SLOT_PRICE = 50;
+    const PURCHASE_LIMIT = 1;
+    const PURCHASE_HOUR = 4 + Math.floor(Math.random() * 6); // Random hour between 4 and 9
+    const SKIP_PURCHASES = new Date().getHours() % PURCHASE_HOUR !== 0;
+
+    /**
+     * Check if purchases should be skipped
+     */
+    if (SKIP_PURCHASES) {
+      this.logger.info("⏩ Skipping land purchases.");
+      return;
+    }
+
     let balance = user.balance || 0;
+    let purchasedCount = 0;
+
     if (balance >= LAND_SLOT_PRICE) {
       let { availableSlots } = await this.getLandChunks();
       while (true) {
@@ -318,21 +332,6 @@ export default class MuccaFarmer extends BaseFarmer {
           break;
         }
         if (balance < LAND_SLOT_PRICE) {
-          break;
-        }
-
-        /**
-         * Purchase only every 4th hour to avoid rapid purchases
-         *
-         * Yes this is a loop but its intended to avoid flagging by purchasing
-         * multiple slots in a single run
-         *
-         * Remove this condition to purchase as many as possible in one run
-         */
-        if (new Date().getHours() % 4 !== 0) {
-          this.logger.info(
-            "Skipping land slot purchases outside of every 4th hour."
-          );
           break;
         }
 
@@ -354,6 +353,14 @@ export default class MuccaFarmer extends BaseFarmer {
 
         /* Small delay to avoid rapid purchases */
         await this.utils.delayForSeconds(1, { signal: this.signal });
+
+        /* Increment purchased count */
+        purchasedCount += 1;
+
+        /* Check purchase limit */
+        if (purchasedCount >= PURCHASE_LIMIT) {
+          break;
+        }
       }
     } else {
       this.logger.info(
