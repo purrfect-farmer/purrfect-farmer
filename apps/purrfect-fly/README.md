@@ -10,9 +10,7 @@
 - Required Topics (Announcements, Errors, Farming)
 - Additional Topics for Each Farmer
 
-### Setup
-
-##### Quick Installation
+### Quick Installation
 ```bash
 curl -o- https://raw.githubusercontent.com/purrfect-farmer/purrfect-farmer/main/apps/purrfect-fly/install.sh | bash
 ```
@@ -21,6 +19,7 @@ curl -o- https://raw.githubusercontent.com/purrfect-farmer/purrfect-farmer/main/
 wget -qO- https://raw.githubusercontent.com/purrfect-farmer/purrfect-farmer/main/apps/purrfect-fly/install.sh | bash
 ```
 
+### Manual Setup
 ##### Install Packages
 
 ```bash
