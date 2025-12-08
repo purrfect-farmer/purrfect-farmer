@@ -66,19 +66,32 @@ export default function CloudServerUpdate() {
       }
     >
       <div className="flex flex-col gap-2">
-        <Alert variant={"warning"}>
-          Updating your server may cause temporary downtime. Please be patient
-          while the update is in progress.
-        </Alert>
+        {serverUpdateMutation.data ? (
+          <>
+            {/* Update Status Alert */}
+            <Alert
+              variant={serverUpdateMutation.data.success ? "success" : "danger"}
+            >
+              {serverUpdateMutation.data.success
+                ? "Server updated successfully! The server is restarting..."
+                : `Server update failed with code ${serverUpdateMutation.data.code}. Please check the details below.`}
+            </Alert>
 
-        {serverUpdateMutation.data && (
-          <ServerUpdateDetails data={serverUpdateMutation.data} />
+            {/* Update Details */}
+            <ServerUpdateDetails data={serverUpdateMutation.data} />
+          </>
+        ) : (
+          <>
+            <Alert variant={"warning"}>
+              Updating your server may cause temporary downtime. Please be
+              patient while the update is in progress.
+            </Alert>
+            {/* Update Button */}
+            <PrimaryButton disabled={isPending} onClick={updateServer}>
+              {isPending ? "Updating..." : "Update"}
+            </PrimaryButton>
+          </>
         )}
-
-        {/* Update Button */}
-        <PrimaryButton disabled={isPending} onClick={updateServer}>
-          {isPending ? "Updating..." : "Update"}
-        </PrimaryButton>
       </div>
     </CloudCenteredDialog>
   );
