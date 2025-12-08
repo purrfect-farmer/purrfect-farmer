@@ -117,3 +117,7 @@ sudo ln -sf /etc/nginx/sites-available/purrfect-fly /etc/nginx/sites-enabled/pur
 print_heading "Testing and reloading Nginx configuration..."
 sudo nginx -t
 sudo systemctl reload nginx
+
+print_heading "Server Address"
+ip=$(curl ifconfig.me)
+print_subheading "You can access Purrfect Fly at: http://$ip"
