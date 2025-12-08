@@ -3,6 +3,7 @@ import { Bot } from "grammy";
 import app from "../config/app.js";
 import cache from "./cache.js";
 import utils from "./utils.js";
+import logger from "./logger.js";
 
 class GroupBot extends Bot {
   /** Send Group Message
@@ -11,26 +12,30 @@ class GroupBot extends Bot {
    * with the same cache key
    */
   async sendGroupMessage(cacheKey, message, options = {}) {
-    const previous = await cache.get(cacheKey);
-    const sent = await this.api.sendMessage(app.chat.id, message.join("\n"), {
-      ...options,
-      ["parse_mode"]: "HTML",
-      ["link_preview_options"]: { ["is_disabled"]: true },
-    });
-
-    /** Store Message ID */
-    await cache.set(cacheKey, sent["message_id"]);
-
-    /** Remove Previous Message */
     try {
-      if (previous) {
-        await this.api.deleteMessage(app.chat.id, previous);
-      }
-    } catch (error) {
-      console.error("Failed to remove previous message:", error);
-    }
+      const previous = await cache.get(cacheKey);
+      const sent = await this.api.sendMessage(app.chat.id, message.join("\n"), {
+        ...options,
+        ["parse_mode"]: "HTML",
+        ["link_preview_options"]: { ["is_disabled"]: true },
+      });
 
-    return message;
+      /** Store Message ID */
+      await cache.set(cacheKey, sent["message_id"]);
+
+      /** Remove Previous Message */
+      try {
+        if (previous) {
+          await this.api.deleteMessage(app.chat.id, previous);
+        }
+      } catch (error) {
+        logger.error("Failed to remove previous message:", error);
+      }
+
+      return message;
+    } catch (error) {
+      logger.error("Error sending group message:", error);
+    }
   }
 
   /** Send Farming Initiated Message */
@@ -79,7 +84,7 @@ class GroupBot extends Bot {
         { ["message_thread_id"]: threadId }
       );
     } catch (error) {
-      console.error("Error sending farming initiated message:", error);
+      logger.error("Error sending farming initiated message:", error);
     }
   }
 
@@ -120,7 +125,7 @@ class GroupBot extends Bot {
         { ["message_thread_id"]: app.chat.threads.announcement }
       );
     } catch (error) {
-      console.error(error);
+      logger.error(error);
     }
   }
 
@@ -139,7 +144,7 @@ class GroupBot extends Bot {
         { ["message_thread_id"]: app.chat.threads.announcement }
       );
     } catch (error) {
-      console.error(error);
+      logger.error(error);
     }
   }
 
@@ -150,7 +155,7 @@ class GroupBot extends Bot {
         ["parse_mode"]: "HTML",
       });
     } catch (error) {
-      console.error(error);
+      logger.error(error);
     }
   }
 }
