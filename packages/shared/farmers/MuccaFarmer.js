@@ -100,6 +100,9 @@ export default class MuccaFarmer extends BaseFarmer {
           {
             structuredQuery: {
               from: [{ collectionId: options.collection }],
+              select: options.select
+                ? { fields: options.select.map((fieldPath) => ({ fieldPath })) }
+                : undefined,
               where: options.where,
               orderBy: options.orderBy,
               limit: options.limit,
@@ -190,14 +193,35 @@ export default class MuccaFarmer extends BaseFarmer {
       .then((res) => res.data);
   }
 
-  /** Process Farmer */
-  async process() {
-    const { user } = await this.getUser();
+  /** Purchase Land Slot */
+  purchaseLandSlot(x, y, signal = this.signal) {
+    return this.api
+      .post(
+        "https://europe-west6-telegram-apps-0.cloudfunctions.net/purchaseLandSlot",
+        {
+          data: {
+            x,
+            y,
+            username: this.getUsername(),
+            first_name: this.getUserFirstName(),
+          },
+        },
+        { signal }
+      )
+      .then((res) => res.data);
+  }
 
-    this.logUserInfo(user);
-    await this.executeTask("Mine", () => this.mine(user));
-    await this.executeTask("Lottery", () => this.lottery(user));
-    await this.executeTask("Spin", () => this.spin(user));
+  /** Claim Mining 30x Reward */
+  claimMining30xReward(signal = this.signal) {
+    return this.api
+      .post(
+        "https://europe-west6-telegram-apps-0.cloudfunctions.net/claimMining30xReward",
+        {
+          data: null,
+        },
+        { signal }
+      )
+      .then((res) => res.data);
   }
 
   async getAppData() {
@@ -220,10 +244,107 @@ export default class MuccaFarmer extends BaseFarmer {
     return { tickerData, muu, presaleUtils, coinPools };
   }
 
+  async getLandChunks() {
+    const result = await this.queryFirestore({
+      collection: "landChunks",
+      select: ["owners"],
+    });
+
+    const owners = result.reduce((data, doc) => {
+      const ownersFromDoc = Object.entries(
+        doc.fields.owners.mapValue.fields
+      ).map(([key, value]) => ({
+        x: Number(key.split("-")[0]),
+        y: Number(key.split("-")[1]),
+        owner: value.stringValue || value.integerValue,
+      }));
+
+      return data.concat(ownersFromDoc);
+    }, []);
+
+    /* Sort by x coordinate, then by y coordinate */
+    owners.sort((a, b) => {
+      if (a.x !== b.x) {
+        return a.x - b.x;
+      }
+      return a.y - b.y;
+    });
+
+    const availableSlots = [];
+
+    /* Find available slots in a 200x200 grid */
+    for (let x = 0; x < 200; x++) {
+      for (let y = 0; y < 200; y++) {
+        const isOwned = owners.find((owner) => owner.x === x && owner.y === y);
+
+        if (!isOwned) {
+          availableSlots.push({ x, y });
+        }
+      }
+    }
+
+    return { owners, availableSlots };
+  }
+
+  /** Process Farmer */
+  async process() {
+    const { user } = await this.getUser();
+
+    this.logUserInfo(user);
+    await this.executeTask("Mine", () => this.mine(user));
+    await this.executeTask("Lottery", () => this.lottery(user));
+    await this.executeTask("Spin", () => this.spin(user));
+    await this.executeTask("Buy Land Slot", () => this.buyLandSlot(user));
+  }
+
   logUserInfo(user) {
     this.logger.newline();
     this.logCurrentUser();
     this.logger.keyValue("Balance", user.balance);
+  }
+
+  async buyLandSlot(user) {
+    const LAND_SLOT_PRICE = 50;
+    let balance = user.balance || 0;
+    if (balance >= LAND_SLOT_PRICE) {
+      let { availableSlots } = await this.getLandChunks();
+      while (true) {
+        if (this.signal.aborted) {
+          this.logger.warn("Aborting land slot purchases due to signal abort.");
+          break;
+        }
+
+        if (availableSlots.length === 0) {
+          break;
+        }
+        if (balance < LAND_SLOT_PRICE) {
+          break;
+        }
+
+        const slotToBuy = this.utils.randomItem(availableSlots);
+        await this.purchaseLandSlot(slotToBuy.x, slotToBuy.y);
+        /* Deduct price from balance */
+        balance -= LAND_SLOT_PRICE;
+
+        this.logger.success(
+          `🏝️ Purchased (${slotToBuy.x}, ${slotToBuy.y}) BAL: ${balance.toFixed(
+            2
+          )}`
+        );
+
+        /* Remove purchased slot from available slots */
+        availableSlots = availableSlots.filter(
+          (slot) => slot.x !== slotToBuy.x || slot.y !== slotToBuy.y
+        );
+
+        /* Small delay to avoid rapid purchases */
+        await this.utils.delayForSeconds(1, { signal: this.signal });
+      }
+    } else {
+      this.logger.info(
+        `Insufficient balance to purchase land slot. Current balance: ${balance}`
+      );
+    }
   }
 
   async mine(user) {
