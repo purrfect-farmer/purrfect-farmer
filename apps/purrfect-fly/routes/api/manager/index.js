@@ -107,7 +107,7 @@ export default async function (fastify, opts) {
 
     /** Update Server */
     fastify.post("/update-server", async () => {
-      const scriptPath = path.resolve(fastify.app.basePath, "install.sh");
+      const scriptPath = path.resolve(fastify.app.basePath, "update.sh");
 
       return new Promise((resolve) => {
         const child = spawn("bash", [scriptPath], {
