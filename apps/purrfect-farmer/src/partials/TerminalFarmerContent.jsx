@@ -1,11 +1,11 @@
 import { Dialog } from "radix-ui";
 import FarmerHeader from "@/components/FarmerHeader";
-import useMirroredState from "@/hooks/useMirroredState";
 import useTerminalFarmer from "@/hooks/useTerminalFarmer";
 import { cn } from "@/lib/utils";
 import { HiOutlineWrenchScrewdriver, HiStop, HiPlay } from "react-icons/hi2";
 import { TerminalFarmerPrompt } from "./TerminalFarmerPrompt";
 import { TerminalFarmerTools } from "./TerminalFarmerTools";
+import useMirroredLocationToggle from "@/hooks/useMirroredLocationToggle";
 
 export const TerminalFarmerContent = () => {
   const {
@@ -19,7 +19,7 @@ export const TerminalFarmerContent = () => {
 
   /** Tools Panel State */
   const [showToolsPanel, setShowToolsPanel, dispatchAndSetShowToolsPanel] =
-    useMirroredState(`${context.id}.toggle-tools-panel`, false);
+    useMirroredLocationToggle(`${context.id}.toggle-tools-panel`, false);
 
   return (
     <>

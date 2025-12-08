@@ -12,6 +12,7 @@ import { useCallback } from "react";
 import { useMemo, useState } from "react";
 
 import CloudMemberDialog from "./CloudMemberDialog";
+import useLocationToggle from "@/hooks/useLocationToggle";
 
 const CLOUD_FARMERS = farmers.reduce((result, farmer) => {
   result.set(farmer.id, {
@@ -21,6 +22,17 @@ const CLOUD_FARMERS = farmers.reduce((result, farmer) => {
   });
   return result;
 }, new Map());
+
+const AccountDetailsDialog = ({ account, children }) => {
+  const [open, setOpen] = useLocationToggle(
+    `cloud-account-details:${account.id}`
+  );
+  return (
+    <Dialog.Root open={open} onOpenChange={setOpen}>
+      {children}
+    </Dialog.Root>
+  );
+};
 
 export default function CloudFarmers() {
   const [search, setSearch] = useState("");
@@ -120,7 +132,7 @@ export default function CloudFarmers() {
                         </h4>
                       ) : null}{" "}
                       {/* Details */}
-                      <Dialog.Root>
+                      <AccountDetailsDialog account={account}>
                         <Dialog.Trigger
                           className={cn(
                             "flex items-center min-w-0 min-h-0",
@@ -157,7 +169,7 @@ export default function CloudFarmers() {
                             icon: group.icon,
                           }}
                         />
-                      </Dialog.Root>
+                      </AccountDetailsDialog>
                       {/* Terminate Button */}
                       <button
                         title="Disconnect Farmer"
