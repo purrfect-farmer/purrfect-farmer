@@ -16,6 +16,10 @@ export function parseTelegramLink(url) {
     .split("/")
     .filter(Boolean); // Remove empty segments
 
+  const isTelegramHostname =
+    parsedUrl.hostname.toLowerCase() === "t.me" ||
+    parsedUrl.hostname.toLowerCase() === "telegram.me";
+
   const [entity = "", shortName = ""] = pathSegments;
 
   return {
@@ -26,6 +30,9 @@ export function parseTelegramLink(url) {
       parsedUrl.searchParams.get("start") ||
       parsedUrl.searchParams.get("startapp") ||
       "",
+    parsedUrl,
+    pathSegments,
+    isTelegramHostname,
   };
 }
 
@@ -100,13 +107,9 @@ export function isTelegramLink(link) {
   if (!link) return false;
 
   try {
-    const url = new URL(link);
+    const parsed = parseTelegramLink(link);
     // Check if hostname is t.me and has at least one path segment
-    return (
-      url.hostname.toLowerCase() === "t.me" &&
-      url.pathname.length > 1 && // More than just "/"
-      url.pathname !== "/"
-    );
+    return parsed.isTelegramHostname && parsed.entity !== "";
   } catch {
     return false;
   }
@@ -121,15 +124,26 @@ export function isTelegramLink(link) {
  * isBotURL("https://t.me/username?startapp=value") // true
  * isBotURL("https://t.me/channel") // false
  */
-export function isBotURL(url) {
+export function isBotURL(link) {
   try {
-    const parsedUrl = new URL(url);
-    const path = parsedUrl.pathname.toLowerCase();
+    const parsed = parseTelegramLink(link);
+
+    return parsed.entity.endsWith("bot") || parsed.startParam !== "";
+  } catch {
+    return false;
+  }
+}
+
+export function isBotMiniAppLink(link) {
+  if (!link) return false;
+
+  try {
+    const parsed = parseTelegramLink(link);
 
     return (
-      path.endsWith("bot") ||
-      parsedUrl.searchParams.has("startapp") ||
-      parsedUrl.searchParams.has("start")
+      parsed.isTelegramHostname &&
+      parsed.entity !== "" &&
+      parsed.shortName !== ""
     );
   } catch {
     return false;
@@ -152,15 +166,11 @@ export function isTelegramChatLink(link) {
   if (!link) return false;
 
   try {
-    const url = new URL(link);
-    const pathname = url.pathname.replace(/^\/|\/$/g, ""); // Remove leading/trailing slashes
-    const pathSegments = pathname.split("/").filter(Boolean); // Split and remove empty segments
-
-    // Must be t.me, have exactly one path segment, no query parameters, and not be a bot link
+    const parsed = parseTelegramLink(link);
     return (
-      url.hostname.toLowerCase() === "t.me" &&
-      pathSegments.length === 1 &&
-      url.search === "" && // No query parameters
+      parsed.isTelegramHostname &&
+      parsed.pathSegments.length === 1 &&
+      parsed.parsedUrl.search === "" && // No query parameters
       !isBotURL(link) // Ensure it's not a bot link
     );
   } catch {

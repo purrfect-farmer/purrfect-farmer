@@ -189,8 +189,10 @@ export default class BaseTelegramWebClient extends TelegramClient {
   /** Get Webview */
   getWebview(link) {
     return this.execute(async () => {
-      let webviewButton,
-        parsed = utils.parseTelegramLink(link);
+      let result = null;
+      let webviewButton = null;
+      let parsed = utils.parseTelegramLink(link);
+
       const themeParams = new Api.DataJSON({
         data: JSON.stringify({
           bg_color: "#ffffff",
@@ -201,8 +203,6 @@ export default class BaseTelegramWebClient extends TelegramClient {
           button_text_color: "#ffffff",
         }),
       });
-
-      let result = null;
 
       /** Start the Bot */
       if (!parsed.shortName) {
@@ -226,11 +226,14 @@ export default class BaseTelegramWebClient extends TelegramClient {
           return msg.buttonCount > 0;
         });
 
+        parsed = null;
+        webviewButton = null;
+
         for (const msg of messagesWithButtons) {
           const buttons = msg.buttons.flat().map((btn) => btn.button);
 
           for (const button of buttons) {
-            if (utils.isBotURL(button.url)) {
+            if (utils.isBotMiniAppLink(button.url)) {
               parsed = utils.parseTelegramLink(button.url);
               break;
             } else if (
@@ -262,7 +265,7 @@ export default class BaseTelegramWebClient extends TelegramClient {
                 themeParams,
               })
         );
-      } else {
+      } else if (parsed) {
         result = await this.invoke(
           !parsed.shortName
             ? new Api.messages.RequestMainWebView({
