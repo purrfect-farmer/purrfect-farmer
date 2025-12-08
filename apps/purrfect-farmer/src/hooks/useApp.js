@@ -1,11 +1,11 @@
 import { useCallback } from "react";
 
 import useCore from "./useCore";
-import useMirroredState from "./useMirroredState";
 import useMirroredTabs from "./useMirroredTabs";
 import useTelegramUser from "./useTelegramUser";
 import useValuesMemo from "./useValuesMemo";
 import useZoomies from "./useZoomies";
+import useMirroredLocationToggle from "./useMirroredLocationToggle";
 
 export default function useApp() {
   const core = useCore();
@@ -17,11 +17,11 @@ export default function useApp() {
     showAccountPicker,
     setShowAccountPicker,
     dispatchAndSetShowAccountPicker,
-  ] = useMirroredState("app.toggle-account-picker", false);
+  ] = useMirroredLocationToggle("app.toggle-account-picker", false);
 
   /** Utils Panel State */
   const [showUtilsPanel, setShowUtilsPanel, dispatchAndSetShowUtilsPanel] =
-    useMirroredState("app.toggle-utils-panel", false);
+    useMirroredLocationToggle("app.toggle-utils-panel", false);
 
   /** Utils Panel Tabs */
   const utilsPanelTabs = useMirroredTabs(

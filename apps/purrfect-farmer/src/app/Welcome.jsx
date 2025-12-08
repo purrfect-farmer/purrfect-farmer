@@ -18,7 +18,6 @@ import WelcomeIcon from "@/assets/images/icon-unwrapped-cropped.png?format=webp&
 import axios from "axios";
 import useAppContext from "@/hooks/useAppContext";
 import useAppQuery from "@/hooks/useAppQuery";
-import useMirroredState from "@/hooks/useMirroredState";
 import useMirroredTabs from "@/hooks/useMirroredTabs";
 import { CgSpinner } from "react-icons/cg";
 import { Dialog } from "radix-ui";
@@ -41,6 +40,8 @@ import { forwardRef, memo } from "react";
 import { useCallback } from "react";
 import { useEffect } from "react";
 import { useMemo } from "react";
+import useMirroredLocationToggle from "@/hooks/useMirroredLocationToggle";
+import useLocationToggle from "@/hooks/useLocationToggle";
 
 /** Telegram Web Button */
 const TelegramWebButton = memo(
@@ -69,10 +70,15 @@ export default memo(function Welcome() {
     showSettingsPanel,
     setShowSettingsPanel,
     dispatchAndSetShowSettingsPanel,
-  ] = useMirroredState("app.toggle-settings-panel", false);
+  ] = useMirroredLocationToggle("app.toggle-settings-panel", false);
 
   const [showLinksPanel, setShowLinksPanel, dispatchAndSetShowLinksPanel] =
-    useMirroredState("app.toggle-links-panel", false);
+    useMirroredLocationToggle("app.toggle-links-panel", false);
+
+  const [showShutdown, setShowShutdown] = useLocationToggle(
+    "app.toggle-shutdown"
+  );
+  const [showDonate, setShowDonate] = useLocationToggle("app.toggle-donate");
 
   const {
     account,
@@ -176,7 +182,7 @@ export default memo(function Welcome() {
           <div className="flex gap-1">
             {/* Shutdown */}
             {!import.meta.env.VITE_WHISKER ? (
-              <Dialog.Root>
+              <Dialog.Root open={showShutdown} onOpenChange={setShowShutdown}>
                 <Dialog.Trigger asChild>
                   <ToolbarButton
                     icon={HiOutlinePower}
@@ -477,7 +483,7 @@ export default memo(function Welcome() {
           {/* Connect */}
           <Connect />
           <div className="flex items-center justify-center gap-2 text-xs">
-            <Dialog.Root>
+            <Dialog.Root open={showDonate} onOpenChange={setShowDonate}>
               <Dialog.Trigger asChild>
                 <a
                   role="button"

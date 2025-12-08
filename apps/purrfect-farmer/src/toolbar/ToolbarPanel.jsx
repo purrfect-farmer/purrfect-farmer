@@ -11,6 +11,7 @@ import { useCallback } from "react";
 import { useRef } from "react";
 
 import AdvancePanel from "./AdvancePanel";
+import useMirroredLocationToggle from "@/hooks/useMirroredLocationToggle";
 
 const Wrapper = styled.div`
   position: fixed;
@@ -103,10 +104,8 @@ export default function ToolbarPanel() {
     false
   );
 
-  const [showAdvancePanel, , dispatchAndSetShowAdvancePanel] = useMirroredState(
-    "mini-app-toolbar:show-panel",
-    false
-  );
+  const [showAdvancePanel, , dispatchAndSetShowAdvancePanel] =
+    useMirroredLocationToggle("mini-app-toolbar:show-panel", false);
 
   /** Toggle FullScreen */
   const toggleFullScreen = useCallback(async function toggleFullScreen() {

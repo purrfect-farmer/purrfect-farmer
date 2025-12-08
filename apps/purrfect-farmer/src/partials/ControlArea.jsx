@@ -131,7 +131,7 @@ export default memo(function ControlArea() {
               className={cn(
                 "flex flex-col gap-2 p-2",
                 "text-white rounded-lg bg-neutral-900",
-                "w-[var(--radix-context-menu-content-available-width)]",
+                "w-[--(--radix-context-menu-content-available-width)]",
                 "max-w-48",
                 "z-50"
               )}

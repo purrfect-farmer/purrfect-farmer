@@ -6,6 +6,7 @@ import { createRoot } from "react-dom/client";
 import { setupChromeStorage } from "@/lib/chrome-storage.js";
 
 import Accounts from "./app/Accounts.jsx";
+import { BrowserRouter } from "react-router";
 
 setupChromeStorage().then(() => {
   import("@/lib/TelegramWebClient.js").then((module) => {
@@ -13,7 +14,9 @@ setupChromeStorage().then(() => {
 
     createRoot(document.getElementById("root")).render(
       <StrictMode>
-        <Accounts />
+        <BrowserRouter>
+          <Accounts />
+        </BrowserRouter>
       </StrictMode>
     );
   });
