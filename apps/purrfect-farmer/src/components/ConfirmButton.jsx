@@ -11,6 +11,7 @@ export default memo(function ConfirmButton(props) {
         "inline-flex gap-2 items-center justify-center",
         "px-4 rounded-lg shrink-0",
         "text-white bg-blue-500",
+        "disabled:opacity-50",
         props.className
       )}
     >

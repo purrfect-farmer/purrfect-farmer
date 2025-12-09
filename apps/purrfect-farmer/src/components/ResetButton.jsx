@@ -11,6 +11,7 @@ export default memo(function ResetButton(props) {
         "inline-flex items-center justify-center",
         "px-4 rounded-lg shrink-0",
         "bg-neutral-100 dark:bg-neutral-700",
+        "disabled:opacity-50",
         props.className
       )}
     >

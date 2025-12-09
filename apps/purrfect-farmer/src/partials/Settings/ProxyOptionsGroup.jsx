@@ -1,7 +1,12 @@
-import Input from "@/components/Input";
 import LabelToggle from "@/components/LabelToggle";
 import { memo } from "react";
-import { SettingsGroup, SettingsLabel } from "./SettingsComponents";
+import {
+  SettingsGroup,
+  SettingsInput,
+  SettingsLabel,
+} from "./SettingsComponents";
+
+const PROXY_DISABLED = Boolean(import.meta.env.VITE_WHISKER);
 
 export default memo(function ProxyOptionsGroup({
   sharedSettings,
@@ -11,7 +16,7 @@ export default memo(function ProxyOptionsGroup({
     <SettingsGroup id={"proxy"} title={"Proxy Options"}>
       {/* Enable Proxy */}
       <LabelToggle
-        disabled={Boolean(import.meta.env.VITE_WHISKER)}
+        disabled={PROXY_DISABLED}
         onChange={(ev) =>
           configureSharedSettings("proxyEnabled", ev.target.checked)
         }
@@ -26,42 +31,46 @@ export default memo(function ProxyOptionsGroup({
 
       {/* Proxy Host */}
       <SettingsLabel>Proxy Host</SettingsLabel>
-      <Input
-        disabled={Boolean(import.meta.env.VITE_WHISKER)}
-        value={sharedSettings.proxyHost}
-        onChange={(ev) => configureSharedSettings("proxyHost", ev.target.value)}
+      <SettingsInput
         placeholder="Proxy Host"
+        disabled={PROXY_DISABLED}
+        initialValue={sharedSettings?.proxyHost}
+        onConfirm={(proxyHost) =>
+          configureSharedSettings("proxyHost", proxyHost)
+        }
       />
 
       {/* Proxy Port */}
       <SettingsLabel>Proxy Port</SettingsLabel>
-      <Input
-        disabled={Boolean(import.meta.env.VITE_WHISKER)}
-        value={sharedSettings.proxyPort}
-        onChange={(ev) => configureSharedSettings("proxyPort", ev.target.value)}
+      <SettingsInput
         placeholder="Proxy Port"
+        disabled={PROXY_DISABLED}
+        initialValue={sharedSettings?.proxyPort}
+        onConfirm={(proxyPort) =>
+          configureSharedSettings("proxyPort", proxyPort)
+        }
       />
 
       {/* Proxy Username */}
       <SettingsLabel>Proxy Username</SettingsLabel>
-      <Input
-        disabled={Boolean(import.meta.env.VITE_WHISKER)}
-        value={sharedSettings.proxyUsername}
-        onChange={(ev) =>
-          configureSharedSettings("proxyUsername", ev.target.value)
-        }
+      <SettingsInput
         placeholder="Proxy Username"
+        disabled={PROXY_DISABLED}
+        initialValue={sharedSettings?.proxyUsername}
+        onConfirm={(proxyUsername) =>
+          configureSharedSettings("proxyUsername", proxyUsername)
+        }
       />
 
       {/* Proxy Password */}
       <SettingsLabel>Proxy Password</SettingsLabel>
-      <Input
-        disabled={Boolean(import.meta.env.VITE_WHISKER)}
-        value={sharedSettings.proxyPassword}
-        onChange={(ev) =>
-          configureSharedSettings("proxyPassword", ev.target.value)
-        }
+      <SettingsInput
         placeholder="Proxy Password"
+        disabled={PROXY_DISABLED}
+        initialValue={sharedSettings?.proxyPassword}
+        onConfirm={(proxyPassword) =>
+          configureSharedSettings("proxyPassword", proxyPassword)
+        }
       />
 
       {/* Share Cloud Proxy */}

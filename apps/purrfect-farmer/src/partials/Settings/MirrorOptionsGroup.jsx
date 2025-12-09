@@ -1,23 +1,17 @@
-import ConfirmButton from "@/components/ConfirmButton";
-import Input from "@/components/Input";
 import LabelToggle from "@/components/LabelToggle";
-import ResetButton from "@/components/ResetButton";
 import { memo } from "react";
-import { SettingsGroup, SettingsLabel } from "./SettingsComponents";
+import {
+  SettingsGroup,
+  SettingsInput,
+  SettingsLabel,
+} from "./SettingsComponents";
 
 export default memo(function MirrorOptionsGroup({
   sharedSettings,
-  mirrorServer,
-  setMirrorServer,
-  defaultMirrorServer,
-  handleSetMirrorServer,
-  farmersPerWindow,
-  setFarmersPerWindow,
+  defaultSharedSettings,
   dispatchAndSetFarmersPerWindow,
-  farmerPosition,
-  setFarmerPosition,
-  handleSetFarmerPosition,
   dispatchAndConfigureSharedSettings,
+  configureFarmerPosition,
 }) {
   return (
     <SettingsGroup id="mirror" title={"Mirror Options"}>
@@ -32,19 +26,14 @@ export default memo(function MirrorOptionsGroup({
 
       {/* Mirror Server */}
       <SettingsLabel>Mirror Server</SettingsLabel>
-      <div className="flex gap-2">
-        <Input
-          value={mirrorServer}
-          onChange={(ev) => setMirrorServer(ev.target.value)}
-          placeholder="Mirror Server"
-        />
-
-        {/* Reset Button */}
-        <ResetButton onClick={() => setMirrorServer(defaultMirrorServer)} />
-
-        {/* Set Button */}
-        <ConfirmButton onClick={handleSetMirrorServer} />
-      </div>
+      <SettingsInput
+        placeholder="Mirror Server"
+        defaultValue={defaultSharedSettings.mirrorServer}
+        initialValue={sharedSettings?.mirrorServer}
+        onConfirm={(mirrorServer) =>
+          dispatchAndConfigureSharedSettings("mirrorServer", mirrorServer)
+        }
+      />
 
       {!import.meta.env.VITE_WHISKER ? (
         <>
@@ -52,33 +41,27 @@ export default memo(function MirrorOptionsGroup({
           <label className="mt-4 text-neutral-400">
             Farmers Per Window (Min - 3)
           </label>
-          <div className="flex gap-2">
-            <Input
-              value={farmersPerWindow}
-              type="number"
-              onChange={(ev) => setFarmersPerWindow(ev.target.value)}
-              placeholder="Farmers Per Window"
-            />
-
-            {/* Set Button */}
-            <ConfirmButton
-              onClick={() => dispatchAndSetFarmersPerWindow(farmersPerWindow)}
-            />
-          </div>
+          <SettingsInput
+            type="number"
+            placeholder="Farmers Per Window"
+            defaultValue={defaultSharedSettings.farmersPerWindow}
+            initialValue={sharedSettings?.farmersPerWindow}
+            onConfirm={(farmersPerWindow) =>
+              dispatchAndSetFarmersPerWindow(farmersPerWindow)
+            }
+          />
 
           {/* (SHARED) Farmer Postion */}
           <SettingsLabel>Farmer Position</SettingsLabel>
-          <div className="flex gap-2">
-            <Input
-              value={farmerPosition}
-              type="number"
-              onChange={(ev) => setFarmerPosition(ev.target.value)}
-              placeholder="Farmer Position"
-            />
-
-            {/* Set Button */}
-            <ConfirmButton onClick={handleSetFarmerPosition} />
-          </div>
+          <SettingsInput
+            type="number"
+            placeholder="Farmer Position"
+            defaultValue={defaultSharedSettings.farmerPosition}
+            initialValue={sharedSettings?.farmerPosition}
+            onConfirm={(farmerPosition) =>
+              configureFarmerPosition(farmerPosition)
+            }
+          />
         </>
       ) : null}
     </SettingsGroup>

@@ -1,16 +1,14 @@
-import ConfirmButton from "@/components/ConfirmButton";
-import Input from "@/components/Input";
 import LabelToggle from "@/components/LabelToggle";
-import ResetButton from "@/components/ResetButton";
 import { memo } from "react";
-import { SettingsGroup, SettingsLabel } from "./SettingsComponents";
+import {
+  SettingsGroup,
+  SettingsInput,
+  SettingsLabel,
+} from "./SettingsComponents";
 
 export default memo(function CloudOptionsGroup({
   settings,
-  cloudServer,
-  setCloudServer,
-  defaultCloudServer,
-  handleSetCloudServer,
+  defaultSettings,
   dispatchAndConfigureSettings,
 }) {
   return (
@@ -30,19 +28,14 @@ export default memo(function CloudOptionsGroup({
 
       {/* Cloud Server */}
       <SettingsLabel>Cloud Server</SettingsLabel>
-      <div className="flex gap-2">
-        <Input
-          value={cloudServer}
-          onChange={(ev) => setCloudServer(ev.target.value)}
-          placeholder="Cloud Server"
-        />
-
-        {/* Reset Button */}
-        <ResetButton onClick={() => setCloudServer(defaultCloudServer)} />
-
-        {/* Set Button */}
-        <ConfirmButton onClick={handleSetCloudServer} />
-      </div>
+      <SettingsInput
+        placeholder="Cloud Server"
+        defaultValue={defaultSettings.cloudServer}
+        initialValue={settings?.cloudServer}
+        onConfirm={(cloudServer) =>
+          dispatchAndConfigureSettings("cloudServer", cloudServer)
+        }
+      />
     </SettingsGroup>
   );
 });

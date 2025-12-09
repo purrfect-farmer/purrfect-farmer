@@ -1,13 +1,12 @@
 import Tabs from "@/components/Tabs";
 import defaultSettings from "@/core/defaultSettings";
-import defaultSharedSettings from "@/core/defaultSharedSettings";
 import useAppContext from "@/hooks/useAppContext";
 import useMirroredCallback from "@/hooks/useMirroredCallback";
 import useMirroredState from "@/hooks/useMirroredState";
 import { CgSpinner } from "react-icons/cg";
 import { Dialog } from "radix-ui";
 import { cn, resizeFarmerWindow } from "@/lib/utils";
-import { memo, useCallback, useLayoutEffect, useState } from "react";
+import { memo, useCallback } from "react";
 
 import Seeker from "./Seeker";
 import BotOptionsGroup from "./Settings/BotOptionsGroup";
@@ -20,6 +19,7 @@ import ProxyOptionsGroup from "./Settings/ProxyOptionsGroup";
 import SeekerOptionsGroup from "./Settings/SeekerOptionsGroup";
 import SettingsActions from "./Settings/SettingsActions";
 import { SettingsContainer } from "./Settings/SettingsComponents";
+import defaultSharedSettings from "@/core/defaultSharedSettings";
 
 export default memo(function Settings({ tabs }) {
   const {
@@ -30,7 +30,6 @@ export default memo(function Settings({ tabs }) {
     telegramClient,
     settings,
     sharedSettings,
-    configureSettings,
     removeActiveAccount,
     configureSharedSettings,
     dispatchAndReloadApp,
@@ -42,73 +41,15 @@ export default memo(function Settings({ tabs }) {
     orderedDrops,
   } = useAppContext();
 
-  const {
-    mirrorServer: defaultMirrorServer,
-    farmersPerWindow: defaultFarmersPerWindow,
-    farmerPosition: defaultFarmerPosition,
-  } = defaultSharedSettings;
-
-  const {
-    mirrorServer: currentMirrorServer,
-    farmersPerWindow: currentFarmersPerWindow,
-    farmerPosition: currentFarmerPosition,
-  } = sharedSettings;
-
-  const { cloudServer: defaultCloudServer, seekerServer: defaultSeekerServer } =
-    defaultSettings;
-
-  const { cloudServer: currentCloudServer, seekerServer: currentSeekerServer } =
-    settings;
-
   const [settingsContainerValue, , dispatchAndSetSettingsContainerValue] =
     useMirroredState("settings-container", "farmer");
-
-  /** Mirror Server */
-  const [mirrorServer, setMirrorServer] = useState(
-    currentMirrorServer || defaultMirrorServer
-  );
-
-  /** Cloud Server */
-  const [cloudServer, setCloudServer] = useState(
-    currentCloudServer || defaultCloudServer
-  );
-
-  /** Seeker Server */
-  const [seekerServer, setSeekerServer] = useState(
-    currentSeekerServer || defaultSeekerServer
-  );
-
-  /**(SHARED) Farmers Per Window */
-  const [farmersPerWindow, setFarmersPerWindow] = useState(
-    currentFarmersPerWindow || defaultFarmersPerWindow
-  );
-
-  /** (SHARED) Farmer Position */
-  const [farmerPosition, setFarmerPosition] = useState(
-    currentFarmerPosition || defaultFarmerPosition
-  );
 
   /** Resize Page */
   const resizeSettingsPage = useCallback(async () => {
     await resizeFarmerWindow();
   }, []);
 
-  /** Handle Set Mirror Server */
-  const handleSetMirrorServer = useCallback(() => {
-    dispatchAndConfigureSharedSettings("mirrorServer", mirrorServer);
-  }, [mirrorServer, dispatchAndConfigureSharedSettings]);
-
-  /** Handle Set Cloud Server */
-  const handleSetCloudServer = useCallback(() => {
-    dispatchAndConfigureSettings("cloudServer", cloudServer);
-  }, [cloudServer, dispatchAndConfigureSettings]);
-
-  /** Handle Set Seeker Server */
-  const handleSetSeekerServer = useCallback(() => {
-    dispatchAndConfigureSettings("seekerServer", seekerServer);
-  }, [seekerServer, dispatchAndConfigureSettings]);
-
-  /** (SHARED) Set Farmers Per Window */
+  /** Set Farmers Per Window */
   const [, dispatchAndSetFarmersPerWindow] = useMirroredCallback(
     "shared-settings.farmers-per-window",
     (amount) => {
@@ -121,20 +62,25 @@ export default memo(function Settings({ tabs }) {
     [configureSharedSettings, resizeSettingsPage]
   );
 
-  /** (SHARED) Set Farmer Position */
-  const handleSetFarmerPosition = useCallback(() => {
-    configureSharedSettings(
-      "farmerPosition",
-      Math.max(1, Math.min(farmersPerWindow, Number(farmerPosition) || 1))
-    );
+  /** Set Farmer Position */
+  const configureFarmerPosition = useCallback(
+    (farmerPosition) => {
+      configureSharedSettings(
+        "farmerPosition",
+        Math.max(
+          1,
+          Math.min(sharedSettings.farmersPerWindow, Number(farmerPosition) || 1)
+        )
+      );
 
-    resizeSettingsPage();
-  }, [
-    resizeSettingsPage,
-    farmersPerWindow,
-    farmerPosition,
-    configureSharedSettings,
-  ]);
+      resizeSettingsPage();
+    },
+    [
+      resizeSettingsPage,
+      configureSharedSettings,
+      sharedSettings.farmersPerWindow,
+    ]
+  );
 
   /** Toggle Drop */
   const toggleDrop = useCallback(
@@ -146,33 +92,6 @@ export default memo(function Settings({ tabs }) {
     },
     [dropsStatus, dispatchAndConfigureSettings]
   );
-
-  /** Update Settings */
-  useLayoutEffect(() => {
-    /** Set Mirror Server */
-    setMirrorServer(currentMirrorServer || defaultMirrorServer);
-
-    /** Set Cloud Server */
-    setCloudServer(currentCloudServer || defaultCloudServer);
-
-    /** Set Seeker Server */
-    setSeekerServer(currentSeekerServer || defaultSeekerServer);
-
-    /** Set Farmers Per Window */
-    setFarmersPerWindow(currentFarmersPerWindow || defaultFarmersPerWindow);
-
-    /** Set Farmer Position */
-    setFarmerPosition(currentFarmerPosition || defaultFarmerPosition);
-  }, [
-    /** Deps */
-    settings,
-    sharedSettings,
-    setMirrorServer,
-    setCloudServer,
-    setSeekerServer,
-    setFarmersPerWindow,
-    setFarmerPosition,
-  ]);
 
   return (
     <Dialog.Portal>
@@ -249,25 +168,19 @@ export default memo(function Settings({ tabs }) {
 
                       <CloudOptionsGroup
                         settings={settings}
-                        cloudServer={cloudServer}
-                        setCloudServer={setCloudServer}
-                        defaultCloudServer={defaultCloudServer}
-                        handleSetCloudServer={handleSetCloudServer}
+                        defaultSettings={defaultSettings}
                         dispatchAndConfigureSettings={
                           dispatchAndConfigureSettings
                         }
                       />
 
                       <SeekerOptionsGroup
+                        tabs={tabs}
                         settings={settings}
-                        seekerServer={seekerServer}
-                        setSeekerServer={setSeekerServer}
-                        defaultSeekerServer={defaultSeekerServer}
-                        handleSetSeekerServer={handleSetSeekerServer}
+                        defaultSettings={defaultSettings}
                         dispatchAndConfigureSettings={
                           dispatchAndConfigureSettings
                         }
-                        tabs={tabs}
                       />
 
                       <ProxyOptionsGroup
@@ -284,18 +197,11 @@ export default memo(function Settings({ tabs }) {
 
                       <MirrorOptionsGroup
                         sharedSettings={sharedSettings}
-                        mirrorServer={mirrorServer}
-                        setMirrorServer={setMirrorServer}
-                        defaultMirrorServer={defaultMirrorServer}
-                        handleSetMirrorServer={handleSetMirrorServer}
-                        farmersPerWindow={farmersPerWindow}
-                        setFarmersPerWindow={setFarmersPerWindow}
+                        defaultSharedSettings={defaultSharedSettings}
+                        configureFarmerPosition={configureFarmerPosition}
                         dispatchAndSetFarmersPerWindow={
                           dispatchAndSetFarmersPerWindow
                         }
-                        farmerPosition={farmerPosition}
-                        setFarmerPosition={setFarmerPosition}
-                        handleSetFarmerPosition={handleSetFarmerPosition}
                         dispatchAndConfigureSharedSettings={
                           dispatchAndConfigureSharedSettings
                         }

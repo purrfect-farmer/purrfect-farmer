@@ -1,21 +1,19 @@
 import Alert from "@/components/Alert";
-import ConfirmButton from "@/components/ConfirmButton";
-import Input from "@/components/Input";
 import LabelToggle from "@/components/LabelToggle";
-import ResetButton from "@/components/ResetButton";
 import { cn } from "@/lib/utils";
 import { HiOutlineListBullet } from "react-icons/hi2";
 import { memo } from "react";
-import { SettingsGroup, SettingsLabel } from "./SettingsComponents";
+import {
+  SettingsGroup,
+  SettingsInput,
+  SettingsLabel,
+} from "./SettingsComponents";
 
 export default memo(function SeekerOptionsGroup({
-  settings,
-  seekerServer,
-  setSeekerServer,
-  defaultSeekerServer,
-  handleSetSeekerServer,
-  dispatchAndConfigureSettings,
   tabs,
+  settings,
+  defaultSettings,
+  dispatchAndConfigureSettings,
 }) {
   return (
     <SettingsGroup id={"seeker"} title={"Seeker Options"}>
@@ -55,19 +53,14 @@ export default memo(function SeekerOptionsGroup({
 
       {/* Seeker Server */}
       <SettingsLabel>Seeker Server</SettingsLabel>
-      <div className="flex gap-2">
-        <Input
-          value={seekerServer}
-          onChange={(ev) => setSeekerServer(ev.target.value)}
-          placeholder="Seeker Server"
-        />
-
-        {/* Reset Button */}
-        <ResetButton onClick={() => setSeekerServer(defaultSeekerServer)} />
-
-        {/* Set Button */}
-        <ConfirmButton onClick={handleSetSeekerServer} />
-      </div>
+      <SettingsInput
+        placeholder="Seeker Server"
+        defaultValue={defaultSettings.seekerServer}
+        initialValue={settings?.seekerServer}
+        onConfirm={(seekerServer) =>
+          dispatchAndConfigureSettings("seekerServer", seekerServer)
+        }
+      />
     </SettingsGroup>
   );
 });
