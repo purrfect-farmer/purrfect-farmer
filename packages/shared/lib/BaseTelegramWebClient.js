@@ -189,11 +189,6 @@ export default class BaseTelegramWebClient extends TelegramClient {
   /** Get Webview */
   getWebview(link) {
     return this.execute(async () => {
-      let parsed = utils.parseTelegramLink(link);
-      let miniApp = parsed;
-      let webviewButton = null;
-      let result = null;
-
       const themeParams = new Api.DataJSON({
         data: JSON.stringify({
           bg_color: "#ffffff",
@@ -205,8 +200,16 @@ export default class BaseTelegramWebClient extends TelegramClient {
         }),
       });
 
-      /** Start the Bot */
-      if (!parsed.shortName) {
+      let parsed = utils.parseTelegramLink(link);
+      let webviewButton = null;
+      let miniApp = null;
+      let result = null;
+
+      /** Set mini app */
+      if (parsed.shortName) {
+        miniApp = parsed;
+      } else {
+        /** Find Bot Chat */
         const dialogs = await this.getDialogs({});
         const botChat = dialogs.find(
           (d) =>
@@ -214,12 +217,14 @@ export default class BaseTelegramWebClient extends TelegramClient {
         );
 
         if (!botChat) {
+          /** Start Bot if no chat found */
           await this.startBot({
             entity: parsed.entity,
             startParam: parsed.startParam,
           });
         }
 
+        /** Fetch Messages with Buttons */
         const messages = await this.getMessages(parsed.entity, {
           limit: 20,
         });
@@ -227,17 +232,16 @@ export default class BaseTelegramWebClient extends TelegramClient {
           return msg.buttonCount > 0;
         });
 
-        miniApp = null;
-        webviewButton = null;
-
         for (const msg of messagesWithButtons) {
           const buttons = msg.buttons.flat().map((btn) => btn.button);
 
           for (const button of buttons) {
+            /** Mini App Link */
             if (utils.isBotMiniAppLink(button.url)) {
               miniApp = utils.parseTelegramLink(button.url);
               break;
             } else if (
+              /** Webview Button */
               button instanceof Api.KeyboardButtonWebView ||
               button instanceof Api.KeyboardButtonSimpleWebView
             ) {
@@ -267,25 +271,29 @@ export default class BaseTelegramWebClient extends TelegramClient {
               })
         );
       } else if (miniApp) {
+        /** Mini App Webview */
         result = await this.invoke(
-          !miniApp.shortName
-            ? new Api.messages.RequestMainWebView({
-                platform: "android",
-                bot: miniApp.entity,
-                peer: miniApp.entity,
-                startParam: miniApp.startParam,
-                themeParams,
-              })
-            : new Api.messages.RequestAppWebView({
-                platform: "android",
-                peer: miniApp.entity,
-                startParam: miniApp.startParam,
-                app: new Api.InputBotAppShortName({
-                  botId: await this.getInputEntity(miniApp.entity),
-                  shortName: miniApp.shortName,
-                }),
-                themeParams,
-              })
+          new Api.messages.RequestAppWebView({
+            platform: "android",
+            peer: miniApp.entity,
+            startParam: miniApp.startParam,
+            app: new Api.InputBotAppShortName({
+              botId: await this.getInputEntity(miniApp.entity),
+              shortName: miniApp.shortName,
+            }),
+            themeParams,
+          })
+        );
+      } else {
+        /** Main Webview */
+        result = await this.invoke(
+          new Api.messages.RequestMainWebView({
+            platform: "android",
+            bot: parsed.entity,
+            peer: parsed.entity,
+            startParam: parsed.startParam,
+            themeParams,
+          })
         );
       }
 
