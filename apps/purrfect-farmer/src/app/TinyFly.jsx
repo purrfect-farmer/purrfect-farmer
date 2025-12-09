@@ -166,7 +166,7 @@ function TinyFly() {
         const callback = async () => {
           if (controller.signal.aborted) return;
 
-          // Create Farmer Instance
+          /* Create Farmer Instance */
           const instance = createInstance({
             FarmerClass,
             logger,
@@ -178,27 +178,27 @@ function TinyFly() {
           await instance.run();
         };
 
-        // Register Task
+        /* Register Task */
         runner.register(
           FarmerClass.interval ?? "*/10 * * * *",
           callback,
           FarmerClass.title
         );
 
-        // Initial Log
+        /* Initial Log */
         logger.success(`> ${FarmerClass.title}`);
       });
 
-      // Cleanup on abort
+      /* Cleanup on abort */
       controller.signal.addEventListener("abort", () => {
         runner.stop();
       });
 
-      // Start Runner
+      /* Start Runner */
       runner.start();
       setStarted(true);
 
-      // Initial Instructions
+      /* Initial Instructions */
       logger.warn('> Click "Stop" to halt farming');
     },
     [drops, logger, stopTinyFly, setStarted]
