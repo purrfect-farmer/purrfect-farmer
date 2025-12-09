@@ -171,28 +171,12 @@ export default memo(function AccountPicker() {
         onOpenAutoFocus={(ev) => ev.preventDefault()}
       >
         <div className="flex flex-col p-4 gap-4 shrink-0">
-          <div className="flex flex-col">
-            <Dialog.Title className="text-lg font-bold text-center">
-              <span
-                className={cn(
-                  "text-transparent font-bold",
-                  "bg-clip-text",
-                  "bg-linear-to-r from-pink-500 to-violet-500"
-                )}
-              >
-                Accounts
-              </span>
+          <div className="flex flex-col text-center">
+            <Dialog.Title className="text-xl font-bold font-turret-road text-orange-500">
+              Accounts
             </Dialog.Title>
-            <Dialog.Description className="text-center">
-              <span
-                className={cn(
-                  "text-transparent font-bold",
-                  "bg-clip-text",
-                  "bg-linear-to-r from-green-500 to-blue-500"
-                )}
-              >
-                Switch Active Account
-              </span>
+            <Dialog.Description className="text-lime-500 font-bold">
+              Switch Active Account
             </Dialog.Description>
           </div>
 

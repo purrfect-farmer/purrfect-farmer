@@ -1,7 +1,7 @@
 import { Dialog } from "radix-ui";
 import useMirroredCallback from "@/hooks/useMirroredCallback";
 import { cn } from "@/lib/utils";
-import ButtomDialog from "@/components/ButtomDialog";
+import BottomDialog from "@/components/BottomDialog";
 
 export const TerminalFarmerTools = ({ context }) => {
   const [, dispatchAndExecuteTool] = useMirroredCallback(
@@ -16,7 +16,7 @@ export const TerminalFarmerTools = ({ context }) => {
   );
 
   return (
-    <ButtomDialog
+    <BottomDialog
       title={`${context.title} Tools`}
       description={`${context.title} Tools`}
       icon={context.icon}
@@ -44,6 +44,6 @@ export const TerminalFarmerTools = ({ context }) => {
           </div>
         )}
       </div>
-    </ButtomDialog>
+    </BottomDialog>
   );
 };

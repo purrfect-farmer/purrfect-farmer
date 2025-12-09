@@ -1,6 +1,6 @@
 import CoreSystemIcon from "@/assets/images/core-system.png?format=webp&w=128";
 import Input from "@/components/Input";
-import ButtomDialog from "@/components/ButtomDialog";
+import BottomDialog from "@/components/BottomDialog";
 import LabelToggle from "@/components/LabelToggle";
 import Tabs from "@/components/Tabs";
 import useAppContext from "@/hooks/useAppContext";
@@ -26,7 +26,7 @@ export default memo(function UtilsPanel() {
   const [telegramLink, setTelegramLink] = useState("");
 
   return (
-    <ButtomDialog
+    <BottomDialog
       title={import.meta.env.VITE_CORE_SYSTEM_NAME}
       description={"Core System Tools"}
       icon={CoreSystemIcon}
@@ -142,6 +142,6 @@ export default memo(function UtilsPanel() {
           ))}
         </Tabs.Content>
       </Tabs>
-    </ButtomDialog>
+    </BottomDialog>
   );
 });

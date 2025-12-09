@@ -22,6 +22,7 @@ import { useState } from "react";
 import TelegramLinkForm from "./TelegramLinkForm";
 import TelegramLogo from "../assets/images/telegram-logo.svg";
 import useLocationToggle from "@/hooks/useLocationToggle";
+import PrimaryButton from "@/components/PrimaryButton";
 
 /** Load Link Icon */
 const loadLinkIcon = function (src) {
@@ -58,6 +59,19 @@ const LinkContextItem = (props) => (
       "flex items-center gap-2 p-2",
       "rounded-lg cursor-pointer",
       "bg-neutral-800 hover:bg-blue-500",
+      props.className
+    )}
+  />
+);
+
+const LinkHeaderButton = (props) => (
+  <button
+    {...props}
+    className={cn(
+      "flex items-center justify-center w-10 h-10",
+      "rounded-lg shrink-0",
+      "bg-blue-100 text-blue-800",
+      "dark:bg-neutral-700 dark:text-blue-200",
       props.className
     )}
   />
@@ -181,7 +195,7 @@ export default memo(function FarmerLinks() {
       >
         <div className="flex items-center gap-2 shrink-0">
           {/* Toggle View */}
-          <button
+          <LinkHeaderButton
             title="Toggle View"
             onClick={() =>
               dispatchAndConfigureSettings(
@@ -190,49 +204,34 @@ export default memo(function FarmerLinks() {
                 false
               )
             }
-            className={cn(
-              "flex items-center justify-center w-10 h-10",
-              "rounded-lg shrink-0",
-              "bg-blue-100 dark:bg-blue-900",
-              "text-blue-800 dark:text-blue-100"
-            )}
           >
             {showAsGrid ? (
               <HiOutlineSquares2X2 className="w-4 h-4" />
             ) : (
               <HiOutlineListBullet className="w-4 h-4" />
             )}
-          </button>
+          </LinkHeaderButton>
 
           {/* Title */}
-          <Dialog.Title className="min-w-0 min-h-0 text-lg text-center grow">
-            <span
-              className={cn(
-                "text-transparent font-turret-road font-bold",
-                "bg-clip-text",
-                "bg-linear-to-r from-pink-500 to-violet-500"
-              )}
-            >
-              Telegram Links
-            </span>
+          <Dialog.Title
+            className={cn(
+              "grow min-w-0",
+              "text-xl font-bold font-turret-road text-orange-500 text-center"
+            )}
+          >
+            Telegram Links
           </Dialog.Title>
           <Dialog.Description className="sr-only">
             Farmer Telegram Links
           </Dialog.Description>
 
           {/* Add Link Button */}
-          <button
+          <LinkHeaderButton
             title="Add Telegram Link"
             onClick={() => createOrEditLink()}
-            className={cn(
-              "flex items-center justify-center w-10 h-10",
-              "rounded-lg shrink-0",
-              "bg-blue-100 dark:bg-blue-900",
-              "text-blue-800 dark:text-blue-100"
-            )}
           >
             <HiOutlinePlusCircle className="w-4 h-4" />
-          </button>
+          </LinkHeaderButton>
         </div>
 
         <div className="flex flex-col min-w-0 min-h-0 gap-2 overflow-auto grow overscroll-none">
@@ -366,16 +365,9 @@ export default memo(function FarmerLinks() {
               <div className="p-2 text-center text-neutral-400">
                 You haven't created any link.
               </div>
-              <button
-                onClick={() => createOrEditLink()}
-                className={cn(
-                  "bg-blue-100 dark:bg-blue-900",
-                  "text-blue-800 dark:text-blue-100",
-                  "p-2 rounded-lg"
-                )}
-              >
+              <PrimaryButton onClick={() => createOrEditLink()}>
                 Create Link
-              </button>
+              </PrimaryButton>
             </>
           )}
         </div>
@@ -399,18 +391,11 @@ export default memo(function FarmerLinks() {
               <Dialog.Title
                 className={cn(
                   "inline-flex items-center justify-center gap-2",
-                  "font-bold text-center"
+                  "text-purple-500 dark:text-purple-400",
+                  "font-bold text-center text-sm"
                 )}
               >
-                <span
-                  className={cn(
-                    "text-transparent font-bold",
-                    "bg-clip-text",
-                    "bg-linear-to-r from-pink-500 to-violet-500"
-                  )}
-                >
-                  {currentLink ? "Edit Link" : "Create Link"}
-                </span>
+                {currentLink ? "Edit Link" : "Create Link"}
               </Dialog.Title>
 
               {/* Description */}

@@ -107,28 +107,14 @@ export default memo(function Settings({ tabs }) {
         {settings ? (
           <>
             <div className="flex flex-col min-w-0 min-h-0 gap-2 p-4 overflow-auto grow">
-              <Dialog.Title className="text-lg font-bold text-center">
-                <span
-                  className={cn(
-                    "text-transparent font-bold",
-                    "bg-clip-text",
-                    "bg-linear-to-r from-pink-500 to-violet-500"
-                  )}
-                >
+              <div className="flex flex-col text-center">
+                <Dialog.Title className="text-xl font-bold font-turret-road text-orange-500">
                   Settings
-                </span>
-              </Dialog.Title>
-              <Dialog.Description className="text-center">
-                <span
-                  className={cn(
-                    "text-transparent font-bold",
-                    "bg-clip-text",
-                    "bg-linear-to-r from-green-500 to-blue-500"
-                  )}
-                >
+                </Dialog.Title>
+                <Dialog.Description className="text-lime-500 font-bold">
                   Configure the Farmer
-                </span>
-              </Dialog.Description>
+                </Dialog.Description>
+              </div>
 
               <Tabs
                 tabs={tabs}

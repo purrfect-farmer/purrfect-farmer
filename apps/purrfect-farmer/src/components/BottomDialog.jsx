@@ -27,16 +27,8 @@ export default function BottomDialog({
             </div>
 
             {/* Title */}
-            <Dialog.Title className="text-xl text-center">
-              <span
-                className={cn(
-                  "text-transparent font-turret-road font-bold",
-                  "bg-clip-text",
-                  "bg-linear-to-r from-green-500 to-blue-400"
-                )}
-              >
-                {title}
-              </span>
+            <Dialog.Title className="text-xl font-bold font-turret-road text-orange-500 text-center">
+              {title}
             </Dialog.Title>
 
             {/* Description */}
