@@ -29,6 +29,27 @@ export default class MuccaFarmer extends BaseFarmer {
     measurementId: "G-JY69NNZTRY",
   };
 
+  constructor() {
+    super();
+    this.enableLandsLimit = true;
+  }
+
+  createTools() {
+    return [
+      {
+        id: "remove-lands-limit",
+        title: "🏝️ Remove Lands Limit",
+        action: this.removeLandsLimit.bind(this),
+      },
+    ];
+  }
+
+  /** Remove Lands Limit for Current Session */
+  removeLandsLimit() {
+    this.enableLandsLimit = false;
+    this.logger.success("Lands limit removed for this session.");
+  }
+
   /** Get Referral Link */
   getReferralLink() {
     return `https://t.me/MuccaAppBot/Mucca?startapp=${this.getUserId()}`;
@@ -303,11 +324,16 @@ export default class MuccaFarmer extends BaseFarmer {
     this.logger.keyValue("Balance", user.balance);
   }
 
+  /** Buy Land Slot */
   async buyLandSlot(user) {
     const LAND_SLOT_PRICE = 50;
-    const PURCHASE_LIMIT = 1;
-    const PURCHASE_HOUR = 4 + Math.floor(this.getFixedRandomNumber() * 6); // Random hour between 4 and 9
-    const SKIP_PURCHASES = new Date().getHours() % PURCHASE_HOUR !== 0;
+    const PURCHASE_LIMIT = this.enableLandsLimit ? 1 : Infinity;
+    const PURCHASE_HOUR = this.enableLandsLimit
+      ? 8 + Math.floor(this.getFixedRandomNumber() * 6)
+      : 0;
+    const SKIP_PURCHASES = this.enableLandsLimit
+      ? new Date().getHours() % PURCHASE_HOUR !== 0
+      : false;
 
     /**
      * Check if purchases should be skipped
@@ -351,9 +377,6 @@ export default class MuccaFarmer extends BaseFarmer {
           (slot) => slot.x !== slotToBuy.x || slot.y !== slotToBuy.y
         );
 
-        /* Small delay to avoid rapid purchases */
-        await this.utils.delayForSeconds(1, { signal: this.signal });
-
         /* Increment purchased count */
         purchasedCount += 1;
 
@@ -361,6 +384,9 @@ export default class MuccaFarmer extends BaseFarmer {
         if (purchasedCount >= PURCHASE_LIMIT) {
           break;
         }
+
+        /* Small delay to avoid rapid purchases */
+        await this.utils.delayForSeconds(1, { signal: this.signal });
       }
     } else {
       this.logger.info(
