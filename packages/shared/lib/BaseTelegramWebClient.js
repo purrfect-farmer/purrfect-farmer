@@ -189,9 +189,10 @@ export default class BaseTelegramWebClient extends TelegramClient {
   /** Get Webview */
   getWebview(link) {
     return this.execute(async () => {
-      let result = null;
-      let webviewButton = null;
       let parsed = utils.parseTelegramLink(link);
+      let miniApp = parsed;
+      let webviewButton = null;
+      let result = null;
 
       const themeParams = new Api.DataJSON({
         data: JSON.stringify({
@@ -226,7 +227,7 @@ export default class BaseTelegramWebClient extends TelegramClient {
           return msg.buttonCount > 0;
         });
 
-        parsed = null;
+        miniApp = null;
         webviewButton = null;
 
         for (const msg of messagesWithButtons) {
@@ -234,7 +235,7 @@ export default class BaseTelegramWebClient extends TelegramClient {
 
           for (const button of buttons) {
             if (utils.isBotMiniAppLink(button.url)) {
-              parsed = utils.parseTelegramLink(button.url);
+              miniApp = utils.parseTelegramLink(button.url);
               break;
             } else if (
               button instanceof Api.KeyboardButtonWebView ||
@@ -265,23 +266,23 @@ export default class BaseTelegramWebClient extends TelegramClient {
                 themeParams,
               })
         );
-      } else if (parsed) {
+      } else if (miniApp) {
         result = await this.invoke(
-          !parsed.shortName
+          !miniApp.shortName
             ? new Api.messages.RequestMainWebView({
                 platform: "android",
-                bot: parsed.entity,
-                peer: parsed.entity,
-                startParam: parsed.startParam,
+                bot: miniApp.entity,
+                peer: miniApp.entity,
+                startParam: miniApp.startParam,
                 themeParams,
               })
             : new Api.messages.RequestAppWebView({
                 platform: "android",
-                peer: parsed.entity,
-                startParam: parsed.startParam,
+                peer: miniApp.entity,
+                startParam: miniApp.startParam,
                 app: new Api.InputBotAppShortName({
-                  botId: await this.getInputEntity(parsed.entity),
-                  shortName: parsed.shortName,
+                  botId: await this.getInputEntity(miniApp.entity),
+                  shortName: miniApp.shortName,
                 }),
                 themeParams,
               })
