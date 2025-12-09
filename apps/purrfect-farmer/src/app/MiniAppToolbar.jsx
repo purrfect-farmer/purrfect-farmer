@@ -8,10 +8,21 @@ import { setupChromeStorage } from "@/lib/chrome-storage";
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 
+/**
+ * Default Shared Settings
+ */
 const defaultSharedSettings = {
   showMiniAppToolbar: true,
 };
 
+/**
+ * Mini App Toolbar Component
+ * @param {object} param0
+ * @param {string} param0.host
+ * @param {string} param0.url
+ * @param {chrome.runtime.Port} param0.port
+ * @returns
+ */
 export default function MiniAppToolbar({ host, url, port }) {
   const mirror = usePortMirror(port);
   const { value: sharedSettings } = useSharedStorageState(
@@ -29,6 +40,12 @@ export default function MiniAppToolbar({ host, url, port }) {
   );
 }
 
+/**
+ * Render Mini App Toolbar
+ * @param {object} param0
+ * @param {HTMLElement} param0.container
+ * @param {object} param0.props
+ */
 export function renderMiniAppToolbar({ container, props } = {}) {
   setupChromeStorage().then(() =>
     createRoot(container || document.getElementById("root")).render(
