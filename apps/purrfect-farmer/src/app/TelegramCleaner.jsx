@@ -25,6 +25,12 @@ const ConversationIcon = ({ conversation }) => {
         isBig: false,
       })
     );
+
+    if (media.length === 0) {
+      setSrc(null);
+      return;
+    }
+
     const base64 = media.toString("base64");
     const src = `data:image/jpeg;base64,${base64}`;
 
