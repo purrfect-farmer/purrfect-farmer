@@ -6,6 +6,7 @@ import { HiOutlineWrenchScrewdriver, HiStop, HiPlay } from "react-icons/hi2";
 import { TerminalFarmerPrompt } from "./TerminalFarmerPrompt";
 import { TerminalFarmerTools } from "./TerminalFarmerTools";
 import useMirroredLocationToggle from "@/hooks/useMirroredLocationToggle";
+import Container from "@/components/Container";
 
 export const TerminalFarmerContent = () => {
   const {
@@ -34,7 +35,7 @@ export const TerminalFarmerContent = () => {
         <FarmerHeader referralLink={referralLink} />
       </div>
 
-      <div className="flex gap-2 items-center pr-11">
+      <Container className="flex gap-2 items-center p-0">
         {/* Tools Dialog */}
         <Dialog.Root
           open={showToolsPanel}
@@ -42,7 +43,7 @@ export const TerminalFarmerContent = () => {
         >
           <Dialog.Trigger
             className={cn(
-              "flex items-center justify-center gap-2 p-2",
+              "flex items-center justify-center gap-2 p-2 w-10 shrink-0",
               "hover:bg-neutral-100 dark:hover:bg-neutral-700",
               "text-blue-500"
             )}
@@ -67,14 +68,16 @@ export const TerminalFarmerContent = () => {
           )}
           {started ? "Stop" : "Start"}
         </button>
+
+        <span className="w-10" />
+      </Container>
+
+      <div className={cn("grow overflow-auto bg-black text-white")}>
+        <Container
+          ref={terminalRef}
+          className={cn("font-mono whitespace-pre-wrap wrap-break-word p-2")}
+        />
       </div>
-      <div
-        ref={terminalRef}
-        className={cn(
-          "grow overflow-auto bg-black text-white p-2",
-          "font-mono whitespace-pre-wrap wrap-break-word"
-        )}
-      />
     </>
   );
 };

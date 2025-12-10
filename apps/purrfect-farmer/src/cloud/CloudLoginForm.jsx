@@ -9,6 +9,7 @@ import { Controller, FormProvider, useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 
 import CloudServerDisplay from "./CloudServerDisplay";
+import Container from "@/components/Container";
 
 /** Schema */
 const schema = yup
@@ -59,7 +60,7 @@ export default function CloudLoginForm() {
   };
 
   return (
-    <div className="flex flex-col justify-center gap-2 p-4 grow">
+    <Container className="flex flex-col justify-center gap-2 p-4 grow">
       {/* Icon */}
       <img src={WelcomeIcon} className="mx-auto h-28" />
 
@@ -128,6 +129,6 @@ export default function CloudLoginForm() {
           </PrimaryButton>
         </form>
       </FormProvider>
-    </div>
+    </Container>
   );
 }

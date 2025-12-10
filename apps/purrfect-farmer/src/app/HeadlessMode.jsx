@@ -11,6 +11,8 @@ import userAgents from "@purrfect/shared/resources/userAgents";
 import TelegramWebClient from "@/lib/TelegramWebClient";
 import seedrandom from "seedrandom";
 import farmers from "@/core/farmers";
+import Container from "@/components/Container";
+import storage from "@/lib/storage";
 
 /** Headless Telegram Client */
 class HeadlessTelegramClient extends TelegramWebClient {
@@ -269,7 +271,12 @@ export default function HeadlessMode() {
   return (
     <div className="flex flex-col min-h-dvh">
       <div className="shrink-0 flex flex-col p-2">
-        <h2 className="font-bold flex items-center justify-center gap-2">
+        <h2
+          className={cn(
+            "font-bold flex items-center justify-center gap-2",
+            "font-turret-road"
+          )}
+        >
           <img src={AppIcon} alt="App Icon" className="size-6" />
           Headless Mode
         </h2>
@@ -278,17 +285,15 @@ export default function HeadlessMode() {
           onClick={() => dispatchAndStopHeadlessMode()}
           className={cn("p-2 text-red-500")}
         >
-          Stop Headless Mode
+          Stop
         </button>
       </div>
-      <div
-        ref={terminalRef}
-        className={cn(
-          "grow overflow-auto bg-black text-white p-2",
-          "font-mono whitespace-pre-wrap wrap-break-word",
-          "min-w-0 min-h-0"
-        )}
-      ></div>
+      <div className={cn("grow overflow-auto bg-black text-white")}>
+        <Container
+          ref={terminalRef}
+          className={cn("font-mono whitespace-pre-wrap wrap-break-word p-2")}
+        />
+      </div>
     </div>
   );
 }

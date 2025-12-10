@@ -6,6 +6,7 @@ import cryptoRandomString from "crypto-random-string";
 import useAppContext from "@/hooks/useAppContext";
 import { postPortMessage } from "@/lib/utils";
 import storage from "@/lib/storage";
+import Container from "@/components/Container";
 
 export default function WhiskersToFarmer() {
   const { messaging, setActiveTab, closeTab } = useAppContext();
@@ -139,7 +140,7 @@ export default function WhiskersToFarmer() {
   });
 
   return (
-    <div className="flex flex-col gap-4 grow p-4">
+    <Container className="flex flex-col gap-4 grow p-4">
       <Alert variant={"info"} className="text-center">
         You are about to restore all data of Whiskers to the Farmer. This
         includes accounts and Telegram Web data.
@@ -158,6 +159,6 @@ export default function WhiskersToFarmer() {
           </p>
         )}
       </div>
-    </div>
+    </Container>
   );
 }

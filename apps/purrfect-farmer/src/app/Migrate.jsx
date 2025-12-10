@@ -9,6 +9,7 @@ import useMirroredCallback from "@/hooks/useMirroredCallback";
 import { cn } from "@/lib/utils";
 import { kebabCase } from "change-case";
 import storage from "@/lib/storage";
+import Container from "@/components/Container";
 export default function Migrate() {
   const {
     account,
@@ -120,7 +121,7 @@ export default function Migrate() {
   );
 
   return (
-    <div
+    <Container
       className={cn(
         "flex flex-col justify-center min-w-0 min-h-0 gap-4 p-4 grow"
       )}
@@ -141,6 +142,6 @@ export default function Migrate() {
       <PrimaryButton onClick={() => dispatchAndMigrate()}>
         Migrate
       </PrimaryButton>
-    </div>
+    </Container>
   );
 }

@@ -7,6 +7,7 @@ import useAppContext from "@/hooks/useAppContext";
 import { cn } from "@/lib/utils";
 import { createTelegramClient } from "@/lib/createTelegramClient";
 import { useCallback } from "react";
+import Container from "@/components/Container";
 
 export default function LocalTelegramSession() {
   const {
@@ -70,11 +71,7 @@ export default function LocalTelegramSession() {
   );
 
   return (
-    <div
-      className={cn(
-        "flex flex-col justify-center min-w-0 min-h-0 gap-4 p-4 grow"
-      )}
-    >
+    <Container className={cn("flex flex-col justify-center gap-4 p-4 grow")}>
       <div className="flex flex-col gap-2 justify-center items-center">
         <img src={LocalTelegramSessionIcon} className="size-24" />
         <h1 className="font-turret-road text-center text-3xl text-orange-500">
@@ -102,6 +99,6 @@ export default function LocalTelegramSession() {
       ) : (
         <TelegramLogin mode="local" storeTelegramSession={handleLoginSuccess} />
       )}
-    </div>
+    </Container>
   );
 }

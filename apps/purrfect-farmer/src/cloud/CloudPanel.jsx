@@ -12,6 +12,7 @@ import { MdEditNote } from "react-icons/md";
 import CloudEnvUpdate from "./CloudEnvUpdate";
 import useLocationToggle from "@/hooks/useLocationToggle";
 import CloudAddressDisplay from "./CloudAddressDisplay";
+import Container from "@/components/Container";
 
 export default function CloudPanel() {
   const tabs = useMirroredTabs("cloud-panel", ["farmers", "members"]);
@@ -26,52 +27,56 @@ export default function CloudPanel() {
   return (
     <div className="flex flex-col grow">
       {/* Heading */}
-      <div className="p-2 border-b shrink-0 dark:border-neutral-700 flex items-center gap-2">
-        <Dialog.Root open={openEnvUpdate} onOpenChange={setOpenEnvUpdate}>
-          <Dialog.Trigger className="text-orange-500 size-8 flex items-center justify-center">
-            <MdEditNote className="size-5" />
-          </Dialog.Trigger>
+      <div className="border-b shrink-0 dark:border-neutral-700 flex">
+        <Container className="p-2 items-center gap-2">
+          <Dialog.Root open={openEnvUpdate} onOpenChange={setOpenEnvUpdate}>
+            <Dialog.Trigger className="text-orange-500 size-8 flex items-center justify-center">
+              <MdEditNote className="size-5" />
+            </Dialog.Trigger>
 
-          <CloudEnvUpdate />
-        </Dialog.Root>
+            <CloudEnvUpdate />
+          </Dialog.Root>
 
-        <h1 className="flex items-center justify-center gap-2 font-bold grow">
-          <img src={AppIcon} className="w-7 h-7" /> Purrfect Cloud
-        </h1>
+          <h1 className="flex items-center justify-center gap-2 font-bold grow">
+            <img src={AppIcon} className="w-7 h-7" /> Purrfect Cloud
+          </h1>
 
-        <Dialog.Root
-          open={openSubscriptionUpdate}
-          onOpenChange={setOpenSubscriptionUpdate}
-        >
-          <Dialog.Trigger className="text-orange-500 size-8 flex items-center justify-center">
-            <TbCalendarUser className="size-5" />
-          </Dialog.Trigger>
+          <Dialog.Root
+            open={openSubscriptionUpdate}
+            onOpenChange={setOpenSubscriptionUpdate}
+          >
+            <Dialog.Trigger className="text-orange-500 size-8 flex items-center justify-center">
+              <TbCalendarUser className="size-5" />
+            </Dialog.Trigger>
 
-          <CloudSubscriptionUpdate />
-        </Dialog.Root>
+            <CloudSubscriptionUpdate />
+          </Dialog.Root>
+        </Container>
       </div>
 
       {/* Content */}
-      <div className="flex flex-col min-w-0 min-h-0 gap-4 p-4 overflow-auto grow scrollbar-thin">
-        {/* Display Address */}
-        <CloudAddressDisplay />
+      <div className="scrollbar-thin min-w-0 min-h-0 overflow-auto grow">
+        <Container className="flex flex-col gap-4 p-4">
+          {/* Display Address */}
+          <CloudAddressDisplay />
 
-        {/* Display Server */}
-        <CloudServerDisplay />
+          {/* Display Server */}
+          <CloudServerDisplay />
 
-        {/* User Display */}
-        <CloudUserDisplay />
+          {/* User Display */}
+          <CloudUserDisplay />
 
-        {/* Tabs */}
-        <Tabs tabs={tabs}>
-          <Tabs.Content value="farmers">
-            <CloudFarmers />
-          </Tabs.Content>
+          {/* Tabs */}
+          <Tabs tabs={tabs}>
+            <Tabs.Content value="farmers">
+              <CloudFarmers />
+            </Tabs.Content>
 
-          <Tabs.Content value="members">
-            <CloudMembers />
-          </Tabs.Content>
-        </Tabs>
+            <Tabs.Content value="members">
+              <CloudMembers />
+            </Tabs.Content>
+          </Tabs>
+        </Container>
       </div>
     </div>
   );

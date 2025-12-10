@@ -10,6 +10,7 @@ import toast from "react-hot-toast";
 import useMirroredCallback from "@/hooks/useMirroredCallback";
 import Tabs from "@/components/Tabs";
 import useMirroredTabs from "@/hooks/useMirroredTabs";
+import Container from "@/components/Container";
 
 const TabContent = ({ title, children, ...props }) => (
   <Tabs.Content
@@ -138,28 +139,34 @@ export default function TelegramToPurrfectGram() {
   );
 
   return (
-    <Tabs tabs={tabs} rootClassName="grow">
-      <TabContent value="purrfect-gram" title={"Purrfect Gram"}>
-        <Alert variant={"warning"} className="text-center">
-          You are about to migrate all data from Telegram Web into Purrfect
-          Gram.
-        </Alert>
+    <Container className="flex flex-col gap-4 p-0 grow">
+      <Tabs tabs={tabs} rootClassName="grow">
+        <TabContent value="purrfect-gram" title={"Purrfect Gram"}>
+          <Alert variant={"warning"} className="text-center">
+            You are about to migrate all data from Telegram Web into Purrfect
+            Gram.
+          </Alert>
 
-        <PrimaryButton onClick={() => dispatchAndTransferData("purrfect-gram")}>
-          Transfer Now
-        </PrimaryButton>
-      </TabContent>
+          <PrimaryButton
+            onClick={() => dispatchAndTransferData("purrfect-gram")}
+          >
+            Transfer Now
+          </PrimaryButton>
+        </TabContent>
 
-      <TabContent value="telegram-web" title={"Telegram Web"}>
-        <Alert variant={"warning"} className="text-center">
-          You are about to migrate all data from Purrfect Gram into Telegram
-          Web.
-        </Alert>
+        <TabContent value="telegram-web" title={"Telegram Web"}>
+          <Alert variant={"warning"} className="text-center">
+            You are about to migrate all data from Purrfect Gram into Telegram
+            Web.
+          </Alert>
 
-        <PrimaryButton onClick={() => dispatchAndTransferData("telegram-web")}>
-          Transfer Now
-        </PrimaryButton>
-      </TabContent>
-    </Tabs>
+          <PrimaryButton
+            onClick={() => dispatchAndTransferData("telegram-web")}
+          >
+            Transfer Now
+          </PrimaryButton>
+        </TabContent>
+      </Tabs>
+    </Container>
   );
 }

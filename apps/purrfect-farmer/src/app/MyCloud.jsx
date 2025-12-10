@@ -15,6 +15,7 @@ import toast from "react-hot-toast";
 import useMyCloudDeactivateFarmerMutation from "@/hooks/useMyCloudDeactivateFarmerMutation";
 import CloudStatus from "@/partials/CloudStatus";
 import { useMemo } from "react";
+import Container from "@/components/Container";
 
 /* Map of Farmers */
 const farmersMap = farmers.reduce((result, farmer) => {
@@ -177,7 +178,7 @@ export default function MyCloud() {
   const enabled = settings.enableCloud && Boolean(auth);
 
   return (
-    <div className="p-4 flex flex-col gap-4">
+    <Container className="p-4 flex flex-col gap-4">
       {enabled ? (
         <>
           {/* Display Address */}
@@ -201,6 +202,6 @@ export default function MyCloud() {
           to access cloud services.
         </Alert>
       )}
-    </div>
+    </Container>
   );
 }

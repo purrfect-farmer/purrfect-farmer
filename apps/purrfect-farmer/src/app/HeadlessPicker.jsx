@@ -1,5 +1,6 @@
 import AppIcon from "@/assets/images/icon-unwrapped-cropped.png?format=webp&h=192";
 import Alert from "@/components/Alert";
+import Container from "@/components/Container";
 import LabelToggle from "@/components/LabelToggle";
 import PrimaryButton from "@/components/PrimaryButton";
 import farmers from "@/core/farmers";
@@ -43,7 +44,7 @@ function HeadlessPicker() {
   }, [dispatchAndStartHeadlessMode, availableFarmers, selectedFarmers]);
 
   return (
-    <div className="flex flex-col gap-2 p-4">
+    <Container className="flex flex-col gap-2 p-4">
       <div className="flex flex-col gap-2 justify-center items-center">
         <img src={AppIcon} className="h-24" />
         <h1 className="font-turret-road text-center text-2xl text-orange-500">
@@ -82,7 +83,7 @@ function HeadlessPicker() {
           </LabelToggle>
         );
       })}
-    </div>
+    </Container>
   );
 }
 

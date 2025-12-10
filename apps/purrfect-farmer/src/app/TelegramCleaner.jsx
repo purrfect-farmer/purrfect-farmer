@@ -9,6 +9,7 @@ import { useCallback } from "react";
 import { useEffect } from "react";
 import { useMemo } from "react";
 import { useState } from "react";
+import Container from "@/components/Container";
 
 const ConversationIcon = ({ conversation }) => {
   const { telegramClient } = useAppContext();
@@ -164,34 +165,36 @@ export default function TelegramCleaner() {
 
   if (farmerMode !== "session") {
     return (
-      <div className="p-4 text-center">
+      <Container className="p-4 text-center">
         <h2 className="text-2xl font-bold mb-4">Telegram Cleaner</h2>
         <p>
           Telegram Cleaner is only available in <strong>Session</strong> mode.
           Please switch to Session mode to access this feature.
         </p>
-      </div>
+      </Container>
     );
   }
 
   return (
-    <Tabs tabs={tabs} rootClassName="grow min-w-0 min-h-0 gap-0">
-      <div className="p-2 grow min-w-0 min-h-0 flex flex-col overflow-auto">
-        <Tabs.Content value="channels">
-          <ChatsCleaner
-            isPending={dialogs === null}
-            conversations={conversations}
-            onLeave={dispatchAndLeaveConversation}
-          />
-        </Tabs.Content>
+    <Tabs tabs={tabs} rootClassName="grow overflow-auto gap-0">
+      <div className="grow overflow-auto">
+        <Container className="flex flex-col p-2">
+          <Tabs.Content value="channels">
+            <ChatsCleaner
+              isPending={dialogs === null}
+              conversations={conversations}
+              onLeave={dispatchAndLeaveConversation}
+            />
+          </Tabs.Content>
 
-        <Tabs.Content value="bots">
-          <ChatsCleaner
-            isPending={dialogs === null}
-            conversations={bots}
-            onLeave={dispatchAndLeaveConversation}
-          />
-        </Tabs.Content>
+          <Tabs.Content value="bots">
+            <ChatsCleaner
+              isPending={dialogs === null}
+              conversations={bots}
+              onLeave={dispatchAndLeaveConversation}
+            />
+          </Tabs.Content>
+        </Container>
       </div>
     </Tabs>
   );

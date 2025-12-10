@@ -1,10 +1,14 @@
 import { cn } from "@/lib/utils";
+import { forwardRef } from "react";
 
-export default function Container(props) {
+const Container = forwardRef(function Container(props, ref) {
   return (
     <div
       {...props}
+      ref={ref}
       className={cn("w-full max-w-sm mx-auto p-4", props.className)}
     />
   );
-}
+});
+
+export default Container;

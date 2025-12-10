@@ -14,6 +14,7 @@ import { postPortMessage } from "@/lib/utils";
 import useMirroredState from "@/hooks/useMirroredState";
 import useMirroredCallback from "@/hooks/useMirroredCallback";
 import storage from "@/lib/storage";
+import Container from "./Container";
 
 export default function SpiderAccountsForm({ country, clearSelection }) {
   const {
@@ -265,7 +266,7 @@ export default function SpiderAccountsForm({ country, clearSelection }) {
   );
 
   return (
-    <>
+    <Container className="flex flex-col gap-2 p-0">
       {/* Country Information */}
       <h2 className="text-lg flex justify-center items-center gap-2 text-orange-500 font-bold">
         <span>{country.emoji}</span>
@@ -341,6 +342,6 @@ export default function SpiderAccountsForm({ country, clearSelection }) {
       {mutation.isPending && (
         <Progress current={progress} max={numberOfAccounts} />
       )}
-    </>
+    </Container>
   );
 }

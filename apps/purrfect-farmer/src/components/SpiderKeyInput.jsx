@@ -2,6 +2,7 @@ import { useState } from "react";
 import Input from "./Input";
 import useAppContext from "@/hooks/useAppContext";
 import { cn } from "@/lib/utils";
+import Container from "./Container";
 
 export default function SpiderKeyInput() {
   const { sharedSettings, dispatchAndConfigureSharedSettings } =
@@ -17,7 +18,7 @@ export default function SpiderKeyInput() {
   };
 
   return (
-    <>
+    <Container className="p-0">
       <div className="flex gap-2">
         <Input
           value={tempApiKey}
@@ -48,6 +49,6 @@ export default function SpiderKeyInput() {
         </a>
         .
       </p>
-    </>
+    </Container>
   );
 }

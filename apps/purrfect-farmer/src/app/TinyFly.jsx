@@ -14,6 +14,7 @@ import { useEffect } from "react";
 import { useState } from "react";
 import useMirroredCallback from "@/hooks/useMirroredCallback";
 import { useCallback } from "react";
+import Container from "@/components/Container";
 
 /**
  *
@@ -249,10 +250,12 @@ function TinyFly() {
         )}
         {started ? "Stop" : "Start"}
       </button>
-      <div
-        ref={terminalRef}
-        className="grow overflow-auto bg-black text-white p-2 font-mono whitespace-pre-wrap"
-      />
+      <div className={cn("grow overflow-auto bg-black text-white")}>
+        <Container
+          ref={terminalRef}
+          className={cn("font-mono whitespace-pre-wrap wrap-break-word p-2")}
+        />
+      </div>
     </>
   );
 }

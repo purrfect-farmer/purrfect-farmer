@@ -9,15 +9,10 @@ import { cn } from "@/lib/utils";
 import { formatDate } from "date-fns";
 import { useCallback } from "react";
 import { useDropzone } from "react-dropzone";
+import Container from "@/components/Container";
 
 const TabContent = ({ title, children, ...props }) => (
-  <Tabs.Content
-    {...props}
-    className={cn(
-      "flex flex-col justify-center min-w-0 min-h-0 gap-4 p-4 grow",
-      "overflow-auto"
-    )}
-  >
+  <Tabs.Content {...props} className={cn("flex flex-col gap-4")}>
     <div className="flex flex-col gap-2 justify-center items-center">
       <img src={AppIcon} className="size-24" />
       <h1 className="font-turret-road text-center text-3xl text-orange-500">
@@ -88,38 +83,43 @@ export default function BackupAndRestore() {
   });
 
   return (
-    <Tabs tabs={tabs} rootClassName="grow">
-      <TabContent value="backup" title={"Backup Data"}>
-        <Alert variant={"warning"} className="text-center">
-          You are about to backup all data of the extension. This includes
-          accounts and Telegram Web data.
-        </Alert>
+    <Tabs tabs={tabs} rootClassName="grow gap-0 overflow-auto">
+      <div className="flex flex-col grow overflow-auto">
+        <Container className="p-4 my-auto">
+          <TabContent value="backup" title={"Backup Data"}>
+            <Alert variant={"warning"} className="text-center">
+              You are about to backup all data of the extension. This includes
+              accounts and Telegram Web data.
+            </Alert>
 
-        <PrimaryButton onClick={() => backupAllData()}>
-          Backup Now
-        </PrimaryButton>
-      </TabContent>
+            <PrimaryButton onClick={() => backupAllData()}>
+              Backup Now
+            </PrimaryButton>
+          </TabContent>
 
-      <TabContent value="restore" title={"Restore Data"}>
-        <Alert variant={"warning"} className="text-center">
-          You are about to restore all data of the extension. This includes
-          accounts and Telegram Web data.
-        </Alert>
+          <TabContent value="restore" title={"Restore Data"}>
+            <Alert variant={"warning"} className="text-center">
+              You are about to restore all data of the extension. This includes
+              accounts and Telegram Web data.
+            </Alert>
 
-        <div
-          {...getRootProps()}
-          className="border border-dashed border-blue-500 px-4 py-10 text-center rounded-xl"
-        >
-          <input {...getInputProps()} />
-          {isDragActive ? (
-            <p>Drop the backup file here ...</p>
-          ) : (
-            <p>
-              Drag 'n' drop the backup file here, or click to select backup file
-            </p>
-          )}
-        </div>
-      </TabContent>
+            <div
+              {...getRootProps()}
+              className="border border-dashed border-blue-500 px-4 py-10 text-center rounded-xl"
+            >
+              <input {...getInputProps()} />
+              {isDragActive ? (
+                <p>Drop the backup file here ...</p>
+              ) : (
+                <p>
+                  Drag 'n' drop the backup file here, or click to select backup
+                  file
+                </p>
+              )}
+            </div>
+          </TabContent>
+        </Container>
+      </div>
     </Tabs>
   );
 }
