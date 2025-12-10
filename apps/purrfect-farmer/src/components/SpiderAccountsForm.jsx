@@ -44,18 +44,21 @@ export default function SpiderAccountsForm({ country, clearSelection }) {
             `port-connected:telegram-web-k`,
             async (port) => {
               /** Get Telegram Web Local Storage */
-              const localStorage = await postPortMessage(port, {
+              const currentLocalStorage = await postPortMessage(port, {
                 action: "get-local-storage",
               }).then((response) => response.data);
 
               /** Log Current Local Storage */
-              console.log("Current Telegram Web Local Storage:", localStorage);
+              console.log(
+                "Current Telegram Web Local Storage:",
+                currentLocalStorage
+              );
 
               /* Determine New Account Number */
               let maxAccount = 0;
 
               /* Find Max Account Number */
-              for (const key in localStorage) {
+              for (const key in currentLocalStorage) {
                 const match = key.match(/account(\d+)/);
                 if (match) {
                   const accountNumber = parseInt(match[1], 10);
@@ -70,7 +73,7 @@ export default function SpiderAccountsForm({ country, clearSelection }) {
 
               /** Updated Local Storage */
               const updatedLocalStorage = {
-                ...localStorage,
+                ...currentLocalStorage,
                 [`account${newAccountNumber}`]:
                   telegramWebLocalStorage["account1"],
               };

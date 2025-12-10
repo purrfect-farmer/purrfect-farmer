@@ -10,6 +10,7 @@ import WhiskersIcon from "@/assets/images/whiskers.png?format=webp&w=80";
 import TinyFlyIcon from "@/assets/images/fly.png?format=webp&w=80";
 import SpiderIcon from "@/assets/images/spider-logo.png?format=webp&w=80";
 import BackupAndRestoreIcon from "@/assets/images/backup-and-restore.png?format=webp&w=80";
+import ReorderTelegramWebIcon from "@/assets/images/reorder-telegram-web.png?format=webp&w=80";
 import TelegramToPurrfectGramIcon from "@/assets/images/telegram-to-purrfect-gram.png?format=webp&w=80";
 
 import { createElement } from "react";
@@ -27,6 +28,10 @@ export const BackupAndRestore = lazy(() => import("@/app/BackupAndRestore"));
 export const WhiskersToFarmer = lazy(() => import("@/app/WhiskersToFarmer"));
 export const TelegramToPurrfectGram = lazy(() =>
   import("@/app/TelegramToPurrfectGram")
+);
+
+export const ReorderTelegramWeb = lazy(() =>
+  import("@/app/ReorderTelegramWeb")
 );
 
 export const Spider = lazy(() => import("@/app/Spider"));
@@ -161,6 +166,14 @@ export const utils = [
         title: "Telegram to Purrfect Gram",
         icon: TelegramToPurrfectGramIcon,
         component: createElement(TelegramToPurrfectGram),
+      },
+
+      /** Reorder Telegram Web */
+      {
+        id: "reorder-telegram-web",
+        title: "Reorder Telegram Web",
+        icon: ReorderTelegramWebIcon,
+        component: createElement(ReorderTelegramWeb),
       },
 
       /** Whiskers to Farmer */

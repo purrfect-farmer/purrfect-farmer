@@ -329,6 +329,7 @@ if (TELEGRAM_WEB_HOSTS.includes(location.host)) {
         break;
 
       case "set-local-storage":
+        localStorage.clear();
         Object.entries(data).forEach(([k, v]) => localStorage.setItem(k, v));
         try {
           reply(true);
