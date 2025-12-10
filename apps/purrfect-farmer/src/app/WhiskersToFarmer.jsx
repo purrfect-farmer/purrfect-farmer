@@ -7,7 +7,7 @@ import useAppContext from "@/hooks/useAppContext";
 import { cn, postPortMessage } from "@/lib/utils";
 import storage from "@/lib/storage";
 import Container from "@/components/Container";
-import WhiskersIcon from "@/assets/images/whiskers.png?format=webp&w=192";
+import WhiskersIcon from "@/assets/images/whiskers.png?format=webp&w=256";
 
 export default function WhiskersToFarmer() {
   const { messaging, setActiveTab, closeTab } = useAppContext();
@@ -142,7 +142,7 @@ export default function WhiskersToFarmer() {
 
   return (
     <Container className="flex flex-col justify-center gap-4 p-4 grow">
-      <img src={WhiskersIcon} alt="Whiskers Icon" className="mx-auto size-20" />
+      <img src={WhiskersIcon} alt="Whiskers Icon" className="mx-auto size-32" />
 
       <Alert variant={"warning"} className="text-center">
         You are about to restore all data of Whiskers to the Farmer. This
