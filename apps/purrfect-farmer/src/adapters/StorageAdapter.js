@@ -1,5 +1,7 @@
 import EventEmitter from "events";
 import isEqual from "fast-deep-equal";
+import ChromeLocalStorage from "./ChromeLocalStorage";
+import BrowserLocalStorage from "./BrowserLocalStorage";
 
 export default class StorageAdapter {
   constructor() {
