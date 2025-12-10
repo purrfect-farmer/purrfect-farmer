@@ -484,7 +484,7 @@ export default memo(function Welcome() {
 
           {/* Connect */}
           <Connect />
-          <div className="flex items-center justify-center gap-2 text-xs">
+          <div className="flex flex-col items-center justify-center gap-2 text-xs">
             <Dialog.Root open={showDonate} onOpenChange={setShowDonate}>
               <Dialog.Trigger asChild>
                 <a
@@ -503,6 +503,14 @@ export default memo(function Welcome() {
               </Dialog.Trigger>
               <Donate />
             </Dialog.Root>
+
+            <a
+              className="underline text-orange-500 rounded-full"
+              target="_blank"
+              href={import.meta.env.VITE_APP_WEBSITE_URL}
+            >
+              &copy; {import.meta.env.VITE_APP_NAME}
+            </a>
           </div>
         </div>
       </div>
