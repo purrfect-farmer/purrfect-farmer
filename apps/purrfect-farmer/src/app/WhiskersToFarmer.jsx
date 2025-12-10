@@ -144,7 +144,7 @@ export default function WhiskersToFarmer() {
     <Container className="flex flex-col justify-center gap-4 p-4 grow">
       <img src={WhiskersIcon} alt="Whiskers Icon" className="mx-auto size-20" />
 
-      <Alert variant={"info"} className="text-center">
+      <Alert variant={"warning"} className="text-center">
         You are about to restore all data of Whiskers to the Farmer. This
         includes accounts and Telegram Web data.
       </Alert>
