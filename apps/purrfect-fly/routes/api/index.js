@@ -1,3 +1,24 @@
+const authSchema = {
+  body: {
+    type: "object",
+    required: ["auth"],
+    properties: {
+      auth: { type: "string" },
+    },
+  },
+};
+
+const farmerSchema = {
+  body: {
+    type: "object",
+    required: ["auth", "id"],
+    properties: {
+      auth: { type: "string" },
+      id: { type: "string" },
+    },
+  },
+};
+
 /**
  * @param {import("fastify").FastifyInstance} fastify
  * @param {object} opts
@@ -14,15 +35,7 @@ export default async function (fastify, opts) {
   fastify.post(
     "/subscription",
     {
-      schema: {
-        body: {
-          type: "object",
-          required: ["auth"],
-          properties: {
-            auth: { type: "string" },
-          },
-        },
-      },
+      schema: authSchema,
       preHandler: [fastify.validateWebAppData],
     },
     async function (request, reply) {
@@ -40,15 +53,7 @@ export default async function (fastify, opts) {
   fastify.post(
     "/session",
     {
-      schema: {
-        body: {
-          type: "object",
-          required: ["auth"],
-          properties: {
-            auth: { type: "string" },
-          },
-        },
-      },
+      schema: authSchema,
       preHandler: [fastify.validateWebAppData],
     },
     async function (request, reply) {
@@ -61,6 +66,56 @@ export default async function (fastify, opts) {
     }
   );
 
+  /** Get Farmers */
+  fastify.post(
+    "/farmers",
+    {
+      schema: authSchema,
+      preHandler: [fastify.validateWebAppData],
+    },
+    async function (request, reply) {
+      const { user } = request.auth;
+      const farmers = await fastify.db.Farmer.findAll({
+        where: { accountId: user.id },
+      });
+
+      return farmers;
+    }
+  );
+
+  /** Activate Farmer */
+  fastify.post(
+    "/farmers/activate",
+    {
+      schema: farmerSchema,
+      preHandler: [fastify.validateWebAppData],
+    },
+    async function (request, reply) {
+      const { user } = request.auth;
+      await fastify.db.Farmer.update(
+        { active: true },
+        {
+          where: { id: request.body.id, accountId: user.id },
+        }
+      );
+    }
+  );
+
+  /** Deactivate Farmer */
+  fastify.post(
+    "/farmers/deactivate",
+    {
+      schema: farmerSchema,
+      preHandler: [fastify.validateWebAppData],
+    },
+    async function (request, reply) {
+      const { user } = request.auth;
+      await fastify.db.Farmer.destroy({
+        where: { id: request.body.id, accountId: user.id },
+      });
+    }
+  );
+
   /** Sync */
   fastify.post(
     "/sync",
@@ -68,11 +123,10 @@ export default async function (fastify, opts) {
       schema: {
         body: {
           type: "object",
-          required: ["farmer", "title", "userId", "initData", "headers"],
+          required: ["farmer", "title", "initData", "headers", "cookies"],
           properties: {
             farmer: { type: "string" },
             title: { type: "string" },
-            userId: { type: "string" },
             initData: { type: "string" },
             headers: { type: "object" },
             cookies: { type: "array", items: { type: "object" } },
@@ -84,7 +138,7 @@ export default async function (fastify, opts) {
       const { user } = fastify.utils.getInitDataUnsafe(request.body.initData);
       const farmer = await fastify.db.Farmer.findWithActiveSubscription(
         request.body.farmer,
-        request.body.userId,
+        user.id,
         false
       );
 
@@ -103,7 +157,7 @@ export default async function (fastify, opts) {
         }
       } else {
         const account = await fastify.db.Account.findWithActiveSubscription(
-          request.body.userId
+          user.id
         );
 
         if (account) {

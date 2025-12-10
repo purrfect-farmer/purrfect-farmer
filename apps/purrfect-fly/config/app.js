@@ -34,6 +34,7 @@ export default {
     id: env("TELEGRAM_CHAT_ID", ""),
     threads: {
       announcement: env("TELEGRAM_ANNOUNCEMENT_THREAD_ID", ""),
+      farming: env("TELEGRAM_FARMING_THREAD_ID", ""),
       error: env("TELEGRAM_ERROR_THREAD_ID", ""),
     },
   },
