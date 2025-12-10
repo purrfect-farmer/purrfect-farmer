@@ -1,11 +1,18 @@
 import * as bcrypt from "bcryptjs";
 import * as dateFns from "date-fns";
 import fsp from "fs/promises";
-import { exec, spawn } from "child_process";
-import { promisify } from "util";
+import { spawn } from "child_process";
 import path from "path";
 
-const execAsync = promisify(exec);
+const farmerSchema = {
+  body: {
+    type: "object",
+    required: ["id"],
+    properties: {
+      id: { type: "string" },
+    },
+  },
+};
 
 /**
  * @param {import("fastify").FastifyInstance} fastify
@@ -179,20 +186,22 @@ export default async function (fastify, opts) {
       return accounts;
     });
 
+    /** Activate Farmer */
+    fastify.post(
+      "/farmers/activate",
+      { schema: farmerSchema },
+      async (request) => {
+        await fastify.db.Farmer.update(
+          { active: true },
+          { where: { id: request.body.id } }
+        );
+      }
+    );
+
     /** Disconnect Farmer */
     fastify.post(
       "/farmers/disconnect",
-      {
-        schema: {
-          body: {
-            type: "object",
-            required: ["id"],
-            properties: {
-              id: { type: "string" },
-            },
-          },
-        },
-      },
+      { schema: farmerSchema },
       async (request) => {
         await fastify.db.Farmer.destroy({
           where: { id: request.body.id },
