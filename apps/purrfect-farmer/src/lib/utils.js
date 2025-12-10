@@ -9,6 +9,7 @@ import { twMerge } from "tailwind-merge";
 
 import { uuid } from "./utils";
 import { sha256 } from "js-sha256";
+import storage from "./storage";
 
 export { md5, sha256 };
 
@@ -59,38 +60,17 @@ export function customLogger(...args) {
 /** Remove Account Storage */
 export async function removeAccountStorage(id) {
   /** Get all Keys */
-  const keys = await chrome.storage.local.getKeys();
+  const keys = Object.keys(await storage.getAll());
 
   /** Keys to Remove */
   const keysToRemove = keys.filter((item) => item.startsWith(`account-${id}:`));
 
   /** Remove Keys */
-  await chrome.storage.local.remove(keysToRemove);
-}
-
-export async function getChromeLocalStorage(key, defaultValue) {
-  if (typeof chrome?.storage?.local !== "undefined") {
-    const { [key]: value } = await chrome?.storage?.local.get({
-      [key]: defaultValue,
-    });
-    return value;
-  } else {
-    return defaultValue;
-  }
-}
-
-export async function setChromeLocalStorage(key, value) {
-  await chrome?.storage?.local.set({
-    [key]: value,
-  });
-}
-
-export async function removeChromeLocalStorage(key) {
-  await chrome?.storage?.local.remove(key);
+  await storage.remove(keysToRemove);
 }
 
 export async function getSharedSettings() {
-  const sharedSettings = await getChromeLocalStorage(
+  const sharedSettings = await storage.get(
     "shared:settings",
     defaultSharedSettings
   );
@@ -102,14 +82,14 @@ export async function getSharedSettings() {
 }
 
 export async function getUserAgent() {
-  return await getChromeLocalStorage(
+  return await storage.get(
     "shared:user-agent",
     userAgents[Math.floor(Math.random() * userAgents.length)]
   );
 }
 
 export async function storeUserAgent(value) {
-  return await setChromeLocalStorage("shared:user-agent", value);
+  return await storage.set("shared:user-agent", value);
 }
 
 export function isElementVisible(element) {

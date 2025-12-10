@@ -4,9 +4,9 @@ import usePortMirror from "@/hooks/usePortMirror";
 import SharedContext from "@/contexts/SharedContext";
 import useSharedStorageState from "@/hooks/useSharedStorageState";
 import { BrowserRouter } from "react-router";
-import { setupChromeStorage } from "@/lib/chrome-storage";
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
+import storage from "@/lib/storage";
 
 /**
  * Default Shared Settings
@@ -47,7 +47,7 @@ export default function MiniAppToolbar({ host, url, port }) {
  * @param {object} param0.props
  */
 export function renderMiniAppToolbar({ container, props } = {}) {
-  setupChromeStorage().then(() =>
+  storage.setup().then(() =>
     createRoot(container || document.getElementById("root")).render(
       <StrictMode>
         <BrowserRouter>

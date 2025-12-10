@@ -1,10 +1,10 @@
 import farmers from "@/core/farmers";
-import { setChromeLocalStorage } from "@/lib/utils";
+import storage from "@/lib/storage";
 import { useLayoutEffect } from "react";
 
 export default function useFarmerHosts() {
   useLayoutEffect(() => {
-    setChromeLocalStorage(
+    storage.set(
       "shared:hosts",
       farmers.map((item) => item.host).filter(Boolean)
     );

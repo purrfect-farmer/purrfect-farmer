@@ -1,6 +1,5 @@
 import AppIcon from "@/assets/images/icon.png?format=webp&w=80";
 import useSharedContext from "@/hooks/useSharedContext";
-import { storageCache } from "@/lib/chrome-storage";
 import { cn } from "@/lib/utils";
 import BrowserLogger from "@purrfect/shared/lib/BrowserLogger";
 import { useRef } from "react";
@@ -201,7 +200,7 @@ export default function HeadlessMode() {
     /** Get Available Accounts */
     const availableAccounts = accounts
       .map((account) => {
-        const localTelegramSession = storageCache.get(
+        const localTelegramSession = storage.get(
           `account-${account.id}:local-telegram-session`
         );
         return { ...account, localTelegramSession };

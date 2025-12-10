@@ -1,10 +1,4 @@
-import {
-  extractInitDataUnsafe,
-  getChromeLocalStorage,
-  postPortMessage,
-  removeChromeLocalStorage,
-  setChromeLocalStorage,
-} from "@/lib/utils";
+import { extractInitDataUnsafe, postPortMessage } from "@/lib/utils";
 import { isAfter, subMinutes } from "date-fns";
 import { useCallback, useMemo } from "react";
 import { useEffect } from "react";
@@ -13,6 +7,7 @@ import { useState } from "react";
 import useAppContext from "./useAppContext";
 import useChromeStorageKey from "./useChromeStorageKey";
 import useMessageHandlers from "./useMessageHandlers";
+import storage from "@/lib/storage";
 
 /**
  * TelegramWebApp Hook
@@ -41,7 +36,7 @@ export default function useTelegramWebApp({
 
   /** Reset TelegramWebApp */
   const resetTelegramWebApp = useCallback(async () => {
-    await removeChromeLocalStorage(webAppChromeStorageKey);
+    await storage.remove(webAppChromeStorageKey);
     await setTelegramWebApp(null);
     await setPort(null);
   }, [webAppChromeStorageKey, setTelegramWebApp, setPort]);
@@ -79,7 +74,7 @@ export default function useTelegramWebApp({
     }
     if (cacheTelegramWebApp && telegramWebApp !== null) {
       const { initData, platform, version } = telegramWebApp;
-      setChromeLocalStorage(webAppChromeStorageKey, {
+      storage.set(webAppChromeStorageKey, {
         initData,
         platform,
         version,
@@ -129,26 +124,26 @@ export default function useTelegramWebApp({
     if (cacheTelegramWebApp === false) {
       setWebAppFromSessionOrPort();
     } else {
-      getChromeLocalStorage(webAppChromeStorageKey, null).then((result) => {
-        if (result) {
-          const initDataUnsafe = extractInitDataUnsafe(result.initData);
+      const result = storage.get(webAppChromeStorageKey, null);
 
-          /** Ensure initData is recent */
-          if (
-            isAfter(
-              new Date(initDataUnsafe["auth_date"] * 1000),
-              subMinutes(new Date(), 10)
-            )
-          ) {
-            return setTelegramWebApp({
-              ...result,
-              initDataUnsafe,
-            });
-          }
+      if (result) {
+        const initDataUnsafe = extractInitDataUnsafe(result.initData);
+
+        /** Ensure initData is recent */
+        if (
+          isAfter(
+            new Date(initDataUnsafe["auth_date"] * 1000),
+            subMinutes(new Date(), 10)
+          )
+        ) {
+          return setTelegramWebApp({
+            ...result,
+            initDataUnsafe,
+          });
         }
+      }
 
-        return setWebAppFromSessionOrPort();
-      });
+      return setWebAppFromSessionOrPort();
     }
   }, [
     host,

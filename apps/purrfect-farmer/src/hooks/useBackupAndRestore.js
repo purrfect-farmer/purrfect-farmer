@@ -1,4 +1,5 @@
 import useAppContext from "@/hooks/useAppContext";
+import storage from "@/lib/storage";
 import { postPortMessage } from "@/lib/utils";
 import { useCallback } from "react";
 import { useMemo } from "react";
@@ -39,7 +40,7 @@ export default function useBackupAndRestore(app) {
             /** Close Telegram Web */
             closeTelegramWeb();
 
-            const chromeLocalStorage = await chrome.storage.local.get(null);
+            const chromeLocalStorage = await storage.getAll();
             const data = {
               version: __APP_PACKAGE_VERSION__,
               time: Date.now(),
@@ -82,7 +83,7 @@ export default function useBackupAndRestore(app) {
             closeTelegramWeb();
 
             /** Restore Chrome Local Storage */
-            await chrome.storage.local.set(data.chromeLocalStorage);
+            await storage.set(data.chromeLocalStorage);
 
             /** Resolve */
             resolve(true);

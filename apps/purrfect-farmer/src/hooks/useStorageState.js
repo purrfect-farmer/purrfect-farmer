@@ -1,31 +1,26 @@
-import {
-  removeStorageValue,
-  setStorageValue,
-  storageCache,
-  storageEmitter,
-} from "@/lib/chrome-storage";
 import { useCallback } from "react";
 import { useLayoutEffect } from "react";
 import { useState } from "react";
 
 import useChromeStorageKey from "./useChromeStorageKey";
 import useValuesMemo from "./useValuesMemo";
+import storage from "@/lib/storage";
 
 export default function useStorageState(key, defaultValue, shared = false) {
   const storageKey = useChromeStorageKey(key, shared);
   const [value, setValue] = useState(
-    () => storageCache.get(storageKey) || defaultValue
+    () => storage.get(storageKey) || defaultValue
   );
 
   /** Configure Value */
   const storeValue = useCallback(
-    (newValue) => setStorageValue(storageKey, newValue),
+    (newValue) => storage.set(storageKey, newValue),
     [storageKey]
   );
 
   /** Remove Value */
   const removeValue = useCallback(
-    () => removeStorageValue(storageKey),
+    () => storage.remove(storageKey),
     [storageKey]
   );
 
@@ -40,11 +35,11 @@ export default function useStorageState(key, defaultValue, shared = false) {
   /** Restore Value and Watch Storage */
   useLayoutEffect(() => {
     /** Listen for change */
-    storageEmitter.on(storageKey, watchStorage);
+    storage.on(storageKey, watchStorage);
 
     return () => {
       /** Remove Listener */
-      storageEmitter.off(storageKey, watchStorage);
+      storage.off(storageKey, watchStorage);
     };
   }, [
     /** Deps */

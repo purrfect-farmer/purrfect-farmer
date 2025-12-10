@@ -8,6 +8,7 @@ import useAppContext from "@/hooks/useAppContext";
 import useMirroredCallback from "@/hooks/useMirroredCallback";
 import { cn } from "@/lib/utils";
 import { kebabCase } from "change-case";
+import storage from "@/lib/storage";
 export default function Migrate() {
   const {
     account,
@@ -39,11 +40,11 @@ export default function Migrate() {
         };
 
         /** Retrieve Storage */
-        const storage = await chrome.storage.local.get(null);
+        const storageData = await storage.getAll();
 
         /** Get Old Items */
         const items = Object.fromEntries(
-          Object.entries(storage).filter(
+          Object.entries(storageData).filter(
             ([k]) => !/^shared:|account-[a-z\d]+:/.test(k)
           )
         );
@@ -101,8 +102,8 @@ export default function Migrate() {
         delete mapped[getUpdatedKey("telegramUser")];
         delete mapped[getUpdatedKey("telegramInitData")];
 
-        await chrome.storage.local.set(mapped);
-        await chrome.storage.local.remove(keysToRemove);
+        await storage.set(mapped);
+        await storage.remove(keysToRemove);
 
         await updateActiveAccount(newAccountData);
         await reloadApp(true);

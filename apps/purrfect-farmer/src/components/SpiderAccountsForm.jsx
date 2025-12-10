@@ -10,10 +10,10 @@ import toast from "react-hot-toast";
 import LabelToggle from "./LabelToggle";
 import useAppContext from "@/hooks/useAppContext";
 import cryptoRandomString from "crypto-random-string";
-import { setStorageValue } from "@/lib/chrome-storage";
 import { postPortMessage } from "@/lib/utils";
 import useMirroredState from "@/hooks/useMirroredState";
 import useMirroredCallback from "@/hooks/useMirroredCallback";
+import storage from "@/lib/storage";
 
 export default function SpiderAccountsForm({ country, clearSelection }) {
   const {
@@ -196,18 +196,15 @@ export default function SpiderAccountsForm({ country, clearSelection }) {
 
           /* Store Local Telegram Session if Enabled */
           if (enableLocalTelegramSession) {
-            await setStorageValue(
+            await storage.set(
               `account-${newPersistedAccount.id}:local-telegram-session`,
               localTelegramSession
             );
 
-            await setStorageValue(
-              `account-${newPersistedAccount.id}:settings`,
-              {
-                farmerMode: "session",
-                onboarded: true,
-              }
-            );
+            await storage.set(`account-${newPersistedAccount.id}:settings`, {
+              farmerMode: "session",
+              onboarded: true,
+            });
           }
 
           try {

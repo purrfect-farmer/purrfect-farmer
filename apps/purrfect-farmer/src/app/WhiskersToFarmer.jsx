@@ -5,6 +5,7 @@ import { useDropzone } from "react-dropzone";
 import cryptoRandomString from "crypto-random-string";
 import useAppContext from "@/hooks/useAppContext";
 import { postPortMessage } from "@/lib/utils";
+import storage from "@/lib/storage";
 
 export default function WhiskersToFarmer() {
   const { messaging, setActiveTab, closeTab } = useAppContext();
@@ -100,7 +101,7 @@ export default function WhiskersToFarmer() {
         };
 
         await restoreTelegramWebData(telegramWebNewStorage);
-        await chrome.storage.local.set(chromeNewStorage);
+        await storage.set(chromeNewStorage);
 
         resolve(true);
       }

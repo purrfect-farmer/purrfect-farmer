@@ -1,14 +1,10 @@
-import {
-  getChromeLocalStorage,
-  removeChromeLocalStorage,
-  setChromeLocalStorage,
-} from "@/lib/utils";
 import { useCallback } from "react";
 import { useLayoutEffect } from "react";
 import { useMemo } from "react";
 
 import useChromeStorageKey from "./useChromeStorageKey";
 import useStaticQuery from "./useStaticQuery";
+import storage from "@/lib/storage";
 
 export default function useDropFarmerAuth({
   id,
@@ -33,9 +29,9 @@ export default function useDropFarmerAuth({
   const authQueryFn = useCallback(
     () =>
       cacheAuth
-        ? getChromeLocalStorage(authChromeStorageKey, null).then(
-            (result) => result || instance.fetchAuth()
-          )
+        ? storage
+            .getItem(authChromeStorageKey, null)
+            .then((result) => result || instance.fetchAuth())
         : instance.fetchAuth(),
     [
       /** Deps */
@@ -58,7 +54,7 @@ export default function useDropFarmerAuth({
 
   /** Reset Auth Cache */
   const resetAuthCache = useCallback(
-    () => removeChromeLocalStorage(authChromeStorageKey),
+    () => storage.remove(authChromeStorageKey),
     [authChromeStorageKey]
   );
 
@@ -83,7 +79,7 @@ export default function useDropFarmerAuth({
   /** Save Auth Data in Storage */
   useLayoutEffect(() => {
     if (cacheAuth && authQuery.isSuccess) {
-      setChromeLocalStorage(authChromeStorageKey, authQuery.data);
+      storage.set(authChromeStorageKey, authQuery.data);
     }
   }, [cacheAuth, authChromeStorageKey, authQuery.isSuccess, authQuery.data]);
 
