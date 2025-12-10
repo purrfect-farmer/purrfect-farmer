@@ -7,13 +7,14 @@ import useCloudManagerDisconnectFarmerMutation from "@/hooks/useCloudManagerDisc
 import useCloudManagerFarmersQuery from "@/hooks/useCloudManagerFarmersQuery";
 import { Collapsible } from "radix-ui";
 import { Dialog } from "radix-ui";
-import { HiOutlineXMark } from "react-icons/hi2";
+import { HiOutlinePower, HiOutlineXMark } from "react-icons/hi2";
 import { cn, matchesAccountSearch } from "@/lib/utils";
 import { useCallback } from "react";
 import { useMemo, useState } from "react";
 
 import CloudMemberDialog from "./CloudMemberDialog";
 import useLocationToggle from "@/hooks/useLocationToggle";
+import useCloudManagerActivateFarmerMutation from "@/hooks/useCloudManagerActivateFarmerMutation";
 
 const CLOUD_FARMERS = farmers.reduce((result, farmer) => {
   result.set(farmer.id, {
@@ -37,6 +38,7 @@ const AccountDetailsDialog = ({ account, children }) => {
 
 export default function CloudFarmers() {
   const [search, setSearch] = useState("");
+  const activateFarmerMutation = useCloudManagerActivateFarmerMutation();
   const disconnectFarmerMutation = useCloudManagerDisconnectFarmerMutation();
   const farmersQuery = useCloudManagerFarmersQuery();
 
@@ -68,6 +70,19 @@ export default function CloudFarmers() {
   );
 
   console.log("Farmers Groups:", groups);
+
+  const activateFarmer = useCallback(
+    (id) => {
+      toast
+        .promise(activateFarmerMutation.mutateAsync(id), {
+          success: "Successfully activated",
+          loading: "Activating...",
+          error: "Error...",
+        })
+        .finally(farmersQuery.refetch);
+    },
+    [activateFarmerMutation.mutateAsync, farmersQuery.refetch]
+  );
 
   const disconnectFarmer = useCallback(
     (id) => {
@@ -171,13 +186,25 @@ export default function CloudFarmers() {
                           }}
                         />
                       </AccountDetailsDialog>
+                      {/* Activate Button */}
+                      <button
+                        title="Activate Farmer"
+                        onClick={() => activateFarmer(farmer.id)}
+                        className={cn(
+                          "bg-neutral-100 dark:bg-neutral-700",
+                          "text-green-500 dark:text-green-400",
+                          "px-3 rounded-lg shrink-0"
+                        )}
+                      >
+                        <HiOutlinePower className="w-5 h-5" />
+                      </button>
                       {/* Terminate Button */}
                       <button
                         title="Disconnect Farmer"
                         onClick={() => disconnectFarmer(farmer.id)}
                         className={cn(
-                          "text-red-600 bg-red-100",
-                          "dark:text-red-500 dark:bg-neutral-700",
+                          "bg-neutral-100 dark:bg-neutral-700",
+                          "text-red-500 dark:text-red-400",
                           "px-3 rounded-lg shrink-0"
                         )}
                       >
