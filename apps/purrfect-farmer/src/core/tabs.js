@@ -1,4 +1,5 @@
 import AppIcon from "@/assets/images/icon.png?format=webp&w=80";
+import MyCloudIcon from "@/assets/images/my-cloud.png?format=webp&w=80";
 import CloudIcon from "@/assets/images/cloud.png?format=webp&w=80";
 import CloudTelegramSessionIcon from "@/assets/images/cloud-telegram-session.png?format=webp&w=80";
 import LocalTelegramSessionIcon from "@/assets/images/local-telegram-session.png?format=webp&w=80";
@@ -138,7 +139,7 @@ export const utils = [
       {
         id: "my-cloud",
         title: "My Cloud",
-        icon: CloudIcon,
+        icon: MyCloudIcon,
         component: createElement(MyCloud),
       },
       /** Cloud Manager */
