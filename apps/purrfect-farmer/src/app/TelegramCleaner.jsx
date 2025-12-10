@@ -176,9 +176,9 @@ export default function TelegramCleaner() {
   }
 
   return (
-    <Tabs tabs={tabs} rootClassName="grow overflow-auto gap-0">
-      <div className="grow overflow-auto">
-        <Container className="flex flex-col p-2">
+    <Tabs tabs={tabs} rootClassName="grow overflow-auto">
+      <div className="grow overflow-auto p-2 pt-0">
+        <Container className="flex flex-col p-0">
           <Tabs.Content value="channels">
             <ChatsCleaner
               isPending={dialogs === null}

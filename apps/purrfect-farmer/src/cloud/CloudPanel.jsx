@@ -25,10 +25,10 @@ export default function CloudPanel() {
   );
 
   return (
-    <div className="flex flex-col grow">
+    <div className="flex flex-col grow overflow-auto">
       {/* Heading */}
-      <div className="border-b shrink-0 dark:border-neutral-700 flex">
-        <Container className="p-2 items-center gap-2">
+      <div className="border-b shrink-0 dark:border-neutral-700">
+        <Container className="flex items-center gap-2 p-2">
           <Dialog.Root open={openEnvUpdate} onOpenChange={setOpenEnvUpdate}>
             <Dialog.Trigger className="text-orange-500 size-8 flex items-center justify-center">
               <MdEditNote className="size-5" />

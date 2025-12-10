@@ -121,11 +121,7 @@ export default function Migrate() {
   );
 
   return (
-    <Container
-      className={cn(
-        "flex flex-col justify-center min-w-0 min-h-0 gap-4 p-4 grow"
-      )}
-    >
+    <Container className={cn("flex flex-col justify-center gap-4 p-4 grow")}>
       <div className="flex flex-col gap-2 justify-center items-center">
         <img src={AppIcon} className="size-24" />
         <h1 className="font-turret-road text-center text-3xl text-orange-500">

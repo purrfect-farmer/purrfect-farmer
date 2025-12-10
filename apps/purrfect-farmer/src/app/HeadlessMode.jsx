@@ -274,7 +274,7 @@ export default function HeadlessMode() {
         <h2
           className={cn(
             "font-bold flex items-center justify-center gap-2",
-            "font-turret-road"
+            "font-turret-road text-lg text-orange-500"
           )}
         >
           <img src={AppIcon} alt="App Icon" className="size-6" />

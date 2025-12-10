@@ -15,19 +15,18 @@ import Container from "@/components/Container";
 const TabContent = ({ title, children, ...props }) => (
   <Tabs.Content
     {...props}
-    className={cn(
-      "flex flex-col justify-center min-w-0 min-h-0 gap-4 p-4 grow",
-      "overflow-auto"
-    )}
+    className={cn("flex flex-col min-w-0 min-h-0 grow", "overflow-auto")}
   >
-    <div className="flex flex-col gap-2 justify-center items-center">
-      <img src={TelegramIcon} className="size-24" />
-      <h1 className="font-turret-road text-center text-2xl text-orange-500">
-        {title}
-      </h1>
-    </div>
+    <Container className="flex flex-col gap-4 p-4 my-auto">
+      <div className="flex flex-col gap-2 justify-center items-center">
+        <img src={TelegramIcon} className="size-24" />
+        <h1 className="font-turret-road text-center text-2xl text-orange-500">
+          {title}
+        </h1>
+      </div>
 
-    {children}
+      {children}
+    </Container>
   </Tabs.Content>
 );
 
@@ -139,34 +138,28 @@ export default function TelegramToPurrfectGram() {
   );
 
   return (
-    <Container className="flex flex-col gap-4 p-0 grow">
-      <Tabs tabs={tabs} rootClassName="grow">
-        <TabContent value="purrfect-gram" title={"Purrfect Gram"}>
-          <Alert variant={"warning"} className="text-center">
-            You are about to migrate all data from Telegram Web into Purrfect
-            Gram.
-          </Alert>
+    <Tabs tabs={tabs} rootClassName="grow overflow-auto">
+      <TabContent value="purrfect-gram" title={"Purrfect Gram"}>
+        <Alert variant={"warning"} className="text-center">
+          You are about to migrate all data from Telegram Web into Purrfect
+          Gram.
+        </Alert>
 
-          <PrimaryButton
-            onClick={() => dispatchAndTransferData("purrfect-gram")}
-          >
-            Transfer Now
-          </PrimaryButton>
-        </TabContent>
+        <PrimaryButton onClick={() => dispatchAndTransferData("purrfect-gram")}>
+          Transfer Now
+        </PrimaryButton>
+      </TabContent>
 
-        <TabContent value="telegram-web" title={"Telegram Web"}>
-          <Alert variant={"warning"} className="text-center">
-            You are about to migrate all data from Purrfect Gram into Telegram
-            Web.
-          </Alert>
+      <TabContent value="telegram-web" title={"Telegram Web"}>
+        <Alert variant={"warning"} className="text-center">
+          You are about to migrate all data from Purrfect Gram into Telegram
+          Web.
+        </Alert>
 
-          <PrimaryButton
-            onClick={() => dispatchAndTransferData("telegram-web")}
-          >
-            Transfer Now
-          </PrimaryButton>
-        </TabContent>
-      </Tabs>
-    </Container>
+        <PrimaryButton onClick={() => dispatchAndTransferData("telegram-web")}>
+          Transfer Now
+        </PrimaryButton>
+      </TabContent>
+    </Tabs>
   );
 }

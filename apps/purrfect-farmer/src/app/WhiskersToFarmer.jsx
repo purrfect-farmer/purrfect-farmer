@@ -4,9 +4,10 @@ import { useCallback } from "react";
 import { useDropzone } from "react-dropzone";
 import cryptoRandomString from "crypto-random-string";
 import useAppContext from "@/hooks/useAppContext";
-import { postPortMessage } from "@/lib/utils";
+import { cn, postPortMessage } from "@/lib/utils";
 import storage from "@/lib/storage";
 import Container from "@/components/Container";
+import WhiskersIcon from "@/assets/images/whiskers.png?format=webp&w=192";
 
 export default function WhiskersToFarmer() {
   const { messaging, setActiveTab, closeTab } = useAppContext();
@@ -140,7 +141,9 @@ export default function WhiskersToFarmer() {
   });
 
   return (
-    <Container className="flex flex-col gap-4 grow p-4">
+    <Container className="flex flex-col justify-center gap-4 p-4 grow">
+      <img src={WhiskersIcon} alt="Whiskers Icon" className="mx-auto size-20" />
+
       <Alert variant={"info"} className="text-center">
         You are about to restore all data of Whiskers to the Farmer. This
         includes accounts and Telegram Web data.
@@ -148,7 +151,11 @@ export default function WhiskersToFarmer() {
 
       <div
         {...getRootProps()}
-        className="border border-dashed border-blue-500 px-4 py-10 text-center rounded-xl"
+        className={cn(
+          "border border-dashed border-blue-500",
+          "px-4 py-10 w-full",
+          "text-center rounded-xl"
+        )}
       >
         <input {...getInputProps()} />
         {isDragActive ? (
