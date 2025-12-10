@@ -33,7 +33,7 @@ const FarmerAccount = ({ account }) => {
 
 function Accounts() {
   const shared = useSharedCore();
-  const { accounts, runningAccounts, headlessMode, sharedSettings } = shared;
+  const { instances, headlessMode, sharedSettings } = shared;
   const { theme } = sharedSettings;
 
   /** Use Net Rules */
@@ -53,12 +53,9 @@ function Accounts() {
       {headlessMode ? (
         <HeadlessMode />
       ) : (
-        accounts.map(
-          (account) =>
-            runningAccounts.includes(account.id) && (
-              <FarmerAccount key={account.id} account={account} />
-            )
-        )
+        instances.map((account) => (
+          <FarmerAccount key={account.id} account={account} />
+        ))
       )}
 
       {/* Toaster */}

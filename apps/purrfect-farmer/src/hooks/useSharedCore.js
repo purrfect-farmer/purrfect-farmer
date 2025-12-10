@@ -62,10 +62,10 @@ export default function useSharedCore() {
   );
 
   /** Active Account */
-  const [activeAccount, setActiveAccount] = useState(persistedAccounts[0].id);
+  const [active, setActive] = useState(persistedAccounts[0].id);
 
   /** Running Accounts */
-  const [runningAccounts, setRunningAccounts] = useState([activeAccount]);
+  const [running, setRunning] = useState([active]);
 
   /** Mapped Accounts */
   const accounts = useMemo(
@@ -80,38 +80,43 @@ export default function useSharedCore() {
           index,
           telegramInitDataUnsafe,
           user: telegramInitDataUnsafe?.["user"] || null,
-          active: item.id === activeAccount,
-          running: runningAccounts.includes(item.id),
+          active: item.id === active,
+          running: running.includes(item.id),
           persisted: item,
         };
       }),
-    [persistedAccounts, activeAccount, runningAccounts]
+    [persistedAccounts, active, running]
+  );
+
+  const instances = useMemo(
+    () => accounts.filter((account) => running.includes(account.id)),
+    [accounts, running]
   );
 
   /** Launch Account */
   const launchAccount = useCallback((id) => {
     /** Add to Running Accounts */
-    setRunningAccounts((prev) => (prev.includes(id) ? prev : [...prev, id]));
+    setRunning((prev) => (prev.includes(id) ? prev : [...prev, id]));
 
     /** Set Active Account */
-    setActiveAccount(id);
+    setActive(id);
   }, []);
 
   /** Close Account */
   const closeAccount = useCallback(
     (id) => {
-      if (runningAccounts.length > 1) {
+      if (running.length > 1) {
         /** If Closing Active Account, Set Another as Active */
-        if (id === activeAccount) {
-          const nextActive = runningAccounts.find((item) => item !== id);
-          setActiveAccount(nextActive);
+        if (id === active) {
+          const nextActive = running.find((item) => item !== id);
+          setActive(nextActive);
         }
 
         /** Remove from Running Accounts */
-        setRunningAccounts((prev) => prev.filter((item) => item !== id));
+        setRunning((prev) => prev.filter((item) => item !== id));
       }
     },
-    [activeAccount, runningAccounts, setActiveAccount, setRunningAccounts]
+    [active, running, setActive, setRunning]
   );
 
   /** Add Account */
@@ -130,12 +135,7 @@ export default function useSharedCore() {
 
     /** Launch Account */
     launchAccount(newPersistedAccount.id);
-  }, [
-    persistedAccounts,
-    storePersistedAccounts,
-    setActiveAccount,
-    launchAccount,
-  ]);
+  }, [persistedAccounts, storePersistedAccounts, setActive, launchAccount]);
 
   /** Update Account */
   const updateAccount = useCallback(
@@ -164,27 +164,25 @@ export default function useSharedCore() {
 
         /** Launch Another Account */
         launchAccount(updated[0].id);
-
-        /** Close Account */
-        closeAccount(id);
       }
     },
-    [persistedAccounts, storePersistedAccounts, launchAccount, closeAccount]
+    [persistedAccounts, storePersistedAccounts, launchAccount]
   );
 
   return useValuesMemo({
     mirror,
+    active,
     accounts,
-    activeAccount,
+    running,
+    instances,
     sharedSettings,
     persistedAccounts,
-    runningAccounts,
     addAccount,
     updateAccount,
     removeAccount,
     launchAccount,
     closeAccount,
-    setActiveAccount,
+    setActive,
     headlessMode,
     headlessFarmers,
     startHeadlessMode,
