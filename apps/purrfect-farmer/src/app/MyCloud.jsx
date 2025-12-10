@@ -1,13 +1,10 @@
 import CloudAddressDisplay from "@/cloud/CloudAddressDisplay";
-import CloudServerDisplay from "@/cloud/CloudServerDisplay";
 import Alert from "@/components/Alert";
 import farmers from "@/core/farmers";
 import useAppContext from "@/hooks/useAppContext";
-import useLocationToggle from "@/hooks/useLocationToggle";
 import useMyCloudFarmersQuery from "@/hooks/useMyCloudFarmersQuery";
 import { cn } from "@/lib/utils";
 import CloudSubscription from "@/partials/CloudSubscription";
-import { Dialog } from "radix-ui";
 import AppIcon from "@/assets/images/icon.png?format=webp&w=80";
 import useMirroredTabs from "@/hooks/useMirroredTabs";
 import Tabs from "@/components/Tabs";
@@ -16,8 +13,11 @@ import { useCallback } from "react";
 import useMyCloudActivateFarmerMutation from "@/hooks/useMyCloudActivateFarmerMutation";
 import toast from "react-hot-toast";
 import useMyCloudDeactivateFarmerMutation from "@/hooks/useMyCloudDeactivateFarmerMutation";
+import CloudStatus from "@/partials/CloudStatus";
+import { useMemo } from "react";
 
-const CLOUD_FARMERS = farmers.reduce((result, farmer) => {
+/* Map of Farmers */
+const farmersMap = farmers.reduce((result, farmer) => {
   result.set(farmer.id, {
     title: farmer.title,
     icon: farmer.icon,
@@ -26,17 +26,7 @@ const CLOUD_FARMERS = farmers.reduce((result, farmer) => {
   return result;
 }, new Map());
 
-const MyCloudFarmerDialog = ({ farmer, children }) => {
-  const [open, setOpen] = useLocationToggle(
-    `my-cloud-farmer-details:${farmer.id}`
-  );
-  return (
-    <Dialog.Root open={open} onOpenChange={setOpen}>
-      {children}
-    </Dialog.Root>
-  );
-};
-
+/* Action Button Component */
 const MyCloudActionButton = ({ variant, ...props }) => (
   <button
     {...props}
@@ -50,10 +40,48 @@ const MyCloudActionButton = ({ variant, ...props }) => (
   />
 );
 
+/* My Cloud Farmers Component */
 const MyCloudFarmers = () => {
+  const { launchInAppBrowser } = useAppContext();
   const farmersQuery = useMyCloudFarmersQuery();
   const activateFarmerMutation = useMyCloudActivateFarmerMutation();
   const deactivateFarmerMutation = useMyCloudDeactivateFarmerMutation();
+
+  /* Mapped Data */
+  const data = useMemo(
+    () =>
+      farmersQuery.data
+        ? farmersQuery.data.map((item) => {
+            const details = farmersMap.get(item.farmer);
+            return {
+              ...item,
+              title: details?.title || "(Unknown) Farmer",
+              icon: details?.icon || AppIcon,
+              FarmerClass: details?.FarmerClass || null,
+            };
+          })
+        : [],
+    [farmersQuery.data]
+  );
+
+  /* Launch Farmer */
+  const launchFarmer = useCallback(
+    (farmer) => {
+      if (!farmer.FarmerClass) {
+        toast.error(
+          "This farmer cannot be launched because it is not a valid farmer."
+        );
+      } else {
+        launchInAppBrowser({
+          id: `farmer-${farmer.id}`,
+          icon: farmer.icon,
+          title: farmer.title,
+          url: farmer.FarmerClass.getUrlFromInitData(farmer.initData),
+        });
+      }
+    },
+    [launchInAppBrowser]
+  );
 
   /* Activate Farmer */
   const activateFarmer = useCallback(
@@ -89,39 +117,34 @@ const MyCloudFarmers = () => {
     <p className="text-center text-red-500">Error...</p>
   ) : (
     <div className="flex flex-col gap-2">
-      {farmersQuery.data.map((farmer) => (
+      {data.map((farmer) => (
         <div key={farmer.id} className="flex gap-2">
-          <MyCloudFarmerDialog farmer={farmer}>
-            <Dialog.Trigger
+          <button
+            onClick={() => launchFarmer(farmer)}
+            className={cn(
+              "bg-neutral-100 dark:bg-neutral-700",
+              "flex items-center gap-2 p-2 text-left",
+              "grow min-w-0 cursor-pointer rounded-xl",
+              "border border-transparent",
+              "hover:border-blue-500"
+            )}
+          >
+            {/* Farmer Icon */}
+            <img src={farmer.icon} className="w-6 h-6 rounded-full shrink-0" />
+
+            {/* Farmer Title */}
+            <span className="font-bold grow">{farmer.title}</span>
+
+            {/* Active Status */}
+            <span
               className={cn(
-                "bg-neutral-100 dark:bg-neutral-700",
-                "flex items-center gap-2 p-2 text-left",
-                "grow min-w-0 cursor-pointer rounded-xl",
-                "border border-transparent",
-                "hover:border-blue-500"
+                "shrink-0 size-2 rounded-full",
+                "border-2 border-white",
+                farmer.active ? "bg-green-500" : "bg-red-500"
               )}
-            >
-              {/* Farmer Icon */}
-              <img
-                src={CLOUD_FARMERS.get(farmer.farmer)?.icon || AppIcon}
-                className="w-6 h-6 rounded-full shrink-0"
-              />
+            />
+          </button>
 
-              {/* Farmer Title */}
-              <span className="font-bold grow">
-                {CLOUD_FARMERS.get(farmer.farmer)?.title || "(Unknown) Farmer"}
-              </span>
-
-              {/* Active Status */}
-              <span
-                className={cn(
-                  "shrink-0 size-2 rounded-full",
-                  "border-2 border-white",
-                  farmer.active ? "bg-green-500" : "bg-red-500"
-                )}
-              />
-            </Dialog.Trigger>
-          </MyCloudFarmerDialog>
           {/* Activate Button */}
           <MyCloudActionButton
             variant={"activate"}
@@ -145,12 +168,13 @@ const MyCloudFarmers = () => {
   );
 };
 
+/* My Cloud Main Component */
 export default function MyCloud() {
   const { telegramUser, settings } = useAppContext();
-  const initData = telegramUser?.initData;
-  const enabled = settings.enableCloud && Boolean(initData);
-
   const tabs = useMirroredTabs("my-cloud", ["farmers"]);
+
+  const auth = telegramUser?.initData;
+  const enabled = settings.enableCloud && Boolean(auth);
 
   return (
     <div className="p-4 flex flex-col gap-4">
@@ -159,8 +183,8 @@ export default function MyCloud() {
           {/* Display Address */}
           <CloudAddressDisplay />
 
-          {/* Display Server */}
-          <CloudServerDisplay />
+          {/* Cloud Status */}
+          <CloudStatus />
 
           {/* Display Subscription */}
           <CloudSubscription />
