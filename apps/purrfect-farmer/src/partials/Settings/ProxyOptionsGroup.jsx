@@ -5,6 +5,7 @@ import {
   SettingsInput,
   SettingsLabel,
 } from "./SettingsComponents";
+import { HiOutlineMapPin } from "react-icons/hi2";
 
 const PROXY_DISABLED = Boolean(import.meta.env.VITE_WHISKER);
 
@@ -13,7 +14,11 @@ export default memo(function ProxyOptionsGroup({
   configureSharedSettings,
 }) {
   return (
-    <SettingsGroup id={"proxy"} title={"Proxy Options"}>
+    <SettingsGroup
+      id={"proxy"}
+      title={"Proxy Options"}
+      icon={<HiOutlineMapPin className="size-5" />}
+    >
       {/* Enable Proxy */}
       <LabelToggle
         disabled={PROXY_DISABLED}

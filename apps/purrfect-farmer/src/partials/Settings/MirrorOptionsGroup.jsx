@@ -5,6 +5,7 @@ import {
   SettingsInput,
   SettingsLabel,
 } from "./SettingsComponents";
+import { RiRemoteControlLine } from "react-icons/ri";
 
 export default memo(function MirrorOptionsGroup({
   sharedSettings,
@@ -14,7 +15,11 @@ export default memo(function MirrorOptionsGroup({
   configureFarmerPosition,
 }) {
   return (
-    <SettingsGroup id="mirror" title={"Mirror Options"}>
+    <SettingsGroup
+      id="mirror"
+      title={"Mirror Options"}
+      icon={<RiRemoteControlLine className="size-5" />}
+    >
       <LabelToggle
         onChange={(ev) =>
           dispatchAndConfigureSharedSettings("enableMirror", ev.target.checked)

@@ -5,6 +5,7 @@ import {
   SettingsInput,
   SettingsLabel,
 } from "./SettingsComponents";
+import { HiOutlineCloud } from "react-icons/hi2";
 
 export default memo(function CloudOptionsGroup({
   settings,
@@ -12,7 +13,11 @@ export default memo(function CloudOptionsGroup({
   dispatchAndConfigureSettings,
 }) {
   return (
-    <SettingsGroup id={"cloud"} title={"Cloud Options"}>
+    <SettingsGroup
+      id={"cloud"}
+      title={"Cloud Options"}
+      icon={<HiOutlineCloud className="size-5" />}
+    >
       {/* Cloud */}
       <LabelToggle
         onChange={(ev) =>

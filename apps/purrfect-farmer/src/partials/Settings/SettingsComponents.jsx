@@ -75,7 +75,7 @@ export const SettingsContainer = memo(({ children, value, onValueChange }) => {
   );
 });
 
-export const SettingsGroup = memo(({ id, title, children }) => {
+export const SettingsGroup = memo(({ id, title, icon, children }) => {
   return (
     <Accordion.Item value={id} className={cn("flex flex-col gap-2")}>
       <Accordion.Trigger
@@ -87,7 +87,9 @@ export const SettingsGroup = memo(({ id, title, children }) => {
           "group"
         )}
       >
-        <h4 className="min-w-0 min-h-0 grow font-bold ml-9">{title}</h4>
+        {icon}
+
+        <h4 className="min-w-0 min-h-0 grow font-bold">{title}</h4>
 
         <HiChevronRight
           className={cn("size-5", "group-data-[state=open]:-rotate-90")}

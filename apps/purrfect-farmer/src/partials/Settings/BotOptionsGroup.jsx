@@ -1,13 +1,17 @@
 import LabelToggle from "@/components/LabelToggle";
 import { memo } from "react";
 import { SettingsGroup } from "./SettingsComponents";
-
+import { RiRobot2Line } from "react-icons/ri";
 export default memo(function BotOptionsGroup({
   settings,
   dispatchAndConfigureSettings,
 }) {
   return (
-    <SettingsGroup id={"bot"} title={"Bot Options"}>
+    <SettingsGroup
+      id={"bot"}
+      title={"Bot Options"}
+      icon={<RiRobot2Line className="size-5" />}
+    >
       {/* Enable In-App Browser */}
       <LabelToggle
         onChange={(ev) =>

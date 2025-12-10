@@ -1,6 +1,7 @@
 import LabelToggle from "@/components/LabelToggle";
 import { memo } from "react";
 import { SettingsGroup } from "./SettingsComponents";
+import { FaLaptop } from "react-icons/fa6";
 
 export default memo(function PCOptionsGroup({
   sharedSettings,
@@ -9,7 +10,11 @@ export default memo(function PCOptionsGroup({
   if (import.meta.env.VITE_WHISKER) return null;
 
   return (
-    <SettingsGroup id="pc" title="PC Options">
+    <SettingsGroup
+      id="pc"
+      title="PC Options"
+      icon={<FaLaptop className="size-5" />}
+    >
       {/* Open Farmer in new Window */}
       <LabelToggle
         onChange={(ev) =>

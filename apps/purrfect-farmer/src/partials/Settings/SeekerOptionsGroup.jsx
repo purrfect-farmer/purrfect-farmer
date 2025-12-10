@@ -16,7 +16,11 @@ export default memo(function SeekerOptionsGroup({
   dispatchAndConfigureSettings,
 }) {
   return (
-    <SettingsGroup id={"seeker"} title={"Seeker Options"}>
+    <SettingsGroup
+      id={"seeker"}
+      title={"Seeker Options"}
+      icon={<HiOutlineListBullet className="size-5" />}
+    >
       <Alert variant={"info"}>
         Enable Seeker to update your Cloud Server Address automatically.
       </Alert>

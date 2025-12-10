@@ -2,7 +2,11 @@ import Input from "@/components/Input";
 import LabelToggle from "@/components/LabelToggle";
 import TelegramWebAIcon from "@/assets/images/telegram-web-a.png?format=webp&w=80";
 import TelegramWebKIcon from "@/assets/images/telegram-web-k.png?format=webp&w=80";
-import { HiBolt, HiOutlineGlobeAlt } from "react-icons/hi2";
+import {
+  HiBolt,
+  HiOutlineGlobeAlt,
+  HiOutlineSquares2X2,
+} from "react-icons/hi2";
 import { cn } from "@/lib/utils";
 import { memo } from "react";
 import {
@@ -22,7 +26,11 @@ export default memo(function FarmerOptionsGroup({
   dispatchAndConfigureSharedSettings,
 }) {
   return (
-    <SettingsGroup id={"farmer"} title={"Farmer Options"}>
+    <SettingsGroup
+      id={"farmer"}
+      title={"Farmer Options"}
+      icon={<HiOutlineSquares2X2 className="size-5" />}
+    >
       {/* Farmer Title */}
       <SettingsLabel>Farmer Title</SettingsLabel>
       <Input
