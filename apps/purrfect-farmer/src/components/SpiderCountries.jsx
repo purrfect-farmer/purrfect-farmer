@@ -10,7 +10,7 @@ export default function SpiderCountries({
 }) {
   return (
     <div className="flex flex-col gap-2 grow min-w-0 min-h-0">
-      <Container className="p-0 flex flex-col gap-2">
+      <Container className="flex flex-col gap-2 p-0 px-2">
         <h2 className="col-span-full font-bold text-center">All Countries</h2>
         <Input
           type="search"
@@ -20,8 +20,8 @@ export default function SpiderCountries({
           className="shrink-0"
         />
       </Container>
-      <div className="grow overflow-auto px-2 -mx-2">
-        <Container className="p-0 flex flex-col gap-2">
+      <div className="grow overflow-auto">
+        <Container className="flex flex-col gap-2 p-0 px-2">
           {filteredCountries.map((item, index) => (
             <button
               key={index}

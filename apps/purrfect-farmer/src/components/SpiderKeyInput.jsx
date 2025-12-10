@@ -18,7 +18,7 @@ export default function SpiderKeyInput() {
   };
 
   return (
-    <Container className="p-0">
+    <Container className="flex flex-col gap-2 p-0 px-2">
       <div className="flex gap-2">
         <Input
           value={tempApiKey}

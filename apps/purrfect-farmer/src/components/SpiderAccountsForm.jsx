@@ -266,7 +266,7 @@ export default function SpiderAccountsForm({ country, clearSelection }) {
   );
 
   return (
-    <Container className="flex flex-col gap-2 p-0">
+    <Container className="flex flex-col gap-2 p-0 px-2">
       {/* Country Information */}
       <h2 className="text-lg flex justify-center items-center gap-2 text-orange-500 font-bold">
         <span>{country.emoji}</span>
