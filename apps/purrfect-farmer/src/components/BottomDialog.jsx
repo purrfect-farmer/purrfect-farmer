@@ -1,5 +1,6 @@
 import { cn } from "@/lib/utils";
 import { Dialog } from "radix-ui";
+import Container from "./Container";
 
 function BottomDialogContainer(props) {
   return (
@@ -9,7 +10,7 @@ function BottomDialogContainer(props) {
         {...props}
         className={cn(
           "bg-white dark:bg-neutral-800",
-          "fixed z-50 inset-x-0 bottom-0 flex flex-col h-5/6 rounded-t-xl",
+          "fixed z-50 inset-x-0 bottom-0 h-5/6 rounded-t-xl",
           "flex flex-col",
           props.className
         )}
@@ -28,32 +29,34 @@ function BottomDialog({
   return (
     <BottomDialogContainer onOpenAutoFocus={(ev) => ev.preventDefault()}>
       <>
-        <div className="flex flex-col min-w-0 min-h-0 gap-2 p-4 overflow-auto grow">
-          <div className="flex relative">
-            {/* Icon */}
-            <img src={icon} className="w-10 mx-auto rounded-full" />
-          </div>
+        <div className=" min-w-0 min-h-0 overflow-auto grow">
+          <Container className="flex flex-col gap-2 p-4 pb-0">
+            <div className="flex relative">
+              {/* Icon */}
+              <img src={icon} className="w-10 mx-auto rounded-full" />
+            </div>
 
-          {/* Title */}
-          <Dialog.Title className="text-xl font-bold font-turret-road text-orange-500 text-center">
-            {title}
-          </Dialog.Title>
+            {/* Title */}
+            <Dialog.Title className="text-xl font-bold font-turret-road text-orange-500 text-center">
+              {title}
+            </Dialog.Title>
 
-          {/* Description */}
-          <Dialog.Description className="sr-only">
-            {description}
-          </Dialog.Description>
+            {/* Description */}
+            <Dialog.Description className="sr-only">
+              {description}
+            </Dialog.Description>
 
-          {children}
+            {children}
+          </Container>
         </div>
-        <div className="flex flex-col p-4 font-bold shrink-0">
+        <Container className="flex flex-col p-4 font-bold shrink-0">
           <Dialog.Close
             onClick={onCloseButtonClick}
             className="p-2.5 text-white bg-blue-500 rounded-lg"
           >
             Close
           </Dialog.Close>
-        </div>
+        </Container>
       </>
     </BottomDialogContainer>
   );

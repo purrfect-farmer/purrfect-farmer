@@ -42,6 +42,7 @@ import { useEffect } from "react";
 import { useMemo } from "react";
 import useMirroredLocationToggle from "@/hooks/useMirroredLocationToggle";
 import useLocationToggle from "@/hooks/useLocationToggle";
+import Container from "@/components/Container";
 
 /** Telegram Web Button */
 const TelegramWebButton = memo(
@@ -177,8 +178,8 @@ export default memo(function Welcome() {
   return (
     <>
       {/* Settings and New Window Button */}
-      <div className="p-2 shrink-0">
-        <div className="flex justify-between w-full gap-1 mx-auto overflow-auto max-w-96">
+      <div className="shrink-0 overflow-auto">
+        <Container className="p-2 flex justify-between gap-1">
           <div className="flex gap-1">
             {/* Shutdown */}
             {!import.meta.env.VITE_WHISKER ? (
@@ -246,11 +247,11 @@ export default memo(function Welcome() {
               <Settings tabs={settingTabs} />
             </Dialog.Root>
           </div>
-        </div>
+        </Container>
       </div>
 
-      <div className="flex flex-col p-2 overflow-auto grow scrollbar-thin">
-        <div className="flex flex-col w-full gap-2 mx-auto my-auto max-w-96">
+      <div className="flex flex-col overflow-auto grow scrollbar-thin">
+        <Container className="flex flex-col gap-2 my-auto p-2">
           {/* App Icon */}
           <div className="relative mx-auto">
             <img src={WelcomeIcon} className="h-28" />
@@ -512,7 +513,7 @@ export default memo(function Welcome() {
               &copy; {import.meta.env.VITE_APP_NAME}
             </a>
           </div>
-        </div>
+        </Container>
       </div>
     </>
   );

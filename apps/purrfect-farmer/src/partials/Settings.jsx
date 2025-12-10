@@ -20,6 +20,7 @@ import SeekerOptionsGroup from "./Settings/SeekerOptionsGroup";
 import SettingsActions from "./Settings/SettingsActions";
 import { SettingsContainer } from "./Settings/SettingsComponents";
 import defaultSharedSettings from "@/core/defaultSharedSettings";
+import Container from "@/components/Container";
 
 export default memo(function Settings({ tabs }) {
   const {
@@ -106,131 +107,135 @@ export default memo(function Settings({ tabs }) {
       >
         {settings ? (
           <>
-            <div className="flex flex-col min-w-0 min-h-0 gap-2 p-4 overflow-auto grow">
-              <div className="flex flex-col text-center">
-                <Dialog.Title className="text-xl font-bold font-turret-road text-orange-500">
-                  Settings
-                </Dialog.Title>
-                <Dialog.Description className="text-lime-500 font-bold">
-                  Configure the Farmer
-                </Dialog.Description>
-              </div>
+            <div className="min-w-0 min-h-0 overflow-auto grow">
+              <Container className="flex flex-col pb-0">
+                <div className="flex flex-col text-center">
+                  <Dialog.Title className="text-xl font-bold font-turret-road text-orange-500">
+                    Settings
+                  </Dialog.Title>
+                  <Dialog.Description className="text-lime-500 font-bold">
+                    Configure the Farmer
+                  </Dialog.Description>
+                </div>
 
-              <Tabs
-                tabs={tabs}
-                listClassName={"px-2"}
-                triggerClassName={"data-[state=active]:border-blue-500"}
-              >
-                <Tabs.Content value="settings">
-                  <form
-                    onSubmit={(ev) => ev.preventDefault()}
-                    className="flex flex-col gap-2"
-                  >
-                    <SettingsContainer
-                      value={settingsContainerValue}
-                      onValueChange={dispatchAndSetSettingsContainerValue}
+                <Tabs
+                  tabs={tabs}
+                  listClassName={"px-2"}
+                  triggerClassName={"data-[state=active]:border-blue-500"}
+                >
+                  <Tabs.Content value="settings">
+                    <form
+                      onSubmit={(ev) => ev.preventDefault()}
+                      className="flex flex-col gap-2"
                     >
-                      <FarmerOptionsGroup
-                        account={account}
-                        settings={settings}
-                        sharedSettings={sharedSettings}
-                        farmerMode={farmerMode}
-                        telegramClient={telegramClient}
-                        updateActiveAccount={updateActiveAccount}
-                        dispatchAndConfigureSettings={
-                          dispatchAndConfigureSettings
-                        }
-                        dispatchAndConfigureSharedSettings={
-                          dispatchAndConfigureSharedSettings
-                        }
-                      />
+                      <SettingsContainer
+                        value={settingsContainerValue}
+                        onValueChange={dispatchAndSetSettingsContainerValue}
+                      >
+                        <FarmerOptionsGroup
+                          account={account}
+                          settings={settings}
+                          sharedSettings={sharedSettings}
+                          farmerMode={farmerMode}
+                          telegramClient={telegramClient}
+                          updateActiveAccount={updateActiveAccount}
+                          dispatchAndConfigureSettings={
+                            dispatchAndConfigureSettings
+                          }
+                          dispatchAndConfigureSharedSettings={
+                            dispatchAndConfigureSharedSettings
+                          }
+                        />
 
-                      <BotOptionsGroup
-                        settings={settings}
-                        dispatchAndConfigureSettings={
-                          dispatchAndConfigureSettings
-                        }
-                      />
+                        <BotOptionsGroup
+                          settings={settings}
+                          dispatchAndConfigureSettings={
+                            dispatchAndConfigureSettings
+                          }
+                        />
 
-                      <CloudOptionsGroup
-                        settings={settings}
-                        defaultSettings={defaultSettings}
-                        dispatchAndConfigureSettings={
-                          dispatchAndConfigureSettings
-                        }
-                      />
+                        <CloudOptionsGroup
+                          settings={settings}
+                          defaultSettings={defaultSettings}
+                          dispatchAndConfigureSettings={
+                            dispatchAndConfigureSettings
+                          }
+                        />
 
-                      <SeekerOptionsGroup
-                        tabs={tabs}
-                        settings={settings}
-                        defaultSettings={defaultSettings}
-                        dispatchAndConfigureSettings={
-                          dispatchAndConfigureSettings
-                        }
-                      />
+                        <SeekerOptionsGroup
+                          tabs={tabs}
+                          settings={settings}
+                          defaultSettings={defaultSettings}
+                          dispatchAndConfigureSettings={
+                            dispatchAndConfigureSettings
+                          }
+                        />
 
-                      <ProxyOptionsGroup
-                        sharedSettings={sharedSettings}
-                        configureSharedSettings={configureSharedSettings}
-                      />
+                        <ProxyOptionsGroup
+                          sharedSettings={sharedSettings}
+                          configureSharedSettings={configureSharedSettings}
+                        />
 
-                      <PCOptionsGroup
-                        sharedSettings={sharedSettings}
-                        dispatchAndConfigureSharedSettings={
-                          dispatchAndConfigureSharedSettings
-                        }
-                      />
+                        <PCOptionsGroup
+                          sharedSettings={sharedSettings}
+                          dispatchAndConfigureSharedSettings={
+                            dispatchAndConfigureSharedSettings
+                          }
+                        />
 
-                      <MirrorOptionsGroup
-                        sharedSettings={sharedSettings}
-                        defaultSharedSettings={defaultSharedSettings}
-                        configureFarmerPosition={configureFarmerPosition}
-                        dispatchAndSetFarmersPerWindow={
-                          dispatchAndSetFarmersPerWindow
-                        }
-                        dispatchAndConfigureSharedSettings={
-                          dispatchAndConfigureSharedSettings
-                        }
-                      />
-                    </SettingsContainer>
+                        <MirrorOptionsGroup
+                          sharedSettings={sharedSettings}
+                          defaultSharedSettings={defaultSharedSettings}
+                          configureFarmerPosition={configureFarmerPosition}
+                          dispatchAndSetFarmersPerWindow={
+                            dispatchAndSetFarmersPerWindow
+                          }
+                          dispatchAndConfigureSharedSettings={
+                            dispatchAndConfigureSharedSettings
+                          }
+                        />
+                      </SettingsContainer>
 
-                    <SettingsActions
-                      farmerAccountsLength={farmerAccounts.length}
-                      dispatchAndReloadApp={dispatchAndReloadApp}
-                      dispatchAndRestoreSettings={dispatchAndRestoreSettings}
-                      removeActiveAccount={removeActiveAccount}
+                      <SettingsActions
+                        farmerAccountsLength={farmerAccounts.length}
+                        dispatchAndReloadApp={dispatchAndReloadApp}
+                        dispatchAndRestoreSettings={dispatchAndRestoreSettings}
+                        removeActiveAccount={removeActiveAccount}
+                      />
+                    </form>
+                  </Tabs.Content>
+
+                  {/* Farmers Config */}
+                  <Tabs.Content value="farmers">
+                    <FarmersConfigTab
+                      settings={settings}
+                      dropsStatus={dropsStatus}
+                      dropsOrder={dropsOrder}
+                      orderedDrops={orderedDrops}
+                      dispatchAndConfigureSettings={
+                        dispatchAndConfigureSettings
+                      }
+                      toggleDrop={toggleDrop}
                     />
-                  </form>
-                </Tabs.Content>
+                  </Tabs.Content>
 
-                {/* Farmers Config */}
-                <Tabs.Content value="farmers">
-                  <FarmersConfigTab
-                    settings={settings}
-                    dropsStatus={dropsStatus}
-                    dropsOrder={dropsOrder}
-                    orderedDrops={orderedDrops}
-                    dispatchAndConfigureSettings={dispatchAndConfigureSettings}
-                    toggleDrop={toggleDrop}
-                  />
-                </Tabs.Content>
-
-                {/* Seeker */}
-                <Tabs.Content value="seeker">
-                  <Seeker />
-                </Tabs.Content>
-              </Tabs>
+                  {/* Seeker */}
+                  <Tabs.Content value="seeker">
+                    <Seeker />
+                  </Tabs.Content>
+                </Tabs>
+              </Container>
             </div>
-            <div className="flex gap-2 p-4 font-bold shrink-0">
+            <Container className="flex gap-2 p-4 font-bold shrink-0">
               <Dialog.Close className="p-2.5 text-white bg-blue-500 rounded-xl grow">
                 Close
               </Dialog.Close>
-            </div>
+            </Container>
           </>
         ) : (
-          <div className="flex items-center justify-center min-w-0 min-h-0 grow">
+          <Container className="flex items-center justify-center min-w-0 min-h-0 grow">
             <CgSpinner className="w-5 h-5 mx-auto animate-spin" />
-          </div>
+          </Container>
         )}
       </Dialog.Content>
     </Dialog.Portal>

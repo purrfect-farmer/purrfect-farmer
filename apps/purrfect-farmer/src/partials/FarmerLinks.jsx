@@ -23,6 +23,8 @@ import TelegramLinkForm from "./TelegramLinkForm";
 import TelegramLogo from "../assets/images/telegram-logo.svg";
 import useLocationToggle from "@/hooks/useLocationToggle";
 import PrimaryButton from "@/components/PrimaryButton";
+import BottomDialog from "@/components/BottomDialog";
+import Container from "@/components/Container";
 
 /** Load Link Icon */
 const loadLinkIcon = function (src) {
@@ -182,18 +184,12 @@ export default memo(function FarmerLinks() {
   );
 
   return (
-    <Dialog.Portal>
-      <Dialog.Overlay className="fixed inset-0 z-40 bg-black/50" />
-      <Dialog.Content
-        className={cn(
-          "bg-white dark:bg-neutral-800",
-          "fixed z-50 inset-x-0 bottom-0 flex flex-col  h-3/4 rounded-t-xl",
-          "flex flex-col gap-2",
-          "px-2 py-4"
-        )}
-        onOpenAutoFocus={(ev) => ev.preventDefault()}
-      >
-        <div className="flex items-center gap-2 shrink-0">
+    <BottomDialog.Container
+      onOpenAutoFocus={(ev) => ev.preventDefault()}
+      className={cn("h-3/4 gap-2", "px-2 py-4")}
+    >
+      <div className="shrink-0">
+        <Container className="flex items-center gap-2 p-0">
           {/* Toggle View */}
           <LinkHeaderButton
             title="Toggle View"
@@ -232,9 +228,11 @@ export default memo(function FarmerLinks() {
           >
             <HiOutlinePlusCircle className="w-4 h-4" />
           </LinkHeaderButton>
-        </div>
+        </Container>
+      </div>
 
-        <div className="flex flex-col min-w-0 min-h-0 gap-2 overflow-auto grow overscroll-none">
+      <div className="min-w-0 min-h-0 overflow-auto grow overscroll-none">
+        <Container className="flex flex-col gap-2 p-0">
           {links.length ? (
             <>
               <div
@@ -370,57 +368,57 @@ export default memo(function FarmerLinks() {
               </PrimaryButton>
             </>
           )}
-        </div>
+        </Container>
+      </div>
 
-        {/* Modal */}
-        <Dialog.Root open={openModal} onOpenChange={setOpenModal}>
-          <Dialog.Overlay
+      {/* Modal */}
+      <Dialog.Root open={openModal} onOpenChange={setOpenModal}>
+        <Dialog.Overlay
+          className={cn(
+            "fixed inset-0 z-40",
+            "flex items-center justify-center",
+            "p-4 overflow-auto bg-black/50"
+          )}
+        >
+          <Dialog.Content
             className={cn(
-              "fixed inset-0 z-40",
-              "flex items-center justify-center",
-              "p-4 overflow-auto bg-black/50"
+              "bg-white dark:bg-neutral-800",
+              "flex flex-col w-full max-w-sm gap-2 p-4 rounded-xl"
             )}
           >
-            <Dialog.Content
+            {/* Title */}
+            <Dialog.Title
               className={cn(
-                "bg-white dark:bg-neutral-800",
-                "flex flex-col w-full max-w-sm gap-2 p-4 rounded-xl"
+                "inline-flex items-center justify-center gap-2",
+                "text-purple-500 dark:text-purple-400",
+                "font-bold text-center text-sm"
               )}
             >
-              {/* Title */}
-              <Dialog.Title
-                className={cn(
-                  "inline-flex items-center justify-center gap-2",
-                  "text-purple-500 dark:text-purple-400",
-                  "font-bold text-center text-sm"
-                )}
-              >
-                {currentLink ? "Edit Link" : "Create Link"}
-              </Dialog.Title>
+              {currentLink ? "Edit Link" : "Create Link"}
+            </Dialog.Title>
 
-              {/* Description */}
-              <Dialog.Description className="sr-only">
-                Create or Edit Link
-              </Dialog.Description>
+            {/* Description */}
+            <Dialog.Description className="sr-only">
+              Create or Edit Link
+            </Dialog.Description>
 
-              {/* Form */}
-              <TelegramLinkForm
-                link={currentLink}
-                handleFormSubmit={handleFormSubmit}
-              />
+            {/* Form */}
+            <TelegramLinkForm
+              link={currentLink}
+              handleFormSubmit={handleFormSubmit}
+            />
 
-              {/* Cancel Button */}
-              <Dialog.Close
-                className={cn(
-                  "px-4 py-2 bg-neutral-200 dark:bg-neutral-900 rounded-lg"
-                )}
-              >
-                Cancel
-              </Dialog.Close>
-            </Dialog.Content>
-          </Dialog.Overlay>
-        </Dialog.Root>
-      </Dialog.Content>
-    </Dialog.Portal>
+            {/* Cancel Button */}
+            <Dialog.Close
+              className={cn(
+                "px-4 py-2 bg-neutral-200 dark:bg-neutral-900 rounded-lg"
+              )}
+            >
+              Cancel
+            </Dialog.Close>
+          </Dialog.Content>
+        </Dialog.Overlay>
+      </Dialog.Root>
+    </BottomDialog.Container>
   );
 });
