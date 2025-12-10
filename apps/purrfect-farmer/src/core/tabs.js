@@ -30,14 +30,13 @@ export const TelegramToPurrfectGram = lazy(() =>
 );
 
 export const Spider = lazy(() => import("@/app/Spider"));
-export const Migrate = lazy(() => import("@/app/Migrate"));
 export const MyCloud = lazy(() => import("@/app/MyCloud"));
 export const CloudManager = lazy(() => import("@/app/CloudManager"));
-export const CloudTelegramSession = lazy(() =>
-  import("@/app/CloudTelegramSession")
-);
 export const LocalTelegramSession = lazy(() =>
   import("@/app/LocalTelegramSession")
+);
+export const CloudTelegramSession = lazy(() =>
+  import("@/app/CloudTelegramSession")
 );
 
 export const app = [
@@ -178,14 +177,6 @@ export const utils = [
         title: "Backup and Restore",
         icon: BackupAndRestoreIcon,
         component: createElement(BackupAndRestore),
-      },
-
-      /** Migrate */
-      {
-        id: "migrate-to-v2",
-        title: "Migrate to V2+",
-        icon: AppIcon,
-        component: createElement(Migrate),
       },
     ],
   },
