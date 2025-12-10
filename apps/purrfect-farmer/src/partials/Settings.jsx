@@ -100,7 +100,7 @@ export default memo(function Settings({ tabs }) {
       {settings ? (
         <>
           <div className="min-w-0 min-h-0 overflow-auto grow">
-            <Container className="flex flex-col pb-0">
+            <Container className="flex flex-col gap-2 pb-0">
               <div className="flex flex-col text-center">
                 <Dialog.Title className="text-xl font-bold font-turret-road text-orange-500">
                   Settings

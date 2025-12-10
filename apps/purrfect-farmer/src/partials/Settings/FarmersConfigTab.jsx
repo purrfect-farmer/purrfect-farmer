@@ -4,7 +4,11 @@ import { Rating } from "@smastrom/react-rating";
 import { Reorder } from "motion/react";
 import { cn } from "@/lib/utils";
 import { memo } from "react";
-import { DropReorderItem, SettingsLabel } from "./SettingsComponents";
+import {
+  DropReorderItem,
+  SettingsGridButton,
+  SettingsLabel,
+} from "./SettingsComponents";
 
 import "@smastrom/react-rating/style.css";
 
@@ -23,20 +27,17 @@ export default memo(function FarmersConfigTab({
 
       <div className="grid grid-cols-2 gap-2">
         {["grid", "list"].map((style) => (
-          <button
+          <SettingsGridButton
             onClick={() => dispatchAndConfigureSettings("farmersLayout", style)}
             key={style}
             className={cn(
               settings.farmersLayout === style
                 ? "bg-blue-200 dark:bg-blue-800"
-                : "bg-neutral-100 dark:bg-neutral-700",
-              "p-2 rounded-lg",
-              "flex gap-1 items-center justify-center",
-              "uppercase"
+                : null
             )}
           >
             {style}
-          </button>
+          </SettingsGridButton>
         ))}
       </div>
 
