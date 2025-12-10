@@ -1,3 +1,4 @@
+import AppIcon from "@/assets/images/icon.png?format=webp&w=80";
 import Input from "@/components/Input";
 import UserIcon from "@/assets/images/user-icon.png?format=webp&w=256";
 import farmers from "@/core/farmers";
@@ -54,7 +55,7 @@ export default function CloudFarmers() {
           ).map(([k, v]) => {
             return {
               id: k,
-              icon: CLOUD_FARMERS?.get(k)?.icon,
+              icon: CLOUD_FARMERS?.get(k)?.icon || AppIcon,
               title: CLOUD_FARMERS?.get(k)?.title || "(Unknown) Farmer",
               FarmerClass: CLOUD_FARMERS?.get(k)?.FarmerClass,
               farmers: search

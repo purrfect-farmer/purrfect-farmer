@@ -12,36 +12,33 @@ export default function CloudSubscription() {
   const subscription = data?.subscription;
 
   return enabled ? (
-    <div className="px-2">
-      <Alert
-        variant={
-          status === "pending"
-            ? "info"
-            : status === "error"
-            ? "danger"
-            : subscription &&
-              differenceInHours(new Date(subscription.endsAt), new Date()) > 168
-            ? "success"
-            : "warning"
-        }
-      >
-        {status === "pending" ? (
-          "Checking Subscription..."
-        ) : status === "error" ? (
-          "Failed to Check Cloud Subscription!"
-        ) : subscription ? (
-          <>
-            Cloud Subscription is active.{" "}
-            <b>
-              (Expires:{" "}
-              {formatDate(new Date(subscription.endsAt), "EEEE - do MMM, yyyy")}
-              )
-            </b>
-          </>
-        ) : (
-          "No Cloud Subscription"
-        )}
-      </Alert>
-    </div>
+    <Alert
+      variant={
+        status === "pending"
+          ? "info"
+          : status === "error"
+          ? "danger"
+          : subscription &&
+            differenceInHours(new Date(subscription.endsAt), new Date()) > 168
+          ? "success"
+          : "warning"
+      }
+    >
+      {status === "pending" ? (
+        "Checking Subscription..."
+      ) : status === "error" ? (
+        "Failed to Check Cloud Subscription!"
+      ) : subscription ? (
+        <>
+          Cloud Subscription is active.{" "}
+          <b>
+            (Expires:{" "}
+            {formatDate(new Date(subscription.endsAt), "EEEE - do MMM, yyyy")})
+          </b>
+        </>
+      ) : (
+        "No Cloud Subscription"
+      )}
+    </Alert>
   ) : null;
 }

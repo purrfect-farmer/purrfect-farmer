@@ -162,11 +162,11 @@ export default function useSharedCore() {
         /** Remove Storage */
         await removeAccountStorage(id);
 
-        /** Close Account */
-        closeAccount(id);
-
         /** Launch Another Account */
         launchAccount(updated[0].id);
+
+        /** Close Account */
+        closeAccount(id);
       }
     },
     [persistedAccounts, storePersistedAccounts, launchAccount, closeAccount]

@@ -321,7 +321,9 @@ export default memo(function Welcome() {
           <CloudStatus />
 
           {/* Cloud Subscription */}
-          <CloudSubscription />
+          <div className="px-2">
+            <CloudSubscription />
+          </div>
 
           {/* Display User */}
           {telegramUser && settings.displayUserInfo ? (

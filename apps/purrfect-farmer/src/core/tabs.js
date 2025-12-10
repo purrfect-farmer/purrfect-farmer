@@ -30,6 +30,7 @@ export const TelegramToPurrfectGram = lazy(() =>
 
 export const Spider = lazy(() => import("@/app/Spider"));
 export const Migrate = lazy(() => import("@/app/Migrate"));
+export const MyCloud = lazy(() => import("@/app/MyCloud"));
 export const CloudManager = lazy(() => import("@/app/CloudManager"));
 export const CloudTelegramSession = lazy(() =>
   import("@/app/CloudTelegramSession")
@@ -133,6 +134,13 @@ export const utils = [
   {
     name: "Cloud",
     list: [
+      /** My Cloud */
+      {
+        id: "my-cloud",
+        title: "My Cloud",
+        icon: CloudIcon,
+        component: createElement(MyCloud),
+      },
       /** Cloud Manager */
       {
         id: "cloud-manager",
