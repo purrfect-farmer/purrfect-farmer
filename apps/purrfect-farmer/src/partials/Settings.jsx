@@ -5,7 +5,7 @@ import useMirroredCallback from "@/hooks/useMirroredCallback";
 import useMirroredState from "@/hooks/useMirroredState";
 import { CgSpinner } from "react-icons/cg";
 import { Dialog } from "radix-ui";
-import { cn, resizeFarmerWindow } from "@/lib/utils";
+import { resizeFarmerWindow } from "@/lib/utils";
 import { memo, useCallback } from "react";
 
 import Seeker from "./Seeker";
@@ -21,6 +21,7 @@ import SettingsActions from "./Settings/SettingsActions";
 import { SettingsContainer } from "./Settings/SettingsComponents";
 import defaultSharedSettings from "@/core/defaultSharedSettings";
 import Container from "@/components/Container";
+import BottomDialog from "@/components/BottomDialog";
 
 export default memo(function Settings({ tabs }) {
   const {
@@ -95,149 +96,137 @@ export default memo(function Settings({ tabs }) {
   );
 
   return (
-    <Dialog.Portal>
-      <Dialog.Overlay className="fixed inset-0 z-40 bg-black/50" />
-      <Dialog.Content
-        className={cn(
-          "bg-white dark:bg-neutral-800",
-          "fixed z-50 inset-x-0 bottom-0 flex flex-col h-3/4 rounded-t-xl",
-          "flex flex-col"
-        )}
-        onOpenAutoFocus={(ev) => ev.preventDefault()}
-      >
-        {settings ? (
-          <>
-            <div className="min-w-0 min-h-0 overflow-auto grow">
-              <Container className="flex flex-col pb-0">
-                <div className="flex flex-col text-center">
-                  <Dialog.Title className="text-xl font-bold font-turret-road text-orange-500">
-                    Settings
-                  </Dialog.Title>
-                  <Dialog.Description className="text-lime-500 font-bold">
-                    Configure the Farmer
-                  </Dialog.Description>
-                </div>
+    <BottomDialog.Container onOpenAutoFocus={(ev) => ev.preventDefault()}>
+      {settings ? (
+        <>
+          <div className="min-w-0 min-h-0 overflow-auto grow">
+            <Container className="flex flex-col pb-0">
+              <div className="flex flex-col text-center">
+                <Dialog.Title className="text-xl font-bold font-turret-road text-orange-500">
+                  Settings
+                </Dialog.Title>
+                <Dialog.Description className="text-lime-500 font-bold">
+                  Configure the Farmer
+                </Dialog.Description>
+              </div>
 
-                <Tabs
-                  tabs={tabs}
-                  listClassName={"px-2"}
-                  triggerClassName={"data-[state=active]:border-blue-500"}
-                >
-                  <Tabs.Content value="settings">
-                    <form
-                      onSubmit={(ev) => ev.preventDefault()}
-                      className="flex flex-col gap-2"
+              <Tabs
+                tabs={tabs}
+                listClassName={"px-2"}
+                triggerClassName={"data-[state=active]:border-blue-500"}
+              >
+                <Tabs.Content value="settings">
+                  <form
+                    onSubmit={(ev) => ev.preventDefault()}
+                    className="flex flex-col gap-2"
+                  >
+                    <SettingsContainer
+                      value={settingsContainerValue}
+                      onValueChange={dispatchAndSetSettingsContainerValue}
                     >
-                      <SettingsContainer
-                        value={settingsContainerValue}
-                        onValueChange={dispatchAndSetSettingsContainerValue}
-                      >
-                        <FarmerOptionsGroup
-                          account={account}
-                          settings={settings}
-                          sharedSettings={sharedSettings}
-                          farmerMode={farmerMode}
-                          telegramClient={telegramClient}
-                          updateActiveAccount={updateActiveAccount}
-                          dispatchAndConfigureSettings={
-                            dispatchAndConfigureSettings
-                          }
-                          dispatchAndConfigureSharedSettings={
-                            dispatchAndConfigureSharedSettings
-                          }
-                        />
-
-                        <BotOptionsGroup
-                          settings={settings}
-                          dispatchAndConfigureSettings={
-                            dispatchAndConfigureSettings
-                          }
-                        />
-
-                        <CloudOptionsGroup
-                          settings={settings}
-                          defaultSettings={defaultSettings}
-                          dispatchAndConfigureSettings={
-                            dispatchAndConfigureSettings
-                          }
-                        />
-
-                        <SeekerOptionsGroup
-                          tabs={tabs}
-                          settings={settings}
-                          defaultSettings={defaultSettings}
-                          dispatchAndConfigureSettings={
-                            dispatchAndConfigureSettings
-                          }
-                        />
-
-                        <ProxyOptionsGroup
-                          sharedSettings={sharedSettings}
-                          configureSharedSettings={configureSharedSettings}
-                        />
-
-                        <PCOptionsGroup
-                          sharedSettings={sharedSettings}
-                          dispatchAndConfigureSharedSettings={
-                            dispatchAndConfigureSharedSettings
-                          }
-                        />
-
-                        <MirrorOptionsGroup
-                          sharedSettings={sharedSettings}
-                          defaultSharedSettings={defaultSharedSettings}
-                          configureFarmerPosition={configureFarmerPosition}
-                          dispatchAndSetFarmersPerWindow={
-                            dispatchAndSetFarmersPerWindow
-                          }
-                          dispatchAndConfigureSharedSettings={
-                            dispatchAndConfigureSharedSettings
-                          }
-                        />
-                      </SettingsContainer>
-
-                      <SettingsActions
-                        farmerAccountsLength={farmerAccounts.length}
-                        dispatchAndReloadApp={dispatchAndReloadApp}
-                        dispatchAndRestoreSettings={dispatchAndRestoreSettings}
-                        removeActiveAccount={removeActiveAccount}
+                      <FarmerOptionsGroup
+                        account={account}
+                        settings={settings}
+                        sharedSettings={sharedSettings}
+                        farmerMode={farmerMode}
+                        telegramClient={telegramClient}
+                        updateActiveAccount={updateActiveAccount}
+                        dispatchAndConfigureSettings={
+                          dispatchAndConfigureSettings
+                        }
+                        dispatchAndConfigureSharedSettings={
+                          dispatchAndConfigureSharedSettings
+                        }
                       />
-                    </form>
-                  </Tabs.Content>
 
-                  {/* Farmers Config */}
-                  <Tabs.Content value="farmers">
-                    <FarmersConfigTab
-                      settings={settings}
-                      dropsStatus={dropsStatus}
-                      dropsOrder={dropsOrder}
-                      orderedDrops={orderedDrops}
-                      dispatchAndConfigureSettings={
-                        dispatchAndConfigureSettings
-                      }
-                      toggleDrop={toggleDrop}
+                      <BotOptionsGroup
+                        settings={settings}
+                        dispatchAndConfigureSettings={
+                          dispatchAndConfigureSettings
+                        }
+                      />
+
+                      <CloudOptionsGroup
+                        settings={settings}
+                        defaultSettings={defaultSettings}
+                        dispatchAndConfigureSettings={
+                          dispatchAndConfigureSettings
+                        }
+                      />
+
+                      <SeekerOptionsGroup
+                        tabs={tabs}
+                        settings={settings}
+                        defaultSettings={defaultSettings}
+                        dispatchAndConfigureSettings={
+                          dispatchAndConfigureSettings
+                        }
+                      />
+
+                      <ProxyOptionsGroup
+                        sharedSettings={sharedSettings}
+                        configureSharedSettings={configureSharedSettings}
+                      />
+
+                      <PCOptionsGroup
+                        sharedSettings={sharedSettings}
+                        dispatchAndConfigureSharedSettings={
+                          dispatchAndConfigureSharedSettings
+                        }
+                      />
+
+                      <MirrorOptionsGroup
+                        sharedSettings={sharedSettings}
+                        defaultSharedSettings={defaultSharedSettings}
+                        configureFarmerPosition={configureFarmerPosition}
+                        dispatchAndSetFarmersPerWindow={
+                          dispatchAndSetFarmersPerWindow
+                        }
+                        dispatchAndConfigureSharedSettings={
+                          dispatchAndConfigureSharedSettings
+                        }
+                      />
+                    </SettingsContainer>
+
+                    <SettingsActions
+                      farmerAccountsLength={farmerAccounts.length}
+                      dispatchAndReloadApp={dispatchAndReloadApp}
+                      dispatchAndRestoreSettings={dispatchAndRestoreSettings}
+                      removeActiveAccount={removeActiveAccount}
                     />
-                  </Tabs.Content>
+                  </form>
+                </Tabs.Content>
 
-                  {/* Seeker */}
-                  <Tabs.Content value="seeker">
-                    <Seeker />
-                  </Tabs.Content>
-                </Tabs>
-              </Container>
-            </div>
-            <Container className="flex gap-2 p-4 font-bold shrink-0">
-              <Dialog.Close className="p-2.5 text-white bg-blue-500 rounded-xl grow">
-                Close
-              </Dialog.Close>
+                {/* Farmers Config */}
+                <Tabs.Content value="farmers">
+                  <FarmersConfigTab
+                    settings={settings}
+                    dropsStatus={dropsStatus}
+                    dropsOrder={dropsOrder}
+                    orderedDrops={orderedDrops}
+                    dispatchAndConfigureSettings={dispatchAndConfigureSettings}
+                    toggleDrop={toggleDrop}
+                  />
+                </Tabs.Content>
+
+                {/* Seeker */}
+                <Tabs.Content value="seeker">
+                  <Seeker />
+                </Tabs.Content>
+              </Tabs>
             </Container>
-          </>
-        ) : (
-          <Container className="flex items-center justify-center min-w-0 min-h-0 grow">
-            <CgSpinner className="w-5 h-5 mx-auto animate-spin" />
+          </div>
+          <Container className="flex gap-2 p-4 font-bold shrink-0">
+            <Dialog.Close className="p-2.5 text-white bg-blue-500 rounded-xl grow">
+              Close
+            </Dialog.Close>
           </Container>
-        )}
-      </Dialog.Content>
-    </Dialog.Portal>
+        </>
+      ) : (
+        <Container className="flex items-center justify-center min-w-0 min-h-0 grow">
+          <CgSpinner className="w-5 h-5 mx-auto animate-spin" />
+        </Container>
+      )}
+    </BottomDialog.Container>
   );
 });

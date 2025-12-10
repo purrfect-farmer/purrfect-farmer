@@ -15,6 +15,7 @@ import Input from "./Input";
 import { useState } from "react";
 import { Reorder, useDragControls } from "motion/react";
 import Container from "./Container";
+import BottomDialog from "./BottomDialog";
 
 const PickerButton = (props) => (
   <button
@@ -161,88 +162,78 @@ export default memo(function AccountPicker() {
   }, [accounts, search]);
 
   return (
-    <Dialog.Portal>
-      <Dialog.Overlay className="fixed inset-0 z-40 bg-black/50" />
-      <Dialog.Content
-        className={cn(
-          "bg-white dark:bg-neutral-800",
-          "fixed z-50 inset-x-0 bottom-0 flex flex-col h-10/12 rounded-t-xl",
-          "flex flex-col"
-        )}
-        onOpenAutoFocus={(ev) => ev.preventDefault()}
-      >
-        <Container className="flex flex-col p-4 gap-4 shrink-0">
-          <div className="flex flex-col text-center">
-            <Dialog.Title className="text-xl font-bold font-turret-road text-orange-500">
-              Accounts
-            </Dialog.Title>
-            <Dialog.Description className="text-lime-500 font-bold">
-              Switch Active Account
-            </Dialog.Description>
-          </div>
-
-          {/* Search Input */}
-          <Input
-            type="search"
-            placeholder="Search Accounts..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="w-full shrink-0"
-          />
-        </Container>
-        <div className="flex flex-col min-w-0 min-h-0 gap-2 overflow-auto grow">
-          <Container className="p-0 px-4">
-            {/* Set Active Account */}
-            <Reorder.Group
-              values={persistedAccounts}
-              onReorder={storePersistedAccounts}
-              className="flex flex-col gap-2"
-            >
-              {filteredAccounts.map((account) => (
-                <AccountSelector
-                  key={account.id}
-                  account={account}
-                  launchAccount={launchAccount}
-                  closeAccount={closeAccount}
-                  showStop={persistedAccounts.length > 1}
-                  showReorder={persistedAccounts.length > 1 && !search.trim()}
-                />
-              ))}
-            </Reorder.Group>
-          </Container>
+    <BottomDialog.Container onOpenAutoFocus={(ev) => ev.preventDefault()}>
+      <Container className="flex flex-col p-4 gap-4 shrink-0">
+        <div className="flex flex-col text-center">
+          <Dialog.Title className="text-xl font-bold font-turret-road text-orange-500">
+            Accounts
+          </Dialog.Title>
+          <Dialog.Description className="text-lime-500 font-bold">
+            Switch Active Account
+          </Dialog.Description>
         </div>
 
-        {/* Add Account / Close Dialog */}
-        <Container className="flex flex-col gap-2 p-4 shrink-0">
-          {/* Add Account */}
-          {!import.meta.env.VITE_WHISKER ? (
-            <Dialog.Close
-              onClick={() => addAccount()}
-              className={cn(
-                "bg-purple-100 ",
-                "text-purple-900",
-                "p-2.5 rounded-xl shrink-0 font-bold",
-                "flex items-center justify-center gap-2"
-              )}
-            >
-              <PiUserCirclePlusBold className="size-4" />
-              Add Account
-            </Dialog.Close>
-          ) : null}
+        {/* Search Input */}
+        <Input
+          type="search"
+          placeholder="Search Accounts..."
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          className="w-full shrink-0"
+        />
+      </Container>
+      <div className="flex flex-col min-w-0 min-h-0 gap-2 overflow-auto grow">
+        <Container className="p-0 px-4">
+          {/* Set Active Account */}
+          <Reorder.Group
+            values={persistedAccounts}
+            onReorder={storePersistedAccounts}
+            className="flex flex-col gap-2"
+          >
+            {filteredAccounts.map((account) => (
+              <AccountSelector
+                key={account.id}
+                account={account}
+                launchAccount={launchAccount}
+                closeAccount={closeAccount}
+                showStop={persistedAccounts.length > 1}
+                showReorder={persistedAccounts.length > 1 && !search.trim()}
+              />
+            ))}
+          </Reorder.Group>
+        </Container>
+      </div>
 
-          {/* Close Dialog */}
+      {/* Add Account / Close Dialog */}
+      <Container className="flex flex-col gap-2 p-4 shrink-0">
+        {/* Add Account */}
+        {!import.meta.env.VITE_WHISKER ? (
           <Dialog.Close
+            onClick={() => addAccount()}
             className={cn(
-              "bg-blue-100 dark:bg-blue-700",
-              "text-blue-900 dark:text-blue-100",
+              "bg-purple-100 ",
+              "text-purple-900",
               "p-2.5 rounded-xl shrink-0 font-bold",
               "flex items-center justify-center gap-2"
             )}
           >
-            Close
+            <PiUserCirclePlusBold className="size-4" />
+            Add Account
           </Dialog.Close>
-        </Container>
-      </Dialog.Content>
-    </Dialog.Portal>
+        ) : null}
+
+        {/* Close Dialog */}
+        <Dialog.Close
+          className={cn(
+            "bg-blue-100 dark:bg-blue-700",
+            "text-blue-900 dark:text-blue-100",
+            "p-2.5 rounded-xl shrink-0 font-bold",
+            "flex items-center justify-center gap-2"
+          )}
+        >
+          Close
+        </Dialog.Close>
+      </Container>
+    </BottomDialog.Container>
   );
 });

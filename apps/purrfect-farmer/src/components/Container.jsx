@@ -6,7 +6,7 @@ const Container = forwardRef(function Container(props, ref) {
     <div
       {...props}
       ref={ref}
-      className={cn("w-full max-w-lg mx-auto p-4", props.className)}
+      className={cn("w-full max-w-md mx-auto p-4", props.className)}
     />
   );
 });

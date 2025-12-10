@@ -186,7 +186,7 @@ export default memo(function FarmerLinks() {
   return (
     <BottomDialog.Container
       onOpenAutoFocus={(ev) => ev.preventDefault()}
-      className={cn("h-3/4 gap-2", "px-2 py-4")}
+      className={cn("gap-2", "px-2 py-4")}
     >
       <div className="shrink-0">
         <Container className="flex items-center gap-2 p-0">

@@ -42,7 +42,7 @@ export default memo(function TabButtonList({ tabs }) {
             "grow basis-0",
             "relative z-0",
             "flex shrink-0 py-2",
-            "overflow-auto scrollbar-thin"
+            "overflow-auto"
           )}
         >
           {/* Main */}

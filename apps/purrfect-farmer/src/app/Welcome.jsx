@@ -250,7 +250,7 @@ export default memo(function Welcome() {
         </Container>
       </div>
 
-      <div className="flex flex-col overflow-auto grow scrollbar-thin">
+      <div className="flex flex-col overflow-auto grow">
         <Container className="flex flex-col gap-2 my-auto p-2">
           {/* App Icon */}
           <div className="relative mx-auto">

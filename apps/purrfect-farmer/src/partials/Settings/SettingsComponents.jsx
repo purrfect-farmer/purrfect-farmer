@@ -48,6 +48,20 @@ export const SettingsInput = ({
   );
 };
 
+export const SettingsGridButton = (props) => (
+  <button
+    {...props}
+    className={cn(
+      "bg-neutral-100 dark:bg-neutral-700",
+      "disabled:opacity-60",
+      "p-2 rounded-lg",
+      "flex gap-1 items-center justify-center",
+      "uppercase",
+      props.className
+    )}
+  />
+);
+
 export const SettingsContainer = memo(({ children, value, onValueChange }) => {
   return (
     <Accordion.Root

@@ -5,7 +5,11 @@ import TelegramWebKIcon from "@/assets/images/telegram-web-k.png?format=webp&w=8
 import { HiBolt, HiOutlineGlobeAlt } from "react-icons/hi2";
 import { cn } from "@/lib/utils";
 import { memo } from "react";
-import { SettingsGroup, SettingsLabel } from "./SettingsComponents";
+import {
+  SettingsGridButton,
+  SettingsGroup,
+  SettingsLabel,
+} from "./SettingsComponents";
 
 export default memo(function FarmerOptionsGroup({
   account,
@@ -61,18 +65,17 @@ export default memo(function FarmerOptionsGroup({
 
       <div className="grid grid-cols-2 gap-2">
         {["web", "session"].map((mode) => (
-          <button
-            onClick={() => dispatchAndConfigureSettings("farmerMode", mode)}
+          <SettingsGridButton
             key={mode}
+            onClick={() => dispatchAndConfigureSettings("farmerMode", mode)}
             disabled={mode === "session" && telegramClient.hasSession === false}
             className={cn(
               farmerMode === mode
-                ? "bg-blue-200 dark:bg-blue-800"
-                : "bg-neutral-100 dark:bg-neutral-700",
-              "disabled:opacity-60",
-              "p-2 rounded-lg",
-              "flex gap-1 items-center justify-center",
-              "uppercase"
+                ? [
+                    "bg-blue-200 dark:bg-blue-800",
+                    "text-blue-900 dark:text-white",
+                  ]
+                : null
             )}
           >
             {mode === "web" ? (
@@ -81,7 +84,7 @@ export default memo(function FarmerOptionsGroup({
               <HiBolt className="size-4" />
             )}
             {mode}
-          </button>
+          </SettingsGridButton>
         ))}
       </div>
 
@@ -90,22 +93,22 @@ export default memo(function FarmerOptionsGroup({
 
       <div className="grid grid-cols-2 gap-2">
         {["purrfect-gram", "telegram-web"].map((client) => (
-          <button
+          <SettingsGridButton
+            key={client}
             onClick={() =>
               dispatchAndConfigureSharedSettings("telegramClient", client)
             }
-            key={client}
             className={cn(
               sharedSettings.telegramClient === client
-                ? "bg-orange-200 dark:bg-orange-500"
-                : "bg-neutral-100 dark:bg-neutral-700",
-              "p-2 rounded-lg",
-              "flex gap-1 items-center justify-center",
-              "uppercase"
+                ? [
+                    "bg-orange-100 dark:bg-orange-500",
+                    "text-orange-900 dark:text-white",
+                  ]
+                : null
             )}
           >
             {client === "purrfect-gram" ? "Purrfect Gram" : "Telegram Web"}
-          </button>
+          </SettingsGridButton>
         ))}
       </div>
 
@@ -114,20 +117,18 @@ export default memo(function FarmerOptionsGroup({
 
       <div className="grid grid-cols-2 gap-2">
         {["k", "a"].map((version) => (
-          <button
+          <SettingsGridButton
+            key={version}
             onClick={() =>
               dispatchAndConfigureSharedSettings(
                 "preferredTelegramWebVersion",
                 version
               )
             }
-            key={version}
             className={cn(
               sharedSettings.preferredTelegramWebVersion === version
                 ? "bg-blue-200 dark:bg-blue-800"
-                : "bg-neutral-100 dark:bg-neutral-700",
-              "p-2 rounded-lg",
-              "flex gap-1 items-center justify-center"
+                : null
             )}
           >
             <img
@@ -135,7 +136,7 @@ export default memo(function FarmerOptionsGroup({
               className="w-6 h-6"
             />
             {`Web-${version.toUpperCase()}`}
-          </button>
+          </SettingsGridButton>
         ))}
       </div>
 

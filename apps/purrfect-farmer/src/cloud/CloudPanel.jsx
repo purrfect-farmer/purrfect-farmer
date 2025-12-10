@@ -55,7 +55,7 @@ export default function CloudPanel() {
       </div>
 
       {/* Content */}
-      <div className="scrollbar-thin min-w-0 min-h-0 overflow-auto grow">
+      <div className="min-w-0 min-h-0 overflow-auto grow">
         <Container className="flex flex-col gap-4 p-4">
           {/* Display Address */}
           <CloudAddressDisplay />
