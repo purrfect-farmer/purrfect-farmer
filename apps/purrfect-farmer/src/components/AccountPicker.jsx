@@ -14,6 +14,7 @@ import { BsStopCircle } from "react-icons/bs";
 import Input from "./Input";
 import { useState } from "react";
 import { Reorder, useDragControls } from "motion/react";
+import Container from "./Container";
 
 const PickerButton = (props) => (
   <button
@@ -170,7 +171,7 @@ export default memo(function AccountPicker() {
         )}
         onOpenAutoFocus={(ev) => ev.preventDefault()}
       >
-        <div className="flex flex-col p-4 gap-4 shrink-0">
+        <Container className="flex flex-col p-4 gap-4 shrink-0">
           <div className="flex flex-col text-center">
             <Dialog.Title className="text-xl font-bold font-turret-road text-orange-500">
               Accounts
@@ -188,29 +189,31 @@ export default memo(function AccountPicker() {
             onChange={(e) => setSearch(e.target.value)}
             className="w-full shrink-0"
           />
-        </div>
-        <div className="flex flex-col min-w-0 min-h-0 gap-2 overflow-auto grow px-4">
-          {/* Set Active Account */}
-          <Reorder.Group
-            values={persistedAccounts}
-            onReorder={storePersistedAccounts}
-            className="flex flex-col gap-2"
-          >
-            {filteredAccounts.map((account) => (
-              <AccountSelector
-                key={account.id}
-                account={account}
-                launchAccount={launchAccount}
-                closeAccount={closeAccount}
-                showStop={persistedAccounts.length > 1}
-                showReorder={persistedAccounts.length > 1 && !search.trim()}
-              />
-            ))}
-          </Reorder.Group>
+        </Container>
+        <div className="flex flex-col min-w-0 min-h-0 gap-2 overflow-auto grow">
+          <Container className="p-0 px-4">
+            {/* Set Active Account */}
+            <Reorder.Group
+              values={persistedAccounts}
+              onReorder={storePersistedAccounts}
+              className="flex flex-col gap-2"
+            >
+              {filteredAccounts.map((account) => (
+                <AccountSelector
+                  key={account.id}
+                  account={account}
+                  launchAccount={launchAccount}
+                  closeAccount={closeAccount}
+                  showStop={persistedAccounts.length > 1}
+                  showReorder={persistedAccounts.length > 1 && !search.trim()}
+                />
+              ))}
+            </Reorder.Group>
+          </Container>
         </div>
 
         {/* Add Account / Close Dialog */}
-        <div className="flex flex-col gap-2 p-4 shrink-0">
+        <Container className="flex flex-col gap-2 p-4 shrink-0">
           {/* Add Account */}
           {!import.meta.env.VITE_WHISKER ? (
             <Dialog.Close
@@ -238,7 +241,7 @@ export default memo(function AccountPicker() {
           >
             Close
           </Dialog.Close>
-        </div>
+        </Container>
       </Dialog.Content>
     </Dialog.Portal>
   );
