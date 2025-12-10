@@ -36,12 +36,26 @@ const AccountDetailsDialog = ({ account, children }) => {
   );
 };
 
+const FarmerActionButton = ({ variant, ...props }) => (
+  <button
+    {...props}
+    className={cn(
+      variant === "activate"
+        ? "text-green-500 dark:text-green-400"
+        : "text-red-500 dark:text-red-400",
+      "bg-neutral-100 dark:bg-neutral-700",
+      "px-3 rounded-lg shrink-0"
+    )}
+  />
+);
+
 export default function CloudFarmers() {
   const [search, setSearch] = useState("");
   const activateFarmerMutation = useCloudManagerActivateFarmerMutation();
   const disconnectFarmerMutation = useCloudManagerDisconnectFarmerMutation();
   const farmersQuery = useCloudManagerFarmersQuery();
 
+  /* Group Farmers by Type */
   const groups = useMemo(
     () =>
       farmersQuery.data
@@ -71,6 +85,7 @@ export default function CloudFarmers() {
 
   console.log("Farmers Groups:", groups);
 
+  /* Activate Farmer */
   const activateFarmer = useCallback(
     (id) => {
       toast
@@ -84,6 +99,7 @@ export default function CloudFarmers() {
     [activateFarmerMutation.mutateAsync, farmersQuery.refetch]
   );
 
+  /* Disconnect Farmer */
   const disconnectFarmer = useCallback(
     (id) => {
       toast
@@ -187,29 +203,21 @@ export default function CloudFarmers() {
                         />
                       </AccountDetailsDialog>
                       {/* Activate Button */}
-                      <button
+                      <FarmerActionButton
                         title="Activate Farmer"
                         onClick={() => activateFarmer(farmer.id)}
-                        className={cn(
-                          "bg-neutral-100 dark:bg-neutral-700",
-                          "text-green-500 dark:text-green-400",
-                          "px-3 rounded-lg shrink-0"
-                        )}
+                        variant={"activate"}
                       >
-                        <HiOutlinePower className="w-5 h-5" />
-                      </button>
+                        <HiOutlinePower className="size-4" />
+                      </FarmerActionButton>
                       {/* Terminate Button */}
-                      <button
+                      <FarmerActionButton
                         title="Disconnect Farmer"
                         onClick={() => disconnectFarmer(farmer.id)}
-                        className={cn(
-                          "bg-neutral-100 dark:bg-neutral-700",
-                          "text-red-500 dark:text-red-400",
-                          "px-3 rounded-lg shrink-0"
-                        )}
+                        variant={"disconnect"}
                       >
-                        <HiOutlineXMark className="w-5 h-5" />
-                      </button>
+                        <HiOutlineXMark className="size-4" />
+                      </FarmerActionButton>
                     </div>
                   ))}
                 </div>

@@ -1,12 +1,10 @@
 import { useQuery } from "@tanstack/react-query";
 
-import useAppContext from "./useAppContext";
+import useCloudQueryOptions from "./useCloudQueryOptions";
 
 export default function useCloudSubscriptionQuery(context) {
-  const app = useAppContext();
-  const { telegramUser, settings, cloudBackend } = context || app;
-  const initData = telegramUser?.initData;
-  const enabled = settings.enableCloud && Boolean(initData);
+  const { enabled, auth, cloudBackend, cloudServer } =
+    useCloudQueryOptions(context);
 
   return useQuery({
     enabled,
@@ -14,13 +12,13 @@ export default function useCloudSubscriptionQuery(context) {
     refetchOnMount: false,
     refetchOnReconnect: false,
     refetchOnWindowFocus: false,
-    queryKey: ["app", "cloud", "subscription", enabled, settings.cloudServer],
+    queryKey: ["app", "cloud", "subscription", enabled, cloudServer],
     queryFn: ({ signal }) =>
       cloudBackend
         .post(
           "/api/subscription",
           {
-            auth: initData,
+            auth,
           },
           { signal }
         )

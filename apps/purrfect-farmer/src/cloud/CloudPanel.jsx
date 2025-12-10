@@ -14,7 +14,7 @@ import useLocationToggle from "@/hooks/useLocationToggle";
 import CloudAddressDisplay from "./CloudAddressDisplay";
 
 export default function CloudPanel() {
-  const tabs = useMirroredTabs("farmers", ["farmers", "members"]);
+  const tabs = useMirroredTabs("cloud-panel", ["farmers", "members"]);
 
   const [openEnvUpdate, setOpenEnvUpdate] =
     useLocationToggle("cloud-env-update");
@@ -62,7 +62,7 @@ export default function CloudPanel() {
         {/* User Display */}
         <CloudUserDisplay />
 
-        {/* Farmer */}
+        {/* Tabs */}
         <Tabs tabs={tabs}>
           <Tabs.Content value="farmers">
             <CloudFarmers />

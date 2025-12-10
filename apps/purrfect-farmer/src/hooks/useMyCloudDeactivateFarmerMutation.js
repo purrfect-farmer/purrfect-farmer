@@ -1,15 +1,22 @@
 import { useMutation } from "@tanstack/react-query";
 
-import useAppContext from "./useAppContext";
+import useCloudQueryOptions from "./useCloudQueryOptions";
 
 export default function useMyCloudDeactivateFarmerMutation() {
-  const { cloudBackend } = useAppContext();
+  const { auth, cloudBackend, cloudServer } = useCloudQueryOptions();
 
   return useMutation({
-    mutationKey: ["app", "cloud", "my-cloud", "farmer", "deactivate"],
+    mutationKey: [
+      "app",
+      "cloud",
+      "my-cloud",
+      "farmer",
+      "deactivate",
+      cloudServer,
+    ],
     mutationFn: (id) =>
       cloudBackend
-        .post(`/api/farmers/deactivate`, { id })
+        .post(`/api/farmers/deactivate`, { auth, id })
         .then((res) => res.data),
   });
 }
