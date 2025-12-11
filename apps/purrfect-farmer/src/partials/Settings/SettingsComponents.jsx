@@ -6,7 +6,7 @@ import { memo } from "react";
 import ResetButton from "@/components/ResetButton";
 import ConfirmButton from "@/components/ConfirmButton";
 import Input from "@/components/Input";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 export const SettingsLabel = ({ children }) => (
   <label className="px-1 text-neutral-500 dark:text-neutral-400">
@@ -22,6 +22,10 @@ export const SettingsInput = ({
 }) => {
   const [value, setValue] = useState(initialValue || defaultValue || "");
 
+  useEffect(() => {
+    setValue(initialValue || defaultValue || "");
+  }, [initialValue, defaultValue]);
+
   return (
     <div className="flex gap-2">
       {/* Input */}
@@ -32,12 +36,10 @@ export const SettingsInput = ({
       />
 
       {/* Reset Button */}
-      {defaultValue !== "" ? (
-        <ResetButton
-          disabled={props.disabled}
-          onClick={() => setValue(defaultValue || "")}
-        />
-      ) : null}
+      <ResetButton
+        disabled={props.disabled}
+        onClick={() => setValue(defaultValue || "")}
+      />
 
       {/* Set Button */}
       <ConfirmButton
