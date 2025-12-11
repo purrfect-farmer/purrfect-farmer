@@ -45,7 +45,11 @@ export default async function (fastify, opts) {
         false
       );
 
-      return { account, subscription: account?.subscription };
+      const server = {
+        name: env("APP_NAME"),
+      };
+
+      return { server, account, subscription: account?.subscription };
     }
   );
 
