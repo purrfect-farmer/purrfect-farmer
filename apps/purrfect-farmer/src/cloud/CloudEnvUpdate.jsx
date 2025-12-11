@@ -91,6 +91,7 @@ export default function CloudEnvUpdate() {
     <CloudCenteredDialog
       title={"Environment Variables"}
       description={"Update the cloud environment variables."}
+      className="max-w-3xl"
     >
       {query.isSuccess ? (
         <CloudEnvForm initialData={query.data} />

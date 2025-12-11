@@ -1,7 +1,12 @@
 import { Dialog } from "radix-ui";
 import { cn } from "@/lib/utils";
 
-export default function CloudCenteredDialog({ title, description, children }) {
+export default function CloudCenteredDialog({
+  title,
+  description,
+  children,
+  ...props
+}) {
   return (
     <Dialog.Portal>
       <Dialog.Overlay
@@ -12,11 +17,13 @@ export default function CloudCenteredDialog({ title, description, children }) {
         )}
       >
         <Dialog.Content
+          {...props}
           className={cn(
             "w-full max-w-sm",
             "my-auto overflow-hidden",
             "flex flex-col gap-2 p-4",
-            "bg-white dark:bg-neutral-800 rounded-xl"
+            "bg-white dark:bg-neutral-800 rounded-xl",
+            props.className
           )}
         >
           {/* Title */}
