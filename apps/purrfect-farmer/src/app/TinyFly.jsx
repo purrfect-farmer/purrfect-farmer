@@ -152,6 +152,7 @@ function TinyFly() {
       const runner = new CronRunner("concurrent");
       runnerRef.current = runner;
 
+      /* Register Drops */
       drops.forEach((drop) => {
         const { FarmerClass } = drop;
         const callback = async () => {
@@ -193,7 +194,7 @@ function TinyFly() {
       /* Initial Instructions */
       logger.warn('> Click "Stop" to halt farming');
     },
-    [drops, logger, captcha, stopTinyFly, setStarted]
+    [drops, logger, captcha, setStarted]
   );
 
   /** Stop Tiny Fly */
