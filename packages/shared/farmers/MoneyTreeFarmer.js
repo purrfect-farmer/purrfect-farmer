@@ -375,7 +375,7 @@ export default class MoneyTreeFarmer extends BaseFarmer {
           nextLevel,
         };
       })
-      .filter((boost) => ["ENERGY", "REGENERATION"].includes(boost.type));
+      .filter((boost) => ["REGENERATION", "DAMAGE"].includes(boost.type));
 
     while (true) {
       const balance = this._player.balance;
