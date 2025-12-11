@@ -20,19 +20,19 @@ export default class StorageAdapter {
       return Object.fromEntries(this.cache.entries());
     }
 
-    return this.adapter.getAll();
+    return await this.adapter.getAll();
   }
 
   async setItem(key, value) {
-    await this.adapter.setItem(key, value);
+    return await this.adapter.setItem(key, value);
   }
 
   async removeItem(key) {
-    await this.adapter.removeItem(key);
+    return await this.adapter.removeItem(key);
   }
 
   async getItem(key, defaultValue) {
-    return this.adapter.getItem(key, defaultValue);
+    return await this.adapter.getItem(key, defaultValue);
   }
 
   async preload() {
