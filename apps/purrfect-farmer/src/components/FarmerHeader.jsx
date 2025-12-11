@@ -3,7 +3,7 @@ import useReferralLink from "@/hooks/useReferralLink";
 import useStorageState from "@/hooks/useStorageState";
 import { CgSpinnerAlt } from "react-icons/cg";
 import { IoCopyOutline } from "react-icons/io5";
-import { customLogger } from "@/lib/utils";
+import { customLogger } from "@/utils";
 import { useEffect } from "react";
 
 export default function FarmerHeader({ referralLink }) {

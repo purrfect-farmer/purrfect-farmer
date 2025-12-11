@@ -2,7 +2,7 @@ import CloudLoginForm from "@/cloud/CloudLoginForm";
 import CloudPanel from "@/cloud/CloudPanel";
 import toast from "react-hot-toast";
 import useAppContext from "@/hooks/useAppContext";
-import { requestIsUnauthorized } from "@/lib/utils";
+import { requestIsUnauthorized } from "@/utils";
 import { useEffect } from "react";
 
 export default function CloudManager() {

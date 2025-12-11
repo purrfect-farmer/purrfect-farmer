@@ -5,7 +5,7 @@ import {
   customLogger,
   getSharedSettings,
   getWindowCoords,
-} from "@/lib/utils";
+} from "@/utils";
 
 const isBridge = typeof import.meta.env.VITE_BRIDGE !== "undefined";
 const isWhisker = typeof import.meta.env.VITE_WHISKER !== "undefined";

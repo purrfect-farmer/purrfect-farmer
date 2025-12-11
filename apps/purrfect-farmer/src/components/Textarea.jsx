@@ -1,4 +1,4 @@
-import { cn } from "@/lib/utils";
+import { cn } from "@/utils";
 import { memo } from "react";
 import TextareaAutosize from "react-textarea-autosize";
 

@@ -1,6 +1,6 @@
 import useAppContext from "@/hooks/useAppContext";
 import storage from "@/lib/storage";
-import { postPortMessage } from "@/lib/utils";
+import { postPortMessage } from "@/utils";
 import { useCallback } from "react";
 import { useMemo } from "react";
 

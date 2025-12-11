@@ -1,5 +1,5 @@
 import useParsedProxy from "@/hooks/useParsedProxy";
-import { cn } from "@/lib/utils";
+import { cn } from "@/utils";
 import { useQuery } from "@tanstack/react-query";
 import axios from "axios";
 import copy from "copy-to-clipboard";

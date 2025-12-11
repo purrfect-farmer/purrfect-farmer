@@ -2,7 +2,7 @@ import Alert from "@/components/Alert";
 import LabelToggle from "@/components/LabelToggle";
 import { Rating } from "@smastrom/react-rating";
 import { Reorder } from "motion/react";
-import { cn } from "@/lib/utils";
+import { cn } from "@/utils";
 import { memo } from "react";
 import {
   DropReorderItem,

@@ -1,6 +1,6 @@
 import base64url from "base64url";
 import crypto from "crypto";
-import sharedUtils from "@purrfect/shared/utils/index.js";
+import sharedUtils from "@purrfect/shared/utils/bundle.js";
 import tweetnacl from "tweetnacl";
 import { JSDOM } from "jsdom";
 

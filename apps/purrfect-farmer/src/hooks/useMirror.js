@@ -1,4 +1,4 @@
-import { customLogger } from "@/lib/utils";
+import { customLogger } from "@/utils";
 import { io } from "socket.io-client";
 import { useCallback } from "react";
 import { useLayoutEffect } from "react";

@@ -5,7 +5,7 @@ import toast from "react-hot-toast";
 import { Dialog } from "radix-ui";
 import { HiOutlineClipboard } from "react-icons/hi2";
 import { QRCodeSVG } from "qrcode.react";
-import { cn } from "@/lib/utils";
+import { cn } from "@/utils";
 import { memo } from "react";
 
 const networks = [

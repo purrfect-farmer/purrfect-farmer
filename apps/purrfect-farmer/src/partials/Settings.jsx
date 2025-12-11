@@ -5,7 +5,7 @@ import useMirroredCallback from "@/hooks/useMirroredCallback";
 import useMirroredState from "@/hooks/useMirroredState";
 import { CgSpinner } from "react-icons/cg";
 import { Dialog } from "radix-ui";
-import { resizeFarmerWindow } from "@/lib/utils";
+import { resizeFarmerWindow } from "@/utils";
 import { memo, useCallback } from "react";
 
 import Seeker from "./Seeker";

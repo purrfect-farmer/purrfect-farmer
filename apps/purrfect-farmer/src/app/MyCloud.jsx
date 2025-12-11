@@ -3,7 +3,7 @@ import Alert from "@/components/Alert";
 import farmers from "@/core/farmers";
 import useAppContext from "@/hooks/useAppContext";
 import useMyCloudFarmersQuery from "@/hooks/useMyCloudFarmersQuery";
-import { cn } from "@/lib/utils";
+import { cn } from "@/utils";
 import CloudSubscription from "@/partials/CloudSubscription";
 import AppIcon from "@/assets/images/icon.png?format=webp&w=80";
 import useMirroredTabs from "@/hooks/useMirroredTabs";

@@ -10,7 +10,7 @@ import toast from "react-hot-toast";
 import LabelToggle from "./LabelToggle";
 import useAppContext from "@/hooks/useAppContext";
 import cryptoRandomString from "crypto-random-string";
-import { postPortMessage } from "@/lib/utils";
+import { postPortMessage } from "@/utils";
 import useMirroredState from "@/hooks/useMirroredState";
 import useMirroredCallback from "@/hooks/useMirroredCallback";
 import storage from "@/lib/storage";

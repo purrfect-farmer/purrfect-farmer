@@ -1,11 +1,11 @@
 import { HiPlay, HiStop } from "react-icons/hi2";
-import { cn } from "@/lib/utils";
+import { cn } from "@/utils";
 import { memo } from "react";
 import useAppContext from "@/hooks/useAppContext";
 import { useRef } from "react";
 import CronRunner from "@purrfect/shared/lib/CronRunner.js";
 import useUserAgent from "@/hooks/useUserAgent";
-import utils from "@/lib/utils";
+import utils from "@/utils/bundle";
 import axios from "axios";
 import BrowserLogger from "@purrfect/shared/lib/BrowserLogger";
 import { useLayoutEffect } from "react";

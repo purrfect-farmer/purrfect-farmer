@@ -1,10 +1,10 @@
 import AppIcon from "@/assets/images/icon.png?format=webp&w=80";
 import useSharedContext from "@/hooks/useSharedContext";
-import { cn } from "@/lib/utils";
+import { cn } from "@/utils";
 import BrowserLogger from "@purrfect/shared/lib/BrowserLogger";
 import { useRef } from "react";
 import { useEffect } from "react";
-import utils from "@/lib/utils";
+import utils from "@/utils/bundle";
 import CronRunner from "@purrfect/shared/lib/CronRunner";
 import axios from "axios";
 import userAgents from "@purrfect/shared/resources/userAgents";

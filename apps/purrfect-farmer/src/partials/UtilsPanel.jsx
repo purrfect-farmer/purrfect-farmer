@@ -6,7 +6,7 @@ import Tabs from "@/components/Tabs";
 import useAppContext from "@/hooks/useAppContext";
 import { Dialog } from "radix-ui";
 import { HiArrowTopRightOnSquare, HiUserPlus } from "react-icons/hi2";
-import { cn, isBotURL } from "@/lib/utils";
+import { cn, isBotURL } from "@/utils";
 import { memo, useState } from "react";
 import { utils } from "@/core/tabs";
 import { Fragment } from "react";

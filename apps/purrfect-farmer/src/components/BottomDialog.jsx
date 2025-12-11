@@ -1,4 +1,4 @@
-import { cn } from "@/lib/utils";
+import { cn } from "@/utils";
 import { Dialog } from "radix-ui";
 import Container from "./Container";
 

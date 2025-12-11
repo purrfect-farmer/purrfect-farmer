@@ -1,5 +1,5 @@
 import toast from "react-hot-toast";
-import { requestIsUnauthorized } from "@/lib/utils";
+import { requestIsUnauthorized } from "@/utils";
 import { useLayoutEffect } from "react";
 
 export default function useUnauthorizedInterceptor(api, reset, initResetCount) {

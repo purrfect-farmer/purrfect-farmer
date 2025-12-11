@@ -5,7 +5,7 @@ import Tabs from "@/components/Tabs";
 import toast from "react-hot-toast";
 import useBackupAndRestore from "@/hooks/useBackupAndRestore";
 import useMirroredTabs from "@/hooks/useMirroredTabs";
-import { cn } from "@/lib/utils";
+import { cn } from "@/utils";
 import { formatDate } from "date-fns";
 import { useCallback } from "react";
 import { useDropzone } from "react-dropzone";

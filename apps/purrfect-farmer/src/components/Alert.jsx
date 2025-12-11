@@ -4,7 +4,7 @@ import {
   HiOutlineInformationCircle,
   HiOutlineXCircle,
 } from "react-icons/hi2";
-import { cn } from "@/lib/utils";
+import { cn } from "@/utils";
 
 const ALERT_ICONS = {
   info: HiOutlineInformationCircle,

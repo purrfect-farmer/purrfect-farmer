@@ -2,7 +2,7 @@ import useAppContext from "@/hooks/useAppContext";
 import { Dialog } from "radix-ui";
 import { LiaUser } from "react-icons/lia";
 import { PiUserCirclePlusBold } from "react-icons/pi";
-import { cn } from "@/lib/utils";
+import { cn } from "@/utils";
 import { memo } from "react";
 import { useMemo } from "react";
 import {

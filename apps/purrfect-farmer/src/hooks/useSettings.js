@@ -1,6 +1,6 @@
 import defaultSettings from "@/core/defaultSettings";
 import toast from "react-hot-toast";
-import { removeAccountStorage } from "@/lib/utils";
+import { removeAccountStorage } from "@/utils";
 import { useCallback } from "react";
 
 import useAccountContext from "./useAccountContext";

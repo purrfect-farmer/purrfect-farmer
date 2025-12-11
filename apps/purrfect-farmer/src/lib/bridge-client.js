@@ -1,4 +1,4 @@
-import { isExtension, uuid } from "./utils";
+import { isExtension, uuid } from "../utils";
 
 if (
   isExtension() === false &&

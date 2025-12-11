@@ -2,7 +2,7 @@ import { Api } from "telegram";
 import { EditedMessage } from "telegram/events/EditedMessage";
 import { NewMessage } from "telegram/events";
 
-import { customLogger } from "./utils";
+import { customLogger } from "../utils";
 
 export default class SessionMessenger {
   /**

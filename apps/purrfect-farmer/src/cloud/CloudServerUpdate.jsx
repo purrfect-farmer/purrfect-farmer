@@ -5,7 +5,7 @@ import CloudCenteredDialog from "./CloudCenteredDialog";
 import useCloudManagerServerUpdateMutation from "@/hooks/useCloudManagerServerUpdateMutation";
 import Alert from "@/components/Alert";
 import AnsiToHtml from "ansi-to-html";
-import { cn } from "@/lib/utils";
+import { cn } from "@/utils";
 
 const ansiToHtml = new AnsiToHtml();
 

@@ -1,6 +1,6 @@
 import FarmerContext from "@/contexts/FarmerContext";
 import { QueryClientProvider } from "@tanstack/react-query";
-import { cn } from "@/lib/utils";
+import { cn } from "@/utils";
 import { memo } from "react";
 
 import FarmerInit from "./FarmerInit";

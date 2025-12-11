@@ -1,6 +1,6 @@
 import useAppContext from "@/hooks/useAppContext";
 import { HiOutlineBolt } from "react-icons/hi2";
-import { cn } from "@/lib/utils";
+import { cn } from "@/utils";
 
 export default function CloudTelegramSessionStatus() {
   const { settings, cloudTelegramSession } = useAppContext();

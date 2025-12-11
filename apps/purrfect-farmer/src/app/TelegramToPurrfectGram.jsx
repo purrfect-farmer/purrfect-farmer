@@ -5,7 +5,7 @@ import useAppContext from "@/hooks/useAppContext";
 import { useCallback } from "react";
 import TelegramIcon from "@/assets/images/telegram-logo.svg";
 import { createElement } from "react";
-import { cn, postPortMessage } from "@/lib/utils";
+import { cn, postPortMessage } from "@/utils";
 import toast from "react-hot-toast";
 import useMirroredCallback from "@/hooks/useMirroredCallback";
 import Tabs from "@/components/Tabs";

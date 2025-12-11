@@ -1,4 +1,4 @@
-import { cn } from "@/lib/utils";
+import { cn } from "@/utils";
 import { memo } from "react";
 
 export default memo(function FieldStateError({ fieldState, ...props }) {

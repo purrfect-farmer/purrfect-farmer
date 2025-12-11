@@ -1,4 +1,4 @@
-import { createListener } from "@/lib/utils";
+import { createListener } from "@/utils";
 export { encryptData, decryptData } from "@/encryption/pure";
 
 export const watchTelegramMiniApp = (callback) => {

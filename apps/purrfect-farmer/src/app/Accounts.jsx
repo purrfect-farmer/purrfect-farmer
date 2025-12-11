@@ -6,7 +6,7 @@ import useSharedCore from "@/hooks/useSharedCore";
 import useWakeLock from "@/hooks/useWakeLock";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "react-hot-toast";
-import { cn } from "@/lib/utils";
+import { cn } from "@/utils";
 import { createQueryClient } from "@/lib/createQueryClient";
 import { useMemo } from "react";
 

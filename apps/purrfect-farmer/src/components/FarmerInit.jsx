@@ -1,5 +1,5 @@
 import useAppContext from "@/hooks/useAppContext";
-import { cn } from "@/lib/utils";
+import { cn } from "@/utils";
 import { memo } from "react";
 
 import Alert from "./Alert";

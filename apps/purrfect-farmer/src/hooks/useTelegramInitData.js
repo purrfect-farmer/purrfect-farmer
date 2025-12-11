@@ -1,4 +1,4 @@
-import { extractInitDataUnsafe } from "@/lib/utils";
+import { extractInitDataUnsafe } from "@/utils";
 import { isBefore, subMinutes } from "date-fns";
 import { useMemo } from "react";
 

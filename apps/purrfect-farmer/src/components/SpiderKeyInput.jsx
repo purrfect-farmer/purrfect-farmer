@@ -1,7 +1,7 @@
 import { useState } from "react";
 import Input from "./Input";
 import useAppContext from "@/hooks/useAppContext";
-import { cn } from "@/lib/utils";
+import { cn } from "@/utils";
 import Container from "./Container";
 
 export default function SpiderKeyInput() {

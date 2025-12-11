@@ -5,7 +5,7 @@ import {
   WEB_PLATFORM_EXCLUDED_HOSTS,
   WEB_PLATFORM_REGEXP,
 } from "@/constants";
-import { extractInitDataUnsafe } from "@/lib/utils";
+import { extractInitDataUnsafe } from "@/utils";
 import { retrieveRawLaunchParams } from "@telegram-apps/bridge";
 
 import { decryptData, encryptData } from "./content-script-utils";

@@ -1,5 +1,5 @@
 import farmers from "@/core/farmers";
-import { isExtension } from "@/lib/utils";
+import { isExtension } from "@/utils";
 
 export function getNetRules(userAgent) {
   const farmerNetRequests = farmers

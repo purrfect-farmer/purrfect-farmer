@@ -1,5 +1,5 @@
 import toast from "react-hot-toast";
-import { customLogger } from "@/lib/utils";
+import { customLogger } from "@/utils";
 import { useLayoutEffect } from "react";
 
 import useSeekerServerQuery from "./useSeekerServerQuery";

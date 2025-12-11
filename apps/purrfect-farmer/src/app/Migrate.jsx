@@ -6,7 +6,7 @@ import defaultSharedSettings from "@/core/defaultSharedSettings";
 import toast from "react-hot-toast";
 import useAppContext from "@/hooks/useAppContext";
 import useMirroredCallback from "@/hooks/useMirroredCallback";
-import { cn } from "@/lib/utils";
+import { cn } from "@/utils";
 import { kebabCase } from "change-case";
 import storage from "@/lib/storage";
 import Container from "@/components/Container";

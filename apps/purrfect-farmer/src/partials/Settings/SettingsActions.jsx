@@ -1,7 +1,7 @@
 import { HiOutlineArrowPath } from "react-icons/hi2";
 import { PiTrashBold } from "react-icons/pi";
 import { TbProgressCheck } from "react-icons/tb";
-import { cn } from "@/lib/utils";
+import { cn } from "@/utils";
 import { memo } from "react";
 
 export default memo(function SettingsActions({

@@ -1,4 +1,4 @@
-import { uuid } from "@/lib/utils";
+import { uuid } from "@/utils";
 
 if (typeof import.meta.env.VITE_BRIDGE !== "undefined") {
   chrome.runtime.onConnectExternal.addListener((port) => {

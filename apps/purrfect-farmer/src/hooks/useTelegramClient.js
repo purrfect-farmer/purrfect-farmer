@@ -1,5 +1,5 @@
 import { createTelegramClient } from "@/lib/createTelegramClient";
-import { customLogger } from "@/lib/utils";
+import { customLogger } from "@/utils";
 import { useLayoutEffect } from "react";
 import { useRef } from "react";
 import { useState } from "react";

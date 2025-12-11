@@ -4,7 +4,7 @@ import TelegramLogin from "@/partials/TelegramLogin";
 import TelegramWebClient from "@/lib/TelegramWebClient";
 import toast from "react-hot-toast";
 import useAppContext from "@/hooks/useAppContext";
-import { cn } from "@/lib/utils";
+import { cn } from "@/utils";
 import { createTelegramClient } from "@/lib/createTelegramClient";
 import { useCallback } from "react";
 import Container from "@/components/Container";

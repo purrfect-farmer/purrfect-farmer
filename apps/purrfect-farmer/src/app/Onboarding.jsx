@@ -3,7 +3,7 @@ import Connect from "@/partials/Connect";
 import PrimaryButton from "@/components/PrimaryButton";
 import WelcomeIcon from "@/assets/images/icon-unwrapped-cropped.png?format=webp&h=224";
 import useAppContext from "@/hooks/useAppContext";
-import { cn } from "@/lib/utils";
+import { cn } from "@/utils";
 
 export default function Onboarding() {
   const { dispatchAndConfigureSettings } = useAppContext();

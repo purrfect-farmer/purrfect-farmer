@@ -4,7 +4,7 @@ import { useCallback } from "react";
 import { useDropzone } from "react-dropzone";
 import cryptoRandomString from "crypto-random-string";
 import useAppContext from "@/hooks/useAppContext";
-import { cn, postPortMessage } from "@/lib/utils";
+import { cn, postPortMessage } from "@/utils";
 import storage from "@/lib/storage";
 import Container from "@/components/Container";
 import WhiskersIcon from "@/assets/images/whiskers.png?format=webp&w=256";

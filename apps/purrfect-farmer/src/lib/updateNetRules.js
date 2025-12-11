@@ -1,6 +1,6 @@
 import { getNetRules } from "@/extension/rule-resources";
 
-import { customLogger, getUserAgent, storeUserAgent } from "./utils";
+import { customLogger, getUserAgent, storeUserAgent } from "../utils";
 
 export default async function updateNetRules() {
   const userAgent = await getUserAgent();

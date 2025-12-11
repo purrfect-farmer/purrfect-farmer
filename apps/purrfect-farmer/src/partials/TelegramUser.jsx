@@ -1,6 +1,6 @@
 import copy from "copy-to-clipboard";
 import toast from "react-hot-toast";
-import { cn } from "@/lib/utils";
+import { cn } from "@/utils";
 import { memo, useCallback } from "react";
 
 export default memo(function TelegramUser({ user, ...props }) {

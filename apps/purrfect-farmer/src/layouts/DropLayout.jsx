@@ -1,7 +1,7 @@
 import { HiOutlineArrowLeft } from "react-icons/hi2";
 import { Link } from "react-router-dom";
 import { Outlet } from "react-router-dom";
-import { cn } from "@/lib/utils";
+import { cn } from "@/utils";
 import { memo } from "react";
 
 export default memo(function DropLayout() {

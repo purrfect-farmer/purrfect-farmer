@@ -1,6 +1,6 @@
 import Alert from "@/components/Alert";
 import LabelToggle from "@/components/LabelToggle";
-import { cn } from "@/lib/utils";
+import { cn } from "@/utils";
 import { HiOutlineListBullet } from "react-icons/hi2";
 import { memo } from "react";
 import {

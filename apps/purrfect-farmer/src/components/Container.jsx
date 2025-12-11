@@ -1,4 +1,4 @@
-import { cn } from "@/lib/utils";
+import { cn } from "@/utils";
 import { forwardRef } from "react";
 
 const Container = forwardRef(function Container(props, ref) {

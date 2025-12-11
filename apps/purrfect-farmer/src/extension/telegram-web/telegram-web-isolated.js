@@ -1,5 +1,5 @@
 import { TELEGRAM_WEB_HOSTS } from "@/constants";
-import { clickElementCenter, isElementVisible } from "@/lib/utils";
+import { clickElementCenter, isElementVisible } from "@/utils";
 
 if (TELEGRAM_WEB_HOSTS.includes(location.host)) {
   /** Web Version */

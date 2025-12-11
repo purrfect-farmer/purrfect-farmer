@@ -3,7 +3,7 @@ import useAppContext from "@/hooks/useAppContext";
 import useStaticQuery from "@/hooks/useStaticQuery";
 import { HiOutlineMapPin } from "react-icons/hi2";
 import { LiaUserNinjaSolid } from "react-icons/lia";
-import { cn, customLogger } from "@/lib/utils";
+import { cn, customLogger } from "@/utils";
 import { useEffect } from "react";
 
 export default function IPStatus() {

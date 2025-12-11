@@ -1,7 +1,7 @@
 import BrowserIcon from "@/assets/images/browser.png?w=80&format=webp";
 import useAppContext from "@/hooks/useAppContext";
 import { HiOutlineArrowPath, HiOutlineXMark } from "react-icons/hi2";
-import { cn } from "@/lib/utils";
+import { cn } from "@/utils";
 import { memo, useCallback, useRef } from "react";
 import { useEffect } from "react";
 

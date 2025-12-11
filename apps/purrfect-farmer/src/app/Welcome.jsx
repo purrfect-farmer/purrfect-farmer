@@ -35,7 +35,7 @@ import {
   HiOutlinePuzzlePiece,
 } from "react-icons/hi2";
 import { RiRemoteControlLine } from "react-icons/ri";
-import { cn, isExtension } from "@/lib/utils";
+import { cn, isExtension } from "@/utils";
 import { forwardRef, memo } from "react";
 import { useCallback } from "react";
 import { useEffect } from "react";

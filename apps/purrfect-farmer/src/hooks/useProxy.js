@@ -1,4 +1,4 @@
-import { sendWebviewMessage } from "@/lib/utils";
+import { sendWebviewMessage } from "@/utils";
 import { useEffect } from "react";
 
 import useAppContext from "./useAppContext";

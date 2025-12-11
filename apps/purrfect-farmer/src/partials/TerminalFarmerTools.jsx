@@ -1,6 +1,6 @@
 import { Dialog } from "radix-ui";
 import useMirroredCallback from "@/hooks/useMirroredCallback";
-import { cn } from "@/lib/utils";
+import { cn } from "@/utils";
 import BottomDialog from "@/components/BottomDialog";
 
 export const TerminalFarmerTools = ({ context }) => {

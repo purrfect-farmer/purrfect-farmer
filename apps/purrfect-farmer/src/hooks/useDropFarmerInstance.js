@@ -1,4 +1,4 @@
-import utils from "@/lib/utils";
+import utils from "@/utils/bundle";
 import { useLayoutEffect, useRef } from "react";
 
 import useUserAgent from "./useUserAgent";

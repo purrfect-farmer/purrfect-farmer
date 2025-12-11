@@ -1,7 +1,7 @@
 import { Dialog } from "radix-ui";
 import FarmerHeader from "@/components/FarmerHeader";
 import useTerminalFarmer from "@/hooks/useTerminalFarmer";
-import { cn } from "@/lib/utils";
+import { cn } from "@/utils";
 import { HiOutlineWrenchScrewdriver, HiStop, HiPlay } from "react-icons/hi2";
 import { TerminalFarmerPrompt } from "./TerminalFarmerPrompt";
 import { TerminalFarmerTools } from "./TerminalFarmerTools";

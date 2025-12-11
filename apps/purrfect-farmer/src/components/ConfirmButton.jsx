@@ -1,5 +1,5 @@
 import { HiCheck } from "react-icons/hi2";
-import { cn } from "@/lib/utils";
+import { cn } from "@/utils";
 import { memo } from "react";
 
 export default memo(function ConfirmButton(props) {

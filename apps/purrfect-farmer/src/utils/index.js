@@ -1,12 +1,12 @@
-import storage from "./storage";
+import storage from "../lib/storage";
 import userAgents from "@purrfect/shared/resources/userAgents.js";
 import defaultSharedSettings from "@/core/defaultSharedSettings";
-import sharedUtils from "@purrfect/shared/utils/index.js";
-import { uuid } from "@purrfect/shared/utils/index.js";
+
+import { uuid } from "@purrfect/shared/utils";
 import { clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
 
-export * from "@purrfect/shared/utils/index.js";
+export * from "@purrfect/shared/utils";
 
 export function isExtension() {
   return window.location.protocol === "chrome-extension:";
@@ -341,9 +341,3 @@ export async function getCookies(options) {
 
   return await chrome.cookies.getAll(options);
 }
-
-export default {
-  ...sharedUtils,
-  getCookies,
-  parseHTML,
-};

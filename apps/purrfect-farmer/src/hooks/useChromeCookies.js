@@ -1,6 +1,6 @@
 import farmers from "@/core/farmers";
 import setCookie from "set-cookie-parser";
-import { customLogger } from "@/lib/utils";
+import { customLogger } from "@/utils";
 import { useLayoutEffect } from "react";
 import { useMemo } from "react";
 

@@ -1,4 +1,4 @@
-import { customLogger, withValue } from "@/lib/utils";
+import { customLogger, withValue } from "@/utils";
 
 export function overrideMessageEvent() {
   const NativeMessageEvent = MessageEvent;

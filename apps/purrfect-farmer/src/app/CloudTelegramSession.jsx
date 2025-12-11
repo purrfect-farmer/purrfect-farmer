@@ -4,7 +4,7 @@ import TelegramLogin from "@/partials/TelegramLogin";
 import toast from "react-hot-toast";
 import useAppContext from "@/hooks/useAppContext";
 import useTelegramLogoutMutation from "@/hooks/useTelegramLogoutMutation";
-import { cn } from "@/lib/utils";
+import { cn } from "@/utils";
 import Container from "@/components/Container";
 
 export default function CloudTelegramSession() {

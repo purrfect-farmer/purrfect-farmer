@@ -1,6 +1,6 @@
 import * as changeKeys from "change-case/keys";
 
-import utils from "../utils/index.js";
+import utils from "../utils/bundle.js";
 import seedrandom from "seedrandom";
 
 export default class BaseFarmer {

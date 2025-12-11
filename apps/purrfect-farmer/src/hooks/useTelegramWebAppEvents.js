@@ -1,4 +1,4 @@
-import { customLogger } from "@/lib/utils";
+import { customLogger } from "@/utils";
 import { useLayoutEffect } from "react";
 
 import useAppContext from "./useAppContext";

@@ -10,7 +10,7 @@ import {
   HiOutlinePlus,
 } from "react-icons/hi2";
 import { RiDraggable } from "react-icons/ri";
-import { customLogger, dispatchClickEventOnElement } from "@/lib/utils";
+import { customLogger, dispatchClickEventOnElement } from "@/utils";
 import { memo } from "react";
 import { useCallback } from "react";
 import { useEffect } from "react";

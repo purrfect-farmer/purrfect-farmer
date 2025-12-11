@@ -3,7 +3,7 @@ import UserIcon from "@/assets/images/user-icon.png?format=webp&w=256";
 import toast from "react-hot-toast";
 import useCloudManagerKickMemberMutation from "@/hooks/useCloudManagerKickMemberMutation";
 import { Dialog } from "radix-ui";
-import { cn } from "@/lib/utils";
+import { cn } from "@/utils";
 import { formatDate } from "date-fns";
 import { useCallback } from "react";
 import { useQueryClient } from "@tanstack/react-query";

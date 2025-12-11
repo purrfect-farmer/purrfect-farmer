@@ -1,4 +1,4 @@
-import { sendWebviewMessage } from "@/lib/utils";
+import { sendWebviewMessage } from "@/utils";
 import { useCallback } from "react";
 import { useEffect } from "react";
 import { useMemo } from "react";

@@ -9,7 +9,7 @@ import useAppContext from "@/hooks/useAppContext";
 import useCloudServerQuery from "@/hooks/useCloudServerQuery";
 import usePaymentInitializeMutation from "@/hooks/usePaymentInitializationMutation";
 import { Controller, FormProvider, useForm } from "react-hook-form";
-import { customLogger } from "@/lib/utils";
+import { customLogger } from "@/utils";
 import { memo } from "react";
 import { yupResolver } from "@hookform/resolvers/yup";
 

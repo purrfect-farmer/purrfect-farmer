@@ -1,4 +1,4 @@
-import { extractInitDataUnsafe, postPortMessage } from "@/lib/utils";
+import { extractInitDataUnsafe, postPortMessage } from "@/utils";
 import { isAfter, subMinutes } from "date-fns";
 import { useCallback, useMemo } from "react";
 import { useEffect } from "react";

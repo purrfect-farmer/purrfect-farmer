@@ -1,6 +1,6 @@
 import AppIcon from "@/assets/images/icon.png?format=webp&w=80";
 import useAppContext from "@/hooks/useAppContext";
-import { cn } from "@/lib/utils";
+import { cn } from "@/utils";
 import { memo } from "react";
 import PromptDialog from "@/components/PromptDialog";
 

@@ -4,7 +4,7 @@ import Container from "@/components/Container";
 import PrimaryButton from "@/components/PrimaryButton";
 import useAppContext from "@/hooks/useAppContext";
 import useMirroredCallback from "@/hooks/useMirroredCallback";
-import { postPortMessage } from "@/lib/utils";
+import { postPortMessage } from "@/utils";
 import { useCallback } from "react";
 import toast from "react-hot-toast";
 

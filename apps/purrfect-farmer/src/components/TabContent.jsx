@@ -6,7 +6,7 @@ import useAppContext from "@/hooks/useAppContext";
 import useStorageState from "@/hooks/useStorageState";
 import { ErrorBoundary } from "react-error-boundary";
 import { Suspense, memo } from "react";
-import { cn } from "@/lib/utils";
+import { cn } from "@/utils";
 
 import ErrorFallback from "./ErrorFallback";
 import FullSpinner from "./FullSpinner";

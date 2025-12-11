@@ -14,7 +14,7 @@ import {
   HiOutlineTrash,
   HiOutlineUserPlus,
 } from "react-icons/hi2";
-import { cn, fetchContent, isBotURL, uuid } from "@/lib/utils";
+import { cn, fetchContent, isBotURL, uuid } from "@/utils";
 import { memo, useCallback } from "react";
 import { useEffect } from "react";
 import { useMutation } from "@tanstack/react-query";

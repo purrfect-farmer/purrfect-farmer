@@ -1,5 +1,5 @@
 import { Tabs as TabsPrimitive } from "radix-ui";
-import { cn } from "@/lib/utils";
+import { cn } from "@/utils";
 import Container from "./Container";
 
 const GRID_SIZES = {

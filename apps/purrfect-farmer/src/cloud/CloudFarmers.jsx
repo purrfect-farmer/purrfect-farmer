@@ -8,7 +8,7 @@ import useCloudManagerFarmersQuery from "@/hooks/useCloudManagerFarmersQuery";
 import { Collapsible } from "radix-ui";
 import { Dialog } from "radix-ui";
 import { HiOutlinePower, HiOutlineXMark } from "react-icons/hi2";
-import { cn, matchesAccountSearch } from "@/lib/utils";
+import { cn, matchesAccountSearch } from "@/utils";
 import { useCallback } from "react";
 import { useMemo, useState } from "react";
 

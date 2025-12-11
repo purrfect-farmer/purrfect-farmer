@@ -1,7 +1,7 @@
 import * as yup from "yup";
 import Input from "@/components/Input";
 import { Controller, FormProvider, useForm } from "react-hook-form";
-import { cn } from "@/lib/utils";
+import { cn } from "@/utils";
 import { memo } from "react";
 import { yupResolver } from "@hookform/resolvers/yup";
 

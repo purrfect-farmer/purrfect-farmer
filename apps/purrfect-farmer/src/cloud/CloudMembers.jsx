@@ -3,7 +3,7 @@ import UserIcon from "@/assets/images/user-icon.png?format=webp&w=256";
 import useCloudManagerMembersQuery from "@/hooks/useCloudManagerMembersQuery";
 import { Dialog } from "radix-ui";
 import { HiCheckCircle, HiMinusCircle } from "react-icons/hi2";
-import { cn, matchesAccountSearch } from "@/lib/utils";
+import { cn, matchesAccountSearch } from "@/utils";
 import { useMemo, useState } from "react";
 
 import CloudMemberDialog from "./CloudMemberDialog";

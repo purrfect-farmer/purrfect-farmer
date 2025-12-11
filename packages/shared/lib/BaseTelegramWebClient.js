@@ -4,7 +4,12 @@ import { NewMessage, Raw } from "telegram/events/index.js";
 import { StringSession } from "telegram/sessions/index.js";
 import { UpdateConnectionState } from "telegram/network/index.js";
 
-import utils from "../utils/index.js";
+import {
+  delayForSeconds,
+  extractTgWebAppData,
+  isBotMiniAppLink,
+  parseTelegramLink,
+} from "../utils/index.js";
 
 export default class BaseTelegramWebClient extends TelegramClient {
   /** Construct Class */
@@ -74,7 +79,7 @@ export default class BaseTelegramWebClient extends TelegramClient {
       this._isConnecting = true;
 
       try {
-        await utils.delayForSeconds(1);
+        await delayForSeconds(1);
         await super.connect();
         this._connectionQueue.forEach((item) => item.resolve());
       } catch (error) {
@@ -174,7 +179,7 @@ export default class BaseTelegramWebClient extends TelegramClient {
   /** Start Bot from Link */
   startBotFromLink({ link, startOptions, replyOptions }) {
     return this.execute(() => {
-      const { entity, startParam } = utils.parseTelegramLink(link);
+      const { entity, startParam } = parseTelegramLink(link);
       return this.startBot(
         {
           ...startOptions,
@@ -200,7 +205,7 @@ export default class BaseTelegramWebClient extends TelegramClient {
         }),
       });
 
-      let parsed = utils.parseTelegramLink(link);
+      let parsed = parseTelegramLink(link);
       let webviewButton = null;
       let miniApp = null;
       let result = null;
@@ -237,8 +242,8 @@ export default class BaseTelegramWebClient extends TelegramClient {
 
           for (const button of buttons) {
             /** Mini App Link */
-            if (utils.isBotMiniAppLink(button.url)) {
-              miniApp = utils.parseTelegramLink(button.url);
+            if (isBotMiniAppLink(button.url)) {
+              miniApp = parseTelegramLink(button.url);
               break;
             } else if (
               /** Webview Button */
@@ -304,7 +309,7 @@ export default class BaseTelegramWebClient extends TelegramClient {
   /** Get Telegram WebApp */
   async getTelegramWebApp(link) {
     const webview = await this.getWebview(link);
-    const result = utils.extractTgWebAppData(webview.url);
+    const result = extractTgWebAppData(webview.url);
 
     return result;
   }
@@ -313,7 +318,7 @@ export default class BaseTelegramWebClient extends TelegramClient {
   joinTelegramLink(link) {
     return this.execute(async () => {
       try {
-        const parsed = utils.parseTelegramLink(link);
+        const parsed = parseTelegramLink(link);
 
         await this.invoke(
           parsed.entity.startsWith("+")

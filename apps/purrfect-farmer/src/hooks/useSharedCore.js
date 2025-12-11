@@ -1,7 +1,7 @@
 import cryptoRandomString from "crypto-random-string";
 import defaultAccounts from "@/core/defaultAccounts";
 import defaultSharedSettings from "@/core/defaultSharedSettings";
-import { extractInitDataUnsafe, removeAccountStorage } from "@/lib/utils";
+import { extractInitDataUnsafe, removeAccountStorage } from "@/utils";
 import { useCallback } from "react";
 import { useMemo } from "react";
 import { useState } from "react";

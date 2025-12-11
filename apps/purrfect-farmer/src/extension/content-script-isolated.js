@@ -2,7 +2,7 @@ import "./bridge/bridge-isolated";
 import "./telegram-web/telegram-web-isolated";
 
 import { TELEGRAM_WEB_HOSTS } from "@/constants";
-import { createListener, customLogger, getUserAgent, uuid } from "@/lib/utils";
+import { createListener, customLogger, getUserAgent, uuid } from "@/utils";
 
 import {
   decryptData,
