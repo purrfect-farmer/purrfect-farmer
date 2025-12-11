@@ -10,6 +10,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { HiOutlineArrowUpRight } from "react-icons/hi2";
 import useAppContext from "@/hooks/useAppContext";
 import BottomDialog from "@/components/BottomDialog";
+import ProxyDetails from "@/components/ProxyDetails";
 
 /* Member Dialog Header Component */
 const MemberDialogHeader = ({ account }) => (
@@ -120,6 +121,11 @@ const MemberDialogFarmer = ({ account, farmer }) => {
   );
 };
 
+/* Member Dialog Proxy Component */
+const MemberDialogProxy = ({ account }) => {
+  return <ProxyDetails defaultOpen proxy={account.proxy} />;
+};
+
 /* Cloud Member Dialog Component */
 export default function CloudMemberDialog({ account, farmer }) {
   const queryClient = useQueryClient();
@@ -149,16 +155,20 @@ export default function CloudMemberDialog({ account, farmer }) {
           <MemberDialogSubscriptions account={account} />
         ) : null}
 
-        {farmer ? (
-          <MemberDialogFarmer account={account} farmer={farmer} />
-        ) : null}
-
         {/* Session */}
         <Alert variant={account.session ? "success" : "warning"}>
           {account.session
             ? "Telegram Session is active."
             : "No Cloud Telegram Session."}
         </Alert>
+
+        {/* Farmer */}
+        {farmer ? (
+          <MemberDialogFarmer account={account} farmer={farmer} />
+        ) : null}
+
+        {/* Proxy */}
+        <MemberDialogProxy account={account} />
       </div>
 
       <div className="flex flex-col gap-2 p-4">

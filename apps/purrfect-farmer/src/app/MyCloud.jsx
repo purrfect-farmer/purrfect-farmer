@@ -16,6 +16,8 @@ import useMyCloudDeactivateFarmerMutation from "@/hooks/useMyCloudDeactivateFarm
 import CloudStatus from "@/partials/CloudStatus";
 import { useMemo } from "react";
 import Container from "@/components/Container";
+import useCloudSubscriptionQuery from "@/hooks/useCloudSubscriptionQuery";
+import ProxyDetails from "@/components/ProxyDetails";
 
 /* Map of Farmers */
 const farmersMap = farmers.reduce((result, farmer) => {
@@ -169,6 +171,14 @@ const MyCloudFarmers = () => {
   );
 };
 
+/* My Cloud Proxy Details Component */
+const MyCloudProxyDetails = () => {
+  const { data } = useCloudSubscriptionQuery();
+  const account = data?.account;
+  if (!account) return null;
+  return <ProxyDetails proxy={account.proxy} />;
+};
+
 /* My Cloud Main Component */
 export default function MyCloud() {
   const { telegramUser, settings } = useAppContext();
@@ -190,6 +200,10 @@ export default function MyCloud() {
           {/* Display Subscription */}
           <CloudSubscription />
 
+          {/* Proxy Details */}
+          <MyCloudProxyDetails />
+
+          {/* Tabs */}
           <Tabs tabs={tabs}>
             <Tabs.Content value="farmers">
               <MyCloudFarmers />
