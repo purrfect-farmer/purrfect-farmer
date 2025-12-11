@@ -1,20 +1,23 @@
 export default class ChromeLocalStorage {
-  static getAll() {
-    return chrome.storage.local.get(null);
+  static async getAll() {
+    return await chrome.storage.local.get(null);
   }
 
-  static setItem(key, value) {
+  static async setItem(key, value) {
     const data = typeof key === "object" ? key : { [key]: value };
-    return chrome.storage.local.set(data);
+    return await chrome.storage.local.set(data);
   }
 
-  static removeItem(key) {
+  static async removeItem(key) {
     const itemsToRemove = Array.isArray(key) ? key : [key];
-    return chrome.storage.local.remove(itemsToRemove);
+    return await chrome.storage.local.remove(itemsToRemove);
   }
 
-  static getItem(key, defaultValue) {
-    const { [key]: value } = chrome.storage.local.get({ [key]: defaultValue });
+  static async getItem(key, defaultValue) {
+    const { [key]: value } = await chrome.storage.local.get({
+      [key]: defaultValue,
+    });
+
     return typeof value === "undefined" ? defaultValue : value;
   }
 
