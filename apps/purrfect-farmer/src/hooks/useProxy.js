@@ -1,10 +1,10 @@
 import { sendWebviewMessage } from "@/lib/utils";
 import { useEffect } from "react";
-import { useMemo } from "react";
 
 import useAppContext from "./useAppContext";
 import useCloudSubscriptionQuery from "./useCloudSubscriptionQuery";
 import updateNetRules from "@/lib/updateNetRules";
+import useParsedProxy from "./useParsedProxy";
 
 export default function useProxy(app) {
   const { account, sharedSettings, updateSharedSettings } =
@@ -13,36 +13,28 @@ export default function useProxy(app) {
 
   const subscriptionQuery = useCloudSubscriptionQuery(app);
   const cloudProxy = subscriptionQuery.data?.account?.proxy;
-  const parsedCloudProxy = useMemo(() => {
-    if (!cloudProxy) return null;
-    const [user, server] = cloudProxy.split("@");
-    const [proxyHost, proxyPort] = server.split(":");
-    const [proxyUsername, proxyPassword] = user.split(":");
+  const parsedCloudProxy = useParsedProxy(cloudProxy);
 
-    return {
-      proxyHost,
-      proxyPort,
-      proxyUsername,
-      proxyPassword,
-    };
-  }, [cloudProxy]);
+  const isProxyAllowedInWhisker =
+    !import.meta.env.VITE_WHISKER || sharedSettings.allowProxies;
 
-  /** Update Proxy */
-  useEffect(() => {
-    if (
-      !account.active ||
-      !shareCloudProxy ||
-      !parsedCloudProxy ||
-      (import.meta.env.VITE_WHISKER && !sharedSettings.allowProxies)
-    )
-      return;
-    else if (
-      !sharedSettings.proxyEnabled ||
+  const canUpdateProxy =
+    account.active &&
+    shareCloudProxy &&
+    parsedCloudProxy &&
+    isProxyAllowedInWhisker;
+
+  const shouldUpdateProxy = canUpdateProxy
+    ? !sharedSettings.proxyEnabled ||
       sharedSettings.proxyHost !== parsedCloudProxy.proxyHost ||
       sharedSettings.proxyPort !== parsedCloudProxy.proxyPort ||
       sharedSettings.proxyUsername !== parsedCloudProxy.proxyUsername ||
       sharedSettings.proxyPassword !== parsedCloudProxy.proxyPassword
-    ) {
+    : false;
+
+  /** Update Proxy */
+  useEffect(() => {
+    if (shouldUpdateProxy) {
       if (import.meta.env.VITE_WHISKER) {
         sendWebviewMessage({
           action: "set-proxy",
@@ -61,18 +53,7 @@ export default function useProxy(app) {
         );
       }
     }
-  }, [
-    account.active,
-    sharedSettings.allowProxies,
-    sharedSettings.proxyEnabled,
-    sharedSettings.proxyHost,
-    sharedSettings.proxyPort,
-    sharedSettings.proxyUsername,
-    sharedSettings.proxyPassword,
-    updateSharedSettings,
-    parsedCloudProxy,
-    shareCloudProxy,
-  ]);
+  }, [shouldUpdateProxy, parsedCloudProxy, updateSharedSettings]);
 
   /** Update Net Rules when Proxy Settings Change */
   useEffect(() => {
