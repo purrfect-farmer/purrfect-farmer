@@ -8,9 +8,18 @@ export default class BrowserLogger extends BaseLogger {
     this.converter = new AnsiToHtml();
   }
 
-  /** Set Terminal Element */
+  /** Set Terminal Element
+   * @param {HTMLElement} element - The terminal div element
+   */
   setElement(element) {
     this.terminalDiv = element;
+  }
+
+  /** Set Scroll Element
+   * @param {HTMLElement} element - The scrollable element
+   */
+  setScrollElement(element) {
+    this.scrollElement = element;
   }
 
   /** Output messages with HTML conversion */
@@ -24,7 +33,9 @@ export default class BrowserLogger extends BaseLogger {
     const line = args.join(" ");
     const html = this.converter.toHtml(line);
     this.terminalDiv.innerHTML += html + "<br/>";
-    this.terminalDiv.scrollTop = this.terminalDiv.scrollHeight; // Auto-scroll
+
+    const scrollTarget = this.scrollElement || this.terminalDiv;
+    scrollTarget.scrollTop = scrollTarget.scrollHeight; // Auto-scroll
   }
 
   /** Clear the terminal */

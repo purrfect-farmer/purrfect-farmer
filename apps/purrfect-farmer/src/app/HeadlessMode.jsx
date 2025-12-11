@@ -172,6 +172,7 @@ const createRunner = ({ FarmerClass, logger, captcha, controller }) => {
 };
 
 export default function HeadlessMode() {
+  const scrollRef = useRef(null);
   const terminalRef = useRef(null);
   const runnerRef = useRef(null);
   const { accounts, captcha, headlessFarmers, dispatchAndStopHeadlessMode } =
@@ -185,6 +186,7 @@ export default function HeadlessMode() {
     runnerRef.current = runner;
 
     logger.setElement(terminalRef.current);
+    logger.setScrollElement(scrollRef.current);
     logger.success(`> Headless Mode Initiated`);
 
     /** Get Available Accounts */
@@ -281,7 +283,10 @@ export default function HeadlessMode() {
       </div>
 
       {/* Terminal */}
-      <div className={cn("grow overflow-auto bg-black text-white")}>
+      <div
+        ref={scrollRef}
+        className={cn("grow overflow-auto bg-black text-white")}
+      >
         <Container
           ref={terminalRef}
           className={cn("font-mono whitespace-pre-wrap wrap-break-word p-2")}

@@ -14,6 +14,7 @@ export const TerminalFarmerContent = () => {
     userInputPrompt,
     referralLink,
     terminalRef,
+    scrollRef,
     started,
     toggle,
   } = useTerminalFarmer();
@@ -72,7 +73,10 @@ export const TerminalFarmerContent = () => {
         <span className="w-10" />
       </Container>
 
-      <div className={cn("grow overflow-auto bg-black text-white")}>
+      <div
+        ref={scrollRef}
+        className={cn("grow overflow-auto bg-black text-white")}
+      >
         <Container
           ref={terminalRef}
           className={cn("font-mono whitespace-pre-wrap wrap-break-word p-2")}

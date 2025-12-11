@@ -27,6 +27,7 @@ export default function useTerminalFarmer() {
   const referralLink = referralLinkQuery.data;
 
   const [started, setStarted] = useState();
+  const scrollRef = useRef(null);
   const terminalRef = useRef();
   const controllerRef = useRef();
 
@@ -96,6 +97,7 @@ export default function useTerminalFarmer() {
   /** Initialize Logger */
   useLayoutEffect(() => {
     logger.setElement(terminalRef.current);
+    logger.setScrollElement(scrollRef.current);
     logger.success(`> ${title} Farmer Initiated`);
   }, [logger, title]);
 
@@ -131,6 +133,7 @@ export default function useTerminalFarmer() {
     context,
     instance,
     referralLink,
+    scrollRef,
     terminalRef,
     started,
     userInputPrompt,

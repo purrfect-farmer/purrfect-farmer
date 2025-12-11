@@ -122,6 +122,7 @@ function TinyFly() {
   const userAgent = useUserAgent();
 
   const runnerRef = useRef(null);
+  const scrollRef = useRef(null);
   const terminalRef = useRef(null);
   const controllerRef = useRef(null);
 
@@ -232,6 +233,7 @@ function TinyFly() {
   /** Initialize Logger */
   useLayoutEffect(() => {
     logger.setElement(terminalRef.current);
+    logger.setScrollElement(scrollRef.current);
     resetLogger();
   }, [logger, resetLogger]);
 
@@ -259,7 +261,10 @@ function TinyFly() {
         )}
         {started ? "Stop" : "Start"}
       </button>
-      <div className={cn("grow overflow-auto bg-black text-white")}>
+      <div
+        ref={scrollRef}
+        className={cn("grow overflow-auto bg-black text-white")}
+      >
         <Container
           ref={terminalRef}
           className={cn("font-mono whitespace-pre-wrap wrap-break-word p-2")}
