@@ -22,6 +22,7 @@ import { SettingsContainer } from "./Settings/SettingsComponents";
 import defaultSharedSettings from "@/core/defaultSharedSettings";
 import Container from "@/components/Container";
 import BottomDialog from "@/components/BottomDialog";
+import CaptchaOptionsGroup from "./Settings/CaptchaOptionsGroup";
 
 export default memo(function Settings({ tabs }) {
   const {
@@ -161,6 +162,11 @@ export default memo(function Settings({ tabs }) {
                         dispatchAndConfigureSettings={
                           dispatchAndConfigureSettings
                         }
+                      />
+
+                      <CaptchaOptionsGroup
+                        sharedSettings={sharedSettings}
+                        configureSharedSettings={configureSharedSettings}
                       />
 
                       <ProxyOptionsGroup
