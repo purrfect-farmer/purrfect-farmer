@@ -52,7 +52,7 @@ export default function createRunner(FarmerClass) {
       this.farmer = account.farmer;
 
       this.telegramLink = this.constructor.telegramLink;
-      this.isTelegramFarmer = Boolean(this.telegramLink);
+      this.isTelegramFarmer = Boolean(this.constructor.telegramLink);
 
       this.logger = this.constructor.logger; // Use static logger
       this.utils = this.constructor.utils; // Use static utils
