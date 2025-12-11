@@ -30,6 +30,7 @@ export default function useSharedCore() {
 
   /** Captcha Solver */
   const captcha = useCaptcha(
+    sharedSettings.captchaEnabled,
     sharedSettings.captchaProvider,
     sharedSettings.captchaApiKey
   );

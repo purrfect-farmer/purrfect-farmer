@@ -6,6 +6,7 @@ import {
 } from "./SettingsComponents";
 import { HiOutlineShieldCheck } from "react-icons/hi2";
 import Select from "@/components/Select";
+import LabelToggle from "@/components/LabelToggle";
 
 export default memo(function CaptchaOptionsGroup({
   sharedSettings,
@@ -17,6 +18,18 @@ export default memo(function CaptchaOptionsGroup({
       title={"Captcha Options"}
       icon={<HiOutlineShieldCheck className="size-5" />}
     >
+      <LabelToggle
+        onChange={(ev) =>
+          dispatchAndConfigureSharedSettings(
+            "captchaEnabled",
+            ev.target.checked
+          )
+        }
+        checked={sharedSettings?.captchaEnabled}
+      >
+        Enable Captcha Solver
+      </LabelToggle>
+
       <SettingsLabel>Captcha Provider</SettingsLabel>
       <Select
         value={sharedSettings?.captchaProvider}
