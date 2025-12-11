@@ -9,7 +9,7 @@ import Select from "@/components/Select";
 
 export default memo(function CaptchaOptionsGroup({
   sharedSettings,
-  configureSharedSettings,
+  dispatchAndConfigureSharedSettings,
 }) {
   return (
     <SettingsGroup
@@ -21,7 +21,7 @@ export default memo(function CaptchaOptionsGroup({
       <Select
         value={sharedSettings?.captchaProvider}
         onChange={(ev) =>
-          configureSharedSettings("captchaProvider", ev.target.value)
+          dispatchAndConfigureSharedSettings("captchaProvider", ev.target.value)
         }
       >
         <Select.Item value="2captcha">2Captcha</Select.Item>
@@ -37,7 +37,7 @@ export default memo(function CaptchaOptionsGroup({
         placeholder="Captcha API Key"
         initialValue={sharedSettings?.captchaApiKey}
         onConfirm={(captchaApiKey) =>
-          configureSharedSettings("captchaApiKey", captchaApiKey)
+          dispatchAndConfigureSharedSettings("captchaApiKey", captchaApiKey)
         }
       />
     </SettingsGroup>

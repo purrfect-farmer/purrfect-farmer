@@ -166,7 +166,9 @@ export default memo(function Settings({ tabs }) {
 
                       <CaptchaOptionsGroup
                         sharedSettings={sharedSettings}
-                        configureSharedSettings={configureSharedSettings}
+                        dispatchAndConfigureSharedSettings={
+                          dispatchAndConfigureSharedSettings
+                        }
                       />
 
                       <ProxyOptionsGroup
