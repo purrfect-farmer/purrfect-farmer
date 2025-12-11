@@ -10,6 +10,8 @@ import { twMerge } from "tailwind-merge";
 import { uuid } from "./utils";
 import { sha256 } from "js-sha256";
 import storage from "./storage";
+import toast from "react-hot-toast";
+import copy from "copy-to-clipboard";
 
 export { md5, sha256 };
 
@@ -23,6 +25,11 @@ export function isExtension() {
 
 export function cn(...inputs) {
   return twMerge(clsx(inputs));
+}
+
+export function copyToClipboard(text) {
+  copy(text);
+  toast.success("Copied!");
 }
 
 export function createListener(callback) {
