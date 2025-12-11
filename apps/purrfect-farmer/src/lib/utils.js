@@ -1,23 +1,12 @@
-export * from "@purrfect/shared/utils/index.js";
-
-import defaultSharedSettings from "@/core/defaultSharedSettings";
-import md5 from "md5";
-import sharedUtils from "@purrfect/shared/utils/index.js";
+import storage from "./storage";
 import userAgents from "@purrfect/shared/resources/userAgents.js";
+import defaultSharedSettings from "@/core/defaultSharedSettings";
+import sharedUtils from "@purrfect/shared/utils/index.js";
+import { uuid } from "@purrfect/shared/utils/index.js";
 import { clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
 
-import { uuid } from "./utils";
-import { sha256 } from "js-sha256";
-import storage from "./storage";
-import toast from "react-hot-toast";
-import copy from "copy-to-clipboard";
-
-export { md5, sha256 };
-
-export function sha256Hmac(key, data) {
-  return sha256.hmac(key, data);
-}
+export * from "@purrfect/shared/utils/index.js";
 
 export function isExtension() {
   return window.location.protocol === "chrome-extension:";
@@ -27,29 +16,10 @@ export function cn(...inputs) {
   return twMerge(clsx(inputs));
 }
 
-export function copyToClipboard(text) {
-  copy(text);
-  toast.success("Copied!");
-}
-
 export function createListener(callback) {
   const listener = (...args) => callback(listener, ...args);
 
   return listener;
-}
-
-export function createMutexFunction(callback) {
-  let locked = false;
-  return function (...args) {
-    if (locked) return;
-    /** Lock Function */
-    locked = true;
-
-    /** Execute original callback */
-    callback(...args).finally(() => {
-      locked = false;
-    });
-  };
 }
 
 export function customLogger(...args) {
@@ -374,9 +344,6 @@ export async function getCookies(options) {
 
 export default {
   ...sharedUtils,
-  md5,
-  sha256,
-  sha256Hmac,
   getCookies,
   parseHTML,
 };

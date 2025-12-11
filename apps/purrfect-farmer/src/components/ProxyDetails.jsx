@@ -1,8 +1,11 @@
 import useParsedProxy from "@/hooks/useParsedProxy";
-import { cn, copyToClipboard } from "@/lib/utils";
+import { cn } from "@/lib/utils";
 import { useQuery } from "@tanstack/react-query";
 import axios from "axios";
+import copy from "copy-to-clipboard";
 import { Collapsible } from "radix-ui";
+import { useCallback } from "react";
+import toast from "react-hot-toast";
 import { CgSpinner } from "react-icons/cg";
 import {
   HiCheckCircle,
@@ -11,25 +14,32 @@ import {
   HiOutlineMapPin,
 } from "react-icons/hi2";
 
-const ProxyDetailsItem = ({ label, value }) => (
-  <div
-    className={cn(
-      "p-2.5 flex items-center gap-2 rounded-xl",
-      "bg-neutral-200 dark:bg-neutral-600"
-    )}
-  >
-    {/* Details */}
-    <div className="flex flex-col grow min-w-0">
-      <span className="text-neutral-500 dark:text-neutral-400">{label}</span>
-      <span className="font-bold">{value}</span>
-    </div>
+const ProxyDetailsItem = ({ label, value }) => {
+  const copyValue = useCallback(() => {
+    copy(value);
+    toast.success("Copied!");
+  }, [value]);
 
-    {/* Copy button */}
-    <button title={`Copy ${label}`} onClick={() => copyToClipboard(value)}>
-      <HiOutlineClipboard className="size-4" />
-    </button>
-  </div>
-);
+  return (
+    <div
+      className={cn(
+        "p-2.5 flex items-center gap-2 rounded-xl",
+        "bg-neutral-200 dark:bg-neutral-600"
+      )}
+    >
+      {/* Details */}
+      <div className="flex flex-col grow min-w-0">
+        <span className="text-neutral-500 dark:text-neutral-400">{label}</span>
+        <span className="font-bold">{value}</span>
+      </div>
+
+      {/* Copy button */}
+      <button title={`Copy ${label}`} onClick={copyValue}>
+        <HiOutlineClipboard className="size-4" />
+      </button>
+    </div>
+  );
+};
 
 const ProxyDetails = ({ proxy, rootClassName, ...props }) => {
   const parsed = useParsedProxy(proxy);
