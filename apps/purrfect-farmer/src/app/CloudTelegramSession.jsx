@@ -41,7 +41,8 @@ export default function CloudTelegramSession() {
       {cloudTelegramSession ? (
         <div className="flex flex-col gap-2">
           <Alert variant={"success"}>
-            Your Telegram account is currently logged in on Cloud.
+            Your Telegram account is currently logged in on Cloud (
+            <span className="font-bold">{cloudTelegramSession}</span>).
           </Alert>
 
           <button

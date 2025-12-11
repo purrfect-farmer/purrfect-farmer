@@ -2,7 +2,7 @@ import Input from "@/components/Input";
 import UserIcon from "@/assets/images/user-icon.png?format=webp&w=256";
 import useCloudManagerMembersQuery from "@/hooks/useCloudManagerMembersQuery";
 import { Dialog } from "radix-ui";
-import { HiCheckCircle, HiXCircle } from "react-icons/hi2";
+import { HiCheckCircle, HiMinusCircle } from "react-icons/hi2";
 import { cn, matchesAccountSearch } from "@/lib/utils";
 import { useMemo, useState } from "react";
 
@@ -102,7 +102,7 @@ export default function CloudMembers() {
                   {account.subscriptions.length ? (
                     <HiCheckCircle className="size-5 text-green-500" />
                   ) : (
-                    <HiXCircle className="size-5 text-red-500" />
+                    <HiMinusCircle className="size-5 text-yellow-500" />
                   )}
                 </span>
               </div>

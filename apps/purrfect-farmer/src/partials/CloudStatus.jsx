@@ -23,7 +23,14 @@ export default function CloudStatus(props) {
       {status === "success" ? (
         <>
           {data.name}{" "}
-          <span className={cn(!cloudTelegramSession && "text-orange-500")}>
+          <span
+            title={
+              cloudTelegramSession
+                ? `Session: ${cloudTelegramSession}`
+                : "No active session"
+            }
+            className={cn(!cloudTelegramSession && "text-orange-500")}
+          >
             (
             {cloudTelegramSession ? (
               <HiBolt className="w-4 h-4 inline-flex" />

@@ -157,9 +157,14 @@ export default function CloudMemberDialog({ account, farmer }) {
 
         {/* Session */}
         <Alert variant={account.session ? "success" : "warning"}>
-          {account.session
-            ? "Telegram Session is active."
-            : "No Cloud Telegram Session."}
+          {account.session ? (
+            <>
+              Telegram Session is active (
+              <span className="font-bold">{account.session}</span>).
+            </>
+          ) : (
+            "No Cloud Telegram Session."
+          )}
         </Alert>
 
         {/* Farmer */}
