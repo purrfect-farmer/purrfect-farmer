@@ -140,7 +140,7 @@ export default class MuccaFarmer extends BaseFarmer {
           }));
       }
     } catch (err) {
-      console.error(
+      this.logger.error(
         "Firestore query error:",
         err.response?.data || err.message
       );
