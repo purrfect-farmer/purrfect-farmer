@@ -96,6 +96,14 @@ export default async function (fastify, opts) {
     },
     async function (request, reply) {
       const { user } = request.auth;
+      const account = await fastify.db.Account.findWithActiveSubscription(
+        user.id
+      );
+
+      if (!account) {
+        return reply.forbidden("Not allowed!");
+      }
+
       await fastify.db.Farmer.update(
         { active: true },
         {
@@ -114,6 +122,14 @@ export default async function (fastify, opts) {
     },
     async function (request, reply) {
       const { user } = request.auth;
+      const account = await fastify.db.Account.findWithActiveSubscription(
+        user.id
+      );
+
+      if (!account) {
+        return reply.forbidden("Not allowed!");
+      }
+
       await fastify.db.Farmer.destroy({
         where: { id: request.body.id, accountId: user.id },
       });
