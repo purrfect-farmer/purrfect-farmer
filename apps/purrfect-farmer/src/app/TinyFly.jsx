@@ -99,6 +99,8 @@ const createInstance = ({
 
     /** Update Web App Data */
     async updateWebAppData() {
+      if (!this.constructor.telegramLink) return;
+
       const { url } = await this.client.ref.current.getWebview(
         this.constructor.telegramLink
       );

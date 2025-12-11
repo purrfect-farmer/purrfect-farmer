@@ -115,6 +115,8 @@ const createRunner = ({ FarmerClass, logger, captcha, controller }) => {
 
     /** Update Web App Data */
     async updateWebAppData() {
+      if (!this.constructor.telegramLink) return;
+
       await this.client.connect();
 
       const { url } = await this.client.getWebview(
