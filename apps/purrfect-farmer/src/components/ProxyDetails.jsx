@@ -1,8 +1,9 @@
+import useParsedProxy from "@/hooks/useParsedProxy";
 import { cn, copyToClipboard } from "@/lib/utils";
 import { useQuery } from "@tanstack/react-query";
 import axios from "axios";
 import { Collapsible } from "radix-ui";
-import { useMemo } from "react";
+import { CgSpinner } from "react-icons/cg";
 import {
   HiCheckCircle,
   HiMinusCircle,
@@ -31,21 +32,9 @@ const ProxyDetailsItem = ({ label, value }) => (
 );
 
 const ProxyDetails = ({ proxy, rootClassName, ...props }) => {
-  const parsed = useMemo(() => {
-    if (!proxy) return null;
-    const [user, server] = proxy.split("@");
-    const [proxyHost, proxyPort] = server.split(":");
-    const [proxyUsername, proxyPassword] = user.split(":");
-
-    return {
-      proxyHost,
-      proxyPort,
-      proxyUsername,
-      proxyPassword,
-    };
-  }, [proxy]);
-
+  const parsed = useParsedProxy(proxy);
   const query = useQuery({
+    retry: true,
     queryKey: ["proxy-details", proxy],
     enabled: Boolean(proxy),
     queryFn: ({ signal }) =>
@@ -89,6 +78,8 @@ const ProxyDetails = ({ proxy, rootClassName, ...props }) => {
           {/* Flag */}
           {ipInfo?.flag?.img ? (
             <img className="w-5 h-4 rounded-xl" src={ipInfo?.flag?.img} />
+          ) : parsed ? (
+            <CgSpinner className="size-5 animate-spin" />
           ) : null}{" "}
           Proxy
         </h1>
