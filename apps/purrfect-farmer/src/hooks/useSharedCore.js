@@ -11,6 +11,7 @@ import useValuesMemo from "./useValuesMemo";
 import useMirror from "./useMirror";
 import useMirroredCallback from "./useMirroredCallback";
 import useSharedStorageState from "./useSharedStorageState";
+import useCaptcha from "./useCaptcha";
 
 export default function useSharedCore() {
   /** Shared Settings */
@@ -25,6 +26,12 @@ export default function useSharedCore() {
   const mirror = useMirror(
     sharedSettings.enableMirror,
     sharedSettings.mirrorServer
+  );
+
+  /** Captcha Solver */
+  const captcha = useCaptcha(
+    sharedSettings.captchaProvider,
+    sharedSettings.captchaApiKey
   );
 
   /** Persisted Accounts */
@@ -171,6 +178,7 @@ export default function useSharedCore() {
 
   return useValuesMemo({
     mirror,
+    captcha,
     active,
     accounts,
     running,

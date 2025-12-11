@@ -26,19 +26,21 @@ import Container from "@/components/Container";
 const createInstance = ({
   FarmerClass,
   logger,
+  captcha,
   userAgent,
   controller,
   telegramClient,
 }) => {
-  return new (class extends FarmerClass {
+  const InstanceClass = class extends FarmerClass {
     constructor() {
       super();
       this.api = axios.create();
       this.utils = utils;
-      this.client = telegramClient;
       this.logger = logger;
+      this.captcha = captcha;
       this.userAgent = userAgent;
       this.controller = controller;
+      this.client = telegramClient;
 
       this.registerDelayInterceptor();
       this.configureApi?.();
@@ -95,6 +97,7 @@ const createInstance = ({
       await this.start(this.controller.signal);
     }
 
+    /** Update Web App Data */
     async updateWebAppData() {
       const { url } = await this.client.ref.current.getWebview(
         this.constructor.telegramLink
@@ -106,12 +109,14 @@ const createInstance = ({
         initDataUnsafe: this.utils.getInitDataUnsafe(initData),
       });
     }
-  })();
+  };
+
+  return new InstanceClass();
 };
 
 function TinyFly() {
   const logger = useMemo(() => new BrowserLogger(), []);
-  const { drops, telegramClient } = useAppContext();
+  const { drops, telegramClient, captcha } = useAppContext();
   const userAgent = useUserAgent();
 
   const runnerRef = useRef(null);
@@ -128,21 +133,6 @@ function TinyFly() {
     logger.success(`> Tiny Fly Initiated`);
     logger.info('> Click "Start" to begin farming');
   }, [logger]);
-
-  /** Stop Tiny Fly */
-  const [stopTinyFly] = useMirroredCallback(
-    `tiny-fly-stop`,
-    () => {
-      if (!startedRef.current) {
-        return;
-      }
-      controllerRef.current?.abort();
-      controllerRef.current = null;
-      setStarted(false);
-      resetLogger();
-    },
-    [setStarted, resetLogger]
-  );
 
   /** Start Tiny Fly */
   const [startTinyFly] = useMirroredCallback(
@@ -171,6 +161,7 @@ function TinyFly() {
           const instance = createInstance({
             FarmerClass,
             logger,
+            captcha,
             userAgent,
             controller,
             telegramClient,
@@ -202,7 +193,22 @@ function TinyFly() {
       /* Initial Instructions */
       logger.warn('> Click "Stop" to halt farming');
     },
-    [drops, logger, stopTinyFly, setStarted]
+    [drops, logger, captcha, stopTinyFly, setStarted]
+  );
+
+  /** Stop Tiny Fly */
+  const [stopTinyFly] = useMirroredCallback(
+    `tiny-fly-stop`,
+    () => {
+      if (!startedRef.current) {
+        return;
+      }
+      controllerRef.current?.abort();
+      controllerRef.current = null;
+      setStarted(false);
+      resetLogger();
+    },
+    [setStarted, resetLogger]
   );
 
   /** Toggle Tiny Fly */

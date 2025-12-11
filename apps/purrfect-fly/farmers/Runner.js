@@ -22,7 +22,7 @@ const HttpProxyAgentWithCookies = createCookieAgent(HttpProxyAgent);
 const HttpsProxyAgentWithCookies = createCookieAgent(HttpsProxyAgent);
 
 /**
- * @param {import("@purrfect/shared/lib/BaseFarmer").default} FarmerClass
+ * @param {import("@purrfect/shared/lib/BaseFarmer.js").default} FarmerClass
  */
 export default function createRunner(FarmerClass) {
   /** Environment Variables key */
@@ -103,8 +103,12 @@ export default function createRunner(FarmerClass) {
       if (this.configureApi) {
         this.configureApi();
       }
+
+      /** Set Captcha Solver */
+      this.setCaptcha(captcha);
     }
 
+    /** Create Axios Instance */
     createApi() {
       return axios.create({
         timeout: 60_000,
@@ -136,6 +140,7 @@ export default function createRunner(FarmerClass) {
       });
     }
 
+    /** Register Delay Interceptor */
     registerDelayInterceptor() {
       if (this.constructor.apiDelay) {
         this.api.interceptors.request.use(async (config) => {
@@ -145,6 +150,7 @@ export default function createRunner(FarmerClass) {
       }
     }
 
+    /** Register Headers Interceptor */
     registerHeadersInterceptor() {
       this.api.interceptors.request.use((config) => {
         /** Apply Headers */
@@ -157,6 +163,7 @@ export default function createRunner(FarmerClass) {
       });
     }
 
+    /** Register XSRF Interceptor */
     registerXSRFInterceptor() {
       if (this.constructor.withXSRFToken) {
         this.api.interceptors.request.use(async (config) => {
@@ -172,6 +179,7 @@ export default function createRunner(FarmerClass) {
       }
     }
 
+    /** Retry API Requests on Auth Failure */
     retryApiRequests() {
       this.api.interceptors.response.use(
         (response) => response,
@@ -212,6 +220,7 @@ export default function createRunner(FarmerClass) {
       );
     }
 
+    /** Log API Requests */
     logApiRequests() {
       this.api.interceptors.response.use(
         (response) => {
@@ -278,35 +287,10 @@ export default function createRunner(FarmerClass) {
       }
     }
 
-    /** Can Solve Turnstile */
-    canSolveTurnstile() {
-      return captcha.isConfigured();
-    }
-
-    /** Solve Turnstile */
-    solveTurnstile({ siteKey, pageUrl }) {
-      return captcha.solveTurnstile({ siteKey, pageUrl });
-    }
-
-    /** Can Join Telegram Link */
-    canJoinTelegramLink(link) {
-      return Boolean(this.client);
-    }
-
-    /** Can Update Profile */
-    canUpdateProfile(options) {
-      return Boolean(this.client);
-    }
-
     /** Join Telegram Link */
     async joinTelegramLink(link) {
       await this.utils.delayForSeconds(Math.floor(Math.random() * 300));
-      return this.client.joinTelegramLink(link);
-    }
-
-    /** Update Profile */
-    updateProfile(options) {
-      return this.client.updateProfile(options);
+      return super.joinTelegramLink(link);
     }
 
     /** Get Cookies */
@@ -388,6 +372,7 @@ export default function createRunner(FarmerClass) {
       return this;
     }
 
+    /** Set Auth */
     async setAuth() {
       try {
         this.__isFetchingAuth = true;
@@ -411,6 +396,7 @@ export default function createRunner(FarmerClass) {
       this.farmer.initData = initData;
     }
 
+    /** Disconnect Farmer */
     async disconnect() {
       try {
         if (!this.isTelegramFarmer || !this.account.session) {
@@ -424,6 +410,7 @@ export default function createRunner(FarmerClass) {
       }
     }
 
+    /** Execute farming for account */
     static async execute(account) {
       const instance = new this(account);
 
@@ -450,6 +437,7 @@ export default function createRunner(FarmerClass) {
       }
     }
 
+    /** Farm an account */
     static farm(account) {
       if (!this.runners.has(account.id)) {
         this.runners.set(account.id, Date.now());
@@ -471,6 +459,7 @@ export default function createRunner(FarmerClass) {
       };
     }
 
+    /** Run the farmer for all subscribed accounts */
     static async run({ user } = {}) {
       try {
         const isTelegramFarmer = Boolean(this.telegramLink);

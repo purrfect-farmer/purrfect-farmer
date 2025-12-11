@@ -44,7 +44,7 @@ export default function useDropFarmer() {
   const isTelegramFarmer = Boolean(telegramLink);
 
   /** Zoomies */
-  const { zoomies, settings, account } = app;
+  const { captcha, zoomies, settings, account } = app;
 
   const {
     resetStates,
@@ -121,6 +121,7 @@ export default function useDropFarmer() {
   const instance = useDropFarmerInstance({
     FarmerClass,
     api,
+    captcha,
     logger,
     telegramWebApp,
     joinTelegramLink,

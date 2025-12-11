@@ -35,7 +35,7 @@ class HeadlessTelegramClient extends TelegramWebClient {
  * @param {import("@purrfect/shared/lib/BaseFarmer.js").default} param0.FarmerClass
  * @returns {import("@purrfect/shared/lib/BaseFarmer.js").default}
  */
-const createRunner = ({ FarmerClass, logger, controller }) => {
+const createRunner = ({ FarmerClass, logger, captcha, controller }) => {
   return class extends FarmerClass {
     static runners = new Map();
 
@@ -51,6 +51,7 @@ const createRunner = ({ FarmerClass, logger, controller }) => {
       this.account = account;
       this.client = client;
       this.logger = logger;
+      this.captcha = captcha;
       this.random = seedrandom(account.id);
       this.userAgent =
         userAgents[Math.floor(this.random() * userAgents.length)];
@@ -58,26 +59,6 @@ const createRunner = ({ FarmerClass, logger, controller }) => {
 
       this.registerDelayInterceptor();
       this.configureApi?.();
-    }
-
-    /** Can Join Telegram Link */
-    canJoinTelegramLink(link) {
-      return Boolean(this.client);
-    }
-
-    /** Join Telegram Link */
-    joinTelegramLink(link) {
-      return this.client.joinTelegramLink(link);
-    }
-
-    /** Can Update Profile */
-    canUpdateProfile(options) {
-      return Boolean(this.client);
-    }
-
-    /** Update Profile */
-    updateProfile(options) {
-      return this.client.updateProfile(options);
     }
 
     /** Get Cookies */
@@ -111,11 +92,16 @@ const createRunner = ({ FarmerClass, logger, controller }) => {
       /**
        * Random startup delay to avoid all accounts starting at the same time
        */
-      const startupDelay = Math.floor(this.random() * 300);
+      const startupDelay = Math.floor(
+        this.random() * this.constructor.startupDelay
+      );
+
+      /** Delay */
       if (startupDelay) {
         this.logger.info(
           `[${this.account.title}] Delaying startup by ${startupDelay} seconds...`
         );
+
         await this.utils.delayForSeconds(startupDelay, {
           signal: this.controller.signal,
         });
@@ -186,7 +172,7 @@ const createRunner = ({ FarmerClass, logger, controller }) => {
 export default function HeadlessMode() {
   const terminalRef = useRef(null);
   const runnerRef = useRef(null);
-  const { accounts, headlessFarmers, dispatchAndStopHeadlessMode } =
+  const { accounts, captcha, headlessFarmers, dispatchAndStopHeadlessMode } =
     useSharedContext();
 
   useEffect(() => {
@@ -221,6 +207,7 @@ export default function HeadlessMode() {
         return createRunner({
           FarmerClass,
           logger,
+          captcha,
           controller,
         });
       });
@@ -266,11 +253,12 @@ export default function HeadlessMode() {
     return () => {
       controller.abort();
     };
-  }, [accounts, headlessFarmers]);
+  }, [accounts, captcha, headlessFarmers]);
 
   return (
     <div className="flex flex-col min-h-dvh">
       <div className="shrink-0 flex flex-col p-2">
+        {/* Heading */}
         <h2
           className={cn(
             "font-bold flex items-center justify-center gap-2",
@@ -281,6 +269,7 @@ export default function HeadlessMode() {
           Headless Mode
         </h2>
 
+        {/* Stop Button */}
         <button
           onClick={() => dispatchAndStopHeadlessMode()}
           className={cn("p-2 text-red-500")}
@@ -288,6 +277,8 @@ export default function HeadlessMode() {
           Stop
         </button>
       </div>
+
+      {/* Terminal */}
       <div className={cn("grow overflow-auto bg-black text-white")}>
         <Container
           ref={terminalRef}

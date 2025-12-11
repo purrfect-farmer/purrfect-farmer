@@ -54,6 +54,14 @@ export default class BaseFarmer {
     this.telegramWebApp = telegramWebApp;
   }
 
+  /** Set the Captcha Solver
+   * @param {import("./CaptchaSolver.js").default} captcha - Captcha solver instance
+   */
+  setCaptcha(captcha) {
+    this.captcha = captcha;
+  }
+
+  /** Set the User Agent */
   setUserAgent(userAgent) {
     this.userAgent = userAgent;
   }
@@ -68,6 +76,43 @@ export default class BaseFarmer {
    */
   setLogger(logger) {
     this.logger = logger;
+  }
+
+  /** Set the Telegram Client
+   * @param {import("./BaseTelegramWebClient.js").default} client - Telegram client instance
+   */
+  setClient(client) {
+    this.client = client;
+  }
+
+  /** Can Solve Turnstile */
+  canSolveTurnstile() {
+    return this.captcha?.isConfigured();
+  }
+
+  /** Solve Turnstile */
+  solveTurnstile({ siteKey, pageUrl }) {
+    return this.captcha?.solveTurnstile({ siteKey, pageUrl });
+  }
+
+  /** Can Join Telegram Link */
+  canJoinTelegramLink(link) {
+    return Boolean(this.client);
+  }
+
+  /** Join Telegram Link */
+  joinTelegramLink(link) {
+    return this.client.joinTelegramLink(link);
+  }
+
+  /** Can Update Profile */
+  canUpdateProfile(options) {
+    return Boolean(this.client);
+  }
+
+  /** Update Profile */
+  updateProfile(options) {
+    return this.client.updateProfile(options);
   }
 
   /** Get Init Data */
