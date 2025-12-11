@@ -1,9 +1,13 @@
 export default class BrowserLocalStorage {
   static STORAGE_KEY = "chrome-local-storage";
 
+  static store(data) {
+    localStorage.setItem(BrowserLocalStorage.STORAGE_KEY, JSON.stringify(data));
+  }
+
   static getAll() {
-    const data = localStorage.getItem(BrowserLocalStorage.STORAGE_KEY);
-    return data ? JSON.parse(data) : {};
+    const value = localStorage.getItem(BrowserLocalStorage.STORAGE_KEY);
+    return value ? JSON.parse(value) : {};
   }
 
   static setItem(key, value) {
@@ -14,19 +18,18 @@ export default class BrowserLocalStorage {
       storageData[k] = data[k];
     }
 
-    localStorage.setItem(
-      BrowserLocalStorage.STORAGE_KEY,
-      JSON.stringify(storageData)
-    );
+    BrowserLocalStorage.store(storageData);
   }
 
   static removeItem(key) {
     const itemsToRemove = Array.isArray(key) ? key : [key];
-    const data = BrowserLocalStorage.getAll();
+    const storageData = BrowserLocalStorage.getAll();
+
     for (const item of itemsToRemove) {
-      delete data[item];
+      delete storageData[item];
     }
-    localStorage.setItem(BrowserLocalStorage.STORAGE_KEY, JSON.stringify(data));
+
+    BrowserLocalStorage.store(storageData);
   }
 
   static getItem(key, defaultValue) {
