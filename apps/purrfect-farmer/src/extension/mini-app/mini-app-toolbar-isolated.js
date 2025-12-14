@@ -25,6 +25,13 @@ function displayMiniAppToolbar() {
       port,
     },
   });
+
+  /** Ensure Toolbar Stays */
+  setInterval(() => {
+    if (!document.body.contains(container)) {
+      document.body.appendChild(container);
+    }
+  }, 1000);
 }
 
 export function setupMiniAppToolbar() {

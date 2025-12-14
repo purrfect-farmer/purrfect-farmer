@@ -131,7 +131,9 @@ if (!TELEGRAM_WEB_HOSTS.includes(location.host)) {
 
       /** Dispatch Web-App */
       dispatchTelegramWebApp();
-    } catch {
+    } catch (error) {
+      console.log("Not running inside Telegram Mini-App:", error);
+
       /** Post Status */
       postMiniAppStatus(false);
     }

@@ -89,6 +89,8 @@ if (!TELEGRAM_WEB_HOSTS.includes(location.host)) {
 
   /** Initialize */
   function initialize() {
+    customLogger("Initializing Telegram Mini-App Integration...");
+
     /** Connect to Messaging */
     const port = chrome.runtime.connect(chrome.runtime.id, {
       name: `mini-app:${location.host}`,
