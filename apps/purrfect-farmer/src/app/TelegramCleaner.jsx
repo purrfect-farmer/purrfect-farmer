@@ -10,6 +10,7 @@ import { useEffect } from "react";
 import { useMemo } from "react";
 import { useState } from "react";
 import Container from "@/components/Container";
+import { customLogger } from "@/utils";
 
 const ConversationIcon = ({ conversation }) => {
   const { telegramClient } = useAppContext();
@@ -89,7 +90,11 @@ const ChatsCleaner = ({ isPending, conversations, onLeave }) => {
 };
 
 export default function TelegramCleaner() {
-  const tabs = useMirroredTabs("telegram-cleaner", ["channels", "bots"]);
+  const tabs = useMirroredTabs("telegram-cleaner", [
+    "channels",
+    "bots",
+    "chats",
+  ]);
 
   const { farmerMode, telegramClient } = useAppContext();
   const [dialogs, setDialogs] = useState(null);
@@ -102,6 +107,11 @@ export default function TelegramCleaner() {
 
   const bots = useMemo(
     () => dialogs?.filter((d) => d.isUser && d.entity.bot),
+    [dialogs]
+  );
+
+  const privateChats = useMemo(
+    () => dialogs?.filter((d) => d.isUser && !d.entity.bot),
     [dialogs]
   );
 
@@ -131,11 +141,18 @@ export default function TelegramCleaner() {
       }
 
       const isBot = existingDialog.isUser && existingDialog.entity.bot;
+      const isPrivateChat = existingDialog.isUser && !existingDialog.entity.bot;
       const toastMessages = isBot
         ? {
             loading: "Removing Bot...",
             success: "Removed bot successfully!",
             error: (error) => `Failed to remove bot: ${error.message}`,
+          }
+        : isPrivateChat
+        ? {
+            loading: "Leaving private chat...",
+            success: "Left private chat successfully!",
+            error: (error) => `Failed to leave private chat: ${error.message}`,
           }
         : {
             loading: "Leaving conversation...",
@@ -145,7 +162,7 @@ export default function TelegramCleaner() {
 
       toast
         .promise(
-          isBot
+          isBot || isPrivateChat
             ? client.deleteAndBlockBot(existingDialog.entity)
             : client.leaveConversation(existingDialog.entity),
           {
@@ -166,8 +183,10 @@ export default function TelegramCleaner() {
     [ref, dialogs, setDialogs]
   );
 
-  console.log(dialogs);
-  console.log(conversations);
+  customLogger("Dialogs", dialogs);
+  customLogger("Conversations", conversations);
+  customLogger("Bots", bots);
+  customLogger("Private Chats", privateChats);
 
   if (farmerMode !== "session") {
     return (
@@ -197,6 +216,14 @@ export default function TelegramCleaner() {
             <ChatsCleaner
               isPending={dialogs === null}
               conversations={bots}
+              onLeave={dispatchAndLeaveConversation}
+            />
+          </Tabs.Content>
+
+          <Tabs.Content value="chats">
+            <ChatsCleaner
+              isPending={dialogs === null}
+              conversations={privateChats}
               onLeave={dispatchAndLeaveConversation}
             />
           </Tabs.Content>
