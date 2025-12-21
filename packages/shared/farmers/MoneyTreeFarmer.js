@@ -24,7 +24,7 @@ export default class MoneyTreeFarmer extends BaseFarmer {
       .post("https://moneytree.extensi.one/api/auth/login", {
         tgId: this.getUserId(),
         isPremium: this.getIsPremiumUser(),
-        userName: this.getUsername() || "",
+        userName: this.getUsername() || `Anonymous_${this.getUserId()}`,
         profileImageUrl: this.getProfilePhotoUrl() || "",
         initData: this.getInitData(),
       })
