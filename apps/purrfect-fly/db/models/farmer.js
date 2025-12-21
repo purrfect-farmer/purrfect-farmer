@@ -83,6 +83,7 @@ export default (sequelize, DataTypes) => {
       initData: DataTypes.STRING,
       headers: DataTypes.JSON,
       cookies: DataTypes.JSON,
+      options: DataTypes.JSON,
     },
     {
       sequelize,

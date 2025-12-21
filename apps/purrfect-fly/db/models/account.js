@@ -105,6 +105,7 @@ export default (sequelize, DataTypes) => {
       session: DataTypes.STRING,
       proxy: DataTypes.STRING,
       user: DataTypes.JSON,
+      options: DataTypes.JSON,
     },
     {
       sequelize,
