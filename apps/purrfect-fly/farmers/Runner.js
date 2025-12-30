@@ -54,8 +54,6 @@ export default function createRunner(FarmerClass) {
 
       this.logger = this.constructor.logger; // Use static logger
       this.utils = this.constructor.utils; // Use static utils
-
-      this.cookies = this.constructor.cookies; // Enable cookies if supported
       this.random = this.account.random(); // Seeded RNG
 
       /** Select User-Agent */
@@ -460,10 +458,12 @@ export default function createRunner(FarmerClass) {
     /** Run the farmer for all subscribed accounts */
     static async run({ user } = {}) {
       try {
+        /** Determine if farmer is required */
         const farmerIsRequired =
           this.platform !== "telegram" || !AUTO_START_FARMER;
         const additionalQueryOptions = user ? { where: { id: user } } : {};
 
+        /** Fetch Subscribed Accounts */
         const accounts = await db.Account.findSubscribedWithFarmer(
           this.id,
           farmerIsRequired,

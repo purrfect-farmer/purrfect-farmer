@@ -5,7 +5,6 @@ import { NewMessage } from "telegram/events";
 
 export default class BaseDirectFarmer extends BaseFarmer {
   static type = "direct";
-  static syncToCloud = false;
 
   sendMessage(message, options, replyOptions) {
     return this.waitForReply(

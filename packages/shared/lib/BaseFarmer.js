@@ -33,6 +33,7 @@ export default class BaseFarmer {
     this.type = this.constructor.type;
     this.link = this.constructor.link;
     this.telegramLink = this.constructor.telegramLink;
+    this.cookies = this.constructor.cookies;
 
     /* Parse Telegram Link */
     if (this.constructor.platform === "telegram") {
@@ -252,14 +253,17 @@ export default class BaseFarmer {
   async executeTask(task, callback, allowInQuickRun = true) {
     this.logger.newline();
 
+    /* Check Aborted */
     if (this.signal?.aborted) {
       this.logger.warn(`✖ Task aborted: ${this.logger.c.magenta(task)}`);
       return;
     }
 
+    /* Check Quick Run */
     const skipInQuickRun = this.quickRun && !allowInQuickRun;
 
     if (skipInQuickRun) {
+      /* Log Skipped Task */
       this.logger.log(
         `${this.logger.c.yellow(
           "⚡ Skipping in quick run:"
@@ -269,20 +273,24 @@ export default class BaseFarmer {
     }
 
     try {
+      /* Log Task Start */
       this.logger.log(
         `${this.logger.c.gray("⚙ Executing task:")} ${this.logger.c.magenta(
           task
         )}`
       );
 
+      /* Execute Callback */
       await callback();
 
+      /* Log Task Completion */
       this.logger.log(
         `${this.logger.c.green("✔ Completed task:")} ${this.logger.c.magenta(
           task
         )}`
       );
     } catch (error) {
+      /* Log Task Error */
       this.logger.log(
         `${this.logger.c.red(
           "✖ Error executing task:"

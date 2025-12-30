@@ -12,7 +12,7 @@ export default function useDropFarmerCloudSync({
   shouldSyncToCloud,
 }) {
   /** Cloud Sync Mutation */
-  const cloudSyncMutation = useCloudSyncMutation(id, queryClient);
+  const { mutateAsync } = useCloudSyncMutation(id, queryClient);
 
   /** Sync to Cloud */
   useLayoutEffect(() => {
@@ -20,19 +20,17 @@ export default function useDropFarmerCloudSync({
       (async () => {
         const cookies = await instance.getCookiesForSync?.();
 
-        cloudSyncMutation
-          .mutateAsync({
-            title: account.title,
-            farmer: id,
-            userId: instance.getUserId() || account.user?.id,
-            initData: instance.getInitData() || account.telegramInitData,
-            headers: instance.api.defaults.headers.common,
-            cookies: cookies || [],
-          })
-          .then(() => {
-            toast.success(`${title} - Synced to Cloud`);
-          });
+        mutateAsync({
+          title: account.title,
+          farmer: id,
+          userId: instance.getUserId() || account.user?.id,
+          initData: instance.getInitData() || account.telegramInitData,
+          headers: instance.api.defaults.headers.common,
+          cookies: cookies || [],
+        }).then(() => {
+          toast.success(`${title} - Synced to Cloud`);
+        });
       })();
     }
-  }, [id, title, account, instance, shouldSyncToCloud]);
+  }, [id, title, account, instance, mutateAsync, shouldSyncToCloud]);
 }
