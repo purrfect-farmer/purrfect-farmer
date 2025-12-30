@@ -29,7 +29,7 @@ const createInstance = ({
   captcha,
   userAgent,
   controller,
-  telegramClient,
+  client,
 }) => {
   const InstanceClass = class extends FarmerClass {
     constructor() {
@@ -40,30 +40,10 @@ const createInstance = ({
       this.captcha = captcha;
       this.userAgent = userAgent;
       this.controller = controller;
-      this.client = telegramClient;
+      this.client = client;
 
       this.registerDelayInterceptor();
       this.configureApi?.();
-    }
-
-    /** Can Join Telegram Link */
-    canJoinTelegramLink(link) {
-      return Boolean(this.client.ref.current);
-    }
-
-    /** Join Telegram Link */
-    joinTelegramLink(link) {
-      return this.client.ref.current.joinTelegramLink(link);
-    }
-
-    /** Can Update Profile */
-    canUpdateProfile(options) {
-      return Boolean(this.client.ref.current);
-    }
-
-    /** Update Profile */
-    updateProfile(options) {
-      return this.client.ref.current.updateProfile(options);
     }
 
     /** Get Cookies */
@@ -71,45 +51,11 @@ const createInstance = ({
       return await this.utils.getCookies(options);
     }
 
-    registerDelayInterceptor() {
-      if (this.constructor.apiDelay) {
-        this.api.interceptors.request.use(async (config) => {
-          await this.utils.delay(this.constructor.apiDelay);
-          return config;
-        });
-      }
-    }
-
-    async setAuth() {
-      const auth = await this.fetchAuth();
-      const headers = await this.getAuthHeaders(auth);
-      this.api.defaults.headers = {
-        ...this.api.defaults.headers,
-        ...headers,
-      };
-      return this;
-    }
-
     async run() {
       await this.updateWebAppData();
       await this.setAuth();
       await this.fetchMeta();
       await this.start(this.controller.signal);
-    }
-
-    /** Update Web App Data */
-    async updateWebAppData() {
-      if (!this.constructor.telegramLink) return;
-
-      const { url } = await this.client.ref.current.getWebview(
-        this.constructor.telegramLink
-      );
-      const { initData } = this.utils.extractTgWebAppData(url);
-
-      this.setTelegramWebApp({
-        initData,
-        initDataUnsafe: this.utils.getInitDataUnsafe(initData),
-      });
     }
   };
 
@@ -119,6 +65,7 @@ const createInstance = ({
 function TinyFly() {
   const logger = useMemo(() => new BrowserLogger(), []);
   const { drops, telegramClient, captcha } = useAppContext();
+  const client = telegramClient.ref.current;
   const userAgent = useUserAgent();
 
   const runnerRef = useRef(null);
@@ -168,7 +115,7 @@ function TinyFly() {
             captcha,
             userAgent,
             controller,
-            telegramClient,
+            client,
           });
 
           await instance.run();
@@ -197,7 +144,7 @@ function TinyFly() {
       /* Initial Instructions */
       logger.warn('> Click "Stop" to halt farming');
     },
-    [drops, logger, captcha, setStarted]
+    [drops, logger, captcha, client, setStarted]
   );
 
   /** Stop Tiny Fly */

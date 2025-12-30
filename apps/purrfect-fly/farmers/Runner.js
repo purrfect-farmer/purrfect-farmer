@@ -48,11 +48,9 @@ export default function createRunner(FarmerClass) {
 
     constructor(account) {
       super();
+      this.debug = process.env.NODE_ENV !== "production";
       this.account = account;
       this.farmer = account.farmer;
-
-      this.telegramLink = this.constructor.telegramLink;
-      this.isTelegramFarmer = Boolean(this.constructor.telegramLink);
 
       this.logger = this.constructor.logger; // Use static logger
       this.utils = this.constructor.utils; // Use static utils
@@ -62,7 +60,7 @@ export default function createRunner(FarmerClass) {
 
       /** Select User-Agent */
       this.setUserAgent(
-        this.isTelegramFarmer
+        this.platform === "telegram"
           ? userAgents[Math.floor(this.random() * userAgents.length)]
           : regularMobileUserAgents[
               Math.floor(this.random() * regularMobileUserAgents.length)
@@ -140,23 +138,20 @@ export default function createRunner(FarmerClass) {
       });
     }
 
-    /** Register Delay Interceptor */
-    registerDelayInterceptor() {
-      if (this.constructor.apiDelay) {
-        this.api.interceptors.request.use(async (config) => {
-          await this.utils.delay(this.constructor.apiDelay);
-          return config;
-        });
-      }
-    }
-
     /** Register Headers Interceptor */
     registerHeadersInterceptor() {
       this.api.interceptors.request.use((config) => {
+        let extraHeaders = this.getExtraHeaders?.();
+        let authHeaders = {};
+
+        if (!this.__isFetchingAuth) {
+          authHeaders = this.farmer?.headers || {};
+        }
+
         /** Apply Headers */
         config.headers = {
-          ...(!this.__isFetchingAuth ? this.farmer?.headers : {}),
-          ...this.getExtraHeaders?.(),
+          ...authHeaders,
+          ...extraHeaders,
           ...config.headers,
         };
         return config;
@@ -336,18 +331,21 @@ export default function createRunner(FarmerClass) {
       }
 
       /** Update WebAppData */
-      if (this.isTelegramFarmer && this.account.session) {
+      if (this.platform === "telegram" && this.account.session) {
         try {
           this.client = await GramClient.create(this.account.session);
           await this.client.connect();
-          await this.updateWebAppData();
+
+          if (this.type === "webapp") {
+            await this.updateWebAppData();
+          }
         } catch (e) {
           this.logger.error("Failed to update WebAppData", e.message);
         }
       }
 
       /** Set Telegram Web App */
-      if (this.isTelegramFarmer) {
+      if (this.platform === "telegram" && this.type === "webapp") {
         this.setTelegramWebApp(this.farmer.telegramWebApp);
       }
 
@@ -399,7 +397,7 @@ export default function createRunner(FarmerClass) {
     /** Disconnect Farmer */
     async disconnect() {
       try {
-        if (!this.isTelegramFarmer || !this.account.session) {
+        if (this.platform !== "telegram" || !this.account.session) {
           if (this.farmer) {
             this.farmer.active = false;
             await this.farmer.save();
@@ -462,8 +460,8 @@ export default function createRunner(FarmerClass) {
     /** Run the farmer for all subscribed accounts */
     static async run({ user } = {}) {
       try {
-        const isTelegramFarmer = Boolean(this.telegramLink);
-        const farmerIsRequired = !isTelegramFarmer || !AUTO_START_FARMER;
+        const farmerIsRequired =
+          this.platform !== "telegram" || !AUTO_START_FARMER;
         const additionalQueryOptions = user ? { where: { id: user } } : {};
 
         const accounts = await db.Account.findSubscribedWithFarmer(
@@ -479,7 +477,7 @@ export default function createRunner(FarmerClass) {
            * account with an active telegram session if auto start is enabled
            */
           const shouldRunAccount =
-            isTelegramFarmer && AUTO_START_FARMER
+            this.platform === "telegram" && AUTO_START_FARMER
               ? account.farmer?.active || account.session
               : account.farmer?.active;
 

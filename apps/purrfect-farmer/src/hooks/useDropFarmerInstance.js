@@ -2,6 +2,7 @@ import utils from "@/utils/bundle";
 import { useLayoutEffect, useRef } from "react";
 
 import useUserAgent from "./useUserAgent";
+import useAppContext from "./useAppContext";
 
 /**
  *
@@ -63,6 +64,7 @@ export default function useDropFarmerInstance({
 }) {
   const instanceRef = useRef(null);
   const userAgent = useUserAgent();
+  const { telegramClient } = useAppContext();
 
   if (!instanceRef.current && FarmerClass) {
     instanceRef.current = createDropFarmerInstance({ FarmerClass });
@@ -79,6 +81,7 @@ export default function useDropFarmerInstance({
     instance.setTelegramLinkHandler?.(joinTelegramLink);
     instance.setProfileUpdateHandler?.(updateProfile);
     instance.setTelegramWebApp?.(telegramWebApp);
+    instance.setTelegramClient?.(telegramClient.ref.current);
     return instance.configureApi?.(api);
   }, [
     instance,
@@ -89,6 +92,7 @@ export default function useDropFarmerInstance({
     joinTelegramLink,
     updateProfile,
     telegramWebApp,
+    telegramClient,
   ]);
 
   return instance;

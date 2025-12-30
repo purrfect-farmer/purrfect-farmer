@@ -31,6 +31,7 @@ export default memo(function TabContent({ tab }) {
     settings,
     farmerMode,
     preferredTelegramWebVersion,
+    dispatchAndOpenTelegramLink,
     dispatchAndOpenTelegramBot,
     dispatchAndLaunchInAppBrowser,
   } = useAppContext();
@@ -42,6 +43,36 @@ export default memo(function TabContent({ tab }) {
 
   const openLinksInAppBrowser =
     settings.enableInAppBrowser && farmerMode === "session";
+
+  const linkButtonIconSrc =
+    tab.link || (tab.type === "webapp" && openLinksInAppBrowser)
+      ? BrowserIcon
+      : preferredTelegramWebVersion === "k"
+      ? TelegramWebKIcon
+      : TelegramWebAIcon;
+
+  const openTabLink = () => {
+    if (tab.platform !== "telegram") {
+      dispatchAndLaunchInAppBrowser({
+        id: tab.id,
+        url: referralLink || tab.link,
+        title: tab.title,
+        icon: tab.icon,
+        embedInNewWindow: tab.embedInNewWindow,
+      });
+    } else if (tab.type === "webapp") {
+      dispatchAndOpenTelegramBot(referralLink || tab.telegramLink, {
+        browserId: tab.id,
+        browserTitle: tab.title,
+        browserIcon: tab.icon,
+        embedWebPage: tab.embedWebPage,
+        embedInNewWindow: tab.embedInNewWindow,
+        forceWebview: true,
+      });
+    } else {
+      dispatchAndOpenTelegramLink(referralLink || tab.telegramLink);
+    }
+  };
 
   return (
     <TabContext.Provider value={tab}>
@@ -55,37 +86,10 @@ export default memo(function TabContent({ tab }) {
       >
         {/* Open Telegram Link Button */}
         {tab.link || tab.telegramLink ? (
-          <LinkButton
-            onClick={() =>
-              tab.link
-                ? dispatchAndLaunchInAppBrowser({
-                    id: tab.id,
-                    url: referralLink || tab.link,
-                    title: tab.title,
-                    icon: tab.icon,
-                    embedInNewWindow: tab.embedInNewWindow,
-                  })
-                : dispatchAndOpenTelegramBot(referralLink || tab.telegramLink, {
-                    browserId: tab.id,
-                    browserTitle: tab.title,
-                    browserIcon: tab.icon,
-                    embedWebPage: tab.embedWebPage,
-                    embedInNewWindow: tab.embedInNewWindow,
-                    forceWebview: true,
-                  })
-            }
-          >
-            <img
-              src={
-                tab.link || openLinksInAppBrowser
-                  ? BrowserIcon
-                  : preferredTelegramWebVersion === "k"
-                  ? TelegramWebKIcon
-                  : TelegramWebAIcon
-              }
-              className="size-5 shrink-0"
-            />
-            Open {tab.link ? "Link" : "Bot"} {referralLink ? "(R)" : null}
+          <LinkButton onClick={openTabLink}>
+            <img src={linkButtonIconSrc} className="size-5 shrink-0" />
+            Open {tab.platform !== "telegram" ? "Link" : "Bot"}{" "}
+            {referralLink ? "(R)" : null}
           </LinkButton>
         ) : null}
 

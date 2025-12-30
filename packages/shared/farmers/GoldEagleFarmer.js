@@ -4,6 +4,7 @@ export default class GoldEagleFarmer extends BaseFarmer {
   static id = "gold-eagle";
   static title = "Gold Eagle";
   static emoji = "🦅";
+  static platform = "sl8";
   static host = "game.geagle.online";
   static domains = ["game.geagle.online", "cloud.geagle.online"];
   static interval = "*/5 * * * *";
@@ -12,6 +13,11 @@ export default class GoldEagleFarmer extends BaseFarmer {
   static cacheAuth = false;
   static link = "https://game.geagle.online";
   static startupDelay = 0;
+
+  /** Get Referral Link */
+  getReferralLink() {
+    return this.constructor.link;
+  }
 
   /** Get Auth */
   fetchAuth() {

@@ -5,6 +5,8 @@ import seedrandom from "seedrandom";
 
 export default class BaseFarmer {
   static id = "base-farmer";
+  static platform = "telegram";
+  static type = "webapp";
   static title = "Base Farmer";
   static emoji = "🐾";
   static enabled = true;
@@ -16,12 +18,48 @@ export default class BaseFarmer {
   static interval = "*/10 * * * *";
   static link = "";
   static telegramLink = "";
+  static host = "";
+  static domains = [];
   static withXSRFToken = false;
   static rating = 1;
   static startupDelay = 300;
 
   constructor() {
+    /* Register utilities */
     this.utils = utils;
+
+    /* Static Properties */
+    this.platform = this.constructor.platform;
+    this.type = this.constructor.type;
+    this.link = this.constructor.link;
+    this.telegramLink = this.constructor.telegramLink;
+
+    /* Parse Telegram Link */
+    if (this.constructor.platform === "telegram") {
+      const { entity, shortName, startParam } = this.utils.parseTelegramLink(
+        this.constructor.telegramLink
+      );
+      this.entity = entity || null;
+      this.shortName = shortName || null;
+      this.startParam = startParam || null;
+    }
+
+    /* Debugger */
+    this.debug = true;
+    this.debugger = new Proxy(globalThis.console, {
+      get: (target, prop) => {
+        if (typeof target[prop] === "function") {
+          return (...args) => {
+            if (this.debug) {
+              target[prop](...args);
+            }
+          };
+        }
+        return target[prop];
+      },
+    });
+
+    /* Initialize Tools */
     this.tools = this.createTools?.() || [];
   }
 
@@ -59,6 +97,13 @@ export default class BaseFarmer {
    */
   setCaptcha(captcha) {
     this.captcha = captcha;
+  }
+
+  /** Set the Telegram Client
+   * @param {import("./BaseTelegramWebClient.js").default} client - Telegram client instance
+   */
+  setTelegramClient(client) {
+    return this.setClient(client);
   }
 
   /** Set the User Agent */
@@ -281,6 +326,42 @@ export default class BaseFarmer {
         this.logger.error("Failed to update profile:", error.message);
         return false;
       }
+    }
+  }
+
+  /** Update Web App Data */
+  async updateWebAppData() {
+    if (this.platform === "telegram" && this.type === "webapp") {
+      const { url } = await this.client.getWebview(
+        this.constructor.telegramLink
+      );
+      const { initData } = this.utils.extractTgWebAppData(url);
+
+      this.setTelegramWebApp({
+        initData,
+        initDataUnsafe: this.utils.getInitDataUnsafe(initData),
+      });
+    }
+  }
+
+  /** Set Auth */
+  async setAuth() {
+    const auth = await this.fetchAuth();
+    const headers = await this.getAuthHeaders(auth);
+    this.api.defaults.headers = {
+      ...this.api.defaults.headers,
+      ...headers,
+    };
+    return this;
+  }
+
+  /** Register Delay Interceptor */
+  registerDelayInterceptor() {
+    if (this.constructor.apiDelay) {
+      this.api.interceptors.request.use(async (config) => {
+        await this.utils.delay(this.constructor.apiDelay);
+        return config;
+      });
     }
   }
 

@@ -30,6 +30,8 @@ export default function useDropFarmer() {
     host,
     icon,
     title,
+    platform,
+    type,
     apiDelay = 200,
     telegramLink,
     cacheAuth = true,
@@ -40,8 +42,8 @@ export default function useDropFarmer() {
     FarmerClass,
   } = farmer;
 
-  /** Is Telegram Farmer */
-  const isTelegramFarmer = Boolean(telegramLink);
+  /** Is Telegram Mini App */
+  const isTelegramMiniApp = platform === "telegram" && type === "webapp";
 
   /** Zoomies */
   const { captcha, zoomies, settings, account } = app;
@@ -78,11 +80,11 @@ export default function useDropFarmer() {
     host,
     telegramLink,
     cacheTelegramWebApp,
-    enabled: isTelegramFarmer,
+    enabled: isTelegramMiniApp,
   });
 
   /** Prepared */
-  const prepared = !isTelegramFarmer || telegramWebApp !== null;
+  const prepared = !isTelegramMiniApp || telegramWebApp !== null;
 
   /** Join Telegram Link */
   const joinTelegramLink = useRefCallback(

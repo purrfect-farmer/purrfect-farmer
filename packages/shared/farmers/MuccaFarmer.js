@@ -29,11 +29,10 @@ export default class MuccaFarmer extends BaseFarmer {
     measurementId: "G-JY69NNZTRY",
   };
 
-  constructor() {
-    super();
-    this.enableLandsLimit = true;
-  }
+  /* Enable Lands Limit */
+  enableLandsLimit = true;
 
+  /** Create Tools */
   createTools() {
     return [
       {

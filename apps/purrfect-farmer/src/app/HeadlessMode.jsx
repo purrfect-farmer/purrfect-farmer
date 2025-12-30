@@ -66,27 +66,6 @@ const createRunner = ({ FarmerClass, logger, captcha, controller }) => {
       return await this.utils.getCookies(options);
     }
 
-    /** Register Delay Interceptor */
-    registerDelayInterceptor() {
-      if (this.constructor.apiDelay) {
-        this.api.interceptors.request.use(async (config) => {
-          await this.utils.delay(this.constructor.apiDelay);
-          return config;
-        });
-      }
-    }
-
-    /** Set Auth */
-    async setAuth() {
-      const auth = await this.fetchAuth();
-      const headers = await this.getAuthHeaders(auth);
-      this.api.defaults.headers = {
-        ...this.api.defaults.headers,
-        ...headers,
-      };
-      return this;
-    }
-
     /** Run Farmer */
     async run() {
       /**
@@ -111,23 +90,6 @@ const createRunner = ({ FarmerClass, logger, captcha, controller }) => {
       await this.setAuth();
       await this.fetchMeta();
       await this.start(this.controller.signal);
-    }
-
-    /** Update Web App Data */
-    async updateWebAppData() {
-      if (!this.constructor.telegramLink) return;
-
-      await this.client.connect();
-
-      const { url } = await this.client.getWebview(
-        this.constructor.telegramLink
-      );
-      const { initData } = this.utils.extractTgWebAppData(url);
-
-      this.setTelegramWebApp({
-        initData,
-        initDataUnsafe: this.utils.getInitDataUnsafe(initData),
-      });
     }
 
     /** Initiate Farmer Instance */
