@@ -1,7 +1,7 @@
-import BaseFarmer from "./BaseFarmer.js";
 import { Api } from "telegram";
 import { NewMessage } from "telegram/events/NewMessage.js";
 import { EditedMessage } from "telegram/events/EditedMessage.js";
+import BaseFarmer from "./BaseFarmer.js";
 
 export default class BaseDirectFarmer extends BaseFarmer {
   static type = "direct";

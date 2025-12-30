@@ -1,5 +1,6 @@
-import BaseDirectFarmer from "../lib/BaseDirectFarmer.js";
 import { faker } from "@faker-js/faker";
+import BaseDirectFarmer from "../lib/BaseDirectFarmer.js";
+
 export default class XTRXAppFarmer extends BaseDirectFarmer {
   static id = "x-trx-app";
   static title = "X TRX App";
