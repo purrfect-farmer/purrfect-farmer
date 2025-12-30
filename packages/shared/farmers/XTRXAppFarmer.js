@@ -204,14 +204,14 @@ export default class XTRXAppFarmer extends BaseDirectFarmer {
       this.debugger.log("Generated X Account URL:", xAccount);
 
       /* Send X Account Link */
-      const enterLinkReply = await this.sendMessage(xAccount);
+      const enterLinkReply = await this.sendMessage(xAccount, undefined, {
+        filter: (message) =>
+          message.message.includes("You successfully invited 1 friend"),
+      });
       this.debugger.log("Reply after sending X Account link:", enterLinkReply);
 
       this.logger.success(`✅ Increased Airdrop Chances!`);
       this.logger.keyValue("Link", xAccount);
-
-      /* Update airdropPage for the next iteration */
-      airdropPage = enterLinkReply;
     }
 
     /* Return to Home Menu */
