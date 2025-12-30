@@ -212,6 +212,9 @@ export default class XTRXAppFarmer extends BaseDirectFarmer {
 
       this.logger.success(`✅ Increased Airdrop Chances!`);
       this.logger.keyValue("Link", xAccount);
+
+      /* Delay for 1 Second */
+      await this.utils.delayForSeconds(1);
     }
 
     /* Return to Home Menu */
