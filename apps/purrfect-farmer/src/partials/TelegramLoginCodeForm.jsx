@@ -6,6 +6,8 @@ import PrimaryButton from "@/components/PrimaryButton";
 import useTelegramCodeMutation from "@/hooks/useTelegramCodeMutation";
 import { Controller, FormProvider, useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
+import { useEffect } from "react";
+import { useCallback } from "react";
 
 /** Schema */
 const schema = yup
@@ -16,9 +18,11 @@ const schema = yup
 
 export default function TelegramLoginCodeForm({
   mode,
+  code,
   handler,
   session,
-  ...options
+  onSuccess,
+  onError,
 }) {
   /** Form */
   const form = useForm({
@@ -32,19 +36,33 @@ export default function TelegramLoginCodeForm({
   const mutation = useTelegramCodeMutation(form);
 
   /** Submit */
-  const handleFormSubmit = async ({ code }) => {
-    if (mode === "local") {
-      await handler(code);
-    } else {
-      await mutation.mutateAsync(
-        {
-          code,
-          session,
-        },
-        options
-      );
+  const handleFormSubmit = useCallback(
+    async ({ code }) => {
+      if (mode === "local") {
+        await handler(code);
+      } else {
+        await mutation.mutateAsync(
+          {
+            code,
+            session,
+          },
+          {
+            onSuccess,
+            onError,
+          }
+        );
+      }
+    },
+    [mode, session, handler, mutation.mutateAsync, onSuccess, onError]
+  );
+
+  /** Auto-fill code */
+  useEffect(() => {
+    if (code) {
+      form.setValue("code", code);
+      form.handleSubmit(handleFormSubmit)();
     }
-  };
+  }, [code, form, handleFormSubmit]);
 
   return (
     <FormProvider {...form}>
@@ -63,7 +81,7 @@ export default function TelegramLoginCodeForm({
             <>
               <Input
                 {...field}
-                disabled={form.formState.isSubmitting}
+                disabled={mutation.isPending}
                 autoComplete="off"
                 placeholder="Code"
               />
@@ -73,8 +91,8 @@ export default function TelegramLoginCodeForm({
         />
 
         {/* Submit Button */}
-        <PrimaryButton type="submit" disabled={form.formState.isSubmitting}>
-          {form.formState.isSubmitting ? "Confirming....." : "Confirm"}
+        <PrimaryButton type="submit" disabled={mutation.isPending}>
+          {mutation.isPending ? "Confirming....." : "Confirm"}
         </PrimaryButton>
       </form>
     </FormProvider>

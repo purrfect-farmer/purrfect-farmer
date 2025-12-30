@@ -6,6 +6,7 @@ import PrimaryButton from "@/components/PrimaryButton";
 import useTelegramPasswordMutation from "@/hooks/useTelegramPasswordMutation";
 import { Controller, FormProvider, useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
+import { useCallback } from "react";
 
 /** Schema */
 const schema = yup
@@ -18,7 +19,8 @@ export default function TelegramLoginPasswordForm({
   mode,
   handler,
   session,
-  ...options
+  onSuccess,
+  onError,
 }) {
   /** Form */
   const form = useForm({
@@ -32,19 +34,25 @@ export default function TelegramLoginPasswordForm({
   const mutation = useTelegramPasswordMutation(form);
 
   /** Submit */
-  const handleFormSubmit = async ({ password }) => {
-    if (mode === "local") {
-      await handler(password);
-    } else {
-      await mutation.mutateAsync(
-        {
-          password,
-          session,
-        },
-        options
-      );
-    }
-  };
+  const handleFormSubmit = useCallback(
+    async ({ password }) => {
+      if (mode === "local") {
+        await handler(password);
+      } else {
+        await mutation.mutateAsync(
+          {
+            password,
+            session,
+          },
+          {
+            onSuccess,
+            onError,
+          }
+        );
+      }
+    },
+    [mode, session, handler, mutation.mutateAsync, onSuccess, onError]
+  );
 
   return (
     <FormProvider {...form}>
@@ -60,7 +68,7 @@ export default function TelegramLoginPasswordForm({
             <>
               <Input
                 {...field}
-                disabled={form.formState.isSubmitting}
+                disabled={mutation.isPending}
                 autoComplete="off"
                 placeholder="Password"
               />
@@ -70,8 +78,8 @@ export default function TelegramLoginPasswordForm({
         />
 
         {/* Submit Button */}
-        <PrimaryButton type="submit" disabled={form.formState.isSubmitting}>
-          {form.formState.isSubmitting ? "Confirming....." : "Confirm"}
+        <PrimaryButton type="submit" disabled={mutation.isPending}>
+          {mutation.isPending ? "Confirming....." : "Confirm"}
         </PrimaryButton>
       </form>
     </FormProvider>
