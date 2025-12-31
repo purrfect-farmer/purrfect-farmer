@@ -6,6 +6,12 @@ import BaseFarmer from "./BaseFarmer.js";
 export default class BaseDirectFarmer extends BaseFarmer {
   static type = "direct";
 
+  /** Send Message
+   * @param {string | import("telegram").Api.TypeInputMessage} message
+   * @param {object} options
+   * @param {object} replyOptions
+   * @return {Promise<import("telegram").Api.Message>}
+   */
   sendMessage(message, options, replyOptions) {
     return this.waitForReply(
       () =>
@@ -88,8 +94,17 @@ export default class BaseDirectFarmer extends BaseFarmer {
     );
   }
 
-  async waitForReply(callback, { edited = false, filter } = {}) {
-    return new Promise(async (resolve) => {
+  async waitForReply(
+    callback,
+    { edited = false, filter, timeout = 5000 } = {}
+  ) {
+    return new Promise(async (resolve, reject) => {
+      /** Timeout */
+      const rejectTimeout = setTimeout(() => {
+        this.client.removeEventHandler(handler, eventToHandle);
+        reject(new Error("Timeout waiting for reply"));
+      }, timeout);
+
       /** Event to Handle */
       const eventToHandle = edited
         ? new EditedMessage({
@@ -100,17 +115,18 @@ export default class BaseDirectFarmer extends BaseFarmer {
           });
 
       /**
+       * Message Handler
        * @param {import("telegram/events").NewMessageEvent | import("telegram/events/EditedMessage").EditedMessage} event
        */
       const handler = (event) => {
-        console.log("BOT RECEIVED MESSAGE", event.message);
+        this.debugger.log("Message received:", event.message);
 
-        if (
-          event.message &&
-          (typeof filter === "undefined" || filter(event.message))
-        ) {
+        /** Check Filter */
+        if (event.message && (!filter || filter(event.message))) {
           this.client.removeEventHandler(handler, eventToHandle);
-          setTimeout(resolve, 500, (this.lastMessage = event.message));
+          this.lastMessage = event.message;
+          clearTimeout(rejectTimeout);
+          resolve(event.message);
         }
       };
 
@@ -118,7 +134,14 @@ export default class BaseDirectFarmer extends BaseFarmer {
       this.client.addEventHandler(handler, eventToHandle);
 
       /** Await Callback */
-      console.log("BOT CALLBACK", await callback());
+      this.debugger.log(
+        "Callback result:",
+        await callback().catch((error) => {
+          this.client.removeEventHandler(handler, eventToHandle);
+          clearTimeout(rejectTimeout);
+          reject(error);
+        })
+      );
     });
   }
 }
