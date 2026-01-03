@@ -1,17 +1,19 @@
 import LabelToggle from "@/components/LabelToggle";
+import { HiOutlineMapPin } from "react-icons/hi2";
 import { memo } from "react";
+
 import {
   SettingsGroup,
   SettingsInput,
   SettingsLabel,
 } from "./SettingsComponents";
-import { HiOutlineMapPin } from "react-icons/hi2";
 
 const PROXY_DISABLED = Boolean(import.meta.env.VITE_WHISKER);
 
 export default memo(function ProxyOptionsGroup({
   sharedSettings,
   configureSharedSettings,
+  dispatchAndConfigureSharedSettings,
 }) {
   return (
     <SettingsGroup
@@ -81,10 +83,13 @@ export default memo(function ProxyOptionsGroup({
       {/* Share Cloud Proxy */}
       <SettingsLabel>Cloud Proxy</SettingsLabel>
       <LabelToggle
-        onChange={(ev) =>
-          configureSharedSettings("shareCloudProxy", ev.target.checked)
-        }
         checked={sharedSettings.shareCloudProxy}
+        onChange={(ev) =>
+          dispatchAndConfigureSharedSettings(
+            "shareCloudProxy",
+            ev.target.checked
+          )
+        }
       >
         Share Cloud Proxy
       </LabelToggle>

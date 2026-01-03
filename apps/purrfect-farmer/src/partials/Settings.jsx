@@ -174,6 +174,9 @@ export default memo(function Settings({ tabs }) {
                       <ProxyOptionsGroup
                         sharedSettings={sharedSettings}
                         configureSharedSettings={configureSharedSettings}
+                        dispatchAndConfigureSharedSettings={
+                          dispatchAndConfigureSharedSettings
+                        }
                       />
 
                       <PCOptionsGroup
