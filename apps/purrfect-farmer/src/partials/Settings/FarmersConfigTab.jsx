@@ -1,16 +1,17 @@
+import "@smastrom/react-rating/style.css";
+
 import Alert from "@/components/Alert";
 import LabelToggle from "@/components/LabelToggle";
 import { Rating } from "@smastrom/react-rating";
 import { Reorder } from "motion/react";
 import { cn } from "@/utils";
 import { memo } from "react";
+
 import {
   DropReorderItem,
   SettingsGridButton,
   SettingsLabel,
 } from "./SettingsComponents";
-
-import "@smastrom/react-rating/style.css";
 
 export default memo(function FarmersConfigTab({
   settings,
@@ -32,7 +33,7 @@ export default memo(function FarmersConfigTab({
             key={style}
             className={cn(
               settings.farmersLayout === style
-                ? "bg-blue-200 dark:bg-blue-800"
+                ? "bg-blue-200 dark:bg-blue-200 text-blue-800"
                 : null
             )}
           >

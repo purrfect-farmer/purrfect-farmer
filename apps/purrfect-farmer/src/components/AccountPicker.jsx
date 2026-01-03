@@ -1,21 +1,22 @@
 import useAppContext from "@/hooks/useAppContext";
+import { BsStopCircle } from "react-icons/bs";
 import { Dialog } from "radix-ui";
-import { LiaUser } from "react-icons/lia";
-import { PiUserCirclePlusBold } from "react-icons/pi";
-import { cn } from "@/utils";
-import { memo } from "react";
-import { useMemo } from "react";
 import {
   HiCheckBadge,
   HiOutlineCheckBadge,
   HiOutlineSquares2X2,
 } from "react-icons/hi2";
-import { BsStopCircle } from "react-icons/bs";
-import Input from "./Input";
-import { useState } from "react";
+import { LiaUser } from "react-icons/lia";
+import { PiUserCirclePlusBold } from "react-icons/pi";
 import { Reorder, useDragControls } from "motion/react";
-import Container from "./Container";
+import { cn } from "@/utils";
+import { memo } from "react";
+import { useMemo } from "react";
+import { useState } from "react";
+
 import BottomDialog from "./BottomDialog";
+import Container from "./Container";
+import Input from "./Input";
 
 const PickerButton = (props) => (
   <button
@@ -165,10 +166,10 @@ export default memo(function AccountPicker() {
     <BottomDialog.Container onOpenAutoFocus={(ev) => ev.preventDefault()}>
       <Container className="flex flex-col p-4 gap-4 shrink-0">
         <div className="flex flex-col text-center">
-          <Dialog.Title className="text-xl font-bold font-turret-road text-orange-500">
+          <Dialog.Title className="text-xl font-bold font-turret-road text-blue-400">
             Accounts
           </Dialog.Title>
-          <Dialog.Description className="text-lime-500 font-bold">
+          <Dialog.Description className="text-neutral-400 font-bold">
             Switch Active Account
           </Dialog.Description>
         </div>

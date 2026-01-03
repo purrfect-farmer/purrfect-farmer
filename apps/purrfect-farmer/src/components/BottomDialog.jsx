@@ -1,5 +1,6 @@
-import { cn } from "@/utils";
 import { Dialog } from "radix-ui";
+import { cn } from "@/utils";
+
 import Container from "./Container";
 
 function BottomDialogContainer(props) {
@@ -37,7 +38,7 @@ function BottomDialog({
             </div>
 
             {/* Title */}
-            <Dialog.Title className="text-xl font-bold font-turret-road text-orange-500 text-center">
+            <Dialog.Title className="text-xl font-bold font-turret-road text-blue-400 text-center">
               {title}
             </Dialog.Title>
 

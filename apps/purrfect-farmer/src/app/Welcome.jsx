@@ -3,6 +3,7 @@ import BotWebKIcon from "@/assets/images/bot-web-k.png?format=webp&w=80";
 import CloudStatus from "@/partials/CloudStatus";
 import CloudSubscription from "@/partials/CloudSubscription";
 import Connect from "@/partials/Connect";
+import Container from "@/components/Container";
 import Donate from "@/partials/Donate";
 import DropButton from "@/components/DropButton";
 import FarmerLinks from "@/partials/FarmerLinks";
@@ -18,6 +19,8 @@ import WelcomeIcon from "@/assets/images/icon-unwrapped-cropped.png?format=webp&
 import axios from "axios";
 import useAppContext from "@/hooks/useAppContext";
 import useAppQuery from "@/hooks/useAppQuery";
+import useLocationToggle from "@/hooks/useLocationToggle";
+import useMirroredLocationToggle from "@/hooks/useMirroredLocationToggle";
 import useMirroredTabs from "@/hooks/useMirroredTabs";
 import { CgSpinner } from "react-icons/cg";
 import { Dialog } from "radix-ui";
@@ -40,9 +43,6 @@ import { forwardRef, memo } from "react";
 import { useCallback } from "react";
 import { useEffect } from "react";
 import { useMemo } from "react";
-import useMirroredLocationToggle from "@/hooks/useMirroredLocationToggle";
-import useLocationToggle from "@/hooks/useLocationToggle";
-import Container from "@/components/Container";
 
 /** Telegram Web Button */
 const TelegramWebButton = memo(
@@ -420,8 +420,7 @@ export default memo(function Welcome() {
                   "font-bold",
                   "flex items-center justify-center",
                   "rounded-lg shrink-0",
-                  "bg-blue-100 dark:bg-blue-900",
-                  "text-blue-800 dark:text-blue-100",
+                  "bg-blue-100 text-blue-800",
                   "p-2"
                 )}
               >

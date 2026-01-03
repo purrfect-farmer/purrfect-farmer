@@ -1,28 +1,28 @@
+import BottomDialog from "@/components/BottomDialog";
+import Container from "@/components/Container";
 import Tabs from "@/components/Tabs";
 import defaultSettings from "@/core/defaultSettings";
+import defaultSharedSettings from "@/core/defaultSharedSettings";
 import useAppContext from "@/hooks/useAppContext";
 import useMirroredCallback from "@/hooks/useMirroredCallback";
 import useMirroredState from "@/hooks/useMirroredState";
 import { CgSpinner } from "react-icons/cg";
 import { Dialog } from "radix-ui";
-import { resizeFarmerWindow } from "@/utils";
 import { memo, useCallback } from "react";
+import { resizeFarmerWindow } from "@/utils";
 
-import Seeker from "./Seeker";
 import BotOptionsGroup from "./Settings/BotOptionsGroup";
+import CaptchaOptionsGroup from "./Settings/CaptchaOptionsGroup";
 import CloudOptionsGroup from "./Settings/CloudOptionsGroup";
 import FarmerOptionsGroup from "./Settings/FarmerOptionsGroup";
 import FarmersConfigTab from "./Settings/FarmersConfigTab";
 import MirrorOptionsGroup from "./Settings/MirrorOptionsGroup";
 import PCOptionsGroup from "./Settings/PCOptionsGroup";
 import ProxyOptionsGroup from "./Settings/ProxyOptionsGroup";
+import Seeker from "./Seeker";
 import SeekerOptionsGroup from "./Settings/SeekerOptionsGroup";
 import SettingsActions from "./Settings/SettingsActions";
 import { SettingsContainer } from "./Settings/SettingsComponents";
-import defaultSharedSettings from "@/core/defaultSharedSettings";
-import Container from "@/components/Container";
-import BottomDialog from "@/components/BottomDialog";
-import CaptchaOptionsGroup from "./Settings/CaptchaOptionsGroup";
 
 export default memo(function Settings({ tabs }) {
   const {
@@ -103,10 +103,10 @@ export default memo(function Settings({ tabs }) {
           <div className="min-w-0 min-h-0 overflow-auto grow">
             <Container className="flex flex-col gap-2 pb-0">
               <div className="flex flex-col text-center">
-                <Dialog.Title className="text-xl font-bold font-turret-road text-orange-500">
+                <Dialog.Title className="text-xl font-bold font-turret-road text-blue-400">
                   Settings
                 </Dialog.Title>
-                <Dialog.Description className="text-lime-500 font-bold">
+                <Dialog.Description className="text-neutral-400 font-bold">
                   Configure the Farmer
                 </Dialog.Description>
               </div>

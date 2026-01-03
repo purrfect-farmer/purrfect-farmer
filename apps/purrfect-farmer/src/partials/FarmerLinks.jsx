@@ -1,5 +1,9 @@
+import BottomDialog from "@/components/BottomDialog";
+import Container from "@/components/Container";
+import PrimaryButton from "@/components/PrimaryButton";
 import toast from "react-hot-toast";
 import useAppContext from "@/hooks/useAppContext";
+import useLocationToggle from "@/hooks/useLocationToggle";
 import useMirroredCallback from "@/hooks/useMirroredCallback";
 import useStorageState from "@/hooks/useStorageState";
 import { ContextMenu } from "radix-ui";
@@ -19,12 +23,9 @@ import { memo, useCallback } from "react";
 import { useEffect } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { useState } from "react";
+
 import TelegramLinkForm from "./TelegramLinkForm";
 import TelegramLogo from "../assets/images/telegram-logo.svg";
-import useLocationToggle from "@/hooks/useLocationToggle";
-import PrimaryButton from "@/components/PrimaryButton";
-import BottomDialog from "@/components/BottomDialog";
-import Container from "@/components/Container";
 
 /** Load Link Icon */
 const loadLinkIcon = function (src) {
@@ -212,7 +213,7 @@ export default memo(function FarmerLinks() {
           <Dialog.Title
             className={cn(
               "grow min-w-0",
-              "text-xl font-bold font-turret-road text-orange-500 text-center"
+              "text-xl font-bold font-turret-road text-blue-400 text-center"
             )}
           >
             Telegram Links

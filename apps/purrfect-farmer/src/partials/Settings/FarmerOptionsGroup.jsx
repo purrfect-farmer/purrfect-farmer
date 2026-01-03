@@ -9,6 +9,7 @@ import {
 } from "react-icons/hi2";
 import { cn } from "@/utils";
 import { memo } from "react";
+
 import {
   SettingsGridButton,
   SettingsGroup,
@@ -47,22 +48,19 @@ export default memo(function FarmerOptionsGroup({
 
           <div className="grid grid-cols-3 gap-2">
             {["system", "light", "dark"].map((theme) => (
-              <button
+              <SettingsGridButton
                 onClick={() =>
                   dispatchAndConfigureSharedSettings("theme", theme)
                 }
                 key={theme}
                 className={cn(
                   sharedSettings.theme === theme
-                    ? "bg-blue-200 dark:bg-blue-800"
-                    : "bg-neutral-100 dark:bg-neutral-700",
-                  "p-2 rounded-lg",
-                  "flex gap-1 items-center justify-center",
-                  "uppercase"
+                    ? "bg-blue-200 dark:bg-blue-200 text-blue-800"
+                    : null
                 )}
               >
                 {theme}
-              </button>
+              </SettingsGridButton>
             ))}
           </div>
         </>
@@ -79,10 +77,7 @@ export default memo(function FarmerOptionsGroup({
             disabled={mode === "session" && telegramClient.hasSession === false}
             className={cn(
               farmerMode === mode
-                ? [
-                    "bg-blue-200 dark:bg-blue-800",
-                    "text-blue-900 dark:text-white",
-                  ]
+                ? ["bg-blue-100 dark:bg-blue-100", "text-blue-800"]
                 : null
             )}
           >
@@ -109,7 +104,7 @@ export default memo(function FarmerOptionsGroup({
             className={cn(
               sharedSettings.telegramClient === client
                 ? [
-                    "bg-orange-100 dark:bg-orange-500",
+                    "bg-orange-100 dark:bg-orange-600",
                     "text-orange-900 dark:text-white",
                   ]
                 : null
@@ -135,7 +130,7 @@ export default memo(function FarmerOptionsGroup({
             }
             className={cn(
               sharedSettings.preferredTelegramWebVersion === version
-                ? "bg-blue-200 dark:bg-blue-800"
+                ? "bg-blue-200 dark:bg-blue-200 text-blue-800"
                 : null
             )}
           >

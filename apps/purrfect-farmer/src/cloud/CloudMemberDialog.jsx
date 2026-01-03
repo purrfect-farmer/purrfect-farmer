@@ -1,16 +1,16 @@
 import Alert from "@/components/Alert";
+import BottomDialog from "@/components/BottomDialog";
+import ProxyDetails from "@/components/ProxyDetails";
 import UserIcon from "@/assets/images/user-icon.png?format=webp&w=256";
 import toast from "react-hot-toast";
+import useAppContext from "@/hooks/useAppContext";
 import useCloudManagerKickMemberMutation from "@/hooks/useCloudManagerKickMemberMutation";
 import { Dialog } from "radix-ui";
+import { HiOutlineArrowUpRight } from "react-icons/hi2";
 import { cn } from "@/utils";
 import { formatDate } from "date-fns";
 import { useCallback } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { HiOutlineArrowUpRight } from "react-icons/hi2";
-import useAppContext from "@/hooks/useAppContext";
-import BottomDialog from "@/components/BottomDialog";
-import ProxyDetails from "@/components/ProxyDetails";
 
 /* Member Dialog Header Component */
 const MemberDialogHeader = ({ account }) => (
@@ -27,7 +27,7 @@ const MemberDialogHeader = ({ account }) => (
           "items-center justify-center gap-2",
           "text-center",
           "text-xl truncate",
-          "text-blue-500 font-bold",
+          "text-blue-400 font-bold",
           "title" in account ? "inline-flex" : "hidden"
         )}
       >
