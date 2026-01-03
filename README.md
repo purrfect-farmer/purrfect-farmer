@@ -145,7 +145,7 @@ wget -qO- https://raw.githubusercontent.com/purrfect-farmer/purrfect-farmer/main
 
 - **[Purrfect Farmer Documentation](apps/purrfect-farmer/README.md)** - Detailed farmer setup and configuration
 - **[Purrfect Fly Documentation](apps/purrfect-fly/README.md)** - Cloud platform installation and management
-- **[Purrfect Whiskers](https://github.com/purrfect-farmer/purrfect-whiskers)** - Multi-account browser automation
+- **[Purrfect Whiskers](https://github.com/purrfect-farmer/purrfect-whiskers)** - Efficiently manage multiple instances of the Purrfect Farmer
 
 ---
 

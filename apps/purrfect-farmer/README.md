@@ -7,7 +7,7 @@
 <h1 align="center">🐾 Purrfect Farmer</h1>
 
 <p align="center">
-  <strong>Advanced Telegram Mini-Apps Automation Platform</strong>
+  <strong>Advanced Telegram Mini-Apps Automation Tool</strong>
 </p>
 
 <p align="center">
