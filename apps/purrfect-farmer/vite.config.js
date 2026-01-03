@@ -24,7 +24,8 @@ export default defineConfig(async ({ mode }) => {
   /** Env */
   const env = loadEnv(mode, process.cwd());
 
-  const isIndexEntry = process.env.VITE_ENTRY === "index";
+  const isIndexEntry =
+    !process.env.VITE_ENTRY || process.env.VITE_ENTRY === "index";
   const isPWA = Boolean(process.env.VITE_PWA);
   const isBridge = Boolean(process.env.VITE_BRIDGE);
   const isStylesEntry = process.env.VITE_ENTRY?.endsWith("styles");
