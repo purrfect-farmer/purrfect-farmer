@@ -6,7 +6,7 @@ export default class GoldEagleFarmer extends BaseFarmer {
   static emoji = "🦅";
   static platform = "sl8";
   static host = "game.geagle.online";
-  static domains = ["game.geagle.online", "cloud.geagle.online"];
+  static domains = ["game.geagle.online", "cloud-api.geagle.online"];
   static interval = "*/5 * * * *";
   static rating = 5;
   static cookies = true;
@@ -27,21 +27,21 @@ export default class GoldEagleFarmer extends BaseFarmer {
   /** Get Progress */
   getProgress(signal = this.signal) {
     return this.api
-      .get("https://cloud.geagle.online/user/me/progress", { signal })
+      .get("https://cloud-api.geagle.online/user/me/progress", { signal })
       .then((res) => res.data);
   }
 
   /** Get User Info */
   getUserInfo(signal = this.signal) {
     return this.api
-      .get("https://cloud.geagle.online/user/me", { signal })
+      .get("https://cloud-api.geagle.online/user/me", { signal })
       .then((res) => res.data);
   }
 
   /** Get Referral Stats */
   getReferralStats(signal = this.signal) {
     return this.api
-      .get("https://cloud.geagle.online/referrals/my?page=1&per_page=100", {
+      .get("https://cloud-api.geagle.online/referrals/my?page=1&per_page=100", {
         signal,
       })
       .then((res) => res.data);
@@ -53,7 +53,7 @@ export default class GoldEagleFarmer extends BaseFarmer {
 
     return this.api
       .post(
-        "https://cloud.geagle.online/user/me/refill?" +
+        "https://cloud-api.geagle.online/user/me/refill?" +
           new URLSearchParams({ captchaToken }).toString(),
         null,
         { signal }
@@ -64,28 +64,28 @@ export default class GoldEagleFarmer extends BaseFarmer {
   /** Get Boosters */
   getBoosters(signal = this.signal) {
     return this.api
-      .get("https://cloud.geagle.online/boosters", { signal })
+      .get("https://cloud-api.geagle.online/boosters", { signal })
       .then((res) => res.data);
   }
 
   /** Get Wallet Info */
   getWalletInfo(signal = this.signal) {
     return this.api
-      .get("https://cloud.geagle.online/wallet/my", { signal })
+      .get("https://cloud-api.geagle.online/wallet/my", { signal })
       .then((res) => res.data);
   }
 
   /** Get Wallet Transactions */
   getWalletTransactions(signal = this.signal) {
     return this.api
-      .get("https://cloud.geagle.online/wallet/my/transactions", { signal })
+      .get("https://cloud-api.geagle.online/wallet/my/transactions", { signal })
       .then((res) => res.data);
   }
 
   /** Get Staking Options */
   getStakingOptions(signal = this.signal) {
     return this.api
-      .get("https://cloud.geagle.online/user/staking-options", { signal })
+      .get("https://cloud-api.geagle.online/user/staking-options", { signal })
       .then((res) => res.data);
   }
 
@@ -94,7 +94,7 @@ export default class GoldEagleFarmer extends BaseFarmer {
     const captchaToken = await this.getTurnstileToken("/wallet");
     return this.api
       .post(
-        `https://cloud.geagle.online/wallet/claim?` +
+        `https://cloud-api.geagle.online/wallet/claim?` +
           new URLSearchParams({
             packageId,
             captchaToken,
@@ -109,9 +109,9 @@ export default class GoldEagleFarmer extends BaseFarmer {
   async getCookiesForSync() {
     return [
       {
-        url: "https://cloud.geagle.online",
+        url: "https://cloud-api.geagle.online",
         cookies: await this.getCookies({
-          url: "https://cloud.geagle.online",
+          url: "https://cloud-api.geagle.online",
         }),
       },
     ];
