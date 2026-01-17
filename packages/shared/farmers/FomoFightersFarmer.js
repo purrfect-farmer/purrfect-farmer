@@ -72,6 +72,37 @@ export default class FomoFightersFarmer extends BaseFarmer {
       .then((res) => res.data.data);
   }
 
+  finishOnboarding(level) {
+    return this.api
+      .post("https://api.fomofighters.xyz/onboarding/finish", level)
+      .then((res) => res.data.data);
+  }
+
+  getBattleLogs() {
+    return this.api
+      .post("https://api.fomofighters.xyz/battle/logs/my", {})
+      .then((res) => res.data.data);
+  }
+
+  purchaseLand(position, buildingKey) {
+    return this.api
+      .post("https://api.fomofighters.xyz/building/buy", {
+        position,
+        buildingKey,
+      })
+      .then((res) => res.data.data);
+  }
+
+  /**
+   * Select the race
+   * @param {"dog" | "frog" | "cat"} race
+   */
+  selectRace(race) {
+    return this.api
+      .post("https://api.fomofighters.xyz/race/select", race)
+      .then((res) => res.data.data);
+  }
+
   /** Get Auth */
   async login() {
     return this.api
