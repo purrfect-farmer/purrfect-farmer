@@ -1,7 +1,7 @@
 import * as changeKeys from "change-case/keys";
+import seedrandom from "seedrandom";
 
 import utils from "../utils/bundle.js";
-import seedrandom from "seedrandom";
 
 export default class BaseFarmer {
   static id = "base-farmer";
@@ -171,6 +171,11 @@ export default class BaseFarmer {
     return camelCase
       ? changeKeys.camelCase(this.telegramWebApp?.initDataUnsafe, Infinity)
       : this.telegramWebApp?.initDataUnsafe;
+  }
+
+  /** Get Init Data Hash */
+  getInitDataHash() {
+    return this.getInitDataUnsafe()?.hash;
   }
 
   /** Get Telegram User */
