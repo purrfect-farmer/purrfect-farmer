@@ -2,6 +2,8 @@ import axios from "axios";
 
 export { v4 as uuid } from "uuid";
 
+export { default as md5 } from "md5";
+
 export const randomItem = (items) =>
   items[Math.floor(Math.random() * items.length)];
 
