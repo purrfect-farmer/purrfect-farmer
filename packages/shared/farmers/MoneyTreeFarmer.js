@@ -1,5 +1,6 @@
-import BaseFarmer from "../lib/BaseFarmer.js";
 import { io } from "socket.io-client";
+
+import BaseFarmer from "../lib/BaseFarmer.js";
 
 export default class MoneyTreeFarmer extends BaseFarmer {
   static id = "money-tree";
@@ -76,7 +77,7 @@ export default class MoneyTreeFarmer extends BaseFarmer {
       .post(
         `https://moneytree.extensi.one/api/boosts/${boostId}/buy/${levelId}`,
         {},
-        { signal }
+        { signal },
       )
       .then((res) => res.data);
   }
@@ -151,7 +152,7 @@ export default class MoneyTreeFarmer extends BaseFarmer {
     return this.api
       .get(
         `https://europe-west1-eone-partner.cloudfunctions.net/moneytree_tasks/get_video_permission?type=video&user_id=${this.getUserId()}`,
-        { signal }
+        { signal },
       )
       .then((res) => res.data);
   }
@@ -161,7 +162,7 @@ export default class MoneyTreeFarmer extends BaseFarmer {
     return this.api
       .get(
         `https://europe-west1-eone-partner.cloudfunctions.net/moneytree_tasks/get_adsgram_permission?type=task&user_id=${this.getUserId()}`,
-        { signal }
+        { signal },
       )
       .then((res) => res.data);
   }
@@ -179,7 +180,7 @@ export default class MoneyTreeFarmer extends BaseFarmer {
       .post(
         `https://moneytree.extensi.one/api/ticket-shop/${ticketId}`,
         {},
-        { signal }
+        { signal },
       )
       .then((res) => res.data);
   }
@@ -199,7 +200,7 @@ export default class MoneyTreeFarmer extends BaseFarmer {
         {
           ["user_id"]: this.getUserId().toString(),
         },
-        { signal }
+        { signal },
       )
       .then((res) => res.data);
   }
@@ -210,7 +211,7 @@ export default class MoneyTreeFarmer extends BaseFarmer {
       .post(
         "https://moneytree.extensi.one/api/daily-bonuses/collect-bonus",
         {},
-        { signal }
+        { signal },
       )
       .then((res) => res.data);
   }
@@ -228,7 +229,7 @@ export default class MoneyTreeFarmer extends BaseFarmer {
       .post(
         `https://moneytree.extensi.one/api/auto-bot/${itemId}/buy/${levelId}`,
         {},
-        { signal }
+        { signal },
       )
       .then((res) => res.data);
   }
@@ -246,7 +247,7 @@ export default class MoneyTreeFarmer extends BaseFarmer {
       .post(
         "https://moneytree.extensi.one/api/auto-bot/collect",
         {},
-        { signal }
+        { signal },
       )
       .then((res) => res.data);
   }
@@ -257,7 +258,7 @@ export default class MoneyTreeFarmer extends BaseFarmer {
       .post(
         `https://moneytree.extensi.one/api/free-boosts/${boostId}/use`,
         {},
-        { signal }
+        { signal },
       )
       .then((res) => res.data);
   }
@@ -289,7 +290,7 @@ export default class MoneyTreeFarmer extends BaseFarmer {
     let { autoBots } = await this.getAutoBot();
     let availableBots = autoBots.map((bot) => {
       const nextLevel = bot.levels.find(
-        (level) => level.level === bot.currentLevel + 1
+        (level) => level.level === bot.currentLevel + 1,
       );
       return {
         ...bot,
@@ -316,7 +317,7 @@ export default class MoneyTreeFarmer extends BaseFarmer {
         availableBots = availableBots.map((bot) => {
           if (bot.id === upgrade.id) {
             const nextLevel = bot.levels.find(
-              (level) => level.level === bot.nextLevel.level + 1
+              (level) => level.level === bot.nextLevel.level + 1,
             );
             return {
               ...bot,
@@ -340,7 +341,7 @@ export default class MoneyTreeFarmer extends BaseFarmer {
       } else if (
         this.utils.dateFns.isAfter(
           new Date(),
-          new Date(playerAutoBot.lastShutdownTime)
+          new Date(playerAutoBot.lastShutdownTime),
         )
       ) {
         await this.collectAutoBot();
@@ -380,7 +381,7 @@ export default class MoneyTreeFarmer extends BaseFarmer {
         const isMaxLevel = currentLevel >= maxLevel;
 
         const nextLevel = boost.levels.find(
-          (level) => level.level === currentLevel + 1
+          (level) => level.level === currentLevel + 1,
         );
 
         return {
@@ -409,7 +410,7 @@ export default class MoneyTreeFarmer extends BaseFarmer {
       } else {
         await this.buyBoost(upgrade.id, upgrade.nextLevel.id);
         this.logger.success(
-          `⏫ ${upgrade.type} to LVL ${upgrade.nextLevel.level}`
+          `⏫ ${upgrade.type} to LVL ${upgrade.nextLevel.level}`,
         );
 
         this._player.balance -= upgrade.nextLevel.price;
@@ -418,7 +419,7 @@ export default class MoneyTreeFarmer extends BaseFarmer {
             const currentLevel = boost.nextLevel.level;
             const isMaxLevel = currentLevel >= boost.maxLevel;
             const nextLevel = boost.levels.find(
-              (level) => level.level === boost.nextLevel.level + 1
+              (level) => level.level === boost.nextLevel.level + 1,
             );
             return {
               ...boost,
@@ -437,6 +438,20 @@ export default class MoneyTreeFarmer extends BaseFarmer {
 
   /** Play Game */
   async playGame() {
+    let attempts = 0;
+    while (attempts < 10) {
+      try {
+        await this.tapGame();
+        break;
+      } catch (e) {
+        this.debugger.error("Error while playing game:", e);
+      } finally {
+        attempts++;
+      }
+    }
+  }
+
+  async tapGame() {
     return new Promise((resolve, reject) => {
       if (this.signal.aborted) {
         return reject(new Error("Signal already aborted"));
@@ -540,7 +555,7 @@ export default class MoneyTreeFarmer extends BaseFarmer {
   async claimDailyBonus() {
     const { dailyBonuses } = await this.getDailyBonuses();
     const todayBonus = dailyBonuses.find(
-      (bonus) => bonus.isAvailable && !bonus.isCollected
+      (bonus) => bonus.isAvailable && !bonus.isCollected,
     );
     if (todayBonus) {
       await this.collectDailyBonus();
