@@ -124,6 +124,15 @@ export default class FomoFightersFarmer extends BaseFarmer {
       .then((res) => res.data.data);
   }
 
+  speedupTimer(timerId, speedUpKey) {
+    return this.api
+      .post("https://api.fomofighters.xyz/building/buy", {
+        timerId,
+        speedUpKey,
+      })
+      .then((res) => res.data.data);
+  }
+
   purchaseLand(position, buildingKey) {
     return this.api
       .post("https://api.fomofighters.xyz/building/buy", {
