@@ -244,8 +244,8 @@ export default class FomoFightersFarmer extends BaseFarmer {
         this.logger.success(`Claimed resource: FOOD`);
       }
 
-      /** Claim main quest */
-      if (checkType === "claimQuestStoryMain") {
+      /** Claim quest */
+      if (checkType === "claimQuestStoryMain" || checkType === "claimQuests") {
         const claimed = await this.completeMainQuest();
         if (!claimed) return;
       }
@@ -271,6 +271,10 @@ export default class FomoFightersFarmer extends BaseFarmer {
         await this.utils.delayForSeconds(1);
       }
     }
+  }
+
+  async completeSideQuests() {
+    // TODO: check hero.questsSideCompleted
   }
 
   async completeMainQuest() {
