@@ -4,10 +4,10 @@
   "main": "index.js",
   "type": "module",
   "dependencies": {
-    "@faker-js/faker": "^10.1.0",
+    "@faker-js/faker": "^10.2.0",
     "ansi-to-html": "^0.7.2",
-    "axios": "^1.11.0",
-    "chalk": "^5.5.0",
+    "axios": "^1.13.3",
+    "chalk": "^5.6.2",
     "change-case": "^5.4.4",
     "croner": "^9.1.0",
     "crypto-js": "^4.2.0",
@@ -15,8 +15,8 @@
     "events": "^3.3.0",
     "md5": "^2.3.0",
     "seedrandom": "^3.0.5",
-    "socket.io-client": "^4.8.1",
+    "socket.io-client": "^4.8.3",
     "telegram": "^2.26.22",
-    "uuid": "^11.1.0"
+    "uuid": "^13.0.0"
   }
 }
