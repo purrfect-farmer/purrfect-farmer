@@ -23,6 +23,7 @@ export default class BaseFarmer {
   static withXSRFToken = false;
   static rating = 1;
   static startupDelay = 300;
+  static published = true;
 
   constructor() {
     /* Register utilities */
@@ -38,7 +39,7 @@ export default class BaseFarmer {
     /* Parse Telegram Link */
     if (this.constructor.platform === "telegram") {
       const { entity, shortName, startParam } = this.utils.parseTelegramLink(
-        this.constructor.telegramLink
+        this.constructor.telegramLink,
       );
       this.entity = entity || null;
       this.shortName = shortName || null;
@@ -75,7 +76,7 @@ export default class BaseFarmer {
   configureAuthHeaders(data) {
     this.api.defaults.headers.common = Object.assign(
       this.api.defaults.headers.common,
-      this.getAuthHeaders(data)
+      this.getAuthHeaders(data),
     );
   }
 
@@ -271,8 +272,8 @@ export default class BaseFarmer {
       /* Log Skipped Task */
       this.logger.log(
         `${this.logger.c.yellow(
-          "⚡ Skipping in quick run:"
-        )} ${this.logger.c.magenta(task)}`
+          "⚡ Skipping in quick run:",
+        )} ${this.logger.c.magenta(task)}`,
       );
       return;
     }
@@ -281,8 +282,8 @@ export default class BaseFarmer {
       /* Log Task Start */
       this.logger.log(
         `${this.logger.c.gray("⚙ Executing task:")} ${this.logger.c.magenta(
-          task
-        )}`
+          task,
+        )}`,
       );
 
       /* Execute Callback */
@@ -291,17 +292,17 @@ export default class BaseFarmer {
       /* Log Task Completion */
       this.logger.log(
         `${this.logger.c.green("✔ Completed task:")} ${this.logger.c.magenta(
-          task
-        )}`
+          task,
+        )}`,
       );
     } catch (error) {
       /* Log Task Error */
       this.logger.log(
         `${this.logger.c.red(
-          "✖ Error executing task:"
+          "✖ Error executing task:",
         )} ${this.logger.c.magenta(task)}\n   ${this.logger.c.gray(
-          error.message
-        )}`
+          error.message,
+        )}`,
       );
       throw error;
     } finally {
@@ -346,7 +347,7 @@ export default class BaseFarmer {
   async updateWebAppData() {
     if (this.platform === "telegram" && this.type === "webapp") {
       const { url } = await this.client.getWebview(
-        this.constructor.telegramLink
+        this.constructor.telegramLink,
       );
       const { initData } = this.utils.extractTgWebAppData(url);
 
@@ -412,7 +413,7 @@ export default class BaseFarmer {
   /** Can Join Telegram Link */
   canJoinTelegramLink(link) {
     throw new Error(
-      "canJoinTelegramLink method must be implemented in subclass"
+      "canJoinTelegramLink method must be implemented in subclass",
     );
   }
 
