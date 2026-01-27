@@ -10,7 +10,7 @@ const farmers = {};
 
 const farmersDir = path.join(
   __dirname,
-  "../node_modules/@purrfect/shared/farmers"
+  "../node_modules/@purrfect/shared/farmers",
 );
 const farmerClasses = fs
   .readdirSync(farmersDir)
@@ -18,10 +18,12 @@ const farmerClasses = fs
 
 for (const file of farmerClasses) {
   const FarmerClass = await import(path.join(farmersDir, file)).then(
-    (m) => m.default
+    (m) => m.default,
   );
 
-  farmers[FarmerClass.id] = createRunner(FarmerClass);
+  if (FarmerClass.published) {
+    farmers[FarmerClass.id] = createRunner(FarmerClass);
+  }
 }
 
 export default farmers;

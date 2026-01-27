@@ -1,9 +1,9 @@
 import "./config/env.js";
 
+import CronRunner from "@purrfect/shared/lib/CronRunner.js";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
-import CronRunner from "@purrfect/shared/lib/CronRunner.js";
 import app from "./config/app.js";
 import expireSubscriptions from "./actions/expire-subscriptions.js";
 import farmers from "./farmers/index.js";
@@ -27,13 +27,13 @@ if (app.cron.enabled) {
   Object.values(farmers)
     .filter(
       (FarmerClass) =>
-        FarmerClass.enabled && FarmerClass.rating >= minimumRating
+        FarmerClass.enabled && FarmerClass.rating >= minimumRating,
     )
     .forEach((FarmerClass) => {
       runner.register(
         FarmerClass.interval || "*/10 * * * *",
         () => FarmerClass.run(),
-        FarmerClass.title
+        FarmerClass.title,
       );
     });
 
