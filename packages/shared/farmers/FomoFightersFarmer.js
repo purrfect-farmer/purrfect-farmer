@@ -363,23 +363,61 @@ export default class FomoFightersFarmer extends BaseFarmer {
       if (onboarding.isCompleteAfterClick) {
         await this.finishOnboarding(onboarding.key);
         this.logger.success(`Completed onboarding: ${onboarding.title}`);
-        await this.utils.delayForSeconds(1);
+        await this.utils.delayForSeconds(1, { signal: this.signal });
       }
     }
   }
 
   async claimResources() {
     for (const resource of this.allData.dbData.dbRes) {
-      await this.claimResource(resource.key);
-      this.logger.success(`Claimed resource: ${resource.title}`);
+      if (this.signal.aborted) return;
+
+      if (this.canClaimResource(resource.key)) {
+        await this.claimResource(resource.key);
+        this.logger.success(`Claimed: ${resource.title}`);
+        await this.utils.delayForSeconds(1, { signal: this.signal });
+      }
     }
+  }
+
+  canClaimResource(key) {
+    const perHour = this.allData.hero.propsCompiled[key + "PH"];
+    if (!perHour) return false;
+
+    const lastClaimDate = this.allData.hero.resources[key]?.lastClaimDate;
+    if (!lastClaimDate) return true;
+
+    const storageLimit =
+      this.allData.hero.propsCompiled[key + "StorageLimit"] ?? Infinity;
+
+    const diffSeconds = this.utils.dateFns.differenceInSeconds(
+      new Date(),
+      new Date(this.normalizeDate(lastClaimDate)),
+    );
+
+    if (diffSeconds <= 0) return false;
+
+    const generated = Math.min(storageLimit, (diffSeconds / 3600) * perHour);
+    const resource = this.allData.dbData.dbRes.find((item) => item.key === key);
+
+    this.logger.debug(`Available ${resource.title}: ${generated}`);
+
+    return generated > 0;
+  }
+
+  normalizeDate(dateString) {
+    return `${dateString}Z`;
   }
 
   /** Open logs */
   async openLogs() {
     const logs = await this.getBattleLogs();
     const unread = logs.filter((item) => !item.isRead);
-    await this.readAllBattleLogs();
+
+    if (unread.length > 0) {
+      await this.readAllBattleLogs();
+      await this.utils.delayForSeconds(1, { signal: this.signal });
+    }
   }
 
   async completeSideQuests() {
@@ -741,7 +779,7 @@ export default class FomoFightersFarmer extends BaseFarmer {
     if (!target) return;
 
     const diff = this.utils.dateFns.differenceInSeconds(
-      new Date(`${target.dateEnd}Z`),
+      new Date(this.normalizeDate(target.dateEnd)),
       new Date(),
     );
 
@@ -845,8 +883,8 @@ export default class FomoFightersFarmer extends BaseFarmer {
   }
 
   hasClaimedResources() {
-    return Object.values(this.getAllResources()).some(
-      (item) => item.lastClaimDate,
+    return Object.values(this.getStats()["resourceClaim"]).some(
+      (value) => value > 0,
     );
   }
 
@@ -863,8 +901,9 @@ export default class FomoFightersFarmer extends BaseFarmer {
   }
 
   compareStats(category, data) {
+    const stats = this.getStats()[category];
     return Object.entries(data).every(([key, value]) => {
-      this.getStats()[category][key] >= value;
+      return stats[key] >= value;
     });
   }
 
