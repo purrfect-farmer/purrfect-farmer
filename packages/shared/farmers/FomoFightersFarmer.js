@@ -96,6 +96,18 @@ export default class FomoFightersFarmer extends BaseFarmer {
       .then((res) => res.data.data);
   }
 
+  checkQuest(key, value) {
+    return this.api
+      .post("https://api.fomofighters.xyz/quest/check", [key, value])
+      .then((res) => res.data.data);
+  }
+
+  claimQuest(key, value = null) {
+    return this.api
+      .post("https://api.fomofighters.xyz/quest/claim", [key, value])
+      .then((res) => res.data.data);
+  }
+
   claimDailyQuest(day) {
     return this.api
       .post("https://api.fomofighters.xyz/quest/daily/claim", day)
@@ -262,10 +274,24 @@ export default class FomoFightersFarmer extends BaseFarmer {
     await this.executeTask("Onboarding", () => this.completeOnboarding());
     await this.executeTask("Resources", () => this.claimGameResources());
     await this.executeTask("Quests", () => this.completeGameQuests());
+    await this.executeTask("Daily reward", () => this.getDailyReward());
+  }
+
+  async getDailyReward() {
+    const dailyReward = Object.entries(this.afterData.questDailyRewards).find(
+      ([key, value]) => value === "canTake",
+    );
+
+    if (dailyReward) {
+      await this.claimDailyQuest(dailyReward[0]);
+      this.logger.success("Claimed daily reward");
+    }
   }
 
   async completeGameQuests() {
     await this.completeMainQuest();
+    await this.completeSideQuests();
+    await this.completePremiumQuests();
   }
 
   async claimGameResources() {
@@ -321,7 +347,7 @@ export default class FomoFightersFarmer extends BaseFarmer {
 
       /** Claim something */
       if (checkType === "claimSmt") {
-        if (!this.hasClaimedResources()) {
+        if (!this.hasClaimedAnyResource()) {
           await this.claimResources();
         }
       }
@@ -438,52 +464,135 @@ export default class FomoFightersFarmer extends BaseFarmer {
     /** Get db quests */
     const quests = this.allData.dbData.dbQuestsMain;
 
-    /** Find last completed main quest */
-    const lastCompleted = quests.find(
-      (item) => item.key === this.allData.hero.questMainCompleted,
-    );
-
-    /** Find next quest */
-    const quest = lastCompleted
-      ? quests.find((item) => item.order > lastCompleted.order)
-      : quests[0];
-
-    if (!quest) {
-      return false;
-    }
-
-    let claimable = false;
-
-    if (quest.type === "build") {
-      const owned = this.findOwnedBuilding(quest.data);
-
-      if (owned && owned.level >= quest.count) {
-        claimable = true;
-      }
-    }
-
-    if (quest.type === "trainTotal") {
-      const total = Object.values(this.getStats()["train"]).reduce(
-        (result, value) => result + value,
-        0,
+    while (true) {
+      /** Find last completed main quest */
+      const lastCompleted = quests.find(
+        (item) => item.key === this.allData.hero.questMainCompleted,
       );
 
-      if (total >= quest.count) {
-        claimable = true;
+      /** Find next quest */
+      const quest = lastCompleted
+        ? quests.find((item) => item.order > lastCompleted.order)
+        : quests[0];
+
+      if (!quest) {
+        return false;
+      }
+
+      /** Log main quest */
+      this.logger.debug(
+        `Last completed: ${this.allData.hero.questMainCompleted || "(NONE)"}`,
+      );
+      this.logger.debug(`Main quest: ${quest.key}`);
+
+      let claimable = false;
+
+      if (quest.type === "build") {
+        const owned = this.findOwnedBuilding(quest.data);
+
+        if (owned && owned.level >= quest.count) {
+          claimable = true;
+        }
+      }
+
+      if (quest.type === "trainTotal") {
+        const total = Object.values(this.getStats()["train"]).reduce(
+          (result, value) => result + value,
+          0,
+        );
+
+        if (total >= quest.count) {
+          claimable = true;
+        }
+      }
+
+      if (quest.type === "attack") {
+        claimable = this.hasAttacked({
+          [quest.data]: quest.count,
+        });
+      }
+
+      if (claimable) {
+        await this.claimMainQuest(quest.key);
+        this.logger.success(`Claimed main quest: ${quest.key}`);
+        await this.utils.delayForSeconds(1, { signal: this.signal });
+      } else {
+        return claimable;
       }
     }
+  }
 
-    if (quest.type === "attack") {
-      claimable = this.hasAttacked({
-        [quest.key]: quest.count,
-      });
+  async completePremiumQuests() {
+    /** Get db quests */
+    const quests = this.allData.dbData.dbQuests;
+    const riddle = quests.find((item) => item.key.startsWith("riddle_"));
+    const others = quests.filter((item) => !item.key.startsWith("riddle_"));
+
+    if (riddle) {
+      this.logger.info(`Riddle: ${riddle.desc}`);
+      this.logger.warn(`Answer: ${riddle.checkData}`);
+
+      const riddleQuest = this.afterData.quests.find(
+        (item) => item.key === riddle.key,
+      );
+
+      if (!riddleQuest) {
+        await this.checkQuest(riddle.key, riddle.checkData);
+      }
+
+      if (!riddleQuest || !riddleQuest.isRewarded) {
+        await this.claimQuest(riddle.key);
+      }
     }
+  }
 
-    if (claimable) {
-      await this.claimMainQuest(quest.key);
+  async completeSideQuests() {
+    /** Get db quests */
+    const quests = this.allData.dbData.dbQuestsSide;
+
+    for (const quest of quests) {
+      for (let i = 0; i < quest.counts.length; i++) {
+        const completion = this.afterData.questsSideCompleted[quest.key] || 0;
+
+        if (completion > i) continue;
+
+        const target = quest.counts[i];
+
+        let claimable = false;
+
+        if (quest.type === "build") {
+          const owned = this.findOwnedBuilding(quest.data);
+
+          if (owned && owned.level >= target) {
+            claimable = true;
+          }
+        }
+
+        if (quest.type === "attack") {
+          claimable = this.hasAttacked({
+            [quest.data]: target,
+          });
+        }
+
+        if (quest.type === "resourceClaim") {
+          claimable = this.hasClaimedResource({
+            [quest.data]: target,
+          });
+        }
+
+        if (quest.type === "resourceLoot") {
+          claimable = this.hasLootedResource({
+            [quest.data]: target,
+          });
+        }
+
+        if (!claimable) break;
+
+        await this.claimSideQuest(quest.key);
+        this.logger.success(`Claimed side quest: ${quest.key}`);
+        await this.utils.delayForSeconds(1, { signal: this.signal });
+      }
     }
-
-    return claimable;
   }
 
   /** Upgrade castle */
@@ -552,7 +661,7 @@ export default class FomoFightersFarmer extends BaseFarmer {
 
     /** Compare required buildings */
     const hasRequiredBuildings = await this.checkBuildings(
-      requirements.requiredBuildings,
+      requirements.requiredBuildings || {},
     );
 
     if (!hasRequiredBuildings) {
@@ -572,7 +681,7 @@ export default class FomoFightersFarmer extends BaseFarmer {
 
   async tryToMeetRequirements() {
     await this.claimResources();
-    await this.completeMainQuest();
+    await this.completeGameQuests();
   }
 
   /**
@@ -973,7 +1082,7 @@ export default class FomoFightersFarmer extends BaseFarmer {
     return this.allData.hero.questMainCompleted;
   }
 
-  hasClaimedResources() {
+  hasClaimedAnyResource() {
     return Object.values(this.getStats()["resourceClaim"]).some(
       (value) => value > 0,
     );
@@ -981,6 +1090,14 @@ export default class FomoFightersFarmer extends BaseFarmer {
 
   hasAttacked(data) {
     return this.compareStats("attack", data);
+  }
+
+  hasClaimedResource(data) {
+    return this.compareStats("resourceClaim", data);
+  }
+
+  hasLootedResource(data) {
+    return this.compareStats("resourceLoot", data);
   }
 
   hasTrainedTroops(data) {
@@ -993,9 +1110,11 @@ export default class FomoFightersFarmer extends BaseFarmer {
 
   compareStats(category, data) {
     const stats = this.getStats()[category];
-    return Object.entries(data).every(([key, value]) => {
-      return stats[key] >= value;
-    });
+    return data
+      ? Object.entries(data).every(([key, value]) => {
+          return stats[key] >= value;
+        })
+      : Object.values(stats).some((value) => value > 0);
   }
 
   getStats() {
