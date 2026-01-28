@@ -538,10 +538,12 @@ export default class FomoFightersFarmer extends BaseFarmer {
 
       if (!riddleQuest) {
         await this.checkQuest(riddle.key, riddle.checkData);
+        this.logger.success(`Submitted riddle: ${riddle.title}`);
       }
 
       if (!riddleQuest || !riddleQuest.isRewarded) {
         await this.claimQuest(riddle.key);
+        this.logger.success(`Claimed riddle: ${riddle.title}`);
       }
     }
   }
@@ -641,9 +643,7 @@ export default class FomoFightersFarmer extends BaseFarmer {
 
     /** Has timer */
     if (this.hasBuildingTimer(key)) {
-      this.logger.warn(
-        `Needs to wait for building building: ${building.title}`,
-      );
+      this.logger.warn(`Needs to wait for building: ${building.title}`);
       return false;
     }
 
