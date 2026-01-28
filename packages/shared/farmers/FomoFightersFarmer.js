@@ -260,6 +260,16 @@ export default class FomoFightersFarmer extends BaseFarmer {
     });
 
     await this.executeTask("Onboarding", () => this.completeOnboarding());
+    await this.executeTask("Resources", () => this.claimGameResources());
+    await this.executeTask("Quests", () => this.completeGameQuests());
+  }
+
+  async completeGameQuests() {
+    await this.completeMainQuest();
+  }
+
+  async claimGameResources() {
+    await this.claimResources();
   }
 
   async completeOnboarding() {
@@ -442,17 +452,38 @@ export default class FomoFightersFarmer extends BaseFarmer {
       return false;
     }
 
+    let claimable = false;
+
     if (quest.type === "build") {
       const owned = this.findOwnedBuilding(quest.data);
 
       if (owned && owned.level >= quest.count) {
-        await this.claimMainQuest(quest.key);
-
-        return true;
+        claimable = true;
       }
     }
 
-    return false;
+    if (quest.type === "trainTotal") {
+      const total = Object.values(this.getStats()["train"]).reduce(
+        (result, value) => result + value,
+        0,
+      );
+
+      if (total >= quest.count) {
+        claimable = true;
+      }
+    }
+
+    if (quest.type === "attack") {
+      claimable = this.hasAttacked({
+        [quest.key]: quest.count,
+      });
+    }
+
+    if (claimable) {
+      await this.claimMainQuest(quest.key);
+    }
+
+    return claimable;
   }
 
   /** Upgrade castle */
@@ -472,8 +503,14 @@ export default class FomoFightersFarmer extends BaseFarmer {
     /** Find building in dbData */
     const building = this.findGameBuilding(key);
 
+    /** Already building */
+    if (this.hasBuildingTimer(key)) {
+      this.logger.warn(`Already building: ${building.title}`);
+      return false;
+    }
+
     /** Check if building can be purchased */
-    const canPurchase = this.checkBuildingRequirements(
+    const canPurchase = await this.checkBuildingRequirements(
       building,
       owned ? owned.level + 1 : 1,
     );
@@ -485,7 +522,7 @@ export default class FomoFightersFarmer extends BaseFarmer {
     }
 
     /** Purchase building */
-    const result = await this.purchaseLand(
+    await this.purchaseLand(
       owned ? owned.position : this.getFreeBuildingPosition(),
       building.key,
     );
@@ -493,13 +530,18 @@ export default class FomoFightersFarmer extends BaseFarmer {
     /** Log success */
     this.logger.success(`Purchased building: ${building.title}`);
 
-    /** Wait for building */
-    await this.waitForBuilding(building.key);
+    /** Has timer */
+    if (this.hasBuildingTimer(key)) {
+      this.logger.warn(
+        `Needs to wait for building building: ${building.title}`,
+      );
+      return false;
+    }
 
     return true;
   }
 
-  checkBuildingRequirements(building, level = 1) {
+  async checkBuildingRequirements(building, level = 1) {
     /** Get requirements */
     const requirements = building.levels.find((item) => item.level === level);
 
@@ -509,12 +551,9 @@ export default class FomoFightersFarmer extends BaseFarmer {
     }
 
     /** Compare required buildings */
-    const hasRequiredBuildings = Object.entries(
+    const hasRequiredBuildings = await this.checkBuildings(
       requirements.requiredBuildings,
-    ).every(([key, requiredLevel]) => {
-      const owned = this.findOwnedBuilding(key);
-      return owned && owned.level >= requiredLevel;
-    });
+    );
 
     if (!hasRequiredBuildings) {
       this.logger.warn(`Building: ${building.title} needs other buildings.`);
@@ -645,6 +684,12 @@ export default class FomoFightersFarmer extends BaseFarmer {
           return false;
         }
 
+        /** Already attacking */
+        if (this.hasAttackTimer(selectedTarget.id)) {
+          this.logger.warn(`Already attacking: ${selectedTarget.id}`);
+          return false;
+        }
+
         if (selectedTarget.type === "camp") {
           const scouted = await this.scoutTarget(selectedTarget.id);
           if (!scouted) return false;
@@ -661,20 +706,21 @@ export default class FomoFightersFarmer extends BaseFarmer {
           return false;
         }
 
-        /** Wait for previous attack */
-        await this.waitForFullAttack(selectedTarget.id);
-
         /** Create a new attack */
         await this.createAttack(selectedTarget.id, {
           [selectedTroops.troop.key]: selectedTroops.count,
         });
 
+        /** Log attack */
         this.logger.success(
           `Created attack on target: ${selectedTarget.id} using ${selectedTroops.troop.title}`,
         );
 
-        /** Wait for attack */
-        await this.waitForFullAttack(selectedTarget.id);
+        /** Has attack timer */
+        if (this.hasAttackTimer(selectedTarget.id)) {
+          this.logger.warn(`Needs to wait for attack: ${selectedTarget.id}`);
+          return false;
+        }
       }
     }
 
@@ -686,6 +732,21 @@ export default class FomoFightersFarmer extends BaseFarmer {
 
   /** Scout a target */
   async scoutTarget(targetId) {
+    /** Has scout timer */
+    if (this.hasScoutTimer(targetId)) {
+      this.logger.warn(`Currently scouting: ${targetId}`);
+      return false;
+    }
+
+    /** Check previous scouting logs */
+    const logs = await this.getTargetLogs(targetId);
+    const scoutLog = logs.find((item) => item.isScout);
+
+    if (scoutLog) {
+      this.logger.warn(`Target scouted already: ${targetId}`);
+      return false;
+    }
+
     const scouts = this.utils.randomItem(this.getAvailableScouts());
 
     if (!scouts) {
@@ -699,7 +760,11 @@ export default class FomoFightersFarmer extends BaseFarmer {
 
     this.logger.success(`Created scout for target: ${targetId}`);
 
-    await this.waitForFullScout(targetId);
+    /** Has scout timer */
+    if (this.hasScoutTimer(targetId)) {
+      this.logger.warn(`Needs to wait for scouting: ${targetId}`);
+      return false;
+    }
 
     return true;
   }
@@ -720,8 +785,29 @@ export default class FomoFightersFarmer extends BaseFarmer {
     await this.getAttackInfo();
 
     /** Wait for return */
-    await this.waitForReturn(targetId);
+    await this.waitForAttackReturn(targetId);
     await this.getTargetInfo(targetId);
+  }
+
+  /** Is already attacking */
+  hasAttackTimer(targetId) {
+    return (
+      this.getTimer("tAttacks", "targetId", targetId) ||
+      this.getTimer("tReturns", "targetId", targetId)
+    );
+  }
+
+  /** Is already scouting */
+  hasScoutTimer(targetId) {
+    return (
+      this.getTimer("tScouts", "targetId", targetId) ||
+      this.getTimer("tScoutReturns", "targetId", targetId)
+    );
+  }
+
+  /** Is already building */
+  hasBuildingTimer(buildingKey) {
+    return this.getTimer("tBuildings", "buildingKey", buildingKey);
   }
 
   /** Wait for building */
@@ -745,7 +831,7 @@ export default class FomoFightersFarmer extends BaseFarmer {
   }
 
   /** Wait for return */
-  async waitForReturn(targetId) {
+  async waitForAttackReturn(targetId) {
     return this.waitForTimer("Troops return", "tReturns", "targetId", targetId);
   }
 
@@ -773,8 +859,8 @@ export default class FomoFightersFarmer extends BaseFarmer {
    * @returns {Promise<void>}
    */
   async waitForTimer(title, timerKey, itemKey, value) {
-    const timers = await this.getUserTimers();
-    const target = timers[timerKey].find((item) => item[itemKey] === value);
+    await this.getUserTimers();
+    const target = this.getTimer(timerKey, itemKey, value);
 
     if (!target) return;
 
@@ -790,7 +876,12 @@ export default class FomoFightersFarmer extends BaseFarmer {
         signal: this.signal,
       });
       this.logger.success(`Completed ${title}: ${value}`);
+      await this.getUserTimers();
     }
+  }
+
+  getTimer(timerKey, itemKey, value) {
+    return this.allData[timerKey].find((item) => item[itemKey] === value);
   }
 
   findAvailableTargets(key) {
