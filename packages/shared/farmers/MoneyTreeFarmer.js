@@ -1,6 +1,5 @@
-import { io } from "socket.io-client";
-
 import BaseFarmer from "../lib/BaseFarmer.js";
+import { io } from "socket.io-client";
 
 export default class MoneyTreeFarmer extends BaseFarmer {
   static id = "money-tree";
@@ -440,6 +439,7 @@ export default class MoneyTreeFarmer extends BaseFarmer {
   async playGame() {
     let attempts = 0;
     while (attempts < 10) {
+      if (this.signal.aborted) return;
       try {
         await this.tapGame();
         break;
@@ -461,8 +461,11 @@ export default class MoneyTreeFarmer extends BaseFarmer {
       const resetCancelTimeout = () => {
         clearCancelTimeout();
         this._socketCancelTimeout = setTimeout(() => {
-          this.socket.close();
           reject(new Error("Socket Timeout"));
+          if (this.socket) {
+            this.socket.close();
+            this.socket = null;
+          }
         }, 5000);
       };
 
@@ -472,6 +475,9 @@ export default class MoneyTreeFarmer extends BaseFarmer {
           clearTimeout(this._socketCancelTimeout);
         }
       };
+
+      /** Reset cancel timeout */
+      resetCancelTimeout();
 
       /** Create Socket */
       this.socket = io("wss://moneytree.extensi.one/game", {
