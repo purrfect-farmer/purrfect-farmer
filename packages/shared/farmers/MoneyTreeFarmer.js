@@ -20,7 +20,7 @@ export default class MoneyTreeFarmer extends BaseFarmer {
 
   /** Get Auth */
   async fetchAuth() {
-    this._authData = await this.api
+    this.authData = await this.api
       .post("https://moneytree.extensi.one/api/auth/login", {
         tgId: this.getUserId(),
         isPremium: this.getIsPremiumUser(),
@@ -30,9 +30,9 @@ export default class MoneyTreeFarmer extends BaseFarmer {
       })
       .then((res) => res.data);
 
-    this._player = this._authData.player;
+    this.player = this.authData.player;
 
-    return this._authData;
+    return this.authData;
   }
 
   /** Get Auth Headers */
@@ -264,7 +264,7 @@ export default class MoneyTreeFarmer extends BaseFarmer {
 
   /** Process Farmer */
   async process() {
-    const { player: user } = this._authData;
+    const { player: user } = this.authData;
 
     this.logUserInfo(user);
     await this.executeTask("Check First Name", () => this.checkUserFirstName());
@@ -299,7 +299,7 @@ export default class MoneyTreeFarmer extends BaseFarmer {
 
     /** Upgrade Bot */
     while (true) {
-      const balance = this._player.balance;
+      const balance = this.player.balance;
       const availableUpgrades = availableBots.filter((bot) => {
         return bot.nextLevel && bot.nextLevel.price <= balance;
       });
@@ -312,7 +312,7 @@ export default class MoneyTreeFarmer extends BaseFarmer {
         await this.purchaseAutoBot(upgrade.id, upgrade.nextLevel.id);
         this.logger.success(`⏫ AUTO BOT to LVL ${upgrade.nextLevel.level}`);
 
-        this._player.balance -= upgrade.nextLevel.price;
+        this.player.balance -= upgrade.nextLevel.price;
         availableBots = availableBots.map((bot) => {
           if (bot.id === upgrade.id) {
             const nextLevel = bot.levels.find(
@@ -393,7 +393,7 @@ export default class MoneyTreeFarmer extends BaseFarmer {
       .filter((boost) => !boost.isMaxLevel);
 
     while (true) {
-      const balance = this._player.balance;
+      const balance = this.player.balance;
       const availableUpgrades = availableBoosts.filter((boost) => {
         return (
           !boost.isMaxLevel &&
@@ -412,7 +412,7 @@ export default class MoneyTreeFarmer extends BaseFarmer {
           `⏫ ${upgrade.type} to LVL ${upgrade.nextLevel.level}`,
         );
 
-        this._player.balance -= upgrade.nextLevel.price;
+        this.player.balance -= upgrade.nextLevel.price;
         availableBoosts = availableBoosts.map((boost) => {
           if (boost.id === upgrade.id) {
             const currentLevel = boost.nextLevel.level;
@@ -457,22 +457,25 @@ export default class MoneyTreeFarmer extends BaseFarmer {
         return reject(new Error("Signal already aborted"));
       }
 
+      /** Destroy game */
+      const destroyGame = (message = "Error") => {
+        reject(new Error(message));
+        if (this.socket) {
+          this.socket.close();
+          this.socket = null;
+        }
+      };
+
       /** Reset Cancel Timeout */
       const resetCancelTimeout = () => {
         clearCancelTimeout();
-        this._socketCancelTimeout = setTimeout(() => {
-          reject(new Error("Socket Timeout"));
-          if (this.socket) {
-            this.socket.close();
-            this.socket = null;
-          }
-        }, 5000);
+        this.gameSocketTimeout = setTimeout(destroyGame, 5000, "Timeout");
       };
 
       /** Clear Cancel Timeout */
       const clearCancelTimeout = () => {
-        if (this._socketCancelTimeout) {
-          clearTimeout(this._socketCancelTimeout);
+        if (this.gameSocketTimeout) {
+          clearTimeout(this.gameSocketTimeout);
         }
       };
 
@@ -482,7 +485,7 @@ export default class MoneyTreeFarmer extends BaseFarmer {
       /** Create Socket */
       this.socket = io("wss://moneytree.extensi.one/game", {
         auth: {
-          token: this._authData.accessToken,
+          token: this.authData.accessToken,
         },
         agent: this.httpsAgent,
         withCredentials: true,
@@ -492,7 +495,7 @@ export default class MoneyTreeFarmer extends BaseFarmer {
       /* Handle Abort */
       this.signal.addEventListener("abort", () => {
         clearCancelTimeout();
-        this.socket.close();
+        destroyGame("Signal aborted");
       });
 
       /* On Connect */
@@ -523,16 +526,16 @@ export default class MoneyTreeFarmer extends BaseFarmer {
         resetCancelTimeout();
 
         /** Update Balance */
-        this._player.balance = stats.balance;
-        this._player.energy = stats.energy;
+        this.player.balance = stats.balance;
+        this.player.energy = stats.energy;
 
-        if (this._player.energy >= this._player.damage) {
-          if (!this._isClicking) {
+        if (this.player.energy >= this.player.damage) {
+          if (!this.isClickingGame) {
             /** Prevent double click */
-            this._isClicking = true;
+            this.isClickingGame = true;
 
             /* Log Energy */
-            this.logger.info(`🎮 Game - Energy: [${this._player.energy}]`);
+            this.logger.info(`🎮 Game - Energy: [${this.player.energy}]`);
 
             /** Delay */
             await this.utils.delay(200);
@@ -540,7 +543,7 @@ export default class MoneyTreeFarmer extends BaseFarmer {
             this.socket.emit("leafClick");
 
             /** Release */
-            this._isClicking = false;
+            this.isClickingGame = false;
           }
         } else {
           this.socket.close();
@@ -571,9 +574,9 @@ export default class MoneyTreeFarmer extends BaseFarmer {
 
   /** Claim Wheel Tickets */
   async claimTickets() {
-    for (let i = 0; i < this._player.tickets; i++) {
+    for (let i = 0; i < this.player.tickets; i++) {
       await this.spinWheel(1);
-      this._player.tickets -= 1;
+      this.player.tickets -= 1;
       this.logger.info("🎟️ Spun Wheel with 1 Ticket");
       await this.utils.delayForSeconds(2, { signal: this.signal });
     }
