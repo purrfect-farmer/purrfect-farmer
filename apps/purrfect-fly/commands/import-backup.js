@@ -1,6 +1,6 @@
 import fs from "node:fs";
-import path from "node:path";
 import { getCurrentPath } from "../lib/path.js";
+import path from "node:path";
 
 const { __dirname, __filename } = getCurrentPath(import.meta.url);
 
@@ -18,6 +18,10 @@ export default (program, inquirer, chalk) => {
       const db = await import("../db/models/index.js").then((m) => m.default);
       const backup = JSON.parse(fs.readFileSync(file, "utf-8"));
 
+      if (backup.env) {
+        fs.writeFileSync(path.join(__dirname, "../.env"), backup.env);
+      }
+
       await db.User.bulkCreate(backup.users, { ignoreDuplicates: true });
       await db.Account.bulkCreate(backup.accounts, { ignoreDuplicates: true });
       await db.Payment.bulkCreate(backup.payments, { ignoreDuplicates: true });
@@ -30,7 +34,7 @@ export default (program, inquirer, chalk) => {
       backup.sessions.forEach((session) => {
         fs.writeFileSync(
           path.resolve(__dirname, "../sessions", session.name),
-          session.content
+          session.content,
         );
       });
 

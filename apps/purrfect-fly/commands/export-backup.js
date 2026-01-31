@@ -1,8 +1,7 @@
-import fs from "node:fs";
-import path from "node:path";
 import { formatDate } from "date-fns";
-
+import fs from "node:fs";
 import { getCurrentPath } from "../lib/path.js";
+import path from "node:path";
 
 const { __dirname, __filename } = getCurrentPath(import.meta.url);
 
@@ -18,9 +17,10 @@ export default (program, inquirer, chalk) => {
     .action(async () => {
       const db = await import("../db/models/index.js").then((m) => m.default);
       const GramClient = await import("../lib/GramClient.js").then(
-        (m) => m.default
+        (m) => m.default,
       );
 
+      const env = fs.readFileSync(path.join(__dirname, "../.env"), "utf-8");
       const users = await db.User.findAll();
       const accounts = await db.Account.findAll();
       const payments = await db.Payment.findAll();
@@ -43,13 +43,14 @@ export default (program, inquirer, chalk) => {
 
       const backupFile = `fly-backup-${formatDate(
         new Date(),
-        "yyyyMMdd-HHmmss"
+        "yyyyMMdd-HHmmss",
       )}.json`;
 
       fs.writeFileSync(
         path.join(__dirname, "../backups", backupFile),
         JSON.stringify(
           {
+            env,
             users,
             accounts,
             payments,
@@ -58,8 +59,8 @@ export default (program, inquirer, chalk) => {
             sessions,
           },
           null,
-          2
-        )
+          2,
+        ),
       );
 
       console.log(chalk.bold.green(`Exported successfully: ${backupFile}`));
