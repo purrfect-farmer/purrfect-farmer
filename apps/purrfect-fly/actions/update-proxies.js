@@ -1,6 +1,5 @@
-import chalk from "chalk";
-
 import app from "../config/app.js";
+import chalk from "chalk";
 import db from "../db/models/index.js";
 import proxy from "../lib/proxy.js";
 
@@ -45,11 +44,11 @@ async function updateProxies() {
             where: {
               id: {
                 [db.Sequelize.Op.in]: unsubscribedAccounts.map(
-                  (account) => account.id
+                  (account) => account.id,
                 ),
               },
             },
-          }
+          },
         );
       }
 
@@ -63,28 +62,26 @@ async function updateProxies() {
 
       /** Filter accounts that have proxies not in the working list (invalid accounts) */
       const invalidAccounts = accounts.filter(
-        (account) => !sortedProxies.includes(account.proxy)
+        (account) => !sortedProxies.includes(account.proxy),
       );
 
       if (invalidAccounts.length > 0) {
         /** Available proxies = proxies in working list not currently used by subscribed accounts */
         const availableProxies = sortedProxies.filter(
-          (p) => !usedProxies.includes(p)
+          (p) => !usedProxies.includes(p),
         );
 
         /** Assign proxies from available list to invalid accounts */
         invalidAccounts.forEach((account) => {
           const newProxy = availableProxies.shift();
-          if (newProxy) {
-            account.proxy = newProxy;
-          }
+          account.proxy = newProxy || null;
         });
 
         /** Save Accounts */
         await Promise.allSettled(
           invalidAccounts
-            .filter((account) => account.proxy)
-            .map((account) => account.save())
+            .filter((account) => account.changed())
+            .map((account) => account.save()),
         );
       }
 
