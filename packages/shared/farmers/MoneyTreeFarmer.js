@@ -271,6 +271,7 @@ export default class MoneyTreeFarmer extends BaseFarmer {
     await this.executeTask("Daily Bonus", () => this.claimDailyBonus());
     await this.executeTask("Claim Tickets", () => this.claimTickets());
     await this.executeTask("Claim Free Boosts", () => this.claimFreeBoosts());
+    await this.executeTask("Auto Bot", () => this.claimOrPurchaseAutoBot());
     await this.executeTask("Upgrade Boosts", () => this.upgradeBoosts());
     await this.executeTask("Play Game", () => this.playGame());
   }
