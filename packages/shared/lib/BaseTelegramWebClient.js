@@ -1,15 +1,15 @@
-import EventEmitter from "events";
 import { Api, TelegramClient } from "telegram";
 import { NewMessage, Raw } from "telegram/events/index.js";
-import { StringSession } from "telegram/sessions/index.js";
-import { UpdateConnectionState } from "telegram/network/index.js";
-
 import {
   delayForSeconds,
   extractTgWebAppData,
   isBotMiniAppLink,
   parseTelegramLink,
 } from "../utils/index.js";
+
+import EventEmitter from "events";
+import { StringSession } from "telegram/sessions/index.js";
+import { UpdateConnectionState } from "telegram/network/index.js";
 
 export default class BaseTelegramWebClient extends TelegramClient {
   /** Construct Class */
@@ -54,7 +54,7 @@ export default class BaseTelegramWebClient extends TelegramClient {
       },
       new Raw({
         types: [UpdateConnectionState],
-      })
+      }),
     );
   }
 
@@ -158,7 +158,7 @@ export default class BaseTelegramWebClient extends TelegramClient {
   /** Start Bot */
   async startBot(
     { entity, startParam = "", shouldWaitForReply = true } = {},
-    replyOptions = {}
+    replyOptions = {},
   ) {
     const reply = shouldWaitForReply
       ? this._waitForReply(entity, replyOptions)
@@ -170,7 +170,7 @@ export default class BaseTelegramWebClient extends TelegramClient {
         bot: entity,
         peer: entity,
         startParam: startParam,
-      })
+      }),
     );
 
     return await reply;
@@ -186,7 +186,7 @@ export default class BaseTelegramWebClient extends TelegramClient {
           entity,
           startParam,
         },
-        replyOptions
+        replyOptions,
       );
     });
   }
@@ -218,7 +218,7 @@ export default class BaseTelegramWebClient extends TelegramClient {
         const dialogs = await this.getDialogs({});
         const botChat = dialogs.find(
           (d) =>
-            d.entity?.username?.toLowerCase() === parsed.entity?.toLowerCase()
+            d.entity?.username?.toLowerCase() === parsed.entity?.toLowerCase(),
         );
 
         if (!botChat) {
@@ -254,6 +254,8 @@ export default class BaseTelegramWebClient extends TelegramClient {
               break;
             }
           }
+
+          if (miniApp || webviewButton) break;
         }
       }
 
@@ -273,7 +275,7 @@ export default class BaseTelegramWebClient extends TelegramClient {
                 bot: parsed.entity,
                 url: webviewButton.url,
                 themeParams,
-              })
+              }),
         );
       } else if (miniApp) {
         /** Mini App Webview */
@@ -287,7 +289,7 @@ export default class BaseTelegramWebClient extends TelegramClient {
               shortName: miniApp.shortName,
             }),
             themeParams,
-          })
+          }),
         );
       } else {
         /** Main Webview */
@@ -298,7 +300,7 @@ export default class BaseTelegramWebClient extends TelegramClient {
             peer: parsed.entity,
             startParam: parsed.startParam,
             themeParams,
-          })
+          }),
         );
       }
 
@@ -327,7 +329,7 @@ export default class BaseTelegramWebClient extends TelegramClient {
               })
             : new Api.channels.JoinChannel({
                 channel: parsed.entity,
-              })
+              }),
         );
 
         return true;
@@ -351,7 +353,7 @@ export default class BaseTelegramWebClient extends TelegramClient {
       return this.invoke(
         new Api.channels.LeaveChannel({
           channel: id,
-        })
+        }),
       );
     });
   }
@@ -370,13 +372,13 @@ export default class BaseTelegramWebClient extends TelegramClient {
         new Api.messages.DeleteHistory({
           peer: entity,
           revoke: true,
-        })
+        }),
       );
 
       await this.invoke(
         new Api.contacts.Block({
           id: entity,
-        })
+        }),
       );
     });
   }

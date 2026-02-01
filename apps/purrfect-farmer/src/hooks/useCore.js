@@ -1,27 +1,27 @@
+import { delay, getWindowCoords, postPortMessage } from "@/utils";
+import tabs, { Browser, TelegramWeb, farmers } from "@/core/tabs";
+
 import BrowserIcon from "@/assets/images/browser.png?w=80&format=webp";
 import axios from "axios";
+import { createElement } from "react";
+import defaultSharedSettings from "@/core/defaultSharedSettings";
 import md5 from "md5";
 import toast from "react-hot-toast";
-import tabs, { Browser, TelegramWeb, farmers } from "@/core/tabs";
-import { createElement } from "react";
-import { delay, getWindowCoords, postPortMessage } from "@/utils";
-import { useCallback } from "react";
-import { useDeepCompareMemo } from "use-deep-compare";
-import { useMemo } from "react";
-import { useState } from "react";
-
 import useAccountContext from "./useAccountContext";
+import { useCallback } from "react";
 import useCloudAuth from "./useCloudAuth";
 import useCloudTelegramSession from "./useCloudTelegramSession";
+import { useDeepCompareMemo } from "use-deep-compare";
 import useLocalTelegramSession from "./useLocalTelegramSession";
+import { useMemo } from "react";
 import useMessagePort from "./useMessagePort";
 import useMirroredCallback from "./useMirroredCallback";
 import useSettings from "./useSettings";
 import useSharedContext from "./useSharedContext";
+import { useState } from "react";
 import useTelegramClient from "./useTelegramClient";
 import useUserAgent from "./useUserAgent";
 import useValuesMemo from "./useValuesMemo";
-import defaultSharedSettings from "@/core/defaultSharedSettings";
 
 export const BOT_TELEGRAM_WEB_APP_ACTION = `set-telegram-web-app:${
   import.meta.env.VITE_APP_BOT_HOST
@@ -81,7 +81,7 @@ export default function useCore() {
           },
         },
       }),
-    [settings.cloudServer, cloudAuth.token]
+    [settings.cloudServer, cloudAuth.token],
   );
 
   /** Seeker Backend */
@@ -90,7 +90,7 @@ export default function useCore() {
       axios.create({
         baseURL: settings.seekerServer,
       }),
-    [settings.seekerServer]
+    [settings.seekerServer],
   );
 
   const telegramClient = useTelegramClient(farmerMode, localTelegramSession);
@@ -108,7 +108,7 @@ export default function useCore() {
       ...Object.fromEntries(
         farmers
           .filter((item) => settings.dropsStatus[item.id] === undefined)
-          .map((item) => [item.id, true])
+          .map((item) => [item.id, true]),
       ),
     };
   }, [farmers, settings.dropsStatus]);
@@ -125,9 +125,9 @@ export default function useCore() {
 
           /** Current Drops Order */
           ...settings.dropsOrder,
-        ])
+        ]),
       ),
-    [farmers, settings.dropsOrder]
+    [farmers, settings.dropsOrder],
   );
 
   /** Ordered Drops */
@@ -137,13 +137,13 @@ export default function useCore() {
         .slice()
         .sort((a, b) => dropsOrder.indexOf(a.id) - dropsOrder.indexOf(b.id))
         .filter((item) => item.rating >= settings.farmersRating),
-    [farmers, dropsOrder, settings.farmersRating]
+    [farmers, dropsOrder, settings.farmersRating],
   );
 
   /** Drops */
   const drops = useDeepCompareMemo(
     () => orderedDrops.filter((item) => dropsStatus[item.id] === true),
-    [orderedDrops, dropsStatus]
+    [orderedDrops, dropsStatus],
   );
 
   /* ===== HELPERS ===== */
@@ -157,7 +157,7 @@ export default function useCore() {
             return previous.map((item) =>
               item.id === tab
                 ? { ...item, active: true }
-                : { ...item, active: false }
+                : { ...item, active: false },
             );
           } else {
             return previous;
@@ -168,7 +168,7 @@ export default function useCore() {
             return previous.map((item) =>
               item.id === tab.id
                 ? { ...(override ? tab : item), active: true }
-                : { ...item, active: false }
+                : { ...item, active: false },
             );
           } else {
             return [
@@ -179,7 +179,7 @@ export default function useCore() {
         }
       });
     },
-    [setOpenedTabs]
+    [setOpenedTabs],
   );
 
   /** Update Tab */
@@ -188,11 +188,11 @@ export default function useCore() {
     (tabId, data) => {
       setOpenedTabs((previous) => {
         return previous.map((item) =>
-          item.id === tabId ? { ...item, ...data } : item
+          item.id === tabId ? { ...item, ...data } : item,
         );
       });
     },
-    [setOpenedTabs]
+    [setOpenedTabs],
   );
 
   /** Set Active Tab */
@@ -200,10 +200,10 @@ export default function useCore() {
     "core.set-active-tab",
     (id) => {
       pushTab(
-        id.startsWith("browser") ? id : tabs.find((item) => item.id === id)
+        id.startsWith("browser") ? id : tabs.find((item) => item.id === id),
       );
     },
-    [tabs, pushTab]
+    [tabs, pushTab],
   );
 
   const [resetTabs, dispatchAndResetTabs] = useMirroredCallback(
@@ -212,7 +212,7 @@ export default function useCore() {
       /** Reset Tabs */
       setOpenedTabs(defaultOpenedTabs);
     },
-    [setOpenedTabs]
+    [setOpenedTabs],
   );
 
   const [closeFarmerTabs, dispatchAndCloseFarmerTabs] = useMirroredCallback(
@@ -220,11 +220,11 @@ export default function useCore() {
     () => {
       setOpenedTabs((prev) =>
         prev.filter((item) =>
-          ["app", "telegram-web-k", "telegram-web-a"].includes(item.id)
-        )
+          ["app", "telegram-web-k", "telegram-web-a"].includes(item.id),
+        ),
       );
     },
-    [setOpenedTabs]
+    [setOpenedTabs],
   );
 
   const [reloadTab, dispatchAndReloadTab] = useMirroredCallback(
@@ -232,13 +232,13 @@ export default function useCore() {
     (id) => {
       setOpenedTabs((previous) => {
         const newTabs = previous.map((item) =>
-          item.id === id ? { ...item, reloadedAt: Date.now() } : item
+          item.id === id ? { ...item, reloadedAt: Date.now() } : item,
         );
 
         return newTabs;
       });
     },
-    [setOpenedTabs]
+    [setOpenedTabs],
   );
 
   const [closeTab, dispatchAndCloseTab] = useMirroredCallback(
@@ -261,7 +261,7 @@ export default function useCore() {
         }
       });
     },
-    [setOpenedTabs]
+    [setOpenedTabs],
   );
 
   /** Open New Tab */
@@ -288,7 +288,7 @@ export default function useCore() {
     () => {
       window.close();
     },
-    []
+    [],
   );
 
   /** Reload App */
@@ -301,42 +301,42 @@ export default function useCore() {
         chrome.runtime.reload();
       }
     },
-    []
+    [],
   );
 
   /** Dispatch and Configure Shared Settings */
   const [, dispatchAndConfigureSharedSettings] = useMirroredCallback(
     "core.configure-shared-settings",
     configureSharedSettings,
-    [configureSharedSettings]
+    [configureSharedSettings],
   );
 
   /** Dispatch And Update Shared Settings */
   const [, dispatchAndUpdateSharedSettings] = useMirroredCallback(
     "core.update-shared-settings",
     updateSharedSettings,
-    [updateSharedSettings]
+    [updateSharedSettings],
   );
 
   /** Dispatch and Configure Settings */
   const [, dispatchAndConfigureSettings] = useMirroredCallback(
     "core.configure-settings",
     configureSettings,
-    [configureSettings]
+    [configureSettings],
   );
 
   /** Dispatch and Update Settings */
   const [, dispatchAndUpdateSettings] = useMirroredCallback(
     "core.update-settings",
     updateSettings,
-    [updateSettings]
+    [updateSettings],
   );
 
   /** Restore Settings */
   const [, dispatchAndRestoreSettings] = useMirroredCallback(
     "core.restore-settings",
     restoreSettings,
-    [restoreSettings]
+    [restoreSettings],
   );
 
   /** Open URL */
@@ -346,7 +346,7 @@ export default function useCore() {
       chrome?.windows?.create({
         url,
       }),
-    []
+    [],
   );
 
   /** Navigate to Telegram Web */
@@ -364,7 +364,7 @@ export default function useCore() {
           active: true,
         });
       },
-      [account.id]
+      [account.id],
     );
 
   /** Open Telegram Web */
@@ -372,7 +372,7 @@ export default function useCore() {
     (v) => {
       dispatchAndSetActiveTab(`telegram-web-${v}`);
     },
-    [dispatchAndSetActiveTab]
+    [dispatchAndSetActiveTab],
   );
 
   const getFarmerBotPort = useCallback(
@@ -381,9 +381,9 @@ export default function useCore() {
         .values()
         .find(
           (port) =>
-            port.name === `mini-app:${import.meta.env.VITE_APP_BOT_HOST}`
+            port.name === `mini-app:${import.meta.env.VITE_APP_BOT_HOST}`,
         ),
-    [messaging.ports]
+    [messaging.ports],
   );
 
   const getMiniAppPorts = useCallback(
@@ -392,7 +392,7 @@ export default function useCore() {
         .values()
         .filter((port) => port.name.startsWith("mini-app:"))
         .toArray(),
-    [messaging.ports]
+    [messaging.ports],
   );
 
   /** Launch In-App Browser */
@@ -430,11 +430,11 @@ export default function useCore() {
               }),
               reloadedAt: Date.now(),
             },
-            true
+            true,
           );
         }
       },
-      [settings.miniAppInNewWindow, pushTab]
+      [settings.miniAppInNewWindow, pushTab],
     );
 
   const closeOtherBots = useCallback(async () => {
@@ -447,7 +447,7 @@ export default function useCore() {
         .forEach((port) =>
           postPortMessage(port, {
             action: "close-bot",
-          })
+          }),
         );
     } else {
       ports
@@ -456,7 +456,7 @@ export default function useCore() {
         .forEach((port) =>
           postPortMessage(port, {
             action: "close-bot",
-          })
+          }),
         );
     }
 
@@ -489,10 +489,10 @@ export default function useCore() {
           }),
           reloadedAt: Date.now(),
         },
-        true
+        true,
       );
     },
-    [pushTab]
+    [pushTab],
   );
 
   /** Open Telegram Link */
@@ -516,10 +516,10 @@ export default function useCore() {
           }),
           reloadedAt: Date.now(),
         },
-        true
+        true,
       );
     },
-    [pushTab, preferredTelegramWebVersion]
+    [pushTab, preferredTelegramWebVersion],
   );
 
   /** Join Telegram Link */
@@ -536,7 +536,7 @@ export default function useCore() {
               loading: "Joining...",
               success: "Joined...",
               error: "Failed to Join...",
-            }
+            },
           );
         } catch (e) {
           console.error(e);
@@ -568,7 +568,12 @@ export default function useCore() {
       /** Extra Delay */
       await delay(5000);
     },
-    [farmerMode, openTelegramLink, preferredTelegramWebVersion, messaging.ports]
+    [
+      farmerMode,
+      openTelegramLink,
+      preferredTelegramWebVersion,
+      messaging.ports,
+    ],
   );
 
   /** Open Telegram Bot */
@@ -581,10 +586,11 @@ export default function useCore() {
         browserId,
         browserTitle,
         browserIcon,
+        host,
         embedWebPage = true,
         embedInNewWindow = false,
         forceWebview = false,
-      } = {}
+      } = {},
     ) => {
       try {
         /** Is Short App */
@@ -601,7 +607,10 @@ export default function useCore() {
         ) {
           toast.promise(
             (async function () {
-              const webview = await telegramClient.ref.current.getWebview(url);
+              const webview = await telegramClient.ref.current.getWebview(
+                url,
+                host,
+              );
 
               await launchInAppBrowser({
                 id: browserId || md5(new URL(url).host),
@@ -615,7 +624,7 @@ export default function useCore() {
               loading: "Getting WebPage...",
               success: "Opened WebPage!",
               error: "Failed to Open WebPage!",
-            }
+            },
           );
         } else {
           /** Open Telegram Link */
@@ -651,7 +660,7 @@ export default function useCore() {
       preferredTelegramWebVersion,
       openTelegramLink,
       launchInAppBrowser,
-    ]
+    ],
   );
 
   /** Update Active Account */
@@ -659,7 +668,7 @@ export default function useCore() {
     (data) => {
       updateAccount(account.id, data);
     },
-    [account.id, updateAccount]
+    [account.id, updateAccount],
   );
 
   /** Remove Active Account */

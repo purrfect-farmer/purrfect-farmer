@@ -1,15 +1,15 @@
+import { Suspense, memo } from "react";
+
 import BrowserIcon from "@/assets/images/browser.png?w=80&format=webp";
+import { ErrorBoundary } from "react-error-boundary";
+import ErrorFallback from "./ErrorFallback";
+import FullSpinner from "./FullSpinner";
 import TabContext from "@/contexts/TabContext";
 import TelegramWebAIcon from "@/assets/images/telegram-web-a.png?format=webp&w=80";
 import TelegramWebKIcon from "@/assets/images/telegram-web-k.png?format=webp&w=80";
+import { cn } from "@/utils";
 import useAppContext from "@/hooks/useAppContext";
 import useStorageState from "@/hooks/useStorageState";
-import { ErrorBoundary } from "react-error-boundary";
-import { Suspense, memo } from "react";
-import { cn } from "@/utils";
-
-import ErrorFallback from "./ErrorFallback";
-import FullSpinner from "./FullSpinner";
 
 const LinkButton = (props) => {
   return (
@@ -20,7 +20,7 @@ const LinkButton = (props) => {
         "h-10 font-bold",
         "text-blue-500 dark:text-blue-300",
         "border-b dark:border-neutral-700",
-        "shrink-0"
+        "shrink-0",
       )}
     />
   );
@@ -38,7 +38,7 @@ export default memo(function TabContent({ tab }) {
 
   const { value: referralLink } = useStorageState(
     `farmer-referral-link:${tab.id}`,
-    null
+    null,
   );
 
   const openLinksInAppBrowser =
@@ -48,8 +48,8 @@ export default memo(function TabContent({ tab }) {
     tab.link || (tab.type === "webapp" && openLinksInAppBrowser)
       ? BrowserIcon
       : preferredTelegramWebVersion === "k"
-      ? TelegramWebKIcon
-      : TelegramWebAIcon;
+        ? TelegramWebKIcon
+        : TelegramWebAIcon;
 
   const openTabLink = () => {
     if (tab.platform !== "telegram") {
@@ -67,6 +67,7 @@ export default memo(function TabContent({ tab }) {
         browserIcon: tab.icon,
         embedWebPage: tab.embedWebPage,
         embedInNewWindow: tab.embedInNewWindow,
+        host: tab.host,
         forceWebview: true,
       });
     } else {
@@ -81,7 +82,7 @@ export default memo(function TabContent({ tab }) {
         className={cn(
           "absolute inset-0",
           "flex flex-col",
-          !tab.active ? "invisible" : null
+          !tab.active ? "invisible" : null,
         )}
       >
         {/* Open Telegram Link Button */}
