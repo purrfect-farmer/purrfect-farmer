@@ -289,11 +289,13 @@ export default class MoneyTreeFarmer extends BaseFarmer {
   async claimOrPurchaseAutoBot() {
     let { autoBots } = await this.getAutoBot();
     let availableBots = autoBots.map((bot) => {
+      const maxLevel = 7;
       const nextLevel = bot.levels.find(
         (level) => level.level === bot.currentLevel + 1,
       );
       return {
         ...bot,
+        maxLevel,
         nextLevel,
       };
     });
@@ -302,7 +304,11 @@ export default class MoneyTreeFarmer extends BaseFarmer {
     while (true) {
       const balance = this.player.balance;
       const availableUpgrades = availableBots.filter((bot) => {
-        return bot.nextLevel && bot.nextLevel.price <= balance;
+        return (
+          bot.currentLevel < bot.maxLevel &&
+          bot.nextLevel &&
+          bot.nextLevel.price <= balance
+        );
       });
       const upgrade = this.utils.randomItem(availableUpgrades);
 
@@ -365,39 +371,35 @@ export default class MoneyTreeFarmer extends BaseFarmer {
   /** Upgrade Boosts */
   async upgradeBoosts() {
     let boosts = await this.getBoosts();
-    let availableBoosts = boosts
-      .map(({ boost, currentLevel }) => {
-        let maxLevel = Math.max(...boost.levels.map((level) => level.level));
+    let availableBoosts = boosts.map(({ boost, currentLevel }) => {
+      let maxLevel = Math.max(...boost.levels.map((level) => level.level));
 
-        switch (boost.type) {
-          case "ENERGY":
-            maxLevel = 3;
-            break;
-          case "DAMAGE":
-            maxLevel = 2;
-            break;
-        }
+      switch (boost.type) {
+        case "ENERGY":
+          maxLevel = 3;
+          break;
+        case "DAMAGE":
+          maxLevel = 2;
+          break;
+      }
 
-        const isMaxLevel = currentLevel >= maxLevel;
+      const nextLevel = boost.levels.find(
+        (level) => level.level === currentLevel + 1,
+      );
 
-        const nextLevel = boost.levels.find(
-          (level) => level.level === currentLevel + 1,
-        );
-
-        return {
-          ...boost,
-          currentLevel,
-          isMaxLevel,
-          nextLevel,
-        };
-      })
-      .filter((boost) => !boost.isMaxLevel);
+      return {
+        ...boost,
+        maxLevel,
+        currentLevel,
+        nextLevel,
+      };
+    });
 
     while (true) {
       const balance = this.player.balance;
       const availableUpgrades = availableBoosts.filter((boost) => {
         return (
-          !boost.isMaxLevel &&
+          boost.currentLevel < boost.maxLevel &&
           boost.nextLevel &&
           boost.nextLevel.price <= balance
         );
@@ -417,14 +419,12 @@ export default class MoneyTreeFarmer extends BaseFarmer {
         availableBoosts = availableBoosts.map((boost) => {
           if (boost.id === upgrade.id) {
             const currentLevel = boost.nextLevel.level;
-            const isMaxLevel = currentLevel >= boost.maxLevel;
             const nextLevel = boost.levels.find(
               (level) => level.level === boost.nextLevel.level + 1,
             );
             return {
               ...boost,
               currentLevel,
-              isMaxLevel,
               nextLevel,
             };
           }
