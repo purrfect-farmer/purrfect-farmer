@@ -357,14 +357,11 @@ export default class MoneyTreeFarmer extends BaseFarmer {
       this.logger.keyValue("Bot LEVEL", playerAutoBot.level);
 
       if (!playerAutoBot.isActive) {
-        await this.useAutoBot();
-        this.logger.success("Started Auto Bot");
-      } else if (
-        this.utils.dateFns.isAfter(
-          new Date(),
-          new Date(playerAutoBot.lastShutdownTime),
-        )
-      ) {
+        if (playerAutoBot.charges > 0) {
+          await this.useAutoBot();
+          this.logger.success("Started Auto Bot");
+        }
+      } else if (playerAutoBot.canCollect) {
         await this.collectAutoBot();
         this.logger.success("Collected Auto Bot");
       }
