@@ -233,6 +233,17 @@ export default class MoneyTreeFarmer extends BaseFarmer {
       .then((res) => res.data);
   }
 
+  /** Purchase Shop Item */
+  purchaseShopItem(itemId, levelId, signal = this.signal) {
+    return this.api
+      .post(
+        `https://moneytree.extensi.one/api/shop-item/${itemId}/buy/${levelId}`,
+        {},
+        { signal },
+      )
+      .then((res) => res.data);
+  }
+
   /** Use Auto Bot */
   useAutoBot(signal = this.signal) {
     return this.api
@@ -272,6 +283,7 @@ export default class MoneyTreeFarmer extends BaseFarmer {
     await this.executeTask("Claim Tickets", () => this.claimTickets());
     await this.executeTask("Claim Free Boosts", () => this.claimFreeBoosts());
     await this.executeTask("Auto Bot", () => this.claimOrPurchaseAutoBot());
+    await this.executeTask("Upgrade Shop-Items", () => this.upgradeShopItems());
     await this.executeTask("Upgrade Boosts", () => this.upgradeBoosts());
     await this.executeTask("Play Game", () => this.playGame());
   }
@@ -435,6 +447,37 @@ export default class MoneyTreeFarmer extends BaseFarmer {
         });
 
         await this.utils.delayForSeconds(2, { signal: this.signal });
+      }
+    }
+  }
+
+  /** Upgrade shop items */
+  async upgradeShopItems() {
+    const referrals = await this.getReferrals();
+    const shopItems = await this.getShopItems();
+
+    const totalReferrals = referrals.playerReferralsCount;
+    const autoBot = shopItems.find(
+      (item) => item.shopItem.itemType === "AUTOBOT",
+    );
+
+    if (autoBot) {
+      const { shopItem, currentLevel } = autoBot;
+      const nextLevel = shopItem.shopItemLevels.find(
+        (item) => item.level === currentLevel + 1,
+      );
+
+      if (nextLevel) {
+        const balance = this.player.balance;
+        const canUpgrade =
+          nextLevel.referralRequiredAmount <= totalReferrals &&
+          nextLevel.price <= balance;
+
+        if (canUpgrade) {
+          await this.purchaseShopItem(autoBot.id, nextLevel.id);
+          this.player.balance -= nextLevel.price;
+          this.logger.success("Purchased Shop Item: AUTOBOT");
+        }
       }
     }
   }
