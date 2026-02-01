@@ -1,4 +1,5 @@
 import chalk from "chalk";
+import { formatNumber } from "../utils/core.js";
 
 export default class BaseLogger {
   constructor(enabled = true) {
@@ -29,7 +30,9 @@ export default class BaseLogger {
 
     const rawLabel = label + ":";
     const displayedLabel = labelStyle(rawLabel.padEnd(8));
-    const displayedValue = valueStyle(value);
+    const displayedValue = valueStyle(
+      typeof value === "number" ? formatNumber(value) : value,
+    );
 
     return this.log(`${displayedLabel} ${displayedValue}`);
   }

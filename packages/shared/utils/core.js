@@ -9,7 +9,7 @@ export const randomItem = (items) =>
 
 export function randomPercent(value, min = 0, max = 100) {
   return Math.floor(
-    (value * (min + Math.floor(Math.random() * (max - min)))) / 100
+    (value * (min + Math.floor(Math.random() * (max - min)))) / 100,
   );
 }
 
@@ -38,4 +38,11 @@ export function tapValue(value, callback) {
         callback(value);
         return value;
       };
+}
+
+/** Format number
+ * @param {number} value
+ */
+export function formatNumber(value) {
+  return new Intl.NumberFormat("en-US").format(value);
 }

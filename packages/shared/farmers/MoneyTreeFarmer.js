@@ -341,6 +341,9 @@ export default class MoneyTreeFarmer extends BaseFarmer {
     const { playerAutoBot } = await this.getAutoBotPlayer();
 
     if (playerAutoBot) {
+      this.logger.keyValue("Bot POWER", playerAutoBot.power);
+      this.logger.keyValue("Bot LEVEL", playerAutoBot.level);
+
       if (!playerAutoBot.isActive) {
         await this.useAutoBot();
         this.logger.success("Started Auto Bot");
