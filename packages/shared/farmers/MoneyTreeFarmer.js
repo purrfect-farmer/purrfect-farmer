@@ -455,31 +455,99 @@ export default class MoneyTreeFarmer extends BaseFarmer {
 
   /** Upgrade shop items */
   async upgradeShopItems() {
+    /** Get referrals */
     const referrals = await this.getReferrals();
+
+    /** Get shop items */
     const shopItems = await this.getShopItems();
 
+    /** Set total referrals */
     const totalReferrals = referrals.playerReferralsCount;
-    const autoBot = shopItems.find(
-      (item) => item.shopItem.itemType === "AUTOBOT",
-    );
 
-    if (autoBot) {
-      const { shopItem, currentLevel } = autoBot;
-      const nextLevel = shopItem.shopItemLevels.find(
-        (item) => item.level === currentLevel + 1,
+    /** Map available shop items */
+    let availableShopItems = shopItems.map(({ shopItem, currentLevel }) => {
+      let maxLevel = Math.max(
+        ...shopItem.shopItemLevels.map((level) => level.level),
       );
 
-      if (nextLevel) {
-        const balance = this.player.balance;
-        const canUpgrade =
-          nextLevel.referralRequiredAmount <= totalReferrals &&
-          nextLevel.price <= balance;
+      /**
+       * Leaving this here in case we need to allow higher levels later
+       */
+      switch (shopItem.itemType) {
+        case "AUTOBOT":
+          maxLevel = 1;
+          break;
+        case "ENERGY":
+          maxLevel = 1;
+          break;
+        case "REGENERATION":
+          maxLevel = 1;
+          break;
+        case "DAMAGE":
+          maxLevel = 1;
+          break;
+      }
 
-        if (canUpgrade) {
-          await this.purchaseShopItem(autoBot.id, nextLevel.id);
-          this.player.balance -= nextLevel.price;
-          this.logger.success("Purchased Shop Item: AUTOBOT");
-        }
+      /** Find next level */
+      const nextLevel = shopItem.shopItemLevels.find(
+        (level) => level.level === currentLevel + 1,
+      );
+
+      return {
+        ...shopItem,
+        maxLevel,
+        currentLevel,
+        nextLevel,
+      };
+    });
+
+    while (true) {
+      const balance = this.player.balance;
+      const availableUpgrades = availableShopItems.filter((shopItem) => {
+        return (
+          shopItem.currentLevel < shopItem.maxLevel &&
+          shopItem.nextLevel &&
+          shopItem.nextLevel.price <= balance &&
+          shopItem.nextLevel.referralRequiredAmount <= totalReferrals
+        );
+      });
+
+      /** Get item to upgrade */
+      const upgrade = this.utils.randomItem(availableUpgrades);
+
+      if (!upgrade) {
+        this.logger.info("No more affordable shop item to upgrade.");
+        break;
+      } else {
+        /** Purchase shop item */
+        await this.purchaseShopItem(upgrade.id, upgrade.nextLevel.id);
+
+        /** Log success message */
+        this.logger.success(
+          `⏫ ${upgrade.itemType} to LVL ${upgrade.nextLevel.level}`,
+        );
+
+        /** Update player balance */
+        this.player.balance -= upgrade.nextLevel.price;
+
+        /** Update available shop items */
+        availableShopItems = availableShopItems.map((shopItem) => {
+          if (shopItem.id === upgrade.id) {
+            const currentLevel = shopItem.nextLevel.level;
+            const nextLevel = shopItem.shopItemLevels.find(
+              (level) => level.level === shopItem.nextLevel.level + 1,
+            );
+            return {
+              ...shopItem,
+              currentLevel,
+              nextLevel,
+            };
+          }
+          return shopItem;
+        });
+
+        /** Delay */
+        await this.utils.delayForSeconds(2, { signal: this.signal });
       }
     }
   }
