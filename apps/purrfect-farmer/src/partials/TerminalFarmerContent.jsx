@@ -1,12 +1,14 @@
+import { HiOutlineWrenchScrewdriver, HiPlay, HiStop } from "react-icons/hi2";
+
+import Container from "@/components/Container";
 import { Dialog } from "radix-ui";
 import FarmerHeader from "@/components/FarmerHeader";
-import useTerminalFarmer from "@/hooks/useTerminalFarmer";
-import { cn } from "@/utils";
-import { HiOutlineWrenchScrewdriver, HiStop, HiPlay } from "react-icons/hi2";
+import TerminalArea from "@/components/TerminalArea";
 import { TerminalFarmerPrompt } from "./TerminalFarmerPrompt";
 import { TerminalFarmerTools } from "./TerminalFarmerTools";
+import { cn } from "@/utils";
 import useMirroredLocationToggle from "@/hooks/useMirroredLocationToggle";
-import Container from "@/components/Container";
+import useTerminalFarmer from "@/hooks/useTerminalFarmer";
 
 export const TerminalFarmerContent = () => {
   const {
@@ -14,7 +16,6 @@ export const TerminalFarmerContent = () => {
     userInputPrompt,
     referralLink,
     terminalRef,
-    scrollRef,
     started,
     toggle,
   } = useTerminalFarmer();
@@ -46,7 +47,7 @@ export const TerminalFarmerContent = () => {
             className={cn(
               "flex items-center justify-center gap-2 p-2 w-10 shrink-0",
               "hover:bg-neutral-100 dark:hover:bg-neutral-700",
-              "text-blue-500"
+              "text-blue-500",
             )}
           >
             <HiOutlineWrenchScrewdriver className="size-5" />
@@ -59,7 +60,7 @@ export const TerminalFarmerContent = () => {
           onClick={() => toggle(!started)}
           className={cn(
             "flex grow min-w-0 items-center justify-center gap-2 p-2",
-            started ? "text-red-500" : "text-green-500"
+            started ? "text-red-500" : "text-green-500",
           )}
         >
           {started ? (
@@ -73,15 +74,7 @@ export const TerminalFarmerContent = () => {
         <span className="w-10" />
       </Container>
 
-      <div
-        ref={scrollRef}
-        className={cn("grow overflow-auto bg-black text-white")}
-      >
-        <Container
-          ref={terminalRef}
-          className={cn("font-mono whitespace-pre-wrap wrap-break-word p-2")}
-        />
-      </div>
+      <TerminalArea ref={terminalRef} />
     </>
   );
 };

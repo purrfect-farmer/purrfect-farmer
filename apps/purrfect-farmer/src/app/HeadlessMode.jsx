@@ -1,18 +1,18 @@
 import AppIcon from "@/assets/images/icon.png?format=webp&w=80";
-import useSharedContext from "@/hooks/useSharedContext";
-import { cn } from "@/utils";
 import BrowserLogger from "@purrfect/shared/lib/BrowserLogger";
-import { useRef } from "react";
-import { useEffect } from "react";
-import utils from "@/utils/bundle";
 import CronRunner from "@purrfect/shared/lib/CronRunner";
-import axios from "axios";
-import userAgents from "@purrfect/shared/resources/userAgents";
 import TelegramWebClient from "@/lib/TelegramWebClient";
-import seedrandom from "seedrandom";
+import TerminalArea from "@/components/TerminalArea";
+import axios from "axios";
+import { cn } from "@/utils";
 import farmers from "@/core/farmers";
-import Container from "@/components/Container";
+import seedrandom from "seedrandom";
 import storage from "@/lib/storage";
+import { useEffect } from "react";
+import { useRef } from "react";
+import useSharedContext from "@/hooks/useSharedContext";
+import userAgents from "@purrfect/shared/resources/userAgents";
+import utils from "@/utils/bundle";
 
 /** Headless Telegram Client */
 class HeadlessTelegramClient extends TelegramWebClient {
@@ -72,13 +72,13 @@ const createRunner = ({ FarmerClass, logger, captcha, controller }) => {
        * Random startup delay to avoid all accounts starting at the same time
        */
       const startupDelay = Math.floor(
-        this.random() * this.constructor.startupDelay
+        this.random() * this.constructor.startupDelay,
       );
 
       /** Delay */
       if (startupDelay) {
         this.logger.info(
-          `[${this.account.title}] Delaying startup by ${startupDelay} seconds...`
+          `[${this.account.title}] Delaying startup by ${startupDelay} seconds...`,
         );
 
         await this.utils.delayForSeconds(startupDelay, {
@@ -96,7 +96,7 @@ const createRunner = ({ FarmerClass, logger, captcha, controller }) => {
     static async initiate(account) {
       const client = HeadlessTelegramClient.create(
         account.id,
-        account.localTelegramSession
+        account.localTelegramSession,
       );
       const instance = new this({ account, client });
       await instance.run();
@@ -134,7 +134,6 @@ const createRunner = ({ FarmerClass, logger, captcha, controller }) => {
 };
 
 export default function HeadlessMode() {
-  const scrollRef = useRef(null);
   const terminalRef = useRef(null);
   const runnerRef = useRef(null);
   const { accounts, captcha, headlessFarmers, dispatchAndStopHeadlessMode } =
@@ -148,14 +147,13 @@ export default function HeadlessMode() {
     runnerRef.current = runner;
 
     logger.setElement(terminalRef.current);
-    logger.setScrollElement(scrollRef.current);
     logger.success(`> Headless Mode Initiated`);
 
     /** Get Available Accounts */
     const availableAccounts = accounts
       .map((account) => {
         const localTelegramSession = storage.get(
-          `account-${account.id}:local-telegram-session`
+          `account-${account.id}:local-telegram-session`,
         );
         return { ...account, localTelegramSession };
       })
@@ -189,7 +187,7 @@ export default function HeadlessMode() {
       runner.register(
         Runner.interval ?? "*/10 * * * *",
         callback,
-        Runner.title
+        Runner.title,
       );
 
       /** Initial Log */
@@ -228,7 +226,7 @@ export default function HeadlessMode() {
         <h2
           className={cn(
             "font-bold flex items-center justify-center gap-2",
-            "font-turret-road text-lg text-orange-500"
+            "font-turret-road text-lg text-orange-500",
           )}
         >
           <img src={AppIcon} alt="App Icon" className="size-6" />
@@ -245,15 +243,7 @@ export default function HeadlessMode() {
       </div>
 
       {/* Terminal */}
-      <div
-        ref={scrollRef}
-        className={cn("grow overflow-auto bg-black text-white")}
-      >
-        <Container
-          ref={terminalRef}
-          className={cn("font-mono whitespace-pre-wrap wrap-break-word p-2")}
-        />
-      </div>
+      <TerminalArea ref={terminalRef} />
     </div>
   );
 }

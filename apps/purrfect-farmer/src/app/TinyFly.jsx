@@ -1,20 +1,21 @@
 import { HiPlay, HiStop } from "react-icons/hi2";
+
+import BrowserLogger from "@purrfect/shared/lib/BrowserLogger";
+import CronRunner from "@purrfect/shared/lib/CronRunner.js";
+import TerminalArea from "@/components/TerminalArea";
+import axios from "axios";
 import { cn } from "@/utils";
 import { memo } from "react";
 import useAppContext from "@/hooks/useAppContext";
-import { useRef } from "react";
-import CronRunner from "@purrfect/shared/lib/CronRunner.js";
-import useUserAgent from "@/hooks/useUserAgent";
-import utils from "@/utils/bundle";
-import axios from "axios";
-import BrowserLogger from "@purrfect/shared/lib/BrowserLogger";
+import { useCallback } from "react";
+import { useEffect } from "react";
 import { useLayoutEffect } from "react";
 import { useMemo } from "react";
-import { useEffect } from "react";
-import { useState } from "react";
 import useMirroredCallback from "@/hooks/useMirroredCallback";
-import { useCallback } from "react";
-import Container from "@/components/Container";
+import { useRef } from "react";
+import { useState } from "react";
+import useUserAgent from "@/hooks/useUserAgent";
+import utils from "@/utils/bundle";
 
 /**
  *
@@ -69,7 +70,6 @@ function TinyFly() {
   const userAgent = useUserAgent();
 
   const runnerRef = useRef(null);
-  const scrollRef = useRef(null);
   const terminalRef = useRef(null);
   const controllerRef = useRef(null);
 
@@ -125,7 +125,7 @@ function TinyFly() {
         runner.register(
           FarmerClass.interval ?? "*/10 * * * *",
           callback,
-          FarmerClass.title
+          FarmerClass.title,
         );
 
         /* Initial Log */
@@ -144,7 +144,7 @@ function TinyFly() {
       /* Initial Instructions */
       logger.warn('> Click "Stop" to halt farming');
     },
-    [drops, logger, captcha, client, setStarted]
+    [drops, logger, captcha, client, setStarted],
   );
 
   /** Stop Tiny Fly */
@@ -159,7 +159,7 @@ function TinyFly() {
       setStarted(false);
       resetLogger();
     },
-    [setStarted, resetLogger]
+    [setStarted, resetLogger],
   );
 
   /** Toggle Tiny Fly */
@@ -174,13 +174,12 @@ function TinyFly() {
         return stopTinyFly();
       }
     },
-    [started, startTinyFly, stopTinyFly]
+    [started, startTinyFly, stopTinyFly],
   );
 
   /** Initialize Logger */
   useLayoutEffect(() => {
     logger.setElement(terminalRef.current);
-    logger.setScrollElement(scrollRef.current);
     resetLogger();
   }, [logger, resetLogger]);
 
@@ -189,7 +188,7 @@ function TinyFly() {
     () => () => {
       controllerRef.current?.abort();
     },
-    []
+    [],
   );
 
   return (
@@ -198,7 +197,7 @@ function TinyFly() {
         onClick={() => dispatchAndToggleTinyFly(!started)}
         className={cn(
           "flex items-center justify-center gap-2 p-2",
-          started ? "text-red-500" : "text-green-500"
+          started ? "text-red-500" : "text-green-500",
         )}
       >
         {started ? (
@@ -208,15 +207,7 @@ function TinyFly() {
         )}
         {started ? "Stop" : "Start"}
       </button>
-      <div
-        ref={scrollRef}
-        className={cn("grow overflow-auto bg-black text-white")}
-      >
-        <Container
-          ref={terminalRef}
-          className={cn("font-mono whitespace-pre-wrap wrap-break-word p-2")}
-        />
-      </div>
+      <TerminalArea ref={terminalRef} />
     </>
   );
 }

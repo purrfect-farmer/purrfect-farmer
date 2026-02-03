@@ -2,8 +2,8 @@ import { useLayoutEffect, useRef, useState } from "react";
 
 import useFarmerContext from "./useFarmerContext";
 import useMirroredCallback from "./useMirroredCallback";
-import useStaticQuery from "./useStaticQuery";
 import usePrompt from "./usePrompt";
+import useStaticQuery from "./useStaticQuery";
 
 export default function useTerminalFarmer() {
   const context = useFarmerContext();
@@ -27,7 +27,6 @@ export default function useTerminalFarmer() {
   const referralLink = referralLinkQuery.data;
 
   const [started, setStarted] = useState();
-  const scrollRef = useRef(null);
   const terminalRef = useRef();
   const controllerRef = useRef();
 
@@ -44,7 +43,7 @@ export default function useTerminalFarmer() {
       controllerRef.current = null;
       setStarted(false);
     },
-    [id, instance, setStarted]
+    [id, instance, setStarted],
   );
 
   const [startFarmer, dispatchAndStartFarmer] = useMirroredCallback(
@@ -68,7 +67,7 @@ export default function useTerminalFarmer() {
 
       setStarted(true);
     },
-    [id, title, instance, logger, stopFarmer]
+    [id, title, instance, logger, stopFarmer],
   );
 
   const [, dispatchAndToggleFarmer] = useMirroredCallback(
@@ -82,7 +81,7 @@ export default function useTerminalFarmer() {
         return stopFarmer();
       }
     },
-    [id, started, startFarmer, stopFarmer]
+    [id, started, startFarmer, stopFarmer],
   );
 
   /** Configure Prompt */
@@ -97,7 +96,6 @@ export default function useTerminalFarmer() {
   /** Initialize Logger */
   useLayoutEffect(() => {
     logger.setElement(terminalRef.current);
-    logger.setScrollElement(scrollRef.current);
     logger.success(`> ${title} Farmer Initiated`);
   }, [logger, title]);
 
@@ -117,7 +115,7 @@ export default function useTerminalFarmer() {
         /** Remove Abort Listener */
         controllerRef.current?.signal?.removeEventListener(
           "abort",
-          processNextTask
+          processNextTask,
         );
 
         /** Abort */
@@ -133,7 +131,6 @@ export default function useTerminalFarmer() {
     context,
     instance,
     referralLink,
-    scrollRef,
     terminalRef,
     started,
     userInputPrompt,
