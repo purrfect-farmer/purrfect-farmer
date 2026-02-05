@@ -270,7 +270,7 @@ export default memo(function Welcome() {
           <div className="relative mx-auto">
             <img
               src={showPurrfectCat ? PurrfectCatIcon : WelcomeIcon}
-              className="h-28"
+              className="h-28 cursor-pointer"
               onClick={displayPurrfectCat}
             />
           </div>
