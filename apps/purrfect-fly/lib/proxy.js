@@ -1,7 +1,7 @@
-import axios from "axios";
 import { HttpProxyAgent, HttpsProxyAgent } from "hpagent";
 
 import app from "../config/app.js";
+import axios from "axios";
 import cache from "./cache.js";
 import db from "../db/models/index.js";
 import utils from "./utils.js";
@@ -41,25 +41,41 @@ class ProxyProvider {
    */
   async fetchList() {
     try {
-      const response = await axios.get(
-        "https://proxy.webshare.io/api/v2/proxy/list",
-        {
-          headers: {
-            Authorization: `Token ${app.proxy.apiKey}`,
+      if (app.proxy.provider === "webshare") {
+        const response = await axios.get(
+          "https://proxy.webshare.io/api/v2/proxy/list",
+          {
+            headers: {
+              Authorization: `Token ${app.proxy.apiKey}`,
+            },
+            params: {
+              ["mode"]: "direct",
+              ["valid"]: true,
+              ["page"]: app.proxy.page,
+              ["page_size"]: app.proxy.pageSize,
+            },
           },
-          params: {
-            ["mode"]: "direct",
-            ["valid"]: true,
-            ["page"]: app.proxy.page,
-            ["page_size"]: app.proxy.pageSize,
-          },
-        }
-      );
+        );
 
-      return response.data.results.map(
-        (item) =>
-          `${item.username}:${item.password}@${item.proxy_address}:${item.port}`
-      );
+        return response.data.results.map(
+          (item) =>
+            `${item.username}:${item.password}@${item.proxy_address}:${item.port}`,
+        );
+      } else if (app.proxy.provider === "iplocate") {
+        const txt = await axios
+          .get(
+            "https://raw.githubusercontent.com/iplocate/free-proxy-list/refs/heads/main/all-proxies.txt",
+          )
+          .then((res) => res.data.trim());
+        const list = txt
+          .split("\n")
+          .filter((item) => item.startsWith("http://"))
+          .map((item) => item.replace("http://", ""));
+
+        return list;
+      } else {
+        return [];
+      }
     } catch (error) {
       console.error("Fetching Proxies", error);
       return [];
@@ -104,7 +120,7 @@ class ProxyProvider {
 
         const duration = (Date.now() - start) / 1000;
         return { status, proxy, ip, duration };
-      })
+      }),
     );
 
     return results;
