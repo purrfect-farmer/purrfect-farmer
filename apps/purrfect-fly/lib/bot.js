@@ -66,8 +66,8 @@ class GroupBot extends Bot {
             info:
               result.status === "running"
                 ? [
-                    `<b>🔁 TSK:</b> <code>${result.task}</code>`,
-                    `<b>⏳ ELP:</b> <code>${result.elapsed}s</code>`,
+                    `<b>TSK:</b> <code>${result.task}</code>`,
+                    `<b>ELP:</b> <code>${result.elapsed}s</code>`,
                   ].join("\n")
                 : null,
           };

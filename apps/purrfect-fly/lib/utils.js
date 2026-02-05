@@ -106,7 +106,7 @@ function formatUsers(collection) {
       let result = `${status} ${session}${titleHtml} <a href="tg://user?id=${id}">${safeUsername}</a>`;
 
       if (info) {
-        result += `\n${info}`;
+        result = `\n${result}\n${info}\n`;
       }
 
       return result;
