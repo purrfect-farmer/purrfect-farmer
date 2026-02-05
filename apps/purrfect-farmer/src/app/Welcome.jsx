@@ -1,29 +1,3 @@
-import BotWebAIcon from "@/assets/images/bot-web-a.png?format=webp&w=80";
-import BotWebKIcon from "@/assets/images/bot-web-k.png?format=webp&w=80";
-import CloudStatus from "@/partials/CloudStatus";
-import CloudSubscription from "@/partials/CloudSubscription";
-import Connect from "@/partials/Connect";
-import Container from "@/components/Container";
-import Donate from "@/partials/Donate";
-import DropButton from "@/components/DropButton";
-import FarmerLinks from "@/partials/FarmerLinks";
-import IPStatus from "@/partials/IPStatus";
-import Settings from "@/partials/Settings";
-import Shutdown from "@/partials/Shutdown";
-import Tabs from "@/components/Tabs";
-import TelegramUser from "@/partials/TelegramUser";
-import TelegramWebAIcon from "@/assets/images/telegram-web-a.png?format=webp&w=80";
-import TelegramWebKIcon from "@/assets/images/telegram-web-k.png?format=webp&w=80";
-import ToolbarButton from "@/components/ToolbarButton";
-import WelcomeIcon from "@/assets/images/icon-unwrapped-cropped.png?format=webp&h=224";
-import axios from "axios";
-import useAppContext from "@/hooks/useAppContext";
-import useAppQuery from "@/hooks/useAppQuery";
-import useLocationToggle from "@/hooks/useLocationToggle";
-import useMirroredLocationToggle from "@/hooks/useMirroredLocationToggle";
-import useMirroredTabs from "@/hooks/useMirroredTabs";
-import { CgSpinner } from "react-icons/cg";
-import { Dialog } from "radix-ui";
 import {
   HiBolt,
   HiBoltSlash,
@@ -37,12 +11,42 @@ import {
   HiOutlinePower,
   HiOutlinePuzzlePiece,
 } from "react-icons/hi2";
-import { RiRemoteControlLine } from "react-icons/ri";
 import { cn, isExtension } from "@/utils";
 import { forwardRef, memo } from "react";
+
+import BotWebAIcon from "@/assets/images/bot-web-a.png?format=webp&w=80";
+import BotWebKIcon from "@/assets/images/bot-web-k.png?format=webp&w=80";
+import { CgSpinner } from "react-icons/cg";
+import CloudStatus from "@/partials/CloudStatus";
+import CloudSubscription from "@/partials/CloudSubscription";
+import Connect from "@/partials/Connect";
+import Container from "@/components/Container";
+import { Dialog } from "radix-ui";
+import Donate from "@/partials/Donate";
+import DropButton from "@/components/DropButton";
+import FarmerLinks from "@/partials/FarmerLinks";
+import IPStatus from "@/partials/IPStatus";
+import PurrfectCatIcon from "@/assets/images/purrfect-cat.png?format=webp&h=224";
+import { RiRemoteControlLine } from "react-icons/ri";
+import Settings from "@/partials/Settings";
+import Shutdown from "@/partials/Shutdown";
+import Tabs from "@/components/Tabs";
+import TelegramUser from "@/partials/TelegramUser";
+import TelegramWebAIcon from "@/assets/images/telegram-web-a.png?format=webp&w=80";
+import TelegramWebKIcon from "@/assets/images/telegram-web-k.png?format=webp&w=80";
+import ToolbarButton from "@/components/ToolbarButton";
+import WelcomeIcon from "@/assets/images/icon-unwrapped-cropped.png?format=webp&h=224";
+import axios from "axios";
+import toast from "react-hot-toast";
+import useAppContext from "@/hooks/useAppContext";
+import useAppQuery from "@/hooks/useAppQuery";
 import { useCallback } from "react";
 import { useEffect } from "react";
+import useLocationToggle from "@/hooks/useLocationToggle";
 import { useMemo } from "react";
+import useMirroredLocationToggle from "@/hooks/useMirroredLocationToggle";
+import useMirroredState from "@/hooks/useMirroredState";
+import useMirroredTabs from "@/hooks/useMirroredTabs";
 
 /** Telegram Web Button */
 const TelegramWebButton = memo(
@@ -57,13 +61,13 @@ const TelegramWebButton = memo(
         "hover:bg-blue-500 dark:hover:bg-blue-800",
         "hover:text-white",
         "inline-flex items-center justify-center gap-1",
-        props.className
+        props.className,
       )}
     >
       <img src={icon} className="w-6 h-6" />
       {children}
     </button>
-  ))
+  )),
 );
 
 export default memo(function Welcome() {
@@ -77,7 +81,7 @@ export default memo(function Welcome() {
     useMirroredLocationToggle("app.toggle-links-panel", false);
 
   const [showShutdown, setShowShutdown] = useLocationToggle(
-    "app.toggle-shutdown"
+    "app.toggle-shutdown",
   );
   const [showDonate, setShowDonate] = useLocationToggle("app.toggle-donate");
 
@@ -103,11 +107,21 @@ export default memo(function Welcome() {
 
   const tabs = useMirroredTabs("app", ["farmers", "bots"]);
 
+  const [showPurrfectCat, , dispatchAndSetShowPurrfectCat] = useMirroredState(
+    "purrfect-cat",
+    false,
+  );
+
   const settingTabs = useMirroredTabs("app.settings-tabs", [
     "settings",
     "farmers",
     "seeker",
   ]);
+
+  const displayPurrfectCat = () => {
+    dispatchAndSetShowPurrfectCat(!showPurrfectCat);
+    toast.success("Meow!");
+  };
 
   /** Manifest Query */
   const manifestQuery = useAppQuery({
@@ -139,10 +153,10 @@ export default memo(function Welcome() {
         ...bot,
         icon: new URL(
           bot.id + ".png",
-          import.meta.env.VITE_APP_FARMER_BOTS_ICON_BASE_URL
+          import.meta.env.VITE_APP_FARMER_BOTS_ICON_BASE_URL,
         ).toString(),
       })),
-    [botsQuery.data]
+    [botsQuery.data],
   );
 
   /** Toggle FullScreen */
@@ -254,7 +268,11 @@ export default memo(function Welcome() {
         <Container className="flex flex-col gap-2 my-auto p-2">
           {/* App Icon */}
           <div className="relative mx-auto">
-            <img src={WelcomeIcon} className="h-28" />
+            <img
+              src={showPurrfectCat ? PurrfectCatIcon : WelcomeIcon}
+              className="h-28"
+              onClick={displayPurrfectCat}
+            />
           </div>
 
           {/* App Title */}
@@ -271,7 +289,7 @@ export default memo(function Welcome() {
             <h3
               className={cn(
                 "leading-none font-turret-road",
-                "text-2xl text-center"
+                "text-2xl text-center",
               )}
             >
               {import.meta.env.VITE_APP_NAME}
@@ -310,7 +328,7 @@ export default memo(function Welcome() {
                 "text-center flex items-center justify-center gap-2",
                 mirror.connected
                   ? "text-green-600 dark:text-green-500"
-                  : "text-red-500"
+                  : "text-red-500",
               )}
             >
               <RiRemoteControlLine className="w-4 h-4" /> Mirror:{" "}
@@ -348,7 +366,7 @@ export default memo(function Welcome() {
                     "dark:border-orange-500",
                     "bg-orange-100 dark:bg-transparent",
                     "text-orange-900 dark:text-orange-500",
-                    "hover:bg-orange-500 dark:hover:bg-orange-500"
+                    "hover:bg-orange-500 dark:hover:bg-orange-500",
                   )}
                   title={`Open ${
                     import.meta.env.VITE_APP_BOT_NAME
@@ -386,7 +404,7 @@ export default memo(function Welcome() {
               "data-[state=active]:text-blue-800",
               "dark:data-[state=active]:bg-blue-900",
               "dark:data-[state=active]:text-blue-100",
-              "uppercase"
+              "uppercase",
             )}
             renderList={(content) => (
               <>
@@ -402,7 +420,7 @@ export default memo(function Welcome() {
                     className={cn(
                       "p-2 rounded-lg",
                       "border-b-4 border-transparent",
-                      "uppercase"
+                      "uppercase",
                     )}
                   >
                     Links
@@ -421,7 +439,7 @@ export default memo(function Welcome() {
                   "flex items-center justify-center",
                   "rounded-lg shrink-0",
                   "bg-blue-100 text-blue-800",
-                  "p-2"
+                  "p-2",
                 )}
               >
                 Configure Farmers {drops.length} / {farmers.length}
@@ -433,7 +451,7 @@ export default memo(function Welcome() {
                   "flex w-full",
                   settings.farmersLayout === "grid"
                     ? "flex-wrap justify-center"
-                    : "flex-col gap-2"
+                    : "flex-col gap-2",
                 )}
               >
                 {/* Drops */}
@@ -454,7 +472,7 @@ export default memo(function Welcome() {
                     "flex w-full",
                     settings.farmersLayout === "grid"
                       ? "flex-wrap justify-center"
-                      : "flex-col gap-2"
+                      : "flex-col gap-2",
                   )}
                 >
                   {/* Drops */}
@@ -494,7 +512,7 @@ export default memo(function Welcome() {
                     "px-4 py-2",
                     "rounded-full",
                     "border border-blue-500",
-                    "flex items-center justify-center gap-2"
+                    "flex items-center justify-center gap-2",
                   )}
                 >
                   <HiOutlineCurrencyDollar className="w-4 h-4" />
