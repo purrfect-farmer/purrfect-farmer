@@ -1,9 +1,8 @@
 import { Bot } from "grammy";
-
 import app from "../config/app.js";
 import cache from "./cache.js";
-import utils from "./utils.js";
 import logger from "./logger.js";
+import utils from "./utils.js";
 
 class GroupBot extends Bot {
   /** Send Group Message
@@ -14,7 +13,9 @@ class GroupBot extends Bot {
   async sendGroupMessage(cacheKey, message, options = {}) {
     try {
       const previous = await cache.get(cacheKey);
-      const sent = await this.api.sendMessage(app.chat.id, message.join("\n"), {
+      const html = message.join("\n");
+
+      const sent = await this.api.sendMessage(app.chat.id, html, {
         ...options,
         ["parse_mode"]: "HTML",
         ["link_preview_options"]: { ["is_disabled"]: true },
@@ -56,19 +57,26 @@ class GroupBot extends Bot {
               result.status === "started"
                 ? "✅"
                 : result.status === "running"
-                ? "☑️"
-                : "❌",
+                  ? "☑️"
+                  : "❌",
             session: telegramLink ? (account.session ? "🟨" : "🟪") : "",
 
             username: account.user?.username || "",
             title: account.title,
+            info:
+              result.status === "running"
+                ? [
+                    `<b>🔁 TSK:</b> <code>${result.task}</code>`,
+                    `<b>⏳ ELP:</b> <code>${result.elapsed}s</code>`,
+                  ].join("\n")
+                : null,
           };
-        })
+        }),
       );
 
       const statusDate = utils.dateFns.format(
         new Date(),
-        "yyyy-MM-dd HH:mm:ss"
+        "yyyy-MM-dd HH:mm:ss",
       );
 
       return await this.sendGroupMessage(
@@ -81,7 +89,7 @@ class GroupBot extends Bot {
           }</a></blockquote>${users}`,
           `<b>🗓️ Date</b>: ${statusDate}`,
         ],
-        { ["message_thread_id"]: threadId }
+        { ["message_thread_id"]: threadId },
       );
     } catch (error) {
       logger.error("Error sending farming initiated message:", error);
@@ -100,17 +108,17 @@ class GroupBot extends Bot {
             username: account.user?.username || "",
             title: account.title,
           };
-        })
+        }),
       );
 
       const startDate = utils.dateFns.format(
         result.startDate,
-        "yyyy-MM-dd HH:mm:ss"
+        "yyyy-MM-dd HH:mm:ss",
       );
 
       const endDate = utils.dateFns.format(
         result.endDate,
-        "yyyy-MM-dd HH:mm:ss"
+        "yyyy-MM-dd HH:mm:ss",
       );
 
       return await this.sendGroupMessage(
@@ -122,7 +130,7 @@ class GroupBot extends Bot {
           `<b>🗓️ Start Date</b>: ${startDate}`,
           `<b>🗓️ End Date</b>: ${endDate}`,
         ],
-        { ["message_thread_id"]: app.chat.threads.announcement }
+        { ["message_thread_id"]: app.chat.threads.announcement },
       );
     } catch (error) {
       logger.error(error);
@@ -141,7 +149,7 @@ class GroupBot extends Bot {
           `<b>🚀 Address</b>: ${address}`,
           `<b>🗓️ Updated</b>: ${date}`,
         ],
-        { ["message_thread_id"]: app.chat.threads.announcement }
+        { ["message_thread_id"]: app.chat.threads.announcement },
       );
     } catch (error) {
       logger.error(error);

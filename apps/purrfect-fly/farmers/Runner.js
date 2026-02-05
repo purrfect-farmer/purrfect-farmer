@@ -1,8 +1,3 @@
-import ConsoleLogger from "@purrfect/shared/lib/ConsoleLogger.js";
-import axios from "axios";
-import userAgents, {
-  regularMobileUserAgents,
-} from "@purrfect/shared/resources/userAgents.js";
 import { Cookie, CookieJar } from "tough-cookie";
 import {
   HttpCookieAgent,
@@ -10,12 +5,17 @@ import {
   createCookieAgent,
 } from "http-cookie-agent/http";
 import { HttpProxyAgent, HttpsProxyAgent } from "hpagent";
+import userAgents, {
+  regularMobileUserAgents,
+} from "@purrfect/shared/resources/userAgents.js";
 
+import ConsoleLogger from "@purrfect/shared/lib/ConsoleLogger.js";
 import GramClient from "../lib/GramClient.js";
+import axios from "axios";
 import bot from "../lib/bot.js";
+import captcha from "../lib/captcha.js";
 import db from "../db/models/index.js";
 import utils from "../lib/utils.js";
-import captcha from "../lib/captcha.js";
 
 const AUTO_START_FARMER = env("AUTO_START_FARMER", false);
 const HttpProxyAgentWithCookies = createCookieAgent(HttpProxyAgent);
@@ -62,7 +62,7 @@ export default function createRunner(FarmerClass) {
           ? userAgents[Math.floor(this.random() * userAgents.length)]
           : regularMobileUserAgents[
               Math.floor(this.random() * regularMobileUserAgents.length)
-            ]
+            ],
       );
 
       /** Cookie Jar */
@@ -142,7 +142,7 @@ export default function createRunner(FarmerClass) {
         let extraHeaders = this.getExtraHeaders?.();
         let authHeaders = {};
 
-        if (!this.__isFetchingAuth) {
+        if (!this.isFetchingAuth) {
           authHeaders = this.farmer?.headers || {};
         }
 
@@ -179,13 +179,13 @@ export default function createRunner(FarmerClass) {
         async (error) => {
           const originalRequest = error.config;
           const isUnauthenticatedError = [401, 403, 418].includes(
-            error?.response?.status
+            error?.response?.status,
           );
 
           if (
             isUnauthenticatedError &&
             !originalRequest.__retry &&
-            !this.__isFetchingAuth
+            !this.isFetchingAuth
           ) {
             try {
               this.logger.warn("Refreshing auth...");
@@ -209,7 +209,7 @@ export default function createRunner(FarmerClass) {
           }
 
           return Promise.reject(error);
-        }
+        },
       );
     }
 
@@ -222,16 +222,16 @@ export default function createRunner(FarmerClass) {
           const status = this.utils.truncateAndPad(response.status, 3);
           const method = this.utils.truncateAndPad(
             response.config.method.toUpperCase(),
-            4
+            4,
           );
 
           /** Log to Console */
           this.logger.output(
             `${this.logger.chalk.bold.blue(
-              `${title}`
+              `${title}`,
             )} ${this.logger.chalk.bold.cyan(
-              `${method}`
-            )} ${this.logger.chalk.bold.green(`${status} ${url}`)}`
+              `${method}`,
+            )} ${this.logger.chalk.bold.green(`${status} ${url}`)}`,
           );
           return response;
         },
@@ -240,24 +240,24 @@ export default function createRunner(FarmerClass) {
           const title = this.utils.truncateAndPad(this.account.id, 10);
           const status = this.utils.truncateAndPad(
             error.response?.status || "ERR",
-            3
+            3,
           );
 
           const method = this.utils.truncateAndPad(
             error.config.method.toUpperCase(),
-            4
+            4,
           );
 
           /** Log to Console */
           this.logger.log(
             `${this.logger.chalk.bold.blue(
-              `${title}`
+              `${title}`,
             )} ${this.logger.chalk.bold.cyan(
-              `${method}`
-            )} ${this.logger.chalk.bold.red(`${status} ${url}`)}`
+              `${method}`,
+            )} ${this.logger.chalk.bold.red(`${status} ${url}`)}`,
           );
           return Promise.reject(error);
-        }
+        },
       );
     }
 
@@ -307,7 +307,7 @@ export default function createRunner(FarmerClass) {
               key: cookie.key || cookie.name,
               expiryTime: cookie.expiryTime || cookie.expirationDate,
             }),
-            item.url
+            item.url,
           );
         }
       }
@@ -368,15 +368,25 @@ export default function createRunner(FarmerClass) {
       return this;
     }
 
+    getRunner() {
+      return this.constructor.runners.get(this.account.id);
+    }
+
+    executeTask(task, callback, allowInQuickRun = true) {
+      const runner = this.getRunner();
+      runner.task = task;
+      return super.executeTask(task, callback, allowInQuickRun);
+    }
+
     /** Set Auth */
     async setAuth() {
       try {
-        this.__isFetchingAuth = true;
+        this.isFetchingAuth = true;
         const auth = await this.fetchAuth();
         const headers = await this.getAuthHeaders(auth);
         this.farmer.setHeaders(headers);
       } finally {
-        this.__isFetchingAuth = false;
+        this.isFetchingAuth = false;
       }
     }
 
@@ -385,7 +395,7 @@ export default function createRunner(FarmerClass) {
      */
     async updateWebAppData() {
       const { url } = await this.client.getWebview(
-        this.constructor.telegramLink
+        this.constructor.telegramLink,
       );
       const { initData } = this.utils.extractTgWebAppData(url);
 
@@ -416,11 +426,11 @@ export default function createRunner(FarmerClass) {
            * Random startup delay to avoid all accounts starting at the same time
            */
           const startupDelay = Math.floor(
-            instance.random() * this.startupDelay
+            instance.random() * this.startupDelay,
           );
           if (startupDelay) {
             instance.logger.info(
-              `[${account.id}] Delaying startup by ${startupDelay} seconds...`
+              `[${account.id}] Delaying startup by ${startupDelay} seconds...`,
             );
             await instance.utils.delayForSeconds(startupDelay);
           }
@@ -436,22 +446,26 @@ export default function createRunner(FarmerClass) {
     /** Farm an account */
     static farm(account) {
       if (!this.runners.has(account.id)) {
-        this.runners.set(account.id, Date.now());
+        this.runners.set(account.id, {
+          startedAt: Date.now(),
+          task: null,
+        });
         this.execute(account).finally(() => {
           this.runners.delete(account.id);
         });
-
-        return {
-          status: "started",
-          startedAt: this.runners.get(account.id),
-          elapsed: 0,
-        };
       }
 
+      const runner = this.runners.get(account.id);
+      const elapsed = this.utils.dateFns.differenceInSeconds(
+        new Date(),
+        runner.startedAt,
+      );
+
       return {
-        status: "running",
-        startedAt: this.runners.get(account.id),
-        elapsed: Math.floor((Date.now() - this.runners.get(account.id)) / 1000),
+        status: runner.task ? "running" : "started",
+        startedAt: runner.startedAt,
+        task: runner.task,
+        elapsed: runner.task ? elapsed : 0,
       };
     }
 
@@ -467,7 +481,7 @@ export default function createRunner(FarmerClass) {
         const accounts = await db.Account.findSubscribedWithFarmer(
           this.id,
           farmerIsRequired,
-          additionalQueryOptions
+          additionalQueryOptions,
         );
 
         /** Run all accounts */

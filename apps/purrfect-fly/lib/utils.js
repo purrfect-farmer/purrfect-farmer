@@ -1,10 +1,9 @@
+import { JSDOM } from "jsdom";
+import app from "../config/app.js";
 import base64url from "base64url";
 import crypto from "crypto";
 import sharedUtils from "@purrfect/shared/utils/bundle.js";
 import tweetnacl from "tweetnacl";
-import { JSDOM } from "jsdom";
-
-import app from "../config/app.js";
 
 function sha256(data) {
   return crypto.createHash("sha256").update(data).digest("hex");
@@ -40,7 +39,7 @@ function isValidInitData(initData) {
 
   return crypto.timingSafeEqual(
     Buffer.from(hash, "hex"),
-    Buffer.from(compare, "hex")
+    Buffer.from(compare, "hex"),
   );
 }
 
@@ -78,6 +77,7 @@ function formatUsers(collection) {
     const id = data.id;
     const status = data.status;
     const session = data.session;
+    const info = data.info;
 
     /** Username */
     let username = (data.username || id).toString().toLowerCase().slice(0, 12);
@@ -88,7 +88,7 @@ function formatUsers(collection) {
       ? (data.title || "").toUpperCase().slice(0, 8)
       : "";
 
-    return { id, status, session, username, title };
+    return { id, status, session, username, title, info };
   });
 
   /** Sort By Title or Username */
@@ -100,10 +100,16 @@ function formatUsers(collection) {
   /** Retrieve Links */
   const links = list
     .map((data) => {
-      const { id, status, session, username, title } = data;
+      const { id, status, session, username, title, info } = data;
       const safeUsername = "@" + escapeHtml(username.trim());
       const titleHtml = title ? ` <b>${escapeHtml("(" + title + ")")}</b>` : "";
-      return `${status} ${session}${titleHtml} <a href="tg://user?id=${id}">${safeUsername}</a>`;
+      let result = `${status} ${session}${titleHtml} <a href="tg://user?id=${id}">${safeUsername}</a>`;
+
+      if (info) {
+        result += `\n${info}`;
+      }
+
+      return result;
     })
     .join("\n");
 
