@@ -3,9 +3,10 @@ import "./startup.js";
 import "./cron.js";
 
 import AutoLoad from "@fastify/autoload";
+import cors from "@fastify/cors";
+import { fileURLToPath } from "node:url";
 import jwt from "@fastify/jwt";
 import path from "node:path";
-import { fileURLToPath } from "node:url";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -18,6 +19,10 @@ export default async function (fastify, opts) {
   fastify.register(jwt, {
     secret: process.env.JWT_SECRET_KEY,
   });
+
+  if (process.env.NODE_ENV !== "production") {
+    await fastify.register(cors);
+  }
 
   // Do not touch the following lines
 
