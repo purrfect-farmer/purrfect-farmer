@@ -103,7 +103,7 @@ class GroupBot extends Bot {
         result.accounts.map((account) => {
           return {
             id: account.id,
-            status: account.session ? "✅" : "❌",
+            status: "✅",
             session: account.session ? "🟨" : "🟪",
             username: account.user?.username || "",
             title: account.title,
