@@ -199,9 +199,8 @@ export default function useCore() {
   const [setActiveTab, dispatchAndSetActiveTab] = useMirroredCallback(
     "core.set-active-tab",
     (id) => {
-      pushTab(
-        id.startsWith("browser") ? id : tabs.find((item) => item.id === id),
-      );
+      const tab = tabs.find((item) => item.id === id);
+      pushTab(tab ?? id);
     },
     [tabs, pushTab],
   );

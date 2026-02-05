@@ -1,13 +1,13 @@
 import { extractInitDataUnsafe, postPortMessage } from "@/utils";
 import { isAfter, subMinutes } from "date-fns";
 import { useCallback, useMemo } from "react";
-import { useEffect } from "react";
-import { useState } from "react";
 
+import storage from "@/lib/storage";
 import useAppContext from "./useAppContext";
 import useChromeStorageKey from "./useChromeStorageKey";
+import { useEffect } from "react";
 import useMessageHandlers from "./useMessageHandlers";
-import storage from "@/lib/storage";
+import { useState } from "react";
 
 /**
  * TelegramWebApp Hook
@@ -16,11 +16,23 @@ export default function useTelegramWebApp({
   id,
   host,
   enabled = true,
+  initData = null,
   telegramLink,
   cacheTelegramWebApp,
 }) {
   const { settings, messaging, farmerMode, telegramClient } = useAppContext();
-  const [telegramWebApp, setTelegramWebApp] = useState(null);
+  const [telegramWebApp, setTelegramWebApp] = useState(() => {
+    if (initData) {
+      const initDataUnsafe = extractInitDataUnsafe(initData);
+      return {
+        platform: "android",
+        version: "",
+        initData,
+        initDataUnsafe,
+      };
+    }
+    return;
+  });
   const [port, setPort] = useState(null);
 
   /** Telegram Hash */
@@ -31,7 +43,7 @@ export default function useTelegramWebApp({
 
   /** WebApp Chrome Storage Key */
   const webAppChromeStorageKey = useChromeStorageKey(
-    `farmer-telegram-web-app:${id}`
+    `farmer-telegram-web-app:${id}`,
   );
 
   /** Reset TelegramWebApp */
@@ -47,7 +59,7 @@ export default function useTelegramWebApp({
       /** Configure the App */
       setTelegramWebApp(message.data.telegramWebApp);
     },
-    [setTelegramWebApp]
+    [setTelegramWebApp],
   );
 
   /** Handle Message */
@@ -63,8 +75,8 @@ export default function useTelegramWebApp({
           }
         },
       }),
-      [host, telegramWebApp, configureTelegramWebApp, setPort]
-    )
+      [host, telegramWebApp, configureTelegramWebApp, setPort],
+    ),
   );
 
   /** Save WebApp in Storage */
@@ -133,7 +145,7 @@ export default function useTelegramWebApp({
         if (
           isAfter(
             new Date(initDataUnsafe["auth_date"] * 1000),
-            subMinutes(new Date(), 10)
+            subMinutes(new Date(), 10),
           )
         ) {
           return setTelegramWebApp({

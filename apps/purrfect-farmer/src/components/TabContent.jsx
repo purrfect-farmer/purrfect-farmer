@@ -30,11 +30,14 @@ export default memo(function TabContent({ tab }) {
   const {
     settings,
     farmerMode,
+    launchInAppBrowser,
     preferredTelegramWebVersion,
     dispatchAndOpenTelegramLink,
     dispatchAndOpenTelegramBot,
     dispatchAndLaunchInAppBrowser,
   } = useAppContext();
+
+  const { external, FarmerClass } = tab;
 
   const { value: referralLink } = useStorageState(
     `farmer-referral-link:${tab.id}`,
@@ -44,15 +47,24 @@ export default memo(function TabContent({ tab }) {
   const openLinksInAppBrowser =
     settings.enableInAppBrowser && farmerMode === "session";
 
+  const shouldOpenWebApp = tab.type === "webapp" && openLinksInAppBrowser;
+
   const linkButtonIconSrc =
-    tab.link || (tab.type === "webapp" && openLinksInAppBrowser)
+    external || tab.link || shouldOpenWebApp
       ? BrowserIcon
       : preferredTelegramWebVersion === "k"
         ? TelegramWebKIcon
         : TelegramWebAIcon;
 
   const openTabLink = () => {
-    if (tab.platform !== "telegram") {
+    if (external) {
+      launchInAppBrowser({
+        id: tab.id,
+        icon: tab.icon,
+        title: tab.title,
+        url: FarmerClass.getUrlFromInitData(tab.initData),
+      });
+    } else if (tab.platform !== "telegram") {
       dispatchAndLaunchInAppBrowser({
         id: tab.id,
         url: referralLink || tab.link,

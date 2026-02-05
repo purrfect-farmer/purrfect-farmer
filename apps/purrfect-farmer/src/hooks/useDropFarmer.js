@@ -1,11 +1,8 @@
 import BrowserLogger from "@purrfect/shared/lib/BrowserLogger";
 import axios from "axios";
 import { createQueryClient } from "@/lib/createQueryClient";
-import { useCallback } from "react";
-import { useLayoutEffect } from "react";
-import { useMemo } from "react";
-
 import useAppContext from "./useAppContext";
+import { useCallback } from "react";
 import useDelayInterceptor from "./useDelayInterceptor";
 import useDropFarmerAuth from "./useDropFarmerAuth";
 import useDropFarmerCloudSync from "./useDropFarmerCloudSync";
@@ -16,6 +13,8 @@ import useDropFarmerState from "./useDropFarmerState";
 import useDropFarmerToast from "./useDropFarmerToast";
 import useDropFarmerZoomies from "./useDropFarmerZoomies";
 import useFarmerDataQuery from "./useFarmerDataQuery";
+import { useLayoutEffect } from "react";
+import { useMemo } from "react";
 import useRefCallback from "./useRefCallback";
 import useTabContext from "./useTabContext";
 import useTelegramWebApp from "./useTelegramWebApp";
@@ -25,13 +24,12 @@ import useValuesMemo from "./useValuesMemo";
 export default function useDropFarmer() {
   const app = useAppContext();
   const farmer = useTabContext();
+  const id = farmer.id;
+  const { icon, title, initData, FarmerClass, external = false } = farmer;
   const {
-    id,
-    host,
-    icon,
-    title,
     platform,
     type,
+    host,
     apiDelay = 200,
     telegramLink,
     cacheAuth = true,
@@ -39,8 +37,7 @@ export default function useDropFarmer() {
     syncToCloud = true,
     authQueryOptions,
     metaQueryOptions,
-    FarmerClass,
-  } = farmer;
+  } = FarmerClass;
 
   /** Is Telegram Mini App */
   const isTelegramMiniApp = platform === "telegram" && type === "webapp";
@@ -78,6 +75,7 @@ export default function useDropFarmer() {
   } = useTelegramWebApp({
     id,
     host,
+    initData,
     telegramLink,
     cacheTelegramWebApp,
     enabled: isTelegramMiniApp,
@@ -90,6 +88,7 @@ export default function useDropFarmer() {
   const joinTelegramLink = useRefCallback(
     useCallback(
       async (...args) => {
+        if (external) return;
         try {
           await app.joinTelegramLink(...args);
         } catch (e) {
@@ -101,22 +100,23 @@ export default function useDropFarmer() {
           app.setActiveTab(id);
         }
       },
-      [id, app.farmerMode, app.joinTelegramLink, app.setActiveTab]
-    )
+      [id, external, app.farmerMode, app.joinTelegramLink, app.setActiveTab],
+    ),
   );
 
   /** Update Profile */
   const updateProfile = useRefCallback(
     useCallback(
       async (...args) => {
+        if (external) return;
         if (app.farmerMode === "session") {
           const client = app.telegramClient.ref.current;
           if (!client) return;
           return client.updateProfile(...args);
         }
       },
-      [app.farmerMode, app.telegramClient]
-    )
+      [external, app.farmerMode, app.telegramClient],
+    ),
   );
 
   /** Instance */
@@ -124,6 +124,7 @@ export default function useDropFarmer() {
     FarmerClass,
     api,
     captcha,
+    external,
     logger,
     telegramWebApp,
     joinTelegramLink,
@@ -138,6 +139,7 @@ export default function useDropFarmer() {
     enabled: prepared,
     id,
     instance,
+    external,
     cacheAuth,
     queryClient,
     telegramHash,
@@ -148,6 +150,7 @@ export default function useDropFarmer() {
   /** Meta Query */
   const { metaQuery, metaQueryKey } = useDropFarmerMeta({
     id,
+    external,
     instance,
     queryClient,
     telegramHash,
@@ -206,7 +209,7 @@ export default function useDropFarmer() {
 
   /** Sync to Cloud */
   useDropFarmerCloudSync({
-    id,
+    id: FarmerClass.id,
     title,
     account,
     instance,
@@ -249,6 +252,7 @@ export default function useDropFarmer() {
     metaQuery,
     metaQueryKey,
     dataQuery,
+    external,
     zoomies,
     isZooming,
     started,
