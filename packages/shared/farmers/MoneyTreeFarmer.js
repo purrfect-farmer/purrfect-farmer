@@ -10,6 +10,7 @@ export default class MoneyTreeFarmer extends BaseFarmer {
   static telegramLink = "https://t.me/moneytree_game_bot?start=ref_1147265290";
   static cacheAuth = false;
   static cacheTelegramWebApp = false;
+  static deactivateOnError = false;
   static interval = "*/3 * * * *";
   static rating = 4;
 
