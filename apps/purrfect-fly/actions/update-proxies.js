@@ -74,7 +74,7 @@ async function updateProxies() {
         /** Assign proxies from available list to invalid accounts */
         invalidAccounts.forEach((account) => {
           const newProxy = availableProxies.shift();
-          account.proxy = newProxy || null;
+          account.proxy = newProxy || "";
         });
 
         /** Save Accounts */
