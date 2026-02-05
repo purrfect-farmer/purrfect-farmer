@@ -97,11 +97,13 @@ export default memo(function TabContent({ tab }) {
           !tab.active ? "invisible" : null,
         )}
       >
+        {/* Unpublished status */}
         {tab.FarmerClass && !tab.FarmerClass.published ? (
           <div className="bg-orange-500 p-2 text-center font-bold">
             Under development
           </div>
         ) : null}
+
         {/* Open Telegram Link Button */}
         {tab.link || tab.telegramLink ? (
           <LinkButton onClick={openTabLink}>
