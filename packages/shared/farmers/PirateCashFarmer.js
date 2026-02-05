@@ -9,6 +9,8 @@ export default class PirateCashFarmer extends BaseFarmer {
   static telegramLink = "https://t.me/piratecash_bot?start=1147265290";
   static cacheAuth = false;
   static cacheTelegramWebApp = false;
+  static deactivateOnError = false;
+  static rating = 5;
   static interval = "*/30 * * * *";
   static channels = [
     { name: "pcash", check: "piratecash" },
@@ -17,7 +19,6 @@ export default class PirateCashFarmer extends BaseFarmer {
     { name: "wdash", check: "wdash" },
     { name: "cosanta_eng", check: "cosanta_group" },
   ];
-  static rating = 5;
 
   /** Get Referral Link */
   getReferralLink() {
@@ -122,7 +123,7 @@ export default class PirateCashFarmer extends BaseFarmer {
       .post(
         "https://p.cash/miniapp/users/wallet",
         { walletAddress },
-        { signal }
+        { signal },
       )
       .then((res) => res.data);
   }
@@ -135,7 +136,7 @@ export default class PirateCashFarmer extends BaseFarmer {
         {
           ["channel_name"]: channel,
         },
-        { signal }
+        { signal },
       )
       .then((res) => res.data);
   }
@@ -205,17 +206,17 @@ export default class PirateCashFarmer extends BaseFarmer {
     const activeSkin = await this.getActiveSkin();
 
     const currentLeague = leagues.findLast(
-      (league) => league.achievedAt !== null
+      (league) => league.achievedAt !== null,
     );
 
     this.logUserInfo(user);
     await this.executeTask("Onboarding", () => this.skipOnboarding(user));
     await this.executeTask("Check Profile", () => this.checkProfile(user));
     await this.executeTask("Upgrade Skin", () =>
-      this.upgradeSkin({ skins, currentLeague })
+      this.upgradeSkin({ skins, currentLeague }),
     );
     await this.executeTask("Farming", () =>
-      this.checkFarming({ currentLeague })
+      this.checkFarming({ currentLeague }),
     );
     await this.executeTask("Channels", () => this.joinRequiredChannels(user));
     await this.executeTask("Tap Game", () => this.tapGame(user));
@@ -228,7 +229,7 @@ export default class PirateCashFarmer extends BaseFarmer {
     this.logger.keyValue("Energy", user.energy);
     this.logger.keyValue(
       "Cheater",
-      user["cheater_status"] !== "normal" ? "Yes 🚫" : "No ✅"
+      user["cheater_status"] !== "normal" ? "Yes 🚫" : "No ✅",
     );
   }
 
@@ -279,12 +280,12 @@ export default class PirateCashFarmer extends BaseFarmer {
   async upgradeSkin({ skins, currentLeague }) {
     if (currentLeague) {
       const leagueSkin = skins.find(
-        (skin) => skin.conditions.league === currentLeague.id
+        (skin) => skin.conditions.league === currentLeague.id,
       );
       if (leagueSkin && !leagueSkin.isActive) {
         await this.activateSkin(leagueSkin.id);
         this.logger.success(
-          `✅ Activated ${leagueSkin.name.toUpperCase()} skin successfully!`
+          `✅ Activated ${leagueSkin.name.toUpperCase()} skin successfully!`,
         );
       }
     }
@@ -317,7 +318,7 @@ export default class PirateCashFarmer extends BaseFarmer {
     } else if (
       this.utils.dateFns.isAfter(
         new Date(systemInfo.time),
-        new Date(farming.finishAt)
+        new Date(farming.finishAt),
       )
     ) {
       await this.claimFarming();

@@ -1,6 +1,6 @@
 import * as changeKeys from "change-case/keys";
-import seedrandom from "seedrandom";
 
+import seedrandom from "seedrandom";
 import utils from "../utils/bundle.js";
 
 export default class BaseFarmer {
@@ -24,6 +24,7 @@ export default class BaseFarmer {
   static rating = 1;
   static startupDelay = 300;
   static published = true;
+  static deactivateOnError = true;
 
   constructor() {
     /* Register utilities */
