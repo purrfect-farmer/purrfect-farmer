@@ -1,15 +1,16 @@
+import { cn, downloadFile } from "@/utils";
+
 import Alert from "@/components/Alert";
 import AppIcon from "@/assets/images/icon.png?format=webp&w=192";
+import Container from "@/components/Container";
 import PrimaryButton from "@/components/PrimaryButton";
 import Tabs from "@/components/Tabs";
+import { formatDate } from "date-fns";
 import toast from "react-hot-toast";
 import useBackupAndRestore from "@/hooks/useBackupAndRestore";
-import useMirroredTabs from "@/hooks/useMirroredTabs";
-import { cn } from "@/utils";
-import { formatDate } from "date-fns";
 import { useCallback } from "react";
 import { useDropzone } from "react-dropzone";
-import Container from "@/components/Container";
+import useMirroredTabs from "@/hooks/useMirroredTabs";
 
 const TabContent = ({ title, children, ...props }) => (
   <Tabs.Content {...props} className={cn("flex flex-col gap-4")}>
@@ -29,19 +30,13 @@ export default function BackupAndRestore() {
   const [getBackupData, restoreBackupData] = useBackupAndRestore();
 
   const downloadBackupFile = useCallback((data) => {
-    const jsonStr = JSON.stringify(data, null, 2);
-    const blob = new Blob([jsonStr], { type: "application/json" });
-    const url = URL.createObjectURL(blob);
-
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `${__APP_PACKAGE_NAME__}-backup-${formatDate(
-      new Date(),
-      "yyyyMMdd-HHmmss"
-    )}.json`;
-    a.click();
-
-    URL.revokeObjectURL(url);
+    downloadFile(
+      `${__APP_PACKAGE_NAME__}-backup-${formatDate(
+        new Date(),
+        "yyyyMMdd-HHmmss",
+      )}.json`,
+      data,
+    );
   }, []);
 
   const backupAllData = useCallback(
@@ -50,7 +45,7 @@ export default function BackupAndRestore() {
         downloadBackupFile(data);
         toast.success("Backup Downloaded!");
       }),
-    [getBackupData]
+    [getBackupData],
   );
 
   const onDrop = useCallback(
@@ -70,7 +65,7 @@ export default function BackupAndRestore() {
       });
       reader.readAsText(file);
     },
-    [restoreBackupData]
+    [restoreBackupData],
   );
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({

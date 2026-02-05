@@ -1,12 +1,24 @@
-import storage from "../lib/storage";
-import userAgents from "@purrfect/shared/resources/userAgents.js";
-import defaultSharedSettings from "@/core/defaultSharedSettings";
-
-import { uuid } from "@purrfect/shared/utils";
 import { clsx } from "clsx";
+import defaultSharedSettings from "@/core/defaultSharedSettings";
+import storage from "../lib/storage";
 import { twMerge } from "tailwind-merge";
+import userAgents from "@purrfect/shared/resources/userAgents.js";
+import { uuid } from "@purrfect/shared/utils";
 
 export * from "@purrfect/shared/utils";
+
+export function downloadFile(filename, data) {
+  const jsonStr = JSON.stringify(data, null, 2);
+  const blob = new Blob([jsonStr], { type: "application/json" });
+  const url = URL.createObjectURL(blob);
+
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename;
+  a.click();
+
+  URL.revokeObjectURL(url);
+}
 
 export function isExtension() {
   return window.location.protocol === "chrome-extension:";
@@ -49,7 +61,7 @@ export async function removeAccountStorage(id) {
 export async function getSharedSettings() {
   const sharedSettings = await storage.get(
     "shared:settings",
-    defaultSharedSettings
+    defaultSharedSettings,
   );
 
   return {
@@ -61,7 +73,7 @@ export async function getSharedSettings() {
 export async function getUserAgent() {
   return await storage.get(
     "shared:user-agent",
-    userAgents[Math.floor(Math.random() * userAgents.length)]
+    userAgents[Math.floor(Math.random() * userAgents.length)],
   );
 }
 
@@ -93,7 +105,7 @@ export function dispatchClickEventOnElement(element, { clientX, clientY }) {
         cancelable: true,
         clientX,
         clientY,
-      })
+      }),
     );
   });
 
@@ -116,7 +128,7 @@ export function dispatchClickEventOnElement(element, { clientX, clientY }) {
         cancelable: true,
         touches: [touch],
         changedTouches: [touch],
-      })
+      }),
     );
   });
 }
@@ -167,7 +179,7 @@ export function postPortMessage(port, data) {
         } catch (e) {
           console.error(e);
         }
-      })
+      }),
     );
 
     try {
@@ -194,7 +206,7 @@ export async function findDropMainScript(url, name = "index") {
 
   const indexScript = Array.prototype.find.call(
     scripts,
-    (script) => script.type === "module" && script.src.includes(name)
+    (script) => script.type === "module" && script.src.includes(name),
   );
 
   return indexScript;
@@ -285,8 +297,8 @@ export async function getWindowCoords() {
     Math.floor(
       maxWidth /
         (sharedSettings.farmersPerWindow ||
-          defaultSharedSettings.farmersPerWindow)
-    )
+          defaultSharedSettings.farmersPerWindow),
+    ),
   );
   const left = Math.max(1, Math.floor(position * width) - width);
 
@@ -335,7 +347,7 @@ export async function getCookies(options) {
   if (import.meta.env.VITE_WHISKER) {
     return await window.electron.ipcRenderer.invoke(
       "get-session-cookie",
-      options
+      options,
     );
   }
 

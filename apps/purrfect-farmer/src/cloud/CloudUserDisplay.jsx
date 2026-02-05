@@ -1,12 +1,12 @@
+import CloudPasswordUpdate from "./CloudPasswordUpdate";
+import CloudServerBackup from "./CloudServerBackup";
+import CloudServerUpdate from "./CloudServerUpdate";
+import { Dialog } from "radix-ui";
 import UserIcon from "@/assets/images/user-icon.png?format=webp&w=256";
 import useAppContext from "@/hooks/useAppContext";
-import useCloudManagerUserQuery from "@/hooks/useCloudManagerUserQuery";
-import { Dialog } from "radix-ui";
 import { useCallback } from "react";
-
-import CloudPasswordUpdate from "./CloudPasswordUpdate";
+import useCloudManagerUserQuery from "@/hooks/useCloudManagerUserQuery";
 import useLocationToggle from "@/hooks/useLocationToggle";
-import CloudServerUpdate from "./CloudServerUpdate";
 
 export default function CloudUserDisplay() {
   const { cloudAuth } = useAppContext();
@@ -18,12 +18,14 @@ export default function CloudUserDisplay() {
   }, [cloudAuth.removeToken]);
 
   const [openPasswordUpdate, setOpenPasswordUpdate] = useLocationToggle(
-    "cloud-password-update"
+    "cloud-password-update",
   );
 
   const [openServerUpdate, setOpenServerUpdate] = useLocationToggle(
-    "cloud-server-update"
+    "cloud-server-update",
   );
+
+  const [openBackup, setOpenBackup] = useLocationToggle("cloud-server-backup");
 
   return (
     <div>
@@ -51,7 +53,7 @@ export default function CloudUserDisplay() {
             </div>
           </div>
 
-          <div className="grid grid-cols-3 gap-2 mx-auto my-2 font-bold">
+          <div className="grid grid-cols-4 gap-2 mx-auto my-2 font-bold">
             <Dialog.Root
               open={openServerUpdate}
               onOpenChange={setOpenServerUpdate}
@@ -61,6 +63,14 @@ export default function CloudUserDisplay() {
               </Dialog.Trigger>
 
               <CloudServerUpdate />
+            </Dialog.Root>
+
+            <Dialog.Root open={openBackup} onOpenChange={setOpenBackup}>
+              <Dialog.Trigger className="text-purple-500">
+                Backup
+              </Dialog.Trigger>
+
+              <CloudServerBackup />
             </Dialog.Root>
 
             <Dialog.Root

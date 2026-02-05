@@ -1,6 +1,5 @@
 import fs from "node:fs";
 import { getCurrentPath } from "../lib/path.js";
-import path from "node:path";
 
 const { __dirname, __filename } = getCurrentPath(import.meta.url);
 
@@ -15,28 +14,10 @@ export default (program, inquirer, chalk) => {
     .description("Import Backup")
     .usage("/path/to/fly-backup.json")
     .action(async (file) => {
-      const db = await import("../db/models/index.js").then((m) => m.default);
       const backup = JSON.parse(fs.readFileSync(file, "utf-8"));
+      const { importBackup } = await import("../lib/backup.js");
 
-      if (backup.env) {
-        fs.writeFileSync(path.join(__dirname, "../.env"), backup.env);
-      }
-
-      await db.User.bulkCreate(backup.users, { ignoreDuplicates: true });
-      await db.Account.bulkCreate(backup.accounts, { ignoreDuplicates: true });
-      await db.Payment.bulkCreate(backup.payments, { ignoreDuplicates: true });
-      await db.Subscription.bulkCreate(backup.subscriptions, {
-        ignoreDuplicates: true,
-      });
-      await db.Farmer.bulkCreate(backup.farmers, { ignoreDuplicates: true });
-
-      /** Restore Sessions */
-      backup.sessions.forEach((session) => {
-        fs.writeFileSync(
-          path.resolve(__dirname, "../sessions", session.name),
-          session.content,
-        );
-      });
+      await importBackup(backup);
 
       console.log(chalk.bold.green("Imported successfully!"));
     });

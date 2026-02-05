@@ -1,8 +1,11 @@
 import * as bcrypt from "bcryptjs";
 import * as dateFns from "date-fns";
+
+import { exportBackup, importBackup } from "../../../lib/backup.js";
+
 import fsp from "fs/promises";
-import { spawn } from "child_process";
 import path from "path";
+import { spawn } from "child_process";
 
 const farmerSchema = {
   body: {
@@ -71,7 +74,7 @@ export default async function (fastify, opts) {
         },
         token,
       });
-    }
+    },
   );
 
   fastify.register((fastify) => {
@@ -109,8 +112,33 @@ export default async function (fastify, opts) {
         setTimeout(() => {
           process.exit(0);
         }, 1000);
-      }
+      },
     );
+
+    /** Import backup */
+    fastify.post(
+      "/import-backup",
+      {
+        schema: {
+          body: {
+            type: "object",
+            required: ["backup"],
+            properties: {
+              backup: { type: "object" },
+            },
+          },
+        },
+      },
+      async (request) => {
+        await importBackup(request.body.backup);
+        setTimeout(() => process.exit(0), 1000);
+      },
+    );
+
+    /** Export backup */
+    fastify.post("/export-backup", async () => {
+      return await exportBackup();
+    });
 
     /** Update Server */
     fastify.post("/update-server", async () => {
@@ -163,7 +191,7 @@ export default async function (fastify, opts) {
         /** Compare Password */
         const valid = await bcrypt.compare(
           request.body.currentPassword,
-          user.password
+          user.password,
         );
 
         if (valid) {
@@ -173,7 +201,7 @@ export default async function (fastify, opts) {
         } else {
           return reply.badRequest("Incorrect Password!");
         }
-      }
+      },
     );
 
     /** Get Farmers */
@@ -193,9 +221,9 @@ export default async function (fastify, opts) {
       async (request) => {
         await fastify.db.Farmer.update(
           { active: true },
-          { where: { id: request.body.id } }
+          { where: { id: request.body.id } },
         );
-      }
+      },
     );
 
     /** Disconnect Farmer */
@@ -206,7 +234,7 @@ export default async function (fastify, opts) {
         await fastify.db.Farmer.destroy({
           where: { id: request.body.id },
         });
-      }
+      },
     );
 
     /** Get Members */
@@ -275,7 +303,7 @@ export default async function (fastify, opts) {
               : dateFns.addDays(new Date(), 30),
           });
         }
-      }
+      },
     );
 
     /** Kick Member */
@@ -299,7 +327,7 @@ export default async function (fastify, opts) {
             try {
               /** Create Client */
               const client = await fastify.lib.GramClient.create(
-                account.session
+                account.session,
               );
 
               /** Connect */
@@ -315,7 +343,7 @@ export default async function (fastify, opts) {
           /** Destroy Account */
           await account.destroy();
         }
-      }
+      },
     );
   });
 }
