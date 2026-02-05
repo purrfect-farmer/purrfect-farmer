@@ -374,6 +374,7 @@ export default function createRunner(FarmerClass) {
 
     executeTask(task, callback, allowInQuickRun = true) {
       const runner = this.getRunner();
+      runner.startedAt = new Date();
       runner.task = task;
       return super.executeTask(task, callback, allowInQuickRun);
     }
@@ -447,7 +448,7 @@ export default function createRunner(FarmerClass) {
     static farm(account) {
       if (!this.runners.has(account.id)) {
         this.runners.set(account.id, {
-          startedAt: Date.now(),
+          startedAt: new Date(),
           task: null,
         });
         this.execute(account).finally(() => {
