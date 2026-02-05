@@ -83,13 +83,14 @@ const MemberDialogFarmer = ({ account, farmer }) => {
   const { launchInAppBrowser, pushTab } = useAppContext();
 
   const launchFarmer = () => {
-    if (farmer.initData && farmer.FarmerClass) {
+    if (farmer.FarmerClass) {
       const tab = tabs.find((item) => item.id === farmer.FarmerClass.id);
 
       pushTab({
         ...tab,
         title: `${account.title || "TGUser"}'s ${farmer.FarmerClass.title}`,
         initData: farmer.initData,
+        cookies: farmer.cookies,
         id: `${account.id}-farmer-${farmer.FarmerClass.id}`,
         external: true,
       });
@@ -121,7 +122,7 @@ const MemberDialogFarmer = ({ account, farmer }) => {
       </Dialog.Close>
 
       {/* Open in App Browser Button */}
-      {farmer.initData && farmer.FarmerClass ? (
+      {farmer.FarmerClass ? (
         <Dialog.Close
           onClick={() =>
             launchInAppBrowser({

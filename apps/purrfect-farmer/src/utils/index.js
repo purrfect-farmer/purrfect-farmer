@@ -353,3 +353,14 @@ export async function getCookies(options) {
 
   return await chrome.cookies.getAll(options);
 }
+
+/** Set Cookies */
+export async function setCookies(cookies = []) {
+  for (const cookie of cookies) {
+    if (import.meta.env.VITE_WHISKER) {
+      await window.electron.ipcRenderer.invoke("set-session-cookie", cookie);
+    } else {
+      await chrome.cookies.set(cookies);
+    }
+  }
+}

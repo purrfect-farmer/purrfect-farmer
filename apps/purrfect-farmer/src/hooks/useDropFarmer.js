@@ -6,6 +6,7 @@ import { useCallback } from "react";
 import useDelayInterceptor from "./useDelayInterceptor";
 import useDropFarmerAuth from "./useDropFarmerAuth";
 import useDropFarmerCloudSync from "./useDropFarmerCloudSync";
+import useDropFarmerCookiesRestore from "./useDropFarmerCookiesRestore";
 import useDropFarmerInstance from "./useDropFarmerInstance";
 import useDropFarmerMeta from "./useDropFarmerMeta";
 import useDropFarmerQueryHelper from "./useDropFarmerQueryHelper";
@@ -25,7 +26,14 @@ export default function useDropFarmer() {
   const app = useAppContext();
   const farmer = useTabContext();
   const id = farmer.id;
-  const { icon, title, initData, FarmerClass, external = false } = farmer;
+  const {
+    icon,
+    title,
+    cookies,
+    initData,
+    FarmerClass,
+    external = false,
+  } = farmer;
   const {
     platform,
     type,
@@ -206,6 +214,9 @@ export default function useDropFarmer() {
     await resetTelegramWebApp();
     await resetInit();
   }, [resetTelegramWebApp, resetInit]);
+
+  /** Restore cookies */
+  useDropFarmerCookiesRestore(external, cookies);
 
   /** Sync to Cloud */
   useDropFarmerCloudSync({
