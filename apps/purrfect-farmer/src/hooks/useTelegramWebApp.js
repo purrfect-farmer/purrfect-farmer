@@ -31,7 +31,7 @@ export default function useTelegramWebApp({
         initDataUnsafe,
       };
     }
-    return;
+    return null;
   });
   const [port, setPort] = useState(null);
 
