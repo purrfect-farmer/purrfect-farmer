@@ -39,7 +39,7 @@ async function updateProxies() {
       /** Clear proxies for unsubscribed accounts that currently have proxies */
       if (unsubscribedAccounts.length > 0) {
         await db.Account.update(
-          { proxy: null },
+          { proxy: "" },
           {
             where: {
               id: {
