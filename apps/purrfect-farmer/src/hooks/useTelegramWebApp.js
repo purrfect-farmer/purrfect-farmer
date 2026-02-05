@@ -26,7 +26,7 @@ export default function useTelegramWebApp({
       const initDataUnsafe = extractInitDataUnsafe(initData);
       return {
         platform: "android",
-        version: "",
+        version: "8.0",
         initData,
         initDataUnsafe,
       };
