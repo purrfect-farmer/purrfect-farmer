@@ -456,7 +456,7 @@ export default function createRunner(FarmerClass) {
       }
 
       const runner = this.runners.get(account.id);
-      const elapsed = this.utils.dateFns.differenceInSeconds(
+      const elapsed = this.utils.dateFns.formatDistanceStrict(
         new Date(),
         runner.startedAt,
       );
@@ -465,7 +465,7 @@ export default function createRunner(FarmerClass) {
         status: runner.task ? "running" : "started",
         startedAt: runner.startedAt,
         task: runner.task,
-        elapsed: runner.task ? elapsed : 0,
+        elapsed,
       };
     }
 
