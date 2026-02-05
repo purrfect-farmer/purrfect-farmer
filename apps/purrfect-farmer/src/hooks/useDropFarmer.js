@@ -177,7 +177,8 @@ export default function useDropFarmer() {
   const syncEnabled = settings.enableCloud && syncToCloud;
 
   /** Should Sync To Cloud */
-  const shouldSyncToCloud = hasConfiguredAuthHeaders && syncEnabled;
+  const shouldSyncToCloud =
+    !external && hasConfiguredAuthHeaders && syncEnabled;
 
   /** Zoomies */
   const { isZooming, processNextTask } = useDropFarmerZoomies({
