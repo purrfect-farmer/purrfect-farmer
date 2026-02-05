@@ -44,9 +44,10 @@ import { useCallback } from "react";
 import { useEffect } from "react";
 import useLocationToggle from "@/hooks/useLocationToggle";
 import { useMemo } from "react";
+import useMirroredCallback from "@/hooks/useMirroredCallback";
 import useMirroredLocationToggle from "@/hooks/useMirroredLocationToggle";
-import useMirroredState from "@/hooks/useMirroredState";
 import useMirroredTabs from "@/hooks/useMirroredTabs";
+import useStorageState from "@/hooks/useStorageState";
 
 /** Telegram Web Button */
 const TelegramWebButton = memo(
@@ -105,23 +106,30 @@ export default memo(function Welcome() {
     dispatchAndOpenUtilsPanel,
   } = useAppContext();
 
+  /** Welcome tabs */
   const tabs = useMirroredTabs("app", ["farmers", "bots"]);
 
-  const [showPurrfectCat, , dispatchAndSetShowPurrfectCat] = useMirroredState(
-    "purrfect-cat",
-    false,
-  );
+  /** Toggle Purrfect Cat */
+  const { value: showPurrfectCat, storeValue: setShowPurrfectCat } =
+    useStorageState("purrfect-cat", false);
 
-  const settingTabs = useMirroredTabs("app.settings-tabs", [
-    "settings",
-    "farmers",
-    "seeker",
-  ]);
+  const [, dispatchAndSetShowPurrfectCat] = useMirroredCallback(
+    "toggle-purrfect-cat",
+    setShowPurrfectCat,
+    [setShowPurrfectCat],
+  );
 
   const displayPurrfectCat = () => {
     dispatchAndSetShowPurrfectCat(!showPurrfectCat);
     toast.success("Meow!");
   };
+
+  /** Setting tabs */
+  const settingTabs = useMirroredTabs("app.settings-tabs", [
+    "settings",
+    "farmers",
+    "seeker",
+  ]);
 
   /** Manifest Query */
   const manifestQuery = useAppQuery({
