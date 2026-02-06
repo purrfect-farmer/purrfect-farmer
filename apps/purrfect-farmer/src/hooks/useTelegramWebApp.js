@@ -16,6 +16,7 @@ export default function useTelegramWebApp({
   id,
   host,
   enabled = true,
+  external = false,
   initData = null,
   telegramLink,
   cacheTelegramWebApp,
@@ -81,7 +82,7 @@ export default function useTelegramWebApp({
 
   /** Save WebApp in Storage */
   useEffect(() => {
-    if (!enabled) {
+    if (external || !enabled) {
       return;
     }
     if (cacheTelegramWebApp && telegramWebApp !== null) {
@@ -92,11 +93,17 @@ export default function useTelegramWebApp({
         version,
       });
     }
-  }, [enabled, cacheTelegramWebApp, telegramWebApp, webAppChromeStorageKey]);
+  }, [
+    enabled,
+    external,
+    cacheTelegramWebApp,
+    telegramWebApp,
+    webAppChromeStorageKey,
+  ]);
 
   /** Get Telegram WebApp from Storage, Session or Bot */
   useEffect(() => {
-    if (!enabled || telegramWebApp) {
+    if (external || !enabled || telegramWebApp) {
       return;
     }
 
@@ -161,6 +168,7 @@ export default function useTelegramWebApp({
     host,
     setPort,
     enabled,
+    external,
     farmerMode,
     telegramLink,
     telegramWebApp,

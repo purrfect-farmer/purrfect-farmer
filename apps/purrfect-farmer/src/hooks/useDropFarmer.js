@@ -84,6 +84,7 @@ export default function useDropFarmer() {
     id,
     host,
     initData,
+    external,
     telegramLink,
     cacheTelegramWebApp,
     enabled: isTelegramMiniApp,
