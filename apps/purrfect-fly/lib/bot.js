@@ -63,7 +63,6 @@ class GroupBot extends Bot {
 
             username: account.user?.username || "",
             title: account.title,
-            url: result.url,
             info:
               result.status === "running"
                 ? [

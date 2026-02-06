@@ -465,7 +465,6 @@ export default function createRunner(FarmerClass) {
         currentTaskStartedAt: instance.currentTaskStartedAt,
         currentTask: instance.currentTask,
         elapsed: instance.getElapsedTime(),
-        url: instance.getLaunchURL(),
       };
     }
 
