@@ -147,14 +147,14 @@ export default class BaseFarmer {
     return this.captcha?.solveTurnstile({ siteKey, pageUrl });
   }
 
-  /** Can Join Telegram Link */
-  canJoinTelegramLink(link) {
-    return Boolean(this.client);
-  }
-
   /** Join Telegram Link */
   joinTelegramLink(link) {
     return this.client.joinTelegramLink(link);
+  }
+
+  /** Can Join Telegram Link */
+  canJoinTelegramLink(link) {
+    return Boolean(this.client);
   }
 
   /** Can Update Profile */

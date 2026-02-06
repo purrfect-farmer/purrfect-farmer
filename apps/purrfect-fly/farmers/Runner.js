@@ -283,6 +283,10 @@ export default function createRunner(FarmerClass) {
       }
     }
 
+    canJoinTelegramLink(link) {
+      return Boolean(this.client);
+    }
+
     /** Join Telegram Link */
     async joinTelegramLink(link) {
       await this.utils.delayForSeconds(Math.floor(Math.random() * 300));
