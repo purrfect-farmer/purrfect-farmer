@@ -96,16 +96,16 @@ export default function useDropFarmer() {
   const joinTelegramLink = useRefCallback(
     useCallback(
       async (...args) => {
-        if (external) return;
+        if (external) {
+          throw new Error("Running external account!");
+        }
         try {
           await app.joinTelegramLink(...args);
-        } catch (e) {
-          console.error(e);
-        }
-
-        /** Restore Tab */
-        if (app.farmerMode === "web") {
-          app.setActiveTab(id);
+        } finally {
+          /** Restore Tab */
+          if (app.farmerMode === "web") {
+            app.setActiveTab(id);
+          }
         }
       },
       [id, external, app.farmerMode, app.joinTelegramLink, app.setActiveTab],
@@ -116,8 +116,11 @@ export default function useDropFarmer() {
   const updateProfile = useRefCallback(
     useCallback(
       async (...args) => {
-        if (external) return;
-        if (app.farmerMode === "session") {
+        if (external) {
+          throw new Error("Running external account!");
+        } else if (app.farmerMode === "web") {
+          throw new Error("Profile update is only available in session mode!");
+        } else {
           const client = app.telegramClient.ref.current;
           if (!client) return;
           return client.updateProfile(...args);

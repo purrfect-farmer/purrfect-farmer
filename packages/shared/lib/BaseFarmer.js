@@ -147,14 +147,14 @@ export default class BaseFarmer {
     return this.captcha?.solveTurnstile({ siteKey, pageUrl });
   }
 
-  /** Join Telegram Link */
-  joinTelegramLink(link) {
-    return this.client.joinTelegramLink(link);
-  }
-
   /** Can Join Telegram Link */
   canJoinTelegramLink(link) {
     return Boolean(this.client);
+  }
+
+  /** Join Telegram Link */
+  joinTelegramLink(link) {
+    return this.client.joinTelegramLink(link);
   }
 
   /** Can Update Profile */
@@ -428,18 +428,6 @@ export default class BaseFarmer {
   /** Process */
   async process() {
     throw new Error("process method must be implemented in subclass");
-  }
-
-  /** Join Telegram Link */
-  async joinTelegramLink(link) {
-    throw new Error("joinTelegramLink method must be implemented in subclass");
-  }
-
-  /** Can Join Telegram Link */
-  canJoinTelegramLink(link) {
-    throw new Error(
-      "canJoinTelegramLink method must be implemented in subclass",
-    );
   }
 
   /** Get Referral Link */
