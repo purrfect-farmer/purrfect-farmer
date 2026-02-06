@@ -451,7 +451,7 @@ export default function createRunner(FarmerClass) {
     static farm(account) {
       if (!this.runners.has(account.id)) {
         const instance = new this(account);
-
+        this.runners.set(account.id, instance);
         this.execute(instance).finally(() => {
           this.runners.delete(account.id);
         });
