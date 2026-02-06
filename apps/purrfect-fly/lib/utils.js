@@ -103,11 +103,9 @@ function formatUsers(collection) {
       const titleHtml = title ? ` <b>${escapeHtml("(" + title + ")")}</b>` : "";
 
       const statusContent = `${status} ${session}`;
-      const statusHtml = url
-        ? `<a href="${url}">${statusContent}</a>`
-        : statusContent;
+      const linkHtml = url ? ` <a href="${url}"><b>OPEN</b></a>` : "";
 
-      let result = `${statusHtml}${titleHtml} <a href="tg://user?id=${id}">${safeUsername}</a>`;
+      let result = `${statusContent}${linkHtml}${titleHtml} <a href="tg://user?id=${id}">${safeUsername}</a>`;
 
       if (info) {
         result = `\n${result}\n${info}\n`;
