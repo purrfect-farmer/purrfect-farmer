@@ -64,6 +64,10 @@ export default class BaseFarmer {
 
     /* Initialize Tools */
     this.tools = this.createTools?.() || [];
+
+    this.startedAt = new Date();
+    this.currentTaskStartedAt = null;
+    this.currentTask = null;
   }
 
   /** Set Prompt Functions */
@@ -242,6 +246,14 @@ export default class BaseFarmer {
     return this.getInitDataUnsafe()?.["start_param"];
   }
 
+  getLaunchURL() {
+    if (this.getInitData()) {
+      return this.constructor.getUrlFromInitData(this.getInitData());
+    } else {
+      return this.constructor.telegramLink || this.constructor.link;
+    }
+  }
+
   /** Get URL from Init Data */
   static getUrlFromInitData(initData) {
     const params = new URLSearchParams({
@@ -256,8 +268,20 @@ export default class BaseFarmer {
     return this.process();
   }
 
+  /** Get elapsed time */
+  getElapsedTime() {
+    return this.utils.dateFns.formatDistanceToNowStrict(
+      this.currentTaskStartedAt || new Date(),
+    );
+  }
+
   /** Execute a task with logging */
   async executeTask(task, callback, allowInQuickRun = true) {
+    /** Update Task */
+    this.currentTaskStartedAt = new Date();
+    this.currentTask = task;
+
+    /* Add newline */
     this.logger.newline();
 
     /* Check Aborted */

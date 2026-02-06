@@ -74,13 +74,11 @@ function formatUsers(collection) {
   const totalUsers = collection.length;
 
   let list = collection.map((data) => {
-    const id = data.id;
-    const status = data.status;
-    const session = data.session;
-    const info = data.info;
-
     /** Username */
-    let username = (data.username || id).toString().toLowerCase().slice(0, 12);
+    let username = (data.username || data.id)
+      .toString()
+      .toLowerCase()
+      .slice(0, 12);
     username = username.padEnd(15, "  ");
 
     /** Account Title */
@@ -88,7 +86,7 @@ function formatUsers(collection) {
       ? (data.title || "").toUpperCase().slice(0, 8)
       : "";
 
-    return { id, status, session, username, title, info };
+    return { ...data, username, title };
   });
 
   /** Sort By Title or Username */
@@ -100,10 +98,16 @@ function formatUsers(collection) {
   /** Retrieve Links */
   const links = list
     .map((data) => {
-      const { id, status, session, username, title, info } = data;
+      const { id, status, session, username, title, info, url } = data;
       const safeUsername = "@" + escapeHtml(username.trim());
       const titleHtml = title ? ` <b>${escapeHtml("(" + title + ")")}</b>` : "";
-      let result = `${status} ${session}${titleHtml} <a href="tg://user?id=${id}">${safeUsername}</a>`;
+
+      const statusContent = `${status} ${session}`;
+      const statusHtml = url
+        ? `<a href="${url}">${statusContent}</a>`
+        : statusContent;
+
+      let result = `${statusHtml}${titleHtml} <a href="tg://user?id=${id}">${safeUsername}</a>`;
 
       if (info) {
         result = `\n${result}\n${info}\n`;

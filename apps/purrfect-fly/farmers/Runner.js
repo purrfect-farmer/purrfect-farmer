@@ -102,6 +102,9 @@ export default function createRunner(FarmerClass) {
 
       /** Set Captcha Solver */
       this.setCaptcha(captcha);
+
+      /** Configure Telegram Web app */
+      this.configureTelegramWebApp();
     }
 
     /** Create Axios Instance */
@@ -343,9 +346,7 @@ export default function createRunner(FarmerClass) {
       }
 
       /** Set Telegram Web App */
-      if (this.platform === "telegram" && this.type === "webapp") {
-        this.setTelegramWebApp(this.farmer.telegramWebApp);
-      }
+      this.configureTelegramWebApp();
 
       /** Restore Cookies */
       if (this.cookies) {
@@ -368,15 +369,15 @@ export default function createRunner(FarmerClass) {
       return this;
     }
 
-    getRunner() {
-      return this.constructor.runners.get(this.account.id);
-    }
-
-    executeTask(task, callback, allowInQuickRun = true) {
-      const runner = this.getRunner();
-      runner.startedAt = new Date();
-      runner.task = task;
-      return super.executeTask(task, callback, allowInQuickRun);
+    configureTelegramWebApp() {
+      /** Set Telegram Web App */
+      if (
+        this.platform === "telegram" &&
+        this.type === "webapp" &&
+        this.farmer
+      ) {
+        this.setTelegramWebApp(this.farmer.telegramWebApp);
+      }
     }
 
     /** Set Auth */
@@ -417,10 +418,10 @@ export default function createRunner(FarmerClass) {
       }
     }
 
-    /** Execute farming for account */
-    static async execute(account) {
-      const instance = new this(account);
-
+    /** Execute farming for an instance
+     * @param {Runner} instance
+     */
+    static async execute(instance) {
       try {
         if (process.env.NODE_ENV === "production") {
           /**
@@ -430,10 +431,10 @@ export default function createRunner(FarmerClass) {
             instance.random() * this.startupDelay,
           );
           if (startupDelay) {
-            instance.logger.info(
-              `[${account.id}] Delaying startup by ${startupDelay} seconds...`,
+            this.logger.info(
+              `[${instance.account.id}] Delaying startup by ${startupDelay} seconds...`,
             );
-            await instance.utils.delayForSeconds(startupDelay);
+            await this.utils.delayForSeconds(startupDelay);
           }
         }
         await instance.prepare();
@@ -442,33 +443,29 @@ export default function createRunner(FarmerClass) {
         if (this.deactivateOnError) {
           await instance.disconnect();
         }
-        this.logger.error("Error farming account:", account.id, error);
+        this.logger.error("Error farming account:", instance.account.id, error);
       }
     }
 
     /** Farm an account */
     static farm(account) {
       if (!this.runners.has(account.id)) {
-        this.runners.set(account.id, {
-          startedAt: new Date(),
-          task: null,
-        });
-        this.execute(account).finally(() => {
+        const instance = new this(account);
+
+        this.execute(instance).finally(() => {
           this.runners.delete(account.id);
         });
       }
 
-      const runner = this.runners.get(account.id);
-      const elapsed = this.utils.dateFns.formatDistanceStrict(
-        new Date(),
-        runner.startedAt,
-      );
+      const instance = this.runners.get(account.id);
 
       return {
-        status: runner.task ? "running" : "started",
-        startedAt: runner.startedAt,
-        task: runner.task,
-        elapsed,
+        status: instance.currentTask ? "running" : "started",
+        startedAt: instance.startedAt,
+        currentTaskStartedAt: instance.currentTaskStartedAt,
+        currentTask: instance.currentTask,
+        elapsed: instance.getElapsedTime(),
+        url: instance.getLaunchURL(),
       };
     }
 

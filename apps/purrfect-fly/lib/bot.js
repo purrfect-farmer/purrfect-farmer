@@ -63,10 +63,11 @@ class GroupBot extends Bot {
 
             username: account.user?.username || "",
             title: account.title,
+            url: result.url,
             info:
               result.status === "running"
                 ? [
-                    `<b>TSK:</b> <code>${result.task}</code>`,
+                    `<b>TSK:</b> <code>${result.currentTask}</code>`,
                     `<b>ELP:</b> <code>${result.elapsed}</code>`,
                   ].join("\n")
                 : null,
