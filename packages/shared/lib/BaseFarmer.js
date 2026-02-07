@@ -422,7 +422,10 @@ export default class BaseFarmer {
   /** Log Current User */
   logCurrentUser() {
     const user = this.getTelegramUser();
-    this.logger.keyValue("User", `${user.username} (${user.id})`);
+    this.logger.keyValue(
+      "User",
+      `${user.username || "(no-username)"} (${user.id})`,
+    );
   }
 
   /** Process */
