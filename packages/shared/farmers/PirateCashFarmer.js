@@ -89,6 +89,15 @@ export default class PirateCashFarmer extends BaseFarmer {
       .then((res) => res.data);
   }
 
+  getSwapSubscriptions(signal = this.signal) {
+    return this.api
+      .get(
+        "https://p.cash/miniapp/swaps/list-subscriptions?subscriptions=all",
+        { signal },
+      )
+      .then((res) => res.data);
+  }
+
   /** Activate Skin */
   activateSkin(skinId, signal = this.signal) {
     return this.api
@@ -243,19 +252,29 @@ export default class PirateCashFarmer extends BaseFarmer {
 
   /** Join Required Channels */
   async joinRequiredChannels(user, signal = this.signal) {
-    if (user["subscribed_status"] === "no") {
-      for (const channel of this.constructor.channels) {
-        /* Join Telegram Channel */
-        await this.tryToJoinTelegramLink(`https://t.me/${channel.name}`);
-        this.logger.info(`✅ Joined @${channel.name} successfully!`);
+    const { quests } = await this.getSwapSubscriptions();
 
-        /* Force Check Subscription */
-        await this.forceCheckSubscriptions(channel.check);
-        this.logger.info(`🔄 Checked @${channel.name} subscription status!`);
+    for (const key in quests) {
+      /** Get status */
+      const status = quests[key];
 
-        /* Random delay between joins to mimic human behavior */
-        await this.utils.delayForSeconds(4, { signal });
-      }
+      /** Find channel */
+      const channel = this.constructor.channels.find(
+        (item) => item.check === key,
+      );
+
+      if (!channel || status.isCompleted) continue;
+
+      /* Join Telegram Channel */
+      await this.tryToJoinTelegramLink(`https://t.me/${channel.name}`);
+      this.logger.info(`✅ Joined @${channel.name} successfully!`);
+
+      /* Force Check Subscription */
+      await this.forceCheckSubscriptions(channel.check);
+      this.logger.info(`🔄 Checked @${channel.name} subscription status!`);
+
+      /* Random delay between joins to mimic human behavior */
+      await this.utils.delayForSeconds(4, { signal });
     }
   }
 
