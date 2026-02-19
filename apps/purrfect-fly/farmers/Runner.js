@@ -285,7 +285,6 @@ export default function createRunner(FarmerClass) {
 
     /** Join Telegram Link */
     async joinTelegramLink(link) {
-      await this.utils.delayForSeconds(Math.floor(Math.random() * 300));
       return super.joinTelegramLink(link);
     }
 

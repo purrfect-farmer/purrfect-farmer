@@ -346,6 +346,24 @@ export default class BaseFarmer {
   async tryToJoinTelegramLink(link) {
     if (this.utils.isTelegramChatLink(link) && this.canJoinTelegramLink(link)) {
       try {
+        /* Generate a random delay between 1 to 5 minutes */
+        const duration = 1 + Math.floor(Math.random() * 5);
+
+        /* Log Delayed Join */
+        this.logger.log(
+          `${this.logger.c.yellow("⏳ Delaying for")} ${this.logger.c.magenta(
+            `${duration} minute(s)`,
+          )} ${this.logger.c.yellow(
+            "before joining Telegram link:",
+          )} ${this.logger.c.magenta(link)}`,
+        );
+
+        /* Wait for a random duration between 1 to 5 minutes */
+        await this.utils.delayForMinutes(duration, {
+          signal: this.signal,
+        });
+
+        /* Try to Join Telegram Link */
         await this.joinTelegramLink(link);
         return true;
       } catch (error) {
