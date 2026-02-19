@@ -14,10 +14,28 @@ export function getNetRules(userAgent) {
 
   const farmerDomains = farmerNetRequests.reduce(
     (result, item) => result.concat(item.domains),
-    []
+    [],
   );
 
+  /**
+   * @type {chrome.declarativeNetRequest.Rule[]}
+   */
   const rules = [
+    {
+      action: {
+        type: "modifyHeaders",
+        requestHeaders: [
+          {
+            header: "sec-fetch-mode",
+            operation: "set",
+            value: '""',
+          },
+        ],
+      },
+      condition: {
+        requestDomains: ["ipwho.is"],
+      },
+    },
     {
       action: {
         type: "modifyHeaders",
@@ -131,8 +149,8 @@ export function getNetRules(userAgent) {
           initiatorDomains:
             isExtension() === false ? [location.hostname] : undefined,
         },
-      })
-    )
+      }),
+    ),
   );
 
   return rules;
