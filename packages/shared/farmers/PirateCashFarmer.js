@@ -73,9 +73,27 @@ export default class PirateCashFarmer extends BaseFarmer {
       .then((res) => res.data);
   }
 
+  getLoggedInUser(signal = this.signal) {
+    return this.api
+      .get("https://p.cash/miniapp/users", { signal })
+      .then((res) => res.data.user);
+  }
+
   getSystemInfo(signal = this.signal) {
     return this.api
       .get("https://p.cash/miniapp/system/info", { signal })
+      .then((res) => res.data);
+  }
+
+  getCaptcha(signal = this.signal) {
+    return this.api
+      .get("https://p.cash/miniapp/users/captcha", { signal })
+      .then((res) => res.data);
+  }
+
+  submitCaptcha(code, signal = this.signal) {
+    return this.api
+      .post("https://p.cash/miniapp/users/captcha", { code }, { signal })
       .then((res) => res.data);
   }
 
@@ -188,6 +206,11 @@ export default class PirateCashFarmer extends BaseFarmer {
         action: this.generatePCashWalletFromPhrase.bind(this),
       },
       {
+        id: "solve-connection-captcha",
+        title: "🔐 Solve Connection Captcha",
+        action: this.solveConnectionCaptcha.bind(this),
+      },
+      {
         id: "set-wallet-address",
         title: "💵 Set Wallet Address",
         action: this.configureWalletAddress.bind(this),
@@ -289,6 +312,36 @@ export default class PirateCashFarmer extends BaseFarmer {
     this.logger.info(`🔄 Setting wallet address ${walletAddress}...`);
     await this.setWalletAddress(walletAddress);
     this.logger.success("✅ Wallet address set successfully!");
+  }
+
+  async solveConnectionCaptcha() {
+    const captchaData = await this.getCaptcha();
+
+    if (!captchaData || !captchaData["image_base64"]) {
+      this.logger.warn("⚠️ No captcha available. Skipping...");
+      return;
+    }
+
+    this.logger.info("🔄 Please solve the captcha to continue farming:");
+    const userInput = await this.promptInput({
+      text: "Enter the captcha code:",
+      image: captchaData["image_base64"],
+    });
+
+    if (!userInput) {
+      this.logger.warn("⚠️ Captcha code not provided. Skipping...");
+      return;
+    }
+
+    try {
+      const result = await this.submitCaptcha(userInput);
+      if (!result.valid) {
+        throw new Error("Invalid captcha code");
+      }
+      this.logger.success("✅ Captcha solved successfully!");
+    } catch (err) {
+      this.logger.error("❌ Failed to solve captcha. Please try again.");
+    }
   }
 
   /** Process Farmer */

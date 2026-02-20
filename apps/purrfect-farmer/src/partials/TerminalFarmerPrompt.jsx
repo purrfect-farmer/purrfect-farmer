@@ -1,7 +1,7 @@
 import { Dialog } from "radix-ui";
 import Input from "@/components/Input";
-import { useState } from "react";
 import PromptDialog from "@/components/PromptDialog";
+import { useState } from "react";
 
 export const TerminalFarmerPrompt = ({ context, userInputPrompt }) => {
   const { show, question, answer, cancel } = userInputPrompt;
@@ -19,9 +19,14 @@ export const TerminalFarmerPrompt = ({ context, userInputPrompt }) => {
     >
       <PromptDialog
         title={context.title}
-        description={question}
+        description={question.text}
         icon={context.icon}
       >
+        {/* Image */}
+        {question.image ? (
+          <img src={question.image} alt={question.text} className="mx-auto" />
+        ) : null}
+
         {/* User Input */}
         <Input
           type="text"

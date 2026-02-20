@@ -1,6 +1,6 @@
 import { useCallback } from "react";
-import { useState } from "react";
 import { useRef } from "react";
+import { useState } from "react";
 
 export default function usePrompt() {
   const ref = useRef({
@@ -11,7 +11,11 @@ export default function usePrompt() {
   const [question, setQuestion] = useState(null);
 
   const prompt = useCallback((question) => {
-    setQuestion(question);
+    setQuestion(
+      typeof question === "string"
+        ? { type: "text", text: question }
+        : question,
+    );
 
     return new Promise((resolve, reject) => {
       ref.current.resolve = resolve;
