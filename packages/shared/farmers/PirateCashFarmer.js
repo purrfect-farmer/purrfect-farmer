@@ -1,4 +1,8 @@
+import { deriveEd25519Path, keyPairFromSeed } from "@ton/crypto";
+
 import BaseFarmer from "../lib/BaseFarmer.js";
+import { Wallet } from "ethers/wallet";
+import { WalletContractV4 } from "@ton/ton";
 
 export default class PirateCashFarmer extends BaseFarmer {
   static id = "pirate-cash";
@@ -174,6 +178,16 @@ export default class PirateCashFarmer extends BaseFarmer {
   createTools() {
     return [
       {
+        id: "create-pcash-wallet",
+        title: "🪙 Create P.CASH Wallet (NEW)",
+        action: this.generatePCashWallet.bind(this),
+      },
+      {
+        id: "create-pcash-wallet-from-phrase",
+        title: "🪙 Create P.CASH Wallet from phrase",
+        action: this.generatePCashWalletFromPhrase.bind(this),
+      },
+      {
         id: "set-wallet-address",
         title: "💵 Set Wallet Address",
         action: this.configureWalletAddress.bind(this),
@@ -186,6 +200,39 @@ export default class PirateCashFarmer extends BaseFarmer {
     ];
   }
 
+  async createPCashWallet() {
+    const ethWallet = Wallet.createRandom();
+    return this.derivePCashWallet(ethWallet);
+  }
+
+  async createPCashWalletFromPhrase(mnemonic) {
+    const ethWallet = Wallet.fromPhrase(mnemonic);
+
+    return this.derivePCashWallet(ethWallet);
+  }
+
+  /**
+   * Derive PCash Wallet from Ethereum Wallet
+   * @param {import("ethers").HDNodeWallet} ethWallet
+   */
+  async derivePCashWallet(ethWallet) {
+    // TON — BIP39 seed → SLIP-0010 Ed25519 at m/44'/607'/0'
+    const seed = Buffer.from(ethWallet.mnemonic.computeSeed().slice(2), "hex");
+    let privKey = await deriveEd25519Path(seed, [44, 607, 0]);
+    const { publicKey } = keyPairFromSeed(privKey);
+
+    const tonAddressV4 = WalletContractV4.create({
+      workchain: 0,
+      publicKey,
+    }).address.toString({ bounceable: false });
+
+    return {
+      phrase: ethWallet.mnemonic.phrase,
+      ethAddress: ethWallet.address,
+      tonAddress: tonAddressV4,
+    };
+  }
+
   async getSwapWalletAddress() {
     const { quests } = await this.api
       .get("https://p.cash/miniapp/swaps/active")
@@ -193,6 +240,43 @@ export default class PirateCashFarmer extends BaseFarmer {
 
     this.logger.debug(`🔄 Your swap wallet address is:`);
     this.logger.success(quests.wallet.data.walletAddress);
+  }
+
+  async generatePCashWalletFromPhrase() {
+    const mnemonic = await this.promptInput(
+      "Enter your 12-word mnemonic phrase:",
+    );
+
+    if (!mnemonic) {
+      this.logger.warn("⚠️ Mnemonic phrase not provided. Skipping...");
+      return null;
+    }
+
+    this.logger.info(`🔄 Generating PCash wallet from provided mnemonic...`);
+    this.logger.newline();
+
+    const { phrase, ethAddress, tonAddress } =
+      await this.createPCashWalletFromPhrase(mnemonic);
+
+    this.logPCashWalletInfo({ phrase, ethAddress, tonAddress });
+  }
+
+  async generatePCashWallet() {
+    const { phrase, ethAddress, tonAddress } = await this.createPCashWallet();
+
+    this.logPCashWalletInfo({ phrase, ethAddress, tonAddress });
+  }
+
+  logPCashWalletInfo({ phrase, ethAddress, tonAddress }) {
+    this.logger.debug(`🔄 Your PCash wallet information:`);
+    this.logger.keyValue("Mnemonic Phrase", phrase);
+    this.logger.newline();
+
+    this.logger.keyValue("Ethereum Address", ethAddress);
+    this.logger.newline();
+
+    this.logger.keyValue("TON Address", tonAddress);
+    this.logger.newline();
   }
 
   async configureWalletAddress() {
