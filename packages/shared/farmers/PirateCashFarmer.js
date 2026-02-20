@@ -251,7 +251,7 @@ export default class PirateCashFarmer extends BaseFarmer {
 
     return {
       phrase: ethWallet.mnemonic.phrase,
-      ethAddress: ethWallet.address,
+      ethAddress: ethWallet.address.toLowerCase(),
       tonAddress: tonAddressV4,
     };
   }
