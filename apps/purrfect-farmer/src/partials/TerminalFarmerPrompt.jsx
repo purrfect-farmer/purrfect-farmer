@@ -1,11 +1,12 @@
 import { Dialog } from "radix-ui";
 import Input from "@/components/Input";
 import PromptDialog from "@/components/PromptDialog";
+import Select from "@/components/Select";
 import { useState } from "react";
 
 export const TerminalFarmerPrompt = ({ context, userInputPrompt }) => {
   const { show, question, answer, cancel } = userInputPrompt;
-  const [value, setValue] = useState("");
+  const [value, setValue] = useState(question?.defaultValue || "");
 
   if (!show) return null;
 
@@ -28,12 +29,29 @@ export const TerminalFarmerPrompt = ({ context, userInputPrompt }) => {
         ) : null}
 
         {/* User Input */}
-        <Input
-          type="text"
-          onChange={(e) => setValue(e.target.value)}
-          value={value}
-          className="w-full"
-        />
+        {question.type === "text" ? (
+          <Input
+            type="text"
+            onChange={(e) => setValue(e.target.value)}
+            value={value}
+            className="w-full"
+          />
+        ) : question.type === "select" ? (
+          <Select
+            onChange={(e) => setValue(e.target.value)}
+            value={value}
+            className="w-full"
+          >
+            <Select.Item value="" disabled>
+              --Select an option--
+            </Select.Item>
+            {question.options.map((option) => (
+              <Select.Item key={option.value} value={option.value}>
+                {option.label}
+              </Select.Item>
+            ))}
+          </Select>
+        ) : null}
 
         {/* Submit Button */}
         <Dialog.Close
