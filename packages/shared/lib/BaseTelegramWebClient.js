@@ -12,6 +12,8 @@ import { StringSession } from "telegram/sessions/index.js";
 import { UpdateConnectionState } from "telegram/network/index.js";
 
 export default class BaseTelegramWebClient extends TelegramClient {
+  static webviewCache = new Map();
+
   /** Construct Class */
   constructor(session, options = {}) {
     const stringSession = new StringSession(session);
@@ -205,20 +207,21 @@ export default class BaseTelegramWebClient extends TelegramClient {
         }),
       });
 
-      let parsed = parseTelegramLink(link);
-      let webviewButton = null;
-      let miniApp = null;
+      const parsed = parseTelegramLink(link);
+      const entityKey = parsed.entity?.toLowerCase();
+      const cached = BaseTelegramWebClient.webviewCache.get(entityKey);
+      let webview = cached?.webview;
+      let miniApp = cached?.miniApp;
       let result = null;
 
       /** Set mini app */
       if (parsed.shortName) {
         miniApp = parsed;
-      } else {
+      } else if (!cached) {
         /** Find Bot Chat */
         const dialogs = await this.getDialogs({});
         const botChat = dialogs.find(
-          (d) =>
-            d.entity?.username?.toLowerCase() === parsed.entity?.toLowerCase(),
+          (d) => d.entity?.username?.toLowerCase() === entityKey,
         );
 
         if (!botChat) {
@@ -237,43 +240,55 @@ export default class BaseTelegramWebClient extends TelegramClient {
           return msg.buttonCount > 0;
         });
 
-        for (const msg of messagesWithButtons) {
-          const buttons = msg.buttons.flat().map((btn) => btn.button);
+        const buttons = messagesWithButtons.flatMap((msg) =>
+          msg.buttons.flat(),
+        );
 
-          for (const button of buttons) {
-            /** Mini App Link */
-            if (isBotMiniAppLink(button.url)) {
-              miniApp = parseTelegramLink(button.url);
-              break;
-            } else if (
-              /** Webview Button */
-              button instanceof Api.KeyboardButtonWebView ||
-              button instanceof Api.KeyboardButtonSimpleWebView
-            ) {
-              webviewButton = button;
-              break;
-            }
+        for (const button of buttons) {
+          /** Mini App Link */
+          if (isBotMiniAppLink(button.url)) {
+            miniApp = parseTelegramLink(button.url);
+            break;
+          } else if (
+            /** Webview Button */
+            button instanceof Api.KeyboardButtonWebView ||
+            button instanceof Api.KeyboardButtonSimpleWebView
+          ) {
+            webview = {
+              url: button.url,
+              type:
+                button instanceof Api.KeyboardButtonWebView
+                  ? "webview"
+                  : "simple-webview",
+            };
+            break;
           }
+        }
 
-          if (miniApp || webviewButton) break;
+        /** Cache Webview */
+        if (webview || miniApp) {
+          BaseTelegramWebClient.webviewCache.set(entityKey, {
+            webview,
+            miniApp,
+          });
         }
       }
 
       /** Request Webview */
-      if (webviewButton) {
+      if (webview) {
         result = await this.invoke(
-          webviewButton instanceof Api.KeyboardButtonWebView
+          webview.type === "webview"
             ? new Api.messages.RequestWebView({
                 platform: "android",
                 bot: parsed.entity,
                 peer: parsed.entity,
-                url: webviewButton.url,
+                url: webview.url,
                 themeParams,
               })
             : new Api.messages.RequestSimpleWebView({
                 platform: "android",
                 bot: parsed.entity,
-                url: webviewButton.url,
+                url: webview.url,
                 themeParams,
               }),
         );
