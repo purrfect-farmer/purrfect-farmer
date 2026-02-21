@@ -283,6 +283,16 @@ export async function resizeFarmerWindow() {
 /** Get Window Coords */
 export async function getWindowCoords() {
   const sharedSettings = await getSharedSettings();
+
+  if (typeof chrome?.system?.display === "undefined") {
+    return {
+      top: 0,
+      left: 0,
+      width: 400,
+      height: 800,
+    };
+  }
+
   const displays = await chrome.system.display.getInfo();
   const primaryDisplay =
     displays.find((display) => display.isPrimary) || displays[0];
