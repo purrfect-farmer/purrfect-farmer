@@ -208,6 +208,12 @@ export default class PirateCashFarmer extends BaseFarmer {
   createTools() {
     return [
       {
+        id: "connect-mini-app",
+        title: "🔗 Connect Mini-App (NEW Wallet)",
+        action: this.connectMiniApp.bind(this),
+        dispatch: false,
+      },
+      {
         id: "create-pcash-wallet",
         title: "🪙 Create P.CASH Wallet (NEW)",
         action: this.generatePCashWallet.bind(this),
@@ -215,7 +221,7 @@ export default class PirateCashFarmer extends BaseFarmer {
       },
       {
         id: "create-pcash-wallet-from-phrase",
-        title: "🪙 Create P.CASH Wallet from phrase",
+        title: "🪙 Create P.CASH Wallet from Phrase",
         action: this.generatePCashWalletFromPhrase.bind(this),
         dispatch: false,
       },
@@ -224,22 +230,6 @@ export default class PirateCashFarmer extends BaseFarmer {
         title: "🔐 Solve Connection Captcha",
         action: this.solveConnectionCaptcha.bind(this),
         dispatch: false,
-      },
-      {
-        id: "connect-miniapp",
-        title: "🔗 Connect MiniApp (NEW)",
-        action: this.connectMiniApp.bind(this),
-        dispatch: false,
-      },
-      {
-        id: "set-wallet-address",
-        title: "💵 Set Wallet Address",
-        action: this.configureWalletAddress.bind(this),
-      },
-      {
-        id: "get-swap-wallet-address",
-        title: "🔄 Get Swap Wallet Address",
-        action: this.getSwapWalletAddress.bind(this),
       },
     ];
   }
