@@ -35,9 +35,9 @@ if (!isWhisker) {
         window.id !== currentWindow.id &&
         window.tabs.some((tab) =>
           tab.url.startsWith(
-            isBridge ? import.meta.env.VITE_PWA_URL : "chrome://newtab/"
-          )
-        )
+            isBridge ? import.meta.env.VITE_PWA_URL : "chrome://newtab/",
+          ),
+        ),
     );
 
     for (const window of windowsToClose) {
@@ -62,7 +62,7 @@ if (!isWhisker) {
     let currentWindow =
       newWindow === false
         ? windows.find((window) =>
-            window.tabs.some((tab) => tab.url.startsWith(indexPage))
+            window.tabs.some((tab) => tab.url.startsWith(indexPage)),
           )
         : null;
 
@@ -96,36 +96,41 @@ if (!isWhisker) {
     await chrome.action.setPopup({ popup: "" });
 
     /** Side Panel */
-    try {
-      /** Configure Side Panel */
-      await chrome.sidePanel.setPanelBehavior({
-        openPanelOnActionClick: sharedSettings.openFarmerInNewWindow === false,
-      });
-    } catch (e) {
-      console.error(e);
+    if (typeof chrome.sidePanel !== "undefined") {
+      try {
+        /** Configure Side Panel */
+        await chrome.sidePanel.setPanelBehavior({
+          openPanelOnActionClick:
+            sharedSettings.openFarmerInNewWindow === false,
+        });
+      } catch (e) {
+        console.error(e);
+      }
     }
 
-    /** Proxy */
-    try {
-      /** Proxy Config */
-      const proxyConfig = sharedSettings.proxyEnabled
-        ? {
-            mode: "fixed_servers",
-            rules: {
-              singleProxy: {
-                host: sharedSettings.proxyHost,
-                port: Number(sharedSettings.proxyPort || 80),
+    if (typeof chrome?.proxy?.settings !== "undefined") {
+      /** Proxy */
+      try {
+        /** Proxy Config */
+        const proxyConfig = sharedSettings.proxyEnabled
+          ? {
+              mode: "fixed_servers",
+              rules: {
+                singleProxy: {
+                  host: sharedSettings.proxyHost,
+                  port: Number(sharedSettings.proxyPort || 80),
+                },
               },
-            },
-          }
-        : { mode: "direct" };
+            }
+          : { mode: "direct" };
 
-      /** Set Proxy */
-      await chrome.proxy.settings.set({
-        value: proxyConfig,
-      });
-    } catch (e) {
-      console.error(e);
+        /** Set Proxy */
+        await chrome.proxy.settings.set({
+          value: proxyConfig,
+        });
+      } catch (e) {
+        console.error(e);
+      }
     }
   };
 
@@ -204,7 +209,7 @@ if (!isWhisker) {
       if (sharedSettings?.newValue) {
         configureExtension(sharedSettings.newValue);
       }
-    }
+    },
   );
 
   /** Authenticate Proxy */
@@ -226,7 +231,7 @@ if (!isWhisker) {
     {
       urls: ["<all_urls>"],
     },
-    ["asyncBlocking"]
+    ["asyncBlocking"],
   );
 
   /** Always Setup Extension  */
