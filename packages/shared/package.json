@@ -17,6 +17,7 @@
     "ethers": "^6.16.0",
     "events": "^3.3.0",
     "md5": "^2.3.0",
+    "papaparse": "^5.5.3",
     "seedrandom": "^3.0.5",
     "socket.io-client": "^4.8.3",
     "telegram": "^2.26.22",

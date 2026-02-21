@@ -97,6 +97,12 @@ export default class PirateCashFarmer extends BaseFarmer {
       .then((res) => res.data);
   }
 
+  submitPCashWallet(data, signal = this.signal) {
+    return this.api
+      .post("https://p.cash/miniapp/users/wallet/pcash", data, { signal })
+      .then((res) => res.data);
+  }
+
   /** Get Skins */
   getSkins(signal = this.signal) {
     return this.api
@@ -108,6 +114,12 @@ export default class PirateCashFarmer extends BaseFarmer {
   getActiveSkin(signal = this.signal) {
     return this.api
       .get("https://p.cash/miniapp/skins/active", { signal })
+      .then((res) => res.data);
+  }
+
+  getActiveSwap(signal = this.signal) {
+    return this.api
+      .get("https://p.cash/miniapp/swaps/active", { signal })
       .then((res) => res.data);
   }
 
@@ -199,16 +211,25 @@ export default class PirateCashFarmer extends BaseFarmer {
         id: "create-pcash-wallet",
         title: "🪙 Create P.CASH Wallet (NEW)",
         action: this.generatePCashWallet.bind(this),
+        dispatch: false,
       },
       {
         id: "create-pcash-wallet-from-phrase",
         title: "🪙 Create P.CASH Wallet from phrase",
         action: this.generatePCashWalletFromPhrase.bind(this),
+        dispatch: false,
       },
       {
         id: "solve-connection-captcha",
         title: "🔐 Solve Connection Captcha",
         action: this.solveConnectionCaptcha.bind(this),
+        dispatch: false,
+      },
+      {
+        id: "connect-miniapp",
+        title: "🔗 Connect MiniApp (NEW)",
+        action: this.connectMiniApp.bind(this),
+        dispatch: false,
       },
       {
         id: "set-wallet-address",
@@ -322,8 +343,9 @@ export default class PirateCashFarmer extends BaseFarmer {
       return;
     }
 
-    this.logger.info("🔄 Please solve the captcha to continue farming:");
+    this.logger.info("🔄 Please solve the captcha:");
     const userInput = await this.promptInput({
+      type: "text",
       text: "Enter the captcha code:",
       image: captchaData["image_base64"],
     });
@@ -366,6 +388,201 @@ export default class PirateCashFarmer extends BaseFarmer {
     );
     await this.executeTask("Channels", () => this.joinRequiredChannels(user));
     await this.executeTask("Tap Game", () => this.tapGame(user));
+  }
+
+  async selectDevice() {
+    this.logger.info(
+      "Visit GSMArena to find a compatible device: https://www.gsmarena.com/makers.php3",
+    );
+    await this.utils.delayForSeconds(1);
+    window.open("https://www.gsmarena.com/makers.php3", "_blank");
+
+    /* Prompt user to enter device name */
+    const selectedDevice = await this.promptInput(
+      "Enter the device name (e.g. Samsung Galaxy S21)",
+    );
+
+    /* Log selected device and add delay for better UX */
+    this.logger.info(`🔄 You selected: ${selectedDevice}`);
+    await this.utils.delayForSeconds(1);
+
+    const versions = [
+      { name: "Android 9", sdk: 28 },
+      { name: "Android 10", sdk: 29 },
+      { name: "Android 11", sdk: 30 },
+      { name: "Android 12", sdk: 31 },
+      { name: "Android 13", sdk: 33 },
+      { name: "Android 14", sdk: 34 },
+      { name: "Android 15", sdk: 35 },
+      { name: "Android 16", sdk: 36 },
+    ];
+
+    /* Prompt user to select Android version */
+    const selectedSdk = await this.promptInput({
+      text: "Select the Android version:",
+      type: "select",
+      options: versions.map((v) => ({
+        label: v.name,
+        value: v.sdk,
+      })),
+    });
+
+    const selectedVersion = versions.find(
+      (v) => v.sdk === parseInt(selectedSdk),
+    );
+
+    /* Log selected version and add delay for better UX */
+    this.logger.info(
+      `🔄 You selected ${selectedVersion.name} (SDK ${selectedVersion.sdk})`,
+    );
+    await this.utils.delayForSeconds(1);
+
+    return {
+      name: selectedDevice,
+      version: selectedVersion.name,
+      sdk: selectedVersion.sdk,
+    };
+  }
+
+  /** Connect MiniApp */
+  async connectMiniApp() {
+    this.logger.info(
+      `🔄 To connect the miniapp, we need to generate some device data. Let's start by selecting a random device:`,
+    );
+    await this.utils.delayForSeconds(1);
+
+    const device = await this.selectDevice();
+
+    const wallet = await this.createPCashWallet();
+    this.logPCashWalletInfo(wallet);
+
+    /* Simulate device data collection and captcha solving before connecting the wallet */
+    const details = await this.generateDeviceData(device, wallet);
+
+    this.logger.debug("🔄 Device data generated successfully!");
+    this.logger.info(JSON.stringify(details, null, 2));
+
+    await this.utils.delayForSeconds(1);
+    await this.solveConnectionCaptcha();
+    await this.utils.delayForSeconds(1);
+
+    const connection = await this.submitPCashWallet(details);
+
+    this.logger.success("✅ MiniApp connected successfully!");
+    this.logger.debug("🔄 Connection details:");
+    this.logger.info(JSON.stringify(connection, null, 2));
+
+    /* Download device data and connection details as JSON file for user reference */
+    const filename = `piratecash_device_data_${this.getUserId()}_${Date.now()}.json`;
+
+    this.utils.downloadFile(filename, {
+      device,
+      wallet,
+      details,
+      connection,
+    });
+
+    this.logger.info(
+      `📥 Device data and connection details saved as ${filename}`,
+    );
+    this.logger.warn(
+      "⚠️ Make sure to keep this file safe, it contains information which will be required for future operations!",
+    );
+  }
+
+  /**
+   * Generate a random float between min and max with 7 significant digits
+   */
+  randomFloat(min, max) {
+    return parseFloat((min + Math.random() * (max - min)).toPrecision(7));
+  }
+
+  /**
+   * Simulate realistic gyroscope data (rad/s)
+   * A phone at rest has near-zero angular velocity with small sensor noise
+   */
+  randomGyro() {
+    return {
+      x: this.randomFloat(-0.005, 0.005),
+      y: this.randomFloat(-0.005, 0.005),
+      z: this.randomFloat(-0.005, 0.005),
+    };
+  }
+
+  /**
+   * Simulate realistic accelerometer data (m/s²)
+   * Gravity (~9.81) is distributed across axes depending on phone orientation
+   * Simulates a phone held in hand at a natural angle
+   */
+  randomAccelerometer() {
+    const gravity = 9.81;
+    // Random tilt angles (radians) — phone held somewhat upright
+    const tiltX = this.randomFloat(-0.4, 0.4); // slight side tilt
+    const tiltY = this.randomFloat(0.3, 1.2); // mostly upright
+
+    return {
+      x: gravity * Math.sin(tiltX) + this.randomFloat(-0.3, 0.3),
+      y: gravity * Math.cos(tiltY) + this.randomFloat(-0.3, 0.3),
+      z: gravity * Math.sin(tiltY) + this.randomFloat(-0.3, 0.3),
+    };
+  }
+
+  /**
+   * Simulate realistic gyroscope variance
+   * Very small values — sensor noise variance when stationary
+   */
+  randomGyroVariance() {
+    return {
+      x: this.randomFloat(1e-5, 1e-3),
+      y: this.randomFloat(1e-5, 1e-3),
+      z: this.randomFloat(1e-5, 1e-3),
+    };
+  }
+
+  /**
+   * Simulate realistic accelerometer variance
+   * Small values — micro-movements from hand tremor
+   */
+  randomAccelerometerVariance() {
+    return {
+      x: this.randomFloat(0.001, 0.05),
+      y: this.randomFloat(0.001, 0.05),
+      z: this.randomFloat(0.001, 0.05),
+    };
+  }
+
+  generateDeviceData(device, wallet) {
+    const isCharging = Math.random() < 0.3;
+
+    return {
+      walletAddress: wallet.tonAddress,
+      premiumAddress: wallet.ethAddress,
+      pirate: "0.00000000",
+      cosa: "0.00000000",
+      uniqueCode: null,
+      gyro: this.randomGyro(),
+      accelerometer: this.randomAccelerometer(),
+      gyroVariance: this.randomGyroVariance(),
+      accelerometerVariance: this.randomAccelerometerVariance(),
+      batteryPercent: 10 + Math.floor(Math.random() * 90),
+      isCharging: isCharging,
+      chargingType: isCharging ? "USB" : "NONE",
+      isUsbConnected: isCharging,
+      deviceModel: device.name,
+      osVersion: device.version,
+      sdkVersion: device.sdk,
+      hasGyroscope: true,
+      hasAccelerometer: true,
+      emulator: false,
+      isMoving: true,
+      isHandHeld: false,
+      isDev: false,
+      isAdb: false,
+      isRooted: false,
+      collectionDurationMs: 10_000 + Math.floor(Math.random() * 30_000),
+      sampleCount: 100 + Math.floor(Math.random() * 400),
+      apiVersion: 2,
+    };
   }
 
   logUserInfo(user) {
