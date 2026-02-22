@@ -1,7 +1,7 @@
 {
   "name": "purrfect-farmer",
   "private": true,
-  "version": "5.2.8",
+  "version": "5.2.9",
   "type": "module",
   "scripts": {
     "dev": "vite",
