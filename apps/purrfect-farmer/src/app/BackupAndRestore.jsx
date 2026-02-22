@@ -3,13 +3,13 @@ import { cn, downloadFile } from "@/utils";
 import Alert from "@/components/Alert";
 import AppIcon from "@/assets/images/icon.png?format=webp&w=192";
 import Container from "@/components/Container";
+import Dropzone from "@/components/Dropzone";
 import PrimaryButton from "@/components/PrimaryButton";
 import Tabs from "@/components/Tabs";
 import { formatDate } from "date-fns";
 import toast from "react-hot-toast";
 import useBackupAndRestore from "@/hooks/useBackupAndRestore";
 import { useCallback } from "react";
-import { useDropzone } from "react-dropzone";
 import useMirroredTabs from "@/hooks/useMirroredTabs";
 
 const TabContent = ({ title, children, ...props }) => (
@@ -48,34 +48,10 @@ export default function BackupAndRestore() {
     [getBackupData],
   );
 
-  const onDrop = useCallback(
-    (acceptedFiles) => {
-      const file = acceptedFiles[0];
-      const reader = new FileReader();
-
-      reader.addEventListener("load", (e) => {
-        try {
-          const json = JSON.parse(e.target.result);
-          const { data } = json;
-
-          restoreBackupData(data).then(() => toast.success("Backup restored!"));
-        } catch (err) {
-          toast.error("Invalid JSON file!");
-        }
-      });
-      reader.readAsText(file);
-    },
-    [restoreBackupData],
-  );
-
-  const { getRootProps, getInputProps, isDragActive } = useDropzone({
-    onDrop,
-    accept: {
-      "application/json": [".json"],
-    },
-    maxFiles: 1,
-    multiple: false,
-  });
+  const onDropzoneData = (result) =>
+    restoreBackupData(result.data).then(() =>
+      toast.success("Backup restored!"),
+    );
 
   return (
     <Tabs tabs={tabs} rootClassName="grow gap-0 overflow-auto">
@@ -98,20 +74,7 @@ export default function BackupAndRestore() {
               accounts and Telegram Web data.
             </Alert>
 
-            <div
-              {...getRootProps()}
-              className="border border-dashed border-blue-500 px-4 py-10 text-center rounded-xl"
-            >
-              <input {...getInputProps()} />
-              {isDragActive ? (
-                <p>Drop the backup file here ...</p>
-              ) : (
-                <p>
-                  Drag 'n' drop the backup file here, or click to select backup
-                  file
-                </p>
-              )}
-            </div>
+            <Dropzone title={"backup file"} onData={onDropzoneData} />
           </TabContent>
         </Container>
       </div>
