@@ -1,4 +1,5 @@
 import { Dialog } from "radix-ui";
+import Dropzone from "@/components/Dropzone";
 import Input from "@/components/Input";
 import PromptDialog from "@/components/PromptDialog";
 import Select from "@/components/Select";
@@ -51,6 +52,11 @@ export const TerminalFarmerPrompt = ({ context, userInputPrompt }) => {
               </Select.Item>
             ))}
           </Select>
+        ) : question.type === "file" ? (
+          <Dropzone
+            title={question.fileTitle}
+            onData={(data) => answer(data)}
+          />
         ) : null}
 
         {/* Submit Button */}
