@@ -91,6 +91,16 @@ export default class PirateCashFarmer extends BaseFarmer {
       .then((res) => res.data);
   }
 
+  getPCashWalletBalance({ uniqueCode, evmAddress }, signal = this.signal) {
+    return this.api
+      .post(
+        "https://p.cash/miniapp/users/wallet/pcash/balance",
+        { uniqueCode, evmAddress, apiVersion: 2 },
+        { signal },
+      )
+      .then((res) => res.data);
+  }
+
   submitCaptcha(code, signal = this.signal) {
     return this.api
       .post("https://p.cash/miniapp/users/captcha", { code }, { signal })
@@ -208,28 +218,60 @@ export default class PirateCashFarmer extends BaseFarmer {
   createTools() {
     return [
       {
-        id: "connect-mini-app",
-        title: "🔗 Connect Mini-App (NEW Wallet)",
-        action: this.connectMiniApp.bind(this),
-        dispatch: false,
+        name: "Mini-App connection",
+        list: [
+          {
+            id: "connect-mini-app",
+            emoji: "🔗",
+            title: "Connect Mini-App (NEW Wallet)",
+            action: this.connectMiniApp.bind(this),
+            dispatch: false,
+          },
+          {
+            id: "check-mini-app-connection",
+            emoji: "🔍",
+            title: "Check Mini-App Connection",
+            action: this.checkMiniAppConnection.bind(this),
+          },
+        ],
       },
       {
-        id: "create-pcash-wallet",
-        title: "🪙 Create P.CASH Wallet (NEW)",
-        action: this.generatePCashWallet.bind(this),
-        dispatch: false,
+        name: "P.CASH Wallet",
+        list: [
+          {
+            id: "create-pcash-wallet",
+            emoji: "🪙",
+            title: "Create P.CASH Wallet (NEW)",
+            action: this.generatePCashWallet.bind(this),
+            dispatch: false,
+          },
+          {
+            id: "create-pcash-wallet-from-phrase",
+            emoji: "🪙",
+            title: "Create P.CASH Wallet from Phrase",
+            action: this.generatePCashWalletFromPhrase.bind(this),
+            dispatch: false,
+          },
+        ],
       },
       {
-        id: "create-pcash-wallet-from-phrase",
-        title: "🪙 Create P.CASH Wallet from Phrase",
-        action: this.generatePCashWalletFromPhrase.bind(this),
-        dispatch: false,
-      },
-      {
-        id: "solve-connection-captcha",
-        title: "🔐 Solve Connection Captcha",
-        action: this.solveConnectionCaptcha.bind(this),
-        dispatch: false,
+        name: "Device data",
+        list: [
+          {
+            id: "import-connection-data",
+            emoji: "📁",
+            title: "Import Connection Data from JSON",
+            action: this.importConnectionData.bind(this),
+            dispatch: false,
+          },
+          {
+            id: "solve-connection-captcha",
+            emoji: "🔐",
+            title: "Solve Connection Captcha",
+            action: this.solveConnectionCaptcha.bind(this),
+            dispatch: false,
+          },
+        ],
       },
     ];
   }
@@ -392,6 +434,11 @@ export default class PirateCashFarmer extends BaseFarmer {
       "Enter the device name (e.g. Samsung Galaxy S21)",
     );
 
+    if (!selectedDevice) {
+      this.logger.warn("⚠️ Device name not provided. Skipping...");
+      throw new Error("Device name is required!");
+    }
+
     /* Log selected device and add delay for better UX */
     this.logger.info(`🔄 You selected: ${selectedDevice}`);
     await this.utils.delayForSeconds(1);
@@ -421,6 +468,11 @@ export default class PirateCashFarmer extends BaseFarmer {
       (v) => v.sdk === parseInt(selectedSdk),
     );
 
+    if (!selectedVersion) {
+      this.logger.warn("⚠️ Android version not selected. Skipping...");
+      throw new Error("Android version selection is required!");
+    }
+
     /* Log selected version and add delay for better UX */
     this.logger.info(
       `🔄 You selected ${selectedVersion.name} (SDK ${selectedVersion.sdk})`,
@@ -434,8 +486,38 @@ export default class PirateCashFarmer extends BaseFarmer {
     };
   }
 
+  async checkMiniAppConnection() {
+    const swap = await this.getActiveSwap();
+    const connectedWallet = swap.quests.wallet.data;
+
+    if (connectedWallet.walletAddress) {
+      this.logger.warn(`✅ Your mini-app is already connected!`);
+      this.logger.newline();
+      this.logMiniAppConnection(connectedWallet);
+    } else {
+      this.logger.warn(`⚠️ Your mini-app is not connected yet!`);
+    }
+  }
+
+  logMiniAppConnection(connectedWallet) {
+    this.logger.keyValue("Ethereum Wallet", connectedWallet.premiumAddress);
+    this.logger.newline();
+    this.logger.keyValue("TON Wallet", connectedWallet.walletAddress);
+    this.logger.newline();
+  }
+
   /** Connect MiniApp */
   async connectMiniApp() {
+    const swap = await this.getActiveSwap();
+    const connectedWallet = swap.quests.wallet.data;
+
+    if (connectedWallet.walletAddress) {
+      this.logger.warn(`⚠️ Your mini-app is already connected!`);
+      this.logger.newline();
+      this.logMiniAppConnection(connectedWallet);
+      return;
+    }
+
     this.logger.info(
       `🔄 To connect the miniapp, we need to generate some device data. Let's start by selecting a random device:`,
     );
@@ -478,6 +560,33 @@ export default class PirateCashFarmer extends BaseFarmer {
     this.logger.warn(
       "⚠️ Make sure to keep this file safe, it contains information which will be required for future operations!",
     );
+  }
+
+  /* Import Connection Data from JSON file */
+  async importConnectionData() {
+    const data = await this.promptInput({
+      type: "file",
+      text: "Upload the generated device data JSON file",
+      fileTitle: "device data file",
+    });
+
+    if (!data) {
+      this.logger.warn("⚠️ No file uploaded. Skipping...");
+      return;
+    }
+
+    /* Log imported data for user reference */
+    this.logger.keyValue("Device", data.device.name);
+    this.logger.keyValue("Android Version", data.device.version);
+    this.logger.keyValue("SDK Version", data.device.sdk);
+    this.logger.newline();
+
+    /** Log PCash Wallet Info */
+    this.logPCashWalletInfo(data.wallet);
+
+    /** Log Device Data */
+    this.logger.debug("🔄 Imported device data:");
+    this.logger.info(JSON.stringify(data.details, null, 2));
   }
 
   /**
