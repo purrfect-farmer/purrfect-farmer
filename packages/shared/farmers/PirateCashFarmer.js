@@ -674,7 +674,7 @@ export default class PirateCashFarmer extends BaseFarmer {
       hasAccelerometer: true,
       emulator: false,
       isMoving: true,
-      isHandHeld: false,
+      isHandHeld: true,
       isDev: false,
       isAdb: false,
       isRooted: false,
