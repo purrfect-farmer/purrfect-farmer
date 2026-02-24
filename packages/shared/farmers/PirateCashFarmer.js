@@ -107,6 +107,12 @@ export default class PirateCashFarmer extends BaseFarmer {
       .then((res) => res.data);
   }
 
+  submitSwapApplication(swapID, signal = this.signal) {
+    return this.api
+      .post("https://p.cash/miniapp/swaps", { swapID }, { signal })
+      .then((res) => res.data);
+  }
+
   submitPCashWallet(data, signal = this.signal) {
     return this.api
       .post("https://p.cash/miniapp/users/wallet/pcash", data, { signal })
@@ -233,6 +239,13 @@ export default class PirateCashFarmer extends BaseFarmer {
             title: "Check Mini-App Connection",
             action: this.checkMiniAppConnection.bind(this),
           },
+          {
+            id: "confirm-wallet-connection",
+            emoji: "✅",
+            title: "Confirm Wallet Connection",
+            action: this.confirmWalletConnection.bind(this),
+            dispatch: false,
+          },
         ],
       },
       {
@@ -352,6 +365,14 @@ export default class PirateCashFarmer extends BaseFarmer {
     this.logger.newline();
 
     this.logger.keyValue("TON Address", tonAddress);
+    this.logger.newline();
+  }
+
+  logDeviceInfo(device) {
+    this.logger.debug(`🔄 Device information:`);
+    this.logger.keyValue("Device Model", device.name);
+    this.logger.keyValue("OS Version", device.version);
+    this.logger.keyValue("SDK Version", device.sdk);
     this.logger.newline();
   }
 
@@ -562,6 +583,74 @@ export default class PirateCashFarmer extends BaseFarmer {
     );
   }
 
+  async confirmWalletConnection() {
+    const swap = await this.getActiveSwap();
+    const isConfirmed = swap.quests.confirmed_app.isCompleted;
+
+    if (isConfirmed) {
+      this.logger.warn(`✅ Your wallet connection is already confirmed!`);
+      return;
+    }
+
+    this.logger.info(
+      "To confirm your wallet connection, you will need to provide the connection details JSON file that was generated during the connection process. Please select the file to proceed.",
+    );
+
+    this.logger.newline();
+    this.logger.warn(
+      `piratecash_device_data_${this.getUserId()}_{timestamp}.json`,
+    );
+
+    await this.utils.delayForSeconds(2, { signal: this.signal });
+
+    const data = await this.promptInput({
+      type: "file",
+      text: `Upload the file: piratecash_device_data_${this.getUserId()}_{timestamp}.json`,
+      fileTitle: "connection details file",
+    });
+
+    if (!data) {
+      this.logger.warn("⚠️ No file uploaded. Skipping...");
+      return null;
+    }
+    console.log("Connection file:", data);
+
+    this.logDeviceInfo(data.device);
+    this.logPCashWalletInfo(data.wallet);
+
+    const details = await this.generateDeviceData(
+      data.device,
+      data.wallet,
+      data.connection.uniqueCode,
+    );
+
+    console.log("Generated device data for confirmation:", details);
+
+    await this.solveConnectionCaptcha();
+    await this.utils.delayForSeconds(1, { signal: this.signal });
+
+    const result = await this.submitPCashWallet(details);
+    this.logger.success("✅ Wallet connection confirmed successfully!");
+    this.logger.debug("🔄 Confirmation result:");
+    this.logger.info(JSON.stringify(result, null, 2));
+
+    const balanceResult = await this.getPCashWalletBalance({
+      uniqueCode: data.connection.uniqueCode,
+      evmAddress: data.wallet.ethAddress,
+    });
+    this.logger.keyValue(
+      "Current Balance",
+      balanceResult.balance / Math.pow(10, 8),
+    );
+    this.logger.newline();
+
+    /* Swap application */
+    this.logger.info("Submitting swap application in 5 seconds...");
+    await this.utils.delayForSeconds(5, { signal: this.signal });
+    await this.submitSwapApplication(swap.id);
+    this.logger.success("✅ Swap application submitted successfully!");
+  }
+
   /* Import Connection Data from JSON file */
   async importConnectionData() {
     const data = await this.promptInput({
@@ -576,10 +665,7 @@ export default class PirateCashFarmer extends BaseFarmer {
     }
 
     /* Log imported data for user reference */
-    this.logger.keyValue("Device", data.device.name);
-    this.logger.keyValue("Android Version", data.device.version);
-    this.logger.keyValue("SDK Version", data.device.sdk);
-    this.logger.newline();
+    this.logDeviceInfo(data.device);
 
     /** Log PCash Wallet Info */
     this.logPCashWalletInfo(data.wallet);
@@ -593,7 +679,7 @@ export default class PirateCashFarmer extends BaseFarmer {
    * Generate a random float between min and max with 7 significant digits
    */
   randomFloat(min, max) {
-    return parseFloat((min + Math.random() * (max - min)).toPrecision(7));
+    return Math.fround(min + Math.random() * (max - min));
   }
 
   /**
@@ -615,14 +701,20 @@ export default class PirateCashFarmer extends BaseFarmer {
    */
   randomAccelerometer() {
     const gravity = 9.81;
-    // Random tilt angles (radians) — phone held somewhat upright
-    const tiltX = this.randomFloat(-0.4, 0.4); // slight side tilt
-    const tiltY = this.randomFloat(0.3, 1.2); // mostly upright
+    // Random tilt angles (radians) — phone held in hand, mostly upright
+    const sideTilt = this.randomFloat(-0.1, 0.1); // ±~6° side tilt
+    const forwardTilt = this.randomFloat(0.15, 0.45); // ~9-26° forward tilt
 
     return {
-      x: gravity * Math.sin(tiltX) + this.randomFloat(-0.3, 0.3),
-      y: gravity * Math.cos(tiltY) + this.randomFloat(-0.3, 0.3),
-      z: gravity * Math.sin(tiltY) + this.randomFloat(-0.3, 0.3),
+      x: Math.fround(
+        gravity * Math.sin(sideTilt) + this.randomFloat(-0.15, 0.15),
+      ),
+      y: Math.fround(
+        gravity * Math.cos(forwardTilt) + this.randomFloat(-0.15, 0.15),
+      ),
+      z: Math.fround(
+        gravity * Math.sin(forwardTilt) + this.randomFloat(-0.15, 0.15),
+      ),
     };
   }
 
@@ -632,9 +724,9 @@ export default class PirateCashFarmer extends BaseFarmer {
    */
   randomGyroVariance() {
     return {
-      x: this.randomFloat(1e-5, 1e-3),
-      y: this.randomFloat(1e-5, 1e-3),
-      z: this.randomFloat(1e-5, 1e-3),
+      x: this.randomFloat(3e-4, 2.5e-3),
+      y: this.randomFloat(3e-4, 2.5e-3),
+      z: this.randomFloat(3e-4, 2.5e-3),
     };
   }
 
@@ -644,13 +736,13 @@ export default class PirateCashFarmer extends BaseFarmer {
    */
   randomAccelerometerVariance() {
     return {
-      x: this.randomFloat(0.001, 0.05),
-      y: this.randomFloat(0.001, 0.05),
-      z: this.randomFloat(0.001, 0.05),
+      x: this.randomFloat(0.003, 0.06),
+      y: this.randomFloat(0.003, 0.06),
+      z: this.randomFloat(0.003, 0.06),
     };
   }
 
-  generateDeviceData(device, wallet) {
+  generateDeviceData(device, wallet, uniqueCode = null) {
     const isCharging = Math.random() < 0.3;
 
     return {
@@ -658,7 +750,7 @@ export default class PirateCashFarmer extends BaseFarmer {
       premiumAddress: wallet.ethAddress,
       pirate: "0.00000000",
       cosa: "0.00000000",
-      uniqueCode: null,
+      uniqueCode: uniqueCode,
       gyro: this.randomGyro(),
       accelerometer: this.randomAccelerometer(),
       gyroVariance: this.randomGyroVariance(),
@@ -678,8 +770,8 @@ export default class PirateCashFarmer extends BaseFarmer {
       isDev: false,
       isAdb: false,
       isRooted: false,
-      collectionDurationMs: 10_000 + Math.floor(Math.random() * 30_000),
-      sampleCount: 100 + Math.floor(Math.random() * 400),
+      collectionDurationMs: 20_000 + Math.floor(Math.random() * 5_000),
+      sampleCount: 200 + Math.floor(Math.random() * 200),
       apiVersion: 2,
     };
   }
