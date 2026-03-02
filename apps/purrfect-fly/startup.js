@@ -3,6 +3,30 @@ import app from "./config/app.js";
 import axios from "axios";
 import bot from "./lib/bot.js";
 import cleanDatabase from "./actions/clean-database.js";
+import updateProxies from "./actions/update-proxies.js";
+
+/** Handle Graceful Shutdown */
+process.on("SIGINT", async () => {
+  console.log("Gracefully shutting down...");
+  await Promise.allSettled(
+    [...GramClient.instances.values()].map((c) => c.destroy()),
+  );
+  process.exit(0);
+});
+
+/** Remove old farmers */
+try {
+  await cleanDatabase();
+} catch (e) {
+  console.error("Error while cleaning database:", e);
+}
+
+/** Update account proxies */
+try {
+  await updateProxies();
+} catch (e) {
+  console.error("Error while updating account proxies:", e);
+}
 
 if (app.seeker.enabled || app.startup.sendServerAddress) {
   /** Fetch and send server address */
@@ -43,21 +67,5 @@ if (app.seeker.enabled || app.startup.sendServerAddress) {
   };
 
   /** Fetch and send server address */
-  fetchAndSendServerAddress();
+  await fetchAndSendServerAddress();
 }
-
-/** Remove old farmers */
-try {
-  await cleanDatabase();
-} catch (e) {
-  console.error("Error while cleaning database:", e);
-}
-
-/** Handle Graceful Shutdown */
-process.on("SIGINT", async () => {
-  console.log("Gracefully shutting down...");
-  await Promise.allSettled(
-    [...GramClient.instances.values()].map((c) => c.destroy()),
-  );
-  process.exit(0);
-});
