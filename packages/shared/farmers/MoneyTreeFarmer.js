@@ -279,6 +279,7 @@ export default class MoneyTreeFarmer extends BaseFarmer {
     const { player: user } = this.authData;
 
     this.logUserInfo(user);
+    await this.executeTask("Play Game", () => this.playGame());
     await this.executeTask("Check First Name", () => this.checkUserFirstName());
     await this.executeTask("Daily Bonus", () => this.claimDailyBonus());
     await this.executeTask("Claim Tickets", () => this.claimTickets());
@@ -286,7 +287,6 @@ export default class MoneyTreeFarmer extends BaseFarmer {
     await this.executeTask("Auto Bot", () => this.claimOrPurchaseAutoBot());
     await this.executeTask("Upgrade Shop-Items", () => this.upgradeShopItems());
     await this.executeTask("Upgrade Boosts", () => this.upgradeBoosts());
-    await this.executeTask("Play Game", () => this.playGame());
   }
   /** Log User Info */
   logUserInfo(user) {
