@@ -33,6 +33,7 @@ export default class ATFFarmer extends BaseFarmer {
       const url = new URL(config.url, config.baseURL);
       url.searchParams.set("t", Date.now().toString());
       config.url = url.toString();
+      config.headers["X-Requested-With"] = "XMLHttpRequest";
       config.headers["X-Telegram-Init-Data"] = this.getInitData();
       config.headers["X-ATF-TMA-Session"] = this.auth_data
         ? this.auth_data["tma_session_token"]
