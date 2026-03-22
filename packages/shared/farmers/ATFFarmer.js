@@ -217,9 +217,10 @@ export default class ATFFarmer extends BaseFarmer {
   async startOrClaimMining() {
     const { user } = this.authData;
     if (!user["wallet_address"]) {
-      throw new Error(
-        "Wallet not connected. Please connect your wallet to start mining.",
+      this.logger.error(
+        "No wallet connected. Please connect your wallet first.",
       );
+      return;
     }
 
     const lastMiningStart = Number(user["last_mining_start"]);
