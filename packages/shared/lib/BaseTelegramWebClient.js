@@ -209,6 +209,7 @@ export default class BaseTelegramWebClient extends TelegramClient {
 
       const parsed = parseTelegramLink(link);
       const entityKey = parsed.entity?.toLowerCase();
+      const startParam = parsed.startParam || "";
       const cached = BaseTelegramWebClient.webviewCache.get(entityKey);
       let webview = cached?.webview;
       let miniApp = cached?.miniApp;
@@ -228,7 +229,7 @@ export default class BaseTelegramWebClient extends TelegramClient {
           /** Start Bot if no chat found */
           await this.startBot({
             entity: parsed.entity,
-            startParam: parsed.startParam,
+            startParam,
           });
         }
 
@@ -288,12 +289,14 @@ export default class BaseTelegramWebClient extends TelegramClient {
                 bot: parsed.entity,
                 peer: parsed.entity,
                 url: webview.url,
+                startParam,
                 themeParams,
               })
             : new Api.messages.RequestSimpleWebView({
                 platform: "android",
                 bot: parsed.entity,
                 url: webview.url,
+                startParam,
                 themeParams,
               }),
         );
@@ -303,11 +306,11 @@ export default class BaseTelegramWebClient extends TelegramClient {
           new Api.messages.RequestAppWebView({
             platform: "android",
             peer: miniApp.entity,
-            startParam: miniApp.startParam,
             app: new Api.InputBotAppShortName({
               botId: await this.getInputEntity(miniApp.entity),
               shortName: miniApp.shortName,
             }),
+            startParam,
             themeParams,
           }),
         );
@@ -318,7 +321,7 @@ export default class BaseTelegramWebClient extends TelegramClient {
             platform: "android",
             bot: parsed.entity,
             peer: parsed.entity,
-            startParam: parsed.startParam,
+            startParam,
             themeParams,
           }),
         );
