@@ -47,6 +47,23 @@ export default class ATFFarmer extends BaseFarmer {
     return () => this.api.interceptors.request.eject(interceptor);
   }
 
+  /** Get Auth */
+  async fetchAuth() {
+    this.auth_data = await this.makeAction("login", {
+      username: this.getUsername(),
+    });
+
+    return this.auth_data;
+  }
+
+  /** Get Auth Headers */
+  getAuthHeaders(data) {
+    return {
+      "X-ATF-TMA-Session": data["tma_session_token"],
+      "X-Telegram-Init-Data": this.getInitData(),
+    };
+  }
+
   makeAction(action, data = {}) {
     return this.api
       .post(
