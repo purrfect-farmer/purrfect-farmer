@@ -35,12 +35,15 @@ export function createFarmer(FarmerClass, options) {
   return {
     FarmerClass,
     ...getAllStaticProperties(FarmerClass),
-    netRequest: FarmerClass.host
-      ? {
-          origin: `https://${FarmerClass.host}`,
-          domains: FarmerClass.domains,
-        }
-      : undefined,
+    netRequest: {
+      ...(FarmerClass.netRequest || {}),
+      ...(FarmerClass.host
+        ? {
+            origin: `https://${FarmerClass.host}`,
+            domains: FarmerClass.domains,
+          }
+        : {}),
+    },
     component: createElement(TerminalFarmer),
     ...options,
   };

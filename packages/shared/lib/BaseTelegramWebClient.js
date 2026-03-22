@@ -241,13 +241,15 @@ export default class BaseTelegramWebClient extends TelegramClient {
         });
 
         const buttons = messagesWithButtons.flatMap((msg) =>
-          msg.buttons.flat(),
+          msg.buttons.flat().map((button) => button.button || button),
         );
 
         for (const button of buttons) {
+          const url = button.url;
+
           /** Mini App Link */
-          if (isBotMiniAppLink(button.url)) {
-            miniApp = parseTelegramLink(button.url);
+          if (isBotMiniAppLink(url)) {
+            miniApp = parseTelegramLink(url);
             break;
           } else if (
             /** Webview Button */
@@ -255,7 +257,7 @@ export default class BaseTelegramWebClient extends TelegramClient {
             button instanceof Api.KeyboardButtonSimpleWebView
           ) {
             webview = {
-              url: button.url,
+              url: url,
               type:
                 button instanceof Api.KeyboardButtonWebView
                   ? "webview"
