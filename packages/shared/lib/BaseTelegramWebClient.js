@@ -249,8 +249,11 @@ export default class BaseTelegramWebClient extends TelegramClient {
 
           /** Mini App Link */
           if (isBotMiniAppLink(url)) {
-            miniApp = parseTelegramLink(url);
-            break;
+            const parsedButtonUrl = parseTelegramLink(url);
+            if (parsedButtonUrl?.entity?.toLowerCase() === entityKey) {
+              miniApp = parsedButtonUrl;
+              break;
+            }
           } else if (
             /** Webview Button */
             button instanceof Api.KeyboardButtonWebView ||
