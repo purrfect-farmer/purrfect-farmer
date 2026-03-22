@@ -11,6 +11,7 @@ export default class ATFFarmer extends BaseFarmer {
   static cacheAuth = false;
   static cacheTelegramWebApp = false;
   static rating = 4;
+  static cookies = true;
   static interval = "*/5 * * * *";
   static startupDelay = 0;
   static netRequest = {
