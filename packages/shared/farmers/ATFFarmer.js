@@ -170,7 +170,7 @@ export default class ATFFarmer extends BaseFarmer {
     this.logger.success("Wallet synced successfully!");
   }
 
-  getAnswerFromChallenge(question) {
+  getAnswerForChallenge(question) {
     const [x, operator, y] = question.split(" ");
     let answer;
     switch (operator) {
@@ -192,6 +192,72 @@ export default class ATFFarmer extends BaseFarmer {
     return answer;
   }
 
+  getMinerRate(level) {
+    return Math.floor(10 * Math.pow(1.2, level - 1));
+  }
+
+  getDifficultyDivisor(difficulty, level, exemptMinLevel, exemptMaxLevel) {
+    if (
+      exemptMinLevel > 0 &&
+      exemptMaxLevel > 0 &&
+      level >= exemptMinLevel &&
+      level <= exemptMaxLevel
+    ) {
+      return 1;
+    }
+    const d = Math.max(1, Math.min(10000, difficulty));
+    if (d <= 100) return 1 + (d - 1) / 100;
+    return 1.99 + (d - 100) / 15;
+  }
+
+  calculateSessionBalance({
+    user,
+    difficulty,
+    boostCycleSeconds,
+    exemptMinLevel,
+    exemptMaxLevel,
+  }) {
+    const nowSec = Date.now() / 1000;
+    const lastMiningStart = Number(user["last_mining_start"]);
+    if (lastMiningStart === 0) return 0;
+
+    const level = Number(user["miner_level"]);
+    const rate = this.getMinerRate(level);
+    const diffSnapshot =
+      Number(user["mining_difficulty_snapshot"]) || difficulty;
+    const divisor = this.getDifficultyDivisor(
+      diffSnapshot,
+      level,
+      exemptMinLevel,
+      exemptMaxLevel,
+    );
+    const pendingReward = Number(user["pending_reward"]) || 0;
+
+    const elapsed = Math.min(Math.max(nowSec - lastMiningStart, 0), 86400);
+    const passiveReward = elapsed * (rate / divisor / 86400);
+
+    const boostActiveUntil = Number(user["boost_active_until"]) || 0;
+    const boostPower = Number(user["boost_power_snapshot"]) || 0;
+    let boostReward = 0;
+
+    if (boostActiveUntil > lastMiningStart && boostPower > 0) {
+      const boostStart = Math.max(
+        lastMiningStart,
+        boostActiveUntil - boostCycleSeconds,
+      );
+      const cappedNow = lastMiningStart + elapsed;
+      const boostSeconds = Math.max(
+        0,
+        Math.min(cappedNow, boostActiveUntil) -
+          Math.max(lastMiningStart, boostStart),
+      );
+      const tapReward = rate / 100000 / divisor;
+      boostReward = boostSeconds * boostPower * tapReward;
+    }
+
+    return parseFloat((pendingReward + passiveReward + boostReward).toFixed(4));
+  }
+
   /** Process Farmer */
   async process() {
     this.auth_data = await this.makeAction("login", {
@@ -202,6 +268,7 @@ export default class ATFFarmer extends BaseFarmer {
 
     this.logUserInfo(user);
     await this.executeTask("Mining", () => this.startOrClaimMining());
+    await this.executeTask("Boost", () => this.applyBoost());
     await this.executeTask("Tasks", () => this.completeTasks());
   }
   /** Log User Info */
@@ -221,6 +288,17 @@ export default class ATFFarmer extends BaseFarmer {
     );
   }
 
+  async fetchDifficultyData() {
+    const data = await this.getDifficulty();
+    return {
+      difficulty: Number(data.difficulty) || 1,
+      boostCycleSeconds: Number(data.boost_cycle_seconds) || 15,
+      boostTapsPerSec: Number(data.boost_taps_per_sec) || 8,
+      exemptMinLevel: Number(data.difficulty_exempt_min_level) || 0,
+      exemptMaxLevel: Number(data.difficulty_exempt_max_level) || 0,
+    };
+  }
+
   async startOrClaimMining() {
     const { user } = this.auth_data;
     if (!user["wallet_address"]) {
@@ -233,12 +311,95 @@ export default class ATFFarmer extends BaseFarmer {
     const lastMiningStart = Number(user["last_mining_start"]);
 
     if (lastMiningStart === 0) {
+      /** Start Mining */
       const challenge = await this.getMathChallenge("start_mine");
-      const answer = this.getAnswerFromChallenge(challenge.question);
+      const answer = this.getAnswerForChallenge(challenge.question);
       const result = await this.startMining({
         challengeId: challenge.challenge_id,
         answer: answer.toString(),
       });
+
+      if (result.start_time) {
+        this.auth_data.user["last_mining_start"] = result.start_time;
+        this.auth_data.user["boost_active_until"] =
+          result.boost_active_until || 0;
+        this.auth_data.user["boost_power_snapshot"] =
+          result.boost_power_snapshot || 0;
+        this.auth_data.user["mining_difficulty_snapshot"] =
+          result.mining_difficulty_snapshot || 0;
+        this.logger.success("Mining started!");
+      }
+    } else {
+      /** Claim Mining */
+      const diffData = await this.fetchDifficultyData();
+      const balance = this.calculateSessionBalance({
+        user,
+        difficulty: diffData.difficulty,
+        boostCycleSeconds: diffData.boostCycleSeconds,
+        exemptMinLevel: diffData.exemptMinLevel,
+        exemptMaxLevel: diffData.exemptMaxLevel,
+      });
+
+      if (balance <= 0) {
+        this.logger.info("No rewards to claim yet.");
+        return;
+      }
+
+      this.logger.info(`Claiming ${balance} ATF...`);
+      const result = await this.claimMining(balance);
+
+      if (result.new_pool_balance !== undefined) {
+        this.logger.success(
+          `Claimed! Pool balance: ${result.new_pool_balance}`,
+        );
+      }
+
+      /** Mining auto-restarts after claim */
+      if (result.server_now) {
+        this.auth_data.user["last_mining_start"] = result.server_now;
+        this.auth_data.user["pending_reward"] = 0;
+        this.auth_data.user["boost_active_until"] =
+          result.boost_active_until || 0;
+        this.auth_data.user["boost_power_snapshot"] =
+          result.boost_power_snapshot || 0;
+        this.auth_data.user["mining_difficulty_snapshot"] =
+          result.mining_difficulty_snapshot || 0;
+      }
+    }
+  }
+
+  async applyBoost() {
+    const { user } = this.auth_data;
+    const lastMiningStart = Number(user["last_mining_start"]);
+
+    if (lastMiningStart === 0) {
+      this.logger.info("Not mining. Skipping boost.");
+      return;
+    }
+
+    const nowSec = Date.now() / 1000;
+    const boostActiveUntil = Number(user["boost_active_until"]) || 0;
+
+    if (boostActiveUntil > nowSec) {
+      this.logger.info("Boost already active.");
+      return;
+    }
+
+    const diffData = await this.fetchDifficultyData();
+    const balance = this.calculateSessionBalance({
+      user,
+      difficulty: diffData.difficulty,
+      boostCycleSeconds: diffData.boostCycleSeconds,
+      exemptMinLevel: diffData.exemptMinLevel,
+      exemptMaxLevel: diffData.exemptMaxLevel,
+    });
+
+    const result = await this.activateBoost(balance);
+
+    if (result.boost_active_until) {
+      this.auth_data.user["boost_active_until"] = result.boost_active_until;
+      this.auth_data.user["boost_power_snapshot"] = diffData.boostTapsPerSec;
+      this.logger.success("Boost activated!");
     }
   }
 
@@ -256,15 +417,17 @@ export default class ATFFarmer extends BaseFarmer {
     const completedTasks = user.completed_tasks || [];
 
     const availableTasks = tasks.filter(
-      (task) => !completedTasks.includes(task) && extraTasks[task] === 0,
+      (task) => !completedTasks.includes(task),
     );
 
+    /** Complete Available Tasks */
     for (const task of availableTasks) {
       await this.claimTask(task);
       this.logger.success(`Claimed task: ${task}`);
       await this.utils.delayForSeconds(5);
     }
 
+    /** Check Extra Tasks Cooldowns */
     for (const task in extraTasks) {
       const cooldown = extraTasks[task];
       const isAvailable = this.utils.dateFns.isAfter(
