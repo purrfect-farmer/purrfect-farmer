@@ -258,7 +258,12 @@ export default class BaseFarmer {
   /** Get URL from Init Data */
   static getUrlFromInitData(initData) {
     const url = new URL(this.path, `https://${this.host}`);
-    url.searchParams.set("tgWebAppData", initData);
+    const params = new URLSearchParams();
+
+    params.set("tgWebAppData", initData);
+
+    url.hash = `#${params.toString()}`;
+
     return url.toString();
   }
 
