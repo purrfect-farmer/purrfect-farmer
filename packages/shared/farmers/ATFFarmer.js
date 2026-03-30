@@ -149,7 +149,7 @@ export default class ATFFarmer extends BaseFarmer {
             id: "connect-wallet",
             emoji: "🔗",
             title: "Connect Wallet",
-            action: this.connectWalletPublicKey.bind(this),
+            action: this.connectWalletSecretKey.bind(this),
             dispatch: false,
           },
         ],
@@ -177,27 +177,6 @@ export default class ATFFarmer extends BaseFarmer {
     return { walletV4, publicKey, rawAddress, walletStateInit };
   }
 
-  async connectWalletPublicKey() {
-    const publicKeyHex = await this.promptInput(
-      "Enter your TON Wallet (Public Key):",
-    );
-
-    const { walletV4, publicKey, rawAddress, walletStateInit } =
-      this.prepareWallet(Buffer.from(publicKeyHex, "hex"));
-
-    const { proof } = await this.buildFakeWalletProof(walletV4);
-
-    await this.syncWallet({
-      publicKey,
-      wallet: rawAddress,
-      walletStateInit,
-      network: "-239",
-      proof,
-    });
-
-    this.logger.success("Wallet synced successfully!");
-  }
-
   async connectWalletSecretKey() {
     const secretKeyHex = await this.promptInput(
       "Enter your TON Wallet Secret Key (hex):",
@@ -209,7 +188,7 @@ export default class ATFFarmer extends BaseFarmer {
 
     const { proof } = await this.buildWalletProof(walletV4, keyPair.secretKey);
 
-    await this.syncWallet({
+    const result = await this.syncWallet({
       publicKey,
       wallet: rawAddress,
       walletStateInit,
@@ -217,7 +196,14 @@ export default class ATFFarmer extends BaseFarmer {
       proof,
     });
 
-    this.logger.success("Wallet synced successfully!");
+    if (result.status !== "success") {
+      this.logger.error(
+        result.message ||
+          "Failed to sync wallet with proof. Please check your secret key and try again.",
+      );
+    } else {
+      this.logger.success("Wallet synced successfully!");
+    }
   }
 
   async buildWalletProof(walletV4, secretKey) {
@@ -266,32 +252,6 @@ export default class ATFFarmer extends BaseFarmer {
         },
         payload,
         signature: signature.toString("base64"),
-      },
-    };
-  }
-
-  async buildFakeWalletProof(walletV4) {
-    const proofPayloadData = await this.getWalletProofPayload();
-    const payload = proofPayloadData.payload;
-
-    const timestamp = Math.floor(Date.now() / 1000);
-    const domain = "atftoken.com";
-
-    const fakeSignature = Buffer.alloc(64);
-    for (let i = 0; i < 64; i++) {
-      fakeSignature[i] = Math.floor(Math.random() * 256);
-    }
-
-    return {
-      payload,
-      proof: {
-        timestamp,
-        domain: {
-          lengthBytes: Buffer.from(domain, "utf8").length,
-          value: domain,
-        },
-        payload,
-        signature: fakeSignature.toString("base64"),
       },
     };
   }
