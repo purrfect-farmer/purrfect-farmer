@@ -60,7 +60,7 @@ export function injectTelegramWebviewProxy() {
           eventType,
           eventData,
         }),
-        "*"
+        "*",
       );
     },
   };
@@ -84,6 +84,28 @@ export function injectTelegramWebviewProxy() {
           }
         },
       };
+    });
+
+    /** Capture Message */
+    window.addEventListener("message", (ev) => {
+      if (ev.origin === "https://web.telegram.org") return;
+      if (typeof ev.data !== "string") return;
+
+      let event;
+      try {
+        event = JSON.parse(ev.data);
+      } catch (e) {
+        return;
+      }
+
+      const { eventType, eventData } = event || {};
+      if (!eventType) return;
+
+      /** Stop Immediate Propagation */
+      ev.stopImmediatePropagation();
+
+      /** Receive Event */
+      window.Telegram?.WebView?.receiveEvent?.(eventType, eventData);
     });
   }
 }
