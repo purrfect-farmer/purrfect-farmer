@@ -1,3 +1,6 @@
+import { beginCell, storeStateInit } from "@ton/core";
+import { keyPairFromSecretKey, sha256, sign } from "@ton/crypto";
+
 import BaseFarmer from "../lib/BaseFarmer.js";
 import { WalletContractV4 } from "@ton/ton";
 
@@ -8,6 +11,7 @@ export default class ATFFarmer extends BaseFarmer {
   static host = "atfminers.asloni.online";
   static domains = ["atfminers.asloni.online"];
   static telegramLink = "https://t.me/ATF_AIRDROP_bot?start=1147265290";
+  static path = "/miner/index.html";
   static cacheAuth = false;
   static cacheTelegramWebApp = false;
   static rating = 4;
@@ -101,11 +105,18 @@ export default class ATFFarmer extends BaseFarmer {
     });
   }
 
-  syncWallet({ publicKey, wallet }) {
+  syncWallet({ publicKey, wallet, walletStateInit, network, proof }) {
     return this.makeAction("sync_wallet", {
       public_key: publicKey,
       wallet: wallet,
+      wallet_state_init: walletStateInit || "",
+      network: network || "",
+      proof: proof || null,
     });
+  }
+
+  getWalletProofPayload() {
+    return this.makeAction("get_wallet_proof_payload");
   }
 
   getMathChallenge(scope) {
@@ -147,28 +158,81 @@ export default class ATFFarmer extends BaseFarmer {
   }
 
   async connectWallet() {
-    const publicKey = await this.promptInput(
-      "Enter your TON Wallet (Public Key):",
+    const secretKeyHex = await this.promptInput(
+      "Enter your TON Wallet Secret Key (hex):",
     );
+
+    const keyPair = keyPairFromSecretKey(Buffer.from(secretKeyHex, "hex"));
+    const publicKey = keyPair.publicKey.toString("hex");
     const workchain = 0;
     const walletV4 = WalletContractV4.create({
       workchain,
-      publicKey: Buffer.from(publicKey, "hex"),
-    });
-
-    const address = walletV4.address.toString({
-      bounceable: false,
+      publicKey: keyPair.publicKey,
     });
 
     const rawAddress = walletV4.address.toRawString();
+    const walletStateInit = beginCell()
+      .store(storeStateInit(walletV4.init))
+      .endCell()
+      .toBoc()
+      .toString("base64");
 
     this.logger.keyValue("Public Key", publicKey);
-    this.logger.keyValue("Wallet Address", address);
     this.logger.keyValue("Raw Wallet Address", rawAddress);
+
+    /** Fetch proof payload from server */
+    const proofPayloadData = await this.getWalletProofPayload();
+    const payload = proofPayloadData.payload;
+
+    /** Build TON Connect proof */
+    const timestamp = Math.floor(Date.now() / 1000);
+    const domain = "atftoken.com";
+    const domainBuffer = Buffer.from(domain, "utf8");
+    const domainLenBuffer = Buffer.alloc(4);
+    domainLenBuffer.writeUInt32LE(domainBuffer.length);
+
+    const workchainBuffer = Buffer.alloc(4);
+    workchainBuffer.writeInt32BE(walletV4.address.workChain);
+
+    const timestampBuffer = Buffer.alloc(8);
+    timestampBuffer.writeUInt32LE(timestamp & 0xffffffff, 0);
+    timestampBuffer.writeUInt32LE(Math.floor(timestamp / 0x100000000), 4);
+
+    const message = Buffer.concat([
+      Buffer.from("ton-proof-item-v2/", "utf8"),
+      workchainBuffer,
+      walletV4.address.hash,
+      domainLenBuffer,
+      domainBuffer,
+      timestampBuffer,
+      Buffer.from(payload, "utf8"),
+    ]);
+
+    const messageHash = await sha256(message);
+    const fullMessage = Buffer.concat([
+      Buffer.from([0xff, 0xff]),
+      Buffer.from("ton-connect", "utf8"),
+      messageHash,
+    ]);
+    const fullMessageHash = await sha256(fullMessage);
+    const signature = sign(fullMessageHash, keyPair.secretKey);
+
+    const proof = {
+      timestamp,
+      domain: {
+        lengthBytes: domainBuffer.length,
+        value: domain,
+      },
+      payload,
+      signature: signature.toString("base64"),
+    };
 
     await this.syncWallet({
       publicKey,
       wallet: rawAddress,
+      walletStateInit,
+      network: "-239",
+      proof,
     });
 
     this.logger.success("Wallet synced successfully!");

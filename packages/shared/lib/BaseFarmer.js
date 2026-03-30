@@ -17,6 +17,7 @@ export default class BaseFarmer {
   static cookies = false;
   static interval = "*/10 * * * *";
   static link = "";
+  static path = "/";
   static telegramLink = "";
   static host = "";
   static domains = [];
@@ -256,10 +257,9 @@ export default class BaseFarmer {
 
   /** Get URL from Init Data */
   static getUrlFromInitData(initData) {
-    const params = new URLSearchParams({
-      tgWebAppData: initData,
-    });
-    return `https://${this.host}#${params.toString()}`;
+    const url = new URL(this.path, `https://${this.host}`);
+    url.searchParams.set("tgWebAppData", initData);
+    return url.toString();
   }
 
   /** Start the farmer */
