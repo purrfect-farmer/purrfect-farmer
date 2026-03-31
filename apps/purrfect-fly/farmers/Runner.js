@@ -427,7 +427,7 @@ export default function createRunner(FarmerClass) {
            * Random startup delay to avoid all accounts starting at the same time
            */
           const startupDelay = Math.floor(
-            instance.random() * this.startupDelay,
+            Math.random() * 20 * this.startupDelay,
           );
           if (startupDelay) {
             this.logger.info(
@@ -483,7 +483,7 @@ export default function createRunner(FarmerClass) {
         );
 
         /** Run all accounts */
-        const results = accounts.map((account) => {
+        const results = accounts.map((account, index) => {
           /**
            * A farmer can be automatically created for an
            * account with an active telegram session if auto start is enabled

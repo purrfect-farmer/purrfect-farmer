@@ -17,7 +17,6 @@ export default class ATFFarmer extends BaseFarmer {
   static rating = 4;
   static cookies = true;
   static interval = "*/5 * * * *";
-  static startupDelay = 0;
   static netRequest = {
     requestHeaders: [
       {

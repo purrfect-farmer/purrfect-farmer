@@ -72,7 +72,7 @@ const createRunner = ({ FarmerClass, logger, captcha, controller }) => {
        * Random startup delay to avoid all accounts starting at the same time
        */
       const startupDelay = Math.floor(
-        this.random() * this.constructor.startupDelay,
+        Math.random() * 10 * this.constructor.startupDelay,
       );
 
       /** Delay */
