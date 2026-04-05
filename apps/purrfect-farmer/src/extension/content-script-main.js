@@ -1,5 +1,5 @@
 import "./bridge/bridge-main";
-import "./content-script-atf";
+import "./content-script-farmers";
 
 import {
   TELEGRAM_WEB_HOSTS,

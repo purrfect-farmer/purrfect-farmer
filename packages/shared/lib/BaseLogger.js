@@ -24,13 +24,13 @@ export default class BaseLogger {
   }
 
   /** Log key-value pairs */
-  keyValue(label, value, labelDefaultStyle, valueDefaultStyle) {
-    const labelStyle = labelDefaultStyle || this.c.gray;
-    const valueStyle = valueDefaultStyle || this.c.cyan;
+  keyValue(label, value, { labelStyle, valueStyle } = {}) {
+    const selectedLabelStyle = labelStyle || this.c.gray;
+    const selectedValueStyle = valueStyle || this.c.cyan;
 
     const rawLabel = label + ":";
-    const displayedLabel = labelStyle(rawLabel.padEnd(8));
-    const displayedValue = valueStyle(
+    const displayedLabel = selectedLabelStyle(rawLabel.padEnd(8));
+    const displayedValue = selectedValueStyle(
       typeof value === "number" ? formatNumber(value) : value,
     );
 
