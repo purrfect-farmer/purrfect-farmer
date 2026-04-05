@@ -108,6 +108,7 @@ export default async function (fastify, opts) {
         },
       },
       async (request) => {
+        await fsp.copyFile(fastify.app.envPath, fastify.app.envBackupPath);
         await fsp.writeFile(fastify.app.envPath, request.body.content, "utf-8");
         setTimeout(() => {
           process.exit(0);
