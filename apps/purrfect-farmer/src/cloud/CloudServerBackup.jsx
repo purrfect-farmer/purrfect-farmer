@@ -8,11 +8,11 @@ import useCloudManagerImportBackupMutation from "@/hooks/useCloudManagerImportBa
 import { useDropzone } from "react-dropzone";
 import useMirroredTabs from "@/hooks/useMirroredTabs";
 
-export default function CloudServerBackup() {
+const ServerBackupAndRestore = () => {
   const tabs = useMirroredTabs(
     "cloud-backup-panel",
-    ["import", "export"],
-    "import",
+    ["export", "import"],
+    "export",
   );
 
   const importMutation = useCloudManagerImportBackupMutation();
@@ -58,33 +58,39 @@ export default function CloudServerBackup() {
   });
 
   return (
+    <Tabs tabs={tabs}>
+      <Tabs.Content value="export" className="flex flex-col">
+        <PrimaryButton onClick={exportBackup}>
+          {exportMutation.isPending ? "Exporting..." : "Export Backup"}
+        </PrimaryButton>
+      </Tabs.Content>
+
+      <Tabs.Content value="import">
+        <div
+          {...getRootProps()}
+          className="border border-dashed border-blue-500 px-4 py-10 text-center rounded-xl"
+        >
+          <input {...getInputProps()} />
+          {isDragActive ? (
+            <p>Drop the backup file here ...</p>
+          ) : (
+            <p>
+              Drag 'n' drop the backup file here, or click to select backup file
+            </p>
+          )}
+        </div>
+      </Tabs.Content>
+    </Tabs>
+  );
+};
+
+export default function CloudServerBackup() {
+  return (
     <CloudCenteredDialog
       title={"Backup / Restore"}
       description={"Import or export a backup of the server"}
     >
-      <Tabs tabs={tabs}>
-        <Tabs.Content value="import">
-          <div
-            {...getRootProps()}
-            className="border border-dashed border-blue-500 px-4 py-10 text-center rounded-xl"
-          >
-            <input {...getInputProps()} />
-            {isDragActive ? (
-              <p>Drop the backup file here ...</p>
-            ) : (
-              <p>
-                Drag 'n' drop the backup file here, or click to select backup
-                file
-              </p>
-            )}
-          </div>
-        </Tabs.Content>
-        <Tabs.Content value="export" className="flex flex-col">
-          <PrimaryButton onClick={exportBackup}>
-            {exportMutation.isPending ? "Exporting..." : "Export Backup"}
-          </PrimaryButton>
-        </Tabs.Content>
-      </Tabs>
+      <ServerBackupAndRestore />
     </CloudCenteredDialog>
   );
 }
