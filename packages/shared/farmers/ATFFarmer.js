@@ -190,13 +190,13 @@ export default class ATFFarmer extends BaseFarmer {
 
     /** Wallet Address (V4) */
     this.logger.keyValue("Wallet Address (V4)", addressV4, {
-      valueStyle: this.logger.c.blueBright,
+      valueStyle: this.logger.c.whiteBright,
     });
     this.logger.newline();
 
     /** Wallet Address (V5) */
     this.logger.keyValue("Wallet Address (V5)", addressV5, {
-      valueStyle: this.logger.c.whiteBright,
+      valueStyle: this.logger.c.blueBright,
     });
     this.logger.newline();
 
