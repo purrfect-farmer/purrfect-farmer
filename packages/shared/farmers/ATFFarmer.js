@@ -178,23 +178,33 @@ export default class ATFFarmer extends BaseFarmer {
     const publicKey = publicKeyBuffer.toString("hex");
 
     /** Public key */
-    this.logger.keyValue("Public Key", publicKey);
+    this.logger.keyValue("Public Key", publicKey, {
+      valueStyle: this.logger.c.yellowBright,
+    });
     this.logger.newline();
 
     /** Wallet Address (V4) */
-    this.logger.keyValue("Wallet Address (V4)", addressV4);
+    this.logger.keyValue("Wallet Address (V4)", addressV4, {
+      valueStyle: this.logger.c.blueBright,
+    });
     this.logger.newline();
 
     /** Wallet Address (V5) */
-    this.logger.keyValue("Wallet Address (V5)", addressV5);
+    this.logger.keyValue("Wallet Address (V5)", addressV5, {
+      valueStyle: this.logger.c.whiteBright,
+    });
     this.logger.newline();
 
     /** Raw Wallet Address (V4) */
-    this.logger.keyValue("Raw Wallet Address (V4)", rawAddressV4);
+    this.logger.keyValue("Raw Wallet Address (V4)", rawAddressV4, {
+      valueStyle: this.logger.c.greenBright,
+    });
     this.logger.newline();
 
     /** Raw Wallet Address (V5) */
-    this.logger.keyValue("Raw Wallet Address (V5)", rawAddressV5);
+    this.logger.keyValue("Raw Wallet Address (V5)", rawAddressV5, {
+      valueStyle: this.logger.c.magentaBright,
+    });
 
     return {
       publicKey,
@@ -400,6 +410,7 @@ export default class ATFFarmer extends BaseFarmer {
 
     this.logger.newline();
     this.logCurrentUser();
+    this.logger.keyValue("Wallet Balance", user["wallet_holding_atf"]);
     this.logger.keyValue("Balance", user["mined_balance"]);
     this.logger.keyValue("Pending Rewards", user["pending_reward"]);
     this.logger.keyValue("Miner Level", user["miner_level"]);
