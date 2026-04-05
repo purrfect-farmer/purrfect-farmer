@@ -28,6 +28,9 @@ importers:
       '@purrfect/shared':
         specifier: workspace:*
         version: link:../../packages/shared
+      '@pwabucket/pwa-router':
+        specifier: ^0.0.16
+        version: 0.0.16(react-router@7.13.0(react-dom@19.2.4(react@19.2.4))(react@19.2.4))(react@19.2.4)
       '@smastrom/react-rating':
         specifier: ^1.5.0
         version: 1.5.0(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
@@ -1792,6 +1795,12 @@ packages:
 
   '@protobufjs/utf8@1.1.0':
     resolution: {integrity: sha512-Vvn3zZrhQZkkBE8LSuW3em98c0FwgO4nxzv6OdSxPKJIEKY2bGbHn+mhGIPerzI4twdxaP8/0+06HBpwf345Lw==}
+
+  '@pwabucket/pwa-router@0.0.16':
+    resolution: {integrity: sha512-Vx2JzpZfnFEl/GjYhBO4xg1im0fEvM90P3eYSAl3M7jEoUnQ9ufX1hUPBWrwNFJ96WZpiAH/vu6OBNuYqSz8MA==}
+    peerDependencies:
+      react: ^18 || ^19
+      react-router: ^7
 
   '@quansync/fs@1.0.0':
     resolution: {integrity: sha512-4TJ3DFtlf1L5LDMaM6CanJ/0lckGNtJcMjQ1NAV6zDmA0tEHKZtxNKin8EgPaVX1YzljbxckyT2tJrpQKAtngQ==}
@@ -8260,6 +8269,11 @@ snapshots:
   '@protobufjs/pool@1.1.0': {}
 
   '@protobufjs/utf8@1.1.0': {}
+
+  '@pwabucket/pwa-router@0.0.16(react-router@7.13.0(react-dom@19.2.4(react@19.2.4))(react@19.2.4))(react@19.2.4)':
+    dependencies:
+      react: 19.2.4
+      react-router: 7.13.0(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
 
   '@quansync/fs@1.0.0':
     dependencies:

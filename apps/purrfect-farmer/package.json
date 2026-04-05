@@ -28,6 +28,7 @@
     "@hookform/resolvers": "^5.2.2",
     "@paystack/inline-js": "^2.22.7",
     "@purrfect/shared": "workspace:*",
+    "@pwabucket/pwa-router": "^0.0.16",
     "@smastrom/react-rating": "^1.5.0",
     "@tailwindcss/vite": "^4.2.0",
     "@tanstack/react-query": "^5.90.21",
