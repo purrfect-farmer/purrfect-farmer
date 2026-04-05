@@ -1,8 +1,8 @@
+import { WalletContractV4, WalletContractV5R1 } from "@ton/ton";
 import { beginCell, storeStateInit } from "@ton/core";
 import { keyPairFromSecretKey, sha256, sign } from "@ton/crypto";
 
 import BaseFarmer from "../lib/BaseFarmer.js";
-import { WalletContractV4 } from "@ton/ton";
 
 export default class ATFFarmer extends BaseFarmer {
   static id = "atf";
@@ -162,18 +162,49 @@ export default class ATFFarmer extends BaseFarmer {
       publicKey: publicKeyBuffer,
     });
 
-    const rawAddress = walletV4.address.toRawString();
+    const walletV5 = WalletContractV5R1.create({
+      workchain: 0,
+      publicKey: publicKeyBuffer,
+    });
+
+    const addressV4 = walletV4.address.toString({
+      bounceable: false,
+    });
+    const addressV5 = walletV5.address.toString({
+      bounceable: false,
+    });
+    const rawAddressV4 = walletV4.address.toRawString();
+    const rawAddressV5 = walletV5.address.toRawString();
     const publicKey = publicKeyBuffer.toString("hex");
-    const walletStateInit = beginCell()
-      .store(storeStateInit(walletV4.init))
-      .endCell()
-      .toBoc()
-      .toString("base64");
 
+    /** Public key */
     this.logger.keyValue("Public Key", publicKey);
-    this.logger.keyValue("Raw Wallet Address", rawAddress);
+    this.logger.newline();
 
-    return { walletV4, publicKey, rawAddress, walletStateInit };
+    /** Wallet Address (V4) */
+    this.logger.keyValue("Wallet Address (V4)", addressV4);
+    this.logger.newline();
+
+    /** Wallet Address (V5) */
+    this.logger.keyValue("Wallet Address (V5)", addressV5);
+    this.logger.newline();
+
+    /** Raw Wallet Address (V4) */
+    this.logger.keyValue("Raw Wallet Address (V4)", rawAddressV4);
+    this.logger.newline();
+
+    /** Raw Wallet Address (V5) */
+    this.logger.keyValue("Raw Wallet Address (V5)", rawAddressV5);
+
+    return {
+      publicKey,
+      walletV4,
+      walletV5,
+      addressV4,
+      addressV5,
+      rawAddressV4,
+      rawAddressV5,
+    };
   }
 
   async connectWalletSecretKey() {
@@ -182,14 +213,21 @@ export default class ATFFarmer extends BaseFarmer {
     );
 
     const keyPair = keyPairFromSecretKey(Buffer.from(secretKeyHex, "hex"));
-    const { walletV4, publicKey, rawAddress, walletStateInit } =
-      this.prepareWallet(keyPair.publicKey);
+    const { walletV4, publicKey, rawAddressV4 } = this.prepareWallet(
+      keyPair.publicKey,
+    );
+
+    const walletStateInit = beginCell()
+      .store(storeStateInit(walletV4.init))
+      .endCell()
+      .toBoc()
+      .toString("base64");
 
     const { proof } = await this.buildWalletProof(walletV4, keyPair.secretKey);
 
     const result = await this.syncWallet({
       publicKey,
-      wallet: rawAddress,
+      wallet: rawAddressV4,
       walletStateInit,
       network: "-239",
       proof,
@@ -371,6 +409,11 @@ export default class ATFFarmer extends BaseFarmer {
         ? "Not mining"
         : new Date(lastMiningStart * 1000).toLocaleString(),
     );
+
+    if (user["wallet_public_key"]) {
+      this.logger.newline();
+      this.prepareWallet(Buffer.from(user["wallet_public_key"], "hex"));
+    }
   }
 
   async fetchDifficultyData() {
