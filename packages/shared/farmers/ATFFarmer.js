@@ -1,6 +1,11 @@
 import { WalletContractV4, WalletContractV5R1 } from "@ton/ton";
 import { beginCell, storeStateInit } from "@ton/core";
-import { keyPairFromSecretKey, sha256, sign } from "@ton/crypto";
+import {
+  keyPairFromSecretKey,
+  mnemonicToWalletKey,
+  sha256,
+  sign,
+} from "@ton/crypto";
 
 import BaseFarmer from "../lib/BaseFarmer.js";
 
@@ -218,11 +223,33 @@ export default class ATFFarmer extends BaseFarmer {
   }
 
   async connectWalletSecretKey() {
-    const secretKeyHex = await this.promptInput(
-      "Enter your TON Wallet Secret Key (hex):",
+    const input = await this.promptInput(
+      "Enter your TON Wallet Phrase / Secret Key (hex):",
     );
 
-    const keyPair = keyPairFromSecretKey(Buffer.from(secretKeyHex, "hex"));
+    let keyPair;
+
+    const isHex = /^[0-9a-fA-F]+$/.test(input.trim());
+
+    if (isHex) {
+      const secretKey = Buffer.from(input.trim(), "hex");
+
+      if (secretKey.length !== 64) {
+        throw new Error(
+          "Invalid secret key length. Expected 64 bytes (128 hex chars).",
+        );
+      }
+
+      keyPair = keyPairFromSecretKey(secretKey);
+    } else {
+      const mnemonic = input.trim().split(/\s+/);
+
+      if (mnemonic.length !== 12 && mnemonic.length !== 24) {
+        throw new Error("Invalid mnemonic. Must be 12 or 24 words.");
+      }
+
+      keyPair = await mnemonicToWalletKey(mnemonic);
+    }
     const { walletV4, publicKey, rawAddressV4 } = this.prepareWallet(
       keyPair.publicKey,
     );

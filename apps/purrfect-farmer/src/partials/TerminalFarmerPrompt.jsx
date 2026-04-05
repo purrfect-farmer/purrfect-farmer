@@ -1,8 +1,8 @@
 import { Dialog } from "radix-ui";
 import Dropzone from "@/components/Dropzone";
-import Input from "@/components/Input";
 import PromptDialog from "@/components/PromptDialog";
 import Select from "@/components/Select";
+import Textarea from "@/components/Textarea";
 import { useState } from "react";
 
 export const TerminalFarmerPrompt = ({ context, userInputPrompt }) => {
@@ -31,8 +31,7 @@ export const TerminalFarmerPrompt = ({ context, userInputPrompt }) => {
 
         {/* User Input */}
         {question.type === "text" ? (
-          <Input
-            type="text"
+          <Textarea
             onChange={(e) => setValue(e.target.value)}
             value={value}
             className="w-full"
