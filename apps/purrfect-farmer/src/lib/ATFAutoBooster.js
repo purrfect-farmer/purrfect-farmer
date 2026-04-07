@@ -415,10 +415,13 @@ export default class ATFAutoBooster {
       }
 
       const randomPercent = minPercent.plus(
-        new Decimal(Math.random()).mul(difference),
+        new Decimal(Decimal.random()).mul(difference),
       );
 
-      const jettonAmount = balance.mul(randomPercent).div(100);
+      const jettonAmount = Decimal.min(
+        balance,
+        balance.mul(randomPercent).div(100),
+      ).toDecimalPlaces(4, Decimal.ROUND_DOWN);
 
       await toast.promise(this.sendJettonFromMaster(jettonAmount), {
         loading: `Sending ${jettonAmount} ATF from master`,
