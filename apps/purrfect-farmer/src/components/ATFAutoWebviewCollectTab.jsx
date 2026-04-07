@@ -26,28 +26,20 @@ export default function ATFAutoWebviewCollectTab({ account }) {
                 ? "Skipped — no jetton balance found."
                 : `Failed: ${mutation.data.error?.message || "Unknown error"}`}
           </Alert>
-          <button
-            type="button"
-            onClick={() => mutation.reset()}
-            className="inline-flex items-center gap-1 text-orange-500"
-          >
+          <PrimaryButton type="button" onClick={() => mutation.reset()}>
             <HiArrowPath className="w-4 h-4" />
             Reset
-          </button>
+          </PrimaryButton>
         </>
       )}
 
       {mutation.isError && (
         <>
           <Alert variant="danger">{mutation.error.message}</Alert>
-          <button
-            type="button"
-            onClick={() => mutation.reset()}
-            className="inline-flex items-center gap-1 text-orange-500"
-          >
+          <PrimaryButton type="button" onClick={() => mutation.reset()}>
             <HiArrowPath className="w-4 h-4" />
             Reset
-          </button>
+          </PrimaryButton>
         </>
       )}
 

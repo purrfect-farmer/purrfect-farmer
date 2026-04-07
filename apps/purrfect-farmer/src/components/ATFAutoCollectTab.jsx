@@ -1,12 +1,12 @@
 import ATFAutoAccountsChooser from "./ATFAutoAccountsChooser";
 import ATFAutoProgress from "./ATFAutoProgress";
 import Alert from "./Alert";
+import { HiArrowPath } from "react-icons/hi2";
 import PrimaryButton from "./PrimaryButton";
 import toast from "react-hot-toast";
 import useATFAuto from "@/hooks/useATFAuto";
 import useATFAutoAccountsSelector from "@/hooks/useATFAutoAccountsSelector";
 import useATFAutoCollectMutation from "@/hooks/useATFAutoCollectMutation";
-import { HiArrowPath } from "react-icons/hi2";
 
 export default function ATFAutoCollectTab() {
   const { accounts } = useATFAuto();
@@ -42,28 +42,20 @@ export default function ATFAutoCollectTab() {
           <p className="text-neutral-500">
             Total collected: {mutation.data.totalCollected} ATF
           </p>
-          <button
-            type="button"
-            onClick={() => mutation.reset()}
-            className="inline-flex items-center gap-1 text-orange-500"
-          >
+          <PrimaryButton type="button" onClick={() => mutation.reset()}>
             <HiArrowPath className="w-4 h-4" />
             Reset
-          </button>
+          </PrimaryButton>
         </div>
       )}
 
       {mutation.isError && (
         <div className="flex flex-col gap-2">
           <Alert variant="danger">{mutation.error.message}</Alert>
-          <button
-            type="button"
-            onClick={() => mutation.reset()}
-            className="inline-flex items-center gap-1 text-orange-500"
-          >
+          <PrimaryButton type="button" onClick={() => mutation.reset()}>
             <HiArrowPath className="w-4 h-4" />
             Reset
-          </button>
+          </PrimaryButton>
         </div>
       )}
 

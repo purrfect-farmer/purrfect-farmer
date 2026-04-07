@@ -21,7 +21,7 @@ const buttonVariants = cva(
   },
 );
 
-export default (function Button({
+export default function Button({
   as: Component = "button",
   variant,
   className,
@@ -33,4 +33,4 @@ export default (function Button({
       className={cn(buttonVariants({ variant, className }))}
     />
   );
-});
+}

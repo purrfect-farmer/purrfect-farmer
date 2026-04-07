@@ -421,20 +421,23 @@ export default class ATFAutoBooster {
       const jettonAmount = balance.mul(randomPercent).div(100);
 
       await toast.promise(this.sendJettonFromMaster(jettonAmount), {
-        loading: "Sending ATF from master",
-        success: (amount) => `Sent ${amount} ATF from master`,
+        loading: `Sending ${jettonAmount} ATF from master`,
+        success: `Sent ${jettonAmount} ATF from master`,
       });
       await toast.promise(this.sendGasFromMaster(), {
-        loading: "Sending gas from master",
+        loading: "Sending 0.1 TON from master",
         success: "Sent 0.1 TON from master",
       });
       await toast.promise(this.connectWallet(), {
         loading: "Connecting wallet",
         success: "Wallet connected",
       });
+      const { balance: returnBalance } = await getJettonInfo(
+        this.account.address,
+      );
       await toast.promise(this.returnJettonToMaster(), {
-        loading: "Returning ATF to master",
-        success: (amount) => `Returned ${amount} ATF to master`,
+        loading: `Returning ${returnBalance} ATF to master`,
+        success: `Returned ${returnBalance} ATF to master`,
       });
       await toast.promise(this.returnTonToMaster(), {
         loading: "Returning TON to master",
@@ -458,12 +461,12 @@ export default class ATFAutoBooster {
       }
 
       await toast.promise(this.sendGasFromMaster(), {
-        loading: "Sending gas from master",
+        loading: "Sending 0.1 TON from master",
         success: "Sent 0.1 TON from master",
       });
       const collected = await toast.promise(this.returnJettonToMaster(), {
-        loading: "Returning ATF to master",
-        success: (amount) => `Returned ${amount} ATF to master`,
+        loading: `Returning ${jettonBalance} ATF to master`,
+        success: `Returned ${jettonBalance} ATF to master`,
       });
       await toast.promise(this.returnTonToMaster(), {
         loading: "Returning TON to master",

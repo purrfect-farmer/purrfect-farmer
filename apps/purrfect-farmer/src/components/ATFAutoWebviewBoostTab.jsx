@@ -1,10 +1,9 @@
-import { useState } from "react";
-
 import Alert from "./Alert";
+import { HiArrowPath } from "react-icons/hi2";
 import Input from "./Input";
 import PrimaryButton from "./PrimaryButton";
 import useATFAutoSingleBoostMutation from "@/hooks/useATFAutoSingleBoostMutation";
-import { HiArrowPath } from "react-icons/hi2";
+import { useState } from "react";
 
 export default function ATFAutoWebviewBoostTab({ account }) {
   const mutation = useATFAutoSingleBoostMutation();
@@ -30,28 +29,20 @@ export default function ATFAutoWebviewBoostTab({ account }) {
                 ? "Skipped — holding already sufficient."
                 : `Failed: ${mutation.data.error?.message || "Unknown error"}`}
           </Alert>
-          <button
-            type="button"
-            onClick={() => mutation.reset()}
-            className="inline-flex items-center gap-1 text-orange-500"
-          >
+          <PrimaryButton type="button" onClick={() => mutation.reset()}>
             <HiArrowPath className="w-4 h-4" />
             Reset
-          </button>
+          </PrimaryButton>
         </>
       )}
 
       {mutation.isError && (
         <>
           <Alert variant="danger">{mutation.error.message}</Alert>
-          <button
-            type="button"
-            onClick={() => mutation.reset()}
-            className="inline-flex items-center gap-1 text-orange-500"
-          >
+          <PrimaryButton type="button" onClick={() => mutation.reset()}>
             <HiArrowPath className="w-4 h-4" />
             Reset
-          </button>
+          </PrimaryButton>
         </>
       )}
 
@@ -74,10 +65,7 @@ export default function ATFAutoWebviewBoostTab({ account }) {
             </p>
           </div>
 
-          <PrimaryButton
-            disabled={mutation.isPending}
-            onClick={handleBoost}
-          >
+          <PrimaryButton disabled={mutation.isPending} onClick={handleBoost}>
             {mutation.isPending ? "Boosting..." : "Boost"}
           </PrimaryButton>
         </>

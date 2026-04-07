@@ -42,28 +42,20 @@ export default function ATFAutoBoostTab() {
           <p className="text-neutral-500">
             Skipped: {mutation.data.results.filter((r) => r.skipped).length}
           </p>
-          <button
-            type="button"
-            onClick={() => mutation.reset()}
-            className="inline-flex items-center gap-1 text-orange-500"
-          >
+          <PrimaryButton type="button" onClick={() => mutation.reset()}>
             <HiArrowPath className="w-4 h-4" />
             Reset
-          </button>
+          </PrimaryButton>
         </div>
       )}
 
       {mutation.isError && (
         <div className="flex flex-col gap-2">
           <Alert variant="danger">{mutation.error.message}</Alert>
-          <button
-            type="button"
-            onClick={() => mutation.reset()}
-            className="inline-flex items-center gap-1 text-orange-500"
-          >
+          <PrimaryButton type="button" onClick={() => mutation.reset()}>
             <HiArrowPath className="w-4 h-4" />
             Reset
-          </button>
+          </PrimaryButton>
         </div>
       )}
 
