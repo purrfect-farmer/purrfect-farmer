@@ -7,16 +7,11 @@ import { mnemonicToPrivateKey } from "@ton/crypto";
 export const JETTON_ADDRESS =
   "EQANcW45W0Tp91bzvHayaPO6-6hf1Lm4XlWZ4rN6L5ofPWdb";
 
-/** Axios instance for tonapi.io that serializes all requests with a 500ms gap. */
+/** Serialized fetcher for tonapi.io — one request at a time. */
 const tonapi = axios.create({ baseURL: "https://tonapi.io/v2" });
-
-{
-  let pending = Promise.resolve();
-  tonapi.interceptors.request.use((config) =>
-    (pending = pending.then(
-      () => new Promise((r) => setTimeout(r, 1000)),
-    )).then(() => config),
-  );
+let _pending = Promise.resolve();
+function fetchTonApi(url) {
+  return (_pending = _pending.catch(() => {}).then(() => tonapi.get(url)));
 }
 
 export async function keypairFromMnemonic(mnemonic) {
@@ -43,12 +38,12 @@ export async function getWalletAddressFromMnemonic(mnemonic, version) {
 }
 
 export async function getTonBalance(address) {
-  const res = await tonapi.get(`/accounts/${address}`);
+  const res = await fetchTonApi(`/accounts/${address}`);
   return Number(res.data.balance) / 1e9;
 }
 
 export async function getJettonInfo(ownerAddress) {
-  const res = await tonapi.get(
+  const res = await fetchTonApi(
     `/accounts/${ownerAddress}/jettons/${JETTON_ADDRESS}`,
   );
 
