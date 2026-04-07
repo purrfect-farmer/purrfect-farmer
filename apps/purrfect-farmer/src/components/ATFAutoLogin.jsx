@@ -76,7 +76,9 @@ export default function ATFAutoLogin() {
           </PrimaryButton>
 
           {/* Divider */}
-          <p className="text-center text-neutral-500">OR</p>
+          <p className="text-center text-neutral-500 dark:text-neutral-400">
+            OR
+          </p>
 
           {/* Reset Button */}
           <button

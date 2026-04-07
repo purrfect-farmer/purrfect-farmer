@@ -13,7 +13,7 @@ export default function ATFAutoAccountBalance({ account, ...props }) {
     <span
       {...props}
       className={cn(
-        "flex flex-wrap items-center gap-x-2",
+        "flex flex-wrap items-center gap-x-2 font-bold",
         "text-neutral-500 dark:text-neutral-300",
         props.className,
       )}

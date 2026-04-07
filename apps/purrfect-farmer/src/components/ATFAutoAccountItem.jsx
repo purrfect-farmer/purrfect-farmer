@@ -1,29 +1,16 @@
+import { MdEditNote, MdInfo } from "react-icons/md";
 import { Reorder, useDragControls } from "motion/react";
-import { memo, useMemo, useState } from "react";
+import { memo, useState } from "react";
 
 import ATFAutoAccountBalance from "./ATFAutoAccountBalance";
 import ATFAutoAccountDetailsDialog from "./ATFAutoAccountDetailsDialog";
 import ATFAutoAccountIframeDialog from "./ATFAutoAccountIframeDialog";
 import ATFAutoAddress from "./ATFAutoAddress";
+import ATFAutoAvatar from "./ATFAutoAvatar";
 import ATFAutoEditAccountDialog from "./ATFAutoEditAccountDialog";
 import ATFAutoVersionBadge from "./ATFAutoVersionBadge";
 import { Dialog } from "radix-ui";
-import { HiOutlinePencilSquare } from "react-icons/hi2";
-import { IoInformationCircleOutline } from "react-icons/io5";
 import { cn } from "@/utils";
-
-function getInitials(title) {
-  return title
-    .split(/\s+/)
-    .slice(0, 2)
-    .map((w) => w[0]?.toUpperCase() || "")
-    .join("");
-}
-
-function truncateAddress(address) {
-  if (!address || address.length < 12) return address;
-  return `${address.slice(0, 6)}...${address.slice(-4)}`;
-}
 
 const ActionButton = (props) => (
   <button
@@ -46,7 +33,7 @@ export default memo(function ATFAutoAccountItem({
   onDelete,
 }) {
   const dragControls = useDragControls();
-  const initials = useMemo(() => getInitials(account.title), [account.title]);
+
   const [editOpen, setEditOpen] = useState(false);
   const [detailsOpen, setDetailsOpen] = useState(false);
   const [iframeOpen, setIframeOpen] = useState(false);
@@ -82,18 +69,10 @@ export default memo(function ATFAutoAccountItem({
         )}
       >
         {/* Avatar - drag handle */}
-        <div
+        <ATFAutoAvatar
+          account={account}
           onPointerDown={(e) => dragControls.start(e)}
-          className={cn(
-            "size-10 shrink-0 rounded-full",
-            "bg-orange-500 text-white",
-            "flex items-center justify-center",
-            "font-bold text-sm cursor-grab active:cursor-grabbing",
-            "touch-none select-none",
-          )}
-        >
-          {initials}
-        </div>
+        />
 
         {/* Main content - clickable for iframe */}
         <button
@@ -124,7 +103,7 @@ export default memo(function ATFAutoAccountItem({
         <Dialog.Root open={editOpen} onOpenChange={setEditOpen}>
           <Dialog.Trigger asChild>
             <ActionButton>
-              <HiOutlinePencilSquare className="size-4" />
+              <MdEditNote className="size-5" />
             </ActionButton>
           </Dialog.Trigger>
           <ATFAutoEditAccountDialog
@@ -144,7 +123,7 @@ export default memo(function ATFAutoAccountItem({
         <Dialog.Root open={detailsOpen} onOpenChange={setDetailsOpen}>
           <Dialog.Trigger asChild>
             <ActionButton>
-              <IoInformationCircleOutline className="size-4" />
+              <MdInfo className="size-5" />
             </ActionButton>
           </Dialog.Trigger>
           <ATFAutoAccountDetailsDialog account={account} />

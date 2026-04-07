@@ -1,4 +1,4 @@
-import ATFAutoIcon from "@/assets/images/atf.png?format=webp&w=80";
+import ATFAutoIcon from "@/assets/images/atf-auto.png?format=webp&w=80";
 import AppIcon from "@/assets/images/icon.png?format=webp&w=80";
 import BackupAndRestoreIcon from "@/assets/images/backup-and-restore.png?format=webp&w=80";
 import CloudIcon from "@/assets/images/cloud.png?format=webp&w=80";

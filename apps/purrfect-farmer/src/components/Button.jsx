@@ -11,7 +11,7 @@ const buttonVariants = cva(
     variants: {
       variant: {
         default: ["bg-blue-500 text-white"],
-        secondary: ["bg-black text-white"],
+        secondary: ["bg-neutral-200 dark:bg-neutral-900"],
         danger: ["bg-red-400 text-white"],
       },
     },

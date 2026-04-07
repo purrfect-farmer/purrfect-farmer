@@ -8,6 +8,7 @@ import { memo, useMemo } from "react";
 
 import ATFAutoAccountBalance from "./ATFAutoAccountBalance";
 import ATFAutoAddress from "./ATFAutoAddress";
+import ATFAutoAvatar from "./ATFAutoAvatar";
 import ATFAutoVersionBadge from "./ATFAutoVersionBadge";
 import { cn } from "@/utils";
 
@@ -70,16 +71,7 @@ const AccountChooserItem = memo(function AccountChooserItem({
       )}
 
       {/* Avatar */}
-      <div
-        className={cn(
-          "size-8 shrink-0 rounded-full",
-          "bg-orange-500 text-white",
-          "flex items-center justify-center",
-          "font-bold text-xs",
-        )}
-      >
-        {initials}
-      </div>
+      <ATFAutoAvatar account={account} className="size-8" />
 
       {/* Info */}
       <div className="flex flex-col grow min-w-0">
