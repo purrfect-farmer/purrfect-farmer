@@ -1,22 +1,21 @@
+import ATFAutoIcon from "@/assets/images/atf.png?format=webp&w=80";
 import AppIcon from "@/assets/images/icon.png?format=webp&w=80";
-import MyCloudIcon from "@/assets/images/my-cloud.png?format=webp&w=80";
+import BackupAndRestoreIcon from "@/assets/images/backup-and-restore.png?format=webp&w=80";
 import CloudIcon from "@/assets/images/cloud.png?format=webp&w=80";
 import CloudTelegramSessionIcon from "@/assets/images/cloud-telegram-session.png?format=webp&w=80";
 import LocalTelegramSessionIcon from "@/assets/images/local-telegram-session.png?format=webp&w=80";
+import MyCloudIcon from "@/assets/images/my-cloud.png?format=webp&w=80";
+import ReorderTelegramWebIcon from "@/assets/images/reorder-telegram-web.png?format=webp&w=80";
+import SpiderIcon from "@/assets/images/spider-logo.png?format=webp&w=80";
 import TelegramCleanerIcon from "@/assets/images/telegram-cleaner.png?format=webp&w=80";
+import TelegramToPurrfectGramIcon from "@/assets/images/telegram-to-purrfect-gram.png?format=webp&w=80";
 import TelegramWebAIcon from "@/assets/images/telegram-web-a.png?format=webp&w=80";
 import TelegramWebKIcon from "@/assets/images/telegram-web-k.png?format=webp&w=80";
-import WhiskersIcon from "@/assets/images/whiskers.png?format=webp&w=80";
 import TinyFlyIcon from "@/assets/images/fly.png?format=webp&w=80";
-import SpiderIcon from "@/assets/images/spider-logo.png?format=webp&w=80";
-import BackupAndRestoreIcon from "@/assets/images/backup-and-restore.png?format=webp&w=80";
-import ReorderTelegramWebIcon from "@/assets/images/reorder-telegram-web.png?format=webp&w=80";
-import TelegramToPurrfectGramIcon from "@/assets/images/telegram-to-purrfect-gram.png?format=webp&w=80";
-
+import WhiskersIcon from "@/assets/images/whiskers.png?format=webp&w=80";
 import { createElement } from "react";
-import { lazy } from "react";
-
 import farmers from "./farmers";
+import { lazy } from "react";
 
 export const Welcome = lazy(() => import("@/app/Welcome"));
 export const Browser = lazy(() => import("@/app/Browser"));
@@ -26,22 +25,23 @@ export const TinyFly = lazy(() => import("@/app/TinyFly"));
 export const HeadlessPicker = lazy(() => import("@/app/HeadlessPicker"));
 export const BackupAndRestore = lazy(() => import("@/app/BackupAndRestore"));
 export const WhiskersToFarmer = lazy(() => import("@/app/WhiskersToFarmer"));
-export const TelegramToPurrfectGram = lazy(() =>
-  import("@/app/TelegramToPurrfectGram")
+export const TelegramToPurrfectGram = lazy(
+  () => import("@/app/TelegramToPurrfectGram"),
 );
 
-export const ReorderTelegramWeb = lazy(() =>
-  import("@/app/ReorderTelegramWeb")
+export const ReorderTelegramWeb = lazy(
+  () => import("@/app/ReorderTelegramWeb"),
 );
 
 export const Spider = lazy(() => import("@/app/Spider"));
+export const ATFAuto = lazy(() => import("@/app/ATFAuto"));
 export const MyCloud = lazy(() => import("@/app/MyCloud"));
 export const CloudManager = lazy(() => import("@/app/CloudManager"));
-export const LocalTelegramSession = lazy(() =>
-  import("@/app/LocalTelegramSession")
+export const LocalTelegramSession = lazy(
+  () => import("@/app/LocalTelegramSession"),
 );
-export const CloudTelegramSession = lazy(() =>
-  import("@/app/CloudTelegramSession")
+export const CloudTelegramSession = lazy(
+  () => import("@/app/CloudTelegramSession"),
 );
 
 export const app = [
@@ -71,6 +71,27 @@ export const telegramWeb = [
 ];
 
 export const utils = [
+  /** Extra */
+  {
+    name: "Extra",
+    list: [
+      /** ATF Auto */
+      {
+        id: "atf-auto",
+        title: "ATF Auto",
+        icon: ATFAutoIcon,
+        component: createElement(ATFAuto),
+      },
+
+      /** Telegram Cleaner */
+      {
+        id: "telegram-cleaner",
+        title: "Telegram Cleaner",
+        icon: TelegramCleanerIcon,
+        component: createElement(TelegramCleaner),
+      },
+    ],
+  },
   /** Account */
   {
     name: "Account",
@@ -156,9 +177,9 @@ export const utils = [
     ],
   },
 
-  /** Data */
+  /** Telegram Web */
   {
-    name: "Data",
+    name: "Telegram Web",
     list: [
       /** Telegram to Purrfect Gram */
       {
@@ -175,7 +196,13 @@ export const utils = [
         icon: ReorderTelegramWebIcon,
         component: createElement(ReorderTelegramWeb),
       },
+    ],
+  },
 
+  /** Backup and Restore */
+  {
+    name: "Backup and Restore",
+    list: [
       /** Whiskers to Farmer */
       {
         id: "whiskers-to-farmer",
