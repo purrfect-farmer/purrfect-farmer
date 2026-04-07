@@ -21,9 +21,9 @@ const SwitcherButton = (props) => (
   <button
     {...props}
     className={cn(
-      "size-10 shrink-0 rounded-full",
+      "size-10 shrink-0 rounded-xl",
       "flex items-center justify-center",
-      "border border-neutral-200 dark:border-neutral-700 cursor-pointer",
+      "cursor-pointer",
       "hover:bg-orange-500 hover:text-white hover:border-orange-500",
       "transition-colors",
     )}
@@ -62,7 +62,10 @@ function WebviewHeader({ account, showAside, toggleAside }) {
           "flex items-center justify-center",
           "cursor-pointer transition-colors",
           showAside
-            ? "bg-neutral-100 dark:bg-neutral-700 hover:bg-neutral-200 dark:hover:bg-neutral-600"
+            ? [
+                "bg-neutral-100 dark:bg-neutral-700",
+                "hover:bg-neutral-200 dark:hover:bg-neutral-600",
+              ]
             : "bg-orange-500 text-white hover:bg-orange-600",
         )}
       >

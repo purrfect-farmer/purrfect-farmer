@@ -1,42 +1,53 @@
 import { Address, TonClient, internal, toNano } from "@ton/ton";
-import { beginCell, storeStateInit } from "@ton/core";
-import { mnemonicToPrivateKey, sha256, sign } from "@ton/crypto";
-
 import {
   JETTON_ADDRESS,
-  getJettonBalance,
-  getWalletFromMnemonic,
+  createWallet,
+  getJettonInfo,
   keypairFromMnemonic,
 } from "./atf-auto";
+import { SendMode, beginCell, storeStateInit } from "@ton/core";
 import { extractTgWebAppData, uuid } from "@/utils";
+import { sha256, sign } from "@ton/crypto";
 
+import Decimal from "decimal.js";
 import axios from "axios";
 
-const TONAPI_BASE = "https://tonapi.io/v2";
 const TON_FOR_GAS = toNano("0.1");
 const JETTON_TRANSFER_GAS = toNano("0.05");
-
 const ATF_API_BASE = "https://atfminers.asloni.online/miner/index.php";
 
-
-async function getJettonWalletAddress(ownerAddress) {
-  const res = await axios.get(
-    `${TONAPI_BASE}/accounts/${ownerAddress}/jettons/${JETTON_ADDRESS}`
+async function getJettonWalletAddress(client, jettonMaster, ownerAddress) {
+  const res = await client.runMethod(
+    Address.parse(jettonMaster),
+    "get_wallet_address",
+    [
+      {
+        type: "slice",
+        cell: beginCell().storeAddress(Address.parse(ownerAddress)).endCell(),
+      },
+    ],
   );
-  return res.data.wallet_address?.address;
+
+  return res.stack.readAddress();
 }
 
-function buildJettonTransferBody(toAddress, jettonAmount, decimals = 9) {
-  const amount = BigInt(Math.round(jettonAmount * 10 ** decimals));
+function buildJettonTransferBody(toAddress, jettonAmount, senderAddress, decimals) {
+  const amount = BigInt(
+    new Decimal(jettonAmount)
+      .mul(new Decimal(10).pow(decimals))
+      .floor()
+      .toFixed(0),
+  );
+
   return beginCell()
     .storeUint(0xf8a7ea5, 32)
     .storeUint(0, 64)
     .storeCoins(amount)
-    .storeAddress(Address.parse(toAddress))
-    .storeAddress(Address.parse(toAddress))
-    .storeBit(0)
-    .storeCoins(1)
-    .storeBit(0)
+    .storeAddress(Address.parse(toAddress)) // destination
+    .storeAddress(Address.parse(senderAddress)) // response destination
+    .storeBit(0) // no custom payload
+    .storeCoins(0) // no forward TON
+    .storeBit(0) // no forward payload
     .endCell();
 }
 
@@ -64,11 +75,19 @@ export async function prepareMaster(master) {
     endpoint: "https://toncenter.com/api/v2/jsonRPC",
     apiKey: master.toncenterApiKey,
   });
-  const wallet = await getWalletFromMnemonic(master.phrase, master.version);
+
   const keyPair = await keypairFromMnemonic(master.phrase);
+  const wallet = createWallet(keyPair.publicKey, master.version);
   const contract = client.open(wallet);
-  const jettonWalletAddress = await getJettonWalletAddress(master.address);
-  const jettonBalance = await getJettonBalance(master.address);
+
+  const jettonWalletAddress = await getJettonWalletAddress(
+    client,
+    JETTON_ADDRESS,
+    master.address,
+  );
+
+  const { balance: jettonBalance, decimals: jettonDecimals } =
+    await getJettonInfo(master.address);
 
   return {
     client,
@@ -77,6 +96,7 @@ export async function prepareMaster(master) {
     keyPair,
     jettonWalletAddress,
     jettonBalance,
+    jettonDecimals,
   };
 }
 
@@ -107,6 +127,22 @@ export default class ATFAutoBooster {
     this.initData = null;
     this.authData = null;
     this.tmaSessionToken = null;
+
+    // Lazy-prepared sub-account wallet/keyPair
+    this._subPrepared = null;
+  }
+
+  async _prepareSubAccount() {
+    if (!this._subPrepared) {
+      const keyPair = await keypairFromMnemonic(this.account.phrase);
+      const wallet = createWallet(keyPair.publicKey, this.account.version);
+      this._subPrepared = {
+        keyPair,
+        wallet,
+        contract: this.prepared.client.open(wallet),
+      };
+    }
+    return this._subPrepared;
   }
 
   // ─── ATF API ────────────────────────────────────────────
@@ -141,7 +177,7 @@ export default class ATFAutoBooster {
           "X-Telegram-Init-Data": this.initData,
           "X-ATF-TMA-Session": this.tmaSessionToken || "",
         },
-      }
+      },
     );
     return res.data;
   }
@@ -224,11 +260,7 @@ export default class ATFAutoBooster {
   }
 
   async connectWallet() {
-    const keyPair = await keypairFromMnemonic(this.account.phrase);
-    const wallet = await getWalletFromMnemonic(
-      this.account.phrase,
-      this.account.version
-    );
+    const { keyPair, wallet } = await this._prepareSubAccount();
 
     const publicKey = keyPair.publicKey.toString("hex");
     const rawAddress = wallet.address.toRawString();
@@ -240,21 +272,20 @@ export default class ATFAutoBooster {
 
     const { proof } = await this.buildWalletProof(wallet, keyPair.secretKey);
 
-    const result = await this.syncWallet({
+    return this.syncWallet({
       publicKey,
       wallet: rawAddress,
       walletStateInit,
       network: "-239",
       proof,
     });
-
-    return result;
   }
 
   // ─── TON Transfers (reuse prepared master) ──────────────
 
   async sendFromMaster(jettonAmount) {
-    const { contract, keyPair, jettonWalletAddress } = this.prepared;
+    const { contract, keyPair, jettonWalletAddress, jettonDecimals } =
+      this.prepared;
     const seqno = await contract.getSeqno();
 
     await contract.sendTransfer({
@@ -262,18 +293,19 @@ export default class ATFAutoBooster {
       secretKey: keyPair.secretKey,
       messages: [
         internal({
-          to: Address.parse(jettonWalletAddress),
+          to: jettonWalletAddress,
           value: JETTON_TRANSFER_GAS,
-          body: buildJettonTransferBody(this.account.address, jettonAmount),
+          body: buildJettonTransferBody(
+            this.account.address,
+            jettonAmount,
+            this.master.address,
+            jettonDecimals,
+          ),
         }),
         internal({
           to: Address.parse(this.account.address),
           value: TON_FOR_GAS,
           bounce: false,
-          body: beginCell()
-            .storeUint(0, 32)
-            .storeStringTail("ATF Auto")
-            .endCell(),
         }),
       ],
     });
@@ -282,29 +314,34 @@ export default class ATFAutoBooster {
   }
 
   async returnToMaster() {
-    const jettonBalance = await getJettonBalance(this.account.address);
-    const { client } = this.prepared;
-    const wallet = await getWalletFromMnemonic(
-      this.account.phrase,
-      this.account.version
+    const { client, jettonDecimals } = this.prepared;
+    const { contract, keyPair } = await this._prepareSubAccount();
+
+    const { balance: jettonBalance } = await getJettonInfo(
+      this.account.address,
     );
-    const keyPair = await keypairFromMnemonic(this.account.phrase);
-    const contract = client.open(wallet);
     const seqno = await contract.getSeqno();
 
     const messages = [];
 
-    if (jettonBalance > 0) {
+    if (jettonBalance.greaterThan(0)) {
       const subJettonWallet = await getJettonWalletAddress(
-        this.account.address
+        client,
+        JETTON_ADDRESS,
+        this.account.address,
       );
       if (subJettonWallet) {
         messages.push(
           internal({
-            to: Address.parse(subJettonWallet),
+            to: subJettonWallet,
             value: JETTON_TRANSFER_GAS,
-            body: buildJettonTransferBody(this.master.address, jettonBalance),
-          })
+            body: buildJettonTransferBody(
+              this.master.address,
+              jettonBalance,
+              this.account.address,
+              jettonDecimals,
+            ),
+          }),
         );
       }
     }
@@ -314,18 +351,14 @@ export default class ATFAutoBooster {
         to: Address.parse(this.master.address),
         value: toNano("0"),
         bounce: false,
-        body: beginCell()
-          .storeUint(0, 32)
-          .storeStringTail("Return")
-          .endCell(),
-      })
+      }),
     );
 
     await contract.sendTransfer({
       seqno,
       secretKey: keyPair.secretKey,
       messages,
-      sendMode: 128,
+      sendMode: SendMode.CARRY_ALL_REMAINING_BALANCE,
     });
 
     await waitForSeqnoChange(contract, seqno);
@@ -343,10 +376,6 @@ export default class ATFAutoBooster {
           to: Address.parse(this.account.address),
           value: TON_FOR_GAS,
           bounce: false,
-          body: beginCell()
-            .storeUint(0, 32)
-            .storeStringTail("Collect Gas")
-            .endCell(),
         }),
       ],
     });
@@ -360,16 +389,22 @@ export default class ATFAutoBooster {
     try {
       await this.login();
 
-      const minPercent = 100 - difference;
-      const minAmount = (this.prepared.jettonBalance * minPercent) / 100;
-      const currentHolding = this.getWalletHoldingAtf();
+      const balance = new Decimal(this.prepared.jettonBalance);
 
-      if (currentHolding >= minAmount) {
+      const minPercent = new Decimal(100).minus(difference);
+      const minAmount = balance.mul(minPercent).div(100);
+
+      const currentHolding = new Decimal(this.getWalletHoldingAtf());
+
+      if (currentHolding.greaterThanOrEqualTo(minAmount)) {
         return { status: false, skipped: true, account: this.account };
       }
 
-      const randomPercent = minPercent + Math.random() * difference;
-      const jettonAmount = (this.prepared.jettonBalance * randomPercent) / 100;
+      const randomPercent = minPercent.plus(
+        new Decimal(Math.random()).mul(difference),
+      );
+
+      const jettonAmount = balance.mul(randomPercent).div(100);
 
       await this.sendFromMaster(jettonAmount);
       await this.connectWallet();
@@ -383,9 +418,11 @@ export default class ATFAutoBooster {
 
   async collect() {
     try {
-      const jettonBalance = await getJettonBalance(this.account.address);
+      const { balance: jettonBalance } = await getJettonInfo(
+        this.account.address,
+      );
 
-      if (jettonBalance <= 0) {
+      if (jettonBalance.lessThanOrEqualTo(0)) {
         return { status: false, skipped: true, account: this.account };
       }
 
