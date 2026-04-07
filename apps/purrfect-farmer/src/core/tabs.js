@@ -82,14 +82,6 @@ export const utils = [
         icon: ATFAutoIcon,
         component: createElement(ATFAuto),
       },
-
-      /** Telegram Cleaner */
-      {
-        id: "telegram-cleaner",
-        title: "Telegram Cleaner",
-        icon: TelegramCleanerIcon,
-        component: createElement(TelegramCleaner),
-      },
     ],
   },
   /** Account */
