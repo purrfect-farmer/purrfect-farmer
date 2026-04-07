@@ -16,6 +16,7 @@ import { getWalletAddressFromMnemonic } from "@/lib/atf-auto";
 import { mnemonicNew } from "@ton/crypto";
 import toast from "react-hot-toast";
 import useATFAuto from "@/hooks/useATFAuto";
+import useAppContext from "@/hooks/useAppContext";
 import { useEffect } from "react";
 import { useState } from "react";
 import { yup } from "@/lib/yup";
@@ -27,11 +28,13 @@ const schema = yup
     ["phrase"]: yup.string().required().label("Wallet Phrase"),
     ["version"]: yup.number().required().oneOf([4, 5]).label("Wallet Version"),
     ["password"]: yup.string().required().label("Password"),
+    ["toncenterApiKey"]: yup.string().required().label("Toncenter API Key"),
   })
   .required();
 
 export default function ATFAutoMasterSetup() {
   const { setPassword, storeMaster } = useATFAuto();
+  const { openTelegramLink } = useAppContext();
   const [showForm, setShowForm] = useState(false);
   const [address, setAddress] = useState("");
   const form = useForm({
@@ -40,6 +43,7 @@ export default function ATFAutoMasterSetup() {
       password: "",
       phrase: "",
       version: 5,
+      toncenterApiKey: "",
     },
   });
   const isSubmitting = form.formState.isSubmitting;
@@ -66,6 +70,7 @@ export default function ATFAutoMasterSetup() {
       version,
       hashedPassword,
       encryptedWalletPhrase,
+      toncenterApiKey: data.toncenterApiKey || "",
     });
 
     /** Set password */
@@ -166,6 +171,30 @@ export default function ATFAutoMasterSetup() {
                   {address}
                 </p>
               )}
+
+              {/* Toncenter API Key */}
+              <Controller
+                control={form.control}
+                name="toncenterApiKey"
+                render={({ field, fieldState }) => (
+                  <>
+                    <Input
+                      {...field}
+                      disabled={isSubmitting}
+                      autoComplete="off"
+                      placeholder="Toncenter API Key"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => openTelegramLink("https://t.me/toncenter")}
+                      className="text-xs text-blue-500 dark:text-blue-400 hover:underline cursor-pointer"
+                    >
+                      Get API key from @toncenter
+                    </button>
+                    <FieldStateError fieldState={fieldState} />
+                  </>
+                )}
+              />
 
               {/* Password */}
               <Controller
