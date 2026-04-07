@@ -46,7 +46,7 @@ export async function getWalletAddressFromMnemonic(mnemonic, version) {
 
 export async function getTonBalance(address) {
   const res = await fetchTonApi(`/accounts/${address}`);
-  return Number(res.data.balance) / 1e9;
+  return new Decimal(res.data.balance || 0).div(1e9);
 }
 
 export async function getJettonInfo(ownerAddress) {
