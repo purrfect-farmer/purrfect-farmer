@@ -55,7 +55,7 @@ function MasterBalanceCard() {
       </Dialog.Root>
 
       <div className="flex justify-center items-center text-center gap-4">
-        <h3 className="text-sm font-bold text-neutral-400">Master</h3>
+        <h3 className="font-bold text-neutral-400">Master</h3>
       </div>
 
       {/* Jetton balance */}
@@ -159,7 +159,7 @@ export default function ATFAutoDashboardTab() {
 
       {/* Accounts Header */}
       <div className="flex items-center justify-between">
-        <h3 className="text-neutral-500 dark:text-neutral-400 font-bold text-sm">
+        <h3 className="text-neutral-500 dark:text-neutral-400 font-bold">
           Accounts ({accounts.length})
         </h3>
         <button
@@ -203,7 +203,7 @@ export default function ATFAutoDashboardTab() {
           ))}
         </Reorder.Group>
       ) : (
-        <p className="text-center text-neutral-400 text-sm py-4">
+        <p className="text-center text-neutral-400 py-4">
           No accounts yet. Add one to get started.
         </p>
       )}

@@ -29,7 +29,7 @@ export default function ATFAutoCollectTab() {
     <div className="flex flex-col gap-3 px-2">
       {/* Results summary */}
       {mutation.isSuccess && (
-        <div className="flex flex-col text-center text-sm gap-2">
+        <div className="flex flex-col text-center gap-2">
           <p className="text-green-500 font-bold">Collection completed!</p>
           <p className="text-neutral-500">
             Collected: {mutation.data.results.filter((r) => r.status).length} /{" "}

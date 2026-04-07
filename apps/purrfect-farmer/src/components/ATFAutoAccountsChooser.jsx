@@ -113,7 +113,7 @@ export default function ATFAutoAccountsChooser({
     <div className="flex flex-col gap-2">
       {/* Header */}
       <div className="flex items-center justify-between">
-        <h4 className="font-bold text-sm text-neutral-500 dark:text-neutral-400">
+        <h4 className="font-bold text-neutral-500 dark:text-neutral-400">
           Accounts ({selectedAccounts.length} / {accounts.length})
         </h4>
 

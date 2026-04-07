@@ -5,7 +5,7 @@ export default function Label(props) {
     <label
       {...props}
       className={cn(
-        "text-xs font-bold",
+        "font-bold",
         "text-neutral-500 dark:text-neutral-400",
         "flex items-center gap-1",
         props.className,

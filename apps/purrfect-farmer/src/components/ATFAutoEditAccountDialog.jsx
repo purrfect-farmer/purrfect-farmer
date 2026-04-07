@@ -72,7 +72,7 @@ export default function ATFAutoEditAccountDialog({
           />
 
           {/* Divider */}
-          <p className="my-1 text-neutral-400 text-center text-sm">OR</p>
+          <p className="my-1 text-neutral-400 text-center">OR</p>
           <Alert variant={"danger"}>
             This action cannot be undone. This will permanently delete the
             account and all associated data.

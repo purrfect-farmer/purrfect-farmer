@@ -1,13 +1,14 @@
 import ATFAutoAccountsChooser from "./ATFAutoAccountsChooser";
 import ATFAutoProgress from "./ATFAutoProgress";
 import Alert from "./Alert";
+import { HiArrowPath } from "react-icons/hi2";
 import Input from "./Input";
+import Label from "./Label";
 import PrimaryButton from "./PrimaryButton";
 import toast from "react-hot-toast";
 import useATFAuto from "@/hooks/useATFAuto";
 import useATFAutoAccountsSelector from "@/hooks/useATFAutoAccountsSelector";
 import useATFAutoBoostMutation from "@/hooks/useATFAutoBoostMutation";
-import { HiArrowPath } from "react-icons/hi2";
 import { useState } from "react";
 
 export default function ATFAutoBoostTab() {
@@ -33,7 +34,7 @@ export default function ATFAutoBoostTab() {
     <div className="flex flex-col gap-3 px-2">
       {/* Results summary */}
       {mutation.isSuccess && (
-        <div className="flex flex-col text-center text-sm gap-2">
+        <div className="flex flex-col text-center gap-2">
           <p className="text-green-500 font-bold">Boost completed!</p>
           <p className="text-neutral-500">
             Success: {mutation.data.results.filter((r) => r.status).length} /{" "}
@@ -69,9 +70,7 @@ export default function ATFAutoBoostTab() {
 
           {/* Difference */}
           <div className="flex flex-col gap-1">
-            <label className="text-sm font-bold text-neutral-500 dark:text-neutral-400">
-              Difference (%)
-            </label>
+            <Label>Difference (%)</Label>
             <Input
               type="number"
               min={1}
