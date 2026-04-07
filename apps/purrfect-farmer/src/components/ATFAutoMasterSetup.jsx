@@ -150,7 +150,7 @@ export default function ATFAutoMasterSetup() {
                           type="button"
                           onClick={generatePhrase}
                           className={cn(
-                            "text-sm text-blue-500 dark:text-blue-400",
+                            "text-blue-500 dark:text-blue-400",
                             "cursor-pointer hover:underline disabled:opacity-50",
                             "flex items-center gap-1",
                           )}
