@@ -1,6 +1,7 @@
 import ATFAutoBooster, { prepareMaster } from "@/lib/ATFAutoBooster";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 
+import Decimal from "decimal.js";
 import { encryption } from "@/services/encryption";
 import useATFAuto from "./useATFAuto";
 import useATFAutoProgress from "./useATFAutoProgress";
@@ -62,7 +63,12 @@ export default function useATFAutoCollectMutation() {
         incrementProgress();
       }
 
-      return { results };
+      const totalCollected = results.reduce(
+        (sum, r) => (r.collected ? sum.plus(r.collected) : sum),
+        new Decimal(0),
+      );
+
+      return { results, totalCollected: totalCollected.toFixed() };
     },
   });
 

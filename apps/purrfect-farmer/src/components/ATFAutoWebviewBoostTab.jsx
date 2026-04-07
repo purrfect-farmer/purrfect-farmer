@@ -4,6 +4,7 @@ import Alert from "./Alert";
 import Input from "./Input";
 import PrimaryButton from "./PrimaryButton";
 import useATFAutoSingleBoostMutation from "@/hooks/useATFAutoSingleBoostMutation";
+import { HiArrowPath } from "react-icons/hi2";
 
 export default function ATFAutoWebviewBoostTab({ account }) {
   const mutation = useATFAutoSingleBoostMutation();
@@ -29,18 +30,28 @@ export default function ATFAutoWebviewBoostTab({ account }) {
                 ? "Skipped — holding already sufficient."
                 : `Failed: ${mutation.data.error?.message || "Unknown error"}`}
           </Alert>
-          <PrimaryButton onClick={() => mutation.reset()}>
+          <button
+            type="button"
+            onClick={() => mutation.reset()}
+            className="inline-flex items-center gap-1 text-orange-500"
+          >
+            <HiArrowPath className="w-4 h-4" />
             Reset
-          </PrimaryButton>
+          </button>
         </>
       )}
 
       {mutation.isError && (
         <>
           <Alert variant="danger">{mutation.error.message}</Alert>
-          <PrimaryButton onClick={() => mutation.reset()}>
+          <button
+            type="button"
+            onClick={() => mutation.reset()}
+            className="inline-flex items-center gap-1 text-orange-500"
+          >
+            <HiArrowPath className="w-4 h-4" />
             Reset
-          </PrimaryButton>
+          </button>
         </>
       )}
 

@@ -1,6 +1,7 @@
 import Alert from "./Alert";
 import PrimaryButton from "./PrimaryButton";
 import useATFAutoSingleCollectMutation from "@/hooks/useATFAutoSingleCollectMutation";
+import { HiArrowPath } from "react-icons/hi2";
 
 export default function ATFAutoWebviewCollectTab({ account }) {
   const mutation = useATFAutoSingleCollectMutation();
@@ -20,23 +21,33 @@ export default function ATFAutoWebviewCollectTab({ account }) {
         <>
           <Alert variant={mutation.data.status ? "success" : "info"}>
             {mutation.data.status
-              ? "Collection completed!"
+              ? `Collected ${mutation.data.collected} ATF`
               : mutation.data.skipped
                 ? "Skipped — no jetton balance found."
                 : `Failed: ${mutation.data.error?.message || "Unknown error"}`}
           </Alert>
-          <PrimaryButton onClick={() => mutation.reset()}>
+          <button
+            type="button"
+            onClick={() => mutation.reset()}
+            className="inline-flex items-center gap-1 text-orange-500"
+          >
+            <HiArrowPath className="w-4 h-4" />
             Reset
-          </PrimaryButton>
+          </button>
         </>
       )}
 
       {mutation.isError && (
         <>
           <Alert variant="danger">{mutation.error.message}</Alert>
-          <PrimaryButton onClick={() => mutation.reset()}>
+          <button
+            type="button"
+            onClick={() => mutation.reset()}
+            className="inline-flex items-center gap-1 text-orange-500"
+          >
+            <HiArrowPath className="w-4 h-4" />
             Reset
-          </PrimaryButton>
+          </button>
         </>
       )}
 

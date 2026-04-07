@@ -7,6 +7,7 @@ import toast from "react-hot-toast";
 import useATFAuto from "@/hooks/useATFAuto";
 import useATFAutoAccountsSelector from "@/hooks/useATFAutoAccountsSelector";
 import useATFAutoBoostMutation from "@/hooks/useATFAutoBoostMutation";
+import { HiArrowPath } from "react-icons/hi2";
 import { useState } from "react";
 
 export default function ATFAutoBoostTab() {
@@ -41,14 +42,28 @@ export default function ATFAutoBoostTab() {
           <p className="text-neutral-500">
             Skipped: {mutation.data.results.filter((r) => r.skipped).length}
           </p>
-          <PrimaryButton onClick={() => mutation.reset()}>Reset</PrimaryButton>
+          <button
+            type="button"
+            onClick={() => mutation.reset()}
+            className="inline-flex items-center gap-1 text-orange-500"
+          >
+            <HiArrowPath className="w-4 h-4" />
+            Reset
+          </button>
         </div>
       )}
 
       {mutation.isError && (
         <div className="flex flex-col gap-2">
           <Alert variant="danger">{mutation.error.message}</Alert>
-          <PrimaryButton onClick={() => mutation.reset()}>Reset</PrimaryButton>
+          <button
+            type="button"
+            onClick={() => mutation.reset()}
+            className="inline-flex items-center gap-1 text-orange-500"
+          >
+            <HiArrowPath className="w-4 h-4" />
+            Reset
+          </button>
         </div>
       )}
 
