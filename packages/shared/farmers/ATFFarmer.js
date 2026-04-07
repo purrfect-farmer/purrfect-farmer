@@ -250,21 +250,33 @@ export default class ATFFarmer extends BaseFarmer {
 
       keyPair = await mnemonicToWalletKey(mnemonic);
     }
-    const { walletV4, publicKey, rawAddressV4 } = this.prepareWallet(
-      keyPair.publicKey,
-    );
+
+    const version = await this.promptInput({
+      type: "select",
+      text: "Select wallet version:",
+      options: [
+        { value: "v4", label: "Wallet V4" },
+        { value: "v5", label: "Wallet V5R1" },
+      ],
+    });
+
+    const { walletV4, walletV5, publicKey, rawAddressV4, rawAddressV5 } =
+      this.prepareWallet(keyPair.publicKey);
+
+    const wallet = version === "v5" ? walletV5 : walletV4;
+    const rawAddress = version === "v5" ? rawAddressV5 : rawAddressV4;
 
     const walletStateInit = beginCell()
-      .store(storeStateInit(walletV4.init))
+      .store(storeStateInit(wallet.init))
       .endCell()
       .toBoc()
       .toString("base64");
 
-    const { proof } = await this.buildWalletProof(walletV4, keyPair.secretKey);
+    const { proof } = await this.buildWalletProof(wallet, keyPair.secretKey);
 
     const result = await this.syncWallet({
       publicKey,
-      wallet: rawAddressV4,
+      wallet: rawAddress,
       walletStateInit,
       network: "-239",
       proof,
@@ -280,7 +292,7 @@ export default class ATFFarmer extends BaseFarmer {
     }
   }
 
-  async buildWalletProof(walletV4, secretKey) {
+  async buildWalletProof(wallet, secretKey) {
     const proofPayloadData = await this.getWalletProofPayload();
     const payload = proofPayloadData.payload;
 
@@ -291,7 +303,7 @@ export default class ATFFarmer extends BaseFarmer {
     domainLenBuffer.writeUInt32LE(domainBuffer.length);
 
     const workchainBuffer = Buffer.alloc(4);
-    workchainBuffer.writeInt32BE(walletV4.address.workChain);
+    workchainBuffer.writeInt32BE(wallet.address.workChain);
 
     const timestampBuffer = Buffer.alloc(8);
     timestampBuffer.writeUInt32LE(timestamp & 0xffffffff, 0);
@@ -300,7 +312,7 @@ export default class ATFFarmer extends BaseFarmer {
     const message = Buffer.concat([
       Buffer.from("ton-proof-item-v2/", "utf8"),
       workchainBuffer,
-      walletV4.address.hash,
+      wallet.address.hash,
       domainLenBuffer,
       domainBuffer,
       timestampBuffer,
