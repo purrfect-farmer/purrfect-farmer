@@ -16,6 +16,7 @@ export default function useATFAutoCollectMutation() {
     mutationKey: ["atf-auto-collect"],
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["atf-balances"] });
+      queryClient.invalidateQueries({ queryKey: ["atf-wallet-holding"] });
     },
     mutationFn: async ({ accounts }) => {
       resetProgress();

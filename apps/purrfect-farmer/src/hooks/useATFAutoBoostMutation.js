@@ -15,6 +15,7 @@ export default function useATFAutoBoostMutation() {
     mutationKey: ["atf-auto-boost"],
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["atf-balances"] });
+      queryClient.invalidateQueries({ queryKey: ["atf-wallet-holding"] });
     },
     mutationFn: async ({ accounts, difference }) => {
       resetProgress();

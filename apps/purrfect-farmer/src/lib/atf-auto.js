@@ -1,4 +1,5 @@
 import { WalletContractV4, WalletContractV5R1 } from "@ton/ton";
+import { extractTgWebAppData, uuid } from "@/utils";
 
 import Decimal from "decimal.js";
 import axios from "axios";
@@ -73,4 +74,41 @@ export async function getBalances(address) {
   ]);
 
   return { ton, jetton };
+}
+
+/** Serialized fetcher for ATF API — one request at a time with rate limit gap. */
+const ATF_API_BASE = "https://atfminers.asloni.online/miner/index.php";
+const ATF_API_DELAY = 300;
+let _atfPending = Promise.resolve();
+
+function fetchAtfApi(action, url) {
+  const { initData, initDataUnsafe } = extractTgWebAppData(url);
+  const userId = initDataUnsafe?.user?.id;
+  const username = initDataUnsafe?.user?.username;
+
+  return (_atfPending = _atfPending
+    .catch(() => {})
+    .then(() =>
+      axios.post(
+        `${ATF_API_BASE}?action=${action}&t=${Date.now()}`,
+        {
+          initData,
+          request_id: uuid(),
+          tg_id: userId,
+          username,
+        },
+        {
+          headers: {
+            "X-Requested-With": "XMLHttpRequest",
+            "X-Telegram-Init-Data": initData,
+          },
+        },
+      ),
+    )
+    .finally(() => new Promise((r) => setTimeout(r, ATF_API_DELAY))));
+}
+
+export async function getWalletHolding(url) {
+  const res = await fetchAtfApi("login", url);
+  return new Decimal(res.data?.user?.wallet_holding_atf || 0);
 }

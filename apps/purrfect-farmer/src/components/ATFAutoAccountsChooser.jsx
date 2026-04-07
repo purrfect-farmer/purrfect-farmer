@@ -94,7 +94,7 @@ const AccountChooserItem = memo(function AccountChooserItem({
             <ATFAutoVersionBadge version={account.version} />
           </div>
         </div>
-        <ATFAutoAccountBalance address={account.address} />
+        <ATFAutoAccountBalance account={account} />
       </div>
     </label>
   );

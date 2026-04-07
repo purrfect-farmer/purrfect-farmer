@@ -1,25 +1,33 @@
 import ATFIcon from "@/assets/images/atf.png?format=webp&w=32";
 import TonIcon from "@/assets/images/toncoin-ton-logo.svg";
+import { cn } from "@/utils";
 import useATFBalancesQuery from "@/hooks/useATFBalancesQuery";
+import useATFWalletHoldingQuery from "@/hooks/useATFWalletHoldingQuery";
 
-export default function ATFAutoAccountBalance({ address }) {
+export default function ATFAutoAccountBalance({ account, ...props }) {
+  const { address, url } = account;
   const { data: balances } = useATFBalancesQuery(address);
-
-  if (!balances) {
-    return (
-      <span className="text-xs text-neutral-400">Loading balances...</span>
-    );
-  }
+  const { data: walletHolding } = useATFWalletHoldingQuery(url);
 
   return (
-    <span className="flex items-center gap-2 text-xs text-neutral-500 dark:text-neutral-300">
+    <span
+      {...props}
+      className={cn(
+        "flex flex-wrap items-center gap-x-2",
+        "text-neutral-500 dark:text-neutral-300",
+        props.className,
+      )}
+    >
       <span className="inline-flex items-center gap-0.5">
         <img src={TonIcon} className="size-3" />
-        {balances.ton.toFixed(4)}
+        {balances ? balances.ton.toFixed(4) : "-.--"}
       </span>
       <span className="inline-flex items-center gap-0.5">
         <img src={ATFIcon} className="size-3 rounded-full" />
-        {balances.jetton.toFixed(2)}
+        {balances ? balances.jetton.toFixed(2) : "-.--"}
+      </span>
+      <span className="inline-flex items-center gap-0.5 text-orange-500">
+        H {walletHolding != null ? walletHolding.toFixed(4) : "-.--"}
       </span>
     </span>
   );

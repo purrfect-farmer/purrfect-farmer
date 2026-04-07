@@ -110,7 +110,9 @@ function WebviewHeader({ account, showAside, toggleAside }) {
           <ATFAutoAddress address={account.address} />
           <MdOutlineContentCopy className="shrink-0 size-3" />
         </span>
-        <ATFAutoAccountBalance address={account.address} />
+
+        {/* Balances */}
+        <ATFAutoAccountBalance account={account} className="justify-center" />
       </div>
 
       {/* Close */}

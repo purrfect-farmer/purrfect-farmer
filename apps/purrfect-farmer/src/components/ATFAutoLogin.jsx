@@ -82,7 +82,7 @@ export default function ATFAutoLogin() {
           <button
             type="button"
             onClick={() => resetATFAuto()}
-            className="text-red-200 hover:text-red-500 cursor-pointer"
+            className="text-red-500 cursor-pointer"
           >
             Reset ATF Auto
           </button>

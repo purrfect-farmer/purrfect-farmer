@@ -117,7 +117,7 @@ export default memo(function ATFAutoAccountItem({
           </div>
 
           {/* Balance */}
-          <ATFAutoAccountBalance address={account.address} />
+          <ATFAutoAccountBalance account={account} />
         </button>
 
         {/* Edit button */}
