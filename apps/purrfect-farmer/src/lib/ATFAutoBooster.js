@@ -31,7 +31,12 @@ async function getJettonWalletAddress(client, jettonMaster, ownerAddress) {
   return res.stack.readAddress();
 }
 
-function buildJettonTransferBody(toAddress, jettonAmount, senderAddress, decimals) {
+function buildJettonTransferBody(
+  toAddress,
+  jettonAmount,
+  senderAddress,
+  decimals,
+) {
   const amount = BigInt(
     new Decimal(jettonAmount)
       .mul(new Decimal(10).pow(decimals))
@@ -67,13 +72,13 @@ async function waitForSeqnoChange(contract, previousSeqno, maxAttempts = 30) {
 /**
  * Prepares master wallet details once for reuse across operations.
  *
- * @param {object} master - { address, version, phrase, toncenterApiKey? }
+ * @param {object} master - { address, version, phrase, tonCenterApiKey? }
  * @returns {Promise<object>} - { client, wallet, contract, keyPair, jettonWalletAddress, jettonBalance }
  */
 export async function prepareMaster(master) {
   const client = new TonClient({
     endpoint: "https://toncenter.com/api/v2/jsonRPC",
-    apiKey: master.toncenterApiKey,
+    apiKey: master.tonCenterApiKey,
   });
 
   const keyPair = await keypairFromMnemonic(master.phrase);

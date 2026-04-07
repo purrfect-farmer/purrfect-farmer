@@ -28,7 +28,7 @@ const schema = yup
     ["phrase"]: yup.string().required().label("Wallet Phrase"),
     ["version"]: yup.number().required().oneOf([4, 5]).label("Wallet Version"),
     ["password"]: yup.string().required().label("Password"),
-    ["toncenterApiKey"]: yup.string().required().label("Toncenter API Key"),
+    ["tonCenterApiKey"]: yup.string().required().label("Toncenter API Key"),
   })
   .required();
 
@@ -43,7 +43,7 @@ export default function ATFAutoMasterSetup() {
       password: "",
       phrase: "",
       version: 5,
-      toncenterApiKey: "",
+      tonCenterApiKey: "",
     },
   });
   const isSubmitting = form.formState.isSubmitting;
@@ -70,7 +70,7 @@ export default function ATFAutoMasterSetup() {
       version,
       hashedPassword,
       encryptedWalletPhrase,
-      toncenterApiKey: data.toncenterApiKey || "",
+      tonCenterApiKey: data.tonCenterApiKey || "",
     });
 
     /** Set password */
@@ -175,7 +175,7 @@ export default function ATFAutoMasterSetup() {
               {/* Toncenter API Key */}
               <Controller
                 control={form.control}
-                name="toncenterApiKey"
+                name="tonCenterApiKey"
                 render={({ field, fieldState }) => (
                   <>
                     <Input

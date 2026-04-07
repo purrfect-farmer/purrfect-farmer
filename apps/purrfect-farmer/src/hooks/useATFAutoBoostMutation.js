@@ -1,16 +1,21 @@
 import ATFAutoBooster, { prepareMaster } from "@/lib/ATFAutoBooster";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+
 import { encryption } from "@/services/encryption";
-import { useMutation } from "@tanstack/react-query";
 import useATFAuto from "./useATFAuto";
 import useATFAutoProgress from "./useATFAutoProgress";
 
 export default function useATFAutoBoostMutation() {
   const { master, password } = useATFAuto();
+  const queryClient = useQueryClient();
   const { target, progress, setTarget, resetProgress, incrementProgress } =
     useATFAutoProgress();
 
   const mutation = useMutation({
     mutationKey: ["atf-auto-boost"],
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["atf-balances"] });
+    },
     mutationFn: async ({ accounts, difference }) => {
       resetProgress();
       setTarget(accounts.length);
@@ -26,7 +31,7 @@ export default function useATFAutoBoostMutation() {
         address: master.address,
         version: master.version,
         phrase: masterPhrase,
-        toncenterApiKey: master.toncenterApiKey,
+        tonCenterApiKey: master.tonCenterApiKey,
       };
 
       // Prepare master once and reuse
@@ -46,10 +51,14 @@ export default function useATFAutoBoostMutation() {
           asText: true,
         });
 
-        const booster = new ATFAutoBooster(masterData, {
-          ...account,
-          phrase: accountPhrase,
-        }, prepared);
+        const booster = new ATFAutoBooster(
+          masterData,
+          {
+            ...account,
+            phrase: accountPhrase,
+          },
+          prepared,
+        );
 
         const result = await booster.boost({ difference });
 

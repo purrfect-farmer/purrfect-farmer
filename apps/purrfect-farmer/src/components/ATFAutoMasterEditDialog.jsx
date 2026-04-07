@@ -14,8 +14,8 @@ export default function ATFAutoMasterEditDialog() {
   const { master, password, storeMaster } = useATFAuto();
   const { openTelegramLink } = useAppContext();
   const [phrase, setPhrase] = useState("");
-  const [toncenterApiKey, setToncenterApiKey] = useState(
-    master?.toncenterApiKey || "",
+  const [tonCenterApiKey, setToncenterApiKey] = useState(
+    master?.tonCenterApiKey || "",
   );
 
   useEffect(() => {
@@ -45,7 +45,7 @@ export default function ATFAutoMasterEditDialog() {
       address,
       version: data.version,
       encryptedWalletPhrase,
-      toncenterApiKey,
+      tonCenterApiKey,
     });
 
     toast.success("Master account updated!");
@@ -63,7 +63,7 @@ export default function ATFAutoMasterEditDialog() {
             Toncenter API Key
           </label>
           <Input
-            value={toncenterApiKey}
+            value={tonCenterApiKey}
             onChange={(e) => setToncenterApiKey(e.target.value)}
             autoComplete="off"
             placeholder="Toncenter API Key"

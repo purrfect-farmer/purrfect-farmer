@@ -1,13 +1,23 @@
 import ATFAutoBooster, { prepareMaster } from "@/lib/ATFAutoBooster";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+
 import { encryption } from "@/services/encryption";
-import { useMutation } from "@tanstack/react-query";
 import useATFAuto from "./useATFAuto";
 
 export default function useATFAutoSingleCollectMutation() {
   const { master, password } = useATFAuto();
+  const queryClient = useQueryClient();
 
   const mutation = useMutation({
     mutationKey: ["atf-auto-single-collect"],
+    onSuccess: (_data, { account }) => {
+      queryClient.invalidateQueries({
+        queryKey: ["atf-balances", account.address],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["atf-balances", master.address],
+      });
+    },
     mutationFn: async ({ account }) => {
       const masterPhrase = await encryption.decryptData({
         ...master.encryptedWalletPhrase,
@@ -25,7 +35,7 @@ export default function useATFAutoSingleCollectMutation() {
         address: master.address,
         version: master.version,
         phrase: masterPhrase,
-        toncenterApiKey: master.toncenterApiKey,
+        tonCenterApiKey: master.tonCenterApiKey,
       };
 
       const prepared = await prepareMaster(masterData);
@@ -33,7 +43,7 @@ export default function useATFAutoSingleCollectMutation() {
       const booster = new ATFAutoBooster(
         masterData,
         { ...account, phrase: accountPhrase },
-        prepared
+        prepared,
       );
 
       return booster.collect();
