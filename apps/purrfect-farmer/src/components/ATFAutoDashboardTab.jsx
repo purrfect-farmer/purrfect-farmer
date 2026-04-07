@@ -32,7 +32,7 @@ function MasterBalanceCard() {
   return (
     <div
       className={cn(
-        "p-4 rounded-2xl relative",
+        "p-2 rounded-2xl relative",
         "bg-black text-white",
         "flex flex-col items-center justify-center gap-2",
       )}
