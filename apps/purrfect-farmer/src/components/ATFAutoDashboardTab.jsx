@@ -51,7 +51,7 @@ function MasterBalanceCard() {
             <HiOutlinePencilSquare className="size-4" />
           </button>
         </Dialog.Trigger>
-        <ATFAutoMasterEditDialog />
+        <ATFAutoMasterEditDialog onSave={() => setEditOpen(false)} />
       </Dialog.Root>
 
       <div className="flex justify-center items-center text-center gap-4">

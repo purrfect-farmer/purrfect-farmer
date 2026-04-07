@@ -10,7 +10,7 @@ import toast from "react-hot-toast";
 import useATFAuto from "@/hooks/useATFAuto";
 import useAppContext from "@/hooks/useAppContext";
 
-export default function ATFAutoMasterEditDialog() {
+export default function ATFAutoMasterEditDialog({ onSave }) {
   const { master, password, storeMaster } = useATFAuto();
   const { openTelegramLink } = useAppContext();
   const [phrase, setPhrase] = useState("");
@@ -49,6 +49,8 @@ export default function ATFAutoMasterEditDialog() {
     });
 
     toast.success("Master account updated!");
+
+    onSave?.();
   };
 
   return (
