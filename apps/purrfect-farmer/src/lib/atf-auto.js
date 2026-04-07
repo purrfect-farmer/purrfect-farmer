@@ -12,11 +12,10 @@ const tonapi = axios.create({ baseURL: "https://tonapi.io/v2" });
 
 {
   let pending = Promise.resolve();
-  tonapi.interceptors.request.use(
-    (config) =>
-      (pending = pending.then(
-        () => new Promise((r) => setTimeout(r, 500)),
-      )).then(() => config),
+  tonapi.interceptors.request.use((config) =>
+    (pending = pending.then(
+      () => new Promise((r) => setTimeout(r, 1000)),
+    )).then(() => config),
   );
 }
 

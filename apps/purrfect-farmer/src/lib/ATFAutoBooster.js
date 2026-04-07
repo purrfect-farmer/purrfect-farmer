@@ -11,6 +11,7 @@ import { sha256, sign } from "@ton/crypto";
 
 import Decimal from "decimal.js";
 import axios from "axios";
+import toast from "react-hot-toast";
 
 const TON_FOR_GAS = toNano("0.1");
 const JETTON_TRANSFER_GAS = toNano("0.05");
@@ -288,7 +289,7 @@ export default class ATFAutoBooster {
 
   // ─── TON Transfers (reuse prepared master) ──────────────
 
-  async sendFromMaster(jettonAmount) {
+  async sendJettonFromMaster(jettonAmount) {
     const { contract, keyPair, jettonWalletAddress, jettonDecimals } =
       this.prepared;
     const seqno = await contract.getSeqno();
@@ -296,6 +297,7 @@ export default class ATFAutoBooster {
     await contract.sendTransfer({
       seqno,
       secretKey: keyPair.secretKey,
+      sendMode: SendMode.PAY_GAS_SEPARATELY + SendMode.IGNORE_ERRORS,
       messages: [
         internal({
           to: jettonWalletAddress,
@@ -306,11 +308,6 @@ export default class ATFAutoBooster {
             this.master.address,
             jettonDecimals,
           ),
-        }),
-        internal({
-          to: Address.parse(this.account.address),
-          value: TON_FOR_GAS,
-          bounce: false,
         }),
       ],
     });
@@ -376,6 +373,7 @@ export default class ATFAutoBooster {
     await contract.sendTransfer({
       seqno,
       secretKey: keyPair.secretKey,
+      sendMode: SendMode.PAY_GAS_SEPARATELY + SendMode.IGNORE_ERRORS,
       messages: [
         internal({
           to: Address.parse(this.account.address),
@@ -411,9 +409,22 @@ export default class ATFAutoBooster {
 
       const jettonAmount = balance.mul(randomPercent).div(100);
 
-      await this.sendFromMaster(jettonAmount);
-      await this.connectWallet();
-      await this.returnToMaster();
+      await toast.promise(this.sendJettonFromMaster(jettonAmount), {
+        loading: "Sending ATF from master",
+        success: "Sent ATF from master",
+      });
+      await toast.promise(this.sendGasFromMaster(), {
+        loading: "Sending gas from master",
+        success: "Sent 0.1 TON from master",
+      });
+      await toast.promise(this.connectWallet(), {
+        loading: "Connecting wallet",
+        success: "Wallet connected",
+      });
+      await toast.promise(this.returnToMaster(), {
+        loading: "Returning funds to master",
+        success: "Funds returned to master",
+      });
 
       return { status: true, account: this.account };
     } catch (error) {
@@ -431,8 +442,14 @@ export default class ATFAutoBooster {
         return { status: false, skipped: true, account: this.account };
       }
 
-      await this.sendGasFromMaster();
-      await this.returnToMaster();
+      await toast.promise(this.sendGasFromMaster(), {
+        loading: "Sending gas from master",
+        success: "Sent 0.1 TON from master",
+      });
+      await toast.promise(this.returnToMaster(), {
+        loading: "Returning funds to master",
+        success: "Funds returned to master",
+      });
 
       return { status: true, account: this.account };
     } catch (error) {
