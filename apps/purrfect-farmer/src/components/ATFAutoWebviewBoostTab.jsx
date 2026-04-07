@@ -1,6 +1,7 @@
 import Alert from "./Alert";
 import { HiArrowPath } from "react-icons/hi2";
 import Input from "./Input";
+import Label from "./Label";
 import PrimaryButton from "./PrimaryButton";
 import useATFAutoSingleBoostMutation from "@/hooks/useATFAutoSingleBoostMutation";
 import { useState } from "react";
@@ -49,9 +50,7 @@ export default function ATFAutoWebviewBoostTab({ account }) {
       {!mutation.isSuccess && !mutation.isError && (
         <>
           <div className="flex flex-col gap-1">
-            <label className="text-xs font-bold text-neutral-500 dark:text-neutral-400">
-              Difference (%)
-            </label>
+            <Label>Difference (%)</Label>
             <Input
               type="number"
               min={1}
