@@ -145,7 +145,7 @@ export default function ATFAutoDashboardTab() {
   };
 
   return (
-    <div className="flex flex-col gap-3 px-2">
+    <div className="flex flex-col gap-3 p-2">
       {/* Master Balance Card */}
       <MasterBalanceCard />
 

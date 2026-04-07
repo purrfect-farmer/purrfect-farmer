@@ -12,8 +12,8 @@ const tabs = {
 
 export default function ATFAutoPanel() {
   return (
-    <Tabs tabs={tabs}>
-      <Container className="p-0">
+    <Tabs tabs={tabs} rootClassName="grow overflow-auto gap-0">
+      <Container className="p-0 flex flex-col grow overflow-auto">
         <Tabs.Content value="dashboard">
           <ATFAutoDashboardTab />
         </Tabs.Content>

@@ -26,7 +26,7 @@ export default function ATFAutoCollectTab() {
   };
 
   return (
-    <div className="flex flex-col gap-3 px-2">
+    <div className="flex flex-col gap-3 p-2">
       {/* Results summary */}
       {mutation.isSuccess && (
         <div className="flex flex-col text-center gap-1">

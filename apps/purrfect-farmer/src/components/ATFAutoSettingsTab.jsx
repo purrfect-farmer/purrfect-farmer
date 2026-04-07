@@ -123,7 +123,7 @@ export default function ATFAutoSettingsTab() {
   };
 
   return (
-    <div className="flex flex-col gap-2 px-2">
+    <div className="flex flex-col gap-2 p-2">
       {/* Change Password */}
       <Alert variant={"info"}>
         Changing your password will re-encrypt all stored wallet phrases.
