@@ -7,11 +7,17 @@ import { mnemonicToPrivateKey } from "@ton/crypto";
 export const JETTON_ADDRESS =
   "EQANcW45W0Tp91bzvHayaPO6-6hf1Lm4XlWZ4rN6L5ofPWdb";
 
-/** Serialized fetcher for tonapi.io — one request at a time. */
+const TON_API_DELAY = 300;
+
+/** Serialized fetcher for tonapi.io — one request at a time with rate limit gap. */
 const tonapi = axios.create({ baseURL: "https://tonapi.io/v2" });
 let _pending = Promise.resolve();
-function fetchTonApi(url) {
-  return (_pending = _pending.catch(() => {}).then(() => tonapi.get(url)));
+
+export function fetchTonApi(url) {
+  return (_pending = _pending
+    .catch(() => {})
+    .then(() => tonapi.get(url))
+    .finally(() => new Promise((r) => setTimeout(r, TON_API_DELAY))));
 }
 
 export async function keypairFromMnemonic(mnemonic) {
