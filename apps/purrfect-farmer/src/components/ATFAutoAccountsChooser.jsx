@@ -89,7 +89,7 @@ const AccountChooserItem = memo(function AccountChooserItem({
             {account.title}
           </h3>
           {/* Address */}
-          <div className="flex items-center gap-1.5 text-neutral-500 dark:text-neutral-400">
+          <div className="flex items-center gap-1.5 text-blue-800 dark:text-blue-100">
             <ATFAutoAddress address={account.address} />
             <ATFAutoVersionBadge version={account.version} />
           </div>
