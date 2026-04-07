@@ -63,9 +63,9 @@ export default function ATFAutoCollectTab() {
       {!mutation.isSuccess && !mutation.isError && (
         <>
           <Alert variant="info">
-            Collect checks each sub account for jetton balance. If found, it
-            sends gas TON from master, transfers the jetton back to master, and
-            returns remaining TON.
+            Collect checks each sub account for ATF balance. If found, it sends
+            TON from master, transfers the ATF back to master, and returns
+            remaining TON.
           </Alert>
 
           <PrimaryButton disabled={mutation.isPending} onClick={handleCollect}>

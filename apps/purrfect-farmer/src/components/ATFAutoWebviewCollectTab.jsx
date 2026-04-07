@@ -1,7 +1,7 @@
 import Alert from "./Alert";
+import { HiArrowPath } from "react-icons/hi2";
 import PrimaryButton from "./PrimaryButton";
 import useATFAutoSingleCollectMutation from "@/hooks/useATFAutoSingleCollectMutation";
-import { HiArrowPath } from "react-icons/hi2";
 
 export default function ATFAutoWebviewCollectTab({ account }) {
   const mutation = useATFAutoSingleCollectMutation();
@@ -13,8 +13,8 @@ export default function ATFAutoWebviewCollectTab({ account }) {
   return (
     <div className="flex flex-col gap-3">
       <Alert variant="info">
-        Checks this account's ATF jetton balance, sends gas TON from master,
-        then returns jettons and remaining TON back to master.
+        Checks this account's ATF balance, sends TON from master, then returns
+        ATF and remaining TON back to master.
       </Alert>
 
       {mutation.isSuccess && (
@@ -44,10 +44,7 @@ export default function ATFAutoWebviewCollectTab({ account }) {
       )}
 
       {!mutation.isSuccess && !mutation.isError && (
-        <PrimaryButton
-          disabled={mutation.isPending}
-          onClick={handleCollect}
-        >
+        <PrimaryButton disabled={mutation.isPending} onClick={handleCollect}>
           {mutation.isPending ? "Collecting..." : "Collect"}
         </PrimaryButton>
       )}

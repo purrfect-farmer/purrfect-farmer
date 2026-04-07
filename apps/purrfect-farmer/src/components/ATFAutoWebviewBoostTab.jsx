@@ -17,8 +17,8 @@ export default function ATFAutoWebviewBoostTab({ account }) {
   return (
     <div className="flex flex-col gap-3">
       <Alert variant="info">
-        Sends ATF jettons from master wallet to this account, logs in, connects
-        wallet via proof, then returns funds back to master.
+        Sends ATF from master wallet to this account, logs in, connects wallet
+        via proof, then returns funds back to master.
       </Alert>
 
       {mutation.isSuccess && (
@@ -59,8 +59,8 @@ export default function ATFAutoWebviewBoostTab({ account }) {
               onChange={(e) => setDifference(Number(e.target.value))}
               disabled={mutation.isPending}
             />
-            <p className="text-xs text-neutral-400">
-              {difference}% means {100 - difference}-100% of master balance
+            <p className="text-xs text-neutral-400 px-2">
+              {difference}% means {100 - difference}-100% of master ATF balance
             </p>
           </div>
 

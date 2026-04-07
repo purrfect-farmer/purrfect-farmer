@@ -61,7 +61,7 @@ function MasterBalanceCard() {
       {/* Jetton balance */}
       <div className="flex items-center gap-2">
         <img src={ATFIcon} className="size-5 rounded-full" />
-        <span className="text-4xl">
+        <span className="text-3xl">
           {balances ? balances.jetton.toFixed(2) : "-.--"}
         </span>
         <span className="text-neutral-400">ATF</span>

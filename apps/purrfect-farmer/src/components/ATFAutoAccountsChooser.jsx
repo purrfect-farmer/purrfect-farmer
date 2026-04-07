@@ -83,7 +83,7 @@ const AccountChooserItem = memo(function AccountChooserItem({
 
       {/* Info */}
       <div className="flex flex-col grow min-w-0">
-        <div className="flex items-center">
+        <div className="flex flex-wrap items-center">
           {/* Title */}
           <h3 className="font-bold truncate w-full grow min-w-0">
             {account.title}

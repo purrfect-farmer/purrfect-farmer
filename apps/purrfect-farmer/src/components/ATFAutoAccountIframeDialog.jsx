@@ -85,7 +85,7 @@ function WebviewHeader({ account, showAside, toggleAside }) {
       {/* Title + info */}
       <div className="flex flex-col justify-center items-center gap-0.5 grow min-w-0">
         {/* Title */}
-        <Dialog.Title className="font-bold text-sm truncate ">
+        <Dialog.Title className="font-bold text-sm truncate">
           {account.title}
         </Dialog.Title>
 
@@ -166,7 +166,7 @@ export default function ATFAutoAccountIframeDialog({
         className={cn(
           "fixed inset-0 z-40",
           "flex items-center justify-center",
-          "bg-black/50",
+          "bg-black/50 p-4",
         )}
       >
         <Dialog.Content

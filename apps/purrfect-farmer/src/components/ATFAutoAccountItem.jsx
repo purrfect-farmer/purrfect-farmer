@@ -104,7 +104,7 @@ export default memo(function ATFAutoAccountItem({
             "px-1 py-0.5 cursor-pointer",
           )}
         >
-          <div className="flex items-center">
+          <div className="flex flex-wrap items-center">
             {/* Title */}
             <h3 className="font-bold truncate w-full grow min-w-0">
               {account.title}

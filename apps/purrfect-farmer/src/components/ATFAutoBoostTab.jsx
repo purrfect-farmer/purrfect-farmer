@@ -79,9 +79,8 @@ export default function ATFAutoBoostTab() {
               onChange={(e) => setDifference(Number(e.target.value))}
               disabled={mutation.isPending}
             />
-            <p className="text-xs text-neutral-400">
-              {difference}% means {100 - difference}-100% of master jetton
-              balance
+            <p className="text-xs text-neutral-400 px-2">
+              {difference}% means {100 - difference}-100% of master ATF balance
             </p>
           </div>
 
