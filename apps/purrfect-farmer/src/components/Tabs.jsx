@@ -1,6 +1,6 @@
+import Container from "./Container";
 import { Tabs as TabsPrimitive } from "radix-ui";
 import { cn } from "@/utils";
-import Container from "./Container";
 
 const GRID_SIZES = {
   2: "grid-cols-2",
@@ -34,15 +34,15 @@ const Tabs = ({
                 key={index}
                 value={value}
                 className={cn(
-                  "p-2",
+                  "p-2 truncate",
                   "border-b-4 border-transparent",
                   "data-[state=active]:border-blue-500",
-                  triggerClassName
+                  triggerClassName,
                 )}
               >
                 {value.toUpperCase()}
               </TabsPrimitive.Trigger>
-            ))
+            )),
           )}
         </TabsPrimitive.List>
       </Container>
