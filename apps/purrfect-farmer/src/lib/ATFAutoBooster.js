@@ -358,16 +358,25 @@ export default class ATFAutoBooster {
 
   async returnTonToMaster() {
     const { contract, keyPair } = await this._prepareSubAccount();
+    const balance = await contract.getBalance();
+    const reserve = toNano("0.0001");
+    const estimatedGas = toNano("0.005");
+    if (balance <= reserve + estimatedGas) {
+      console.log("Balance too low to return TON safely. Skipping.");
+      return;
+    }
+
+    const amountToSend = balance - reserve;
     const seqno = await contract.getSeqno();
 
     await contract.sendTransfer({
       seqno,
       secretKey: keyPair.secretKey,
-      sendMode: SendMode.CARRY_ALL_REMAINING_BALANCE,
+      sendMode: SendMode.PAY_GAS_SEPARATELY,
       messages: [
         internal({
           to: Address.parse(this.master.address),
-          value: toNano("0"),
+          value: amountToSend,
           bounce: false,
         }),
       ],
