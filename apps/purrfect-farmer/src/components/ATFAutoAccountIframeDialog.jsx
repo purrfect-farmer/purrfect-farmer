@@ -11,6 +11,7 @@ import ATFAutoAddress from "./ATFAutoAddress";
 import ATFAutoVersionBadge from "./ATFAutoVersionBadge";
 import ATFAutoWebviewBoostTab from "./ATFAutoWebviewBoostTab";
 import ATFAutoWebviewCollectTab from "./ATFAutoWebviewCollectTab";
+import Browser from "@/app/Browser";
 import { HiOutlineXMark } from "react-icons/hi2";
 import { MdOutlineArrowBackIos } from "react-icons/md";
 import { cn } from "@/utils";
@@ -195,12 +196,7 @@ export default function ATFAutoAccountIframeDialog({
               )}
             >
               {/* Webview panel */}
-              <iframe
-                key={account.id}
-                src={account.url}
-                className="size-full border-0"
-                allow="clipboard-write"
-              />
+              <Browser key={account.id} url={account.url} />
 
               {/* Aside panel */}
               <WebviewAside account={account} />
