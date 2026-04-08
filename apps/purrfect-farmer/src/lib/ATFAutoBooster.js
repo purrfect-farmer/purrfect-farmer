@@ -315,13 +315,9 @@ export default class ATFAutoBooster {
     return jettonAmount;
   }
 
-  async returnJettonToMaster() {
+  async returnJettonToMaster(jettonBalance) {
     const { client, jettonDecimals } = this.prepared;
     const { contract, keyPair } = await this._prepareSubAccount();
-
-    const { balance: jettonBalance } = await getJettonInfo(
-      this.account.address,
-    );
 
     if (jettonBalance.lessThanOrEqualTo(0)) return jettonBalance;
 
@@ -446,7 +442,7 @@ export default class ATFAutoBooster {
       const { balance: returnBalance } = await getJettonInfo(
         this.account.address,
       );
-      await toast.promise(this.returnJettonToMaster(), {
+      await toast.promise(this.returnJettonToMaster(returnBalance), {
         loading: `Returning ${returnBalance} ATF to master`,
         success: `Returned ${returnBalance} ATF to master`,
       });
@@ -475,10 +471,13 @@ export default class ATFAutoBooster {
         loading: "Sending 0.1 TON from master",
         success: "Sent 0.1 TON from master",
       });
-      const collected = await toast.promise(this.returnJettonToMaster(), {
-        loading: `Returning ${jettonBalance} ATF to master`,
-        success: `Returned ${jettonBalance} ATF to master`,
-      });
+      const collected = await toast.promise(
+        this.returnJettonToMaster(jettonBalance),
+        {
+          loading: `Returning ${jettonBalance} ATF to master`,
+          success: `Returned ${jettonBalance} ATF to master`,
+        },
+      );
       await toast.promise(this.returnTonToMaster(), {
         loading: "Returning TON to master",
         success: "TON returned to master",
