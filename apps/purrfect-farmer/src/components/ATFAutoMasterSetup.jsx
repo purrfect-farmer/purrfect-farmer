@@ -33,7 +33,7 @@ const schema = yup
   .required();
 
 export default function ATFAutoMasterSetup() {
-  const { setPassword, storeMaster } = useATFAuto();
+  const { dispatchAndSetPassword, dispatchAndStoreMaster } = useATFAuto();
   const { openTelegramLink } = useAppContext();
   const [showForm, setShowForm] = useState(false);
   const [address, setAddress] = useState("");
@@ -65,7 +65,7 @@ export default function ATFAutoMasterSetup() {
     });
 
     /** Store master */
-    storeMaster({
+    dispatchAndStoreMaster({
       address,
       version,
       hashedPassword,
@@ -74,7 +74,7 @@ export default function ATFAutoMasterSetup() {
     });
 
     /** Set password */
-    setPassword(password);
+    dispatchAndSetPassword(password);
 
     /** Toast */
     toast.success("ATF Auto master setup completed!");

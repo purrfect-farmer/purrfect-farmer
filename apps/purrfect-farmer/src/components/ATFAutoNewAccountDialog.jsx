@@ -7,7 +7,7 @@ import useATFAuto from "@/hooks/useATFAuto";
 import { uuid } from "@/utils";
 
 export default function ATFAutoNewAccountDialog({ onCreated }) {
-  const { password, storeAccounts, accounts } = useATFAuto();
+  const { password, dispatchAndStoreAccounts, accounts } = useATFAuto();
 
   const handleFormSubmit = async (data) => {
     const encryptedPhrase = await encryption.encryptData({
@@ -29,7 +29,7 @@ export default function ATFAutoNewAccountDialog({ onCreated }) {
       encryptedPhrase,
     };
 
-    storeAccounts([...accounts, account]);
+    dispatchAndStoreAccounts([...accounts, account]);
     toast.success("Account added!");
     onCreated?.();
   };

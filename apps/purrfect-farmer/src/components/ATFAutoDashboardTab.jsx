@@ -113,7 +113,7 @@ function searchAccount(account, searchTerm) {
 }
 
 export default function ATFAutoDashboardTab() {
-  const { accounts, storeAccounts } = useATFAuto();
+  const { accounts, dispatchAndStoreAccounts } = useATFAuto();
   const [addOpen, setAddOpen] = useState(false);
   const [showSearch, setShowSearch] = useState(false);
   const [tempSearch, setTempSearch] = useState("");
@@ -137,11 +137,13 @@ export default function ATFAutoDashboardTab() {
   };
 
   const handleUpdateAccount = (updated) => {
-    storeAccounts(accounts.map((a) => (a.id === updated.id ? updated : a)));
+    dispatchAndStoreAccounts(
+      accounts.map((a) => (a.id === updated.id ? updated : a)),
+    );
   };
 
   const handleDeleteAccount = (id) => {
-    storeAccounts(accounts.filter((a) => a.id !== id));
+    dispatchAndStoreAccounts(accounts.filter((a) => a.id !== id));
   };
 
   return (
@@ -189,14 +191,15 @@ export default function ATFAutoDashboardTab() {
       {accounts.length > 0 ? (
         <Reorder.Group
           values={accounts}
-          onReorder={(newOrder) => !search && storeAccounts(newOrder)}
+          onReorder={(newOrder) =>
+            !search && dispatchAndStoreAccounts(newOrder)
+          }
           className="flex flex-col gap-2"
         >
           {filteredAccounts.map((account) => (
             <ATFAutoAccountItem
               key={account.id}
               account={account}
-              accounts={accounts}
               onUpdate={handleUpdateAccount}
               onDelete={handleDeleteAccount}
             />

@@ -460,9 +460,20 @@ export default class ATFFarmer extends BaseFarmer {
         : new Date(lastMiningStart * 1000).toLocaleString(),
     );
 
+    const flags = (user["risk_flags"] || "").split("|");
+
+    this.logger.newline();
     this.logger.keyValue("Risk Score", user["risk_score"]);
-    this.logger.keyValue("Risk Flags", user["risk_flags"]);
     this.logger.keyValue("Risk Updated", user["risk_updated_at"]);
+    this.logger.keyValue("Risk Flags", flags.length);
+    flags.forEach((flag) => this.logger.info(`- ${flag}`));
+
+    this.logger.newline();
+    this.logger.keyValue("Is banned", user["is_banned"]);
+    this.logger.keyValue("Banned reason", user["banned_reason"]);
+    this.logger.keyValue("Banned at", user["banned_at"]);
+    this.logger.keyValue("Temp banned until", user["temp_banned_until"]);
+    this.logger.keyValue("Temp ban reason", user["temp_ban_reason"]);
 
     if (user["wallet_public_key"]) {
       this.logger.newline();

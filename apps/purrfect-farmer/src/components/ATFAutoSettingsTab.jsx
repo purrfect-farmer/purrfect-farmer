@@ -27,9 +27,9 @@ export default function ATFAutoSettingsTab() {
     master,
     password,
     accounts,
-    storeMaster,
-    storeAccounts,
-    setPassword,
+    dispatchAndStoreMaster,
+    dispatchAndStoreAccounts,
+    dispatchAndSetPassword,
   } = useATFAuto();
   const { target, progress, setTarget, resetProgress, incrementProgress } =
     useATFAutoProgress();
@@ -64,7 +64,7 @@ export default function ATFAutoSettingsTab() {
 
       const hashedPassword = await bcrypt.hash(newPassword, 10);
 
-      storeMaster({
+      dispatchAndStoreMaster({
         ...master,
         encryptedWalletPhrase,
         hashedPassword,
@@ -94,10 +94,10 @@ export default function ATFAutoSettingsTab() {
         incrementProgress();
       }
 
-      storeAccounts(updatedAccounts);
+      dispatchAndStoreAccounts(updatedAccounts);
 
       // Update in-memory password
-      setPassword(newPassword);
+      dispatchAndSetPassword(newPassword);
 
       return { status: true };
     },
@@ -118,7 +118,7 @@ export default function ATFAutoSettingsTab() {
   };
 
   const handleLogout = () => {
-    setPassword(null);
+    dispatchAndSetPassword(null);
     toast.success("Logged out.");
   };
 

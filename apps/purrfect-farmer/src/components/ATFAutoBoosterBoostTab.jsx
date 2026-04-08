@@ -6,7 +6,7 @@ import PrimaryButton from "./PrimaryButton";
 import useATFAutoSingleBoostMutation from "@/hooks/useATFAutoSingleBoostMutation";
 import { useState } from "react";
 
-export default function ATFAutoWebviewBoostTab({ account }) {
+export default function ATFAutoBoosterBoostTab({ account }) {
   const mutation = useATFAutoSingleBoostMutation();
   const [difference, setDifference] = useState(10);
 
@@ -17,8 +17,7 @@ export default function ATFAutoWebviewBoostTab({ account }) {
   return (
     <div className="flex flex-col gap-3">
       <Alert variant="info">
-        Sends ATF from master wallet to this account, logs in, connects wallet
-        via proof, then returns funds back to master.
+        Sends ATF from master wallet to this account based on difference.
       </Alert>
 
       {mutation.isSuccess && (

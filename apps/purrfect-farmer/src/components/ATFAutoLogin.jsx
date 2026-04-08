@@ -21,7 +21,8 @@ const schema = yup
   .required();
 
 export default function ATFAutoLogin() {
-  const { master, resetATFAuto, setPassword } = useATFAuto();
+  const { master, dispatchAndResetATFAuto, dispatchAndSetPassword } =
+    useATFAuto();
   /** Form */
   const form = useForm({
     resolver: yupResolver(schema),
@@ -35,7 +36,7 @@ export default function ATFAutoLogin() {
     const match = await bcrypt.compare(data.password, master.hashedPassword);
 
     if (match) {
-      setPassword(data.password);
+      dispatchAndSetPassword(data.password);
       toast.success("Successfully logged in!");
     } else {
       form.setError("password", { message: "Invalid password!" });
@@ -83,7 +84,7 @@ export default function ATFAutoLogin() {
           {/* Reset Button */}
           <button
             type="button"
-            onClick={() => resetATFAuto()}
+            onClick={() => dispatchAndResetATFAuto()}
             className="text-red-500 cursor-pointer"
           >
             Reset ATF Auto

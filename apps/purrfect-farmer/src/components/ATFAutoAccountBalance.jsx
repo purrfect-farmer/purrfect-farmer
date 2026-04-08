@@ -2,12 +2,10 @@ import ATFIcon from "@/assets/images/atf.png?format=webp&w=32";
 import TonIcon from "@/assets/images/toncoin-ton-logo.svg";
 import { cn } from "@/utils";
 import useATFBalancesQuery from "@/hooks/useATFBalancesQuery";
-import useATFWalletHoldingQuery from "@/hooks/useATFWalletHoldingQuery";
 
 export default function ATFAutoAccountBalance({ account, ...props }) {
-  const { address, url } = account;
+  const { address } = account;
   const { data: balances } = useATFBalancesQuery(address);
-  const { data: walletHolding } = useATFWalletHoldingQuery(url);
 
   return (
     <span
@@ -25,9 +23,6 @@ export default function ATFAutoAccountBalance({ account, ...props }) {
       <span className="inline-flex items-center gap-0.5">
         <img src={ATFIcon} className="size-3 rounded-full" />
         {balances ? balances.jetton.toFixed(2) : "-.--"}
-      </span>
-      <span className="inline-flex items-center gap-0.5 text-orange-500">
-        H {walletHolding != null ? walletHolding.toFixed(4) : "-.--"}
       </span>
     </span>
   );

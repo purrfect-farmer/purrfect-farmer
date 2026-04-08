@@ -11,7 +11,7 @@ import useATFAuto from "@/hooks/useATFAuto";
 import useAppContext from "@/hooks/useAppContext";
 
 export default function ATFAutoMasterEditDialog({ onSave }) {
-  const { master, password, storeMaster } = useATFAuto();
+  const { master, password, dispatchAndStoreMaster } = useATFAuto();
   const { openTelegramLink } = useAppContext();
   const [phrase, setPhrase] = useState("");
   const [tonCenterApiKey, setToncenterApiKey] = useState(
@@ -40,7 +40,7 @@ export default function ATFAutoMasterEditDialog({ onSave }) {
       data.version,
     );
 
-    storeMaster({
+    dispatchAndStoreMaster({
       ...master,
       address,
       version: data.version,
