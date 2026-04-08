@@ -266,9 +266,41 @@ export default class FomoFightersFarmer extends BaseFarmer {
       .then((res) => res.data.data);
   }
 
-  claimClanReward(rewardKey) {
+  claimAllClanRewards() {
     return this.api
-      .post("https://api.fomofighters.xyz/clan/reward/claim", rewardKey)
+      .post("https://api.fomofighters.xyz/clan/rewards/claim-all", {})
+      .then((res) => res.data.data);
+  }
+
+  hospitalHeal(troops) {
+    return this.api
+      .post("https://api.fomofighters.xyz/hospital/heal", { troops })
+      .then((res) => res.data.data);
+  }
+
+  buySkill(skillKey) {
+    return this.api
+      .post("https://api.fomofighters.xyz/skills/buy", { skillKey })
+      .then((res) => res.data.data);
+  }
+
+  claimStoryDailyReward(rewardKey) {
+    return this.api
+      .post("https://api.fomofighters.xyz/quest/story/daily/reward/claim", [
+        rewardKey,
+      ])
+      .then((res) => res.data.data);
+  }
+
+  getWarLogs() {
+    return this.api
+      .post("https://api.fomofighters.xyz/war/logs", {})
+      .then((res) => res.data.data);
+  }
+
+  claimWarReward(warId) {
+    return this.api
+      .post("https://api.fomofighters.xyz/war/reward/claim", warId)
       .then((res) => res.data.data);
   }
 
@@ -362,13 +394,17 @@ export default class FomoFightersFarmer extends BaseFarmer {
     await this.executeTask("Quests", () => this.completeGameQuests());
     await this.executeTask("Daily reward", () => this.getDailyReward());
 
-    if (this.allData.hero.level >= 2) {
+    if (this.getHeroLevel() >= 2) {
       await this.executeTask("Building upgrades", () =>
         this.performBuildingUpgrades(),
       );
 
+      await this.executeTask("Research skills", () => this.researchSkills());
+
       await this.executeTask("Train troops", () => this.trainAvailableTroops());
       await this.executeTask("Attacks", () => this.performAttacks());
+      await this.executeTask("Heal troops", () => this.healWoundedTroops());
+
       await this.executeTask("Resources (2nd pass)", () =>
         this.claimGameResources(),
       );
@@ -378,27 +414,26 @@ export default class FomoFightersFarmer extends BaseFarmer {
     }
 
     await this.executeTask("Clan rewards", () => this.claimClanRewards());
+    await this.executeTask("War rewards", () => this.claimWarRewards());
     await this.executeTask("Story daily quests", () =>
       this.completeStoryDailyQuests(),
+    );
+    await this.executeTask("Story daily milestones", () =>
+      this.claimStoryDailyMilestoneRewards(),
     );
   }
 
   logUserInfo() {
-    const hero = this.getHero();
-    const resources = this.getAllResources();
-
-    this.logger.keyValue("Hero Level", hero.level);
-    this.logger.keyValue("Race", hero.race || "Not selected");
-    this.logger.keyValue(
-      "Power",
-      hero.powerBuildings + hero.powerTroops + hero.powerSkills,
-    );
-    this.logger.keyValue("Food", resources.food?.value || 0);
-    this.logger.keyValue("Wood", resources.wood?.value || 0);
-    this.logger.keyValue("Stone", resources.stone?.value || 0);
-    this.logger.keyValue("Gems", resources.gem?.value || 0);
+    this.logger.keyValue("Hero Level", this.getHeroLevel());
+    this.logger.keyValue("Race", this.getRace() || "Not selected");
+    this.logger.keyValue("Power", this.getTotalPower());
+    this.logger.keyValue("Food", this.getFood());
+    this.logger.keyValue("Wood", this.getWood());
+    this.logger.keyValue("Stone", this.getStone());
+    this.logger.keyValue("Gems", this.getGems());
     this.logger.keyValue("Buildings", this.getOwnedBuildings().length);
-    this.logger.keyValue("Clan", this.allData.clan?.length ? "Yes" : "No");
+    this.logger.keyValue("Kill Points", this.getKillPoints());
+    this.logger.keyValue("Clan", this.isInClan() ? "Yes" : "No");
   }
 
   async getDailyReward() {
@@ -414,30 +449,151 @@ export default class FomoFightersFarmer extends BaseFarmer {
   }
 
   async claimClanRewards() {
-    /** Skip if not in a clan */
-    if (!this.allData.clan || !this.allData.clan.length) {
+    if (!this.isInClan()) {
       this.logger.debug("Not in a clan - skipping clan rewards");
       return;
     }
 
-    /** Check for claimable clan rewards */
-    const clanRewards = this.afterData.stClanRewards || [];
-    const dbClanRewards = this.allData.dbData.dbClanRewards || [];
+    /** Bulk claim all available clan rewards */
+    try {
+      await this.delayWithMessage(3, "Claiming clan rewards");
+      await this.claimAllClanRewards();
+      this.logger.success("Claimed all clan rewards");
+    } catch {
+      this.logger.debug("No clan rewards available");
+    }
+  }
 
-    for (const reward of dbClanRewards) {
+  /** Claim unclaimed war rewards */
+  async claimWarRewards() {
+    if (!this.isInClan()) {
+      this.logger.debug("Not in a clan - skipping war rewards");
+      return;
+    }
+
+    const unclaimed = this.getUnclaimedWars();
+
+    for (const war of unclaimed) {
       if (this.signal.aborted) return;
 
-      /** Check if already claimed */
-      const claimed = clanRewards.find((r) => r.key === reward.key);
-      if (claimed) continue;
-
-      /** Try to claim */
       try {
-        await this.delayWithMessage(3, "Claiming clan reward");
-        await this.claimClanReward(reward.key);
-        this.logger.success(`Claimed clan reward: ${reward.key}`);
+        await this.delayWithMessage(3, "Claiming war reward");
+        await this.claimWarReward(war.id);
+        this.logger.success(`Claimed war reward: ${war.id}`);
       } catch {
-        this.logger.debug(`Clan reward not available: ${reward.key}`);
+        this.logger.debug(`War reward not claimable: ${war.id}`);
+      }
+    }
+  }
+
+  /** Heal all wounded troops in hospital */
+  async healWoundedTroops() {
+    const attackInfo = await this.getAttackInfo();
+    const hospital = attackInfo?.hospital || this.afterData?.hospital;
+
+    if (!hospital) return;
+
+    const available = hospital.available;
+    if (!available || typeof available !== "object") return;
+
+    /** available can be an empty array or an object of troops */
+    const troops =
+      Array.isArray(available) ? null : available;
+
+    if (!troops || Object.keys(troops).length === 0) return;
+
+    await this.delayWithMessage(2, "Healing wounded troops");
+    await this.hospitalHeal(troops);
+    this.logger.success(
+      `Healed ${Object.values(troops).reduce((a, b) => a + b, 0)} troops`,
+    );
+  }
+
+  /** Research available academy skills */
+  async researchSkills() {
+    const academy = this.findOwnedBuilding("academy");
+    if (!academy) {
+      this.logger.debug("No academy - skipping skills");
+      return;
+    }
+
+    /** Skip if already researching */
+    if (this.getActiveResearches() >= this.getAcademics()) {
+      this.logger.debug("Already researching a skill");
+      return;
+    }
+
+    const dbSkills = this.allData.dbData.dbSkills || [];
+    const ownedSkills = this.getOwnedSkills();
+
+    for (const skill of dbSkills) {
+      if (this.signal.aborted) return;
+
+      /** Get current level */
+      const owned = ownedSkills.find((s) => s.key === skill.key);
+      const currentLevel = owned ? owned.level : 0;
+
+      /** Find next level */
+      const nextLevel = skill.levels?.find((l) => l.level === currentLevel + 1);
+      if (!nextLevel) continue;
+
+      /** Check required buildings (includes academy level) */
+      if (nextLevel.requiredBuildings) {
+        let meetsBuildings = true;
+        for (const [bKey, bLevel] of Object.entries(nextLevel.requiredBuildings)) {
+          const ownedB = this.findOwnedBuilding(bKey);
+          if (!ownedB || ownedB.level < bLevel) {
+            meetsBuildings = false;
+            break;
+          }
+        }
+        if (!meetsBuildings) continue;
+      }
+
+      /** Check required skills */
+      if (nextLevel.requiredSkills) {
+        const hasAll = Object.entries(nextLevel.requiredSkills).every(
+          ([sKey, sLevel]) => {
+            const s = ownedSkills.find((os) => os.key === sKey);
+            return s && s.level >= sLevel;
+          },
+        );
+        if (!hasAll) continue;
+      }
+
+      /** Check resource cost */
+      if (
+        !this.canAfford(
+          nextLevel.priceFood || 0,
+          nextLevel.priceWood || 0,
+          nextLevel.priceStone || 0,
+        )
+      ) {
+        continue;
+      }
+
+      /** Buy skill */
+      await this.delayWithMessage(2, `Researching ${skill.key}`);
+      await this.buySkill(skill.key);
+      this.logger.success(`Researching skill: ${skill.key} (level ${currentLevel + 1})`);
+
+      /** Only one research at a time */
+      return;
+    }
+  }
+
+  /** Claim story daily milestone rewards */
+  async claimStoryDailyMilestoneRewards() {
+    const milestones = this.allData.dbData.dbQuestsStoryDailyRewards || [];
+
+    for (const milestone of milestones) {
+      if (this.signal.aborted) return;
+
+      try {
+        await this.delayWithMessage(2, `Claiming milestone: ${milestone.key}`);
+        await this.claimStoryDailyReward(milestone.key);
+        this.logger.success(`Claimed story daily milestone: ${milestone.key}`);
+      } catch {
         break;
       }
     }
@@ -453,61 +609,8 @@ export default class FomoFightersFarmer extends BaseFarmer {
       /** Skip already claimed */
       if (claimed.includes(quest.key)) continue;
 
-      let claimable = false;
-
-      if (quest.type === "resourceClaim") {
-        const dailyStats = this.getDailyStats();
-        const value = dailyStats.resourceClaim?.[quest.data] || 0;
-        claimable = value >= quest.count;
-      }
-
-      if (quest.type === "resourceLoot") {
-        const dailyStats = this.getDailyStats();
-        const value = dailyStats.resourceLoot?.[quest.data] || 0;
-        claimable = value >= quest.count;
-      }
-
-      if (quest.type === "trainBuilding") {
-        const dailyStats = this.getDailyStats();
-        const value = dailyStats.trainBuilding?.[quest.data] || 0;
-        claimable = value >= quest.count;
-      }
-
-      if (quest.type === "attack") {
-        const dailyStats = this.getDailyStats();
-        const value = dailyStats.attack?.[quest.data] || 0;
-        claimable = value >= quest.count;
-      }
-
-      if (quest.type === "buildings") {
-        const dailyStats = this.getDailyStats();
-        const value = dailyStats.buildings?.[quest.data] || 0;
-        claimable = value >= quest.count;
-      }
-
-      if (quest.type === "skills") {
-        const dailyStats = this.getDailyStats();
-        const value = dailyStats.skills?.[quest.data] || 0;
-        claimable = value >= quest.count;
-      }
-
-      if (quest.type === "pvp") {
-        const dailyStats = this.getDailyStats();
-        const value = dailyStats.pvp?.[quest.data] || 0;
-        claimable = value >= quest.count;
-      }
-
-      if (quest.type === "clan") {
-        const dailyStats = this.getDailyStats();
-        const value = dailyStats.clan?.[quest.data] || 0;
-        claimable = value >= quest.count;
-      }
-
-      if (quest.type === "resourceBuy") {
-        const dailyStats = this.getDailyStats();
-        const value = dailyStats.resourceBuy?.[quest.data] || 0;
-        claimable = value >= quest.count;
-      }
+      const value = this.getDailyStatValue(quest.type, quest.data);
+      const claimable = value >= quest.count;
 
       if (claimable) {
         await this.delayWithMessage(3, "Claiming daily quest");
@@ -569,6 +672,7 @@ export default class FomoFightersFarmer extends BaseFarmer {
     const selectedTroops = this.utils.randomItem(this.getAvailableAttackers());
     if (!selectedTroops) return;
 
+    await this.delayWithMessage(3, "Attacking target");
     await this.createAttack(target.id, {
       [selectedTroops.troop.key]: selectedTroops.count,
     });
@@ -593,33 +697,26 @@ export default class FomoFightersFarmer extends BaseFarmer {
       const owned = this.findOwnedBuilding(building.key);
       if (!owned) continue;
 
+      /** Skip if this building is already training */
+      if (this.hasTrainingAtBuilding(building.key)) {
+        this.logger.debug(`Already training at ${building.key}`);
+        continue;
+      }
+
       /** Get training capacity for this building */
-      const capacityKey = this.utils.changeCase.camelCase(
-        `training_capacity_${building.key}`,
-      );
-      const capacity = this.allData.hero.propsCompiled?.[capacityKey] || 1;
+      const capacity = this.getTrainingCapacity(building.key);
 
       /** Find best trainable troop for this building */
       const trainable = this.getBuildingTroops(building.key)
         .filter((item) => this.meetsTroopRequirements(item))
-        .filter((item) => {
-          const requiredGem = item.priceGem || 0;
-          const requiredFood = item.priceFood || 0;
-          const requiredWood = item.priceWood || 0;
-          const requiredStone = item.priceStone || 0;
-
-          const totalGem = capacity * requiredGem;
-          const totalFood = capacity * requiredFood;
-          const totalWood = capacity * requiredWood;
-          const totalStone = capacity * requiredStone;
-
-          return (
-            totalGem <= this.getResourceValue("gem") &&
-            totalFood <= this.getResourceValue("food") &&
-            totalWood <= this.getResourceValue("wood") &&
-            totalStone <= this.getResourceValue("stone")
-          );
-        })
+        .filter((item) =>
+          this.canAfford(
+            capacity * (item.priceFood || 0),
+            capacity * (item.priceWood || 0),
+            capacity * (item.priceStone || 0),
+            capacity * (item.priceGem || 0),
+          ),
+        )
         .sort((a, b) => b.tier - a.tier);
 
       const best = trainable[0];
@@ -638,7 +735,8 @@ export default class FomoFightersFarmer extends BaseFarmer {
 
   /** Upgrade buildings progressively, respecting castle-level gating */
   async performBuildingUpgrades() {
-    const castleLevel = this.allData.hero.level;
+    const castleLevel = this.getCastleLevel();
+    const maxBuilders = this.getBuilders();
 
     /**
      * Buildings gated by progression:
@@ -674,6 +772,12 @@ export default class FomoFightersFarmer extends BaseFarmer {
 
     for (const key of upgradePriority) {
       if (this.signal.aborted) return;
+
+      /** Check builder slot availability */
+      if (this.getActiveBuilds() >= maxBuilders) {
+        this.logger.debug("All builder slots occupied");
+        break;
+      }
 
       const building = this.findGameBuilding(key);
       if (!building) continue;
@@ -833,6 +937,11 @@ export default class FomoFightersFarmer extends BaseFarmer {
         await this.getDailyReward();
       }
 
+      /** Complete TG quest if not claimed */
+      if (checkType === "notClaimQuestTg") {
+        await this.completePremiumQuests();
+      }
+
       /**
        * Action-gated steps (no checkType, server auto-completes):
        * - /city/castle: Upgrade castle
@@ -942,14 +1051,11 @@ export default class FomoFightersFarmer extends BaseFarmer {
       }
 
       if (quest.type === "trainTotal") {
-        const total = Object.values(this.getStats()["train"]).reduce(
+        const total = Object.values(this.getStats().train || {}).reduce(
           (result, value) => result + value,
           0,
         );
-
-        if (total >= quest.count) {
-          claimable = true;
-        }
+        claimable = total >= quest.count;
       }
 
       if (quest.type === "attack") {
@@ -963,21 +1069,15 @@ export default class FomoFightersFarmer extends BaseFarmer {
       }
 
       if (quest.type === "resourceBuy") {
-        const stats = this.getStats();
-        const value = stats.resourceBuy?.[quest.data] || 0;
-        claimable = value >= quest.count;
+        claimable = this.getStatValue("resourceBuy", quest.data) >= quest.count;
       }
 
       if (quest.type === "clan") {
-        const stats = this.getStats();
-        const value = stats.clan?.[quest.data] || 0;
-        claimable = value >= quest.count;
+        claimable = this.getStatValue("clan", quest.data) >= quest.count;
       }
 
       if (quest.type === "research") {
-        const stats = this.getStats();
-        const value = stats.skills?.[quest.data] || 0;
-        claimable = value >= quest.count;
+        claimable = this.getStatValue("skills", quest.data) >= quest.count;
       }
 
       if (claimable) {
@@ -991,29 +1091,38 @@ export default class FomoFightersFarmer extends BaseFarmer {
   }
 
   async completePremiumQuests() {
-    /** Get db quests */
     const quests = this.allData.dbData.dbQuests;
-    const riddle = quests.find((item) => item.key.startsWith("riddle_"));
-    const others = quests.filter((item) => !item.key.startsWith("riddle_"));
+    const automatableTypes = ["checkCode", "fakeCheck", "telegramChannel", "username"];
 
-    if (riddle) {
-      this.logger.info(`Riddle: ${riddle.desc}`);
-      this.logger.warn(`Answer: ${riddle.checkData}`);
+    for (const quest of quests) {
+      if (this.signal.aborted) return;
+      if (quest.isArchived) continue;
+      if (!automatableTypes.includes(quest.checkType)) continue;
 
-      const riddleQuest = this.afterData.quests.find(
-        (item) => item.key === riddle.key,
+      const completed = this.afterData.quests.find(
+        (item) => item.key === quest.key,
       );
 
-      if (!riddleQuest) {
-        await this.delayWithMessage(2, "Submitting riddle");
-        await this.checkQuest(riddle.key, riddle.checkData);
-        this.logger.success(`Submitted riddle: ${riddle.title}`);
-      }
+      /** Skip if already rewarded (unless repeatable) */
+      if (completed?.isRewarded && !quest.repeatInterval) continue;
 
-      if (!riddleQuest || !riddleQuest.isRewarded) {
-        await this.delayWithMessage(2, "Claiming riddle");
-        await this.claimQuest(riddle.key);
-        this.logger.success(`Claimed riddle: ${riddle.title}`);
+      /** Check + claim */
+      try {
+        if (!completed && quest.needCheck) {
+          const checkValue =
+            quest.checkType === "checkCode" ? quest.checkData : "";
+          await this.delayWithMessage(2, `Checking quest: ${quest.title}`);
+          await this.checkQuest(quest.key, checkValue);
+          this.logger.success(`Checked quest: ${quest.title}`);
+        }
+
+        if (!completed || !completed.isRewarded) {
+          await this.delayWithMessage(2, `Claiming quest: ${quest.title}`);
+          await this.claimQuest(quest.key);
+          this.logger.success(`Claimed quest: ${quest.title}`);
+        }
+      } catch {
+        this.logger.debug(`Quest not claimable: ${quest.title}`);
       }
     }
   }
@@ -1059,32 +1168,23 @@ export default class FomoFightersFarmer extends BaseFarmer {
         }
 
         if (quest.type === "resourceBuy") {
-          const stats = this.getStats();
-          const value = stats.resourceBuy?.[quest.data] || 0;
-          claimable = value >= target;
+          claimable = this.getStatValue("resourceBuy", quest.data) >= target;
         }
 
         if (quest.type === "trainBuilding") {
-          claimable = this.hasTrainedBuilding({
-            [quest.data]: target,
-          });
+          claimable = this.hasTrainedBuilding({ [quest.data]: target });
         }
 
         if (quest.type === "clan") {
-          const stats = this.getStats();
-          const value = stats.clan?.[quest.data] || 0;
-          claimable = value >= target;
+          claimable = this.getStatValue("clan", quest.data) >= target;
         }
 
         if (quest.type === "killPoints") {
-          const hero = this.getHero();
-          claimable = hero.killPoints >= target;
+          claimable = this.getKillPoints() >= target;
         }
 
         if (quest.type === "research") {
-          const stats = this.getStats();
-          const value = stats.skills?.[quest.data] || 0;
-          claimable = value >= target;
+          claimable = this.getStatValue("skills", quest.data) >= target;
         }
 
         if (!claimable) break;
@@ -1176,12 +1276,10 @@ export default class FomoFightersFarmer extends BaseFarmer {
     }
 
     /** Compare resources */
-    const resources = this.getAllResources();
-
-    return (
-      (requirements.priceFood || 0) <= (resources.food?.value || 0) &&
-      (requirements.priceWood || 0) <= (resources.wood?.value || 0) &&
-      (requirements.priceStone || 0) <= (resources.stone?.value || 0)
+    return this.canAfford(
+      requirements.priceFood || 0,
+      requirements.priceWood || 0,
+      requirements.priceStone || 0,
     );
   }
 
@@ -1243,22 +1341,14 @@ export default class FomoFightersFarmer extends BaseFarmer {
 
       const trainable = this.getBuildingTroops(key)
         .filter((item) => this.meetsTroopRequirements(item))
-        .filter((item) => {
-          const resources = this.getAllResources();
-          const availableGem = resources.gem?.value || 0;
-
-          const totalPriceFood = count * (item.priceFood || 0);
-          const totalPriceWood = count * (item.priceWood || 0);
-          const totalPriceStone = count * (item.priceStone || 0);
-          const totalPriceGem = item.priceGem ? count * item.priceGem : 0;
-
-          return (
-            totalPriceFood <= (resources.food?.value || 0) &&
-            totalPriceWood <= (resources.wood?.value || 0) &&
-            totalPriceStone <= (resources.stone?.value || 0) &&
-            totalPriceGem <= availableGem
-          );
-        });
+        .filter((item) =>
+          this.canAfford(
+            count * (item.priceFood || 0),
+            count * (item.priceWood || 0),
+            count * (item.priceStone || 0),
+            count * (item.priceGem || 0),
+          ),
+        );
 
       /** Choose troops */
       const selected = this.utils.randomItem(trainable);
@@ -1272,6 +1362,7 @@ export default class FomoFightersFarmer extends BaseFarmer {
       }
 
       /** Purchase troops */
+      await this.delayWithMessage(2, `Training ${selected.title}`);
       await this.purchaseTroops(selected.key, count);
       this.logger.success(`Trained troops: ${selected.title}`);
 
@@ -1325,6 +1416,7 @@ export default class FomoFightersFarmer extends BaseFarmer {
         }
 
         /** Create a new attack */
+        await this.delayWithMessage(3, "Attacking target");
         await this.createAttack(selectedTarget.id, {
           [selectedTroops.troop.key]: selectedTroops.count,
         });
@@ -1491,32 +1583,6 @@ export default class FomoFightersFarmer extends BaseFarmer {
     );
   }
 
-  /** Is already attacking */
-  hasAttackTimer(targetId) {
-    return (
-      this.getTimer("tAttacks", "targetId", targetId) ||
-      this.getTimer("tReturns", "targetId", targetId)
-    );
-  }
-
-  /** Is already scouting */
-  hasScoutTimer(targetId) {
-    return (
-      this.getTimer("tScouts", "targetId", targetId) ||
-      this.getTimer("tScoutReturns", "targetId", targetId)
-    );
-  }
-
-  /** Is already building */
-  hasBuildingTimer(buildingKey) {
-    return this.getBuildingTimer(buildingKey);
-  }
-
-  /** Is troop timer available */
-  hasTroopTimer(troopKey) {
-    return this.getTroopTimer(troopKey);
-  }
-
   /** Wait for building */
   async waitForBuilding(buildingKey) {
     return this.waitForTimer(
@@ -1593,48 +1659,98 @@ export default class FomoFightersFarmer extends BaseFarmer {
     }
   }
 
-  getTimer(timerKey, itemKey, value) {
-    return this.allData[timerKey].find((item) => item[itemKey] === value);
+  /** ===== Data Accessors ===== */
+
+  /** Hero */
+  getHero() {
+    return this.allData.hero;
   }
 
-  getBuildingTimer(buildingKey) {
-    return this.getTimer("tBuildings", "buildingKey", buildingKey);
+  getHeroLevel() {
+    return this.getHero().level;
   }
 
-  getTroopTimer(troopKey) {
-    return this.getTimer("tTroops", "troopKey", troopKey);
+  getRace() {
+    return this.getHero().race;
   }
 
-  findAvailableTargets(key) {
-    return this.afterData.targets.filter((item) => item.type === key);
+  getKillPoints() {
+    return this.getHero().killPoints || 0;
   }
 
-  getOwnedTroops() {
-    return this.afterData.troops;
+  getOnboarding() {
+    return this.getHero().onboarding;
   }
 
-  getAvailableTroops() {
-    return Object.entries(this.getOwnedTroops())
-      .map(([key, count]) => {
-        const troop = this.allData.dbData.dbTroops.find(
-          (item) => item.key === key,
-        );
-        return {
-          troop,
-          count,
-        };
-      })
-      .filter((item) => item.count > 0);
+  getPropsCompiled() {
+    return this.getHero().propsCompiled;
   }
 
-  getAvailableScouts() {
-    return this.getAvailableTroops().filter((item) => item.troop.isScout);
+  getBuilders() {
+    return this.getPropsCompiled()?.builders || 1;
   }
 
-  getAvailableAttackers() {
-    return this.getAvailableTroops().filter((item) => !item.troop.isScout);
+  getAcademics() {
+    return this.getPropsCompiled()?.academics || 1;
   }
 
+  /** Power */
+  getTotalPower() {
+    const hero = this.getHero();
+    return hero.powerBuildings + hero.powerTroops + hero.powerSkills;
+  }
+
+  getBuildingPower() {
+    return this.getHero().powerBuildings;
+  }
+
+  getTroopPower() {
+    return this.getHero().powerTroops;
+  }
+
+  getSkillPower() {
+    return this.getHero().powerSkills;
+  }
+
+  /** Resources */
+  getAllResources() {
+    return this.getHero().resources;
+  }
+
+  getResource(type) {
+    return this.getAllResources()[type];
+  }
+
+  getResourceValue(type) {
+    return this.getResource(type)?.value || 0;
+  }
+
+  getFood() {
+    return this.getResourceValue("food");
+  }
+
+  getWood() {
+    return this.getResourceValue("wood");
+  }
+
+  getStone() {
+    return this.getResourceValue("stone");
+  }
+
+  getGems() {
+    return this.getResourceValue("gem");
+  }
+
+  canAfford(food = 0, wood = 0, stone = 0, gems = 0) {
+    return (
+      food <= this.getFood() &&
+      wood <= this.getWood() &&
+      stone <= this.getStone() &&
+      gems <= this.getGems()
+    );
+  }
+
+  /** Buildings */
   getOwnedBuildings() {
     return this.allData.buildings;
   }
@@ -1647,75 +1763,16 @@ export default class FomoFightersFarmer extends BaseFarmer {
     return this.allData.dbData.dbBuildings.find((b) => b.key === key);
   }
 
-  /** Check if troop's building + skill requirements are met */
-  meetsTroopRequirements(troop) {
-    /** Check required buildings */
-    if (troop.requiredBuildings) {
-      for (const [bKey, bLevel] of Object.entries(troop.requiredBuildings)) {
-        const owned = this.findOwnedBuilding(bKey);
-        if (!owned || owned.level < bLevel) return false;
-      }
-    }
-
-    /** Check required skills */
-    if (troop.requiredSkills && troop.requiredSkills.length > 0) {
-      for (const skillKey of troop.requiredSkills) {
-        if (!this.hasSkill(skillKey)) return false;
-      }
-    }
-
-    return true;
+  getOwnedBuildingLevel(key) {
+    return this.findOwnedBuilding(key)?.level || 0;
   }
 
-  /** Check if a skill has been researched */
-  hasSkill(skillKey) {
-    return this.allData.skills?.some((s) => s.key === skillKey && s.level > 0);
+  getCastle() {
+    return this.findOwnedBuilding("castle");
   }
 
-  getGameTroops() {
-    return this.allData.dbData.dbTroops.filter(
-      (item) => item.race === this.allData.hero.race,
-    );
-  }
-
-  getBuildingTroops(key) {
-    return this.getGameTroops().filter((item) => item.building === key);
-  }
-
-  getHero() {
-    return this.allData.hero;
-  }
-
-  getTotalPower() {
-    const hero = this.getHero();
-    const totalPower =
-      hero.powerBuildings + hero.powerTroops + hero.powerSkills;
-
-    return totalPower;
-  }
-
-  getAllResources() {
-    return this.allData.hero.resources;
-  }
-
-  getResource(type) {
-    return this.getAllResources()[type];
-  }
-
-  getResourceValue(type) {
-    return this.getResource(type)?.value || 0;
-  }
-
-  getGems() {
-    return this.getResourceValue("gem");
-  }
-
-  /** Get affordable speed ups */
-  getAffordableSpeedUps() {
-    const gems = this.getGems();
-    return this.allData.dbData.dbSpeedup.filter(
-      (item) => gems >= item.priceGem,
-    );
+  getCastleLevel() {
+    return this.getHeroLevel();
   }
 
   getFreeBuildingPosition() {
@@ -1729,20 +1786,190 @@ export default class FomoFightersFarmer extends BaseFarmer {
     return available[0];
   }
 
-  getCastle() {
-    return this.findOwnedBuilding("castle");
+  /** Troops */
+  getOwnedTroops() {
+    return this.afterData.troops;
   }
 
+  getAvailableTroops() {
+    return Object.entries(this.getOwnedTroops())
+      .map(([key, count]) => {
+        const troop = this.allData.dbData.dbTroops.find(
+          (item) => item.key === key,
+        );
+        return { troop, count };
+      })
+      .filter((item) => item.count > 0);
+  }
+
+  getAvailableScouts() {
+    return this.getAvailableTroops().filter((item) => item.troop.isScout);
+  }
+
+  getAvailableAttackers() {
+    return this.getAvailableTroops().filter((item) => !item.troop.isScout);
+  }
+
+  getGameTroops() {
+    return this.allData.dbData.dbTroops.filter(
+      (item) => item.race === this.getRace(),
+    );
+  }
+
+  getBuildingTroops(key) {
+    return this.getGameTroops().filter((item) => item.building === key);
+  }
+
+  getTrainingCapacity(buildingKey) {
+    const capacityKey = this.utils.changeCase.camelCase(
+      `training_capacity_${buildingKey}`,
+    );
+    return this.getPropsCompiled()?.[capacityKey] || 1;
+  }
+
+  getArmyCapacity(buildingKey) {
+    const capacityKey = this.utils.changeCase.camelCase(
+      `army_capacity_${buildingKey}`,
+    );
+    return this.getPropsCompiled()?.[capacityKey] || 0;
+  }
+
+  /** Skills */
+  getOwnedSkills() {
+    return this.allData.skills || [];
+  }
+
+  getSkillLevel(skillKey) {
+    const skill = this.getOwnedSkills().find((s) => s.key === skillKey);
+    return skill ? skill.level : 0;
+  }
+
+  hasSkill(skillKey) {
+    return this.getSkillLevel(skillKey) > 0;
+  }
+
+  /** Troop requirements */
+  meetsTroopRequirements(troop) {
+    if (troop.requiredBuildings) {
+      for (const [bKey, bLevel] of Object.entries(troop.requiredBuildings)) {
+        if (this.getOwnedBuildingLevel(bKey) < bLevel) return false;
+      }
+    }
+
+    if (troop.requiredSkills && troop.requiredSkills.length > 0) {
+      for (const skillKey of troop.requiredSkills) {
+        if (!this.hasSkill(skillKey)) return false;
+      }
+    }
+
+    return true;
+  }
+
+  /** Speedups */
+  getAffordableSpeedUps() {
+    const gems = this.getGems();
+    return this.allData.dbData.dbSpeedup.filter(
+      (item) => gems >= item.priceGem,
+    );
+  }
+
+  /** Clan */
+  isInClan() {
+    return this.allData.clan && this.allData.clan.length > 0;
+  }
+
+  getClan() {
+    return this.allData.clan;
+  }
+
+  getClanRewards() {
+    return this.afterData.stClanRewards || [];
+  }
+
+  getWarLogs() {
+    return this.afterData.warLogs || [];
+  }
+
+  getUnclaimedWars() {
+    return this.getWarLogs().filter((w) => !w.isClaimed && !w.isExpired);
+  }
+
+  getWarPoints() {
+    return this.afterData.warPoints || 0;
+  }
+
+  /** Hospital */
+  getHospital() {
+    return this.afterData?.hospital || null;
+  }
+
+  getHospitalCapacity() {
+    return this.getPropsCompiled()?.hospitalCapacity || 0;
+  }
+
+  /** Targets */
+  getTargets() {
+    return this.afterData.targets;
+  }
+
+  findAvailableTargets(key) {
+    return this.getTargets().filter((item) => item.type === key);
+  }
+
+  /** Timers */
+  getTimer(timerKey, itemKey, value) {
+    return this.allData[timerKey]?.find((item) => item[itemKey] === value);
+  }
+
+  getBuildingTimer(buildingKey) {
+    return this.getTimer("tBuildings", "buildingKey", buildingKey);
+  }
+
+  getTroopTimer(troopKey) {
+    return this.getTimer("tTroops", "troopKey", troopKey);
+  }
+
+  getBuildingTimerByBuilding(buildingKey) {
+    return this.allData.tTroops?.find((t) => t.buildingKey === buildingKey);
+  }
+
+  getActiveBuilds() {
+    return this.allData.tBuildings?.length || 0;
+  }
+
+  getActiveResearches() {
+    return this.allData.tSkills?.length || 0;
+  }
+
+  /** Onboarding */
   getMaxOnboarding() {
-    return Math.max(...this.allData.hero.onboarding.map(Number));
+    return Math.max(...this.getOnboarding().map(Number));
   }
 
   hasCompletedOnboarding(key) {
-    return this.allData.hero.onboarding.includes(key);
+    return this.getOnboarding().includes(key);
   }
 
+  /** Stats */
+  getStats() {
+    return this.getHero().stat;
+  }
+
+  getDailyStats() {
+    return this.getHero().statDaily;
+  }
+
+  getStatValue(category, key) {
+    return this.getStats()[category]?.[key] || 0;
+  }
+
+  getDailyStatValue(category, key) {
+    return this.getDailyStats()[category]?.[key] || 0;
+  }
+
+  /** Quest state checks */
   hasClaimedMainQuest() {
-    return this.allData.hero.questMainCompleted;
+    return this.getHero().questMainCompleted;
   }
 
   hasClaimedAnyResource() {
@@ -1773,31 +2000,42 @@ export default class FomoFightersFarmer extends BaseFarmer {
 
   compareStatsData(stats, data) {
     return data
-      ? Object.entries(data).every(([key, value]) => {
-          return stats[key] >= value;
-        })
+      ? Object.entries(data).every(([key, value]) => stats[key] >= value)
       : Object.values(stats).some((value) => value > 0);
   }
 
   compareStats(category, data) {
-    const stats = this.getStats()[category];
-    return this.compareStatsData(stats, data);
+    return this.compareStatsData(this.getStats()[category], data);
   }
 
   compareDailyStats(category, data) {
-    const stats = this.getDailyStats()[category];
-    return this.compareStatsData(stats, data);
+    return this.compareStatsData(this.getDailyStats()[category], data);
   }
 
-  getStats() {
-    return this.allData.hero.stat;
+  /** Timer checks */
+  hasAttackTimer(targetId) {
+    return (
+      this.getTimer("tAttacks", "targetId", targetId) ||
+      this.getTimer("tReturns", "targetId", targetId)
+    );
   }
 
-  getDailyStats() {
-    return this.allData.hero.statDaily;
+  hasScoutTimer(targetId) {
+    return (
+      this.getTimer("tScouts", "targetId", targetId) ||
+      this.getTimer("tScoutReturns", "targetId", targetId)
+    );
   }
 
-  getTargets() {
-    return this.afterData.targets;
+  hasBuildingTimer(buildingKey) {
+    return this.getBuildingTimer(buildingKey);
+  }
+
+  hasTroopTimer(troopKey) {
+    return this.getTroopTimer(troopKey);
+  }
+
+  hasTrainingAtBuilding(buildingKey) {
+    return !!this.getBuildingTimerByBuilding(buildingKey);
   }
 }
