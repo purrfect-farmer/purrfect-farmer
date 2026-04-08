@@ -6,14 +6,14 @@ import {
   getJettonInfo,
   keypairFromMnemonic,
 } from "./atf-auto";
-import { SendMode, beginCell, storeStateInit } from "@ton/core";
+import { SendMode, beginCell, fromNano, storeStateInit } from "@ton/core";
 import { extractTgWebAppData, uuid } from "@/utils";
 import { sha256, sign } from "@ton/crypto";
 
 import Decimal from "decimal.js";
 import toast from "react-hot-toast";
 
-const TON_FOR_GAS = toNano("0.1");
+const TON_FOR_GAS = toNano("0.08");
 const JETTON_TRANSFER_GAS = toNano("0.05");
 
 async function getJettonWalletAddress(client, jettonMaster, ownerAddress) {
@@ -432,8 +432,8 @@ export default class ATFAutoBooster {
         success: `Sent ${jettonAmount} ATF from master`,
       });
       await toast.promise(this.sendGasFromMaster(), {
-        loading: "Sending 0.1 TON from master",
-        success: "Sent 0.1 TON from master",
+        loading: `Sending ${fromNano(TON_FOR_GAS)} TON from master`,
+        success: `Sent ${fromNano(TON_FOR_GAS)} TON from master`,
       });
       await toast.promise(this.connectWallet(), {
         loading: "Connecting wallet",
@@ -468,8 +468,8 @@ export default class ATFAutoBooster {
       }
 
       await toast.promise(this.sendGasFromMaster(), {
-        loading: "Sending 0.1 TON from master",
-        success: "Sent 0.1 TON from master",
+        loading: `Sending ${fromNano(TON_FOR_GAS)} TON from master`,
+        success: `Sent ${fromNano(TON_FOR_GAS)} TON from master`,
       });
       const collected = await toast.promise(
         this.returnJettonToMaster(jettonBalance),
