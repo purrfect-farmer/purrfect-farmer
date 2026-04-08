@@ -8,7 +8,7 @@ import { mnemonicToPrivateKey } from "@ton/crypto";
 export const JETTON_ADDRESS =
   "EQANcW45W0Tp91bzvHayaPO6-6hf1Lm4XlWZ4rN6L5ofPWdb";
 
-const TON_API_DELAY = 300;
+const TON_API_DELAY = 1000;
 
 /** Serialized fetcher for tonapi.io — one request at a time with rate limit gap. */
 const tonapi = axios.create({ baseURL: "https://tonapi.io/v2" });
@@ -78,8 +78,24 @@ export async function getBalances(address) {
 
 /** Serialized fetcher for ATF API — one request at a time with rate limit gap. */
 const ATF_API_BASE = "https://atfminers.asloni.online/miner/index.php";
-const ATF_API_DELAY = 300;
+const ATF_API_DELAY = 1000;
 let _atfPending = Promise.resolve();
+
+export const atfApi = axios.create({
+  baseURL: ATF_API_BASE,
+});
+
+atfApi.interceptors.response.use(undefined, async (error) => {
+  const { config, response } = error;
+  if (response?.status === 429 && (!config.__retryCount || config.__retryCount < 3)) {
+    config.__retryCount = (config.__retryCount || 0) + 1;
+    const retryAfter = response.headers["retry-after"];
+    const delay = retryAfter ? Number(retryAfter) * 1000 : config.__retryCount * 3000;
+    await new Promise((r) => setTimeout(r, delay));
+    return atfApi(config);
+  }
+  return Promise.reject(error);
+});
 
 function fetchAtfApi(action, url) {
   const { initData, initDataUnsafe } = extractTgWebAppData(url);
@@ -89,8 +105,8 @@ function fetchAtfApi(action, url) {
   return (_atfPending = _atfPending
     .catch(() => {})
     .then(() =>
-      axios.post(
-        `${ATF_API_BASE}?action=${action}&t=${Date.now()}`,
+      atfApi.post(
+        `?action=${action}&t=${Date.now()}`,
         {
           initData,
           request_id: uuid(),

@@ -1,6 +1,7 @@
 import { Address, TonClient, internal, toNano } from "@ton/ton";
 import {
   JETTON_ADDRESS,
+  atfApi,
   createWallet,
   getJettonInfo,
   keypairFromMnemonic,
@@ -10,12 +11,10 @@ import { extractTgWebAppData, uuid } from "@/utils";
 import { sha256, sign } from "@ton/crypto";
 
 import Decimal from "decimal.js";
-import axios from "axios";
 import toast from "react-hot-toast";
 
 const TON_FOR_GAS = toNano("0.1");
 const JETTON_TRANSFER_GAS = toNano("0.05");
-const ATF_API_BASE = "https://atfminers.asloni.online/miner/index.php";
 
 async function getJettonWalletAddress(client, jettonMaster, ownerAddress) {
   const res = await client.runMethod(
@@ -169,8 +168,8 @@ export default class ATFAutoBooster {
   }
 
   async makeAction(action, data = {}) {
-    const res = await axios.post(
-      `${ATF_API_BASE}?action=${action}&t=${Date.now()}`,
+    const res = await atfApi.post(
+      `?action=${action}&t=${Date.now()}`,
       {
         ...data,
         initData: this.initData,
