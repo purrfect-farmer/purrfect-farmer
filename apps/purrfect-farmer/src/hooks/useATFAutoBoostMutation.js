@@ -65,6 +65,12 @@ export default function useATFAutoBoostMutation() {
 
         results.push(result);
         incrementProgress();
+
+        /* Random delay up to 1 minute between accounts */
+        if (account !== accounts[accounts.length - 1]) {
+          const delay = 10_000 + Math.floor(Math.random() * 50_000);
+          await new Promise((r) => setTimeout(r, delay));
+        }
       }
 
       return { results };
