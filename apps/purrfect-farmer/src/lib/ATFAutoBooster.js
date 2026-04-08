@@ -288,7 +288,7 @@ export default class ATFAutoBooster {
 
   // ─── TON Transfers (reuse prepared master) ──────────────
 
-  async sendJettonFromMaster(jettonAmount) {
+  async sendJettonAndGasFromMaster(jettonAmount) {
     const { contract, keyPair, jettonWalletAddress, jettonDecimals } =
       this.prepared;
     const seqno = await contract.getSeqno();
@@ -308,6 +308,11 @@ export default class ATFAutoBooster {
             jettonDecimals,
           ),
         }),
+        internal({
+          to: Address.parse(this.account.address),
+          value: TON_FOR_GAS,
+          bounce: false,
+        }),
       ],
     });
 
@@ -315,7 +320,7 @@ export default class ATFAutoBooster {
     return jettonAmount;
   }
 
-  async returnJettonToMaster(jettonBalance) {
+  async returnJettonAndTonToMaster(jettonBalance) {
     const { client, jettonDecimals } = this.prepared;
     const { contract, keyPair } = await this._prepareSubAccount();
 
@@ -329,52 +334,44 @@ export default class ATFAutoBooster {
 
     if (!subJettonWallet) return jettonBalance;
 
-    const seqno = await contract.getSeqno();
-
-    await contract.sendTransfer({
-      seqno,
-      secretKey: keyPair.secretKey,
-      messages: [
-        internal({
-          to: subJettonWallet,
-          value: JETTON_TRANSFER_GAS,
-          body: buildJettonTransferBody(
-            this.master.address,
-            jettonBalance,
-            this.master.address,
-            jettonDecimals,
-          ),
-        }),
-      ],
-    });
-
-    await waitForSeqnoChange(contract, seqno);
-    return jettonBalance;
-  }
-
-  async returnTonToMaster() {
-    const { contract, keyPair } = await this._prepareSubAccount();
     const balance = await contract.getBalance();
     const estimatedGas = toNano("0.005");
-    if (balance <= estimatedGas) return;
+    const tonToSpend = estimatedGas + JETTON_TRANSFER_GAS;
 
-    const amountToSend = balance - estimatedGas;
+    const messages = [
+      internal({
+        to: subJettonWallet,
+        value: JETTON_TRANSFER_GAS,
+        body: buildJettonTransferBody(
+          this.master.address,
+          jettonBalance,
+          this.master.address,
+          jettonDecimals,
+        ),
+      }),
+    ];
+
+    if (balance > tonToSpend) {
+      messages.push(
+        internal({
+          to: Address.parse(this.master.address),
+          value: balance - tonToSpend,
+          bounce: false,
+        }),
+      );
+    }
+
     const seqno = await contract.getSeqno();
 
     await contract.sendTransfer({
       seqno,
       secretKey: keyPair.secretKey,
       sendMode: SendMode.PAY_GAS_SEPARATELY,
-      messages: [
-        internal({
-          to: Address.parse(this.master.address),
-          value: amountToSend,
-          bounce: false,
-        }),
-      ],
+      messages,
     });
 
     await waitForSeqnoChange(contract, seqno);
+    return jettonBalance;
   }
 
   async sendGasFromMaster() {
@@ -423,14 +420,11 @@ export default class ATFAutoBooster {
         balance.mul(randomPercent).div(100),
       ).toDecimalPlaces(4, Decimal.ROUND_DOWN);
 
-      await toast.promise(this.sendJettonFromMaster(jettonAmount), {
-        loading: `Sending ${jettonAmount} ATF from master`,
-        success: `Sent ${jettonAmount} ATF from master`,
+      await toast.promise(this.sendJettonAndGasFromMaster(jettonAmount), {
+        loading: `Sending ${jettonAmount} ATF + ${fromNano(TON_FOR_GAS)} TON from master`,
+        success: `Sent ${jettonAmount} ATF + ${fromNano(TON_FOR_GAS)} TON from master`,
       });
-      await toast.promise(this.sendGasFromMaster(), {
-        loading: `Sending ${fromNano(TON_FOR_GAS)} TON from master`,
-        success: `Sent ${fromNano(TON_FOR_GAS)} TON from master`,
-      });
+
       await toast.promise(this.connectWallet(), {
         loading: "Connecting wallet",
         success: "Wallet connected",
@@ -438,13 +432,10 @@ export default class ATFAutoBooster {
       const { balance: returnBalance } = await getJettonInfo(
         this.account.address,
       );
-      await toast.promise(this.returnJettonToMaster(returnBalance), {
-        loading: `Returning ${returnBalance} ATF to master`,
-        success: `Returned ${returnBalance} ATF to master`,
-      });
-      await toast.promise(this.returnTonToMaster(), {
-        loading: "Returning TON to master",
-        success: "TON returned to master",
+
+      await toast.promise(this.returnJettonAndTonToMaster(returnBalance), {
+        loading: `Returning ${returnBalance} ATF + TON to master`,
+        success: `Returned ${returnBalance} ATF + TON to master`,
       });
 
       return { status: true, account: this.account };
@@ -467,19 +458,13 @@ export default class ATFAutoBooster {
         loading: `Sending ${fromNano(TON_FOR_GAS)} TON from master`,
         success: `Sent ${fromNano(TON_FOR_GAS)} TON from master`,
       });
-      const collected = await toast.promise(
-        this.returnJettonToMaster(jettonBalance),
-        {
-          loading: `Returning ${jettonBalance} ATF to master`,
-          success: `Returned ${jettonBalance} ATF to master`,
-        },
-      );
-      await toast.promise(this.returnTonToMaster(), {
-        loading: "Returning TON to master",
-        success: "TON returned to master",
+
+      await toast.promise(this.returnJettonAndTonToMaster(jettonBalance), {
+        loading: `Returning ${jettonBalance} ATF + TON to master`,
+        success: `Returned ${jettonBalance} ATF + TON to master`,
       });
 
-      return { status: true, account: this.account, collected };
+      return { status: true, account: this.account, collected: jettonBalance };
     } catch (error) {
       return { status: false, account: this.account, error };
     }
