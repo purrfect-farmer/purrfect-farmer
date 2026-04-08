@@ -317,6 +317,51 @@ export default class FomoFightersFarmer extends BaseFarmer {
       .then((res) => res.data.data);
   }
 
+  refreshMarket() {
+    return this.api
+      .post("https://api.fomofighters.xyz/market/refresh", {})
+      .then((res) => res.data.data);
+  }
+
+  buyFromMarket(key, marketId) {
+    return this.api
+      .post("https://api.fomofighters.xyz/market/buy", { key, marketId })
+      .then((res) => res.data.data);
+  }
+
+  getBoxList() {
+    return this.api
+      .post("https://api.fomofighters.xyz/box/list", {})
+      .then((res) => res.data.data);
+  }
+
+  buyBox(key, count = 1) {
+    return this.api
+      .post("https://api.fomofighters.xyz/box/buy", { key, count })
+      .then((res) => res.data.data);
+  }
+
+  openBox(key) {
+    return this.api
+      .post("https://api.fomofighters.xyz/box/open", key)
+      .then((res) => res.data.data);
+  }
+
+  buySkillInstant(skillKey, expectedPrice) {
+    return this.api
+      .post("https://api.fomofighters.xyz/skills/buy/instant", {
+        skillKey,
+        expectedPrice,
+      })
+      .then((res) => res.data.data);
+  }
+
+  buyResourcePacks(packs) {
+    return this.api
+      .post("https://api.fomofighters.xyz/resource/buy/packs", packs)
+      .then((res) => res.data.data);
+  }
+
   purchaseLand(position, buildingKey) {
     return this.api
       .post("https://api.fomofighters.xyz/building/buy", {
@@ -405,6 +450,8 @@ export default class FomoFightersFarmer extends BaseFarmer {
       await this.executeTask("Train troops", () => this.trainAvailableTroops());
       await this.executeTask("Attacks", () => this.performAttacks());
       await this.executeTask("Heal troops", () => this.healWoundedTroops());
+      await this.executeTask("Market", () => this.buyMarketItems());
+      await this.executeTask("Chests", () => this.buyAndOpenBoxes());
 
       await this.executeTask("Resources (2nd pass)", () =>
         this.claimGameResources(),
@@ -599,6 +646,66 @@ export default class FomoFightersFarmer extends BaseFarmer {
         this.logger.success(`Claimed story daily milestone: ${milestone.key}`);
       } catch {
         break;
+      }
+    }
+  }
+
+  /** Buy discounted items from the market */
+  async buyMarketItems() {
+    const market = this.afterData.market;
+    if (!market?.list?.length) return;
+
+    /** Only buy gem-priced items (troops) since gems have more value */
+    const gemItems = market.list.filter(
+      (item) =>
+        item.priceType === "gem" &&
+        item.priceCount <= this.getGems() &&
+        (!item.race || item.race === this.getRace()),
+    );
+
+    for (const item of gemItems) {
+      if (this.signal.aborted) return;
+
+      await this.delayWithMessage(2, `Buying from market: ${item.key}`);
+      try {
+        await this.buyFromMarket(item.key, market.id);
+        this.logger.success(`Bought from market: ${item.key}`);
+      } catch {
+        this.logger.debug(`Failed to buy from market: ${item.key}`);
+      }
+    }
+  }
+
+  /** Buy and open resource chests from fairground */
+  async buyAndOpenBoxes() {
+    const fairground = this.findOwnedBuilding("fairground");
+    if (!fairground) return;
+
+    const boxes = this.allData.dbData.dbBoxes;
+    if (!boxes?.length) return;
+
+    for (const box of boxes) {
+      if (this.signal.aborted) return;
+
+      /** Only buy gem-priced boxes we can afford */
+      if (box.priceType !== "gem" || box.priceGem > this.getGems()) continue;
+
+      try {
+        await this.delayWithMessage(2, `Buying chest: ${box.title}`);
+        await this.buyBox(box.key);
+        this.logger.success(`Bought chest: ${box.title}`);
+
+        await this.delayWithMessage(2, `Opening chest: ${box.title}`);
+        const result = await this.openBox(box.key);
+        if (result?.loot) {
+          for (const loot of result.loot) {
+            this.logger.success(
+              `Received ${loot.count} ${loot.data} from chest`,
+            );
+          }
+        }
+      } catch {
+        this.logger.debug(`Failed to buy/open chest: ${box.title}`);
       }
     }
   }
@@ -1115,20 +1222,64 @@ export default class FomoFightersFarmer extends BaseFarmer {
       /** Skip if already rewarded (unless repeatable) */
       if (completed?.isRewarded && !quest.repeatInterval) continue;
 
-      /** Check + claim */
       try {
-        if (!completed && quest.needCheck) {
-          const checkValue =
-            quest.checkType === "checkCode" ? quest.checkData : "";
-          await this.delayWithMessage(2, `Checking quest: ${quest.title}`);
-          await this.checkQuest(quest.key, checkValue);
-          this.logger.success(`Checked quest: ${quest.title}`);
+        /** fakeCheck: claim directly without check */
+        if (quest.checkType === "fakeCheck") {
+          if (!completed || !completed.isRewarded) {
+            await this.delayWithMessage(2, `Claiming quest: ${quest.title}`);
+            await this.claimQuest(quest.key);
+            this.logger.success(`Claimed quest: ${quest.title}`);
+          }
+          continue;
         }
 
-        if (!completed || !completed.isRewarded) {
-          await this.delayWithMessage(2, `Claiming quest: ${quest.title}`);
-          await this.claimQuest(quest.key);
-          this.logger.success(`Claimed quest: ${quest.title}`);
+        /** telegramChannel: join link first, then check + claim */
+        if (quest.checkType === "telegramChannel") {
+          if (!completed) {
+            if (quest.actionUrl && this.canJoinTelegramLink()) {
+              await this.delayWithMessage(2, `Joining: ${quest.title}`);
+              await this.joinTelegramLink(quest.actionUrl);
+            }
+            await this.delayWithMessage(2, `Checking quest: ${quest.title}`);
+            const result = await this.checkQuest(quest.key, null);
+            if (!result?.result) continue;
+          }
+          if (!completed || !completed.isRewarded) {
+            await this.delayWithMessage(2, `Claiming quest: ${quest.title}`);
+            await this.claimQuest(quest.key);
+            this.logger.success(`Claimed quest: ${quest.title}`);
+          }
+          continue;
+        }
+
+        /** checkCode: check with answer, only claim if check succeeds */
+        if (quest.checkType === "checkCode") {
+          if (!completed) {
+            await this.delayWithMessage(2, `Checking quest: ${quest.title}`);
+            const result = await this.checkQuest(quest.key, quest.checkData);
+            if (!result?.result) continue;
+          }
+          if (!completed || !completed.isRewarded) {
+            await this.delayWithMessage(2, `Claiming quest: ${quest.title}`);
+            await this.claimQuest(quest.key);
+            this.logger.success(`Claimed quest: ${quest.title}`);
+          }
+          continue;
+        }
+
+        /** username: check then claim if check succeeds */
+        if (quest.checkType === "username") {
+          if (!completed) {
+            await this.delayWithMessage(2, `Checking quest: ${quest.title}`);
+            const result = await this.checkQuest(quest.key, null);
+            if (!result?.result) continue;
+          }
+          if (!completed || !completed.isRewarded) {
+            await this.delayWithMessage(2, `Claiming quest: ${quest.title}`);
+            await this.claimQuest(quest.key);
+            this.logger.success(`Claimed quest: ${quest.title}`);
+          }
+          continue;
         }
       } catch {
         this.logger.debug(`Quest not claimable: ${quest.title}`);
