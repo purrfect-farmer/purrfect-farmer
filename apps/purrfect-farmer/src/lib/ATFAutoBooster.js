@@ -14,6 +14,7 @@ import Decimal from "decimal.js";
 import toast from "react-hot-toast";
 
 const TON_FOR_GAS = toNano("0.08");
+const TON_RESERVE = toNano("0.0002");
 const JETTON_TRANSFER_GAS = toNano("0.05");
 
 async function getJettonWalletAddress(client, jettonMaster, ownerAddress) {
@@ -324,49 +325,57 @@ export default class ATFAutoBooster {
     const { client, jettonDecimals } = this.prepared;
     const { contract, keyPair } = await this._prepareSubAccount();
 
-    if (jettonBalance.lessThanOrEqualTo(0)) return jettonBalance;
+    const messages = [];
 
-    const subJettonWallet = await getJettonWalletAddress(
-      client,
-      JETTON_ADDRESS,
-      this.account.address,
-    );
+    if (jettonBalance.greaterThan(0)) {
+      const subJettonWallet = await getJettonWalletAddress(
+        client,
+        JETTON_ADDRESS,
+        this.account.address,
+      );
 
-    if (!subJettonWallet) return jettonBalance;
+      if (subJettonWallet) {
+        messages.push(
+          internal({
+            to: subJettonWallet,
+            value: JETTON_TRANSFER_GAS,
+            body: buildJettonTransferBody(
+              this.master.address,
+              jettonBalance,
+              this.master.address,
+              jettonDecimals,
+            ),
+          }),
+        );
+      }
+    }
 
     const balance = await contract.getBalance();
+    const tonForJetton = messages.length > 0 ? JETTON_TRANSFER_GAS : 0n;
     const estimatedGas = toNano("0.005");
-    const tonToSpend = estimatedGas + JETTON_TRANSFER_GAS;
+    const tonToKeep = TON_RESERVE + tonForJetton + estimatedGas;
 
-    const messages = [
-      internal({
-        to: subJettonWallet,
-        value: JETTON_TRANSFER_GAS,
-        body: buildJettonTransferBody(
-          this.master.address,
-          jettonBalance,
-          this.master.address,
-          jettonDecimals,
-        ),
-      }),
-    ];
+    if (balance > tonToKeep) {
+      const tonReturned = balance - tonToKeep;
+      console.log("TON returned:", tonReturned);
 
-    if (balance > tonToSpend) {
       messages.push(
         internal({
           to: Address.parse(this.master.address),
-          value: balance - tonToSpend,
+          value: tonReturned,
           bounce: false,
         }),
       );
     }
+
+    if (messages.length === 0) return jettonBalance;
 
     const seqno = await contract.getSeqno();
 
     await contract.sendTransfer({
       seqno,
       secretKey: keyPair.secretKey,
-      sendMode: SendMode.PAY_GAS_SEPARATELY,
+      sendMode: SendMode.PAY_GAS_SEPARATELY + SendMode.IGNORE_ERRORS,
       messages,
     });
 
