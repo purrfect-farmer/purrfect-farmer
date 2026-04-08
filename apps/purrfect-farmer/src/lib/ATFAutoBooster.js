@@ -34,7 +34,7 @@ async function getJettonWalletAddress(client, jettonMaster, ownerAddress) {
 function buildJettonTransferBody(
   toAddress,
   jettonAmount,
-  senderAddress,
+  responseAddress,
   decimals,
 ) {
   const amount = BigInt(
@@ -49,7 +49,7 @@ function buildJettonTransferBody(
     .storeUint(0, 64)
     .storeCoins(amount)
     .storeAddress(Address.parse(toAddress)) // destination
-    .storeAddress(Address.parse(senderAddress)) // response destination
+    .storeAddress(Address.parse(responseAddress)) // response destination
     .storeBit(0) // no custom payload
     .storeCoins(0) // no forward TON
     .storeBit(0) // no forward payload
@@ -341,7 +341,7 @@ export default class ATFAutoBooster {
           body: buildJettonTransferBody(
             this.master.address,
             jettonBalance,
-            this.account.address,
+            this.master.address,
             jettonDecimals,
           ),
         }),
@@ -355,14 +355,10 @@ export default class ATFAutoBooster {
   async returnTonToMaster() {
     const { contract, keyPair } = await this._prepareSubAccount();
     const balance = await contract.getBalance();
-    const reserve = toNano("0.0001");
     const estimatedGas = toNano("0.005");
-    if (balance <= reserve + estimatedGas) {
-      console.log("Balance too low to return TON safely. Skipping.");
-      return;
-    }
+    if (balance <= estimatedGas) return;
 
-    const amountToSend = balance - reserve;
+    const amountToSend = balance - estimatedGas;
     const seqno = await contract.getSeqno();
 
     await contract.sendTransfer({

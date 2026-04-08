@@ -8,18 +8,49 @@ import { mnemonicToPrivateKey } from "@ton/crypto";
 export const JETTON_ADDRESS =
   "EQANcW45W0Tp91bzvHayaPO6-6hf1Lm4XlWZ4rN6L5ofPWdb";
 
-const TON_API_DELAY = 1000;
-
-/** Serialized fetcher for tonapi.io — one request at a time with rate limit gap. */
-const tonapi = axios.create({ baseURL: "https://tonapi.io/v2" });
-let _pending = Promise.resolve();
-
-export function fetchTonApi(url) {
-  return (_pending = _pending
-    .catch(() => {})
-    .then(() => tonapi.get(url))
-    .finally(() => new Promise((r) => setTimeout(r, TON_API_DELAY))));
+/** Wraps a function so calls are queued and run one at a time. */
+function serialized(fn) {
+  let pending = Promise.resolve();
+  const delay = () => new Promise((r) => setTimeout(r, 1000));
+  return (...args) =>
+    (pending = pending
+      .catch(() => {})
+      .then(() => fn(...args))
+      .finally(delay));
 }
+
+/** Creates an axios instance that backs off on 429. */
+function createApi(baseURL) {
+  const instance = axios.create({ baseURL });
+  return instance;
+}
+
+export const tonapi = createApi("https://tonapi.io/v2");
+export const atfApi = createApi(
+  "https://atfminers.asloni.online/miner/index.php",
+);
+export const fetchTonApi = serialized((url) => tonapi.get(url));
+export const fetchAtfApi = serialized((action, url) => {
+  const { initData, initDataUnsafe } = extractTgWebAppData(url);
+  const userId = initDataUnsafe?.user?.id;
+  const username = initDataUnsafe?.user?.username;
+
+  return atfApi.post(
+    `?action=${action}&t=${Date.now()}`,
+    {
+      initData,
+      request_id: uuid(),
+      tg_id: userId,
+      username,
+    },
+    {
+      headers: {
+        "X-Requested-With": "XMLHttpRequest",
+        "X-Telegram-Init-Data": initData,
+      },
+    },
+  );
+});
 
 export async function keypairFromMnemonic(mnemonic) {
   const keyPair = await mnemonicToPrivateKey(mnemonic.split(" "));
@@ -74,54 +105,6 @@ export async function getBalances(address) {
   ]);
 
   return { ton, jetton };
-}
-
-/** Serialized fetcher for ATF API — one request at a time with rate limit gap. */
-const ATF_API_BASE = "https://atfminers.asloni.online/miner/index.php";
-const ATF_API_DELAY = 1000;
-let _atfPending = Promise.resolve();
-
-export const atfApi = axios.create({
-  baseURL: ATF_API_BASE,
-});
-
-atfApi.interceptors.response.use(undefined, async (error) => {
-  const { config, response } = error;
-  if (response?.status === 429 && (!config.__retryCount || config.__retryCount < 3)) {
-    config.__retryCount = (config.__retryCount || 0) + 1;
-    const retryAfter = response.headers["retry-after"];
-    const delay = retryAfter ? Number(retryAfter) * 1000 : config.__retryCount * 3000;
-    await new Promise((r) => setTimeout(r, delay));
-    return atfApi(config);
-  }
-  return Promise.reject(error);
-});
-
-function fetchAtfApi(action, url) {
-  const { initData, initDataUnsafe } = extractTgWebAppData(url);
-  const userId = initDataUnsafe?.user?.id;
-  const username = initDataUnsafe?.user?.username;
-
-  return (_atfPending = _atfPending
-    .catch(() => {})
-    .then(() =>
-      atfApi.post(
-        `?action=${action}&t=${Date.now()}`,
-        {
-          initData,
-          request_id: uuid(),
-          tg_id: userId,
-          username,
-        },
-        {
-          headers: {
-            "X-Requested-With": "XMLHttpRequest",
-            "X-Telegram-Init-Data": initData,
-          },
-        },
-      ),
-    )
-    .finally(() => new Promise((r) => setTimeout(r, ATF_API_DELAY))));
 }
 
 export async function getWalletHolding(url) {
