@@ -17,6 +17,9 @@ export default function useATFAutoSingleBoostMutation() {
       queryClient.invalidateQueries({
         queryKey: ["atf-balances", master.address],
       });
+      queryClient.invalidateQueries({
+        queryKey: ["atf-wallet-holding", account.url],
+      });
     },
     mutationFn: async ({ account, difference }) => {
       const masterPhrase = await encryption.decryptData({

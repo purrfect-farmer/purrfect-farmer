@@ -200,6 +200,7 @@ export default function ATFAutoDashboardTab() {
             <ATFAutoAccountItem
               key={account.id}
               account={account}
+              accounts={accounts}
               onUpdate={handleUpdateAccount}
               onDelete={handleDeleteAccount}
             />

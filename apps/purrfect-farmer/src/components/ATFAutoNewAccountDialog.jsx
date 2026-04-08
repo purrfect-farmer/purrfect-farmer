@@ -25,6 +25,7 @@ export default function ATFAutoNewAccountDialog({ onCreated }) {
       title: data.title,
       address,
       version: data.version,
+      url: data.url,
       encryptedPhrase,
     };
 

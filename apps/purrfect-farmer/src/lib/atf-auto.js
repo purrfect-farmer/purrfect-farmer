@@ -1,4 +1,5 @@
 import { WalletContractV4, WalletContractV5R1 } from "@ton/ton";
+import { extractTgWebAppData, uuid } from "@/utils";
 
 import Decimal from "decimal.js";
 import axios from "axios";
@@ -25,7 +26,31 @@ function createApi(baseURL) {
 }
 
 export const tonapi = createApi("https://tonapi.io/v2");
+export const atfApi = createApi(
+  "https://atfminers.asloni.online/miner/index.php",
+);
 export const fetchTonApi = serialized((url) => tonapi.get(url));
+export const fetchAtfApi = serialized((action, url) => {
+  const { initData, initDataUnsafe } = extractTgWebAppData(url);
+  const userId = initDataUnsafe?.user?.id;
+  const username = initDataUnsafe?.user?.username;
+
+  return atfApi.post(
+    `?action=${action}&t=${Date.now()}`,
+    {
+      initData,
+      request_id: uuid(),
+      tg_id: userId,
+      username,
+    },
+    {
+      headers: {
+        "X-Requested-With": "XMLHttpRequest",
+        "X-Telegram-Init-Data": initData,
+      },
+    },
+  );
+});
 
 export async function keypairFromMnemonic(mnemonic) {
   const keyPair = await mnemonicToPrivateKey(mnemonic.split(" "));
@@ -80,4 +105,17 @@ export async function getBalances(address) {
   ]);
 
   return { ton, jetton };
+}
+
+export async function getAtfUser(url) {
+  const res = await fetchAtfApi("login", url);
+  return res.data?.user;
+}
+
+export async function getWalletHolding(url) {
+  const user = await getAtfUser(url);
+  return {
+    holding: new Decimal(user?.wallet_holding_atf || 0),
+    balance: new Decimal(user?.mined_balance || 0),
+  };
 }

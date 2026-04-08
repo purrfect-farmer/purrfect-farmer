@@ -1,24 +1,23 @@
 import ATFAutoBooster, { prepareMaster } from "@/lib/ATFAutoBooster";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 
-import Decimal from "decimal.js";
 import { encryption } from "@/services/encryption";
 import useATFAuto from "./useATFAuto";
 import useATFAutoProgress from "./useATFAutoProgress";
 
-export default function useATFAutoCollectMutation() {
+export default function useATFAutoBoostMutation() {
   const { master, password } = useATFAuto();
   const queryClient = useQueryClient();
   const { target, progress, setTarget, resetProgress, incrementProgress } =
     useATFAutoProgress();
 
   const mutation = useMutation({
-    mutationKey: ["atf-auto-collect"],
+    mutationKey: ["atf-auto-boost"],
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["atf-balances"] });
       queryClient.invalidateQueries({ queryKey: ["atf-wallet-holding"] });
     },
-    mutationFn: async ({ accounts }) => {
+    mutationFn: async ({ accounts, difference }) => {
       resetProgress();
       setTarget(accounts.length);
 
@@ -39,6 +38,10 @@ export default function useATFAutoCollectMutation() {
       // Prepare master once and reuse
       const prepared = await prepareMaster(masterData);
 
+      if (prepared.jettonBalance <= 0) {
+        throw new Error("Master has no jetton balance");
+      }
+
       const results = [];
 
       for (const account of accounts) {
@@ -58,18 +61,19 @@ export default function useATFAutoCollectMutation() {
           prepared,
         );
 
-        const result = await booster.collect();
+        const result = await booster.boost({ difference });
 
         results.push(result);
         incrementProgress();
+
+        /* Random delay up to 1 minute between accounts */
+        if (account !== accounts[accounts.length - 1]) {
+          const delay = 10_000 + Math.floor(Math.random() * 50_000);
+          await new Promise((r) => setTimeout(r, delay));
+        }
       }
 
-      const totalCollected = results.reduce(
-        (sum, r) => (r.collected ? sum.plus(r.collected) : sum),
-        new Decimal(0),
-      );
-
-      return { results, totalCollected: totalCollected.toFixed() };
+      return { results };
     },
   });
 

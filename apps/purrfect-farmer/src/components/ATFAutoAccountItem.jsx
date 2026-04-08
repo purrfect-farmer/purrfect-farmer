@@ -3,8 +3,8 @@ import { Reorder, useDragControls } from "motion/react";
 import { memo, useState } from "react";
 
 import ATFAutoAccountBalance from "./ATFAutoAccountBalance";
-import ATFAutoAccountBoosterDialog from "./ATFAutoAccountBoosterDialog";
 import ATFAutoAccountDetailsDialog from "./ATFAutoAccountDetailsDialog";
+import ATFAutoAccountIframeDialog from "./ATFAutoAccountIframeDialog";
 import ATFAutoAddress from "./ATFAutoAddress";
 import ATFAutoAvatar from "./ATFAutoAvatar";
 import ATFAutoEditAccountDialog from "./ATFAutoEditAccountDialog";
@@ -28,6 +28,7 @@ const ActionButton = (props) => (
 
 export default memo(function ATFAutoAccountItem({
   account,
+  accounts,
   onUpdate,
   onDelete,
 }) {
@@ -35,10 +36,21 @@ export default memo(function ATFAutoAccountItem({
 
   const [editOpen, setEditOpen] = useState(false);
   const [detailsOpen, setDetailsOpen] = useState(false);
-  const [boosterOpen, setBoosterOpen] = useState(false);
+  const [iframeOpen, setIframeOpen] = useState(false);
+  const [iframeAccount, setIframeAccount] = useState(account);
 
-  const openBooster = () => {
-    setBoosterOpen(true);
+  const openIframe = () => {
+    setIframeAccount(account);
+    setIframeOpen(true);
+  };
+
+  const switchAccount = (direction) => {
+    const currentIndex = accounts.findIndex((a) => a.id === iframeAccount.id);
+    const newIndex =
+      direction === "next"
+        ? (currentIndex + 1) % accounts.length
+        : (currentIndex - 1 + accounts.length) % accounts.length;
+    setIframeAccount(accounts[newIndex]);
   };
 
   return (
@@ -65,7 +77,7 @@ export default memo(function ATFAutoAccountItem({
         {/* Main content - clickable for iframe */}
         <button
           type="button"
-          onClick={openBooster}
+          onClick={openIframe}
           className={cn(
             "flex flex-col grow min-w-0 text-left",
             "px-1 py-0.5 cursor-pointer",
@@ -117,9 +129,13 @@ export default memo(function ATFAutoAccountItem({
           <ATFAutoAccountDetailsDialog account={account} />
         </Dialog.Root>
 
-        {/* Booster dialog */}
-        <Dialog.Root open={boosterOpen} onOpenChange={setBoosterOpen}>
-          <ATFAutoAccountBoosterDialog account={account} />
+        {/* Iframe dialog */}
+        <Dialog.Root open={iframeOpen} onOpenChange={setIframeOpen}>
+          <ATFAutoAccountIframeDialog
+            account={iframeAccount}
+            accounts={accounts}
+            onSwitchAccount={switchAccount}
+          />
         </Dialog.Root>
       </div>
     </Reorder.Item>
