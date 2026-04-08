@@ -10,6 +10,7 @@ export default class FomoFightersFarmer extends BaseFarmer {
     "https://t.me/fomo_fighters_bot/game?startapp=ref1147265290";
   static cacheAuth = false;
   static cacheTelegramWebApp = false;
+  static startupDelay = 60;
   static rating = 5;
   static published = false;
 
@@ -497,8 +498,7 @@ export default class FomoFightersFarmer extends BaseFarmer {
     if (!available || typeof available !== "object") return;
 
     /** available can be an empty array or an object of troops */
-    const troops =
-      Array.isArray(available) ? null : available;
+    const troops = Array.isArray(available) ? null : available;
 
     if (!troops || Object.keys(troops).length === 0) return;
 
@@ -540,7 +540,9 @@ export default class FomoFightersFarmer extends BaseFarmer {
       /** Check required buildings (includes academy level) */
       if (nextLevel.requiredBuildings) {
         let meetsBuildings = true;
-        for (const [bKey, bLevel] of Object.entries(nextLevel.requiredBuildings)) {
+        for (const [bKey, bLevel] of Object.entries(
+          nextLevel.requiredBuildings,
+        )) {
           const ownedB = this.findOwnedBuilding(bKey);
           if (!ownedB || ownedB.level < bLevel) {
             meetsBuildings = false;
@@ -575,7 +577,9 @@ export default class FomoFightersFarmer extends BaseFarmer {
       /** Buy skill */
       await this.delayWithMessage(2, `Researching ${skill.key}`);
       await this.buySkill(skill.key);
-      this.logger.success(`Researching skill: ${skill.key} (level ${currentLevel + 1})`);
+      this.logger.success(
+        `Researching skill: ${skill.key} (level ${currentLevel + 1})`,
+      );
 
       /** Only one research at a time */
       return;
@@ -1092,7 +1096,12 @@ export default class FomoFightersFarmer extends BaseFarmer {
 
   async completePremiumQuests() {
     const quests = this.allData.dbData.dbQuests;
-    const automatableTypes = ["checkCode", "fakeCheck", "telegramChannel", "username"];
+    const automatableTypes = [
+      "checkCode",
+      "fakeCheck",
+      "telegramChannel",
+      "username",
+    ];
 
     for (const quest of quests) {
       if (this.signal.aborted) return;
