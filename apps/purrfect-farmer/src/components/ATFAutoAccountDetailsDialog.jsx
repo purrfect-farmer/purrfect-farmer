@@ -13,32 +13,43 @@ import toast from "react-hot-toast";
 import useATFAuto from "@/hooks/useATFAuto";
 import useATFBalancesQuery from "@/hooks/useATFBalancesQuery";
 
+const InfoButton = (props) => (
+  <button
+    {...props}
+    className={cn(
+      "shrink-0 p-2 rounded-xl",
+      "text-neutral-500 dark:text-neutral-400",
+      "hover:text-black dark:hover:text-white",
+      "hover:bg-neutral-200 dark:hover:bg-neutral-600",
+      "cursor-pointer transition-colors",
+      props.className,
+    )}
+  />
+);
+
 const InfoRow = ({ label, value, canCopy, valueClassName, rightContent }) => (
-  <div className="flex flex-col gap-1">
-    <span className="font-bold text-neutral-500 dark:text-neutral-400">
-      {label}
-    </span>
-    <div className="flex items-start gap-2">
-      <p className={cn("wrap-break-word grow min-w-0", valueClassName)}>
+  <div className="flex gap-2 p-2 items-center rounded-xl bg-neutral-100 dark:bg-neutral-700">
+    <div className="flex flex-col gap-1 grow min-w-0">
+      <span className="font-bold text-neutral-500 dark:text-neutral-400">
+        {label}
+      </span>
+      <p
+        className={cn("wrap-break-word grow min-w-0 font-bold", valueClassName)}
+      >
         {value}
       </p>
-      {canCopy && value && value !== "********" && (
-        <button
-          onClick={() => {
-            copy(value);
-            toast.success("Copied!");
-          }}
-          className={cn(
-            "shrink-0 p-1 rounded",
-            "text-neutral-400 hover:text-blue-500",
-            "cursor-pointer transition-colors",
-          )}
-        >
-          <MdOutlineContentCopy className="size-3.5" />
-        </button>
-      )}
-      {rightContent}
     </div>
+    {canCopy && (
+      <InfoButton
+        onClick={() => {
+          copy(value);
+          toast.success("Copied!");
+        }}
+      >
+        <MdOutlineContentCopy className="size-4" />
+      </InfoButton>
+    )}
+    {rightContent}
   </div>
 );
 
@@ -54,7 +65,7 @@ function TelegramUserInfo({ url }) {
   if (!user) return null;
 
   return (
-    <div className="flex items-center gap-3 p-3 rounded-lg bg-neutral-100 dark:bg-neutral-900">
+    <div className="flex items-center gap-3 p-3 rounded-xl bg-neutral-100 dark:bg-neutral-900">
       {user.photo_url && (
         <img
           src={user.photo_url}
@@ -115,36 +126,31 @@ export default function ATFAutoAccountDetailsDialog({ account }) {
         label="Address"
         value={account.address}
         canCopy
-        valueClassName="text-blue-500 font-mono"
+        valueClassName="text-blue-500 dark:text-blue-300"
       />
 
-      <div className="flex flex-col gap-1">
-        <span className="font-bold text-neutral-500 dark:text-neutral-400">
-          Version
-        </span>
-        <ATFAutoVersionBadge version={account.version} />
-      </div>
+      <InfoRow
+        label="Version"
+        value={<ATFAutoVersionBadge version={account.version} />}
+      />
 
       {/* Phrase */}
       <InfoRow
         label="Phrase"
         value={phrase || "********"}
-        canCopy
+        canCopy={phrase !== null}
         valueClassName="font-mono text-red-500 dark:text-red-400"
         rightContent={
           !phrase && (
-            <button
-              onClick={revealPhrase}
-              className="shrink-0 p-1 text-neutral-400 hover:text-blue-500 cursor-pointer transition-colors"
-            >
+            <InfoButton onClick={revealPhrase}>
               <HiOutlineEye className="size-4" />
-            </button>
+            </InfoButton>
           )
         }
       />
 
       {/* Balances */}
-      <div className="flex flex-col gap-1">
+      <div className="flex flex-col gap-1 p-2 rounded-xl bg-neutral-100 dark:bg-neutral-700">
         <span className="font-bold text-neutral-500 dark:text-neutral-400">
           Balances
         </span>

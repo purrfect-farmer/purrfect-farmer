@@ -18,7 +18,9 @@ export default function CenteredDialog({ title, description, children }) {
             "bg-white dark:bg-neutral-800 rounded-xl",
           )}
         >
-          <Dialog.Title className="font-bold text-center">{title}</Dialog.Title>
+          <Dialog.Title className="font-bold text-center text-sm font-turret-road truncate">
+            {title}
+          </Dialog.Title>
           <Dialog.Description className="sr-only">
             {description}
           </Dialog.Description>
@@ -27,7 +29,7 @@ export default function CenteredDialog({ title, description, children }) {
 
           <Dialog.Close
             className={cn(
-              "px-4 py-2 bg-neutral-200 dark:bg-neutral-900 rounded-lg",
+              "px-4 py-2 font-bold bg-neutral-200 dark:bg-neutral-900 rounded-xl",
             )}
           >
             Cancel
