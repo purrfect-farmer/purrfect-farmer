@@ -460,6 +460,10 @@ export default class ATFFarmer extends BaseFarmer {
         : new Date(lastMiningStart * 1000).toLocaleString(),
     );
 
+    this.logger.keyValue("Risk Score", user["risk_score"]);
+    this.logger.keyValue("Risk Flags", user["risk_flags"]);
+    this.logger.keyValue("Risk Updated", user["risk_updated_at"]);
+
     if (user["wallet_public_key"]) {
       this.logger.newline();
       this.prepareWallet(Buffer.from(user["wallet_public_key"], "hex"));
