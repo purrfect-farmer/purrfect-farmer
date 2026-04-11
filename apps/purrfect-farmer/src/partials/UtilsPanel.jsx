@@ -122,7 +122,7 @@ export default memo(function UtilsPanel() {
               </h2>
               {group.list.map((tab) => (
                 <Dialog.Close
-                  onClick={() => dispatchAndSetActiveTab(tab)}
+                  onClick={() => dispatchAndSetActiveTab(tab.id)}
                   key={tab.id}
                   className={cn(
                     "bg-neutral-100 dark:bg-neutral-700",
