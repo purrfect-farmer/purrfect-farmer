@@ -1,5 +1,4 @@
 import { WalletContractV4, WalletContractV5R1 } from "@ton/ton";
-import { extractTgWebAppData, uuid } from "@/utils";
 
 import Decimal from "decimal.js";
 import axios from "axios";
@@ -19,61 +18,14 @@ function serialized(fn) {
       .finally(delay));
 }
 
-/** Creates an axios instance that backs off on 429. */
+/** Creates an axios instance. */
 function createApi(baseURL) {
   const instance = axios.create({ baseURL });
   return instance;
 }
 
 export const tonapi = createApi("https://tonapi.io/v2");
-export const atfApi = createApi(
-  "https://atfminers.asloni.online/miner/index.php",
-);
 export const fetchTonApi = serialized((url) => tonapi.get(url));
-export const fetchAtfApi = serialized((action, url) => {
-  const { initData, initDataUnsafe } = extractTgWebAppData(url);
-  const userId = initDataUnsafe?.user?.id;
-  const username = initDataUnsafe?.user?.username;
-
-  return atfApi.post(
-    `?action=${action}&t=${Date.now()}`,
-    {
-      initData,
-      request_id: uuid(),
-      tg_id: userId,
-      username,
-    },
-    {
-      headers: {
-        "X-Requested-With": "XMLHttpRequest",
-        "X-Telegram-Init-Data": initData,
-      },
-    },
-  );
-});
-
-export async function keypairFromMnemonic(mnemonic) {
-  const keyPair = await mnemonicToPrivateKey(mnemonic.split(" "));
-  return keyPair;
-}
-
-export function createWallet(publicKey, version) {
-  return version === 4
-    ? WalletContractV4.create({ workchain: 0, publicKey })
-    : WalletContractV5R1.create({ workchain: 0, publicKey });
-}
-
-export async function getWalletFromMnemonic(mnemonic, version) {
-  const keyPair = await keypairFromMnemonic(mnemonic);
-  return createWallet(keyPair.publicKey, version);
-}
-
-export async function getWalletAddressFromMnemonic(mnemonic, version) {
-  const wallet = await getWalletFromMnemonic(mnemonic, version);
-  return wallet.address.toString({
-    bounceable: false,
-  });
-}
 
 export async function getTonBalance(address) {
   const res = await fetchTonApi(`/accounts/${address}`);
@@ -107,15 +59,25 @@ export async function getBalances(address) {
   return { ton, jetton };
 }
 
-export async function getAtfUser(url) {
-  const res = await fetchAtfApi("login", url);
-  return res.data?.user;
+export async function keypairFromMnemonic(mnemonic) {
+  const keyPair = await mnemonicToPrivateKey(mnemonic.split(" "));
+  return keyPair;
 }
 
-export async function getWalletHolding(url) {
-  const user = await getAtfUser(url);
-  return {
-    holding: new Decimal(user?.wallet_holding_atf || 0),
-    balance: new Decimal(user?.mined_balance || 0),
-  };
+export function createWallet(publicKey, version) {
+  return version === 4
+    ? WalletContractV4.create({ workchain: 0, publicKey })
+    : WalletContractV5R1.create({ workchain: 0, publicKey });
+}
+
+export async function getWalletFromMnemonic(mnemonic, version) {
+  const keyPair = await keypairFromMnemonic(mnemonic);
+  return createWallet(keyPair.publicKey, version);
+}
+
+export async function getWalletAddressFromMnemonic(mnemonic, version) {
+  const wallet = await getWalletFromMnemonic(mnemonic, version);
+  return wallet.address.toString({
+    bounceable: false,
+  });
 }

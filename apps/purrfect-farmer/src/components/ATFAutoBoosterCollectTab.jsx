@@ -3,7 +3,7 @@ import { HiArrowPath } from "react-icons/hi2";
 import PrimaryButton from "./PrimaryButton";
 import useATFAutoSingleCollectMutation from "@/hooks/useATFAutoSingleCollectMutation";
 
-export default function ATFAutoWebviewCollectTab({ account }) {
+export default function ATFAutoBoosterCollectTab({ account }) {
   const mutation = useATFAutoSingleCollectMutation();
 
   const handleCollect = () => {

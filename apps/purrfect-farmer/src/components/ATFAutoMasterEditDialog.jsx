@@ -87,7 +87,6 @@ export default function ATFAutoMasterEditDialog({ onSave }) {
             submitLabel="Save Changes"
             submittingLabel="Saving..."
             hideTitle
-            hideUrl
           />
         </>
       ) : (

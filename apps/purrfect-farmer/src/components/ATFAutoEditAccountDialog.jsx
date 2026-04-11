@@ -44,7 +44,6 @@ export default function ATFAutoEditAccountDialog({
       ...account,
       title: data.title,
       version: data.version,
-      url: data.url,
       address,
       encryptedPhrase,
     });
@@ -64,7 +63,6 @@ export default function ATFAutoEditAccountDialog({
               title: account.title,
               phrase,
               version: account.version,
-              url: account.url,
             }}
             handleFormSubmit={handleFormSubmit}
             submitLabel="Save Changes"

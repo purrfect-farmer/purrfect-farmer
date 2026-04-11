@@ -1,14 +1,11 @@
 import { Address, TonClient, internal, toNano } from "@ton/ton";
 import {
   JETTON_ADDRESS,
-  atfApi,
   createWallet,
   getJettonInfo,
   keypairFromMnemonic,
 } from "./atf-auto";
-import { SendMode, beginCell, fromNano, storeStateInit } from "@ton/core";
-import { extractTgWebAppData, uuid } from "@/utils";
-import { sha256, sign } from "@ton/crypto";
+import { SendMode, beginCell, fromNano } from "@ton/core";
 
 import Decimal from "decimal.js";
 import toast from "react-hot-toast";
@@ -121,18 +118,13 @@ export async function prepareMaster(master) {
 export default class ATFAutoBooster {
   /**
    * @param {object} master - { address, version, phrase }
-   * @param {object} account - { address, version, phrase, url }
+   * @param {object} account - { address, version, phrase }
    * @param {object} prepared - result of prepareMaster()
    */
   constructor(master, account, prepared) {
     this.master = master;
     this.account = account;
     this.prepared = prepared;
-
-    // ATF API state
-    this.initData = null;
-    this.authData = null;
-    this.tmaSessionToken = null;
 
     // Lazy-prepared sub-account wallet/keyPair
     this._subPrepared = null;
@@ -151,145 +143,8 @@ export default class ATFAutoBooster {
     return this._subPrepared;
   }
 
-  // ─── ATF API ────────────────────────────────────────────
-
-  extractInitData() {
-    const { initData, initDataUnsafe } = extractTgWebAppData(this.account.url);
-    this.initData = initData;
-    this.initDataUnsafe = initDataUnsafe;
-    return { initData, initDataUnsafe };
-  }
-
-  getUserId() {
-    return this.initDataUnsafe?.user?.id;
-  }
-
-  getUsername() {
-    return this.initDataUnsafe?.user?.username;
-  }
-
-  async makeAction(action, data = {}) {
-    const res = await atfApi.post(
-      `?action=${action}&t=${Date.now()}`,
-      {
-        ...data,
-        initData: this.initData,
-        request_id: uuid(),
-        tg_id: this.getUserId(),
-      },
-      {
-        headers: {
-          "X-Requested-With": "XMLHttpRequest",
-          "X-Telegram-Init-Data": this.initData,
-          "X-ATF-TMA-Session": this.tmaSessionToken || "",
-        },
-      },
-    );
-    return res.data;
-  }
-
-  async login() {
-    this.extractInitData();
-    this.authData = await this.makeAction("login", {
-      username: this.getUsername(),
-    });
-    this.tmaSessionToken = this.authData?.tma_session_token;
-    return this.authData;
-  }
-
-  getWalletHoldingAtf() {
-    return Number(this.authData?.user?.wallet_holding_atf || 0);
-  }
-
-  getWalletProofPayload() {
-    return this.makeAction("get_wallet_proof_payload");
-  }
-
-  syncWallet({ publicKey, wallet, walletStateInit, network, proof }) {
-    return this.makeAction("sync_wallet", {
-      public_key: publicKey,
-      wallet,
-      wallet_state_init: walletStateInit || "",
-      network: network || "",
-      proof: proof || null,
-    });
-  }
-
-  async buildWalletProof(walletContract, secretKey) {
-    const proofPayloadData = await this.getWalletProofPayload();
-    const payload = proofPayloadData.payload;
-
-    const timestamp = Math.floor(Date.now() / 1000);
-    const domain = "atftoken.com";
-    const domainBuffer = Buffer.from(domain, "utf8");
-    const domainLenBuffer = Buffer.alloc(4);
-    domainLenBuffer.writeUInt32LE(domainBuffer.length);
-
-    const workchainBuffer = Buffer.alloc(4);
-    workchainBuffer.writeInt32BE(walletContract.address.workChain);
-
-    const timestampBuffer = Buffer.alloc(8);
-    timestampBuffer.writeUInt32LE(timestamp & 0xffffffff, 0);
-    timestampBuffer.writeUInt32LE(Math.floor(timestamp / 0x100000000), 4);
-
-    const message = Buffer.concat([
-      Buffer.from("ton-proof-item-v2/", "utf8"),
-      workchainBuffer,
-      walletContract.address.hash,
-      domainLenBuffer,
-      domainBuffer,
-      timestampBuffer,
-      Buffer.from(payload, "utf8"),
-    ]);
-
-    const messageHash = await sha256(message);
-    const fullMessage = Buffer.concat([
-      Buffer.from([0xff, 0xff]),
-      Buffer.from("ton-connect", "utf8"),
-      messageHash,
-    ]);
-    const fullMessageHash = await sha256(fullMessage);
-    const signature = sign(fullMessageHash, secretKey);
-
-    return {
-      payload,
-      proof: {
-        timestamp,
-        domain: {
-          lengthBytes: domainBuffer.length,
-          value: domain,
-        },
-        payload,
-        signature: signature.toString("base64"),
-      },
-    };
-  }
-
-  async connectWallet() {
-    const { keyPair, wallet } = await this._prepareSubAccount();
-
-    const publicKey = keyPair.publicKey.toString("hex");
-    const rawAddress = wallet.address.toRawString();
-    const walletStateInit = beginCell()
-      .store(storeStateInit(wallet.init))
-      .endCell()
-      .toBoc()
-      .toString("base64");
-
-    const { proof } = await this.buildWalletProof(wallet, keyPair.secretKey);
-
-    return this.syncWallet({
-      publicKey,
-      wallet: rawAddress,
-      walletStateInit,
-      network: "-239",
-      proof,
-    });
-  }
-
   // ─── TON Transfers (reuse prepared master) ──────────────
-
-  async sendJettonAndGasFromMaster(jettonAmount) {
+  async sendJettonFromMaster(jettonAmount, includeGas = false) {
     const { contract, keyPair, jettonWalletAddress, jettonDecimals } =
       this.prepared;
     const seqno = await contract.getSeqno();
@@ -309,16 +164,26 @@ export default class ATFAutoBooster {
             jettonDecimals,
           ),
         }),
-        internal({
-          to: Address.parse(this.account.address),
-          value: TON_FOR_GAS,
-          bounce: false,
-        }),
-      ],
+        ,
+      ].concat(
+        includeGas
+          ? [
+              internal({
+                to: Address.parse(this.account.address),
+                value: TON_FOR_GAS,
+                bounce: false,
+              }),
+            ]
+          : [],
+      ),
     });
 
     await waitForSeqnoChange(contract, seqno);
     return jettonAmount;
+  }
+
+  async sendJettonAndGasFromMaster(jettonAmount) {
+    return this.sendJettonFromMaster(jettonAmount, true);
   }
 
   async returnJettonAndTonToMaster(jettonBalance) {
@@ -404,22 +269,10 @@ export default class ATFAutoBooster {
   }
 
   // ─── Operations ─────────────────────────────────────────
-
   async boost({ difference }) {
     try {
-      await this.login();
-
       const balance = new Decimal(this.prepared.jettonBalance);
-
       const minPercent = new Decimal(100).minus(difference);
-      const minAmount = balance.mul(minPercent).div(100);
-
-      const currentHolding = new Decimal(this.getWalletHoldingAtf());
-
-      if (currentHolding.greaterThanOrEqualTo(minAmount)) {
-        return { status: false, skipped: true, account: this.account };
-      }
-
       const randomPercent = minPercent.plus(
         new Decimal(Decimal.random()).mul(difference),
       );
@@ -429,24 +282,10 @@ export default class ATFAutoBooster {
         balance.mul(randomPercent).div(100),
       ).toDecimalPlaces(4, Decimal.ROUND_DOWN);
 
-      /** Send Jetton and Gas */
-      await toast.promise(this.sendJettonAndGasFromMaster(jettonAmount), {
-        loading: `Sending ${jettonAmount} ATF + ${fromNano(TON_FOR_GAS)} TON from master`,
-        success: `Sent ${jettonAmount} ATF + ${fromNano(TON_FOR_GAS)} TON from master`,
-      });
-
-      /** Connect wallet */
-      await toast.promise(this.connectWallet(), {
-        loading: "Connecting wallet",
-        success: "Wallet connected",
-      });
-      const { balance: returnBalance } = await getJettonInfo(
-        this.account.address,
-      );
-
-      await toast.promise(this.returnJettonAndTonToMaster(returnBalance), {
-        loading: `Returning ${returnBalance} ATF + TON to master`,
-        success: `Returned ${returnBalance} ATF + TON to master`,
+      /** Send Jetton from master */
+      await toast.promise(this.sendJettonFromMaster(jettonAmount), {
+        loading: `Sending ${jettonAmount} ATF from master`,
+        success: `Sent ${jettonAmount} ATF from master`,
       });
 
       return { status: true, account: this.account };
@@ -464,11 +303,16 @@ export default class ATFAutoBooster {
       if (jettonBalance.lessThanOrEqualTo(0)) {
         return { status: false, skipped: true, account: this.account };
       }
+      const { contract } = await this._prepareSubAccount();
+      const balance = await contract.getBalance();
+
       /** Send Gas */
-      await toast.promise(this.sendGasFromMaster(), {
-        loading: `Sending ${fromNano(TON_FOR_GAS)} TON from master`,
-        success: `Sent ${fromNano(TON_FOR_GAS)} TON from master`,
-      });
+      if (balance < TON_FOR_GAS) {
+        await toast.promise(this.sendGasFromMaster(), {
+          loading: `Sending ${fromNano(TON_FOR_GAS)} TON from master`,
+          success: `Sent ${fromNano(TON_FOR_GAS)} TON from master`,
+        });
+      }
 
       /** Return Jetton and Gas */
       await toast.promise(this.returnJettonAndTonToMaster(jettonBalance), {

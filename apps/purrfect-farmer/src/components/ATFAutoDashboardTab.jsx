@@ -3,7 +3,6 @@ import {
   MdOutlineContentCopy,
   MdOutlineSearch,
 } from "react-icons/md";
-import { cn, extractTgWebAppData } from "@/utils";
 import { useMemo, useState } from "react";
 
 import ATFAutoAccountItem from "./ATFAutoAccountItem";
@@ -18,6 +17,7 @@ import Input from "./Input";
 import PrimaryButton from "./PrimaryButton";
 import { Reorder } from "motion/react";
 import TonIcon from "@/assets/images/toncoin-ton-logo.svg";
+import { cn } from "@/utils";
 import copy from "copy-to-clipboard";
 import toast from "react-hot-toast";
 import useATFAuto from "@/hooks/useATFAuto";
@@ -92,22 +92,6 @@ function MasterBalanceCard() {
 function searchAccount(account, searchTerm) {
   if (account.title?.toLowerCase().includes(searchTerm)) return true;
   if (account.address?.toLowerCase().includes(searchTerm)) return true;
-
-  try {
-    if (account.url) {
-      const { initDataUnsafe } = extractTgWebAppData(account.url);
-      const user = initDataUnsafe?.user;
-      if (user) {
-        if (user.id?.toString().includes(searchTerm)) return true;
-        const fullName =
-          `${user.first_name} ${user.last_name ?? ""}`.toLowerCase();
-        if (fullName.includes(searchTerm)) return true;
-        if (user.username?.toLowerCase().includes(searchTerm)) return true;
-      }
-    }
-  } catch {
-    // ignore
-  }
 
   return false;
 }
@@ -200,7 +184,6 @@ export default function ATFAutoDashboardTab() {
             <ATFAutoAccountItem
               key={account.id}
               account={account}
-              accounts={accounts}
               onUpdate={handleUpdateAccount}
               onDelete={handleDeleteAccount}
             />

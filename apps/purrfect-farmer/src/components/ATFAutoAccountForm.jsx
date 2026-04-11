@@ -16,13 +16,12 @@ import toast from "react-hot-toast";
 import { yup } from "@/lib/yup";
 import { yupResolver } from "@hookform/resolvers/yup";
 
-function buildSchema({ hideTitle, hideUrl }) {
+function buildSchema({ hideTitle }) {
   const shape = {
     phrase: yup.string().required().label("Wallet Phrase"),
     version: yup.number().required().oneOf([4, 5]).label("Wallet Version"),
   };
   if (!hideTitle) shape.title = yup.string().required().label("Title");
-  if (!hideUrl) shape.url = yup.string().required().url().label("URL");
   return yup.object(shape).required();
 }
 
@@ -50,16 +49,14 @@ export default function ATFAutoAccountForm({
   submitLabel = "Save",
   submittingLabel = "Saving...",
   hideTitle = false,
-  hideUrl = false,
 }) {
   const [address, setAddress] = useState("");
   const form = useForm({
-    resolver: yupResolver(buildSchema({ hideTitle, hideUrl })),
+    resolver: yupResolver(buildSchema({ hideTitle })),
     defaultValues: {
       ...(hideTitle ? {} : { title: initialValues?.title || "" }),
       phrase: initialValues?.phrase || "",
       version: initialValues?.version || 5,
-      ...(hideUrl ? {} : { url: initialValues?.url || "" }),
     },
   });
   const isSubmitting = form.formState.isSubmitting;
@@ -165,31 +162,6 @@ export default function ATFAutoAccountForm({
           <p className="text-center text-blue-500 dark:text-blue-400 px-2 wrap-break-word font-bold">
             {address}
           </p>
-        )}
-
-        {/* URL */}
-        {!hideUrl && (
-          <Controller
-            control={form.control}
-            name="url"
-            render={({ field, fieldState }) => (
-              <>
-                <Label>URL</Label>
-                <div className="flex gap-2 w-full">
-                  <Input
-                    {...field}
-                    disabled={isSubmitting}
-                    type="url"
-                    autoComplete="off"
-                    placeholder="Mini App URL"
-                    className="grow min-w-0"
-                  />
-                  <CopyButton value={field.value} />
-                </div>
-                <FieldStateError fieldState={fieldState} />
-              </>
-            )}
-          />
         )}
 
         {/* Submit */}
