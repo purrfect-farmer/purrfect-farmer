@@ -135,6 +135,7 @@ export default function useDropFarmer() {
   /** Instance */
   const instance = useDropFarmerInstance({
     FarmerClass,
+    id,
     api,
     captcha,
     external,

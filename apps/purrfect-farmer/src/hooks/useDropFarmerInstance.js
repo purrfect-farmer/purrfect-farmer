@@ -1,8 +1,11 @@
-import utils from "@/utils/bundle";
 import { useLayoutEffect, useRef } from "react";
 
-import useUserAgent from "./useUserAgent";
+import storage from "@/lib/storage";
 import useAppContext from "./useAppContext";
+import useChromeStorageKey from "./useChromeStorageKey";
+import { useMemo } from "react";
+import useUserAgent from "./useUserAgent";
+import utils from "@/utils/bundle";
 
 /**
  *
@@ -26,6 +29,11 @@ const createDropFarmerInstance = ({ FarmerClass }) => {
     /** Set the Update Profile Handler */
     setProfileUpdateHandler(handler) {
       this.updateProfile = handler;
+    }
+
+    /** Set storage */
+    setStorage(storage) {
+      this.storage = storage;
     }
 
     /** Can Join Telegram Link */
@@ -55,6 +63,7 @@ const createDropFarmerInstance = ({ FarmerClass }) => {
  */
 export default function useDropFarmerInstance({
   FarmerClass,
+  id,
   api,
   captcha,
   logger,
@@ -62,6 +71,14 @@ export default function useDropFarmerInstance({
   joinTelegramLink,
   updateProfile,
 }) {
+  const storageBaseKey = useChromeStorageKey(`farmer-storage:${id}`);
+  const instanceStorage = useMemo(() => {
+    return {
+      get: (key) => storage.get(`${storageBaseKey}:${key}`),
+      set: (key, value) => storage.set(`${storageBaseKey}:${key}`, value),
+    };
+  }, [storageBaseKey]);
+
   const instanceRef = useRef(null);
   const userAgent = useUserAgent();
   const { telegramClient } = useAppContext();
@@ -78,6 +95,7 @@ export default function useDropFarmerInstance({
     instance.setApi?.(api);
     instance.setCaptcha?.(captcha);
     instance.setLogger?.(logger);
+    instance.setStorage?.(instanceStorage);
     instance.setTelegramLinkHandler?.(joinTelegramLink);
     instance.setProfileUpdateHandler?.(updateProfile);
     instance.setTelegramWebApp?.(telegramWebApp);
@@ -93,6 +111,7 @@ export default function useDropFarmerInstance({
     updateProfile,
     telegramWebApp,
     telegramClient,
+    instanceStorage,
   ]);
 
   return instance;

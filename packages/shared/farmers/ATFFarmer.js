@@ -153,7 +153,14 @@ export default class ATFFarmer extends BaseFarmer {
             id: "connect-wallet",
             emoji: "🔗",
             title: "Connect Wallet",
-            action: this.connectWalletSecretKey.bind(this),
+            action: this.connectWalletSecretKeyOrMnemonic.bind(this),
+            dispatch: false,
+          },
+          {
+            id: "reconnect-wallet",
+            emoji: "🔗",
+            title: "Reconnect Wallet",
+            action: this.reconnectWallet.bind(this),
             dispatch: false,
           },
         ],
@@ -222,17 +229,11 @@ export default class ATFFarmer extends BaseFarmer {
     };
   }
 
-  async connectWalletSecretKey() {
-    const input = await this.promptInput(
-      "Enter your TON Wallet Phrase / Secret Key (hex):",
-    );
-
+  async getKeyPair(secretKeyOrMnemonic) {
     let keyPair;
-
-    const isHex = /^[0-9a-fA-F]+$/.test(input.trim());
-
+    const isHex = /^[0-9a-fA-F]+$/.test(secretKeyOrMnemonic);
     if (isHex) {
-      const secretKey = Buffer.from(input.trim(), "hex");
+      const secretKey = Buffer.from(secretKeyOrMnemonic, "hex");
 
       if (secretKey.length !== 64) {
         throw new Error(
@@ -242,7 +243,7 @@ export default class ATFFarmer extends BaseFarmer {
 
       keyPair = keyPairFromSecretKey(secretKey);
     } else {
-      const mnemonic = input.trim().split(/\s+/);
+      const mnemonic = secretKeyOrMnemonic.split(/\s+/);
 
       if (mnemonic.length !== 12 && mnemonic.length !== 24) {
         throw new Error("Invalid mnemonic. Must be 12 or 24 words.");
@@ -251,15 +252,71 @@ export default class ATFFarmer extends BaseFarmer {
       keyPair = await mnemonicToWalletKey(mnemonic);
     }
 
+    return keyPair;
+  }
+
+  async connectWalletSecretKeyOrMnemonic() {
+    const input = await this.promptInput(
+      "Enter your TON Wallet Phrase / Secret Key (hex):",
+    );
+
+    const secretKeyOrMnemonic = input.trim();
+    const keyPair = await this.getKeyPair(secretKeyOrMnemonic);
     const version = await this.promptInput({
       type: "select",
       text: "Select wallet version:",
       options: [
-        { value: "v4", label: "Wallet V4" },
         { value: "v5", label: "Wallet V5R1" },
+        { value: "v4", label: "Wallet V4" },
       ],
     });
 
+    const connected = await this.connectAndSyncWallet(keyPair, version);
+
+    if (connected) {
+      const password = await this.promptInput(
+        "Enter a password to encrypt and store your wallet:",
+      );
+
+      if (password) {
+        const encryptedPhrase = await this.utils.encryption.encryptData({
+          data: secretKeyOrMnemonic,
+          password,
+        });
+
+        await this.storage.set("wallet", {
+          encryptedPhrase,
+          version,
+        });
+
+        this.logger.success("Wallet encrypted and stored successfully!");
+      }
+    }
+  }
+
+  async reconnectWallet() {
+    const saved = await this.storage.get("wallet");
+    if (!saved) {
+      this.logger.warn("No wallet was previously saved!");
+      return this.connectWalletSecretKeyOrMnemonic();
+    } else {
+      const password = await this.promptInput(
+        "Enter your password to decrypt the wallet:",
+      );
+
+      const { version, encryptedPhrase } = saved;
+      const secretKeyOrMnemonic = await this.utils.encryption.decryptData({
+        ...encryptedPhrase,
+        password,
+        asText: true,
+      });
+
+      const keyPair = await this.getKeyPair(secretKeyOrMnemonic);
+      await this.connectAndSyncWallet(keyPair, version);
+    }
+  }
+
+  async connectAndSyncWallet(keyPair, version) {
     const { walletV4, walletV5, publicKey, rawAddressV4, rawAddressV5 } =
       this.prepareWallet(keyPair.publicKey);
 
@@ -287,8 +344,10 @@ export default class ATFFarmer extends BaseFarmer {
         result.message ||
           "Failed to sync wallet with proof. Please check your secret key and try again.",
       );
+      return false;
     } else {
       this.logger.success("Wallet synced successfully!");
+      return true;
     }
   }
 
