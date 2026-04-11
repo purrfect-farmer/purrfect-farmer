@@ -16,7 +16,7 @@ export default memo(function UtilsPanel() {
   const {
     utilsPanelTabs,
     sharedSettings,
-    launchTab,
+    dispatchAndSetActiveTab,
     dispatchAndConfigureSharedSettings,
     dispatchAndSetShowUtilsPanel,
     dispatchAndOpenTelegramBot,
@@ -122,7 +122,7 @@ export default memo(function UtilsPanel() {
               </h2>
               {group.list.map((tab) => (
                 <Dialog.Close
-                  onClick={() => launchTab(tab)}
+                  onClick={() => dispatchAndSetActiveTab(tab)}
                   key={tab.id}
                   className={cn(
                     "bg-neutral-100 dark:bg-neutral-700",
