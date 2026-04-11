@@ -45,6 +45,7 @@ export function createFarmer(FarmerClass, options) {
         : {}),
     },
     component: createElement(TerminalFarmer),
+    singleton: true,
     ...options,
   };
 }

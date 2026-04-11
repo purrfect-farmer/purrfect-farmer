@@ -130,6 +130,7 @@ const MemberDialogFarmer = ({ account, farmer }) => {
               icon: farmer.icon,
               title: `${account.title || "TGUser"}'s ${farmer.title}`,
               url: farmer.FarmerClass.getUrlFromInitData(farmer.initData),
+              singleton: true,
             })
           }
           className={cn(

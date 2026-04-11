@@ -1,8 +1,9 @@
-import BrowserIcon from "@/assets/images/browser.png?w=80&format=webp";
-import useAppContext from "@/hooks/useAppContext";
 import { HiOutlineArrowPath, HiOutlineXMark } from "react-icons/hi2";
-import { cn } from "@/utils";
 import { memo, useCallback, useRef } from "react";
+
+import BrowserIcon from "@/assets/images/browser.png?w=80&format=webp";
+import { cn } from "@/utils";
+import useAppContext from "@/hooks/useAppContext";
 import { useEffect } from "react";
 
 export default memo(function TabButton({
@@ -10,14 +11,13 @@ export default memo(function TabButton({
   showMirrorStatus,
   mirrorIsConnected,
 }) {
-  const { dispatchAndCloseTab, dispatchAndSetActiveTab, reloadTab } =
-    useAppContext();
+  const { dispatchAndCloseTab, launchTab, reloadTab } = useAppContext();
   const buttonRef = useRef();
 
   /** Button Click Handler */
   const handleTabButtonClick = useCallback(() => {
-    dispatchAndSetActiveTab(tab.id);
-  }, [tab.id, dispatchAndSetActiveTab]);
+    launchTab(tab);
+  }, [tab.id, launchTab]);
 
   /** Reload Tab */
   const handleReloadButtonClick = useCallback(
@@ -28,7 +28,7 @@ export default memo(function TabButton({
       /** Reload Tab */
       reloadTab(tab.id);
     },
-    [tab.id, reloadTab]
+    [tab.id, reloadTab],
   );
 
   /** Close Button Click Handler */
@@ -40,7 +40,7 @@ export default memo(function TabButton({
       /** Close Tab */
       dispatchAndCloseTab(tab.id);
     },
-    [tab.id, dispatchAndCloseTab]
+    [tab.id, dispatchAndCloseTab],
   );
 
   /** Scroll into View */
@@ -62,7 +62,7 @@ export default memo(function TabButton({
         "cursor-pointer",
         "flex gap-1 items-center",
         "p-1.5 rounded-full shrink-0",
-        tab.active ? "bg-neutral-100 dark:bg-neutral-700" : null
+        tab.active ? "bg-neutral-100 dark:bg-neutral-700" : null,
       )}
     >
       {/* Icon */}
@@ -87,7 +87,7 @@ export default memo(function TabButton({
               "after:border-2 after:border-white",
               "after:p-1",
               "after:rounded-full",
-              mirrorIsConnected ? "after:bg-green-500" : "after:bg-red-500"
+              mirrorIsConnected ? "after:bg-green-500" : "after:bg-red-500",
             )}
           ></span>
         ) : null}
@@ -105,7 +105,7 @@ export default memo(function TabButton({
               "after:border-2 after:border-white",
               "after:w-2 after:h-2",
               "after:rounded-full",
-              "after:bg-green-500"
+              "after:bg-green-500",
             )}
           ></span>
         ) : null}
@@ -116,7 +116,7 @@ export default memo(function TabButton({
         className={cn(
           "font-bold",
           "max-w-10 truncate",
-          !tab.active ? "hidden" : null
+          !tab.active ? "hidden" : null,
         )}
       >
         {tab.title}
@@ -129,7 +129,7 @@ export default memo(function TabButton({
             className={cn(
               "inline-flex items-center justify-center",
               "rounded-full w-7 h-7 shrink-0",
-              "hover:bg-neutral-200 dark:hover:bg-neutral-600"
+              "hover:bg-neutral-200 dark:hover:bg-neutral-600",
             )}
             onClick={handleReloadButtonClick}
           >
@@ -141,7 +141,7 @@ export default memo(function TabButton({
             className={cn(
               "inline-flex items-center justify-center",
               "rounded-full w-7 h-7 shrink-0",
-              "hover:bg-neutral-200 dark:hover:bg-neutral-600"
+              "hover:bg-neutral-200 dark:hover:bg-neutral-600",
             )}
             onClick={handleCloseButtonClick}
           >

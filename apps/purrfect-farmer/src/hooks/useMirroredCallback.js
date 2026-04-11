@@ -1,17 +1,16 @@
 import { customLogger } from "@/utils";
+import useAccountContext from "./useAccountContext";
 import { useCallback } from "react";
 import { useLayoutEffect } from "react";
 import { useMemo } from "react";
-
-import useSyncedRef from "./useSyncedRef";
 import useSharedContext from "./useSharedContext";
-import useAccountContext from "./useAccountContext";
+import useSyncedRef from "./useSyncedRef";
 
 export default function useMirroredCallback(
   action,
   callback,
   deps = [],
-  mirror
+  mirror,
 ) {
   const shared = useSharedContext();
   const account = useAccountContext();
@@ -24,23 +23,30 @@ export default function useMirroredCallback(
   /** Main Callback */
   const main = useCallback(callback, deps);
 
+  /** Broadcast */
+  const broadcast = useCallback(
+    (...args) => {
+      try {
+        mirrorToUse.dispatch({
+          action,
+          data: args,
+        });
+      } catch (e) {
+        customLogger("DISPATCH ERROR", e);
+      }
+    },
+    [action, mirrorToUse],
+  );
+
   /** Dispatch Callback */
   const dispatch = useCallback(
     (...args) => {
       if (activeStateRef.current) {
-        try {
-          mirrorToUse.dispatch({
-            action,
-            data: args,
-          });
-        } catch (e) {
-          customLogger("DISPATCH ERROR", e);
-        }
+        broadcast(...args);
       }
-
       return main(...args);
     },
-    [mirrorToUse, action, main]
+    [broadcast, main],
   );
 
   /** Add Handler */
@@ -59,5 +65,8 @@ export default function useMirroredCallback(
     return () => mirrorToUse.handler.off(action, handler);
   }, [mirrorToUse.handler, action, main]);
 
-  return useMemo(() => [main, dispatch], [main, dispatch]);
+  return useMemo(
+    () => [main, dispatch, broadcast],
+    [main, dispatch, broadcast],
+  );
 }

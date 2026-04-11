@@ -240,27 +240,39 @@ export default function useCore() {
     [setOpenedTabs],
   );
 
-  const [closeTab, dispatchAndCloseTab] = useMirroredCallback(
-    "core.close-tab",
-    (id) => {
-      setOpenedTabs((previous) => {
-        if (previous.some((tab) => tab.id === id)) {
-          const previousIndex = previous.findIndex((tab) => tab.id === id);
+  const [closeTab, dispatchAndCloseTab, broadcastToCloseTab] =
+    useMirroredCallback(
+      "core.close-tab",
+      (id) => {
+        setOpenedTabs((previous) => {
+          if (previous.some((tab) => tab.id === id)) {
+            const previousIndex = previous.findIndex((tab) => tab.id === id);
 
-          const newTabs = previous
-            .filter((item) => item.id !== id)
-            .map((item, index) => ({
-              ...item,
-              active: index === Math.max(previousIndex - 1, 0),
-            }));
+            const newTabs = previous
+              .filter((item) => item.id !== id)
+              .map((item, index) => ({
+                ...item,
+                active: index === Math.max(previousIndex - 1, 0),
+              }));
 
-          return newTabs;
-        } else {
-          return previous;
-        }
-      });
+            return newTabs;
+          } else {
+            return previous;
+          }
+        });
+      },
+      [setOpenedTabs],
+    );
+
+  /** Launch tab */
+  const launchTab = useCallback(
+    (tab) => {
+      if (tab.singleton) {
+        broadcastToCloseTab(tab.id);
+      }
+      pushTab(tab);
     },
-    [setOpenedTabs],
+    [broadcastToCloseTab, pushTab],
   );
 
   /** Open New Tab */
@@ -398,7 +410,7 @@ export default function useCore() {
   const [launchInAppBrowser, dispatchAndLaunchInAppBrowser] =
     useMirroredCallback(
       "core.launch-in-app-browser",
-      async ({ id, url, title, icon, embedInNewWindow }) => {
+      async ({ id, url, title, icon, embedInNewWindow, singleton = false }) => {
         if (settings.miniAppInNewWindow || embedInNewWindow) {
           try {
             if (import.meta.env.VITE_WHISKER) {
@@ -418,6 +430,11 @@ export default function useCore() {
             console.error(e);
           }
         } else {
+          /** Close others */
+          if (singleton) {
+            broadcastToCloseTab(`browser-${id}`);
+          }
+
           /** Push the tab */
           pushTab(
             {
@@ -428,12 +445,13 @@ export default function useCore() {
                 url,
               }),
               reloadedAt: Date.now(),
+              singleton,
             },
             true,
           );
         }
       },
-      [settings.miniAppInNewWindow, pushTab],
+      [settings.miniAppInNewWindow, pushTab, broadcastToCloseTab],
     );
 
   const closeOtherBots = useCallback(async () => {
@@ -589,6 +607,7 @@ export default function useCore() {
         embedWebPage = true,
         embedInNewWindow = false,
         forceWebview = false,
+        singleton = false,
       } = {},
     ) => {
       try {
@@ -617,6 +636,7 @@ export default function useCore() {
                 title: browserTitle || "Web App",
                 url: webview.url,
                 embedInNewWindow,
+                singleton,
               });
             })(),
             {
@@ -705,6 +725,7 @@ export default function useCore() {
     updateSettings,
     configureSettings,
     openURL,
+    launchTab,
     openNewTab,
     openExtensionsPage,
     getFarmerBotPort,

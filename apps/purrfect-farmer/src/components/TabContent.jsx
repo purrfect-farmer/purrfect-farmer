@@ -30,6 +30,8 @@ export default memo(function TabContent({ tab }) {
   const {
     settings,
     farmerMode,
+    openTelegramLink,
+    openTelegramBot,
     launchInAppBrowser,
     preferredTelegramWebVersion,
     dispatchAndOpenTelegramLink,
@@ -37,8 +39,24 @@ export default memo(function TabContent({ tab }) {
     dispatchAndLaunchInAppBrowser,
   } = useAppContext();
 
+  /** Launch tab in-app browser */
+  const launchTabInAppBrowser = tab.singleton
+    ? launchInAppBrowser
+    : dispatchAndLaunchInAppBrowser;
+
+  /** Open tab telegram bot */
+  const openTabTelegramBot = tab.singleton
+    ? openTelegramBot
+    : dispatchAndOpenTelegramBot;
+
+  /** Open tab telegram link */
+  const openTabTelegramLink = tab.singleton
+    ? openTelegramLink
+    : dispatchAndOpenTelegramLink;
+
   const { external, FarmerClass } = tab;
 
+  /** Referral link */
   const { value: referralLink } = useStorageState(
     `farmer-referral-link:${tab.id}`,
     null,
@@ -62,18 +80,21 @@ export default memo(function TabContent({ tab }) {
         id: tab.id,
         icon: tab.icon,
         title: tab.title,
+        singleton: tab.singleton,
         url: FarmerClass.getUrlFromInitData(tab.initData),
       });
     } else if (tab.platform !== "telegram") {
-      dispatchAndLaunchInAppBrowser({
+      launchTabInAppBrowser({
         id: tab.id,
         url: referralLink || tab.link,
         title: tab.title,
         icon: tab.icon,
+        singleton: tab.singleton,
         embedInNewWindow: tab.embedInNewWindow,
       });
     } else if (tab.type === "webapp") {
-      dispatchAndOpenTelegramBot(referralLink || tab.telegramLink, {
+      openTabTelegramBot(referralLink || tab.telegramLink, {
+        singleton: tab.singleton,
         browserId: tab.id,
         browserTitle: tab.title,
         browserIcon: tab.icon,
@@ -83,7 +104,7 @@ export default memo(function TabContent({ tab }) {
         forceWebview: true,
       });
     } else {
-      dispatchAndOpenTelegramLink(referralLink || tab.telegramLink);
+      openTabTelegramLink(referralLink || tab.telegramLink);
     }
   };
 

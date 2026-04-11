@@ -1,23 +1,24 @@
-import CloudAddressDisplay from "@/cloud/CloudAddressDisplay";
-import Alert from "@/components/Alert";
-import farmers from "@/core/farmers";
-import useAppContext from "@/hooks/useAppContext";
-import useMyCloudFarmersQuery from "@/hooks/useMyCloudFarmersQuery";
-import { cn } from "@/utils";
-import CloudSubscription from "@/partials/CloudSubscription";
-import AppIcon from "@/assets/images/icon.png?format=webp&w=80";
-import useMirroredTabs from "@/hooks/useMirroredTabs";
-import Tabs from "@/components/Tabs";
 import { HiOutlinePower, HiOutlineXMark } from "react-icons/hi2";
-import { useCallback } from "react";
-import useMyCloudActivateFarmerMutation from "@/hooks/useMyCloudActivateFarmerMutation";
-import toast from "react-hot-toast";
-import useMyCloudDeactivateFarmerMutation from "@/hooks/useMyCloudDeactivateFarmerMutation";
+
+import Alert from "@/components/Alert";
+import AppIcon from "@/assets/images/icon.png?format=webp&w=80";
+import CloudAddressDisplay from "@/cloud/CloudAddressDisplay";
 import CloudStatus from "@/partials/CloudStatus";
-import { useMemo } from "react";
+import CloudSubscription from "@/partials/CloudSubscription";
 import Container from "@/components/Container";
-import useCloudSubscriptionQuery from "@/hooks/useCloudSubscriptionQuery";
 import ProxyDetails from "@/components/ProxyDetails";
+import Tabs from "@/components/Tabs";
+import { cn } from "@/utils";
+import farmers from "@/core/farmers";
+import toast from "react-hot-toast";
+import useAppContext from "@/hooks/useAppContext";
+import { useCallback } from "react";
+import useCloudSubscriptionQuery from "@/hooks/useCloudSubscriptionQuery";
+import { useMemo } from "react";
+import useMirroredTabs from "@/hooks/useMirroredTabs";
+import useMyCloudActivateFarmerMutation from "@/hooks/useMyCloudActivateFarmerMutation";
+import useMyCloudDeactivateFarmerMutation from "@/hooks/useMyCloudDeactivateFarmerMutation";
+import useMyCloudFarmersQuery from "@/hooks/useMyCloudFarmersQuery";
 
 /* Map of Farmers */
 const farmersMap = farmers.reduce((result, farmer) => {
@@ -38,7 +39,7 @@ const MyCloudActionButton = ({ variant, ...props }) => (
         ? "text-green-500 dark:text-green-400"
         : "text-red-500 dark:text-red-400",
       "bg-neutral-100 dark:bg-neutral-700",
-      "px-3 rounded-lg shrink-0"
+      "px-3 rounded-lg shrink-0",
     )}
   />
 );
@@ -64,7 +65,7 @@ const MyCloudFarmers = () => {
             };
           })
         : [],
-    [farmersQuery.data]
+    [farmersQuery.data],
   );
 
   /* Launch Farmer */
@@ -72,7 +73,7 @@ const MyCloudFarmers = () => {
     (farmer) => {
       if (!farmer.FarmerClass) {
         toast.error(
-          "This farmer cannot be launched because it is not a valid farmer."
+          "This farmer cannot be launched because it is not a valid farmer.",
         );
       } else {
         launchInAppBrowser({
@@ -80,10 +81,11 @@ const MyCloudFarmers = () => {
           icon: farmer.icon,
           title: farmer.title,
           url: farmer.FarmerClass.getUrlFromInitData(farmer.initData),
+          singleton: true,
         });
       }
     },
-    [launchInAppBrowser]
+    [launchInAppBrowser],
   );
 
   /* Activate Farmer */
@@ -97,7 +99,7 @@ const MyCloudFarmers = () => {
         })
         .finally(farmersQuery.refetch);
     },
-    [activateFarmerMutation.mutateAsync, farmersQuery.refetch]
+    [activateFarmerMutation.mutateAsync, farmersQuery.refetch],
   );
 
   /* Deactivate Farmer */
@@ -111,7 +113,7 @@ const MyCloudFarmers = () => {
         })
         .finally(farmersQuery.refetch);
     },
-    [deactivateFarmerMutation.mutateAsync, farmersQuery.refetch]
+    [deactivateFarmerMutation.mutateAsync, farmersQuery.refetch],
   );
 
   return farmersQuery.isPending ? (
@@ -129,7 +131,7 @@ const MyCloudFarmers = () => {
               "flex items-center gap-2 p-2 text-left",
               "grow min-w-0 cursor-pointer rounded-xl",
               "border border-transparent",
-              "hover:border-blue-500"
+              "hover:border-blue-500",
             )}
           >
             {/* Farmer Icon */}
@@ -143,7 +145,7 @@ const MyCloudFarmers = () => {
               className={cn(
                 "shrink-0 size-2 rounded-full",
                 "border-2 border-white",
-                farmer.active ? "bg-green-500" : "bg-red-500"
+                farmer.active ? "bg-green-500" : "bg-red-500",
               )}
             />
           </button>

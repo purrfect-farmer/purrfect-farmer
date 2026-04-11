@@ -1,23 +1,24 @@
-import CoreSystemIcon from "@/assets/images/core-system.png?format=webp&w=128";
-import Input from "@/components/Input";
-import BottomDialog from "@/components/BottomDialog";
-import LabelToggle from "@/components/LabelToggle";
-import Tabs from "@/components/Tabs";
-import useAppContext from "@/hooks/useAppContext";
-import { Dialog } from "radix-ui";
 import { HiArrowTopRightOnSquare, HiUserPlus } from "react-icons/hi2";
 import { cn, isBotURL } from "@/utils";
 import { memo, useState } from "react";
-import { utils } from "@/core/tabs";
+
+import BottomDialog from "@/components/BottomDialog";
+import CoreSystemIcon from "@/assets/images/core-system.png?format=webp&w=128";
+import { Dialog } from "radix-ui";
 import { Fragment } from "react";
+import Input from "@/components/Input";
+import LabelToggle from "@/components/LabelToggle";
+import Tabs from "@/components/Tabs";
+import useAppContext from "@/hooks/useAppContext";
+import { utils } from "@/core/tabs";
 
 export default memo(function UtilsPanel() {
   const {
     utilsPanelTabs,
     sharedSettings,
+    launchTab,
     dispatchAndConfigureSharedSettings,
     dispatchAndSetShowUtilsPanel,
-    dispatchAndSetActiveTab,
     dispatchAndOpenTelegramBot,
     dispatchAndOpenTelegramLink,
     dispatchAndJoinTelegramLink,
@@ -44,7 +45,7 @@ export default memo(function UtilsPanel() {
               onChange={(ev) => {
                 dispatchAndConfigureSharedSettings(
                   "showMiniAppToolbar",
-                  ev.target.checked
+                  ev.target.checked,
                 );
               }}
               checked={sharedSettings?.showMiniAppToolbar}
@@ -67,7 +68,7 @@ export default memo(function UtilsPanel() {
                 className={cn(
                   "inline-flex gap-2 items-center justify-center",
                   "py-2 px-4 rounded-lg shrink-0 font-bold",
-                  "text-white bg-green-500"
+                  "text-white bg-green-500",
                 )}
                 onClick={() => {
                   dispatchAndJoinTelegramLink(telegramLink);
@@ -82,7 +83,7 @@ export default memo(function UtilsPanel() {
                 className={cn(
                   "inline-flex gap-2 items-center justify-center",
                   "py-2 px-4 rounded-lg shrink-0 font-bold",
-                  "text-white bg-blue-500"
+                  "text-white bg-blue-500",
                 )}
                 onClick={() => {
                   isBotURL(telegramLink)
@@ -98,7 +99,7 @@ export default memo(function UtilsPanel() {
               className={cn(
                 "bg-yellow-100",
                 "text-yellow-800 dark:text-yellow-900",
-                "p-4 text-center  rounded-lg"
+                "p-4 text-center  rounded-lg",
               )}
             >
               You can paste any valid telegram link e.g your referral link, a
@@ -114,19 +115,19 @@ export default memo(function UtilsPanel() {
               <h2
                 className={cn(
                   "text-neutral-500 dark:text-neutral-400",
-                  "font-bold px-4"
+                  "font-bold px-4",
                 )}
               >
                 {group.name}
               </h2>
               {group.list.map((tab) => (
                 <Dialog.Close
-                  onClick={() => dispatchAndSetActiveTab(tab.id)}
+                  onClick={() => launchTab(tab)}
                   key={tab.id}
                   className={cn(
                     "bg-neutral-100 dark:bg-neutral-700",
                     "flex items-center gap-2 p-2 cursor-pointer rounded-xl",
-                    "text-left"
+                    "text-left",
                   )}
                 >
                   <img

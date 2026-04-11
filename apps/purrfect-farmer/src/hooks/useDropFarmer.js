@@ -26,6 +26,7 @@ export default function useDropFarmer() {
   const app = useAppContext();
   const farmer = useTabContext();
   const id = farmer.id;
+  const singleton = farmer.singleton;
   const {
     icon,
     title,
@@ -239,8 +240,8 @@ export default function useDropFarmer() {
     icon,
     started,
     onClick: useCallback(() => {
-      return app.dispatchAndSetActiveTab(id);
-    }, [id, app.dispatchAndSetActiveTab]),
+      return singleton ? app.setActiveTab(id) : app.dispatchAndSetActiveTab(id);
+    }, [id, singleton, app.setActiveTab, app.dispatchAndSetActiveTab]),
   });
 
   /** Response Interceptor */
