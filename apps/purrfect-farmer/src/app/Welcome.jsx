@@ -99,7 +99,8 @@ export default memo(function Welcome() {
     openNewTab,
     openExtensionsPage,
     openTelegramWeb,
-    launchTab,
+    setActiveTab,
+    broadcastToCloseTab,
     dispatchAndReloadApp,
     dispatchAndOpenFarmerBot,
     dispatchAndOpenTelegramBot,
@@ -467,7 +468,10 @@ export default memo(function Welcome() {
                   <DropButton
                     key={drop.id}
                     drop={drop}
-                    onClick={() => launchTab(drop)}
+                    onClick={() => {
+                      broadcastToCloseTab(drop.id);
+                      setActiveTab(drop.id);
+                    }}
                   />
                 ))}
               </div>

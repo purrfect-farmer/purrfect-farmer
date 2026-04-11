@@ -11,13 +11,24 @@ export default memo(function TabButton({
   showMirrorStatus,
   mirrorIsConnected,
 }) {
-  const { dispatchAndCloseTab, launchTab, reloadTab } = useAppContext();
+  const {
+    setActiveTab,
+    dispatchAndCloseTab,
+    dispatchAndSetActiveTab,
+    broadcastToCloseTab,
+    reloadTab,
+  } = useAppContext();
   const buttonRef = useRef();
 
   /** Button Click Handler */
   const handleTabButtonClick = useCallback(() => {
-    launchTab(tab);
-  }, [tab.id, launchTab]);
+    if (tab.singleton) {
+      broadcastToCloseTab(tab.id);
+      setActiveTab(tab.id);
+    } else {
+      dispatchAndSetActiveTab(tab.id);
+    }
+  }, [tab, setActiveTab, dispatchAndSetActiveTab, broadcastToCloseTab]);
 
   /** Reload Tab */
   const handleReloadButtonClick = useCallback(

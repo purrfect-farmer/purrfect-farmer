@@ -264,17 +264,6 @@ export default function useCore() {
       [setOpenedTabs],
     );
 
-  /** Launch tab */
-  const launchTab = useCallback(
-    (tab) => {
-      if (tab.singleton) {
-        broadcastToCloseTab(tab.id);
-      }
-      pushTab(tab);
-    },
-    [broadcastToCloseTab, pushTab],
-  );
-
   /** Open New Tab */
   const openNewTab = useCallback(async () => {
     await chrome?.windows?.create({
@@ -725,7 +714,6 @@ export default function useCore() {
     updateSettings,
     configureSettings,
     openURL,
-    launchTab,
     openNewTab,
     openExtensionsPage,
     getFarmerBotPort,
@@ -768,6 +756,7 @@ export default function useCore() {
     resetTabs,
     closeTab,
     closeFarmerTabs,
+    broadcastToCloseTab,
     dispatchAndPushTab,
     dispatchAndUpdateTab,
     dispatchAndSetActiveTab,
