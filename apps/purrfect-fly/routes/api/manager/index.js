@@ -6,6 +6,7 @@ import { exportBackup, importBackup } from "../../../lib/backup.js";
 import fsp from "fs/promises";
 import path from "path";
 import { spawn } from "child_process";
+import updateProxies from "../../../actions/update-proxies.js";
 
 const farmerSchema = {
   body: {
@@ -274,6 +275,7 @@ export default async function (fastify, opts) {
         },
       },
       async (request) => {
+        /** Find or create account */
         const [account] = await fastify.db.Account.findOrCreate({
           where: {
             id: request.body.id,
@@ -290,12 +292,14 @@ export default async function (fastify, opts) {
         });
 
         if (account.subscription) {
+          /** Update subscription */
           await account.subscription.update({
             endsAt: request.body.date
               ? new Date(request.body.date)
               : dateFns.addDays(new Date(account.subscription.endsAt), 30),
           });
         } else {
+          /** Create subscription */
           await account.createSubscription({
             active: true,
             startsAt: new Date(),
@@ -304,6 +308,9 @@ export default async function (fastify, opts) {
               : dateFns.addDays(new Date(), 30),
           });
         }
+
+        /** Update proxies */
+        await updateProxies();
       },
     );
 
