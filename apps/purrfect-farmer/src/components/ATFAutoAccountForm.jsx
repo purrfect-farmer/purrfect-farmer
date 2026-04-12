@@ -4,12 +4,10 @@ import { useEffect, useState } from "react";
 import FieldStateError from "./FieldStateError";
 import Input from "./Input";
 import Label from "./Label";
-import { MdOutlineContentCopy } from "react-icons/md";
 import PrimaryButton from "./PrimaryButton";
 import Select from "./Select";
 import Textarea from "./Textarea";
 import { cn } from "@/utils";
-import copy from "copy-to-clipboard";
 import { getWalletAddressFromMnemonic } from "@/lib/atf-auto";
 import { mnemonicNew } from "@ton/crypto";
 import toast from "react-hot-toast";
@@ -18,30 +16,12 @@ import { yupResolver } from "@hookform/resolvers/yup";
 
 function buildSchema({ hideTitle }) {
   const shape = {
-    phrase: yup.string().required().label("Wallet Phrase"),
+    phrase: yup.string().trim().required().label("Wallet Phrase"),
     version: yup.number().required().oneOf([4, 5]).label("Wallet Version"),
   };
   if (!hideTitle) shape.title = yup.string().required().label("Title");
   return yup.object(shape).required();
 }
-
-const CopyButton = ({ value }) => (
-  <button
-    type="button"
-    className={cn(
-      "shrink-0 p-2 rounded-lg size-10",
-      "flex items-center justify-center",
-      "bg-neutral-100 dark:bg-neutral-700",
-      "hover:bg-neutral-200 dark:hover:bg-neutral-600",
-    )}
-    onClick={() => {
-      copy(value || "");
-      toast.success("Copied!");
-    }}
-  >
-    <MdOutlineContentCopy className="size-4" />
-  </button>
-);
 
 export default function ATFAutoAccountForm({
   handleFormSubmit,

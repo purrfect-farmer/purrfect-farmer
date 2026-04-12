@@ -25,10 +25,14 @@ import { yupResolver } from "@hookform/resolvers/yup";
 /** Schema */
 const schema = yup
   .object({
-    ["phrase"]: yup.string().required().label("Wallet Phrase"),
+    ["phrase"]: yup.string().trim().required().label("Wallet Phrase"),
     ["version"]: yup.number().required().oneOf([4, 5]).label("Wallet Version"),
-    ["password"]: yup.string().required().label("Password"),
-    ["tonCenterApiKey"]: yup.string().required().label("Toncenter API Key"),
+    ["password"]: yup.string().trim().required().label("Password"),
+    ["tonCenterApiKey"]: yup
+      .string()
+      .trim()
+      .required()
+      .label("Toncenter API Key"),
   })
   .required();
 
