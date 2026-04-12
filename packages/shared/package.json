@@ -3,6 +3,9 @@
   "version": "1.0.0",
   "main": "index.js",
   "type": "module",
+  "scripts": {
+    "generate-user-agents": "node generate-user-agents.js"
+  },
   "dependencies": {
     "@faker-js/faker": "^10.2.0",
     "@ton/core": "^0.63.1",
