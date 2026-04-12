@@ -226,6 +226,7 @@ export default class ATFFarmer extends BaseFarmer {
         valueStyle: this.logger.c.greenBright,
       },
     );
+    this.logger.newline();
   }
 
   async getKeyPair(secretKeyOrMnemonic) {
