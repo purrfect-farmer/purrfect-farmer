@@ -151,14 +151,14 @@ export default class ATFFarmer extends BaseFarmer {
         list: [
           {
             id: "connect-wallet",
-            emoji: "🔗",
+            emoji: "🟢",
             title: "Connect Wallet",
             action: this.connectWalletSecretKeyOrMnemonic.bind(this),
             dispatch: false,
           },
           {
             id: "reconnect-wallet",
-            emoji: "🔗",
+            emoji: "🔁",
             title: "Reconnect Wallet",
             action: this.reconnectWallet.bind(this),
             dispatch: false,
@@ -358,8 +358,8 @@ export default class ATFFarmer extends BaseFarmer {
     } else {
       const user = result.user;
       this.logger.success("Wallet synced successfully!");
-      this.logger.keyValue("Wallet Balance", user["wallet_holding_atf"]);
-      this.logger.keyValue("Balance", user["mined_balance"]);
+      this.logUserBalance(user);
+      this.logUserRisks(user);
       return true;
     }
   }
@@ -517,10 +517,19 @@ export default class ATFFarmer extends BaseFarmer {
   }
   /** Log User Info */
   logUserInfo(user) {
-    const lastMiningStart = Number(user["last_mining_start"]);
-
     this.logger.newline();
     this.logCurrentUser();
+
+    this.logUserBalance(user);
+    this.logUserRisks(user);
+
+    if (user["wallet_public_key"]) {
+      this.logUserWallet(user);
+    }
+  }
+
+  logUserBalance(user) {
+    const lastMiningStart = Number(user["last_mining_start"]);
     this.logger.keyValue("Wallet Balance", user["wallet_holding_atf"]);
     this.logger.keyValue("Balance", user["mined_balance"]);
     this.logger.keyValue("Pending Rewards", user["pending_reward"]);
@@ -531,7 +540,9 @@ export default class ATFFarmer extends BaseFarmer {
         ? "Not mining"
         : new Date(lastMiningStart * 1000).toLocaleString(),
     );
+  }
 
+  logUserRisks(user) {
     const flags = (user["risk_flags"] || "").split("|");
 
     this.logger.newline();
@@ -546,18 +557,18 @@ export default class ATFFarmer extends BaseFarmer {
     this.logger.keyValue("Banned at", user["banned_at"]);
     this.logger.keyValue("Temp banned until", user["temp_banned_until"]);
     this.logger.keyValue("Temp ban reason", user["temp_ban_reason"]);
+  }
 
-    if (user["wallet_public_key"]) {
-      const { publicKey, addressV4, addressV5, rawAddressV4, rawAddressV5 } =
-        this.prepareWallet(Buffer.from(user["wallet_public_key"], "hex"));
+  logUserWallet(user) {
+    const { publicKey, addressV4, addressV5, rawAddressV4, rawAddressV5 } =
+      this.prepareWallet(Buffer.from(user["wallet_public_key"], "hex"));
 
-      const version = user["wallet_address"] === rawAddressV5 ? "v5" : "v4";
-      const address = version === "v5" ? addressV5 : addressV4;
-      const rawAddress = version === "v5" ? rawAddressV5 : rawAddressV4;
+    const version = user["wallet_address"] === rawAddressV5 ? "v5" : "v4";
+    const address = version === "v5" ? addressV5 : addressV4;
+    const rawAddress = version === "v5" ? rawAddressV5 : rawAddressV4;
 
-      this.logger.newline();
-      this.logWallet(version, publicKey, address, rawAddress);
-    }
+    this.logger.newline();
+    this.logWallet(version, publicKey, address, rawAddress);
   }
 
   async fetchDifficultyData() {
