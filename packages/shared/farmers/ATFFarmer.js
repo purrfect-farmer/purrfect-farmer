@@ -341,13 +341,16 @@ export default class ATFFarmer extends BaseFarmer {
 
     const { proof } = await this.buildWalletProof(wallet, keyPair.secretKey);
 
-    const result = await this.syncWallet({
+    const data = {
       publicKey,
       wallet: rawAddress,
       walletStateInit,
       network: "-239",
       proof,
-    });
+    };
+
+    console.log("Syncing ATF Wallet:", data);
+    const result = await this.syncWallet(data);
 
     if (result.status !== "success") {
       this.logger.error(
