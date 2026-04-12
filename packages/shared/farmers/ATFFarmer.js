@@ -15,7 +15,7 @@ export default class ATFFarmer extends BaseFarmer {
   static emoji = "🪙";
   static host = "atfminers.asloni.online";
   static domains = ["atfminers.asloni.online"];
-  static telegramLink = "https://t.me/ATF_AIRDROP_bot?start=1147265290";
+  static telegramLink = "https://t.me/ATF_AIRDROP_bot?start=7511206091";
   static path = "/miner/index.html";
   static cacheAuth = false;
   static cacheTelegramWebApp = false;
@@ -189,35 +189,6 @@ export default class ATFFarmer extends BaseFarmer {
     const rawAddressV5 = walletV5.address.toRawString();
     const publicKey = publicKeyBuffer.toString("hex");
 
-    /** Public key */
-    this.logger.keyValue("Public Key", publicKey, {
-      valueStyle: this.logger.c.yellowBright,
-    });
-    this.logger.newline();
-
-    /** Wallet Address (V4) */
-    this.logger.keyValue("Wallet Address (V4)", addressV4, {
-      valueStyle: this.logger.c.whiteBright,
-    });
-    this.logger.newline();
-
-    /** Wallet Address (V5) */
-    this.logger.keyValue("Wallet Address (V5)", addressV5, {
-      valueStyle: this.logger.c.blueBright,
-    });
-    this.logger.newline();
-
-    /** Raw Wallet Address (V4) */
-    this.logger.keyValue("Raw Wallet Address (V4)", rawAddressV4, {
-      valueStyle: this.logger.c.greenBright,
-    });
-    this.logger.newline();
-
-    /** Raw Wallet Address (V5) */
-    this.logger.keyValue("Raw Wallet Address (V5)", rawAddressV5, {
-      valueStyle: this.logger.c.magentaBright,
-    });
-
     return {
       publicKey,
       walletV4,
@@ -227,6 +198,34 @@ export default class ATFFarmer extends BaseFarmer {
       rawAddressV4,
       rawAddressV5,
     };
+  }
+
+  logWallet(version, publicKey, address, rawAddress) {
+    /** Convert version to uppercase */
+    const uppercaseVersion = version.toUpperCase();
+
+    /** Wallet version */
+    this.logger.keyValue("Wallet Version", uppercaseVersion);
+    /** Public key */
+    this.logger.keyValue("Public Key", publicKey, {
+      valueStyle: this.logger.c.yellowBright,
+    });
+    this.logger.newline();
+
+    /** Wallet Address */
+    this.logger.keyValue(`Wallet Address (${uppercaseVersion})`, address, {
+      valueStyle: this.logger.c.whiteBright,
+    });
+    this.logger.newline();
+
+    /** Raw Wallet Address */
+    this.logger.keyValue(
+      `Raw Wallet Address (${uppercaseVersion})`,
+      rawAddress,
+      {
+        valueStyle: this.logger.c.greenBright,
+      },
+    );
   }
 
   async getKeyPair(secretKeyOrMnemonic) {
@@ -317,11 +316,21 @@ export default class ATFFarmer extends BaseFarmer {
   }
 
   async connectAndSyncWallet(keyPair, version) {
-    const { walletV4, walletV5, publicKey, rawAddressV4, rawAddressV5 } =
-      this.prepareWallet(keyPair.publicKey);
+    const {
+      walletV4,
+      walletV5,
+      publicKey,
+      addressV4,
+      addressV5,
+      rawAddressV4,
+      rawAddressV5,
+    } = this.prepareWallet(keyPair.publicKey);
 
     const wallet = version === "v5" ? walletV5 : walletV4;
+    const address = version === "v5" ? addressV5 : addressV4;
     const rawAddress = version === "v5" ? rawAddressV5 : rawAddressV4;
+
+    this.logWallet(version, publicKey, address, rawAddress);
 
     const walletStateInit = beginCell()
       .store(storeStateInit(wallet.init))
@@ -346,7 +355,10 @@ export default class ATFFarmer extends BaseFarmer {
       );
       return false;
     } else {
+      const user = result.user;
       this.logger.success("Wallet synced successfully!");
+      this.logger.keyValue("Wallet Balance", user["wallet_holding_atf"]);
+      this.logger.keyValue("Balance", user["mined_balance"]);
       return true;
     }
   }
@@ -535,8 +547,15 @@ export default class ATFFarmer extends BaseFarmer {
     this.logger.keyValue("Temp ban reason", user["temp_ban_reason"]);
 
     if (user["wallet_public_key"]) {
+      const { publicKey, addressV4, addressV5, rawAddressV4, rawAddressV5 } =
+        this.prepareWallet(Buffer.from(user["wallet_public_key"], "hex"));
+
+      const version = user["wallet_address"] === rawAddressV5 ? "v5" : "v4";
+      const address = version === "v5" ? addressV5 : addressV4;
+      const rawAddress = version === "v5" ? rawAddressV5 : rawAddressV4;
+
       this.logger.newline();
-      this.prepareWallet(Buffer.from(user["wallet_public_key"], "hex"));
+      this.logWallet(version, publicKey, address, rawAddress);
     }
   }
 
