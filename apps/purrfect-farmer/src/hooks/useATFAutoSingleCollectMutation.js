@@ -18,18 +18,27 @@ export default function useATFAutoSingleCollectMutation() {
         queryKey: ["atf-balances", master.address],
       });
     },
+    onError: (error) => {
+      console.log("Error while collecting ATF from account", error);
+    },
     mutationFn: async ({ account }) => {
+      console.log("Decrypting master wallet....");
       const masterPhrase = await encryption.decryptData({
         ...master.encryptedWalletPhrase,
         password,
         asText: true,
       });
 
+      console.log("Successfully decrypted master wallet!");
+
+      console.log("Decrypting sub account wallet...");
       const accountPhrase = await encryption.decryptData({
         ...account.encryptedPhrase,
         password,
         asText: true,
       });
+
+      console.log("Successfully decrypted sub account wallet");
 
       const masterData = {
         address: master.address,
@@ -38,7 +47,9 @@ export default function useATFAutoSingleCollectMutation() {
         tonCenterApiKey: master.tonCenterApiKey,
       };
 
+      console.log("Preparing master wallet...");
       const prepared = await prepareMaster(masterData);
+      console.log("Successfully prepared master wallet");
 
       const booster = new ATFAutoBooster(
         masterData,
@@ -46,6 +57,7 @@ export default function useATFAutoSingleCollectMutation() {
         prepared,
       );
 
+      console.log("Collecting from account...");
       return booster.collect();
     },
   });

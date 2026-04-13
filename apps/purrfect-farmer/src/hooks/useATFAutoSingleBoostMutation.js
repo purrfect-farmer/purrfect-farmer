@@ -18,18 +18,25 @@ export default function useATFAutoSingleBoostMutation() {
         queryKey: ["atf-balances", master.address],
       });
     },
+    onError: (error) => {
+      console.log("Error while boosting account", error);
+    },
     mutationFn: async ({ account, difference }) => {
+      console.log("Decrypting master wallet....");
       const masterPhrase = await encryption.decryptData({
         ...master.encryptedWalletPhrase,
         password,
         asText: true,
       });
+      console.log("Successfully decrypted master wallet!");
 
+      console.log("Decrypting sub account wallet...");
       const accountPhrase = await encryption.decryptData({
         ...account.encryptedPhrase,
         password,
         asText: true,
       });
+      console.log("Successfully decrypted sub account wallet");
 
       const masterData = {
         address: master.address,
@@ -38,7 +45,9 @@ export default function useATFAutoSingleBoostMutation() {
         tonCenterApiKey: master.tonCenterApiKey,
       };
 
+      console.log("Preparing master wallet...");
       const prepared = await prepareMaster(masterData);
+      console.log("Successfully prepared master wallet");
 
       if (prepared.jettonBalance <= 0) {
         throw new Error("Master has no jetton balance");
@@ -50,6 +59,7 @@ export default function useATFAutoSingleBoostMutation() {
         prepared,
       );
 
+      console.log("Boosting account with difference of " + difference);
       return booster.boost({ difference });
     },
   });
