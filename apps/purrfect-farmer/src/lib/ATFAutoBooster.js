@@ -284,17 +284,20 @@ export default class ATFAutoBooster {
 
       return { status: true, account: this.account };
     } catch (error) {
+      console.log("Error while boosting account", error);
       return { status: false, account: this.account, error };
     }
   }
 
   async collect() {
     try {
+      console.log("Fetching Jetton Balance...");
       const { balance: jettonBalance } = await getJettonInfo(
         this.account.address,
       );
 
       if (jettonBalance.lessThanOrEqualTo(0)) {
+        console.log("Skipping due to low Jetton balance!");
         return { status: false, skipped: true, account: this.account };
       }
       const { contract } = await this._prepareSubAccount();
@@ -322,6 +325,7 @@ export default class ATFAutoBooster {
 
       return { status: true, account: this.account, collected: jettonBalance };
     } catch (error) {
+      console.log("Error while collecting from account", error);
       return { status: false, account: this.account, error };
     }
   }
