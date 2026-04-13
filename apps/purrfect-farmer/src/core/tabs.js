@@ -81,6 +81,7 @@ export const utils = [
         title: "ATF Auto",
         icon: ATFAutoIcon,
         component: createElement(ATFAuto),
+        singleton: true,
       },
     ],
   },
