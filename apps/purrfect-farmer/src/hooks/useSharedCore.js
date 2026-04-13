@@ -1,17 +1,17 @@
+import { extractInitDataUnsafe, removeAccountStorage } from "@/utils";
+
 import cryptoRandomString from "crypto-random-string";
 import defaultAccounts from "@/core/defaultAccounts";
 import defaultSharedSettings from "@/core/defaultSharedSettings";
-import { extractInitDataUnsafe, removeAccountStorage } from "@/utils";
-import { useCallback } from "react";
-import { useMemo } from "react";
-import { useState } from "react";
-
 import useBaseSettings from "./useBaseSettings";
-import useValuesMemo from "./useValuesMemo";
+import useCaptcha from "./useCaptcha";
+import { useMemo } from "react";
 import useMirror from "./useMirror";
 import useMirroredCallback from "./useMirroredCallback";
+import useRefCallback from "./useRefCallback";
 import useSharedStorageState from "./useSharedStorageState";
-import useCaptcha from "./useCaptcha";
+import { useState } from "react";
+import useValuesMemo from "./useValuesMemo";
 
 export default function useSharedCore() {
   /** Shared Settings */
@@ -25,14 +25,14 @@ export default function useSharedCore() {
   /** Mirror */
   const mirror = useMirror(
     sharedSettings.enableMirror,
-    sharedSettings.mirrorServer
+    sharedSettings.mirrorServer,
   );
 
   /** Captcha Solver */
   const captcha = useCaptcha(
     sharedSettings.captchaEnabled,
     sharedSettings.captchaProvider,
-    sharedSettings.captchaApiKey
+    sharedSettings.captchaApiKey,
   );
 
   /** Persisted Accounts */
@@ -54,7 +54,7 @@ export default function useSharedCore() {
     },
     [],
     /** Mirror */
-    mirror
+    mirror,
   );
 
   /** Stop Headless Mode */
@@ -66,7 +66,7 @@ export default function useSharedCore() {
     },
     [],
     /** Mirror */
-    mirror
+    mirror,
   );
 
   /** Active Account */
@@ -93,16 +93,16 @@ export default function useSharedCore() {
           persisted: item,
         };
       }),
-    [persistedAccounts, active, running]
+    [persistedAccounts, active, running],
   );
 
   const instances = useMemo(
     () => accounts.filter((account) => running.includes(account.id)),
-    [accounts, running]
+    [accounts, running],
   );
 
   /** Launch Account */
-  const launchAccount = useCallback((id) => {
+  const launchAccount = useRefCallback((id) => {
     /** Add to Running Accounts */
     setRunning((prev) => (prev.includes(id) ? prev : [...prev, id]));
 
@@ -111,7 +111,7 @@ export default function useSharedCore() {
   }, []);
 
   /** Close Account */
-  const closeAccount = useCallback(
+  const closeAccount = useRefCallback(
     (id) => {
       if (running.length > 1) {
         /** If Closing Active Account, Set Another as Active */
@@ -124,11 +124,11 @@ export default function useSharedCore() {
         setRunning((prev) => prev.filter((item) => item !== id));
       }
     },
-    [active, running, setActive, setRunning]
+    [active, running, setActive, setRunning],
   );
 
   /** Add Account */
-  const addAccount = useCallback(async () => {
+  const addAccount = useRefCallback(async () => {
     /** New Account */
     const newPersistedAccount = {
       id: cryptoRandomString({
@@ -146,19 +146,19 @@ export default function useSharedCore() {
   }, [persistedAccounts, storePersistedAccounts, setActive, launchAccount]);
 
   /** Update Account */
-  const updateAccount = useCallback(
+  const updateAccount = useRefCallback(
     (id, data) => {
       storePersistedAccounts(
         persistedAccounts.map((item) =>
-          item.id === id ? { ...item, ...data } : item
-        )
+          item.id === id ? { ...item, ...data } : item,
+        ),
       );
     },
-    [persistedAccounts, storePersistedAccounts]
+    [persistedAccounts, storePersistedAccounts],
   );
 
   /** Remove Account */
-  const removeAccount = useCallback(
+  const removeAccount = useRefCallback(
     async (id) => {
       if (persistedAccounts.length > 1) {
         /** Updated List of Accounts */
@@ -174,7 +174,7 @@ export default function useSharedCore() {
         launchAccount(updated[0].id);
       }
     },
-    [persistedAccounts, storePersistedAccounts, launchAccount]
+    [persistedAccounts, storePersistedAccounts, launchAccount],
   );
 
   return useValuesMemo({

@@ -16,6 +16,7 @@ import useLocalTelegramSession from "./useLocalTelegramSession";
 import { useMemo } from "react";
 import useMessagePort from "./useMessagePort";
 import useMirroredCallback from "./useMirroredCallback";
+import useRefCallback from "./useRefCallback";
 import useSettings from "./useSettings";
 import useSharedContext from "./useSharedContext";
 import { useState } from "react";
@@ -672,7 +673,7 @@ export default function useCore() {
   );
 
   /** Update Active Account */
-  const updateActiveAccount = useCallback(
+  const updateActiveAccount = useRefCallback(
     (data) => {
       updateAccount(account.id, data);
     },
@@ -680,7 +681,7 @@ export default function useCore() {
   );
 
   /** Remove Active Account */
-  const removeActiveAccount = useCallback(() => {
+  const removeActiveAccount = useRefCallback(() => {
     removeAccount(account.id);
   }, [account.id, removeAccount]);
 

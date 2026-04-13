@@ -2,7 +2,6 @@ import BrowserLogger from "@purrfect/shared/lib/BrowserLogger";
 import axios from "axios";
 import { createQueryClient } from "@/lib/createQueryClient";
 import useAppContext from "./useAppContext";
-import { useCallback } from "react";
 import useDelayInterceptor from "./useDelayInterceptor";
 import useDropFarmerAuth from "./useDropFarmerAuth";
 import useDropFarmerCloudSync from "./useDropFarmerCloudSync";
@@ -96,40 +95,36 @@ export default function useDropFarmer() {
 
   /** Join Telegram Link */
   const joinTelegramLink = useRefCallback(
-    useCallback(
-      async (...args) => {
-        if (external) {
-          throw new Error("Running external account!");
+    async (...args) => {
+      if (external) {
+        throw new Error("Running external account!");
+      }
+      try {
+        await app.joinTelegramLink(...args);
+      } finally {
+        /** Restore Tab */
+        if (app.farmerMode === "web") {
+          app.setActiveTab(id);
         }
-        try {
-          await app.joinTelegramLink(...args);
-        } finally {
-          /** Restore Tab */
-          if (app.farmerMode === "web") {
-            app.setActiveTab(id);
-          }
-        }
-      },
-      [id, external, app.farmerMode, app.joinTelegramLink, app.setActiveTab],
-    ),
+      }
+    },
+    [id, external, app.farmerMode, app.joinTelegramLink, app.setActiveTab],
   );
 
   /** Update Profile */
   const updateProfile = useRefCallback(
-    useCallback(
-      async (...args) => {
-        if (external) {
-          throw new Error("Running external account!");
-        } else if (app.farmerMode === "web") {
-          throw new Error("Profile update is only available in session mode!");
-        } else {
-          const client = app.telegramClient.ref.current;
-          if (!client) return;
-          return client.updateProfile(...args);
-        }
-      },
-      [external, app.farmerMode, app.telegramClient],
-    ),
+    async (...args) => {
+      if (external) {
+        throw new Error("Running external account!");
+      } else if (app.farmerMode === "web") {
+        throw new Error("Profile update is only available in session mode!");
+      } else {
+        const client = app.telegramClient.ref.current;
+        if (!client) return;
+        return client.updateProfile(...args);
+      }
+    },
+    [external, app.farmerMode, app.telegramClient],
   );
 
   /** Instance */
@@ -209,7 +204,7 @@ export default function useDropFarmer() {
   });
 
   /** Reset Init */
-  const resetInit = useCallback(async () => {
+  const resetInit = useRefCallback(async () => {
     await resetAuthCache();
     await removeQueries();
     await resetStates();
@@ -217,7 +212,7 @@ export default function useDropFarmer() {
   }, [removeQueries, resetAuthCache, resetStates, setInitResetCount]);
 
   /** Reset Farmer  */
-  const reset = useCallback(async () => {
+  const reset = useRefCallback(async () => {
     await resetTelegramWebApp();
     await resetInit();
   }, [resetTelegramWebApp, resetInit]);
@@ -240,7 +235,7 @@ export default function useDropFarmer() {
     title,
     icon,
     started,
-    onClick: useCallback(() => {
+    onClick: useRefCallback(() => {
       return singleton ? app.setActiveTab(id) : app.dispatchAndSetActiveTab(id);
     }, [id, singleton, app.setActiveTab, app.dispatchAndSetActiveTab]),
   });

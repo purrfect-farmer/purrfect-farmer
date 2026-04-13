@@ -1,8 +1,8 @@
-import FarmerNotification from "@/components/FarmerNotification";
-import toast from "react-hot-toast";
 import { createElement, useLayoutEffect } from "react";
 
-import useRefCallback from "./useRefCallback";
+import FarmerNotification from "@/components/FarmerNotification";
+import toast from "react-hot-toast";
+import useMemoizedCallback from "./useMemoizedCallback";
 
 export default function useDropFarmerToast({
   id,
@@ -11,7 +11,7 @@ export default function useDropFarmerToast({
   started = false,
   onClick,
 }) {
-  const onToastClick = useRefCallback(onClick);
+  const onToastClick = useMemoizedCallback(onClick);
 
   useLayoutEffect(() => {
     if (started) {
@@ -30,7 +30,7 @@ export default function useDropFarmerToast({
           }),
           id: `${id}-farmer`,
           duration: 2000,
-        }
+        },
       );
     }
 

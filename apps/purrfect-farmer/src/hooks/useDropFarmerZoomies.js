@@ -1,6 +1,5 @@
 import { useLayoutEffect } from "react";
-
-import useRefCallback from "./useRefCallback";
+import useMemoizedCallback from "./useMemoizedCallback";
 
 export default function useDropFarmerZoomies({
   id,
@@ -13,7 +12,7 @@ export default function useDropFarmerZoomies({
   const isZooming = zoomies.enabled && zoomies.current.drop?.id === id;
 
   /**  Next task callback */
-  const processNextTask = useRefCallback(zoomies.processNextTask);
+  const processNextTask = useMemoizedCallback(zoomies.processNextTask);
 
   /** Set Started */
   useLayoutEffect(() => {

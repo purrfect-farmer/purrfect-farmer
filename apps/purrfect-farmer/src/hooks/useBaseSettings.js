@@ -1,7 +1,6 @@
 import toast from "react-hot-toast";
-import { useCallback } from "react";
 import { useMemo } from "react";
-
+import useRefCallback from "./useRefCallback";
 import useStorageState from "./useStorageState";
 import useValuesMemo from "./useValuesMemo";
 
@@ -9,14 +8,14 @@ export default function useBaseSettings(key, defaultValue, shared = false) {
   const { value, storeValue: storeSettings } = useStorageState(
     key,
     defaultValue,
-    shared
+    shared,
   );
 
   /** Transform Value */
   const settings = useMemo(() => ({ ...defaultValue, ...value }), [value]);
 
   /** Update Settings */
-  const updateSettings = useCallback(
+  const updateSettings = useRefCallback(
     async (data, shouldToast = true) => {
       const newSettings = {
         ...settings,
@@ -32,19 +31,19 @@ export default function useBaseSettings(key, defaultValue, shared = false) {
         toast.success("Settings Updated");
       }
     },
-    [settings, storeSettings]
+    [settings, storeSettings],
   );
 
   /** Configure Settings */
-  const configureSettings = useCallback(
+  const configureSettings = useRefCallback(
     async (k, v, shouldToast = true) =>
       updateSettings(
         {
           [k]: v,
         },
-        shouldToast
+        shouldToast,
       ),
-    [updateSettings]
+    [updateSettings],
   );
 
   return useValuesMemo({

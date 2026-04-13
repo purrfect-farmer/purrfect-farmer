@@ -15,7 +15,7 @@ export default function useDropFarmerCloudSync({
 }) {
   /** Cloud Sync Mutation */
   const { isPending, mutateAsync } = useCloudSyncMutation(id, queryClient);
-  const syncingRef = useSyncedRef(isPending);
+  const isPendingRef = useSyncedRef(isPending);
 
   const accountTitle = account.title;
   const accountUserId = account.user?.id;
@@ -47,7 +47,7 @@ export default function useDropFarmerCloudSync({
 
   /** Sync to Cloud */
   useLayoutEffect(() => {
-    if (syncingRef.current) return;
+    if (isPendingRef.current) return;
     if (shouldSyncToCloud) {
       syncToCloud();
     }

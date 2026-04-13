@@ -1,10 +1,10 @@
 import { BOT_TELEGRAM_WEB_APP_ACTION } from "./useCore";
 import { sendWebviewMessage } from "@/utils";
-import { useCallback } from "react";
 import { useEffect } from "react";
 import { useMemo } from "react";
 import useMessageHandlers from "./useMessageHandlers";
 import { useRef } from "react";
+import useRefCallback from "./useRefCallback";
 import useTelegramInitData from "./useTelegramInitData";
 
 export default function useTelegramUser(core) {
@@ -25,7 +25,7 @@ export default function useTelegramUser(core) {
   const updatingRef = useRef(false);
 
   /** Configure InitData */
-  const configureInitData = useCallback(
+  const configureInitData = useRefCallback(
     ({ telegramWebApp }) => {
       updateActiveAccount({
         telegramInitData: telegramWebApp.initData,
@@ -34,7 +34,7 @@ export default function useTelegramUser(core) {
     [updateActiveAccount],
   );
 
-  const updateTelegramUser = useCallback(
+  const updateTelegramUser = useRefCallback(
     async (isUpdate = false) => {
       if (isUpdate === false) {
         await telegramClient.ref.current.startBotFromLink({

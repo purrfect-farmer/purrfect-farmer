@@ -1,16 +1,17 @@
 import { sendWebviewMessage } from "@/utils";
 import useBackupAndRestore from "./useBackupAndRestore";
 import { useEffect } from "react";
-import useRefCallback from "./useRefCallback";
+import useMemoizedCallback from "./useMemoizedCallback";
 
 export default function useWhiskerData(app) {
-  const backupAndRestore = useBackupAndRestore(app);
-  const getBackupData = useRefCallback(backupAndRestore[0]);
-  const restoreBackupData = useRefCallback(backupAndRestore[1]);
+  const [backup, restore] = useBackupAndRestore(app);
 
-  const updateSettings = useRefCallback(app.updateSettings);
-  const updateSharedSettings = useRefCallback(app.updateSharedSettings);
-  const updateActiveAccount = useRefCallback(app.updateActiveAccount);
+  const getBackupData = useMemoizedCallback(backup);
+  const restoreBackupData = useMemoizedCallback(restore);
+
+  const updateSettings = useMemoizedCallback(app.updateSettings);
+  const updateSharedSettings = useMemoizedCallback(app.updateSharedSettings);
+  const updateActiveAccount = useMemoizedCallback(app.updateActiveAccount);
 
   /** Whisker Message */
   useEffect(() => {
