@@ -91,6 +91,7 @@ export default function useDropFarmerInstance({
 
   useLayoutEffect(() => {
     if (!instance) return;
+    console.log("Configuring farmer instance...", instance);
     instance.setUserAgent?.(userAgent);
     instance.setApi?.(api);
     instance.setCaptcha?.(captcha);

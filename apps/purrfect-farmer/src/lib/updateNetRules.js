@@ -1,6 +1,6 @@
-import { getNetRules } from "@/extension/rule-resources";
-
 import { customLogger, getUserAgent, storeUserAgent } from "../utils";
+
+import { getNetRules } from "@/extension/rule-resources";
 
 export default async function updateNetRules() {
   const userAgent = await getUserAgent();
@@ -10,9 +10,10 @@ export default async function updateNetRules() {
   }));
 
   if (import.meta.env.VITE_WHISKER) {
+    console.log("Updating net rules in Whisker", newRules);
     await window.electron.ipcRenderer.invoke(
       "update-declarative-net-rules",
-      newRules
+      newRules,
     );
   }
 

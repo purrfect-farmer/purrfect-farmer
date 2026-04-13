@@ -1,11 +1,10 @@
+import { BOT_TELEGRAM_WEB_APP_ACTION } from "./useCore";
 import { sendWebviewMessage } from "@/utils";
 import { useCallback } from "react";
 import { useEffect } from "react";
 import { useMemo } from "react";
-
 import useMessageHandlers from "./useMessageHandlers";
 import useTelegramInitData from "./useTelegramInitData";
-import { BOT_TELEGRAM_WEB_APP_ACTION } from "./useCore";
 
 export default function useTelegramUser(core) {
   const {
@@ -18,6 +17,10 @@ export default function useTelegramUser(core) {
   const { telegramInitData } = account;
   const telegramUser = useTelegramInitData(telegramInitData);
 
+  const willUpdateUser = !telegramUser || telegramUser.shouldUpdate;
+  const canUpdateUser = farmerMode === "session" && willUpdateUser;
+  const isUpdateNeeded = Boolean(telegramUser?.shouldUpdate);
+
   /** Configure InitData */
   const configureInitData = useCallback(
     ({ telegramWebApp }) => {
@@ -25,7 +28,7 @@ export default function useTelegramUser(core) {
         telegramInitData: telegramWebApp.initData,
       });
     },
-    [updateActiveAccount]
+    [updateActiveAccount],
   );
 
   const updateTelegramUser = useCallback(
@@ -40,12 +43,12 @@ export default function useTelegramUser(core) {
       }
 
       const telegramWebApp = await telegramClient.ref.current.getTelegramWebApp(
-        import.meta.env.VITE_APP_BOT_MINI_APP
+        import.meta.env.VITE_APP_BOT_MINI_APP,
       );
 
       await configureInitData({ telegramWebApp });
     },
-    [configureInitData]
+    [configureInitData],
   );
 
   /** Handler */
@@ -53,27 +56,30 @@ export default function useTelegramUser(core) {
     useMemo(
       () => ({
         [BOT_TELEGRAM_WEB_APP_ACTION]: (message) => {
+          console.log("Configuring init data from mini-app...");
           configureInitData(message.data);
         },
       }),
-      [configureInitData]
+      [configureInitData],
     ),
-    messaging
+    messaging,
   );
 
   /** Get Telegram User */
   useEffect(() => {
-    if (
-      farmerMode === "session" &&
-      (!telegramUser || telegramUser.shouldUpdate)
-    ) {
-      updateTelegramUser(telegramUser?.shouldUpdate);
+    if (canUpdateUser) {
+      console.log("Updating Telegram User...", {
+        canUpdateUser,
+        isUpdateNeeded,
+      });
+      updateTelegramUser(isUpdateNeeded);
     }
-  }, [farmerMode, telegramUser, updateTelegramUser]);
+  }, [canUpdateUser, isUpdateNeeded, updateTelegramUser]);
 
   /** Set Init Data */
   useEffect(() => {
     if (import.meta.env.VITE_WHISKER) {
+      console.log("Setting telegram init-data in Whisker...");
       sendWebviewMessage({
         action: "set-telegram-init-data",
         data: { telegramInitData },

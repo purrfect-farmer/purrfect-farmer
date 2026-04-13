@@ -1,9 +1,8 @@
 import { sendWebviewMessage } from "@/utils";
-import { useEffect } from "react";
-
+import updateNetRules from "@/lib/updateNetRules";
 import useAppContext from "./useAppContext";
 import useCloudSubscriptionQuery from "./useCloudSubscriptionQuery";
-import updateNetRules from "@/lib/updateNetRules";
+import { useEffect } from "react";
 import useParsedProxy from "./useParsedProxy";
 
 export default function useProxy(app) {
@@ -35,7 +34,9 @@ export default function useProxy(app) {
   /** Update Proxy */
   useEffect(() => {
     if (shouldUpdateProxy) {
+      console.log("Updating proxy configurations...");
       if (import.meta.env.VITE_WHISKER) {
+        console.log("Sending proxy configurations to Whiskers...");
         sendWebviewMessage({
           action: "set-proxy",
           data: {
@@ -49,7 +50,7 @@ export default function useProxy(app) {
             ...parsedCloudProxy,
             proxyEnabled: true,
           },
-          false
+          false,
         );
       }
     }
@@ -58,6 +59,7 @@ export default function useProxy(app) {
   /** Update Net Rules when Proxy Settings Change */
   useEffect(() => {
     if (import.meta.env.VITE_WHISKER) {
+      console.log("Updating Net Rules due to proxy configurations...");
       updateNetRules();
     }
   }, [

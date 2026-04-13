@@ -38,7 +38,7 @@ export function customLogger(...args) {
   console.log("\n");
   args.forEach((item, index) => {
     if (index === 0) {
-      console.log(`%c<<<<${item}>>>>`, "color:orange; font-weight:bold;");
+      console.log(`%c${item}`, "color:lightblue; font-weight:bold;");
     } else {
       console.log(item);
     }
@@ -349,8 +349,10 @@ export function requestIsUnauthorized(error) {
   );
 }
 /** Send Webview Message */
-export const sendWebviewMessage = (data) =>
-  window.electron.ipcRenderer.sendToHost("webview-message", data);
+export const sendWebviewMessage = (data) => {
+  console.log("Sending message to Whisker", data);
+  return window.electron.ipcRenderer.sendToHost("webview-message", data);
+};
 
 /** Get Cookies */
 export async function getCookies(options) {
