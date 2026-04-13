@@ -120,7 +120,7 @@ export default class ATFFarmer extends BaseFarmer {
   }
 
   getWalletProofPayload() {
-    return this.makeAction("get_wallet_proof_payload");
+    return this.makeAction("get_wallet_proof_payload", { force: 1 });
   }
 
   getMathChallenge(scope) {
