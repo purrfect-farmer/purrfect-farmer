@@ -4,6 +4,7 @@ import { useCallback } from "react";
 import { useEffect } from "react";
 import { useMemo } from "react";
 import useMessageHandlers from "./useMessageHandlers";
+import { useRef } from "react";
 import useTelegramInitData from "./useTelegramInitData";
 
 export default function useTelegramUser(core) {
@@ -20,6 +21,8 @@ export default function useTelegramUser(core) {
   const willUpdateUser = !telegramUser || telegramUser.shouldUpdate;
   const canUpdateUser = farmerMode === "session" && willUpdateUser;
   const isUpdateNeeded = Boolean(telegramUser?.shouldUpdate);
+
+  const updatingRef = useRef(false);
 
   /** Configure InitData */
   const configureInitData = useCallback(
@@ -67,12 +70,17 @@ export default function useTelegramUser(core) {
 
   /** Get Telegram User */
   useEffect(() => {
+    if (updatingRef.current) return;
     if (canUpdateUser) {
       console.log("Updating Telegram User...", {
         canUpdateUser,
         isUpdateNeeded,
       });
-      updateTelegramUser(isUpdateNeeded);
+
+      updatingRef.current = true;
+      updateTelegramUser(isUpdateNeeded).finally(() => {
+        updatingRef.current = false;
+      });
     }
   }, [canUpdateUser, isUpdateNeeded, updateTelegramUser]);
 
