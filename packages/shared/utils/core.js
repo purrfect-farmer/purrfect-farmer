@@ -16,11 +16,12 @@ export function randomPercent(value, min = 0, max = 100) {
 }
 
 export function shuffle(array) {
-  for (let i = array.length - 1; i > 0; i--) {
+  const results = [...array];
+  for (let i = results.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
-    [array[i], array[j]] = [array[j], array[i]];
+    [results[i], results[j]] = [results[j], results[i]];
   }
-  return array;
+  return results;
 }
 
 export function extraGamePoints(points, percent = 20) {

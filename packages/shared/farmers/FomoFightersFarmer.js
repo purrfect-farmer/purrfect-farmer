@@ -10,7 +10,6 @@ export default class FomoFightersFarmer extends BaseFarmer {
     "https://t.me/fomo_fighters_bot/game?startapp=ref1147265290";
   static cacheAuth = false;
   static cacheTelegramWebApp = false;
-  static startupDelay = 60;
   static rating = 5;
   static published = false;
 

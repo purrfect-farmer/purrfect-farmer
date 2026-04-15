@@ -23,7 +23,7 @@ export default class BaseFarmer {
   static domains = [];
   static withXSRFToken = false;
   static rating = 1;
-  static startupDelay = 300;
+  static startupDelay = 60;
   static published = true;
   static deactivateOnError = true;
 

@@ -45,6 +45,8 @@ export default function createRunner(FarmerClass) {
     static telegramLink = telegramLink;
     static runners = new Map();
     static logger = new ConsoleLogger(process.env.NODE_ENV !== "production");
+    static queue = [];
+    static isProcessingQueue = false;
 
     constructor(account) {
       super();
@@ -368,6 +370,7 @@ export default function createRunner(FarmerClass) {
       return this;
     }
 
+    /** Configure Telegram Web App */
     configureTelegramWebApp() {
       /** Set Telegram Web App */
       if (
@@ -423,17 +426,14 @@ export default function createRunner(FarmerClass) {
     static async execute(instance) {
       try {
         if (process.env.NODE_ENV === "production") {
-          /**
-           * Random startup delay to avoid all accounts starting at the same time
-           */
-          const startupDelay = Math.floor(
-            Math.random() * 20 * this.startupDelay,
-          );
-          if (startupDelay) {
+          /* Random wait seconds */
+          const waitSeconds =
+            30 + Math.floor(Math.random() * this.startupDelay);
+          if (waitSeconds) {
             this.logger.info(
-              `[${instance.account.id}] Delaying startup by ${startupDelay} seconds...`,
+              `[${instance.account.id}] Delaying startup by ${waitSeconds} seconds...`,
             );
-            await this.utils.delayForSeconds(startupDelay);
+            await this.utils.delayForSeconds(waitSeconds);
           }
         }
         await instance.prepare();
@@ -446,17 +446,42 @@ export default function createRunner(FarmerClass) {
       }
     }
 
-    /** Farm an account */
-    static farm(account) {
+    /** Process queue */
+    static async processQueue() {
+      if (this.isProcessingQueue) return;
+      this.isProcessingQueue = true;
+
+      try {
+        while (this.queue.length > 0) {
+          const instance = this.queue.shift();
+          try {
+            await this.execute(instance);
+          } catch (err) {
+            this.logger.error("Queue processing error:", err);
+          } finally {
+            this.runners.delete(instance.account.id);
+          }
+        }
+      } finally {
+        this.isProcessingQueue = false;
+      }
+    }
+
+    /** Prepare an account */
+    static prepare(account) {
       if (!this.runners.has(account.id)) {
         const instance = new this(account);
         this.runners.set(account.id, instance);
-        this.execute(instance).finally(() => {
-          this.runners.delete(account.id);
-        });
+        this.queue.push(instance);
       }
+    }
 
+    /** Get Result */
+    static getResult(account) {
       const instance = this.runners.get(account.id);
+      if (!instance) {
+        return { status: "skipped" };
+      }
 
       return {
         status: instance.currentTask ? "running" : "started",
@@ -482,20 +507,33 @@ export default function createRunner(FarmerClass) {
           additionalQueryOptions,
         );
 
-        /** Run all accounts */
-        const results = accounts.map((account, index) => {
+        /** Get accounts to be executed  */
+        const list = accounts.map((account) => {
           /**
            * A farmer can be automatically created for an
            * account with an active telegram session if auto start is enabled
            */
-          const shouldRunAccount =
-            this.platform === "telegram" && AUTO_START_FARMER
-              ? account.farmer?.active || account.session
-              : account.farmer?.active;
+          const canAutoStart =
+            this.platform === "telegram" && AUTO_START_FARMER;
+          const execute = canAutoStart
+            ? account.farmer?.active || account.session
+            : account.farmer?.active;
 
-          return shouldRunAccount
-            ? { account, result: this.farm(account) }
-            : { account, result: { status: "skipped" } };
+          return { account, execute };
+        });
+
+        /** Prepare accounts to be executed */
+        this.utils
+          .shuffle(list.filter((item) => item.execute))
+          .forEach((item) => this.prepare(item.account));
+
+        /** Process queue */
+        this.processQueue();
+
+        /** Get results */
+        const results = list.map((item) => {
+          const { account } = item;
+          return { account, result: this.getResult(account) };
         });
 
         /** Send Farming Initiated Message */
