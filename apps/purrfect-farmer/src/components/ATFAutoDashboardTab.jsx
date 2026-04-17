@@ -11,6 +11,7 @@ import ATFAutoMasterEditDialog from "./ATFAutoMasterEditDialog";
 import ATFAutoNewAccountDialog from "./ATFAutoNewAccountDialog";
 import ATFAutoVersionBadge from "./ATFAutoVersionBadge";
 import ATFIcon from "@/assets/images/atf.png?format=webp&w=32";
+import Decimal from "decimal.js";
 import { Dialog } from "radix-ui";
 import { HiOutlinePencilSquare } from "react-icons/hi2";
 import Input from "./Input";
@@ -22,6 +23,7 @@ import copy from "copy-to-clipboard";
 import toast from "react-hot-toast";
 import useATFAuto from "@/hooks/useATFAuto";
 import useATFBalancesQuery from "@/hooks/useATFBalancesQuery";
+import useATFNetWorthQuery from "@/hooks/useATFNetWorthQuery";
 import { useDebounce } from "react-use";
 
 function MasterBalanceCard() {
@@ -89,6 +91,55 @@ function MasterBalanceCard() {
   );
 }
 
+function NetWorthCard() {
+  const { isSuccess, data } = useATFNetWorthQuery();
+
+  const balances = useMemo(() => {
+    return isSuccess
+      ? data.reduce(
+          (result, item) => {
+            return {
+              jetton: result.jetton.plus(item.jetton),
+              ton: result.ton.plus(item.ton),
+            };
+          },
+          {
+            jetton: new Decimal(0),
+            ton: new Decimal(0),
+          },
+        )
+      : null;
+  }, [isSuccess, data]);
+
+  return (
+    <div
+      className={cn(
+        "p-2 rounded-2xl relative",
+        "bg-purple-600 text-white",
+        "flex flex-col items-center justify-center gap-2",
+      )}
+    >
+      <h3 className="text-purple-100">Net Worth</h3>
+
+      {/* Jetton balance */}
+      <div className="flex items-center gap-2">
+        <img src={ATFIcon} className="size-5 rounded-full" />
+        <span className="text-2xl">
+          {balances ? balances.jetton.toFixed(2) : "-.--"}
+        </span>
+        <span className="text-purple-100">ATF</span>
+      </div>
+
+      {/* TON Balance */}
+      <div className="flex items-center gap-2">
+        <img src={TonIcon} className="size-4" />
+        <span>{balances ? balances.ton.toFixed(4) : "-.----"}</span>
+        <span className="text-purple-100">TON</span>
+      </div>
+    </div>
+  );
+}
+
 function searchAccount(account, searchTerm) {
   if (account.title?.toLowerCase().includes(searchTerm)) return true;
   if (account.address?.toLowerCase().includes(searchTerm)) return true;
@@ -132,6 +183,9 @@ export default function ATFAutoDashboardTab() {
 
   return (
     <div className="flex flex-col gap-3 p-2">
+      {/* Net Worth Card  */}
+      <NetWorthCard />
+
       {/* Master Balance Card */}
       <MasterBalanceCard />
 
