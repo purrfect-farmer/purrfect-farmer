@@ -58,11 +58,17 @@ export async function removeAccountStorage(id) {
   await storage.remove(keysToRemove);
 }
 
+/** Get the storage key for the primary farmer user ID */
+export function getPrimaryFarmerUserIdStorageKey(id) {
+  return `shared:farmer-primary-user-id:${id}`;
+}
+
 /** Get the storage key for the primary farmer link */
 export function getPrimaryFarmerLinkStorageKey(id) {
   return `shared:farmer-primary-link:${id}`;
 }
 
+/** Get shared settings */
 export async function getSharedSettings() {
   const sharedSettings = await storage.get(
     "shared:settings",
@@ -75,6 +81,7 @@ export async function getSharedSettings() {
   };
 }
 
+/** Get user agent */
 export async function getUserAgent() {
   return await storage.get(
     "shared:user-agent",
@@ -82,6 +89,7 @@ export async function getUserAgent() {
   );
 }
 
+/** Store user agent */
 export async function storeUserAgent(value) {
   return await storage.set("shared:user-agent", value);
 }

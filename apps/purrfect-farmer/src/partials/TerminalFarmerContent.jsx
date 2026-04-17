@@ -4,6 +4,7 @@ import Container from "@/components/Container";
 import { Dialog } from "radix-ui";
 import FarmerHeader from "@/components/FarmerHeader";
 import TerminalArea from "@/components/TerminalArea";
+import TerminalFarmerContext from "@/contexts/TerminalFarmerContext";
 import { TerminalFarmerPrompt } from "./TerminalFarmerPrompt";
 import { TerminalFarmerTools } from "./TerminalFarmerTools";
 import { cn } from "@/utils";
@@ -11,21 +12,23 @@ import useMirroredLocationToggle from "@/hooks/useMirroredLocationToggle";
 import useTerminalFarmer from "@/hooks/useTerminalFarmer";
 
 export const TerminalFarmerContent = () => {
+  const terminalFarmer = useTerminalFarmer();
   const {
-    context,
+    isPrimaryFarmerUser,
     userInputPrompt,
     referralLink,
     terminalRef,
+    context,
     started,
     toggle,
-  } = useTerminalFarmer();
+  } = terminalFarmer;
 
   /** Tools Panel State */
   const [showToolsPanel, setShowToolsPanel, dispatchAndSetShowToolsPanel] =
     useMirroredLocationToggle(`${context.id}.toggle-tools-panel`, false);
 
   return (
-    <>
+    <TerminalFarmerContext.Provider value={terminalFarmer}>
       {/* User Input Prompt */}
       <TerminalFarmerPrompt
         context={context}
@@ -34,7 +37,10 @@ export const TerminalFarmerContent = () => {
 
       {/* Terminal Farmer Header */}
       <div className="p-2 border-b dark:border-neutral-700">
-        <FarmerHeader referralLink={referralLink} />
+        <FarmerHeader
+          isPrimary={isPrimaryFarmerUser}
+          referralLink={referralLink}
+        />
       </div>
 
       <Container className="flex gap-2 items-center p-0">
@@ -52,7 +58,7 @@ export const TerminalFarmerContent = () => {
           >
             <HiOutlineWrenchScrewdriver className="size-5" />
           </Dialog.Trigger>
-          <TerminalFarmerTools context={context} />
+          <TerminalFarmerTools terminalFarmer={terminalFarmer} />
         </Dialog.Root>
 
         {/* Start/Stop Button */}
@@ -75,6 +81,6 @@ export const TerminalFarmerContent = () => {
       </Container>
 
       <TerminalArea ref={terminalRef} />
-    </>
+    </TerminalFarmerContext.Provider>
   );
 };

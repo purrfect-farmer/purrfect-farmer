@@ -1,43 +1,35 @@
+import { CgSpinnerAlt } from "react-icons/cg";
+import { HiStar } from "react-icons/hi2";
+import { IoCopyOutline } from "react-icons/io5";
 import useFarmerContext from "@/hooks/useFarmerContext";
 import useReferralLink from "@/hooks/useReferralLink";
-import useStorageState from "@/hooks/useStorageState";
-import { CgSpinnerAlt } from "react-icons/cg";
-import { IoCopyOutline } from "react-icons/io5";
-import { customLogger } from "@/utils";
-import { useEffect } from "react";
 
-export default function FarmerHeader({ referralLink }) {
-  const { id, farmer } = useFarmerContext();
+export default function FarmerHeader({ isPrimary, referralLink }) {
+  const { farmer } = useFarmerContext();
   const { icon, title } = farmer;
-
-  /** Chrome Storage of Referral Link */
-  const { value: currentReferralLink, storeValue: storeReferralLink } =
-    useStorageState(`farmer-referral-link:${id}`, null);
 
   /** Copy Referral Link */
   const copyReferralLink = useReferralLink(referralLink);
-
-  /** Store Referral Link */
-  useEffect(() => {
-    /** Log Link */
-    customLogger(`${id.toUpperCase()} - REFERRAL LINK`, referralLink);
-
-    if (referralLink && referralLink !== currentReferralLink) {
-      storeReferralLink(referralLink);
-    }
-  }, [id, referralLink, currentReferralLink, storeReferralLink]);
 
   return (
     <div
       className="flex items-center justify-center gap-2 cursor-pointer"
       onClick={copyReferralLink}
     >
-      <img src={icon} alt={title} className="w-8 h-8 rounded-full" />
-      <h1 className="font-bold">{title} Farmer</h1>
+      {/* Icon */}
+      <img src={icon} alt={title} className="w-8 h-8 shrink-0 rounded-full" />
+
+      {/* Indicator for primary account */}
+      {isPrimary && <HiStar className="shrink-0 text-lime-500" />}
+
+      {/* Title */}
+      <h1 className="font-bold min-w-0">{title} Farmer</h1>
+
+      {/* Copy indicator */}
       {referralLink ? (
-        <IoCopyOutline />
+        <IoCopyOutline className="shrink-0" />
       ) : referralLink !== null ? (
-        <CgSpinnerAlt className="animate-spin" />
+        <CgSpinnerAlt className="shrink-0 animate-spin" />
       ) : null}
     </div>
   );

@@ -1,19 +1,14 @@
-import {
-  extractInitDataUnsafe,
-  getPrimaryFarmerLinkStorageKey,
-  removeAccountStorage,
-} from "@/utils";
+import { extractInitDataUnsafe, removeAccountStorage } from "@/utils";
 
 import cryptoRandomString from "crypto-random-string";
 import defaultAccounts from "@/core/defaultAccounts";
 import defaultSharedSettings from "@/core/defaultSharedSettings";
-import storage from "@/lib/storage";
 import useBaseSettings from "./useBaseSettings";
 import useCaptcha from "./useCaptcha";
 import { useMemo } from "react";
 import useMirror from "./useMirror";
 import useMirroredCallback from "./useMirroredCallback";
-import useMirroredHandlers from "./useMirroredHandlers";
+import usePrimaryFarmer from "./usePrimaryFarmer";
 import useRefCallback from "./useRefCallback";
 import useSharedStorageState from "./useSharedStorageState";
 import { useState } from "react";
@@ -183,59 +178,12 @@ export default function useSharedCore() {
     [persistedAccounts, storePersistedAccounts, launchAccount],
   );
 
-  /** Dispatch to get the primary farmer link */
-  const dispatchToGetPrimaryFarmerLink = useRefCallback(
-    (id) => {
-      console.log("Dispatching to get primary farmer link:", id);
-      return mirror.dispatch({
-        action: "get-primary-farmer-link",
-        data: {
-          id,
-        },
-      });
-    },
-    [mirror.dispatch],
-  );
-
-  /** Dispatch to set the primary farmer link */
-  const dispatchToSetPrimaryFarmerLink = useRefCallback(
-    (id, link) => {
-      console.log("Dispatching to set primary farmer link:", { id, link });
-      return mirror.dispatch({
-        action: "set-primary-farmer-link",
-        data: {
-          id,
-          link,
-        },
-      });
-    },
-    [mirror.dispatch],
-  );
-
-  /** Handle primary farmer link */
-  useMirroredHandlers(
-    useMemo(() => {
-      return {
-        /** Get primary farmer link */
-        ["get-primary-farmer-link"]: (message) => {
-          const { id } = message.data;
-          const link = storage.get(getPrimaryFarmerLinkStorageKey(id));
-
-          if (link) {
-            dispatchToSetPrimaryFarmerLink(id, link);
-          }
-        },
-
-        /** Set primary farmer link */
-        ["set-primary-farmer-link"]: (message) => {
-          const { id, link } = message.data;
-          console.log("Storing primary farmer link:", { id, link });
-          storage.set(getPrimaryFarmerLinkStorageKey(id), link);
-        },
-      };
-    }, [dispatchToSetPrimaryFarmerLink]),
-    mirror,
-  );
+  /** Primary farmer configurations */
+  const {
+    dispatchToGetPrimaryFarmerLink,
+    dispatchToSetPrimaryFarmerLink,
+    dispatchToSetPrimaryFarmerUserId,
+  } = usePrimaryFarmer(mirror);
 
   return useValuesMemo({
     mirror,
@@ -258,6 +206,7 @@ export default function useSharedCore() {
     stopHeadlessMode,
     dispatchAndStartHeadlessMode,
     dispatchAndStopHeadlessMode,
+    dispatchToSetPrimaryFarmerUserId,
     dispatchToGetPrimaryFarmerLink,
     dispatchToSetPrimaryFarmerLink,
 
