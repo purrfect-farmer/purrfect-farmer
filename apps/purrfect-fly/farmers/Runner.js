@@ -483,6 +483,12 @@ export default function createRunner(FarmerClass) {
 
         /** Configure the primary farmer link */
         this.configurePrimaryLink(this.primaryFarmerLink);
+
+        /** Log */
+        this.logger.success(
+          "Configured the primary farmer link:",
+          this.primaryFarmerLink,
+        );
       } catch (e) {
         this.logger.error("Failed to update primary link:", e);
       }
@@ -508,6 +514,7 @@ export default function createRunner(FarmerClass) {
             );
             instance = this.queue.splice(index, 1)[0];
 
+            /** Log */
             this.logger.info(
               "Prioritizing primary account:",
               this.primaryAccountId,
