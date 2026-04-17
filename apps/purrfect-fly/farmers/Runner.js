@@ -503,22 +503,30 @@ export default function createRunner(FarmerClass) {
         while (this.queue.length > 0) {
           let instance;
 
-          const primaryInQueue = this.queue.some(
-            (item) => item.account.id === this.primaryAccountId,
-          );
+          const primaryIndex = !this.primaryFarmerLink
+            ? this.queue.findIndex(
+                (item) => item.account.id === this.primaryAccountId,
+              )
+            : -1;
 
-          if (!this.primaryFarmerLink && primaryInQueue) {
-            /* Primary not yet processed - prioritize it */
-            const index = this.queue.findIndex(
-              (item) => item.account.id === this.primaryAccountId,
-            );
-            instance = this.queue.splice(index, 1)[0];
+          const newAccountIndex =
+            primaryIndex === -1
+              ? this.queue.findIndex((item) => !item.account.farmer)
+              : -1;
+
+          if (primaryIndex !== -1) {
+            instance = this.queue.splice(primaryIndex, 1)[0];
 
             /** Log */
             this.logger.info(
               "Prioritizing primary account:",
               this.primaryAccountId,
             );
+          } else if (newAccountIndex !== -1) {
+            instance = this.queue.splice(newAccountIndex, 1)[0];
+
+            /** Log */
+            this.logger.info("Prioritizing new account:", instance.account.id);
           } else {
             instance = this.queue.shift();
           }
