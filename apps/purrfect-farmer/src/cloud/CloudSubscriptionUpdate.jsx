@@ -1,13 +1,14 @@
 import * as yup from "yup";
+
+import { Controller, FormProvider, useForm } from "react-hook-form";
+
+import CloudCenteredDialog from "./CloudCenteredDialog";
 import Input from "@/components/Input";
 import PrimaryButton from "@/components/PrimaryButton";
 import toast from "react-hot-toast";
 import useCloudManagerMemberSubscriptionMutation from "@/hooks/useCloudManagerMemberSubscriptionMutation";
-import { Controller, FormProvider, useForm } from "react-hook-form";
 import { useQueryClient } from "@tanstack/react-query";
 import { yupResolver } from "@hookform/resolvers/yup";
-
-import CloudCenteredDialog from "./CloudCenteredDialog";
 
 /** Schema */
 const schema = yup
@@ -68,7 +69,7 @@ export default function CloudSubscriptionUpdate() {
                 <Input
                   {...field}
                   autoComplete="off"
-                  placeholder="Telegram User ID"
+                  placeholder="Telegram User ID (comma separated)"
                 />
                 {fieldState.error?.message ? (
                   <p className="text-red-500">{fieldState.error?.message}</p>

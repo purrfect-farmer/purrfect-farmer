@@ -275,38 +275,45 @@ export default async function (fastify, opts) {
         },
       },
       async (request) => {
-        /** Find or create account */
-        const [account] = await fastify.db.Account.findOrCreate({
-          where: {
-            id: request.body.id,
-          },
-          include: [
-            {
-              required: false,
-              association: "subscriptions",
-              where: {
-                active: true,
-              },
-            },
-          ],
-        });
+        const ids = request.body.id
+          .split(",")
+          .map((s) => Number(s.trim()))
+          .filter(Boolean);
 
-        if (account.subscription) {
-          /** Update subscription */
-          await account.subscription.update({
-            endsAt: request.body.date
-              ? new Date(request.body.date)
-              : dateFns.addDays(new Date(account.subscription.endsAt), 30),
+        for (const id of ids) {
+          /** Find or create account */
+          const [account] = await fastify.db.Account.findOrCreate({
+            where: {
+              id,
+            },
+            include: [
+              {
+                required: false,
+                association: "subscriptions",
+                where: {
+                  active: true,
+                },
+              },
+            ],
           });
-        } else {
-          /** Create subscription */
-          await account.createSubscription({
-            active: true,
-            startsAt: new Date(),
-            endsAt: request.body.date
-              ? new Date(request.body.date)
-              : dateFns.addDays(new Date(), 30),
-          });
+
+          if (account.subscription) {
+            /** Update subscription */
+            await account.subscription.update({
+              endsAt: request.body.date
+                ? new Date(request.body.date)
+                : dateFns.addDays(new Date(account.subscription.endsAt), 30),
+            });
+          } else {
+            /** Create subscription */
+            await account.createSubscription({
+              active: true,
+              startsAt: new Date(),
+              endsAt: request.body.date
+                ? new Date(request.body.date)
+                : dateFns.addDays(new Date(), 30),
+            });
+          }
         }
 
         /** Update proxies */
