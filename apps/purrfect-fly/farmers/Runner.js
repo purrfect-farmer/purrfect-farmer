@@ -495,7 +495,25 @@ export default function createRunner(FarmerClass) {
 
       try {
         while (this.queue.length > 0) {
-          const instance = this.queue.shift();
+          let instance;
+
+          if (
+            !this.primaryFarmerLink &&
+            this.runners.has(this.primaryAccountId)
+          ) {
+            /* Primary not yet processed - prioritize it */
+            const index = this.queue.findIndex(
+              (item) => item.account.id === this.primaryAccountId,
+            );
+            if (index !== -1) {
+              instance = this.queue.splice(index, 1)[0];
+            } else {
+              instance = this.queue.shift();
+            }
+          } else {
+            instance = this.queue.shift();
+          }
+
           try {
             await this.execute(instance);
           } catch (err) {
@@ -548,6 +566,15 @@ export default function createRunner(FarmerClass) {
           additionalQueryOptions,
         );
 
+        /** Primary account */
+        const primaryAccount = accounts.find(
+          (acc) => acc.id === this.primaryAccountId,
+        );
+
+        /** Can launch primary account */
+        const canLaunchPrimaryAccount =
+          primaryAccount?.farmer?.active || primaryAccount?.session;
+
         /** Get accounts to be executed  */
         const list = accounts.map((account) => {
           /**
@@ -555,8 +582,7 @@ export default function createRunner(FarmerClass) {
            * account with an active telegram session if auto start is enabled
            */
           const canAutoStart =
-            this.platform === "telegram" &&
-            (this.primaryFarmerLink || account.id === this.primaryAccountId);
+            this.platform === "telegram" && canLaunchPrimaryAccount;
           const execute = canAutoStart
             ? account.farmer?.active || account.session
             : account.farmer?.active;
