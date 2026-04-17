@@ -37,9 +37,17 @@ export default function createRunner(FarmerClass) {
   /** Telegram bot link */
   const telegramLink = env(envKey + "_LINK", FarmerClass.telegramLink);
 
+  /** Default primary account ID */
+  const defaultPrimaryAccountId = env("PRIMARY_ACCOUNT_ID");
+
+  /** Farmer primary account ID */
+  const farmerPrimaryAccountId = env(
+    envKey + "_PRIMARY_ACCOUNT_ID",
+    defaultPrimaryAccountId,
+  );
+
   /** Primary account ID */
-  const primaryAccountId =
-    Number(env(envKey + "_PRIMARY_ACCOUNT_ID", env("PRIMARY_ACCOUNT_ID"))) || 0;
+  const primaryAccountId = Number(farmerPrimaryAccountId) || 0;
 
   return class Runner extends FarmerClass {
     static utils = utils;
