@@ -58,6 +58,11 @@ export async function removeAccountStorage(id) {
   await storage.remove(keysToRemove);
 }
 
+/** Get the storage key for the primary farmer link */
+export function getPrimaryFarmerLinkStorageKey(id) {
+  return `shared:farmer-primary-link:${id}`;
+}
+
 export async function getSharedSettings() {
   const sharedSettings = await storage.get(
     "shared:settings",

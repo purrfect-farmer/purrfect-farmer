@@ -1,20 +1,20 @@
-import Input from "@/components/Input";
-import LabelToggle from "@/components/LabelToggle";
-import TelegramWebAIcon from "@/assets/images/telegram-web-a.png?format=webp&w=80";
-import TelegramWebKIcon from "@/assets/images/telegram-web-k.png?format=webp&w=80";
 import {
   HiBolt,
   HiOutlineGlobeAlt,
   HiOutlineSquares2X2,
 } from "react-icons/hi2";
-import { cn } from "@/utils";
-import { memo } from "react";
-
 import {
   SettingsGridButton,
   SettingsGroup,
   SettingsLabel,
 } from "./SettingsComponents";
+
+import Input from "@/components/Input";
+import LabelToggle from "@/components/LabelToggle";
+import TelegramWebAIcon from "@/assets/images/telegram-web-a.png?format=webp&w=80";
+import TelegramWebKIcon from "@/assets/images/telegram-web-k.png?format=webp&w=80";
+import { cn } from "@/utils";
+import { memo } from "react";
 
 export default memo(function FarmerOptionsGroup({
   account,
@@ -40,6 +40,13 @@ export default memo(function FarmerOptionsGroup({
         onChange={(ev) => updateActiveAccount({ title: ev.target.value })}
         placeholder="Farmer Title"
       />
+      {/* Primary account */}
+      <LabelToggle
+        onChange={(ev) => updateActiveAccount({ isPrimary: ev.target.checked })}
+        checked={account.isPrimary}
+      >
+        Primary account
+      </LabelToggle>
 
       {/* Preferred Theme */}
       {!import.meta.env.VITE_WHISKER ? (
@@ -56,7 +63,7 @@ export default memo(function FarmerOptionsGroup({
                 className={cn(
                   sharedSettings.theme === theme
                     ? "bg-blue-200 dark:bg-blue-200 text-blue-800"
-                    : null
+                    : null,
                 )}
               >
                 {theme}
@@ -78,7 +85,7 @@ export default memo(function FarmerOptionsGroup({
             className={cn(
               farmerMode === mode
                 ? ["bg-blue-100 dark:bg-blue-100", "text-blue-800"]
-                : null
+                : null,
             )}
           >
             {mode === "web" ? (
@@ -107,7 +114,7 @@ export default memo(function FarmerOptionsGroup({
                     "bg-orange-100 dark:bg-orange-600",
                     "text-orange-900 dark:text-white",
                   ]
-                : null
+                : null,
             )}
           >
             {client === "purrfect-gram" ? "Purrfect Gram" : "Telegram Web"}
@@ -125,13 +132,13 @@ export default memo(function FarmerOptionsGroup({
             onClick={() =>
               dispatchAndConfigureSharedSettings(
                 "preferredTelegramWebVersion",
-                version
+                version,
               )
             }
             className={cn(
               sharedSettings.preferredTelegramWebVersion === version
                 ? "bg-blue-200 dark:bg-blue-200 text-blue-800"
-                : null
+                : null,
             )}
           >
             <img
@@ -168,7 +175,7 @@ export default memo(function FarmerOptionsGroup({
         onChange={(ev) =>
           dispatchAndConfigureSharedSettings(
             "showMiniAppToolbar",
-            ev.target.checked
+            ev.target.checked,
           )
         }
         checked={sharedSettings?.showMiniAppToolbar}

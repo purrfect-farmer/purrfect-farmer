@@ -17,7 +17,6 @@ import captcha from "../lib/captcha.js";
 import db from "../db/models/index.js";
 import utils from "../lib/utils.js";
 
-const AUTO_START_FARMER = env("AUTO_START_FARMER", false);
 const HttpProxyAgentWithCookies = createCookieAgent(HttpProxyAgent);
 const HttpsProxyAgentWithCookies = createCookieAgent(HttpsProxyAgent);
 
@@ -38,11 +37,17 @@ export default function createRunner(FarmerClass) {
   /** Telegram bot link */
   const telegramLink = env(envKey + "_LINK", FarmerClass.telegramLink);
 
+  /** Primary account ID */
+  const primaryAccountId =
+    Number(env(envKey + "_PRIMARY_ACCOUNT_ID", env("PRIMARY_ACCOUNT_ID"))) || 0;
+
   return class Runner extends FarmerClass {
     static utils = utils;
     static enabled = enabled;
     static threadId = threadId;
     static telegramLink = telegramLink;
+    static primaryAccountId = primaryAccountId;
+    static primaryFarmerLink = null;
     static runners = new Map();
     static logger = new ConsoleLogger(process.env.NODE_ENV !== "production");
     static queue = [];
@@ -60,7 +65,7 @@ export default function createRunner(FarmerClass) {
 
       /** Select User-Agent */
       this.setUserAgent(
-        this.platform === "telegram"
+        this.constructor.platform === "telegram"
           ? userAgents[Math.floor(this.random() * userAgents.length)]
           : regularMobileUserAgents[
               Math.floor(this.random() * regularMobileUserAgents.length)
@@ -68,7 +73,7 @@ export default function createRunner(FarmerClass) {
       );
 
       /** Cookie Jar */
-      this.jar = this.cookies ? new CookieJar() : null;
+      this.jar = this.constructor.cookies ? new CookieJar() : null;
 
       /** Proxy URL */
       this.proxy = this.account.proxy ? `http://${this.account.proxy}` : null;
@@ -275,11 +280,11 @@ export default function createRunner(FarmerClass) {
       const defaultAgentType = isHttps ? HttpsCookieAgent : HttpCookieAgent;
 
       if (proxy) {
-        return this.cookies
+        return this.constructor.cookies
           ? new cookieAgentType({ proxy, cookies: { jar: this.jar } })
           : new proxyAgentType({ proxy });
       } else {
-        return this.cookies
+        return this.constructor.cookies
           ? new defaultAgentType({ cookies: { jar: this.jar } })
           : null;
       }
@@ -333,12 +338,12 @@ export default function createRunner(FarmerClass) {
       }
 
       /** Update WebAppData */
-      if (this.platform === "telegram" && this.account.session) {
+      if (this.constructor.platform === "telegram" && this.account.session) {
         try {
           this.client = await GramClient.create(this.account.session);
           await this.client.connect();
 
-          if (this.type === "webapp") {
+          if (this.constructor.type === "webapp") {
             await this.updateWebAppData();
           }
         } catch (e) {
@@ -350,7 +355,7 @@ export default function createRunner(FarmerClass) {
       this.configureTelegramWebApp();
 
       /** Restore Cookies */
-      if (this.cookies) {
+      if (this.constructor.cookies) {
         await this.restoreCookies();
       }
 
@@ -374,8 +379,8 @@ export default function createRunner(FarmerClass) {
     configureTelegramWebApp() {
       /** Set Telegram Web App */
       if (
-        this.platform === "telegram" &&
-        this.type === "webapp" &&
+        this.constructor.platform === "telegram" &&
+        this.constructor.type === "webapp" &&
         this.farmer
       ) {
         this.setTelegramWebApp(this.farmer.telegramWebApp);
@@ -409,7 +414,7 @@ export default function createRunner(FarmerClass) {
     /** Disconnect Farmer */
     async disconnect() {
       try {
-        if (this.platform !== "telegram" || !this.account.session) {
+        if (this.constructor.platform !== "telegram" || !this.account.session) {
           if (this.farmer) {
             this.farmer.active = false;
             await this.farmer.save();
@@ -429,6 +434,7 @@ export default function createRunner(FarmerClass) {
           /* Random wait seconds */
           const waitSeconds =
             30 + Math.floor(Math.random() * this.startupDelay);
+
           if (waitSeconds) {
             this.logger.info(
               `[${instance.account.id}] Delaying startup by ${waitSeconds} seconds...`,
@@ -436,13 +442,41 @@ export default function createRunner(FarmerClass) {
             await this.utils.delayForSeconds(waitSeconds);
           }
         }
+
+        /** Prepare instance */
         await instance.prepare();
+
+        /** Update the primary farmer link */
+        await this.updatePrimaryFarmerLink(instance);
+
+        /** Start instance */
         await instance.start();
       } catch (error) {
         if (this.deactivateOnError) {
           await instance.disconnect();
         }
         this.logger.error("Error farming account:", instance.account.id, error);
+      }
+    }
+
+    /** Update the primary farmer link
+     * @param {Runner} instance
+     */
+    static async updatePrimaryFarmerLink(instance) {
+      if (
+        this.primaryFarmerLink ||
+        instance.account.id !== this.primaryAccountId
+      ) {
+        return;
+      }
+      try {
+        /** Update the primary farmer link */
+        this.primaryFarmerLink = await instance.getReferralLink();
+
+        /** Configure the primary farmer link */
+        this.configurePrimaryLink(this.primaryFarmerLink);
+      } catch (e) {
+        this.logger.error("Failed to update primary link:", e);
       }
     }
 
@@ -496,8 +530,7 @@ export default function createRunner(FarmerClass) {
     static async run({ user } = {}) {
       try {
         /** Determine if farmer is required */
-        const farmerIsRequired =
-          this.platform !== "telegram" || !AUTO_START_FARMER;
+        const farmerIsRequired = this.platform !== "telegram";
         const additionalQueryOptions = user ? { where: { id: user } } : {};
 
         /** Fetch Subscribed Accounts */
@@ -514,7 +547,8 @@ export default function createRunner(FarmerClass) {
            * account with an active telegram session if auto start is enabled
            */
           const canAutoStart =
-            this.platform === "telegram" && AUTO_START_FARMER;
+            this.platform === "telegram" &&
+            (this.primaryFarmerLink || account.id === this.primaryAccountId);
           const execute = canAutoStart
             ? account.farmer?.active || account.session
             : account.farmer?.active;

@@ -1,7 +1,7 @@
 import LabelToggle from "@/components/LabelToggle";
-import { memo } from "react";
-import { SettingsGroup } from "./SettingsComponents";
 import { RiRobot2Line } from "react-icons/ri";
+import { SettingsGroup } from "./SettingsComponents";
+import { memo } from "react";
 export default memo(function BotOptionsGroup({
   settings,
   dispatchAndConfigureSettings,
@@ -30,26 +30,6 @@ export default memo(function BotOptionsGroup({
         checked={settings?.miniAppInNewWindow}
       >
         Mini-App in New Window
-      </LabelToggle>
-
-      {/* Auto-Start Bot */}
-      <LabelToggle
-        onChange={(ev) =>
-          dispatchAndConfigureSettings("autoStartBot", ev.target.checked)
-        }
-        checked={settings?.autoStartBot}
-      >
-        Auto-Start Bot <span className="text-orange-500">(Session Mode)</span>
-      </LabelToggle>
-
-      {/* Close Other Bots */}
-      <LabelToggle
-        onChange={(ev) =>
-          dispatchAndConfigureSettings("closeOtherBots", ev.target.checked)
-        }
-        checked={settings?.closeOtherBots}
-      >
-        Close Other Bots
       </LabelToggle>
     </SettingsGroup>
   );

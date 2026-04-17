@@ -16,27 +16,20 @@ export default class BaseFarmer {
   static syncToCloud = true;
   static cookies = false;
   static interval = "*/10 * * * *";
-  static link = "";
   static path = "/";
+  static link = "";
   static telegramLink = "";
   static host = "";
   static domains = [];
   static withXSRFToken = false;
   static rating = 1;
-  static startupDelay = 60;
-  static published = true;
+  static startupDelay = 30;
   static deactivateOnError = true;
+  static published = true;
 
   constructor() {
     /* Register utilities */
     this.utils = utils;
-
-    /* Static Properties */
-    this.platform = this.constructor.platform;
-    this.type = this.constructor.type;
-    this.link = this.constructor.link;
-    this.telegramLink = this.constructor.telegramLink;
-    this.cookies = this.constructor.cookies;
 
     /* Parse Telegram Link */
     if (this.constructor.platform === "telegram") {
@@ -255,6 +248,17 @@ export default class BaseFarmer {
     }
   }
 
+  /** Configure primary link */
+  static configurePrimaryLink(link) {
+    if (link) {
+      if (this.platform === "telegram") {
+        this.telegramLink = link;
+      } else {
+        this.link = link;
+      }
+    }
+  }
+
   /** Get URL from Init Data */
   static getUrlFromInitData(initData) {
     const url = new URL(this.path, `https://${this.host}`);
@@ -393,7 +397,10 @@ export default class BaseFarmer {
 
   /** Update Web App Data */
   async updateWebAppData() {
-    if (this.platform === "telegram" && this.type === "webapp") {
+    if (
+      this.constructor.platform === "telegram" &&
+      this.constructor.type === "webapp"
+    ) {
       const { url } = await this.client.getWebview(
         this.constructor.telegramLink,
       );

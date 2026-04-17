@@ -1,35 +1,34 @@
-import { useCallback } from "react";
-import { useLayoutEffect } from "react";
-import { useState } from "react";
-
-import useChromeStorageKey from "./useChromeStorageKey";
-import useValuesMemo from "./useValuesMemo";
 import storage from "@/lib/storage";
+import useChromeStorageKey from "./useChromeStorageKey";
+import { useLayoutEffect } from "react";
+import useRefCallback from "./useRefCallback";
+import { useState } from "react";
+import useValuesMemo from "./useValuesMemo";
 
 export default function useStorageState(key, defaultValue, shared = false) {
   const storageKey = useChromeStorageKey(key, shared);
   const [value, setValue] = useState(
-    () => storage.get(storageKey) || defaultValue
+    () => storage.get(storageKey) || defaultValue,
   );
 
   /** Configure Value */
-  const storeValue = useCallback(
+  const storeValue = useRefCallback(
     (newValue) => storage.set(storageKey, newValue),
-    [storageKey]
+    [storageKey],
   );
 
   /** Remove Value */
-  const removeValue = useCallback(
+  const removeValue = useRefCallback(
     () => storage.remove(storageKey),
-    [storageKey]
+    [storageKey],
   );
 
   /** Watch Storage */
-  const watchStorage = useCallback(
+  const watchStorage = useRefCallback(
     (newValue) => {
       setValue(typeof newValue === "undefined" ? defaultValue : newValue);
     },
-    [storageKey, defaultValue, setValue]
+    [storageKey, defaultValue, setValue],
   );
 
   /** Restore Value and Watch Storage */
@@ -53,5 +52,6 @@ export default function useStorageState(key, defaultValue, shared = false) {
     setValue,
     storeValue,
     removeValue,
+    storageKey,
   });
 }

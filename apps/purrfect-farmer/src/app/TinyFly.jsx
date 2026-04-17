@@ -1,11 +1,12 @@
 import { HiPlay, HiStop } from "react-icons/hi2";
+import { cn, getPrimaryFarmerLinkStorageKey } from "@/utils";
 
 import BrowserLogger from "@purrfect/shared/lib/BrowserLogger";
 import CronRunner from "@purrfect/shared/lib/CronRunner.js";
 import TerminalArea from "@/components/TerminalArea";
 import axios from "axios";
-import { cn } from "@/utils";
 import { memo } from "react";
+import storage from "@/lib/storage";
 import useAppContext from "@/hooks/useAppContext";
 import { useCallback } from "react";
 import { useEffect } from "react";
@@ -59,6 +60,11 @@ const createInstance = ({
       await this.start(this.controller.signal);
     }
   };
+
+  /** Configure primary link */
+  InstanceClass.configurePrimaryLink(
+    storage.get(getPrimaryFarmerLinkStorageKey(FarmerClass.id)),
+  );
 
   return new InstanceClass();
 };

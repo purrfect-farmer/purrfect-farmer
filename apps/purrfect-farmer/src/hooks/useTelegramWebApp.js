@@ -21,7 +21,7 @@ export default function useTelegramWebApp({
   telegramLink,
   cacheTelegramWebApp,
 }) {
-  const { settings, messaging, farmerMode, telegramClient } = useAppContext();
+  const { messaging, farmerMode, telegramClient } = useAppContext();
   const [telegramWebApp, setTelegramWebApp] = useState(() => {
     if (initData) {
       const initDataUnsafe = extractInitDataUnsafe(initData);
@@ -132,7 +132,7 @@ export default function useTelegramWebApp({
 
     /** Set From Session or Port */
     const setWebAppFromSessionOrPort = () => {
-      if (farmerMode === "session" && settings.autoStartBot) {
+      if (farmerMode === "session" && telegramLink) {
         setWebAppFromSession();
       } else {
         setWebAppFromPort();
@@ -176,7 +176,6 @@ export default function useTelegramWebApp({
     cacheTelegramWebApp,
     webAppChromeStorageKey,
     messaging.ports,
-    settings.autoStartBot,
   ]);
 
   return {

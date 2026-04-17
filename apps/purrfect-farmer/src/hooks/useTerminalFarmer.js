@@ -1,17 +1,47 @@
 import { useLayoutEffect, useRef, useState } from "react";
 
+import useAppContext from "./useAppContext";
+import { useEffect } from "react";
 import useFarmerContext from "./useFarmerContext";
 import useMirroredCallback from "./useMirroredCallback";
+import usePrimaryFarmerLink from "./usePrimaryFarmerLink";
 import usePrompt from "./usePrompt";
+import useRefCallback from "./useRefCallback";
 import useStaticQuery from "./useStaticQuery";
+import useSyncedRef from "./useSyncedRef";
 
 export default function useTerminalFarmer() {
+  const app = useAppContext();
   const context = useFarmerContext();
   const userInputPrompt = usePrompt();
 
-  const { id, title, instance, logger, isZooming, zoomies, processNextTask } =
-    context;
+  const { account, dispatchToSetPrimaryFarmerLink } = app;
+  const {
+    id,
+    title,
+    farmer,
+    external,
+    instance,
+    logger,
+    isZooming,
+    zoomies,
+    processNextTask,
+  } = context;
 
+  const { FarmerClass } = farmer;
+
+  /** Should store primary link */
+  const shouldStorePrimaryLink = account.isPrimary && !external;
+
+  /** Primary farmer link */
+  const { storePrimaryFarmerLink } = usePrimaryFarmerLink(FarmerClass.id);
+
+  const [started, setStarted] = useState();
+  const terminalRef = useRef();
+  const controllerRef = useRef();
+  const startedRef = useSyncedRef(started);
+
+  /** Referral link query */
   const referralLinkQuery = useStaticQuery({
     queryKey: [id, "referral-link"],
     queryFn: async () => {
@@ -24,15 +54,16 @@ export default function useTerminalFarmer() {
     },
   });
 
+  /** Referral link */
   const referralLink = referralLinkQuery.data;
 
-  const [started, setStarted] = useState();
-  const terminalRef = useRef();
-  const controllerRef = useRef();
+  /** Dispatch the primary farmer link */
+  const dispatchPrimaryFarmerLink = useRefCallback(
+    (link) => dispatchToSetPrimaryFarmerLink(FarmerClass.id, link),
+    [FarmerClass.id, dispatchToSetPrimaryFarmerLink],
+  );
 
-  const startedRef = useRef(started);
-  startedRef.current = started;
-
+  /** Stop farmer */
   const [stopFarmer, dispatchAndStopFarmer] = useMirroredCallback(
     `${id}-stop`,
     () => {
@@ -46,6 +77,7 @@ export default function useTerminalFarmer() {
     [id, instance, setStarted],
   );
 
+  /** Start farmer */
   const [startFarmer, dispatchAndStartFarmer] = useMirroredCallback(
     `${id}-start`,
     () => {
@@ -70,6 +102,7 @@ export default function useTerminalFarmer() {
     [id, title, instance, logger, stopFarmer],
   );
 
+  /** Toggle farmer */
   const [, dispatchAndToggleFarmer] = useMirroredCallback(
     `${id}-toggle`,
     (status) => {
@@ -126,6 +159,24 @@ export default function useTerminalFarmer() {
       };
     }
   }, [isZooming, zoomies.quickRun, startFarmer, processNextTask]);
+
+  /** Store primary link */
+  useEffect(() => {
+    if (referralLink && shouldStorePrimaryLink) {
+      console.log("Storing primary farmer link:", {
+        id: FarmerClass.id,
+        link: referralLink,
+      });
+      storePrimaryFarmerLink(referralLink);
+      dispatchPrimaryFarmerLink(referralLink);
+    }
+  }, [
+    FarmerClass.id,
+    referralLink,
+    shouldStorePrimaryLink,
+    storePrimaryFarmerLink,
+    dispatchPrimaryFarmerLink,
+  ]);
 
   return {
     context,

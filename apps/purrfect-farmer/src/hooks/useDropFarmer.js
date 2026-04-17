@@ -15,6 +15,7 @@ import useDropFarmerZoomies from "./useDropFarmerZoomies";
 import useFarmerDataQuery from "./useFarmerDataQuery";
 import { useLayoutEffect } from "react";
 import { useMemo } from "react";
+import usePrimaryFarmerLink from "./usePrimaryFarmerLink";
 import useRefCallback from "./useRefCallback";
 import useTabContext from "./useTabContext";
 import useTelegramWebApp from "./useTelegramWebApp";
@@ -39,7 +40,6 @@ export default function useDropFarmer() {
     type,
     host,
     apiDelay = 200,
-    telegramLink,
     cacheAuth = true,
     cacheTelegramWebApp = true,
     syncToCloud = true,
@@ -50,8 +50,22 @@ export default function useDropFarmer() {
   /** Is Telegram Mini App */
   const isTelegramMiniApp = platform === "telegram" && type === "webapp";
 
-  /** Zoomies */
-  const { captcha, zoomies, settings, account } = app;
+  /** App */
+  const {
+    captcha,
+    zoomies,
+    settings,
+    account,
+    dispatchToGetPrimaryFarmerLink,
+  } = app;
+
+  /** Primary farmer link */
+  const { primaryFarmerLink } = usePrimaryFarmerLink(FarmerClass.id);
+
+  /** Telegram Link */
+  const telegramLink = account.isPrimary
+    ? FarmerClass.telegramLink
+    : primaryFarmerLink;
 
   const {
     resetStates,
@@ -217,6 +231,13 @@ export default function useDropFarmer() {
     await resetInit();
   }, [resetTelegramWebApp, resetInit]);
 
+  /** Request for primary farmer link */
+  useLayoutEffect(() => {
+    if (!primaryFarmerLink) {
+      dispatchToGetPrimaryFarmerLink(FarmerClass.id);
+    }
+  }, [FarmerClass.id, primaryFarmerLink, dispatchToGetPrimaryFarmerLink]);
+
   /** Restore cookies */
   useDropFarmerCookiesRestore(external, cookies);
 
@@ -270,6 +291,7 @@ export default function useDropFarmer() {
     isZooming,
     started,
     farmer,
+    FarmerClass,
     reset,
     resetInit,
     resetTelegramWebApp,

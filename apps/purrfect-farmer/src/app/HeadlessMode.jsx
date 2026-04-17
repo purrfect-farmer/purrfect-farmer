@@ -1,10 +1,11 @@
+import { cn, getPrimaryFarmerLinkStorageKey } from "@/utils";
+
 import AppIcon from "@/assets/images/icon.png?format=webp&w=80";
 import BrowserLogger from "@purrfect/shared/lib/BrowserLogger";
 import CronRunner from "@purrfect/shared/lib/CronRunner";
 import TelegramWebClient from "@/lib/TelegramWebClient";
 import TerminalArea from "@/components/TerminalArea";
 import axios from "axios";
-import { cn } from "@/utils";
 import farmers from "@/core/farmers";
 import seedrandom from "seedrandom";
 import storage from "@/lib/storage";
@@ -36,7 +37,7 @@ class HeadlessTelegramClient extends TelegramWebClient {
  * @returns {import("@purrfect/shared/lib/BaseFarmer.js").default}
  */
 const createRunner = ({ FarmerClass, logger, captcha, controller }) => {
-  return class extends FarmerClass {
+  const Runner = class extends FarmerClass {
     static runners = new Map();
 
     /**
@@ -131,6 +132,13 @@ const createRunner = ({ FarmerClass, logger, captcha, controller }) => {
       return results;
     }
   };
+
+  /** Configure primary link */
+  Runner.configurePrimaryLink(
+    storage.get(getPrimaryFarmerLinkStorageKey(FarmerClass.id)),
+  );
+
+  return Runner;
 };
 
 export default function HeadlessMode() {

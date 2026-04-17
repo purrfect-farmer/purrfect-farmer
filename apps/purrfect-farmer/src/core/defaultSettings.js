@@ -6,7 +6,6 @@ const defaultSettings = {
   onboarded: import.meta.env.VITE_SETTING_ONBOARDED || false,
   enableInAppBrowser: true,
   miniAppInNewWindow: false,
-  autoStartBot: true,
   closeOtherBots: true,
   enableCloud: false,
   enableSeeker: false,

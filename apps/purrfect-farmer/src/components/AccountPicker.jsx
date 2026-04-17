@@ -1,22 +1,23 @@
-import useAppContext from "@/hooks/useAppContext";
-import { BsStopCircle } from "react-icons/bs";
-import { Dialog } from "radix-ui";
 import {
   HiCheckBadge,
   HiOutlineCheckBadge,
   HiOutlineSquares2X2,
+  HiStar,
 } from "react-icons/hi2";
-import { LiaUser } from "react-icons/lia";
-import { PiUserCirclePlusBold } from "react-icons/pi";
 import { Reorder, useDragControls } from "motion/react";
-import { cn } from "@/utils";
-import { memo } from "react";
-import { useMemo } from "react";
-import { useState } from "react";
 
 import BottomDialog from "./BottomDialog";
+import { BsStopCircle } from "react-icons/bs";
 import Container from "./Container";
+import { Dialog } from "radix-ui";
 import Input from "./Input";
+import { LiaUser } from "react-icons/lia";
+import { PiUserCirclePlusBold } from "react-icons/pi";
+import { cn } from "@/utils";
+import { memo } from "react";
+import useAppContext from "@/hooks/useAppContext";
+import { useMemo } from "react";
+import { useState } from "react";
 
 const PickerButton = (props) => (
   <button
@@ -28,7 +29,7 @@ const PickerButton = (props) => (
       "dark:hover:bg-orange-200 dark:hover:text-orange-500",
       "flex items-center justify-center",
       "px-3 rounded-xl shrink-0 touch-none",
-      props.className
+      props.className,
     )}
   />
 );
@@ -48,7 +49,7 @@ const AccountSelector = memo(
         user
           ? [user["first_name"], user["last_name"]].filter(Boolean).join(" ")
           : "",
-      [user]
+      [user],
     );
 
     return (
@@ -66,7 +67,7 @@ const AccountSelector = memo(
               "hover:bg-orange-100 hover:text-orange-700",
               "dark:hover:bg-orange-200 dark:hover:text-orange-500",
               "grow min-w-0 min-h-0 flex items-center gap-2",
-              "group"
+              "group",
             )}
           >
             {/* User  */}
@@ -89,7 +90,7 @@ const AccountSelector = memo(
                   <span
                     className={cn(
                       "text-neutral-500 dark:text-neutral-400",
-                      "group-hover:text-orange-900"
+                      "group-hover:text-orange-900",
                     )}
                   >
                     ({userFullName})
@@ -102,7 +103,7 @@ const AccountSelector = memo(
                   className={cn(
                     "truncate",
                     "text-neutral-500 dark:text-neutral-400",
-                    "group-hover:text-orange-900"
+                    "group-hover:text-orange-900",
                   )}
                 >
                   @{user["username"]}
@@ -110,6 +111,12 @@ const AccountSelector = memo(
               ) : null}
             </div>
 
+            {/* Primary */}
+            {account.isPrimary ? (
+              <HiStar className="shrink-0 text-lime-500 size-4" />
+            ) : null}
+
+            {/* Active / running state */}
             {account.active ? (
               <HiCheckBadge className="shrink-0 text-orange-500 size-4" />
             ) : account.running ? (
@@ -131,7 +138,7 @@ const AccountSelector = memo(
         </div>
       </Reorder.Item>
     );
-  }
+  },
 );
 
 export default memo(function AccountPicker() {
@@ -158,7 +165,7 @@ export default memo(function AccountPicker() {
           .filter(Boolean)
           .join(" ")
           .toLowerCase()
-          .includes(lowerSearch)
+          .includes(lowerSearch),
     );
   }, [accounts, search]);
 
@@ -215,7 +222,7 @@ export default memo(function AccountPicker() {
               "bg-purple-100 ",
               "text-purple-900",
               "p-2.5 rounded-xl shrink-0 font-bold",
-              "flex items-center justify-center gap-2"
+              "flex items-center justify-center gap-2",
             )}
           >
             <PiUserCirclePlusBold className="size-4" />
@@ -229,7 +236,7 @@ export default memo(function AccountPicker() {
             "bg-blue-100 dark:bg-blue-700",
             "text-blue-900 dark:text-blue-100",
             "p-2.5 rounded-xl shrink-0 font-bold",
-            "flex items-center justify-center gap-2"
+            "flex items-center justify-center gap-2",
           )}
         >
           Close
