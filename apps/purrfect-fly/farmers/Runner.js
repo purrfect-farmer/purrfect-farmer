@@ -497,19 +497,21 @@ export default function createRunner(FarmerClass) {
         while (this.queue.length > 0) {
           let instance;
 
-          if (
-            !this.primaryFarmerLink &&
-            this.runners.has(this.primaryAccountId)
-          ) {
+          const primaryInQueue = this.queue.some(
+            (item) => item.account.id === this.primaryAccountId,
+          );
+
+          if (!this.primaryFarmerLink && primaryInQueue) {
             /* Primary not yet processed - prioritize it */
             const index = this.queue.findIndex(
               (item) => item.account.id === this.primaryAccountId,
             );
-            if (index !== -1) {
-              instance = this.queue.splice(index, 1)[0];
-            } else {
-              instance = this.queue.shift();
-            }
+            instance = this.queue.splice(index, 1)[0];
+
+            this.logger.info(
+              "Prioritizing primary account:",
+              this.primaryAccountId,
+            );
           } else {
             instance = this.queue.shift();
           }
@@ -518,6 +520,16 @@ export default function createRunner(FarmerClass) {
             await this.execute(instance);
           } catch (err) {
             this.logger.error("Queue processing error:", err);
+
+            /** Unblock queue */
+            if (instance.account.id === this.primaryAccountId) {
+              this.primaryFarmerLink =
+                this.platform === "telegram" ? this.telegramLink : this.link;
+              this.logger.warn(
+                "Primary account failed - farmer link set to unblock queue:",
+                this.primaryFarmerLink,
+              );
+            }
           } finally {
             this.runners.delete(instance.account.id);
           }
