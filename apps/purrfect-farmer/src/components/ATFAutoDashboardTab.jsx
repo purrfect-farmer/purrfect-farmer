@@ -27,7 +27,7 @@ import useATFNetWorthQuery from "@/hooks/useATFNetWorthQuery";
 import { useDebounce } from "react-use";
 
 function MasterBalanceCard() {
-  const { master } = useATFAuto();
+  const { master, enableRequests, setEnableRequests } = useATFAuto();
   const { data: balances } = useATFBalancesQuery(master?.address);
   const [editOpen, setEditOpen] = useState(false);
 
@@ -39,12 +39,31 @@ function MasterBalanceCard() {
         "flex flex-col items-center justify-center gap-2",
       )}
     >
+      {/* Toogle Requests */}
+      <button
+        title="Toggle requests"
+        onClick={() => setEnableRequests((prev) => !prev)}
+        className={cn(
+          "absolute top-3 left-3",
+          "p-1.5 rounded-full flex items-center justify-center",
+          "bg-neutral-900 hover:bg-neutral-800",
+          "cursor-pointer transition-colors",
+        )}
+      >
+        <span
+          className={cn(
+            "size-2 rounded-full inline-flex",
+            enableRequests ? "bg-green-500" : "bg-red-500",
+          )}
+        ></span>
+      </button>
+
       {/* Edit Button */}
       <Dialog.Root open={editOpen} onOpenChange={setEditOpen}>
         <Dialog.Trigger asChild>
           <button
             className={cn(
-              "absolute top-3 right-3",
+              "absolute top-3 right-3 flex items-center justify-center",
               "p-1.5 rounded-lg",
               "bg-neutral-900 hover:bg-neutral-800",
               "cursor-pointer transition-colors",

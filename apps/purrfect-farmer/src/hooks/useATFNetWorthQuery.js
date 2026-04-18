@@ -4,7 +4,7 @@ import { useCallback } from "react";
 import { useQueries } from "@tanstack/react-query";
 
 export default function useATFNetWorthQuery() {
-  const { accounts } = useATFAuto();
+  const { accounts, enableRequests } = useATFAuto();
   const combine = useCallback((results) => {
     return {
       query: results,
@@ -23,7 +23,7 @@ export default function useATFNetWorthQuery() {
         queryKey: ["atf-balances", address],
         queryFn: () => getBalances(address),
         refetchInterval: 60_000,
-        enabled: Boolean(address),
+        enabled: enableRequests && Boolean(address),
       };
     }),
   });

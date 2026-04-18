@@ -7,6 +7,7 @@ import useSharedStorageState from "@/hooks/useSharedStorageState";
 import { useState } from "react";
 
 export default function ATFAuto() {
+  const [enableRequests, setEnableRequests] = useState(true);
   const [password, setPassword] = useState(null);
   const { value: master, storeValue: storeMaster } = useSharedStorageState(
     "atf-auto-master",
@@ -59,6 +60,8 @@ export default function ATFAuto() {
         storeMaster,
         setPassword,
         resetATFAuto,
+        enableRequests,
+        setEnableRequests,
         dispatchAndSetPassword,
         dispatchAndStoreMaster,
         dispatchAndStoreAccounts,
