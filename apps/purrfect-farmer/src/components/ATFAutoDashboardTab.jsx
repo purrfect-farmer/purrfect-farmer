@@ -11,6 +11,7 @@ import ATFAutoMasterEditDialog from "./ATFAutoMasterEditDialog";
 import ATFAutoNewAccountDialog from "./ATFAutoNewAccountDialog";
 import ATFAutoVersionBadge from "./ATFAutoVersionBadge";
 import ATFIcon from "@/assets/images/atf.png?format=webp&w=32";
+import Alert from "./Alert";
 import Decimal from "decimal.js";
 import { Dialog } from "radix-ui";
 import { HiOutlinePencilSquare } from "react-icons/hi2";
@@ -31,6 +32,16 @@ function MasterBalanceCard() {
   const { data: balances } = useATFBalancesQuery(master?.address);
   const [editOpen, setEditOpen] = useState(false);
 
+  /** Toggle Requests */
+  const toggleRequests = () => {
+    setEnableRequests(!enableRequests);
+    toast.success(
+      enableRequests
+        ? "Successfully disabled requests!"
+        : "Successfully enabled requests!",
+    );
+  };
+
   return (
     <div
       className={cn(
@@ -39,10 +50,10 @@ function MasterBalanceCard() {
         "flex flex-col items-center justify-center gap-2",
       )}
     >
-      {/* Toogle Requests */}
+      {/* Toggle Requests */}
       <button
         title="Toggle requests"
-        onClick={() => setEnableRequests((prev) => !prev)}
+        onClick={toggleRequests}
         className={cn(
           "absolute top-3 left-3",
           "p-1.5 rounded-full flex items-center justify-center",
@@ -207,6 +218,12 @@ export default function ATFAutoDashboardTab() {
 
       {/* Master Balance Card */}
       <MasterBalanceCard />
+
+      {/* Alert */}
+      <Alert variant={"warning"}>
+        Disable requests by clicking the boost toggle in the master balance card
+        before boosting / collecting to speed up operations.
+      </Alert>
 
       {/* Add Account */}
       <Dialog.Root open={addOpen} onOpenChange={setAddOpen}>

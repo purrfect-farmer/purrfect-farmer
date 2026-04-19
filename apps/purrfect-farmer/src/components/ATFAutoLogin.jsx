@@ -47,7 +47,9 @@ export default function ATFAutoLogin() {
   return (
     <Container className={cn("flex flex-col justify-center gap-4 p-4 grow")}>
       <ATFAutoHeader />
-      <Alert variant={"info"}>ATF Auto - Sign in to manage accounts</Alert>
+      <Alert variant={"info"}>
+        <span className="font-bold">ATF Auto</span> - Sign in to manage accounts
+      </Alert>
       <FormProvider {...form}>
         <form
           onSubmit={form.handleSubmit(handleFormSubmit)}
