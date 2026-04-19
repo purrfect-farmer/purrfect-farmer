@@ -1,33 +1,24 @@
-import AppIcon from "@/assets/images/icon.png?format=webp&w=80";
-import Input from "@/components/Input";
-import UserIcon from "@/assets/images/user-icon.png?format=webp&w=256";
-import farmers from "@/core/farmers";
-import toast from "react-hot-toast";
-import useCloudManagerDisconnectFarmerMutation from "@/hooks/useCloudManagerDisconnectFarmerMutation";
-import useCloudManagerFarmersQuery from "@/hooks/useCloudManagerFarmersQuery";
-import { Collapsible } from "radix-ui";
-import { Dialog } from "radix-ui";
 import { HiOutlinePower, HiOutlineXMark } from "react-icons/hi2";
 import { cn, matchesAccountSearch } from "@/utils";
-import { useCallback } from "react";
+import { farmersMap } from "@/core/farmers";
 import { useMemo, useState } from "react";
 
+import AppIcon from "@/assets/images/icon.png?format=webp&w=80";
 import CloudMemberDialog from "./CloudMemberDialog";
-import useLocationToggle from "@/hooks/useLocationToggle";
+import { Collapsible } from "radix-ui";
+import { Dialog } from "radix-ui";
+import Input from "@/components/Input";
+import UserIcon from "@/assets/images/user-icon.png?format=webp&w=256";
+import toast from "react-hot-toast";
+import { useCallback } from "react";
 import useCloudManagerActivateFarmerMutation from "@/hooks/useCloudManagerActivateFarmerMutation";
-
-const CLOUD_FARMERS = farmers.reduce((result, farmer) => {
-  result.set(farmer.id, {
-    title: farmer.title,
-    icon: farmer.icon,
-    FarmerClass: farmer.FarmerClass,
-  });
-  return result;
-}, new Map());
+import useCloudManagerDisconnectFarmerMutation from "@/hooks/useCloudManagerDisconnectFarmerMutation";
+import useCloudManagerFarmersQuery from "@/hooks/useCloudManagerFarmersQuery";
+import useLocationToggle from "@/hooks/useLocationToggle";
 
 const AccountDetailsDialog = ({ account, children }) => {
   const [open, setOpen] = useLocationToggle(
-    `cloud-farmer-details:${account.id}`
+    `cloud-farmer-details:${account.id}`,
   );
   return (
     <Dialog.Root open={open} onOpenChange={setOpen}>
@@ -44,7 +35,7 @@ const FarmerActionButton = ({ variant, ...props }) => (
         ? "text-green-500 dark:text-green-400"
         : "text-red-500 dark:text-red-400",
       "bg-neutral-100 dark:bg-neutral-700",
-      "px-3 rounded-lg shrink-0"
+      "px-3 rounded-lg shrink-0",
     )}
   />
 );
@@ -67,20 +58,23 @@ export default function CloudFarmers() {
               });
 
               return result;
-            }, {})
+            }, {}),
           ).map(([k, v]) => {
+            const entry = farmersMap?.get(k);
+
             return {
               id: k,
-              icon: CLOUD_FARMERS?.get(k)?.icon || AppIcon,
-              title: CLOUD_FARMERS?.get(k)?.title || "(Unknown) Farmer",
-              FarmerClass: CLOUD_FARMERS?.get(k)?.FarmerClass,
+              icon: entry?.icon || AppIcon,
+              title: entry?.title || "(Unknown) Farmer",
+              singleton: entry?.singleton || false,
+              FarmerClass: entry?.FarmerClass,
               farmers: search
                 ? v.filter((item) => matchesAccountSearch(search, item.account))
                 : v,
             };
           })
         : [],
-    [search, farmersQuery.data]
+    [search, farmersQuery.data],
   );
 
   console.log("Farmers Groups:", groups);
@@ -96,7 +90,7 @@ export default function CloudFarmers() {
         })
         .finally(farmersQuery.refetch);
     },
-    [activateFarmerMutation.mutateAsync, farmersQuery.refetch]
+    [activateFarmerMutation.mutateAsync, farmersQuery.refetch],
   );
 
   /* Disconnect Farmer */
@@ -110,7 +104,7 @@ export default function CloudFarmers() {
         })
         .finally(farmersQuery.refetch);
     },
-    [disconnectFarmerMutation.mutateAsync, farmersQuery.refetch]
+    [disconnectFarmerMutation.mutateAsync, farmersQuery.refetch],
   );
 
   return farmersQuery.isPending ? (
@@ -135,7 +129,7 @@ export default function CloudFarmers() {
                 "bg-neutral-100 dark:bg-neutral-700",
                 "flex items-center gap-2 p-2 cursor-pointer rounded-xl",
                 "border border-transparent",
-                "data-[state=open]:border-blue-500"
+                "data-[state=open]:border-blue-500",
               )}
             >
               <img src={group.icon} className="w-6 h-6 rounded-full shrink-0" />
@@ -157,7 +151,7 @@ export default function CloudFarmers() {
                             "text-blue-500 dark:text-blue-400",
                             "flex items-center justify-center",
                             "px-3 rounded-lg shrink-0",
-                            "bg-neutral-100 dark:bg-neutral-700"
+                            "bg-neutral-100 dark:bg-neutral-700",
                           )}
                         >
                           {account.title}
@@ -169,7 +163,7 @@ export default function CloudFarmers() {
                           className={cn(
                             "flex items-center min-w-0 min-h-0",
                             "gap-2 p-2 rounded-lg grow bg-neutral-100 dark:bg-neutral-700",
-                            "text-left"
+                            "text-left",
                           )}
                         >
                           {/* Photo */}
@@ -186,7 +180,7 @@ export default function CloudFarmers() {
                               className={cn(
                                 "shrink-0 size-2 rounded-full",
                                 "border-2 border-white",
-                                farmer.active ? "bg-green-500" : "bg-red-500"
+                                farmer.active ? "bg-green-500" : "bg-red-500",
                               )}
                             />
                           ) : null}
@@ -199,6 +193,7 @@ export default function CloudFarmers() {
                             FarmerClass: group.FarmerClass,
                             title: group.title,
                             icon: group.icon,
+                            singleton: group.singleton,
                           }}
                         />
                       </AccountDetailsDialog>

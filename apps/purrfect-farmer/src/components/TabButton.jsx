@@ -11,24 +11,8 @@ export default memo(function TabButton({
   showMirrorStatus,
   mirrorIsConnected,
 }) {
-  const {
-    setActiveTab,
-    dispatchAndCloseTab,
-    dispatchAndSetActiveTab,
-    broadcastToCloseTab,
-    reloadTab,
-  } = useAppContext();
+  const { dispatchAndCloseTab, launchTab, reloadTab } = useAppContext();
   const buttonRef = useRef();
-
-  /** Button Click Handler */
-  const handleTabButtonClick = useCallback(() => {
-    if (tab.singleton) {
-      broadcastToCloseTab(tab.id);
-      setActiveTab(tab.id);
-    } else {
-      dispatchAndSetActiveTab(tab.id);
-    }
-  }, [tab, setActiveTab, dispatchAndSetActiveTab, broadcastToCloseTab]);
 
   /** Reload Tab */
   const handleReloadButtonClick = useCallback(
@@ -67,7 +51,7 @@ export default memo(function TabButton({
   return (
     <div
       ref={buttonRef}
-      onClick={handleTabButtonClick}
+      onClick={() => launchTab(tab)}
       title={tab.title}
       className={cn(
         "cursor-pointer",
@@ -89,7 +73,7 @@ export default memo(function TabButton({
           <span
             className={cn(
               "absolute inset-0",
-              "rotate-[120deg]",
+              "rotate-120",
 
               // After
               "after:absolute",

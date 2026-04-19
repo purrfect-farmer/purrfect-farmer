@@ -17,6 +17,7 @@ export default class ATFFarmer extends BaseFarmer {
   static domains = ["atfminers.asloni.online"];
   static telegramLink = "https://t.me/ATF_AIRDROP_bot?start=7511206091";
   static path = "/miner/index.html";
+  static singleton = true;
   static cacheAuth = false;
   static cacheTelegramWebApp = false;
   static rating = 4;

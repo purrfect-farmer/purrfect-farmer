@@ -127,10 +127,10 @@ const MemberDialogFarmer = ({ account, farmer }) => {
           onClick={() =>
             launchInAppBrowser({
               id: `${account.id}-farmer-${farmer.id}`,
-              icon: farmer.icon,
               title: `${account.title || "TGUser"}'s ${farmer.title}`,
+              icon: farmer.icon,
+              singleton: farmer.singleton,
               url: farmer.FarmerClass.getUrlFromInitData(farmer.initData),
-              singleton: true,
             })
           }
           className={cn(

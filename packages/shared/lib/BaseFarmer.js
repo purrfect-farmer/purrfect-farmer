@@ -26,6 +26,7 @@ export default class BaseFarmer {
   static startupDelay = 30;
   static deactivateOnError = true;
   static published = true;
+  static singleton = false;
 
   constructor() {
     /* Register utilities */

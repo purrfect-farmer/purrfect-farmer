@@ -8,7 +8,6 @@ import defaultSharedSettings from "@/core/defaultSharedSettings";
 import md5 from "md5";
 import toast from "react-hot-toast";
 import useAccountContext from "./useAccountContext";
-import { useCallback } from "react";
 import useCloudAuth from "./useCloudAuth";
 import useCloudTelegramSession from "./useCloudTelegramSession";
 import { useDeepCompareMemo } from "use-deep-compare";
@@ -265,8 +264,21 @@ export default function useCore() {
       [setOpenedTabs],
     );
 
+  /** Launch tab */
+  const launchTab = useRefCallback(
+    (tab) => {
+      if (tab.singleton) {
+        broadcastToCloseTab(tab.id);
+        setActiveTab(tab.id);
+      } else {
+        dispatchAndSetActiveTab(tab.id);
+      }
+    },
+    [setActiveTab, broadcastToCloseTab, dispatchAndSetActiveTab],
+  );
+
   /** Open New Tab */
-  const openNewTab = useCallback(async () => {
+  const openNewTab = useRefCallback(async () => {
     await chrome?.windows?.create({
       url: "chrome://newtab",
       state: "maximized",
@@ -275,7 +287,7 @@ export default function useCore() {
   }, []);
 
   /** Open Extensions Page */
-  const openExtensionsPage = useCallback(async () => {
+  const openExtensionsPage = useRefCallback(async () => {
     await chrome?.windows?.create({
       url: "chrome://extensions",
       state: "maximized",
@@ -369,14 +381,14 @@ export default function useCore() {
     );
 
   /** Open Telegram Web */
-  const openTelegramWeb = useCallback(
+  const openTelegramWeb = useRefCallback(
     (v) => {
       dispatchAndSetActiveTab(`telegram-web-${v}`);
     },
     [dispatchAndSetActiveTab],
   );
 
-  const getFarmerBotPort = useCallback(
+  const getFarmerBotPort = useRefCallback(
     () =>
       messaging.ports
         .values()
@@ -387,7 +399,7 @@ export default function useCore() {
     [messaging.ports],
   );
 
-  const getMiniAppPorts = useCallback(
+  const getMiniAppPorts = useRefCallback(
     () =>
       messaging.ports
         .values()
@@ -444,7 +456,7 @@ export default function useCore() {
       [settings.miniAppInNewWindow, pushTab, broadcastToCloseTab],
     );
 
-  const closeOtherBots = useCallback(async () => {
+  const closeOtherBots = useRefCallback(async () => {
     const ports = getMiniAppPorts();
     const farmerBotPortName = `mini-app:${import.meta.env.VITE_APP_BOT_HOST}`;
 
@@ -756,6 +768,7 @@ export default function useCore() {
     reloadTab,
     resetTabs,
     closeTab,
+    launchTab,
     closeFarmerTabs,
     broadcastToCloseTab,
     dispatchAndPushTab,

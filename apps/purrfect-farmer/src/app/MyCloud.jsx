@@ -1,4 +1,5 @@
 import { HiOutlinePower, HiOutlineXMark } from "react-icons/hi2";
+import { farmersMap } from "@/core/farmers";
 
 import Alert from "@/components/Alert";
 import AppIcon from "@/assets/images/icon.png?format=webp&w=80";
@@ -9,7 +10,6 @@ import Container from "@/components/Container";
 import ProxyDetails from "@/components/ProxyDetails";
 import Tabs from "@/components/Tabs";
 import { cn } from "@/utils";
-import farmers from "@/core/farmers";
 import toast from "react-hot-toast";
 import useAppContext from "@/hooks/useAppContext";
 import { useCallback } from "react";
@@ -19,16 +19,6 @@ import useMirroredTabs from "@/hooks/useMirroredTabs";
 import useMyCloudActivateFarmerMutation from "@/hooks/useMyCloudActivateFarmerMutation";
 import useMyCloudDeactivateFarmerMutation from "@/hooks/useMyCloudDeactivateFarmerMutation";
 import useMyCloudFarmersQuery from "@/hooks/useMyCloudFarmersQuery";
-
-/* Map of Farmers */
-const farmersMap = farmers.reduce((result, farmer) => {
-  result.set(farmer.id, {
-    title: farmer.title,
-    icon: farmer.icon,
-    FarmerClass: farmer.FarmerClass,
-  });
-  return result;
-}, new Map());
 
 /* Action Button Component */
 const MyCloudActionButton = ({ variant, ...props }) => (
@@ -59,9 +49,10 @@ const MyCloudFarmers = () => {
             const details = farmersMap.get(item.farmer);
             return {
               ...item,
-              title: details?.title || "(Unknown) Farmer",
-              icon: details?.icon || AppIcon,
-              FarmerClass: details?.FarmerClass || null,
+              title: details?.title ?? "(Unknown) Farmer",
+              icon: details?.icon ?? AppIcon,
+              singleton: details?.singleton ?? false,
+              FarmerClass: details?.FarmerClass ?? null,
             };
           })
         : [],
@@ -80,8 +71,8 @@ const MyCloudFarmers = () => {
           id: `farmer-${farmer.id}`,
           icon: farmer.icon,
           title: farmer.title,
+          singleton: farmer.singleton,
           url: farmer.FarmerClass.getUrlFromInitData(farmer.initData),
-          singleton: true,
         });
       }
     },

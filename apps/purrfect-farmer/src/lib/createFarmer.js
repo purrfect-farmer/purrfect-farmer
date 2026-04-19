@@ -33,8 +33,10 @@ function getAllStaticProperties(Class) {
 
 export function createFarmer(FarmerClass, options) {
   return {
-    FarmerClass,
     ...getAllStaticProperties(FarmerClass),
+    FarmerClass,
+    tabType: "farmer",
+    component: createElement(TerminalFarmer),
     netRequest: {
       ...(FarmerClass.netRequest || {}),
       ...(FarmerClass.host
@@ -44,8 +46,6 @@ export function createFarmer(FarmerClass, options) {
           }
         : {}),
     },
-    component: createElement(TerminalFarmer),
-    singleton: true,
     ...options,
   };
 }
