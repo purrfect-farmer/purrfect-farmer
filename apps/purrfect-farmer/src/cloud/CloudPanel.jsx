@@ -1,18 +1,18 @@
 import AppIcon from "@/assets/images/icon.png?format=webp&w=56";
-import Tabs from "@/components/Tabs";
-import useMirroredTabs from "@/hooks/useMirroredTabs";
-import { Dialog } from "radix-ui";
+import CloudAddressDisplay from "./CloudAddressDisplay";
+import CloudEnvUpdate from "./CloudEnvUpdate";
 import CloudFarmers from "./CloudFarmers";
 import CloudMembers from "./CloudMembers";
 import CloudServerDisplay from "./CloudServerDisplay";
 import CloudSubscriptionUpdate from "./CloudSubscriptionUpdate";
-import CloudUserDisplay from "./CloudUserDisplay";
-import { TbCalendarUser } from "react-icons/tb";
-import { MdEditNote } from "react-icons/md";
-import CloudEnvUpdate from "./CloudEnvUpdate";
-import useLocationToggle from "@/hooks/useLocationToggle";
-import CloudAddressDisplay from "./CloudAddressDisplay";
+import CloudTools from "./CloudTools";
 import Container from "@/components/Container";
+import { Dialog } from "radix-ui";
+import { MdEditNote } from "react-icons/md";
+import Tabs from "@/components/Tabs";
+import { TbCalendarUser } from "react-icons/tb";
+import useLocationToggle from "@/hooks/useLocationToggle";
+import useMirroredTabs from "@/hooks/useMirroredTabs";
 
 export default function CloudPanel() {
   const tabs = useMirroredTabs("cloud-panel", ["farmers", "members"]);
@@ -21,7 +21,7 @@ export default function CloudPanel() {
     useLocationToggle("cloud-env-update");
 
   const [openSubscriptionUpdate, setOpenSubscriptionUpdate] = useLocationToggle(
-    "cloud-subscription-update"
+    "cloud-subscription-update",
   );
 
   return (
@@ -63,8 +63,8 @@ export default function CloudPanel() {
           {/* Display Server */}
           <CloudServerDisplay />
 
-          {/* User Display */}
-          <CloudUserDisplay />
+          {/* Cloud Tools */}
+          <CloudTools />
 
           {/* Tabs */}
           <Tabs tabs={tabs}>

@@ -117,6 +117,11 @@ export default async function (fastify, opts) {
       },
     );
 
+    /** Update proxies */
+    fastify.post("/update-proxies", async () => {
+      await updateProxies();
+    });
+
     /** Import backup */
     fastify.post(
       "/import-backup",

@@ -55,7 +55,7 @@ export default function CloudSubscriptionUpdate() {
   return (
     <CloudCenteredDialog
       title={"Subscription"}
-      description={"Create or update member's subscription"}
+      description={"Create or update members subscription"}
     >
       <FormProvider {...form}>
         <form
