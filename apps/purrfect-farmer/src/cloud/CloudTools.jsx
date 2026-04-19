@@ -1,3 +1,4 @@
+import { FaDoorOpen, FaToolbox } from "react-icons/fa6";
 import {
   HiOutlineKey,
   HiOutlineServerStack,
@@ -12,7 +13,6 @@ import CloudPasswordUpdate from "./CloudPasswordUpdate";
 import CloudServerBackup from "./CloudServerBackup";
 import CloudServerUpdate from "./CloudServerUpdate";
 import { Dialog } from "radix-ui";
-import { FaDoorOpen } from "react-icons/fa6";
 import { LiaUserNinjaSolid } from "react-icons/lia";
 import toast from "react-hot-toast";
 import useAppContext from "@/hooks/useAppContext";
@@ -50,7 +50,9 @@ export default function CloudTools() {
     <>
       <Dialog.Root>
         <Dialog.Trigger asChild>
-          <Button>Open server tools</Button>
+          <Button>
+            <FaToolbox className="size-4" /> Open server tools
+          </Button>
         </Dialog.Trigger>
         <BottomDialog
           title={"Server Tools"}
