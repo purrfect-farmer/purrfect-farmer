@@ -8,7 +8,7 @@ import TerminalFarmerContext from "@/contexts/TerminalFarmerContext";
 import { TerminalFarmerPrompt } from "./TerminalFarmerPrompt";
 import { TerminalFarmerTools } from "./TerminalFarmerTools";
 import { cn } from "@/utils";
-import useMirroredLocationToggle from "@/hooks/useMirroredLocationToggle";
+import useMirroredState from "@/hooks/useMirroredState";
 import useTerminalFarmer from "@/hooks/useTerminalFarmer";
 
 export const TerminalFarmerContent = () => {
@@ -25,7 +25,7 @@ export const TerminalFarmerContent = () => {
 
   /** Tools Panel State */
   const [showToolsPanel, setShowToolsPanel, dispatchAndSetShowToolsPanel] =
-    useMirroredLocationToggle(`${context.id}.toggle-tools-panel`, false);
+    useMirroredState(`${context.id}.toggle-tools-panel`, false);
 
   return (
     <TerminalFarmerContext.Provider value={terminalFarmer}>

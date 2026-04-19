@@ -11,18 +11,14 @@ import { Dialog } from "radix-ui";
 import { MdEditNote } from "react-icons/md";
 import Tabs from "@/components/Tabs";
 import { TbCalendarUser } from "react-icons/tb";
-import useLocationToggle from "@/hooks/useLocationToggle";
 import useMirroredTabs from "@/hooks/useMirroredTabs";
+import { useState } from "react";
 
 export default function CloudPanel() {
   const tabs = useMirroredTabs("cloud-panel", ["farmers", "members"]);
 
-  const [openEnvUpdate, setOpenEnvUpdate] =
-    useLocationToggle("cloud-env-update");
-
-  const [openSubscriptionUpdate, setOpenSubscriptionUpdate] = useLocationToggle(
-    "cloud-subscription-update",
-  );
+  const [openEnvUpdate, setOpenEnvUpdate] = useState(false);
+  const [openSubscriptionUpdate, setOpenSubscriptionUpdate] = useState(false);
 
   return (
     <div className="flex flex-col grow overflow-auto">

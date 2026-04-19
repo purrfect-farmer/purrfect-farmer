@@ -1,13 +1,3 @@
-import BottomDialog from "@/components/BottomDialog";
-import Container from "@/components/Container";
-import PrimaryButton from "@/components/PrimaryButton";
-import toast from "react-hot-toast";
-import useAppContext from "@/hooks/useAppContext";
-import useLocationToggle from "@/hooks/useLocationToggle";
-import useMirroredCallback from "@/hooks/useMirroredCallback";
-import useStorageState from "@/hooks/useStorageState";
-import { ContextMenu } from "radix-ui";
-import { Dialog } from "radix-ui";
 import {
   HiOutlineArrowUpRight,
   HiOutlineGlobeAlt,
@@ -20,12 +10,21 @@ import {
 } from "react-icons/hi2";
 import { cn, fetchContent, isBotURL, uuid } from "@/utils";
 import { memo, useCallback } from "react";
-import { useEffect } from "react";
-import { useMutation } from "@tanstack/react-query";
-import { useState } from "react";
 
+import BottomDialog from "@/components/BottomDialog";
+import Container from "@/components/Container";
+import { ContextMenu } from "radix-ui";
+import { Dialog } from "radix-ui";
+import PrimaryButton from "@/components/PrimaryButton";
 import TelegramLinkForm from "./TelegramLinkForm";
 import TelegramLogo from "../assets/images/telegram-logo.svg";
+import toast from "react-hot-toast";
+import useAppContext from "@/hooks/useAppContext";
+import { useEffect } from "react";
+import useMirroredCallback from "@/hooks/useMirroredCallback";
+import { useMutation } from "@tanstack/react-query";
+import { useState } from "react";
+import useStorageState from "@/hooks/useStorageState";
 
 /** Load Link Icon */
 const loadLinkIcon = function (src) {
@@ -62,7 +61,7 @@ const LinkContextItem = (props) => (
       "flex items-center gap-2 p-2",
       "rounded-lg cursor-pointer",
       "bg-neutral-800 hover:bg-blue-500",
-      props.className
+      props.className,
     )}
   />
 );
@@ -75,7 +74,7 @@ const LinkHeaderButton = (props) => (
       "rounded-lg shrink-0",
       "bg-blue-100 text-blue-800",
       "dark:bg-neutral-700 dark:text-blue-200",
-      props.className
+      props.className,
     )}
   />
 );
@@ -89,10 +88,7 @@ export default memo(function FarmerLinks() {
     dispatchAndJoinTelegramLink,
   } = useAppContext();
   const { value: links, storeValue: storeLinks } = useStorageState("links", []);
-  const [openModal, setOpenModal] = useLocationToggle(
-    "app.toggle-link-modal",
-    false
-  );
+  const [openModal, setOpenModal] = useState(false);
   const [currentLink, setCurrentLink] = useState(null);
 
   /** Show as Grid */
@@ -109,7 +105,7 @@ export default memo(function FarmerLinks() {
         const titleMeta = dom.querySelector('meta[property="og:title"]');
         const imageMeta = dom.querySelector('meta[property="og:image"]');
         const descriptionMeta = dom.querySelector(
-          'meta[property="og:description"]'
+          'meta[property="og:description"]',
         );
 
         return {
@@ -131,14 +127,14 @@ export default memo(function FarmerLinks() {
       setCurrentLink(link);
       setOpenModal(true);
     },
-    [setCurrentLink, setOpenModal]
+    [setCurrentLink, setOpenModal],
   );
 
   /** Store Links */
   const [, dispatchAndStoreLinks] = useMirroredCallback(
     "app.store-links",
     storeLinks,
-    [storeLinks]
+    [storeLinks],
   );
 
   /** Delete Link */
@@ -147,7 +143,7 @@ export default memo(function FarmerLinks() {
       /** Store Links */
       dispatchAndStoreLinks(links.filter((item) => link.id !== item.id));
     },
-    [links, dispatchAndStoreLinks]
+    [links, dispatchAndStoreLinks],
   );
 
   /** Update Link */
@@ -158,10 +154,10 @@ export default memo(function FarmerLinks() {
         dispatchAndStoreLinks(
           links.some((link) => link.id === data.id)
             ? links.map((link) => (link.id === data.id ? data : link))
-            : [...links, data]
+            : [...links, data],
         );
       }),
-    [links, dispatchAndStoreLinks]
+    [links, dispatchAndStoreLinks],
   );
 
   /** Save Link */
@@ -179,9 +175,9 @@ export default memo(function FarmerLinks() {
           loading: "Please wait...",
           success: "Telegram Link Saved!",
           error: "Failed to Save!",
-        }
+        },
       ),
-    [updateLink]
+    [updateLink],
   );
 
   return (
@@ -198,7 +194,7 @@ export default memo(function FarmerLinks() {
               dispatchAndConfigureSettings(
                 "showLinksAsGrid",
                 !showAsGrid,
-                false
+                false,
               )
             }
           >
@@ -213,7 +209,7 @@ export default memo(function FarmerLinks() {
           <Dialog.Title
             className={cn(
               "grow min-w-0",
-              "text-xl font-bold font-turret-road text-blue-400 text-center"
+              "text-xl font-bold font-turret-road text-blue-400 text-center",
             )}
           >
             Telegram Links
@@ -239,7 +235,7 @@ export default memo(function FarmerLinks() {
               <div
                 className={cn(
                   "flex w-full",
-                  showAsGrid ? "flex-wrap" : "flex-col gap-2"
+                  showAsGrid ? "flex-wrap" : "flex-col gap-2",
                 )}
               >
                 {links.map((link) => (
@@ -256,7 +252,9 @@ export default memo(function FarmerLinks() {
                             "gap-2 p-2 rounded-lg",
                             "bg-neutral-100 dark:bg-neutral-700",
                             "hover:bg-neutral-200 dark:hover:bg-neutral-600",
-                            showAsGrid ? "flex-col justify-center" : "text-left"
+                            showAsGrid
+                              ? "flex-col justify-center"
+                              : "text-left",
                           )}
                           onClick={() =>
                             isBotURL(link.telegramLink)
@@ -274,7 +272,7 @@ export default memo(function FarmerLinks() {
                             refetch={() => updateLink(link)}
                             className={cn(
                               "rounded-full shrink-0 bg-neutral-200 dark:bg-neutral-600",
-                              showAsGrid ? "w-10 h-10" : "w-8 h-8"
+                              showAsGrid ? "w-10 h-10" : "w-8 h-8",
                             )}
                           />
 
@@ -303,7 +301,7 @@ export default memo(function FarmerLinks() {
                             "text-white rounded-lg bg-neutral-900",
                             "max-w-[--(--radix-context-menu-content-available-width)]",
                             "w-48",
-                            "z-50"
+                            "z-50",
                           )}
                         >
                           {/* Open Link */}
@@ -378,13 +376,13 @@ export default memo(function FarmerLinks() {
           className={cn(
             "fixed inset-0 z-40",
             "flex items-center justify-center",
-            "p-4 overflow-auto bg-black/50"
+            "p-4 overflow-auto bg-black/50",
           )}
         >
           <Dialog.Content
             className={cn(
               "bg-white dark:bg-neutral-800",
-              "flex flex-col w-full max-w-sm gap-2 p-4 rounded-xl"
+              "flex flex-col w-full max-w-sm gap-2 p-4 rounded-xl",
             )}
           >
             {/* Title */}
@@ -392,7 +390,7 @@ export default memo(function FarmerLinks() {
               className={cn(
                 "inline-flex items-center justify-center gap-2",
                 "text-purple-500 dark:text-purple-400",
-                "font-bold text-center text-sm"
+                "font-bold text-center text-sm",
               )}
             >
               {currentLink ? "Edit Link" : "Create Link"}
@@ -412,7 +410,7 @@ export default memo(function FarmerLinks() {
             {/* Cancel Button */}
             <Dialog.Close
               className={cn(
-                "px-4 py-2 bg-neutral-200 dark:bg-neutral-900 rounded-lg"
+                "px-4 py-2 bg-neutral-200 dark:bg-neutral-900 rounded-lg",
               )}
             >
               Cancel

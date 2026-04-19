@@ -42,11 +42,11 @@ import useAppContext from "@/hooks/useAppContext";
 import useAppQuery from "@/hooks/useAppQuery";
 import { useCallback } from "react";
 import { useEffect } from "react";
-import useLocationToggle from "@/hooks/useLocationToggle";
 import { useMemo } from "react";
 import useMirroredCallback from "@/hooks/useMirroredCallback";
-import useMirroredLocationToggle from "@/hooks/useMirroredLocationToggle";
+import useMirroredState from "@/hooks/useMirroredState";
 import useMirroredTabs from "@/hooks/useMirroredTabs";
+import { useState } from "react";
 import useStorageState from "@/hooks/useStorageState";
 
 /** Telegram Web Button */
@@ -76,15 +76,13 @@ export default memo(function Welcome() {
     showSettingsPanel,
     setShowSettingsPanel,
     dispatchAndSetShowSettingsPanel,
-  ] = useMirroredLocationToggle("app.toggle-settings-panel", false);
+  ] = useMirroredState("app.toggle-settings-panel", false);
 
   const [showLinksPanel, setShowLinksPanel, dispatchAndSetShowLinksPanel] =
-    useMirroredLocationToggle("app.toggle-links-panel", false);
+    useMirroredState("app.toggle-links-panel", false);
 
-  const [showShutdown, setShowShutdown] = useLocationToggle(
-    "app.toggle-shutdown",
-  );
-  const [showDonate, setShowDonate] = useLocationToggle("app.toggle-donate");
+  const [showShutdown, setShowShutdown] = useState(false);
+  const [showDonate, setShowDonate] = useState(false);
 
   const {
     account,

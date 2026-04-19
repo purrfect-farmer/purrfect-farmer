@@ -18,21 +18,15 @@ import toast from "react-hot-toast";
 import useAppContext from "@/hooks/useAppContext";
 import { useCallback } from "react";
 import useCloudManagerUpdateProxiesMutation from "@/hooks/useCloudManagerUpdateProxiesMutation";
-import useLocationToggle from "@/hooks/useLocationToggle";
+import { useState } from "react";
 
 export default function CloudTools() {
   const { cloudAuth } = useAppContext();
   const updateProxiesMutation = useCloudManagerUpdateProxiesMutation();
 
-  const [openPasswordUpdate, setOpenPasswordUpdate] = useLocationToggle(
-    "cloud-password-update",
-  );
-
-  const [openServerUpdate, setOpenServerUpdate] = useLocationToggle(
-    "cloud-server-update",
-  );
-
-  const [openBackup, setOpenBackup] = useLocationToggle("cloud-server-backup");
+  const [openPasswordUpdate, setOpenPasswordUpdate] = useState(false);
+  const [openServerUpdate, setOpenServerUpdate] = useState(false);
+  const [openBackup, setOpenBackup] = useState(false);
 
   const updateProxies = () => {
     toast.promise(updateProxiesMutation.mutateAsync(), {

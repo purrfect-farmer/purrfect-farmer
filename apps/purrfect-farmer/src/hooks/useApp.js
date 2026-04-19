@@ -1,11 +1,10 @@
 import { useCallback } from "react";
-
 import useCore from "./useCore";
+import useMirroredState from "./useMirroredState";
 import useMirroredTabs from "./useMirroredTabs";
 import useTelegramUser from "./useTelegramUser";
 import useValuesMemo from "./useValuesMemo";
 import useZoomies from "./useZoomies";
-import useMirroredLocationToggle from "./useMirroredLocationToggle";
 
 export default function useApp() {
   const core = useCore();
@@ -17,17 +16,17 @@ export default function useApp() {
     showAccountPicker,
     setShowAccountPicker,
     dispatchAndSetShowAccountPicker,
-  ] = useMirroredLocationToggle("app.toggle-account-picker", false);
+  ] = useMirroredState("app.toggle-account-picker", false);
 
   /** Utils Panel State */
   const [showUtilsPanel, setShowUtilsPanel, dispatchAndSetShowUtilsPanel] =
-    useMirroredLocationToggle("app.toggle-utils-panel", false);
+    useMirroredState("app.toggle-utils-panel", false);
 
   /** Utils Panel Tabs */
   const utilsPanelTabs = useMirroredTabs(
     "app.utils-panel-tabs",
     ["utils", "system"],
-    "utils"
+    "utils",
   );
 
   const { dispatchAndSetValue: dispatchAndSetUtilsPanelTabValue } =
@@ -43,7 +42,7 @@ export default function useApp() {
       /** Deps */
       dispatchAndSetUtilsPanelTabValue,
       dispatchAndSetShowUtilsPanel,
-    ]
+    ],
   );
 
   return useValuesMemo({

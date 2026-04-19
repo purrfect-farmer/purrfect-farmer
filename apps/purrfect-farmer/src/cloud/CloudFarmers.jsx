@@ -1,6 +1,5 @@
 import { HiOutlinePower, HiOutlineXMark } from "react-icons/hi2";
 import { cn, matchesAccountSearch } from "@/utils";
-import { farmersMap } from "@/core/farmers";
 import { useMemo, useState } from "react";
 
 import AppIcon from "@/assets/images/icon.png?format=webp&w=80";
@@ -9,17 +8,15 @@ import { Collapsible } from "radix-ui";
 import { Dialog } from "radix-ui";
 import Input from "@/components/Input";
 import UserIcon from "@/assets/images/user-icon.png?format=webp&w=256";
+import { farmersMap } from "@/core/farmers";
 import toast from "react-hot-toast";
 import { useCallback } from "react";
 import useCloudManagerActivateFarmerMutation from "@/hooks/useCloudManagerActivateFarmerMutation";
 import useCloudManagerDisconnectFarmerMutation from "@/hooks/useCloudManagerDisconnectFarmerMutation";
 import useCloudManagerFarmersQuery from "@/hooks/useCloudManagerFarmersQuery";
-import useLocationToggle from "@/hooks/useLocationToggle";
 
 const AccountDetailsDialog = ({ account, children }) => {
-  const [open, setOpen] = useLocationToggle(
-    `cloud-farmer-details:${account.id}`,
-  );
+  const [open, setOpen] = useState(false);
   return (
     <Dialog.Root open={open} onOpenChange={setOpen}>
       {children}

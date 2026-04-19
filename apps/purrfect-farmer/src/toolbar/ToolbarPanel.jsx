@@ -1,17 +1,15 @@
+import AdvancePanel from "./AdvancePanel";
 import AppIcon from "@/assets/images/icon.png?inline&format=webp&w=72&h=72";
 import AutoClicker from "@/toolbar/AutoClicker";
-import Draggable from "react-draggable";
-import styled from "styled-components";
-import useMirroredState from "@/hooks/useMirroredState";
 import { Dialog } from "radix-ui";
+import Draggable from "react-draggable";
 import { HiOutlineArrowsPointingOut } from "react-icons/hi2";
 import { PiHandTap } from "react-icons/pi";
 import { RiDraggable } from "react-icons/ri";
+import styled from "styled-components";
 import { useCallback } from "react";
+import useMirroredState from "@/hooks/useMirroredState";
 import { useRef } from "react";
-
-import AdvancePanel from "./AdvancePanel";
-import useMirroredLocationToggle from "@/hooks/useMirroredLocationToggle";
 
 const Wrapper = styled.div`
   position: fixed;
@@ -96,16 +94,18 @@ export default function ToolbarPanel() {
     {
       x: 0,
       y: 0,
-    }
+    },
   );
 
   const [showClicker, , dispatchAndSetShowClicker] = useMirroredState(
     "mini-app-toolbar:show-clicker",
-    false
+    false,
   );
 
-  const [showAdvancePanel, , dispatchAndSetShowAdvancePanel] =
-    useMirroredLocationToggle("mini-app-toolbar:show-panel", false);
+  const [showAdvancePanel, , dispatchAndSetShowAdvancePanel] = useMirroredState(
+    "mini-app-toolbar:show-panel",
+    false,
+  );
 
   /** Toggle FullScreen */
   const toggleFullScreen = useCallback(async function toggleFullScreen() {

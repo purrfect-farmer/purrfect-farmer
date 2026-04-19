@@ -1,18 +1,15 @@
-import Input from "@/components/Input";
-import UserIcon from "@/assets/images/user-icon.png?format=webp&w=256";
-import useCloudManagerMembersQuery from "@/hooks/useCloudManagerMembersQuery";
-import { Dialog } from "radix-ui";
 import { HiCheckCircle, HiMinusCircle } from "react-icons/hi2";
 import { cn, matchesAccountSearch } from "@/utils";
 import { useMemo, useState } from "react";
 
 import CloudMemberDialog from "./CloudMemberDialog";
-import useLocationToggle from "@/hooks/useLocationToggle";
+import { Dialog } from "radix-ui";
+import Input from "@/components/Input";
+import UserIcon from "@/assets/images/user-icon.png?format=webp&w=256";
+import useCloudManagerMembersQuery from "@/hooks/useCloudManagerMembersQuery";
 
 const AccountDetailsDialog = ({ account, children }) => {
-  const [open, setOpen] = useLocationToggle(
-    `cloud-member-details:${account.id}`
-  );
+  const [open, setOpen] = useState(false);
   return (
     <Dialog.Root open={open} onOpenChange={setOpen}>
       {children}
@@ -29,11 +26,11 @@ export default function CloudMembers() {
       membersQuery.data
         ? search
           ? membersQuery.data.filter((item) =>
-              matchesAccountSearch(search, item)
+              matchesAccountSearch(search, item),
             )
           : membersQuery.data
         : [],
-    [search, membersQuery.data]
+    [search, membersQuery.data],
   );
 
   return membersQuery.isPending ? (
@@ -63,7 +60,7 @@ export default function CloudMembers() {
                       "text-blue-500 dark:text-blue-400",
                       "flex items-center justify-center",
                       "px-3 rounded-lg shrink-0",
-                      "bg-neutral-100 dark:bg-neutral-700"
+                      "bg-neutral-100 dark:bg-neutral-700",
                     )}
                   >
                     {account.title}
@@ -75,7 +72,7 @@ export default function CloudMembers() {
                     className={cn(
                       "flex items-center min-w-0 min-h-0",
                       "gap-2 p-2 rounded-lg grow bg-neutral-100 dark:bg-neutral-700",
-                      "text-left"
+                      "text-left",
                     )}
                   >
                     {/* Photo */}
@@ -96,7 +93,7 @@ export default function CloudMembers() {
                   className={cn(
                     "flex items-center justify-center",
                     "bg-neutral-100 dark:bg-neutral-700",
-                    "px-3 rounded-lg shrink-0"
+                    "px-3 rounded-lg shrink-0",
                   )}
                 >
                   {account.subscriptions.length ? (
