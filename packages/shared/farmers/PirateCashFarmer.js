@@ -228,20 +228,20 @@ export default class PirateCashFarmer extends BaseFarmer {
         list: [
           {
             id: "connect-mini-app",
-            emoji: "🔗",
+            icon: "connect",
             title: "Connect Mini-App (NEW Wallet)",
             action: this.connectMiniApp.bind(this),
             dispatch: false,
           },
           {
             id: "check-mini-app-connection",
-            emoji: "🔍",
+            icon: "search",
             title: "Check Mini-App Connection",
             action: this.checkMiniAppConnection.bind(this),
           },
           {
             id: "confirm-wallet-connection",
-            emoji: "✅",
+            icon: "check",
             title: "Confirm Wallet Connection",
             action: this.confirmWalletConnection.bind(this),
             dispatch: false,
@@ -253,14 +253,14 @@ export default class PirateCashFarmer extends BaseFarmer {
         list: [
           {
             id: "create-pcash-wallet",
-            emoji: "🪙",
+            icon: "wallet",
             title: "Create P.CASH Wallet (NEW)",
             action: this.generatePCashWallet.bind(this),
             dispatch: false,
           },
           {
             id: "create-pcash-wallet-from-phrase",
-            emoji: "🪙",
+            icon: "wallet",
             title: "Create P.CASH Wallet from Phrase",
             action: this.generatePCashWalletFromPhrase.bind(this),
             dispatch: false,
@@ -272,14 +272,14 @@ export default class PirateCashFarmer extends BaseFarmer {
         list: [
           {
             id: "import-connection-data",
-            emoji: "📁",
+            icon: "import",
             title: "Import Connection Data from JSON",
             action: this.importConnectionData.bind(this),
             dispatch: false,
           },
           {
             id: "solve-connection-captcha",
-            emoji: "🔐",
+            icon: "key",
             title: "Solve Connection Captcha",
             action: this.solveConnectionCaptcha.bind(this),
             dispatch: false,

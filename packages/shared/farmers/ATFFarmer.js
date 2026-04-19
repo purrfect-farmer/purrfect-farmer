@@ -152,14 +152,14 @@ export default class ATFFarmer extends BaseFarmer {
         list: [
           {
             id: "connect-wallet",
-            emoji: "🟢",
+            icon: "wallet",
             title: "Connect Wallet",
             action: this.connectWalletSecretKeyOrMnemonic.bind(this),
             dispatch: false,
           },
           {
             id: "reconnect-wallet",
-            emoji: "🔁",
+            icon: "connect",
             title: "Reconnect Wallet",
             action: this.reconnectWallet.bind(this),
             dispatch: false,

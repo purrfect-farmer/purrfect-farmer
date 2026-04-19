@@ -49,8 +49,8 @@ export default function CloudTools() {
           </Button>
         </Dialog.Trigger>
         <BottomDialog
-          title={"Server Tools"}
-          description={"Manage server tools"}
+          title={"Manager"}
+          description={"Server tools"}
           icon={CloudIcon}
         >
           <BottomDialogTools.Container>

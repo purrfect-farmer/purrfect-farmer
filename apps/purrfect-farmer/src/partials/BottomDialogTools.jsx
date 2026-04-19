@@ -29,7 +29,7 @@ function ToolButton({ icon: Icon, children, ...props }) {
         "text-left",
       )}
     >
-      {Icon && <Icon className="size-5 shrink-0" />}
+      {typeof Icon === "function" ? <Icon className="size-5 shrink-0" /> : Icon}
       <ToolButtonTitle>{children}</ToolButtonTitle>
     </Dialog.Close>
   );

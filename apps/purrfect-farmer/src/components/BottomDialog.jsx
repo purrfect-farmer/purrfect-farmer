@@ -1,7 +1,6 @@
+import Container from "./Container";
 import { Dialog } from "radix-ui";
 import { cn } from "@/utils";
-
-import Container from "./Container";
 
 function BottomDialogContainer(props) {
   return (
@@ -13,7 +12,7 @@ function BottomDialogContainer(props) {
           "bg-white dark:bg-neutral-800",
           "fixed z-50 inset-x-0 bottom-0 h-5/6 rounded-t-xl",
           "flex flex-col",
-          props.className
+          props.className,
         )}
       />
     </Dialog.Portal>
@@ -32,20 +31,20 @@ function BottomDialog({
       <>
         <div className=" min-w-0 min-h-0 overflow-auto grow">
           <Container className="flex flex-col gap-2 p-4 pb-0">
-            <div className="flex relative">
-              {/* Icon */}
-              <img src={icon} className="w-10 mx-auto rounded-full" />
+            {/* Icon */}
+            <img src={icon} className="w-10 mx-auto rounded-full" />
+
+            <div className="flex flex-col text-center">
+              {/* Title */}
+              <Dialog.Title className="text-xl font-bold font-turret-road text-blue-400 text-center">
+                {title}
+              </Dialog.Title>
+
+              {/* Description */}
+              <Dialog.Description className="text-neutral-400 font-bold text-center">
+                {description}
+              </Dialog.Description>
             </div>
-
-            {/* Title */}
-            <Dialog.Title className="text-xl font-bold font-turret-road text-blue-400 text-center">
-              {title}
-            </Dialog.Title>
-
-            {/* Description */}
-            <Dialog.Description className="sr-only">
-              {description}
-            </Dialog.Description>
 
             {children}
           </Container>

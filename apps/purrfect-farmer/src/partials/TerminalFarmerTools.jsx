@@ -1,41 +1,28 @@
-import { HiOutlineStar, HiStar } from "react-icons/hi2";
+import { HiCheckBadge, HiOutlineCheckBadge } from "react-icons/hi2";
+import {
+  MdArrowDownward,
+  MdCheck,
+  MdOutlineKey,
+  MdOutlineWallet,
+  MdSearch,
+} from "react-icons/md";
 
 import BottomDialog from "@/components/BottomDialog";
-import { Dialog } from "radix-ui";
+import BottomDialogTools from "./BottomDialogTools";
 import { Fragment } from "react";
-import { cn } from "@/utils";
+import { LuCircleFadingArrowUp } from "react-icons/lu";
+import { TbPlugConnected } from "react-icons/tb";
 import useMirroredCallback from "@/hooks/useMirroredCallback";
 
-/** Tools header */
-function ToolsHeader(props) {
-  return (
-    <h2
-      {...props}
-      className={cn("text-neutral-500 dark:text-neutral-400", "font-bold px-4")}
-    />
-  );
-}
-
-/** Tool button */
-function ToolButton(props) {
-  return (
-    <Dialog.Close
-      {...props}
-      className={cn(
-        "bg-neutral-100 dark:bg-neutral-700",
-        "flex items-center gap-2.5 p-2.5 cursor-pointer rounded-xl",
-        "text-left",
-      )}
-    />
-  );
-}
-
-/** Tool button title */
-function ToolButtonTitle(props) {
-  return (
-    <h3 {...props} className={cn("min-w-0 truncate w-full", "font-bold")} />
-  );
-}
+const TOOLS_ICON = {
+  wallet: MdOutlineWallet,
+  connect: TbPlugConnected,
+  reconnect: LuCircleFadingArrowUp,
+  search: MdSearch,
+  check: MdCheck,
+  import: MdArrowDownward,
+  key: MdOutlineKey,
+};
 
 export const TerminalFarmerTools = ({ terminalFarmer }) => {
   const { context, isPrimaryFarmerUser, makeAsPrimaryFarmerUser } =
@@ -56,40 +43,44 @@ export const TerminalFarmerTools = ({ terminalFarmer }) => {
 
   return (
     <BottomDialog
-      title={`${context.title} Tools`}
-      description={`${context.title} Tools`}
+      title={`${context.title}`}
+      description={`Farmer Tools`}
       icon={context.icon}
     >
-      <div className="flex flex-col gap-2">
+      <BottomDialogTools.Container>
         {/* Configurations */}
-        <ToolsHeader>Configuration</ToolsHeader>
-        <ToolButton onClick={makeAsPrimaryFarmerUser}>
-          {isPrimaryFarmerUser ? (
-            <HiStar className="shrink-0 text-lime-500" />
-          ) : (
-            <HiOutlineStar className="shrink-0" />
-          )}
-          <ToolButtonTitle>Set as primary</ToolButtonTitle>
-        </ToolButton>
+        <BottomDialogTools.Header>Configuration</BottomDialogTools.Header>
+        <BottomDialogTools.Button
+          onClick={makeAsPrimaryFarmerUser}
+          icon={
+            isPrimaryFarmerUser ? (
+              <HiCheckBadge className="shrink-0 size-5 text-lime-500" />
+            ) : (
+              <HiOutlineCheckBadge className="shrink-0 size-5" />
+            )
+          }
+        >
+          Set as primary
+        </BottomDialogTools.Button>
 
         {/* Instance Tools */}
         {context.instance.tools.length > 0 ? (
           context.instance.tools.map((group) => (
             <Fragment key={group.name}>
-              <ToolsHeader>{group.name}</ToolsHeader>
+              <BottomDialogTools.Header>{group.name}</BottomDialogTools.Header>
 
               {group.list.map((tool) => (
-                <ToolButton
+                <BottomDialogTools.Button
                   key={tool.id}
+                  icon={TOOLS_ICON[tool.icon]}
                   onClick={() => {
                     tool.dispatch === false
                       ? executeTool(tool.id)
                       : dispatchAndExecuteTool(tool.id);
                   }}
                 >
-                  <span className="shrink-0">{tool.emoji}</span>
-                  <ToolButtonTitle>{tool.title}</ToolButtonTitle>
-                </ToolButton>
+                  {tool.title}
+                </BottomDialogTools.Button>
               ))}
             </Fragment>
           ))
@@ -98,7 +89,7 @@ export const TerminalFarmerTools = ({ terminalFarmer }) => {
             No tools available.
           </div>
         )}
-      </div>
+      </BottomDialogTools.Container>
     </BottomDialog>
   );
 };
