@@ -1,4 +1,9 @@
 import { Model } from "sequelize";
+
+/**
+ * @param {import("sequelize").Sequelize} sequelize
+ * @param {import("sequelize").DataTypes} DataTypes
+ */
 export default (sequelize, DataTypes) => {
   class Subscription extends Model {
     /**
@@ -20,7 +25,7 @@ export default (sequelize, DataTypes) => {
     {
       sequelize,
       modelName: "Subscription",
-    }
+    },
   );
 
   return Subscription;

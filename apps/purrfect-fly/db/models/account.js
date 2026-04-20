@@ -1,5 +1,10 @@
-import seedrandom from "seedrandom";
 import { Model } from "sequelize";
+import seedrandom from "seedrandom";
+
+/**
+ * @param {import("sequelize").Sequelize} sequelize
+ * @param {import("sequelize").DataTypes} DataTypes
+ */
 export default (sequelize, DataTypes) => {
   class Account extends Model {
     /**
@@ -15,7 +20,7 @@ export default (sequelize, DataTypes) => {
 
     static findWithActiveSubscription(
       id,
-      { required = true, ...options } = {}
+      { required = true, ...options } = {},
     ) {
       return this.findByPk(id, {
         ...options,
@@ -110,7 +115,7 @@ export default (sequelize, DataTypes) => {
     {
       sequelize,
       modelName: "Account",
-    }
+    },
   );
   return Account;
 };

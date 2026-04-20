@@ -1,9 +1,12 @@
 "use strict";
 
 import { Model } from "sequelize";
-
 import utils from "../../lib/utils.js";
 
+/**
+ * @param {import("sequelize").Sequelize} sequelize
+ * @param {import("sequelize").DataTypes} DataTypes
+ */
 export default (sequelize, DataTypes) => {
   class Farmer extends Model {
     /**
@@ -75,6 +78,7 @@ export default (sequelize, DataTypes) => {
       };
     }
   }
+
   Farmer.init(
     {
       accountId: DataTypes.BIGINT,
@@ -84,11 +88,13 @@ export default (sequelize, DataTypes) => {
       headers: DataTypes.JSON,
       cookies: DataTypes.JSON,
       options: DataTypes.JSON,
+      errorCount: DataTypes.INTEGER,
+      isBanned: DataTypes.BOOLEAN,
     },
     {
       sequelize,
       modelName: "Farmer",
-    }
+    },
   );
   return Farmer;
 };
