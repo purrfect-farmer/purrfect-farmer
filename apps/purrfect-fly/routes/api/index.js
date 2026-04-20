@@ -130,9 +130,12 @@ export default async function (fastify, opts) {
         return reply.forbidden("Not allowed!");
       }
 
-      await fastify.db.Farmer.destroy({
-        where: { id: request.body.id, accountId: user.id },
-      });
+      await fastify.db.Farmer.update(
+        { active: false, isBanned: true },
+        {
+          where: { id: request.body.id, accountId: user.id },
+        },
+      );
     },
   );
 
