@@ -42,7 +42,7 @@ export default async function (fastify, opts) {
       const { user } = request.auth;
       const account = await fastify.db.Account.findWithActiveSubscription(
         user.id,
-        false
+        false,
       );
 
       const server = {
@@ -50,7 +50,7 @@ export default async function (fastify, opts) {
       };
 
       return { server, account, subscription: account?.subscription };
-    }
+    },
   );
 
   /** Get Session */
@@ -67,7 +67,7 @@ export default async function (fastify, opts) {
       return reply.send({
         session: account ? account.session : null,
       });
-    }
+    },
   );
 
   /** Get Farmers */
@@ -84,7 +84,7 @@ export default async function (fastify, opts) {
       });
 
       return farmers;
-    }
+    },
   );
 
   /** Activate Farmer */
@@ -97,7 +97,7 @@ export default async function (fastify, opts) {
     async function (request, reply) {
       const { user } = request.auth;
       const account = await fastify.db.Account.findWithActiveSubscription(
-        user.id
+        user.id,
       );
 
       if (!account) {
@@ -105,12 +105,12 @@ export default async function (fastify, opts) {
       }
 
       await fastify.db.Farmer.update(
-        { active: true },
+        { active: true, isBanned: false, errorCount: 0 },
         {
           where: { id: request.body.id, accountId: user.id },
-        }
+        },
       );
-    }
+    },
   );
 
   /** Deactivate Farmer */
@@ -123,7 +123,7 @@ export default async function (fastify, opts) {
     async function (request, reply) {
       const { user } = request.auth;
       const account = await fastify.db.Account.findWithActiveSubscription(
-        user.id
+        user.id,
       );
 
       if (!account) {
@@ -133,7 +133,7 @@ export default async function (fastify, opts) {
       await fastify.db.Farmer.destroy({
         where: { id: request.body.id, accountId: user.id },
       });
-    }
+    },
   );
 
   /** Sync */
@@ -159,13 +159,15 @@ export default async function (fastify, opts) {
       const farmer = await fastify.db.Farmer.findWithActiveSubscription(
         request.body.farmer,
         user.id,
-        false
+        false,
       );
 
       if (farmer) {
         if (farmer.account.subscription) {
           await farmer.account.update({ title: request.body.title, user });
           await farmer.update({
+            errorCount: 0,
+            isBanned: false,
             active: true,
             farmer: request.body.farmer,
             headers: request.body.headers,
@@ -177,7 +179,7 @@ export default async function (fastify, opts) {
         }
       } else {
         const account = await fastify.db.Account.findWithActiveSubscription(
-          user.id
+          user.id,
         );
 
         if (account) {
@@ -193,6 +195,6 @@ export default async function (fastify, opts) {
           return reply.forbidden("Not allowed!");
         }
       }
-    }
+    },
   );
 }

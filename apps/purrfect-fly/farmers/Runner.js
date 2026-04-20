@@ -422,11 +422,20 @@ export default function createRunner(FarmerClass) {
     /** Disconnect Farmer */
     async disconnect() {
       try {
-        if (this.constructor.platform !== "telegram" || !this.account.session) {
-          if (this.farmer) {
-            this.farmer.active = false;
-            await this.farmer.save();
+        if (this.farmer) {
+          /** Set as inactive */
+          this.farmer.active = false;
+
+          /** Increase error count */
+          this.farmer.errorCount += 1;
+
+          /** Ban the farmer */
+          if (this.farmer.errorCount >= 3) {
+            this.farmer.isBanned = true;
           }
+
+          /** Save */
+          await this.farmer.save();
         }
       } catch (error) {
         this.logger.error("Error disconnecting farmer:", error);
@@ -587,11 +596,16 @@ export default function createRunner(FarmerClass) {
         const additionalQueryOptions = user ? { where: { id: user } } : {};
 
         /** Fetch Subscribed Accounts */
-        const accounts = await db.Account.findSubscribedWithFarmer(
+        const subscribedList = await db.Account.findSubscribedWithFarmer(
           this.id,
           farmerIsRequired,
           additionalQueryOptions,
         );
+
+        /** Filter unbanned accounts */
+        const accounts = subscribedList.filter((item) => {
+          return !item.farmer?.isBanned;
+        });
 
         /** Primary account */
         const primaryAccount = accounts.find(

@@ -13,7 +13,6 @@ export default class PirateCashFarmer extends BaseFarmer {
   static telegramLink = "https://t.me/piratecash_bot?start=1147265290";
   static cacheAuth = false;
   static cacheTelegramWebApp = false;
-  static deactivateOnError = false;
   static rating = 5;
   static interval = "*/30 * * * *";
   static channels = [

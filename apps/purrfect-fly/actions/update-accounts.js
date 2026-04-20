@@ -39,6 +39,7 @@ async function updateAccounts() {
           {
             where: {
               accountId: account.id,
+              isBanned: false,
               active: false,
             },
           },

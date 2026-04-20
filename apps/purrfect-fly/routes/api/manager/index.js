@@ -227,7 +227,7 @@ export default async function (fastify, opts) {
       { schema: farmerSchema },
       async (request) => {
         await fastify.db.Farmer.update(
-          { active: true },
+          { errorCount: 0, isBanned: false, active: true },
           { where: { id: request.body.id } },
         );
       },
@@ -238,9 +238,10 @@ export default async function (fastify, opts) {
       "/farmers/disconnect",
       { schema: farmerSchema },
       async (request) => {
-        await fastify.db.Farmer.destroy({
-          where: { id: request.body.id },
-        });
+        await fastify.db.Farmer.update(
+          { isBanned: true, active: false },
+          { where: { id: request.body.id } },
+        );
       },
     );
 
