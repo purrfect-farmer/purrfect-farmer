@@ -422,7 +422,7 @@ export default function createRunner(FarmerClass) {
     async updateWebAppData() {
       /** Log link for init data */
       this.logger.info(
-        `[${instance.account.id}] Updating init data:`,
+        `[${this.account.id}] Updating init data:`,
         this.constructor.telegramLink,
       );
 
