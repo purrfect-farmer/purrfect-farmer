@@ -16,6 +16,7 @@ import useFarmerDataQuery from "./useFarmerDataQuery";
 import { useLayoutEffect } from "react";
 import { useMemo } from "react";
 import usePrimaryFarmerLink from "./usePrimaryFarmerLink";
+import usePrimaryFarmerUserId from "./usePrimaryFarmerUserId";
 import useRefCallback from "./useRefCallback";
 import useTabContext from "./useTabContext";
 import useTelegramWebApp from "./useTelegramWebApp";
@@ -59,13 +60,18 @@ export default function useDropFarmer() {
     dispatchToGetPrimaryFarmerLink,
   } = app;
 
+  /** Primary farmer user ID */
+  const { primaryFarmerUserId } = usePrimaryFarmerUserId(FarmerClass.id);
+
   /** Primary farmer link */
   const { primaryFarmerLink } = usePrimaryFarmerLink(FarmerClass.id);
 
   /** Telegram Link */
-  const telegramLink = account.isPrimary
-    ? FarmerClass.telegramLink
-    : primaryFarmerLink;
+  const telegramLink = primaryFarmerLink
+    ? primaryFarmerLink
+    : account.isPrimary
+      ? FarmerClass.telegramLink
+      : null;
 
   const {
     resetStates,
@@ -75,7 +81,7 @@ export default function useDropFarmer() {
     setHasConfiguredAuthHeaders,
   } = useDropFarmerState();
 
-  /** QueryClient */
+  /** Dedicated QueryClient */
   const queryClient = useMemo(() => createQueryClient(), []);
 
   /** Logger Instance */

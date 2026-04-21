@@ -9,6 +9,7 @@ import TelegramWebAIcon from "@/assets/images/telegram-web-a.png?format=webp&w=8
 import TelegramWebKIcon from "@/assets/images/telegram-web-k.png?format=webp&w=80";
 import { cn } from "@/utils";
 import useAppContext from "@/hooks/useAppContext";
+import usePrimaryFarmerLink from "@/hooks/usePrimaryFarmerLink";
 import useStorageState from "@/hooks/useStorageState";
 
 const LinkButton = (props) => {
@@ -56,19 +57,27 @@ export default memo(function TabContent({ tab }) {
 
   const { external, FarmerClass } = tab;
 
+  const { primaryFarmerLink } = usePrimaryFarmerLink(FarmerClass?.id);
+
   /** Referral link */
   const { value: referralLink } = useStorageState(
     `farmer-referral-link:${tab.id}`,
     null,
   );
 
+  const defaultLink = tab.platform === "telegram" ? tab.telegramLink : tab.link;
+  const launchLink = referralLink || primaryFarmerLink || defaultLink;
+
+  /* Open links in app-browser */
   const openLinksInAppBrowser =
     settings.enableInAppBrowser && farmerMode === "session";
 
+  /* Should open web app */
   const shouldOpenWebApp = tab.type === "webapp" && openLinksInAppBrowser;
 
+  /* Link button icon */
   const linkButtonIconSrc =
-    external || tab.link || shouldOpenWebApp
+    external || tab.platform !== "telegram" || shouldOpenWebApp
       ? BrowserIcon
       : preferredTelegramWebVersion === "k"
         ? TelegramWebKIcon
@@ -85,15 +94,15 @@ export default memo(function TabContent({ tab }) {
       });
     } else if (tab.platform !== "telegram") {
       launchTabInAppBrowser({
+        url: launchLink,
         id: tab.id,
-        url: referralLink || tab.link,
         title: tab.title,
         icon: tab.icon,
         singleton: tab.singleton,
         embedInNewWindow: tab.embedInNewWindow,
       });
     } else if (tab.type === "webapp") {
-      openTabTelegramBot(referralLink || tab.telegramLink, {
+      openTabTelegramBot(launchLink, {
         singleton: tab.singleton,
         browserId: tab.id,
         browserTitle: tab.title,
@@ -104,7 +113,7 @@ export default memo(function TabContent({ tab }) {
         forceWebview: true,
       });
     } else {
-      openTabTelegramLink(referralLink || tab.telegramLink);
+      openTabTelegramLink(launchLink);
     }
   };
 
@@ -126,10 +135,10 @@ export default memo(function TabContent({ tab }) {
         ) : null}
 
         {/* Open Telegram Link Button */}
-        {tab.link || tab.telegramLink ? (
+        {launchLink ? (
           <LinkButton onClick={openTabLink}>
             <img src={linkButtonIconSrc} className="size-5 shrink-0" />
-            Open {tab.platform !== "telegram" ? "Link" : "Bot"}{" "}
+            Open {tab.platform === "telegram" ? "Bot" : "Link"}{" "}
             {referralLink ? "(R)" : null}
           </LinkButton>
         ) : null}
