@@ -24,14 +24,14 @@ export default class BaseLogger {
   }
 
   /** Log key-value pairs */
-  keyValue(label, value, { labelStyle, valueStyle } = {}) {
+  keyValue(label, value, { labelStyle, valueStyle, format = true } = {}) {
     const selectedLabelStyle = labelStyle || this.c.gray;
     const selectedValueStyle = valueStyle || this.c.cyan;
 
     const rawLabel = label + ":";
     const displayedLabel = selectedLabelStyle(rawLabel.padEnd(8));
     const displayedValue = selectedValueStyle(
-      typeof value === "number" ? formatNumber(value) : value,
+      format && typeof value === "number" ? formatNumber(value) : value,
     );
 
     return this.log(`${displayedLabel} ${displayedValue}`);
@@ -75,5 +75,13 @@ export default class BaseLogger {
   /** Clear the console */
   clear() {
     throw new Error("clear must be implemented in subclass");
+  }
+
+  /** Force the output */
+  force(callback) {
+    const previous = this.enabled;
+    this.enabled = true;
+    callback();
+    this.enabled = previous;
   }
 }

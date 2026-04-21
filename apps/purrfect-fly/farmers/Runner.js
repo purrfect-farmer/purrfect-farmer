@@ -15,6 +15,7 @@ import axios from "axios";
 import bot from "../lib/bot.js";
 import captcha from "../lib/captcha.js";
 import db from "../db/models/index.js";
+import logger from "../lib/logger.js";
 import utils from "../lib/utils.js";
 
 const HttpProxyAgentWithCookies = createCookieAgent(HttpProxyAgent);
@@ -48,6 +49,14 @@ export default function createRunner(FarmerClass) {
 
   /** Primary account ID */
   const primaryAccountId = Number(farmerPrimaryAccountId) || 0;
+
+  /** Log */
+  logger.success(`${FarmerClass.title} Farmer`);
+  logger.keyValue("Enabled", enabled);
+  logger.keyValue("Primary account ID", primaryAccountId, {
+    format: false,
+  });
+  logger.newline();
 
   return class Runner extends FarmerClass {
     static utils = utils;
@@ -494,12 +503,24 @@ export default function createRunner(FarmerClass) {
         this.configurePrimaryLink(this.primaryFarmerLink);
 
         /** Log */
-        this.logger.success(
-          "Configured the primary farmer link:",
-          this.primaryFarmerLink,
+        this.logger.force(() =>
+          this.logger.success(
+            `${this.title} Farmer - updated primary farmer link:`,
+            this.primaryFarmerLink,
+          ),
         );
       } catch (e) {
-        this.logger.error("Failed to update primary link:", e);
+        /** Log */
+        this.logger.force(() => {
+          /** Log error */
+          this.logger.error(
+            `${this.title} Farmer - failed to update primary farmer link:`,
+            e,
+          );
+        });
+
+        /** Reset the primary farmer link */
+        this.resetPrimaryFarmerLink();
       }
     }
 
@@ -543,16 +564,12 @@ export default function createRunner(FarmerClass) {
           try {
             await this.execute(instance);
           } catch (err) {
+            /** Log error */
             this.logger.error("Queue processing error:", err);
 
             /** Unblock queue */
             if (instance.account.id === this.primaryAccountId) {
-              this.primaryFarmerLink =
-                this.platform === "telegram" ? this.telegramLink : this.link;
-              this.logger.warn(
-                "Primary account failed - farmer link set to unblock queue:",
-                this.primaryFarmerLink,
-              );
+              this.resetPrimaryFarmerLink();
             }
           } finally {
             this.runners.delete(instance.account.id);
@@ -561,6 +578,23 @@ export default function createRunner(FarmerClass) {
       } finally {
         this.isProcessingQueue = false;
       }
+    }
+
+    /** Reset primary farmer link */
+    static resetPrimaryFarmerLink() {
+      if (this.primaryFarmerLink) return;
+
+      /** Update link */
+      this.primaryFarmerLink =
+        this.platform === "telegram" ? this.telegramLink : this.link;
+
+      /** Log */
+      this.logger.force(() =>
+        this.logger.warn(
+          `${this.title} Farmer - configuring default farmer link:`,
+          this.primaryFarmerLink,
+        ),
+      );
     }
 
     /** Prepare an account */
