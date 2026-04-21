@@ -533,12 +533,14 @@ export default function createRunner(FarmerClass) {
         while (this.queue.length > 0) {
           let instance;
 
+          /** Prioritize primary account is the primary link is not set */
           const primaryIndex = !this.primaryFarmerLink
             ? this.queue.findIndex(
                 (item) => item.account.id === this.primaryAccountId,
               )
             : -1;
 
+          /** Prioritize new accounts */
           const newAccountIndex =
             primaryIndex === -1
               ? this.queue.findIndex((item) => !item.account.farmer)
