@@ -420,6 +420,12 @@ export default function createRunner(FarmerClass) {
      * Get and update the initData using the telegram link for this farmer
      */
     async updateWebAppData() {
+      /** Log link for init data */
+      this.logger.info(
+        `[${instance.account.id}] Updating init data:`,
+        this.constructor.telegramLink,
+      );
+
       const { url } = await this.client.getWebview(
         this.constructor.telegramLink,
       );
