@@ -77,7 +77,9 @@ class ProxyProvider {
         return [];
       }
     } catch (error) {
-      console.error("Fetching Proxies", error);
+      if (process.env.NODE_ENV === "development") {
+        console.error("Error fetching proxies:", error);
+      }
       return [];
     }
   }
@@ -114,7 +116,9 @@ class ProxyProvider {
             })
             .then((res) => String(res.data).trim());
         } catch (error) {
-          console.error(error);
+          if (process.env.NODE_ENV === "development") {
+            console.error("Error testing proxy:", error);
+          }
           status = false;
         }
 

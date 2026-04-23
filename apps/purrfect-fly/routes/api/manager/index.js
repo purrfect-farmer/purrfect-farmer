@@ -357,7 +357,9 @@ export default async function (fastify, opts) {
               /** Logout */
               await client.logout();
             } catch (error) {
-              console.error(error);
+              if (process.env.NODE_ENV === "development") {
+                console.error("Error logging out account:", error);
+              }
             }
           }
 

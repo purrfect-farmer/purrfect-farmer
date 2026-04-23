@@ -1,10 +1,10 @@
+import { Api, Logger } from "telegram";
+
 import BaseTelegramWebClient from "@purrfect/shared/lib/BaseTelegramWebClient.js";
 import fsp from "node:fs/promises";
-import path from "node:path";
-import { Api, Logger } from "telegram";
-import { globby } from "globby";
-
 import { getCurrentPath } from "./path.js";
+import { globby } from "globby";
+import path from "node:path";
 
 const { __dirname } = getCurrentPath(import.meta.url);
 
@@ -169,7 +169,7 @@ class GramClient extends BaseTelegramWebClient {
           } else {
             console.error(
               "Error occurred before handler was initialized:",
-              error
+              error,
             );
           }
         },
@@ -188,7 +188,7 @@ class GramClient extends BaseTelegramWebClient {
             });
           } catch (error) {
             /** Log Error */
-            console.error(error);
+            console.error("Error during authentication process:", error);
 
             /** Reject Error */
             this._startStagePromise?.reject?.(error);
@@ -227,7 +227,7 @@ class GramClient extends BaseTelegramWebClient {
       await this.destroy();
     } catch (error) {
       /** Logout */
-      console.error(error);
+      console.error("Error during logout:", error);
     } finally {
       /** Reject */
       this._startStagePromise?.reject?.(new Error("Logged Out!"));
@@ -285,7 +285,7 @@ class GramClient extends BaseTelegramWebClient {
           proxy: this.parseProxy(proxy),
           sessionFilePath,
           sessionFileExists,
-        })
+        }),
       )
       .get(name);
   }
@@ -295,7 +295,7 @@ class GramClient extends BaseTelegramWebClient {
     const entries = await globby([path.join(this.getStoragePath(), "*.json")]);
 
     const sessions = entries.map(
-      (item) => path.basename(item, ".json").split("_")[1]
+      (item) => path.basename(item, ".json").split("_")[1],
     );
 
     return sessions;

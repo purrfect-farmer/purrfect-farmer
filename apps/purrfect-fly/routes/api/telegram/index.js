@@ -46,7 +46,7 @@ export default async function (fastify, opts) {
 
         /** Return Response */
         return { ...result, session };
-      }
+      },
     )
 
     // Verify Code
@@ -67,7 +67,7 @@ export default async function (fastify, opts) {
       async function (request, reply) {
         /** Create Client */
         const client = await fastify.lib.GramClient.create(
-          request.body.session
+          request.body.session,
         );
 
         /** Send Phone Code */
@@ -75,7 +75,7 @@ export default async function (fastify, opts) {
 
         if (result.user) {
           const account = await fastify.db.Account.findWithActiveSubscription(
-            Number(result.user.id)
+            Number(result.user.id),
           );
 
           if (account) {
@@ -89,7 +89,7 @@ export default async function (fastify, opts) {
         }
 
         return result;
-      }
+      },
     )
 
     // Verify 2FA Password
@@ -110,18 +110,18 @@ export default async function (fastify, opts) {
       async function (request, reply) {
         /** Create Client */
         const client = await fastify.lib.GramClient.create(
-          request.body.session
+          request.body.session,
         );
 
         /** Send Password */
         const result = await client.startResponse(
           "password",
-          request.body.password
+          request.body.password,
         );
 
         if (result.user) {
           const account = await fastify.db.Account.findWithActiveSubscription(
-            Number(result.user.id)
+            Number(result.user.id),
           );
 
           if (account) {
@@ -135,7 +135,7 @@ export default async function (fastify, opts) {
         }
 
         return result;
-      }
+      },
     )
 
     // Logout
@@ -157,7 +157,7 @@ export default async function (fastify, opts) {
         const { user } = request.auth;
         const account = await fastify.db.Account.findWithActiveSubscription(
           Number(user.id),
-          false
+          false,
         );
 
         if (account?.session) {
@@ -171,7 +171,9 @@ export default async function (fastify, opts) {
             /** Logout */
             await client.logout();
           } catch (error) {
-            console.error(error);
+            if (process.env.NODE_ENV === "development") {
+              console.error("Error logging out account:", error);
+            }
           } finally {
             await account.update({ session: null });
           }
@@ -180,6 +182,6 @@ export default async function (fastify, opts) {
         return {
           result: true,
         };
-      }
+      },
     );
 }

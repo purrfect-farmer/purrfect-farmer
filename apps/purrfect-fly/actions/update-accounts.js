@@ -46,7 +46,9 @@ async function updateAccounts() {
         );
       } catch (error) {
         /** Log Error */
-        console.error(error);
+        if (process.env.NODE_ENV === "development") {
+          console.error("Error updating account:", error);
+        }
 
         /** Remove Session */
         account.session = null;

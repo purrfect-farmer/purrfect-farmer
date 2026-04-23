@@ -88,7 +88,9 @@ async function updateProxies() {
       console.log(chalk.bold.green("Proxies updated successfully."));
     } catch (error) {
       console.log(chalk.bold.red("Failed to update proxies"));
-      console.error(error);
+      if (process.env.NODE_ENV === "development") {
+        console.error("Error updating proxies:", error);
+      }
     }
   }
 }
