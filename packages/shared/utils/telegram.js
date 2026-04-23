@@ -28,7 +28,8 @@ export function parseTelegramLink(url) {
     shortName,
     startParam:
       parsedUrl.searchParams.get("start") ||
-      parsedUrl.searchParams.get("startapp"),
+      parsedUrl.searchParams.get("startapp") ||
+      undefined,
     parsedUrl,
     pathSegments,
     isTelegramHostname,
@@ -127,7 +128,7 @@ export function isBotURL(link) {
   try {
     const parsed = parseTelegramLink(link);
 
-    return parsed.entity.endsWith("bot") || parsed.startParam !== "";
+    return parsed.entity.endsWith("bot") || parsed.startParam;
   } catch {
     return false;
   }

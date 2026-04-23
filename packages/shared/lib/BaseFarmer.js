@@ -37,9 +37,9 @@ export default class BaseFarmer {
       const { entity, shortName, startParam } = this.utils.parseTelegramLink(
         this.constructor.telegramLink,
       );
-      this.entity = entity || null;
-      this.shortName = shortName || null;
-      this.startParam = startParam || null;
+      this.entity = entity;
+      this.shortName = shortName;
+      this.startParam = startParam;
     }
 
     /* Debugger */
