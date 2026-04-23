@@ -28,8 +28,7 @@ export function parseTelegramLink(url) {
     shortName,
     startParam:
       parsedUrl.searchParams.get("start") ||
-      parsedUrl.searchParams.get("startapp") ||
-      "",
+      parsedUrl.searchParams.get("startapp"),
     parsedUrl,
     pathSegments,
     isTelegramHostname,
@@ -168,10 +167,12 @@ export function isTelegramChatLink(link) {
   try {
     const parsed = parseTelegramLink(link);
     return (
+      // Ensure it's not a bot link
+      // No query parameters
       parsed.isTelegramHostname &&
       parsed.pathSegments.length === 1 &&
-      parsed.parsedUrl.search === "" && // No query parameters
-      !isBotURL(link) // Ensure it's not a bot link
+      parsed.parsedUrl.search === "" &&
+      !isBotURL(link)
     );
   } catch {
     return false;

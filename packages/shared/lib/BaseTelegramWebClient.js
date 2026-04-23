@@ -159,7 +159,7 @@ export default class BaseTelegramWebClient extends TelegramClient {
 
   /** Start Bot */
   async startBot(
-    { entity, startParam = "", shouldWaitForReply = true } = {},
+    { entity, startParam, shouldWaitForReply = true } = {},
     replyOptions = {},
   ) {
     const reply = shouldWaitForReply
@@ -209,7 +209,7 @@ export default class BaseTelegramWebClient extends TelegramClient {
 
       const parsed = parseTelegramLink(link);
       const entityKey = parsed.entity?.toLowerCase();
-      const startParam = parsed.startParam || "";
+      const startParam = parsed.startParam;
       const cached = BaseTelegramWebClient.webviewCache.get(entityKey);
       let webview = cached?.webview;
       let miniApp = cached?.miniApp;

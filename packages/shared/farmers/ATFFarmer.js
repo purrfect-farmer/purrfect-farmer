@@ -15,7 +15,7 @@ export default class ATFFarmer extends BaseFarmer {
   static emoji = "🪙";
   static host = "atfminers.asloni.online";
   static domains = ["atfminers.asloni.online"];
-  static telegramLink = "https://t.me/ATF_AIRDROP_bot?start=7511206091";
+  static telegramLink = "https://t.me/ATF_AIRDROP_bot";
   static path = "/miner/index.html";
   static singleton = true;
   static cacheAuth = false;
@@ -35,7 +35,7 @@ export default class ATFFarmer extends BaseFarmer {
 
   /** Get Referral Link */
   getReferralLink() {
-    return `https://t.me/ATF_AIRDROP_bot?start=${this.getUserId()}`;
+    return `https://t.me/ATF_AIRDROP_bot`;
   }
 
   configureApi() {
