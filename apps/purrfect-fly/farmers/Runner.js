@@ -457,6 +457,21 @@ export default function createRunner(FarmerClass) {
       }
     }
 
+    /** Reset error count */
+    async resetErrorCount() {
+      try {
+        if (this.farmer && this.farmer.errorCount > 0) {
+          /** Reset error count */
+          this.farmer.errorCount = 0;
+
+          /** Save */
+          await this.farmer.save();
+        }
+      } catch (error) {
+        this.logger.error("Error resetting error count:", error);
+      }
+    }
+
     /** Execute farming for an instance
      * @param {Runner} instance
      */
@@ -483,6 +498,9 @@ export default function createRunner(FarmerClass) {
 
         /** Start instance */
         await instance.start();
+
+        /** Reset error count */
+        await instance.resetErrorCount();
       } catch (error) {
         if (this.deactivateOnError) {
           await instance.disconnect();
