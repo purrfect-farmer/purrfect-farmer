@@ -1,7 +1,7 @@
 import { Controller, FormProvider, useForm } from "react-hook-form";
 
 import ATFAutoAddress from "./ATFAutoAddress";
-import ATFAutoMasterWalletRotation from "@/lib/ATFAutoMasterWalletRotation";
+import ATFAutoMasterWalletTransfer from "@/lib/ATFAutoMasterWalletTransfer";
 import Alert from "./Alert";
 import CenteredDialog from "./CenteredDialog";
 import FieldStateError from "./FieldStateError";
@@ -54,14 +54,14 @@ export default function ATFAutoWithdrawDialog() {
         tonCenterApiKey: master.tonCenterApiKey,
       };
 
-      /** Create wallet rotation instance */
-      const walletRotation = new ATFAutoMasterWalletRotation(
+      /** Create wallet transfer instance */
+      const walletTransfer = new ATFAutoMasterWalletTransfer(
         masterData,
         address,
       );
 
-      /** Execute the wallet rotation */
-      await walletRotation.rotate();
+      /** Execute the wallet transfer */
+      await walletTransfer.transfer();
     },
   });
 

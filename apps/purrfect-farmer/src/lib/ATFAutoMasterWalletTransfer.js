@@ -9,25 +9,25 @@ import {
 import toast from "react-hot-toast";
 
 /**
- * ATFAutoMasterWalletRotation
+ * ATFAutoMasterWalletTransfer
  */
-export default class ATFAutoMasterWalletRotation {
+export default class ATFAutoMasterWalletTransfer {
   constructor(master, address) {
     this.master = master;
     this.address = address;
   }
 
-  /** Main entry point to perform the wallet rotation */
-  async rotate() {
-    /* Log the start of the rotation process */
-    console.log("Starting master wallet rotation process...");
-    console.log("Received address for rotation:", this.address);
+  /** Main entry point to perform the wallet transfer */
+  async transfer() {
+    /* Log the start of the transfer process */
+    console.log("Starting master wallet transfer process...");
+    console.log("Received address for transfer:", this.address);
 
-    /** Prepare master for rotation */
+    /** Prepare master for transfer */
     this.prepared = await prepareMaster(this.master);
 
     /* Log the prepared master details */
-    console.log("Master wallet prepared for rotation:", this.prepared);
+    console.log("Master wallet prepared for transfer:", this.prepared);
 
     /** Send assets from master to address */
     if (this.prepared.jettonBalance > 0) {

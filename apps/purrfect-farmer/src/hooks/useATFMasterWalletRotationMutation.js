@@ -1,4 +1,4 @@
-import ATFAutoMasterWalletRotation from "@/lib/ATFAutoMasterWalletRotation";
+import ATFAutoMasterWalletTransfer from "@/lib/ATFAutoMasterWalletTransfer";
 import { downloadFile } from "@/utils";
 import { encryption } from "@/services/encryption";
 import { getWalletFromMnemonic } from "@/lib/atf-auto";
@@ -81,14 +81,14 @@ export default function useATFMasterWalletRotationMutation() {
       console.log("Old Master Data:", oldMasterData);
       console.log("New Master Data:", newMasterData);
 
-      /** Create wallet rotation instance */
-      const walletRotation = new ATFAutoMasterWalletRotation(
+      /** Create wallet transfer instance */
+      const walletRotation = new ATFAutoMasterWalletTransfer(
         oldMasterData,
         newAddress,
       );
 
-      /** Execute the wallet rotation */
-      await walletRotation.rotate();
+      /** Execute the wallet transfer */
+      await walletRotation.transfer();
 
       /** Encrypt the new master wallet */
       const newEncryptedWalletPhrase = await encryption.encryptData({
