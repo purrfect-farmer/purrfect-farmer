@@ -4,7 +4,7 @@ import ATFAutoHeader from "./ATFAutoHeader";
 import Alert from "./Alert";
 import Container from "./Container";
 import FieldStateError from "./FieldStateError";
-import Input from "./Input";
+import PasswordInput from "./PasswordInput";
 import PrimaryButton from "./PrimaryButton";
 import bcrypt from "bcryptjs";
 import { cn } from "@/utils";
@@ -61,7 +61,7 @@ export default function ATFAutoLogin() {
             name="password"
             render={({ field, fieldState }) => (
               <>
-                <Input
+                <PasswordInput
                   {...field}
                   disabled={isSubmitting}
                   type="password"
