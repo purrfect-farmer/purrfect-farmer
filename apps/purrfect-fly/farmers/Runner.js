@@ -461,6 +461,12 @@ export default function createRunner(FarmerClass) {
     async resetErrorCount() {
       try {
         if (this.farmer && this.farmer.errorCount > 0) {
+          /** Set as active */
+          this.farmer.active = true;
+
+          /** Unban the farmer */
+          this.farmer.isBanned = false;
+
           /** Reset error count */
           this.farmer.errorCount = 0;
 
