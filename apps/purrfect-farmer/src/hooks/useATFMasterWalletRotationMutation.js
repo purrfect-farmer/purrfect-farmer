@@ -14,11 +14,6 @@ export default function useATFMasterWalletRotationMutation() {
     mutationKey: ["atf-auto-master-wallet-rotation"],
     onError: (error) => {
       console.log("Error while rotating master wallet", error);
-      toast.error("Failed to rotate master wallet.");
-    },
-
-    onSuccess: () => {
-      toast.success("Master wallet rotated successfully!");
     },
     mutationFn: async () => {
       const { address: oldAddress, version, tonCenterApiKey } = master;

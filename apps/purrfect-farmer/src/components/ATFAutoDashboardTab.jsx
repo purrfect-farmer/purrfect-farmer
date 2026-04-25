@@ -47,7 +47,11 @@ function MasterBalanceCard() {
 
   const rotateMasterWallet = () => {
     if (!master) return;
-    rotateMutation.mutateAsync();
+    toast.promise(rotateMutation.mutateAsync(), {
+      loading: "Rotating master wallet...",
+      success: "Master wallet rotated successfully!",
+      error: "Failed to rotate master wallet.",
+    });
   };
 
   return (
@@ -105,7 +109,7 @@ function MasterBalanceCard() {
         className={cn(
           "bg-neutral-900 hover:bg-neutral-800 text-white px-4 py-2 rounded-full",
           "flex items-center gap-2",
-          "disabled:bg-neutral-700 disabled:cursor-not-allowed",
+          "disabled:bg-neutral-800 disabled:cursor-not-allowed",
           "transition-colors",
         )}
       >
