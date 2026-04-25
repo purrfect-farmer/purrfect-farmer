@@ -1,3 +1,4 @@
+import { HiOutlineArrowUp, HiOutlinePencilSquare } from "react-icons/hi2";
 import {
   MdOutlineClose,
   MdOutlineContentCopy,
@@ -10,12 +11,13 @@ import ATFAutoAddress from "./ATFAutoAddress";
 import ATFAutoMasterEditDialog from "./ATFAutoMasterEditDialog";
 import ATFAutoNewAccountDialog from "./ATFAutoNewAccountDialog";
 import ATFAutoVersionBadge from "./ATFAutoVersionBadge";
+import ATFAutoWithdrawDialog from "./ATFAutoWithdrawDialog";
 import ATFIcon from "@/assets/images/atf.png?format=webp&w=32";
 import Alert from "./Alert";
 import Decimal from "decimal.js";
 import { Dialog } from "radix-ui";
-import { HiOutlinePencilSquare } from "react-icons/hi2";
 import Input from "./Input";
+import { LiaUserNinjaSolid } from "react-icons/lia";
 import PrimaryButton from "./PrimaryButton";
 import { Reorder } from "motion/react";
 import TonIcon from "@/assets/images/toncoin-ton-logo.svg";
@@ -28,12 +30,23 @@ import useATFMasterWalletRotationMutation from "@/hooks/useATFMasterWalletRotati
 import useATFNetWorthQuery from "@/hooks/useATFNetWorthQuery";
 import { useDebounce } from "react-use";
 
+function MasterCardButton(props) {
+  return (
+    <button
+      {...props}
+      className={cn(
+        "flex flex-col justify-center items-center gap-2",
+        "text-center text-xs",
+        "p-2 disabled:opacity-50",
+      )}
+    />
+  );
+}
+
 function MasterBalanceCard() {
   const { master, enableRequests, setEnableRequests } = useATFAuto();
   const { data: balances } = useATFBalancesQuery(master?.address);
   const [editOpen, setEditOpen] = useState(false);
-
-  const rotateMutation = useATFMasterWalletRotationMutation();
 
   /** Toggle Requests */
   const toggleRequests = () => {
@@ -43,15 +56,6 @@ function MasterBalanceCard() {
         ? "Successfully disabled requests!"
         : "Successfully enabled requests!",
     );
-  };
-
-  const rotateMasterWallet = () => {
-    if (!master) return;
-    toast.promise(rotateMutation.mutateAsync(), {
-      loading: "Rotating master wallet...",
-      success: "Master wallet rotated successfully!",
-      error: "Failed to rotate master wallet.",
-    });
   };
 
   return (
@@ -102,20 +106,6 @@ function MasterBalanceCard() {
         <h3 className="font-bold text-neutral-400">Master</h3>
       </div>
 
-      {/* Rotate Master Wallet Button */}
-      <button
-        disabled={rotateMutation.isPending}
-        onClick={rotateMasterWallet}
-        className={cn(
-          "bg-neutral-900 hover:bg-neutral-800 text-white px-4 py-2 rounded-full",
-          "flex items-center gap-2",
-          "disabled:bg-neutral-800 disabled:cursor-not-allowed",
-          "transition-colors",
-        )}
-      >
-        {rotateMutation.isPending ? "Rotating..." : "Rotate Master Wallet"}
-      </button>
-
       {/* Jetton balance */}
       <div className="flex items-center gap-2">
         <img src={ATFIcon} className="size-5 rounded-full" />
@@ -143,6 +133,50 @@ function MasterBalanceCard() {
         <MdOutlineContentCopy /> <ATFAutoAddress address={master?.address} />
       </button>
       <ATFAutoVersionBadge version={master?.version} />
+
+      {/* Actions */}
+      <MasterCardActions />
+    </div>
+  );
+}
+
+function MasterCardActions() {
+  const { master } = useATFAuto();
+  const [withdrawOpen, setWithdrawOpen] = useState(false);
+
+  const rotateMutation = useATFMasterWalletRotationMutation();
+
+  const rotateMasterWallet = () => {
+    if (!master) return;
+    toast.promise(rotateMutation.mutateAsync(), {
+      loading: "Rotating master wallet...",
+      success: "Master wallet rotated successfully!",
+      error: "Failed to rotate master wallet.",
+    });
+  };
+
+  return (
+    <div className="grid grid-cols-2 mx-auto divide-x divide-neutral-700">
+      {/* Rotate */}
+      <MasterCardButton
+        onClick={rotateMasterWallet}
+        disabled={rotateMutation.isPending}
+      >
+        <LiaUserNinjaSolid className="size-5" />
+        {rotateMutation.isPending ? "Rotating..." : "Rotate"}
+      </MasterCardButton>
+
+      {/* Withdraw Button */}
+      <Dialog.Root open={withdrawOpen} onOpenChange={setWithdrawOpen}>
+        <Dialog.Trigger asChild>
+          <MasterCardButton>
+            <HiOutlineArrowUp className="size-5" />
+            Withdraw
+          </MasterCardButton>
+        </Dialog.Trigger>
+
+        <ATFAutoWithdrawDialog />
+      </Dialog.Root>
     </div>
   );
 }
@@ -226,13 +260,14 @@ export default function ATFAutoDashboardTab() {
       setTempSearch("");
     }
   };
-
+  /* Handle Update */
   const handleUpdateAccount = (updated) => {
     dispatchAndStoreAccounts(
       accounts.map((a) => (a.id === updated.id ? updated : a)),
     );
   };
 
+  /* Handle delete */
   const handleDeleteAccount = (id) => {
     dispatchAndStoreAccounts(accounts.filter((a) => a.id !== id));
   };

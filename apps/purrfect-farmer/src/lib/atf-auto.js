@@ -25,9 +25,9 @@ function createApi(baseURL) {
 }
 
 export const tonapi = createApi("https://tonapi.io/v2");
-export const fetchTonApi = serialized((url, options) =>
-  tonapi.get(url, options),
-);
+export const fetchTonApi = serialized((url, options) => {
+  return tonapi.get(url, options);
+});
 
 export async function getTonBalance(address, options) {
   const res = await fetchTonApi(`/accounts/${address}`, options);
@@ -38,11 +38,11 @@ export async function getJettonInfo(ownerAddress, options) {
   const res = await fetchTonApi(
     `/accounts/${ownerAddress}/jettons/${JETTON_ADDRESS}`,
     options,
-  );
+  ).catch(() => null);
 
-  const decimals = Number(res.data.jetton?.metadata?.decimals || 9);
-  const balance = res.data.balance
-    ? new Decimal(res.data.balance).div(new Decimal(10).pow(decimals))
+  const decimals = Number(res?.data?.jetton?.metadata?.decimals || 9);
+  const balance = res?.data?.balance
+    ? new Decimal(res?.data?.balance).div(new Decimal(10).pow(decimals))
     : new Decimal(0);
 
   return { balance, decimals };

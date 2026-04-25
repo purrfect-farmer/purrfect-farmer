@@ -84,7 +84,7 @@ export default function useATFMasterWalletRotationMutation() {
       /** Create wallet rotation instance */
       const walletRotation = new ATFAutoMasterWalletRotation(
         oldMasterData,
-        newMasterData,
+        newAddress,
       );
 
       /** Execute the wallet rotation */

@@ -12,35 +12,42 @@ import toast from "react-hot-toast";
  * ATFAutoMasterWalletRotation
  */
 export default class ATFAutoMasterWalletRotation {
-  constructor(oldMaster, newMaster) {
-    this.oldMaster = oldMaster;
-    this.newMaster = newMaster;
+  constructor(master, address) {
+    this.master = master;
+    this.address = address;
   }
 
   /** Main entry point to perform the wallet rotation */
   async rotate() {
-    /** Prepare master for rotation */
-    this.prepared = await prepareMaster(this.oldMaster);
+    /* Log the start of the rotation process and the new address */
+    console.log("Starting master wallet rotation process...");
+    console.log("Received new address for rotation:", this.address);
 
-    /** Send assets from old master to new master */
+    /** Prepare master for rotation */
+    this.prepared = await prepareMaster(this.master);
+
+    /* Log the prepared master details */
+    console.log("Master wallet prepared for rotation:", this.prepared);
+
+    /** Send assets from master to new address */
     if (this.prepared.jettonBalance > 0) {
       const jettonAmount = this.prepared.jettonBalance;
 
       /** Send Jetton from master */
-      await toast.promise(this.sendJettonToNewMaster(), {
-        loading: `Sending ${jettonAmount} ATF to new master`,
-        success: `Sent ${jettonAmount} ATF to new master`,
+      await toast.promise(this.sendJettonToNewAddress(), {
+        loading: `Sending ${jettonAmount} ATF to new address`,
+        success: `Sent ${jettonAmount} ATF to new address`,
       });
     }
 
-    /** Send TON to new master */
+    /** Send TON to new address */
     try {
       const balance = await this.prepared.contract.getBalance();
 
       if (balance > 0) {
-        await toast.promise(this.sendTonToNewMaster(), {
-          loading: `Sending TON to new master`,
-          success: `Sent TON to new master`,
+        await toast.promise(this.sendTonToNewAddress(), {
+          loading: `Sending TON to new address`,
+          success: `Sent TON to new address`,
         });
       }
     } catch (error) {
@@ -49,8 +56,8 @@ export default class ATFAutoMasterWalletRotation {
     }
   }
 
-  /** Send Jetton from old master to new master */
-  async sendJettonToNewMaster() {
+  /** Send Jetton from old master to new address */
+  async sendJettonToNewAddress() {
     const { contract, keyPair, jettonWalletAddress, jettonDecimals } =
       this.prepared;
 
@@ -68,8 +75,8 @@ export default class ATFAutoMasterWalletRotation {
           body: buildJettonTransferBody(
             jettonDecimals,
             jettonAmount,
-            this.newMaster.address,
-            this.oldMaster.address,
+            this.address,
+            this.master.address,
           ),
         }),
       ],
@@ -79,8 +86,8 @@ export default class ATFAutoMasterWalletRotation {
     return jettonAmount;
   }
 
-  /** Send remaining TON to new master */
-  async sendTonToNewMaster() {
+  /** Send remaining TON to new address */
+  async sendTonToNewAddress() {
     const { contract, keyPair } = this.prepared;
     const seqno = await contract.getSeqno();
 
@@ -90,7 +97,7 @@ export default class ATFAutoMasterWalletRotation {
       sendMode: SendMode.CARRY_ALL_REMAINING_BALANCE,
       messages: [
         internal({
-          to: Address.parse(this.newMaster.address),
+          to: Address.parse(this.address),
           value: toNano("0"),
           bounce: false,
         }),

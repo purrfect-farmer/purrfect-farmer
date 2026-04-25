@@ -55,8 +55,15 @@ const TabsContent = (props) => (
   <TabsPrimitive.Content
     forceMount
     {...props}
-    className={cn("data-[state=inactive]:hidden", props.className)}
-  />
+    className={cn(
+      "data-[state=inactive]:hidden flex flex-col overflow-auto",
+      props.className,
+    )}
+  >
+    <Container className="p-0 shrink-0 flex flex-col grow min-h-0">
+      {props.children}
+    </Container>
+  </TabsPrimitive.Content>
 );
 
 Tabs.Content = TabsContent;
