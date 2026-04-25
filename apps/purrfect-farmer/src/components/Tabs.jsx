@@ -58,7 +58,7 @@ const TabsContent = (props) => (
     className={cn("data-[state=inactive]:hidden flex flex-col overflow-auto")}
   >
     <Container
-      className={("p-0 shrink-0 flex flex-col grow min-h-0", props.className)}
+      className={cn("p-0 shrink-0 flex flex-col grow min-h-0", props.className)}
     >
       {props.children}
     </Container>

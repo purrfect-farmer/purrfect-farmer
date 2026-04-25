@@ -2,7 +2,6 @@ import { cn, downloadFile } from "@/utils";
 
 import Alert from "@/components/Alert";
 import AppIcon from "@/assets/images/icon.png?format=webp&w=192";
-import Container from "@/components/Container";
 import Dropzone from "@/components/Dropzone";
 import PrimaryButton from "@/components/PrimaryButton";
 import Tabs from "@/components/Tabs";
@@ -55,29 +54,29 @@ export default function BackupAndRestore() {
 
   return (
     <Tabs tabs={tabs} rootClassName="grow gap-0 overflow-auto">
-      <div className="flex flex-col grow overflow-auto">
-        <Container className="p-4 my-auto">
-          <TabContent value="backup" title={"Backup Data"}>
-            <Alert variant={"warning"} className="text-center">
-              You are about to backup all data of the extension. This includes
-              accounts and Telegram Web data.
-            </Alert>
+      <Tabs.Content value="backup" title={"Backup Data"} className="gap-2 p-2">
+        <Alert variant={"warning"} className="text-center">
+          You are about to backup all data of the extension. This includes
+          accounts and Telegram Web data.
+        </Alert>
 
-            <PrimaryButton onClick={() => backupAllData()}>
-              Backup Now
-            </PrimaryButton>
-          </TabContent>
+        <PrimaryButton onClick={() => backupAllData()}>
+          Backup Now
+        </PrimaryButton>
+      </Tabs.Content>
 
-          <TabContent value="restore" title={"Restore Data"}>
-            <Alert variant={"warning"} className="text-center">
-              You are about to restore all data of the extension. This includes
-              accounts and Telegram Web data.
-            </Alert>
+      <Tabs.Content
+        value="restore"
+        title={"Restore Data"}
+        className="gap-2 p-2"
+      >
+        <Alert variant={"warning"} className="text-center">
+          You are about to restore all data of the extension. This includes
+          accounts and Telegram Web data.
+        </Alert>
 
-            <Dropzone title={"backup file"} onData={onDropzoneData} />
-          </TabContent>
-        </Container>
-      </div>
+        <Dropzone title={"backup file"} onData={onDropzoneData} />
+      </Tabs.Content>
     </Tabs>
   );
 }
