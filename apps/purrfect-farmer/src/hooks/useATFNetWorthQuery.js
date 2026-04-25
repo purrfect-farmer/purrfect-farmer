@@ -21,7 +21,7 @@ export default function useATFNetWorthQuery() {
       const address = item.address;
       return {
         queryKey: ["atf-balances", address],
-        queryFn: () => getBalances(address),
+        queryFn: ({ signal }) => getBalances(address, { signal }),
         refetchInterval: 60_000,
         enabled: enableRequests && Boolean(address),
       };

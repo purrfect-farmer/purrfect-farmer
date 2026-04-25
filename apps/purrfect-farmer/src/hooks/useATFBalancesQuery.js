@@ -6,7 +6,7 @@ export default function useATFBalancesQuery(address) {
   const { enableRequests } = useATFAuto();
   return useQuery({
     queryKey: ["atf-balances", address],
-    queryFn: () => getBalances(address),
+    queryFn: ({ signal }) => getBalances(address, { signal }),
     refetchInterval: 60_000,
     enabled: enableRequests && Boolean(address),
   });

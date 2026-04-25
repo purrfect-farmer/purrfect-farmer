@@ -241,10 +241,15 @@ export default function ATFAutoDashboardTab() {
       {/* Master Balance Card */}
       <MasterBalanceCard />
 
-      {/* Alert */}
+      {/* Rotation Alert */}
+      <Alert variant={"danger"}>
+        Make sure the master wallet is rotated once before boosting accounts.
+      </Alert>
+
+      {/* Requests Alert */}
       <Alert variant={"warning"}>
-        Disable requests by clicking the boost toggle in the master balance card
-        before boosting / collecting to speed up operations.
+        Disable requests by clicking the network toggle in the master balance
+        card before boosting / collecting to speed up operations.
       </Alert>
 
       {/* Add Account */}

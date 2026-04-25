@@ -25,16 +25,19 @@ function createApi(baseURL) {
 }
 
 export const tonapi = createApi("https://tonapi.io/v2");
-export const fetchTonApi = serialized((url) => tonapi.get(url));
+export const fetchTonApi = serialized((url, options) =>
+  tonapi.get(url, options),
+);
 
-export async function getTonBalance(address) {
-  const res = await fetchTonApi(`/accounts/${address}`);
+export async function getTonBalance(address, options) {
+  const res = await fetchTonApi(`/accounts/${address}`, options);
   return new Decimal(res.data.balance || 0).div(1e9);
 }
 
-export async function getJettonInfo(ownerAddress) {
+export async function getJettonInfo(ownerAddress, options) {
   const res = await fetchTonApi(
     `/accounts/${ownerAddress}/jettons/${JETTON_ADDRESS}`,
+    options,
   );
 
   const decimals = Number(res.data.jetton?.metadata?.decimals || 9);
@@ -45,15 +48,15 @@ export async function getJettonInfo(ownerAddress) {
   return { balance, decimals };
 }
 
-export async function getJettonBalance(ownerAddress) {
-  const { balance } = await getJettonInfo(ownerAddress);
+export async function getJettonBalance(ownerAddress, options) {
+  const { balance } = await getJettonInfo(ownerAddress, options);
   return balance;
 }
 
-export async function getBalances(address) {
+export async function getBalances(address, options) {
   const [ton, jetton] = await Promise.all([
-    getTonBalance(address).catch(() => 0),
-    getJettonBalance(address).catch(() => 0),
+    getTonBalance(address, options).catch(() => 0),
+    getJettonBalance(address, options).catch(() => 0),
   ]);
 
   return { ton, jetton };
