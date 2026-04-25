@@ -24,6 +24,7 @@ import copy from "copy-to-clipboard";
 import toast from "react-hot-toast";
 import useATFAuto from "@/hooks/useATFAuto";
 import useATFBalancesQuery from "@/hooks/useATFBalancesQuery";
+import useATFMasterWalletRotationMutation from "@/hooks/useATFMasterWalletRotationMutation";
 import useATFNetWorthQuery from "@/hooks/useATFNetWorthQuery";
 import { useDebounce } from "react-use";
 
@@ -31,6 +32,8 @@ function MasterBalanceCard() {
   const { master, enableRequests, setEnableRequests } = useATFAuto();
   const { data: balances } = useATFBalancesQuery(master?.address);
   const [editOpen, setEditOpen] = useState(false);
+
+  const rotateMutation = useATFMasterWalletRotationMutation();
 
   /** Toggle Requests */
   const toggleRequests = () => {
@@ -40,6 +43,11 @@ function MasterBalanceCard() {
         ? "Successfully disabled requests!"
         : "Successfully enabled requests!",
     );
+  };
+
+  const rotateMasterWallet = () => {
+    if (!master) return;
+    rotateMutation.mutateAsync();
   };
 
   return (
@@ -89,6 +97,20 @@ function MasterBalanceCard() {
       <div className="flex justify-center items-center text-center gap-4">
         <h3 className="font-bold text-neutral-400">Master</h3>
       </div>
+
+      {/* Rotate Master Wallet Button */}
+      <button
+        disabled={rotateMutation.isPending}
+        onClick={rotateMasterWallet}
+        className={cn(
+          "bg-neutral-900 hover:bg-neutral-800 text-white px-4 py-2 rounded-full",
+          "flex items-center gap-2",
+          "disabled:bg-neutral-700 disabled:cursor-not-allowed",
+          "transition-colors",
+        )}
+      >
+        {rotateMutation.isPending ? "Rotating..." : "Rotate Master Wallet"}
+      </button>
 
       {/* Jetton balance */}
       <div className="flex items-center gap-2">

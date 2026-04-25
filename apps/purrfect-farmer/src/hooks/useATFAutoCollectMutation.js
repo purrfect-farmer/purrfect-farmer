@@ -1,8 +1,9 @@
-import ATFAutoBooster, { prepareMaster } from "@/lib/ATFAutoBooster";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 
+import ATFAutoBooster from "@/lib/ATFAutoBooster";
 import Decimal from "decimal.js";
 import { encryption } from "@/services/encryption";
+import { prepareMaster } from "@/lib/atf-auto-transactions";
 import useATFAuto from "./useATFAuto";
 import useATFAutoProgress from "./useATFAutoProgress";
 

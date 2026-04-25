@@ -60,7 +60,9 @@ export async function getBalances(address) {
 }
 
 export async function keypairFromMnemonic(mnemonic) {
-  const keyPair = await mnemonicToPrivateKey(mnemonic.split(" "));
+  const keyPair = await mnemonicToPrivateKey(
+    typeof mnemonic === "string" ? mnemonic.split(" ") : mnemonic,
+  );
   return keyPair;
 }
 
