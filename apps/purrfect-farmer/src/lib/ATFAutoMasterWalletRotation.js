@@ -56,7 +56,7 @@ export default class ATFAutoMasterWalletRotation {
     }
   }
 
-  /** Send Jetton from old master to address */
+  /** Send Jetton from master to address */
   async sendJettonToAddress() {
     const { contract, keyPair, jettonWalletAddress, jettonDecimals } =
       this.prepared;
