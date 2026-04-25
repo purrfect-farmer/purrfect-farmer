@@ -30,16 +30,26 @@ import useATFMasterWalletRotationMutation from "@/hooks/useATFMasterWalletRotati
 import useATFNetWorthQuery from "@/hooks/useATFNetWorthQuery";
 import { useDebounce } from "react-use";
 
-function MasterCardButton(props) {
+function MasterCardButton({ title, icon: Icon, ...props }) {
   return (
     <button
       {...props}
       className={cn(
-        "flex flex-col justify-center items-center gap-2",
+        "flex flex-col justify-center items-center gap-1",
         "text-center text-xs",
-        "p-2 disabled:opacity-50",
+        "disabled:opacity-50",
       )}
-    />
+    >
+      <span
+        className={cn(
+          "flex justify-center items-center",
+          "bg-neutral-900 rounded-full aspect-square p-2",
+        )}
+      >
+        <Icon className="size-6" />
+      </span>
+      <span className="font-bold">{title}</span>
+    </button>
   );
 }
 
@@ -156,23 +166,19 @@ function MasterCardActions() {
   };
 
   return (
-    <div className="grid grid-cols-2 mx-auto divide-x divide-neutral-700">
+    <div className="grid grid-cols-2 mx-auto gap-2">
       {/* Rotate */}
       <MasterCardButton
+        title={rotateMutation.isPending ? "Rotating..." : "Rotate"}
+        icon={LiaUserNinjaSolid}
         onClick={rotateMasterWallet}
         disabled={rotateMutation.isPending}
-      >
-        <LiaUserNinjaSolid className="size-5" />
-        {rotateMutation.isPending ? "Rotating..." : "Rotate"}
-      </MasterCardButton>
+      />
 
       {/* Withdraw Button */}
       <Dialog.Root open={withdrawOpen} onOpenChange={setWithdrawOpen}>
         <Dialog.Trigger asChild>
-          <MasterCardButton>
-            <HiOutlineArrowUp className="size-5" />
-            Withdraw
-          </MasterCardButton>
+          <MasterCardButton title="Withdraw" icon={HiOutlineArrowUp} />
         </Dialog.Trigger>
 
         <ATFAutoWithdrawDialog />

@@ -113,8 +113,8 @@ export default function ATFAutoWithdrawDialog() {
 
           {/* Warning */}
           <Alert variant={"warning"}>
-            Make sure the address is correct before submitting. All ATF and TON
-            in the master wallet will be transferred to the specified address
+            Ensure the address is correct before submitting. All ATF and TON in
+            the master wallet will be transferred to the specified address
             immediately after submission and cannot be reversed.
           </Alert>
 
