@@ -697,16 +697,19 @@ export default function createRunner(FarmerClass) {
           return { account, execute };
         });
 
+        /* Executable accounts */
+        const executableList = list.filter((item) => item.execute);
+
         /** Prepare accounts to be executed */
         this.utils
-          .shuffle(list.filter((item) => item.execute))
+          .shuffle(executableList)
           .forEach((item) => this.prepare(item.account));
 
         /** Process queue */
         this.processQueue();
 
         /** Get results */
-        const results = list.map((item) => {
+        const results = executableList.map((item) => {
           const { account } = item;
           return { account, result: this.getResult(account) };
         });
@@ -719,6 +722,8 @@ export default function createRunner(FarmerClass) {
             link: this.link,
             telegramLink: this.telegramLink,
             threadId: this.threadId,
+            totalCount: subscribedList.length,
+            executedCount: executableList.length,
             results,
           });
         } catch (error) {

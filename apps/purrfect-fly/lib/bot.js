@@ -47,6 +47,8 @@ class GroupBot extends Bot {
     telegramLink,
     threadId,
     results,
+    totalCount,
+    executedCount,
   }) {
     try {
       const users = utils.formatUsers(
@@ -83,7 +85,7 @@ class GroupBot extends Bot {
         `messages.farming-initiated.${id}`,
         [
           `<b>${title}</b>`,
-          "<i>✅ Status: Initiated</i>\n",
+          `<i>✅ Status: Initiated (${executedCount}/${totalCount})</i>\n`,
           `<blockquote><a href="${link || telegramLink}">Open ${
             link ? "Link" : "Telegram Bot"
           }</a></blockquote>${users}`,
