@@ -657,16 +657,28 @@ export default function createRunner(FarmerClass) {
     /** Run the farmer for all subscribed accounts */
     static async run({ user } = {}) {
       try {
-        /** Determine if farmer is required */
+        /** Determine if farmer is required based on platform */
         const farmerIsRequired = this.platform !== "telegram";
-        const additionalQueryOptions = user ? { where: { id: user } } : {};
+
+        /** Fetch accounts with farmer and active subscription */
+        const accountsWithFarmer = await db.Account.findSubscribedWithFarmer(
+          this.id,
+        );
 
         /** Fetch Subscribed Accounts */
-        const subscribedList = await db.Account.findSubscribedWithFarmer(
-          this.id,
-          farmerIsRequired,
-          additionalQueryOptions,
-        );
+        let subscribedList = accountsWithFarmer;
+
+        if (farmerIsRequired) {
+          /** Filter accounts without farmer */
+          subscribedList = subscribedList.filter((item) => item.farmer);
+        }
+
+        /** Filter by user if specified */
+        if (user) {
+          subscribedList = subscribedList.filter(
+            (item) => Number(item.id) === Number(user),
+          );
+        }
 
         /** Filter unbanned accounts */
         const accounts = subscribedList.filter((item) => {
@@ -682,35 +694,55 @@ export default function createRunner(FarmerClass) {
         const canLaunchPrimaryAccount =
           primaryAccount?.farmer?.active || primaryAccount?.session;
 
+        /** Can auto-start accounts without farmer */
+        const canAutoStart =
+          this.platform === "telegram" && canLaunchPrimaryAccount;
+
         /** Get accounts to be executed  */
-        const list = accounts.map((account) => {
+        const executableList = accounts.filter((account) => {
           /**
            * A farmer can be automatically created for an
-           * account with an active telegram session if auto start is enabled
+           * account with an active telegram session
            */
-          const canAutoStart =
-            this.platform === "telegram" && canLaunchPrimaryAccount;
           const execute = canAutoStart
             ? account.farmer?.active || account.session
             : account.farmer?.active;
 
-          return { account, execute };
+          return execute;
         });
 
-        /* Executable accounts */
-        const executableList = list.filter((item) => item.execute);
+        /* Skipped accounts */
+        const skippedAccounts = accountsWithFarmer.filter(
+          (account) => !executableList.some((item) => item.id === account.id),
+        );
+
+        /* Unused proxies */
+        const unusedProxies = skippedAccounts
+          .filter((account) => account.proxy)
+          .map((account) => account.proxy);
+
+        /* Assign unused proxies to executable accounts without proxy */
+        executableList.forEach((account) => {
+          if (account.proxy) {
+            return;
+          }
+
+          const proxy = unusedProxies.shift();
+          if (proxy) {
+            account.proxy = proxy;
+          }
+        });
 
         /** Prepare accounts to be executed */
         this.utils
           .shuffle(executableList)
-          .forEach((item) => this.prepare(item.account));
+          .forEach((account) => this.prepare(account));
 
         /** Process queue */
         this.processQueue();
 
         /** Get results */
-        const results = executableList.map((item) => {
-          const { account } = item;
+        const results = executableList.map((account) => {
           return { account, result: this.getResult(account) };
         });
 
@@ -722,7 +754,7 @@ export default function createRunner(FarmerClass) {
             link: this.link,
             telegramLink: this.telegramLink,
             threadId: this.threadId,
-            totalCount: subscribedList.length,
+            totalCount: accountsWithFarmer.length,
             executedCount: executableList.length,
             results,
           });
