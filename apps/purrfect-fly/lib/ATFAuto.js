@@ -67,13 +67,12 @@ class ATFAuto {
     const FarmerClass = farmers["atf"];
     const runner = new FarmerClass(cloudAccount);
 
-    const version = "v" + walletAccount.version;
-    const keyPair = await runner.getKeyPair(walletAccount.phrase);
-
     /** Prepare runner */
     await runner.prepare();
 
     /** Connect and sync */
+    const version = "v" + walletAccount.version;
+    const keyPair = await runner.getKeyPair(walletAccount.phrase);
     const connected = await runner.connectAndSyncWallet(keyPair, version);
 
     if (!connected) {
@@ -140,7 +139,7 @@ class ATFAuto {
 
     /** Send Boost Notification */
     await this.sendAccountBoostNotification(cloudAccount, jettonAmount);
-    await this.utils.delayForSeconds(60);
+    await this.utils.delayForSeconds(20);
   }
 
   /** Send Boost Notification */
