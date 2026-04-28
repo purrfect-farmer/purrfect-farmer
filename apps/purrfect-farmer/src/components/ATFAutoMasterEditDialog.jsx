@@ -5,7 +5,7 @@ import CenteredDialog from "./CenteredDialog";
 import Input from "./Input";
 import { MdHourglassEmpty } from "react-icons/md";
 import { encryption } from "@/services/encryption";
-import { getWalletAddressFromMnemonic } from "@/lib/atf-auto";
+import { getWalletAddressFromMnemonic } from "@purrfect/shared/lib/atf-auto";
 import toast from "react-hot-toast";
 import useATFAuto from "@/hooks/useATFAuto";
 import useAppContext from "@/hooks/useAppContext";
@@ -43,9 +43,9 @@ export default function ATFAutoMasterEditDialog({ onSave }) {
     dispatchAndStoreMaster({
       ...master,
       address,
-      version: data.version,
       encryptedWalletPhrase,
       tonCenterApiKey,
+      version: data.version,
     });
 
     toast.success("Master account updated!");
@@ -87,6 +87,7 @@ export default function ATFAutoMasterEditDialog({ onSave }) {
             submitLabel="Save Changes"
             submittingLabel="Saving..."
             hideTitle
+            hideUserId
           />
         </>
       ) : (

@@ -1,4 +1,4 @@
-import { getBalances } from "@/lib/atf-auto";
+import { getBalances } from "@purrfect/shared/lib/atf-auto";
 import useATFAuto from "./useATFAuto";
 import { useQuery } from "@tanstack/react-query";
 

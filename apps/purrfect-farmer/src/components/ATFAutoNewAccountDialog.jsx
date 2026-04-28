@@ -1,7 +1,7 @@
 import ATFAutoAccountForm from "./ATFAutoAccountForm";
 import CenteredDialog from "./CenteredDialog";
 import { encryption } from "@/services/encryption";
-import { getWalletAddressFromMnemonic } from "@/lib/atf-auto";
+import { getWalletAddressFromMnemonic } from "@purrfect/shared/lib/atf-auto";
 import toast from "react-hot-toast";
 import useATFAuto from "@/hooks/useATFAuto";
 import { uuid } from "@/utils";
@@ -23,9 +23,10 @@ export default function ATFAutoNewAccountDialog({ onCreated }) {
     const account = {
       id: uuid(),
       title: data.title,
-      address,
       version: data.version,
+      userId: data.userId,
       encryptedPhrase,
+      address,
     };
 
     dispatchAndStoreAccounts([...accounts, account]);

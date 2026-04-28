@@ -12,7 +12,7 @@ import Textarea from "./Textarea";
 import bcrypt from "bcryptjs";
 import { cn } from "@/utils";
 import { encryption } from "@/services/encryption";
-import { getWalletAddressFromMnemonic } from "@/lib/atf-auto";
+import { getWalletAddressFromMnemonic } from "@purrfect/shared/lib/atf-auto";
 import { mnemonicNew } from "@ton/crypto";
 import toast from "react-hot-toast";
 import useATFAuto from "@/hooks/useATFAuto";

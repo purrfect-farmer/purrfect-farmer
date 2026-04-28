@@ -1,3 +1,5 @@
+import ATFAuto from "../../lib/ATFAuto.js";
+
 const authSchema = {
   body: {
     type: "object",
@@ -198,6 +200,43 @@ export default async function (fastify, opts) {
           return reply.forbidden("Not allowed!");
         }
       }
+    },
+  );
+
+  /** ATF Auto Boost */
+  fastify.post(
+    "/atf-auto/boost",
+    {
+      preHandler: [fastify.validateWebAppData],
+      schema: {
+        body: {
+          type: "object",
+          required: ["auth", "password", "master", "accounts"],
+          properties: {
+            auth: { type: "string" },
+            password: { type: "string" },
+            master: { type: "object" },
+            accounts: { type: "array" },
+          },
+        },
+      },
+    },
+    async function (request, reply) {
+      const { user } = request.auth;
+      const account = await fastify.db.Account.findWithActiveSubscription(
+        user.id,
+      );
+
+      if (!account) {
+        return reply.forbidden("Not allowed!");
+      }
+
+      ATFAuto.boost({
+        id: account.id,
+        password: request.body.password,
+        master: request.body.master,
+        accounts: request.body.accounts,
+      });
     },
   );
 }

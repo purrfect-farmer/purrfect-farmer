@@ -1,4 +1,5 @@
 import { HiOutlineArrowUp, HiOutlinePencilSquare } from "react-icons/hi2";
+import { LiaFireAltSolid, LiaUserNinjaSolid } from "react-icons/lia";
 import {
   MdOutlineClose,
   MdOutlineContentCopy,
@@ -17,7 +18,6 @@ import Alert from "./Alert";
 import Decimal from "decimal.js";
 import { Dialog } from "radix-ui";
 import Input from "./Input";
-import { LiaUserNinjaSolid } from "react-icons/lia";
 import PrimaryButton from "./PrimaryButton";
 import { Reorder } from "motion/react";
 import TonIcon from "@/assets/images/toncoin-ton-logo.svg";
@@ -25,6 +25,7 @@ import { cn } from "@/utils";
 import copy from "copy-to-clipboard";
 import toast from "react-hot-toast";
 import useATFAuto from "@/hooks/useATFAuto";
+import useATFAutoCloudBoostMutation from "@/hooks/useATFAutoCloudBoostMutation";
 import useATFBalancesQuery from "@/hooks/useATFBalancesQuery";
 import useATFMasterWalletRotationMutation from "@/hooks/useATFMasterWalletRotationMutation";
 import useATFNetWorthQuery from "@/hooks/useATFNetWorthQuery";
@@ -151,9 +152,10 @@ function MasterBalanceCard() {
 }
 
 function MasterCardActions() {
-  const { master } = useATFAuto();
+  const { password, master, accounts } = useATFAuto();
   const [withdrawOpen, setWithdrawOpen] = useState(false);
 
+  const boostMutation = useATFAutoCloudBoostMutation();
   const rotateMutation = useATFMasterWalletRotationMutation();
 
   const rotateMasterWallet = () => {
@@ -165,8 +167,31 @@ function MasterCardActions() {
     });
   };
 
+  const boostWithCloud = () => {
+    toast.promise(
+      boostMutation.mutateAsync({
+        password,
+        master,
+        accounts,
+      }),
+      {
+        loading: "Dispatching...",
+        success: "Dispatched",
+        error: "Failed to dispatch boost request",
+      },
+    );
+  };
+
   return (
-    <div className="grid grid-cols-2 mx-auto gap-2">
+    <div className="grid grid-cols-3 mx-auto gap-2">
+      {/* Boost */}
+      <MasterCardButton
+        title={boostMutation.isPending ? "Requesting..." : "Boost"}
+        icon={LiaFireAltSolid}
+        onClick={boostWithCloud}
+        disabled={boostMutation.isPending}
+      />
+
       {/* Rotate */}
       <MasterCardButton
         title={rotateMutation.isPending ? "Rotating..." : "Rotate"}

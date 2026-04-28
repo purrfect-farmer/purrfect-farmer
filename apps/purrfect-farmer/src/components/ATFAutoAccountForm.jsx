@@ -8,18 +8,23 @@ import PrimaryButton from "./PrimaryButton";
 import Select from "./Select";
 import Textarea from "./Textarea";
 import { cn } from "@/utils";
-import { getWalletAddressFromMnemonic } from "@/lib/atf-auto";
+import { getWalletAddressFromMnemonic } from "@purrfect/shared/lib/atf-auto";
 import { mnemonicNew } from "@ton/crypto";
 import toast from "react-hot-toast";
 import { yup } from "@/lib/yup";
 import { yupResolver } from "@hookform/resolvers/yup";
 
-function buildSchema({ hideTitle }) {
+function buildSchema({ hideTitle, hideUserId }) {
   const shape = {
     phrase: yup.string().trim().required().label("Wallet Phrase"),
     version: yup.number().required().oneOf([4, 5]).label("Wallet Version"),
   };
-  if (!hideTitle) shape.title = yup.string().required().label("Title");
+  if (!hideTitle) {
+    shape.title = yup.string().required().label("Title");
+  }
+  if (!hideUserId) {
+    shape.userId = yup.number().required().label("Telegram User ID");
+  }
   return yup.object(shape).required();
 }
 
@@ -29,12 +34,14 @@ export default function ATFAutoAccountForm({
   submitLabel = "Save",
   submittingLabel = "Saving...",
   hideTitle = false,
+  hideUserId = false,
 }) {
   const [address, setAddress] = useState("");
   const form = useForm({
-    resolver: yupResolver(buildSchema({ hideTitle })),
+    resolver: yupResolver(buildSchema({ hideTitle, hideUserId })),
     defaultValues: {
       ...(hideTitle ? {} : { title: initialValues?.title || "" }),
+      ...(hideUserId ? {} : { userId: initialValues?.userId || "" }),
       phrase: initialValues?.phrase || "",
       version: initialValues?.version || 5,
     },
@@ -76,6 +83,26 @@ export default function ATFAutoAccountForm({
                   disabled={isSubmitting}
                   autoComplete="off"
                   placeholder="Account Title"
+                />
+                <FieldStateError fieldState={fieldState} />
+              </>
+            )}
+          />
+        )}
+
+        {/* Telegram User ID */}
+        {!hideUserId && (
+          <Controller
+            control={form.control}
+            name="userId"
+            render={({ field, fieldState }) => (
+              <>
+                <Label>Telegram User ID</Label>
+                <Input
+                  {...field}
+                  disabled={isSubmitting}
+                  autoComplete="off"
+                  placeholder="e.g 123456789"
                 />
                 <FieldStateError fieldState={fieldState} />
               </>

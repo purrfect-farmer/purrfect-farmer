@@ -23,7 +23,9 @@ try {
 
 /** Update account proxies */
 try {
-  await updateProxies();
+  if (process.env.NODE_ENV === "production") {
+    await updateProxies();
+  }
 } catch (e) {
   console.error("Error while updating account proxies:", e);
 }

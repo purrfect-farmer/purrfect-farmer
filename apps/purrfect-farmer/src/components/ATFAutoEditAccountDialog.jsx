@@ -6,7 +6,7 @@ import Alert from "./Alert";
 import Button from "./Button";
 import CenteredDialog from "./CenteredDialog";
 import { encryption } from "@/services/encryption";
-import { getWalletAddressFromMnemonic } from "@/lib/atf-auto";
+import { getWalletAddressFromMnemonic } from "@purrfect/shared/lib/atf-auto";
 import toast from "react-hot-toast";
 import useATFAuto from "@/hooks/useATFAuto";
 
@@ -44,6 +44,7 @@ export default function ATFAutoEditAccountDialog({
       ...account,
       title: data.title,
       version: data.version,
+      userId: data.userId,
       address,
       encryptedPhrase,
     });
@@ -61,8 +62,9 @@ export default function ATFAutoEditAccountDialog({
           <ATFAutoAccountForm
             initialValues={{
               title: account.title,
-              phrase,
               version: account.version,
+              userId: account.userId,
+              phrase,
             }}
             handleFormSubmit={handleFormSubmit}
             submitLabel="Save Changes"

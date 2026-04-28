@@ -4,7 +4,7 @@ import {
   createWallet,
   getJettonInfo,
   keypairFromMnemonic,
-} from "./atf-auto";
+} from "./atf-auto.js";
 
 import Decimal from "decimal.js";
 import { beginCell } from "@ton/core";
