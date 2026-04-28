@@ -7,6 +7,33 @@ import toast from "react-hot-toast";
 import useATFAuto from "./useATFAuto";
 import { useMutation } from "@tanstack/react-query";
 
+async function generateNewWallet(encryptedPhrase, version = 5) {
+  /** Decrypt the old wallet */
+  console.log("Decrypting the old wallet....");
+  const oldPhrase = await encryption.decryptData({
+    ...encryptedPhrase,
+    password,
+    asText: true,
+  });
+  console.log("Successfully decrypted the old wallet!");
+
+  /** Generate new wallet */
+  console.log("Generating new master wallet...");
+  const newMnemonic = await mnemonicNew();
+  const newPhrase = newMnemonic.join(" ");
+  console.log("Successfully generated new master wallet!");
+
+  /** Get new wallet address */
+  const newKeypair = await getWalletFromMnemonic(newPhrase, version);
+  const newAddress = newKeypair.address.toString({ bounceable: false });
+
+  return {
+    oldPhrase,
+    newKeypair,
+    newAddress,
+  };
+}
+
 export default function useATFWalletsRotationMutation() {
   const {
     master,
@@ -25,46 +52,21 @@ export default function useATFWalletsRotationMutation() {
       const { address: oldAddress, version, tonCenterApiKey } = master;
 
       /** Decrypt the old master wallet */
-      console.log("Decrypting the old master wallet....");
-      const oldPhrase = await encryption.decryptData({
-        ...master.encryptedWalletPhrase,
-        password,
-        asText: true,
-      });
-      console.log("Successfully decrypted the old master wallet!");
-
-      /** Generate new wallet */
-      console.log("Generating new master wallet...");
-      const newMnemonic = await mnemonicNew();
-      const newPhrase = newMnemonic.join(" ");
-      console.log("Successfully generated new master wallet!");
-
-      /** Get new wallet address */
-      const newKeypair = await getWalletFromMnemonic(newPhrase, version);
-      const newAddress = newKeypair.address.toString({ bounceable: false });
+      const { oldPhrase, newAddress } = await generateNewWallet(
+        master.encryptedWalletPhrase,
+        master.version,
+      );
 
       /** Rotate all accounts wallet */
       const accountsBackup = [];
       const updatedAccounts = [];
 
       for (const account of accounts) {
-        const version = account.version;
         const oldAddress = account.address;
-        const oldPhrase = await encryption.decryptData({
-          ...account.encryptedPhrase,
-          password,
-          asText: true,
-        });
-
-        /** Generate new wallet */
-        console.log("Generating new account wallet...");
-        const newMnemonic = await mnemonicNew();
-        const newPhrase = newMnemonic.join(" ");
-        console.log("Successfully generated new account wallet!");
-
-        /** Get new wallet address */
-        const newKeypair = await getWalletFromMnemonic(newPhrase, version);
-        const newAddress = newKeypair.address.toString({ bounceable: false });
+        const { oldPhrase, newAddress } = await generateNewWallet(
+          account.encryptedPhrase,
+          account.version,
+        );
 
         /** Encrypt new phrase */
         const newEncryptedPhrase = await encryption.encryptData({
@@ -97,6 +99,7 @@ export default function useATFWalletsRotationMutation() {
 
       /** Create backup of old and new wallets */
       const backup = {
+        /** Master */
         master: {
           version,
           tonCenterApiKey,
@@ -109,6 +112,8 @@ export default function useATFWalletsRotationMutation() {
             phrase: newPhrase,
           },
         },
+
+        /** Accounts */
         accounts: accountsBackup,
       };
 
