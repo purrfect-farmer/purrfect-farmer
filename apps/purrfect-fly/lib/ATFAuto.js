@@ -3,6 +3,7 @@ import Encrypter from "@purrfect/shared/lib/Encrypter.js";
 import bot from "./bot.js";
 import db from "../db/models/index.js";
 import farmers from "../farmers/index.js";
+import logger from "./logger.js";
 import { prepareMaster } from "@purrfect/shared/lib/atf-auto-transactions.js";
 import utils from "./utils.js";
 
@@ -23,14 +24,14 @@ class ATFAuto {
   }
 
   async prepareMasterData() {
-    console.log("Decrypting master wallet....");
+    logger.info("Decrypting master wallet....");
     const masterPhrase = await this.encryption.decryptData({
       ...this.master.encryptedWalletPhrase,
       password: this.password,
       asText: true,
     });
 
-    console.log("Successfully decrypted master wallet!");
+    logger.success("Successfully decrypted master wallet!");
 
     this.masterData = {
       address: this.master.address,
@@ -39,8 +40,9 @@ class ATFAuto {
       phrase: masterPhrase,
     };
 
-    console.log("Preparing master wallet...");
+    logger.info("Preparing master wallet...");
     this.prepared = await prepareMaster(this.masterData);
+    logger.success("Successfully prepared the master wallet!");
   }
 
   async getCloudAccount(account) {
@@ -61,7 +63,7 @@ class ATFAuto {
 
   /** Connect Wallet */
   async connectWallet({ cloudAccount, walletAccount }) {
-    console.log("Connecting Wallet:", cloudAccount.id, cloudAccount.farmer.id);
+    logger.info("Connecting Wallet:", cloudAccount.id, cloudAccount.farmer.id);
     const FarmerClass = farmers["atf"];
     const runner = new FarmerClass(cloudAccount);
 
@@ -77,6 +79,13 @@ class ATFAuto {
     if (!connected) {
       throw new Error("Failed to connect wallet!");
     }
+
+    /** Log Success */
+    logger.success(
+      "Connected Wallet:",
+      cloudAccount.id,
+      cloudAccount.farmer.id,
+    );
   }
 
   /** Boost account */
@@ -108,9 +117,13 @@ class ATFAuto {
     );
 
     /** Boost */
+    logger.info("Boosting account:", cloudAccount.id);
     const { jettonAmount } = await booster.boost({
       difference: this.difference,
     });
+    logger.success("Successfully boosted account:", cloudAccount.id);
+
+    /** Delay for 10s */
     await this.utils.delayForSeconds(10);
 
     /** Connect Wallet */
@@ -121,11 +134,13 @@ class ATFAuto {
     await this.utils.delayForSeconds(5);
 
     /** Collect token */
+    logger.info("Collecting ATF and TON...");
     await booster.collect();
-    await this.utils.delayForSeconds(10);
+    logger.success("Successfully collected ATF and TON!");
 
     /** Send Boost Notification */
     await this.sendAccountBoostNotification(cloudAccount, jettonAmount);
+    await this.utils.delayForSeconds(60);
   }
 
   /** Send Boost Notification */

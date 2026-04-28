@@ -38,7 +38,9 @@ export async function getJettonInfo(ownerAddress, options) {
   const res = await fetchTonApi(
     `/accounts/${ownerAddress}/jettons/${JETTON_ADDRESS}`,
     options,
-  ).catch(() => null);
+  ).catch((e) => {
+    console.log("Failed to fetch balance", e);
+  });
 
   const decimals = Number(res?.data?.jetton?.metadata?.decimals || 9);
   const balance = res?.data?.balance
