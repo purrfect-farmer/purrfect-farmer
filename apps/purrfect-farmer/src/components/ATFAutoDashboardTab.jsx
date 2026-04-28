@@ -27,8 +27,8 @@ import toast from "react-hot-toast";
 import useATFAuto from "@/hooks/useATFAuto";
 import useATFAutoCloudBoostMutation from "@/hooks/useATFAutoCloudBoostMutation";
 import useATFBalancesQuery from "@/hooks/useATFBalancesQuery";
-import useATFMasterWalletRotationMutation from "@/hooks/useATFMasterWalletRotationMutation";
 import useATFNetWorthQuery from "@/hooks/useATFNetWorthQuery";
+import useATFWalletsRotationMutation from "@/hooks/useATFWalletsRotationMutation";
 import { useDebounce } from "react-use";
 
 function MasterCardButton({ title, icon: Icon, ...props }) {
@@ -156,14 +156,14 @@ function MasterCardActions() {
   const [withdrawOpen, setWithdrawOpen] = useState(false);
 
   const boostMutation = useATFAutoCloudBoostMutation();
-  const rotateMutation = useATFMasterWalletRotationMutation();
+  const rotateMutation = useATFWalletsRotationMutation();
 
   const rotateMasterWallet = () => {
     if (!master) return;
     toast.promise(rotateMutation.mutateAsync(), {
-      loading: "Rotating master wallet...",
-      success: "Master wallet rotated successfully!",
-      error: "Failed to rotate master wallet.",
+      loading: "Rotating wallets...",
+      success: "Wallets rotated successfully!",
+      error: "Failed to rotate wallets.",
     });
   };
 

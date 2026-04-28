@@ -7,9 +7,9 @@ import {
 } from "./atf-auto-transactions";
 
 /**
- * BaseATFAutoMasterWalletTransfer
+ * BaseATFAutoWalletTransfer
  */
-export default class BaseATFAutoMasterWalletTransfer {
+export default class BaseATFAutoWalletTransfer {
   constructor(master, address) {
     this.master = master;
     this.address = address;
@@ -18,14 +18,14 @@ export default class BaseATFAutoMasterWalletTransfer {
   /** Main entry point to perform the wallet transfer */
   async transfer() {
     /* Log the start of the transfer process */
-    console.log("Starting master wallet transfer process...");
+    console.log("Starting wallet transfer process...");
     console.log("Received address for transfer:", this.address);
 
     /** Prepare master for transfer */
     this.prepared = await prepareMaster(this.master);
 
     /* Log the prepared master details */
-    console.log("Master wallet prepared for transfer:", this.prepared);
+    console.log("Wallet prepared for transfer:", this.prepared);
 
     /** Send assets from master to address */
     if (this.prepared.jettonBalance > 0) {

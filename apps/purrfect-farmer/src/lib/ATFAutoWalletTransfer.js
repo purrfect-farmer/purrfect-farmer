@@ -1,8 +1,8 @@
-import BaseATFAutoMasterWalletTransfer from "@purrfect/shared/lib/BaseATFAutoMasterWalletTransfer.js";
+import BaseATFAutoWalletTransfer from "@purrfect/shared/lib/BaseATFAutoWalletTransfer.js";
 import { fromNano } from "@ton/core";
 import toast from "react-hot-toast";
 
-export default class ATFAutoMasterWalletTransfer extends BaseATFAutoMasterWalletTransfer {
+export default class ATFAutoWalletTransfer extends BaseATFAutoWalletTransfer {
   sendJettonToAddress(amount) {
     return toast.promise(super.sendJettonToAddress(amount), {
       loading: `Sending ${amount} ATF`,

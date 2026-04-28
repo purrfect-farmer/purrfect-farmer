@@ -1,7 +1,7 @@
 import { Controller, FormProvider, useForm } from "react-hook-form";
 
 import ATFAutoAddress from "./ATFAutoAddress";
-import ATFAutoMasterWalletTransfer from "@/lib/ATFAutoMasterWalletTransfer";
+import ATFAutoWalletTransfer from "@/lib/ATFAutoWalletTransfer";
 import Alert from "./Alert";
 import CenteredDialog from "./CenteredDialog";
 import FieldStateError from "./FieldStateError";
@@ -55,10 +55,7 @@ export default function ATFAutoWithdrawDialog() {
       };
 
       /** Create wallet transfer instance */
-      const walletTransfer = new ATFAutoMasterWalletTransfer(
-        masterData,
-        address,
-      );
+      const walletTransfer = new ATFAutoWalletTransfer(masterData, address);
 
       /** Execute the wallet transfer */
       await walletTransfer.transfer();
