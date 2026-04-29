@@ -22,7 +22,6 @@ export default class ATFFarmer extends BaseFarmer {
   static cacheTelegramWebApp = false;
   static rating = 4;
   static cookies = true;
-  static interval = "*/5 * * * *";
   static netRequest = {
     requestHeaders: [
       {
@@ -516,8 +515,6 @@ export default class ATFFarmer extends BaseFarmer {
 
     this.logUserInfo(user);
     await this.executeTask("Mining", () => this.startOrClaimMining());
-    await this.executeTask("Boost", () => this.applyBoost());
-    await this.executeTask("Tasks", () => this.completeTasks());
   }
   /** Log User Info */
   logUserInfo(user) {
@@ -628,7 +625,12 @@ export default class ATFFarmer extends BaseFarmer {
       });
 
       if (balance <= 0) {
-        this.logger.info("No rewards to claim yet.");
+        this.logger.warn("No rewards to claim yet.");
+        return;
+      }
+
+      if (balance < 100) {
+        this.logger.warn("Skipping - Rewards is not enough to claim.");
         return;
       }
 
