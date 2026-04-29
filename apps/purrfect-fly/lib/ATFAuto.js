@@ -193,6 +193,8 @@ class ATFAuto {
       /** Notify about boost completion */
       await this.sendBoostCompletionNotification();
     } catch (e) {
+      /** Log error */
+      logger.error(e.message || "Unknown error!");
       /** Notify about boost error */
       await this.sendBoostErrorNotification(e);
     }

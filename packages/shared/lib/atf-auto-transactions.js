@@ -89,11 +89,15 @@ export async function prepareMaster(master) {
   const wallet = createWallet(keyPair.publicKey, master.version);
   const contract = client.open(wallet);
 
+  console.log("Opened master contract!");
+
   const jettonWalletAddress = await getJettonWalletAddress(
     client,
     JETTON_ADDRESS,
     master.address,
   );
+
+  console.log("Retrieved master Jetton wallet address!");
 
   const { balance: jettonBalance, decimals: jettonDecimals } =
     await getJettonInfo(master.address);
