@@ -63,28 +63,56 @@ class ATFAuto {
 
   /** Connect Wallet */
   async connectWallet({ cloudAccount, walletAccount }) {
-    logger.info("Connecting Wallet:", cloudAccount.id, cloudAccount.farmer.id);
-    const FarmerClass = farmers["atf"];
-    const runner = new FarmerClass(cloudAccount);
+    /** Seconds of delay before retry */
+    const RETRY_SECONDS = 2;
 
-    /** Prepare runner */
-    await runner.prepare();
+    /** Initial attempts */
+    let attempts = 0;
 
-    /** Connect and sync */
-    const version = "v" + walletAccount.version;
-    const keyPair = await runner.getKeyPair(walletAccount.phrase);
-    const connected = await runner.connectAndSyncWallet(keyPair, version);
+    while (attempts < 3) {
+      try {
+        /** Log */
+        logger.info(
+          "Connecting Wallet:",
+          cloudAccount.id,
+          cloudAccount.farmer.id,
+        );
+        const FarmerClass = farmers["atf"];
+        const runner = new FarmerClass(cloudAccount);
 
-    if (!connected) {
-      throw new Error("Failed to connect wallet!");
+        /** Prepare runner */
+        await runner.prepare();
+
+        /** Connect and sync */
+        const version = "v" + walletAccount.version;
+        const keyPair = await runner.getKeyPair(walletAccount.phrase);
+        const connected = await runner.connectAndSyncWallet(keyPair, version);
+
+        /** Throw error when not connected */
+        if (!connected) {
+          throw new Error("Failed to connect wallet!");
+        }
+
+        /** Log Success */
+        logger.success(
+          "Connected Wallet:",
+          cloudAccount.id,
+          cloudAccount.farmer.id,
+        );
+
+        /** Break the loop */
+        break;
+      } catch (e) {
+        logger.error("Failed to connect wallet:", cloudAccount.id, e.message);
+        attempts++;
+
+        /** Delay before retrying... */
+        if (attempts < 3) {
+          logger.info(`Retrying in ${RETRY_SECONDS}s... (${attempts}/3)`);
+          await this.utils.delayForSeconds(RETRY_SECONDS);
+        }
+      }
     }
-
-    /** Log Success */
-    logger.success(
-      "Connected Wallet:",
-      cloudAccount.id,
-      cloudAccount.farmer.id,
-    );
   }
 
   /** Boost account */
