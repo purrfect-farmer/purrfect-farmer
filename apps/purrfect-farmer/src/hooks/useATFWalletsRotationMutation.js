@@ -7,7 +7,7 @@ import toast from "react-hot-toast";
 import useATFAuto from "./useATFAuto";
 import { useMutation } from "@tanstack/react-query";
 
-async function generateNewWallet(encryptedPhrase, version = 5) {
+async function generateNewWallet({ password, encryptedPhrase, version = 5 }) {
   /** Decrypt the old wallet */
   console.log("Decrypting the old wallet....");
   const oldPhrase = await encryption.decryptData({
@@ -29,6 +29,7 @@ async function generateNewWallet(encryptedPhrase, version = 5) {
 
   return {
     oldPhrase,
+    newPhrase,
     newKeypair,
     newAddress,
   };
@@ -52,10 +53,11 @@ export default function useATFWalletsRotationMutation() {
       const { address: oldAddress, version, tonCenterApiKey } = master;
 
       /** Decrypt the old master wallet */
-      const { oldPhrase, newAddress } = await generateNewWallet(
-        master.encryptedWalletPhrase,
-        master.version,
-      );
+      const { oldPhrase, newPhrase, newAddress } = await generateNewWallet({
+        password,
+        version: master.version,
+        encryptedPhrase: master.encryptedWalletPhrase,
+      });
 
       /** Rotate all accounts wallet */
       const accountsBackup = [];
@@ -63,15 +65,16 @@ export default function useATFWalletsRotationMutation() {
 
       for (const account of accounts) {
         const oldAddress = account.address;
-        const { oldPhrase, newAddress } = await generateNewWallet(
-          account.encryptedPhrase,
-          account.version,
-        );
+        const { oldPhrase, newAddress, newPhrase } = await generateNewWallet({
+          password,
+          version: account.version,
+          encryptedPhrase: account.encryptedPhrase,
+        });
 
         /** Encrypt new phrase */
         const newEncryptedPhrase = await encryption.encryptData({
-          data: newPhrase,
           password,
+          data: newPhrase,
         });
 
         /** Push to updated accounts */
@@ -133,6 +136,7 @@ export default function useATFWalletsRotationMutation() {
         version,
       };
 
+      /** Prepare master data */
       const newMasterData = {
         address: newAddress,
         phrase: newPhrase,
@@ -155,8 +159,8 @@ export default function useATFWalletsRotationMutation() {
 
       /** Encrypt the new master wallet */
       const newEncryptedWalletPhrase = await encryption.encryptData({
-        data: newPhrase,
         password,
+        data: newPhrase,
       });
 
       /** Store updated master */
