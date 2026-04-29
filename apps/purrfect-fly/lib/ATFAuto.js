@@ -100,8 +100,7 @@ class ATFAuto {
           cloudAccount.farmer.id,
         );
 
-        /** Break the loop */
-        break;
+        return true;
       } catch (e) {
         logger.error("Failed to connect wallet:", cloudAccount.id, e.message);
         attempts++;
@@ -113,6 +112,8 @@ class ATFAuto {
         }
       }
     }
+
+    return false;
   }
 
   /** Boost account */
@@ -154,7 +155,7 @@ class ATFAuto {
     await this.utils.delayForSeconds(10);
 
     /** Connect Wallet */
-    await this.connectWallet({
+    const connected = await this.connectWallet({
       cloudAccount,
       walletAccount,
     });
@@ -166,14 +167,20 @@ class ATFAuto {
     logger.success("Successfully collected ATF and TON!");
 
     /** Send Boost Notification */
-    await this.sendAccountBoostNotification(cloudAccount, jettonAmount);
+    await this.sendAccountBoostNotification(
+      cloudAccount,
+      jettonAmount,
+      connected,
+    );
     await this.utils.delayForSeconds(20);
   }
 
   /** Send Boost Notification */
-  async sendAccountBoostNotification(cloudAccount, jettonAmount) {
+  async sendAccountBoostNotification(cloudAccount, jettonAmount, connected) {
     await bot.sendPrivateMessage(this.id, [
-      `✅ Boosted (${cloudAccount.id}) with ${jettonAmount} ATF.`,
+      connected
+        ? `⚡ Boosted <b>(${cloudAccount.id})</b> with <i>${jettonAmount} ATF</i>`
+        : `❌ Failed to boost <b>(${cloudAccount.id})</b> with <i>${jettonAmount} ATF</i>`,
     ]);
   }
 
