@@ -172,7 +172,7 @@ class ATFAuto {
       jettonAmount,
       connected,
     );
-    await this.utils.delayForSeconds(20);
+    await this.utils.delayForSeconds(20 + Math.floor(Math.random() * 100));
   }
 
   /** Send Boost Notification */
