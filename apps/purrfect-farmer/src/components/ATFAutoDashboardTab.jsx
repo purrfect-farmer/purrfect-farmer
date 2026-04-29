@@ -262,6 +262,8 @@ function NetWorthCard() {
 }
 
 function searchAccount(account, searchTerm) {
+  if (account.userId?.toString().toLowerCase().includes(searchTerm))
+    return true;
   if (account.title?.toLowerCase().includes(searchTerm)) return true;
   if (account.address?.toLowerCase().includes(searchTerm)) return true;
 
