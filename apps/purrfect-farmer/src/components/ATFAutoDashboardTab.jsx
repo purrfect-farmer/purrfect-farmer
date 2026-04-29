@@ -313,7 +313,7 @@ export default function ATFAutoDashboardTab() {
 
       {/* Rotation Alert */}
       <Alert variant={"danger"}>
-        Make sure the master wallet is rotated once before boosting accounts.
+        Make sure the wallets are rotated once before boosting accounts.
       </Alert>
 
       {/* Requests Alert */}

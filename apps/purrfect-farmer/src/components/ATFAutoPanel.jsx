@@ -1,3 +1,4 @@
+import ATFAutoBoostTab from "./ATFAutoBoostTab";
 import ATFAutoCollectTab from "./ATFAutoCollectTab";
 import ATFAutoDashboardTab from "./ATFAutoDashboardTab";
 import ATFAutoSettingsTab from "./ATFAutoSettingsTab";
@@ -5,7 +6,7 @@ import Tabs from "./Tabs";
 
 const tabs = {
   rootProps: { defaultValue: "dashboard" },
-  list: ["dashboard", "collect", "settings"],
+  list: ["dashboard", "boost", "collect", "settings"],
 };
 
 export default function ATFAutoPanel() {
@@ -13,6 +14,9 @@ export default function ATFAutoPanel() {
     <Tabs tabs={tabs} rootClassName="grow overflow-auto gap-0">
       <Tabs.Content value="dashboard">
         <ATFAutoDashboardTab />
+      </Tabs.Content>
+      <Tabs.Content value="boost">
+        <ATFAutoBoostTab />
       </Tabs.Content>
       <Tabs.Content value="collect">
         <ATFAutoCollectTab />
