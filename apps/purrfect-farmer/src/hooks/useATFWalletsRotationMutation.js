@@ -49,7 +49,7 @@ export default function useATFWalletsRotationMutation() {
     onError: (error) => {
       console.log("Error while rotating wallets", error);
     },
-    mutationFn: async () => {
+    mutationFn: async ({ includeAccounts = false }) => {
       const { address: oldAddress, version, tonCenterApiKey } = master;
 
       /** Decrypt the old master wallet */
@@ -63,41 +63,43 @@ export default function useATFWalletsRotationMutation() {
       const accountsBackup = [];
       const updatedAccounts = [];
 
-      for (const account of accounts) {
-        const oldAddress = account.address;
-        const { oldPhrase, newAddress, newPhrase } = await generateNewWallet({
-          password,
-          version: account.version,
-          encryptedPhrase: account.encryptedPhrase,
-        });
+      if (includeAccounts) {
+        for (const account of accounts) {
+          const oldAddress = account.address;
+          const { oldPhrase, newAddress, newPhrase } = await generateNewWallet({
+            password,
+            version: account.version,
+            encryptedPhrase: account.encryptedPhrase,
+          });
 
-        /** Encrypt new phrase */
-        const newEncryptedPhrase = await encryption.encryptData({
-          password,
-          data: newPhrase,
-        });
+          /** Encrypt new phrase */
+          const newEncryptedPhrase = await encryption.encryptData({
+            password,
+            data: newPhrase,
+          });
 
-        /** Push to updated accounts */
-        updatedAccounts.push({
-          ...account,
-          address: newAddress,
-          encryptedPhrase: newEncryptedPhrase,
-        });
-
-        /** Push to backup */
-        accountsBackup.push({
-          id: account.id,
-          title: account.title,
-          version: account.version,
-          old: {
-            address: oldAddress,
-            phrase: oldPhrase,
-          },
-          new: {
+          /** Push to updated accounts */
+          updatedAccounts.push({
+            ...account,
             address: newAddress,
-            phrase: newPhrase,
-          },
-        });
+            encryptedPhrase: newEncryptedPhrase,
+          });
+
+          /** Push to backup */
+          accountsBackup.push({
+            id: account.id,
+            title: account.title,
+            version: account.version,
+            old: {
+              address: oldAddress,
+              phrase: oldPhrase,
+            },
+            new: {
+              address: newAddress,
+              phrase: newPhrase,
+            },
+          });
+        }
       }
 
       /** Create backup of old and new wallets */
@@ -115,10 +117,12 @@ export default function useATFWalletsRotationMutation() {
             phrase: newPhrase,
           },
         },
-
-        /** Accounts */
-        accounts: accountsBackup,
       };
+
+      /** Add accounts */
+      if (accountsBackup.length) {
+        backup.accounts = accountsBackup;
+      }
 
       /** Download backup file immediately */
       downloadFile(`atf-wallets-rotation-backup-${Date.now()}.json`, backup);
@@ -171,7 +175,9 @@ export default function useATFWalletsRotationMutation() {
       });
 
       /** Store updated accounts */
-      dispatchAndStoreAccounts(updatedAccounts);
+      if (updatedAccounts.length) {
+        dispatchAndStoreAccounts(updatedAccounts);
+      }
     },
   });
 

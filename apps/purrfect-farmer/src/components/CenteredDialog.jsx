@@ -18,7 +18,7 @@ export default function CenteredDialog({ title, description, children }) {
             "bg-white dark:bg-neutral-800 rounded-xl",
           )}
         >
-          <Dialog.Title className="font-bold text-center text-sm font-turret-road truncate">
+          <Dialog.Title className="font-bold text-center text-base text-orange-500 font-turret-road truncate">
             {title}
           </Dialog.Title>
           <Dialog.Description className="sr-only">

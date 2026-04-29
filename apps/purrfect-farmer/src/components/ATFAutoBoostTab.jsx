@@ -59,7 +59,8 @@ export default function ATFAutoBoostTab() {
         <>
           <Alert variant="info">
             Perform boost in Cloud. ATF will be transferred from the master
-            wallet into each selected account.
+            wallet into each selected account. Ensure the master wallet has
+            enough TON for operations.
           </Alert>
 
           <PrimaryButton disabled={mutation.isPending} onClick={handleCollect}>

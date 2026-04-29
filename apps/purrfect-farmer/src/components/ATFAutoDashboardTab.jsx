@@ -11,6 +11,7 @@ import ATFAutoAccountItem from "./ATFAutoAccountItem";
 import ATFAutoAddress from "./ATFAutoAddress";
 import ATFAutoMasterEditDialog from "./ATFAutoMasterEditDialog";
 import ATFAutoNewAccountDialog from "./ATFAutoNewAccountDialog";
+import ATFAutoRotationDialog from "./ATFAutoRotationDialog";
 import ATFAutoVersionBadge from "./ATFAutoVersionBadge";
 import ATFAutoWithdrawDialog from "./ATFAutoWithdrawDialog";
 import ATFIcon from "@/assets/images/atf.png?format=webp&w=32";
@@ -28,7 +29,6 @@ import useATFAuto from "@/hooks/useATFAuto";
 import useATFAutoCloudBoostMutation from "@/hooks/useATFAutoCloudBoostMutation";
 import useATFBalancesQuery from "@/hooks/useATFBalancesQuery";
 import useATFNetWorthQuery from "@/hooks/useATFNetWorthQuery";
-import useATFWalletsRotationMutation from "@/hooks/useATFWalletsRotationMutation";
 import { useDebounce } from "react-use";
 
 function MasterCardButton({ title, icon: Icon, ...props }) {
@@ -153,19 +153,8 @@ function MasterBalanceCard() {
 
 function MasterCardActions() {
   const { password, master, accounts } = useATFAuto();
-  const [withdrawOpen, setWithdrawOpen] = useState(false);
 
   const boostMutation = useATFAutoCloudBoostMutation();
-  const rotateMutation = useATFWalletsRotationMutation();
-
-  const rotateMasterWallet = () => {
-    if (!master) return;
-    toast.promise(rotateMutation.mutateAsync(), {
-      loading: "Rotating wallets...",
-      success: "Wallets rotated successfully!",
-      error: "Failed to rotate wallets.",
-    });
-  };
 
   const boostWithCloud = () => {
     toast.promise(
@@ -193,15 +182,16 @@ function MasterCardActions() {
       />
 
       {/* Rotate */}
-      <MasterCardButton
-        title={rotateMutation.isPending ? "Rotating..." : "Rotate"}
-        icon={LiaUserNinjaSolid}
-        onClick={rotateMasterWallet}
-        disabled={rotateMutation.isPending}
-      />
+      <Dialog.Root>
+        <Dialog.Trigger asChild>
+          <MasterCardButton title="Rotate" icon={LiaUserNinjaSolid} />
+        </Dialog.Trigger>
+
+        <ATFAutoRotationDialog />
+      </Dialog.Root>
 
       {/* Withdraw Button */}
-      <Dialog.Root open={withdrawOpen} onOpenChange={setWithdrawOpen}>
+      <Dialog.Root>
         <Dialog.Trigger asChild>
           <MasterCardButton title="Withdraw" icon={HiOutlineArrowUp} />
         </Dialog.Trigger>

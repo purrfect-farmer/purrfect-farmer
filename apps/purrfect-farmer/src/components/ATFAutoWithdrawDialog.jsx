@@ -90,6 +90,13 @@ export default function ATFAutoWithdrawDialog() {
           onSubmit={form.handleSubmit(handleFormSubmit)}
           className="flex flex-col gap-2"
         >
+          {/* Warning */}
+          <Alert variant={"warning"}>
+            Ensure the address is correct before submitting. All ATF and TON in
+            the master wallet will be transferred to the specified address
+            immediately after submission and cannot be reversed.
+          </Alert>
+
           {/* Address input */}
           <Controller
             control={form.control}
@@ -107,13 +114,6 @@ export default function ATFAutoWithdrawDialog() {
               </>
             )}
           />
-
-          {/* Warning */}
-          <Alert variant={"warning"}>
-            Ensure the address is correct before submitting. All ATF and TON in
-            the master wallet will be transferred to the specified address
-            immediately after submission and cannot be reversed.
-          </Alert>
 
           {/* Submit */}
           <PrimaryButton disabled={isSubmitting} type="submit">
