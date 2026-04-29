@@ -15,6 +15,10 @@ export function randomPercent(value, min = 0, max = 100) {
   );
 }
 
+export function chance(percent) {
+  return Math.random() < percent / 100;
+}
+
 export function shuffle(array) {
   const results = [...array];
   for (let i = results.length - 1; i > 0; i--) {

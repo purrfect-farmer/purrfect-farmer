@@ -515,6 +515,9 @@ export default class ATFFarmer extends BaseFarmer {
 
     this.logUserInfo(user);
     await this.executeTask("Mining", () => this.startOrClaimMining());
+    await this.executeTask("Boost", () => this.applyBoost());
+    await this.executeTask("Tasks", () => this.completeTasks());
+    await this.executeTask("Extra Tasks", () => this.completeExtraTasks());
   }
   /** Log User Info */
   logUserInfo(user) {
@@ -629,8 +632,8 @@ export default class ATFFarmer extends BaseFarmer {
         return;
       }
 
-      if (balance < 100) {
-        this.logger.warn("Skipping - Rewards is not enough to claim.");
+      if (!this.utils.chance(70)) {
+        this.logger.warn("Skipping - Rewards claim.");
         return;
       }
 
@@ -658,6 +661,11 @@ export default class ATFFarmer extends BaseFarmer {
   }
 
   async applyBoost() {
+    if (!this.utils.chance(30)) {
+      this.logger.warn("Skipping - Apply boost");
+      return;
+    }
+
     const { user } = this.auth_data;
     const lastMiningStart = Number(user["last_mining_start"]);
 
@@ -693,7 +701,7 @@ export default class ATFFarmer extends BaseFarmer {
   }
 
   async completeTasks() {
-    const { user, task_cooldowns: extraTasks } = this.auth_data;
+    const { user } = this.auth_data;
 
     const tasks = [
       "telegram_join",
@@ -715,20 +723,26 @@ export default class ATFFarmer extends BaseFarmer {
       this.logger.success(`Claimed task: ${task}`);
       await this.utils.delayForSeconds(5);
     }
+  }
+
+  async completeExtraTasks() {
+    const { task_cooldowns: extraTasks } = this.auth_data;
+
+    const allAvailable = Object.values(extraTasks).every((cooldown) =>
+      this.utils.dateFns.isAfter(new Date(), new Date(cooldown * 1000)),
+    );
+
+    if (!allAvailable) {
+      this.logger.warn("Extra tasks not available");
+      return;
+    }
 
     /** Check Extra Tasks Cooldowns */
     for (const task in extraTasks) {
-      const cooldown = extraTasks[task];
-      const isAvailable = this.utils.dateFns.isAfter(
-        new Date(),
-        new Date(cooldown * 1000),
-      );
-      if (isAvailable) {
-        await this.startTask(task);
-        await this.utils.delayForSeconds(30);
-        await this.claimTask(task);
-        this.logger.success(`Completed task: ${task}`);
-      }
+      await this.startTask(task);
+      await this.utils.delayForSeconds(30);
+      await this.claimTask(task);
+      this.logger.success(`Completed task: ${task}`);
     }
   }
 }
