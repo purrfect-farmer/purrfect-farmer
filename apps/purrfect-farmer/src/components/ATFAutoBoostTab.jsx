@@ -31,11 +31,11 @@ export default function ATFAutoBoostTab() {
     <div className="flex flex-col gap-3 p-2">
       {/* Results summary */}
       {mutation.isSuccess && (
-        <div className="flex flex-col text-center gap-1">
-          <p className="text-green-500 font-bold">
+        <div className="flex flex-col gap-2">
+          <Alert variant={"success"}>
             Boost request was successfully dispatched to Cloud. Kindly check
             your notifications for progress.
-          </p>
+          </Alert>
 
           <PrimaryButton type="button" onClick={() => mutation.reset()}>
             <HiArrowPath className="w-4 h-4" />
