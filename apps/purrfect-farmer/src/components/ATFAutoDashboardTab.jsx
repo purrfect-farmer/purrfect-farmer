@@ -54,7 +54,7 @@ function MasterCardButton({ title, icon: Icon, ...props }) {
       >
         <Icon className="size-6" />
       </span>
-      <span className="font-bold">{title}</span>
+      <span>{title}</span>
     </button>
   );
 }
