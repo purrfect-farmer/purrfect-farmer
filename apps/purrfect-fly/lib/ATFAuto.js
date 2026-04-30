@@ -191,6 +191,9 @@ class ATFAuto {
         : `❌ Failed to boost <b>(${cloudAccount.id})</b> with <i>${jettonAmount} ATF</i>`,
     ]);
 
+    /** Delay for 10s */
+    await this.utils.delayForSeconds(10);
+
     /** Apply mode */
     await this.applyMode(account, phrase, booster);
 
