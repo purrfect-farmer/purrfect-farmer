@@ -284,8 +284,13 @@ class ATFAuto {
           : `❌ Failed to withdraw <b>(${cloudAccount.id})</b> - <i>${amount} ATF</i>\n<i>Reason: ${message}</i>`,
     ]);
 
-    /** Delay for minutes */
-    await this.utils.delayForMinutes(3 + Math.floor(Math.random() * 5));
+    if (skipped) {
+      /** Delay for seconds */
+      await this.utils.delayForSeconds(20 + Math.floor(Math.random() * 100));
+    } else {
+      /** Delay for minutes */
+      await this.utils.delayForMinutes(3 + Math.floor(Math.random() * 5));
+    }
   }
 
   /** Request withdrawal */
