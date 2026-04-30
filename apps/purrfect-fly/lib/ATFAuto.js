@@ -26,6 +26,11 @@ class ATFAuto {
     this.difference = 10;
   }
 
+  /** Truncate address */
+  truncateAddress(address) {
+    return `${address.slice(0, 6)}...${address.slice(-4)}`;
+  }
+
   async prepareInitialMasterData() {
     logger.info("Decrypting master wallet....");
     const phrase = await this.decryptPhrase(this.master.encryptedWalletPhrase);
@@ -361,10 +366,10 @@ class ATFAuto {
     /** Send Notification */
     await bot.sendPrivateMessage(this.id, [
       skipped
-        ? `⏩ Skipped <b>(${account.address})</b>`
+        ? `⏩ Skipped <b>(${this.truncateAddress(account.address)})</b>`
         : status
-          ? `💰 Collected <b>(${account.address})</b> - <i>${collected?.toString()} ATF</i>`
-          : `❌ Failed to collect <b>(${account.address})</b>\n<i>Error: ${error?.message || "Unknown error!"}</i>`,
+          ? `💰 Collected <b>(${this.truncateAddress(account.address)})</b> - <i>${collected?.toString()} ATF</i>`
+          : `❌ Failed to collect <b>(${this.truncateAddress(account.address)})</b>\n<i>Error: ${error?.message || "Unknown error!"}</i>`,
     ]);
 
     /** Log completion */
