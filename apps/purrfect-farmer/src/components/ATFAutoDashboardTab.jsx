@@ -1,5 +1,9 @@
 import { HiOutlineArrowUp, HiOutlinePencilSquare } from "react-icons/hi2";
-import { LiaFireAltSolid, LiaUserNinjaSolid } from "react-icons/lia";
+import {
+  LiaDollarSignSolid,
+  LiaFireAltSolid,
+  LiaUserNinjaSolid,
+} from "react-icons/lia";
 import {
   MdOutlineClose,
   MdOutlineContentCopy,
@@ -12,8 +16,8 @@ import ATFAutoAddress from "./ATFAutoAddress";
 import ATFAutoMasterEditDialog from "./ATFAutoMasterEditDialog";
 import ATFAutoNewAccountDialog from "./ATFAutoNewAccountDialog";
 import ATFAutoRotationDialog from "./ATFAutoRotationDialog";
+import ATFAutoTransferDialog from "./ATFAutoTransferDialog";
 import ATFAutoVersionBadge from "./ATFAutoVersionBadge";
-import ATFAutoWithdrawDialog from "./ATFAutoWithdrawDialog";
 import ATFIcon from "@/assets/images/atf.png?format=webp&w=32";
 import Alert from "./Alert";
 import Decimal from "decimal.js";
@@ -27,6 +31,7 @@ import copy from "copy-to-clipboard";
 import toast from "react-hot-toast";
 import useATFAuto from "@/hooks/useATFAuto";
 import useATFAutoCloudBoostMutation from "@/hooks/useATFAutoCloudBoostMutation";
+import useATFAutoCloudWithdrawalMutation from "@/hooks/useATFAutoCloudWithdrawalMutation";
 import useATFBalancesQuery from "@/hooks/useATFBalancesQuery";
 import useATFNetWorthQuery from "@/hooks/useATFNetWorthQuery";
 import { useDebounce } from "react-use";
@@ -155,6 +160,7 @@ function MasterCardActions() {
   const { password, master, accounts } = useATFAuto();
 
   const boostMutation = useATFAutoCloudBoostMutation();
+  const withdrawMutation = useATFAutoCloudWithdrawalMutation();
 
   const boostWithCloud = () => {
     toast.promise(
@@ -171,14 +177,37 @@ function MasterCardActions() {
     );
   };
 
+  const withdrawWithCloud = () => {
+    toast.promise(
+      withdrawMutation.mutateAsync({
+        password,
+        master,
+        accounts,
+      }),
+      {
+        loading: "Dispatching...",
+        success: "Dispatched",
+        error: "Failed to dispatch withdrawal request",
+      },
+    );
+  };
+
   return (
-    <div className="grid grid-cols-3 mx-auto gap-2">
+    <div className="grid grid-cols-4 mx-auto gap-2">
       {/* Boost */}
       <MasterCardButton
         title={boostMutation.isPending ? "Requesting..." : "Boost"}
         icon={LiaFireAltSolid}
         onClick={boostWithCloud}
         disabled={boostMutation.isPending}
+      />
+
+      {/* Withdraw */}
+      <MasterCardButton
+        title={withdrawMutation.isPending ? "Requesting..." : "Withdraw"}
+        icon={LiaDollarSignSolid}
+        onClick={withdrawWithCloud}
+        disabled={withdrawMutation.isPending}
       />
 
       {/* Rotate */}
@@ -190,13 +219,13 @@ function MasterCardActions() {
         <ATFAutoRotationDialog />
       </Dialog.Root>
 
-      {/* Withdraw Button */}
+      {/* Transfer Button */}
       <Dialog.Root>
         <Dialog.Trigger asChild>
-          <MasterCardButton title="Withdraw" icon={HiOutlineArrowUp} />
+          <MasterCardButton title="Transfer" icon={HiOutlineArrowUp} />
         </Dialog.Trigger>
 
-        <ATFAutoWithdrawDialog />
+        <ATFAutoTransferDialog />
       </Dialog.Root>
     </div>
   );

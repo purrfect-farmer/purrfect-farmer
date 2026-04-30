@@ -21,6 +21,19 @@ const farmerSchema = {
   },
 };
 
+const atfAutoSchema = {
+  body: {
+    type: "object",
+    required: ["auth", "password", "master", "accounts"],
+    properties: {
+      auth: { type: "string" },
+      password: { type: "string" },
+      master: { type: "object" },
+      accounts: { type: "array" },
+    },
+  },
+};
+
 /**
  * @param {import("fastify").FastifyInstance} fastify
  * @param {object} opts
@@ -208,18 +221,7 @@ export default async function (fastify, opts) {
     "/atf-auto/boost",
     {
       preHandler: [fastify.validateWebAppData],
-      schema: {
-        body: {
-          type: "object",
-          required: ["auth", "password", "master", "accounts"],
-          properties: {
-            auth: { type: "string" },
-            password: { type: "string" },
-            master: { type: "object" },
-            accounts: { type: "array" },
-          },
-        },
-      },
+      schema: atfAutoSchema,
     },
     async function (request, reply) {
       const { user } = request.auth;
@@ -232,6 +234,58 @@ export default async function (fastify, opts) {
       }
 
       ATFAuto.boost({
+        id: account.id,
+        password: request.body.password,
+        master: request.body.master,
+        accounts: request.body.accounts,
+      });
+    },
+  );
+
+  /** ATF Auto Collect */
+  fastify.post(
+    "/atf-auto/collect",
+    {
+      preHandler: [fastify.validateWebAppData],
+      schema: atfAutoSchema,
+    },
+    async function (request, reply) {
+      const { user } = request.auth;
+      const account = await fastify.db.Account.findWithActiveSubscription(
+        user.id,
+      );
+
+      if (!account) {
+        return reply.forbidden("Not allowed!");
+      }
+
+      ATFAuto.collect({
+        id: account.id,
+        password: request.body.password,
+        master: request.body.master,
+        accounts: request.body.accounts,
+      });
+    },
+  );
+
+  /** ATF Auto Withdraw */
+  fastify.post(
+    "/atf-auto/withdraw",
+    {
+      preHandler: [fastify.validateWebAppData],
+      schema: atfAutoSchema,
+    },
+    async function (request, reply) {
+      const { user } = request.auth;
+      const account = await fastify.db.Account.findWithActiveSubscription(
+        user.id,
+      );
+
+      if (!account) {
+        return reply.forbidden("Not allowed!");
+      }
+
+      ATFAuto.withdraw({
         id: account.id,
         password: request.body.password,
         master: request.body.master,

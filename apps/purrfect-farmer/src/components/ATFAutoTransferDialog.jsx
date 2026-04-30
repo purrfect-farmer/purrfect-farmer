@@ -22,7 +22,7 @@ const schema = yup
   })
   .required();
 
-export default function ATFAutoWithdrawDialog() {
+export default function ATFAutoTransferDialog() {
   const { master, password } = useATFAuto();
   const form = useForm({
     resolver: yupResolver(schema),
@@ -33,9 +33,9 @@ export default function ATFAutoWithdrawDialog() {
   const isSubmitting = form.formState.isSubmitting;
 
   const mutation = useMutation({
-    mutationKey: ["atf-auto-withdraw", master.address],
+    mutationKey: ["atf-auto-transfer", master.address],
     onError: (error) => {
-      console.log("Error while withdrawing from master wallet", error);
+      console.log("Error while transferring from master wallet", error);
     },
     mutationFn: async ({ address }) => {
       /** Decrypt master */
@@ -67,12 +67,12 @@ export default function ATFAutoWithdrawDialog() {
     await toast.promise(mutation.mutateAsync({ address }), {
       loading: (
         <div>
-          Withdrawing funds to <ATFAutoAddress address={address} />
+          Transferring funds to <ATFAutoAddress address={address} />
         </div>
       ),
       success: (
         <div>
-          Successfully withdrew funds to <ATFAutoAddress address={address} />
+          Successfully transferred funds to <ATFAutoAddress address={address} />
         </div>
       ),
     });
@@ -82,7 +82,7 @@ export default function ATFAutoWithdrawDialog() {
 
   return (
     <CenteredDialog
-      title={"Withdraw"}
+      title={"Transfer"}
       description={"Transfer funds from master wallet"}
     >
       <FormProvider {...form}>
@@ -117,7 +117,7 @@ export default function ATFAutoWithdrawDialog() {
 
           {/* Submit */}
           <PrimaryButton disabled={isSubmitting} type="submit">
-            {isSubmitting ? "Withdrawing..." : "Withdraw"}
+            {isSubmitting ? "Transferring..." : "Transfer"}
           </PrimaryButton>
         </form>
       </FormProvider>

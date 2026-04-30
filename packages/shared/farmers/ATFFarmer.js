@@ -38,6 +38,8 @@ export default class ATFFarmer extends BaseFarmer {
   }
 
   configureApi() {
+    this.deviceId = this.deviceId ?? `dev-` + this.utils.uuid();
+
     const interceptor = this.api.interceptors.request.use((config) => {
       const url = new URL(config.url, config.baseURL);
       url.searchParams.set("t", Date.now().toString());
@@ -123,6 +125,14 @@ export default class ATFFarmer extends BaseFarmer {
     return this.makeAction("get_wallet_proof_payload", { force: 1 });
   }
 
+  getWithdrawalPuzzle() {
+    return this.makeAction("get_withdraw_puzzle");
+  }
+
+  requestWithdrawal(data) {
+    return this.makeAction("withdraw", data);
+  }
+
   getMathChallenge(scope) {
     return this.makeAction("get_math_challenge", {
       scope: scope,
@@ -161,6 +171,18 @@ export default class ATFFarmer extends BaseFarmer {
             icon: "connect",
             title: "Reconnect Wallet",
             action: this.reconnectWallet.bind(this),
+            dispatch: false,
+          },
+        ],
+      },
+      {
+        name: "Withdrawal",
+        list: [
+          {
+            id: "withdraw",
+            icon: "withdraw",
+            title: "Withdraw",
+            action: this.withdraw.bind(this),
             dispatch: false,
           },
         ],
@@ -415,6 +437,126 @@ export default class ATFFarmer extends BaseFarmer {
         signature: signature.toString("base64"),
       },
     };
+  }
+
+  /** Place withdrawal */
+  async withdraw() {
+    const { user } = this.auth_data;
+    const balance = Number(user["mined_balance"]);
+
+    if (balance < 500) {
+      this.logger.error("Not enough balance:", balance);
+      return { status: false, skipped: true, amount: balance };
+    }
+
+    /** Log balance */
+    this.logger.info("Available balance", balance);
+
+    /** Get challenge */
+    const challenge = await this.getWithdrawalPuzzle();
+
+    const puzzleId = challenge["challenge_id"];
+    const minSolveMs = challenge["min_solve_ms"];
+    const startX = challenge.slider.start_x;
+    const maxX = challenge.slider.max_x;
+
+    const targetPosition = parseFloat(
+      challenge.board.svg.match(/translate\((\d+\.?\d*)\s+[\d.]+\)\s+scale/)[1],
+    );
+
+    const targetOffset = targetPosition + Math.random() * 1.5;
+    const puzzleOffset = parseFloat(targetOffset.toFixed(2));
+
+    const motionPoints = this.generateSliderMotion(
+      puzzleOffset,
+      startX,
+      minSolveMs,
+    );
+
+    const puzzleDuration = motionPoints[motionPoints.length - 1].t;
+
+    /** Log the puzzle data */
+    console.log("Withdrawal puzzle data", {
+      challenge,
+      puzzleId,
+      puzzleDuration,
+      puzzleOffset,
+      motionPoints,
+    });
+
+    /** Wait for puzzle duration */
+    await this.utils.delay(puzzleDuration, { precised: true });
+
+    /** Request withdrawal */
+    const result = await this.requestWithdrawal({
+      amount: balance,
+      withdraw_puzzle_id: puzzleId,
+      withdraw_puzzle_offset: puzzleOffset,
+      withdraw_puzzle_duration_ms: puzzleDuration,
+      withdraw_puzzle_motion: motionPoints,
+    });
+
+    /** Check status */
+    const status = result.status === "success";
+    const message = result.message;
+
+    /** Amount */
+    let withdrawn = balance;
+
+    if (status) {
+      /** Update balance */
+      this.auth_data.user["mined_balance"] = result["new_balance"];
+
+      /** Set withdrawn amount */
+      withdrawn = Number(result["send_amount"]);
+
+      /** Log result */
+      this.logger.success(result["message"]);
+      this.logger.keyValue("ID", result["withdraw_id"]);
+      this.logger.keyValue("Requested amount", result["requested_amount"]);
+      this.logger.keyValue("Amount to be received", result["send_amount"]);
+    } else {
+      this.logger.error("Failed to request withdrawal:", result["message"]);
+    }
+
+    return {
+      status,
+      message,
+      result,
+      skipped: false,
+      amount: withdrawn,
+    };
+  }
+
+  generateSliderMotion(targetX, startX = 10, minDurationMs = 1025) {
+    const totalDuration = minDurationMs + 1000 + Math.random() * 2000;
+    const points = [];
+
+    points.push({ x: startX, t: 0 });
+    points.push({ x: startX, t: 100 + Math.random() * 100 });
+
+    const numPoints = 60 + Math.floor(Math.random() * 30);
+    const moveStart = 150 + Math.random() * 100;
+    const moveEnd = totalDuration * 0.85;
+
+    for (let i = 0; i <= numPoints; i++) {
+      const progress = i / numPoints;
+      const eased = this.easeInOutWithJitter(progress);
+      const t = moveStart + (moveEnd - moveStart) * progress;
+      const x = startX + (targetX - startX) * eased;
+      points.push({ x: parseFloat(x.toFixed(2)), t: Math.floor(t) });
+    }
+
+    points.push({ x: targetX, t: Math.floor(totalDuration * 0.92) });
+    points.push({ x: targetX, t: Math.floor(totalDuration) });
+
+    return points;
+  }
+
+  easeInOutWithJitter(t) {
+    const eased = t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+    const jitter = (Math.random() - 0.5) * 0.02;
+    return Math.min(1, Math.max(0, eased + jitter));
   }
 
   getAnswerForChallenge(question) {

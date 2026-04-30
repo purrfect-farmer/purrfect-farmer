@@ -61,6 +61,16 @@ class ATFAuto {
     });
   }
 
+  async getRunner(cloudAccount) {
+    const FarmerClass = farmers["atf"];
+    const runner = new FarmerClass(cloudAccount);
+
+    /** Prepare runner */
+    await runner.prepare();
+
+    return runner;
+  }
+
   /** Connect Wallet */
   async connectWallet({ cloudAccount, walletAccount }) {
     /** Seconds of delay before retry */
@@ -77,11 +87,9 @@ class ATFAuto {
           cloudAccount.id,
           cloudAccount.farmer.id,
         );
-        const FarmerClass = farmers["atf"];
-        const runner = new FarmerClass(cloudAccount);
 
-        /** Prepare runner */
-        await runner.prepare();
+        /** Get runner */
+        const runner = await this.getRunner(cloudAccount);
 
         /** Connect and sync */
         const version = "v" + walletAccount.version;
@@ -167,50 +175,23 @@ class ATFAuto {
     logger.success("Successfully collected ATF and TON!");
 
     /** Send Boost Notification */
-    await this.sendAccountBoostNotification(
-      cloudAccount,
-      jettonAmount,
-      connected,
-    );
-    await this.utils.delayForSeconds(20 + Math.floor(Math.random() * 100));
-  }
-
-  /** Send Boost Notification */
-  async sendAccountBoostNotification(cloudAccount, jettonAmount, connected) {
     await bot.sendPrivateMessage(this.id, [
       connected
         ? `⚡ Boosted <b>(${cloudAccount.id})</b> with <i>${jettonAmount} ATF</i>`
         : `❌ Failed to boost <b>(${cloudAccount.id})</b> with <i>${jettonAmount} ATF</i>`,
     ]);
-  }
 
-  /** Send Boost Initiated Notification */
-  async sendBoostInitiatedNotification() {
-    await bot.sendPrivateMessage(this.id, [`⏳ ATF Auto - Boost initiated...`]);
-  }
-
-  /** Send Boost Completion Notification */
-  async sendBoostCompletionNotification() {
-    await bot.sendPrivateMessage(this.id, [
-      `✅ ATF Auto Boosted successfully.`,
-    ]);
-  }
-
-  /** Send Boost Error Notification */
-  async sendBoostErrorNotification(e) {
-    const errorMessage = e.message || "Unknown error!";
-
-    await bot.sendPrivateMessage(this.id, [
-      `❌ ATF Auto - an error occured while boosting!`,
-      errorMessage,
-    ]);
+    /** Delay */
+    await this.utils.delayForSeconds(20 + Math.floor(Math.random() * 100));
   }
 
   /** Boost */
   async boost() {
     try {
       /** Send notification about initiation */
-      await this.sendBoostInitiatedNotification();
+      await bot.sendPrivateMessage(this.id, [
+        `⏳ ATF Auto - Boost initiated...`,
+      ]);
 
       /** Prepare master */
       await this.prepareMasterData();
@@ -226,29 +207,155 @@ class ATFAuto {
       }
 
       /** Notify about boost completion */
-      await this.sendBoostCompletionNotification();
+      await bot.sendPrivateMessage(this.id, [
+        `✅ ATF Auto Boosted successfully.`,
+      ]);
     } catch (e) {
+      const errorMessage = e.message || "Unknown error!";
+
       /** Log error */
-      logger.error(e.message || "Unknown error!");
+      logger.error(errorMessage);
+
       /** Notify about boost error */
-      await this.sendBoostErrorNotification(e);
+      await bot.sendPrivateMessage(this.id, [
+        `❌ ATF Auto - an error occurred while boosting!`,
+        errorMessage,
+      ]);
     }
   }
 
-  static boost({ id, password, master, accounts }) {
+  /** Collect */
+  async collect() {
+    // TODO
+  }
+
+  /** Withdraw */
+  async withdraw() {
+    try {
+      /** Send notification about initiation */
+      await bot.sendPrivateMessage(this.id, [
+        `⏳ ATF Auto - Withdrawal initiated...`,
+      ]);
+
+      /** Loop through accounts and withdraw */
+      for (const account of this.accounts) {
+        await this.withdrawAccount(account);
+      }
+
+      /** Notify about completion */
+      await bot.sendPrivateMessage(this.id, [
+        `✅ ATF Auto - Withdrawal completed successfully.`,
+      ]);
+    } catch (e) {
+      const errorMessage = e.message || "Unknown error!";
+
+      /** Log error */
+      logger.error(errorMessage);
+
+      /** Notify about boost error */
+      await bot.sendPrivateMessage(this.id, [
+        `❌ ATF Auto - an error occurred during withdrawal!`,
+        errorMessage,
+      ]);
+    }
+  }
+
+  /** Withdraw account */
+  async withdrawAccount(account) {
+    /** Skip if user ID is not set */
+    if (!account.userId) return;
+
+    /** Retrieve Cloud Account */
+    const cloudAccount = await this.getCloudAccount(account);
+
+    /** Skip if cloud account is missing */
+    if (!cloudAccount) return;
+
+    /** Result */
+    const { status, skipped, message, amount } =
+      await this.requestWithdrawal(cloudAccount);
+
+    /** Send Notification */
+    await bot.sendPrivateMessage(this.id, [
+      skipped
+        ? `⏩ Skipped <b>(${cloudAccount.id})</b> - <i>${amount} ATF</i>`
+        : status
+          ? `🤑 Withdrawn <b>(${cloudAccount.id})</b> - <i>${amount} ATF</i>\n<i>Message: ${message}</i>`
+          : `❌ Failed to withdraw <b>(${cloudAccount.id})</b> - <i>${amount} ATF</i>\n<i>Reason: ${message}</i>`,
+    ]);
+
+    /** Delay for minutes */
+    await this.utils.delayForMinutes(3 + Math.floor(Math.random() * 5));
+  }
+
+  /** Request withdrawal */
+  async requestWithdrawal(cloudAccount) {
+    try {
+      /** Log */
+      logger.info(
+        "Withdrawing account:",
+        cloudAccount.id,
+        cloudAccount.farmer.id,
+      );
+
+      /** Get runner */
+      const runner = await this.getRunner(cloudAccount);
+
+      /** Result */
+      const { status, skipped, amount, message } = await runner.withdraw();
+
+      /** Log Success */
+      logger.success(
+        "Completed withdrawal:",
+        cloudAccount.id,
+        cloudAccount.farmer.id,
+        status,
+        message,
+        amount,
+      );
+
+      return { status, skipped, amount, message };
+    } catch (e) {
+      const errorMessage = e.message || "Unknown error!";
+
+      /** Log error */
+      logger.error(errorMessage);
+
+      return {
+        status: false,
+        skipped: false,
+        amount: 0,
+        message: errorMessage,
+      };
+    }
+  }
+
+  static execute({ id, password, master, accounts }, callback) {
     if (this.instances.has(id)) return;
     const instance = new this({
       id,
+      password,
       master,
       accounts,
-      password,
     });
 
     this.instances.set(id, instance);
 
-    instance.boost().finally(() => {
+    callback(instance).finally(() => {
       this.instances.delete(id);
     });
+  }
+
+  static boost(options) {
+    this.execute(options, (instance) => instance.boost());
+  }
+
+  static collect(options) {
+    this.execute(options, (instance) => instance.collect());
+  }
+
+  static withdraw(options) {
+    this.execute(options, (instance) => instance.withdraw());
   }
 }
 

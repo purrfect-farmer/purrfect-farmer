@@ -1,4 +1,5 @@
 import { HiCheckBadge, HiOutlineCheckBadge } from "react-icons/hi2";
+import { LuCircleFadingArrowUp, LuDollarSign } from "react-icons/lu";
 import {
   MdArrowDownward,
   MdCheck,
@@ -10,7 +11,6 @@ import {
 import BottomDialog from "@/components/BottomDialog";
 import BottomDialogTools from "./BottomDialogTools";
 import { Fragment } from "react";
-import { LuCircleFadingArrowUp } from "react-icons/lu";
 import { TbPlugConnected } from "react-icons/tb";
 import useMirroredCallback from "@/hooks/useMirroredCallback";
 
@@ -22,6 +22,7 @@ const TOOLS_ICON = {
   check: MdCheck,
   import: MdArrowDownward,
   key: MdOutlineKey,
+  withdraw: LuDollarSign,
 };
 
 export const TerminalFarmerTools = ({ terminalFarmer }) => {
