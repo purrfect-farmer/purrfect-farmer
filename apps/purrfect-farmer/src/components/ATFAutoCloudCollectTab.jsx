@@ -1,6 +1,7 @@
 import ATFAutoAccountsChooser from "./ATFAutoAccountsChooser";
 import Alert from "./Alert";
 import { HiArrowPath } from "react-icons/hi2";
+import { LuMerge } from "react-icons/lu";
 import PrimaryButton from "./PrimaryButton";
 import toast from "react-hot-toast";
 import useATFAuto from "@/hooks/useATFAuto";
@@ -63,6 +64,7 @@ export default function ATFAutoCloudCollectTab() {
           </Alert>
 
           <PrimaryButton disabled={mutation.isPending} onClick={handleCollect}>
+            <LuMerge className="size-4" />{" "}
             {mutation.isPending ? "Dispatching..." : "Collect"}
           </PrimaryButton>
         </>

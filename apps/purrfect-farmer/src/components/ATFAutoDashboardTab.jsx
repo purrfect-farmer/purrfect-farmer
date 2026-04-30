@@ -23,6 +23,7 @@ import Alert from "./Alert";
 import Decimal from "decimal.js";
 import { Dialog } from "radix-ui";
 import Input from "./Input";
+import { LuMerge } from "react-icons/lu";
 import PrimaryButton from "./PrimaryButton";
 import { Reorder } from "motion/react";
 import TonIcon from "@/assets/images/toncoin-ton-logo.svg";
@@ -31,6 +32,7 @@ import copy from "copy-to-clipboard";
 import toast from "react-hot-toast";
 import useATFAuto from "@/hooks/useATFAuto";
 import useATFAutoCloudBoostMutation from "@/hooks/useATFAutoCloudBoostMutation";
+import useATFAutoCloudCollectionMutation from "@/hooks/useATFAutoCloudCollectionMutation";
 import useATFAutoCloudWithdrawalMutation from "@/hooks/useATFAutoCloudWithdrawalMutation";
 import useATFBalancesQuery from "@/hooks/useATFBalancesQuery";
 import useATFNetWorthQuery from "@/hooks/useATFNetWorthQuery";
@@ -42,19 +44,22 @@ function MasterCardButton({ title, icon: Icon, ...props }) {
       {...props}
       className={cn(
         "flex flex-col justify-center items-center gap-1",
-        "text-center text-xs",
-        "disabled:opacity-50",
+        "text-center text-xs shrink-0",
+        "disabled:opacity-50 w-12 overflow-hidden",
       )}
     >
+      {/* Icon */}
       <span
         className={cn(
-          "flex justify-center items-center",
-          "bg-neutral-900 rounded-full aspect-square p-2",
+          "flex justify-center items-center shrink-0",
+          "bg-neutral-100 dark:bg-neutral-950 rounded-full aspect-square size-full",
         )}
       >
         <Icon className="size-6" />
       </span>
-      <span>{title}</span>
+
+      {/* Title */}
+      <span className="w-full truncate">{title}</span>
     </button>
   );
 }
@@ -149,9 +154,6 @@ function MasterBalanceCard() {
         <MdOutlineContentCopy /> <ATFAutoAddress address={master?.address} />
       </button>
       <ATFAutoVersionBadge version={master?.version} />
-
-      {/* Actions */}
-      <MasterCardActions />
     </div>
   );
 }
@@ -161,6 +163,7 @@ function MasterCardActions() {
 
   const boostMutation = useATFAutoCloudBoostMutation();
   const withdrawMutation = useATFAutoCloudWithdrawalMutation();
+  const collectMutation = useATFAutoCloudCollectionMutation();
 
   const boostWithCloud = () => {
     toast.promise(
@@ -192,8 +195,23 @@ function MasterCardActions() {
     );
   };
 
+  const collectWithCloud = () => {
+    toast.promise(
+      collectMutation.mutateAsync({
+        password,
+        master,
+        accounts,
+      }),
+      {
+        loading: "Dispatching...",
+        success: "Dispatched",
+        error: "Failed to dispatch collection request",
+      },
+    );
+  };
+
   return (
-    <div className="grid grid-cols-4 mx-auto gap-2">
+    <div className="flex justify-center items-center flex-wrap gap-2">
       {/* Boost */}
       <MasterCardButton
         title={boostMutation.isPending ? "Requesting..." : "Boost"}
@@ -208,6 +226,14 @@ function MasterCardActions() {
         icon={LiaDollarSignSolid}
         onClick={withdrawWithCloud}
         disabled={withdrawMutation.isPending}
+      />
+
+      {/* Collect */}
+      <MasterCardButton
+        title={collectMutation.isPending ? "Requesting..." : "Collect"}
+        icon={LuMerge}
+        onClick={collectWithCloud}
+        disabled={collectMutation.isPending}
       />
 
       {/* Rotate */}
@@ -331,6 +357,9 @@ export default function ATFAutoDashboardTab() {
 
       {/* Master Balance Card */}
       <MasterBalanceCard />
+
+      {/* Actions */}
+      <MasterCardActions />
 
       {/* Rotation Alert */}
       <Alert variant={"danger"}>
