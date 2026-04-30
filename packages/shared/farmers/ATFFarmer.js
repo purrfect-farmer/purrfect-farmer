@@ -371,7 +371,7 @@ export default class ATFFarmer extends BaseFarmer {
       proof,
     };
 
-    console.log("Syncing ATF Wallet:", data);
+    this.debugger.log("Syncing ATF Wallet:", data);
     const result = await this.syncWallet(data);
 
     if (result.status !== "success") {
@@ -476,7 +476,7 @@ export default class ATFFarmer extends BaseFarmer {
     const puzzleDuration = motionPoints[motionPoints.length - 1].t;
 
     /** Log the puzzle data */
-    console.log("Withdrawal puzzle data", {
+    this.debugger.log("Withdrawal puzzle data", {
       challenge,
       puzzleId,
       puzzleDuration,
