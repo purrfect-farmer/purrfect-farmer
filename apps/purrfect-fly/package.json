@@ -33,7 +33,7 @@
     "@fastify/sensible": "^6.0.4",
     "@keyv/sqlite": "^4.0.8",
     "@purrfect/shared": "workspace:*",
-    "axios": "^1.15.1",
+    "axios": "^1.15.2",
     "base64url": "^3.0.1",
     "bcryptjs": "^3.0.3",
     "chalk": "^5.6.2",
@@ -66,6 +66,6 @@
     "tough-cookie": "^5.1.2",
     "tweetnacl": "^1.0.3",
     "tweetnacl-util": "^0.15.1",
-    "uuid": "^11.1.0"
+    "uuid": "^11.1.1"
   }
 }
