@@ -1,5 +1,5 @@
 import ATFAutoBoostTab from "./ATFAutoBoostTab";
-import ATFAutoCollectTab from "./ATFAutoCollectTab";
+import ATFAutoCloudCollectTab from "./ATFAutoCloudCollectTab";
 import ATFAutoDashboardTab from "./ATFAutoDashboardTab";
 import ATFAutoSettingsTab from "./ATFAutoSettingsTab";
 import ATFAutoWithdrawTab from "./ATFAutoWithdrawTab";
@@ -23,7 +23,7 @@ export default function ATFAutoPanel() {
         <ATFAutoWithdrawTab />
       </Tabs.Content>
       <Tabs.Content value="collect">
-        <ATFAutoCollectTab />
+        <ATFAutoCloudCollectTab />
       </Tabs.Content>
       <Tabs.Content value="settings">
         <ATFAutoSettingsTab />

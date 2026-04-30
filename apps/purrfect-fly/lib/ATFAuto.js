@@ -1,4 +1,5 @@
 import ATFAutoBooster from "./ATFAutoBooster.js";
+import ATFAutoWalletTransfer from "./ATFAutoWalletTransfer.js";
 import Encrypter from "@purrfect/shared/lib/Encrypter.js";
 import bot from "./bot.js";
 import db from "../db/models/index.js";
@@ -21,15 +22,14 @@ class ATFAuto {
     this.accounts = accounts;
     this.password = password;
     this.difference = 10;
+    this.lastBoostedAccount = null;
   }
 
-  async prepareMasterData() {
+  async prepareInitialMasterData() {
     logger.info("Decrypting master wallet....");
-    const masterPhrase = await this.encryption.decryptData({
-      ...this.master.encryptedWalletPhrase,
-      password: this.password,
-      asText: true,
-    });
+    const masterPhrase = await this.decryptPhrase(
+      this.master.encryptedWalletPhrase,
+    );
 
     logger.success("Successfully decrypted master wallet!");
 
@@ -124,6 +124,14 @@ class ATFAuto {
     return false;
   }
 
+  async decryptPhrase(encryptedPhrase) {
+    return this.encryption.decryptData({
+      ...encryptedPhrase,
+      password: this.password,
+      asText: true,
+    });
+  }
+
   /** Boost account */
   async boostAccount(account) {
     /** Skip if user ID is not set */
@@ -136,11 +144,7 @@ class ATFAuto {
     if (!cloudAccount) return;
 
     /** Decrypt phrase */
-    const phrase = await this.encryption.decryptData({
-      ...account.encryptedPhrase,
-      password: this.password,
-      asText: true,
-    });
+    const phrase = await this.decryptPhrase(account.encryptedPhrase);
 
     /** Create Wallet account */
     const walletAccount = { ...account, phrase };
@@ -157,6 +161,11 @@ class ATFAuto {
     const { jettonAmount } = await booster.boost({
       difference: this.difference,
     });
+
+    /** Set as last boosted account */
+    this.lastBoostedAccount = account;
+
+    /** Log boost completion */
     logger.success("Successfully boosted account:", cloudAccount.id);
 
     /** Delay for 10s */
@@ -167,12 +176,6 @@ class ATFAuto {
       cloudAccount,
       walletAccount,
     });
-    await this.utils.delayForSeconds(5);
-
-    /** Collect token */
-    logger.info("Collecting ATF and TON...");
-    await booster.collect();
-    logger.success("Successfully collected ATF and TON!");
 
     /** Send Boost Notification */
     await bot.sendPrivateMessage(this.id, [
@@ -180,6 +183,30 @@ class ATFAuto {
         ? `⚡ Boosted <b>(${cloudAccount.id})</b> with <i>${jettonAmount} ATF</i>`
         : `❌ Failed to boost <b>(${cloudAccount.id})</b> with <i>${jettonAmount} ATF</i>`,
     ]);
+
+    /** Transfer everything into this account */
+    logger.info("Transferring funds into:", account.address);
+    const walletTransfer = new ATFAutoWalletTransfer(
+      this.masterData,
+      account.address,
+    );
+    await walletTransfer.transfer();
+    logger.success("Successfully transferred funds into:", account.address);
+
+    /** Update master data */
+    this.masterData = {
+      ...this.masterData,
+      address: account.address,
+      version: account.version,
+      phrase,
+    };
+
+    /** Prepare account as the master wallet */
+    logger.info(`Preparing (${cloudAccount.id}) as master wallet...`);
+    this.prepared = await prepareMaster(this.masterData);
+    logger.success(
+      `Successfully prepared (${cloudAccount.id}) as the master wallet!`,
+    );
 
     /** Delay */
     await this.utils.delayForSeconds(20 + Math.floor(Math.random() * 100));
@@ -193,8 +220,8 @@ class ATFAuto {
         `⏳ ATF Auto - Boost initiated...`,
       ]);
 
-      /** Prepare master */
-      await this.prepareMasterData();
+      /** Prepare initial master data */
+      await this.prepareInitialMasterData();
 
       /** Check jetton balance */
       if (this.prepared.jettonBalance <= 0) {
@@ -205,6 +232,9 @@ class ATFAuto {
       for (const account of this.accounts) {
         await this.boostAccount(account);
       }
+
+      /** Return funds to master */
+      await this.returnFundsToMaster();
 
       /** Notify about boost completion */
       await bot.sendPrivateMessage(this.id, [
@@ -224,9 +254,90 @@ class ATFAuto {
     }
   }
 
+  /** Return funds to master */
+  async returnFundsToMaster() {
+    /** Return funds into master */
+    if (this.master.address !== this.masterData.address) {
+      logger.info("Returning funds into:", this.master.address);
+      const walletTransfer = new ATFAutoWalletTransfer(
+        this.masterData,
+        this.master.address,
+      );
+      await walletTransfer.transfer();
+      logger.success(
+        "Successfully transferred funds into:",
+        this.master.address,
+      );
+    }
+  }
+
   /** Collect */
   async collect() {
-    // TODO
+    try {
+      /** Send notification about initiation */
+      await bot.sendPrivateMessage(this.id, [
+        `⏳ ATF Auto - Collection initiated...`,
+      ]);
+
+      /** Prepare initial master data */
+      await this.prepareInitialMasterData();
+
+      /** Loop through accounts and collect */
+      for (const account of this.accounts) {
+        await this.collectAccount(account);
+      }
+
+      /** Notify about completion */
+      await bot.sendPrivateMessage(this.id, [
+        `✅ ATF Auto -  collected successfully.`,
+      ]);
+    } catch (e) {
+      const errorMessage = e.message || "Unknown error!";
+
+      /** Log error */
+      logger.error(errorMessage);
+
+      /** Notify about boost error */
+      await bot.sendPrivateMessage(this.id, [
+        `❌ ATF Auto - an error occurred during collection!`,
+        errorMessage,
+      ]);
+    }
+  }
+
+  /** Collect account */
+  async collectAccount(account) {
+    /** Decrypt phrase */
+    const phrase = await this.decryptPhrase(account.encryptedPhrase);
+
+    /** Create Wallet account */
+    const walletAccount = { ...account, phrase };
+
+    /** Instantiate booster */
+    const booster = new ATFAutoBooster(
+      this.masterData,
+      walletAccount,
+      this.prepared,
+    );
+
+    /** Collect */
+    logger.info("Collecting account:", account.address);
+    const { status, skipped, collected, error } = await booster.collect();
+
+    /** Send Notification */
+    await bot.sendPrivateMessage(this.id, [
+      skipped
+        ? `⏩ Skipped <b>(${account.address})</b>`
+        : status
+          ? `💰 Collected <b>(${account.address})</b> - <i>${collected?.toString()} ATF</i>`
+          : `❌ Failed to collect <b>(${account.address})</b>\n<i>Error: ${error?.message || "Unknown error!"}</i>`,
+    ]);
+
+    /** Log completion */
+    logger.success("Completed collection:", account.address);
+
+    /** Delay for 10s */
+    await this.utils.delayForSeconds(5);
   }
 
   /** Withdraw */

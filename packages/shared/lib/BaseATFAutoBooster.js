@@ -228,7 +228,7 @@ export default class BaseATFAutoBooster {
       return { status: true, account: this.account, collected: jettonBalance };
     } catch (error) {
       console.log("Error while collecting from account", error);
-      return { status: false, account: this.account, error };
+      return { status: false, skipped: false, account: this.account, error };
     }
   }
 }
