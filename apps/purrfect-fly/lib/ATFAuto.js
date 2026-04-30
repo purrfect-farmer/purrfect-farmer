@@ -407,7 +407,7 @@ class ATFAuto {
       await this.utils.delayForSeconds(20 + Math.floor(Math.random() * 100));
     } else {
       /** Delay for minutes */
-      await this.utils.delayForMinutes(3 + Math.floor(Math.random() * 5));
+      await this.utils.delayForMinutes(2 + Math.floor(Math.random() * 2));
     }
   }
 
