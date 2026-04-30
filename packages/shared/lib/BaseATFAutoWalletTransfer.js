@@ -4,7 +4,7 @@ import {
   buildJettonTransferBody,
   prepareMaster,
   waitForSeqnoChange,
-} from "./atf-auto-transactions";
+} from "./atf-auto-transactions.js";
 
 /**
  * BaseATFAutoWalletTransfer
