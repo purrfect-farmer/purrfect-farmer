@@ -37,9 +37,10 @@ export default function ATFAutoRotationDialog() {
       description={"Change wallet of master / accounts"}
     >
       {/* Warning */}
-      <Alert variant={"warning"}>
-        You are about to rotate the master wallet. Toggle the button below to
-        also rotate the wallet of each account.
+      <Alert variant={"danger"}>
+        You are about to rotate the master wallet. <br />
+        <strong className="font-bold">Note:</strong> Only toggle the button
+        below if you also wish to rotate the wallet of each account.
       </Alert>
 
       {/* Include accounts */}
@@ -48,13 +49,17 @@ export default function ATFAutoRotationDialog() {
         checked={includeAccounts}
         disabled={mutation.isPending}
       >
-        Include accounts
+        Rotate accounts
       </LabelToggle>
 
       {/* Rotate button */}
       <PrimaryButton onClick={rotateWallets} disabled={mutation.isPending}>
         <FaUserNinja className="size-4" />{" "}
-        {mutation.isPending ? "Rotating..." : "Rotate"}
+        {mutation.isPending
+          ? "Rotating..."
+          : includeAccounts
+            ? "Rotate all Wallets"
+            : "Rotate Master Wallet"}
       </PrimaryButton>
     </CenteredDialog>
   );
