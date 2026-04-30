@@ -310,11 +310,12 @@ class ATFAuto {
         cloudAccount.id,
         cloudAccount.farmer.id,
         status,
+        skipped,
         message,
         amount,
       );
 
-      return { status, skipped, amount, message };
+      return { status, skipped, message, amount };
     } catch (e) {
       const errorMessage = e.message || "Unknown error!";
 
@@ -324,8 +325,8 @@ class ATFAuto {
       return {
         status: false,
         skipped: false,
-        amount: 0,
         message: errorMessage,
+        amount: 0,
       };
     }
   }
