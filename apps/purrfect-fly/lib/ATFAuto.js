@@ -191,8 +191,8 @@ class ATFAuto {
         : `❌ Failed to boost <b>(${cloudAccount.id})</b> with <i>${jettonAmount} ATF</i>`,
     ]);
 
-    /** Delay for 10s */
-    await this.utils.delayForSeconds(10);
+    /** Delay for 5s */
+    await this.utils.delayForSeconds(5);
 
     /** Apply mode */
     await this.applyMode(account, phrase, booster);
@@ -237,8 +237,8 @@ class ATFAuto {
       phrase,
     };
 
-    /** Delay for 10s */
-    await this.utils.delayForSeconds(10);
+    /** Delay for 5s */
+    await this.utils.delayForSeconds(5);
 
     /** Prepare account as the master wallet */
     logger.info(`Preparing (${account.address}) as master wallet...`);
@@ -370,7 +370,7 @@ class ATFAuto {
     /** Log completion */
     logger.success("Completed collection:", account.address);
 
-    /** Delay for 10s */
+    /** Delay for 5s */
     await this.utils.delayForSeconds(5);
   }
 
