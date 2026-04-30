@@ -27,17 +27,15 @@ class ATFAuto {
 
   async prepareInitialMasterData() {
     logger.info("Decrypting master wallet....");
-    const masterPhrase = await this.decryptPhrase(
-      this.master.encryptedWalletPhrase,
-    );
+    const phrase = await this.decryptPhrase(this.master.encryptedWalletPhrase);
 
     logger.success("Successfully decrypted master wallet!");
 
     this.masterData = {
+      tonCenterApiKey: this.master.tonCenterApiKey,
       address: this.master.address,
       version: this.master.version,
-      tonCenterApiKey: this.master.tonCenterApiKey,
-      phrase: masterPhrase,
+      phrase,
     };
 
     logger.info("Preparing master wallet...");
@@ -85,7 +83,7 @@ class ATFAuto {
         logger.info(
           "Connecting Wallet:",
           cloudAccount.id,
-          cloudAccount.farmer.id,
+          walletAccount.address,
         );
 
         /** Get runner */
@@ -105,12 +103,17 @@ class ATFAuto {
         logger.success(
           "Connected Wallet:",
           cloudAccount.id,
-          cloudAccount.farmer.id,
+          walletAccount.address,
         );
 
         return true;
       } catch (e) {
-        logger.error("Failed to connect wallet:", cloudAccount.id, e.message);
+        logger.error(
+          "Failed to connect wallet:",
+          cloudAccount.id,
+          walletAccount.address,
+          e.message,
+        );
         attempts++;
 
         /** Delay before retrying... */
@@ -144,7 +147,9 @@ class ATFAuto {
     if (!cloudAccount) return;
 
     /** Decrypt phrase */
+    logger.info("Decrypting wallet phrase:", account.address);
     const phrase = await this.decryptPhrase(account.encryptedPhrase);
+    logger.success("Successfully decrypted wallet phrase:", account.address);
 
     /** Create Wallet account */
     const walletAccount = { ...account, phrase };
@@ -157,7 +162,7 @@ class ATFAuto {
     );
 
     /** Boost */
-    logger.info("Boosting account:", cloudAccount.id);
+    logger.info("Boosting account:", cloudAccount.id, account.address);
     const { jettonAmount } = await booster.boost({
       difference: this.difference,
     });
@@ -166,7 +171,11 @@ class ATFAuto {
     this.lastBoostedAccount = account;
 
     /** Log boost completion */
-    logger.success("Successfully boosted account:", cloudAccount.id);
+    logger.success(
+      "Successfully boosted account:",
+      cloudAccount.id,
+      account.address,
+    );
 
     /** Delay for 10s */
     await this.utils.delayForSeconds(10);
