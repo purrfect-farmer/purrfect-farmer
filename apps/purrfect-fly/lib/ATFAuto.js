@@ -237,6 +237,9 @@ class ATFAuto {
       phrase,
     };
 
+    /** Delay for 10s */
+    await this.utils.delayForSeconds(10);
+
     /** Prepare account as the master wallet */
     logger.info(`Preparing (${account.address}) as master wallet...`);
     this.prepared = await prepareMaster(this.masterData);
