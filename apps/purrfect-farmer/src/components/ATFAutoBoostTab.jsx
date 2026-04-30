@@ -1,4 +1,5 @@
 import ATFAutoAccountsChooser from "./ATFAutoAccountsChooser";
+import ATFAutoStickyContainer from "./ATFAutoStickyContainer";
 import Alert from "./Alert";
 import { FaFire } from "react-icons/fa6";
 import { HiArrowPath } from "react-icons/hi2";
@@ -63,10 +64,15 @@ export default function ATFAutoBoostTab() {
             enough TON for operations.
           </Alert>
 
-          <PrimaryButton disabled={mutation.isPending} onClick={handleCollect}>
-            <FaFire className="size-4" />{" "}
-            {mutation.isPending ? "Dispatching..." : "Boost"}
-          </PrimaryButton>
+          <ATFAutoStickyContainer>
+            <PrimaryButton
+              disabled={mutation.isPending}
+              onClick={handleCollect}
+            >
+              <FaFire className="size-4" />{" "}
+              {mutation.isPending ? "Dispatching..." : "Boost"}
+            </PrimaryButton>
+          </ATFAutoStickyContainer>
         </>
       )}
 

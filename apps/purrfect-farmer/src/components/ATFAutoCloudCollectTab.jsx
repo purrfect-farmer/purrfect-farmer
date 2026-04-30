@@ -1,4 +1,5 @@
 import ATFAutoAccountsChooser from "./ATFAutoAccountsChooser";
+import ATFAutoStickyContainer from "./ATFAutoStickyContainer";
 import Alert from "./Alert";
 import { HiArrowPath } from "react-icons/hi2";
 import { LuMerge } from "react-icons/lu";
@@ -63,10 +64,15 @@ export default function ATFAutoCloudCollectTab() {
             and returns remaining TON.
           </Alert>
 
-          <PrimaryButton disabled={mutation.isPending} onClick={handleCollect}>
-            <LuMerge className="size-4" />{" "}
-            {mutation.isPending ? "Dispatching..." : "Collect"}
-          </PrimaryButton>
+          <ATFAutoStickyContainer>
+            <PrimaryButton
+              disabled={mutation.isPending}
+              onClick={handleCollect}
+            >
+              <LuMerge className="size-4" />{" "}
+              {mutation.isPending ? "Dispatching..." : "Collect"}
+            </PrimaryButton>
+          </ATFAutoStickyContainer>
         </>
       )}
 

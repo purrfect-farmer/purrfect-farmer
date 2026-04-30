@@ -8,6 +8,7 @@ import {
   MdOutlineClose,
   MdOutlineContentCopy,
   MdOutlineSearch,
+  MdPersonAdd,
 } from "react-icons/md";
 import { useMemo, useState } from "react";
 
@@ -16,6 +17,7 @@ import ATFAutoAddress from "./ATFAutoAddress";
 import ATFAutoMasterEditDialog from "./ATFAutoMasterEditDialog";
 import ATFAutoNewAccountDialog from "./ATFAutoNewAccountDialog";
 import ATFAutoRotationDialog from "./ATFAutoRotationDialog";
+import ATFAutoStickyContainer from "./ATFAutoStickyContainer";
 import ATFAutoTransferDialog from "./ATFAutoTransferDialog";
 import ATFAutoVersionBadge from "./ATFAutoVersionBadge";
 import ATFIcon from "@/assets/images/atf.png?format=webp&w=32";
@@ -52,7 +54,7 @@ function MasterCardButton({ title, icon: Icon, ...props }) {
       <span
         className={cn(
           "flex justify-center items-center shrink-0",
-          "bg-neutral-100 dark:bg-neutral-950 rounded-full aspect-square size-full",
+          "bg-neutral-100 dark:bg-black rounded-full aspect-square size-full",
         )}
       >
         <Icon className="size-6" />
@@ -83,7 +85,7 @@ function MasterBalanceCard() {
     <div
       className={cn(
         "p-2 rounded-2xl relative",
-        "bg-black text-white",
+        "bg-neutral-950 text-white",
         "flex flex-col items-center justify-center gap-2",
       )}
     >
@@ -112,7 +114,7 @@ function MasterBalanceCard() {
           <button
             className={cn(
               "absolute top-3 right-3 flex items-center justify-center",
-              "p-1.5 rounded-lg",
+              "p-1.5 rounded-full",
               "bg-neutral-900 hover:bg-neutral-800",
               "cursor-pointer transition-colors",
             )}
@@ -374,9 +376,14 @@ export default function ATFAutoDashboardTab() {
 
       {/* Add Account */}
       <Dialog.Root open={addOpen} onOpenChange={setAddOpen}>
-        <Dialog.Trigger asChild>
-          <PrimaryButton>Add Account</PrimaryButton>
-        </Dialog.Trigger>
+        <ATFAutoStickyContainer>
+          <Dialog.Trigger asChild>
+            <PrimaryButton>
+              <MdPersonAdd className="size-4" />
+              Add Account
+            </PrimaryButton>
+          </Dialog.Trigger>
+        </ATFAutoStickyContainer>
         <ATFAutoNewAccountDialog onCreated={() => setAddOpen(false)} />
       </Dialog.Root>
 

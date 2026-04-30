@@ -1,4 +1,5 @@
 import ATFAutoAccountsChooser from "./ATFAutoAccountsChooser";
+import ATFAutoStickyContainer from "./ATFAutoStickyContainer";
 import Alert from "./Alert";
 import { FaDollarSign } from "react-icons/fa6";
 import { HiArrowPath } from "react-icons/hi2";
@@ -62,10 +63,15 @@ export default function ATFAutoWithdrawTab() {
             minimum account will be processed.
           </Alert>
 
-          <PrimaryButton disabled={mutation.isPending} onClick={handleCollect}>
-            <FaDollarSign className="size-4" />{" "}
-            {mutation.isPending ? "Dispatching..." : "Withdraw"}
-          </PrimaryButton>
+          <ATFAutoStickyContainer>
+            <PrimaryButton
+              disabled={mutation.isPending}
+              onClick={handleCollect}
+            >
+              <FaDollarSign className="size-4" />{" "}
+              {mutation.isPending ? "Dispatching..." : "Withdraw"}
+            </PrimaryButton>
+          </ATFAutoStickyContainer>
         </>
       )}
 

@@ -1,7 +1,9 @@
 import ATFAutoAccountsChooser from "./ATFAutoAccountsChooser";
 import ATFAutoProgress from "./ATFAutoProgress";
+import ATFAutoStickyContainer from "./ATFAutoStickyContainer";
 import Alert from "./Alert";
 import { HiArrowPath } from "react-icons/hi2";
+import { LuMerge } from "react-icons/lu";
 import PrimaryButton from "./PrimaryButton";
 import toast from "react-hot-toast";
 import useATFAuto from "@/hooks/useATFAuto";
@@ -68,9 +70,15 @@ export default function ATFAutoCollectTab() {
             TON.
           </Alert>
 
-          <PrimaryButton disabled={mutation.isPending} onClick={handleCollect}>
-            {mutation.isPending ? "Collecting..." : "Start Collection"}
-          </PrimaryButton>
+          <ATFAutoStickyContainer>
+            <PrimaryButton
+              disabled={mutation.isPending}
+              onClick={handleCollect}
+            >
+              <LuMerge className="size-4" />{" "}
+              {mutation.isPending ? "Collecting..." : "Start Collection"}
+            </PrimaryButton>
+          </ATFAutoStickyContainer>
         </>
       )}
 
