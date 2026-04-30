@@ -237,9 +237,7 @@ class ATFAuto {
       await this.returnFundsToMaster();
 
       /** Notify about boost completion */
-      await bot.sendPrivateMessage(this.id, [
-        `✅ ATF Auto Boosted successfully.`,
-      ]);
+      await bot.sendPrivateMessage(this.id, [`✅ ATF Auto - Boost completed.`]);
     } catch (e) {
       const errorMessage = e.message || "Unknown error!";
 
@@ -289,7 +287,7 @@ class ATFAuto {
 
       /** Notify about completion */
       await bot.sendPrivateMessage(this.id, [
-        `✅ ATF Auto -  collected successfully.`,
+        `✅ ATF Auto - Collection completed.`,
       ]);
     } catch (e) {
       const errorMessage = e.message || "Unknown error!";
@@ -355,7 +353,7 @@ class ATFAuto {
 
       /** Notify about completion */
       await bot.sendPrivateMessage(this.id, [
-        `✅ ATF Auto - Withdrawal completed successfully.`,
+        `✅ ATF Auto - Withdrawal completed.`,
       ]);
     } catch (e) {
       const errorMessage = e.message || "Unknown error!";

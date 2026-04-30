@@ -40,7 +40,7 @@ import useATFBalancesQuery from "@/hooks/useATFBalancesQuery";
 import useATFNetWorthQuery from "@/hooks/useATFNetWorthQuery";
 import { useDebounce } from "react-use";
 
-function MasterCardButton({ title, icon: Icon, ...props }) {
+function MasterCardButton({ icon: Icon, children, ...props }) {
   return (
     <button
       {...props}
@@ -216,32 +216,40 @@ function MasterCardActions() {
     <div className="flex justify-center items-center flex-wrap gap-2">
       {/* Boost */}
       <MasterCardButton
-        title={boostMutation.isPending ? "Requesting..." : "Boost"}
+        title={"Boost accounts in Cloud"}
         icon={LiaFireAltSolid}
         onClick={boostWithCloud}
         disabled={boostMutation.isPending}
-      />
+      >
+        {boostMutation.isPending ? "Requesting..." : "Boost"}
+      </MasterCardButton>
 
       {/* Withdraw */}
       <MasterCardButton
-        title={withdrawMutation.isPending ? "Requesting..." : "Withdraw"}
+        title={"Withdraw accounts in Cloud"}
         icon={LiaDollarSignSolid}
         onClick={withdrawWithCloud}
         disabled={withdrawMutation.isPending}
-      />
+      >
+        {withdrawMutation.isPending ? "Requesting..." : "Withdraw"}
+      </MasterCardButton>
 
       {/* Collect */}
       <MasterCardButton
-        title={collectMutation.isPending ? "Requesting..." : "Collect"}
+        title={"Collect accounts in Cloud"}
         icon={LuMerge}
         onClick={collectWithCloud}
         disabled={collectMutation.isPending}
-      />
+      >
+        {collectMutation.isPending ? "Requesting..." : "Collect"}
+      </MasterCardButton>
 
       {/* Rotate */}
       <Dialog.Root>
         <Dialog.Trigger asChild>
-          <MasterCardButton title="Rotate" icon={LiaUserNinjaSolid} />
+          <MasterCardButton title="Rotate Wallets" icon={LiaUserNinjaSolid}>
+            Rotate
+          </MasterCardButton>
         </Dialog.Trigger>
 
         <ATFAutoRotationDialog />
@@ -250,7 +258,12 @@ function MasterCardActions() {
       {/* Transfer Button */}
       <Dialog.Root>
         <Dialog.Trigger asChild>
-          <MasterCardButton title="Transfer" icon={HiOutlineArrowUp} />
+          <MasterCardButton
+            title="Transfer funds from Master"
+            icon={HiOutlineArrowUp}
+          >
+            Transfer
+          </MasterCardButton>
         </Dialog.Trigger>
 
         <ATFAutoTransferDialog />
