@@ -61,7 +61,7 @@ function MasterCardButton({ icon: Icon, children, ...props }) {
       </span>
 
       {/* Title */}
-      <span className="w-full truncate">{title}</span>
+      <span className="w-full truncate">{children}</span>
     </button>
   );
 }
