@@ -21,8 +21,9 @@ class ATFAuto {
     this.master = master;
     this.accounts = accounts;
     this.password = password;
+
+    this.mode = "boost"; // boost or collect
     this.difference = 10;
-    this.lastBoostedAccount = null;
   }
 
   async prepareInitialMasterData() {
@@ -167,9 +168,6 @@ class ATFAuto {
       difference: this.difference,
     });
 
-    /** Set as last boosted account */
-    this.lastBoostedAccount = account;
-
     /** Log boost completion */
     logger.success(
       "Successfully boosted account:",
@@ -193,29 +191,37 @@ class ATFAuto {
         : `❌ Failed to boost <b>(${cloudAccount.id})</b> with <i>${jettonAmount} ATF</i>`,
     ]);
 
-    /** Transfer everything into this account */
-    logger.info("Transferring funds into:", account.address);
-    const walletTransfer = new ATFAutoWalletTransfer(
-      this.masterData,
-      account.address,
-    );
-    await walletTransfer.transfer();
-    logger.success("Successfully transferred funds into:", account.address);
+    /** Boost mode - set account as the master */
+    if (this.mode === "boost") {
+      /** Transfer everything into this account */
+      logger.info("Transferring funds into:", account.address);
+      const walletTransfer = new ATFAutoWalletTransfer(
+        this.masterData,
+        account.address,
+      );
+      await walletTransfer.transfer();
+      logger.success("Successfully transferred funds into:", account.address);
 
-    /** Update master data */
-    this.masterData = {
-      ...this.masterData,
-      address: account.address,
-      version: account.version,
-      phrase,
-    };
+      /** Update master data */
+      this.masterData = {
+        ...this.masterData,
+        address: account.address,
+        version: account.version,
+        phrase,
+      };
 
-    /** Prepare account as the master wallet */
-    logger.info(`Preparing (${cloudAccount.id}) as master wallet...`);
-    this.prepared = await prepareMaster(this.masterData);
-    logger.success(
-      `Successfully prepared (${cloudAccount.id}) as the master wallet!`,
-    );
+      /** Prepare account as the master wallet */
+      logger.info(`Preparing (${cloudAccount.id}) as master wallet...`);
+      this.prepared = await prepareMaster(this.masterData);
+      logger.success(
+        `Successfully prepared (${cloudAccount.id}) as the master wallet!`,
+      );
+    } else {
+      /** Collect token */
+      logger.info("Collecting ATF and TON:", account.address);
+      await booster.collect();
+      logger.success("Successfully collected ATF and TON:", account.address);
+    }
 
     /** Delay */
     await this.utils.delayForSeconds(20 + Math.floor(Math.random() * 100));
