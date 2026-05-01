@@ -74,6 +74,13 @@ export default function ATFAutoAccountDetails({ account }) {
   return (
     <>
       <InfoRow
+        label="Telegram User ID"
+        value={account.userId}
+        canCopy
+        valueClassName="text-lime-500 dark:text-lime-300"
+      />
+
+      <InfoRow
         label="Address"
         value={account.address}
         canCopy

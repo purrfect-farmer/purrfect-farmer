@@ -3,7 +3,6 @@ import {
   LiaFireAltSolid,
   LiaUserNinjaSolid,
 } from "react-icons/lia";
-import { LuMerge } from "react-icons/lu";
 import {
   MdCancel,
   MdOutlineClose,
@@ -28,6 +27,7 @@ import Decimal from "decimal.js";
 import { Dialog } from "radix-ui";
 import { HiOutlinePencilSquare } from "react-icons/hi2";
 import Input from "./Input";
+import { LuMerge } from "react-icons/lu";
 import PrimaryButton from "./PrimaryButton";
 import { Reorder } from "motion/react";
 import TonIcon from "@/assets/images/toncoin-ton-logo.svg";

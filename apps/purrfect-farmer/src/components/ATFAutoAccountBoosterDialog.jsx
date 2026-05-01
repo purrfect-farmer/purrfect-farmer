@@ -52,6 +52,21 @@ function BoosterHeader({ account }) {
           {account.title} webview
         </Dialog.Description>
 
+        {/* Telegram User ID */}
+        <span
+          onClick={() => {
+            copy(account.userId);
+            toast.success("Telegram User ID copied!");
+          }}
+          className={cn(
+            "text-center text-lime-500 font-bold",
+            "flex items-center gap-1 cursor-pointer",
+          )}
+        >
+          <MdOutlineContentCopy className="shrink-0 size-3" />
+          {account.userId}
+        </span>
+
         {/* Address */}
         <span
           onClick={() => {
