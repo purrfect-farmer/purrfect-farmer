@@ -27,6 +27,7 @@ export default class BaseFarmer {
   static deactivateOnError = true;
   static published = true;
   static singleton = false;
+  static skipExecutionOfNewAccount = false;
 
   constructor() {
     /* Register utilities */

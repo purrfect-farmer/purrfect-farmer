@@ -589,7 +589,9 @@ export default function createRunner(FarmerClass) {
             );
           } else if (newAccountIndex !== -1) {
             instance = this.queue.splice(newAccountIndex, 1)[0];
-            skipExecution = true;
+
+            /** Configure skipping execution */
+            skipExecution = this.skipExecutionOfNewAccount;
 
             /** Log */
             this.logger.info("Prioritizing new account:", instance.account.id);
