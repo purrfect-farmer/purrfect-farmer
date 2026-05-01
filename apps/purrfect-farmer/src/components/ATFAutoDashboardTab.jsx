@@ -1,4 +1,4 @@
-import { HiOutlineArrowUp, HiOutlinePencilSquare } from "react-icons/hi2";
+import { HiOutlinePencilSquare } from "react-icons/hi2";
 import {
   LiaDollarSignSolid,
   LiaFireAltSolid,
@@ -7,6 +7,7 @@ import {
 import {
   MdOutlineClose,
   MdOutlineContentCopy,
+  MdOutlineDoubleArrow,
   MdOutlineSearch,
   MdPersonAdd,
 } from "react-icons/md";
@@ -260,7 +261,7 @@ function MasterCardActions() {
         <Dialog.Trigger asChild>
           <MasterCardButton
             title="Transfer funds from Master"
-            icon={HiOutlineArrowUp}
+            icon={MdOutlineDoubleArrow}
           >
             Transfer
           </MasterCardButton>

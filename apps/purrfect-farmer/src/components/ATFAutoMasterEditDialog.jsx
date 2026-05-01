@@ -4,6 +4,7 @@ import ATFAutoAccountForm from "./ATFAutoAccountForm";
 import CenteredDialog from "./CenteredDialog";
 import Input from "./Input";
 import { MdHourglassEmpty } from "react-icons/md";
+import { TbUserEdit } from "react-icons/tb";
 import { encryption } from "@/services/encryption";
 import { getWalletAddressFromMnemonic } from "@purrfect/shared/lib/atf-auto";
 import toast from "react-hot-toast";
@@ -55,6 +56,7 @@ export default function ATFAutoMasterEditDialog({ onSave }) {
 
   return (
     <CenteredDialog
+      icon={TbUserEdit}
       title={"Edit Master Account"}
       description={"Update master wallet details"}
     >

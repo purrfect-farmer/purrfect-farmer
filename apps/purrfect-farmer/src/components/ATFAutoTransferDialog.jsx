@@ -7,6 +7,7 @@ import CenteredDialog from "./CenteredDialog";
 import FieldStateError from "./FieldStateError";
 import Input from "./Input";
 import Label from "./Label";
+import { MdOutlineDoubleArrow } from "react-icons/md";
 import PrimaryButton from "./PrimaryButton";
 import { encryption } from "@/services/encryption";
 import toast from "react-hot-toast";
@@ -82,6 +83,7 @@ export default function ATFAutoTransferDialog() {
 
   return (
     <CenteredDialog
+      icon={MdOutlineDoubleArrow}
       title={"Transfer"}
       description={"Transfer funds from master wallet"}
     >

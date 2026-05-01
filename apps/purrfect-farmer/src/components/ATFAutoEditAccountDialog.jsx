@@ -5,6 +5,7 @@ import ATFAutoAccountForm from "./ATFAutoAccountForm";
 import Alert from "./Alert";
 import Button from "./Button";
 import CenteredDialog from "./CenteredDialog";
+import { TbUserEdit } from "react-icons/tb";
 import { encryption } from "@/services/encryption";
 import { getWalletAddressFromMnemonic } from "@purrfect/shared/lib/atf-auto";
 import toast from "react-hot-toast";
@@ -54,6 +55,7 @@ export default function ATFAutoEditAccountDialog({
 
   return (
     <CenteredDialog
+      icon={TbUserEdit}
       title={"Edit Account"}
       description={"Update account details"}
     >

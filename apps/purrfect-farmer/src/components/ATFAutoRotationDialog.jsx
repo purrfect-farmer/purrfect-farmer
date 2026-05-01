@@ -2,6 +2,7 @@ import Alert from "./Alert";
 import CenteredDialog from "./CenteredDialog";
 import { FaUserNinja } from "react-icons/fa6";
 import LabelToggle from "./LabelToggle";
+import { LiaUserNinjaSolid } from "react-icons/lia";
 import PrimaryButton from "./PrimaryButton";
 import toast from "react-hot-toast";
 import useATFAuto from "@/hooks/useATFAuto";
@@ -33,6 +34,7 @@ export default function ATFAutoRotationDialog() {
 
   return (
     <CenteredDialog
+      icon={LiaUserNinjaSolid}
       title={"Rotate Wallets"}
       description={"Change wallet of master / accounts"}
     >

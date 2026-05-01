@@ -1,7 +1,12 @@
 import { Dialog } from "radix-ui";
 import { cn } from "@/utils";
 
-export default function CenteredDialog({ title, description, children }) {
+export default function CenteredDialog({
+  title,
+  description,
+  icon: Icon,
+  children,
+}) {
   return (
     <Dialog.Portal>
       <Dialog.Overlay
@@ -18,7 +23,11 @@ export default function CenteredDialog({ title, description, children }) {
             "bg-white dark:bg-neutral-800 rounded-xl",
           )}
         >
-          <Dialog.Title className="font-bold text-center text-base text-orange-500 font-turret-road truncate">
+          {/* Icon */}
+          {Icon ? (
+            <Icon className="flex size-10 text-orange-500 mx-auto" />
+          ) : null}
+          <Dialog.Title className="font-bold text-center text-xl text-orange-500 font-turret-road truncate">
             {title}
           </Dialog.Title>
           <Dialog.Description className="sr-only">
