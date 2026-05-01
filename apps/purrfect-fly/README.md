@@ -4,7 +4,7 @@
   </a>
 </p>
 
-<h1 align="center">⚡ Purrfect Fly</h1>
+<h1 align="center">Purrfect Fly</h1>
 
 <p align="center">
   <strong>Cloud-Based Farming Platform</strong>
@@ -16,25 +16,25 @@
 
 ---
 
-## 📋 Overview
+## Overview
 
 **Purrfect Fly** is a cloud-based farming platform that runs all Purrfect Farmer bots directly on your server. Unlike the browser extension which runs locally, Purrfect Fly operates autonomously in the cloud, managing multiple Telegram accounts, executing farming tasks 24/7, and providing centralized control through the Cloud Manager tool in Purrfect Farmer.
 
-### ✨ Key Features
+### Key Features
 
-- ☁️ **Cloud-Based Farming** - Runs all farmers directly on your server, no browser needed
-- 🤖 **Autonomous Operation** - 24/7 automated farming without manual intervention
-- 🎛️ **Cloud Manager Integration** - Control everything through Purrfect Farmer's Cloud Manager
-- 👥 **Multi-Account Management** - Handle unlimited Telegram accounts
-- 📊 **Real-Time Monitoring** - Live updates and notifications via Telegram topics
-- 💾 **Database Backend** - Persistent storage for accounts, proxies, and sessions
-- 🔐 **Secure API** - JWT-based authentication for Cloud Manager
-- ⚙️ **Scheduled Tasks** - Automated farming cycles and maintenance
-- 🌐 **Proxy Support** - Built-in proxy rotation and management
+- **Cloud-Based Farming** - Runs all farmers directly on your server, no browser needed
+- **Autonomous Operation** - 24/7 automated farming without manual intervention
+- **Cloud Manager Integration** - Control everything through Purrfect Farmer's Cloud Manager
+- **Multi-Account Management** - Handle unlimited Telegram accounts
+- **Real-Time Monitoring** - Live updates and notifications via Telegram topics
+- **Database Backend** - Persistent storage for accounts, proxies, and sessions
+- **Secure API** - JWT-based authentication for Cloud Manager
+- **Scheduled Tasks** - Automated farming cycles and maintenance
+- **Proxy Support** - Built-in proxy rotation and management
 
 ---
 
-## 🚀 Quick Installation
+## Quick Installation
 
 ### One-Line Install (Recommended)
 
@@ -49,16 +49,16 @@ wget -qO- https://raw.githubusercontent.com/purrfect-farmer/purrfect-farmer/main
 ```
 
 The installation script will:
-- ✅ Install system dependencies (Nginx, text editors)
-- ✅ Setup Node.js via NVM
-- ✅ Install pnpm and PM2
-- ✅ Clone the repository
-- ✅ Install project dependencies
-- ✅ Guide you through configuration
+- Install system dependencies (Nginx, text editors)
+- Setup Node.js via NVM
+- Install pnpm and PM2
+- Clone the repository
+- Install project dependencies
+- Guide you through configuration
 
 ---
 
-## 📦 Requirements
+## Requirements
 
 ### System Requirements
 
@@ -81,16 +81,16 @@ Before installation, you need:
    - Add your bot as an admin with full permissions
 
 3. **Required Topics** (create these in your group):
-   - 📢 **Announcements** - General notifications
-   - ❌ **Errors** - Error logs and failures
-   - 🌾 **Farming** - Farming activity logs
-   - 🤖 **Additional Topics (Optional)** - One topic per farmer for detailed logs
+   - **Announcements** - General notifications
+   - **Errors** - Error logs and failures
+   - **Farming** - Farming activity logs
+   - **Additional Topics (Optional)** - One topic per farmer for detailed logs
 
 **Note:** The Telegram bot is used for notifications and logs only. All management is done through the Cloud Manager tool in Purrfect Farmer extension/PWA.
 
 ---
 
-## 🛠️ Manual Installation
+## Manual Installation
 
 ### Step 1: Install System Packages
 
@@ -142,11 +142,11 @@ Configure PM2 to start on system boot:
 pm2 startup
 ```
 
-**⚠️ Important:** PM2 will generate a command like:
+**Important:** PM2 will generate a command like:
 ```bash
 sudo env PATH=$PATH:/home/username/.nvm/versions/node/vX.X.X/bin ...
 ```
-**Copy and run the generated command!**
+Copy and run the generated command.
 
 ### Step 4: Clone Repository
 
@@ -219,7 +219,7 @@ pnpm -F purrfect-fly db:migrate && pnpm -F purrfect-fly db:seed
 - **Username:** `admin`
 - **Password:** `password`
 
-⚠️ **Important:** Change the default password immediately after first login through Cloud Manager.
+**Important:** Change the default password immediately after first login through Cloud Manager.
 
 ### Step 8: Start Application
 
@@ -237,7 +237,7 @@ pm2 logs purrfect-fly
 
 ---
 
-## 🌐 Nginx Configuration
+## Nginx Configuration
 
 ### Step 1: Create Nginx Server Block
 
@@ -320,7 +320,7 @@ sudo certbot --nginx -d your-domain.com
 
 ---
 
-## 🔄 Updating
+## Updating
 
 Keep your installation up to date:
 
@@ -343,7 +343,7 @@ bash apps/purrfect-fly/update.sh
 
 ---
 
-## 📊 Management Commands
+## Management Commands
 
 ### PM2 Process Management
 
@@ -410,7 +410,7 @@ pnpm -F purrfect-fly fly import-backup <file>
 
 ---
 
-## 🔧 Troubleshooting
+## Troubleshooting
 
 ### Port Already in Use
 
@@ -432,7 +432,6 @@ pm2 startup
 # Follow the generated instructions
 ```
 
-
 ### Nginx 502 Bad Gateway
 
 ```bash
@@ -448,7 +447,7 @@ pm2 restart purrfect-fly
 
 ---
 
-## 🏗️ Architecture
+## Architecture
 
 ```
 ┌─────────────────────┐
@@ -482,15 +481,15 @@ pm2 restart purrfect-fly
 ```
 
 **How It Works:**
-- 🎛️ **Cloud Manager** (in Purrfect Farmer) - Interface to manage Fly
-- 🔐 **API Communication** - Secure JWT-authenticated REST API
-- ☁️ **Server Execution** - All farmers run on server, not in browser
-- 📱 **Telegram Notifications** - Logs sent to Telegram group topics
-- 💾 **Database Storage** - Accounts, sessions, proxies stored in SQLite
+- **Cloud Manager** (in Purrfect Farmer) - Interface to manage Fly
+- **API Communication** - Secure JWT-authenticated REST API
+- **Server Execution** - All farmers run on server, not in browser
+- **Telegram Notifications** - Logs sent to Telegram group topics
+- **Database Storage** - Accounts, sessions, proxies stored in SQLite
 
 ---
 
-## 🛡️ Security Best Practices
+## Security Best Practices
 
 1. **Firewall Configuration**
    ```bash
@@ -504,7 +503,7 @@ pm2 restart purrfect-fly
 
 3. **Change Default Password** - Update the default admin password immediately
 
-4. **Strong JWT Secret** - Use complex JWT secret key
+4. **Strong JWT Secret** - Use a complex JWT secret key
 
 5. **Regular Updates** - Keep system and dependencies updated
 
@@ -512,13 +511,13 @@ pm2 restart purrfect-fly
 
 ---
 
-## 📄 License
+## License
 
 This project is licensed under the [MIT License](../../LICENSE).
 
 ---
 
-## 💬 Community & Support
+## Community & Support
 
 - **Telegram Community:** [Join @purrfect_community](https://t.me/purrfect_community)
 - **Issues:** [GitHub Issues](https://github.com/purrfect-farmer/purrfect-farmer/issues)
@@ -526,4 +525,4 @@ This project is licensed under the [MIT License](../../LICENSE).
 
 ---
 
-<p align="center">Made with ❤️ by <a target="_blank" href="https://sadiqsalau.com">Sadiq Salau</a></p>
+<p align="center">Made with care by <a target="_blank" href="https://sadiqsalau.com">Sadiq Salau</a></p>

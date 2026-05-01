@@ -4,7 +4,7 @@
   </a>
 </p>
 
-<h1 align="center">🐾 Purrfect Farmer</h1>
+<h1 align="center">Purrfect Farmer</h1>
 
 <p align="center">
   <strong>Advanced Telegram Mini-Apps Automation Tool</strong>
@@ -12,30 +12,30 @@
 
 <p align="center">
   <a href="https://t.me/purrfect_community">
-    <img src="https://img.shields.io/badge/Telegram-Community-blue?logo=telegram" alt="Telegram Community">
+    <img src="https://img.shields.io/badge/Telegram-Community-blue?style=for-the-badge&logo=telegram" alt="Telegram Community">
   </a>
-  <img src="https://img.shields.io/badge/License-MIT-green" alt="License">
-  <img src="https://img.shields.io/badge/Platform-Chrome%20%7C%20PWA-orange" alt="Platform">
+  <img src="https://img.shields.io/badge/License-MIT-green?style=for-the-badge&" alt="License">
+  <img src="https://img.shields.io/badge/Platform-Chrome%20%7C%20PWA-orange?style=for-the-badge&" alt="Platform">
 </p>
 
 ---
 
-## 📋 Overview
+## Overview
 
 **Purrfect Farmer** is a powerful automation tool designed for Telegram Mini-Apps. It offers flexible deployment options as a Chrome Extension, Progressive Web App (PWA), or integrated with Purrfect Whiskers for advanced multi-account management.
 
-### ✨ Key Features
+### Key Features
 
-- 🤖 **Multi-Bot Automation** - Automate multiple Telegram mini-apps simultaneously
-- 🔄 **Flexible Deployment** - Chrome Extension, PWA, or Whisker integration
-- ☁️ **Cloud Support** - Optional cloud management with Purrfect Fly
-- 🎯 **Session Management** - Local and Cloud-based Telegram sessions
-- 🛡️ **Proxy Support** - Built-in proxy configuration
-- 📊 **Real-time Monitoring** - Track farming progress and earnings
+- **Multi-Bot Automation** - Automate multiple Telegram mini-apps simultaneously
+- **Flexible Deployment** - Chrome Extension, PWA, or Whisker integration
+- **Cloud Support** - Optional cloud management with Purrfect Fly
+- **Session Management** - Local and Cloud-based Telegram sessions
+- **Proxy Support** - Built-in proxy configuration
+- **Real-time Monitoring** - Track farming progress and earnings
 
 ---
 
-## 🚀 Quick Start
+## Quick Start
 
 ### Prerequisites
 
@@ -56,9 +56,9 @@ pnpm install
 
 ---
 
-## 📦 Build Options
+## Build Options
 
-### 🔌 Chrome Extension (Standalone)
+### Chrome Extension (Standalone)
 
 Build the standalone Chrome extension with all features included:
 
@@ -75,7 +75,7 @@ pnpm build:farmer
 
 **Note:** Requires a private key (`dist.pem`) in the project root for building `.crx` files.
 
-### 🎯 Whisker Build
+### Whisker Build
 
 For integration with [Purrfect Whiskers](https://github.com/purrfect-farmer/purrfect-whiskers) (multi-account management):
 
@@ -87,7 +87,7 @@ pnpm -F purrfect-farmer build-whisker
 
 Configure the extension path in Purrfect Whiskers settings to point to the `dist-whisker` folder.
 
-### 🌐 PWA (Progressive Web App)
+### PWA (Progressive Web App)
 
 Build as a Progressive Web App for web-based deployment:
 
@@ -99,7 +99,7 @@ pnpm -F purrfect-farmer build-pwa
 
 **Requirements:** PWA requires the Bridge extension (see below) for full functionality.
 
-### 🌉 Bridge Extension
+### Bridge Extension
 
 The Bridge enables PWA to access Chrome APIs. Required when using PWA mode:
 
@@ -113,17 +113,17 @@ pnpm -F purrfect-farmer build-bridge
 
 ---
 
-## ☁️ Purrfect Fly (Cloud Platform)
+## Purrfect Fly (Cloud Platform)
 
 **Purrfect Fly** is the cloud backend for managing multiple Purrfect Farmer instances remotely.
 
 ### Features
 
-- 🌐 Remote farmer management
-- 📊 Centralized monitoring
-- 🔐 Secure JWT authentication
-- 📱 Telegram bot integration
-- 💾 Database-backed accounts and proxies
+- Remote farmer management
+- Centralized monitoring
+- Secure JWT authentication
+- Telegram bot integration
+- Database-backed accounts and proxies
 
 ### Quick Deploy
 
@@ -137,11 +137,11 @@ Or with wget:
 wget -qO- https://raw.githubusercontent.com/purrfect-farmer/purrfect-farmer/main/apps/purrfect-fly/install.sh | bash
 ```
 
-📖 **Detailed Setup:** See [Purrfect Fly README](apps/purrfect-fly/README.md)
+**Detailed Setup:** See [Purrfect Fly README](apps/purrfect-fly/README.md)
 
 ---
 
-## 📚 Documentation
+## Documentation
 
 - **[Purrfect Farmer Documentation](apps/purrfect-farmer/README.md)** - Detailed farmer setup and configuration
 - **[Purrfect Fly Documentation](apps/purrfect-fly/README.md)** - Cloud platform installation and management
@@ -149,7 +149,7 @@ wget -qO- https://raw.githubusercontent.com/purrfect-farmer/purrfect-farmer/main
 
 ---
 
-## 🛠️ Development
+## Development
 
 ### Project Structure
 
@@ -180,23 +180,23 @@ pnpm -F purrfect-fly db:seed
 
 ---
 
-## 🤝 Contributing
+## Contributing
 
-Contributions are welcome! Please feel free to submit issues and pull requests.
+Contributions are welcome. Please feel free to submit issues and pull requests.
 
 ---
 
-## 📄 License
+## License
 
 This project is licensed under the [MIT License](LICENSE).
 
 ---
 
-## 💬 Community & Support
+## Community & Support
 
 - **Telegram Community:** [Join @purrfect_community](https://t.me/purrfect_community)
 - **Issues:** [GitHub Issues](https://github.com/purrfect-farmer/purrfect-farmer/issues)
 
 ---
 
-<p align="center">Made with ❤️ by <a target="_blank" href="https://sadiqsalau.com">Sadiq Salau</a></p>
+<p align="center">Made with care by <a target="_blank" href="https://sadiqsalau.com">Sadiq Salau</a></p>

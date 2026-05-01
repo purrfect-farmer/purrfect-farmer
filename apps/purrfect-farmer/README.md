@@ -4,7 +4,7 @@
   </a>
 </p>
 
-<h1 align="center">🐾 Purrfect Farmer</h1>
+<h1 align="center">Purrfect Farmer</h1>
 
 <p align="center">
   <strong>Advanced Telegram Mini-Apps Automation Tool</strong>
@@ -16,22 +16,22 @@
 
 ---
 
-## 📋 Overview
+## Overview
 
 **Purrfect Farmer** is a comprehensive automation tool designed specifically for Telegram Mini-Apps and bots. It supports multiple deployment modes including standalone Chrome Extension, PWA (Progressive Web App), and integration with Purrfect Whiskers for advanced multi-account management.
 
-### ✨ Key Features
+### Key Features
 
-- 🤖 **Multi-Bot Support** - Automate dozens of Telegram mini-apps
-- 🔄 **Multiple Deployment Modes** - Extension, PWA, or Whisker integration
-- ⚡ **Session Management** - Local and Cloud-based Telegram sessions
-- 🌐 **Proxy Support** - SOCKS5/HTTP proxy configuration
-- 📊 **Real-time Monitoring** - Track progress and earnings
-- 🎨 **Modern UI** - Built with React and Tailwind CSS
+- **Multi-Bot Support** - Automate dozens of Telegram mini-apps
+- **Multiple Deployment Modes** - Extension, PWA, or Whisker integration
+- **Session Management** - Local and Cloud-based Telegram sessions
+- **Proxy Support** - SOCKS5/HTTP proxy configuration
+- **Real-time Monitoring** - Track progress and earnings
+- **Modern UI** - Built with React and Tailwind CSS
 
 ---
 
-## 🚀 Quick Start
+## Quick Start
 
 ### Prerequisites
 
@@ -56,9 +56,9 @@ cd apps/purrfect-farmer
 
 ---
 
-## 📦 Build Modes
+## Build Modes
 
-### 🔌 Chrome Extension (Standalone)
+### Chrome Extension (Standalone)
 
 Build a standalone Chrome extension with all features:
 
@@ -88,7 +88,7 @@ pnpm build-extension
 
 ---
 
-### 🦁 Whisker Build
+### Whisker Build
 
 Build for integration with [Purrfect Whiskers](https://github.com/purrfect-farmer/purrfect-whiskers):
 
@@ -117,7 +117,7 @@ pnpm build-whisker
 
 ---
 
-### 🌐 PWA (Progressive Web App)
+### PWA (Progressive Web App)
 
 Build as a web application:
 
@@ -138,7 +138,7 @@ pnpm build-pwa
 
 **Deployment:**
 
-**Local Development:**
+Local Development:
 ```bash
 # Serve the build
 pnpm preview
@@ -146,7 +146,7 @@ pnpm preview
 npx serve dist
 ```
 
-**Production Deployment:**
+Production Deployment:
 ```bash
 # Using Nginx
 sudo cp -r dist/* /var/www/purrfect-farmer/
@@ -167,7 +167,7 @@ serve -s dist -l 3000
 
 ---
 
-### 🌉 Bridge Extension
+### Bridge Extension
 
 The Bridge allows PWA to access Chrome Extension APIs:
 
@@ -196,7 +196,7 @@ pnpm build-bridge
 
 ---
 
-### 🔨 Build All
+### Build All
 
 Build all variants at once:
 
@@ -204,15 +204,11 @@ Build all variants at once:
 pnpm build
 ```
 
-This runs all build modes sequentially:
-1. PWA
-2. Extension
-3. Whisker
-4. Bridge
+This runs all build modes sequentially: PWA, Extension, Whisker, Bridge.
 
 ---
 
-## 🛠️ Development
+## Development
 
 ### Start Development Server
 
@@ -246,7 +242,7 @@ pnpm preview
 
 ---
 
-## 📁 Project Structure
+## Project Structure
 
 ```
 apps/purrfect-farmer/
@@ -275,7 +271,7 @@ apps/purrfect-farmer/
 
 ---
 
-## 🎮 Usage
+## Usage
 
 ### First-Time Setup
 
@@ -285,7 +281,7 @@ apps/purrfect-farmer/
    - Choose "Local Telegram Session"
    - Follow login prompts
 3. **Configure settings** (proxy, captcha, etc.)
-4. **Start farming** 🎉
+4. **Start farming**
 
 ### Session Modes
 
@@ -303,7 +299,7 @@ apps/purrfect-farmer/
 
 ---
 
-## ⚙️ Configuration
+## Configuration
 
 ### Environment Variables
 
@@ -327,13 +323,11 @@ VITE_BRIDGE=false
 
 ### Extension Manifest
 
-The manifest is generated dynamically during build. To customize:
-
-Edit `plugins/generate-chrome-manifest.js`
+The manifest is generated dynamically during build. To customize, edit `plugins/generate-chrome-manifest.js`.
 
 ---
 
-## 🐛 Troubleshooting
+## Troubleshooting
 
 ### Extension Not Loading
 
@@ -371,7 +365,7 @@ pnpm clean
 
 ---
 
-## 🔗 Integration with Purrfect Fly
+## Integration with Purrfect Fly
 
 Connect to [Purrfect Fly](../purrfect-fly) for cloud-based farming:
 
@@ -389,23 +383,15 @@ See [Purrfect Fly README](../purrfect-fly/README.md) for server setup.
 
 ---
 
-## 📊 Supported Farmers
+## Supported Farmers
 
-Purrfect Farmer supports 20+ Telegram bots including:
-
-- 🎮 Game bots (Pirate Cash, Gold Eagle, etc.)
-- 💰 Earning bots
-- 🎁 Airdrop bots
-- 🎯 Task bots
-- And many more...
-
-Farmers are continuously updated and new ones added regularly.
+Purrfect Farmer supports 20+ Telegram bots including game bots, earning bots, airdrop bots, task bots, and more. Farmers are continuously updated and new ones added regularly.
 
 ---
 
-## 🤝 Contributing
+## Contributing
 
-Contributions are welcome! To add a new farmer:
+Contributions are welcome. To add a new farmer:
 
 1. Create farmer class in `packages/shared/farmers/`
 2. Extend `BaseDirectFarmer` or `BaseTelegramFarmer`
@@ -415,13 +401,13 @@ Contributions are welcome! To add a new farmer:
 
 ---
 
-## 📄 License
+## License
 
 This project is licensed under the [MIT License](../../LICENSE).
 
 ---
 
-## 💬 Community & Support
+## Community & Support
 
 - **Telegram Community:** [Join @purrfect_community](https://t.me/purrfect_community)
 - **Issues:** [GitHub Issues](https://github.com/purrfect-farmer/purrfect-farmer/issues)
@@ -429,5 +415,4 @@ This project is licensed under the [MIT License](../../LICENSE).
 
 ---
 
-
-<p align="center">Made with ❤️ by <a target="_blank" href="https://sadiqsalau.com">Sadiq Salau</a></p>
+<p align="center">Made with care by <a target="_blank" href="https://sadiqsalau.com">Sadiq Salau</a></p>
