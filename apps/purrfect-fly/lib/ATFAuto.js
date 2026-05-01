@@ -33,14 +33,14 @@ class ATFAuto {
   /** Handle cancellation signal */
   handleCancellationSignal = () => {
     return bot.sendPrivateMessage(this.id, [
-      `<i>⏹️ ATF Auto - Stopping operation...</i>`,
+      `<i>🛑 ATF Auto - Stopping operation...</i>`,
     ]);
   };
 
   /** Send cancellation completion notification */
   sendCancellationCompletionNotification() {
     return bot.sendPrivateMessage(this.id, [
-      `<i>⏹️ ATF Auto - Operation stopped. Remaining accounts skipped.</i>`,
+      `<i>🛑 ATF Auto - Operation stopped. Remaining accounts skipped.</i>`,
     ]);
   }
 
