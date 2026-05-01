@@ -49,6 +49,11 @@ class ATFAuto {
     return `${address.slice(0, 6)}...${address.slice(-4)}`;
   }
 
+  /** Format account position */
+  formatAccountPosition(index) {
+    return `(<i>${index + 1}/${this.accounts.length}</i>)`;
+  }
+
   async prepareInitialMasterData() {
     logger.info("Decrypting master wallet....");
     const phrase = await this.decryptPhrase(this.master.encryptedWalletPhrase);
@@ -160,7 +165,7 @@ class ATFAuto {
   }
 
   /** Process boost for account */
-  async processBoost(account) {
+  async processBoost(account, index) {
     /** Skip if user ID is not set */
     if (!account.userId) return;
 
@@ -210,8 +215,8 @@ class ATFAuto {
     /** Send Boost Notification */
     await bot.sendPrivateMessage(this.id, [
       connected
-        ? `⚡ Boosted <b>(${cloudAccount.id})</b> with <i>${jettonAmount} ATF</i>`
-        : `❌ Failed to boost <b>(${cloudAccount.id})</b> with <i>${jettonAmount} ATF</i>`,
+        ? `⚡ Boosted <b>(${cloudAccount.id})</b> with <i>${jettonAmount} ATF</i> ${this.formatAccountPosition(index)}`
+        : `❌ Failed to boost <b>(${cloudAccount.id})</b> with <i>${jettonAmount} ATF</i> ${this.formatAccountPosition(index)}`,
     ]);
 
     /** Delay for 5s */
@@ -290,11 +295,11 @@ class ATFAuto {
       }
 
       /** Loop through accounts and boost */
-      for (const account of this.accounts) {
+      for (const [index, account] of this.accounts.entries()) {
         if (this.signal.aborted) {
           break;
         }
-        await this.processBoost(account);
+        await this.processBoost(account, index);
       }
 
       /** Return funds to master */
@@ -352,11 +357,11 @@ class ATFAuto {
       await this.prepareInitialMasterData();
 
       /** Loop through accounts and collect */
-      for (const account of this.accounts) {
+      for (const [index, account] of this.accounts.entries()) {
         if (this.signal.aborted) {
           break;
         }
-        await this.processCollect(account);
+        await this.processCollect(account, index);
       }
 
       /** Notify about completion */
@@ -382,7 +387,7 @@ class ATFAuto {
   }
 
   /** Process collect */
-  async processCollect(account) {
+  async processCollect(account, index) {
     /** Decrypt phrase */
     const phrase = await this.decryptPhrase(account.encryptedPhrase);
 
@@ -403,10 +408,10 @@ class ATFAuto {
     /** Send Notification */
     await bot.sendPrivateMessage(this.id, [
       skipped
-        ? `⏩ Skipped <b>(${this.truncateAddress(account.address)})</b>`
+        ? `⏩ Skipped <b>(${this.truncateAddress(account.address)})</b> ${this.formatAccountPosition(index)}`
         : status
-          ? `💰 Collected <b>(${this.truncateAddress(account.address)})</b> - <i>${collected?.toString()} ATF</i>`
-          : `❌ Failed to collect <b>(${this.truncateAddress(account.address)})</b>\n<i>Error: ${error?.message || "Unknown error!"}</i>`,
+          ? `💰 Collected <b>(${this.truncateAddress(account.address)})</b> - <i>${collected?.toString()} ATF</i> ${this.formatAccountPosition(index)}`
+          : `❌ Failed to collect <b>(${this.truncateAddress(account.address)})</b> ${this.formatAccountPosition(index)}\n<i>Error: ${error?.message || "Unknown error!"}</i>`,
     ]);
 
     /** Log completion */
@@ -425,11 +430,11 @@ class ATFAuto {
       ]);
 
       /** Loop through accounts and withdraw */
-      for (const account of this.accounts) {
+      for (const [index, account] of this.accounts.entries()) {
         if (this.signal.aborted) {
           break;
         }
-        await this.withdrawAccount(account);
+        await this.processWithdraw(account, index);
       }
 
       /** Notify about cancellation completion */
@@ -456,7 +461,7 @@ class ATFAuto {
   }
 
   /** Withdraw account */
-  async withdrawAccount(account) {
+  async processWithdraw(account, index) {
     /** Skip if user ID is not set */
     if (!account.userId) return;
 
@@ -473,10 +478,10 @@ class ATFAuto {
     /** Send Notification */
     await bot.sendPrivateMessage(this.id, [
       skipped
-        ? `⏩ Skipped <b>(${cloudAccount.id})</b> - <i>${amount} ATF</i>`
+        ? `⏩ Skipped <b>(${cloudAccount.id})</b> - <i>${amount} ATF</i> ${this.formatAccountPosition(index)}`
         : status
-          ? `🤑 Withdrawn <b>(${cloudAccount.id})</b> - <i>${amount} ATF</i>\n<i>Message: ${message}</i>`
-          : `❌ Failed to withdraw <b>(${cloudAccount.id})</b> - <i>${amount} ATF</i>\n<i>Reason: ${message}</i>`,
+          ? `🤑 Withdrawn <b>(${cloudAccount.id})</b> - <i>${amount} ATF</i> ${this.formatAccountPosition(index)}\n<i>Message: ${message}</i>`
+          : `❌ Failed to withdraw <b>(${cloudAccount.id})</b> - <i>${amount} ATF</i> ${this.formatAccountPosition(index)}\n<i>Reason: ${message}</i>`,
     ]);
 
     if (skipped) {
