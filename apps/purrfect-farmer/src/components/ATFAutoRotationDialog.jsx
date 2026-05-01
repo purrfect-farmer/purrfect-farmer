@@ -40,7 +40,9 @@ export default function ATFAutoRotationDialog() {
     >
       {/* Warning */}
       <Alert variant={"danger"}>
-        You are about to rotate the master wallet. <br />
+        You are about to rotate the master wallet. Make sure you've transferred
+        out all your funds into your personal wallet before rotation.
+        <br />
         <strong className="font-bold">Note:</strong> Only toggle the button
         below if you also wish to rotate the wallet of each account.
       </Alert>
