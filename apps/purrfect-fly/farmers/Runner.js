@@ -481,7 +481,7 @@ export default function createRunner(FarmerClass) {
     /** Execute farming for an instance
      * @param {Runner} instance
      */
-    static async execute(instance) {
+    static async execute(instance, skipExecution = false) {
       try {
         if (process.env.NODE_ENV === "production") {
           /* Random wait seconds */
@@ -503,7 +503,9 @@ export default function createRunner(FarmerClass) {
         await this.updatePrimaryFarmerLink(instance);
 
         /** Start instance */
-        await instance.start();
+        if (!skipExecution) {
+          await instance.start();
+        }
 
         /** Reset error count */
         await instance.resetErrorCount();
@@ -561,6 +563,7 @@ export default function createRunner(FarmerClass) {
 
       try {
         while (this.queue.length > 0) {
+          let skipExecution = false;
           let instance;
 
           /** Prioritize primary account is the primary link is not set */
@@ -586,6 +589,7 @@ export default function createRunner(FarmerClass) {
             );
           } else if (newAccountIndex !== -1) {
             instance = this.queue.splice(newAccountIndex, 1)[0];
+            skipExecution = true;
 
             /** Log */
             this.logger.info("Prioritizing new account:", instance.account.id);
@@ -594,7 +598,7 @@ export default function createRunner(FarmerClass) {
           }
 
           try {
-            await this.execute(instance);
+            await this.execute(instance, skipExecution);
           } catch (err) {
             /** Log error */
             this.logger.error("Queue processing error:", err);
