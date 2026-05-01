@@ -51,7 +51,7 @@ class ATFAuto {
 
   /** Format account position */
   formatAccountPosition(index) {
-    return `(<i>${index + 1}/${this.accounts.length}</i>)`;
+    return `(<i><b>${index + 1}</b>/<b>${this.accounts.length}</b></i>)`;
   }
 
   async prepareInitialMasterData() {
