@@ -293,4 +293,27 @@ export default async function (fastify, opts) {
       });
     },
   );
+
+  /** ATF Auto Cancel */
+  fastify.post(
+    "/atf-auto/cancel",
+    {
+      preHandler: [fastify.validateWebAppData],
+      schema: authSchema,
+    },
+    async function (request, reply) {
+      const { user } = request.auth;
+      const account = await fastify.db.Account.findWithActiveSubscription(
+        user.id,
+      );
+
+      if (!account) {
+        return reply.forbidden("Not allowed!");
+      }
+
+      ATFAuto.cancel({
+        id: account.id,
+      });
+    },
+  );
 }

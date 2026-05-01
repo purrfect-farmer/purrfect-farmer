@@ -24,6 +24,24 @@ class ATFAuto {
 
     this.mode = "roll"; // roll or collect
     this.difference = 10;
+    this.controller = new AbortController();
+    this.signal = this.controller.signal;
+
+    this.signal.addEventListener("abort", this.handleCancellationSignal);
+  }
+
+  /** Handle cancellation signal */
+  handleCancellationSignal = () => {
+    return bot.sendPrivateMessage(this.id, [
+      `<i>⏹️ ATF Auto - Stopping operation...</i>`,
+    ]);
+  };
+
+  /** Send cancellation completion notification */
+  sendCancellationCompletionNotification() {
+    return bot.sendPrivateMessage(this.id, [
+      `<i>⏹️ ATF Auto - Operation stopped. Remaining accounts skipped.</i>`,
+    ]);
   }
 
   /** Truncate address */
@@ -203,7 +221,9 @@ class ATFAuto {
     await this.applyMode(account, phrase, booster);
 
     /** Delay */
-    await this.utils.delayForSeconds(20 + Math.floor(Math.random() * 100));
+    await this.utils.delayForSeconds(20 + Math.floor(Math.random() * 100), {
+      signal: this.signal,
+    });
   }
 
   /** Apply mode */
@@ -271,14 +291,24 @@ class ATFAuto {
 
       /** Loop through accounts and boost */
       for (const account of this.accounts) {
+        if (this.signal.aborted) {
+          break;
+        }
         await this.processBoost(account);
       }
 
       /** Return funds to master */
       await this.returnFundsToMaster();
 
-      /** Notify about boost completion */
-      await bot.sendPrivateMessage(this.id, [`✅ ATF Auto - Boost completed.`]);
+      /** Notify about cancellation */
+      if (this.signal.aborted) {
+        await this.sendCancellationCompletionNotification();
+      } else {
+        /** Notify about boost completion */
+        await bot.sendPrivateMessage(this.id, [
+          `✅ ATF Auto - Boost completed.`,
+        ]);
+      }
     } catch (e) {
       const errorMessage = e.message || "Unknown error!";
 
@@ -323,13 +353,20 @@ class ATFAuto {
 
       /** Loop through accounts and collect */
       for (const account of this.accounts) {
+        if (this.signal.aborted) {
+          break;
+        }
         await this.processCollect(account);
       }
 
       /** Notify about completion */
-      await bot.sendPrivateMessage(this.id, [
-        `✅ ATF Auto - Collection completed.`,
-      ]);
+      if (this.signal.aborted) {
+        await this.sendCancellationCompletionNotification();
+      } else {
+        await bot.sendPrivateMessage(this.id, [
+          `✅ ATF Auto - Collection completed.`,
+        ]);
+      }
     } catch (e) {
       const errorMessage = e.message || "Unknown error!";
 
@@ -389,13 +426,21 @@ class ATFAuto {
 
       /** Loop through accounts and withdraw */
       for (const account of this.accounts) {
+        if (this.signal.aborted) {
+          break;
+        }
         await this.withdrawAccount(account);
       }
 
-      /** Notify about completion */
-      await bot.sendPrivateMessage(this.id, [
-        `✅ ATF Auto - Withdrawal completed.`,
-      ]);
+      /** Notify about cancellation completion */
+      if (this.signal.aborted) {
+        await this.sendCancellationCompletionNotification();
+      } else {
+        /** Notify about completion */
+        await bot.sendPrivateMessage(this.id, [
+          `✅ ATF Auto - Withdrawal completed.`,
+        ]);
+      }
     } catch (e) {
       const errorMessage = e.message || "Unknown error!";
 
@@ -436,10 +481,14 @@ class ATFAuto {
 
     if (skipped) {
       /** Delay for seconds */
-      await this.utils.delayForSeconds(20 + Math.floor(Math.random() * 100));
+      await this.utils.delayForSeconds(20 + Math.floor(Math.random() * 100), {
+        signal: this.signal,
+      });
     } else {
       /** Delay for minutes */
-      await this.utils.delayForMinutes(3 + Math.floor(Math.random() * 2));
+      await this.utils.delayForMinutes(3 + Math.floor(Math.random() * 2), {
+        signal: this.signal,
+      });
     }
   }
 
@@ -495,6 +544,11 @@ class ATFAuto {
     }
   }
 
+  /** Cancel operation */
+  cancel() {
+    this.controller.abort();
+  }
+
   static execute({ id, password, master, accounts }, callback) {
     if (this.instances.has(id)) return;
     const instance = new this({
@@ -509,6 +563,13 @@ class ATFAuto {
     callback(instance).finally(() => {
       this.instances.delete(id);
     });
+  }
+
+  static cancel({ id }) {
+    const instance = this.instances.get(id);
+    if (instance) {
+      instance.cancel();
+    }
   }
 
   static boost(options) {

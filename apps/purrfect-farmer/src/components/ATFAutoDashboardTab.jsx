@@ -1,10 +1,11 @@
-import { HiOutlinePencilSquare } from "react-icons/hi2";
 import {
   LiaDollarSignSolid,
   LiaFireAltSolid,
   LiaUserNinjaSolid,
 } from "react-icons/lia";
+import { LuMerge } from "react-icons/lu";
 import {
+  MdCancel,
   MdOutlineClose,
   MdOutlineContentCopy,
   MdOutlineDoubleArrow,
@@ -25,8 +26,8 @@ import ATFIcon from "@/assets/images/atf.png?format=webp&w=32";
 import Alert from "./Alert";
 import Decimal from "decimal.js";
 import { Dialog } from "radix-ui";
+import { HiOutlinePencilSquare } from "react-icons/hi2";
 import Input from "./Input";
-import { LuMerge } from "react-icons/lu";
 import PrimaryButton from "./PrimaryButton";
 import { Reorder } from "motion/react";
 import TonIcon from "@/assets/images/toncoin-ton-logo.svg";
@@ -35,6 +36,7 @@ import copy from "copy-to-clipboard";
 import toast from "react-hot-toast";
 import useATFAuto from "@/hooks/useATFAuto";
 import useATFAutoCloudBoostMutation from "@/hooks/useATFAutoCloudBoostMutation";
+import useATFAutoCloudCancellationMutation from "@/hooks/useATFAutoCloudCancellationMutation";
 import useATFAutoCloudCollectionMutation from "@/hooks/useATFAutoCloudCollectionMutation";
 import useATFAutoCloudWithdrawalMutation from "@/hooks/useATFAutoCloudWithdrawalMutation";
 import useATFBalancesQuery from "@/hooks/useATFBalancesQuery";
@@ -167,6 +169,7 @@ function MasterCardActions() {
   const boostMutation = useATFAutoCloudBoostMutation();
   const withdrawMutation = useATFAutoCloudWithdrawalMutation();
   const collectMutation = useATFAutoCloudCollectionMutation();
+  const cancellationMutation = useATFAutoCloudCancellationMutation();
 
   const boostWithCloud = () => {
     toast.promise(
@@ -213,6 +216,14 @@ function MasterCardActions() {
     );
   };
 
+  const cancelCloudOperation = () => {
+    toast.promise(cancellationMutation.mutateAsync(), {
+      loading: "Dispatching...",
+      success: "Dispatched",
+      error: "Failed to dispatch cancellation request",
+    });
+  };
+
   return (
     <div className="flex justify-center items-center flex-wrap gap-2">
       {/* Boost */}
@@ -243,6 +254,16 @@ function MasterCardActions() {
         disabled={collectMutation.isPending}
       >
         {collectMutation.isPending ? "Requesting..." : "Collect"}
+      </MasterCardButton>
+
+      {/* Cancel */}
+      <MasterCardButton
+        title={"Cancel Cloud Operation"}
+        icon={MdCancel}
+        onClick={cancelCloudOperation}
+        disabled={cancellationMutation.isPending}
+      >
+        {cancellationMutation.isPending ? "Requesting..." : "Cancel"}
       </MasterCardButton>
 
       {/* Rotate */}
