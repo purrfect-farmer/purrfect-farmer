@@ -3,9 +3,9 @@
 set -e
  
 FOLDERS=(
-  "/path/to/purrfect-farmer-one"
-  "/path/to/purrfect-farmer-two"
-  "/path/to/purrfect-farmer-three"
+  "$HOME/purrfect-farmer-one"
+  "$HOME/purrfect-farmer-two"
+  "$HOME/purrfect-farmer-three"
 )
  
 for FOLDER in "${FOLDERS[@]}"; do
