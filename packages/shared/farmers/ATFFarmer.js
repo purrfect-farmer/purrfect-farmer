@@ -728,7 +728,8 @@ export default class ATFFarmer extends BaseFarmer {
     };
   }
 
-  async startOrClaimMining() {
+  /** Start of claim mining */
+  async startOrClaimMining(force = false) {
     const { user } = this.auth_data;
     if (!user["wallet_address"]) {
       this.logger.error(
@@ -774,7 +775,7 @@ export default class ATFFarmer extends BaseFarmer {
         return;
       }
 
-      if (!this.utils.chance(70)) {
+      if (!force && !this.utils.chance(70)) {
         this.logger.warn("Skipping - Rewards claim.");
         return;
       }
@@ -783,6 +784,7 @@ export default class ATFFarmer extends BaseFarmer {
       const result = await this.claimMining(balance);
 
       if (result.new_pool_balance !== undefined) {
+        this.auth_data.user["mined_balance"] = result.new_pool_balance;
         this.logger.success(
           `Claimed! Pool balance: ${result.new_pool_balance}`,
         );
