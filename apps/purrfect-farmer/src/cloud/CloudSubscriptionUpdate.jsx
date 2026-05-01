@@ -64,7 +64,7 @@ export default function CloudSubscriptionUpdate() {
         >
           <Alert variant={"info"}>
             You can update the subscription of multiple accounts by separating
-            their IDs with comma.
+            their IDs with space/comma.
           </Alert>
           {/* User IDs */}
           <Controller

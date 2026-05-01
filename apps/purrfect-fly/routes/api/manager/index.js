@@ -282,7 +282,7 @@ export default async function (fastify, opts) {
       },
       async (request) => {
         const ids = request.body.id
-          .split(",")
+          .split(/[,\s]+/)
           .map((s) => Number(s.trim()))
           .filter(Boolean);
 
