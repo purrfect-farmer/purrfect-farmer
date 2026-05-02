@@ -316,4 +316,34 @@ export default async function (fastify, opts) {
       });
     },
   );
+
+  /** ATF Auto Get Active List */
+  fastify.post(
+    "/atf-auto/get-active-list",
+    {
+      preHandler: [fastify.validateWebAppData],
+      schema: authSchema,
+    },
+    async function (request, reply) {
+      const { user } = request.auth;
+      const account = await fastify.db.Account.findWithActiveSubscription(
+        user.id,
+      );
+
+      if (!account) {
+        return reply.forbidden("Not allowed!");
+      }
+
+      const farmers = await fastify.db.Farmer.findAll({
+        raw: true,
+        attributes: ["accountId"],
+        where: {
+          farmer: "atf",
+          isBanned: false,
+        },
+      });
+
+      return farmers.map((item) => item.accountId);
+    },
+  );
 }

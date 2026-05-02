@@ -28,6 +28,7 @@ import { Dialog } from "radix-ui";
 import { HiOutlinePencilSquare } from "react-icons/hi2";
 import Input from "./Input";
 import { LuMerge } from "react-icons/lu";
+import { PiBroom } from "react-icons/pi";
 import PrimaryButton from "./PrimaryButton";
 import { Reorder } from "motion/react";
 import TonIcon from "@/assets/images/toncoin-ton-logo.svg";
@@ -39,6 +40,7 @@ import useATFAutoCloudBoostMutation from "@/hooks/useATFAutoCloudBoostMutation";
 import useATFAutoCloudCancellationMutation from "@/hooks/useATFAutoCloudCancellationMutation";
 import useATFAutoCloudCollectionMutation from "@/hooks/useATFAutoCloudCollectionMutation";
 import useATFAutoCloudWithdrawalMutation from "@/hooks/useATFAutoCloudWithdrawalMutation";
+import useATFAutoSweepMutation from "@/hooks/useATFAutoSweepMutation";
 import useATFBalancesQuery from "@/hooks/useATFBalancesQuery";
 import useATFNetWorthQuery from "@/hooks/useATFNetWorthQuery";
 import { useDebounce } from "react-use";
@@ -170,6 +172,7 @@ function MasterCardActions() {
   const withdrawMutation = useATFAutoCloudWithdrawalMutation();
   const collectMutation = useATFAutoCloudCollectionMutation();
   const cancellationMutation = useATFAutoCloudCancellationMutation();
+  const sweepMutation = useATFAutoSweepMutation();
 
   const boostWithCloud = () => {
     toast.promise(
@@ -224,73 +227,97 @@ function MasterCardActions() {
     });
   };
 
+  const sweepInactiveAccounts = () => {
+    toast.promise(sweepMutation.mutateAsync(), {
+      loading: "Sweeping...",
+      success: "Swept inactive accounts!",
+      error: "Failed to sweep accounts!",
+    });
+  };
+
   return (
-    <div className="flex justify-center items-center flex-wrap gap-2">
-      {/* Boost */}
-      <MasterCardButton
-        title={"Boost accounts in Cloud"}
-        icon={LiaFireAltSolid}
-        onClick={boostWithCloud}
-        disabled={boostMutation.isPending}
-      >
-        {boostMutation.isPending ? "Requesting..." : "Boost"}
-      </MasterCardButton>
+    <>
+      {/* Cloud operations */}
+      <div className="flex justify-center items-center flex-wrap gap-2">
+        {/* Boost */}
+        <MasterCardButton
+          title={"Boost accounts in Cloud"}
+          icon={LiaFireAltSolid}
+          onClick={boostWithCloud}
+          disabled={boostMutation.isPending}
+        >
+          {boostMutation.isPending ? "Requesting..." : "Boost"}
+        </MasterCardButton>
 
-      {/* Withdraw */}
-      <MasterCardButton
-        title={"Withdraw accounts in Cloud"}
-        icon={LiaDollarSignSolid}
-        onClick={withdrawWithCloud}
-        disabled={withdrawMutation.isPending}
-      >
-        {withdrawMutation.isPending ? "Requesting..." : "Withdraw"}
-      </MasterCardButton>
+        {/* Withdraw */}
+        <MasterCardButton
+          title={"Withdraw accounts in Cloud"}
+          icon={LiaDollarSignSolid}
+          onClick={withdrawWithCloud}
+          disabled={withdrawMutation.isPending}
+        >
+          {withdrawMutation.isPending ? "Requesting..." : "Withdraw"}
+        </MasterCardButton>
 
-      {/* Collect */}
-      <MasterCardButton
-        title={"Collect accounts in Cloud"}
-        icon={LuMerge}
-        onClick={collectWithCloud}
-        disabled={collectMutation.isPending}
-      >
-        {collectMutation.isPending ? "Requesting..." : "Collect"}
-      </MasterCardButton>
+        {/* Collect */}
+        <MasterCardButton
+          title={"Collect accounts in Cloud"}
+          icon={LuMerge}
+          onClick={collectWithCloud}
+          disabled={collectMutation.isPending}
+        >
+          {collectMutation.isPending ? "Requesting..." : "Collect"}
+        </MasterCardButton>
 
-      {/* Cancel */}
-      <MasterCardButton
-        title={"Cancel Cloud Operation"}
-        icon={MdCancel}
-        onClick={cancelCloudOperation}
-        disabled={cancellationMutation.isPending}
-      >
-        {cancellationMutation.isPending ? "Requesting..." : "Cancel"}
-      </MasterCardButton>
+        {/* Cancel */}
+        <MasterCardButton
+          title={"Cancel Cloud Operation"}
+          icon={MdCancel}
+          onClick={cancelCloudOperation}
+          disabled={cancellationMutation.isPending}
+        >
+          {cancellationMutation.isPending ? "Requesting..." : "Cancel"}
+        </MasterCardButton>
+      </div>
 
-      {/* Rotate */}
-      <Dialog.Root>
-        <Dialog.Trigger asChild>
-          <MasterCardButton title="Rotate Wallets" icon={LiaUserNinjaSolid}>
-            Rotate
-          </MasterCardButton>
-        </Dialog.Trigger>
+      {/* Account operations */}
+      <div className="flex justify-center items-center flex-wrap gap-2">
+        {/* Sweep */}
+        <MasterCardButton
+          title={"Sweep"}
+          icon={PiBroom}
+          onClick={sweepInactiveAccounts}
+          disabled={sweepMutation.isPending}
+        >
+          {sweepMutation.isPending ? "Sweeping..." : "Sweep"}
+        </MasterCardButton>
 
-        <ATFAutoRotationDialog />
-      </Dialog.Root>
+        {/* Rotate */}
+        <Dialog.Root>
+          <Dialog.Trigger asChild>
+            <MasterCardButton title="Rotate Wallets" icon={LiaUserNinjaSolid}>
+              Rotate
+            </MasterCardButton>
+          </Dialog.Trigger>
 
-      {/* Transfer Button */}
-      <Dialog.Root>
-        <Dialog.Trigger asChild>
-          <MasterCardButton
-            title="Transfer funds from Master"
-            icon={MdOutlineDoubleArrow}
-          >
-            Transfer
-          </MasterCardButton>
-        </Dialog.Trigger>
+          <ATFAutoRotationDialog />
+        </Dialog.Root>
 
-        <ATFAutoTransferDialog />
-      </Dialog.Root>
-    </div>
+        {/* Transfer Button */}
+        <Dialog.Root>
+          <Dialog.Trigger asChild>
+            <MasterCardButton
+              title="Transfer funds from Master"
+              icon={MdOutlineDoubleArrow}
+            >
+              Transfer
+            </MasterCardButton>
+          </Dialog.Trigger>
+
+          <ATFAutoTransferDialog />
+        </Dialog.Root>
+      </div>
+    </>
   );
 }
 
