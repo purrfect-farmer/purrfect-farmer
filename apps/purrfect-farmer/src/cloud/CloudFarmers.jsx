@@ -177,7 +177,9 @@ export default function CloudFarmers() {
                               className={cn(
                                 "shrink-0 size-2 rounded-full",
                                 "border-2 border-white",
-                                farmer.active ? "bg-green-500" : "bg-red-500",
+                                !farmer.isBanned && farmer.active
+                                  ? "bg-green-500"
+                                  : "bg-red-500",
                               )}
                             />
                           ) : null}

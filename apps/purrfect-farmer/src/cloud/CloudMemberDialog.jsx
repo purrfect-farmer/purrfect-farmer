@@ -115,8 +115,19 @@ const MemberDialogFarmer = ({ account, farmer }) => {
       <Dialog.Close asChild onClick={launchFarmer}>
         <div className="grow truncate min-w-0 min-h-0 cursor-pointer">
           <h1 className="font-bold">{farmer.title}</h1>
-          <p className={farmer.active ? "text-green-500" : "text-red-500"}>
-            {farmer.active ? "Connected" : "Disconnected"}
+          <p
+            className={cn(
+              !farmer.isBanned && farmer.active
+                ? "text-green-500"
+                : "text-red-500",
+            )}
+          >
+            {farmer.isBanned
+              ? "Banned"
+              : farmer.active
+                ? "Active"
+                : "Disconnected"}{" "}
+            (<span className="font-bold">{farmer.errorCount}</span>)
           </p>
         </div>
       </Dialog.Close>
