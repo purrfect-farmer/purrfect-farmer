@@ -48,7 +48,7 @@ export default function useATFWalletsRotationMutation() {
     onError: (error) => {
       console.log("Error while rotating wallets", error);
     },
-    mutationFn: async ({ includeAccounts = false }) => {
+    mutationFn: async ({ transferFunds = true, includeAccounts = true }) => {
       const { address: oldMasterAddress, version, tonCenterApiKey } = master;
 
       /** Decrypt the old master wallet */
@@ -134,6 +134,38 @@ export default function useATFWalletsRotationMutation() {
       toast.success(
         "Backup of old and new wallet information downloaded before rotation!",
       );
+
+      /** Transfer funds */
+      if (transferFunds) {
+        /** Prepare master wallet data */
+        const oldMasterData = {
+          address: oldMasterAddress,
+          phrase: oldMasterPhrase,
+          tonCenterApiKey,
+          version,
+        };
+
+        /** Prepare master data */
+        const newMasterData = {
+          address: newMasterAddress,
+          phrase: newMasterPhrase,
+          tonCenterApiKey,
+          version,
+        };
+
+        console.log("Prepared old and new master wallet data for rotation.");
+        console.log("Old Master Data:", oldMasterData);
+        console.log("New Master Data:", newMasterData);
+
+        /** Create wallet transfer instance */
+        const walletTransfer = new ATFAutoWalletTransfer(
+          oldMasterData,
+          newMasterAddress,
+        );
+
+        /** Execute the wallet transfer */
+        await walletTransfer.transfer();
+      }
 
       /** Encrypt the new master wallet */
       const newEncryptedWalletPhrase = await encryption.encryptData({

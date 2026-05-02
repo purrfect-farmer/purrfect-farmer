@@ -19,13 +19,14 @@ const schema = yup
 
 export default function ATFAutoRotationDialog() {
   const { master } = useATFAuto();
-  const [includeAccounts, setIncludeAccounts] = useState(false);
+  const [transferFunds, setTransferFunds] = useState(true);
+  const [includeAccounts, setIncludeAccounts] = useState(true);
 
   const mutation = useATFWalletsRotationMutation();
 
   const rotateWallets = () => {
     if (!master) return;
-    toast.promise(mutation.mutateAsync({ includeAccounts }), {
+    toast.promise(mutation.mutateAsync({ transferFunds, includeAccounts }), {
       loading: "Rotating wallets...",
       success: "Wallets rotated successfully!",
       error: "Failed to rotate wallets.",
@@ -40,12 +41,21 @@ export default function ATFAutoRotationDialog() {
     >
       {/* Warning */}
       <Alert variant={"danger"}>
-        You are about to rotate the master wallet. Make sure you've transferred
-        out all your funds into your personal wallet before rotation.
+        You are about to rotate the master wallet.
         <br />
-        <strong className="font-bold">Note:</strong> Only toggle the button
-        below if you also wish to rotate the wallet of each account.
+        <strong className="font-bold">Note:</strong> Only toggle the buttons
+        below if you do not wish to transfer funds or rotate the wallet of each
+        account.
       </Alert>
+
+      {/* Transfer funds */}
+      <LabelToggle
+        onChange={(ev) => setTransferFunds(ev.target.checked)}
+        checked={transferFunds}
+        disabled={mutation.isPending}
+      >
+        Transfer funds
+      </LabelToggle>
 
       {/* Include accounts */}
       <LabelToggle
