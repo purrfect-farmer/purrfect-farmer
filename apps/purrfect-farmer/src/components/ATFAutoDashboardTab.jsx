@@ -284,7 +284,7 @@ function MasterCardActions() {
       <div className="flex justify-center items-center flex-wrap gap-2">
         {/* Sweep */}
         <MasterCardButton
-          title={"Sweep"}
+          title={"Sweep inactive accounts"}
           icon={PiBroom}
           onClick={sweepInactiveAccounts}
           disabled={sweepMutation.isPending}
