@@ -46,6 +46,19 @@ export default function CloudMembers() {
         onChange={(ev) => setSearch(ev.target.value)}
       />
 
+      {/* Count */}
+      <div className="flex flex-col gap-2 text-center">
+        <p>
+          <span className="font-bold">Members:</span> (
+          {membersQuery.data.length})
+        </p>
+        {search ? (
+          <p>
+            <span className="font-bold">Search:</span> ({members.length})
+          </p>
+        ) : null}
+      </div>
+
       {/* Accounts */}
       <div className="flex flex-col gap-2">
         {members.length ? (
