@@ -1,3 +1,4 @@
+import ATFAutoWalletTransfer from "@/lib/ATFAutoWalletTransfer";
 import { downloadFile } from "@/utils";
 import { encryption } from "@/services/encryption";
 import { getWalletFromMnemonic } from "@purrfect/shared/lib/atf-auto";
