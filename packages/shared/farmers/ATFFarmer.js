@@ -862,6 +862,7 @@ export default class ATFFarmer extends BaseFarmer {
 
     /** Complete Available Tasks */
     for (const task of availableTasks) {
+      if (this.signal.aborted) break;
       await this.claimTask(task);
       this.logger.success(`Claimed task: ${task}`);
       await this.utils.delayForSeconds(5);
@@ -882,6 +883,7 @@ export default class ATFFarmer extends BaseFarmer {
 
     /** Check Extra Tasks Cooldowns */
     for (const task in extraTasks) {
+      if (this.signal.aborted) break;
       await this.startTask(task);
       await this.utils.delayForSeconds(30);
       await this.claimTask(task);
