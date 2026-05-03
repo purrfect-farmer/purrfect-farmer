@@ -101,10 +101,11 @@ class ATFAuto {
   /** Connect Wallet */
   async connectWallet({ cloudAccount, walletAccount }) {
     /** Seconds of delay before retry */
-    const RETRY_SECONDS = 2;
+    const RETRY_SECONDS = 5;
 
     /** Initial attempts */
     let attempts = 0;
+    let errorMessage;
 
     while (attempts < 3) {
       try {
@@ -121,11 +122,14 @@ class ATFAuto {
         /** Connect and sync */
         const version = "v" + walletAccount.version;
         const keyPair = await runner.getKeyPair(walletAccount.phrase);
-        const connected = await runner.connectAndSyncWallet(keyPair, version);
+        const { status, message } = await runner.connectAndSyncWallet(
+          keyPair,
+          version,
+        );
 
         /** Throw error when not connected */
-        if (!connected) {
-          throw new Error("Failed to connect wallet!");
+        if (!status) {
+          throw new Error(message);
         }
 
         /** Log Success */
@@ -135,13 +139,14 @@ class ATFAuto {
           walletAccount.address,
         );
 
-        return true;
+        return { status: true };
       } catch (e) {
+        errorMessage = e.message;
         logger.error(
           "Failed to connect wallet:",
           cloudAccount.id,
           walletAccount.address,
-          e.message,
+          errorMessage,
         );
         attempts++;
 
@@ -153,7 +158,7 @@ class ATFAuto {
       }
     }
 
-    return false;
+    return { status: false, message: errorMessage };
   }
 
   async decryptPhrase(encryptedPhrase) {
@@ -207,16 +212,16 @@ class ATFAuto {
     await this.utils.delayForSeconds(10);
 
     /** Connect Wallet */
-    const connected = await this.connectWallet({
+    const { status, message } = await this.connectWallet({
       cloudAccount,
       walletAccount,
     });
 
     /** Send Boost Notification */
     await bot.sendPrivateMessage(this.id, [
-      connected
+      status
         ? `⚡ Boosted <b>(${cloudAccount.id})</b> with <i>${jettonAmount} ATF</i> ${this.formatAccountPosition(index)}`
-        : `❌ Failed to boost <b>(${cloudAccount.id})</b> with <i>${jettonAmount} ATF</i> ${this.formatAccountPosition(index)}`,
+        : `❌ Failed to boost <b>(${cloudAccount.id})</b> with <i>${jettonAmount} ATF</i> ${this.formatAccountPosition(index)}\n<i>Error: ${message || "Unknown error!"}</i>`,
     ]);
 
     /** Delay for 5s */

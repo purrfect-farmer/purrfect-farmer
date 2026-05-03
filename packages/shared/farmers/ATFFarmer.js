@@ -299,9 +299,9 @@ export default class ATFFarmer extends BaseFarmer {
       ],
     });
 
-    const connected = await this.connectAndSyncWallet(keyPair, version);
+    const { status } = await this.connectAndSyncWallet(keyPair, version);
 
-    if (connected) {
+    if (status) {
       const password = await this.promptInput(
         "Enter a password to encrypt and store your wallet:",
       );
@@ -381,17 +381,17 @@ export default class ATFFarmer extends BaseFarmer {
     const result = await this.syncWallet(data);
 
     if (result.status !== "success") {
-      this.logger.error(
+      const message =
         result.message ||
-          "Failed to sync wallet with proof. Please check your secret key and try again.",
-      );
-      return false;
+        "Failed to sync wallet with proof. Please check your secret key and try again.";
+      this.logger.error(message);
+      return { status: false, message };
     } else {
       const user = result.user;
       this.logger.success("Wallet synced successfully!");
       this.logUserBalance(user);
       this.logUserRisks(user);
-      return true;
+      return { status: true };
     }
   }
 
