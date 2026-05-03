@@ -541,14 +541,14 @@ class ATFAuto {
       /** Get runner */
       const runner = await this.getRunner(cloudAccount);
 
-      /** Delay for 3s */
-      await this.utils.delayForSeconds(3);
+      /** Delay for 5s */
+      await this.utils.delayForSeconds(5);
 
       /** Start or Claim Mining */
       await runner.startOrClaimMining(true);
 
-      /** Delay for 3s */
-      await this.utils.delayForSeconds(3);
+      /** Delay for 5s */
+      await this.utils.delayForSeconds(5);
 
       /** Result */
       const { status, skipped, amount, message } = await runner.withdraw();
