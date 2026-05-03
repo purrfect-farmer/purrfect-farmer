@@ -45,8 +45,6 @@ export default class ATFFarmer extends BaseFarmer {
   }
 
   configureApi() {
-    this.deviceId = this.deviceId ?? `dev-` + this.utils.uuid();
-
     const interceptor = this.api.interceptors.request.use((config) => {
       const url = new URL(config.url, config.baseURL);
       url.searchParams.set("t", Date.now().toString());

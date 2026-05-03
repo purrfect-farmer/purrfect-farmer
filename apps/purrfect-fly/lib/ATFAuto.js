@@ -54,6 +54,20 @@ class ATFAuto {
     return `(<i><b>${index + 1}</b>/<b>${this.accounts.length}</b></i>)`;
   }
 
+  /** Delay for safe seconds */
+  delayForSafeSeconds() {
+    return this.utils.delayForSeconds(30 + Math.floor(Math.random() * 90), {
+      signal: this.signal,
+    });
+  }
+
+  /** Delay for safe minutes */
+  delayForSafeMinutes() {
+    return this.utils.delayForMinutes(3 + Math.floor(Math.random() * 2), {
+      signal: this.signal,
+    });
+  }
+
   async prepareInitialMasterData() {
     logger.info("Decrypting master wallet....");
     const phrase = await this.decryptPhrase(this.master.encryptedWalletPhrase);
@@ -150,6 +164,12 @@ class ATFAuto {
           walletAccount.address,
         );
 
+        /** Delay for 5s */
+        await this.utils.delayForSeconds(5);
+
+        /** Start or claim mining */
+        await runner.startOrClaimMining();
+
         return { status: true };
       } catch (e) {
         errorMessage = e.message;
@@ -242,9 +262,12 @@ class ATFAuto {
     await this.applyMode(account, phrase, booster);
 
     /** Delay */
-    await this.utils.delayForSeconds(20 + Math.floor(Math.random() * 100), {
-      signal: this.signal,
-    });
+    if (cloudAccount.farmer) {
+      await this.delayForSafeSeconds();
+    } else {
+      /** Delay for minutes */
+      await this.delayForSafeMinutes();
+    }
   }
 
   /** Apply mode */
@@ -502,14 +525,10 @@ class ATFAuto {
 
     if (skipped) {
       /** Delay for seconds */
-      await this.utils.delayForSeconds(20 + Math.floor(Math.random() * 100), {
-        signal: this.signal,
-      });
+      await this.delayForSafeSeconds();
     } else {
       /** Delay for minutes */
-      await this.utils.delayForMinutes(3 + Math.floor(Math.random() * 2), {
-        signal: this.signal,
-      });
+      await this.delayForSafeMinutes();
     }
   }
 
