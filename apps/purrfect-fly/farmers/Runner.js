@@ -478,6 +478,14 @@ export default function createRunner(FarmerClass) {
       }
     }
 
+    /** Terminate instance */
+    static terminate(id) {
+      const instance = this.runners.get(id);
+      if (instance) {
+        instance.controller.abort();
+      }
+    }
+
     /** Execute farming for an instance
      * @param {Runner} instance
      */

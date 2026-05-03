@@ -64,6 +64,9 @@ export default class BaseFarmer {
     this.startedAt = new Date();
     this.currentTaskStartedAt = null;
     this.currentTask = null;
+
+    this.controller = new AbortController();
+    this.signal = this.controller.signal;
   }
 
   /** Set Prompt Functions */
@@ -275,7 +278,10 @@ export default class BaseFarmer {
 
   /** Start the farmer */
   start(signal) {
-    this.signal = signal || new AbortController().signal;
+    if (signal) {
+      this.signal = signal;
+    }
+
     return this.process();
   }
 
@@ -342,7 +348,8 @@ export default class BaseFarmer {
       );
       throw error;
     } finally {
-      await this.utils.delayForSeconds(2);
+      /** Delay before processing next task */
+      await this.utils.delayForSeconds(5);
     }
   }
 

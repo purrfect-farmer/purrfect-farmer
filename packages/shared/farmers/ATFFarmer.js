@@ -21,7 +21,8 @@ export default class ATFFarmer extends BaseFarmer {
   static singleton = true;
   static cacheAuth = false;
   static cacheTelegramWebApp = false;
-  static rating = 4;
+  static interval = "*/30 * * * *";
+  static rating = 5;
   static cookies = true;
   static netRequest = {
     requestHeaders: [
@@ -735,7 +736,7 @@ export default class ATFFarmer extends BaseFarmer {
   }
 
   /** Start of claim mining */
-  async startOrClaimMining(force = false) {
+  async startOrClaimMining() {
     const { user } = this.auth_data;
     if (!user["wallet_address"]) {
       this.logger.error(
@@ -750,6 +751,10 @@ export default class ATFFarmer extends BaseFarmer {
       /** Start Mining */
       const challenge = await this.getMathChallenge("start_mine");
       const answer = this.getAnswerForChallenge(challenge.question);
+
+      /** Delay before submitting */
+      await this.utils.delayForSeconds(5);
+
       const result = await this.startMining({
         challengeId: challenge.challenge_id,
         answer: answer.toString(),
@@ -781,11 +786,6 @@ export default class ATFFarmer extends BaseFarmer {
         return;
       }
 
-      if (!force && !this.utils.chance(70)) {
-        this.logger.warn("Skipping - Rewards claim.");
-        return;
-      }
-
       this.logger.info(`Claiming ${balance} ATF...`);
       const result = await this.claimMining(balance);
 
@@ -811,11 +811,6 @@ export default class ATFFarmer extends BaseFarmer {
   }
 
   async applyBoost() {
-    if (!this.utils.chance(30)) {
-      this.logger.warn("Skipping - Apply boost");
-      return;
-    }
-
     const { user } = this.auth_data;
     const lastMiningStart = Number(user["last_mining_start"]);
 

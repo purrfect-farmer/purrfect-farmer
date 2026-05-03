@@ -73,27 +73,38 @@ class ATFAuto {
   }
 
   async getCloudAccount(account) {
-    return db.Account.findByPk(account.userId, {
+    const cloudAccount = await db.Account.findByPk(account.userId, {
       include: [
         {
-          required: true,
+          required: false,
           association: "farmers",
           where: {
             farmer: "atf",
-            isBanned: false,
-            active: true,
           },
         },
       ],
     });
+
+    if (!cloudAccount) return;
+    if (!cloudAccount.session && !cloudAccount.farmer?.active) return;
+    if (cloudAccount.farmer?.isBanned) return;
+
+    return cloudAccount;
   }
 
   async getRunner(cloudAccount) {
     const FarmerClass = farmers["atf"];
+
+    /** Terminate */
+    FarmerClass.terminate(cloudAccount.id);
+
     const runner = new FarmerClass(cloudAccount);
 
     /** Prepare runner */
     await runner.prepare();
+
+    /** Delay for 5s */
+    await this.utils.delayForSeconds(5);
 
     return runner;
   }
@@ -506,11 +517,7 @@ class ATFAuto {
   async requestWithdrawal(cloudAccount) {
     try {
       /** Log */
-      logger.info(
-        "Withdrawing account:",
-        cloudAccount.id,
-        cloudAccount.farmer.id,
-      );
+      logger.info("Withdrawing account:", cloudAccount.id);
 
       /** Get runner */
       const runner = await this.getRunner(cloudAccount);
@@ -531,7 +538,6 @@ class ATFAuto {
       logger.success(
         "Completed withdrawal:",
         cloudAccount.id,
-        cloudAccount.farmer.id,
         status,
         skipped,
         message,
