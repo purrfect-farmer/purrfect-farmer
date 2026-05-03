@@ -15,17 +15,24 @@ export default function ATFAutoWithdrawTab() {
   const { selectedAccounts } = selector;
   const mutation = useATFAutoCloudWithdrawalMutation();
 
-  const handleCollect = async () => {
+  const handleWithdraw = async () => {
     if (selectedAccounts.length === 0) {
       toast.error("No accounts selected.");
       return;
     }
 
-    await mutation.mutateAsync({
-      password,
-      master,
-      accounts: selectedAccounts,
-    });
+    await toast.promise(
+      mutation.mutateAsync({
+        password,
+        master,
+        accounts: selectedAccounts,
+      }),
+      {
+        loading: "Dispatching...",
+        success: "Successfully dispatched withdrawal request!",
+        error: "Failed to dispatch withdrawal request!",
+      },
+    );
   };
 
   return (
@@ -66,7 +73,7 @@ export default function ATFAutoWithdrawTab() {
           <ATFAutoStickyContainer>
             <PrimaryButton
               disabled={mutation.isPending}
-              onClick={handleCollect}
+              onClick={handleWithdraw}
             >
               <FaDollarSign className="size-4" />{" "}
               {mutation.isPending ? "Dispatching..." : "Withdraw"}

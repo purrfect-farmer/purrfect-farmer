@@ -15,17 +15,24 @@ export default function ATFAutoBoostTab() {
   const { selectedAccounts } = selector;
   const mutation = useATFAutoCloudBoostMutation();
 
-  const handleCollect = async () => {
+  const handleBoost = async () => {
     if (selectedAccounts.length === 0) {
       toast.error("No accounts selected.");
       return;
     }
 
-    await mutation.mutateAsync({
-      password,
-      master,
-      accounts: selectedAccounts,
-    });
+    await toast.promise(
+      mutation.mutateAsync({
+        password,
+        master,
+        accounts: selectedAccounts,
+      }),
+      {
+        loading: "Dispatching...",
+        success: "Successfully dispatched boost request!",
+        error: "Failed to dispatch boost request!",
+      },
+    );
   };
 
   return (
@@ -65,10 +72,7 @@ export default function ATFAutoBoostTab() {
           </Alert>
 
           <ATFAutoStickyContainer>
-            <PrimaryButton
-              disabled={mutation.isPending}
-              onClick={handleCollect}
-            >
+            <PrimaryButton disabled={mutation.isPending} onClick={handleBoost}>
               <FaFire className="size-4" />{" "}
               {mutation.isPending ? "Dispatching..." : "Boost"}
             </PrimaryButton>

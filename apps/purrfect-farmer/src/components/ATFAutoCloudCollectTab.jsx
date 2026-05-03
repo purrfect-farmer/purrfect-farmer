@@ -21,11 +21,18 @@ export default function ATFAutoCloudCollectTab() {
       return;
     }
 
-    await mutation.mutateAsync({
-      password,
-      master,
-      accounts: selectedAccounts,
-    });
+    await toast.promise(
+      mutation.mutateAsync({
+        password,
+        master,
+        accounts: selectedAccounts,
+      }),
+      {
+        loading: "Dispatching...",
+        success: "Successfully dispatched collection request!",
+        error: "Failed to dispatch collection request!",
+      },
+    );
   };
 
   return (
