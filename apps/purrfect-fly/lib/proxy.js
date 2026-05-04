@@ -136,18 +136,33 @@ class ProxyProvider {
     const results = await Promise.all(
       proxies.map(async (proxy) => {
         const start = Date.now();
+        const agentTimeout = 3000;
+        const proxyUrl = `http://${proxy}`;
+
+        const httpAgent = new HttpProxyAgent({
+          proxy: proxyUrl,
+          timeout: agentTimeout,
+        });
+
+        const httpsAgent = new HttpsProxyAgent({
+          proxy: proxyUrl,
+          timeout: agentTimeout,
+        });
+
         let status = true;
         let ip;
 
         try {
-          ip = await axios
-            .get("http://checkip.amazonaws.com", {
-              httpAgent: new HttpProxyAgent({ proxy: `http://${proxy}` }),
-              httpsAgent: new HttpsProxyAgent({ proxy: `http://${proxy}` }),
+          const data = await axios
+            .get("https://api.ipify.org?format=json", {
+              httpAgent,
+              httpsAgent,
               timeout: 5000,
               validateStatus: () => true,
             })
-            .then((res) => String(res.data).trim());
+            .then((res) => res.data);
+
+          ip = data.ip;
         } catch (error) {
           if (process.env.NODE_ENV === "development") {
             console.error("Error testing proxy:", error);
