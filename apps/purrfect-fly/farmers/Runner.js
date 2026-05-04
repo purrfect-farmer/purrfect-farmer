@@ -290,19 +290,23 @@ export default function createRunner(FarmerClass) {
 
     /** Create HTTP Agent */
     createAgent(proxy, isHttps) {
-      const proxyAgentType = isHttps ? HttpsProxyAgent : HttpProxyAgent;
-      const cookieAgentType = isHttps
+      const ProxyAgentType = isHttps ? HttpsProxyAgent : HttpProxyAgent;
+      const ProxyAgentWithCookiesType = isHttps
         ? HttpsProxyAgentWithCookies
         : HttpProxyAgentWithCookies;
-      const defaultAgentType = isHttps ? HttpsCookieAgent : HttpCookieAgent;
+      const CookiesAgentType = isHttps ? HttpsCookieAgent : HttpCookieAgent;
 
       if (proxy) {
         return this.constructor.cookies
-          ? new cookieAgentType({ proxy, cookies: { jar: this.jar } })
-          : new proxyAgentType({ proxy });
+          ? new ProxyAgentWithCookiesType({
+              timeout: 3000,
+              cookies: { jar: this.jar },
+              proxy,
+            })
+          : new ProxyAgentType({ proxy, timeout: 3000 });
       } else {
         return this.constructor.cookies
-          ? new defaultAgentType({ cookies: { jar: this.jar } })
+          ? new CookiesAgentType({ cookies: { jar: this.jar } })
           : null;
       }
     }
