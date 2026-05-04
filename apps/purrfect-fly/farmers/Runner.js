@@ -703,14 +703,19 @@ export default function createRunner(FarmerClass) {
           return !item.farmer?.isBanned;
         });
 
+        /** Needs Primary Account */
+        const needsPrimaryAccount = Boolean(this.primaryAccountId);
+
         /** Primary account */
-        const primaryAccount = accounts.find(
-          (acc) => acc.id === this.primaryAccountId,
-        );
+        const primaryAccount = needsPrimaryAccount
+          ? accounts.find((acc) => acc.id === this.primaryAccountId)
+          : null;
 
         /** Can launch primary account */
         const canLaunchPrimaryAccount =
-          primaryAccount?.farmer?.active || primaryAccount?.session;
+          !needsPrimaryAccount ||
+          primaryAccount?.farmer?.active ||
+          primaryAccount?.session;
 
         /** Can auto-start accounts without farmer */
         const canAutoStart =
