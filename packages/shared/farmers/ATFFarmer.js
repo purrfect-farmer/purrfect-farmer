@@ -558,25 +558,22 @@ export default class ATFFarmer extends BaseFarmer {
   }
 
   getAnswerForChallenge(question) {
-    const [x, operator, y] = question.split(" ");
-    let answer;
-    switch (operator) {
-      case "+":
-        answer = parseInt(x) + parseInt(y);
-        break;
-      case "-":
-        answer = parseInt(x) - parseInt(y);
-        break;
-      case "*":
-        answer = parseInt(x) * parseInt(y);
-        break;
-      case "/":
-        answer = Math.floor(parseInt(x) / parseInt(y));
-        break;
-      default:
-        throw new Error("Unknown operator in math challenge");
+    const match = question.toLowerCase().match(/(\d+)\s*([+\-*/÷x])\s*(\d+)/);
+    if (!match) throw new Error("Invalid math challenge format");
+
+    const x = Number(match[1]);
+    const y = Number(match[3]);
+    const op = match[2];
+
+    if (op === "+") return x + y;
+    if (op === "-") return x - y;
+    if (op === "*" || op === "x") return x * y;
+    if (op === "/" || op === "÷") {
+      if (y === 0) throw new Error("Division by zero");
+      return Math.floor(x / y);
     }
-    return answer;
+
+    throw new Error("Unknown operator");
   }
 
   getMinerRate(level) {
