@@ -495,19 +495,6 @@ export default function createRunner(FarmerClass) {
      */
     static async execute(instance, skipExecution = false) {
       try {
-        if (process.env.NODE_ENV === "production") {
-          /* Random wait seconds */
-          const waitSeconds =
-            30 + Math.floor(Math.random() * this.startupDelay);
-
-          if (waitSeconds) {
-            this.logger.info(
-              `[${instance.account.id}] Delaying startup by ${waitSeconds} seconds...`,
-            );
-            await this.utils.delayForSeconds(waitSeconds);
-          }
-        }
-
         /** Prepare instance */
         await instance.prepare();
 
@@ -622,7 +609,11 @@ export default function createRunner(FarmerClass) {
               this.resetPrimaryFarmerLink();
             }
           } finally {
+            /** Delete instance */
             this.runners.delete(instance.account.id);
+
+            /** Delay based on farmer */
+            await this.utils.delayForMinutes(instance.account.farmer ? 1 : 3);
           }
         }
       } finally {
