@@ -56,7 +56,7 @@ class ATFAuto {
 
   /** Delay for safe seconds */
   delayForSafeSeconds() {
-    return this.utils.delayForSeconds(30 + Math.floor(Math.random() * 90), {
+    return this.utils.delayForSeconds(60, {
       signal: this.signal,
     });
   }
