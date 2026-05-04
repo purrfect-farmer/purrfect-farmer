@@ -39,27 +39,31 @@ export default function ATFAutoWithdrawTab() {
     <div className="flex flex-col gap-3 p-2">
       {/* Results summary */}
       {mutation.isSuccess && (
-        <div className="flex flex-col gap-2">
-          <Alert variant={"success"}>
-            Withdrawal request was successfully dispatched to Cloud. Kindly
-            check your notifications for progress.
-          </Alert>
+        <ATFAutoStickyContainer>
+          <div className="flex flex-col gap-2">
+            <Alert variant={"success"}>
+              Withdrawal request was successfully dispatched to Cloud. Kindly
+              check your notifications for progress.
+            </Alert>
 
-          <PrimaryButton type="button" onClick={() => mutation.reset()}>
-            <HiArrowPath className="w-4 h-4" />
-            Reset
-          </PrimaryButton>
-        </div>
+            <PrimaryButton type="button" onClick={() => mutation.reset()}>
+              <HiArrowPath className="w-4 h-4" />
+              Reset
+            </PrimaryButton>
+          </div>
+        </ATFAutoStickyContainer>
       )}
 
       {mutation.isError && (
-        <div className="flex flex-col gap-2">
-          <Alert variant="danger">{mutation.error.message}</Alert>
-          <PrimaryButton type="button" onClick={() => mutation.reset()}>
-            <HiArrowPath className="w-4 h-4" />
-            Reset
-          </PrimaryButton>
-        </div>
+        <ATFAutoStickyContainer>
+          <div className="flex flex-col gap-2">
+            <Alert variant="danger">{mutation.error.message}</Alert>
+            <PrimaryButton type="button" onClick={() => mutation.reset()}>
+              <HiArrowPath className="w-4 h-4" />
+              Reset
+            </PrimaryButton>
+          </div>
+        </ATFAutoStickyContainer>
       )}
 
       {/* Button */}
