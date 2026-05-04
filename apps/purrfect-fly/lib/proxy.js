@@ -1,5 +1,6 @@
 import { HttpProxyAgent, HttpsProxyAgent } from "hpagent";
 
+import FloxyClient from "./FloxyClient";
 import app from "../config/app.js";
 import axios from "axios";
 import cache from "./cache.js";
@@ -61,6 +62,39 @@ class ProxyProvider {
           (item) =>
             `${item.username}:${item.password}@${item.proxy_address}:${item.port}`,
         );
+      } else if (app.proxy.provider === "floxy") {
+        /** Instantiate Floxy Client */
+        const client = new FloxyClient(app.proxy.apiKey);
+
+        /** Plan ID */
+        let planId = app.proxy.planId;
+
+        if (!planId) {
+          const list = await client.getAllPlans();
+          const plan = list.find(
+            (item) => item.type === "DEDICATED_DATACENTER",
+          );
+
+          if (plan) {
+            planId = plan.id;
+          }
+        }
+
+        /** Return an empty list if not plan ID is configured */
+        if (!planId) {
+          return [];
+        }
+
+        const details = await client.getPlan(planId);
+        const { authorization } = details;
+        const { username, password } = authorization;
+
+        /** Flat map the IPs */
+        const ips = details["ip_list"].flatMap((item) =>
+          item.cities.flatMap((city) => city.ips),
+        );
+
+        return ips.map((ip) => `${username}:${password}@${ip}:1338`);
       } else if (app.proxy.provider === "iplocate") {
         const txt = await axios
           .get(
@@ -99,7 +133,6 @@ class ProxyProvider {
    */
   async testProxies() {
     const proxies = await this.list();
-
     const results = await Promise.all(
       proxies.map(async (proxy) => {
         const start = Date.now();

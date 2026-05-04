@@ -59,6 +59,7 @@ export default {
     enabled: env("PROXY_ENABLED", false),
     provider: env("PROXY_PROVIDER", "webshare"),
     apiKey: env("PROXY_API_KEY", ""),
+    planId: env("PROXY_PLAN_ID", ""),
     page: env("PROXY_PAGE", 1),
     pageSize: env("PROXY_PAGE_SIZE", 100),
   },
