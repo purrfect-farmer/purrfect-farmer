@@ -863,7 +863,7 @@ export default class ATFFarmer extends BaseFarmer {
       if (this.signal.aborted) break;
       await this.claimTask(task);
       this.logger.success(`Claimed task: ${task}`);
-      await this.utils.delayForSeconds(5);
+      await this.utils.delayForSeconds(20);
     }
   }
 
