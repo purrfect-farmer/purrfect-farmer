@@ -108,9 +108,6 @@ export default function createRunner(FarmerClass) {
       /** Set Headers */
       this.registerHeadersInterceptor();
 
-      /** Refetch Auth */
-      this.retryApiRequests();
-
       /** Set XSRF */
       this.registerXSRFInterceptor();
 
@@ -197,50 +194,6 @@ export default function createRunner(FarmerClass) {
           return config;
         });
       }
-    }
-
-    /** Retry API Requests on Auth Failure */
-    retryApiRequests() {
-      this.api.interceptors.response.use(
-        (response) => response,
-        async (error) => {
-          const originalRequest = error.config;
-          const isUnauthenticatedError = [401, 403, 418].includes(
-            error?.response?.status,
-          );
-
-          if (
-            isUnauthenticatedError &&
-            !originalRequest.__retry &&
-            !this.isFetchingAuth
-          ) {
-            try {
-              this.logger.warn("Refreshing auth...");
-
-              /** Delay for 5s */
-              await this.utils.delayForSeconds(5);
-
-              /** Fetch new auth */
-              await this.setAuth();
-              await this.farmer.save();
-
-              originalRequest.__retry = true;
-              originalRequest.headers = {
-                ...originalRequest.headers,
-                ...this.farmer?.headers,
-                ...this.getExtraHeaders?.(),
-              };
-
-              return this.api.request(originalRequest);
-            } catch (error) {
-              this.logger.error("Failed to refresh auth:", error);
-              return Promise.reject(error);
-            }
-          }
-
-          return Promise.reject(error);
-        },
-      );
     }
 
     /** Log API Requests */
