@@ -136,7 +136,7 @@ class ProxyProvider {
     const results = await Promise.all(
       proxies.map(async (proxy) => {
         const start = Date.now();
-        const agentTimeout = 3000;
+        const agentTimeout = 5000;
         const proxyUrl = `http://${proxy}`;
 
         const httpAgent = new HttpProxyAgent({
@@ -157,7 +157,7 @@ class ProxyProvider {
             .get("https://api.ipify.org?format=json", {
               httpAgent,
               httpsAgent,
-              timeout: 5000,
+              timeout: 7000,
               validateStatus: () => true,
             })
             .then((res) => res.data);

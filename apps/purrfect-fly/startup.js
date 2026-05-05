@@ -35,8 +35,8 @@ if (app.seeker.enabled || app.startup.sendServerAddress) {
   const fetchAndSendServerAddress = async () => {
     try {
       const address = await axios
-        .get("http://checkip.amazonaws.com", { timeout: 5000 })
-        .then((response) => `http://${String(response.data).trim()}`);
+        .get("https://api.ipify.org?format=json", { timeout: 5000 })
+        .then((response) => response.data.ip);
 
       /** Post to Seeker Server */
       if (app.seeker.enabled) {
