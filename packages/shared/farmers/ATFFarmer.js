@@ -71,6 +71,7 @@ export default class ATFFarmer extends BaseFarmer {
   /** Get Auth Headers */
   getAuthHeaders(data) {
     return {
+      "X-Requested-With": "XMLHttpRequest",
       "X-ATF-TMA-Session": data["tma_session_token"],
       "X-Telegram-Init-Data": this.getInitData(),
     };
