@@ -158,6 +158,22 @@ class GroupBot extends Bot {
     }
   }
 
+  /** Send Farmer Error Message */
+  async sendFarmerErrorMessage(id, title, accountId, errorMessage) {
+    try {
+      return await this.sendGroupMessage(
+        "messages.startup.server-address",
+        [
+          `❌ Error when executing ${title} Farmer for (<b>${accountId}</b>)`,
+          `<i>${errorMessage}</i>`,
+        ],
+        { ["message_thread_id"]: app.chat.threads.error },
+      );
+    } catch (error) {
+      logger.error(error);
+    }
+  }
+
   /** Send Private Message */
   async sendPrivateMessage(id, message) {
     try {

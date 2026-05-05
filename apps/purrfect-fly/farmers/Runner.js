@@ -512,7 +512,17 @@ export default function createRunner(FarmerClass) {
         if (this.deactivateOnError) {
           await instance.disconnect();
         }
+
+        /** Log error */
         this.logger.error("Error farming account:", instance.account.id, error);
+
+        /** Send error message */
+        await bot?.sendFarmerErrorMessage(
+          this.id,
+          this.title,
+          instance.account.id,
+          error.message || "Unknown error!",
+        );
       }
     }
 
