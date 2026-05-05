@@ -217,6 +217,9 @@ export default function createRunner(FarmerClass) {
             try {
               this.logger.warn("Refreshing auth...");
 
+              /** Delay for 5s */
+              await this.utils.delayForSeconds(5);
+
               /** Fetch new auth */
               await this.setAuth();
               await this.farmer.save();
