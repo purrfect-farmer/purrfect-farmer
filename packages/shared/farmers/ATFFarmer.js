@@ -886,6 +886,7 @@ export default class ATFFarmer extends BaseFarmer {
       await this.utils.delayForSeconds(30);
       await this.claimTask(task);
       this.logger.success(`Completed task: ${task}`);
+      await this.utils.delayForSeconds(10);
     }
   }
 }
