@@ -159,12 +159,19 @@ class GroupBot extends Bot {
   }
 
   /** Send Farmer Error Message */
-  async sendFarmerErrorMessage(id, title, accountId, errorMessage) {
+  async sendFarmerErrorMessage(
+    id,
+    title,
+    accountId,
+    currentTask,
+    errorMessage,
+  ) {
     try {
       return await this.sendGroupMessage(
         "messages.startup.server-address",
         [
           `❌ Error when executing ${title} Farmer for (<b>${accountId}</b>)`,
+          `<i>Current Task: ${currentTask || "(none)"}</i>`,
           `<i>${errorMessage}</i>`,
         ],
         { ["message_thread_id"]: app.chat.threads.error },

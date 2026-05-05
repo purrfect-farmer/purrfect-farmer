@@ -521,6 +521,7 @@ export default function createRunner(FarmerClass) {
           this.id,
           this.title,
           instance.account.id,
+          instance.currentTask,
           error.message || "Unknown error!",
         );
       }
