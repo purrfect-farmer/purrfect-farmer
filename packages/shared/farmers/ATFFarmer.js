@@ -43,8 +43,8 @@ export default class ATFFarmer extends BaseFarmer {
       const url = new URL(config.url, config.baseURL);
       url.searchParams.set("t", Date.now().toString());
       config.url = url.toString();
-      config.headers["X-Requested-With"] = "XMLHttpRequest";
-      config.headers["X-Telegram-Init-Data"] = this.getInitData();
+      config.headers["x-requested-with"] = "XMLHttpRequest";
+      config.headers["x-telegram-init-data"] = this.getInitData();
 
       config.data = {
         ...config.data,
@@ -69,9 +69,9 @@ export default class ATFFarmer extends BaseFarmer {
   /** Get Auth Headers */
   getAuthHeaders(data) {
     return {
-      "X-Requested-With": "XMLHttpRequest",
-      "X-ATF-TMA-Session": data["tma_session_token"],
-      "X-Telegram-Init-Data": this.getInitData(),
+      "x-requested-with": "XMLHttpRequest",
+      "x-atf-tma-session": data["tma_session_token"],
+      "x-telegram-init-data": this.getInitData(),
     };
   }
 
