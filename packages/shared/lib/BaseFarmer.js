@@ -328,6 +328,9 @@ export default class BaseFarmer {
         )}`,
       );
 
+      /** Delay before processing task */
+      await this.utils.delayForSeconds(5, { signal: this.signal });
+
       /* Execute Callback */
       await callback();
 
@@ -349,7 +352,7 @@ export default class BaseFarmer {
       throw error;
     } finally {
       /** Delay before processing next task */
-      await this.utils.delayForSeconds(5);
+      await this.utils.delayForSeconds(5, { signal: this.signal });
     }
   }
 
