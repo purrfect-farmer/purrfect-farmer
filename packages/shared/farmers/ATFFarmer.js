@@ -689,7 +689,7 @@ export default class ATFFarmer extends BaseFarmer {
   }
 
   logUserRisks(user) {
-    const flags = (user["risk_flags"] || "").split("|");
+    const flags = (user["risk_flags"] || "").trim().split("|").filter(Boolean);
 
     this.logger.newline();
     this.logger.keyValue("Risk Score", user["risk_score"]);
