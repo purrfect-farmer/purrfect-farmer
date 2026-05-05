@@ -14,6 +14,3 @@ for FOLDER in "${FOLDERS[@]}"; do
   bash apps/purrfect-fly/update.sh
   echo ""
 done
- 
-echo ">>> Restarting PM2 processes"
-pm2 restart all --update-env
