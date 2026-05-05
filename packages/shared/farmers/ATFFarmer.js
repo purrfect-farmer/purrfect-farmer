@@ -22,7 +22,6 @@ export default class ATFFarmer extends BaseFarmer {
   static cacheTelegramWebApp = false;
   static interval = "*/45 * * * *";
   static rating = 5;
-  static cookies = true;
   static netRequest = {
     requestHeaders: [
       {
@@ -36,6 +35,25 @@ export default class ATFFarmer extends BaseFarmer {
   /** Get Referral Link */
   getReferralLink() {
     return `https://t.me/ATF_AIRDROP_bot?start=${this.getUserId()}`;
+  }
+
+  configureApi() {
+    const interceptor = this.api.interceptors.request.use((config) => {
+      const url = new URL(config.url, config.baseURL);
+      url.searchParams.set("t", Date.now().toString());
+      config.url = url.toString();
+      config.headers["x-requested-with"] = "XMLHttpRequest";
+      config.headers["x-telegram-init-data"] = this.getInitData();
+
+      config.data = {
+        ...config.data,
+        initData: this.getInitData(),
+        request_id: this.utils.uuid(),
+        tg_id: this.getUserId(),
+      };
+      return config;
+    });
+    return () => this.api.interceptors.request.eject(interceptor);
   }
 
   /** Get Auth */
@@ -59,13 +77,8 @@ export default class ATFFarmer extends BaseFarmer {
   makeAction(action, data = {}) {
     return this.api
       .post(
-        `https://atfminers.asloni.online/miner/index.php?action=${action}&t=${Date.now().toString()}`,
-        {
-          ...data,
-          initData: this.getInitData(),
-          request_id: this.utils.uuid(),
-          tg_id: this.getUserId(),
-        },
+        `https://atfminers.asloni.online/miner/index.php?action=${action}`,
+        data,
       )
       .then((res) => res.data);
   }
