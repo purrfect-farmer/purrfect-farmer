@@ -10,7 +10,10 @@ import ATFAutoAccountBalance from "./ATFAutoAccountBalance";
 import ATFAutoAddress from "./ATFAutoAddress";
 import ATFAutoAvatar from "./ATFAutoAvatar";
 import ATFAutoVersionBadge from "./ATFAutoVersionBadge";
+import Input from "./Input";
 import { cn } from "@/utils";
+import { searchAtfAutoAccount } from "@purrfect/shared/lib/atf-auto";
+import { useState } from "react";
 
 function getInitials(title) {
   return title
@@ -101,6 +104,15 @@ export default function ATFAutoAccountsChooser({
   toggleAccount,
   toggleAllAccounts,
 }) {
+  const [search, setSearch] = useState("");
+
+  const filteredAccounts = useMemo(() => {
+    const term = search.trim().toLowerCase();
+    return term
+      ? accounts.filter((account) => searchAtfAutoAccount(account, term))
+      : accounts;
+  }, [accounts, search]);
+
   return (
     <div className="flex flex-col gap-2">
       {/* Header */}
@@ -123,9 +135,18 @@ export default function ATFAutoAccountsChooser({
         )}
       </div>
 
+      {/* Search */}
+      <Input
+        autoFocus
+        type="search"
+        placeholder="Search accounts..."
+        value={search}
+        onChange={(e) => setSearch(e.target.value)}
+      />
+
       {/* Account List */}
       <div className="flex flex-col gap-1.5">
-        {accounts.map((account) => (
+        {filteredAccounts.map((account) => (
           <AccountChooserItem
             key={account.id}
             account={account}

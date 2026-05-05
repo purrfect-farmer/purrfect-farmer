@@ -88,3 +88,12 @@ export async function getWalletAddressFromMnemonic(mnemonic, version) {
     bounceable: false,
   });
 }
+
+export function searchAtfAutoAccount(account, searchTerm) {
+  if (account.userId?.toString().toLowerCase().includes(searchTerm))
+    return true;
+  if (account.title?.toLowerCase().includes(searchTerm)) return true;
+  if (account.address?.toLowerCase().includes(searchTerm)) return true;
+
+  return false;
+}

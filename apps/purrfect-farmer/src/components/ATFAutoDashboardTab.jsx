@@ -1,383 +1,20 @@
-import {
-  LiaDollarSignSolid,
-  LiaFireAltSolid,
-  LiaUserNinjaSolid,
-} from "react-icons/lia";
-import {
-  MdCancel,
-  MdOutlineClose,
-  MdOutlineContentCopy,
-  MdOutlineDoubleArrow,
-  MdOutlineSearch,
-  MdPersonAdd,
-} from "react-icons/md";
+import { MdOutlineClose, MdOutlineSearch, MdPersonAdd } from "react-icons/md";
 import { useMemo, useState } from "react";
 
 import ATFAutoAccountItem from "./ATFAutoAccountItem";
-import ATFAutoAddress from "./ATFAutoAddress";
-import ATFAutoMasterEditDialog from "./ATFAutoMasterEditDialog";
+import { ATFAutoMasterBalanceCard } from "./ATFAutoMasterBalanceCard";
+import { ATFAutoMasterCardActions } from "./ATFAutoMasterCardActions";
+import { ATFAutoNetWorthCard } from "./ATFAutoNetWorthCard";
 import ATFAutoNewAccountDialog from "./ATFAutoNewAccountDialog";
-import ATFAutoRotationDialog from "./ATFAutoRotationDialog";
 import ATFAutoStickyContainer from "./ATFAutoStickyContainer";
-import ATFAutoTransferDialog from "./ATFAutoTransferDialog";
-import ATFAutoVersionBadge from "./ATFAutoVersionBadge";
-import ATFIcon from "@/assets/images/atf.png?format=webp&w=32";
 import Alert from "./Alert";
-import Decimal from "decimal.js";
 import { Dialog } from "radix-ui";
-import { HiOutlinePencilSquare } from "react-icons/hi2";
 import Input from "./Input";
-import { LuMerge } from "react-icons/lu";
-import { PiBroom } from "react-icons/pi";
 import PrimaryButton from "./PrimaryButton";
 import { Reorder } from "motion/react";
-import TonIcon from "@/assets/images/toncoin-ton-logo.svg";
-import { cn } from "@/utils";
-import copy from "copy-to-clipboard";
-import toast from "react-hot-toast";
+import { searchAtfAutoAccount } from "@purrfect/shared/lib/atf-auto";
 import useATFAuto from "@/hooks/useATFAuto";
-import useATFAutoCloudBoostMutation from "@/hooks/useATFAutoCloudBoostMutation";
-import useATFAutoCloudCancellationMutation from "@/hooks/useATFAutoCloudCancellationMutation";
-import useATFAutoCloudCollectionMutation from "@/hooks/useATFAutoCloudCollectionMutation";
-import useATFAutoCloudWithdrawalMutation from "@/hooks/useATFAutoCloudWithdrawalMutation";
-import useATFAutoSweepMutation from "@/hooks/useATFAutoSweepMutation";
-import useATFBalancesQuery from "@/hooks/useATFBalancesQuery";
-import useATFNetWorthQuery from "@/hooks/useATFNetWorthQuery";
 import { useDebounce } from "react-use";
-
-function MasterCardButton({ icon: Icon, children, ...props }) {
-  return (
-    <button
-      {...props}
-      className={cn(
-        "flex flex-col justify-center items-center gap-1",
-        "text-center text-xs shrink-0",
-        "disabled:opacity-50 w-12 overflow-hidden",
-      )}
-    >
-      {/* Icon */}
-      <span
-        className={cn(
-          "flex justify-center items-center shrink-0",
-          "bg-neutral-100 dark:bg-black rounded-full aspect-square size-full",
-        )}
-      >
-        <Icon className="size-6" />
-      </span>
-
-      {/* Title */}
-      <span className="w-full truncate">{children}</span>
-    </button>
-  );
-}
-
-function MasterBalanceCard() {
-  const { master, enableRequests, setEnableRequests } = useATFAuto();
-  const { data: balances } = useATFBalancesQuery(master?.address);
-  const [editOpen, setEditOpen] = useState(false);
-
-  /** Toggle Requests */
-  const toggleRequests = () => {
-    setEnableRequests(!enableRequests);
-    toast.success(
-      enableRequests
-        ? "Successfully disabled requests!"
-        : "Successfully enabled requests!",
-    );
-  };
-
-  return (
-    <div
-      className={cn(
-        "p-2 rounded-2xl relative",
-        "bg-neutral-950 text-white",
-        "flex flex-col items-center justify-center gap-2",
-      )}
-    >
-      {/* Toggle Requests */}
-      <button
-        title="Toggle requests"
-        onClick={toggleRequests}
-        className={cn(
-          "absolute top-3 left-3",
-          "p-1.5 rounded-full flex items-center justify-center",
-          "bg-neutral-900 hover:bg-neutral-800",
-          "cursor-pointer transition-colors",
-        )}
-      >
-        <span
-          className={cn(
-            "size-2 rounded-full inline-flex",
-            enableRequests ? "bg-green-500" : "bg-red-500",
-          )}
-        ></span>
-      </button>
-
-      {/* Edit Button */}
-      <Dialog.Root open={editOpen} onOpenChange={setEditOpen}>
-        <Dialog.Trigger asChild>
-          <button
-            className={cn(
-              "absolute top-3 right-3 flex items-center justify-center",
-              "p-1.5 rounded-full",
-              "bg-neutral-900 hover:bg-neutral-800",
-              "cursor-pointer transition-colors",
-            )}
-          >
-            <HiOutlinePencilSquare className="size-4" />
-          </button>
-        </Dialog.Trigger>
-        <ATFAutoMasterEditDialog onSave={() => setEditOpen(false)} />
-      </Dialog.Root>
-
-      <div className="flex justify-center items-center text-center gap-4">
-        <h3 className="font-bold text-neutral-400">Master</h3>
-      </div>
-
-      {/* Jetton balance */}
-      <div className="flex items-center gap-2">
-        <img src={ATFIcon} className="size-5 rounded-full" />
-        <span className="text-3xl">
-          {balances ? balances.jetton.toFixed(2) : "-.--"}
-        </span>
-        <span className="text-neutral-400">ATF</span>
-      </div>
-
-      {/* TON Balance */}
-      <div className="flex items-center gap-2">
-        <img src={TonIcon} className="size-4" />
-        <span>{balances ? balances.ton.toFixed(4) : "-.----"}</span>
-        <span className="text-neutral-400">TON</span>
-      </div>
-
-      {/* Address */}
-      <button
-        onClick={() => {
-          copy(master.address);
-          toast.success("Copied");
-        }}
-        className="font-mono flex items-center justify-center gap-1 text-blue-300"
-      >
-        <MdOutlineContentCopy /> <ATFAutoAddress address={master?.address} />
-      </button>
-      <ATFAutoVersionBadge version={master?.version} />
-    </div>
-  );
-}
-
-function MasterCardActions() {
-  const { password, master, accounts } = useATFAuto();
-
-  const boostMutation = useATFAutoCloudBoostMutation();
-  const withdrawMutation = useATFAutoCloudWithdrawalMutation();
-  const collectMutation = useATFAutoCloudCollectionMutation();
-  const cancellationMutation = useATFAutoCloudCancellationMutation();
-  const sweepMutation = useATFAutoSweepMutation();
-
-  const boostWithCloud = () => {
-    toast.promise(
-      boostMutation.mutateAsync({
-        password,
-        master,
-        accounts,
-      }),
-      {
-        loading: "Dispatching...",
-        success: "Dispatched",
-        error: "Failed to dispatch boost request",
-      },
-    );
-  };
-
-  const withdrawWithCloud = () => {
-    toast.promise(
-      withdrawMutation.mutateAsync({
-        password,
-        master,
-        accounts,
-      }),
-      {
-        loading: "Dispatching...",
-        success: "Dispatched",
-        error: "Failed to dispatch withdrawal request",
-      },
-    );
-  };
-
-  const collectWithCloud = () => {
-    toast.promise(
-      collectMutation.mutateAsync({
-        password,
-        master,
-        accounts,
-      }),
-      {
-        loading: "Dispatching...",
-        success: "Dispatched",
-        error: "Failed to dispatch collection request",
-      },
-    );
-  };
-
-  const cancelCloudOperation = () => {
-    toast.promise(cancellationMutation.mutateAsync(), {
-      loading: "Dispatching...",
-      success: "Dispatched",
-      error: "Failed to dispatch cancellation request",
-    });
-  };
-
-  const sweepInactiveAccounts = () => {
-    toast.promise(sweepMutation.mutateAsync(), {
-      loading: "Sweeping...",
-      success: "Swept inactive accounts!",
-      error: "Failed to sweep accounts!",
-    });
-  };
-
-  return (
-    <>
-      {/* Cloud operations */}
-      <div className="flex justify-center items-center flex-wrap gap-2">
-        {/* Boost */}
-        <MasterCardButton
-          title={"Boost accounts in Cloud"}
-          icon={LiaFireAltSolid}
-          onClick={boostWithCloud}
-          disabled={boostMutation.isPending}
-        >
-          {boostMutation.isPending ? "Requesting..." : "Boost"}
-        </MasterCardButton>
-
-        {/* Withdraw */}
-        <MasterCardButton
-          title={"Withdraw accounts in Cloud"}
-          icon={LiaDollarSignSolid}
-          onClick={withdrawWithCloud}
-          disabled={withdrawMutation.isPending}
-        >
-          {withdrawMutation.isPending ? "Requesting..." : "Withdraw"}
-        </MasterCardButton>
-
-        {/* Collect */}
-        <MasterCardButton
-          title={"Collect accounts in Cloud"}
-          icon={LuMerge}
-          onClick={collectWithCloud}
-          disabled={collectMutation.isPending}
-        >
-          {collectMutation.isPending ? "Requesting..." : "Collect"}
-        </MasterCardButton>
-
-        {/* Cancel */}
-        <MasterCardButton
-          title={"Cancel Cloud Operation"}
-          icon={MdCancel}
-          onClick={cancelCloudOperation}
-          disabled={cancellationMutation.isPending}
-        >
-          {cancellationMutation.isPending ? "Requesting..." : "Cancel"}
-        </MasterCardButton>
-      </div>
-
-      {/* Account operations */}
-      <div className="flex justify-center items-center flex-wrap gap-2">
-        {/* Sweep */}
-        <MasterCardButton
-          title={"Sweep inactive accounts"}
-          icon={PiBroom}
-          onClick={sweepInactiveAccounts}
-          disabled={sweepMutation.isPending}
-        >
-          {sweepMutation.isPending ? "Sweeping..." : "Sweep"}
-        </MasterCardButton>
-
-        {/* Rotate */}
-        <Dialog.Root>
-          <Dialog.Trigger asChild>
-            <MasterCardButton title="Rotate Wallets" icon={LiaUserNinjaSolid}>
-              Rotate
-            </MasterCardButton>
-          </Dialog.Trigger>
-
-          <ATFAutoRotationDialog />
-        </Dialog.Root>
-
-        {/* Transfer Button */}
-        <Dialog.Root>
-          <Dialog.Trigger asChild>
-            <MasterCardButton
-              title="Transfer funds from Master"
-              icon={MdOutlineDoubleArrow}
-            >
-              Transfer
-            </MasterCardButton>
-          </Dialog.Trigger>
-
-          <ATFAutoTransferDialog />
-        </Dialog.Root>
-      </div>
-    </>
-  );
-}
-
-function NetWorthCard() {
-  const { isSuccess, data } = useATFNetWorthQuery();
-
-  const balances = useMemo(() => {
-    return isSuccess
-      ? data.reduce(
-          (result, item) => {
-            return {
-              jetton: result.jetton.plus(item.jetton),
-              ton: result.ton.plus(item.ton),
-            };
-          },
-          {
-            jetton: new Decimal(0),
-            ton: new Decimal(0),
-          },
-        )
-      : null;
-  }, [isSuccess, data]);
-
-  return (
-    <div
-      className={cn(
-        "p-2 rounded-2xl relative",
-        "bg-purple-600 text-white",
-        "flex flex-col items-center justify-center gap-2",
-      )}
-    >
-      <h3 className="text-purple-100">Net Worth</h3>
-
-      {/* Jetton balance */}
-      <div className="flex items-center gap-2">
-        <img src={ATFIcon} className="size-5 rounded-full" />
-        <span className="text-2xl">
-          {balances ? balances.jetton.toFixed(2) : "-.--"}
-        </span>
-        <span className="text-purple-100">ATF</span>
-      </div>
-
-      {/* TON Balance */}
-      <div className="flex items-center gap-2">
-        <img src={TonIcon} className="size-4" />
-        <span>{balances ? balances.ton.toFixed(4) : "-.----"}</span>
-        <span className="text-purple-100">TON</span>
-      </div>
-    </div>
-  );
-}
-
-function searchAccount(account, searchTerm) {
-  if (account.userId?.toString().toLowerCase().includes(searchTerm))
-    return true;
-  if (account.title?.toLowerCase().includes(searchTerm)) return true;
-  if (account.address?.toLowerCase().includes(searchTerm)) return true;
-
-  return false;
-}
 
 export default function ATFAutoDashboardTab() {
   const { accounts, dispatchAndStoreAccounts } = useATFAuto();
@@ -391,7 +28,7 @@ export default function ATFAutoDashboardTab() {
   const filteredAccounts = useMemo(() => {
     const term = search.trim().toLowerCase();
     return term
-      ? accounts.filter((account) => searchAccount(account, term))
+      ? accounts.filter((account) => searchAtfAutoAccount(account, term))
       : accounts;
   }, [accounts, search]);
 
@@ -417,13 +54,13 @@ export default function ATFAutoDashboardTab() {
   return (
     <div className="flex flex-col gap-3 p-2">
       {/* Net Worth Card  */}
-      <NetWorthCard />
+      <ATFAutoNetWorthCard />
 
       {/* Master Balance Card */}
-      <MasterBalanceCard />
+      <ATFAutoMasterBalanceCard />
 
       {/* Actions */}
-      <MasterCardActions />
+      <ATFAutoMasterCardActions />
 
       {/* Rotation Alert */}
       <Alert variant={"danger"}>
