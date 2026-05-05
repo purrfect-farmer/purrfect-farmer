@@ -1,6 +1,6 @@
 import { HttpProxyAgent, HttpsProxyAgent } from "hpagent";
 
-import FloxyClient from "./FloxyClient";
+import FloxyClient from "./FloxyClient.js";
 import app from "../config/app.js";
 import axios from "axios";
 import cache from "./cache.js";
