@@ -380,6 +380,10 @@ export default class ATFFarmer extends BaseFarmer {
       return { status: false, message };
     } else {
       const user = result.user;
+
+      /** Update user */
+      this.auth_data.user = Object.assign(this.auth_data.user, user);
+
       this.logger.success("Wallet synced successfully!");
       this.logUserBalance(user);
       this.logUserRisks(user);
