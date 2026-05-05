@@ -9,7 +9,10 @@ export default (program, inquirer, chalk) => {
     .description("Activate all farmers")
     .action(async () => {
       const db = await import("../db/models/index.js").then((m) => m.default);
-      await db.Farmer.update({ active: true }, { where: {} });
+      await db.Farmer.update(
+        { errorCount: 0, isBanned: false, active: true },
+        { where: {} },
+      );
       console.log(chalk.bold.green("All farmers have been activated!"));
     });
 };
