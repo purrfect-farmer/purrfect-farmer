@@ -71,7 +71,8 @@ export default function ATFAutoWithdrawTab() {
         <>
           <Alert variant="info">
             Perform withdrawal in Cloud. Accounts that have mined up to the
-            minimum account will be processed.
+            minimum account (<strong>500 ATF in Pool Wallet</strong>) will be
+            processed.
           </Alert>
 
           <ATFAutoStickyContainer>
