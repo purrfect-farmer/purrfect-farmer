@@ -277,10 +277,13 @@ export default class BaseFarmer {
   }
 
   /** Start the farmer */
-  start(signal) {
+  async start(signal) {
     if (signal) {
       this.signal = signal;
     }
+
+    /** Delay for 3s */
+    await this.utils.delayForSeconds(3, { signal: this.signal });
 
     return this.process();
   }
