@@ -776,6 +776,9 @@ export default class ATFFarmer extends BaseFarmer {
         return;
       }
 
+      /** Delay before claiming */
+      await this.utils.delayForSeconds(5);
+
       this.logger.info(`Claiming ${balance} ATF...`);
       const result = await this.claimMining(balance);
 
@@ -825,6 +828,9 @@ export default class ATFFarmer extends BaseFarmer {
       exemptMinLevel: diffData.exemptMinLevel,
       exemptMaxLevel: diffData.exemptMaxLevel,
     });
+
+    /** Delay before activating */
+    await this.utils.delayForSeconds(3);
 
     const result = await this.activateBoost(balance);
 
