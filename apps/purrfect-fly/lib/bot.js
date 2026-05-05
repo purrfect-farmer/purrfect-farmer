@@ -168,7 +168,7 @@ class GroupBot extends Bot {
   ) {
     try {
       return await this.sendGroupMessage(
-        "messages.startup.server-address",
+        `messages.error.${id}.${accountId}`,
         [
           `❌ Error when executing ${title} Farmer for (<b>${accountId}</b>)`,
           `<i>Current Task: ${currentTask || "(none)"}</i>`,
