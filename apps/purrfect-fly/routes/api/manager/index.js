@@ -221,6 +221,16 @@ export default async function (fastify, opts) {
       return accounts;
     });
 
+    /** Activate All Farmer */
+    fastify.post("/farmers/all/activate", async (request, reply) => {
+      const [affectedCount] = await fastify.db.Farmer.update(
+        { errorCount: 0, isBanned: false, active: true },
+        { where: {} },
+      );
+
+      return reply.send({ success: true, affectedCount });
+    });
+
     /** Activate Farmer */
     fastify.post(
       "/farmers/activate",

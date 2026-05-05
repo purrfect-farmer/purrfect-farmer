@@ -4,6 +4,7 @@ import {
   HiOutlineServerStack,
   HiOutlineWifi,
 } from "react-icons/hi2";
+import { LiaPlaySolid, LiaUserNinjaSolid } from "react-icons/lia";
 
 import BottomDialog from "@/components/BottomDialog";
 import BottomDialogTools from "@/partials/BottomDialogTools";
@@ -13,20 +14,30 @@ import CloudPasswordUpdate from "./CloudPasswordUpdate";
 import CloudServerBackup from "./CloudServerBackup";
 import CloudServerUpdate from "./CloudServerUpdate";
 import { Dialog } from "radix-ui";
-import { LiaUserNinjaSolid } from "react-icons/lia";
 import toast from "react-hot-toast";
 import useAppContext from "@/hooks/useAppContext";
 import { useCallback } from "react";
+import useCloudManagerActivateAllFarmersMutation from "@/hooks/useCloudManagerActivateAllFarmersMutation";
 import useCloudManagerUpdateProxiesMutation from "@/hooks/useCloudManagerUpdateProxiesMutation";
 import { useState } from "react";
 
 export default function CloudTools() {
   const { cloudAuth } = useAppContext();
+  const activateAllFarmersMutation =
+    useCloudManagerActivateAllFarmersMutation();
   const updateProxiesMutation = useCloudManagerUpdateProxiesMutation();
 
   const [openPasswordUpdate, setOpenPasswordUpdate] = useState(false);
   const [openServerUpdate, setOpenServerUpdate] = useState(false);
   const [openBackup, setOpenBackup] = useState(false);
+
+  const activateAllFarmers = () => {
+    toast.promise(activateAllFarmersMutation.mutateAsync(), {
+      loading: "Activating farmers...",
+      success: "Successfully activated farmers!",
+      error: "Failed to activate farmers!",
+    });
+  };
 
   const updateProxies = () => {
     toast.promise(updateProxiesMutation.mutateAsync(), {
@@ -73,8 +84,20 @@ export default function CloudTools() {
               Update Server
             </BottomDialogTools.Button>
 
+            {/* Farmers */}
+            <BottomDialogTools.Header>Farmers</BottomDialogTools.Header>
+
+            {/* Activate all farmers */}
+            <BottomDialogTools.Button
+              icon={LiaPlaySolid}
+              onClick={activateAllFarmers}
+            >
+              Activate all farmers
+            </BottomDialogTools.Button>
+
             {/* Members */}
             <BottomDialogTools.Header>Members</BottomDialogTools.Header>
+
             {/* Update Proxies */}
             <BottomDialogTools.Button
               icon={LiaUserNinjaSolid}
