@@ -392,6 +392,8 @@ export default function createRunner(FarmerClass) {
       const { initData } = this.utils.extractTgWebAppData(url);
 
       this.farmer.initData = initData;
+
+      this.logger.success("Successfully updated init data!");
     }
 
     /** Disconnect Farmer */
