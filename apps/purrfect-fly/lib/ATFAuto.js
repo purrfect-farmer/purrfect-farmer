@@ -56,7 +56,7 @@ class ATFAuto {
 
   /** Format key value message */
   formatKeyValue(key, value) {
-    return `${key}: <i><b>${value}</b></i>`;
+    return `${key}: <b>${value}</b>`;
   }
 
   /** Delay for safe seconds */
@@ -679,7 +679,7 @@ class ATFAuto {
               this.formatKeyValue("Risk Score", user["risk_score"]),
               this.formatKeyValue("Risk Updated", user["risk_updated_at"]),
               this.formatKeyValue("Risk Flags", flags.length),
-              ...flags.map((flag) => `<i>- ${flag}</i>`),
+              ...flags.map((flag) => `<b>- ${flag}</b>`),
             ])
         : [
             `❌ Failed to get user details <b>(${cloudAccount.id})</b> ${this.formatAccountPosition(index)}`,
