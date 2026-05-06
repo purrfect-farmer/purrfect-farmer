@@ -652,25 +652,22 @@ class ATFAuto {
             `ℹ️ User details <b>(${cloudAccount.id})</b> ${this.formatAccountPosition(index)}`,
             "",
             this.formatKeyValue(
-              "Wallet Balance",
+              "Wallet Holding",
               `${user["wallet_holding_atf"]} ATF`,
             ),
             this.formatKeyValue(
-              "Balance",
+              "Mined Balance",
               `${user["mined_balance"]} ATF ${user["mined_balance"] >= 500 ? "🟩" : "🟧"}`,
             ),
-            this.formatKeyValue("Pending Rewards", user["pending_reward"]),
             this.formatKeyValue("Miner Level", user["miner_level"]),
           ]
             /** Wallet */
             .concat(
               wallet
                 ? [
-                    "",
-                    "<b>💰 Wallet</b>",
                     this.formatKeyValue(
                       "Wallet Address",
-                      `(${wallet.version.toUpperCase()}) <code>${wallet.address}</code>`,
+                      `(${wallet.version.toUpperCase()}) <a href="https://tonviewer.com/${wallet.address}">${this.truncateAddress(wallet.address)}</a>`,
                     ),
                   ]
                 : [],
