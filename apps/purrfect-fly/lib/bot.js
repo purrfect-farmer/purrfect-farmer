@@ -62,7 +62,7 @@ class GroupBot extends Bot {
                   ? "☑️"
                   : "❌",
             session: telegramLink ? (account.session ? "🟨" : "🟪") : "",
-
+            count: account?.farmer?.errorCount || 0,
             username: account.user?.username || "",
             title: account.title,
             info:

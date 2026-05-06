@@ -98,14 +98,15 @@ function formatUsers(collection) {
   /** Retrieve Links */
   const links = list
     .map((data) => {
-      const { id, status, session, username, title, info, url } = data;
+      const { id, status, session, username, title, info, url, count } = data;
       const safeUsername = "@" + escapeHtml(username.trim());
       const titleHtml = title ? ` <b>${escapeHtml("(" + title + ")")}</b>` : "";
 
       const statusContent = `${status} ${session}`;
       const linkHtml = url ? ` <b>[<a href="${url}">OPEN</a>]</b>` : "";
+      const countHtml = typeof count !== "undefined" ? ` <b>${count}</b>` : "";
 
-      let result = `${statusContent}${linkHtml}${titleHtml} <a href="tg://user?id=${id}">${safeUsername}</a>`;
+      let result = `${statusContent}${countHtml}${linkHtml}${titleHtml} <a href="tg://user?id=${id}">${safeUsername}</a>`;
 
       if (info) {
         result = `\n${result}\n${info}\n`;
