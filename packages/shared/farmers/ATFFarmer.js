@@ -37,6 +37,20 @@ export default class ATFFarmer extends BaseFarmer {
     return `https://t.me/ATF_AIRDROP_bot?start=${this.getUserId()}`;
   }
 
+  /** Get or create device ID */
+  getOrCreateDeviceId() {
+    if (!this.deviceId) {
+      this.deviceId = `dev-${this.utils.uuid()}`;
+    }
+
+    return this.deviceId;
+  }
+
+  /** Make request ID */
+  makeRequestId() {
+    return this.utils.uuid();
+  }
+
   configureApi() {
     const interceptor = this.api.interceptors.request.use((config) => {
       const url = new URL(config.url, config.baseURL);
@@ -48,7 +62,8 @@ export default class ATFFarmer extends BaseFarmer {
       config.data = {
         ...config.data,
         initData: this.getInitData(),
-        request_id: this.utils.uuid(),
+        device_id: this.getOrCreateDeviceId(),
+        request_id: this.makeRequestId(),
         tg_id: this.getUserId(),
       };
       return config;
