@@ -235,11 +235,11 @@ export default function createRunner(FarmerClass) {
       if (proxy) {
         return this.constructor.cookies
           ? new ProxyAgentWithCookiesType({
-              timeout: 20_000,
+              timeout: 30_000,
               cookies: { jar: this.jar },
               proxy,
             })
-          : new ProxyAgentType({ proxy, timeout: 20_000 });
+          : new ProxyAgentType({ proxy, timeout: 30_000 });
       } else {
         return this.constructor.cookies
           ? new CookiesAgentType({ cookies: { jar: this.jar } })
