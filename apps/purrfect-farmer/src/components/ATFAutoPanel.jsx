@@ -1,13 +1,13 @@
 import ATFAutoBoostTab from "./ATFAutoBoostTab";
 import ATFAutoCloudCollectTab from "./ATFAutoCloudCollectTab";
 import ATFAutoDashboardTab from "./ATFAutoDashboardTab";
-import ATFAutoSettingsTab from "./ATFAutoSettingsTab";
+import ATFAutoStatusTab from "./ATFAutoStatusTab";
 import ATFAutoWithdrawTab from "./ATFAutoWithdrawTab";
 import Tabs from "./Tabs";
 
 const tabs = {
   rootProps: { defaultValue: "dashboard" },
-  list: ["dashboard", "boost", "withdraw", "collect", "settings"],
+  list: ["dashboard", "boost", "withdraw", "collect", "status"],
 };
 
 export default function ATFAutoPanel() {
@@ -25,8 +25,8 @@ export default function ATFAutoPanel() {
       <Tabs.Content value="collect">
         <ATFAutoCloudCollectTab />
       </Tabs.Content>
-      <Tabs.Content value="settings">
-        <ATFAutoSettingsTab />
+      <Tabs.Content value="status">
+        <ATFAutoStatusTab />
       </Tabs.Content>
     </Tabs>
   );

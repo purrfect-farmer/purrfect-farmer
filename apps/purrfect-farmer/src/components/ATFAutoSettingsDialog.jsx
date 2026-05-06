@@ -3,7 +3,9 @@ import { Controller, FormProvider, useForm } from "react-hook-form";
 import ATFAutoProgress from "./ATFAutoProgress";
 import Alert from "./Alert";
 import Button from "./Button";
+import CenteredDialog from "./CenteredDialog";
 import FieldStateError from "./FieldStateError";
+import { HiCog6Tooth } from "react-icons/hi2";
 import Input from "./Input";
 import Label from "./Label";
 import bcrypt from "bcryptjs";
@@ -22,7 +24,7 @@ const schema = yup
   })
   .required();
 
-export default function ATFAutoSettingsTab() {
+export default function ATFAutoSettingsDialog() {
   const {
     master,
     password,
@@ -123,73 +125,79 @@ export default function ATFAutoSettingsTab() {
   };
 
   return (
-    <div className="flex flex-col gap-2 p-2">
-      {/* Change Password */}
-      <Alert variant={"info"}>
-        Changing your password will re-encrypt all stored wallet phrases.
-      </Alert>
+    <CenteredDialog
+      icon={HiCog6Tooth}
+      title={"Settings"}
+      description={"Update Password"}
+    >
+      <div className="flex flex-col gap-2 p-2">
+        {/* Change Password */}
+        <Alert variant={"info"}>
+          Changing your password will re-encrypt all stored wallet phrases.
+        </Alert>
 
-      <FormProvider {...form}>
-        <form
-          onSubmit={form.handleSubmit(handleFormSubmit)}
-          className="flex flex-col gap-2"
-        >
-          {/* Current Password */}
-          <Controller
-            control={form.control}
-            name="currentPassword"
-            render={({ field, fieldState }) => (
-              <>
-                <Label>Current Password</Label>
-                <Input
-                  {...field}
-                  disabled={form.formState.isSubmitting}
-                  type="password"
-                  autoComplete="off"
-                  placeholder="Current Password"
-                />
-                <FieldStateError fieldState={fieldState} />
-              </>
-            )}
-          />
+        <FormProvider {...form}>
+          <form
+            onSubmit={form.handleSubmit(handleFormSubmit)}
+            className="flex flex-col gap-2"
+          >
+            {/* Current Password */}
+            <Controller
+              control={form.control}
+              name="currentPassword"
+              render={({ field, fieldState }) => (
+                <>
+                  <Label>Current Password</Label>
+                  <Input
+                    {...field}
+                    disabled={form.formState.isSubmitting}
+                    type="password"
+                    autoComplete="off"
+                    placeholder="Current Password"
+                  />
+                  <FieldStateError fieldState={fieldState} />
+                </>
+              )}
+            />
 
-          {/* New Password */}
-          <Controller
-            control={form.control}
-            name="newPassword"
-            render={({ field, fieldState }) => (
-              <>
-                <Label>New Password</Label>
-                <Input
-                  {...field}
-                  disabled={form.formState.isSubmitting}
-                  type="password"
-                  autoComplete="off"
-                  placeholder="New Password"
-                />
-                <FieldStateError fieldState={fieldState} />
-              </>
-            )}
-          />
+            {/* New Password */}
+            <Controller
+              control={form.control}
+              name="newPassword"
+              render={({ field, fieldState }) => (
+                <>
+                  <Label>New Password</Label>
+                  <Input
+                    {...field}
+                    disabled={form.formState.isSubmitting}
+                    type="password"
+                    autoComplete="off"
+                    placeholder="New Password"
+                  />
+                  <FieldStateError fieldState={fieldState} />
+                </>
+              )}
+            />
 
-          <Button disabled={form.formState.isSubmitting} type="submit">
-            {form.formState.isSubmitting ? "Updating..." : "Update Password"}
-          </Button>
-        </form>
-      </FormProvider>
+            <Button disabled={form.formState.isSubmitting} type="submit">
+              {form.formState.isSubmitting ? "Updating..." : "Update Password"}
+            </Button>
+          </form>
+        </FormProvider>
 
-      {/* Progress */}
-      {form.formState.isSubmitting && (
-        <ATFAutoProgress max={target} current={progress} />
-      )}
+        {/* Progress */}
+        {form.formState.isSubmitting && (
+          <ATFAutoProgress max={target} current={progress} />
+        )}
 
-      {/* Or */}
-      <p className="text-center text-neutral-500 dark:text-neutral-400">OR</p>
+        {/* Or */}
+        <p className="text-center text-neutral-500 dark:text-neutral-400">OR</p>
 
-      {/* Logout */}
-      <Button variant="danger" onClick={handleLogout} className="w-full">
-        Logout
-      </Button>
-    </div>
+        {/* Logout */}
+        <Button variant="danger" onClick={handleLogout} className="w-full">
+          Logout
+        </Button>
+      </div>
+    </CenteredDialog>
   );
 }

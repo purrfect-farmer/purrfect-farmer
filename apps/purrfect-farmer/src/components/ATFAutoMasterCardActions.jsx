@@ -7,10 +7,13 @@ import { MdCancel, MdCheckCircle, MdOutlineDoubleArrow } from "react-icons/md";
 
 import { ATFAutoMasterCardButton } from "./ATFAutoMasterCardButton";
 import ATFAutoRotationDialog from "./ATFAutoRotationDialog";
+import ATFAutoSettingsDialog from "./ATFAutoSettingsDialog";
 import ATFAutoTransferDialog from "./ATFAutoTransferDialog";
 import { Dialog } from "radix-ui";
+import { HiCog6Tooth } from "react-icons/hi2";
 import { LuMerge } from "react-icons/lu";
 import { PiBroom } from "react-icons/pi";
+import { cn } from "@/utils";
 import toast from "react-hot-toast";
 import useATFAuto from "@/hooks/useATFAuto";
 import useATFAutoCloudBoostMutation from "@/hooks/useATFAutoCloudBoostMutation";
@@ -19,6 +22,18 @@ import useATFAutoCloudCollectionMutation from "@/hooks/useATFAutoCloudCollection
 import useATFAutoCloudStatusMutation from "@/hooks/useATFAutoCloudStatusMutation";
 import useATFAutoCloudWithdrawalMutation from "@/hooks/useATFAutoCloudWithdrawalMutation";
 import useATFAutoSweepMutation from "@/hooks/useATFAutoSweepMutation";
+
+function ActionsGroup(props) {
+  return (
+    <div
+      {...props}
+      className={cn(
+        "flex justify-center items-center flex-wrap gap-2",
+        props.className,
+      )}
+    />
+  );
+}
 
 export function ATFAutoMasterCardActions() {
   const { password, master, accounts } = useATFAuto();
@@ -109,7 +124,7 @@ export function ATFAutoMasterCardActions() {
   return (
     <>
       {/* Cloud operations */}
-      <div className="flex justify-center items-center flex-wrap gap-2">
+      <ActionsGroup>
         {/* Boost */}
         <ATFAutoMasterCardButton
           title={"Boost accounts in Cloud"}
@@ -149,10 +164,10 @@ export function ATFAutoMasterCardActions() {
         >
           {statusMutation.isPending ? "Requesting..." : "Status"}
         </ATFAutoMasterCardButton>
-      </div>
+      </ActionsGroup>
 
       {/* Account operations */}
-      <div className="flex justify-center items-center flex-wrap gap-2">
+      <ActionsGroup>
         {/* Sweep */}
         <ATFAutoMasterCardButton
           title={"Sweep inactive accounts"}
@@ -161,16 +176,6 @@ export function ATFAutoMasterCardActions() {
           disabled={sweepMutation.isPending}
         >
           {sweepMutation.isPending ? "Sweeping..." : "Sweep"}
-        </ATFAutoMasterCardButton>
-
-        {/* Cancel */}
-        <ATFAutoMasterCardButton
-          title={"Cancel Cloud Operation"}
-          icon={MdCancel}
-          onClick={cancelCloudOperation}
-          disabled={cancellationMutation.isPending}
-        >
-          {cancellationMutation.isPending ? "Requesting..." : "Cancel"}
         </ATFAutoMasterCardButton>
 
         {/* Rotate */}
@@ -200,7 +205,30 @@ export function ATFAutoMasterCardActions() {
 
           <ATFAutoTransferDialog />
         </Dialog.Root>
-      </div>
+
+        {/* Rotate */}
+        <Dialog.Root>
+          <Dialog.Trigger asChild>
+            <ATFAutoMasterCardButton title="Settings" icon={HiCog6Tooth}>
+              Settings
+            </ATFAutoMasterCardButton>
+          </Dialog.Trigger>
+
+          <ATFAutoSettingsDialog />
+        </Dialog.Root>
+      </ActionsGroup>
+
+      <ActionsGroup>
+        {/* Cancel */}
+        <ATFAutoMasterCardButton
+          title={"Cancel Cloud Operation"}
+          icon={MdCancel}
+          onClick={cancelCloudOperation}
+          disabled={cancellationMutation.isPending}
+        >
+          {cancellationMutation.isPending ? "Requesting..." : "Cancel"}
+        </ATFAutoMasterCardButton>
+      </ActionsGroup>
     </>
   );
 }

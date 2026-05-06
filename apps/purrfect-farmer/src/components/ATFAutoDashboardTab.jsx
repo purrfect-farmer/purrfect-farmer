@@ -76,17 +76,21 @@ export default function ATFAutoDashboardTab() {
       </Alert>
 
       {/* Add Account */}
-      <Dialog.Root open={addOpen} onOpenChange={setAddOpen}>
-        <ATFAutoStickyContainer>
-          <Dialog.Trigger asChild>
-            <PrimaryButton>
-              <MdPersonAdd className="size-4" />
-              Add Account
-            </PrimaryButton>
-          </Dialog.Trigger>
-        </ATFAutoStickyContainer>
-        <ATFAutoNewAccountDialog onCreated={() => setAddOpen(false)} />
-      </Dialog.Root>
+
+      <ATFAutoStickyContainer>
+        <div className="flex gap-2">
+          {/* Add account button */}
+          <Dialog.Root open={addOpen} onOpenChange={setAddOpen}>
+            <Dialog.Trigger asChild>
+              <PrimaryButton className={"grow"}>
+                <MdPersonAdd className="size-4" />
+                Add Account
+              </PrimaryButton>
+            </Dialog.Trigger>
+            <ATFAutoNewAccountDialog onCreated={() => setAddOpen(false)} />
+          </Dialog.Root>
+        </div>
+      </ATFAutoStickyContainer>
 
       {/* Accounts Header */}
       <div className="flex items-center justify-between">
