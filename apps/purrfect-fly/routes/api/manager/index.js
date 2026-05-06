@@ -3,6 +3,7 @@ import * as dateFns from "date-fns";
 
 import { exportBackup, importBackup } from "../../../lib/backup.js";
 
+import farmers from "../../../farmers/index.js";
 import fsp from "fs/promises";
 import path from "path";
 import { spawn } from "child_process";
@@ -230,6 +231,22 @@ export default async function (fastify, opts) {
 
       return reply.send({ success: true, affectedCount });
     });
+
+    /** Run Farmers */
+    fastify.post(
+      "/farmers/run",
+      { schema: farmerSchema },
+      async (request, reply) => {
+        const FarmerClass = farmers[request.body.id];
+
+        /** Execute */
+        if (FarmerClass) {
+          FarmerClass.run();
+        }
+
+        return reply.send({ success: true });
+      },
+    );
 
     /** Activate Farmer */
     fastify.post(

@@ -1,8 +1,9 @@
-import { HiOutlinePower, HiOutlineXMark } from "react-icons/hi2";
+import { HiOutlinePower, HiOutlineXMark, HiPlay } from "react-icons/hi2";
 import { cn, matchesAccountSearch } from "@/utils";
 import { useMemo, useState } from "react";
 
 import AppIcon from "@/assets/images/icon.png?format=webp&w=80";
+import Button from "@/components/Button";
 import CloudMemberDialog from "./CloudMemberDialog";
 import { Collapsible } from "radix-ui";
 import { Dialog } from "radix-ui";
@@ -14,6 +15,7 @@ import { useCallback } from "react";
 import useCloudManagerActivateFarmerMutation from "@/hooks/useCloudManagerActivateFarmerMutation";
 import useCloudManagerDisconnectFarmerMutation from "@/hooks/useCloudManagerDisconnectFarmerMutation";
 import useCloudManagerFarmersQuery from "@/hooks/useCloudManagerFarmersQuery";
+import useCloudManagerRunFarmersMutation from "@/hooks/useCloudManagerRunFarmersMutation";
 
 const AccountDetailsDialog = ({ account, children }) => {
   const [open, setOpen] = useState(false);
@@ -39,6 +41,7 @@ const FarmerActionButton = ({ variant, ...props }) => (
 
 export default function CloudFarmers() {
   const [search, setSearch] = useState("");
+  const runFarmersMutation = useCloudManagerRunFarmersMutation();
   const activateFarmerMutation = useCloudManagerActivateFarmerMutation();
   const disconnectFarmerMutation = useCloudManagerDisconnectFarmerMutation();
   const farmersQuery = useCloudManagerFarmersQuery();
@@ -75,6 +78,18 @@ export default function CloudFarmers() {
   );
 
   console.log("Farmers Groups:", groups);
+
+  /* Run Farmers */
+  const runFarmers = useCallback(
+    (id) => {
+      toast.promise(runFarmersMutation.mutateAsync(id), {
+        success: "Successfully initiated",
+        loading: "Initiating...",
+        error: "Error...",
+      });
+    },
+    [runFarmersMutation.mutateAsync],
+  );
 
   /* Activate Farmer */
   const activateFarmer = useCallback(
@@ -135,7 +150,11 @@ export default function CloudFarmers() {
                 {group.farmers.length}
               </span>
             </Collapsible.Trigger>
-            <Collapsible.Content className="mb-2">
+            <Collapsible.Content className="mb-2 flex flex-col gap-2">
+              <Button onClick={() => runFarmers(group.id)}>
+                <HiPlay />
+                Run farmers
+              </Button>
               {group.farmers.length ? (
                 <div className="flex flex-col gap-1">
                   {group.farmers.map(({ farmer, account }) => (
