@@ -3,7 +3,7 @@ import {
   LiaFireAltSolid,
   LiaUserNinjaSolid,
 } from "react-icons/lia";
-import { MdCancel, MdOutlineDoubleArrow } from "react-icons/md";
+import { MdCancel, MdCheckCircle, MdOutlineDoubleArrow } from "react-icons/md";
 
 import { ATFAutoMasterCardButton } from "./ATFAutoMasterCardButton";
 import ATFAutoRotationDialog from "./ATFAutoRotationDialog";
@@ -16,6 +16,7 @@ import useATFAuto from "@/hooks/useATFAuto";
 import useATFAutoCloudBoostMutation from "@/hooks/useATFAutoCloudBoostMutation";
 import useATFAutoCloudCancellationMutation from "@/hooks/useATFAutoCloudCancellationMutation";
 import useATFAutoCloudCollectionMutation from "@/hooks/useATFAutoCloudCollectionMutation";
+import useATFAutoCloudStatusMutation from "@/hooks/useATFAutoCloudStatusMutation";
 import useATFAutoCloudWithdrawalMutation from "@/hooks/useATFAutoCloudWithdrawalMutation";
 import useATFAutoSweepMutation from "@/hooks/useATFAutoSweepMutation";
 
@@ -26,6 +27,7 @@ export function ATFAutoMasterCardActions() {
   const withdrawMutation = useATFAutoCloudWithdrawalMutation();
   const collectMutation = useATFAutoCloudCollectionMutation();
   const cancellationMutation = useATFAutoCloudCancellationMutation();
+  const statusMutation = useATFAutoCloudStatusMutation();
   const sweepMutation = useATFAutoSweepMutation();
 
   const boostWithCloud = () => {
@@ -69,6 +71,21 @@ export function ATFAutoMasterCardActions() {
         loading: "Dispatching...",
         success: "Dispatched",
         error: "Failed to dispatch collection request",
+      },
+    );
+  };
+
+  const requestStatusWithCloud = () => {
+    toast.promise(
+      statusMutation.mutateAsync({
+        password,
+        master,
+        accounts,
+      }),
+      {
+        loading: "Dispatching...",
+        success: "Dispatched",
+        error: "Failed to dispatch status request",
       },
     );
   };
@@ -123,14 +140,14 @@ export function ATFAutoMasterCardActions() {
           {collectMutation.isPending ? "Requesting..." : "Collect"}
         </ATFAutoMasterCardButton>
 
-        {/* Cancel */}
+        {/* Status */}
         <ATFAutoMasterCardButton
-          title={"Cancel Cloud Operation"}
-          icon={MdCancel}
-          onClick={cancelCloudOperation}
-          disabled={cancellationMutation.isPending}
+          title={"Get accounts status"}
+          icon={MdCheckCircle}
+          onClick={requestStatusWithCloud}
+          disabled={statusMutation.isPending}
         >
-          {cancellationMutation.isPending ? "Requesting..." : "Cancel"}
+          {statusMutation.isPending ? "Requesting..." : "Status"}
         </ATFAutoMasterCardButton>
       </div>
 
@@ -144,6 +161,16 @@ export function ATFAutoMasterCardActions() {
           disabled={sweepMutation.isPending}
         >
           {sweepMutation.isPending ? "Sweeping..." : "Sweep"}
+        </ATFAutoMasterCardButton>
+
+        {/* Cancel */}
+        <ATFAutoMasterCardButton
+          title={"Cancel Cloud Operation"}
+          icon={MdCancel}
+          onClick={cancelCloudOperation}
+          disabled={cancellationMutation.isPending}
+        >
+          {cancellationMutation.isPending ? "Requesting..." : "Cancel"}
         </ATFAutoMasterCardButton>
 
         {/* Rotate */}

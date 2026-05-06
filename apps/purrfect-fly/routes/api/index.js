@@ -296,6 +296,32 @@ export default async function (fastify, opts) {
     },
   );
 
+  /** ATF Auto Status */
+  fastify.post(
+    "/atf-auto/status",
+    {
+      preHandler: [fastify.validateWebAppData],
+      schema: atfAutoSchema,
+    },
+    async function (request, reply) {
+      const { user } = request.auth;
+      const account = await fastify.db.Account.findWithActiveSubscription(
+        user.id,
+      );
+
+      if (!account) {
+        return reply.forbidden("Not allowed!");
+      }
+
+      ATFAuto.status({
+        id: account.id,
+        password: request.body.password,
+        master: request.body.master,
+        accounts: request.body.accounts,
+      });
+    },
+  );
+
   /** ATF Auto Cancel */
   fastify.post(
     "/atf-auto/cancel",

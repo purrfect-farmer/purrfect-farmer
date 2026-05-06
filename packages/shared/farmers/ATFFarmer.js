@@ -658,6 +658,12 @@ export default class ATFFarmer extends BaseFarmer {
     await this.executeTask("Tasks", () => this.completeTasks());
     await this.executeTask("Extra Tasks", () => this.completeExtraTasks());
   }
+
+  /** Get User Details */
+  getUserDetails() {
+    return this.auth_data.user;
+  }
+
   /** Log User Info */
   logUserInfo(user) {
     this.logger.newline();
@@ -702,13 +708,20 @@ export default class ATFFarmer extends BaseFarmer {
     this.logger.keyValue("Temp ban reason", user["temp_ban_reason"]);
   }
 
-  logUserWallet(user) {
+  getUserWallet(user) {
     const { publicKey, addressV4, addressV5, rawAddressV4, rawAddressV5 } =
       this.prepareWallet(Buffer.from(user["wallet_public_key"], "hex"));
 
     const version = user["wallet_address"] === rawAddressV5 ? "v5" : "v4";
     const address = version === "v5" ? addressV5 : addressV4;
     const rawAddress = version === "v5" ? rawAddressV5 : rawAddressV4;
+
+    return { version, publicKey, address, rawAddress };
+  }
+
+  logUserWallet(user) {
+    const { version, publicKey, address, rawAddress } =
+      this.getUserWallet(user);
 
     this.logger.newline();
     this.logWallet(version, publicKey, address, rawAddress);

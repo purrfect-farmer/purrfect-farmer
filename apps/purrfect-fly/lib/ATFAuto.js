@@ -54,6 +54,11 @@ class ATFAuto {
     return `(<i><b>${index + 1}</b>/<b>${this.accounts.length}</b></i>)`;
   }
 
+  /** Format key value message */
+  formatKeyValue(key, value) {
+    return `<i>${key}: <b>${value}</b></i>`;
+  }
+
   /** Delay for safe seconds */
   delayForSafeSeconds() {
     return this.utils.delayForSeconds(60, {
@@ -579,6 +584,151 @@ class ATFAuto {
     }
   }
 
+  /** Status */
+  async status() {
+    try {
+      /** Send notification about initiation */
+      await bot.sendPrivateMessage(this.id, [
+        `⏳ ATF Auto - Status request initiated...`,
+      ]);
+
+      /** Loop through accounts and fetch status */
+      for (const [index, account] of this.accounts.entries()) {
+        if (this.signal.aborted) {
+          break;
+        }
+        await this.processStatus(account, index);
+      }
+
+      /** Notify about cancellation completion */
+      if (this.signal.aborted) {
+        await this.sendCancellationCompletionNotification();
+      } else {
+        /** Notify about completion */
+        await bot.sendPrivateMessage(this.id, [
+          `✅ ATF Auto - Status request completed.`,
+        ]);
+      }
+    } catch (e) {
+      const errorMessage = e.message || "Unknown error!";
+
+      /** Log error */
+      logger.error(errorMessage);
+
+      /** Notify about boost error */
+      await bot.sendPrivateMessage(this.id, [
+        `❌ ATF Auto - an error occurred during status request!`,
+        errorMessage,
+      ]);
+    }
+  }
+
+  /** Get account status */
+  async processStatus(account, index) {
+    /** Skip if user ID is not set */
+    if (!account.userId) return;
+
+    /** Retrieve Cloud Account */
+    const cloudAccount = await this.getCloudAccount(account);
+
+    /** Skip if cloud account is missing */
+    if (!cloudAccount) return;
+
+    /** Result */
+    const { status, user, wallet, message } =
+      await this.getUserStatus(cloudAccount);
+
+    /** Flags */
+    const flags = (user?.["risk_flags"] || "")
+      .trim()
+      .split("|")
+      .filter(Boolean);
+
+    /** Send Notification */
+    await bot.sendPrivateMessage(
+      this.id,
+      status
+        ? [
+            `User details <b>(${cloudAccount.id})</b> ${this.formatAccountPosition(index)}`,
+            this.formatKeyValue(
+              "Wallet Balance",
+              `${user["wallet_holding_atf"]} ATF`,
+            ),
+            this.formatKeyValue("Balance", `${user["mined_balance"]} ATF`),
+            this.formatKeyValue("Pending Rewards", user["pending_reward"]),
+            this.formatKeyValue("Miner Level", user["miner_level"]),
+          ]
+            /** Wallet */
+            .concat(
+              wallet
+                ? [
+                    "",
+                    "<b>Wallet</b>",
+                    this.formatKeyValue(
+                      "Wallet Address",
+                      `(${wallet.version.toUpperCase()}) ${wallet.address}`,
+                    ),
+                  ]
+                : [],
+            )
+
+            /** Risks */
+            .concat([
+              "",
+              "<b>Risks</b>",
+              this.formatKeyValue("Risk Score", user["risk_score"]),
+              this.formatKeyValue("Risk Updated", user["risk_updated_at"]),
+              this.formatKeyValue("Risk Flags", flags.length),
+              ...flags.map((flag) => `- ${flag}`),
+            ])
+        : [
+            `❌ Failed to get user details <b>(${cloudAccount.id})</b> ${this.formatAccountPosition(index)}`,
+            `<i>Error: ${message}</i>`,
+          ],
+    );
+
+    /** Delay for seconds */
+    await this.delayForSafeSeconds();
+  }
+
+  /** Get Status */
+  async getUserStatus(cloudAccount) {
+    try {
+      /** Log */
+      logger.info("Getting account status:", cloudAccount.id);
+
+      /** Get runner */
+      const runner = await this.getRunner(cloudAccount);
+
+      /** Delay for 5s */
+      await this.utils.delayForSeconds(5);
+
+      /** Start or Claim Mining */
+      await runner.startOrClaimMining(true);
+
+      /** Delay for 5s */
+      await this.utils.delayForSeconds(5);
+
+      /** Get user details */
+      const user = await runner.getUserDetails();
+      const wallet = user["wallet_public_key"]
+        ? await runner.getUserWallet(user)
+        : null;
+
+      return { status: true, user, wallet };
+    } catch (e) {
+      const errorMessage = e.message || "Unknown error!";
+
+      /** Log error */
+      logger.error(errorMessage);
+
+      return {
+        status: false,
+        message: errorMessage,
+      };
+    }
+  }
+
   /** Cancel operation */
   cancel() {
     this.controller.abort();
@@ -617,6 +767,10 @@ class ATFAuto {
 
   static withdraw(options) {
     this.execute(options, (instance) => instance.withdraw());
+  }
+
+  static status(options) {
+    this.execute(options, (instance) => instance.status());
   }
 }
 
