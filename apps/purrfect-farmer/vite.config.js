@@ -1,16 +1,15 @@
-import path from "path";
-import react from "@vitejs/plugin-react";
-import tailwindcss from "@tailwindcss/vite";
 import { ViteEjsPlugin } from "vite-plugin-ejs";
 import { VitePWA } from "vite-plugin-pwa";
 import { defineConfig } from "vite";
 import { fileURLToPath } from "url";
+import { generateChromeManifest } from "./plugins/generate-chrome-manifest";
+import { getPackageJson } from "./scripts/get-package-json";
 import { imagetools } from "vite-imagetools";
 import { loadEnv } from "vite";
 import { nodePolyfills } from "vite-plugin-node-polyfills";
-
-import { generateChromeManifest } from "./plugins/generate-chrome-manifest";
-import { getPackageJson } from "./scripts/get-package-json";
+import path from "path";
+import react from "@vitejs/plugin-react";
+import tailwindcss from "@tailwindcss/vite";
 import { transformCssBundle } from "./plugins/transform-css-bundle";
 
 const __filename = fileURLToPath(import.meta.url);
@@ -33,10 +32,10 @@ export default defineConfig(async ({ mode }) => {
   const outDir = process.env.VITE_WHISKER
     ? "dist-whisker"
     : process.env.VITE_BRIDGE
-    ? "dist-bridge"
-    : process.env.VITE_EXTENSION
-    ? "dist-extension"
-    : "dist";
+      ? "dist-bridge"
+      : process.env.VITE_EXTENSION
+        ? "dist-extension"
+        : "dist";
 
   let input, output;
 
@@ -49,7 +48,7 @@ export default defineConfig(async ({ mode }) => {
     /** Browser Sandbox HTML */
     const browserSandboxHtml = path.resolve(
       __dirname,
-      "./browser-sandbox.html"
+      "./browser-sandbox.html",
     );
 
     /** Input */
@@ -57,12 +56,12 @@ export default defineConfig(async ({ mode }) => {
   } else if (isStylesEntry) {
     input = path.resolve(
       __dirname,
-      `./src/extension/${process.env.VITE_ENTRY}.css`
+      `./src/extension/${process.env.VITE_ENTRY}.css`,
     );
   } else {
     input = path.resolve(
       __dirname,
-      `./src/extension/${process.env.VITE_ENTRY}.js`
+      `./src/extension/${process.env.VITE_ENTRY}.js`,
     );
   }
 
@@ -71,7 +70,7 @@ export default defineConfig(async ({ mode }) => {
       manualChunks(id) {
         if (id.includes("node_modules")) {
           const lib = ["react", "node-forge", "crypto-js", "axios"].find(
-            (item) => id.includes(item)
+            (item) => id.includes(item),
           );
 
           if (lib) {
@@ -83,7 +82,7 @@ export default defineConfig(async ({ mode }) => {
   } else if (isStylesEntry) {
     output = {
       assetFileNames: (assetInfo) => {
-        if (assetInfo.name.endsWith(".css")) {
+        if (assetInfo.name?.endsWith(".css")) {
           return "extension/[name][extname]";
         }
 
@@ -103,7 +102,7 @@ export default defineConfig(async ({ mode }) => {
       __APP_PACKAGE_NAME__: JSON.stringify(pkg.name),
       __APP_PACKAGE_VERSION__: JSON.stringify(pkg.version),
       __ENCRYPTION_KEY__: JSON.stringify(
-        new Date().toISOString().split("T")[0]
+        new Date().toISOString().split("T")[0],
       ),
     },
     resolve: {
