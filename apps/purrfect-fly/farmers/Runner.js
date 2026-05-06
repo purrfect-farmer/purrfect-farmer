@@ -18,6 +18,9 @@ import db from "../db/models/index.js";
 import logger from "../lib/logger.js";
 import utils from "../lib/utils.js";
 
+/** Ban trigger count */
+const BAN_TRIGGER_COUNT = 5;
+
 const HttpProxyAgentWithCookies = createCookieAgent(HttpProxyAgent);
 const HttpsProxyAgentWithCookies = createCookieAgent(HttpsProxyAgent);
 
@@ -105,9 +108,6 @@ export default function createRunner(FarmerClass) {
       /** Apply Delay */
       this.registerDelayInterceptor();
 
-      /** Set Headers */
-      this.registerHeadersInterceptor();
-
       /** Set XSRF */
       this.registerXSRFInterceptor();
 
@@ -157,26 +157,6 @@ export default function createRunner(FarmerClass) {
             ["Cache-Control"]: "no-cache",
           },
         },
-      });
-    }
-
-    /** Register Headers Interceptor */
-    registerHeadersInterceptor() {
-      this.api.interceptors.request.use((config) => {
-        let extraHeaders = this.getExtraHeaders?.();
-        let authHeaders = {};
-
-        if (!this.isFetchingAuth) {
-          authHeaders = this.farmer?.headers || {};
-        }
-
-        /** Apply Headers */
-        config.headers = {
-          ...authHeaders,
-          ...extraHeaders,
-          ...config.headers,
-        };
-        return config;
       });
     }
 
@@ -267,11 +247,6 @@ export default function createRunner(FarmerClass) {
       }
     }
 
-    /** Join Telegram Link */
-    async joinTelegramLink(link) {
-      return super.joinTelegramLink(link);
-    }
-
     /** Get Cookies */
     async getCookies({ url }) {
       const cookies = await this.jar.getCookies(url);
@@ -306,6 +281,8 @@ export default function createRunner(FarmerClass) {
       /** Create Farmer */
       if (!this.farmer) {
         this.farmer = await this.account.createFarmer({
+          errorCount: 0,
+          isBanned: false,
           active: true,
           farmer: this.constructor.id,
           headers: {},
@@ -317,9 +294,13 @@ export default function createRunner(FarmerClass) {
       /** Update WebAppData */
       if (this.constructor.platform === "telegram" && this.account.session) {
         try {
+          /** Create Telegram Client */
           this.client = await GramClient.create(this.account.session);
+
+          /** Connect */
           await this.client.connect();
 
+          /** Update the web app data */
           if (this.constructor.type === "webapp") {
             await this.updateWebAppData();
           }
@@ -336,9 +317,14 @@ export default function createRunner(FarmerClass) {
         await this.restoreCookies();
       }
 
-      /** Set Auth Headers */
+      /** Prepare Auth Headers */
       if (needsAuth) {
-        await this.setAuth();
+        await this.prepareAuth();
+      }
+
+      /** Set Auth Headers */
+      if (this.farmer.headers) {
+        this.setAuthHeaders(this.farmer.headers);
       }
 
       /** Fetch Meta */
@@ -364,16 +350,11 @@ export default function createRunner(FarmerClass) {
       }
     }
 
-    /** Set Auth */
-    async setAuth() {
-      try {
-        this.isFetchingAuth = true;
-        const auth = await this.fetchAuth();
-        const headers = await this.getAuthHeaders(auth);
-        this.farmer.setHeaders(headers);
-      } finally {
-        this.isFetchingAuth = false;
-      }
+    /** Prepare Auth */
+    async prepareAuth() {
+      const auth = await this.fetchAuth();
+      const headers = await this.getAuthHeaders(auth);
+      this.farmer.setHeaders(headers);
     }
 
     /**
@@ -407,7 +388,7 @@ export default function createRunner(FarmerClass) {
           this.farmer.errorCount += 1;
 
           /** Ban the farmer */
-          if (this.farmer.errorCount >= 3) {
+          if (this.farmer.errorCount >= BAN_TRIGGER_COUNT) {
             this.farmer.isBanned = true;
           }
 

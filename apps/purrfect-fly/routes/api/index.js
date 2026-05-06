@@ -203,6 +203,8 @@ export default async function (fastify, opts) {
         if (account) {
           await account.update({ title: request.body.title, user });
           await account.createFarmer({
+            errorCount: 0,
+            isBanned: false,
             active: true,
             farmer: request.body.farmer,
             headers: request.body.headers,

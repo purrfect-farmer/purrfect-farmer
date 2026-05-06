@@ -78,9 +78,14 @@ export default class BaseFarmer {
 
   /** Configure Auth Headers */
   configureAuthHeaders(data) {
+    this.setAuthHeaders(this.getAuthHeaders(data));
+  }
+
+  /** Set Auth Headers */
+  setAuthHeaders(headers) {
     this.api.defaults.headers.common = Object.assign(
       this.api.defaults.headers.common,
-      this.getAuthHeaders(data),
+      headers,
     );
   }
 
@@ -431,11 +436,7 @@ export default class BaseFarmer {
   /** Set Auth */
   async setAuth() {
     const auth = await this.fetchAuth();
-    const headers = await this.getAuthHeaders(auth);
-    this.api.defaults.headers = {
-      ...this.api.defaults.headers,
-      ...headers,
-    };
+    this.configureAuthHeaders(auth);
     return this;
   }
 
