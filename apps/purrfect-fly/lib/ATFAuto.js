@@ -649,12 +649,16 @@ class ATFAuto {
       this.id,
       status
         ? [
-            `✅ User details <b>(${cloudAccount.id})</b> ${this.formatAccountPosition(index)}`,
+            `ℹ️ User details <b>(${cloudAccount.id})</b> ${this.formatAccountPosition(index)}`,
+            "",
             this.formatKeyValue(
               "Wallet Balance",
               `${user["wallet_holding_atf"]} ATF`,
             ),
-            this.formatKeyValue("Balance", `${user["mined_balance"]} ATF`),
+            this.formatKeyValue(
+              "Balance",
+              `${user["mined_balance"]} ATF ${user["mined_balance"] >= 500 ? "🟩" : "🟧"}`,
+            ),
             this.formatKeyValue("Pending Rewards", user["pending_reward"]),
             this.formatKeyValue("Miner Level", user["miner_level"]),
           ]
