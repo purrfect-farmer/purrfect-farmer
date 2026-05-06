@@ -670,7 +670,7 @@ class ATFAuto {
                     "<b>💰 Wallet</b>",
                     this.formatKeyValue(
                       "Wallet Address",
-                      `(${wallet.version.toUpperCase()}) ${wallet.address}`,
+                      `(${wallet.version.toUpperCase()}) <pre>${wallet.address}</pre>`,
                     ),
                   ]
                 : [],
