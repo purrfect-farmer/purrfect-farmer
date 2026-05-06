@@ -64,6 +64,11 @@ class ATFAuto {
     return `<a href="tg://user?id=${id}">${id}</a>`;
   }
 
+  /** Format address link */
+  formatAddressLink(address) {
+    return `<a href="https://tonviewer.com/${address}">${this.truncateAddress(address)}</a>`;
+  }
+
   /** Delay for safe seconds */
   delayForSafeSeconds() {
     return this.utils.delayForSeconds(60, {
@@ -261,8 +266,8 @@ class ATFAuto {
     /** Send Boost Notification */
     await bot.sendPrivateMessage(this.id, [
       status
-        ? `⚡ Boosted <b>(${cloudAccount.id})</b> with <i>${jettonAmount} ATF</i> ${this.formatAccountPosition(index)}`
-        : `❌ Failed to boost <b>(${cloudAccount.id})</b> with <i>${jettonAmount} ATF</i> ${this.formatAccountPosition(index)}\n<i>Error: ${message || "Unknown error!"}</i>`,
+        ? `⚡ Boosted <b>(${this.formatAccountLink(cloudAccount.id)})</b> with <i>${jettonAmount} ATF</i> ${this.formatAccountPosition(index)}`
+        : `❌ Failed to boost <b>(${this.formatAccountLink(cloudAccount.id)})</b> with <i>${jettonAmount} ATF</i> ${this.formatAccountPosition(index)}\n<i>Error: ${message || "Unknown error!"}</i>`,
     ]);
 
     /** Delay for 5s */
@@ -527,10 +532,10 @@ class ATFAuto {
     /** Send Notification */
     await bot.sendPrivateMessage(this.id, [
       skipped
-        ? `⏩ Skipped <b>(${cloudAccount.id})</b> - <i>${amount} ATF</i> ${this.formatAccountPosition(index)}`
+        ? `⏩ Skipped <b>(${this.formatAccountLink(cloudAccount.id)})</b> - <i>${amount} ATF</i> ${this.formatAccountPosition(index)}`
         : status
-          ? `🤑 Withdrawn <b>(${cloudAccount.id})</b> - <i>${amount} ATF</i> ${this.formatAccountPosition(index)}\n<i>Message: ${message}</i>`
-          : `❌ Failed to withdraw <b>(${cloudAccount.id})</b> - <i>${amount} ATF</i> ${this.formatAccountPosition(index)}\n<i>Reason: ${message}</i>`,
+          ? `🤑 Withdrawn <b>(${this.formatAccountLink(cloudAccount.id)})</b> - <i>${amount} ATF</i> ${this.formatAccountPosition(index)}\n<i>Message: ${message}</i>`
+          : `❌ Failed to withdraw <b>(${this.formatAccountLink(cloudAccount.id)})</b> - <i>${amount} ATF</i> ${this.formatAccountPosition(index)}\n<i>Reason: ${message}</i>`,
     ]);
 
     if (skipped) {
@@ -692,7 +697,7 @@ class ATFAuto {
                 : [],
             )
         : [
-            `❌ Failed to get user details <b>(${cloudAccount.id})</b> ${this.formatAccountPosition(index)}`,
+            `❌ Failed to get user details <b>(${this.formatAccountLink(cloudAccount.id)})</b> ${this.formatAccountPosition(index)}`,
             `<i>Error: ${message}</i>`,
           ],
     );
