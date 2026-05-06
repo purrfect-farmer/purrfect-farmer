@@ -5,6 +5,20 @@ import crypto from "crypto";
 import sharedUtils from "@purrfect/shared/utils/bundle.js";
 import tweetnacl from "tweetnacl";
 
+const KEYCAP_EMOJIS = [
+  "0️⃣",
+  "1️⃣",
+  "2️⃣",
+  "3️⃣",
+  "4️⃣",
+  "5️⃣",
+  "6️⃣",
+  "7️⃣",
+  "8️⃣",
+  "9️⃣",
+  "🔟",
+];
+
 function sha256(data) {
   return crypto.createHash("sha256").update(data).digest("hex");
 }
@@ -104,7 +118,9 @@ function formatUsers(collection) {
 
       const statusContent = `${status} ${session}`;
       const linkHtml = url ? ` <b>[<a href="${url}">OPEN</a>]</b>` : "";
-      const countHtml = typeof count !== "undefined" ? ` <b>${count}</b>` : "";
+
+      const countHtml =
+        typeof count !== "undefined" ? ` <b>(${KEYCAP_EMOJIS[count]})</b>` : "";
 
       let result = `${statusContent}${countHtml}${linkHtml}${titleHtml} <a href="tg://user?id=${id}">${safeUsername}</a>`;
 
