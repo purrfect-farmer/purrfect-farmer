@@ -116,11 +116,11 @@ function formatUsers(collection) {
       const safeUsername = "@" + escapeHtml(username.trim());
       const titleHtml = title ? ` <b>${escapeHtml("(" + title + ")")}</b>` : "";
 
-      const statusContent = `${status} ${session}`;
+      const statusContent = `${status}${session}`;
       const linkHtml = url ? ` <b>[<a href="${url}">OPEN</a>]</b>` : "";
 
       const countHtml =
-        typeof count !== "undefined" ? ` <b>(${KEYCAP_EMOJIS[count]})</b>` : "";
+        typeof count !== "undefined" ? `<b>${KEYCAP_EMOJIS[count]}</b>` : "";
 
       let result = `${statusContent}${countHtml}${linkHtml}${titleHtml} <a href="tg://user?id=${id}">${safeUsername}</a>`;
 
