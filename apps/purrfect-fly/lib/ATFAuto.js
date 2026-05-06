@@ -56,7 +56,7 @@ class ATFAuto {
 
   /** Format key value message */
   formatKeyValue(key, value) {
-    return `<i>${key}: <b>${value}</b></i>`;
+    return `${key}: <i><b>${value}</b></i>`;
   }
 
   /** Delay for safe seconds */
@@ -649,7 +649,7 @@ class ATFAuto {
       this.id,
       status
         ? [
-            `User details <b>(${cloudAccount.id})</b> ${this.formatAccountPosition(index)}`,
+            `✅ User details <b>(${cloudAccount.id})</b> ${this.formatAccountPosition(index)}`,
             this.formatKeyValue(
               "Wallet Balance",
               `${user["wallet_holding_atf"]} ATF`,
@@ -663,7 +663,7 @@ class ATFAuto {
               wallet
                 ? [
                     "",
-                    "<b>Wallet</b>",
+                    "<b>💰 Wallet</b>",
                     this.formatKeyValue(
                       "Wallet Address",
                       `(${wallet.version.toUpperCase()}) ${wallet.address}`,
@@ -675,11 +675,11 @@ class ATFAuto {
             /** Risks */
             .concat([
               "",
-              "<b>Risks</b>",
+              "⚠️ <b>Risks</b>",
               this.formatKeyValue("Risk Score", user["risk_score"]),
               this.formatKeyValue("Risk Updated", user["risk_updated_at"]),
               this.formatKeyValue("Risk Flags", flags.length),
-              ...flags.map((flag) => `- ${flag}`),
+              ...flags.map((flag) => `<i>- ${flag}</i>`),
             ])
         : [
             `❌ Failed to get user details <b>(${cloudAccount.id})</b> ${this.formatAccountPosition(index)}`,
