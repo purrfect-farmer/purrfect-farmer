@@ -602,6 +602,7 @@ export default class MoneyTreeFarmer extends BaseFarmer {
       /** Create Socket */
       this.socket = io("wss://moneytree.extensi.one/game", {
         auth: {
+          initData: this.getInitData(),
           token: this.authData.accessToken,
         },
         agent: this.httpsAgent,
