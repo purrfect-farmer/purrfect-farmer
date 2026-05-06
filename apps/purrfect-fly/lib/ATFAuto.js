@@ -71,16 +71,20 @@ class ATFAuto {
 
   /** Delay for safe seconds */
   delayForSafeSeconds() {
-    return this.utils.delayForSeconds(60, {
-      signal: this.signal,
-    });
+    return this.utils
+      .delayForSeconds(60 + Math.floor(Math.random() * 30), {
+        signal: this.signal,
+      })
+      .catch();
   }
 
   /** Delay for safe minutes */
   delayForSafeMinutes() {
-    return this.utils.delayForMinutes(3 + Math.floor(Math.random() * 2), {
-      signal: this.signal,
-    });
+    return this.utils
+      .delayForMinutes(3 + Math.floor(Math.random() * 2), {
+        signal: this.signal,
+      })
+      .catch();
   }
 
   async prepareInitialMasterData() {
