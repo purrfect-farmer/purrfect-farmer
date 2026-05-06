@@ -59,6 +59,11 @@ class ATFAuto {
     return `${key}: <b>${value}</b>`;
   }
 
+  /** Format account link */
+  formatAccountLink(id) {
+    return `<a href="tg://user?id=${id}">${id}</a>`;
+  }
+
   /** Delay for safe seconds */
   delayForSafeSeconds() {
     return this.utils.delayForSeconds(60, {
@@ -649,24 +654,21 @@ class ATFAuto {
       this.id,
       status
         ? [
-            `ℹ️ User details <b>(${cloudAccount.id})</b> ${this.formatAccountPosition(index)}`,
+            `ℹ️ User details <b>(${this.formatAccountLink(cloudAccount.id)})</b> ${this.formatAccountPosition(index)}`,
             "",
+            this.formatKeyValue("Miner Level", user["miner_level"]),
+            this.formatKeyValue("Holding", `${user["wallet_holding_atf"]} ATF`),
             this.formatKeyValue(
-              "Wallet Holding",
-              `${user["wallet_holding_atf"]} ATF`,
-            ),
-            this.formatKeyValue(
-              "Mined Balance",
+              "Balance",
               `${user["mined_balance"]} ATF ${user["mined_balance"] >= 500 ? "🟩" : "🟧"}`,
             ),
-            this.formatKeyValue("Miner Level", user["miner_level"]),
           ]
             /** Wallet */
             .concat(
               wallet
                 ? [
                     this.formatKeyValue(
-                      "Wallet Address",
+                      "Wallet",
                       `(${wallet.version.toUpperCase()}) <a href="https://tonviewer.com/${wallet.address}">${this.truncateAddress(wallet.address)}</a>`,
                     ),
                   ]
@@ -674,14 +676,21 @@ class ATFAuto {
             )
 
             /** Risks */
-            .concat([
-              "",
-              "⚠️ <b>Risks</b>",
-              this.formatKeyValue("Risk Score", user["risk_score"]),
-              this.formatKeyValue("Risk Updated", user["risk_updated_at"]),
-              this.formatKeyValue("Risk Flags", flags.length),
-              ...flags.map((flag) => `<b>- ${flag}</b>`),
-            ])
+            .concat(
+              flags.length > 0
+                ? [
+                    "",
+                    "<b>🟥 Risks</b>",
+                    this.formatKeyValue("Risk Score", user["risk_score"]),
+                    this.formatKeyValue(
+                      "Risk Updated",
+                      user["risk_updated_at"],
+                    ),
+                    this.formatKeyValue("Risk Flags", flags.length),
+                    ...flags.map((flag) => `<b>- ${flag}</b>`),
+                  ]
+                : [],
+            )
         : [
             `❌ Failed to get user details <b>(${cloudAccount.id})</b> ${this.formatAccountPosition(index)}`,
             `<i>Error: ${message}</i>`,
