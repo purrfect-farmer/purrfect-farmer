@@ -14,18 +14,35 @@ class ATFAuto {
    */
   static instances = new Map();
 
-  constructor({ id, master, accounts, password }) {
+  constructor({
+    id,
+    master,
+    accounts,
+    password,
+    delay = 3,
+    difference = 10,
+    amount,
+  }) {
     this.utils = utils;
     this.encryption = Encrypter;
+
+    /** Abort controller and signal */
+    this.controller = new AbortController();
+    this.signal = this.controller.signal;
+
+    /** Core properties */
     this.id = id;
     this.master = master;
     this.accounts = accounts;
     this.password = password;
 
+    /** Configurable properties */
+    this.delay = Number(delay);
+    this.difference = Number(difference);
+    this.amount = amount ? Number(amount) : null;
+
+    /** Boost mode */
     this.mode = "roll"; // roll or collect
-    this.difference = 10;
-    this.controller = new AbortController();
-    this.signal = this.controller.signal;
 
     this.signal.addEventListener("abort", this.handleCancellationSignal);
   }
@@ -81,7 +98,7 @@ class ATFAuto {
   /** Delay for safe minutes */
   delayForSafeMinutes() {
     return this.utils
-      .delayForMinutes(3 + Math.floor(Math.random() * 2), {
+      .delayForMinutes(this.delay, {
         signal: this.signal,
       })
       .catch();
@@ -131,6 +148,7 @@ class ATFAuto {
     /** Terminate */
     FarmerClass.terminate(cloudAccount.id);
 
+    /** @type {import("@purrfect/shared/farmers/ATFFarmer.js").default} */
     const runner = new FarmerClass(cloudAccount);
 
     /** Prepare runner */
@@ -570,7 +588,10 @@ class ATFAuto {
       await this.utils.delayForSeconds(5);
 
       /** Result */
-      const { status, skipped, amount, message } = await runner.withdraw();
+      const { status, skipped, amount, message } = await runner.withdraw({
+        max: this.amount,
+        difference: this.difference,
+      });
 
       /** Log Success */
       logger.success(
@@ -593,7 +614,7 @@ class ATFAuto {
         status: false,
         skipped: false,
         message: errorMessage,
-        amount: 0,
+        amount: "0",
       };
     }
   }
@@ -753,19 +774,14 @@ class ATFAuto {
     this.controller.abort();
   }
 
-  static execute({ id, password, master, accounts }, callback) {
-    if (this.instances.has(id)) return;
-    const instance = new this({
-      id,
-      password,
-      master,
-      accounts,
-    });
+  static execute(options, callback) {
+    if (this.instances.has(options.id)) return;
+    const instance = new this(options);
 
-    this.instances.set(id, instance);
+    this.instances.set(options.id, instance);
 
     callback(instance).finally(() => {
-      this.instances.delete(id);
+      this.instances.delete(options.id);
     });
   }
 

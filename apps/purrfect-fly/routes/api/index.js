@@ -30,6 +30,9 @@ const atfAutoSchema = {
       password: { type: "string" },
       master: { type: "object" },
       accounts: { type: "array" },
+      delay: { type: "number" },
+      difference: { type: "number" },
+      amount: { type: "number" },
     },
   },
 };
@@ -236,10 +239,8 @@ export default async function (fastify, opts) {
       }
 
       ATFAuto.boost({
+        ...request.body,
         id: account.id,
-        password: request.body.password,
-        master: request.body.master,
-        accounts: request.body.accounts,
       });
     },
   );
@@ -262,10 +263,8 @@ export default async function (fastify, opts) {
       }
 
       ATFAuto.collect({
+        ...request.body,
         id: account.id,
-        password: request.body.password,
-        master: request.body.master,
-        accounts: request.body.accounts,
       });
     },
   );
@@ -288,10 +287,8 @@ export default async function (fastify, opts) {
       }
 
       ATFAuto.withdraw({
+        ...request.body,
         id: account.id,
-        password: request.body.password,
-        master: request.body.master,
-        accounts: request.body.accounts,
       });
     },
   );
@@ -314,10 +311,8 @@ export default async function (fastify, opts) {
       }
 
       ATFAuto.status({
+        ...request.body,
         id: account.id,
-        password: request.body.password,
-        master: request.body.master,
-        accounts: request.body.accounts,
       });
     },
   );
