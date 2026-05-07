@@ -26,7 +26,7 @@ export default function ATFAutoBoostTab() {
   const form = useForm({
     resolver: yupResolver(schema),
     defaultValues: {
-      difference: 10,
+      difference: 5,
     },
   });
 

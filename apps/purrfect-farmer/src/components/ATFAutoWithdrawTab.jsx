@@ -29,7 +29,7 @@ export default function ATFAutoWithdrawTab() {
   const form = useForm({
     resolver: yupResolver(schema),
     defaultValues: {
-      delay: 3,
+      delay: 5,
       difference: 5,
       amount: "",
     },

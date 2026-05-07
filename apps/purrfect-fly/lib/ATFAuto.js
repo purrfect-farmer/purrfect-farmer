@@ -19,9 +19,9 @@ class ATFAuto {
     master,
     accounts,
     password,
-    delay = 3,
-    difference = 10,
     amount,
+    delay = 5,
+    difference = 5,
   }) {
     this.utils = utils;
     this.encryption = Encrypter;
@@ -39,7 +39,7 @@ class ATFAuto {
     /** Configurable properties */
     this.delay = Number(delay);
     this.difference = Number(difference);
-    this.amount = amount ? Number(amount) : null;
+    this.amount = amount;
 
     /** Boost mode */
     this.mode = "roll"; // roll or collect

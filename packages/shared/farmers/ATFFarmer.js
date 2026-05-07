@@ -458,7 +458,7 @@ export default class ATFFarmer extends BaseFarmer {
   }
 
   /** Place withdrawal */
-  async withdraw({ max = null, difference = 0 } = {}) {
+  async withdraw({ max, difference = 0 } = {}) {
     const { user } = this.auth_data;
     const balance = new Decimal(user["mined_balance"]);
 
