@@ -110,7 +110,7 @@ class ATFAuto {
       .delayForSeconds(60 + Math.floor(Math.random() * 30), {
         signal: this.signal,
       })
-      .catch();
+      .catch((error) => {});
   }
 
   /** Delay for safe minutes */
@@ -119,7 +119,7 @@ class ATFAuto {
       .delayForMinutes(this.delay, {
         signal: this.signal,
       })
-      .catch();
+      .catch((error) => {});
   }
 
   /** Send Notification */
