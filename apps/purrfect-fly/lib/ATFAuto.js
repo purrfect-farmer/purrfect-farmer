@@ -49,14 +49,14 @@ class ATFAuto {
 
   /** Handle cancellation signal */
   handleCancellationSignal = () => {
-    return bot.sendPrivateMessage(this.id, [
+    return this.sendNotification([
       `<i>🛑 ATF Auto - Stopping operation...</i>`,
     ]);
   };
 
   /** Send cancellation completion notification */
   sendCancellationCompletionNotification() {
-    return bot.sendPrivateMessage(this.id, [
+    return this.sendNotification([
       `<i>🛑 ATF Auto - Operation stopped. Remaining accounts skipped.</i>`,
     ]);
   }
@@ -120,6 +120,15 @@ class ATFAuto {
         signal: this.signal,
       })
       .catch();
+  }
+
+  /** Send Notification */
+  sendNotification(messages) {
+    return bot.sendPrivateMessage(this.id, messages, {
+      ["link_preview_options"]: {
+        ["is_disabled"]: true,
+      },
+    });
   }
 
   async prepareInitialMasterData() {
@@ -304,7 +313,7 @@ class ATFAuto {
     });
 
     /** Send Boost Notification */
-    await bot.sendPrivateMessage(this.id, [
+    await this.sendNotification([
       status
         ? `⚡ Boosted <b>(${this.formatAccountLink(cloudAccount.id)})</b> with <i>${jettonAmount} ATF</i> ${this.formatAccountPosition(index)}`
         : `❌ Failed to boost <b>(${this.formatAccountLink(cloudAccount.id)})</b> with <i>${jettonAmount} ATF</i> ${this.formatAccountPosition(index)}\n<i>Error: ${message || "Unknown error!"}</i>`,
@@ -376,7 +385,7 @@ class ATFAuto {
   async boost() {
     try {
       /** Send notification about initiation */
-      await bot.sendPrivateMessage(this.id, [
+      await this.sendNotification([
         `⏳ ATF Auto - Boost initiated...`,
         this.formatDelay(),
         this.formatDifference(),
@@ -406,9 +415,7 @@ class ATFAuto {
         await this.sendCancellationCompletionNotification();
       } else {
         /** Notify about boost completion */
-        await bot.sendPrivateMessage(this.id, [
-          `✅ ATF Auto - Boost completed.`,
-        ]);
+        await this.sendNotification([`✅ ATF Auto - Boost completed.`]);
       }
     } catch (e) {
       const errorMessage = e.message || "Unknown error!";
@@ -417,7 +424,7 @@ class ATFAuto {
       logger.error(errorMessage);
 
       /** Notify about boost error */
-      await bot.sendPrivateMessage(this.id, [
+      await this.sendNotification([
         `❌ ATF Auto - an error occurred while boosting!`,
         errorMessage,
       ]);
@@ -445,9 +452,7 @@ class ATFAuto {
   async collect() {
     try {
       /** Send notification about initiation */
-      await bot.sendPrivateMessage(this.id, [
-        `⏳ ATF Auto - Collection initiated...`,
-      ]);
+      await this.sendNotification([`⏳ ATF Auto - Collection initiated...`]);
 
       /** Prepare initial master data */
       await this.prepareInitialMasterData();
@@ -464,9 +469,7 @@ class ATFAuto {
       if (this.signal.aborted) {
         await this.sendCancellationCompletionNotification();
       } else {
-        await bot.sendPrivateMessage(this.id, [
-          `✅ ATF Auto - Collection completed.`,
-        ]);
+        await this.sendNotification([`✅ ATF Auto - Collection completed.`]);
       }
     } catch (e) {
       const errorMessage = e.message || "Unknown error!";
@@ -475,7 +478,7 @@ class ATFAuto {
       logger.error(errorMessage);
 
       /** Notify about boost error */
-      await bot.sendPrivateMessage(this.id, [
+      await this.sendNotification([
         `❌ ATF Auto - an error occurred during collection!`,
         errorMessage,
       ]);
@@ -502,7 +505,7 @@ class ATFAuto {
     const { status, skipped, collected, error } = await booster.collect();
 
     /** Send Notification */
-    await bot.sendPrivateMessage(this.id, [
+    await this.sendNotification([
       skipped
         ? `⏩ Skipped <b>(${this.truncateAddress(account.address)})</b> ${this.formatAccountPosition(index)}`
         : status
@@ -521,7 +524,7 @@ class ATFAuto {
   async withdraw() {
     try {
       /** Send notification about initiation */
-      await bot.sendPrivateMessage(this.id, [
+      await this.sendNotification([
         `⏳ ATF Auto - Withdrawal initiated...`,
         this.formatDelay(),
         this.formatDifference(),
@@ -541,9 +544,7 @@ class ATFAuto {
         await this.sendCancellationCompletionNotification();
       } else {
         /** Notify about completion */
-        await bot.sendPrivateMessage(this.id, [
-          `✅ ATF Auto - Withdrawal completed.`,
-        ]);
+        await this.sendNotification([`✅ ATF Auto - Withdrawal completed.`]);
       }
     } catch (e) {
       const errorMessage = e.message || "Unknown error!";
@@ -552,7 +553,7 @@ class ATFAuto {
       logger.error(errorMessage);
 
       /** Notify about boost error */
-      await bot.sendPrivateMessage(this.id, [
+      await this.sendNotification([
         `❌ ATF Auto - an error occurred during withdrawal!`,
         errorMessage,
       ]);
@@ -575,7 +576,7 @@ class ATFAuto {
       await this.requestWithdrawal(cloudAccount);
 
     /** Send Notification */
-    await bot.sendPrivateMessage(this.id, [
+    await this.sendNotification([
       skipped
         ? `⏩ Skipped <b>(${this.formatAccountLink(cloudAccount.id)})</b> - <i>${amount} ATF</i> ${this.formatAccountPosition(index)}`
         : status
@@ -646,7 +647,7 @@ class ATFAuto {
   async status() {
     try {
       /** Send notification about initiation */
-      await bot.sendPrivateMessage(this.id, [
+      await this.sendNotification([
         `⏳ ATF Auto - Status request initiated...`,
       ]);
 
@@ -663,7 +664,7 @@ class ATFAuto {
         await this.sendCancellationCompletionNotification();
       } else {
         /** Notify about completion */
-        await bot.sendPrivateMessage(this.id, [
+        await this.sendNotification([
           `✅ ATF Auto - Status request completed.`,
         ]);
       }
@@ -674,7 +675,7 @@ class ATFAuto {
       logger.error(errorMessage);
 
       /** Notify about boost error */
-      await bot.sendPrivateMessage(this.id, [
+      await this.sendNotification([
         `❌ ATF Auto - an error occurred during status request!`,
         errorMessage,
       ]);
@@ -703,8 +704,7 @@ class ATFAuto {
       .filter(Boolean);
 
     /** Send Notification */
-    await bot.sendPrivateMessage(
-      this.id,
+    await this.sendNotification(
       status
         ? [
             `ℹ️ User details <b>(${this.formatAccountLink(cloudAccount.id)})</b> ${this.formatAccountPosition(index)}`,

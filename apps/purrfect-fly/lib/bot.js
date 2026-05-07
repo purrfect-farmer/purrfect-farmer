@@ -182,9 +182,9 @@ class GroupBot extends Bot {
   }
 
   /** Send Private Message */
-  async sendPrivateMessage(id, message, options = {}) {
+  async sendPrivateMessage(id, messages, options = {}) {
     try {
-      this.api.sendMessage(id, message.join("\n"), {
+      this.api.sendMessage(id, messages.join("\n"), {
         ["parse_mode"]: "HTML",
         ...options,
       });
