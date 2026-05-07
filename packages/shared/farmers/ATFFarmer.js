@@ -8,6 +8,9 @@ import {
 } from "@ton/crypto";
 
 import BaseFarmer from "../lib/BaseFarmer.js";
+import Decimal from "decimal.js";
+
+const MINIMUM_WITHDRAWABLE_AMOUNT = 500;
 
 export default class ATFFarmer extends BaseFarmer {
   static id = "atf";
@@ -455,17 +458,41 @@ export default class ATFFarmer extends BaseFarmer {
   }
 
   /** Place withdrawal */
-  async withdraw() {
+  async withdraw({ max = null, difference = 0 } = {}) {
     const { user } = this.auth_data;
-    const balance = Number(user["mined_balance"]);
+    const balance = new Decimal(user["mined_balance"]);
 
-    if (balance < 500) {
-      this.logger.error("Not enough balance:", balance);
-      return { status: false, skipped: true, amount: balance };
+    if (balance.lessThan(MINIMUM_WITHDRAWABLE_AMOUNT)) {
+      this.logger.error("Not enough balance:", balance.toString());
+      return { status: false, skipped: true, amount: balance.toString() };
     }
 
     /** Log balance */
-    this.logger.info("Available balance", balance);
+    this.logger.info("Available balance:", balance.toString());
+
+    /** Initial amount to withdraw */
+    let amount = new Decimal(balance);
+
+    /** Cap to max */
+    if (max) {
+      amount = Decimal.min(amount, max);
+    }
+
+    /** Apply difference */
+    if (difference > 0) {
+      const minPercent = new Decimal(100).minus(difference);
+      const randomPercent = minPercent
+        .plus(new Decimal(Math.random()).mul(difference + 1))
+        .clamp(minPercent, 100);
+
+      amount = amount.mul(randomPercent).div(100);
+    }
+
+    /** Reset amount to minimum */
+    amount = Decimal.max(amount, MINIMUM_WITHDRAWABLE_AMOUNT).toDecimalPlaces(
+      4,
+      Decimal.ROUND_DOWN,
+    );
 
     /** Get challenge */
     const challenge = await this.getWithdrawalPuzzle();
@@ -504,7 +531,7 @@ export default class ATFFarmer extends BaseFarmer {
 
     /** Request withdrawal */
     const result = await this.requestWithdrawal({
-      amount: balance,
+      amount: amount.toString(),
       withdraw_puzzle_id: puzzleId,
       withdraw_puzzle_offset: puzzleOffset,
       withdraw_puzzle_duration_ms: puzzleDuration,
@@ -515,15 +542,15 @@ export default class ATFFarmer extends BaseFarmer {
     const status = result.status === "success";
     const message = result.message;
 
-    /** Amount */
-    let withdrawn = balance;
+    /** Withdrawn amount */
+    let withdrawn = amount;
 
     if (status) {
       /** Update balance */
       this.auth_data.user["mined_balance"] = result["new_balance"];
 
       /** Set withdrawn amount */
-      withdrawn = Number(result["send_amount"]);
+      withdrawn = new Decimal(result["send_amount"]);
 
       /** Log result */
       this.logger.success(result["message"]);
@@ -539,7 +566,7 @@ export default class ATFFarmer extends BaseFarmer {
       message,
       result,
       skipped: false,
-      amount: withdrawn,
+      amount: withdrawn.toString(),
     };
   }
 
