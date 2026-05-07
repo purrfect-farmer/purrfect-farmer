@@ -26,10 +26,13 @@ const atfAutoSchema = {
     type: "object",
     required: ["auth", "password", "master", "accounts"],
     properties: {
+      /** Core properties */
       auth: { type: "string" },
       password: { type: "string" },
       master: { type: "object" },
       accounts: { type: "array" },
+
+      /** Configs */
       delay: { type: "number" },
       difference: { type: "number" },
       amount: { type: "number" },
