@@ -30,7 +30,7 @@ export default function ATFAutoWithdrawTab() {
     resolver: yupResolver(schema),
     defaultValues: {
       delay: 3,
-      difference: 10,
+      difference: 5,
       amount: "",
     },
   });
