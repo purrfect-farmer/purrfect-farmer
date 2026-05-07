@@ -46,7 +46,7 @@ export default function ATFAutoWithdrawTab() {
       return;
     }
 
-    console.log(data);
+    console.log("Form submitted with data:", data);
 
     await toast.promise(
       mutation.mutateAsync({
@@ -98,7 +98,7 @@ export default function ATFAutoWithdrawTab() {
       {!mutation.isSuccess && !mutation.isError && (
         <form
           onSubmit={form.handleSubmit(handleWithdraw)}
-          className="flex flex-col gap-3 p-2"
+          className="flex flex-col gap-2"
         >
           <Alert variant="info">
             Perform withdrawal in Cloud. Accounts that have mined up to the
