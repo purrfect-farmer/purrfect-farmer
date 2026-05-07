@@ -19,7 +19,7 @@ class ATFAuto {
     master,
     accounts,
     password,
-    amount,
+    amount = "",
     delay = 5,
     difference = 5,
   }) {
@@ -84,6 +84,24 @@ class ATFAuto {
   /** Format address link */
   formatAddressLink(address) {
     return `<a href="https://tonviewer.com/${address}">${this.truncateAddress(address)}</a>`;
+  }
+
+  /** Format the delay */
+  formatDelay() {
+    return this.formatKeyValue("Delay", `${this.delay}m`);
+  }
+
+  /** Format the difference */
+  formatDifference() {
+    return this.formatKeyValue("Difference", `${this.difference}%`);
+  }
+
+  /** Format the maximum amount */
+  formatMaximumAmount() {
+    return this.formatKeyValue(
+      "Max. Amount",
+      this.amount ? `${this.amount} ATF` : "(none)",
+    );
   }
 
   /** Delay for safe seconds */
@@ -360,6 +378,8 @@ class ATFAuto {
       /** Send notification about initiation */
       await bot.sendPrivateMessage(this.id, [
         `⏳ ATF Auto - Boost initiated...`,
+        this.formatDelay(),
+        this.formatDifference(),
       ]);
 
       /** Prepare initial master data */
@@ -503,6 +523,9 @@ class ATFAuto {
       /** Send notification about initiation */
       await bot.sendPrivateMessage(this.id, [
         `⏳ ATF Auto - Withdrawal initiated...`,
+        this.formatDelay(),
+        this.formatDifference(),
+        this.formatMaximumAmount(),
       ]);
 
       /** Loop through accounts and withdraw */
