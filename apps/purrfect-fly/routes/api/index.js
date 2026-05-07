@@ -35,7 +35,7 @@ const atfAutoSchema = {
       /** Configs */
       delay: { type: "number" },
       difference: { type: "number" },
-      amount: { type: "number" },
+      amount: { type: "string" },
     },
   },
 };
