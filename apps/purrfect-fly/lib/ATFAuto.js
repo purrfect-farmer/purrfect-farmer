@@ -61,6 +61,13 @@ class ATFAuto {
     ]);
   }
 
+  /** Send pending operation notification */
+  sendPendingOperationNotification() {
+    return this.sendNotification([
+      `<i>⚠️ ATF Auto - an operation is currently in progress. Please cancel it first!</i>`,
+    ]);
+  }
+
   /** Is Last Account */
   isLastAccount(index) {
     return index !== this.accounts.length - 1;
@@ -805,7 +812,9 @@ class ATFAuto {
   }
 
   static execute(options, callback) {
-    if (this.instances.has(options.id)) return;
+    if (this.instances.has(options.id)) {
+      return this.instances.get(options.id).sendPendingOperationNotification();
+    }
     const instance = new this(options);
 
     this.instances.set(options.id, instance);
