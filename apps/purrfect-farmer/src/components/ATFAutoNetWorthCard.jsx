@@ -25,6 +25,12 @@ export function ATFAutoNetWorthCard() {
       : null;
   }, [isSuccess, data]);
 
+  const accountsWithBalanceCount = useMemo(() => {
+    return isSuccess
+      ? data.filter((item) => item.jetton.greaterThan(0)).length
+      : 0;
+  }, [isSuccess, data]);
+
   return (
     <div
       className={cn(
@@ -50,6 +56,14 @@ export function ATFAutoNetWorthCard() {
         <span>{balances ? balances.ton.toFixed(4) : "-.----"}</span>
         <span className="text-purple-100">TON</span>
       </div>
+
+      {/* Count of accounts with balance */}
+      {accountsWithBalanceCount ? (
+        <div className="flex items-center gap-2">
+          Account(s) -
+          <span className="font-bold">{accountsWithBalanceCount}</span>
+        </div>
+      ) : null}
     </div>
   );
 }
