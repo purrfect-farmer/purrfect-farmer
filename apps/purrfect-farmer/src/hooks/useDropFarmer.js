@@ -18,6 +18,7 @@ import { useMemo } from "react";
 import usePrimaryFarmerLink from "./usePrimaryFarmerLink";
 import usePrimaryFarmerUserId from "./usePrimaryFarmerUserId";
 import useRefCallback from "./useRefCallback";
+import useStorageState from "./useStorageState";
 import useTabContext from "./useTabContext";
 import useTelegramWebApp from "./useTelegramWebApp";
 import useUnauthorizedInterceptor from "./useUnauthorizedInterceptor";
@@ -80,6 +81,17 @@ export default function useDropFarmer() {
       ? FarmerClass.telegramLink
       : null;
 
+  /** Referral link */
+  const { value: referralLink } = useStorageState(
+    `farmer-referral-link:${id}`,
+    null,
+  );
+
+  /** Can auto-start */
+  const canAutoStart = autoStart
+    ? autoStart
+    : isPrimaryFarmerUser || Boolean(referralLink);
+
   const {
     resetStates,
     initResetCount,
@@ -114,7 +126,7 @@ export default function useDropFarmer() {
     external,
     telegramLink,
     cacheTelegramWebApp,
-    enabled: isTelegramMiniApp,
+    enabled: isTelegramMiniApp && canAutoStart,
   });
 
   /** Prepared */
