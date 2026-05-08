@@ -18,6 +18,7 @@ import { yupResolver } from "@hookform/resolvers/yup";
 
 const schema = yup
   .object({
+    delay: yup.number().required().min(1).label("Delay"),
     difference: yup.number().required().label("Difference"),
   })
   .required();
@@ -26,6 +27,7 @@ export default function ATFAutoBoostTab() {
   const form = useForm({
     resolver: yupResolver(schema),
     defaultValues: {
+      delay: 5,
       difference: 5,
     },
   });
@@ -100,6 +102,36 @@ export default function ATFAutoBoostTab() {
             wallet into each selected account. Ensure the master wallet has
             enough TON for operations.
           </Alert>
+
+          {/* Delay */}
+          <Controller
+            control={form.control}
+            name="delay"
+            render={({ field, fieldState }) => (
+              <div className="flex flex-col gap-1">
+                <Label>
+                  Delay in minutes{" "}
+                  <span className="text-blue-500 dark:text-blue-400">
+                    ({field.value}m)
+                  </span>
+                </Label>
+                <Slider
+                  step={1}
+                  min={1}
+                  max={30}
+                  value={[field.value]}
+                  onValueChange={(newValue) => field.onChange(newValue[0])}
+                />
+
+                {/* Info */}
+                <p className="text-center text-neutral-500 dark:text-neutral-400">
+                  Configure the delay between accounts
+                </p>
+
+                <FieldStateError fieldState={fieldState} />
+              </div>
+            )}
+          />
 
           {/* Difference */}
           <Controller

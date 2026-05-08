@@ -61,6 +61,11 @@ class ATFAuto {
     ]);
   }
 
+  /** Is Last Account */
+  isLastAccount(index) {
+    return index !== this.accounts.length - 1;
+  }
+
   /** Truncate address */
   truncateAddress(address) {
     return `${address.slice(0, 6)}...${address.slice(-4)}`;
@@ -325,11 +330,8 @@ class ATFAuto {
     /** Apply mode */
     await this.applyMode(account, phrase, booster);
 
-    /** Delay */
-    if (cloudAccount.farmer) {
-      await this.delayForSafeSeconds();
-    } else {
-      /** Delay for minutes */
+    /** Delay for minutes */
+    if (!this.isLastAccount(index)) {
       await this.delayForSafeMinutes();
     }
   }
@@ -584,12 +586,15 @@ class ATFAuto {
           : `❌ Failed to withdraw <b>(${this.formatAccountLink(cloudAccount.id)})</b> - <i>${amount} ATF</i> ${this.formatAccountPosition(index)}\n<i>Reason: ${message}</i>`,
     ]);
 
-    if (skipped) {
-      /** Delay for seconds */
-      await this.delayForSafeSeconds();
-    } else {
-      /** Delay for minutes */
-      await this.delayForSafeMinutes();
+    /** Delay */
+    if (!this.isLastAccount(index)) {
+      if (skipped) {
+        /** Delay for seconds */
+        await this.delayForSafeSeconds();
+      } else {
+        /** Delay for minutes */
+        await this.delayForSafeMinutes();
+      }
     }
   }
 
@@ -751,7 +756,9 @@ class ATFAuto {
     );
 
     /** Delay for seconds */
-    await this.delayForSafeSeconds();
+    if (!this.isLastAccount(index)) {
+      await this.delayForSafeSeconds();
+    }
   }
 
   /** Get Status */
