@@ -69,13 +69,27 @@ export default class PayPlusFarmer extends BaseFarmer {
       .then((res) => res.data);
   }
 
-  /** Verify Channel */
+  /** Complete Bot Task */
   completeBotTask(botId, signal = this.signal) {
     return this.api
       .post(
         "https://kaliboy002.duckdns.org/api/complete-bot",
         {
           botId,
+          initData: this.getInitData(),
+        },
+        { signal },
+      )
+      .then((res) => res.data);
+  }
+
+  /** Complete Youtube Task */
+  completeYoutubeTask(youtubeId, signal = this.signal) {
+    return this.api
+      .post(
+        "https://kaliboy002.duckdns.org/api/complete-youtube",
+        {
+          youtubeId,
           initData: this.getInitData(),
         },
         { signal },
@@ -105,7 +119,7 @@ export default class PayPlusFarmer extends BaseFarmer {
   /** Complete tasks */
   async completeTasks() {
     const tasks = await this.getTasksConfig();
-    const { completedBots, completedChannels } = this.user;
+    const { completedBots, completedChannels, completedYoutube } = this.user;
 
     /** Available bot tasks */
     const availableBotTasks = tasks.bots.filter(
@@ -136,6 +150,12 @@ export default class PayPlusFarmer extends BaseFarmer {
         this.logger.warn(`${channel.name} - not subscribed to channel!`);
       }
       await this.utils.delayForSeconds(10, { signal: this.signal });
+    }
+
+    /** Complete Youtube Task */
+    if (!completedYoutube.length) {
+      await this.completeYoutubeTask("kaliboy002_yt");
+      this.logger.success("✓ Youtube Task");
     }
   }
 
