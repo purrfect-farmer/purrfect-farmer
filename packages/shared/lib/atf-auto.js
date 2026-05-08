@@ -57,8 +57,8 @@ export async function getJettonBalance(ownerAddress, options) {
 
 export async function getBalances(address, options) {
   const [ton, jetton] = await Promise.all([
-    getTonBalance(address, options).catch(() => 0),
-    getJettonBalance(address, options).catch(() => 0),
+    getTonBalance(address, options).catch(() => new Decimal(0)),
+    getJettonBalance(address, options).catch(() => new Decimal(0)),
   ]);
 
   return { ton, jetton };

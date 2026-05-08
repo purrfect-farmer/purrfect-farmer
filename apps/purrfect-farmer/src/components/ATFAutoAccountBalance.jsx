@@ -6,6 +6,8 @@ import useATFBalancesQuery from "@/hooks/useATFBalancesQuery";
 export default function ATFAutoAccountBalance({ account, ...props }) {
   const { address } = account;
   const { data: balances } = useATFBalancesQuery(address);
+  const hasTon = balances?.ton?.greaterThan(0);
+  const hasJetton = balances?.jetton?.greaterThan(0);
 
   return (
     <span
@@ -16,11 +18,21 @@ export default function ATFAutoAccountBalance({ account, ...props }) {
         props.className,
       )}
     >
-      <span className="inline-flex items-center gap-0.5">
+      <span
+        className={cn(
+          "inline-flex items-center gap-0.5",
+          hasTon ? "text-green-500 dark:text-green-400" : null,
+        )}
+      >
         <img src={TonIcon} className="size-3" />
         {balances ? balances.ton.toFixed(4) : "-.--"}
       </span>
-      <span className="inline-flex items-center gap-0.5">
+      <span
+        className={cn(
+          "inline-flex items-center gap-0.5",
+          hasJetton ? "text-green-500 dark:text-green-400" : null,
+        )}
+      >
         <img src={ATFIcon} className="size-3 rounded-full" />
         {balances ? balances.jetton.toFixed(2) : "-.--"}
       </span>
