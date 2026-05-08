@@ -28,7 +28,7 @@ export default function ATFAutoBoostTab() {
     resolver: yupResolver(schema),
     defaultValues: {
       delay: 5,
-      difference: 5,
+      difference: 10,
     },
   });
 
