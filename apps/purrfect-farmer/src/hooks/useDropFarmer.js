@@ -40,6 +40,7 @@ export default function useDropFarmer() {
     platform,
     type,
     host,
+    autoStart,
     apiDelay = 200,
     cacheAuth = true,
     cacheTelegramWebApp = true,
@@ -58,6 +59,7 @@ export default function useDropFarmer() {
     settings,
     account,
     dispatchToGetPrimaryFarmerLink,
+    telegramUser: appTelegramUser,
   } = app;
 
   /** Primary farmer user ID */
@@ -65,6 +67,11 @@ export default function useDropFarmer() {
 
   /** Primary farmer link */
   const { primaryFarmerLink } = usePrimaryFarmerLink(FarmerClass.id);
+
+  /** Is Primary user */
+  const isPrimaryFarmerUser = primaryFarmerUserId
+    ? primaryFarmerUserId === appTelegramUser?.user?.id
+    : account.isPrimary;
 
   /** Telegram Link */
   const telegramLink = primaryFarmerLink

@@ -69,6 +69,7 @@ export default function createRunner(FarmerClass) {
     static primaryAccountId = primaryAccountId;
     static primaryFarmerLink = null;
     static runners = new Map();
+    static referralLinks = new Map();
     static logger = new ConsoleLogger(process.env.NODE_ENV !== "production");
     static queue = [];
     static isProcessingQueue = false;
@@ -470,15 +471,23 @@ export default function createRunner(FarmerClass) {
      * @param {Runner} instance
      */
     static async updatePrimaryFarmerLink(instance) {
-      if (
-        this.primaryFarmerLink ||
-        instance.account.id !== this.primaryAccountId
-      ) {
-        return;
-      }
       try {
+        let referralLink = this.referralLinks.get(instance.account.id);
+
+        if (!referralLink) {
+          referralLink = await instance.getReferralLink();
+          this.referralLinks.set(instance.account.id, referralLink);
+        }
+
+        if (
+          this.primaryFarmerLink ||
+          instance.account.id !== this.primaryAccountId
+        ) {
+          return;
+        }
+
         /** Update the primary farmer link */
-        this.primaryFarmerLink = await instance.getReferralLink();
+        this.primaryFarmerLink = referralLink;
 
         /** Configure the primary farmer link */
         this.configurePrimaryLink(this.primaryFarmerLink);
@@ -501,7 +510,7 @@ export default function createRunner(FarmerClass) {
         });
 
         /** Reset the primary farmer link */
-        this.resetPrimaryFarmerLink();
+        this.resetPrimaryFarmerLink(instance);
       }
     }
 
@@ -572,8 +581,12 @@ export default function createRunner(FarmerClass) {
     }
 
     /** Reset primary farmer link */
-    static resetPrimaryFarmerLink() {
-      if (this.primaryFarmerLink) return;
+    static resetPrimaryFarmerLink(instance) {
+      if (
+        this.primaryFarmerLink ||
+        instance.account.id !== this.primaryAccountId
+      )
+        return;
 
       /** Update link */
       this.primaryFarmerLink =
@@ -660,7 +673,9 @@ export default function createRunner(FarmerClass) {
 
         /** Can auto-start accounts without farmer */
         const canAutoStart =
-          this.platform === "telegram" && canLaunchPrimaryAccount;
+          this.autoStart &&
+          this.platform === "telegram" &&
+          canLaunchPrimaryAccount;
 
         /** Get accounts to be executed  */
         const executableList = accounts.filter((account) => {
