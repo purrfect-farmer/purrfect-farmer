@@ -59,7 +59,7 @@ export function ATFAutoNetWorthCard() {
 
       {/* Count of accounts with balance */}
       {accountsWithBalanceCount ? (
-        <div className="flex items-center gap-2">
+        <div className="text-center">
           Account(s) -
           <span className="font-bold">{accountsWithBalanceCount}</span>
         </div>
