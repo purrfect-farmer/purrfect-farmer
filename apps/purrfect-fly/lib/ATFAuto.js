@@ -70,7 +70,7 @@ class ATFAuto {
 
   /** Is Last Account */
   isLastAccount(index) {
-    return index !== this.accounts.length - 1;
+    return index === this.accounts.length - 1;
   }
 
   /** Truncate address */
