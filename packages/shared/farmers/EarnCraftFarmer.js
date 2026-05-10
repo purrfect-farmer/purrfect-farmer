@@ -113,7 +113,8 @@ export default class EarnCraftFarmer extends BaseFarmer {
         this.logUserInfo(this.user);
         await this.executeTask("Tasks", () => this.completeTasks());
         await this.executeTask("Watch Ads", () => this.watchAds());
-        await this.executeTask("Spin Today", () => this.spinToday());
+        await this.executeTask("Bonus Ads", () => this.claimBonusAds());
+        await this.executeTask("Spin Wheel", () => this.spinToday());
     }
 
     logUserInfo(user) {
@@ -122,7 +123,7 @@ export default class EarnCraftFarmer extends BaseFarmer {
         this.logger.keyValue("Balance", `$${user.balance}`);
         this.logger.keyValue("Today Ads", `${user['ads_today']}`);
         this.logger.keyValue("Total Ads", `${user['ads_watched_total']}/4`);
-        this.logger.keyValue("Bonus Ad Today", `${user['bonus_ad_today']}`);
+        this.logger.keyValue("Bonus Ad Today", `${user['bonus_ad_today']}/10`);
         this.logger.keyValue("Invites", `${user['total_referrals']}/4`);
         this.logger.keyValue("Banned", user['is_banned'] ? "Yes 🚫" : "No ✅");
     }
@@ -150,9 +151,6 @@ export default class EarnCraftFarmer extends BaseFarmer {
 
     /** Watch ads */
     async watchAds() {
-        const bonusAdToday = this.me['bonus_ad_today'];
-        const bonusAdDate = this.me['bonus_ad_date'];
-
         /** Get Ads Progress */
         const adsProgress = JSON.parse(this.me['ad_progress']) || {};
 
@@ -172,11 +170,23 @@ export default class EarnCraftFarmer extends BaseFarmer {
             this.logger.success(`Watched ad: ${ad.title}`);
             await this.utils.delayForSeconds(30, { signal: this.signal });
         }
+    }
 
-        /** Claim Bonus Ad Reward */
-        if (this.utils.chance(20)) {
+    /** Claim Bonus Ads */
+    async claimBonusAds() {
+        const bonusAdToday = this.me['bonus_ad_today'];
+        const bonusAdDate = this.me['bonus_ad_date'];
+
+        const hasReset = !bonusAdDate || this.utils.dateFns.isAfter(
+            new Date(),
+            this.utils.dateFns.addDays(new Date(bonusAdDate), 1)
+        );
+
+        for (let i = bonusAdToday; i < 10; i++) {
+            if (this.signal.aborted) break;
             await this.claimBonusAdReward();
-            this.logger.success(`Claimed bonus ad reward`);
+            this.logger.success(`Claimed bonus ad reward - (${i + 1}/10)`);
+            await this.utils.delayForSeconds(30, { signal: this.signal });
         }
     }
 
