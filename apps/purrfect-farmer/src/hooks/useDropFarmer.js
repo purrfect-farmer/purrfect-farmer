@@ -63,6 +63,12 @@ export default function useDropFarmer() {
     telegramUser: appTelegramUser,
   } = app;
 
+  /** Referral link */
+  const { value: referralLink } = useStorageState(
+    `farmer-referral-link:${id}`,
+    null,
+  );
+
   /** Primary farmer user ID */
   const { primaryFarmerUserId } = usePrimaryFarmerUserId(FarmerClass.id);
 
@@ -75,17 +81,13 @@ export default function useDropFarmer() {
     : account.isPrimary;
 
   /** Telegram Link */
-  const telegramLink = primaryFarmerLink
+  const telegramLink = referralLink ? referralLink : primaryFarmerLink
     ? primaryFarmerLink
     : account.isPrimary
       ? FarmerClass.telegramLink
       : null;
 
-  /** Referral link */
-  const { value: referralLink } = useStorageState(
-    `farmer-referral-link:${id}`,
-    null,
-  );
+
 
   /** Can auto-start */
   const canAutoStart = autoStart
