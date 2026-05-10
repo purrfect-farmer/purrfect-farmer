@@ -12,7 +12,8 @@ export default class PayPlusFarmer extends BaseFarmer {
   static cacheAuth = false;
   static cacheTelegramWebApp = false;
   static rating = 4;
-  static interval = "*/30 * * * *";
+  static interval = "0 */2 * * *"; // Every 2 hours
+
 
   /** Get Referral Link */
   getReferralLink() {
