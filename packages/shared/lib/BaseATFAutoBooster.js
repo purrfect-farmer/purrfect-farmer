@@ -101,12 +101,12 @@ export default class BaseATFAutoBooster {
       ].concat(
         includeGas
           ? [
-              internal({
-                to: Address.parse(this.account.address),
-                value: TON_FOR_GAS,
-                bounce: false,
-              }),
-            ]
+            internal({
+              to: Address.parse(this.account.address),
+              value: TON_FOR_GAS,
+              bounce: false,
+            }),
+          ]
           : [],
       ),
     });
@@ -209,7 +209,13 @@ export default class BaseATFAutoBooster {
 
       if (jettonBalance.lessThanOrEqualTo(0)) {
         console.log("Skipping due to low Jetton balance!");
-        return { status: false, skipped: true, account: this.account };
+        return {
+          status: false,
+          skipped: true,
+          account: this.account,
+          collected: new Decimal(0),
+          error: null,
+        };
       }
       const { contract } = await this._prepareSubAccount();
       const balance = await contract.getBalance();
@@ -225,10 +231,22 @@ export default class BaseATFAutoBooster {
       /** Return TON */
       await this.returnTonToMaster();
 
-      return { status: true, account: this.account, collected: jettonBalance };
+      return {
+        status: true,
+        skipped: false,
+        account: this.account,
+        collected: jettonBalance,
+        error: null,
+      };
     } catch (error) {
       console.log("Error while collecting from account", error);
-      return { status: false, skipped: false, account: this.account, error };
+      return {
+        status: false,
+        skipped: false,
+        account: this.account,
+        collected: new Decimal(0),
+        error,
+      };
     }
   }
 }

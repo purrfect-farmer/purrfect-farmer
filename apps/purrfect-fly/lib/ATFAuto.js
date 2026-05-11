@@ -7,6 +7,7 @@ import farmers from "../farmers/index.js";
 import logger from "./logger.js";
 import { prepareMaster } from "@purrfect/shared/lib/atf-auto-transactions.js";
 import utils from "./utils.js";
+import Decimal from "decimal.js";
 
 class ATFAuto {
   /**
@@ -498,19 +499,39 @@ class ATFAuto {
       /** Prepare initial master data */
       await this.prepareInitialMasterData();
 
+      /** Results */
+      const results = [];
+
       /** Loop through accounts and collect */
       for (const [index, account] of this.accounts.entries()) {
         if (this.signal.aborted) {
           break;
         }
-        await this.processCollect(account, index);
+        /** Process collect */
+        const result = await this.processCollect(account, index);
+
+        /** Add result to results */
+        results.push(result);
       }
 
       /** Notify about completion */
       if (this.signal.aborted) {
         await this.sendCancellationCompletionNotification();
       } else {
-        await this.sendNotification([`✅ ATF Auto - Collection completed.`]);
+        /** Calculate total amount */
+        const totalAmount = results.reduce(
+          (acc, result) => acc.plus(result.collected),
+          new Decimal(0),
+        );
+
+        /** Format total amount */
+        const totalAmountFormatted = totalAmount.toDecimalPlaces(4, Decimal.ROUND_DOWN).toString();
+
+        /** Notify about completion */
+        await this.sendNotification([
+          `✅ ATF Auto - Collection completed!`,
+          this.formatKeyValue("Total collected", `${totalAmountFormatted} ATF`),
+        ]);
       }
     } catch (e) {
       const errorMessage = e.message || "Unknown error!";
@@ -543,7 +564,8 @@ class ATFAuto {
 
     /** Collect */
     logger.info("Collecting account:", account.address);
-    const { status, skipped, collected, error } = await booster.collect();
+    const result = await booster.collect();
+    const { status, skipped, collected, error } = result;
 
     /** Send Notification */
     await this.sendNotification([
@@ -559,6 +581,8 @@ class ATFAuto {
 
     /** Delay for 5s */
     await this.utils.delayForSeconds(5);
+
+    return result;
   }
 
   /** Withdraw */
@@ -572,20 +596,35 @@ class ATFAuto {
         this.formatMaximumAmount(),
       ]);
 
+      const results = [];
+
       /** Loop through accounts and withdraw */
       for (const [index, account] of this.accounts.entries()) {
         if (this.signal.aborted) {
           break;
         }
-        await this.processWithdraw(account, index);
+        const result = await this.processWithdraw(account, index);
+        results.push(result);
       }
 
       /** Notify about cancellation completion */
       if (this.signal.aborted) {
         await this.sendCancellationCompletionNotification();
       } else {
+        /** Calculate total amount */
+        const totalAmount = results.reduce(
+          (acc, result) => acc.plus(result.amount),
+          new Decimal(0),
+        );
+
+        /** Format total amount */
+        const totalAmountFormatted = totalAmount.toDecimalPlaces(4, Decimal.ROUND_DOWN).toString();
+
         /** Notify about completion */
-        await this.sendNotification([`✅ ATF Auto - Withdrawal completed.`]);
+        await this.sendNotification([
+          `✅ ATF Auto - Withdrawal completed!`,
+          this.formatKeyValue("Total withdrawn", `${totalAmountFormatted} ATF`),
+        ]);
       }
     } catch (e) {
       const errorMessage = e.message || "Unknown error!";
@@ -613,8 +652,11 @@ class ATFAuto {
     if (!cloudAccount) return;
 
     /** Result */
-    const { status, skipped, message, amount } =
+    const result =
       await this.requestWithdrawal(cloudAccount);
+
+    /** Destructure result */
+    const { status, skipped, message, amount } = result;
 
     /** Send Notification */
     await this.sendNotification([
@@ -635,6 +677,8 @@ class ATFAuto {
         await this.delayForSafeMinutes();
       }
     }
+
+    return result;
   }
 
   /** Request withdrawal */
