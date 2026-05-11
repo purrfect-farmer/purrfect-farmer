@@ -832,9 +832,9 @@ class ATFAuto {
 
       /** Notify about summary */
       await this.sendSummaryNotification(results, [
-        this.formatKeyValue("Total mined", `${totalMinedFormatted} ATF`),
+        this.formatKeyValue("Total mined", `💰 ${totalMinedFormatted} ATF`),
+        this.formatKeyValue("Withdrawable Amount", `🤑 ${withdrawableAmountFormatted} ATF`),
         this.formatKeyValue("Withdrawable Accounts", `${withdrawableAccounts.length}`),
-        this.formatKeyValue("Withdrawable Amount", `${withdrawableAmountFormatted} ATF`),
       ]);
     } catch (e) {
       const errorMessage = e.message || "Unknown error!";
