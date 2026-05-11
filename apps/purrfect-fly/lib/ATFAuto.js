@@ -170,6 +170,27 @@ class ATFAuto {
     });
   }
 
+  /** Send Summary Notification */
+  sendSummaryNotification(results, messages) {
+    const { processed, skipped, total } = this.getSummaryCount(results);
+    return this.sendNotification([
+      "ℹ️ Operation Summary",
+      ...messages,
+      this.formatKeyValue("Executed", `${total}/${this.accounts.length}`),
+      this.formatKeyValue("Processed", `${processed}`),
+      this.formatKeyValue("Skipped", `${skipped}`),
+    ])
+  };
+
+  /** Get Summary Count */
+  getSummaryCount(results) {
+    return {
+      processed: results.filter(result => result.status).length,
+      skipped: results.filter(result => result.skipped).length,
+      total: results.length,
+    };
+  }
+
   async prepareInitialMasterData() {
     logger.info("Decrypting master wallet....");
     const phrase = await this.decryptPhrase(this.master.encryptedWalletPhrase);
@@ -518,21 +539,23 @@ class ATFAuto {
       if (this.signal.aborted) {
         await this.sendCancellationCompletionNotification();
       } else {
-        /** Calculate total amount */
-        const totalAmount = results.reduce(
-          (acc, result) => acc.plus(result.collected),
-          new Decimal(0),
-        );
-
-        /** Format total amount */
-        const totalAmountFormatted = totalAmount.toDecimalPlaces(4, Decimal.ROUND_DOWN).toString();
-
         /** Notify about completion */
-        await this.sendNotification([
-          `✅ ATF Auto - Collection completed!`,
-          this.formatKeyValue("Total collected", `${totalAmountFormatted} ATF`),
-        ]);
+        await this.sendNotification([`✅ ATF Auto - Collection completed!`]);
       }
+
+      /** Calculate total amount */
+      const totalAmount = results.reduce(
+        (acc, result) => acc.plus(result.collected),
+        new Decimal(0),
+      );
+
+      /** Format total amount */
+      const totalAmountFormatted = totalAmount.toDecimalPlaces(4, Decimal.ROUND_DOWN).toString();
+
+      /** Notify about summary */
+      await this.sendSummaryNotification(results, [
+        this.formatKeyValue("Total collected", `${totalAmountFormatted} ATF`),
+      ]);
     } catch (e) {
       const errorMessage = e.message || "Unknown error!";
 
@@ -596,6 +619,7 @@ class ATFAuto {
         this.formatMaximumAmount(),
       ]);
 
+      /** Results */
       const results = [];
 
       /** Loop through accounts and withdraw */
@@ -603,7 +627,10 @@ class ATFAuto {
         if (this.signal.aborted) {
           break;
         }
+        /** Process withdraw */
         const result = await this.processWithdraw(account, index);
+
+        /** Add result to results */
         results.push(result);
       }
 
@@ -611,21 +638,23 @@ class ATFAuto {
       if (this.signal.aborted) {
         await this.sendCancellationCompletionNotification();
       } else {
-        /** Calculate total amount */
-        const totalAmount = results.reduce(
-          (acc, result) => acc.plus(result.amount),
-          new Decimal(0),
-        );
-
-        /** Format total amount */
-        const totalAmountFormatted = totalAmount.toDecimalPlaces(4, Decimal.ROUND_DOWN).toString();
-
         /** Notify about completion */
-        await this.sendNotification([
-          `✅ ATF Auto - Withdrawal completed!`,
-          this.formatKeyValue("Total withdrawn", `${totalAmountFormatted} ATF`),
-        ]);
+        await this.sendNotification([`✅ ATF Auto - Withdrawal completed!`]);
       }
+
+      /** Calculate total amount */
+      const totalAmount = results.reduce(
+        (acc, result) => acc.plus(result.amount),
+        new Decimal(0),
+      );
+
+      /** Format total amount */
+      const totalAmountFormatted = totalAmount.toDecimalPlaces(4, Decimal.ROUND_DOWN).toString();
+
+      /** Notify about summary */
+      await this.sendSummaryNotification(results, [
+        this.formatKeyValue("Total withdrawn", `${totalAmountFormatted} ATF`),
+      ]);
     } catch (e) {
       const errorMessage = e.message || "Unknown error!";
 
