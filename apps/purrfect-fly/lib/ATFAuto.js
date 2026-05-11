@@ -101,7 +101,7 @@ class ATFAuto {
 
   /** Format accounts */
   formatAccounts() {
-    return this.formatKeyValue("Accounts", this.accounts.length);
+    return this.formatKeyValue("Accounts to process", this.accounts.length);
   }
 
   /** Format the delay */
@@ -177,25 +177,28 @@ class ATFAuto {
 
   /** Send Summary Notification */
   sendSummaryNotification(results, messages) {
-    const { processed, skipped, total } = this.getSummaryCount(results);
+    const { successful, failed, skipped, total } = this.getSummaryCounts(results);
     return this.sendNotification([
       "ℹ️ Operation Summary",
       ...messages,
-      this.formatKeyValue("Executed Accounts", `${total}/${this.accounts.length}`),
-      this.formatKeyValue("Processed Accounts", `${processed}`),
+      this.formatKeyValue("Total Accounts", `${total}/${this.accounts.length}`),
+      this.formatKeyValue("Successful Accounts", `${successful}`),
       this.formatKeyValue("Skipped Accounts", `${skipped}`),
+      this.formatKeyValue("Failed Accounts", `${failed}`),
     ])
   };
 
-  /** Get Summary Count */
-  getSummaryCount(results) {
+  /** Get Summary Counts */
+  getSummaryCounts(results) {
     return {
-      processed: results.filter(result => result.status).length,
+      successful: results.filter(result => result.status).length,
+      failed: results.filter(result => !result.status).length,
       skipped: results.filter(result => result.skipped).length,
       total: results.length,
     };
   }
 
+  /** Prepare initial master data */
   async prepareInitialMasterData() {
     logger.info("Decrypting master wallet....");
     const phrase = await this.decryptPhrase(this.master.encryptedWalletPhrase);
@@ -214,6 +217,7 @@ class ATFAuto {
     logger.success("Successfully prepared the master wallet!");
   }
 
+  /** Get cloud account */
   async getCloudAccount(account) {
     const cloudAccount = await db.Account.findByPk(account.userId, {
       include: [
@@ -234,6 +238,7 @@ class ATFAuto {
     return cloudAccount;
   }
 
+  /** Get runner */
   async getRunner(cloudAccount) {
     const FarmerClass = farmers["atf"];
 
@@ -321,6 +326,7 @@ class ATFAuto {
     return { status: false, message: errorMessage };
   }
 
+  /** Decrypt phrase */
   async decryptPhrase(encryptedPhrase) {
     return this.encryption.decryptData({
       ...encryptedPhrase,
@@ -563,7 +569,7 @@ class ATFAuto {
 
       /** Notify about summary */
       await this.sendSummaryNotification(results, [
-        this.formatKeyValue("Total collected", `${totalAmountFormatted} ATF`),
+        this.formatKeyValue("Total collected", `💰 ${totalAmountFormatted} ATF`),
       ]);
     } catch (e) {
       const errorMessage = e.message || "Unknown error!";
@@ -663,7 +669,7 @@ class ATFAuto {
 
       /** Notify about summary */
       await this.sendSummaryNotification(results, [
-        this.formatKeyValue("Total withdrawn", `${totalAmountFormatted} ATF`),
+        this.formatKeyValue("Total withdrawn", `🤑 ${totalAmountFormatted} ATF`),
       ]);
     } catch (e) {
       const errorMessage = e.message || "Unknown error!";
