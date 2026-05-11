@@ -20,7 +20,7 @@ class ATFAuto {
     accounts,
     password,
     amount = "",
-    delay = 5,
+    delay = 3,
     difference = 5,
   }) {
     this.utils = utils;
