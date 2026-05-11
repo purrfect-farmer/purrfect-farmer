@@ -99,6 +99,11 @@ class ATFAuto {
     return `<a href="https://tonviewer.com/${address}">${this.truncateAddress(address)}</a>`;
   }
 
+  /** Format accounts */
+  formatAccounts() {
+    return this.formatKeyValue("Accounts", this.accounts.length);
+  }
+
   /** Format the delay */
   formatDelay() {
     return this.formatKeyValue("Delay", `${this.delay}m`);
@@ -450,6 +455,7 @@ class ATFAuto {
       /** Send notification about initiation */
       await this.sendNotification([
         `⏳ ATF Auto - Boost initiated...`,
+        this.formatAccounts(),
         this.formatDelay(),
         this.formatDifference(),
       ]);
@@ -515,7 +521,10 @@ class ATFAuto {
   async collect() {
     try {
       /** Send notification about initiation */
-      await this.sendNotification([`⏳ ATF Auto - Collection initiated...`]);
+      await this.sendNotification([
+        `⏳ ATF Auto - Collection initiated...`,
+        this.formatAccounts(),
+      ]);
 
       /** Prepare initial master data */
       await this.prepareInitialMasterData();
@@ -614,6 +623,7 @@ class ATFAuto {
       /** Send notification about initiation */
       await this.sendNotification([
         `⏳ ATF Auto - Withdrawal initiated...`,
+        this.formatAccounts(),
         this.formatDelay(),
         this.formatDifference(),
         this.formatMaximumAmount(),
@@ -766,25 +776,62 @@ class ATFAuto {
       /** Send notification about initiation */
       await this.sendNotification([
         `⏳ ATF Auto - Status request initiated...`,
+        this.formatAccounts(),
       ]);
+
+      /** Results */
+      const results = [];
 
       /** Loop through accounts and fetch status */
       for (const [index, account] of this.accounts.entries()) {
         if (this.signal.aborted) {
           break;
         }
-        await this.processStatus(account, index);
+        const result = await this.processStatus(account, index);
+
+        /** Add result to results */
+        results.push(result);
       }
 
       /** Notify about cancellation completion */
       if (this.signal.aborted) {
         await this.sendCancellationCompletionNotification();
       } else {
+
+
         /** Notify about completion */
         await this.sendNotification([
           `✅ ATF Auto - Status request completed.`,
         ]);
       }
+
+      /** Calculate total mined */
+      const totalMined = results.reduce(
+        (acc, result) => acc.plus(result.user?.["mined_balance"] || 0),
+        new Decimal(0),
+      );
+
+      /** Format total mined */
+      const totalMinedFormatted = totalMined.toDecimalPlaces(4, Decimal.ROUND_DOWN).toString();
+
+      /** Filter withdrawable accounts */
+      const withdrawableAccounts = results.filter(result => result.user?.["mined_balance"] >= 500);
+
+      /** Calculate withdrawable amount */
+      const withdrawableAmount = withdrawableAccounts.reduce(
+        (acc, result) => acc.plus(result.user?.["mined_balance"] || 0),
+        new Decimal(0),
+      );
+
+      /** Format withdrawable amount */
+      const withdrawableAmountFormatted = withdrawableAmount.toDecimalPlaces(4, Decimal.ROUND_DOWN).toString();
+
+      /** Notify about summary */
+      await this.sendSummaryNotification(results, [
+        this.formatKeyValue("Total mined", `${totalMinedFormatted} ATF`),
+        this.formatKeyValue("Withdrawable Accounts", `${withdrawableAccounts.length}`),
+        this.formatKeyValue("Withdrawable Amount", `${withdrawableAmountFormatted} ATF`),
+      ]);
     } catch (e) {
       const errorMessage = e.message || "Unknown error!";
 
@@ -811,8 +858,10 @@ class ATFAuto {
     if (!cloudAccount) return;
 
     /** Result */
-    const { status, user, wallet, message } =
-      await this.getUserStatus(cloudAccount);
+    const result = await this.getUserStatus(cloudAccount);
+
+    /** Destructure result */
+    const { status, user, wallet, message } = result
 
     /** Flags */
     const flags = (user?.["risk_flags"] || "")
@@ -871,6 +920,8 @@ class ATFAuto {
     if (!this.isLastAccount(index)) {
       await this.delayForSafeSeconds();
     }
+
+    return result;
   }
 
   /** Get Status */
