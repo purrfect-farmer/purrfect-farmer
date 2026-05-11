@@ -181,9 +181,9 @@ class ATFAuto {
     return this.sendNotification([
       "ℹ️ Operation Summary",
       ...messages,
-      this.formatKeyValue("Executed", `${total}/${this.accounts.length}`),
-      this.formatKeyValue("Processed", `${processed}`),
-      this.formatKeyValue("Skipped", `${skipped}`),
+      this.formatKeyValue("Executed Accounts", `${total}/${this.accounts.length}`),
+      this.formatKeyValue("Processed Accounts", `${processed}`),
+      this.formatKeyValue("Skipped Accounts", `${skipped}`),
     ])
   };
 
@@ -797,8 +797,6 @@ class ATFAuto {
       if (this.signal.aborted) {
         await this.sendCancellationCompletionNotification();
       } else {
-
-
         /** Notify about completion */
         await this.sendNotification([
           `✅ ATF Auto - Status request completed.`,
