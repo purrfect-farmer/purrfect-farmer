@@ -191,8 +191,8 @@ class ATFAuto {
   /** Get Summary Counts */
   getSummaryCounts(results) {
     return {
-      successful: results.filter(result => result.status).length,
-      failed: results.filter(result => !result.status).length,
+      successful: results.filter(result => result.status && !result.skipped).length,
+      failed: results.filter(result => !result.status && !result.skipped).length,
       skipped: results.filter(result => result.skipped).length,
       total: results.length,
     };
