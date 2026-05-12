@@ -1,5 +1,6 @@
 import ATFAutoBooster from "./ATFAutoBooster.js";
 import ATFAutoWalletTransfer from "./ATFAutoWalletTransfer.js";
+import Decimal from "decimal.js";
 import Encrypter from "@purrfect/shared/lib/Encrypter.js";
 import bot from "./bot.js";
 import db from "../db/models/index.js";
@@ -7,7 +8,6 @@ import farmers from "../farmers/index.js";
 import logger from "./logger.js";
 import { prepareMaster } from "@purrfect/shared/lib/atf-auto-transactions.js";
 import utils from "./utils.js";
-import Decimal from "decimal.js";
 
 class ATFAuto {
   /**
@@ -128,7 +128,7 @@ class ATFAuto {
       .delayForSeconds(60 + Math.floor(Math.random() * 30), {
         signal: this.signal,
       })
-      .catch((error) => { });
+      .catch((error) => {});
   }
 
   /** Delay for safe minutes */
@@ -137,14 +137,16 @@ class ATFAuto {
       .delayForMinutes(this.delay, {
         signal: this.signal,
       })
-      .catch((error) => { });
+      .catch((error) => {});
   }
 
   /** Delay for safe burst */
   delayForSafeBurst() {
-    return this.utils.delayForMinutes(20, {
-      signal: this.signal,
-    }).catch((error) => { });
+    return this.utils
+      .delayForMinutes(20, {
+        signal: this.signal,
+      })
+      .catch((error) => {});
   }
 
   /** Burst operation */
@@ -152,7 +154,7 @@ class ATFAuto {
     /** Send notification */
     await this.sendNotification([
       `<i>🟡 ATF Auto - Bursting boost operation for 20 minutes...</i>`,
-    ])
+    ]);
 
     /** Return funds to master */
     await this.returnFundsToMaster();
@@ -160,10 +162,13 @@ class ATFAuto {
     /** Delay for safe burst */
     await this.delayForSafeBurst();
 
+    /** Prepare master data */
+    await this.prepareInitialMasterData();
+
     /** Send notification */
     await this.sendNotification([
       `<i>🟢 ATF Auto - Boost operation resumed!</i>`,
-    ])
+    ]);
   }
 
   /** Send Notification */
@@ -177,7 +182,8 @@ class ATFAuto {
 
   /** Send Summary Notification */
   sendSummaryNotification(results, messages) {
-    const { successful, failed, skipped, total } = this.getSummaryCounts(results);
+    const { successful, failed, skipped, total } =
+      this.getSummaryCounts(results);
     return this.sendNotification([
       "ℹ️ Operation Summary",
       ...messages,
@@ -185,15 +191,19 @@ class ATFAuto {
       this.formatKeyValue("Successful Accounts", `${successful}`),
       this.formatKeyValue("Skipped Accounts", `${skipped}`),
       this.formatKeyValue("Failed Accounts", `${failed}`),
-    ])
-  };
+    ]);
+  }
 
   /** Get Summary Counts */
   getSummaryCounts(results) {
-    const successful = results.filter(result => result.status && !result.skipped).length;
-    const failed = results.filter(result => !result.status && !result.skipped).length;
-    const skipped = results.filter(result => result.skipped).length;
-    const total = results.filter(result => !result.skipped).length;
+    const successful = results.filter(
+      (result) => result.status && !result.skipped,
+    ).length;
+    const failed = results.filter(
+      (result) => !result.status && !result.skipped,
+    ).length;
+    const skipped = results.filter((result) => result.skipped).length;
+    const total = results.filter((result) => !result.skipped).length;
 
     return {
       successful,
@@ -406,8 +416,7 @@ class ATFAuto {
       const currentIndex = index + 1;
       if (currentIndex % 20 === 0) {
         await this.burstBoost();
-      }
-      else {
+      } else {
         await this.delayForSafeMinutes();
       }
     }
@@ -570,11 +579,16 @@ class ATFAuto {
       );
 
       /** Format total amount */
-      const totalAmountFormatted = totalAmount.toDecimalPlaces(4, Decimal.ROUND_DOWN).toString();
+      const totalAmountFormatted = totalAmount
+        .toDecimalPlaces(4, Decimal.ROUND_DOWN)
+        .toString();
 
       /** Notify about summary */
       await this.sendSummaryNotification(results, [
-        this.formatKeyValue("Total collected", `💰 ${totalAmountFormatted} ATF`),
+        this.formatKeyValue(
+          "Total collected",
+          `💰 ${totalAmountFormatted} ATF`,
+        ),
       ]);
     } catch (e) {
       const errorMessage = e.message || "Unknown error!";
@@ -670,11 +684,16 @@ class ATFAuto {
       );
 
       /** Format total amount */
-      const totalAmountFormatted = totalAmount.toDecimalPlaces(4, Decimal.ROUND_DOWN).toString();
+      const totalAmountFormatted = totalAmount
+        .toDecimalPlaces(4, Decimal.ROUND_DOWN)
+        .toString();
 
       /** Notify about summary */
       await this.sendSummaryNotification(results, [
-        this.formatKeyValue("Total withdrawn", `🤑 ${totalAmountFormatted} ATF`),
+        this.formatKeyValue(
+          "Total withdrawn",
+          `🤑 ${totalAmountFormatted} ATF`,
+        ),
       ]);
     } catch (e) {
       const errorMessage = e.message || "Unknown error!";
@@ -702,8 +721,7 @@ class ATFAuto {
     if (!cloudAccount) return;
 
     /** Result */
-    const result =
-      await this.requestWithdrawal(cloudAccount);
+    const result = await this.requestWithdrawal(cloudAccount);
 
     /** Destructure result */
     const { status, skipped, message, amount } = result;
@@ -821,10 +839,14 @@ class ATFAuto {
       );
 
       /** Format total mined */
-      const totalMinedFormatted = totalMined.toDecimalPlaces(4, Decimal.ROUND_DOWN).toString();
+      const totalMinedFormatted = totalMined
+        .toDecimalPlaces(4, Decimal.ROUND_DOWN)
+        .toString();
 
       /** Filter withdrawable accounts */
-      const withdrawableAccounts = results.filter(result => result.user?.["mined_balance"] >= 500);
+      const withdrawableAccounts = results.filter(
+        (result) => result.user?.["mined_balance"] >= 500,
+      );
 
       /** Calculate withdrawable amount */
       const withdrawableAmount = withdrawableAccounts.reduce(
@@ -833,13 +855,21 @@ class ATFAuto {
       );
 
       /** Format withdrawable amount */
-      const withdrawableAmountFormatted = withdrawableAmount.toDecimalPlaces(4, Decimal.ROUND_DOWN).toString();
+      const withdrawableAmountFormatted = withdrawableAmount
+        .toDecimalPlaces(4, Decimal.ROUND_DOWN)
+        .toString();
 
       /** Notify about summary */
       await this.sendSummaryNotification(results, [
         this.formatKeyValue("Total mined", `💰 ${totalMinedFormatted} ATF`),
-        this.formatKeyValue("Withdrawable Amount", `🤑 ${withdrawableAmountFormatted} ATF`),
-        this.formatKeyValue("Withdrawable Accounts", `${withdrawableAccounts.length}`),
+        this.formatKeyValue(
+          "Withdrawable Amount",
+          `🤑 ${withdrawableAmountFormatted} ATF`,
+        ),
+        this.formatKeyValue(
+          "Withdrawable Accounts",
+          `${withdrawableAccounts.length}`,
+        ),
       ]);
     } catch (e) {
       const errorMessage = e.message || "Unknown error!";
@@ -870,7 +900,7 @@ class ATFAuto {
     const result = await this.getUserStatus(cloudAccount);
 
     /** Destructure result */
-    const { status, user, wallet, message } = result
+    const { status, user, wallet, message } = result;
 
     /** Flags */
     const flags = (user?.["risk_flags"] || "")
@@ -882,47 +912,47 @@ class ATFAuto {
     await this.sendNotification(
       status
         ? [
-          `ℹ️ User details <b>(${this.formatAccountLink(cloudAccount.id)})</b> ${this.formatAccountPosition(index)}`,
-          "",
-          this.formatKeyValue("Miner Level", user["miner_level"]),
-          this.formatKeyValue("Holding", `${user["wallet_holding_atf"]} ATF`),
-          this.formatKeyValue(
-            "Balance",
-            `${user["mined_balance"]} ATF ${user["mined_balance"] >= 500 ? "🟩" : "🟧"}`,
-          ),
-        ]
-          /** Wallet */
-          .concat(
-            wallet
-              ? [
-                this.formatKeyValue(
-                  "Wallet",
-                  `(${wallet.version.toUpperCase()}) <a href="https://tonviewer.com/${wallet.address}">${this.truncateAddress(wallet.address)}</a>`,
-                ),
-              ]
-              : [],
-          )
+            `ℹ️ User details <b>(${this.formatAccountLink(cloudAccount.id)})</b> ${this.formatAccountPosition(index)}`,
+            "",
+            this.formatKeyValue("Miner Level", user["miner_level"]),
+            this.formatKeyValue("Holding", `${user["wallet_holding_atf"]} ATF`),
+            this.formatKeyValue(
+              "Balance",
+              `${user["mined_balance"]} ATF ${user["mined_balance"] >= 500 ? "🟩" : "🟧"}`,
+            ),
+          ]
+            /** Wallet */
+            .concat(
+              wallet
+                ? [
+                    this.formatKeyValue(
+                      "Wallet",
+                      `(${wallet.version.toUpperCase()}) <a href="https://tonviewer.com/${wallet.address}">${this.truncateAddress(wallet.address)}</a>`,
+                    ),
+                  ]
+                : [],
+            )
 
-          /** Risks */
-          .concat(
-            flags.length > 0
-              ? [
-                "",
-                "<b>🟥 Risks</b>",
-                this.formatKeyValue("Risk Score", user["risk_score"]),
-                this.formatKeyValue(
-                  "Risk Updated",
-                  user["risk_updated_at"],
-                ),
-                this.formatKeyValue("Risk Flags", flags.length),
-                ...flags.map((flag) => `<b>- ${flag}</b>`),
-              ]
-              : [],
-          )
+            /** Risks */
+            .concat(
+              flags.length > 0
+                ? [
+                    "",
+                    "<b>🟥 Risks</b>",
+                    this.formatKeyValue("Risk Score", user["risk_score"]),
+                    this.formatKeyValue(
+                      "Risk Updated",
+                      user["risk_updated_at"],
+                    ),
+                    this.formatKeyValue("Risk Flags", flags.length),
+                    ...flags.map((flag) => `<b>- ${flag}</b>`),
+                  ]
+                : [],
+            )
         : [
-          `❌ Failed to get user details <b>(${this.formatAccountLink(cloudAccount.id)})</b> ${this.formatAccountPosition(index)}`,
-          `<i>Error: ${message}</i>`,
-        ],
+            `❌ Failed to get user details <b>(${this.formatAccountLink(cloudAccount.id)})</b> ${this.formatAccountPosition(index)}`,
+            `<i>Error: ${message}</i>`,
+          ],
     );
 
     /** Delay for seconds */
