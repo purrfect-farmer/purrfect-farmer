@@ -190,11 +190,16 @@ class ATFAuto {
 
   /** Get Summary Counts */
   getSummaryCounts(results) {
+    const successful = results.filter(result => result.status && !result.skipped).length;
+    const failed = results.filter(result => !result.status && !result.skipped).length;
+    const skipped = results.filter(result => result.skipped).length;
+    const total = results.filter(result => !result.skipped).length;
+
     return {
-      successful: results.filter(result => result.status && !result.skipped).length,
-      failed: results.filter(result => !result.status && !result.skipped).length,
-      skipped: results.filter(result => result.skipped).length,
-      total: results.length,
+      successful,
+      failed,
+      skipped,
+      total,
     };
   }
 
