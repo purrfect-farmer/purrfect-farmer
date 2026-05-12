@@ -115,6 +115,7 @@ const ProxyDetails = ({ proxy, rootClassName, ...props }) => {
             <ProxyDetailsItem label="Port" value={parsed.proxyPort} />
             <ProxyDetailsItem label="Username" value={parsed.proxyUsername} />
             <ProxyDetailsItem label="Password" value={parsed.proxyPassword} />
+            <ProxyDetailsItem label="URL" value={proxy} />
           </>
         ) : (
           <p className="text-center">No proxy details available</p>
