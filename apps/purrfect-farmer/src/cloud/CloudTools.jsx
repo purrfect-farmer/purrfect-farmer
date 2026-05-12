@@ -1,4 +1,4 @@
-import { FaDoorOpen, FaToolbox } from "react-icons/fa6";
+import { FaBan, FaDoorOpen, FaToolbox, FaUserSlash } from "react-icons/fa6";
 import {
   HiOutlineKey,
   HiOutlineServerStack,
@@ -19,18 +19,23 @@ import useAppContext from "@/hooks/useAppContext";
 import { useCallback } from "react";
 import useCloudManagerActivateAllFarmersMutation from "@/hooks/useCloudManagerActivateAllFarmersMutation";
 import useCloudManagerUpdateProxiesMutation from "@/hooks/useCloudManagerUpdateProxiesMutation";
+import useCloudManagerKickAllMembersMutation from "@/hooks/useCloudManagerKickAllMembersMutation";
 import { useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 
 export default function CloudTools() {
   const { cloudAuth } = useAppContext();
+  const queryClient = useQueryClient();
   const activateAllFarmersMutation =
     useCloudManagerActivateAllFarmersMutation();
   const updateProxiesMutation = useCloudManagerUpdateProxiesMutation();
+  const kickAllMembersMutation = useCloudManagerKickAllMembersMutation();
 
   const [openPasswordUpdate, setOpenPasswordUpdate] = useState(false);
   const [openServerUpdate, setOpenServerUpdate] = useState(false);
   const [openBackup, setOpenBackup] = useState(false);
 
+  /** Activate All Farmers */
   const activateAllFarmers = () => {
     toast.promise(activateAllFarmersMutation.mutateAsync(), {
       loading: "Activating farmers...",
@@ -39,6 +44,7 @@ export default function CloudTools() {
     });
   };
 
+  /** Update Proxies */
   const updateProxies = () => {
     toast.promise(updateProxiesMutation.mutateAsync(), {
       loading: "Updating proxies...",
@@ -47,6 +53,18 @@ export default function CloudTools() {
     });
   };
 
+  /** Kick All Members */
+  const kickAllMembers = () => {
+    toast.promise(kickAllMembersMutation.mutateAsync(), {
+      loading: "Kicking all members...",
+      success: "Successfully kicked all members!",
+      error: "Failed to kick all members!",
+    }).finally(() => {
+      queryClient.refetchQueries({ queryKey: ["app", "cloud"] });
+    });
+  };
+
+  /** Logout */
   const logout = useCallback(() => {
     cloudAuth.removeToken();
   }, [cloudAuth.removeToken]);
@@ -104,6 +122,14 @@ export default function CloudTools() {
               onClick={updateProxies}
             >
               Update Proxies
+            </BottomDialogTools.Button>
+
+            {/* Kick all members */}
+            <BottomDialogTools.Button
+              icon={FaBan}
+              onClick={kickAllMembers}
+            >
+              Kick all members
             </BottomDialogTools.Button>
 
             {/* User */}
