@@ -86,7 +86,7 @@ class ATFAuto {
 
   /** Format key value message */
   formatKeyValue(key, value) {
-    return `${key}: <b>${value}</b>`;
+    return `<b>|</b> ${key}: <b>${value}</b>`;
   }
 
   /** Format account link */
