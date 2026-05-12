@@ -142,7 +142,7 @@ class ATFAuto {
 
   /** Delay for safe burst */
   delayForSafeBurst() {
-    return this.utils.delayForMinutes(30, {
+    return this.utils.delayForMinutes(20, {
       signal: this.signal,
     }).catch((error) => { });
   }
@@ -151,7 +151,7 @@ class ATFAuto {
   async burstBoost() {
     /** Send notification */
     await this.sendNotification([
-      `<i>🟡 ATF Auto - Bursting boost operation for 30 minutes...</i>`,
+      `<i>🟡 ATF Auto - Bursting boost operation for 20 minutes...</i>`,
     ])
 
     /** Return funds to master */
