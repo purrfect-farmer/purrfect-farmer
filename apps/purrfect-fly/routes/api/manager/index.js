@@ -225,7 +225,7 @@ export default async function (fastify, opts) {
     /** Activate All Farmer */
     fastify.post("/farmers/all/activate", async (request, reply) => {
       const [affectedCount] = await fastify.db.Farmer.update(
-        { errorCount: 0, isBanned: false, active: true },
+        { status: "active", errorCount: 0 },
         { where: {} },
       );
 
@@ -254,7 +254,7 @@ export default async function (fastify, opts) {
       { schema: farmerSchema },
       async (request) => {
         await fastify.db.Farmer.update(
-          { errorCount: 0, isBanned: false, active: true },
+          { status: "active", errorCount: 0 },
           { where: { id: request.body.id } },
         );
       },
@@ -266,7 +266,7 @@ export default async function (fastify, opts) {
       { schema: farmerSchema },
       async (request) => {
         await fastify.db.Farmer.update(
-          { isBanned: true, active: false },
+          { status: "inactive" },
           { where: { id: request.body.id } },
         );
       },

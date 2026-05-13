@@ -35,12 +35,11 @@ async function updateAccounts() {
 
         /** Set all farmers active */
         await db.Farmer.update(
-          { active: true },
+          { status: "active" },
           {
             where: {
               accountId: account.id,
-              isBanned: false,
-              active: false,
+              status: "inactive",
             },
           },
         );

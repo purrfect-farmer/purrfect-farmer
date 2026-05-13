@@ -247,8 +247,8 @@ class ATFAuto {
     });
 
     if (!cloudAccount) return;
-    if (!cloudAccount.session && !cloudAccount.farmer?.active) return;
-    if (cloudAccount.farmer?.isBanned) return;
+    if (!cloudAccount.session && !cloudAccount.farmer?.status === "active") return;
+    if (cloudAccount.farmer?.status === "banned") return;
 
     return cloudAccount;
   }

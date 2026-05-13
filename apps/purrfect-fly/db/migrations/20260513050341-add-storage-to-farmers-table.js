@@ -3,7 +3,7 @@
  * @param {import("sequelize")} Sequelize
  */
 export async function up(queryInterface, Sequelize) {
-  await queryInterface.addColumn("Accounts", "options", {
+  await queryInterface.addColumn("Farmers", "storage", {
     type: Sequelize.JSON,
     defaultValue: {},
     allowNull: true,
@@ -15,5 +15,5 @@ export async function up(queryInterface, Sequelize) {
  * @param {import("sequelize")} Sequelize
  */
 export async function down(queryInterface, Sequelize) {
-  await queryInterface.removeColumn("Accounts", "options");
+  await queryInterface.removeColumn("Farmers", "storage");
 }

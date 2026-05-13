@@ -10,7 +10,7 @@ export default (program, inquirer, chalk) => {
     .action(async () => {
       const db = await import("../db/models/index.js").then((m) => m.default);
       await db.Farmer.update(
-        { errorCount: 0, isBanned: false, active: true },
+        { status: "active", errorCount: 0 },
         { where: {} },
       );
       console.log(chalk.bold.green("All farmers have been activated!"));

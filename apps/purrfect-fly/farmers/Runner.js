@@ -89,8 +89,8 @@ export default function createRunner(FarmerClass) {
         this.platform === "telegram"
           ? userAgents[Math.floor(this.random() * userAgents.length)]
           : regularMobileUserAgents[
-              Math.floor(this.random() * regularMobileUserAgents.length)
-            ],
+          Math.floor(this.random() * regularMobileUserAgents.length)
+          ],
       );
 
       /** Cookie Jar */
@@ -236,10 +236,10 @@ export default function createRunner(FarmerClass) {
       if (proxy) {
         return this.cookies
           ? new ProxyAgentWithCookiesType({
-              timeout: 30_000,
-              cookies: { jar: this.jar },
-              proxy,
-            })
+            timeout: 30_000,
+            cookies: { jar: this.jar },
+            proxy,
+          })
           : new ProxyAgentType({ proxy, timeout: 30_000 });
       } else {
         return this.cookies
@@ -282,13 +282,14 @@ export default function createRunner(FarmerClass) {
       /** Create Farmer */
       if (!this.farmer) {
         this.farmer = await this.account.createFarmer({
-          errorCount: 0,
-          isBanned: false,
-          active: true,
           farmer: this.constructor.id,
+          status: "active",
+          errorCount: 0,
+          initData: "",
           headers: {},
           cookies: [],
-          initData: "",
+          storage: {},
+          options: {},
         });
       }
 
@@ -383,14 +384,14 @@ export default function createRunner(FarmerClass) {
       try {
         if (this.farmer) {
           /** Set as inactive */
-          this.farmer.active = false;
+          this.farmer.status = "inactive";
 
           /** Increase error count */
           this.farmer.errorCount += 1;
 
           /** Ban the farmer */
           if (this.farmer.errorCount >= BAN_TRIGGER_COUNT) {
-            this.farmer.isBanned = true;
+            this.farmer.status = "banned";
           }
 
           /** Save */
@@ -406,10 +407,7 @@ export default function createRunner(FarmerClass) {
       try {
         if (this.farmer && this.farmer.errorCount > 0) {
           /** Set as active */
-          this.farmer.active = true;
-
-          /** Unban the farmer */
-          this.farmer.isBanned = false;
+          this.farmer.status = "active";
 
           /** Reset error count */
           this.farmer.errorCount = 0;
@@ -527,8 +525,8 @@ export default function createRunner(FarmerClass) {
           /** Prioritize primary account is the primary link is not set */
           const primaryIndex = !this.primaryFarmerLink
             ? this.queue.findIndex(
-                (item) => item.account.id === this.primaryAccountId,
-              )
+              (item) => item.account.id === this.primaryAccountId,
+            )
             : -1;
 
           /** Prioritize new accounts */
@@ -654,7 +652,7 @@ export default function createRunner(FarmerClass) {
 
         /** Filter unbanned accounts */
         const accounts = subscribedList.filter((item) => {
-          return !item.farmer?.isBanned;
+          return item.farmer?.status !== "banned";
         });
 
         /** Needs Primary Account */
@@ -668,7 +666,7 @@ export default function createRunner(FarmerClass) {
         /** Can launch primary account */
         const canLaunchPrimaryAccount =
           !needsPrimaryAccount ||
-          primaryAccount?.farmer?.active ||
+          primaryAccount?.farmer?.status === "active" ||
           primaryAccount?.session;
 
         /** Can auto-start accounts without farmer */
@@ -684,8 +682,8 @@ export default function createRunner(FarmerClass) {
            * account with an active telegram session
            */
           const execute = canAutoStart
-            ? account.farmer?.active || account.session
-            : account.farmer?.active;
+            ? account.farmer?.status === "active" || account.session
+            : account.farmer?.status === "active";
 
           return execute;
         });

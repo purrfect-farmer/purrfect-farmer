@@ -5,6 +5,7 @@
 export async function up(queryInterface, Sequelize) {
   await queryInterface.addColumn("Farmers", "cookies", {
     type: Sequelize.JSON,
+    defaultValue: [],
     allowNull: true,
   });
 }

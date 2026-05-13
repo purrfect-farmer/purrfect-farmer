@@ -82,14 +82,14 @@ export default (sequelize, DataTypes) => {
   Farmer.init(
     {
       accountId: DataTypes.BIGINT,
-      active: DataTypes.BOOLEAN,
       farmer: DataTypes.STRING,
+      status: DataTypes.STRING,
+      errorCount: DataTypes.INTEGER,
       initData: DataTypes.STRING,
       headers: DataTypes.JSON,
       cookies: DataTypes.JSON,
       options: DataTypes.JSON,
-      errorCount: DataTypes.INTEGER,
-      isBanned: DataTypes.BOOLEAN,
+      storage: DataTypes.JSON,
     },
     {
       sequelize,

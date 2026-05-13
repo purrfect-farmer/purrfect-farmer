@@ -126,7 +126,7 @@ export default async function (fastify, opts) {
       }
 
       await fastify.db.Farmer.update(
-        { active: true, isBanned: false, errorCount: 0 },
+        { status: "active", errorCount: 0 },
         {
           where: { id: request.body.id, accountId: user.id },
         },
@@ -152,7 +152,7 @@ export default async function (fastify, opts) {
       }
 
       await fastify.db.Farmer.update(
-        { active: false, isBanned: true },
+        { status: "inactive" },
         {
           where: { id: request.body.id, accountId: user.id },
         },
@@ -190,13 +190,12 @@ export default async function (fastify, opts) {
         if (farmer.account.subscription) {
           await farmer.account.update({ title: request.body.title, user });
           await farmer.update({
+            status: "active",
             errorCount: 0,
-            isBanned: false,
-            active: true,
             farmer: request.body.farmer,
-            headers: request.body.headers,
+            headers: request.body.headers || {},
             cookies: request.body.cookies || [],
-            initData: request.body.initData,
+            initData: request.body.initData || "",
           });
         } else {
           return reply.forbidden("Not allowed!");
@@ -209,13 +208,14 @@ export default async function (fastify, opts) {
         if (account) {
           await account.update({ title: request.body.title, user });
           await account.createFarmer({
+            status: "active",
             errorCount: 0,
-            isBanned: false,
-            active: true,
             farmer: request.body.farmer,
-            headers: request.body.headers,
+            headers: request.body.headers || {},
             cookies: request.body.cookies || [],
-            initData: request.body.initData,
+            initData: request.body.initData || "",
+            storage: {},
+            options: {},
           });
         } else {
           return reply.forbidden("Not allowed!");
