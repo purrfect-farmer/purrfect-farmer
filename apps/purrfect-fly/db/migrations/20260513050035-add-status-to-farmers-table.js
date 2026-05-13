@@ -3,8 +3,11 @@
  * @param {import("sequelize")} Sequelize
  */
 export async function up(queryInterface, Sequelize) {
-  await queryInterface.removeColumn("Farmers", "active");
-  await queryInterface.removeColumn("Farmers", "isBanned");
+  await queryInterface.sequelize.transaction(async (transaction) => {
+    await queryInterface.removeColumn("Farmers", "active", { transaction });
+    await queryInterface.removeColumn("Farmers", "isBanned", { transaction });
+  });
+
   await queryInterface.addColumn("Farmers", "status", {
     type: Sequelize.STRING,
     defaultValue: "active",
