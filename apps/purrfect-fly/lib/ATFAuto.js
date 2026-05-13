@@ -296,7 +296,7 @@ class ATFAuto {
         /** Connect and sync */
         const version = "v" + walletAccount.version;
         const keyPair = await runner.getKeyPair(walletAccount.phrase);
-        const { status, message } = await runner.connectAndSyncWallet(
+        const { status, user, message } = await runner.connectAndSyncWallet(
           keyPair,
           version,
         );
@@ -319,7 +319,7 @@ class ATFAuto {
         /** Start or claim mining */
         await runner.startOrClaimMining();
 
-        return { status: true };
+        return { status: true, user };
       } catch (e) {
         errorMessage = e.message;
         logger.error(
@@ -393,7 +393,7 @@ class ATFAuto {
     await this.utils.delayForSeconds(10);
 
     /** Connect Wallet */
-    const { status, message } = await this.connectWallet({
+    const { status, message, user } = await this.connectWallet({
       cloudAccount,
       walletAccount,
     });
@@ -401,7 +401,7 @@ class ATFAuto {
     /** Send Boost Notification */
     await this.sendNotification([
       status
-        ? `⚡ Boosted <b>(${this.formatAccountLink(cloudAccount.id)})</b> with <i>${jettonAmount} ATF</i> ${this.formatAccountPosition(index)}`
+        ? `⚡ Boosted <b>(${this.formatAccountLink(cloudAccount.id)})</b> with <i>${user["wallet_holding_atf"]} ATF</i> ${this.formatAccountPosition(index)}`
         : `❌ Failed to boost <b>(${this.formatAccountLink(cloudAccount.id)})</b> with <i>${jettonAmount} ATF</i> ${this.formatAccountPosition(index)}\n<i>Error: ${message || "Unknown error!"}</i>`,
     ]);
 

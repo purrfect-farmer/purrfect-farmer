@@ -414,7 +414,7 @@ export default class ATFFarmer extends BaseFarmer {
       this.logger.success("Wallet synced successfully!");
       this.logUserBalance(user);
       this.logUserRisks(user);
-      return { status: true };
+      return { status: true, user };
     }
   }
 
