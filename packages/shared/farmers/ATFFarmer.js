@@ -22,9 +22,7 @@ export default class ATFFarmer extends BaseFarmer {
   static originalTelegramLink = "https://t.me/ATF_AIRDROP_bot?start=8217878170";
   static path = "/miner/index.html";
   static singleton = true;
-  static cacheTelegramWebApp = true;
-  static telegramWebAppExpiry = null;
-  static interval = null;
+  static interval = "*/45 * * * *"; // Every 45 minutes
   static rating = 5;
   static netRequest = {
     requestHeaders: [
@@ -688,7 +686,7 @@ export default class ATFFarmer extends BaseFarmer {
       const boostSeconds = Math.max(
         0,
         Math.min(cappedNow, boostActiveUntil) -
-          Math.max(lastMiningStart, boostStart),
+        Math.max(lastMiningStart, boostStart),
       );
       const tapReward = rate / 100000 / divisor;
       boostReward = boostSeconds * boostPower * tapReward;

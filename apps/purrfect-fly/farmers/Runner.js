@@ -650,9 +650,9 @@ export default function createRunner(FarmerClass) {
           );
         }
 
-        /** Filter unbanned accounts */
+        /** Filter out frozen and banned accounts */
         const accounts = subscribedList.filter((item) => {
-          return item.farmer?.status !== "banned";
+          return !["frozen", "banned"].includes(item.farmer?.status);
         });
 
         /** Needs Primary Account */

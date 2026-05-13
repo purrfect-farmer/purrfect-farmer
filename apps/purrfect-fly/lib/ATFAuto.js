@@ -128,7 +128,7 @@ class ATFAuto {
       .delayForSeconds(60 + Math.floor(Math.random() * 30), {
         signal: this.signal,
       })
-      .catch((error) => {});
+      .catch((error) => { });
   }
 
   /** Delay for safe minutes */
@@ -137,7 +137,7 @@ class ATFAuto {
       .delayForMinutes(this.delay, {
         signal: this.signal,
       })
-      .catch((error) => {});
+      .catch((error) => { });
   }
 
   /** Delay for safe burst */
@@ -146,7 +146,7 @@ class ATFAuto {
       .delayForMinutes(20, {
         signal: this.signal,
       })
-      .catch((error) => {});
+      .catch((error) => { });
   }
 
   /** Burst operation */
@@ -233,7 +233,7 @@ class ATFAuto {
   }
 
   /** Get cloud account */
-  async getCloudAccount(account) {
+  async getCloudAccount(account, allowFrozen = false) {
     const cloudAccount = await db.Account.findByPk(account.userId, {
       include: [
         {
@@ -246,9 +246,17 @@ class ATFAuto {
       ],
     });
 
+    /** Skip if cloud account is missing */
     if (!cloudAccount) return;
+
+    /** Skip if cloud account is not active */
     if (!cloudAccount.session && !cloudAccount.farmer?.status === "active") return;
+
+    /** Skip if cloud account is banned */
     if (cloudAccount.farmer?.status === "banned") return;
+
+    /** Skip if cloud account is frozen and not allowed */
+    if (!allowFrozen && cloudAccount.farmer?.status === "frozen") return;
 
     return cloudAccount;
   }
@@ -319,6 +327,12 @@ class ATFAuto {
         /** Start or claim mining */
         await runner.startOrClaimMining();
 
+        /** Set farmer status to frozen */
+        if (runner.farmer) {
+          runner.farmer.status = "frozen";
+          await runner.farmer.save();
+        }
+
         return { status: true, user };
       } catch (e) {
         errorMessage = e.message;
@@ -356,7 +370,7 @@ class ATFAuto {
     if (!account.userId) return;
 
     /** Retrieve Cloud Account */
-    const cloudAccount = await this.getCloudAccount(account);
+    const cloudAccount = await this.getCloudAccount(account, true);
 
     /** Skip if cloud account is missing */
     if (!cloudAccount) return;
@@ -715,7 +729,7 @@ class ATFAuto {
     if (!account.userId) return;
 
     /** Retrieve Cloud Account */
-    const cloudAccount = await this.getCloudAccount(account);
+    const cloudAccount = await this.getCloudAccount(account, true);
 
     /** Skip if cloud account is missing */
     if (!cloudAccount) return;
@@ -912,47 +926,47 @@ class ATFAuto {
     await this.sendNotification(
       status
         ? [
-            `ℹ️ User details <b>(${this.formatAccountLink(cloudAccount.id)})</b> ${this.formatAccountPosition(index)}`,
-            "",
-            this.formatKeyValue("Miner Level", user["miner_level"]),
-            this.formatKeyValue("Holding", `${user["wallet_holding_atf"]} ATF`),
-            this.formatKeyValue(
-              "Balance",
-              `${user["mined_balance"]} ATF ${user["mined_balance"] >= 500 ? "🟩" : "🟧"}`,
-            ),
-          ]
-            /** Wallet */
-            .concat(
-              wallet
-                ? [
-                    this.formatKeyValue(
-                      "Wallet",
-                      `(${wallet.version.toUpperCase()}) <a href="https://tonviewer.com/${wallet.address}">${this.truncateAddress(wallet.address)}</a>`,
-                    ),
-                  ]
-                : [],
-            )
+          `ℹ️ User details <b>(${this.formatAccountLink(cloudAccount.id)})</b> ${this.formatAccountPosition(index)}`,
+          "",
+          this.formatKeyValue("Miner Level", user["miner_level"]),
+          this.formatKeyValue("Holding", `${user["wallet_holding_atf"]} ATF`),
+          this.formatKeyValue(
+            "Balance",
+            `${user["mined_balance"]} ATF ${user["mined_balance"] >= 500 ? "🟩" : "🟧"}`,
+          ),
+        ]
+          /** Wallet */
+          .concat(
+            wallet
+              ? [
+                this.formatKeyValue(
+                  "Wallet",
+                  `(${wallet.version.toUpperCase()}) <a href="https://tonviewer.com/${wallet.address}">${this.truncateAddress(wallet.address)}</a>`,
+                ),
+              ]
+              : [],
+          )
 
-            /** Risks */
-            .concat(
-              flags.length > 0
-                ? [
-                    "",
-                    "<b>🟥 Risks</b>",
-                    this.formatKeyValue("Risk Score", user["risk_score"]),
-                    this.formatKeyValue(
-                      "Risk Updated",
-                      user["risk_updated_at"],
-                    ),
-                    this.formatKeyValue("Risk Flags", flags.length),
-                    ...flags.map((flag) => `<b>- ${flag}</b>`),
-                  ]
-                : [],
-            )
+          /** Risks */
+          .concat(
+            flags.length > 0
+              ? [
+                "",
+                "<b>🟥 Risks</b>",
+                this.formatKeyValue("Risk Score", user["risk_score"]),
+                this.formatKeyValue(
+                  "Risk Updated",
+                  user["risk_updated_at"],
+                ),
+                this.formatKeyValue("Risk Flags", flags.length),
+                ...flags.map((flag) => `<b>- ${flag}</b>`),
+              ]
+              : [],
+          )
         : [
-            `❌ Failed to get user details <b>(${this.formatAccountLink(cloudAccount.id)})</b> ${this.formatAccountPosition(index)}`,
-            `<i>Error: ${message}</i>`,
-          ],
+          `❌ Failed to get user details <b>(${this.formatAccountLink(cloudAccount.id)})</b> ${this.formatAccountPosition(index)}`,
+          `<i>Error: ${message}</i>`,
+        ],
     );
 
     /** Delay for seconds */
