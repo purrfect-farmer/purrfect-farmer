@@ -34,6 +34,9 @@ export default function createRunner(FarmerClass) {
   /** Is Farmer Enabled */
   const enabled = env(envKey + "_ENABLED", true);
 
+  /** Interval */
+  const interval = env(envKey + "_INTERVAL", FarmerClass.interval);
+
   /** Telegram message thread */
   const threadId =
     env(envKey + "_THREAD_ID", "") || env("TELEGRAM_FARMING_THREAD_ID", "");
@@ -56,6 +59,7 @@ export default function createRunner(FarmerClass) {
   /** Log */
   logger.success(`${FarmerClass.title} Farmer`);
   logger.keyValue("Enabled", enabled);
+  logger.keyValue("Interval", interval);
   logger.keyValue("Primary account ID", primaryAccountId, {
     format: false,
   });
@@ -67,6 +71,7 @@ export default function createRunner(FarmerClass) {
     static threadId = threadId;
     static telegramLink = telegramLink;
     static primaryAccountId = primaryAccountId;
+    static interval = interval;
     static primaryFarmerLink = null;
     static runners = new Map();
     static referralLinks = new Map();
