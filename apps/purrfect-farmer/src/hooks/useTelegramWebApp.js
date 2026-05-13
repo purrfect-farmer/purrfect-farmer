@@ -19,6 +19,7 @@ export default function useTelegramWebApp({
   external = false,
   initData = null,
   telegramLink,
+  telegramWebAppExpiry,
   cacheTelegramWebApp,
 }) {
   const { messaging, farmerMode, telegramClient } = useAppContext();
@@ -150,9 +151,10 @@ export default function useTelegramWebApp({
 
         /** Ensure initData is recent */
         if (
+          !telegramWebAppExpiry ||
           isAfter(
             new Date(initDataUnsafe["auth_date"] * 1000),
-            subMinutes(new Date(), 10),
+            subMinutes(new Date(), telegramWebAppExpiry),
           )
         ) {
           return setTelegramWebApp({
@@ -171,6 +173,7 @@ export default function useTelegramWebApp({
     external,
     farmerMode,
     telegramLink,
+    telegramWebAppExpiry,
     telegramWebApp,
     setTelegramWebApp,
     cacheTelegramWebApp,

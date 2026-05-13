@@ -11,8 +11,9 @@ export default class BaseFarmer {
   static emoji = "🐾";
   static enabled = true;
   static apiDelay = 200;
-  static cacheAuth = true;
-  static cacheTelegramWebApp = true;
+  static cacheAuth = false;
+  static cacheTelegramWebApp = false;
+  static telegramWebAppExpiry = 10;
   static syncToCloud = true;
   static cookies = false;
   static interval = "*/10 * * * *";
@@ -31,13 +32,27 @@ export default class BaseFarmer {
   static skipExecutionOfNewAccount = false;
 
   constructor() {
+    /** Configure caching */
+    this.cacheAuth = this.constructor.cacheAuth;
+    this.cacheTelegramWebApp = this.constructor.cacheTelegramWebApp;
+
+    /** Configure properties */
+    this.platform = this.constructor.platform;
+    this.type = this.constructor.type;
+    this.link = this.constructor.link;
+    this.telegramLink = this.constructor.telegramLink;
+
+    /** API */
+    this.cookies = this.constructor.cookies;
+    this.apiDelay = this.constructor.apiDelay;
+
     /* Register utilities */
     this.utils = utils;
 
     /* Parse Telegram Link */
-    if (this.constructor.platform === "telegram") {
+    if (this.platform === "telegram") {
       const { entity, shortName, startParam } = this.utils.parseTelegramLink(
-        this.constructor.telegramLink,
+        this.telegramLink,
       );
       this.entity = entity;
       this.shortName = shortName;
@@ -255,8 +270,21 @@ export default class BaseFarmer {
     if (this.getInitData()) {
       return this.constructor.getUrlFromInitData(this.getInitData());
     } else {
-      return this.constructor.telegramLink || this.constructor.link;
+      return this.telegramLink || this.link;
     }
+  }
+
+  /** Set cached auth data */
+  setCachedAuthData(data) {}
+
+  /** Set Cache Auth */
+  setCacheAuth(status) {
+    this.cacheAuth = status;
+  }
+
+  /** Set cache telegram web app */
+  setCacheTelegramWebApp(status) {
+    this.cacheTelegramWebApp = status;
   }
 
   /** Configure primary link */
@@ -418,13 +446,8 @@ export default class BaseFarmer {
 
   /** Update Web App Data */
   async updateWebAppData() {
-    if (
-      this.constructor.platform === "telegram" &&
-      this.constructor.type === "webapp"
-    ) {
-      const { url } = await this.client.getWebview(
-        this.constructor.telegramLink,
-      );
+    if (this.platform === "telegram" && this.type === "webapp") {
+      const { url } = await this.client.getWebview(this.telegramLink);
       const { initData } = this.utils.extractTgWebAppData(url);
 
       this.setTelegramWebApp({
@@ -443,9 +466,9 @@ export default class BaseFarmer {
 
   /** Register Delay Interceptor */
   registerDelayInterceptor() {
-    if (this.constructor.apiDelay) {
+    if (this.apiDelay) {
       this.api.interceptors.request.use(async (config) => {
-        await this.utils.delay(this.constructor.apiDelay);
+        await this.utils.delay(this.apiDelay);
         return config;
       });
     }

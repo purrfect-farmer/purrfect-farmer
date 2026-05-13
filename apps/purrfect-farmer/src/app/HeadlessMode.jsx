@@ -174,7 +174,10 @@ export default function HeadlessMode() {
 
     /** Create Runners */
     const runners = farmers
-      .filter((farmer) => headlessFarmers.includes(farmer.id))
+      .filter(
+        (farmer) =>
+          farmer.FarmerClass.interval && headlessFarmers.includes(farmer.id),
+      )
       .map(({ FarmerClass }) => {
         return createRunner({
           FarmerClass,

@@ -22,9 +22,9 @@ export default class ATFFarmer extends BaseFarmer {
   static originalTelegramLink = "https://t.me/ATF_AIRDROP_bot?start=8217878170";
   static path = "/miner/index.html";
   static singleton = true;
-  static cacheAuth = false;
-  static cacheTelegramWebApp = false;
-  static interval = "*/45 * * * *";
+  static cacheTelegramWebApp = true;
+  static telegramWebAppExpiry = null;
+  static interval = null;
   static rating = 5;
   static netRequest = {
     requestHeaders: [
@@ -87,6 +87,11 @@ export default class ATFFarmer extends BaseFarmer {
     });
 
     return this.auth_data;
+  }
+
+  /** Set cached auth data */
+  setCachedAuthData(data) {
+    this.auth_data = data;
   }
 
   /** Get Auth Headers */

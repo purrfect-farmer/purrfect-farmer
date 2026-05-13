@@ -45,6 +45,7 @@ export default function useDropFarmer() {
     apiDelay = 200,
     cacheAuth = true,
     cacheTelegramWebApp = true,
+    telegramWebAppExpiry,
     syncToCloud = true,
     authQueryOptions,
     metaQueryOptions,
@@ -81,13 +82,13 @@ export default function useDropFarmer() {
     : account.isPrimary;
 
   /** Telegram Link */
-  const telegramLink = referralLink ? referralLink : primaryFarmerLink
-    ? primaryFarmerLink
-    : account.isPrimary
-      ? FarmerClass.telegramLink
-      : null;
-
-
+  const telegramLink = referralLink
+    ? referralLink
+    : primaryFarmerLink
+      ? primaryFarmerLink
+      : account.isPrimary
+        ? FarmerClass.telegramLink
+        : null;
 
   /** Can auto-start */
   const canAutoStart = autoStart
@@ -128,6 +129,7 @@ export default function useDropFarmer() {
     external,
     telegramLink,
     cacheTelegramWebApp,
+    telegramWebAppExpiry,
     enabled: isTelegramMiniApp && canAutoStart,
   });
 

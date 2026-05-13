@@ -86,7 +86,7 @@ export default function createRunner(FarmerClass) {
 
       /** Select User-Agent */
       this.setUserAgent(
-        this.constructor.platform === "telegram"
+        this.platform === "telegram"
           ? userAgents[Math.floor(this.random() * userAgents.length)]
           : regularMobileUserAgents[
               Math.floor(this.random() * regularMobileUserAgents.length)
@@ -94,7 +94,7 @@ export default function createRunner(FarmerClass) {
       );
 
       /** Cookie Jar */
-      this.jar = this.constructor.cookies ? new CookieJar() : null;
+      this.jar = this.cookies ? new CookieJar() : null;
 
       /** Proxy URL */
       this.proxy = this.account.proxy ? `http://${this.account.proxy}` : null;
@@ -234,7 +234,7 @@ export default function createRunner(FarmerClass) {
       const CookiesAgentType = isHttps ? HttpsCookieAgent : HttpCookieAgent;
 
       if (proxy) {
-        return this.constructor.cookies
+        return this.cookies
           ? new ProxyAgentWithCookiesType({
               timeout: 30_000,
               cookies: { jar: this.jar },
@@ -242,7 +242,7 @@ export default function createRunner(FarmerClass) {
             })
           : new ProxyAgentType({ proxy, timeout: 30_000 });
       } else {
-        return this.constructor.cookies
+        return this.cookies
           ? new CookiesAgentType({ cookies: { jar: this.jar } })
           : null;
       }
@@ -277,7 +277,7 @@ export default function createRunner(FarmerClass) {
 
     /** Prepare Instance */
     async prepare() {
-      const needsAuth = !this.constructor.cacheAuth || !this.farmer;
+      const needsAuth = !this.cacheAuth || !this.farmer;
 
       /** Create Farmer */
       if (!this.farmer) {
@@ -293,7 +293,7 @@ export default function createRunner(FarmerClass) {
       }
 
       /** Update WebAppData */
-      if (this.constructor.platform === "telegram" && this.account.session) {
+      if (this.platform === "telegram" && this.account.session) {
         try {
           /** Create Telegram Client */
           this.client = await GramClient.create(this.account.session);
@@ -302,8 +302,8 @@ export default function createRunner(FarmerClass) {
           await this.client.connect();
 
           /** Update the web app data */
-          if (this.constructor.type === "webapp") {
-            await this.updateWebAppData();
+          if (this.type === "webapp") {
+            await this.updateWebAppData(needsAuth);
           }
         } catch (e) {
           this.logger.error("Failed to update WebAppData", e.message);
@@ -314,7 +314,7 @@ export default function createRunner(FarmerClass) {
       this.configureTelegramWebApp();
 
       /** Restore Cookies */
-      if (this.constructor.cookies) {
+      if (this.cookies) {
         await this.restoreCookies();
       }
 
@@ -343,8 +343,8 @@ export default function createRunner(FarmerClass) {
     configureTelegramWebApp() {
       /** Set Telegram Web App */
       if (
-        this.constructor.platform === "telegram" &&
-        this.constructor.type === "webapp" &&
+        this.platform === "telegram" &&
+        this.type === "webapp" &&
         this.farmer
       ) {
         this.setTelegramWebApp(this.farmer.telegramWebApp);
@@ -361,21 +361,21 @@ export default function createRunner(FarmerClass) {
     /**
      * Get and update the initData using the telegram link for this farmer
      */
-    async updateWebAppData() {
-      /** Log link for init data */
-      this.logger.info(
-        `[${this.account.id}] Updating init data:`,
-        this.constructor.telegramLink,
-      );
+    async updateWebAppData(force) {
+      if (force || !this.cacheTelegramWebApp) {
+        /** Log link for init data */
+        this.logger.info(
+          `[${this.account.id}] Updating init data:`,
+          this.telegramLink,
+        );
 
-      const { url } = await this.client.getWebview(
-        this.constructor.telegramLink,
-      );
-      const { initData } = this.utils.extractTgWebAppData(url);
+        const { url } = await this.client.getWebview(this.telegramLink);
+        const { initData } = this.utils.extractTgWebAppData(url);
 
-      this.farmer.initData = initData;
+        this.farmer.initData = initData;
 
-      this.logger.success("Successfully updated init data!");
+        this.logger.success("Successfully updated init data!");
+      }
     }
 
     /** Disconnect Farmer */

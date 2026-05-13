@@ -109,34 +109,36 @@ function TinyFly() {
       runnerRef.current = runner;
 
       /* Register Drops */
-      drops.forEach((drop) => {
-        const { FarmerClass } = drop;
-        const callback = async () => {
-          if (controller.signal.aborted) return;
+      drops
+        .filter((drop) => drop.FarmerClass.interval)
+        .forEach((drop) => {
+          const { FarmerClass } = drop;
+          const callback = async () => {
+            if (controller.signal.aborted) return;
 
-          /* Create Farmer Instance */
-          const instance = createInstance({
-            FarmerClass,
-            logger,
-            captcha,
-            userAgent,
-            controller,
-            client,
-          });
+            /* Create Farmer Instance */
+            const instance = createInstance({
+              FarmerClass,
+              logger,
+              captcha,
+              userAgent,
+              controller,
+              client,
+            });
 
-          await instance.run();
-        };
+            await instance.run();
+          };
 
-        /* Register Task */
-        runner.register(
-          FarmerClass.interval ?? "*/10 * * * *",
-          callback,
-          FarmerClass.title,
-        );
+          /* Register Task */
+          runner.register(
+            FarmerClass.interval ?? "*/10 * * * *",
+            callback,
+            FarmerClass.title,
+          );
 
-        /* Initial Log */
-        logger.success(`> ${FarmerClass.title}`);
-      });
+          /* Initial Log */
+          logger.success(`> ${FarmerClass.title}`);
+        });
 
       /* Cleanup on abort */
       controller.signal.addEventListener("abort", () => {

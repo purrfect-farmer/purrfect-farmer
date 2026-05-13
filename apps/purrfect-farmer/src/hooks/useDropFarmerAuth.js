@@ -1,10 +1,9 @@
+import storage from "@/lib/storage";
 import { useCallback } from "react";
+import useChromeStorageKey from "./useChromeStorageKey";
 import { useLayoutEffect } from "react";
 import { useMemo } from "react";
-
-import useChromeStorageKey from "./useChromeStorageKey";
 import useStaticQuery from "./useStaticQuery";
-import storage from "@/lib/storage";
 
 export default function useDropFarmerAuth({
   id,
@@ -22,23 +21,28 @@ export default function useDropFarmerAuth({
   /** Auth Query Key */
   const authQueryKey = useMemo(
     () => [id, "auth", telegramHash],
-    [id, telegramHash]
+    [id, telegramHash],
   );
 
   /** Auth QueryFn */
   const authQueryFn = useCallback(
     () =>
       cacheAuth
-        ? storage
-            .getItem(authChromeStorageKey, null)
-            .then((result) => result || instance.fetchAuth())
+        ? storage.getItem(authChromeStorageKey, null).then((result) => {
+            if (result) {
+              instance.setCachedAuthData(result);
+              return result;
+            }
+
+            return instance.fetchAuth();
+          })
         : instance.fetchAuth(),
     [
       /** Deps */
       instance,
       cacheAuth,
       authChromeStorageKey,
-    ]
+    ],
   );
 
   /** Auth Query */
@@ -49,13 +53,13 @@ export default function useDropFarmerAuth({
       queryKey: authQueryKey,
       queryFn: authQueryFn,
     },
-    queryClient
+    queryClient,
   );
 
   /** Reset Auth Cache */
   const resetAuthCache = useCallback(
     () => storage.remove(authChromeStorageKey),
-    [authChromeStorageKey]
+    [authChromeStorageKey],
   );
 
   /** Handle Auth Data  */
