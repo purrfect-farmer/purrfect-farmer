@@ -3,9 +3,10 @@
  * @param {import("sequelize")} Sequelize
  */
 export async function up(queryInterface, Sequelize) {
-  await queryInterface.sequelize.query("PRAGMA foreign_keys = OFF");
-  await queryInterface.sequelize.query("PRAGMA ignore_check_constraints = ON");
-
+  await queryInterface.removeConstraint(
+    "Farmers",
+    "Farmers_accountId_farmer_uk",
+  );
   await queryInterface.sequelize.transaction(async (transaction) => {
     await queryInterface.removeColumn("Farmers", "active", { transaction });
     await queryInterface.removeColumn("Farmers", "isBanned", { transaction });
