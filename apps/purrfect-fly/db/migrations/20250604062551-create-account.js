@@ -22,6 +22,14 @@ export async function up(queryInterface, Sequelize) {
     user: {
       type: Sequelize.JSON,
     },
+    options: {
+      type: Sequelize.JSON,
+      defaultValue: {},
+    },
+    storage: {
+      type: Sequelize.JSON,
+      defaultValue: {},
+    },
     createdAt: {
       allowNull: false,
       type: Sequelize.DATE,

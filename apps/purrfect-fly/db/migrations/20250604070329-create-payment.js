@@ -20,11 +20,9 @@ export async function up(queryInterface, Sequelize) {
       type: Sequelize.BIGINT,
     },
     reference: {
-      allowNull: false,
       type: Sequelize.STRING,
     },
     data: {
-      allowNull: false,
       type: Sequelize.JSON,
     },
     createdAt: {

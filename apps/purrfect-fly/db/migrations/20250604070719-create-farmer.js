@@ -19,19 +19,36 @@ export async function up(queryInterface, Sequelize) {
       onUpdate: "CASCADE",
       type: Sequelize.BIGINT,
     },
-    active: {
-      allowNull: false,
-      type: Sequelize.BOOLEAN,
-    },
     farmer: {
       allowNull: false,
       type: Sequelize.STRING,
+    },
+    status: {
+      type: Sequelize.STRING,
+      defaultValue: "active",
+    },
+    errorCount: {
+      type: Sequelize.INTEGER,
+      defaultValue: 0,
     },
     initData: {
       type: Sequelize.STRING,
     },
     headers: {
       type: Sequelize.JSON,
+      defaultValue: {},
+    },
+    cookies: {
+      type: Sequelize.JSON,
+      defaultValue: [],
+    },
+    options: {
+      type: Sequelize.JSON,
+      defaultValue: {},
+    },
+    storage: {
+      type: Sequelize.JSON,
+      defaultValue: {},
     },
     createdAt: {
       allowNull: false,
@@ -41,11 +58,6 @@ export async function up(queryInterface, Sequelize) {
       allowNull: false,
       type: Sequelize.DATE,
     },
-  });
-
-  await queryInterface.addConstraint("Farmers", {
-    fields: ["accountId", "farmer"],
-    type: "unique",
   });
 }
 
