@@ -332,6 +332,9 @@ class ATFAuto {
         /** Start or claim mining */
         await runner.startOrClaimMining();
 
+        /** Persist */
+        await runner.persist();
+
         /** Set farmer status to frozen */
         if (runner.farmer) {
           runner.farmer.status = "frozen";

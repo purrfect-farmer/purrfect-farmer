@@ -30,7 +30,7 @@ export default function useDropFarmerAuth({
       cacheAuth
         ? storage.getItem(authChromeStorageKey, null).then((result) => {
             if (result) {
-              instance.setCachedAuthData(result);
+              instance.restoreCachedAuthData(result);
               return result;
             }
 

@@ -22,6 +22,8 @@ export default class ATFFarmer extends BaseFarmer {
   static originalTelegramLink = "https://t.me/ATF_AIRDROP_bot?start=8217878170";
   static path = "/miner/index.html";
   static singleton = true;
+  static cacheAuth = true;
+  static cacheTelegramWebApp = true;
   static interval = "*/45 * * * *"; // Every 45 minutes
   static rating = 5;
   static netRequest = {
@@ -87,8 +89,8 @@ export default class ATFFarmer extends BaseFarmer {
     return this.auth_data;
   }
 
-  /** Set cached auth data */
-  setCachedAuthData(data) {
+  /** Restore cached auth data */
+  restoreCachedAuthData(data) {
     this.auth_data = data;
   }
 
@@ -686,7 +688,7 @@ export default class ATFFarmer extends BaseFarmer {
       const boostSeconds = Math.max(
         0,
         Math.min(cappedNow, boostActiveUntil) -
-        Math.max(lastMiningStart, boostStart),
+          Math.max(lastMiningStart, boostStart),
       );
       const tapReward = rate / 100000 / divisor;
       boostReward = boostSeconds * boostPower * tapReward;
@@ -695,12 +697,14 @@ export default class ATFFarmer extends BaseFarmer {
     return parseFloat((pendingReward + passiveReward + boostReward).toFixed(4));
   }
 
-  /** Process Farmer */
-  async process() {
+  async login() {
     this.auth_data = await this.makeAction("login", {
       username: this.getUsername(),
     });
+  }
 
+  /** Process Farmer */
+  async process() {
     const { user } = this.auth_data;
 
     this.logUserInfo(user);
@@ -708,6 +712,11 @@ export default class ATFFarmer extends BaseFarmer {
     await this.executeTask("Boost", () => this.applyBoost());
     await this.executeTask("Tasks", () => this.completeTasks());
     await this.executeTask("Extra Tasks", () => this.completeExtraTasks());
+  }
+
+  /** Persist */
+  async persist() {
+    await this.storage.set("auth_data", this.auth_data);
   }
 
   /** Get User Details */

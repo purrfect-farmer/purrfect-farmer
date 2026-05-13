@@ -274,8 +274,14 @@ export default class BaseFarmer {
     }
   }
 
-  /** Set cached auth data */
-  setCachedAuthData(data) {}
+  /** Restore cached auth data */
+  restoreCachedAuthData(data) {}
+
+  /** Load data */
+  load() {}
+
+  /** Persist data */
+  persist() {}
 
   /** Set Cache Auth */
   setCacheAuth(status) {
@@ -319,7 +325,14 @@ export default class BaseFarmer {
     /** Delay for 3s */
     await this.utils.delayForSeconds(3, { signal: this.signal });
 
-    return this.process();
+    /** Load data */
+    await this.load();
+
+    /** Start */
+    await this.process();
+
+    /** Persist */
+    await this.persist();
   }
 
   /** Get elapsed time */

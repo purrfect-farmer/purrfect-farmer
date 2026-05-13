@@ -344,6 +344,11 @@ export default function createRunner(FarmerClass) {
       /** Prepare Auth Headers */
       if (needsAuth) {
         await this.prepareAuth();
+      } else if (this.cacheAuth) {
+        const data = await this.storage.get("cached-auth");
+        if (data) {
+          this.restoreCachedAuthData(data);
+        }
       }
 
       /** Set Auth Headers */
@@ -379,6 +384,10 @@ export default function createRunner(FarmerClass) {
       const auth = await this.fetchAuth();
       const headers = await this.getAuthHeaders(auth);
       this.farmer.setHeaders(headers);
+
+      if (this.cacheAuth) {
+        this.storage.set("cached-auth", auth);
+      }
     }
 
     /**
