@@ -335,12 +335,6 @@ class ATFAuto {
         /** Persist */
         await runner.persist();
 
-        /** Set farmer status to frozen */
-        if (runner.farmer) {
-          runner.farmer.status = "frozen";
-          await runner.farmer.save();
-        }
-
         return { status: true, user };
       } catch (e) {
         errorMessage = e.message;
