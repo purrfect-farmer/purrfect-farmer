@@ -22,9 +22,6 @@ export default class ATFFarmer extends BaseFarmer {
   static originalTelegramLink = "https://t.me/ATF_AIRDROP_bot?start=8217878170";
   static path = "/miner/index.html";
   static singleton = true;
-  static cacheAuth = true;
-  static cacheTelegramWebApp = true;
-  static interval = "*/45 * * * *"; // Every 45 minutes
   static rating = 5;
   static netRequest = {
     requestHeaders: [
@@ -82,16 +79,15 @@ export default class ATFFarmer extends BaseFarmer {
 
   /** Get Auth */
   async fetchAuth() {
-    this.auth_data = await this.makeAction("login", {
+    return this.login();
+  }
+
+  async login() {
+    this.user_data = await this.makeAction("login", {
       username: this.getUsername(),
     });
 
-    return this.auth_data;
-  }
-
-  /** Restore cached auth data */
-  restoreCachedAuthData(data) {
-    this.auth_data = data;
+    return this.user_data;
   }
 
   /** Get Auth Headers */
@@ -409,7 +405,7 @@ export default class ATFFarmer extends BaseFarmer {
       const user = result.user;
 
       /** Update user */
-      this.auth_data.user = Object.assign(this.auth_data.user, user);
+      this.user_data.user = Object.assign(this.user_data.user, user);
 
       this.logger.success("Wallet synced successfully!");
       this.logUserBalance(user);
@@ -470,7 +466,7 @@ export default class ATFFarmer extends BaseFarmer {
 
   /** Place withdrawal */
   async withdraw({ max, difference = 0 } = {}) {
-    const { user } = this.auth_data;
+    const { user } = this.user_data;
     const balance = new Decimal(user["mined_balance"]);
 
     if (balance.lessThan(MINIMUM_WITHDRAWABLE_AMOUNT)) {
@@ -558,7 +554,7 @@ export default class ATFFarmer extends BaseFarmer {
 
     if (status) {
       /** Update balance */
-      this.auth_data.user["mined_balance"] = result["new_balance"];
+      this.user_data.user["mined_balance"] = result["new_balance"];
 
       /** Set withdrawn amount */
       withdrawn = new Decimal(result["send_amount"]);
@@ -697,15 +693,9 @@ export default class ATFFarmer extends BaseFarmer {
     return parseFloat((pendingReward + passiveReward + boostReward).toFixed(4));
   }
 
-  async login() {
-    this.auth_data = await this.makeAction("login", {
-      username: this.getUsername(),
-    });
-  }
-
   /** Process Farmer */
   async process() {
-    const { user } = this.auth_data;
+    const { user } = this.user_data;
 
     this.logUserInfo(user);
     await this.executeTask("Mining", () => this.startOrClaimMining());
@@ -714,14 +704,9 @@ export default class ATFFarmer extends BaseFarmer {
     await this.executeTask("Extra Tasks", () => this.completeExtraTasks());
   }
 
-  /** Persist */
-  async persist() {
-    await this.storage.set("auth_data", this.auth_data);
-  }
-
   /** Get User Details */
   getUserDetails() {
-    return this.auth_data.user;
+    return this.user_data.user;
   }
 
   /** Log User Info */
@@ -800,7 +785,7 @@ export default class ATFFarmer extends BaseFarmer {
 
   /** Start of claim mining */
   async startOrClaimMining() {
-    const { user } = this.auth_data;
+    const { user } = this.user_data;
     if (!user["wallet_address"]) {
       this.logger.error(
         "No wallet connected. Please connect your wallet first.",
@@ -824,12 +809,12 @@ export default class ATFFarmer extends BaseFarmer {
       });
 
       if (result.start_time) {
-        this.auth_data.user["last_mining_start"] = result.start_time;
-        this.auth_data.user["boost_active_until"] =
+        this.user_data.user["last_mining_start"] = result.start_time;
+        this.user_data.user["boost_active_until"] =
           result.boost_active_until || 0;
-        this.auth_data.user["boost_power_snapshot"] =
+        this.user_data.user["boost_power_snapshot"] =
           result.boost_power_snapshot || 0;
-        this.auth_data.user["mining_difficulty_snapshot"] =
+        this.user_data.user["mining_difficulty_snapshot"] =
           result.mining_difficulty_snapshot || 0;
         this.logger.success("Mining started!");
       }
@@ -856,7 +841,7 @@ export default class ATFFarmer extends BaseFarmer {
       const result = await this.claimMining(balance);
 
       if (result.new_pool_balance !== undefined) {
-        this.auth_data.user["mined_balance"] = result.new_pool_balance;
+        this.user_data.user["mined_balance"] = result.new_pool_balance;
         this.logger.success(
           `Claimed! Pool balance: ${result.new_pool_balance}`,
         );
@@ -864,20 +849,20 @@ export default class ATFFarmer extends BaseFarmer {
 
       /** Mining auto-restarts after claim */
       if (result.server_now) {
-        this.auth_data.user["last_mining_start"] = result.server_now;
-        this.auth_data.user["pending_reward"] = 0;
-        this.auth_data.user["boost_active_until"] =
+        this.user_data.user["last_mining_start"] = result.server_now;
+        this.user_data.user["pending_reward"] = 0;
+        this.user_data.user["boost_active_until"] =
           result.boost_active_until || 0;
-        this.auth_data.user["boost_power_snapshot"] =
+        this.user_data.user["boost_power_snapshot"] =
           result.boost_power_snapshot || 0;
-        this.auth_data.user["mining_difficulty_snapshot"] =
+        this.user_data.user["mining_difficulty_snapshot"] =
           result.mining_difficulty_snapshot || 0;
       }
     }
   }
 
   async applyBoost() {
-    const { user } = this.auth_data;
+    const { user } = this.user_data;
     const lastMiningStart = Number(user["last_mining_start"]);
 
     if (lastMiningStart === 0) {
@@ -908,14 +893,14 @@ export default class ATFFarmer extends BaseFarmer {
     const result = await this.activateBoost(balance);
 
     if (result.boost_active_until) {
-      this.auth_data.user["boost_active_until"] = result.boost_active_until;
-      this.auth_data.user["boost_power_snapshot"] = diffData.boostTapsPerSec;
+      this.user_data.user["boost_active_until"] = result.boost_active_until;
+      this.user_data.user["boost_power_snapshot"] = diffData.boostTapsPerSec;
       this.logger.success("Boost activated!");
     }
   }
 
   async completeTasks() {
-    const { user } = this.auth_data;
+    const { user } = this.user_data;
 
     const tasks = [
       "telegram_join",
@@ -941,7 +926,7 @@ export default class ATFFarmer extends BaseFarmer {
   }
 
   async completeExtraTasks() {
-    const { task_cooldowns: extraTasks } = this.auth_data;
+    const { task_cooldowns: extraTasks } = this.user_data;
 
     const allAvailable = Object.values(extraTasks).every((cooldown) =>
       this.utils.dateFns.isAfter(new Date(), new Date(cooldown * 1000)),

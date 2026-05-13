@@ -1,15 +1,35 @@
+/**
+ * Delay with jitter
+ * @param {number} length
+ * @param {object} param1
+ * @param {boolean} param1.precised
+ * @param {AbortSignal} param1.signal
+ * @returns
+ */
 export function delay(length, { precised = false, signal } = {}) {
   return new Promise((resolve, reject) => {
-    const duration = precised
-      ? length
-      : (length * (Math.floor(Math.random() * 50) + 100)) / 100;
+    try {
+      /** Throw is aborted */
+      signal?.throwIfAborted?.();
 
-    const timeoutId = setTimeout(() => resolve(), duration);
+      /** Duration */
+      const duration = precised
+        ? length
+        : (length * (Math.floor(Math.random() * 50) + 100)) / 100;
 
-    signal?.addEventListener("abort", () => {
-      clearTimeout(timeoutId);
-      reject(new Error("Aborted"));
-    });
+      const timeoutId = setTimeout(() => resolve(), duration);
+
+      signal?.addEventListener(
+        "abort",
+        (ev) => {
+          clearTimeout(timeoutId);
+          reject(signal.reason ?? new Error("Aborted!"));
+        },
+        { once: true },
+      );
+    } catch (e) {
+      reject(e);
+    }
   });
 }
 
