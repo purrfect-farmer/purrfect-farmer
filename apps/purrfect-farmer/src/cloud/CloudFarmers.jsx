@@ -51,28 +51,28 @@ export default function CloudFarmers() {
     () =>
       farmersQuery.data
         ? Object.entries(
-            farmersQuery.data.reduce((result, account) => {
-              account.farmers.forEach((farmer) => {
-                result[farmer.farmer] = result[farmer.farmer] || [];
-                result[farmer.farmer].push({ farmer, account });
-              });
+          farmersQuery.data.reduce((result, account) => {
+            account.farmers.forEach((farmer) => {
+              result[farmer.farmer] = result[farmer.farmer] || [];
+              result[farmer.farmer].push({ farmer, account });
+            });
 
-              return result;
-            }, {}),
-          ).map(([k, v]) => {
-            const entry = farmersMap?.get(k);
+            return result;
+          }, {}),
+        ).map(([k, v]) => {
+          const entry = farmersMap?.get(k);
 
-            return {
-              id: k,
-              icon: entry?.icon || AppIcon,
-              title: entry?.title || "(Unknown) Farmer",
-              singleton: entry?.singleton || false,
-              FarmerClass: entry?.FarmerClass,
-              farmers: search
-                ? v.filter((item) => matchesAccountSearch(search, item.account))
-                : v,
-            };
-          })
+          return {
+            id: k,
+            icon: entry?.icon || AppIcon,
+            title: entry?.title || "(Unknown) Farmer",
+            singleton: entry?.singleton || false,
+            FarmerClass: entry?.FarmerClass,
+            farmers: search
+              ? v.filter((item) => matchesAccountSearch(search, item.account))
+              : v,
+          };
+        })
         : [],
     [search, farmersQuery.data],
   );
@@ -196,9 +196,12 @@ export default function CloudFarmers() {
                               className={cn(
                                 "shrink-0 size-2 rounded-full",
                                 "border-2 border-white",
-                                !farmer.isBanned && farmer.active
-                                  ? "bg-green-500"
-                                  : "bg-red-500",
+                                {
+                                  "active": "bg-green-500",
+                                  "frozen": "bg-sky-500",
+                                  "banned": "bg-red-500",
+                                  "inactive": "bg-red-500",
+                                }[farmer.status]
                               )}
                             />
                           ) : null}
