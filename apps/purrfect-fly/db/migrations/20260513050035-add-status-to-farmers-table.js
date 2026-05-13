@@ -3,23 +3,12 @@
  * @param {import("sequelize")} Sequelize
  */
 export async function up(queryInterface, Sequelize) {
-  return queryInterface.sequelize.transaction(async (t) => {
-    return Promise.all([
-      queryInterface.removeColumn("Farmers", "active", { transaction: t }),
-      queryInterface.removeColumn("Farmers", "isBanned", {
-        transaction: t,
-      }),
-      queryInterface.addColumn(
-        "Farmers",
-        "status",
-        {
-          type: Sequelize.STRING,
-          defaultValue: "active",
-          allowNull: true,
-        },
-        { transaction: t },
-      ),
-    ]);
+  await queryInterface.removeColumn("Farmers", "active");
+  await queryInterface.removeColumn("Farmers", "isBanned");
+  await queryInterface.addColumn("Farmers", "status", {
+    type: Sequelize.STRING,
+    defaultValue: "active",
+    allowNull: true,
   });
 }
 
@@ -28,29 +17,15 @@ export async function up(queryInterface, Sequelize) {
  * @param {import("sequelize")} Sequelize
  */
 export async function down(queryInterface, Sequelize) {
-  return queryInterface.sequelize.transaction((t) => {
-    return Promise.all([
-      queryInterface.removeColumn("Farmers", "status", { transaction: t }),
-      queryInterface.addColumn(
-        "Farmers",
-        "active",
-        {
-          type: Sequelize.BOOLEAN,
-          defaultValue: true,
-          allowNull: true,
-        },
-        { transaction: t },
-      ),
-      queryInterface.addColumn(
-        "Farmers",
-        "isBanned",
-        {
-          type: Sequelize.BOOLEAN,
-          defaultValue: false,
-          allowNull: true,
-        },
-        { transaction: t },
-      ),
-    ]);
+  await queryInterface.removeColumn("Farmers", "status");
+  await queryInterface.addColumn("Farmers", "active", {
+    type: Sequelize.BOOLEAN,
+    defaultValue: true,
+    allowNull: true,
+  });
+  await queryInterface.addColumn("Farmers", "isBanned", {
+    type: Sequelize.BOOLEAN,
+    defaultValue: false,
+    allowNull: true,
   });
 }
