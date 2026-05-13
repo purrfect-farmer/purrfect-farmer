@@ -89,8 +89,8 @@ export default function createRunner(FarmerClass) {
         this.platform === "telegram"
           ? userAgents[Math.floor(this.random() * userAgents.length)]
           : regularMobileUserAgents[
-          Math.floor(this.random() * regularMobileUserAgents.length)
-          ],
+              Math.floor(this.random() * regularMobileUserAgents.length)
+            ],
       );
 
       /** Cookie Jar */
@@ -127,6 +127,28 @@ export default function createRunner(FarmerClass) {
 
       /** Configure Telegram Web app */
       this.configureTelegramWebApp();
+
+      /** Setup storage */
+      this.setupStorage();
+    }
+
+    /** Setup storage */
+    setupStorage() {
+      this.storage = {
+        get: async (key) => {
+          return this.farmer?.storage?.[key];
+        },
+        set: async (key, value) => {
+          if (this.farmer) {
+            this.farmer.storage = {
+              ...this.farmer.storage,
+              [key]: value,
+            };
+
+            await this.farmer.save();
+          }
+        },
+      };
     }
 
     /** Create Axios Instance */
@@ -236,10 +258,10 @@ export default function createRunner(FarmerClass) {
       if (proxy) {
         return this.cookies
           ? new ProxyAgentWithCookiesType({
-            timeout: 30_000,
-            cookies: { jar: this.jar },
-            proxy,
-          })
+              timeout: 30_000,
+              cookies: { jar: this.jar },
+              proxy,
+            })
           : new ProxyAgentType({ proxy, timeout: 30_000 });
       } else {
         return this.cookies
@@ -525,8 +547,8 @@ export default function createRunner(FarmerClass) {
           /** Prioritize primary account is the primary link is not set */
           const primaryIndex = !this.primaryFarmerLink
             ? this.queue.findIndex(
-              (item) => item.account.id === this.primaryAccountId,
-            )
+                (item) => item.account.id === this.primaryAccountId,
+              )
             : -1;
 
           /** Prioritize new accounts */
