@@ -1,15 +1,15 @@
-import { HiOutlinePower, HiOutlineXMark } from "react-icons/hi2";
-import { farmersMap } from "@/core/farmers";
-
 import Alert from "@/components/Alert";
 import AppIcon from "@/assets/images/icon.png?format=webp&w=80";
 import CloudAddressDisplay from "@/cloud/CloudAddressDisplay";
 import CloudStatus from "@/partials/CloudStatus";
 import CloudSubscription from "@/partials/CloudSubscription";
 import Container from "@/components/Container";
+import { HiOutlinePower } from "react-icons/hi2";
+import { LuPause } from "react-icons/lu";
 import ProxyDetails from "@/components/ProxyDetails";
 import Tabs from "@/components/Tabs";
 import { cn } from "@/utils";
+import { farmersMap } from "@/core/farmers";
 import toast from "react-hot-toast";
 import useAppContext from "@/hooks/useAppContext";
 import { useCallback } from "react";
@@ -27,7 +27,7 @@ const MyCloudActionButton = ({ variant, ...props }) => (
     className={cn(
       variant === "activate"
         ? "text-green-500 dark:text-green-400"
-        : "text-red-500 dark:text-red-400",
+        : "text-orange-500 dark:text-orange-400",
       "bg-neutral-100 dark:bg-neutral-700",
       "px-3 rounded-lg shrink-0",
     )}
@@ -136,7 +136,12 @@ const MyCloudFarmers = () => {
               className={cn(
                 "shrink-0 size-2 rounded-full",
                 "border-2 border-white",
-                farmer.active ? "bg-green-500" : "bg-red-500",
+                {
+                  active: "bg-green-500",
+                  frozen: "bg-sky-500",
+                  banned: "bg-red-500",
+                  inactive: "bg-orange-500",
+                }[farmer.status],
               )}
             />
           </button>
@@ -156,7 +161,7 @@ const MyCloudFarmers = () => {
             title="Deactivate Farmer"
             onClick={() => deactivateFarmer(farmer.id)}
           >
-            <HiOutlineXMark className="size-4" />
+            <LuPause className="size-4" />
           </MyCloudActionButton>
         </div>
       ))}

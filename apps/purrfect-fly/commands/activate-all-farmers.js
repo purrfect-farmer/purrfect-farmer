@@ -11,7 +11,13 @@ export default (program, inquirer, chalk) => {
       const db = await import("../db/models/index.js").then((m) => m.default);
       await db.Farmer.update(
         { status: "active", errorCount: 0 },
-        { where: {} },
+        {
+          where: {
+            status: {
+              [db.Sequelize.Op.not]: "frozen",
+            },
+          },
+        },
       );
       console.log(chalk.bold.green("All farmers have been activated!"));
     });

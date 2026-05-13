@@ -1,18 +1,19 @@
-import useParsedProxy from "@/hooks/useParsedProxy";
-import { cn } from "@/utils";
-import { useQuery } from "@tanstack/react-query";
-import axios from "axios";
-import copy from "copy-to-clipboard";
-import { Collapsible } from "radix-ui";
-import { useCallback } from "react";
-import toast from "react-hot-toast";
-import { CgSpinner } from "react-icons/cg";
 import {
   HiCheckCircle,
   HiMinusCircle,
   HiOutlineClipboard,
   HiOutlineMapPin,
 } from "react-icons/hi2";
+
+import { CgSpinner } from "react-icons/cg";
+import { Collapsible } from "radix-ui";
+import axios from "axios";
+import { cn } from "@/utils";
+import copy from "copy-to-clipboard";
+import toast from "react-hot-toast";
+import { useCallback } from "react";
+import useParsedProxy from "@/hooks/useParsedProxy";
+import { useQuery } from "@tanstack/react-query";
 
 const ProxyDetailsItem = ({ label, value }) => {
   const copyValue = useCallback(() => {
@@ -24,13 +25,13 @@ const ProxyDetailsItem = ({ label, value }) => {
     <div
       className={cn(
         "p-2.5 flex items-center gap-2 rounded-xl",
-        "bg-neutral-200 dark:bg-neutral-600"
+        "bg-neutral-200 dark:bg-neutral-600",
       )}
     >
       {/* Details */}
       <div className="flex flex-col grow min-w-0">
         <span className="text-neutral-500 dark:text-neutral-400">{label}</span>
-        <span className="font-bold">{value}</span>
+        <span className="font-bold wrap-break-word">{value}</span>
       </div>
 
       {/* Copy button */}
@@ -64,14 +65,14 @@ const ProxyDetails = ({ proxy, rootClassName, ...props }) => {
         "bg-neutral-100 dark:bg-neutral-700",
         "flex flex-col gap-2",
         "p-2 rounded-xl",
-        rootClassName
+        rootClassName,
       )}
     >
       <Collapsible.Trigger
         className={cn(
           "p-2 flex items-center gap-2 rounded-xl",
           "bg-neutral-200 dark:bg-neutral-600",
-          "border border-transparent hover:border-blue-500"
+          "border border-transparent hover:border-blue-500",
         )}
       >
         {/* Proxy Icon */}
@@ -82,7 +83,7 @@ const ProxyDetails = ({ proxy, rootClassName, ...props }) => {
           title={ipInfo ? `${ipInfo.city} - ${ipInfo.country}` : "Proxy"}
           className={cn(
             "font-bold grow min-w-0",
-            "text-center flex items-center justify-center gap-2"
+            "text-center flex items-center justify-center gap-2",
           )}
         >
           {/* Flag */}

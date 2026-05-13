@@ -2,6 +2,7 @@ import { HiCheckCircle, HiMinusCircle } from "react-icons/hi2";
 import { cn, matchesAccountSearch } from "@/utils";
 import { useMemo, useState } from "react";
 
+import AccountImage from "@/components/AccountImage";
 import CloudMemberDialog from "./CloudMemberDialog";
 import { Dialog } from "radix-ui";
 import Input from "@/components/Input";
@@ -89,10 +90,11 @@ export default function CloudMembers() {
                     )}
                   >
                     {/* Photo */}
-                    <img
+                    <AccountImage
                       src={account.user?.["photo_url"] || UserIcon}
-                      className="w-6 h-6 rounded-full shrink-0"
-                    />{" "}
+                      className="w-6 h-6 shrink-0"
+                      active={account.session}
+                    />
                     {/* Username */}
                     <h5 className="grow min-w-0 min-h-0 truncate">
                       {account.user?.["username"] || account.id}

@@ -118,19 +118,21 @@ const MemberDialogFarmer = ({ account, farmer }) => {
           <p
             className={cn(
               {
-                "active": "bg-green-500",
-                "frozen": "bg-sky-500",
-                "banned": "bg-red-500",
-                "inactive": "bg-red-500",
-              }[farmer.status]
+                active: "text-green-500",
+                frozen: "text-sky-500",
+                banned: "text-red-500",
+                inactive: "text-orange-500",
+              }[farmer.status],
             )}
           >
-            {{
-              "active": "Active",
-              "frozen": "Frozen",
-              "banned": "Banned",
-              "inactive": "Inactive",
-            }[farmer.status]}{" "}
+            {
+              {
+                active: "Active",
+                frozen: "Frozen",
+                banned: "Banned",
+                inactive: "Inactive",
+              }[farmer.status]
+            }{" "}
             (<span className="font-bold">{farmer.errorCount}</span>)
           </p>
         </div>

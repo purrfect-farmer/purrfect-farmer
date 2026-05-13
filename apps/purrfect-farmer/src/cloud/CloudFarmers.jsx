@@ -1,13 +1,15 @@
-import { HiOutlinePower, HiOutlineXMark, HiPlay } from "react-icons/hi2";
+import { HiOutlinePower, HiPlay } from "react-icons/hi2";
 import { cn, matchesAccountSearch } from "@/utils";
 import { useMemo, useState } from "react";
 
+import AccountImage from "@/components/AccountImage";
 import AppIcon from "@/assets/images/icon.png?format=webp&w=80";
 import Button from "@/components/Button";
 import CloudMemberDialog from "./CloudMemberDialog";
 import { Collapsible } from "radix-ui";
 import { Dialog } from "radix-ui";
 import Input from "@/components/Input";
+import { LuPause } from "react-icons/lu";
 import UserIcon from "@/assets/images/user-icon.png?format=webp&w=256";
 import { farmersMap } from "@/core/farmers";
 import toast from "react-hot-toast";
@@ -32,7 +34,7 @@ const FarmerActionButton = ({ variant, ...props }) => (
     className={cn(
       variant === "activate"
         ? "text-green-500 dark:text-green-400"
-        : "text-red-500 dark:text-red-400",
+        : "text-orange-500 dark:text-orange-400",
       "bg-neutral-100 dark:bg-neutral-700",
       "px-3 rounded-lg shrink-0",
     )}
@@ -51,28 +53,28 @@ export default function CloudFarmers() {
     () =>
       farmersQuery.data
         ? Object.entries(
-          farmersQuery.data.reduce((result, account) => {
-            account.farmers.forEach((farmer) => {
-              result[farmer.farmer] = result[farmer.farmer] || [];
-              result[farmer.farmer].push({ farmer, account });
-            });
+            farmersQuery.data.reduce((result, account) => {
+              account.farmers.forEach((farmer) => {
+                result[farmer.farmer] = result[farmer.farmer] || [];
+                result[farmer.farmer].push({ farmer, account });
+              });
 
-            return result;
-          }, {}),
-        ).map(([k, v]) => {
-          const entry = farmersMap?.get(k);
+              return result;
+            }, {}),
+          ).map(([k, v]) => {
+            const entry = farmersMap?.get(k);
 
-          return {
-            id: k,
-            icon: entry?.icon || AppIcon,
-            title: entry?.title || "(Unknown) Farmer",
-            singleton: entry?.singleton || false,
-            FarmerClass: entry?.FarmerClass,
-            farmers: search
-              ? v.filter((item) => matchesAccountSearch(search, item.account))
-              : v,
-          };
-        })
+            return {
+              id: k,
+              icon: entry?.icon || AppIcon,
+              title: entry?.title || "(Unknown) Farmer",
+              singleton: entry?.singleton || false,
+              FarmerClass: entry?.FarmerClass,
+              farmers: search
+                ? v.filter((item) => matchesAccountSearch(search, item.account))
+                : v,
+            };
+          })
         : [],
     [search, farmersQuery.data],
   );
@@ -183,25 +185,26 @@ export default function CloudFarmers() {
                           )}
                         >
                           {/* Photo */}
-                          <img
+                          <AccountImage
                             src={account.user?.["photo_url"] || UserIcon}
-                            className="w-6 h-6 rounded-full shrink-0"
+                            className="w-6 h-6 shrink-0"
+                            active={account.session}
                           />{" "}
                           {/* Username */}
                           <h5 className="grow min-w-0 min-h-0 truncate">
                             {account.user?.["username"] || account.id}
                           </h5>
-                          {typeof farmer.active !== "undefined" ? (
+                          {typeof farmer.status !== "undefined" ? (
                             <span
                               className={cn(
                                 "shrink-0 size-2 rounded-full",
                                 "border-2 border-white",
                                 {
-                                  "active": "bg-green-500",
-                                  "frozen": "bg-sky-500",
-                                  "banned": "bg-red-500",
-                                  "inactive": "bg-red-500",
-                                }[farmer.status]
+                                  active: "bg-green-500",
+                                  frozen: "bg-sky-500",
+                                  banned: "bg-red-500",
+                                  inactive: "bg-orange-500",
+                                }[farmer.status],
                               )}
                             />
                           ) : null}
@@ -232,7 +235,7 @@ export default function CloudFarmers() {
                         onClick={() => disconnectFarmer(farmer.id)}
                         variant={"disconnect"}
                       >
-                        <HiOutlineXMark className="size-4" />
+                        <LuPause className="size-4" />
                       </FarmerActionButton>
                     </div>
                   ))}

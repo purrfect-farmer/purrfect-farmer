@@ -226,7 +226,13 @@ export default async function (fastify, opts) {
     fastify.post("/farmers/all/activate", async (request, reply) => {
       const [affectedCount] = await fastify.db.Farmer.update(
         { status: "active", errorCount: 0 },
-        { where: {} },
+        {
+          where: {
+            status: {
+              [fastify.db.Sequelize.Op.not]: "frozen",
+            },
+          },
+        },
       );
 
       return reply.send({ success: true, affectedCount });
@@ -403,9 +409,7 @@ export default async function (fastify, opts) {
         if (account.session) {
           try {
             /** Create Client */
-            const client = await fastify.lib.GramClient.create(
-              account.session,
-            );
+            const client = await fastify.lib.GramClient.create(account.session);
 
             /** Connect */
             await client.connect();
