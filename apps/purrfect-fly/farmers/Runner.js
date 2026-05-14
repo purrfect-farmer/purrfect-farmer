@@ -19,7 +19,10 @@ import logger from "../lib/logger.js";
 import utils from "../lib/utils.js";
 
 /** Ban trigger count */
-const BAN_TRIGGER_COUNT = 5;
+const BAN_TRIGGER_COUNT = env("BAN_TRIGGER_COUNT", 5);
+
+/** Concurrent accounts */
+const MAX_CONCURRENT_ACCOUNTS = env("MAX_CONCURRENT_ACCOUNTS", 20);
 
 const HttpProxyAgentWithCookies = createCookieAgent(HttpProxyAgent);
 const HttpsProxyAgentWithCookies = createCookieAgent(HttpsProxyAgent);
@@ -555,62 +558,66 @@ export default function createRunner(FarmerClass) {
 
       try {
         while (this.queue.length > 0) {
-          let skipExecution = false;
-          let instance;
-
-          /** Prioritize primary account is the primary link is not set */
-          const primaryIndex = !this.primaryFarmerLink
-            ? this.queue.findIndex(
+          /** Prioritize primary account if the primary link is not set */
+          const primary = !this.primaryFarmerLink
+            ? this.queue.find(
                 (item) => item.account.id === this.primaryAccountId,
               )
-            : -1;
+            : null;
 
-          /** Prioritize new accounts */
-          const newAccountIndex =
-            primaryIndex === -1
-              ? this.queue.findIndex((item) => !item.account.farmer)
-              : -1;
+          if (primary) {
+            /** Remove primary account */
+            this.queue.splice(this.queue.indexOf(primary), 1);
 
-          if (primaryIndex !== -1) {
-            instance = this.queue.splice(primaryIndex, 1)[0];
+            /** Place primary account as first */
+            this.queue.unshift(primary);
 
             /** Log */
             this.logger.info(
               "Prioritizing primary account:",
               this.primaryAccountId,
             );
-          } else if (newAccountIndex !== -1) {
-            instance = this.queue.splice(newAccountIndex, 1)[0];
-
-            /** Configure skipping execution */
-            skipExecution = this.skipExecutionOfNewAccount;
-
-            /** Log */
-            this.logger.info("Prioritizing new account:", instance.account.id);
           } else {
-            instance = this.queue.shift();
+            /** Sort new accounts first */
+            this.queue.sort((a, b) => {
+              const aIsNew = !a.account.farmer ? -1 : 1;
+              const bIsNew = !b.account.farmer ? -1 : 1;
+              return aIsNew - bIsNew;
+            });
           }
 
-          try {
-            await this.execute(instance, skipExecution);
-          } catch (err) {
-            /** Log error */
-            this.logger.error("Queue processing error:", err);
+          const limit = primary ? 1 : MAX_CONCURRENT_ACCOUNTS;
+          const batch = this.queue.splice(0, limit).map((instance) => ({
+            instance,
+            skipExecution:
+              !instance.account.farmer && this.skipExecutionOfNewAccount,
+          }));
 
-            /** Unblock queue */
-            if (instance.account.id === this.primaryAccountId) {
-              this.resetPrimaryFarmerLink();
-            }
-          } finally {
-            /** Delete instance */
-            this.runners.delete(instance.account.id);
-
-            /** Delay based on farmer */
-            await this.utils.delayForMinutes(instance.account.farmer ? 1 : 3);
-          }
+          await Promise.all(
+            batch.map((item, index) => this.processQueueItem(item, index)),
+          );
         }
       } finally {
         this.isProcessingQueue = false;
+      }
+    }
+
+    /** Process queue item */
+    static async processQueueItem({ instance, skipExecution = false }, index) {
+      try {
+        await this.utils.delayForSeconds(index * 5);
+        await this.execute(instance, skipExecution);
+      } catch (err) {
+        /** Log error */
+        this.logger.error("Queue processing error:", err);
+
+        /** Unblock queue */
+        if (instance.account.id === this.primaryAccountId) {
+          this.resetPrimaryFarmerLink();
+        }
+      } finally {
+        /** Delete instance */
+        this.runners.delete(instance.account.id);
       }
     }
 
