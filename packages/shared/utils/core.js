@@ -61,3 +61,10 @@ export function tapValue(value, callback) {
 export function formatNumber(value) {
   return new Intl.NumberFormat("en-US").format(value);
 }
+
+/** Chunk array generator */
+export function* chunkArrayGenerator(arr, size) {
+  for (let i = 0; i < arr.length; i += size) {
+    yield arr.slice(i, i + size);
+  }
+}
