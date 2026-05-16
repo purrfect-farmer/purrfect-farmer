@@ -297,39 +297,44 @@ export async function resizeFarmerWindow() {
 export async function getWindowCoords() {
   const sharedSettings = await getSharedSettings();
 
-  if (typeof chrome?.system?.display === "undefined") {
-    return {
-      top: 0,
-      left: 0,
-      width: 400,
-      height: 800,
-    };
+  try {
+    if (typeof chrome?.system?.display !== "undefined") {
+      const displays = await chrome.system.display.getInfo();
+      const primaryDisplay =
+        displays.find((display) => display.isPrimary) || displays[0];
+
+      const maxWidth = primaryDisplay.workArea.width;
+      const maxHeight = primaryDisplay.workArea.height;
+
+      const position =
+        sharedSettings.farmerPosition || defaultSharedSettings.farmerPosition;
+      const width = Math.max(
+        270,
+        Math.floor(
+          maxWidth /
+          (sharedSettings.farmersPerWindow ||
+            defaultSharedSettings.farmersPerWindow),
+        ),
+      );
+      const left = Math.max(1, Math.floor(position * width) - width);
+
+      return {
+        top: 0,
+        left,
+        width,
+        height: maxHeight,
+      };
+    }
   }
-
-  const displays = await chrome.system.display.getInfo();
-  const primaryDisplay =
-    displays.find((display) => display.isPrimary) || displays[0];
-
-  const maxWidth = primaryDisplay.workArea.width;
-  const maxHeight = primaryDisplay.workArea.height;
-
-  const position =
-    sharedSettings.farmerPosition || defaultSharedSettings.farmerPosition;
-  const width = Math.max(
-    270,
-    Math.floor(
-      maxWidth /
-        (sharedSettings.farmersPerWindow ||
-          defaultSharedSettings.farmersPerWindow),
-    ),
-  );
-  const left = Math.max(1, Math.floor(position * width) - width);
+  catch (e) {
+    console.error("Error getting window coords:", e);
+  }
 
   return {
     top: 0,
-    left,
-    width,
-    height: maxHeight,
+    left: 0,
+    width: 400,
+    height: 800,
   };
 }
 
