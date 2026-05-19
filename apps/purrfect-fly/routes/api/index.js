@@ -365,7 +365,7 @@ export default async function (fastify, opts) {
         attributes: ["accountId"],
         where: {
           farmer: "atf",
-          status: 'active',
+          status: "active",
         },
       });
 
