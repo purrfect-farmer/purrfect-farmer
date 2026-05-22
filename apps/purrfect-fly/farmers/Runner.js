@@ -605,7 +605,8 @@ export default function createRunner(FarmerClass) {
     /** Process queue item */
     static async processQueueItem({ instance, skipExecution = false }, index) {
       try {
-        await this.utils.delayForSeconds(index * 5);
+        const delay = instance.account.farmer ? 10 : 60;
+        await this.utils.delayForSeconds(index * delay);
         await this.execute(instance, skipExecution);
       } catch (err) {
         /** Log error */
