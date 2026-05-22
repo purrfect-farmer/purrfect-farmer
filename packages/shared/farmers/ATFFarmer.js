@@ -496,10 +496,7 @@ export default class ATFFarmer extends BaseFarmer {
     }
 
     /** Reset amount to minimum */
-    amount = Decimal.max(amount, MINIMUM_WITHDRAWABLE_AMOUNT).toDecimalPlaces(
-      4,
-      Decimal.ROUND_DOWN,
-    );
+    amount = Decimal.max(amount, MINIMUM_WITHDRAWABLE_AMOUNT).floor();
 
     /** Get challenge */
     const challenge = await this.getWithdrawalPuzzle();
@@ -578,34 +575,54 @@ export default class ATFFarmer extends BaseFarmer {
   }
 
   generateSliderMotion(targetX, startX = 10, minDurationMs = 1025) {
-    const totalDuration = minDurationMs + 1000 + Math.random() * 2000;
+    const totalDuration = new Decimal(minDurationMs)
+      .plus(1000)
+      .plus(Decimal.random().times(2000));
     const points = [];
 
     points.push({ x: startX, t: 0 });
-    points.push({ x: startX, t: 100 + Math.random() * 100 });
+    points.push({
+      x: startX,
+      t: new Decimal(100).plus(Decimal.random().times(100)).toNumber(),
+    });
 
     const numPoints = 60 + Math.floor(Math.random() * 30);
-    const moveStart = 150 + Math.random() * 100;
-    const moveEnd = totalDuration * 0.85;
+    const moveStart = new Decimal(150).plus(Decimal.random().times(100));
+    const moveEnd = totalDuration.times(0.85);
 
     for (let i = 0; i <= numPoints; i++) {
-      const progress = i / numPoints;
-      const eased = this.easeInOutWithJitter(progress);
-      const t = moveStart + (moveEnd - moveStart) * progress;
-      const x = startX + (targetX - startX) * eased;
-      points.push({ x: parseFloat(x.toFixed(2)), t: Math.floor(t) });
+      const progress = new Decimal(i).div(numPoints);
+      const eased = new Decimal(this.easeInOutWithJitter(progress.toNumber()));
+      const t = moveStart.plus(moveEnd.minus(moveStart).times(progress));
+      const x = new Decimal(startX).plus(
+        new Decimal(targetX).minus(startX).times(eased),
+      );
+      points.push({
+        x: x.toDecimalPlaces(2).toNumber(),
+        t: t.floor().toNumber(),
+      });
     }
 
-    points.push({ x: targetX, t: Math.floor(totalDuration * 0.92) });
-    points.push({ x: targetX, t: Math.floor(totalDuration) });
+    points.push({
+      x: targetX,
+      t: totalDuration.times(0.92).floor().toNumber(),
+    });
+    points.push({
+      x: targetX,
+      t: totalDuration.floor().toNumber(),
+    });
 
     return points;
   }
 
   easeInOutWithJitter(t) {
-    const eased = t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
-    const jitter = (Math.random() - 0.5) * 0.02;
-    return Math.min(1, Math.max(0, eased + jitter));
+    const dt = new Decimal(t);
+    const eased = dt.lt(0.5)
+      ? dt.times(dt).times(dt).times(4)
+      : new Decimal(1).minus(new Decimal(-2).times(dt).plus(2).pow(3).div(2));
+    const jitter = new Decimal(Math.random()).minus(0.5).times(0.02);
+    const result = eased.plus(jitter);
+    return Decimal.min(1, Decimal.max(0, result)).toNumber();
   }
 
   getAnswerForChallenge(question) {
