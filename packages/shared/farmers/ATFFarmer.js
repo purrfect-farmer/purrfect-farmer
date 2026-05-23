@@ -465,7 +465,7 @@ export default class ATFFarmer extends BaseFarmer {
   }
 
   /** Place withdrawal */
-  async withdraw({ max, difference = 0 } = {}) {
+  async withdraw({ max, difference = 20 } = {}) {
     const { user } = this.user_data;
     const balance = new Decimal(user["mined_balance"]);
 
@@ -554,7 +554,7 @@ export default class ATFFarmer extends BaseFarmer {
       this.user_data.user["mined_balance"] = result["new_balance"];
 
       /** Set withdrawn amount */
-      withdrawn = new Decimal(result["send_amount"]);
+      withdrawn = new Decimal(result["send_amount"]).floor();
 
       /** Log result */
       this.logger.success(result["message"]);
@@ -712,7 +712,7 @@ export default class ATFFarmer extends BaseFarmer {
 
   /** Process Farmer */
   async process() {
-    const { user } = this.user_data;
+    const { user } = await this.login();
 
     this.logUserInfo(user);
     await this.executeTask("Mining", () => this.startOrClaimMining());
@@ -741,6 +741,8 @@ export default class ATFFarmer extends BaseFarmer {
 
   logUserBalance(user) {
     const lastMiningStart = Number(user["last_mining_start"]);
+    const miningFreezesAt = Number(user["mining_freezes_at"]);
+    const isMiningFrozen = user["mining_frozen"] === 1;
     this.logger.keyValue("Wallet Balance", user["wallet_holding_atf"]);
     this.logger.keyValue("Balance", user["mined_balance"]);
     this.logger.keyValue("Pending Rewards", user["pending_reward"]);
@@ -751,6 +753,18 @@ export default class ATFFarmer extends BaseFarmer {
         ? "Not mining"
         : new Date(lastMiningStart * 1000).toLocaleString(),
     );
+    this.logger.keyValue(
+      "Mining freezes at",
+      miningFreezesAt === 0
+        ? "Not mining"
+        : new Date(miningFreezesAt * 1000).toLocaleString(),
+    );
+
+    if (isMiningFrozen) {
+      this.logger.keyValue("Mining Frozen", "Yes", {
+        valueStyle: this.logger.c.redBright,
+      });
+    }
   }
 
   logUserRisks(user) {

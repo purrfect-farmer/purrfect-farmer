@@ -21,8 +21,8 @@ class ATFAuto {
     accounts,
     password,
     amount = "",
-    delay = 3,
-    difference = 5,
+    delay = 5,
+    difference = 20,
   }) {
     this.utils = utils;
     this.encryption = Encrypter;
@@ -334,6 +334,12 @@ class ATFAuto {
 
         /** Persist */
         await runner.persist();
+
+        /** Freeze farmer */
+        if (runner.farmer) {
+          runner.farmer.status = "frozen";
+          await runner.farmer.save();
+        }
 
         return { status: true, user };
       } catch (e) {

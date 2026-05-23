@@ -8,7 +8,7 @@ import { useState } from "react";
 
 export default function ATFAutoBoosterBoostTab({ account }) {
   const mutation = useATFAutoSingleBoostMutation();
-  const [difference, setDifference] = useState(10);
+  const [difference, setDifference] = useState(20);
 
   const handleBoost = () => {
     mutation.mutate({ account, difference });
