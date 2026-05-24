@@ -23,6 +23,7 @@ class ATFAuto {
     amount = "",
     delay = 5,
     difference = 20,
+    repeat = false,
   }) {
     this.utils = utils;
     this.encryption = Encrypter;
@@ -41,6 +42,7 @@ class ATFAuto {
     this.delay = Number(delay);
     this.difference = Number(difference);
     this.amount = amount;
+    this.repeat = repeat;
 
     /** Boost mode */
     this.mode = "roll"; // roll or collect
@@ -112,6 +114,11 @@ class ATFAuto {
   /** Format the difference */
   formatDifference() {
     return this.formatKeyValue("Difference", `${this.difference}%`);
+  }
+
+  /** Format the repeat */
+  formatRepeat() {
+    return this.formatKeyValue("Repeat", this.repeat ? "Enabled" : "Disabled");
   }
 
   /** Format the maximum amount */
@@ -333,7 +340,7 @@ class ATFAuto {
         await runner.start();
 
         /** Freeze farmer */
-        if (runner.farmer) {
+        if (this.repeat && runner.farmer) {
           runner.farmer.status = "frozen";
           await runner.farmer.save();
         }
@@ -497,33 +504,52 @@ class ATFAuto {
         this.formatAccounts(),
         this.formatDelay(),
         this.formatDifference(),
+        this.formatRepeat(),
       ]);
 
-      /** Prepare initial master data */
-      await this.prepareInitialMasterData();
-
-      /** Check jetton balance */
-      if (this.prepared.jettonBalance <= 0) {
-        throw new Error("Master has no jetton balance");
-      }
-
-      /** Loop through accounts and boost */
-      for (const [index, account] of this.accounts.entries()) {
+      while (true) {
+        /** Check if the operation is aborted */
         if (this.signal.aborted) {
           break;
         }
-        await this.processBoost(account, index);
-      }
 
-      /** Return funds to master */
-      await this.returnFundsToMaster();
+        /** Prepare initial master data */
+        await this.prepareInitialMasterData();
 
-      /** Notify about cancellation */
-      if (this.signal.aborted) {
-        await this.sendCancellationCompletionNotification();
-      } else {
-        /** Notify about boost completion */
-        await this.sendNotification([`✅ ATF Auto - Boost completed.`]);
+        /** Check jetton balance */
+        if (this.prepared.jettonBalance <= 0) {
+          throw new Error("Master has no jetton balance");
+        }
+
+        /** Loop through accounts and boost */
+        for (const [index, account] of this.accounts.entries()) {
+          if (this.signal.aborted) {
+            break;
+          }
+          await this.processBoost(account, index);
+        }
+
+        /** Return funds to master */
+        await this.returnFundsToMaster();
+
+        /** Notify about cancellation */
+        if (this.signal.aborted) {
+          await this.sendCancellationCompletionNotification();
+        } else {
+          /** Notify about boost completion */
+          await this.sendNotification([`✅ ATF Auto - Boost completed.`]);
+
+          if (this.repeat) {
+            /** Delay for 15 hours */
+            await this.utils.delayForHours(15, {
+              signal: this.signal,
+              precised: true,
+            });
+          } else {
+            /** Break the loop */
+            break;
+          }
+        }
       }
     } catch (e) {
       const errorMessage = e.message || "Unknown error!";

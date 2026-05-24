@@ -15,11 +15,13 @@ import useATFAutoAccountsSelector from "@/hooks/useATFAutoAccountsSelector";
 import useATFAutoCloudBoostMutation from "@/hooks/useATFAutoCloudBoostMutation";
 import { yup } from "@/lib/yup";
 import { yupResolver } from "@hookform/resolvers/yup";
+import LabelToggle from "./LabelToggle";
 
 const schema = yup
   .object({
     delay: yup.number().required().min(1).label("Delay"),
     difference: yup.number().required().label("Difference"),
+    repeat: yup.boolean().required().label("Repeat"),
   })
   .required();
 
@@ -29,6 +31,7 @@ export default function ATFAutoBoostTab() {
     defaultValues: {
       delay: 5,
       difference: 20,
+      repeat: false,
     },
   });
 
@@ -161,6 +164,24 @@ export default function ATFAutoBoostTab() {
                   {field.value}% would boost between {100 - field.value}-100%
                 </p>
 
+                <FieldStateError fieldState={fieldState} />
+              </div>
+            )}
+          />
+
+          {/* Repeat */}
+          <Controller
+            control={form.control}
+            name="repeat"
+            render={({ field, fieldState }) => (
+              <div className="flex flex-col gap-1">
+                <Label>Repeat</Label>
+
+                <p className="text-center text-neutral-500 dark:text-neutral-400">
+                  Enabling this will repeat the boost operation every 15 hours
+                  and freeze the accounts after each boost.
+                </p>
+                <LabelToggle {...field}>Freeze and repeat</LabelToggle>
                 <FieldStateError fieldState={fieldState} />
               </div>
             )}

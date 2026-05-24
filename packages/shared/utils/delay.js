@@ -38,5 +38,9 @@ export function delayForSeconds(length, options) {
 }
 
 export function delayForMinutes(length, options) {
-  return delay(length * 60 * 1000, options);
+  return delayForSeconds(length * 60, options);
+}
+
+export function delayForHours(length, options) {
+  return delayForMinutes(length * 60, options);
 }

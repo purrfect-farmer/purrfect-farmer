@@ -36,6 +36,7 @@ const atfAutoSchema = {
       delay: { type: "number" },
       difference: { type: "number" },
       amount: { type: "string" },
+      repeat: { type: "boolean" },
     },
   },
 };
