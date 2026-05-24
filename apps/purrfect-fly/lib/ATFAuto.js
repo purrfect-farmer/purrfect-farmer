@@ -329,11 +329,8 @@ class ATFAuto {
         /** Delay for 5s */
         await this.utils.delayForSeconds(5);
 
-        /** Start or claim mining */
-        await runner.startOrClaimMining();
-
-        /** Persist */
-        await runner.persist();
+        /** Run runner */
+        await runner.start();
 
         /** Freeze farmer */
         if (runner.farmer) {
