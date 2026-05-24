@@ -700,13 +700,23 @@ class ATFAuto {
       }
 
       /** Calculate total amount */
-      const totalAmount = results.reduce(
+      const totalAvailableAmount = results.reduce(
         (acc, result) => acc.plus(result.amount),
         new Decimal(0),
       );
 
-      /** Format total amount */
-      const totalAmountFormatted = totalAmount
+      /** Calculate total withdrawn amount */
+      const totalWithdrawnAmount = results
+        .filter((result) => result.status)
+        .reduce((acc, result) => acc.plus(result.amount), new Decimal(0));
+
+      /** Format total available amount */
+      const totalAvailableAmountFormatted = totalAvailableAmount
+        .toDecimalPlaces(4, Decimal.ROUND_DOWN)
+        .toString();
+
+      /** Format total withdrawn amount */
+      const totalWithdrawnAmountFormatted = totalWithdrawnAmount
         .toDecimalPlaces(4, Decimal.ROUND_DOWN)
         .toString();
 
@@ -714,7 +724,7 @@ class ATFAuto {
       await this.sendSummaryNotification(results, [
         this.formatKeyValue(
           "Total withdrawn",
-          `🤑 ${totalAmountFormatted} ATF`,
+          `🤑 ${totalWithdrawnAmountFormatted}/${totalAvailableAmountFormatted} ATF`,
         ),
       ]);
     } catch (e) {
