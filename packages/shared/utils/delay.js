@@ -33,14 +33,17 @@ export function delay(length, { precised = false, signal } = {}) {
   });
 }
 
+/** Delay for seconds */
 export function delayForSeconds(length, options) {
   return delay(length * 1000, options);
 }
 
+/** Delay for minutes */
 export function delayForMinutes(length, options) {
   return delayForSeconds(length * 60, options);
 }
 
+/** Delay for hours */
 export function delayForHours(length, options) {
   return delayForMinutes(length * 60, options);
 }

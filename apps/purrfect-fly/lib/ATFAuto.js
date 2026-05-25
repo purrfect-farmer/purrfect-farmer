@@ -333,16 +333,24 @@ class ATFAuto {
           walletAccount.address,
         );
 
-        /** Delay for 5s */
-        await this.utils.delayForSeconds(5);
+        try {
+          /** Freeze farmer if repeat is enabled */
+          if (this.repeat && runner.farmer) {
+            runner.farmer.status = "frozen";
+            await runner.farmer.save();
+          }
 
-        /** Run runner */
-        await runner.start();
+          /** Delay for 5s */
+          await this.utils.delayForSeconds(5);
 
-        /** Freeze farmer */
-        if (this.repeat && runner.farmer) {
-          runner.farmer.status = "frozen";
-          await runner.farmer.save();
+          /** Execute runner */
+          await runner.start();
+        } catch (e) {
+          logger.error(
+            "Failed to freeze farmer and start runner:",
+            cloudAccount.id,
+            e.message,
+          );
         }
 
         return { status: true, user };
@@ -498,20 +506,20 @@ class ATFAuto {
   /** Boost */
   async boost() {
     try {
-      /** Send notification about initiation */
-      await this.sendNotification([
-        `⏳ ATF Auto - Boost initiated...`,
-        this.formatAccounts(),
-        this.formatDelay(),
-        this.formatDifference(),
-        this.formatRepeat(),
-      ]);
-
       while (true) {
         /** Check if the operation is aborted */
         if (this.signal.aborted) {
           break;
         }
+
+        /** Send notification about initiation */
+        await this.sendNotification([
+          `⏳ ATF Auto - Boost initiated...`,
+          this.formatAccounts(),
+          this.formatDelay(),
+          this.formatDifference(),
+          this.formatRepeat(),
+        ]);
 
         /** Prepare initial master data */
         await this.prepareInitialMasterData();
@@ -540,8 +548,22 @@ class ATFAuto {
           await this.sendNotification([`✅ ATF Auto - Boost completed.`]);
 
           if (this.repeat) {
+            /** Repeat interval in hours */
+            const repeatInterval = 15;
+
+            /** Calculate repeat time */
+            const repeatTime = this.utils.dateFns.addHours(
+              new Date(),
+              repeatInterval,
+            );
+
+            /** Notify about repeat time */
+            await this.sendNotification([
+              `🔄 ATF Auto - Boosting again at ${this.utils.dateFns.format(repeatTime, "PPPPpppp")}`,
+            ]);
+
             /** Delay for 15 hours */
-            await this.utils.delayForHours(15, {
+            await this.utils.delayForHours(repeatInterval, {
               signal: this.signal,
               precised: true,
             });
