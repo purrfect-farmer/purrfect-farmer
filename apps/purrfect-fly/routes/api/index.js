@@ -305,7 +305,6 @@ export default async function (fastify, opts) {
     async function (request, reply) {
       /** Get all ATF farmers */
       const farmers = await fastify.db.Farmer.findAll({
-        raw: true,
         include: [
           {
             required: true,
@@ -329,7 +328,7 @@ export default async function (fastify, opts) {
       }
 
       /** Return active farmers */
-      return activeFarmers.map((item) => item.accountId);
+      return activeFarmers.map((item) => item.account.id);
     },
   );
 }
