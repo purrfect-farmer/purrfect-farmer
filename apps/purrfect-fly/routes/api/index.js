@@ -306,7 +306,6 @@ export default async function (fastify, opts) {
       /** Get all ATF farmers */
       const farmers = await fastify.db.Farmer.findAll({
         raw: true,
-        attributes: ["accountId"],
         include: [
           {
             required: true,
