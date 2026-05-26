@@ -29,7 +29,7 @@ export default function ATFAutoBoostTab() {
   const form = useForm({
     resolver: yupResolver(schema),
     defaultValues: {
-      delay: 5,
+      delay: 2,
       difference: 20,
       repeat: false,
     },
