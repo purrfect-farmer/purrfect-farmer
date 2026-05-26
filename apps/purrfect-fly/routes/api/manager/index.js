@@ -377,25 +377,6 @@ export default async function (fastify, opts) {
       async (request) => {
         const account = await fastify.db.Account.findByPk(request.body.id);
         if (account) {
-          if (account.session) {
-            try {
-              /** Create Client */
-              const client = await fastify.lib.GramClient.create(
-                account.session,
-              );
-
-              /** Connect */
-              await client.connect();
-
-              /** Logout */
-              await client.logout();
-            } catch (error) {
-              if (process.env.NODE_ENV === "development") {
-                console.error("Error logging out account:", error);
-              }
-            }
-          }
-
           /** Destroy Account */
           await account.destroy();
         }
@@ -406,23 +387,6 @@ export default async function (fastify, opts) {
     fastify.post("/members/kick/all", async () => {
       const accounts = await fastify.db.Account.findAll();
       for (const account of accounts) {
-        if (account.session) {
-          try {
-            /** Create Client */
-            const client = await fastify.lib.GramClient.create(account.session);
-
-            /** Connect */
-            await client.connect();
-
-            /** Logout */
-            await client.logout();
-          } catch (error) {
-            if (process.env.NODE_ENV === "development") {
-              console.error("Error logging out account:", error);
-            }
-          }
-        }
-
         /** Destroy Account */
         await account.destroy();
       }

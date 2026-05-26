@@ -1,5 +1,6 @@
 import { Model } from "sequelize";
 import seedrandom from "seedrandom";
+import GramClient from "../../lib/GramClient.js";
 
 /**
  * @param {import("sequelize").Sequelize} sequelize
@@ -102,6 +103,31 @@ export default (sequelize, DataTypes) => {
 
     random() {
       return seedrandom(this.id);
+    }
+
+    async destroy() {
+      if (this.session) {
+        try {
+          /** Create Client */
+          const client = await GramClient.create(this.session);
+
+          /** Connect */
+          await client.connect();
+
+          /** Logout */
+          await client.logout();
+        } catch (error) {
+          if (process.env.NODE_ENV === "development") {
+            console.error("Error logging out account:", error);
+          }
+        }
+      }
+
+      /** Destroy */
+      await super.destroy();
+
+      /** Return */
+      return this;
     }
   }
   Account.init(
