@@ -525,8 +525,8 @@ class ATFAuto {
         await this.prepareInitialMasterData();
 
         /** Check jetton balance */
-        if (this.prepared.jettonBalance <= 0) {
-          throw new Error("Master has no jetton balance");
+        if (this.prepared.jettonBalance.lessThanOrEqualTo(0)) {
+          throw new Error("Master has no ATF tokens");
         }
 
         /** Loop through accounts and boost */
@@ -559,7 +559,7 @@ class ATFAuto {
 
             /** Notify about repeat time */
             await this.sendNotification([
-              `🔄 ATF Auto - Boosting again at ${this.utils.dateFns.format(repeatTime, "PPPPpppp")}`,
+              `<i>🔄 ATF Auto - Boosting again at ${repeatTime.toUTCString()}</i>`,
             ]);
 
             /** Delay for 15 hours */
