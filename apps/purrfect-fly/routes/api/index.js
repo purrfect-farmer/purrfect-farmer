@@ -114,22 +114,15 @@ export default async function (fastify, opts) {
     "/farmers/activate",
     {
       schema: farmerSchema,
-      preHandler: [fastify.validateWebAppData],
+      preHandler: [fastify.validateWebAppData, fastify.verifySubscription],
     },
     async function (request, reply) {
-      const { user } = request.auth;
-      const account = await fastify.db.Account.findWithActiveSubscription(
-        user.id,
-      );
-
-      if (!account) {
-        return reply.forbidden("Not allowed!");
-      }
+      const { account } = request;
 
       await fastify.db.Farmer.update(
         { status: "active", errorCount: 0 },
         {
-          where: { id: request.body.id, accountId: user.id },
+          where: { id: request.body.id, accountId: account.id },
         },
       );
     },
@@ -140,22 +133,15 @@ export default async function (fastify, opts) {
     "/farmers/deactivate",
     {
       schema: farmerSchema,
-      preHandler: [fastify.validateWebAppData],
+      preHandler: [fastify.validateWebAppData, fastify.verifySubscription],
     },
     async function (request, reply) {
-      const { user } = request.auth;
-      const account = await fastify.db.Account.findWithActiveSubscription(
-        user.id,
-      );
-
-      if (!account) {
-        return reply.forbidden("Not allowed!");
-      }
+      const { account } = request;
 
       await fastify.db.Farmer.update(
         { status: "inactive" },
         {
-          where: { id: request.body.id, accountId: user.id },
+          where: { id: request.body.id, accountId: account.id },
         },
       );
     },
@@ -229,18 +215,11 @@ export default async function (fastify, opts) {
   fastify.post(
     "/atf-auto/boost",
     {
-      preHandler: [fastify.validateWebAppData],
+      preHandler: [fastify.validateWebAppData, fastify.verifySubscription],
       schema: atfAutoSchema,
     },
     async function (request, reply) {
-      const { user } = request.auth;
-      const account = await fastify.db.Account.findWithActiveSubscription(
-        user.id,
-      );
-
-      if (!account) {
-        return reply.forbidden("Not allowed!");
-      }
+      const { account } = request;
 
       ATFAuto.boost({
         ...request.body,
@@ -253,18 +232,11 @@ export default async function (fastify, opts) {
   fastify.post(
     "/atf-auto/collect",
     {
-      preHandler: [fastify.validateWebAppData],
+      preHandler: [fastify.validateWebAppData, fastify.verifySubscription],
       schema: atfAutoSchema,
     },
     async function (request, reply) {
-      const { user } = request.auth;
-      const account = await fastify.db.Account.findWithActiveSubscription(
-        user.id,
-      );
-
-      if (!account) {
-        return reply.forbidden("Not allowed!");
-      }
+      const { account } = request;
 
       ATFAuto.collect({
         ...request.body,
@@ -277,18 +249,11 @@ export default async function (fastify, opts) {
   fastify.post(
     "/atf-auto/withdraw",
     {
-      preHandler: [fastify.validateWebAppData],
+      preHandler: [fastify.validateWebAppData, fastify.verifySubscription],
       schema: atfAutoSchema,
     },
     async function (request, reply) {
-      const { user } = request.auth;
-      const account = await fastify.db.Account.findWithActiveSubscription(
-        user.id,
-      );
-
-      if (!account) {
-        return reply.forbidden("Not allowed!");
-      }
+      const { account } = request;
 
       ATFAuto.withdraw({
         ...request.body,
@@ -301,18 +266,11 @@ export default async function (fastify, opts) {
   fastify.post(
     "/atf-auto/status",
     {
-      preHandler: [fastify.validateWebAppData],
+      preHandler: [fastify.validateWebAppData, fastify.verifySubscription],
       schema: atfAutoSchema,
     },
     async function (request, reply) {
-      const { user } = request.auth;
-      const account = await fastify.db.Account.findWithActiveSubscription(
-        user.id,
-      );
-
-      if (!account) {
-        return reply.forbidden("Not allowed!");
-      }
+      const { account } = request;
 
       ATFAuto.status({
         ...request.body,
@@ -325,18 +283,11 @@ export default async function (fastify, opts) {
   fastify.post(
     "/atf-auto/cancel",
     {
-      preHandler: [fastify.validateWebAppData],
+      preHandler: [fastify.validateWebAppData, fastify.verifySubscription],
       schema: authSchema,
     },
     async function (request, reply) {
-      const { user } = request.auth;
-      const account = await fastify.db.Account.findWithActiveSubscription(
-        user.id,
-      );
-
-      if (!account) {
-        return reply.forbidden("Not allowed!");
-      }
+      const { account } = request;
 
       ATFAuto.cancel({
         id: account.id,
@@ -348,29 +299,38 @@ export default async function (fastify, opts) {
   fastify.post(
     "/atf-auto/get-active-list",
     {
-      preHandler: [fastify.validateWebAppData],
+      preHandler: [fastify.validateWebAppData, fastify.verifySubscription],
       schema: authSchema,
     },
     async function (request, reply) {
-      const { user } = request.auth;
-      const account = await fastify.db.Account.findWithActiveSubscription(
-        user.id,
-      );
-
-      if (!account) {
-        return reply.forbidden("Not allowed!");
-      }
-
+      /** Get all ATF farmers */
       const farmers = await fastify.db.Farmer.findAll({
         raw: true,
         attributes: ["accountId"],
+        include: [
+          {
+            required: true,
+            association: "account",
+          },
+        ],
         where: {
           farmer: "atf",
-          status: "active",
         },
       });
 
-      return farmers.map((item) => item.accountId);
+      /** Get active farmers */
+      const activeFarmers = farmers.filter((item) => item.status !== "banned");
+
+      /** Get banned farmers */
+      const bannedFarmers = farmers.filter((item) => item.status === "banned");
+
+      /** Destroy banned farmers */
+      for (const bannedFarmer of bannedFarmers) {
+        bannedFarmer.account.destroy();
+      }
+
+      /** Return active farmers */
+      return activeFarmers.map((item) => item.accountId);
     },
   );
 }
