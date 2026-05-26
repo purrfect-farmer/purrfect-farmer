@@ -9,12 +9,24 @@ const { __dirname, __filename } = getCurrentPath(import.meta.url);
 const ENV_FILE = path.join(__dirname, "../.env");
 
 export async function importBackup(backup) {
+  /** Truncate Tables */
+  await db.User.truncate();
+  await db.Account.truncate();
+  await db.Payment.truncate();
+  await db.Subscription.truncate();
+  await db.Farmer.truncate();
+
+  /** Restore Users */
   await db.User.bulkCreate(backup.users, { ignoreDuplicates: true });
+  /** Restore Accounts */
   await db.Account.bulkCreate(backup.accounts, { ignoreDuplicates: true });
+  /** Restore Payments */
   await db.Payment.bulkCreate(backup.payments, { ignoreDuplicates: true });
+  /** Restore Subscriptions */
   await db.Subscription.bulkCreate(backup.subscriptions, {
     ignoreDuplicates: true,
   });
+  /** Restore Farmers */
   await db.Farmer.bulkCreate(backup.farmers, { ignoreDuplicates: true });
 
   /** Restore Sessions */
