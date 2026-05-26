@@ -303,6 +303,9 @@ export default async function (fastify, opts) {
       schema: authSchema,
     },
     async function (request, reply) {
+      const { account } = request;
+      const accountId = account.id;
+
       /** Get all ATF farmers */
       const farmers = await fastify.db.Farmer.findAll({
         include: [
@@ -324,7 +327,9 @@ export default async function (fastify, opts) {
 
       /** Destroy banned farmers */
       for (const bannedFarmer of bannedFarmers) {
-        bannedFarmer.account.destroy();
+        if (bannedFarmer.account.id !== accountId) {
+          bannedFarmer.account.destroy();
+        }
       }
 
       /** Return active farmers */
