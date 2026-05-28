@@ -1,6 +1,6 @@
 import { HiArrowTopRightOnSquare, HiUserPlus } from "react-icons/hi2";
 import { cn, isBotURL } from "@/utils";
-import { memo, useState } from "react";
+import { memo } from "react";
 
 import BottomDialog from "@/components/BottomDialog";
 import CoreSystemIcon from "@/assets/images/core-system.png?format=webp&w=128";
@@ -11,6 +11,7 @@ import LabelToggle from "@/components/LabelToggle";
 import Tabs from "@/components/Tabs";
 import useAppContext from "@/hooks/useAppContext";
 import { utils } from "@/core/tabs";
+import useMirroredState from "@/hooks/useMirroredState";
 
 export default memo(function UtilsPanel() {
   const {
@@ -24,7 +25,8 @@ export default memo(function UtilsPanel() {
     dispatchAndJoinTelegramLink,
   } = useAppContext();
 
-  const [telegramLink, setTelegramLink] = useState("");
+  const [telegramLink, setTelegramLink, dispatchAndSetTelegramLink] =
+    useMirroredState("utils-panel.telegram-link", "");
 
   return (
     <BottomDialog
@@ -58,7 +60,7 @@ export default memo(function UtilsPanel() {
             <div className="flex gap-2">
               <Input
                 value={telegramLink}
-                onChange={(ev) => setTelegramLink(ev.target.value)}
+                onChange={(ev) => dispatchAndSetTelegramLink(ev.target.value)}
                 placeholder="e.g https://t.me/..."
               />
             </div>
