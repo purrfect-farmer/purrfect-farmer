@@ -24,6 +24,7 @@ class ATFAuto {
     delay = 5,
     difference = 20,
     repeat = false,
+    repeatInterval = 15,
   }) {
     this.utils = utils;
     this.encryption = Encrypter;
@@ -43,7 +44,7 @@ class ATFAuto {
     this.difference = Number(difference);
     this.amount = amount;
     this.repeat = repeat;
-
+    this.repeatInterval = Number(repeatInterval);
     /** Boost mode */
     this.mode = "roll"; // roll or collect
 
@@ -119,6 +120,11 @@ class ATFAuto {
   /** Format the repeat */
   formatRepeat() {
     return this.formatKeyValue("Repeat", this.repeat ? "Enabled" : "Disabled");
+  }
+
+  /** Format the repeat interval */
+  formatRepeatInterval() {
+    return this.formatKeyValue("Repeat Interval", `${this.repeatInterval}h`);
   }
 
   /** Format the maximum amount */
@@ -334,9 +340,9 @@ class ATFAuto {
         );
 
         try {
-          /** Freeze farmer if repeat is enabled */
-          if (this.repeat && runner.farmer) {
-            runner.farmer.status = "frozen";
+          /** Set farmer status */
+          if (runner.farmer) {
+            runner.farmer.status = this.repeat ? "frozen" : "active";
             await runner.farmer.save();
           }
 
@@ -347,7 +353,7 @@ class ATFAuto {
           await runner.start();
         } catch (e) {
           logger.error(
-            "Failed to freeze farmer and start runner:",
+            "Failed to set farmer status and start runner:",
             cloudAccount.id,
             e.message,
           );
@@ -519,6 +525,7 @@ class ATFAuto {
           this.formatDelay(),
           this.formatDifference(),
           this.formatRepeat(),
+          this.formatRepeatInterval(),
         ]);
 
         /** Prepare initial master data */
@@ -548,13 +555,10 @@ class ATFAuto {
           await this.sendNotification([`✅ ATF Auto - Boost completed.`]);
 
           if (this.repeat) {
-            /** Repeat interval in hours */
-            const repeatInterval = 15;
-
             /** Calculate repeat time */
             const repeatTime = this.utils.dateFns.addHours(
               new Date(),
-              repeatInterval,
+              this.repeatInterval,
             );
 
             /** Notify about repeat time */
@@ -562,8 +566,8 @@ class ATFAuto {
               `<i>🔄 ATF Auto - Boosting again at ${repeatTime.toUTCString()}</i>`,
             ]);
 
-            /** Delay for 15 hours */
-            await this.utils.delayForHours(repeatInterval, {
+            /** Delay for repeat interval in hours */
+            await this.utils.delayForHours(this.repeatInterval, {
               signal: this.signal,
               precised: true,
             });

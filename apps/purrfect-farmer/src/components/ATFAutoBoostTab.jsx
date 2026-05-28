@@ -22,6 +22,7 @@ const schema = yup
     delay: yup.number().required().min(1).label("Delay"),
     difference: yup.number().required().label("Difference"),
     repeat: yup.boolean().required().label("Repeat"),
+    repeatInterval: yup.number().required().min(1).label("Repeat Interval"),
   })
   .required();
 
@@ -32,6 +33,7 @@ export default function ATFAutoBoostTab() {
       delay: 2,
       difference: 20,
       repeat: false,
+      repeatInterval: 15,
     },
   });
 
@@ -178,10 +180,40 @@ export default function ATFAutoBoostTab() {
                 <Label>Repeat</Label>
 
                 <p className="text-center text-neutral-500 dark:text-neutral-400">
-                  Enabling this will repeat the boost operation every 15 hours
-                  and freeze the accounts after each boost.
+                  Enabling this will repeat the boost operation and freeze the
+                  accounts after each boost until the operation is cancelled.
                 </p>
                 <LabelToggle {...field}>Freeze and repeat</LabelToggle>
+                <FieldStateError fieldState={fieldState} />
+              </div>
+            )}
+          />
+
+          {/* Repeat Interval */}
+          <Controller
+            control={form.control}
+            name="repeatInterval"
+            render={({ field, fieldState }) => (
+              <div className="flex flex-col gap-1">
+                <Label>
+                  Repeat Interval in hours{" "}
+                  <span className="text-blue-500 dark:text-blue-400">
+                    ({field.value}h)
+                  </span>
+                </Label>
+                <Slider
+                  step={1}
+                  min={1}
+                  max={24}
+                  value={[field.value]}
+                  onValueChange={(newValue) => field.onChange(newValue[0])}
+                />
+
+                {/* Info */}
+                <p className="text-center text-neutral-500 dark:text-neutral-400">
+                  Configure the interval between repeats
+                </p>
+
                 <FieldStateError fieldState={fieldState} />
               </div>
             )}
