@@ -208,6 +208,18 @@ export default class ATFFarmer extends BaseFarmer {
           },
         ],
       },
+      {
+        name: "Mining",
+        list: [
+          {
+            id: "estimate-daily-mining",
+            icon: "search",
+            title: "Estimate Daily Mining",
+            action: this.estimateDailyMining.bind(this),
+            dispatch: false,
+          },
+        ],
+      },
     ];
   }
 
@@ -645,7 +657,21 @@ export default class ATFFarmer extends BaseFarmer {
   }
 
   getMinerRate(level) {
-    return Math.floor(10 * Math.pow(1.2, level - 1));
+    return new Decimal(10).times(new Decimal(1.2).pow(level - 1)).floor();
+  }
+
+  getMinerCost(level) {
+    if (level <= 1) return new Decimal(0);
+    return new Decimal(100).times(new Decimal(1.3).pow(level - 2)).floor();
+  }
+
+  findLevelForAtf(atfAmount) {
+    const amount = new Decimal(atfAmount);
+    let level = 1;
+    while (level < 100 && amount.gte(this.getMinerCost(level + 1))) {
+      level++;
+    }
+    return level;
   }
 
   getDifficultyDivisor(difficulty, level, exemptMinLevel, exemptMaxLevel) {
@@ -655,11 +681,11 @@ export default class ATFFarmer extends BaseFarmer {
       level >= exemptMinLevel &&
       level <= exemptMaxLevel
     ) {
-      return 1;
+      return new Decimal(1);
     }
-    const d = Math.max(1, Math.min(10000, difficulty));
-    if (d <= 100) return 1 + (d - 1) / 100;
-    return 1.99 + (d - 100) / 15;
+    const d = new Decimal(difficulty).clamp(1, 10000);
+    if (d.lte(100)) return d.minus(1).div(100).plus(1);
+    return d.minus(100).div(15).plus(1.99);
   }
 
   calculateSessionBalance({
@@ -671,7 +697,7 @@ export default class ATFFarmer extends BaseFarmer {
   }) {
     const nowSec = Date.now() / 1000;
     const lastMiningStart = Number(user["last_mining_start"]);
-    if (lastMiningStart === 0) return 0;
+    if (lastMiningStart === 0) return new Decimal(0);
 
     const level = Number(user["miner_level"]);
     const rate = this.getMinerRate(level);
@@ -683,14 +709,14 @@ export default class ATFFarmer extends BaseFarmer {
       exemptMinLevel,
       exemptMaxLevel,
     );
-    const pendingReward = Number(user["pending_reward"]) || 0;
+    const pendingReward = new Decimal(user["pending_reward"] || 0);
 
     const elapsed = Math.min(Math.max(nowSec - lastMiningStart, 0), 86400);
-    const passiveReward = elapsed * (rate / divisor / 86400);
+    const passiveReward = rate.div(divisor).div(86400).times(elapsed);
 
     const boostActiveUntil = Number(user["boost_active_until"]) || 0;
     const boostPower = Number(user["boost_power_snapshot"]) || 0;
-    let boostReward = 0;
+    let boostReward = new Decimal(0);
 
     if (boostActiveUntil > lastMiningStart && boostPower > 0) {
       const boostStart = Math.max(
@@ -703,11 +729,11 @@ export default class ATFFarmer extends BaseFarmer {
         Math.min(cappedNow, boostActiveUntil) -
           Math.max(lastMiningStart, boostStart),
       );
-      const tapReward = rate / 100000 / divisor;
-      boostReward = boostSeconds * boostPower * tapReward;
+      const tapReward = rate.div(100000).div(divisor);
+      boostReward = tapReward.times(boostSeconds).times(boostPower);
     }
 
-    return parseFloat((pendingReward + passiveReward + boostReward).toFixed(4));
+    return pendingReward.plus(passiveReward).plus(boostReward).toDecimalPlaces(4);
   }
 
   /** Process Farmer */
@@ -740,18 +766,23 @@ export default class ATFFarmer extends BaseFarmer {
     }
   }
 
-  getDailyMiningRate(user, diffData) {
-    const level = Number(user["miner_level"]);
+  getDailyMiningRateForLevel(level, diffData, diffSnapshot) {
     const rate = this.getMinerRate(level);
-    const diffSnapshot =
-      Number(user["mining_difficulty_snapshot"]) || diffData.difficulty;
     const divisor = this.getDifficultyDivisor(
-      diffSnapshot,
+      diffSnapshot || diffData.difficulty,
       level,
       diffData.exemptMinLevel,
       diffData.exemptMaxLevel,
     );
-    return new Decimal(rate).div(divisor);
+    return rate.div(divisor);
+  }
+
+  getDailyMiningRate(user, diffData) {
+    return this.getDailyMiningRateForLevel(
+      Number(user["miner_level"]),
+      diffData,
+      Number(user["mining_difficulty_snapshot"]) || 0,
+    );
   }
 
   logUserBalance(user, diffData) {
@@ -826,6 +857,40 @@ export default class ATFFarmer extends BaseFarmer {
     this.logWallet(version, publicKey, address, rawAddress);
   }
 
+  async estimateDailyMining() {
+    const input = await this.promptInput("How much ATF?");
+    const trimmed = (input || "").trim();
+
+    if (!trimmed) return;
+
+    let amount;
+    try {
+      amount = new Decimal(trimmed);
+    } catch {
+      this.logger.error("Invalid ATF amount:", trimmed);
+      return;
+    }
+
+    if (amount.isNegative()) {
+      this.logger.error("ATF amount must be non-negative");
+      return;
+    }
+
+    const level = this.findLevelForAtf(amount);
+    const diffData = await this.fetchDifficultyData();
+    const dailyRate = this.getDailyMiningRateForLevel(level, diffData);
+
+    this.logger.newline();
+    this.logger.keyValue("ATF Amount", amount.toString());
+    this.logger.keyValue("Reachable Level", level);
+    this.logger.keyValue("Level Cost", this.getMinerCost(level).toString());
+    this.logger.keyValue(
+      "Daily Mining",
+      dailyRate.toDecimalPlaces(4).toString(),
+      { valueStyle: this.logger.c.greenBright },
+    );
+  }
+
   async fetchDifficultyData() {
     const data = await this.getDifficulty();
     return {
@@ -883,7 +948,7 @@ export default class ATFFarmer extends BaseFarmer {
         exemptMaxLevel: diffData.exemptMaxLevel,
       });
 
-      if (balance <= 0) {
+      if (balance.lte(0)) {
         this.logger.warn("No rewards to claim yet.");
         return;
       }
@@ -891,7 +956,7 @@ export default class ATFFarmer extends BaseFarmer {
       /** Delay before claiming */
       await this.utils.delayForSeconds(5);
 
-      this.logger.info(`Claiming ${balance} ATF...`);
+      this.logger.info(`Claiming ${balance.toString()} ATF...`);
       const result = await this.claimMining(balance);
 
       if (result.new_pool_balance !== undefined) {
