@@ -83,6 +83,34 @@ export default class ATFFarmer extends BaseFarmer {
   }
 
   async login() {
+    const captchaStatus = await this.getCaptchaStatus();
+
+    if (captchaStatus.captcha_required) {
+      if (!this.canSolveReCaptcha()) {
+        throw new Error(
+          "Captcha is required but no captcha provider is configured!",
+        );
+      }
+
+      try {
+        /* Solve ReCaptcha */
+        const captchaToken = await this.solveReCaptcha({
+          siteKey: captchaStatus.site_key,
+          pageUrl: "https://atfminers.asloni.online/miner/index.html",
+        });
+
+        /* Verify Captcha */
+        const captchaResponse = await this.verifyEntryCaptcha(captchaToken);
+
+        if (captchaResponse.status !== "success") {
+          throw new Error("Failed to verify captcha:", captchaResponse.message);
+        }
+      } catch (error) {
+        this.logger.error("Failed to solve captcha:", error);
+        throw error;
+      }
+    }
+
     this.user_data = await this.makeAction("login", {
       username: this.getUsername(),
     });
@@ -106,6 +134,18 @@ export default class ATFFarmer extends BaseFarmer {
         data,
       )
       .then((res) => res.data);
+  }
+
+  /** Get Captcha Status */
+  getCaptchaStatus() {
+    return this.makeAction("captcha_status");
+  }
+
+  /** Verify Entry Captcha */
+  verifyEntryCaptcha(captchaToken) {
+    return this.makeAction("verify_entry_captcha", {
+      captcha_token: captchaToken,
+    });
   }
 
   claimMining(amount) {
@@ -733,7 +773,10 @@ export default class ATFFarmer extends BaseFarmer {
       boostReward = tapReward.times(boostSeconds).times(boostPower);
     }
 
-    return pendingReward.plus(passiveReward).plus(boostReward).toDecimalPlaces(4);
+    return pendingReward
+      .plus(passiveReward)
+      .plus(boostReward)
+      .toDecimalPlaces(4);
   }
 
   /** Process Farmer */

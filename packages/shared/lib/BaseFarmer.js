@@ -162,9 +162,19 @@ export default class BaseFarmer {
     return this.captcha?.isConfigured();
   }
 
+  /** Can Solve ReCaptcha */
+  canSolveReCaptcha() {
+    return this.captcha?.isConfigured();
+  }
+
   /** Solve Turnstile */
   solveTurnstile({ siteKey, pageUrl }) {
     return this.captcha?.solveTurnstile({ siteKey, pageUrl });
+  }
+
+  /** Solve ReCaptcha */
+  solveReCaptcha({ siteKey, pageUrl }) {
+    return this.captcha?.solveReCaptcha({ siteKey, pageUrl });
   }
 
   /** Can Join Telegram Link */

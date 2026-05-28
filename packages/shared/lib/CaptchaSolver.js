@@ -1,5 +1,24 @@
 import axios from "axios";
 
+const PROVIDER_METHODS = {
+  "2captcha": {
+    recaptcha: "userrecaptcha",
+    turnstile: "turnstile",
+  },
+  captchaai: {
+    turnstile: "turnstile",
+  },
+  solvecaptcha: {
+    turnstile: "turnstile",
+  },
+  captchasonic: {
+    turnstile: "AntiTurnstileTaskProxyLess",
+  },
+  nocaptchaai: {
+    turnstile: "AntiTurnstileTask",
+  },
+};
+
 export default class CaptchaSolver {
   constructor(provider, apiKey) {
     this.provider = provider;
@@ -55,14 +74,15 @@ export default class CaptchaSolver {
     return Boolean(this.provider && this.apiKey);
   }
 
-  /** Get Turnstile Request */
-  getTurnstileRequest({ siteKey, pageUrl }) {
+  async createRequest({ method, siteKey, pageUrl }) {
+    const providerMethod = PROVIDER_METHODS[this.provider][method];
+
     if (this.taskBased) {
       return this.api
         .post("/createTask", {
           [this.authProperty]: this.apiKey,
           task: {
-            type: this.taskType,
+            type: providerMethod,
             websiteURL: pageUrl,
             websiteKey: siteKey,
           },
@@ -75,8 +95,9 @@ export default class CaptchaSolver {
       return this.api
         .post("/in.php", {
           key: this.apiKey,
-          method: "turnstile",
+          method: providerMethod,
           sitekey: siteKey,
+          googlekey: siteKey,
           pageurl: pageUrl,
           json: 1,
         })
@@ -84,8 +105,18 @@ export default class CaptchaSolver {
     }
   }
 
-  /** Get Turnstile Result */
-  getTurnstileResult(requestId) {
+  /** Get Turnstile Request */
+  getTurnstileRequest({ siteKey, pageUrl }) {
+    return this.createRequest({ method: "turnstile", siteKey, pageUrl });
+  }
+
+  /** Get ReCaptcha Request */
+  getReCaptchaRequest({ siteKey, pageUrl }) {
+    return this.createRequest({ method: "recaptcha", siteKey, pageUrl });
+  }
+
+  /** Get Captcha Result */
+  getCaptchaResult(requestId) {
     if (this.taskBased) {
       return this.api
         .post("/getTaskResult", {
@@ -112,16 +143,17 @@ export default class CaptchaSolver {
     }
   }
 
-  /** Solve Turnstile */
-  async solveTurnstile({ siteKey, pageUrl }) {
-    const response = await this.getTurnstileRequest({ siteKey, pageUrl });
+  /** Solve Captcha */
+  async solveCaptcha({ method, siteKey, pageUrl }) {
+    console.log("Solving captcha...", method, siteKey, pageUrl);
+    const response = await this.createRequest({ method, siteKey, pageUrl });
     const requestId = response.request;
 
     /* Wait for 20 seconds before polling for the result */
     await new Promise((resolve) => setTimeout(resolve, 20_000));
 
     while (true) {
-      const result = await this.getTurnstileResult(requestId);
+      const result = await this.getCaptchaResult(requestId);
       if (result.status === 1) {
         return result.request; /* Captcha solved */
       } else if (result.request === "CAPCHA_NOT_READY") {
@@ -131,5 +163,15 @@ export default class CaptchaSolver {
         throw new Error(`Captcha solving failed: ${result.request}`);
       }
     }
+  }
+
+  /** Solve Turnstile */
+  async solveTurnstile({ siteKey, pageUrl }) {
+    return this.solveCaptcha({ method: "turnstile", siteKey, pageUrl });
+  }
+
+  /** Solve ReCaptcha */
+  async solveReCaptcha({ siteKey, pageUrl }) {
+    return this.solveCaptcha({ method: "recaptcha", siteKey, pageUrl });
   }
 }
