@@ -714,7 +714,7 @@ export default class ATFFarmer extends BaseFarmer {
   async process() {
     const { user } = await this.login();
 
-    this.logUserInfo(user);
+    await this.logUserInfo(user);
     await this.executeTask("Mining", () => this.startOrClaimMining());
     await this.executeTask("Boost", () => this.applyBoost());
     await this.executeTask("Tasks", () => this.completeTasks());
@@ -727,11 +727,12 @@ export default class ATFFarmer extends BaseFarmer {
   }
 
   /** Log User Info */
-  logUserInfo(user) {
+  async logUserInfo(user) {
     this.logger.newline();
     this.logCurrentUser();
 
-    this.logUserBalance(user);
+    const diffData = await this.fetchDifficultyData();
+    this.logUserBalance(user, diffData);
     this.logUserRisks(user);
 
     if (user["wallet_public_key"]) {
@@ -739,7 +740,21 @@ export default class ATFFarmer extends BaseFarmer {
     }
   }
 
-  logUserBalance(user) {
+  getDailyMiningRate(user, diffData) {
+    const level = Number(user["miner_level"]);
+    const rate = this.getMinerRate(level);
+    const diffSnapshot =
+      Number(user["mining_difficulty_snapshot"]) || diffData.difficulty;
+    const divisor = this.getDifficultyDivisor(
+      diffSnapshot,
+      level,
+      diffData.exemptMinLevel,
+      diffData.exemptMaxLevel,
+    );
+    return new Decimal(rate).div(divisor);
+  }
+
+  logUserBalance(user, diffData) {
     const lastMiningStart = Number(user["last_mining_start"]);
     const miningFreezesAt = Number(user["mining_freezes_at"]);
     const isMiningFrozen = user["mining_frozen"] === 1;
@@ -747,6 +762,14 @@ export default class ATFFarmer extends BaseFarmer {
     this.logger.keyValue("Balance", user["mined_balance"]);
     this.logger.keyValue("Pending Rewards", user["pending_reward"]);
     this.logger.keyValue("Miner Level", user["miner_level"]);
+
+    if (diffData) {
+      this.logger.keyValue(
+        "Daily Mining",
+        this.getDailyMiningRate(user, diffData).toDecimalPlaces(4).toString(),
+        { valueStyle: this.logger.c.greenBright },
+      );
+    }
     this.logger.keyValue(
       "Last Mining Start",
       lastMiningStart === 0
