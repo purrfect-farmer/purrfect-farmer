@@ -26,7 +26,6 @@ import Donate from "@/partials/Donate";
 import DropButton from "@/components/DropButton";
 import FarmerLinks from "@/partials/FarmerLinks";
 import IPStatus from "@/partials/IPStatus";
-import PurrfectCatIcon from "@/assets/images/purrfect-cat.png?format=webp&h=224";
 import { RiRemoteControlLine } from "react-icons/ri";
 import Settings from "@/partials/Settings";
 import Shutdown from "@/partials/Shutdown";
@@ -37,17 +36,14 @@ import TelegramWebKIcon from "@/assets/images/telegram-web-k.png?format=webp&w=8
 import ToolbarButton from "@/components/ToolbarButton";
 import WelcomeIcon from "@/assets/images/icon-unwrapped-cropped.png?format=webp&h=224";
 import axios from "axios";
-import toast from "react-hot-toast";
 import useAppContext from "@/hooks/useAppContext";
 import useAppQuery from "@/hooks/useAppQuery";
 import { useCallback } from "react";
 import { useEffect } from "react";
 import { useMemo } from "react";
-import useMirroredCallback from "@/hooks/useMirroredCallback";
 import useMirroredState from "@/hooks/useMirroredState";
 import useMirroredTabs from "@/hooks/useMirroredTabs";
 import { useState } from "react";
-import useStorageState from "@/hooks/useStorageState";
 
 /** Telegram Web Button */
 const TelegramWebButton = memo(
@@ -106,21 +102,6 @@ export default memo(function Welcome() {
 
   /** Welcome tabs */
   const tabs = useMirroredTabs("app", ["farmers", "bots"]);
-
-  /** Toggle Purrfect Cat */
-  const { value: showPurrfectCat, storeValue: setShowPurrfectCat } =
-    useStorageState("purrfect-cat", false);
-
-  const [, dispatchAndSetShowPurrfectCat] = useMirroredCallback(
-    "toggle-purrfect-cat",
-    setShowPurrfectCat,
-    [setShowPurrfectCat],
-  );
-
-  const displayPurrfectCat = () => {
-    dispatchAndSetShowPurrfectCat(!showPurrfectCat);
-    toast.success("Meow!");
-  };
 
   /** Setting tabs */
   const settingTabs = useMirroredTabs("app.settings-tabs", [
@@ -274,11 +255,7 @@ export default memo(function Welcome() {
         <Container className="flex flex-col gap-2 my-auto p-2">
           {/* App Icon */}
           <div className="relative mx-auto">
-            <img
-              src={showPurrfectCat ? PurrfectCatIcon : WelcomeIcon}
-              className="h-28 cursor-pointer"
-              onClick={displayPurrfectCat}
-            />
+            <img src={WelcomeIcon} className="h-28 cursor-pointer" />
           </div>
 
           {/* App Title */}
