@@ -21,6 +21,13 @@ export default function useATFAutoSweepMutation() {
         (item) => !activeIds.includes(Number(item.userId)),
       );
 
+      const unknownIds = activeIds.filter(
+        (item) => !accounts.some((account) => item === Number(account.userId)),
+      );
+
+      console.log("Unknown IDs:", unknownIds);
+      console.log("Accounts to sweep:", accountsToSweep);
+
       /** Return when there are not accounts to sweep */
       if (!accountsToSweep.length) return;
 
