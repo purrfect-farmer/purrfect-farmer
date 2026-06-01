@@ -24,6 +24,12 @@ const BAN_TRIGGER_COUNT = env("BAN_TRIGGER_COUNT", 5);
 /** Concurrent accounts */
 const MAX_CONCURRENT_ACCOUNTS = env("MAX_CONCURRENT_ACCOUNTS", 20);
 
+/** Max retries for rate-limited (429) requests */
+const API_MAX_RETRY_COUNT = env("API_MAX_RETRY_COUNT", 3);
+
+/** Base delay (ms) for retry backoff */
+const API_RETRY_BASE_DELAY = env("API_RETRY_BASE_DELAY", 1000);
+
 const HttpProxyAgentWithCookies = createCookieAgent(HttpProxyAgent);
 const HttpsProxyAgentWithCookies = createCookieAgent(HttpsProxyAgent);
 
@@ -120,6 +126,9 @@ export default function createRunner(FarmerClass) {
       /** Set XSRF */
       this.registerXSRFInterceptor();
 
+      /** Retry rate-limited requests */
+      this.registerRetryInterceptor();
+
       /** Log API Response */
       if (process.env.NODE_ENV !== "production") {
         this.logApiRequests();
@@ -205,6 +214,64 @@ export default function createRunner(FarmerClass) {
           return config;
         });
       }
+    }
+
+    /** Register Retry Interceptor */
+    registerRetryInterceptor() {
+      this.api.interceptors.response.use(null, async (error) => {
+        const config = error.config;
+
+        /** Only retry rate-limited (429) responses */
+        if (!config || error.response?.status !== 429) {
+          return Promise.reject(error);
+        }
+
+        /** Track retry count on the request config */
+        config.__retryCount = config.__retryCount || 0;
+
+        if (config.__retryCount >= API_MAX_RETRY_COUNT) {
+          return Promise.reject(error);
+        }
+
+        config.__retryCount += 1;
+
+        /** Respect Retry-After header, else exponential backoff */
+        const retryAfter = this.parseRetryAfter(
+          error.response.headers?.["retry-after"],
+        );
+        const backoff =
+          API_RETRY_BASE_DELAY * 2 ** (config.__retryCount - 1);
+        const delay = retryAfter ?? backoff;
+
+        this.logger.warn(
+          `[${this.account.id}] Rate limited (429) on ${config.url}. Retrying in ${delay}ms (attempt ${config.__retryCount}/${API_MAX_RETRY_COUNT})`,
+        );
+
+        /** Wait before retrying (aborts cleanly on termination) */
+        await this.utils.delay(delay, { signal: this.signal });
+
+        /** Replay the original request */
+        return this.api(config);
+      });
+    }
+
+    /** Parse a Retry-After header value into milliseconds */
+    parseRetryAfter(value) {
+      if (!value) return null;
+
+      /** Numeric value is in seconds */
+      const seconds = Number(value);
+      if (!Number.isNaN(seconds)) {
+        return Math.max(0, seconds * 1000);
+      }
+
+      /** Otherwise it may be an HTTP date */
+      const date = new Date(value);
+      if (!Number.isNaN(date.getTime())) {
+        return Math.max(0, date.getTime() - Date.now());
+      }
+
+      return null;
     }
 
     /** Log API Requests */
