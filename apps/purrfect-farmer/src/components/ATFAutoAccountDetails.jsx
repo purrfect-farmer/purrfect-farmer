@@ -1,7 +1,7 @@
 import ATFAutoVersionBadge from "./ATFAutoVersionBadge";
 import ATFIcon from "@/assets/images/atf.png?format=webp&w=32";
 import { HiOutlineEye } from "react-icons/hi2";
-import { MdOutlineContentCopy } from "react-icons/md";
+import { MdOutlineContentCopy, MdOutlineOpenInNew } from "react-icons/md";
 import TonIcon from "@/assets/images/toncoin-ton-logo.svg";
 import { cn } from "@/utils";
 import copy from "copy-to-clipboard";
@@ -25,7 +25,14 @@ const InfoButton = (props) => (
   />
 );
 
-const InfoRow = ({ label, value, canCopy, valueClassName, rightContent }) => (
+const InfoRow = ({
+  label,
+  value,
+  canCopy,
+  valueClassName,
+  rightContent,
+  link,
+}) => (
   <div className="flex gap-2 p-2 items-center rounded-xl bg-neutral-100 dark:bg-neutral-700">
     <div className="flex flex-col gap-1 grow min-w-0">
       <span className="font-bold text-neutral-500 dark:text-neutral-400">
@@ -34,7 +41,19 @@ const InfoRow = ({ label, value, canCopy, valueClassName, rightContent }) => (
       <p
         className={cn("wrap-break-word grow min-w-0 font-bold", valueClassName)}
       >
-        {value}
+        {link ? (
+          <a
+            href={link}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="hover:underline"
+          >
+            <span>{value}</span>{" "}
+            <MdOutlineOpenInNew className="shrink-0 size-3 inline-block" />
+          </a>
+        ) : (
+          value
+        )}
       </p>
     </div>
     {canCopy && (
@@ -83,6 +102,7 @@ export default function ATFAutoAccountDetails({ account }) {
       <InfoRow
         label="Address"
         value={account.address}
+        link={`https://tonviewer.com/address/${account.address}`}
         canCopy
         valueClassName="text-blue-500 dark:text-blue-300"
       />
