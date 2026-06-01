@@ -82,8 +82,8 @@ export default function createRunner(FarmerClass) {
     static queue = [];
     static isProcessingQueue = false;
 
-    constructor(account) {
-      super();
+    constructor({ account, referralLink = null } = {}) {
+      super({ referralLink });
       this.debug = process.env.NODE_ENV !== "production";
       this.account = account;
       this.farmer = account.farmer;
@@ -643,10 +643,32 @@ export default function createRunner(FarmerClass) {
       );
     }
 
+    /** Get primary farmer link */
+    static getPrimaryFarmerLink() {
+      if (this.primaryFarmerLink) return this.primaryFarmerLink;
+      else if (this.platform === "telegram") return this.telegramLink;
+      else return this.link;
+    }
+
+    /** Get instance referral link */
+    static getInstanceReferralLink() {
+      if (this.referrerMode === "single") {
+        return this.getPrimaryFarmerLink();
+      } else {
+        const links = Array.from(this.referralLinks.values());
+        const random = this.utils.randomItem(links);
+
+        return random || this.getPrimaryFarmerLink();
+      }
+    }
+
     /** Prepare an account */
     static prepare(account) {
       if (!this.runners.has(account.id)) {
-        const instance = new this(account);
+        const instance = new this({
+          account,
+          referralLink: this.getInstanceReferralLink(),
+        });
         this.runners.set(account.id, instance);
         this.queue.push(instance);
       }

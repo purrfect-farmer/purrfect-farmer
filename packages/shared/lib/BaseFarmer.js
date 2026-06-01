@@ -21,6 +21,7 @@ export default class BaseFarmer {
   static link = "";
   static telegramLink = "";
   static host = "";
+  static referrerMode = "single";
   static domains = [];
   static withXSRFToken = false;
   static rating = 1;
@@ -31,7 +32,7 @@ export default class BaseFarmer {
   static autoStart = true;
   static skipExecutionOfNewAccount = false;
 
-  constructor() {
+  constructor({ referralLink = null } = {}) {
     /** Configure caching */
     this.cacheAuth = this.constructor.cacheAuth;
     this.cacheTelegramWebApp = this.constructor.cacheTelegramWebApp;
@@ -39,8 +40,8 @@ export default class BaseFarmer {
     /** Configure properties */
     this.platform = this.constructor.platform;
     this.type = this.constructor.type;
-    this.link = this.constructor.link;
-    this.telegramLink = this.constructor.telegramLink;
+    this.link = referralLink || this.constructor.link;
+    this.telegramLink = referralLink || this.constructor.telegramLink;
 
     /** API */
     this.cookies = this.constructor.cookies;

@@ -18,9 +18,10 @@ export default class ATFFarmer extends BaseFarmer {
   static emoji = "🪙";
   static host = "atfminers.asloni.online";
   static domains = ["atfminers.asloni.online"];
-  static telegramLink = "https://t.me/ATF_AIRDROP_bot";
-  static originalTelegramLink = "https://t.me/ATF_AIRDROP_bot?start=8217878170";
+  static telegramLink = "https://t.me/ATF_AIRDROP_bot?start=8577109758";
   static path = "/miner/index.html";
+  static referrerMode = "random";
+  static apiDelay = 500;
   static singleton = true;
   static rating = 5;
   static netRequest = {
@@ -35,11 +36,6 @@ export default class ATFFarmer extends BaseFarmer {
 
   /** Get Referral Link */
   getReferralLink() {
-    return `https://t.me/ATF_AIRDROP_bot`;
-  }
-
-  /** Get Original Referral Link */
-  getOriginalReferralLink() {
     return `https://t.me/ATF_AIRDROP_bot?start=${this.getUserId()}`;
   }
 
@@ -57,6 +53,7 @@ export default class ATFFarmer extends BaseFarmer {
     return this.utils.uuid();
   }
 
+  /** Configure API */
   configureApi() {
     const interceptor = this.api.interceptors.request.use((config) => {
       const url = new URL(config.url, config.baseURL);
@@ -148,30 +145,35 @@ export default class ATFFarmer extends BaseFarmer {
     });
   }
 
+  /** Claim Mining */
   claimMining(amount) {
     return this.makeAction("claim", {
       claim_preview: Number(amount),
     });
   }
 
+  /** Activate Boost */
   activateBoost(preview) {
     return this.makeAction("activate_boost", {
       display_preview: Number(preview),
     });
   }
 
+  /** Claim Task */
   claimTask(taskId) {
     return this.makeAction("claim_task", {
       task_id: taskId,
     });
   }
 
+  /** Start Task */
   startTask(taskId) {
     return this.makeAction("start_task", {
       task_id: taskId,
     });
   }
 
+  /** Sync Wallet */
   syncWallet({ publicKey, wallet, walletStateInit, network, proof }) {
     return this.makeAction("sync_wallet", {
       public_key: publicKey,
@@ -182,24 +184,29 @@ export default class ATFFarmer extends BaseFarmer {
     });
   }
 
+  /** Get Wallet Proof Payload */
   getWalletProofPayload() {
     return this.makeAction("get_wallet_proof_payload", { force: 1 });
   }
 
+  /** Get Withdrawal Puzzle */
   getWithdrawalPuzzle() {
     return this.makeAction("get_withdraw_puzzle");
   }
 
+  /** Request Withdrawal */
   requestWithdrawal(data) {
     return this.makeAction("withdraw", data);
   }
 
+  /** Get Math Challenge */
   getMathChallenge(scope) {
     return this.makeAction("get_math_challenge", {
       scope: scope,
     });
   }
 
+  /** Start Mining */
   startMining({ challengeId, answer }) {
     return this.makeAction("start_mine", {
       math_challenge_id: challengeId,
@@ -207,14 +214,17 @@ export default class ATFFarmer extends BaseFarmer {
     });
   }
 
+  /** Get Friends */
   getFriends() {
     return this.makeAction("get_friends");
   }
 
+  /** Get Difficulty */
   getDifficulty() {
     return this.makeAction("get_difficulty");
   }
 
+  /** Create Tools */
   createTools() {
     return [
       {
@@ -263,6 +273,7 @@ export default class ATFFarmer extends BaseFarmer {
     ];
   }
 
+  /** Prepare Wallet */
   prepareWallet(publicKeyBuffer) {
     const walletV4 = WalletContractV4.create({
       workchain: 0,
@@ -295,6 +306,7 @@ export default class ATFFarmer extends BaseFarmer {
     };
   }
 
+  /** Log Wallet */
   logWallet(version, publicKey, address, rawAddress) {
     /** Convert version to uppercase */
     const uppercaseVersion = version.toUpperCase();
@@ -324,6 +336,7 @@ export default class ATFFarmer extends BaseFarmer {
     this.logger.newline();
   }
 
+  /** Get Key Pair */
   async getKeyPair(secretKeyOrMnemonic) {
     let keyPair;
     const isHex = /^[0-9a-fA-F]+$/.test(secretKeyOrMnemonic);
@@ -350,6 +363,7 @@ export default class ATFFarmer extends BaseFarmer {
     return keyPair;
   }
 
+  /** Connect Wallet Secret Key or Mnemonic */
   async connectWalletSecretKeyOrMnemonic() {
     const input = await this.promptInput(
       "Enter your TON Wallet Phrase / Secret Key (hex):",
@@ -389,6 +403,7 @@ export default class ATFFarmer extends BaseFarmer {
     }
   }
 
+  /** Reconnect Wallet */
   async reconnectWallet() {
     const saved = await this.storage.get("wallet");
     if (!saved) {
@@ -411,6 +426,7 @@ export default class ATFFarmer extends BaseFarmer {
     }
   }
 
+  /** Connect and Sync Wallet */
   async connectAndSyncWallet(keyPair, version) {
     const {
       walletV4,
@@ -466,6 +482,7 @@ export default class ATFFarmer extends BaseFarmer {
     }
   }
 
+  /** Build Wallet Proof */
   async buildWalletProof(wallet, secretKey) {
     const proofPayloadData = await this.getWalletProofPayload();
     const payload = proofPayloadData.payload;
