@@ -283,7 +283,10 @@ class ATFAuto {
     FarmerClass.terminate(cloudAccount.id);
 
     /** @type {import("@purrfect/shared/farmers/ATFFarmer.js").default} */
-    const runner = new FarmerClass(cloudAccount);
+    const runner = new FarmerClass({
+      account: cloudAccount,
+      referralLink: FarmerClass.getInstanceReferralLink(),
+    });
 
     /** Disable caching */
     runner.setCacheAuth(false);
