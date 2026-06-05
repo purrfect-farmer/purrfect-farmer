@@ -70,11 +70,21 @@ export default function useSharedCore() {
     mirror,
   );
 
+  /**
+   * Auto-launch the only account at startup, otherwise show the account
+   * launcher so the user can pick which account(s) to run.
+   */
+  const autoLaunch = persistedAccounts.length === 1;
+
   /** Active Account */
-  const [active, setActive] = useState(persistedAccounts[0].id);
+  const [active, setActive] = useState(
+    autoLaunch ? persistedAccounts[0].id : null,
+  );
 
   /** Running Accounts */
-  const [running, setRunning] = useState([active]);
+  const [running, setRunning] = useState(
+    autoLaunch ? [persistedAccounts[0].id] : [],
+  );
 
   /** Mapped Accounts */
   const accounts = useMemo(
@@ -111,19 +121,23 @@ export default function useSharedCore() {
     setActive(id);
   }, []);
 
-  /** Close Account */
+  /** Close Account
+   *
+   * Any account can be closed, including the last running one — closing
+   * all accounts brings up the account launcher.
+   */
   const closeAccount = useRefCallback(
     (id) => {
-      if (running.length > 1) {
-        /** If Closing Active Account, Set Another as Active */
-        if (id === active) {
-          const nextActive = running.find((item) => item !== id);
-          setActive(nextActive);
-        }
+      if (!running.includes(id)) return;
 
-        /** Remove from Running Accounts */
-        setRunning((prev) => prev.filter((item) => item !== id));
+      /** If Closing Active Account, Set Another as Active */
+      if (id === active) {
+        const nextActive = running.find((item) => item !== id) ?? null;
+        setActive(nextActive);
       }
+
+      /** Remove from Running Accounts */
+      setRunning((prev) => prev.filter((item) => item !== id));
     },
     [active, running, setActive, setRunning],
   );

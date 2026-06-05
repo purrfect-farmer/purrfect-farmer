@@ -10,6 +10,7 @@ import { cn } from "@/utils";
 import { createQueryClient } from "@/lib/createQueryClient";
 import { useMemo } from "react";
 
+import AccountLauncher from "./AccountLauncher";
 import App from "./App";
 import HeadlessMode from "./HeadlessMode";
 import useTheme from "@/hooks/useTheme";
@@ -52,10 +53,12 @@ function Accounts() {
     <SharedContext.Provider value={shared}>
       {headlessMode ? (
         <HeadlessMode />
-      ) : (
+      ) : instances.length > 0 ? (
         instances.map((account) => (
           <FarmerAccount key={account.id} account={account} />
         ))
+      ) : (
+        <AccountLauncher />
       )}
 
       {/* Toaster */}

@@ -204,7 +204,6 @@ export default memo(function AccountPicker() {
                 account={account}
                 launchAccount={launchAccount}
                 closeAccount={closeAccount}
-                showStop={persistedAccounts.length > 1}
                 showReorder={persistedAccounts.length > 1 && !search.trim()}
               />
             ))}
