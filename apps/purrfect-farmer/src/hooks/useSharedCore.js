@@ -121,13 +121,19 @@ export default function useSharedCore() {
   );
 
   /** Launch Account */
-  const launchAccount = useRefCallback((id) => {
-    /** Add to Running Accounts */
-    setRunning((prev) => (prev.includes(id) ? prev : [...prev, id]));
+  const launchAccount = useRefCallback(
+    (id) => {
+      /** Add to Running Accounts */
+      setRunning((prev) => (prev.includes(id) ? prev : [...prev, id]));
 
-    /** Set Active Account */
-    setActive(id);
-  }, []);
+      /** Set Active Account */
+      setActive(id);
+
+      /** Close Account Picker */
+      setShowAccountPicker(false);
+    },
+    [setShowAccountPicker],
+  );
 
   /** Close Account */
   const closeAccount = useRefCallback(
