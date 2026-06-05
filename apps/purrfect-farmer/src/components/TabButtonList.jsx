@@ -1,23 +1,14 @@
 import useAppContext from "@/hooks/useAppContext";
-import { Dialog } from "radix-ui";
 import { LiaUser } from "react-icons/lia";
 import { cn } from "@/utils";
 import { memo, useMemo } from "react";
 
-import AccountPicker from "./AccountPicker";
 import TabButton from "./TabButton";
 import Container from "./Container";
 
 export default memo(function TabButtonList({ tabs }) {
-  const {
-    account,
-    mirror,
-    settings,
-    sharedSettings,
-    showAccountPicker,
-    setShowAccountPicker,
-    dispatchAndSetShowAccountPicker,
-  } = useAppContext();
+  const { account, mirror, sharedSettings, dispatchAndSetShowAccountPicker } =
+    useAppContext();
   const otherTabs = useMemo(() => tabs.slice(1), [tabs]);
   const userFullName = useMemo(
     () =>
@@ -63,35 +54,30 @@ export default memo(function TabButtonList({ tabs }) {
           </div>
         </div>
 
-        {/* Account Picker */}
-        <Dialog.Root
-          open={showAccountPicker}
-          onOpenChange={dispatchAndSetShowAccountPicker}
-        >
-          {account.user ? (
-            <Dialog.Trigger
-              title={userFullName}
-              className="shrink-0 rounded-full"
-            >
-              <img
-                src={account.user["photo_url"]}
-                className="rounded-full size-8"
-              />
-            </Dialog.Trigger>
-          ) : (
-            <Dialog.Trigger
-              className={cn(
-                "flex items-center justify-center",
-                "shrink-0 p-2 rounded-full",
-                "bg-neutral-100 dark:bg-neutral-700"
-              )}
-            >
-              <LiaUser className="size-5" />
-            </Dialog.Trigger>
-          )}
-
-          <AccountPicker />
-        </Dialog.Root>
+        {/* Account Picker Trigger */}
+        {account.user ? (
+          <button
+            title={userFullName}
+            onClick={() => dispatchAndSetShowAccountPicker(true)}
+            className="shrink-0 rounded-full"
+          >
+            <img
+              src={account.user["photo_url"]}
+              className="rounded-full size-8"
+            />
+          </button>
+        ) : (
+          <button
+            onClick={() => dispatchAndSetShowAccountPicker(true)}
+            className={cn(
+              "flex items-center justify-center",
+              "shrink-0 p-2 rounded-full",
+              "bg-neutral-100 dark:bg-neutral-700"
+            )}
+          >
+            <LiaUser className="size-5" />
+          </button>
+        )}
       </Container>
     </div>
   );

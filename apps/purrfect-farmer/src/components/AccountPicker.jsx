@@ -15,7 +15,7 @@ import { LiaUser } from "react-icons/lia";
 import { PiUserCirclePlusBold } from "react-icons/pi";
 import { cn } from "@/utils";
 import { memo } from "react";
-import useAppContext from "@/hooks/useAppContext";
+import useSharedContext from "@/hooks/useSharedContext";
 import { useMemo } from "react";
 import { useState } from "react";
 
@@ -149,7 +149,7 @@ export default memo(function AccountPicker() {
     closeAccount,
     persistedAccounts,
     storePersistedAccounts,
-  } = useAppContext();
+  } = useSharedContext();
   const [search, setSearch] = useState("");
   const filteredAccounts = useMemo(() => {
     if (!search.trim()) return accounts;

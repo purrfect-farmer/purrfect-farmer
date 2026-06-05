@@ -4,6 +4,7 @@ import useChromeCookies from "@/hooks/useChromeCookies";
 import useNetRules from "@/hooks/useNetRules";
 import useSharedCore from "@/hooks/useSharedCore";
 import useWakeLock from "@/hooks/useWakeLock";
+import { Dialog } from "radix-ui";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "react-hot-toast";
 import { cn } from "@/utils";
@@ -11,6 +12,7 @@ import { createQueryClient } from "@/lib/createQueryClient";
 import { useMemo } from "react";
 
 import AccountLauncher from "./AccountLauncher";
+import AccountPicker from "@/components/AccountPicker";
 import App from "./App";
 import HeadlessMode from "./HeadlessMode";
 import useTheme from "@/hooks/useTheme";
@@ -34,7 +36,13 @@ const FarmerAccount = ({ account }) => {
 
 function Accounts() {
   const shared = useSharedCore();
-  const { instances, headlessMode, sharedSettings } = shared;
+  const {
+    instances,
+    headlessMode,
+    sharedSettings,
+    showAccountPicker,
+    dispatchAndSetShowAccountPicker,
+  } = shared;
   const { theme } = sharedSettings;
 
   /** Use Net Rules */
@@ -54,9 +62,19 @@ function Accounts() {
       {headlessMode ? (
         <HeadlessMode />
       ) : instances.length > 0 ? (
-        instances.map((account) => (
-          <FarmerAccount key={account.id} account={account} />
-        ))
+        <>
+          {instances.map((account) => (
+            <FarmerAccount key={account.id} account={account} />
+          ))}
+
+          {/* Account Picker */}
+          <Dialog.Root
+            open={showAccountPicker}
+            onOpenChange={dispatchAndSetShowAccountPicker}
+          >
+            <AccountPicker />
+          </Dialog.Root>
+        </>
       ) : (
         <AccountLauncher />
       )}

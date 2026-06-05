@@ -8,6 +8,7 @@ import useCaptcha from "./useCaptcha";
 import { useMemo } from "react";
 import useMirror from "./useMirror";
 import useMirroredCallback from "./useMirroredCallback";
+import useMirroredState from "./useMirroredState";
 import usePrimaryFarmer from "./usePrimaryFarmer";
 import useRefCallback from "./useRefCallback";
 import useSharedStorageState from "./useSharedStorageState";
@@ -39,6 +40,13 @@ export default function useSharedCore() {
   /** Persisted Accounts */
   const { value: persistedAccounts, storeValue: storePersistedAccounts } =
     useSharedStorageState("accounts", defaultAccounts);
+
+  /** Account Picker State */
+  const [
+    showAccountPicker,
+    setShowAccountPicker,
+    dispatchAndSetShowAccountPicker,
+  ] = useMirroredState("app.toggle-account-picker", false, mirror);
 
   /** Headless Mode */
   const [headlessMode, setHeadlessMode] = useState(false);
@@ -121,25 +129,27 @@ export default function useSharedCore() {
     setActive(id);
   }, []);
 
-  /** Close Account
-   *
-   * Any account can be closed, including the last running one — closing
-   * all accounts brings up the account launcher.
-   */
+  /** Close Account */
   const closeAccount = useRefCallback(
     (id) => {
       if (!running.includes(id)) return;
 
+      const remaining = running.filter((item) => item !== id);
+
       /** If Closing Active Account, Set Another as Active */
       if (id === active) {
-        const nextActive = running.find((item) => item !== id) ?? null;
-        setActive(nextActive);
+        setActive(remaining[0] ?? null);
+      }
+
+      /** Closing the last account brings up the launcher; hide the picker */
+      if (remaining.length === 0) {
+        setShowAccountPicker(false);
       }
 
       /** Remove from Running Accounts */
-      setRunning((prev) => prev.filter((item) => item !== id));
+      setRunning(remaining);
     },
-    [active, running, setActive, setRunning],
+    [active, running, setActive, setRunning, setShowAccountPicker],
   );
 
   /** Add Account */
@@ -214,6 +224,9 @@ export default function useSharedCore() {
     launchAccount,
     closeAccount,
     setActive,
+    showAccountPicker,
+    setShowAccountPicker,
+    dispatchAndSetShowAccountPicker,
     headlessMode,
     headlessFarmers,
     startHeadlessMode,
