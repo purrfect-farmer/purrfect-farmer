@@ -517,7 +517,7 @@ export default function createRunner(FarmerClass) {
      * 5xx server error) and therefore should NOT count toward deactivating
      * or banning the account.
      */
-    isTransientError(error) {
+    static isTransientError(error) {
       if (!error) return false;
 
       /** Server-side errors (500+) are not the account's fault */
@@ -592,7 +592,7 @@ export default function createRunner(FarmerClass) {
          * 5xx server errors) are not the account's fault, so they must not
          * count toward deactivating or banning it.
          */
-        if (this.deactivateOnError && !instance.isTransientError(error)) {
+        if (this.deactivateOnError && !this.isTransientError(error)) {
           await instance.disconnect();
         }
 
