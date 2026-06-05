@@ -1,5 +1,6 @@
 import Alert from "@/components/Alert";
-import AppIcon from "@/assets/images/icon-unwrapped-cropped.png?format=webp&h=192";
+import AppHeader from "@/components/AppHeader";
+import Connect from "@/partials/Connect";
 import Container from "@/components/Container";
 import Input from "@/components/Input";
 import { HiStar } from "react-icons/hi2";
@@ -105,12 +106,7 @@ export default memo(function AccountLauncher() {
     <div className="flex flex-col min-h-dvh overflow-auto">
       <Container className="flex flex-col gap-2 my-auto p-4">
         {/* Logo + Title */}
-        <div className="flex flex-col items-center justify-center gap-2 shrink-0">
-          <img src={AppIcon} className="h-24" />
-          <h1 className="font-turret-road text-center text-2xl text-orange-500">
-            {import.meta.env.VITE_APP_NAME}
-          </h1>
-        </div>
+        <AppHeader imageClassName="h-24" className="shrink-0" />
 
         {/* Disclaimer */}
         <Alert variant={"warning"}>
@@ -118,31 +114,35 @@ export default memo(function AccountLauncher() {
           your account. If you receive a ban, you alone are accountable.
         </Alert>
 
-        {/* Search */}
-        <Input
-          type="search"
-          placeholder="Search Accounts..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          className="w-full shrink-0"
-        />
+        {/* Search (only when there are accounts) */}
+        {accounts.length > 0 ? (
+          <Input
+            type="search"
+            placeholder="Search Accounts..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="w-full shrink-0"
+          />
+        ) : null}
 
         {/* Accounts List */}
-        <div className="flex flex-col gap-2">
-          {filteredAccounts.length > 0 ? (
-            filteredAccounts.map((account) => (
-              <AccountRow
-                key={account.id}
-                account={account}
-                onLaunch={launchAccount}
-              />
-            ))
-          ) : (
-            <p className="text-center text-neutral-400 font-bold py-4">
-              No accounts found
-            </p>
-          )}
-        </div>
+        {accounts.length > 0 ? (
+          <div className="flex flex-col gap-2">
+            {filteredAccounts.length > 0 ? (
+              filteredAccounts.map((account) => (
+                <AccountRow
+                  key={account.id}
+                  account={account}
+                  onLaunch={launchAccount}
+                />
+              ))
+            ) : (
+              <p className="text-center text-neutral-400 font-bold py-4">
+                No accounts found
+              </p>
+            )}
+          </div>
+        ) : null}
 
         {/* Add Account */}
         {!import.meta.env.VITE_WHISKER ? (
@@ -158,6 +158,9 @@ export default memo(function AccountLauncher() {
             Add Account
           </button>
         ) : null}
+
+        {/* Links */}
+        <Connect className="hover:bg-orange-500" />
       </Container>
     </div>
   );

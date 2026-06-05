@@ -44,7 +44,7 @@ export default memo(function SettingsActions({
       </button>
 
       {/* Remove Account */}
-      {farmerAccountsLength > 1 ? (
+      {farmerAccountsLength > 0 ? (
         <button
           type="button"
           onClick={() => removeActiveAccount()}

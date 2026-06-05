@@ -182,24 +182,26 @@ export default function useSharedCore() {
     [persistedAccounts, storePersistedAccounts],
   );
 
-  /** Remove Account */
+  /** Remove Account
+   *
+   * Any account can be removed, including the last one — removing all
+   * accounts brings up the launcher.
+   */
   const removeAccount = useRefCallback(
     async (id) => {
-      if (persistedAccounts.length > 1) {
-        /** Updated List of Accounts */
-        const updated = persistedAccounts.filter((item) => item.id !== id);
+      /** Updated List of Accounts */
+      const updated = persistedAccounts.filter((item) => item.id !== id);
 
-        /** Remove Account */
-        await storePersistedAccounts(updated);
+      /** Stop running it (updates active / picker / launcher) */
+      closeAccount(id);
 
-        /** Remove Storage */
-        await removeAccountStorage(id);
+      /** Remove Account */
+      await storePersistedAccounts(updated);
 
-        /** Launch Another Account */
-        launchAccount(updated[0].id);
-      }
+      /** Remove Storage */
+      await removeAccountStorage(id);
     },
-    [persistedAccounts, storePersistedAccounts, launchAccount],
+    [persistedAccounts, storePersistedAccounts, closeAccount],
   );
 
   /** Primary farmer configurations */

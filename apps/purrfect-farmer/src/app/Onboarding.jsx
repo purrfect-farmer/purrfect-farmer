@@ -1,27 +1,15 @@
 import Alert from "@/components/Alert";
+import AppHeader from "@/components/AppHeader";
 import Connect from "@/partials/Connect";
 import PrimaryButton from "@/components/PrimaryButton";
-import WelcomeIcon from "@/assets/images/icon-unwrapped-cropped.png?format=webp&h=224";
 import useAppContext from "@/hooks/useAppContext";
-import { cn } from "@/utils";
 
 export default function Onboarding() {
   const { dispatchAndConfigureSettings } = useAppContext();
   return (
     <div className="flex flex-col gap-2 justify-center min-h-dvh max-w-96 mx-auto p-4">
-      {/* App Icon */}
-      <img src={WelcomeIcon} className="mx-auto h-28" />
-
-      {/* App Title */}
-      <h3
-        className={cn(
-          "leading-none font-turret-road",
-          "text-2xl text-center",
-          "text-orange-500"
-        )}
-      >
-        {import.meta.env.VITE_APP_NAME}{" "}
-      </h3>
+      {/* Logo + Title */}
+      <AppHeader />
 
       {/* Warning */}
       <Alert variant={"warning"}>
