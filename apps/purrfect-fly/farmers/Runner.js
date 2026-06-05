@@ -439,6 +439,9 @@ export default function createRunner(FarmerClass) {
         await this.farmer.save();
       }
 
+      /** Update the primary farmer link */
+      await this.constructor.updatePrimaryFarmerLink(this);
+
       return this;
     }
 
@@ -508,6 +511,24 @@ export default function createRunner(FarmerClass) {
       }
     }
 
+    /**
+     * Determine whether an error is transient (proxy timeout, aborted, or
+     * 5xx server error) and therefore should NOT count toward deactivating
+     * or banning the account.
+     */
+    isTransientError(error) {
+      if (!error) return false;
+
+      /** Server-side errors (500+) are not the account's fault */
+      if (error.response?.status >= 500) {
+        return true;
+      }
+
+      /** Timeout or aborted requests */
+      const message = String(error.message || "").toLowerCase();
+      return message.includes("timeout") || message.includes("aborted");
+    }
+
     /** Reset error count */
     async resetErrorCount() {
       try {
@@ -542,9 +563,6 @@ export default function createRunner(FarmerClass) {
         /** Prepare instance */
         await instance.prepare();
 
-        /** Update the primary farmer link */
-        await this.updatePrimaryFarmerLink(instance);
-
         /** Start instance */
         if (!skipExecution) {
           await instance.start();
@@ -553,7 +571,12 @@ export default function createRunner(FarmerClass) {
         /** Reset error count */
         await instance.resetErrorCount();
       } catch (error) {
-        if (this.deactivateOnError) {
+        /**
+         * Transient errors (proxy/connection timeouts, aborted requests,
+         * 5xx server errors) are not the account's fault, so they must not
+         * count toward deactivating or banning it.
+         */
+        if (this.deactivateOnError && !instance.isTransientError(error)) {
           await instance.disconnect();
         }
 
