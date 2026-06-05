@@ -33,6 +33,9 @@ class ATFAuto {
     this.controller = new AbortController();
     this.signal = this.controller.signal;
 
+    /** Accounts terminated (excluded from farming batches) by this operation */
+    this.terminatedAccounts = new Set();
+
     /** Core properties */
     this.id = id;
     this.master = master;
@@ -279,8 +282,9 @@ class ATFAuto {
   async getRunner(cloudAccount) {
     const FarmerClass = farmers["atf"];
 
-    /** Terminate */
+    /** Terminate (excludes the account from farming batches until resumed) */
     FarmerClass.terminate(cloudAccount.id);
+    this.terminatedAccounts.add(cloudAccount.id);
 
     /** @type {import("@purrfect/shared/farmers/ATFFarmer.js").default} */
     const runner = new FarmerClass({
@@ -1085,6 +1089,15 @@ class ATFAuto {
     }
   }
 
+  /** Resume terminated accounts back into farming batches */
+  resumeTerminatedAccounts() {
+    const FarmerClass = farmers["atf"];
+    for (const id of this.terminatedAccounts) {
+      FarmerClass.resume(id);
+    }
+    this.terminatedAccounts.clear();
+  }
+
   /** Cancel operation */
   cancel() {
     this.controller.abort();
@@ -1099,6 +1112,9 @@ class ATFAuto {
     this.instances.set(options.id, instance);
 
     callback(instance).finally(() => {
+      /** Resume terminated accounts back into farming batches */
+      instance.resumeTerminatedAccounts();
+
       this.instances.delete(options.id);
     });
   }

@@ -83,6 +83,7 @@ export default function createRunner(FarmerClass) {
     static interval = interval;
     static primaryFarmerLink = null;
     static runners = new Map();
+    static terminated = new Set();
     static referralLinks = new Map();
     static logger = new ConsoleLogger(process.env.NODE_ENV !== "production");
     static queue = [];
@@ -547,12 +548,27 @@ export default function createRunner(FarmerClass) {
       }
     }
 
-    /** Terminate instance */
+    /** Terminate instance
+     *
+     * Aborts any running instance and excludes the account from future
+     * batches until `resume` is called.
+     */
     static terminate(id) {
+      /** Exclude account from future batches */
+      this.terminated.add(id);
+
       const instance = this.runners.get(id);
       if (instance) {
         instance.controller.abort();
       }
+    }
+
+    /** Resume instance
+     *
+     * Allows a previously terminated account to be included in batches again.
+     */
+    static resume(id) {
+      this.terminated.delete(id);
     }
 
     /** Execute farming for an instance
@@ -806,9 +822,12 @@ export default function createRunner(FarmerClass) {
           );
         }
 
-        /** Filter out frozen and banned accounts */
+        /** Filter out frozen, banned and terminated accounts */
         const accounts = subscribedList.filter((item) => {
-          return !["frozen", "banned"].includes(item.farmer?.status);
+          return (
+            !["frozen", "banned"].includes(item.farmer?.status) &&
+            !this.terminated.has(item.id)
+          );
         });
 
         /** Needs Primary Account */
