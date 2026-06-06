@@ -53,6 +53,15 @@ export default class ATFFarmer extends BaseFarmer {
     return this.utils.uuid();
   }
 
+  /** Determine if the request should be retried */
+  shouldRetryRequest(error) {
+    const retryAfter = error.response?.data?.retry_after;
+    if (retryAfter) {
+      return true;
+    }
+    return false;
+  }
+
   /** Configure API */
   configureApi() {
     const headersInterceptor = this.api.interceptors.request.use((config) => {
@@ -71,6 +80,7 @@ export default class ATFFarmer extends BaseFarmer {
       };
       return config;
     });
+
     return () => {
       this.api.interceptors.request.eject(headersInterceptor);
     };

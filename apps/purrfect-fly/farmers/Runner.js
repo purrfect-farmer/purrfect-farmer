@@ -25,7 +25,7 @@ const BAN_TRIGGER_COUNT = env("BAN_TRIGGER_COUNT", 5);
 const MAX_CONCURRENT_ACCOUNTS = env("MAX_CONCURRENT_ACCOUNTS", 20);
 
 /** Max retries for rate-limited (429) requests */
-const API_MAX_RETRY_COUNT = env("API_MAX_RETRY_COUNT", 3);
+const API_MAX_RETRY_COUNT = env("API_MAX_RETRY_COUNT", 10);
 
 /** Base delay (ms) for retry backoff */
 const API_RETRY_BASE_DELAY = env("API_RETRY_BASE_DELAY", 1000);
@@ -222,9 +222,23 @@ export default function createRunner(FarmerClass) {
       this.api.interceptors.response.use(null, async (error) => {
         const config = error.config;
 
-        /** Only retry rate-limited (429) responses */
-        if (!config || error.response?.status !== 429) {
+        /** If no config or response, reject the error */
+        if (!config || !error.response) {
           return Promise.reject(error);
+        }
+
+        /** Only retry rate-limited (429) responses */
+        if (error.response?.status !== 429) {
+          /** Determine if the request should be explicitly retried */
+          const shouldRetry =
+            typeof this.shouldRetryRequest === "function"
+              ? this.shouldRetryRequest(error)
+              : true;
+
+          /** If not explicitly retried, reject the error */
+          if (!shouldRetry) {
+            return Promise.reject(error);
+          }
         }
 
         /** Track retry count on the request config */
@@ -234,14 +248,14 @@ export default function createRunner(FarmerClass) {
           return Promise.reject(error);
         }
 
+        /** Increment retry count */
         config.__retryCount += 1;
 
         /** Respect Retry-After header, else exponential backoff */
         const retryAfter = this.parseRetryAfter(
           error.response.headers?.["retry-after"],
         );
-        const backoff =
-          API_RETRY_BASE_DELAY * 2 ** (config.__retryCount - 1);
+        const backoff = API_RETRY_BASE_DELAY * 2 ** (config.__retryCount - 1);
         const delay = retryAfter ?? backoff;
 
         this.logger.warn(
