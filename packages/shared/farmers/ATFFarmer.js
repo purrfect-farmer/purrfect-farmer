@@ -81,40 +81,83 @@ export default class ATFFarmer extends BaseFarmer {
     return this.login();
   }
 
-  async login() {
-    const captchaStatus = await this.getCaptchaStatus();
+  async solveCaptcha() {
+    const MAX_ATTEMPTS = 10;
+    let attempts = 0;
+    while (true) {
+      const captchaStatus = await this.getCaptchaStatus();
+      const isDegradedOrCircuitOpen =
+        captchaStatus.degraded || captchaStatus.reason === "db_circuit_open";
 
-    if (captchaStatus.degraded || captchaStatus.reason === "db_circuit_open") {
-      throw new Error("Captcha is degraded or circuit is open");
-    }
-
-    if (captchaStatus.captcha_required) {
-      if (!this.canSolveReCaptcha()) {
-        throw new Error(
-          "Captcha is required but no captcha provider is configured!",
-        );
-      }
-
-      try {
-        /* Solve ReCaptcha */
-        const captchaToken = await this.solveReCaptcha({
-          siteKey: captchaStatus.site_key,
-          pageUrl: "https://atfminers.asloni.online/miner/index.html",
-        });
-
-        /* Verify Captcha */
-        const captchaResponse = await this.verifyEntryCaptcha(captchaToken);
-
-        if (captchaResponse.status !== "success") {
-          throw new Error("Failed to verify captcha:", captchaResponse.message);
+      if (isDegradedOrCircuitOpen) {
+        await this.utils.delayForSeconds(5);
+        attempts++;
+        if (attempts > MAX_ATTEMPTS) {
+          throw new Error("Failed to get captcha status");
         }
+        continue;
+      }
+
+      if (captchaStatus.captcha_required) {
+        if (!this.canSolveReCaptcha()) {
+          throw new Error(
+            "Captcha is required but no captcha provider is configured!",
+          );
+        }
+
+        try {
+          /* Solve ReCaptcha */
+          const captchaToken = await this.solveReCaptcha({
+            siteKey: captchaStatus.site_key,
+            pageUrl: "https://atfminers.asloni.online/miner/index.html",
+          });
+
+          /* Verify Captcha */
+          const captchaResponse = await this.verifyEntryCaptcha(captchaToken);
+
+          if (captchaResponse.status !== "success") {
+            throw new Error(
+              "Failed to verify captcha:",
+              captchaResponse.message,
+            );
+          }
+        } catch (error) {
+          this.logger.error("Failed to solve captcha:", error);
+          throw error;
+        }
+      } else {
+        break;
+      }
+    }
+  }
+
+  async completeLogin() {
+    const MAX_ATTEMPTS = 10;
+    let attempts = 0;
+    while (true) {
+      try {
+        this.user_data = await this.makeLoginAction();
+        break;
       } catch (error) {
-        this.logger.error("Failed to solve captcha:", error);
-        throw error;
+        attempts++;
+        if (attempts > MAX_ATTEMPTS) {
+          throw new Error("Failed to sign in:", error);
+        }
+        const errorMessage = error.response?.data?.message || "Unknown error";
+        const retryAfter = error.response?.data?.retry_after || 5;
+
+        this.logger.error("Failed to sign in:", errorMessage);
+
+        await this.utils.delayForSeconds(retryAfter);
       }
     }
 
-    this.user_data = await this.makeLoginAction();
+    return this.user_data;
+  }
+
+  async login() {
+    await this.solveCaptcha();
+    await this.completeLogin();
 
     return this.user_data;
   }
