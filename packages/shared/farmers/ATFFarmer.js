@@ -596,9 +596,24 @@ export default class ATFFarmer extends BaseFarmer {
     const { user } = this.user_data;
     const balance = new Decimal(user["mined_balance"]);
 
+    if (!user["wallet_public_key"]) {
+      this.logger.error("No wallet public key found!");
+      return {
+        status: false,
+        skipped: true,
+        message: "No wallet public key found!",
+        amount: "0",
+      };
+    }
+
     if (balance.lessThan(MINIMUM_WITHDRAWABLE_AMOUNT)) {
       this.logger.error("Not enough balance:", balance.toString());
-      return { status: false, skipped: true, amount: balance.toString() };
+      return {
+        status: false,
+        skipped: true,
+        message: "Not enough balance!",
+        amount: balance.toString(),
+      };
     }
 
     /** Log balance */
@@ -863,6 +878,7 @@ export default class ATFFarmer extends BaseFarmer {
     await this.executeTask("Boost", () => this.applyBoost());
     await this.executeTask("Tasks", () => this.completeTasks());
     await this.executeTask("Extra Tasks", () => this.completeExtraTasks());
+    await this.executeTask("Withdraw", () => this.withdraw());
   }
 
   /** Get User Details */
