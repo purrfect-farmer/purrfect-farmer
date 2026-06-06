@@ -85,12 +85,16 @@ export default class ATFFarmer extends BaseFarmer {
     const MAX_ATTEMPTS = 10;
     let attempts = 0;
     while (true) {
+      if (this.signal.aborted) {
+        throw new Error("Captcha solving aborted");
+      }
+
       const captchaStatus = await this.getCaptchaStatus();
       const isDegradedOrCircuitOpen =
         captchaStatus.degraded || captchaStatus.reason === "db_circuit_open";
 
       if (isDegradedOrCircuitOpen) {
-        await this.utils.delayForSeconds(5);
+        await this.utils.delayForSeconds(5, { signal: this.signal });
         attempts++;
         if (attempts > MAX_ATTEMPTS) {
           throw new Error("Failed to get captcha status");
@@ -135,6 +139,10 @@ export default class ATFFarmer extends BaseFarmer {
     const MAX_ATTEMPTS = 10;
     let attempts = 0;
     while (true) {
+      if (this.signal.aborted) {
+        throw new Error("Login aborted");
+      }
+
       try {
         this.user_data = await this.makeLoginAction();
         break;
@@ -148,7 +156,7 @@ export default class ATFFarmer extends BaseFarmer {
 
         this.logger.error("Failed to sign in:", errorMessage);
 
-        await this.utils.delayForSeconds(retryAfter);
+        await this.utils.delayForSeconds(retryAfter, { signal: this.signal });
       }
     }
 
