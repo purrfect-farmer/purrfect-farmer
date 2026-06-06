@@ -84,6 +84,10 @@ export default class ATFFarmer extends BaseFarmer {
   async login() {
     const captchaStatus = await this.getCaptchaStatus();
 
+    if (captchaStatus.degraded || captchaStatus.reason === "db_circuit_open") {
+      throw new Error("Captcha is degraded or circuit is open");
+    }
+
     if (captchaStatus.captcha_required) {
       if (!this.canSolveReCaptcha()) {
         throw new Error(
