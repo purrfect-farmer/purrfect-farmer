@@ -55,7 +55,7 @@ export default class ATFFarmer extends BaseFarmer {
 
   /** Configure API */
   configureApi() {
-    const interceptor = this.api.interceptors.request.use((config) => {
+    const headersInterceptor = this.api.interceptors.request.use((config) => {
       const url = new URL(config.url, config.baseURL);
       url.searchParams.set("t", Date.now().toString());
       config.url = url.toString();
@@ -71,7 +71,9 @@ export default class ATFFarmer extends BaseFarmer {
       };
       return config;
     });
-    return () => this.api.interceptors.request.eject(interceptor);
+    return () => {
+      this.api.interceptors.request.eject(headersInterceptor);
+    };
   }
 
   /** Get Auth */
@@ -108,11 +110,17 @@ export default class ATFFarmer extends BaseFarmer {
       }
     }
 
-    this.user_data = await this.makeAction("login", {
-      username: this.getUsername(),
-    });
+    this.user_data = await this.makeLoginAction();
 
     return this.user_data;
+  }
+
+  makeLoginAction() {
+    return this.makeAction("login", {
+      force_fresh: true,
+      no_cache: true,
+      username: this.getUsername(),
+    });
   }
 
   /** Get Auth Headers */
@@ -135,13 +143,16 @@ export default class ATFFarmer extends BaseFarmer {
 
   /** Get Captcha Status */
   getCaptchaStatus() {
-    return this.makeAction("captcha_status");
+    return this.makeAction("captcha_status", {
+      username: this.getUsername() || "",
+    });
   }
 
   /** Verify Entry Captcha */
   verifyEntryCaptcha(captchaToken) {
     return this.makeAction("verify_entry_captcha", {
       captcha_token: captchaToken,
+      username: this.getUsername() || "",
     });
   }
 
