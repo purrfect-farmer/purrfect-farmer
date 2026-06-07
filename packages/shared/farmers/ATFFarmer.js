@@ -91,9 +91,18 @@ export default class ATFFarmer extends BaseFarmer {
     return this.login();
   }
 
+  /** Solve Captcha */
   async solveCaptcha() {
+    /* Check if captcha has already been solved */
+    if (this.has_solved_captcha) {
+      return;
+    }
+
+    /* Max attempts */
     const MAX_ATTEMPTS = 10;
     let attempts = 0;
+
+    this.logger.info("Solving captcha...");
     while (true) {
       if (this.signal.aborted) {
         throw new Error("Captcha solving aborted");
@@ -143,11 +152,16 @@ export default class ATFFarmer extends BaseFarmer {
         break;
       }
     }
+
+    /* Update captcha solved status */
+    this.has_solved_captcha = true;
   }
 
   async completeLogin() {
     const MAX_ATTEMPTS = 10;
     let attempts = 0;
+
+    this.logger.info("Completing login...");
     while (true) {
       if (this.signal.aborted) {
         throw new Error("Login aborted");
@@ -173,7 +187,9 @@ export default class ATFFarmer extends BaseFarmer {
     return this.user_data;
   }
 
+  /** Login */
   async login() {
+    /* Solve captcha and complete login */
     await this.solveCaptcha();
     await this.completeLogin();
 
