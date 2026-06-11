@@ -210,6 +210,7 @@ export default class BaseTelegramWebClient extends TelegramClient {
       const parsed = parseTelegramLink(link);
       const entityKey = parsed.entity?.toLowerCase();
       const startParam = parsed.startParam || "start";
+      const isStartApp = parsed.isStartApp;
       const cached = BaseTelegramWebClient.webviewCache.get(entityKey);
       let webview = cached?.webview;
       let miniApp = cached?.miniApp;
@@ -218,7 +219,7 @@ export default class BaseTelegramWebClient extends TelegramClient {
       /** Set mini app */
       if (parsed.shortName) {
         miniApp = parsed;
-      } else if (!cached) {
+      } else if (!isStartApp && !cached) {
         /** Find Bot Chat */
         const dialogs = await this.getDialogs({});
         const botChat = dialogs.find(

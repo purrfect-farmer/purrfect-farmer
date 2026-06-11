@@ -1,13 +1,6 @@
 /**
  * Parse a Telegram link and extract its components
  * @param {string} url - The Telegram URL to parse
- * @returns {Object} Parsed components: url, entity, shortName, startParam
- * @example
- * parseTelegramLink("https://t.me/username/app?startapp=value")
- * // Returns: { url: "...", entity: "username", shortName: "app", startParam: "value" }
- *
- * parseTelegramLink("https://t.me/username?start=123")
- * // Returns: { url: "...", entity: "username", shortName: "", startParam: "123" }
  */
 export function parseTelegramLink(url) {
   const parsedUrl = new URL(url);
@@ -21,15 +14,24 @@ export function parseTelegramLink(url) {
     parsedUrl.hostname.toLowerCase() === "telegram.me";
 
   const [entity = "", shortName = ""] = pathSegments;
+  const startParam =
+    parsedUrl.searchParams.get("start") ||
+    parsedUrl.searchParams.get("startapp") ||
+    undefined;
+
+  const isStartApp = parsedUrl.searchParams.has("startapp");
+  const isMiniApp = isStartApp || shortName !== "";
+  const isBot =
+    entity.toLowerCase().endsWith("bot") || startParam !== undefined;
 
   return {
     url,
     entity,
     shortName,
-    startParam:
-      parsedUrl.searchParams.get("start") ||
-      parsedUrl.searchParams.get("startapp") ||
-      undefined,
+    isBot,
+    isStartApp,
+    isMiniApp,
+    startParam,
     parsedUrl,
     pathSegments,
     isTelegramHostname,
@@ -39,10 +41,6 @@ export function parseTelegramLink(url) {
 /**
  * Extract Telegram WebApp data from a URL's hash fragment
  * @param {string} url - The URL containing Telegram WebApp data in hash
- * @returns {Object} WebApp data including platform, version, initData, and parsed initDataUnsafe
- * @example
- * extractTgWebAppData("https://example.com#tgWebAppData=...&tgWebAppPlatform=android")
- * // Returns: { platform: "android", version: "...", initData: "...", initDataUnsafe: {...} }
  */
 export function extractTgWebAppData(url) {
   const parsedUrl = new URL(url);
@@ -61,7 +59,6 @@ export function extractTgWebAppData(url) {
 /**
  * Extract and parse initDataUnsafe from a raw initData string
  * @param {string} initData - The raw initData string to parse
- * @returns {Object} Parsed initDataUnsafe object
  */
 export function extractInitDataUnsafe(initData) {
   return getInitDataUnsafe(initData);
@@ -71,10 +68,6 @@ export function extractInitDataUnsafe(initData) {
  * Parse Telegram initData string into an object
  * Attempts to JSON parse values, falls back to raw string if parsing fails
  * @param {string} initData - The initData string (URL-encoded parameters)
- * @returns {Object} Parsed data object with keys and values
- * @example
- * getInitDataUnsafe("user=%7B%22id%22%3A123%7D&auth_date=1234567890")
- * // Returns: { user: { id: 123 }, auth_date: "1234567890" }
  */
 export function getInitDataUnsafe(initData) {
   if (!initData) return {};
@@ -97,11 +90,6 @@ export function getInitDataUnsafe(initData) {
  * Check if a URL is a valid Telegram link
  * @param {string} link - The URL to check
  * @returns {boolean} True if it's a valid t.me link with at least one path segment
- * @example
- * isTelegramLink("https://t.me/username") // true
- * isTelegramLink("https://t.me/username/app") // true
- * isTelegramLink("https://t.me") // false
- * isTelegramLink("https://example.com") // false
  */
 export function isTelegramLink(link) {
   if (!link) return false;
@@ -119,10 +107,6 @@ export function isTelegramLink(link) {
  * Check if a URL is a bot URL (contains bot indicators)
  * @param {string} url - The URL to check
  * @returns {boolean} True if it's a bot URL
- * @example
- * isBotURL("https://t.me/mybot") // true (if ends with 'bot')
- * isBotURL("https://t.me/username?startapp=value") // true
- * isBotURL("https://t.me/channel") // false
  */
 export function isBotURL(link) {
   try {
@@ -156,11 +140,6 @@ export function isBotMiniAppLink(link) {
  * Also excludes bot links
  * @param {string} link - The URL to check
  * @returns {boolean} True if it has exactly one path segment, no query params, and is not a bot
- * @example
- * isTelegramChatLink("https://t.me/username") // true
- * isTelegramChatLink("https://t.me/mybot") // false (bot link)
- * isTelegramChatLink("https://t.me/username/app") // false (has sub-path)
- * isTelegramChatLink("https://t.me/username?start=value") // false (has query params)
  */
 export function isTelegramChatLink(link) {
   if (!link) return false;

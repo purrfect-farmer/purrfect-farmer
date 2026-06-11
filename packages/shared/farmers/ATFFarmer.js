@@ -281,6 +281,16 @@ export default class ATFFarmer extends BaseFarmer {
     return this.makeAction("get_wallet_proof_payload", { force: 1 });
   }
 
+  /** Get Friends */
+  getFriends() {
+    return this.makeAction("get_friends");
+  }
+
+  /** Claim Referrals */
+  claimReferrals() {
+    return this.makeAction("claim_referrals");
+  }
+
   /** Get Withdrawal Puzzle */
   getWithdrawalPuzzle() {
     return this.makeAction("get_withdraw_puzzle");
@@ -304,11 +314,6 @@ export default class ATFFarmer extends BaseFarmer {
       math_challenge_id: challengeId,
       math_answer: answer,
     });
-  }
-
-  /** Get Friends */
-  getFriends() {
-    return this.makeAction("get_friends");
   }
 
   /** Get Difficulty */
@@ -912,6 +917,7 @@ export default class ATFFarmer extends BaseFarmer {
     await this.executeTask("Boost", () => this.applyBoost());
     await this.executeTask("Tasks", () => this.completeTasks());
     await this.executeTask("Extra Tasks", () => this.completeExtraTasks());
+    await this.executeTask("Friends", () => this.claimFriendsRewards());
     await this.executeTask("Withdraw", () => this.withdraw());
   }
 
@@ -1212,6 +1218,7 @@ export default class ATFFarmer extends BaseFarmer {
     }
   }
 
+  /** Complete Extra Tasks */
   async completeExtraTasks() {
     const { task_cooldowns: extraTasks } = this.user_data;
 
@@ -1232,6 +1239,25 @@ export default class ATFFarmer extends BaseFarmer {
       await this.claimTask(task);
       this.logger.success(`Completed task: ${task}`);
       await this.utils.delayForSeconds(10);
+    }
+  }
+
+  /** Claim Friends Rewards */
+  async claimFriendsRewards() {
+    const friends = await this.getFriends();
+    const claimable = friends.claimable;
+
+    if (claimable > 0) {
+      const result = await this.claimReferrals();
+
+      /** Update balance and level */
+      this.user_data.user["assets_total"] = result.assets_total;
+      this.user_data.user["mined_balance"] = result.new_balance;
+      this.user_data.user["miner_level"] = result.new_level;
+
+      this.logger.success(`Claimed ${claimable} ATF from referrals!`);
+    } else {
+      this.logger.info("No referral rewards to claim.");
     }
   }
 }

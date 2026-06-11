@@ -1,4 +1,9 @@
-import { delay, getWindowCoords, postPortMessage } from "@/utils";
+import {
+  delay,
+  getWindowCoords,
+  parseTelegramLink,
+  postPortMessage,
+} from "@/utils";
 import tabs, { Browser, TelegramWeb, farmers } from "@/core/tabs";
 
 import BrowserIcon from "@/assets/images/browser.png?w=80&format=webp";
@@ -613,18 +618,21 @@ export default function useCore() {
       } = {},
     ) => {
       try {
-        /** Is Short App */
-        const isShortApp = /^(http|https):\/\/t\.me\/[^\/]+\/.+/.test(url);
+        const parsed = parseTelegramLink(url);
+
+        /** Is Mini-App */
+        const isMiniApp = parsed.isMiniApp;
 
         /** Should it use Webview? */
-        const shouldUseWebview = forceWebview || isShortApp;
+        const shouldUseWebview = forceWebview || isMiniApp;
 
-        if (
+        const canLaunchWebview =
           shouldUseWebview &&
           farmerMode === "session" &&
           embedWebPage === true &&
-          settings.enableInAppBrowser === true
-        ) {
+          settings.enableInAppBrowser === true;
+
+        if (canLaunchWebview) {
           toast.promise(
             (async function () {
               const webview = await telegramClient.ref.current.getWebview(
@@ -651,7 +659,7 @@ export default function useCore() {
           /** Open Telegram Link */
           await openTelegramLink(url, { version });
 
-          if (forceWebview && isShortApp === false) {
+          if (forceWebview && isMiniApp === false) {
             /** Wait */
             await delay(1000);
 

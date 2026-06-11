@@ -15,8 +15,8 @@ import { LiaUser } from "react-icons/lia";
 import { PiUserCirclePlusBold } from "react-icons/pi";
 import { cn } from "@/utils";
 import { memo } from "react";
-import useSharedContext from "@/hooks/useSharedContext";
 import { useMemo } from "react";
+import useSharedContext from "@/hooks/useSharedContext";
 import { useState } from "react";
 
 const PickerButton = (props) => (
@@ -152,21 +152,24 @@ export default memo(function AccountPicker() {
   } = useSharedContext();
   const [search, setSearch] = useState("");
   const filteredAccounts = useMemo(() => {
-    if (!search.trim()) return accounts;
+    const term = search.trim().toLowerCase();
+    if (!term) return accounts;
 
-    const lowerSearch = search.toLowerCase();
-    return accounts.filter(
-      (account) =>
-        account.title.toLowerCase().includes(lowerSearch) ||
-        (account.user &&
-          (account.user["username"]?.toLowerCase().includes(lowerSearch) ||
-            account.user["id"].toString().includes(lowerSearch))) ||
-        [account.user["first_name"], account.user["last_name"]]
-          .filter(Boolean)
-          .join(" ")
-          .toLowerCase()
-          .includes(lowerSearch),
-    );
+    return accounts.filter((account) => {
+      const { user } = account;
+      const haystack = [
+        account.title,
+        user?.["username"],
+        user?.["first_name"],
+        user?.["last_name"],
+        user?.["id"]?.toString(),
+      ]
+        .filter(Boolean)
+        .join(" ")
+        .toLowerCase();
+
+      return haystack.includes(term);
+    });
   }, [accounts, search]);
 
   return (
