@@ -54,7 +54,7 @@ export async function getDcDetails(dcId) {
   }
 
   const client = await getDcClient();
-  const info = await client.getDC(dcId);
+  const info = await client.execute(() => client.getDC(dcId));
 
   cachedDcInfo.set(dcId, info);
 
