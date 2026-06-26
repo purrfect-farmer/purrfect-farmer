@@ -1,3 +1,66 @@
+import BaseTelegramWebClient from "../lib/BaseTelegramWebClient.js";
+import { MemorySession } from "telegram/sessions/index.js";
+
+export const DEVICE_MODEL =
+  "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36";
+export const SYSTEM_VERSION = "Linux x86_64";
+
+let dcClient;
+let dcClientPromise;
+const cachedDcInfo = new Map();
+
+/** Create telegram client */
+export function createTelegramClient(session, options) {
+  return new BaseTelegramWebClient(session, {
+    deviceModel: DEVICE_MODEL,
+    systemVersion: SYSTEM_VERSION,
+    useWSS: true,
+    ...options,
+  });
+}
+
+/**
+ * Get DC Client
+ * @returns {Promise<BaseTelegramWebClient>}
+ */
+export async function getDcClient() {
+  if (dcClient) {
+    return dcClient;
+  }
+
+  if (!dcClientPromise) {
+    dcClientPromise = (async () => {
+      const memorySession = new MemorySession();
+
+      const client = createTelegramClient(memorySession);
+
+      await client.connect();
+
+      dcClient = client;
+      return client;
+    })();
+  }
+
+  return dcClientPromise;
+}
+
+/**
+ * Get DC details
+ * @param {number} dcId
+ */
+export async function getDcDetails(dcId) {
+  if (cachedDcInfo.has(dcId)) {
+    return cachedDcInfo.get(dcId);
+  }
+
+  const client = await getDcClient();
+  const info = await client.getDC(dcId);
+
+  cachedDcInfo.set(dcId, info);
+
+  return info;
+}
+
 /**
  * Parse a Telegram link and extract its components
  * @param {string} url - The Telegram URL to parse

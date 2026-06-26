@@ -1,0 +1,25 @@
+{
+  "name": "purrfect-claws",
+  "version": "0.0.1",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "module",
+  "dependencies": {
+    "@purrfect/shared": "workspace:*",
+    "axios": "^1.18.1",
+    "chalk": "^5.6.2",
+    "commander": "^14.0.3",
+    "crypto-js": "^4.2.0",
+    "dotenv": "^17.4.2",
+    "dotenv-expand": "^13.0.0",
+    "hpagent": "^1.2.0",
+    "inquirer": "^12.11.1",
+    "telegram": "^2.26.22"
+  }
+}

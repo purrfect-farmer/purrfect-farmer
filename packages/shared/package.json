@@ -24,6 +24,7 @@
     "decimal.js": "^10.6.0",
     "ethers": "^6.16.0",
     "events": "^3.3.0",
+    "hpagent": "^1.2.0",
     "md5": "^2.3.0",
     "papaparse": "^5.5.3",
     "seedrandom": "^3.0.5",

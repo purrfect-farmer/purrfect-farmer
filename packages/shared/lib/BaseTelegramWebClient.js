@@ -16,13 +16,17 @@ export default class BaseTelegramWebClient extends TelegramClient {
 
   /** Construct Class */
   constructor(session, options = {}) {
-    const stringSession = new StringSession(session);
-    super(stringSession, 2496, "8da85b0d5bfe62527e5b244c209159c3", {
-      appVersion: "2.2 K",
-      systemLangCode: "en-US",
-      langCode: "en",
-      ...options,
-    });
+    super(
+      typeof session === "string" ? new StringSession(session) : session,
+      2496,
+      "8da85b0d5bfe62527e5b244c209159c3",
+      {
+        appVersion: "2.2 K",
+        systemLangCode: "en-US",
+        langCode: "en",
+        ...options,
+      },
+    );
 
     /** Connection Queue */
     this._connectionQueue = [];
@@ -194,7 +198,7 @@ export default class BaseTelegramWebClient extends TelegramClient {
   }
 
   /** Get Webview */
-  getWebview(link) {
+  getWebview(link, { allowCache = true } = {}) {
     return this.execute(async () => {
       const themeParams = new Api.DataJSON({
         data: JSON.stringify({
@@ -211,7 +215,9 @@ export default class BaseTelegramWebClient extends TelegramClient {
       const entityKey = parsed.entity?.toLowerCase();
       const startParam = parsed.startParam || "start";
       const isStartApp = parsed.isStartApp;
-      const cached = BaseTelegramWebClient.webviewCache.get(entityKey);
+      const cached = allowCache
+        ? BaseTelegramWebClient.webviewCache.get(entityKey)
+        : null;
       let webview = cached?.webview;
       let miniApp = cached?.miniApp;
       let result = null;
@@ -333,8 +339,8 @@ export default class BaseTelegramWebClient extends TelegramClient {
   }
 
   /** Get Telegram WebApp */
-  async getTelegramWebApp(link) {
-    const webview = await this.getWebview(link);
+  async getTelegramWebApp(link, options) {
+    const webview = await this.getWebview(link, options);
     const result = extractTgWebAppData(webview.url);
 
     return result;
