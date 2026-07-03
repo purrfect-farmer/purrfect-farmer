@@ -89,11 +89,12 @@ export default function createRunner(FarmerClass) {
     static queue = [];
     static isProcessingQueue = false;
 
-    constructor({ account, referralLink = null } = {}) {
+    constructor({ account, referralLink = null, scheduled = false } = {}) {
       super({ referralLink });
       this.debug = process.env.NODE_ENV !== "production";
       this.account = account;
       this.farmer = account.farmer;
+      this.scheduled = scheduled;
 
       this.logger = this.constructor.logger; // Use static logger
       this.utils = this.constructor.utils; // Use static utils
@@ -817,7 +818,7 @@ export default function createRunner(FarmerClass) {
     }
 
     /** Run the farmer for all subscribed accounts */
-    static async run({ user, scheduled = false } = {}) {
+    static async run({ user } = {}) {
       try {
         /** Determine if farmer is required based on platform */
         const farmerIsRequired = this.platform !== "telegram";
@@ -908,7 +909,7 @@ export default function createRunner(FarmerClass) {
         /** Prepare accounts to be executed */
         this.utils
           .shuffle(executableList)
-          .forEach((account) => this.prepare(account, scheduled));
+          .forEach((account) => this.prepare(account, true));
 
         /** Process queue */
         this.processQueue();
