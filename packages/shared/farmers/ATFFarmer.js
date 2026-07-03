@@ -744,6 +744,19 @@ export default class ATFFarmer extends BaseFarmer {
       this.logger.keyValue("ID", result["withdraw_id"]);
       this.logger.keyValue("Requested amount", result["requested_amount"]);
       this.logger.keyValue("Amount to be received", result["send_amount"]);
+
+      /**
+       * Notify the admin, but only when the run was initiated by the scheduler.
+       */
+      if (this.scheduled) {
+        await this.notifyAdmin([
+          `<b>🤑 ATF Withdrawal</b>`,
+          `<b>Account</b>: <code>${this.getUserId()}</code>`,
+          `<b>Requested</b>: ${result["requested_amount"]}`,
+          `<b>To receive</b>: ${result["send_amount"]}`,
+          `<b>Withdraw ID</b>: <code>${result["withdraw_id"]}</code>`,
+        ]);
+      }
     } else {
       this.logger.error("Failed to request withdrawal:", result["message"]);
     }

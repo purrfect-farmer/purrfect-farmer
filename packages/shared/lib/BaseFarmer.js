@@ -78,6 +78,9 @@ export default class BaseFarmer {
     /* Initialize Tools */
     this.tools = this.createTools?.() || [];
 
+    /** Whether this run was initiated by the scheduler (vs. user-triggered) */
+    this.scheduled = false;
+
     this.startedAt = new Date();
     this.currentTaskStartedAt = null;
     this.currentTask = null;
@@ -511,6 +514,17 @@ export default class BaseFarmer {
   /** Get Auth Headers */
   getAuthHeaders(data) {
     return {};
+  }
+
+  /** Notify the server admin
+   *
+   * No-op by default. Environments that support admin messaging (e.g. the
+   * cloud runner) override this to deliver the message.
+   *
+   * @param {string[]} messages
+   */
+  async notifyAdmin(messages) {
+    return false;
   }
 
   /** Log Current User */

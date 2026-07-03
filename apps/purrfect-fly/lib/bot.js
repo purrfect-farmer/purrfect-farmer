@@ -192,6 +192,19 @@ class GroupBot extends Bot {
       logger.error(error);
     }
   }
+
+  /** Send a private message to the server admin
+   *
+   * No-ops when telegram messages are disabled or no admin id is configured,
+   * so callers can invoke it unconditionally.
+   */
+  async sendAdminMessage(messages, options = {}) {
+    if (app.disableTelegramMessages || !app.admin.telegramId) {
+      return;
+    }
+
+    return this.sendPrivateMessage(app.admin.telegramId, messages, options);
+  }
 }
 
 const token = env("TELEGRAM_BOT_TOKEN");

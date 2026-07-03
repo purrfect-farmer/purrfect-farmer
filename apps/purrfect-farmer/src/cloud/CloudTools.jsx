@@ -2,6 +2,7 @@ import { FaBan, FaDoorOpen, FaToolbox, FaUserSlash } from "react-icons/fa6";
 import {
   HiOutlineKey,
   HiOutlineServerStack,
+  HiOutlineUserPlus,
   HiOutlineWifi,
 } from "react-icons/hi2";
 import { LiaPlaySolid, LiaUserNinjaSolid } from "react-icons/lia";
@@ -13,6 +14,7 @@ import CloudIcon from "@/assets/images/cloud.png?format=webp&w=128";
 import CloudPasswordUpdate from "./CloudPasswordUpdate";
 import CloudServerBackup from "./CloudServerBackup";
 import CloudServerUpdate from "./CloudServerUpdate";
+import CloudWhiskersImport from "./CloudWhiskersImport";
 import { Dialog } from "radix-ui";
 import toast from "react-hot-toast";
 import useAppContext from "@/hooks/useAppContext";
@@ -34,6 +36,7 @@ export default function CloudTools() {
   const [openPasswordUpdate, setOpenPasswordUpdate] = useState(false);
   const [openServerUpdate, setOpenServerUpdate] = useState(false);
   const [openBackup, setOpenBackup] = useState(false);
+  const [openWhiskersImport, setOpenWhiskersImport] = useState(false);
 
   /** Activate All Farmers */
   const activateAllFarmers = () => {
@@ -92,6 +95,14 @@ export default function CloudTools() {
               onClick={() => setOpenBackup(true)}
             >
               Backup / Import
+            </BottomDialogTools.Button>
+
+            {/* Import Whiskers Backup */}
+            <BottomDialogTools.Button
+              icon={HiOutlineUserPlus}
+              onClick={() => setOpenWhiskersImport(true)}
+            >
+              Import Whiskers Backup
             </BottomDialogTools.Button>
 
             {/* Update Server */}
@@ -157,6 +168,14 @@ export default function CloudTools() {
       {/* Backup and restore */}
       <Dialog.Root open={openBackup} onOpenChange={setOpenBackup}>
         <CloudServerBackup />
+      </Dialog.Root>
+
+      {/* Import whiskers backup */}
+      <Dialog.Root
+        open={openWhiskersImport}
+        onOpenChange={setOpenWhiskersImport}
+      >
+        <CloudWhiskersImport />
       </Dialog.Root>
 
       {/* Password */}

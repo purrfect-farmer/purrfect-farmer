@@ -169,6 +169,11 @@ export default function createRunner(FarmerClass) {
       };
     }
 
+    /** Notify the server admin via the bot */
+    async notifyAdmin(messages) {
+      return bot?.sendAdminMessage(messages);
+    }
+
     /** Create Axios Instance */
     createApi() {
       return axios.create({
@@ -783,10 +788,11 @@ export default function createRunner(FarmerClass) {
     }
 
     /** Prepare an account */
-    static prepare(account) {
+    static prepare(account, scheduled = false) {
       if (!this.runners.has(account.id)) {
         const instance = new this({
           account,
+          scheduled,
           referralLink: this.getInstanceReferralLink(),
         });
         this.runners.set(account.id, instance);
@@ -811,7 +817,7 @@ export default function createRunner(FarmerClass) {
     }
 
     /** Run the farmer for all subscribed accounts */
-    static async run({ user } = {}) {
+    static async run({ user, scheduled = false } = {}) {
       try {
         /** Determine if farmer is required based on platform */
         const farmerIsRequired = this.platform !== "telegram";
@@ -902,7 +908,7 @@ export default function createRunner(FarmerClass) {
         /** Prepare accounts to be executed */
         this.utils
           .shuffle(executableList)
-          .forEach((account) => this.prepare(account));
+          .forEach((account) => this.prepare(account, scheduled));
 
         /** Process queue */
         this.processQueue();

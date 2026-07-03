@@ -1,6 +1,8 @@
 import { Api, Logger } from "telegram";
 
 import BaseTelegramWebClient from "@purrfect/shared/lib/BaseTelegramWebClient.js";
+import { computeCheck } from "telegram/Password.js";
+import { getDcDetails } from "@purrfect/shared/utils/index.js";
 import fsp from "node:fs/promises";
 import { getCurrentPath } from "./path.js";
 import { globby } from "globby";
@@ -11,6 +13,10 @@ const { __dirname } = getCurrentPath(import.meta.url);
 const DEVICE_MODEL =
   "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36";
 const SYSTEM_VERSION = "Linux x86_64";
+
+/** Telegram API credentials (must match BaseTelegramWebClient) */
+const API_ID = 2496;
+const API_HASH = "8da85b0d5bfe62527e5b244c209159c3";
 
 class GramClient extends BaseTelegramWebClient {
   /**
@@ -332,6 +338,180 @@ class GramClient extends BaseTelegramWebClient {
   /** Delete Instance */
   static delete(name) {
     this.instances.delete(name);
+  }
+
+  /**
+   * Create an ephemeral client (not tracked, no session file backing) from a
+   * raw StringSession. Used for session cloning.
+   *
+   * @param {string} sessionString
+   * @param {string|null} proxy
+   * @returns {GramClient}
+   */
+  static createRaw(sessionString = "", proxy = null) {
+    return new this({
+      name: null,
+      session: sessionString,
+      proxy: this.parseProxy(proxy),
+      sessionFilePath: null,
+      sessionFileExists: false,
+    });
+  }
+
+  /**
+   * Mint a brand-new, independent session from an existing authorized session
+   * using the Telegram login-token (QR) flow. The imported session authorizes
+   * the token so no phone/code is required; when the account has 2FA enabled,
+   * each candidate password is tried until one succeeds.
+   *
+   * @param {string} sessionString - StringSession of an authorized account
+   * @param {object} options
+   * @param {string[]} [options.passwords] - Candidate 2FA passwords to try
+   * @param {string|null} [options.proxy]
+   * @returns {Promise<{ session: string, user: import("telegram").Api.User }>}
+   */
+  static async cloneSession(sessionString, { passwords = [], proxy = null } = {}) {
+    const source = this.createRaw(sessionString, proxy);
+    const fresh = this.createRaw("", proxy);
+
+    try {
+      /**
+       * The DC address embedded in a whiskers session may be unreachable from
+       * the cloud, so reset it to the address the cloud resolves for that DC.
+       */
+      const dcId = source.session.dcId;
+      if (dcId) {
+        const info = await getDcDetails(dcId);
+        source.session.setDC(info.id, info.ipAddress, info.port);
+      }
+
+      await source.connect();
+      await fresh.connect();
+
+      /** The imported session must be authorized to accept the token */
+      if (!(await source.isUserAuthorized())) {
+        throw new Error("Source session is not authorized");
+      }
+
+      /** Export a login token from the fresh (empty) client */
+      const exported = await fresh.invoke(
+        new Api.auth.ExportLoginToken({
+          apiId: API_ID,
+          apiHash: API_HASH,
+          exceptIds: [],
+        }),
+      );
+
+      if (!(exported instanceof Api.auth.LoginToken)) {
+        throw new Error(`Unexpected export result: ${exported.className}`);
+      }
+
+      /** Accept the token using the authorized client (server-side QR scan) */
+      await source.invoke(
+        new Api.auth.AcceptLoginToken({ token: exported.token }),
+      );
+
+      /** Finalize: obtain authorization (handling DC migration and 2FA) */
+      await this._finalizeLoginToken(fresh, passwords);
+
+      /** Persist the new session and fetch the user */
+      const user = await fresh.getMe();
+      const session = fresh.session.save();
+
+      return { session, user };
+    } finally {
+      await source.destroy().catch(() => {});
+      await fresh.destroy().catch(() => {});
+    }
+  }
+
+  /** Re-export the login token to complete authorization */
+  static async _finalizeLoginToken(client, passwords, attempt = 0) {
+    let result;
+
+    try {
+      result = await client.invoke(
+        new Api.auth.ExportLoginToken({
+          apiId: API_ID,
+          apiHash: API_HASH,
+          exceptIds: [],
+        }),
+      );
+    } catch (error) {
+      if (error.errorMessage === "SESSION_PASSWORD_NEEDED") {
+        return this._checkPassword(client, passwords);
+      }
+      throw error;
+    }
+
+    if (result instanceof Api.auth.LoginTokenSuccess) {
+      return result.authorization;
+    }
+
+    /** Acceptance not yet propagated — retry a few times */
+    if (result instanceof Api.auth.LoginToken) {
+      if (attempt >= 5) {
+        throw new Error("Login token was not accepted in time");
+      }
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+      return this._finalizeLoginToken(client, passwords, attempt + 1);
+    }
+
+    if (result instanceof Api.auth.LoginTokenMigrateTo) {
+      await client._switchDC(result.dcId);
+
+      try {
+        const migrated = await client.invoke(
+          new Api.auth.ImportLoginToken({ token: result.token }),
+        );
+
+        if (migrated instanceof Api.auth.LoginTokenSuccess) {
+          return migrated.authorization;
+        }
+
+        throw new Error(`Unexpected migrate result: ${migrated.className}`);
+      } catch (error) {
+        if (error.errorMessage === "SESSION_PASSWORD_NEEDED") {
+          return this._checkPassword(client, passwords);
+        }
+        throw error;
+      }
+    }
+
+    throw new Error(`Unexpected login token result: ${result.className}`);
+  }
+
+  /** Complete 2FA by trying each candidate password */
+  static async _checkPassword(client, passwords) {
+    if (!passwords.length) {
+      throw new Error("2FA password required but none provided");
+    }
+
+    let lastError;
+
+    for (const password of passwords) {
+      try {
+        const passwordSrp = await client.invoke(new Api.account.GetPassword());
+        const check = await computeCheck(passwordSrp, password);
+
+        return await client.invoke(new Api.auth.CheckPassword({ password: check }));
+      } catch (error) {
+        lastError = error;
+
+        /** Wrong password — try the next candidate */
+        if (error.errorMessage === "PASSWORD_HASH_INVALID") {
+          continue;
+        }
+
+        throw error;
+      }
+    }
+
+    throw new Error(
+      `2FA failed: no provided password matched${
+        lastError ? ` (${lastError.errorMessage || lastError.message})` : ""
+      }`,
+    );
   }
 }
 

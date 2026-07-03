@@ -55,6 +55,11 @@ export default {
   displayAccountTitle: env("DISPLAY_ACCOUNT_TITLE", false),
   disableTelegramMessages: env("DISABLE_TELEGRAM_MESSAGES", false),
 
+  /** Server admin (private notifications) */
+  admin: {
+    telegramId: env("SERVER_ADMIN_TELEGRAM_ID", ""),
+  },
+
   proxy: {
     enabled: env("PROXY_ENABLED", false),
     provider: env("PROXY_PROVIDER", "webshare"),

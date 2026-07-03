@@ -34,7 +34,7 @@ if (app.cron.enabled) {
     .forEach((FarmerClass) => {
       runner.register(
         FarmerClass.interval,
-        () => FarmerClass.run(),
+        () => FarmerClass.run({ scheduled: true }),
         FarmerClass.title,
       );
     });

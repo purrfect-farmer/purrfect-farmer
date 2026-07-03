@@ -148,6 +148,42 @@ export default async function (fastify, opts) {
       return await exportBackup();
     });
 
+    /** Import whiskers backup */
+    fastify.post(
+      "/import-whiskers",
+      {
+        bodyLimit: 10485760, // 10 MB
+        schema: {
+          body: {
+            type: "object",
+            required: ["backup"],
+            properties: {
+              backup: { type: "object" },
+              passwords: { type: "string" },
+              subscriptionDate: { type: "string" },
+            },
+          },
+        },
+      },
+      async (request, reply) => {
+        const { importWhiskersBackup } =
+          await import("../../../lib/whiskers.js");
+        const { backup, passwords, subscriptionDate } = request.body;
+
+        /** Report how many accounts will be processed */
+        const total = fastify.utils.whiskersToSessions(backup).length;
+
+        /** Run in the background; the admin is DM'd on completion */
+        importWhiskersBackup({ backup, passwords, subscriptionDate }).catch(
+          (error) => {
+            fastify.log.error(error, "Whiskers import failed");
+          },
+        );
+
+        return reply.send({ started: true, total });
+      },
+    );
+
     /** Update Server */
     fastify.post("/update-server", async () => {
       const scriptPath = path.resolve(fastify.app.basePath, "update.sh");
