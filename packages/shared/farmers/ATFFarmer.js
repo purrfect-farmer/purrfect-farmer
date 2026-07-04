@@ -403,6 +403,11 @@ export default class ATFFarmer extends BaseFarmer {
     };
   }
 
+  /** Format account link */
+  formatAccountLink(id) {
+    return `<a href="tg://user?id=${id}">${id}</a>`;
+  }
+
   /** Log Wallet */
   logWallet(version, publicKey, address, rawAddress) {
     /** Convert version to uppercase */
@@ -751,7 +756,7 @@ export default class ATFFarmer extends BaseFarmer {
       if (this.scheduled) {
         await this.notifyAdmin([
           `<b>🤑 ATF Withdrawal</b>`,
-          `<b>Account</b>: <code>${this.getUserId()}</code>`,
+          `<b>Account</b>: ${this.formatAccountLink(this.getUserId())}`,
           `<b>Requested</b>: ${result["requested_amount"]}`,
           `<b>To receive</b>: ${result["send_amount"]}`,
           `<b>Withdraw ID</b>: <code>${result["withdraw_id"]}</code>`,
