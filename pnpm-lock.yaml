@@ -497,6 +497,9 @@ importers:
       change-case:
         specifier: ^5.4.4
         version: 5.4.4
+      countries-and-timezones:
+        specifier: ^3.9.0
+        version: 3.9.0
       croner:
         specifier: ^9.1.0
         version: 9.1.0
@@ -3611,6 +3614,10 @@ packages:
 
   core-util-is@1.0.3:
     resolution: {integrity: sha512-ZQBvi1DcpJ4GDqanjucZ2Hj3wEO5pZDS89BWbkcrvdxksJorwUDDZamX9ldFkp9aw2lmBDLgkObEA4DWNJ9FYQ==}
+
+  countries-and-timezones@3.9.0:
+    resolution: {integrity: sha512-3upkVtUfZgdp5xOQI/Deg1ye73ae6bygJMO4UvtUi6wLjwcj7cBqx2PzSZ1VL8i5iveBbjhsQp2Judx7kPKivA==}
+    engines: {node: '>=8.x', npm: '>=5.x'}
 
   countries-list@3.3.0:
     resolution: {integrity: sha512-XRUjS+dcZuNh/fg3+mka3bXgcg4TbQZ1gaK5IJqO6qulerBANl1bmrd20P2dgmPkBpP+5FnejiSF1gd7bgAg+g==}
@@ -10298,6 +10305,8 @@ snapshots:
       browserslist: 4.28.4
 
   core-util-is@1.0.3: {}
+
+  countries-and-timezones@3.9.0: {}
 
   countries-list@3.3.0: {}
 
