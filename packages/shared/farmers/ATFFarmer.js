@@ -757,6 +757,7 @@ export default class ATFFarmer extends BaseFarmer {
         await this.notifyAdmin([
           `<b>🤑 ATF Withdrawal</b>`,
           `<b>Account</b>: ${this.formatAccountLink(this.getUserId())}`,
+          `<b>Current Balance</b>: ${user["mined_balance"]}`,
           `<b>Requested</b>: ${result["requested_amount"]}`,
           `<b>To receive</b>: ${result["send_amount"]}`,
           `<b>Withdraw ID</b>: <code>${result["withdraw_id"]}</code>`,
