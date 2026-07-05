@@ -163,7 +163,11 @@ export default defineConfig(async ({ mode }) => {
         disable: !isPWA,
       }),
       /** Plugins */
-      nodePolyfills(),
+      nodePolyfills({
+        globals: {
+          Buffer: false,
+        },
+      }),
       ViteEjsPlugin(env),
       react(),
       tailwindcss(),
