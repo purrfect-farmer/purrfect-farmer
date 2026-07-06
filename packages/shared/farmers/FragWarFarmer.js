@@ -92,6 +92,13 @@ export default class FragWarFarmer extends BaseFarmer {
       .then((res) => res.data.data);
   }
 
+  /** Fetch Exchange Config */
+  async fetchExchangeConfig() {
+    return this.api
+      .get("https://h5-world-cup.crabet.io/api/app/exchange/config")
+      .then((res) => res.data.data);
+  }
+
   /** Fetch Refresh Quote */
   async fetchRefreshQuote() {
     return this.api
@@ -110,6 +117,16 @@ export default class FragWarFarmer extends BaseFarmer {
   async claimFragment(data) {
     return this.api
       .post("https://h5-world-cup.crabet.io/api/app/fragments/claim", data)
+      .then((res) => res.data.data);
+  }
+
+  /** Refresh Fragments */
+  async refreshFragments(roundId) {
+    return this.api
+      .post("https://h5-world-cup.crabet.io/api/app/fragments/refresh", {
+        roundId,
+        requestId: this.utils.uuid(),
+      })
       .then((res) => res.data.data);
   }
 
@@ -145,20 +162,100 @@ export default class FragWarFarmer extends BaseFarmer {
 
   /** Claim Fragment Collection */
   async claimFragmentCollection() {
-    const currentRound = await this.fetchCurrentRound();
-    if (currentRound.status === "COOLDOWN") {
-      this.logger.info("No fragment collection available at the moment.");
-      return;
-    } else if (currentRound.status === "CLAIMABLE") {
-      const candidate = this.utils.randomItem(currentRound.candidates);
+    const assets = await this.fetchAssets();
+    const { regions } = assets.fragment;
 
-      await this.claimFragment({
-        roundId: currentRound.roundId,
-        teamCode: candidate.teamCode,
-        requestId: this.utils.uuid(),
-      });
-      this.logger.success("Fragment collection claimed successfully.");
-      this.logger.success(`Claimed fragment for team: ${candidate.name}`);
+    /** Sort Teams by Available Balance */
+    const teams = regions
+      .flatMap((region) => region.teams)
+      .sort((a, b) => b.availableBalance - a.availableBalance);
+
+    /** Filter Teams with Available Balance */
+    const teamsWithBalance = teams.filter((team) => team.availableBalance > 0);
+
+    /** Log Available Teams */
+    this.logger.info("Available Fragment Teams:");
+    teams.forEach((team) => {
+      this.logger.keyValue(
+        `(${team.teamCode}) ${team.teamName}`,
+        team.availableBalance,
+      );
+    });
+
+    while (true) {
+      /** Fetch Current Round */
+      const currentRound = await this.fetchCurrentRound();
+
+      if (currentRound.status === "COOLDOWN") {
+        this.logger.info("No fragment collection available at the moment.");
+        return;
+      } else if (currentRound.status === "CLAIMABLE") {
+        const roundId = currentRound.roundId;
+        const candidates = currentRound.candidates
+          .map((candidate) => {
+            const team = teams.find(
+              (team) => team.teamCode === candidate.teamCode,
+            );
+            return {
+              ...candidate,
+              availableBalance: team?.availableBalance || 0,
+            };
+          })
+          .sort((a, b) => b.availableBalance - a.availableBalance);
+
+        /** Log Candidates */
+        this.logger.info("Fragment Collection Candidates:");
+        candidates.forEach((candidate) => {
+          this.logger.keyValue(
+            `(${candidate.teamCode}) ${candidate.name}`,
+            candidate.availableBalance,
+          );
+        });
+
+        /** Select Candidate with Available Balance */
+        let selectedCandidate = null;
+
+        if (teamsWithBalance.length > 0) {
+          /** Find a candidate with existing balance */
+          selectedCandidate = candidates.find(
+            (item) => item.availableBalance > 0,
+          );
+
+          if (!selectedCandidate) {
+            /** Get refresh quote */
+            const refreshQuote = await this.fetchRefreshQuote();
+            const { yellowCardBalance, nextRefreshYellowCardCost } =
+              refreshQuote;
+
+            /** Check if we can refresh */
+            const canRefresh = nextRefreshYellowCardCost <= yellowCardBalance;
+
+            if (canRefresh) {
+              this.logger.info(
+                "Refreshing fragments to get a better candidate...",
+              );
+              const refresh = await this.refreshFragments(roundId);
+              await this.utils.delayForSeconds(2);
+              continue; // Restart the loop to process the new round
+            }
+          }
+        }
+
+        /** Select the candidate */
+        const candidate =
+          selectedCandidate || this.utils.randomItem(candidates);
+
+        /** Claim fragment */
+        await this.claimFragment({
+          roundId: roundId,
+          teamCode: candidate.teamCode,
+          requestId: this.utils.uuid(),
+        });
+        this.logger.success("Fragment collection claimed successfully.");
+        this.logger.success(`Claimed fragment for team: ${candidate.name}`);
+
+        return; // Exit after claiming a fragment
+      }
     }
   }
 
