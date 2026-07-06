@@ -1,3 +1,5 @@
+import TelegramWebClient from "./TelegramWebClient";
+
 /** Create Telegram Client
  * @returns {import("./TelegramWebClient").default}
  */

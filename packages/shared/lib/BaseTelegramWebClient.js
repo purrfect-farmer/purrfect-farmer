@@ -1,11 +1,12 @@
 import { Api, TelegramClient } from "telegram";
 import { NewMessage, Raw } from "telegram/events/index.js";
+import { delayForSeconds } from "../utils/delay.js";
+
 import {
-  delayForSeconds,
   extractTgWebAppData,
   isBotMiniAppLink,
   parseTelegramLink,
-} from "../utils/index.js";
+} from "../utils/telegram.js";
 
 import EventEmitter from "events";
 import { StringSession } from "telegram/sessions/index.js";

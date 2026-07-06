@@ -2,9 +2,9 @@ import { Api, Logger } from "telegram";
 
 import BaseTelegramWebClient from "@purrfect/shared/lib/BaseTelegramWebClient.js";
 import { computeCheck } from "telegram/Password.js";
-import { getDcDetails } from "@purrfect/shared/utils/index.js";
 import fsp from "node:fs/promises";
 import { getCurrentPath } from "./path.js";
+import { getDcDetails } from "@purrfect/shared/utils/dc.js";
 import { globby } from "globby";
 import path from "node:path";
 
@@ -370,7 +370,10 @@ class GramClient extends BaseTelegramWebClient {
    * @param {string|null} [options.proxy]
    * @returns {Promise<{ session: string, user: import("telegram").Api.User }>}
    */
-  static async cloneSession(sessionString, { passwords = [], proxy = null } = {}) {
+  static async cloneSession(
+    sessionString,
+    { passwords = [], proxy = null } = {},
+  ) {
     const source = this.createRaw(sessionString, proxy);
     const fresh = this.createRaw("", proxy);
 
@@ -494,7 +497,9 @@ class GramClient extends BaseTelegramWebClient {
         const passwordSrp = await client.invoke(new Api.account.GetPassword());
         const check = await computeCheck(passwordSrp, password);
 
-        return await client.invoke(new Api.auth.CheckPassword({ password: check }));
+        return await client.invoke(
+          new Api.auth.CheckPassword({ password: check }),
+        );
       } catch (error) {
         lastError = error;
 

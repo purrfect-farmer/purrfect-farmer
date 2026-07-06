@@ -1,14 +1,14 @@
 import "./bridge/bridge-isolated";
 import "./telegram-web/telegram-web-isolated";
 
-import { TELEGRAM_WEB_HOSTS } from "@/constants";
 import { createListener, customLogger, getUserAgent, uuid } from "@/utils";
-
 import {
   decryptData,
   encryptData,
   watchTelegramMiniApp,
 } from "./content-script-utils";
+
+import { TELEGRAM_WEB_HOSTS } from "@/constants";
 import { setupMiniAppToolbar } from "./mini-app/mini-app-toolbar-isolated";
 
 if (!TELEGRAM_WEB_HOSTS.includes(location.host)) {
@@ -36,7 +36,7 @@ if (!TELEGRAM_WEB_HOSTS.includes(location.host)) {
           } catch (e) {
             console.error(e);
           }
-        })
+        }),
       );
       window.postMessage(
         {
@@ -44,7 +44,7 @@ if (!TELEGRAM_WEB_HOSTS.includes(location.host)) {
           type: "request",
           payload: encryptData(data),
         },
-        "*"
+        "*",
       );
     });
   };
