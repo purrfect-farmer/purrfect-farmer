@@ -162,9 +162,62 @@ export default class FragWarFarmer extends BaseFarmer {
 
   /** Claim Fragment Collection */
   async claimFragmentCollection() {
+    const allRegions = await this.fetchRegions();
+    const config = await this.fetchExchangeConfig();
+
     while (true) {
       const assets = await this.fetchAssets();
-      const { regions } = assets.fragment;
+      const regions = assets.fragment.regions
+        .map((region) => {
+          /** Origin */
+          const origin = allRegions.regions.find(
+            (item) => item.regionCode === region.regionCode,
+          );
+
+          /** Region Asset */
+          const asset = config.assetOptions.find(
+            (item) => item.assetCode === origin.targetAssetCode,
+          );
+
+          /** Region Progress */
+          const regionProgress = region.teams.filter(
+            (item) => item.availableBalance > 0,
+          ).length;
+
+          /** Region Required */
+          const regionRequired = region.teams.length;
+
+          /** Region Needed */
+          const regionNeeded = region.teams.length - regionProgress;
+
+          /** Teams */
+          const teams = region.teams
+            .map((team) => {
+              const required = asset.minFragmentQuantity;
+              const needed = asset.minFragmentQuantity - team.availableBalance;
+              return {
+                ...team,
+                origin,
+                needed,
+                asset,
+                required,
+                regionProgress,
+                regionRequired,
+                regionNeeded,
+              };
+            })
+            .sort((a, b) => b.availableBalance - a.availableBalance);
+
+          return {
+            ...region,
+            teams: teams,
+            origin: origin,
+            required: regionRequired,
+            progress: regionProgress,
+            needed: regionNeeded,
+          };
+        })
+        .sort((a, b) => a.needed - b.needed);
 
       /** Sort Teams by Available Balance */
       const teams = regions
@@ -176,12 +229,22 @@ export default class FragWarFarmer extends BaseFarmer {
         (team) => team.availableBalance > 0,
       );
 
+      /** Log Available Regions */
+      this.logger.info("Available Regions:");
+      regions.forEach((region) => {
+        this.logger.keyValue(
+          `(${region.regionCode}) ${region.regionName}`,
+          `(${region.progress}/${region.required}) - ${region.needed}`,
+        );
+      });
+      this.logger.newline();
+
       /** Log Available Teams */
       this.logger.info("Available Fragment Teams:");
       teams.forEach((team) => {
         this.logger.keyValue(
           `(${team.teamCode}) ${team.teamName}`,
-          team.availableBalance,
+          `(${team.availableBalance}/${team.required}) - ${team.needed}`,
         );
       });
 
@@ -199,9 +262,16 @@ export default class FragWarFarmer extends BaseFarmer {
               const team = teams.find(
                 (team) => team.teamCode === candidate.teamCode,
               );
+              const availableBalance = team?.availableBalance || 0;
+              const regionImportance = availableBalance < 1 ? 1 : 0;
+              const regionNeeded = team.regionNeeded;
+
               return {
                 ...candidate,
-                availableBalance: team?.availableBalance || 0,
+                team,
+                availableBalance,
+                regionImportance,
+                regionNeeded,
               };
             })
             .sort((a, b) => b.availableBalance - a.availableBalance);
