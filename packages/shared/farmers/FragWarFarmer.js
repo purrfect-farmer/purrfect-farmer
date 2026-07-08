@@ -247,6 +247,7 @@ export default class FragWarFarmer extends BaseFarmer {
           `(${team.availableBalance}/${team.required}) - ${team.needed}`,
         );
       });
+      this.logger.newline();
 
       /** Region with need */
       const regionWithNeed = regions.find((item) => item.needed > 0);
@@ -303,16 +304,29 @@ export default class FragWarFarmer extends BaseFarmer {
               `(${candidate.team.availableBalance}/${candidate.team.required}) - ${candidate.team.needed}`,
             );
           });
+          this.logger.newline();
 
           /** Select Candidate with Available Balance */
           let selectedCandidate = null;
 
           /** Find best matching candidate */
-          selectedCandidate = [...teamsOfRegionWithNeed, ...teamsWithNeed].find(
-            (item) =>
-              candidates.some(
-                (candidate) => candidate.teamCode === item.teamCode,
-              ),
+          const bestTeams = [...teamsOfRegionWithNeed, ...teamsWithNeed];
+
+          /** Log Best Teams */
+          this.logger.info("Best Matching Teams:");
+          bestTeams.forEach((team) => {
+            this.logger.keyValue(
+              `(${team.teamCode}) ${team.teamName}`,
+              `(${team.availableBalance}/${team.required}) - ${team.needed}`,
+            );
+          });
+          this.logger.newline();
+
+          /** Find best team */
+          selectedCandidate = bestTeams.find((item) =>
+            candidates.some(
+              (candidate) => candidate.teamCode === item.teamCode,
+            ),
           );
 
           if (!selectedCandidate) {
