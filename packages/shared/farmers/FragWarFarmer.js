@@ -248,14 +248,24 @@ export default class FragWarFarmer extends BaseFarmer {
         );
       });
 
-      const teamsWithNeed = teamsWithBalance
-        .filter((item) => item.needed > 0)
-        .slice(0, 2);
+      /** Region with need */
+      const regionWithNeed = regions.find((item) => item.needed > 0);
 
-      const regionWithNeed = regions.filter((item) => item.needed > 0)[0];
-      const regionWithNeedTeams =
+      /** Teams of region with need */
+      const teamsOfRegionWithNeed =
         regionWithNeed?.teams?.filter((item) => item.availableBalance <= 0) ||
         [];
+
+      /** Teams with needed */
+      const teamsWithNeed = teamsWithBalance
+        .filter(
+          (item) =>
+            !teamsOfRegionWithNeed.some(
+              (team) => team.teamCode === item.teamCode,
+            ),
+        )
+        .filter((item) => item.needed > 0)
+        .slice(0, 2);
 
       while (true) {
         /** Fetch Current Round */
@@ -289,7 +299,7 @@ export default class FragWarFarmer extends BaseFarmer {
           this.logger.info("Fragment Collection Candidates:");
           candidates.forEach((candidate) => {
             this.logger.keyValue(
-              `(${candidate.teamCode}) ${candidate.name}`,
+              `(${candidate.teamCode}) ${candidate.name || candidate.teamName}`,
               `(${candidate.team.availableBalance}/${candidate.team.required}) - ${candidate.team.needed}`,
             );
           });
@@ -297,38 +307,43 @@ export default class FragWarFarmer extends BaseFarmer {
           /** Select Candidate with Available Balance */
           let selectedCandidate = null;
 
-          if (teamsWithBalance.length > 0) {
-            /** Find a candidate with existing balance */
-            selectedCandidate = [...regionWithNeedTeams, ...teamsWithNeed].find(
-              (item) =>
-                candidates.some(
-                  (candidate) => candidate.teamCode === item.teamCode,
-                ),
-            );
+          /** Find best matching candidate */
+          selectedCandidate = [...teamsOfRegionWithNeed, ...teamsWithNeed].find(
+            (item) =>
+              candidates.some(
+                (candidate) => candidate.teamCode === item.teamCode,
+              ),
+          );
 
-            if (!selectedCandidate) {
-              /** Get refresh quote */
-              const refreshQuote = await this.fetchRefreshQuote();
-              const { yellowCardBalance, nextRefreshYellowCardCost } =
-                refreshQuote;
+          if (!selectedCandidate) {
+            /** Get refresh quote */
+            const refreshQuote = await this.fetchRefreshQuote();
+            const { yellowCardBalance, nextRefreshYellowCardCost } =
+              refreshQuote;
 
-              /** Check if we can refresh */
-              const canRefresh = nextRefreshYellowCardCost <= yellowCardBalance;
+            /** Check if we can refresh */
+            const canRefresh = nextRefreshYellowCardCost <= yellowCardBalance;
 
-              if (canRefresh) {
-                this.logger.info(
-                  "Refreshing fragments to get a better candidate...",
-                );
-                const refresh = await this.refreshFragments(roundId);
-                await this.utils.delayForSeconds(2);
-                continue; // Restart the loop to process the new round
-              }
+            if (canRefresh) {
+              this.logger.info(
+                "Refreshing fragments to get a better candidate...",
+              );
+              const refresh = await this.refreshFragments(roundId);
+              await this.utils.delayForSeconds(2);
+              continue; // Restart the loop to process the new round
             }
+          } else {
+            this.logger.success("Found best matching candidate..");
           }
 
           /** Select the candidate */
           const candidate =
             selectedCandidate || this.utils.randomItem(candidates);
+
+          this.logger.keyValue(
+            "Selected Candidate",
+            `(${candidate.teamCode}) ${candidate.name || candidate.teamName}`,
+          );
 
           /** Claim fragment */
           await this.claimFragment({
@@ -337,7 +352,9 @@ export default class FragWarFarmer extends BaseFarmer {
             requestId: this.utils.uuid(),
           });
           this.logger.success("Fragment collection claimed successfully.");
-          this.logger.success(`Claimed fragment for team: ${candidate.name}`);
+          this.logger.success(
+            `Claimed fragment for team: ${candidate.name || candidate.teamName}`,
+          );
 
           await this.utils.delayForSeconds(2);
         }
