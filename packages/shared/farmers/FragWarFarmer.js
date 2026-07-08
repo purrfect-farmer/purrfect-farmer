@@ -248,6 +248,15 @@ export default class FragWarFarmer extends BaseFarmer {
         );
       });
 
+      const teamsWithNeed = teamsWithBalance
+        .filter((item) => item.needed > 0)
+        .slice(0, 2);
+
+      const regionWithNeed = regions.filter((item) => item.needed > 0)[0];
+      const regionWithNeedTeams =
+        regionWithNeed?.teams?.filter((item) => item.availableBalance <= 0) ||
+        [];
+
       while (true) {
         /** Fetch Current Round */
         const currentRound = await this.fetchCurrentRound();
@@ -274,14 +283,14 @@ export default class FragWarFarmer extends BaseFarmer {
                 regionNeeded,
               };
             })
-            .sort((a, b) => b.availableBalance - a.availableBalance);
+            .sort((a, b) => a.team.needed - b.team.needed);
 
           /** Log Candidates */
           this.logger.info("Fragment Collection Candidates:");
           candidates.forEach((candidate) => {
             this.logger.keyValue(
               `(${candidate.teamCode}) ${candidate.name}`,
-              candidate.availableBalance,
+              `(${candidate.team.availableBalance}/${candidate.team.required}) - ${candidate.team.needed}`,
             );
           });
 
@@ -290,8 +299,11 @@ export default class FragWarFarmer extends BaseFarmer {
 
           if (teamsWithBalance.length > 0) {
             /** Find a candidate with existing balance */
-            selectedCandidate = candidates.find(
-              (item) => item.availableBalance > 0,
+            selectedCandidate = [...regionWithNeedTeams, ...teamsWithNeed].find(
+              (item) =>
+                candidates.some(
+                  (candidate) => candidate.teamCode === item.teamCode,
+                ),
             );
 
             if (!selectedCandidate) {
