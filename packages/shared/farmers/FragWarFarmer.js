@@ -10,7 +10,7 @@ export default class FragWarFarmer extends BaseFarmer {
   static domains = ["h5-world-cup.crabet.io"];
   static telegramLink = "https://t.me/FragWarBot?startapp=10010327";
   static referrerMode = "random";
-  static interval = "0 * * * *"; // Every hour
+  static interval = "*/30 * * * *"; // Every 30 mins
   static rating = 5;
 
   /** Get Referral Link */
