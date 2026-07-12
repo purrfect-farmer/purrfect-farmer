@@ -1,6 +1,6 @@
-import useAppContext from "@/hooks/useAppContext";
-import storage from "@/lib/storage";
 import { postPortMessage } from "@/utils";
+import storage from "@/lib/storage";
+import useAppContext from "@/hooks/useAppContext";
 import { useCallback } from "react";
 import { useMemo } from "react";
 
@@ -11,7 +11,7 @@ export default function useBackupAndRestore(app) {
   /** Skip Onboarding */
   const skipOnboarding = useCallback(
     () => configureSettings("onboarded", true, false),
-    [configureSettings]
+    [configureSettings],
   );
 
   const closeTelegramWeb = useCallback(() => {
@@ -40,7 +40,13 @@ export default function useBackupAndRestore(app) {
             /** Close Telegram Web */
             closeTelegramWeb();
 
+            /** Get chrome local storage */
             const chromeLocalStorage = await storage.getAll();
+
+            /** Remove GramJs:apiCache */
+            delete telegramWebLocalStorage["GramJs:apiCache"];
+            delete chromeLocalStorage["GramJs:apiCache"];
+
             const data = {
               version: __APP_PACKAGE_VERSION__,
               time: Date.now(),
@@ -51,12 +57,12 @@ export default function useBackupAndRestore(app) {
             };
 
             resolve(data);
-          }
+          },
         );
 
         setActiveTab("telegram-web-k");
       }),
-    [messaging.handler, setActiveTab, skipOnboarding, closeTelegramWeb]
+    [messaging.handler, setActiveTab, skipOnboarding, closeTelegramWeb],
   );
 
   /** Restore Backup Data */
@@ -87,16 +93,16 @@ export default function useBackupAndRestore(app) {
 
             /** Resolve */
             resolve(true);
-          }
+          },
         );
 
         setActiveTab("telegram-web-k");
       }),
-    [messaging.handler, setActiveTab, skipOnboarding, closeTelegramWeb]
+    [messaging.handler, setActiveTab, skipOnboarding, closeTelegramWeb],
   );
 
   return useMemo(
     () => [getBackupData, restoreBackupData],
-    [getBackupData, restoreBackupData]
+    [getBackupData, restoreBackupData],
   );
 }
