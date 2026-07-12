@@ -266,7 +266,7 @@ export default class FragWarFarmer extends BaseFarmer {
             ),
         )
         .filter((item) => item.needed > 0)
-        .slice(0, 2);
+        .slice(0, 3);
 
       while (true) {
         /** Fetch Current Round */
