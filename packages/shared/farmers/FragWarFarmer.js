@@ -312,42 +312,44 @@ export default class FragWarFarmer extends BaseFarmer {
           /** Find best matching candidate */
           const bestTeams = [...teamsOfRegionWithNeed, ...teamsWithNeed];
 
-          /** Log Best Teams */
-          this.logger.info("Best Matching Teams:");
-          bestTeams.forEach((team) => {
-            this.logger.keyValue(
-              `(${team.teamCode}) ${team.teamName}`,
-              `(${team.availableBalance}/${team.required}) - ${team.needed}`,
-            );
-          });
-          this.logger.newline();
-
-          /** Find best team */
-          selectedCandidate = bestTeams.find((item) =>
-            candidates.some(
-              (candidate) => candidate.teamCode === item.teamCode,
-            ),
-          );
-
-          if (!selectedCandidate) {
-            /** Get refresh quote */
-            const refreshQuote = await this.fetchRefreshQuote();
-            const { yellowCardBalance, nextRefreshYellowCardCost } =
-              refreshQuote;
-
-            /** Check if we can refresh */
-            const canRefresh = nextRefreshYellowCardCost <= yellowCardBalance;
-
-            if (canRefresh) {
-              this.logger.info(
-                "Refreshing fragments to get a better candidate...",
+          if (bestTeams.length > 0) {
+            /** Log Best Teams */
+            this.logger.info("Best Matching Teams:");
+            bestTeams.forEach((team) => {
+              this.logger.keyValue(
+                `(${team.teamCode}) ${team.teamName}`,
+                `(${team.availableBalance}/${team.required}) - ${team.needed}`,
               );
-              const refresh = await this.refreshFragments(roundId);
-              await this.utils.delayForSeconds(2);
-              continue; // Restart the loop to process the new round
+            });
+            this.logger.newline();
+
+            /** Find best team */
+            selectedCandidate = bestTeams.find((item) =>
+              candidates.some(
+                (candidate) => candidate.teamCode === item.teamCode,
+              ),
+            );
+
+            if (!selectedCandidate) {
+              /** Get refresh quote */
+              const refreshQuote = await this.fetchRefreshQuote();
+              const { yellowCardBalance, nextRefreshYellowCardCost } =
+                refreshQuote;
+
+              /** Check if we can refresh */
+              const canRefresh = nextRefreshYellowCardCost <= yellowCardBalance;
+
+              if (canRefresh) {
+                this.logger.info(
+                  "Refreshing fragments to get a better candidate...",
+                );
+                const refresh = await this.refreshFragments(roundId);
+                await this.utils.delayForSeconds(2);
+                continue; // Restart the loop to process the new round
+              }
+            } else {
+              this.logger.success("Found best matching candidate..");
             }
-          } else {
-            this.logger.success("Found best matching candidate..");
           }
 
           /** Select the candidate */
