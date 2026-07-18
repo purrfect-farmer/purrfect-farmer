@@ -859,6 +859,7 @@ class ATFAuto {
       const { status, skipped, amount, message } = await runner.withdraw({
         max: this.amount,
         difference: this.difference,
+        force: true,
       });
 
       /** Log Success */

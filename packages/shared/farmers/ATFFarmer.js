@@ -636,7 +636,7 @@ export default class ATFFarmer extends BaseFarmer {
   }
 
   /** Place withdrawal */
-  async withdraw({ max, difference = 20 } = {}) {
+  async withdraw({ max, difference = 20, force = false } = {}) {
     const { user } = this.user_data;
     const balance = new Decimal(user["mined_balance"]);
 
@@ -650,7 +650,9 @@ export default class ATFFarmer extends BaseFarmer {
       };
     }
 
-    const REQUIRED_WITHDRAWABLE_AMOUNT = MINIMUM_WITHDRAWABLE_AMOUNT + 200;
+    const REQUIRED_WITHDRAWABLE_AMOUNT = force
+      ? MINIMUM_WITHDRAWABLE_AMOUNT
+      : MINIMUM_WITHDRAWABLE_AMOUNT + 200;
 
     if (balance.lessThan(REQUIRED_WITHDRAWABLE_AMOUNT)) {
       this.logger.error("Not enough balance:", balance.toString());
