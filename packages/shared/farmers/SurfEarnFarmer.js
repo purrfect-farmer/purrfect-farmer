@@ -319,49 +319,79 @@ export default class SurfEarnFarmer extends BaseFarmer {
     return { pickaxes, adsWatchedToday };
   }
 
-  /** Complete verification code */
-  async completeVerificationCode() {
+  /** Request for verification code */
+  async requestForVerificationCode() {
+    this.logger.info("Requesting for verification code...");
+
+    /** Send the verification code */
     const verificationCodeStatus = await this.sendVerificationCode();
 
+    /** Delay */
     if (verificationCodeStatus["show_modal"]) {
-      this.logger.info("Getting verification code.");
+      await this.utils.delayForSeconds(5);
+    }
+
+    this.logger.success("Successfully requested for verification code!");
+
+    return verificationCodeStatus;
+  }
+
+  /** Complete verification code */
+  async completeVerificationCode() {
+    let verificationCodeStatus = await this.requestForVerificationCode();
+    let code = null;
+
+    while (verificationCodeStatus["show_modal"] && !code) {
+      if (this.signal.aborted) return;
+
+      /** Log scan start */
+      this.logger.info("Scanning messages for verification code...");
+
+      /** Check for client */
       if (!this.client) {
         throw new Error(
           "No telegram client has been configured for this account!",
         );
-      } else {
-        let code = null;
-
-        while (!code) {
-          if (this.signal.aborted) return;
-          const entity = "surf_earn_bot";
-          let messages = await this.client.getMessages(entity);
-
-          if (!messages.length) {
-            await this.client.sendMessage(entity, { message: "/start" });
-            await this.utils.delayForSeconds(10);
-            messages = await this.client.getMessages(entity);
-          }
-
-          this.debugger.log("Messages from bot:", messages);
-
-          const regex = /verification code is ([\d]+)/;
-          const messageWithCode = messages.find((msg) =>
-            msg.message.match(regex),
-          );
-
-          this.debugger.log("Message with code:", messageWithCode);
-
-          if (messageWithCode) {
-            code = messageWithCode.message.match(regex)[1];
-          } else {
-            await this.utils.delayForSeconds(10);
-          }
-        }
-
-        this.logger.info(`Applying verification code: ${code}`);
-        await this.applyVerificationCode(code);
       }
+
+      /** Ensure client is connected */
+      await this.client.connect();
+
+      const entity = "surf_earn_bot";
+      let messages = await this.client.getMessages(entity);
+
+      if (!messages.length) {
+        /** Start the bot */
+        await this.client.sendMessage(entity, { message: "/start" });
+
+        /** Delay */
+        await this.utils.delayForSeconds(5);
+      }
+
+      /** Log the messages */
+      this.debugger.log("Messages from bot:", messages);
+
+      const regex = /verification code is ([\d]+)/;
+      const messageWithCode = messages.find((msg) => msg.message.match(regex));
+
+      this.debugger.log("Message with code:", messageWithCode);
+
+      if (messageWithCode) {
+        code = messageWithCode.message.match(regex)[1];
+      } else {
+        this.logger.error("Couldn't find message with verification code!");
+        /** Resend verification code */
+        verificationCodeStatus = await this.requestForVerificationCode();
+
+        /** Restart loop */
+        continue;
+      }
+
+      /** Log the discovered code */
+      this.logger.info(`Applying verification code: ${code}`);
+
+      /** Apply the verification code */
+      await this.applyVerificationCode(code);
     }
   }
 
