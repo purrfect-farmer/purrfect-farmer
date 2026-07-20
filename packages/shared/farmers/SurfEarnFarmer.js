@@ -61,6 +61,12 @@ export default class SurfEarnFarmer extends BaseFarmer {
       .then((res) => res.data);
   }
 
+  async getMining() {
+    return this.api
+      .postForm("https://surf-earn.top/load/games/mining")
+      .then((res) => res.data);
+  }
+
   async getTreasury() {
     return this.api
       .postForm("https://surf-earn.top/load/games/treasury")
@@ -84,6 +90,14 @@ export default class SurfEarnFarmer extends BaseFarmer {
   async getTreasuryKeyForAd(data) {
     return this.api
       .postForm("https://surf-earn.top/games/treasury/getKeyForAd", data, {
+        headers: API_HEADERS,
+      })
+      .then((res) => res.data);
+  }
+
+  async getMiningPickaxeForAd(data) {
+    return this.api
+      .postForm("https://surf-earn.top/games/mining/getPickaxeForAd", data, {
         headers: API_HEADERS,
       })
       .then((res) => res.data);
@@ -148,6 +162,12 @@ export default class SurfEarnFarmer extends BaseFarmer {
       .then((res) => res.data);
   }
 
+  async openMiningBlock() {
+    return this.api
+      .postForm("https://surf-earn.top/games/mining/openMiningBlock")
+      .then((res) => res.data);
+  }
+
   capitalizeFirstLetter(str) {
     if (!str) return "";
     return str.charAt(0).toUpperCase() + str.slice(1);
@@ -208,6 +228,7 @@ export default class SurfEarnFarmer extends BaseFarmer {
   /** Process Farmer */
   async process() {
     /* Tasks */
+    await this.executeTask("Mining", () => this.playMiningGame());
     await this.executeTask("Treasury", () => this.playTreasuryGame());
     await this.executeTask("Wheel", () => this.playWheelGame());
     await this.executeTask("Friends Reward", () => this.collectFriendsReward());
@@ -258,9 +279,7 @@ export default class SurfEarnFarmer extends BaseFarmer {
     const dom = await this.utils.parseHTML(friendsHtml);
     const pendingCoinsNode = dom.getElementById("pending_friends_coins");
 
-    const pendingCoins = parseFloat(
-      pendingCoinsNode.textContent.trim().replaceAll(/[^\d]+/g, ""),
-    );
+    const pendingCoins = this.nodeTextContentToNumber(pendingCoinsNode);
 
     return { pendingCoins };
   }
@@ -287,6 +306,18 @@ export default class SurfEarnFarmer extends BaseFarmer {
     const adsWatchedToday = this.nodeTextContentToNumber(adsWatchedTodayNode);
 
     return { keys, adsWatchedToday };
+  }
+
+  async extractMiningData(miningHtml) {
+    const dom = await this.utils.parseHTML(miningHtml);
+
+    const pickaxesNode = dom.getElementById("pickaxes");
+    const adsWatchedTodayNode = dom.getElementById("adsWatchedToday");
+
+    const pickaxes = this.nodeTextContentToNumber(pickaxesNode);
+    const adsWatchedToday = this.nodeTextContentToNumber(adsWatchedTodayNode);
+
+    return { pickaxes, adsWatchedToday };
   }
 
   /** Complete verification code */
@@ -527,6 +558,59 @@ export default class SurfEarnFarmer extends BaseFarmer {
       /** Update keys */
       keys = parseFloat(result.keys);
 
+      await this.utils.delayForSeconds(5);
+    }
+  }
+
+  /** Play Mining Game */
+  async playMiningGame() {
+    const miningHtml = await this.getMining();
+    let { pickaxes, adsWatchedToday } =
+      await this.extractMiningData(miningHtml);
+
+    /** Watch ads for pickaxe */
+    for (let i = adsWatchedToday; i < 30; i++) {
+      if (this.signal.aborted) return;
+
+      this.logger.info(`Watching ad for pickaxe... (${i + 1})`);
+      await this.completeVerificationCode();
+      const info = await this.getMiningPickaxeForAd();
+      const validationHash = info["validation_hash"];
+
+      this.debugger.info("Pickaxe for ad info:", info);
+
+      /** Delay */
+      await this.utils.delayForSeconds(10);
+
+      /** Get result for pickaxe */
+      const result = await this.getMiningPickaxeForAd({
+        data: await this.getSignature(validationHash),
+      });
+
+      this.debugger.info("Pickaxe for ad result:", result);
+
+      /** Log successful claim */
+      if (result.icon === "success") {
+        pickaxes = parseFloat(result.pickaxes);
+        this.logger.success(`Claimed pickaxe (${result.pickaxes})`);
+      }
+
+      /** Delay */
+      await this.utils.delayForSeconds(5);
+    }
+
+    /** Open the block */
+    while (pickaxes > 0) {
+      if (this.signal.aborted) return;
+
+      /** Open block result */
+      const result = await this.openMiningBlock();
+      this.debugger.log("Mining block Result:", result);
+
+      /** Update pickaxes */
+      pickaxes = parseFloat(result.pickaxes);
+
+      /** Delay */
       await this.utils.delayForSeconds(5);
     }
   }
