@@ -238,7 +238,6 @@ export default class SurfEarnFarmer extends BaseFarmer {
   async extractEarnings(earningsHtml) {
     const dom = await this.utils.parseHTML(earningsHtml);
 
-    const categories = ["daily", "promo", "youtube", "game"];
     const taskNodes = dom.querySelectorAll(`[class^="item_task_"]`);
     const tasks = [];
 
@@ -506,6 +505,8 @@ export default class SurfEarnFarmer extends BaseFarmer {
       /** Update spins */
       spins = parseFloat(endResult.spins);
 
+      this.logger.success("Spun the wheel!");
+
       /** Add little delay */
       await this.utils.delayForSeconds(2);
     }
@@ -558,6 +559,8 @@ export default class SurfEarnFarmer extends BaseFarmer {
       /** Update keys */
       keys = parseFloat(result.keys);
 
+      this.logger.success("Opened chest!");
+
       await this.utils.delayForSeconds(5);
     }
   }
@@ -609,6 +612,8 @@ export default class SurfEarnFarmer extends BaseFarmer {
 
       /** Update pickaxes */
       pickaxes = parseFloat(result.pickaxes);
+
+      this.logger.success("Mined block!");
 
       /** Delay */
       await this.utils.delayForSeconds(5);
