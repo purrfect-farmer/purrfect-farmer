@@ -414,6 +414,8 @@ export default class SurfEarnFarmer extends BaseFarmer {
 
         progress++;
 
+        this.logger.success(`Attempted (${progress}/${total})`);
+
         await this.utils.delayForSeconds(5);
       }
 
