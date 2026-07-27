@@ -161,7 +161,7 @@ export default class PikaFarmer extends BaseFarmer {
   /** Get or create device ID (stands in for the browser device fingerprint) */
   getOrCreateDeviceId() {
     if (!this.deviceId) {
-      const userId = this.getUserId();
+      const userId = this.getUserId()?.toString() ?? "";
       if (!userId) {
         throw new Error("User ID is required");
       }
