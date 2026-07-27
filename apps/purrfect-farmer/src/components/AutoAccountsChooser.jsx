@@ -1,0 +1,166 @@
+import {
+  MdCancel,
+  MdCheckCircle,
+  MdInfo,
+  MdRemoveCircle,
+} from "react-icons/md";
+import { memo, useMemo } from "react";
+
+import AutoAccountBalance from "./AutoAccountBalance";
+import AutoAddress from "./AutoAddress";
+import AutoAvatar from "./AutoAvatar";
+import AutoVersionBadge from "./AutoVersionBadge";
+import Input from "./Input";
+import { cn } from "@/utils";
+import { searchAutoAccount } from "@purrfect/shared/lib/auto/wallet";
+import { useState } from "react";
+
+function getInitials(title) {
+  return title
+    .split(/\s+/)
+    .slice(0, 2)
+    .map((w) => w[0]?.toUpperCase() || "")
+    .join("");
+}
+
+function truncateAddress(address) {
+  if (!address || address.length < 12) return address;
+  return `${address.slice(0, 6)}...${address.slice(-4)}`;
+}
+
+const ResultIcon = ({ result }) => {
+  if (!result) {
+    return <MdInfo className="size-4 text-neutral-400 shrink-0" />;
+  }
+  if (result.status) {
+    return <MdCheckCircle className="size-4 text-green-500 shrink-0" />;
+  }
+  if (result.skipped) {
+    return <MdRemoveCircle className="size-4 text-yellow-500 shrink-0" />;
+  }
+  return <MdCancel className="size-4 text-red-500 shrink-0" />;
+};
+
+const AccountChooserItem = memo(function AccountChooserItem({
+  account,
+  checked,
+  disabled,
+  result,
+  toggleAccount,
+}) {
+  const initials = useMemo(() => getInitials(account.title), [account.title]);
+  const hasResult = typeof result !== "undefined";
+
+  return (
+    <label
+      className={cn(
+        "flex items-center gap-2 p-2 rounded-xl",
+        "bg-neutral-100 dark:bg-neutral-700",
+        "cursor-pointer",
+        disabled && "opacity-60",
+      )}
+    >
+      {/* Result icon or Checkbox */}
+      {hasResult ? (
+        <ResultIcon result={result} />
+      ) : (
+        <input
+          type="checkbox"
+          checked={checked}
+          disabled={disabled}
+          onChange={(e) => toggleAccount(account, e.target.checked)}
+          className="size-4 shrink-0 accent-orange-500"
+        />
+      )}
+
+      {/* Avatar */}
+      <AutoAvatar account={account} className="size-8" />
+
+      {/* Info */}
+      <div className="flex flex-col grow min-w-0">
+        <div className="flex flex-wrap items-center">
+          {/* Title */}
+          <h3 className="font-bold truncate w-full grow min-w-0">
+            {account.title}
+          </h3>
+          {/* Address */}
+          <div className="flex items-center gap-1.5 text-blue-800 dark:text-blue-100">
+            <AutoAddress address={account.address} />
+            <AutoVersionBadge version={account.version} />
+          </div>
+        </div>
+        <AutoAccountBalance account={account} />
+      </div>
+    </label>
+  );
+});
+
+export default function AutoAccountsChooser({
+  accounts,
+  disabled,
+  allSelected,
+  selectedAccounts,
+  results,
+  toggleAccount,
+  toggleAllAccounts,
+}) {
+  const [search, setSearch] = useState("");
+
+  const filteredAccounts = useMemo(() => {
+    const term = search.trim().toLowerCase();
+    return term
+      ? accounts.filter((account) => searchAutoAccount(account, term))
+      : accounts;
+  }, [accounts, search]);
+
+  return (
+    <div className="flex flex-col gap-2">
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <h4 className="font-bold text-neutral-500 dark:text-neutral-400">
+          Accounts ({selectedAccounts.length} / {accounts.length})
+        </h4>
+
+        {!results && (
+          <label className="flex items-center gap-2 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={allSelected}
+              disabled={disabled}
+              onChange={(e) => toggleAllAccounts(e.target.checked)}
+              className="accent-orange-500"
+            />
+            Toggle All
+          </label>
+        )}
+      </div>
+
+      {/* Search */}
+      <Input
+        autoFocus
+        type="search"
+        placeholder="Search accounts..."
+        value={search}
+        onChange={(e) => setSearch(e.target.value)}
+      />
+
+      {/* Account List */}
+      <div className="flex flex-col gap-1.5">
+        {filteredAccounts.map((account) => (
+          <AccountChooserItem
+            key={account.id}
+            account={account}
+            checked={selectedAccounts.some((item) => item.id === account.id)}
+            result={
+              results
+                ? results.find((r) => r.account.id === account.id) || null
+                : undefined
+            }
+            toggleAccount={toggleAccount}
+            disabled={disabled}
+          />
+        ))}
+      </div>
+    </div>
+  );
+}

@@ -226,3 +226,22 @@ that is either `done` or still has a future `available_at` throws
 Paid out of `user.pool_balance`, minimum `withdraw_terms.min` (500 PIKA). The
 app previews the fee as `clamp(ceil(amount * fee_rate), 1, fee_max)` and sends
 the **gross** amount — the fee is deducted server-side.
+
+`withdraw({ max, difference, force })` is the unattended path used by `process()`
+and by Pika Bolt's cloud batch withdrawal; `withdrawInteractive()` is the tool
+entry that prompts for an amount. Unattended runs require
+`min + WITHDRAWAL_BUFFER` so they do not fire the instant the pool crosses the
+minimum — cloud batches pass `force: true` to withdraw at exactly `min`.
+
+## Pika Bolt (Auto)
+
+`static auto` opts Pika into the shared Auto system (see
+`packages/shared/lib/auto/`), against jetton
+`EQAzPeuDLOCJ7mvzGskNPhIHzrYD4HZpaiqMvXmh0S8LTjh6`. The miner level is driven by
+`holding_balance` versus `miner.required_holding`, so "boosting" means moving
+PIKA into the sub-account's linked wallet.
+
+`connectAutoWallet()` re-calls `setTonAddress` with the address already on file:
+that is what makes the backend re-read the on-chain holding after a boost
+transfer lands, and it doubles as the initial link since no TON Connect proof is
+required.

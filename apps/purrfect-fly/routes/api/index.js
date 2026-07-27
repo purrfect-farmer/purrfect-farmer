@@ -1,4 +1,4 @@
-import ATFAuto from "../../lib/ATFAuto.js";
+import autos from "../../lib/autos.js";
 
 const authSchema = {
   body: {
@@ -21,7 +21,7 @@ const farmerSchema = {
   },
 };
 
-const atfAutoSchema = {
+const autoSchema = {
   body: {
     type: "object",
     required: ["auth", "password", "master", "accounts"],
@@ -211,129 +211,90 @@ export default async function (fastify, opts) {
     },
   );
 
-  /** ATF Auto Boost */
-  fastify.post(
-    "/atf-auto/boost",
-    {
-      preHandler: [fastify.validateWebAppData, fastify.verifySubscription],
-      schema: atfAutoSchema,
-    },
+  /**
+   * Dispatches an Auto operation for the drop named in the path.
+   *
+   * Operations are fire-and-forget — progress is reported to the user over the
+   * Telegram bot, so nothing is awaited here.
+   */
+  const dispatchAutoOperation = (operation) =>
     async function (request, reply) {
-      const { account } = request;
+      const { drop } = request.params;
+      const Auto = autos[drop];
 
-      ATFAuto.boost({
-        ...request.body,
-        id: account.id,
-      });
-    },
-  );
-
-  /** ATF Auto Collect */
-  fastify.post(
-    "/atf-auto/collect",
-    {
-      preHandler: [fastify.validateWebAppData, fastify.verifySubscription],
-      schema: atfAutoSchema,
-    },
-    async function (request, reply) {
-      const { account } = request;
-
-      ATFAuto.collect({
-        ...request.body,
-        id: account.id,
-      });
-    },
-  );
-
-  /** ATF Auto Withdraw */
-  fastify.post(
-    "/atf-auto/withdraw",
-    {
-      preHandler: [fastify.validateWebAppData, fastify.verifySubscription],
-      schema: atfAutoSchema,
-    },
-    async function (request, reply) {
-      const { account } = request;
-
-      ATFAuto.withdraw({
-        ...request.body,
-        id: account.id,
-      });
-    },
-  );
-
-  /** ATF Auto Status */
-  fastify.post(
-    "/atf-auto/status",
-    {
-      preHandler: [fastify.validateWebAppData, fastify.verifySubscription],
-      schema: atfAutoSchema,
-    },
-    async function (request, reply) {
-      const { account } = request;
-
-      ATFAuto.status({
-        ...request.body,
-        id: account.id,
-      });
-    },
-  );
-
-  /** ATF Auto Cancel */
-  fastify.post(
-    "/atf-auto/cancel",
-    {
-      preHandler: [fastify.validateWebAppData, fastify.verifySubscription],
-      schema: authSchema,
-    },
-    async function (request, reply) {
-      const { account } = request;
-
-      ATFAuto.cancel({
-        id: account.id,
-      });
-    },
-  );
-
-  /** ATF Auto Get Active List */
-  fastify.post(
-    "/atf-auto/get-active-list",
-    {
-      preHandler: [fastify.validateWebAppData, fastify.verifySubscription],
-      schema: authSchema,
-    },
-    async function (request, reply) {
-      const { account } = request;
-      const accountId = account.id;
-
-      /** Get all ATF farmers */
-      const farmers = await fastify.db.Farmer.findAll({
-        include: [
-          {
-            required: true,
-            association: "account",
-          },
-        ],
-        where: {
-          farmer: "atf",
-        },
-      });
-
-      /** Get active farmers */
-      const activeFarmers = farmers.filter((item) => item.status !== "banned");
-
-      /** Get banned farmers */
-      const bannedFarmers = farmers.filter((item) => item.status === "banned");
-
-      /** Destroy banned farmers */
-      for (const bannedFarmer of bannedFarmers) {
-        if (bannedFarmer.account.id !== accountId) {
-          bannedFarmer.account.destroy();
-        }
+      if (!Auto) {
+        return reply.notFound(`Unknown auto: ${drop}`);
       }
 
-      /** Return active farmers */
-      return activeFarmers.map((item) => item.account.id);
-    },
+      Auto[operation]({
+        ...request.body,
+        id: request.account.id,
+      });
+    };
+
+  /** Lists the accounts still farming a drop, destroying banned ones */
+  const getAutoActiveList = async function (request, reply) {
+    const { drop } = request.params;
+    const Auto = autos[drop];
+
+    if (!Auto) {
+      return reply.notFound(`Unknown auto: ${drop}`);
+    }
+
+    const accountId = request.account.id;
+
+    /** Get all of the drop's farmers */
+    const farmers = await fastify.db.Farmer.findAll({
+      include: [
+        {
+          required: true,
+          association: "account",
+        },
+      ],
+      where: {
+        farmer: Auto.farmerId,
+      },
+    });
+
+    /** Get active farmers */
+    const activeFarmers = farmers.filter((item) => item.status !== "banned");
+
+    /** Get banned farmers */
+    const bannedFarmers = farmers.filter((item) => item.status === "banned");
+
+    /** Destroy banned farmers */
+    for (const bannedFarmer of bannedFarmers) {
+      if (bannedFarmer.account.id !== accountId) {
+        bannedFarmer.account.destroy();
+      }
+    }
+
+    /** Return active farmers */
+    return activeFarmers.map((item) => item.account.id);
+  };
+
+  const autoPreHandler = [fastify.validateWebAppData, fastify.verifySubscription];
+
+  /** Auto - Boost / Collect / Withdraw / Status */
+  for (const operation of ["boost", "collect", "withdraw", "status"]) {
+    fastify.post(
+      `/auto/:drop/${operation}`,
+      { preHandler: autoPreHandler, schema: autoSchema },
+      dispatchAutoOperation(operation),
+    );
+  }
+
+  /** Auto - Cancel */
+  fastify.post(
+    "/auto/:drop/cancel",
+    { preHandler: autoPreHandler, schema: authSchema },
+    dispatchAutoOperation("cancel"),
+  );
+
+  /** Auto - Get Active List */
+  fastify.post(
+    "/auto/:drop/get-active-list",
+    { preHandler: autoPreHandler, schema: authSchema },
+    getAutoActiveList,
   );
 }

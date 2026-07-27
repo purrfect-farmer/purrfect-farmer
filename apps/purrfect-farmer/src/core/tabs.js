@@ -1,4 +1,3 @@
-import ATFAutoIcon from "@/assets/images/atf-auto.png?format=webp&w=80";
 import AppIcon from "@/assets/images/icon.png?format=webp&w=80";
 import BackupAndRestoreIcon from "@/assets/images/backup-and-restore.png?format=webp&w=80";
 import CloudIcon from "@/assets/images/cloud.png?format=webp&w=80";
@@ -13,6 +12,7 @@ import TelegramWebAIcon from "@/assets/images/telegram-web-a.png?format=webp&w=8
 import TelegramWebKIcon from "@/assets/images/telegram-web-k.png?format=webp&w=80";
 import TinyFlyIcon from "@/assets/images/fly.png?format=webp&w=80";
 import WhiskersIcon from "@/assets/images/whiskers.png?format=webp&w=80";
+import autos from "./autos";
 import { createElement } from "react";
 import farmers from "./farmers";
 import { lazy } from "react";
@@ -34,7 +34,7 @@ export const ReorderTelegramWeb = lazy(
 );
 
 export const Spider = lazy(() => import("@/app/Spider"));
-export const ATFAuto = lazy(() => import("@/app/ATFAuto"));
+export const Auto = lazy(() => import("@/app/Auto"));
 export const MyCloud = lazy(() => import("@/app/MyCloud"));
 export const CloudManager = lazy(() => import("@/app/CloudManager"));
 export const LocalTelegramSession = lazy(
@@ -75,14 +75,14 @@ export const utils = [
   {
     name: "Extra",
     list: [
-      /** ATF Auto */
-      {
-        id: "atf-auto",
-        title: "ATF Auto",
-        icon: ATFAutoIcon,
-        component: createElement(ATFAuto),
+      /** One wallet manager per Auto drop (ATF Auto, Pika Bolt, ...) */
+      ...autos.map((config) => ({
+        id: config.id,
+        title: config.title,
+        icon: config.icon,
+        component: createElement(Auto, { config }),
         singleton: true,
-      },
+      })),
     ],
   },
   /** Account */

@@ -32,6 +32,17 @@ export default class BaseFarmer {
   static autoStart = true;
   static skipExecutionOfNewAccount = false;
 
+  /**
+   * Auto descriptor.
+   *
+   * Farmers that back a jetton-holding miner declare this to opt into the
+   * "Auto" wallet-orchestration system (boost / collect / withdraw / status),
+   * which is then registered on both the client and the cloud automatically.
+   *
+   * @type {null | { id: string, title: string, token: string, jettonAddress: string, storagePrefix: string }}
+   */
+  static auto = null;
+
   constructor({ referralLink = null } = {}) {
     /** Configure caching */
     this.cacheAuth = this.constructor.cacheAuth;
@@ -516,6 +527,80 @@ export default class BaseFarmer {
     return {};
   }
 
+  /** Make Request ID */
+  makeRequestId() {
+    return this.utils.uuid();
+  }
+
+  /** Determine if the request should be retried */
+  shouldRetryRequest(error) {
+    const retryAfter = error.response?.data?.retry_after;
+    if (retryAfter) {
+      return true;
+    }
+    return false;
+  }
+
+  /* --------------------------------------------------------------------- */
+  /* Auto adapter                                                          */
+  /*                                                                       */
+  /* Drops opt in by declaring `static auto`. Every drop's API returns a    */
+  /* different shape, so the orchestrator never touches raw responses — it  */
+  /* only talks to the three methods below plus `withdraw()`, which each    */
+  /* farmer normalizes on its own side.                                     */
+  /* --------------------------------------------------------------------- */
+
+  /**
+   * The drop's declared minimum withdrawal.
+   *
+   * Farmers whose backend publishes a live minimum override this and fall back
+   * to the descriptor, so the UI always has a value to show before any account
+   * state has been fetched.
+   */
+  getMinimumWithdrawal() {
+    return Number(this.constructor.auto?.minWithdrawal ?? 0);
+  }
+
+  /**
+   * Link a TON wallet to the account and refresh the drop's view of it.
+   *
+   * @param {object} wallet - { phrase, address, version }
+   * @returns {Promise<{ status: boolean, summary?: object, message?: string }>}
+   */
+  async connectAutoWallet(wallet) {
+    throw new Error("connectAutoWallet method must be implemented in subclass");
+  }
+
+  /**
+   * Claim whatever is pending so the next summary reflects current balances.
+   */
+  async refreshAutoState() {
+    throw new Error("refreshAutoState method must be implemented in subclass");
+  }
+
+  /**
+   * Normalized account snapshot shared by every Auto drop.
+   *
+   * @returns {object} - {
+   *   level, holding, balance, minWithdrawal,
+   *   wallet: { address, version } | null,
+   *   banned, banReason,
+   *   risk: { score, updatedAt, flags: string[] }
+   * }
+   */
+  getAutoSummary() {
+    throw new Error("getAutoSummary method must be implemented in subclass");
+  }
+
+  /**
+   * Request a withdrawal.
+   *
+   * @returns {Promise<{ status: boolean, skipped: boolean, amount: string, message: string }>}
+   */
+  async withdraw(options) {
+    throw new Error("withdraw method must be implemented in subclass");
+  }
+
   /** Notify the server admin
    *
    * No-op by default. Environments that support admin messaging (e.g. the
@@ -525,6 +610,11 @@ export default class BaseFarmer {
    */
   async notifyAdmin(messages) {
     return false;
+  }
+
+  /** Format account link (Telegram HTML) */
+  formatAccountLink(id) {
+    return `<a href="tg://user?id=${id}">${id}</a>`;
   }
 
   /** Log Current User */

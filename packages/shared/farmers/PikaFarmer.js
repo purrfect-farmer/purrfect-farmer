@@ -2,6 +2,14 @@ import { fromCrossJSON, toJSON } from "seroval";
 import { defaultSerovalPlugins } from "@tanstack/router-core";
 
 import BaseFarmer from "../lib/BaseFarmer.js";
+import Decimal from "decimal.js";
+
+/**
+ * Safety margin above `withdraw_terms.min` required by unattended runs, so a
+ * scheduled farmer does not withdraw the instant it crosses the minimum.
+ * Cloud batch withdrawals pass `force: true` to bypass it.
+ */
+const WITHDRAWAL_BUFFER = 200;
 
 export default class PikaFarmer extends BaseFarmer {
   static id = "pika";
@@ -23,6 +31,15 @@ export default class PikaFarmer extends BaseFarmer {
         value: "true",
       },
     ],
+  };
+
+  static auto = {
+    id: "pika-bolt",
+    title: "Pika Bolt",
+    token: "PIKA",
+    jettonAddress: "EQAzPeuDLOCJ7mvzGskNPhIHzrYD4HZpaiqMvXmh0S8LTjh6",
+    storagePrefix: "pika-bolt",
+    minWithdrawal: 500,
   };
 
   /** Retrieve server functions */
@@ -173,20 +190,6 @@ export default class PikaFarmer extends BaseFarmer {
     return this.deviceId;
   }
 
-  /** Make request ID */
-  makeRequestId() {
-    return this.utils.uuid();
-  }
-
-  /** Determine if the request should be retried */
-  shouldRetryRequest(error) {
-    const retryAfter = error.response?.data?.retry_after;
-    if (retryAfter) {
-      return true;
-    }
-    return false;
-  }
-
   /* --------------------------------------------------------------------- */
   /* Server function wrappers                                              */
   /*                                                                       */
@@ -335,6 +338,7 @@ export default class PikaFarmer extends BaseFarmer {
     await this.executeTask("Super Ball", () => this.playSuperBall());
     await this.executeTask("Tasks", () => this.completeTasks());
     await this.executeTask("Friends", () => this.logReferrals());
+    await this.executeTask("Withdraw", () => this.withdraw());
   }
 
   /* --------------------------------------------------------------------- */
@@ -573,7 +577,7 @@ export default class PikaFarmer extends BaseFarmer {
             id: "withdraw",
             icon: "withdraw",
             title: "Withdraw",
-            action: this.withdraw.bind(this),
+            action: this.withdrawInteractive.bind(this),
             dispatch: false,
           },
         ],
@@ -598,8 +602,155 @@ export default class PikaFarmer extends BaseFarmer {
     this.logger.success("TON address linked!");
   }
 
-  /** Request a withdrawal */
-  async withdraw() {
+  /** Withdrawal terms of the current account state */
+  getWithdrawTerms() {
+    return this.user_data?.withdraw_terms || {};
+  }
+
+  /**
+   * Pika publishes its minimum per-account on `getMe`, so prefer that over the
+   * descriptor's declared value once account state has been loaded.
+   */
+  getMinimumWithdrawal() {
+    return Number(this.getWithdrawTerms().min ?? super.getMinimumWithdrawal());
+  }
+
+  /**
+   * Fee the app previews for a gross amount:
+   * `clamp(ceil(amount * fee_rate), 1, fee_max)`. The fee is deducted
+   * server-side, so the requested amount is always the gross one.
+   */
+  getWithdrawalFee(amount) {
+    const terms = this.getWithdrawTerms();
+    const feeMax = Number(terms.fee_max ?? terms.fee ?? Infinity);
+
+    return Math.max(
+      1,
+      Math.min(
+        feeMax,
+        Math.ceil(Number(amount) * Number(terms.fee_rate ?? 0.1)),
+      ),
+    );
+  }
+
+  /** Send the withdrawal request and log its outcome */
+  async sendWithdrawal(amount) {
+    const user = this.user_data?.user;
+    const fee = this.getWithdrawalFee(amount);
+
+    this.logger.info(
+      `Fee ${fee} PIKA - you receive ${new Decimal(amount).minus(fee).toFixed(4)} PIKA`,
+    );
+
+    const result = await this.requestWithdraw({
+      amount: Number(amount),
+      ton_address: user.ton_address,
+    });
+
+    this.debugger.log("Withdraw result:", result);
+    this.logger.success("Withdrawal requested!");
+
+    /* Refresh the cached account state so the pool balance is current */
+    this.user_data = await this.getMe();
+
+    return { result, fee };
+  }
+
+  /**
+   * Request a withdrawal without prompting.
+   *
+   * Mirrors ATF: cap to `max`, randomize down by `difference`%, floor, then
+   * clamp back up to the drop minimum. `force` drops the safety buffer that
+   * keeps unattended runs from withdrawing the moment they cross the minimum.
+   */
+  async withdraw({ max, difference = 20, force = false } = {}) {
+    const me = this.user_data;
+    const user = me?.user;
+
+    if (!user?.ton_address) {
+      this.logger.error(
+        "Wallet not connected - withdraw stays inactive until a TON address is linked.",
+      );
+      return {
+        status: false,
+        skipped: true,
+        message: "No TON address linked!",
+        amount: "0",
+      };
+    }
+
+    /* Withdrawals are paid out of the pool balance */
+    const balance = new Decimal(user.pool_balance ?? 0);
+    const min = this.getMinimumWithdrawal();
+    const required = force ? min : min + WITHDRAWAL_BUFFER;
+
+    if (balance.lessThan(required)) {
+      this.logger.error("Not enough balance:", balance.toString());
+      return {
+        status: false,
+        skipped: true,
+        message: "Not enough balance!",
+        amount: balance.toString(),
+      };
+    }
+
+    /** Log balance */
+    this.logger.info("Available balance:", balance.toString());
+
+    /** Initial amount to withdraw */
+    let amount = new Decimal(balance);
+
+    /** Cap to max */
+    if (max) {
+      amount = Decimal.min(amount, max);
+    }
+
+    /** Apply difference */
+    if (difference > 0) {
+      const minPercent = new Decimal(100).minus(difference);
+      const randomPercent = minPercent
+        .plus(new Decimal(Math.random()).mul(difference + 1))
+        .clamp(minPercent, 100);
+
+      amount = amount.mul(randomPercent).div(100);
+    }
+
+    /** Reset amount to minimum */
+    amount = Decimal.max(amount, min).floor();
+
+    try {
+      const { fee } = await this.sendWithdrawal(amount);
+
+      /**
+       * Notify the admin, but only when the run was initiated by the scheduler.
+       */
+      if (this.scheduled) {
+        await this.notifyAdmin([
+          `<b>🤑 Pika Withdrawal</b>`,
+          `<b>Account</b>: ${this.formatAccountLink(this.getUserId())}`,
+          `<b>Initial Balance</b>: ${balance.toString()}`,
+          `<b>Requested</b>: ${amount.toString()}`,
+          `<b>Fee</b>: ${fee}`,
+          `<b>New Balance</b>: ${this.user_data?.user?.pool_balance}`,
+        ]);
+      }
+
+      return {
+        status: true,
+        skipped: false,
+        message: "Withdrawal requested!",
+        amount: amount.toString(),
+      };
+    } catch (error) {
+      const message = this.getErrorMessage(error);
+      this.logger.error("Failed to request withdrawal:", message);
+
+      return { status: false, skipped: false, message, amount: "0" };
+    }
+  }
+
+  /** Request a withdrawal, prompting for the amount */
+  async withdrawInteractive() {
     const me = this.user_data;
     const user = me?.user;
 
@@ -611,9 +762,8 @@ export default class PikaFarmer extends BaseFarmer {
     }
 
     /* Withdrawals are paid out of the pool balance */
-    const terms = me?.withdraw_terms || {};
     const pool = Number(user.pool_balance ?? 0);
-    const min = Number(terms.min ?? 0);
+    const min = this.getMinimumWithdrawal();
 
     this.logger.keyValue("Pool Balance", pool.toFixed(4));
     if (min) {
@@ -638,24 +788,53 @@ export default class PikaFarmer extends BaseFarmer {
       return;
     }
 
-    /* Mirrors the app's preview: ceil(amount * fee_rate), clamped to [1, fee_max] */
-    const feeMax = Number(terms.fee_max ?? terms.fee ?? Infinity);
-    const fee = Math.max(
-      1,
-      Math.min(feeMax, Math.ceil(amount * Number(terms.fee_rate ?? 0.1))),
-    );
-    this.logger.info(
-      `Fee ${fee} PIKA - you receive ${(amount - fee).toFixed(4)} PIKA`,
-    );
+    await this.sendWithdrawal(amount);
+  }
 
-    const result = await this.requestWithdraw({
-      amount,
-      ton_address: user.ton_address,
-    });
+  /* --------------------------------------------------------------------- */
+  /* Auto adapter                                                          */
+  /* --------------------------------------------------------------------- */
 
-    this.debugger.log("Withdraw result:", result);
+  /**
+   * Link a TON wallet address.
+   *
+   * `setTonAddress` takes the raw address — no key or TON Connect proof is
+   * needed — and re-calling it with the address already on file is what makes
+   * the backend re-read the wallet's PIKA holding after a boost.
+   */
+  async connectAutoWallet({ address }) {
+    try {
+      const result = await this.setTonAddress(address);
+      this.debugger.log("Set TON address result:", result);
 
-    this.logger.success("Withdrawal requested!");
+      this.user_data = await this.getMe();
+
+      return { status: true, summary: this.getAutoSummary() };
+    } catch (error) {
+      return { status: false, message: this.getErrorMessage(error) };
+    }
+  }
+
+  /** Claim pending PIKA so the summary reflects the current pool balance */
+  async refreshAutoState() {
+    await this.claimMining();
     this.user_data = await this.getMe();
+  }
+
+  /** Normalized account snapshot */
+  getAutoSummary() {
+    const me = this.user_data;
+    const user = me?.user || {};
+
+    return {
+      level: me?.miner?.level ?? user.current_miner_level ?? 1,
+      holding: me?.holding_balance ?? 0,
+      balance: user.pool_balance ?? 0,
+      minWithdrawal: this.getMinimumWithdrawal(),
+      wallet: user.ton_address ? { address: user.ton_address } : null,
+      banned: Boolean(user.banned),
+      banReason: user.ban_reason,
+      risk: { score: null, updatedAt: null, flags: [] },
+    };
   }
 }

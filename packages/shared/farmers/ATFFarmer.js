@@ -10,7 +10,12 @@ import {
 import BaseFarmer from "../lib/BaseFarmer.js";
 import Decimal from "decimal.js";
 
-const MINIMUM_WITHDRAWABLE_AMOUNT = 500;
+/**
+ * Safety margin above the drop's minimum required by unattended runs, so a
+ * scheduled farmer does not withdraw the instant it crosses the minimum.
+ * Cloud batch withdrawals pass `force: true` to bypass it.
+ */
+const WITHDRAWAL_BUFFER = 200;
 
 export default class ATFFarmer extends BaseFarmer {
   static id = "atf";
@@ -34,6 +39,15 @@ export default class ATFFarmer extends BaseFarmer {
     ],
   };
 
+  static auto = {
+    id: "atf-auto",
+    title: "ATF Auto",
+    token: "ATF",
+    jettonAddress: "EQANcW45W0Tp91bzvHayaPO6-6hf1Lm4XlWZ4rN6L5ofPWdb",
+    storagePrefix: "atf-auto",
+    minWithdrawal: 500,
+  };
+
   /** Get Referral Link */
   getReferralLink() {
     return `https://t.me/ATF_AIRDROP_bot?start=${this.getUserId()}`;
@@ -46,20 +60,6 @@ export default class ATFFarmer extends BaseFarmer {
     }
 
     return this.deviceId;
-  }
-
-  /** Make request ID */
-  makeRequestId() {
-    return this.utils.uuid();
-  }
-
-  /** Determine if the request should be retried */
-  shouldRetryRequest(error) {
-    const retryAfter = error.response?.data?.retry_after;
-    if (retryAfter) {
-      return true;
-    }
-    return false;
   }
 
   /** Configure API */
@@ -403,11 +403,6 @@ export default class ATFFarmer extends BaseFarmer {
     };
   }
 
-  /** Format account link */
-  formatAccountLink(id) {
-    return `<a href="tg://user?id=${id}">${id}</a>`;
-  }
-
   /** Log Wallet */
   logWallet(version, publicKey, address, rawAddress) {
     /** Convert version to uppercase */
@@ -650,9 +645,10 @@ export default class ATFFarmer extends BaseFarmer {
       };
     }
 
+    const minimum = this.getMinimumWithdrawal();
     const REQUIRED_WITHDRAWABLE_AMOUNT = force
-      ? MINIMUM_WITHDRAWABLE_AMOUNT
-      : MINIMUM_WITHDRAWABLE_AMOUNT + 200;
+      ? minimum
+      : minimum + WITHDRAWAL_BUFFER;
 
     if (balance.lessThan(REQUIRED_WITHDRAWABLE_AMOUNT)) {
       this.logger.error("Not enough balance:", balance.toString());
@@ -686,7 +682,7 @@ export default class ATFFarmer extends BaseFarmer {
     }
 
     /** Reset amount to minimum */
-    amount = Decimal.max(amount, MINIMUM_WITHDRAWABLE_AMOUNT).floor();
+    amount = Decimal.max(amount, minimum).floor();
 
     /** Get challenge */
     const challenge = await this.getWithdrawalPuzzle();
@@ -1053,6 +1049,60 @@ export default class ATFFarmer extends BaseFarmer {
 
     this.logger.newline();
     this.logWallet(version, publicKey, address, rawAddress);
+  }
+
+  /* --------------------------------------------------------------------- */
+  /* Auto adapter                                                          */
+  /* --------------------------------------------------------------------- */
+
+  /** Connect a TON wallet and let the backend re-read its ATF holding */
+  async connectAutoWallet({ phrase, version }) {
+    try {
+      const keyPair = await this.getKeyPair(phrase);
+      const { status, message } = await this.connectAndSyncWallet(
+        keyPair,
+        `v${version}`,
+      );
+
+      if (!status) {
+        return { status: false, message };
+      }
+
+      return { status: true, summary: this.getAutoSummary() };
+    } catch (error) {
+      return { status: false, message: error.message || "Unknown error" };
+    }
+  }
+
+  /** Claim pending mining so the summary reflects the current balance */
+  async refreshAutoState() {
+    return this.startOrClaimMining();
+  }
+
+  /** Normalized account snapshot */
+  getAutoSummary() {
+    const user = this.getUserDetails();
+    const flags = (user["risk_flags"] || "").trim().split("|").filter(Boolean);
+    const wallet = user["wallet_public_key"]
+      ? this.getUserWallet(user)
+      : null;
+
+    return {
+      level: user["miner_level"],
+      holding: user["wallet_holding_atf"],
+      balance: user["mined_balance"],
+      minWithdrawal: this.getMinimumWithdrawal(),
+      wallet: wallet
+        ? { address: wallet.address, version: wallet.version }
+        : null,
+      banned: Boolean(user["is_banned"]),
+      banReason: user["banned_reason"],
+      risk: {
+        score: user["risk_score"],
+        updatedAt: user["risk_updated_at"],
+        flags,
+      },
+    };
   }
 
   async estimateDailyMining() {

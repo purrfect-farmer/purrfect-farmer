@@ -1,0 +1,69 @@
+import { downloadFile } from "@/utils";
+import useAuto from "./useAuto";
+import useAutoMaster from "./useAutoMaster";
+import useCloudQueryOptions from "./useCloudQueryOptions";
+import { useMutation } from "@tanstack/react-query";
+
+export default function useAutoSweepMutation() {
+  const { auth, cloudBackend } = useCloudQueryOptions();
+  const { config, accounts, dispatchAndStoreAccounts } = useAuto();
+  const { decryptPhrase } = useAutoMaster();
+
+  return useMutation({
+    mutationKey: [config.id, "sweep"],
+    mutationFn: async () => {
+      /** Get User ID of active farmers */
+      const activeIds = await cloudBackend
+        .post(`/api/auto/${config.id}/get-active-list`, { auth })
+        .then((res) => res.data);
+
+      /** Get accounts to sweep */
+      const accountsToSweep = accounts.filter(
+        (item) => !activeIds.includes(Number(item.userId)),
+      );
+
+      const unknownIds = activeIds.filter(
+        (item) => !accounts.some((account) => item === Number(account.userId)),
+      );
+
+      console.log("Unknown IDs:", unknownIds);
+      console.log("Accounts to sweep:", accountsToSweep);
+
+      /** Return when there are not accounts to sweep */
+      if (!accountsToSweep.length) return;
+
+      /** Initialize backups array */
+      const backups = [];
+
+      for (const account of accountsToSweep) {
+        /** Decrypt phrase */
+        const phrase = await decryptPhrase(account.encryptedPhrase);
+
+        /** Remove encryptedPhrase */
+        delete account.encryptedPhrase;
+
+        /** Push backup */
+        backups.push({
+          ...account,
+          phrase,
+        });
+      }
+
+      /** Download backup file immediately */
+      downloadFile(`${config.id}-accounts-sweep-backup-${Date.now()}.json`, {
+        accounts: backups,
+      });
+
+      /** Extract IDs to sweep */
+      const idsToSweep = accountsToSweep.map((item) => item.id);
+
+      /** Filter accounts */
+      const updatedAccounts = accounts.filter(
+        (item) => !idsToSweep.includes(item.id),
+      );
+
+      /** Store accounts */
+      dispatchAndStoreAccounts(updatedAccounts);
+    },
+  });
+}
