@@ -477,21 +477,25 @@ class BaseAuto {
       this.prepared,
     );
 
-    /** Boost */
+    /** Boost — skipped when the master has nothing to send */
     logger.info("Boosting account:", cloudAccount.id, account.address);
-    const { jettonAmount } = await booster.boost({
+    const { jettonAmount, skipped } = await booster.boost({
       difference: this.difference,
     });
 
     /** Log boost completion */
     logger.success(
-      "Successfully boosted account:",
+      skipped
+        ? "Nothing to boost account with:"
+        : "Successfully boosted account:",
       cloudAccount.id,
       account.address,
     );
 
-    /** Delay for 10s */
-    await this.utils.delayForSeconds(10);
+    /** Give the transfer time to land. Nothing is in flight when skipped */
+    if (!skipped) {
+      await this.utils.delayForSeconds(10);
+    }
 
     /** Connect Wallet */
     const { status, message, summary } = await this.connectWallet({
@@ -500,17 +504,32 @@ class BaseAuto {
     });
 
     /** Send Boost Notification */
+    const link = this.formatAccountLink(cloudAccount.id);
+    const position = this.formatAccountPosition(index);
+    const action = skipped ? "connect" : "boost";
+
     await this.sendNotification([
       status
-        ? `⚡ Boosted <b>(${this.formatAccountLink(cloudAccount.id)})</b> with <i>${summary.holding} ${this.token}</i> ${this.formatAccountPosition(index)}`
-        : `❌ Failed to boost <b>(${this.formatAccountLink(cloudAccount.id)})</b> with <i>${jettonAmount} ${this.token}</i> ${this.formatAccountPosition(index)}\n<i>Error: ${message || "Unknown error!"}</i>`,
+        ? skipped
+          ? `🔗 Connected <b>(${link})</b> holding <i>${summary.holding} ${this.token}</i> — no ${this.token} in master to boost with ${position}`
+          : `⚡ Boosted <b>(${link})</b> with <i>${summary.holding} ${this.token}</i> ${position}`
+        : `❌ Failed to ${action} <b>(${link})</b>${skipped ? "" : ` with <i>${jettonAmount} ${this.token}</i>`} ${position}\n<i>Error: ${message || "Unknown error!"}</i>`,
     ]);
 
     /** Delay for 5s */
     await this.utils.delayForSeconds(5);
 
-    /** Apply mode */
-    await this.applyMode(account, phrase, booster);
+    /**
+     * Apply mode.
+     *
+     * Rolling exists to daisy-chain the tokens onward, so with none to send it
+     * would only shuffle the master's TON through every account for gas.
+     * Collecting still runs — it guards itself, and may recover jettons an
+     * earlier run left behind.
+     */
+    if (!skipped || this.mode !== "roll") {
+      await this.applyMode(account, phrase, booster);
+    }
 
     /** Delay for minutes */
     if (!this.isLastAccount(index)) {
@@ -593,9 +612,15 @@ class BaseAuto {
         /** Prepare initial master data */
         await this.prepareInitialMasterData();
 
-        /** Check jetton balance */
+        /**
+         * An empty master is not a reason to abandon the run. Connecting each
+         * wallet is what registers the account with the drop and refreshes its
+         * holding, and that is worth doing with or without tokens to send.
+         */
         if (this.prepared.jettonBalance.lessThanOrEqualTo(0)) {
-          throw new Error(`Master has no ${this.token} tokens`);
+          await this.sendNotification([
+            `<i>🟡 ${this.title} - Master has no ${this.token}. Connecting wallets without boosting...</i>`,
+          ]);
         }
 
         /** Loop through accounts and boost */

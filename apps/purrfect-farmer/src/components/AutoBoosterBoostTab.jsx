@@ -28,7 +28,7 @@ export default function AutoBoosterBoostTab({ account }) {
             {mutation.data.status
               ? "Boost completed!"
               : mutation.data.skipped
-                ? "Skipped — holding already sufficient."
+                ? `Skipped — master has no ${config.token} to send.`
                 : `Failed: ${mutation.data.error?.message || "Unknown error"}`}
           </Alert>
           <PrimaryButton type="button" onClick={() => mutation.reset()}>

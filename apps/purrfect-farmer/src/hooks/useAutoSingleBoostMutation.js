@@ -31,10 +31,6 @@ export default function useAutoSingleBoostMutation() {
       const { masterData, prepared } = await prepare();
       console.log("Successfully prepared master wallet");
 
-      if (prepared.jettonBalance <= 0) {
-        throw new Error("Master has no jetton balance");
-      }
-
       const booster = new AutoBooster(
         masterData,
         { ...account, phrase: accountPhrase },

@@ -176,6 +176,24 @@ export default class BaseBooster {
   async boost({ difference }) {
     try {
       const balance = new Decimal(this.prepared.jettonBalance);
+
+      /**
+       * Nothing in the master to send.
+       *
+       * Reported as a skip rather than a failure: the caller still has work
+       * worth doing — connecting the wallet is what registers the account with
+       * the drop — and firing a zero-amount transfer would only burn gas.
+       */
+      if (balance.lessThanOrEqualTo(0)) {
+        return {
+          status: false,
+          skipped: true,
+          account: this.account,
+          jettonAmount: new Decimal(0),
+          error: null,
+        };
+      }
+
       const minPercent = new Decimal(100).minus(difference);
       const randomPercent = minPercent.plus(
         new Decimal(Decimal.random()).mul(difference),
@@ -186,13 +204,30 @@ export default class BaseBooster {
         balance.mul(randomPercent).div(100),
       ).toDecimalPlaces(4, Decimal.ROUND_DOWN);
 
-      /** Send Jetton from master */
-      this.sendJettonFromMaster(jettonAmount);
+      /**
+       * Deliberately not awaited — callers overlap their own delay with the
+       * transfer — so the rejection has to be caught here to stay handled.
+       */
+      this.sendJettonFromMaster(jettonAmount).catch((error) => {
+        console.log("Error while sending jetton from master", error);
+      });
 
-      return { status: true, account: this.account, jettonAmount };
+      return {
+        status: true,
+        skipped: false,
+        account: this.account,
+        jettonAmount,
+        error: null,
+      };
     } catch (error) {
       console.log("Error while boosting account", error);
-      return { status: false, account: this.account, error };
+      return {
+        status: false,
+        skipped: false,
+        account: this.account,
+        jettonAmount: new Decimal(0),
+        error,
+      };
     }
   }
 
