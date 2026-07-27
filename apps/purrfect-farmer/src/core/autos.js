@@ -65,6 +65,20 @@ const autosMap = autos.reduce((result, auto) => {
   return result;
 }, new Map());
 
+/**
+ * The storage keys holding a drop's wallets.
+ *
+ * `Auto` reads them through `useSharedStorageState`; the import flow reads
+ * another drop's through `storage` directly, so the derivation lives here
+ * rather than inline in either.
+ */
+export function autoStateKeys(config) {
+  return {
+    master: `${config.storagePrefix}-master`,
+    accounts: `${config.storagePrefix}-accounts`,
+  };
+}
+
 customLogger("AUTOS", autos);
 
 export default autos;

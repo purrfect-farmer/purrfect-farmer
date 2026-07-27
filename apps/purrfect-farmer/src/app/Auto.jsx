@@ -2,8 +2,10 @@ import AutoContext from "@/contexts/AutoContext";
 import AutoLogin from "@/components/AutoLogin";
 import AutoMasterSetup from "@/components/AutoMasterSetup";
 import AutoPanel from "@/components/AutoPanel";
+import { autoStateKeys } from "@/core/autos";
 import useMirroredCallback from "@/hooks/useMirroredCallback";
 import useSharedStorageState from "@/hooks/useSharedStorageState";
+import { useMemo } from "react";
 import { useState } from "react";
 
 /**
@@ -20,13 +22,15 @@ import { useState } from "react";
 export default function Auto({ config }) {
   const [enableRequests, setEnableRequests] = useState(true);
   const [password, setPassword] = useState(null);
+  const keys = useMemo(() => autoStateKeys(config), [config]);
+
   const { value: master, storeValue: storeMaster } = useSharedStorageState(
-    `${config.storagePrefix}-master`,
+    keys.master,
     null,
   );
 
   const { value: accounts, storeValue: storeAccounts } = useSharedStorageState(
-    `${config.storagePrefix}-accounts`,
+    keys.accounts,
     [],
   );
 

@@ -46,6 +46,7 @@ const AccountChooserItem = memo(function AccountChooserItem({
   checked,
   disabled,
   result,
+  showBalance,
   toggleAccount,
 }) {
   const initials = useMemo(() => getInitials(account.title), [account.title]);
@@ -89,18 +90,27 @@ const AccountChooserItem = memo(function AccountChooserItem({
             <AutoVersionBadge version={account.version} />
           </div>
         </div>
-        <AutoAccountBalance account={account} />
+        {showBalance ? <AutoAccountBalance account={account} /> : null}
       </div>
     </label>
   );
 });
 
+/**
+ * @param {boolean} [props.showBalance] - set false for accounts that aren't in
+ *   this drop yet (the import picker), where a per-row balance query would hit
+ *   the network for the wrong jetton.
+ * @param {boolean} [props.autoFocusSearch] - set false when the chooser shares a
+ *   view with other choosers or fields that should hold focus first.
+ */
 export default function AutoAccountsChooser({
   accounts,
   disabled,
   allSelected,
   selectedAccounts,
   results,
+  showBalance = true,
+  autoFocusSearch = true,
   toggleAccount,
   toggleAllAccounts,
 }) {
@@ -137,7 +147,7 @@ export default function AutoAccountsChooser({
 
       {/* Search */}
       <Input
-        autoFocus
+        autoFocus={autoFocusSearch}
         type="search"
         placeholder="Search accounts..."
         value={search}
@@ -157,6 +167,7 @@ export default function AutoAccountsChooser({
                 : undefined
             }
             toggleAccount={toggleAccount}
+            showBalance={showBalance}
             disabled={disabled}
           />
         ))}

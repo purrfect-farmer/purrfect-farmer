@@ -6,12 +6,13 @@ import {
 import { MdCancel, MdCheckCircle, MdOutlineDoubleArrow } from "react-icons/md";
 
 import { AutoMasterCardButton } from "./AutoMasterCardButton";
+import AutoImportExportDialog from "./AutoImportExportDialog";
 import AutoRotationDialog from "./AutoRotationDialog";
 import AutoSettingsDialog from "./AutoSettingsDialog";
 import AutoTransferDialog from "./AutoTransferDialog";
 import { Dialog } from "radix-ui";
 import { HiCog6Tooth } from "react-icons/hi2";
-import { LuMerge } from "react-icons/lu";
+import { LuArrowDownUp, LuMerge } from "react-icons/lu";
 import { PiBroom } from "react-icons/pi";
 import { cn } from "@/utils";
 import toast from "react-hot-toast";
@@ -22,6 +23,7 @@ import useAutoCloudCollectionMutation from "@/hooks/useAutoCloudCollectionMutati
 import useAutoCloudStatusMutation from "@/hooks/useAutoCloudStatusMutation";
 import useAutoCloudWithdrawalMutation from "@/hooks/useAutoCloudWithdrawalMutation";
 import useAutoSweepMutation from "@/hooks/useAutoSweepMutation";
+import { useState } from "react";
 
 function ActionsGroup(props) {
   return (
@@ -37,6 +39,7 @@ function ActionsGroup(props) {
 
 export function AutoMasterCardActions() {
   const { password, master, accounts } = useAuto();
+  const [importOpen, setImportOpen] = useState(false);
 
   const boostMutation = useAutoCloudBoostMutation();
   const withdrawMutation = useAutoCloudWithdrawalMutation();
@@ -206,7 +209,21 @@ export function AutoMasterCardActions() {
           <AutoTransferDialog />
         </Dialog.Root>
 
-        {/* Rotate */}
+        {/* Import / Export */}
+        <Dialog.Root open={importOpen} onOpenChange={setImportOpen}>
+          <Dialog.Trigger asChild>
+            <AutoMasterCardButton
+              title="Import / Export wallets"
+              icon={LuArrowDownUp}
+            >
+              Import
+            </AutoMasterCardButton>
+          </Dialog.Trigger>
+
+          <AutoImportExportDialog onImported={() => setImportOpen(false)} />
+        </Dialog.Root>
+
+        {/* Settings */}
         <Dialog.Root>
           <Dialog.Trigger asChild>
             <AutoMasterCardButton title="Settings" icon={HiCog6Tooth}>

@@ -1,10 +1,13 @@
 import { Controller, FormProvider, useForm } from "react-hook-form";
 
 import AutoHeader from "./AutoHeader";
+import AutoImportDialog from "./AutoImportDialog";
 import Alert from "./Alert";
 import Container from "./Container";
+import { Dialog } from "radix-ui";
 import FieldStateError from "./FieldStateError";
 import Input from "./Input";
+import { LuArrowDownUp } from "react-icons/lu";
 import { MdOutlineAutorenew } from "react-icons/md";
 import PrimaryButton from "./PrimaryButton";
 import Select from "./Select";
@@ -107,6 +110,22 @@ export default function AutoMasterSetup() {
           <PrimaryButton onClick={() => setShowForm(true)}>
             Get Started
           </PrimaryButton>
+
+          {/* Reuse the wallets already set up in another Auto */}
+          <Dialog.Root>
+            <Dialog.Trigger
+              className={cn(
+                "text-blue-500 dark:text-blue-400",
+                "cursor-pointer hover:underline",
+                "flex items-center justify-center gap-1",
+              )}
+            >
+              <LuArrowDownUp className="size-3" />
+              Import from another Auto
+            </Dialog.Trigger>
+
+            <AutoImportDialog />
+          </Dialog.Root>
         </>
       ) : (
         <>
