@@ -3,6 +3,7 @@ import { encryption } from "@/services/encryption";
 import { mergeAccounts } from "@/lib/autoTransfer";
 import useAuto from "./useAuto";
 import useAutoProgress from "./useAutoProgress";
+import useAutoStateBackup from "./useAutoStateBackup";
 import { useMutation } from "@tanstack/react-query";
 
 /**
@@ -19,6 +20,9 @@ import { useMutation } from "@tanstack/react-query";
  *
  * Otherwise every phrase is decrypted with the source password and re-encrypted
  * with the destination's, reporting progress the way `AutoSettingsDialog` does.
+ *
+ * Whatever the path, the wallets already here are downloaded first — an import
+ * can overwrite them and `replace` drops them outright.
  */
 export default function useAutoImportMutation() {
   const {
@@ -30,6 +34,8 @@ export default function useAutoImportMutation() {
     dispatchAndStoreAccounts,
     dispatchAndSetPassword,
   } = useAuto();
+
+  const { downloadStateBackup, backupSteps } = useAutoStateBackup();
 
   const progress = useAutoProgress();
   const { setTarget, resetProgress, incrementProgress } = progress;
@@ -89,7 +95,13 @@ export default function useAutoImportMutation() {
       const destinationPassword = bootstrap ? sourcePassword : password;
       const reencrypt = destinationPassword !== sourcePassword;
 
-      setTarget(selected.length + (withMaster ? 1 : 0));
+      setTarget(backupSteps + selected.length + (withMaster ? 1 : 0));
+
+      /**
+       * Snapshot before anything is rewritten. A bootstrapping drop has no
+       * wallets of its own yet, and `downloadStateBackup` no-ops there.
+       */
+      await downloadStateBackup("import", incrementProgress);
 
       /** Master */
       let importedMaster = null;

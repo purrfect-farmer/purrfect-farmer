@@ -117,6 +117,14 @@ export default function AutoImportForm({ onImported }) {
         wallet will clash and drop transactions.
       </Alert>
 
+      {!bootstrap && (
+        <Alert variant="warning">
+          A backup of {config.title}'s current wallets downloads first, with the
+          phrases in plain text. Keep it somewhere safe — anyone holding it can
+          spend from every wallet.
+        </Alert>
+      )}
+
       {/* Source */}
       <Label>Import from</Label>
       <Select
