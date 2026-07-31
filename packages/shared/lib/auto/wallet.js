@@ -39,7 +39,9 @@ export async function getJettonInfo(jettonAddress, ownerAddress, options) {
     console.log("Failed to fetch balance", e);
   });
 
-  const decimals = Number(res?.data?.jetton?.metadata?.decimals || 9);
+  /* TonAPI puts `decimals` on the jetton preview; older shapes nested it */
+  const jetton = res?.data?.jetton;
+  const decimals = Number(jetton?.decimals ?? jetton?.metadata?.decimals ?? 9);
   const balance = res?.data?.balance
     ? new Decimal(res?.data?.balance).div(new Decimal(10).pow(decimals))
     : new Decimal(0);

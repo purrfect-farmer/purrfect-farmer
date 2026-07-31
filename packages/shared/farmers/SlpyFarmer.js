@@ -1,7 +1,6 @@
 import BaseFarmer from "../lib/BaseFarmer.js";
 import Decimal from "decimal.js";
 import { Address } from "@ton/core";
-import { getJettonBalance } from "../lib/auto/wallet.js";
 
 /**
  * Safety margin above the drop's minimum required by unattended runs, so a
@@ -25,10 +24,18 @@ const FREE_MINER_SPEED = 1.5;
 /** Reward for the two hardcoded Telegram tasks the app ships with. */
 const STATIC_TASK_REWARD = 5;
 
-/** Gates the drop enforces on every withdrawal, on top of the minimum. */
+/**
+ * Gates the drop enforces on every withdrawal, on top of the minimum.
+ *
+ * Holding and ads are alternatives, not both: an account that holds the
+ * required SLPY on-chain withdraws directly, and one that does not unlocks
+ * withdrawal by watching the day's quota of ads instead.
+ */
 const WITHDRAWAL_MIN_HOLDING = 1000;
-const WITHDRAWAL_MIN_ADS = 5;
-const WITHDRAWAL_MIN_TASKS = 5;
+const WITHDRAWAL_MIN_ADS = 50;
+
+/** The server's own daily ad cap - nothing is credited past it. */
+const ADS_DAILY_LIMIT = 500;
 
 /**
  * Holding tiers, indexed by level (0..100). `reward` is SLPY per day.
@@ -139,6 +146,19 @@ const LEVEL_DATA = [
 ];
 
 /**
+ * Invite milestones, hardcoded in the app's markup like the Telegram tasks.
+ * They are credited through `complete_task` once the account has the required
+ * number of *active* referrals - ones holding at least the mining minimum.
+ */
+const INVITE_MILESTONES = [
+  { key: "inv_5", required: 5, reward: 150 },
+  { key: "inv_10", required: 10, reward: 250 },
+  { key: "inv_25", required: 25, reward: 500 },
+  { key: "inv_50", required: 50, reward: 1500 },
+  { key: "inv_100", required: 100, reward: 5000 },
+];
+
+/**
  * The two Telegram tasks the app hardcodes in its markup rather than serving
  * from `official_tasks`. They share the 24h reset of the table-driven ones.
  */
@@ -181,8 +201,9 @@ export default class SlpyFarmer extends BaseFarmer {
 
   /**
    * Ads are credited without any proof of playback, capped at 500/day by the
-   * server. Each run takes a slice of that rather than draining it, and 5 of
-   * them per day is also what unlocks withdrawal.
+   * server. Each run takes a slice of that rather than draining it - accounts
+   * short of the holding requirement watch enough to unlock withdrawal, which
+   * takes precedence over this baseline.
    */
   static adsPerRun = 5;
 
@@ -359,6 +380,26 @@ export default class SlpyFarmer extends BaseFarmer {
   /** Pay this account's referrer their activation bonus */
   creditReferralBonus() {
     return this.rpc("credit_referral_bonus", { uid: this.getUid() });
+  }
+
+  /** The running giveaway campaign, this account's entry and the leaderboard */
+  getGiveawayState(uid = this.getUid()) {
+    return this.rpc("giveaway_get_state", { uid });
+  }
+
+  /** Re-read the wallet's on-chain holding for the giveaway's own counter */
+  verifyGiveawayWallet(address) {
+    return this.rpc("giveaway_verify_wallet", { uid: this.getUid(), address });
+  }
+
+  /** Credit a watched ad towards the giveaway's ad requirement */
+  watchGiveawayAd() {
+    return this.rpc("giveaway_watch_ad", { uid: this.getUid() });
+  }
+
+  /** Give the referrer a giveaway ticket for this activated referral */
+  creditGiveawayReferralTicket(uid) {
+    return this.rpc("giveaway_referral_ticket", { uid });
   }
 
   /** Request a withdrawal */
@@ -593,14 +634,43 @@ export default class SlpyFarmer extends BaseFarmer {
   }
 
   /**
+   * How many ads this run should credit.
+   *
+   * An account holding enough SLPY on-chain withdraws without watching
+   * anything, so it only takes the baseline slice. One that does not has to
+   * reach the day's ad quota before it can withdraw at all, so it watches
+   * whatever is still missing.
+   */
+  getAdsTargetForRun() {
+    const baseline = this.constructor.adsPerRun;
+    const watchedToday = this.getAdsWatchedToday();
+    const holding = Number(this.user_data?.["wallet_holding"] || 0);
+
+    const target =
+      holding >= WITHDRAWAL_MIN_HOLDING
+        ? baseline
+        : Math.max(baseline, WITHDRAWAL_MIN_ADS - watchedToday);
+
+    /* Never queue more than the server would credit today */
+    return Math.max(0, Math.min(target, ADS_DAILY_LIMIT - watchedToday));
+  }
+
+  /**
    * Credit ads.
    *
    * The reward is granted server-side with no proof of playback, so this is
-   * just a paced loop. Five a day is also one of the withdrawal requirements.
+   * just a paced loop.
    */
   async watchAds() {
-    const limit = this.constructor.adsPerRun;
+    const limit = this.getAdsTargetForRun();
     let watched = 0;
+
+    if (!limit) {
+      this.logger.info(
+        `Daily ad limit reached - ${this.getAdsWatchedToday()} watched today.`,
+      );
+      return;
+    }
 
     for (let i = 0; i < limit; i++) {
       if (this.signal.aborted) break;
@@ -784,6 +854,16 @@ export default class SlpyFarmer extends BaseFarmer {
     if (result?.success) {
       this.user_data["referral_rewarded"] = true;
       this.logger.success(`Referrer credited ${result.credited} SLPY!`);
+
+      /**
+       * An activated referral is also worth a giveaway ticket to the inviter
+       * while a campaign is running - a no-op otherwise.
+       */
+      try {
+        await this.creditGiveawayReferralTicket(referrer);
+      } catch (error) {
+        this.debugger.log("Giveaway referral ticket failed:", error.message);
+      }
     } else {
       this.logger.info("Referral bonus not credited yet.");
     }
@@ -797,10 +877,48 @@ export default class SlpyFarmer extends BaseFarmer {
       (referral) => Number(referral["wallet_holding"] || 0) >= minimum,
     );
 
+    /* Kept for the milestone tasks, which are paid on active referrals only */
+    this.activeReferrals = active.length;
+
     this.logger.keyValue("Referrals", referrals.length);
     this.logger.keyValue("Active Referrals", active.length, {
       valueStyle: this.logger.c.greenBright,
     });
+  }
+
+  /**
+   * Credit the invite milestones this account has earned.
+   *
+   * The app gates them on the active referral count it has on screen and the
+   * server re-checks nothing else, so the count is what decides here too.
+   */
+  async claimInviteMilestones() {
+    const active = Number(this.activeReferrals || 0);
+    const completed = this.user_data?.tasks || {};
+
+    const pending = INVITE_MILESTONES.filter(
+      (milestone) =>
+        active >= milestone.required &&
+        !this.isOfficialTaskDone(completed[milestone.key]),
+    );
+
+    if (!pending.length) {
+      this.logger.info("No invite milestones to claim.");
+      return;
+    }
+
+    for (const milestone of pending) {
+      if (this.signal.aborted) break;
+
+      await this.creditTask(
+        {
+          type: milestone.key,
+          title: `Invite ${milestone.required} active friends`,
+          reward: milestone.reward,
+        },
+        (key, reward) => this.completeTask(key, reward),
+      );
+    }
   }
 
   /* --------------------------------------------------------------------- */
@@ -819,24 +937,18 @@ export default class SlpyFarmer extends BaseFarmer {
     return Address.parse(address).toRawString();
   }
 
-  /** Read the wallet's on-chain SLPY and store it as the mining holding */
-  async syncWalletHolding(address) {
-    const holding = await getJettonBalance(
-      this.constructor.auto.jettonAddress,
-      address,
-    );
-
-    const value = holding.toNumber();
-
-    await this.updateUserRow({
-      ["wallet_holding"]: value,
-      ["last_sync_time"]: Date.now(),
-    });
-
-    this.user_data["wallet_holding"] = value;
-    this.user_data["last_sync_time"] = Date.now();
-
-    return value;
+  /**
+   * The user-friendly `UQ...` form of a stored address, for logging only.
+   *
+   * Non-bounceable, which is what wallets show for an ordinary account. Falls
+   * back to the raw string if the stored value cannot be parsed.
+   */
+  formatAddress(address) {
+    try {
+      return Address.parse(address).toString({ bounceable: false });
+    } catch {
+      return address;
+    }
   }
 
   /** Bind a wallet and refresh the drop's view of what it holds */
@@ -857,13 +969,124 @@ export default class SlpyFarmer extends BaseFarmer {
     this.user_data["wallet_address"] = normalized;
 
     /**
-     * Mining accrues from `wallet_holding` in the database, not from the chain,
-     * so the balance has to be pushed back after every bind — this is also what
-     * makes an Auto boost show up as a higher mining rate.
+     * Mining accrues from `wallet_holding`, which only the server writes — it
+     * re-reads the chain on the bind. The row is re-read rather than patched so
+     * an Auto boost shows up as the higher mining rate the server credited.
      */
-    const holding = await this.syncWalletHolding(normalized);
+    await this.refreshUserRow();
+    const holding = Number(this.user_data?.["wallet_holding"] || 0);
+
+    /**
+     * The giveaway keeps its own verified-holding column that the wallet bind
+     * does not touch, so it is re-read here too. It is best-effort: no campaign
+     * running is not a reason to fail the connection.
+     */
+    try {
+      const entry = await this.verifyGiveawayWallet(normalized);
+      this.debugger.log("Giveaway wallet verification:", entry);
+    } catch (error) {
+      this.debugger.log("Giveaway verification failed:", error.message);
+    }
 
     return { address: normalized, holding };
+  }
+
+  /* --------------------------------------------------------------------- */
+  /* Giveaway                                                              */
+  /*                                                                       */
+  /* A campaign hands out tickets for holding, active referrals, ads and    */
+  /* tasks. Only the ads and the holding check are something a run can act  */
+  /* on - the rest is a side effect of the account's ordinary progress.     */
+  /* --------------------------------------------------------------------- */
+
+  /** Watch the giveaway's ad quota and report where the entry stands */
+  async enterGiveaway() {
+    const state = await this.getGiveawayState();
+    this.debugger.log("Giveaway state:", state);
+
+    const campaign = state?.campaign;
+
+    if (!campaign?.["is_active"]) {
+      this.logger.info(
+        campaign?.["draw_completed"]
+          ? "Giveaway has been drawn."
+          : "No giveaway running.",
+      );
+      return;
+    }
+
+    this.logger.info(`${campaign.title} is live.`);
+
+    let entry = state?.entry;
+
+    /* The giveaway verifies the holding itself rather than reusing the bind */
+    const address = this.user_data?.["wallet_address"];
+
+    if (address) {
+      entry = (await this.verifyGiveawayWallet(address)) || entry;
+      this.debugger.log("Giveaway entry after verification:", entry);
+    }
+
+    const required = Number(campaign["required_ads"] || 0);
+    let watched = Number(entry?.["ads_watched"] || 0);
+
+    for (let i = watched; i < required; i++) {
+      if (this.signal.aborted) break;
+
+      const result = await this.watchGiveawayAd();
+      this.debugger.log("Giveaway ad:", result);
+
+      const credited = Number(result?.["ads_watched"] ?? watched);
+
+      /* Stop rather than spin when the server stops counting them */
+      if (!result || credited <= watched) {
+        this.logger.warn("Giveaway ad not credited - stopping.");
+        break;
+      }
+
+      entry = result;
+      watched = credited;
+
+      await this.utils.delayForSeconds(10, { signal: this.signal });
+    }
+
+    this.logGiveawayEntry(campaign, entry);
+  }
+
+  /** Log the entry against what the campaign asks for */
+  logGiveawayEntry(campaign, entry) {
+    if (!entry) {
+      this.logger.info("No giveaway entry yet.");
+      return;
+    }
+
+    const met = entry["requirements_met"] || {};
+    const mark = (ok) => (ok ? "✅" : "❌");
+
+    this.logger.keyValue("Tickets", entry.tickets ?? 0, {
+      valueStyle: this.logger.c.greenBright,
+    });
+    this.logger.keyValue(
+      "Giveaway Holding",
+      `${entry["verified_holding"] ?? 0}/${campaign["min_holding"]} ${mark(met.holding)}`,
+    );
+    this.logger.keyValue(
+      "Giveaway Referrals",
+      `${entry["active_referrals"] ?? 0}/${campaign["required_referrals"]} ${mark(met.referrals)}`,
+    );
+    this.logger.keyValue(
+      "Giveaway Ads",
+      `${entry["ads_watched"] ?? 0}/${campaign["required_ads"]} ${mark(met.ads)}`,
+    );
+    this.logger.keyValue(
+      "Giveaway Tasks",
+      `${entry["tasks_completed"] ?? 0}/${campaign["required_tasks"]} ${mark(met.tasks)}`,
+    );
+    this.logger.keyValue(
+      "Eligible",
+      entry["is_eligible"] ? "Yes" : "Not yet",
+      entry["is_eligible"] ? { valueStyle: this.logger.c.greenBright } : {},
+    );
   }
 
   /* --------------------------------------------------------------------- */
@@ -891,23 +1114,20 @@ export default class SlpyFarmer extends BaseFarmer {
     const blockers = [];
     const holding = Number(this.user_data?.["wallet_holding"] || 0);
     const ads = this.getAdsWatchedToday();
-    const tasks = this.getTasksCompletedToday();
     const cooldown = this.getWithdrawalCooldownRemaining();
 
     if (!this.user_data?.["wallet_address"]) {
       blockers.push("No wallet linked");
     }
-    if (holding < WITHDRAWAL_MIN_HOLDING) {
+
+    /* Either unlock is enough - holding on-chain, or the day's ad quota */
+    if (holding < WITHDRAWAL_MIN_HOLDING && ads < WITHDRAWAL_MIN_ADS) {
       blockers.push(
-        `Holding ${holding}/${WITHDRAWAL_MIN_HOLDING} SLPY on-chain`,
+        `Holding ${holding}/${WITHDRAWAL_MIN_HOLDING} SLPY on-chain` +
+          ` and ads watched today ${ads}/${WITHDRAWAL_MIN_ADS}`,
       );
     }
-    if (ads < WITHDRAWAL_MIN_ADS) {
-      blockers.push(`Ads watched today ${ads}/${WITHDRAWAL_MIN_ADS}`);
-    }
-    if (tasks < WITHDRAWAL_MIN_TASKS) {
-      blockers.push(`Tasks completed today ${tasks}/${WITHDRAWAL_MIN_TASKS}`);
-    }
+
     if (cooldown > 0) {
       blockers.push(
         `Daily limit - next withdrawal in ${this.formatDuration(cooldown)}`,
@@ -959,7 +1179,12 @@ export default class SlpyFarmer extends BaseFarmer {
       case "cooldown":
         return `Daily limit - next withdrawal in ${this.formatDuration(result["ms_left"] || 0)}`;
       case "insufficient_holding":
-        return `On-chain holding ${result.holding} SLPY - ${result.required} required`;
+        return (
+          `On-chain holding ${result.holding} SLPY - ${result.required} required` +
+          (typeof result["ads_required"] !== "undefined"
+            ? `, or ${result["ads_watched"] || 0}/${result["ads_required"]} ads today`
+            : "")
+        );
       case "insufficient_balance":
         return `Insufficient balance - ${result.available} SLPY available`;
       case "min_amount":
@@ -1140,6 +1365,9 @@ export default class SlpyFarmer extends BaseFarmer {
     this.logger.keyValue("Address", normalized, {
       valueStyle: this.logger.c.whiteBright,
     });
+    this.logger.keyValue("Address (UQ)", this.formatAddress(normalized), {
+      valueStyle: this.logger.c.whiteBright,
+    });
     this.logger.keyValue("Holding", holding, {
       valueStyle: this.logger.c.greenBright,
     });
@@ -1147,6 +1375,9 @@ export default class SlpyFarmer extends BaseFarmer {
 
   /** Request a withdrawal, prompting for the amount */
   async withdrawInteractive() {
+    /* The gates are counted server-side, so decide on a fresh row */
+    await this.refreshUserRow();
+
     const blockers = this.getWithdrawalBlockers();
 
     if (blockers.length) {
@@ -1202,6 +1433,10 @@ export default class SlpyFarmer extends BaseFarmer {
     );
     await this.executeTask("Referral Bonus", () => this.claimReferralBonus());
     await this.executeTask("Friends", () => this.logReferrals());
+    await this.executeTask("Invite Milestones", () =>
+      this.claimInviteMilestones(),
+    );
+    await this.executeTask("Giveaway", () => this.enterGiveaway());
     await this.executeTask("Withdraw", () => this.withdraw());
   }
 
@@ -1236,6 +1471,11 @@ export default class SlpyFarmer extends BaseFarmer {
       this.logger.keyValue("Wallet", user["wallet_address"], {
         valueStyle: this.logger.c.whiteBright,
       });
+      this.logger.keyValue(
+        "Wallet (UQ)",
+        this.formatAddress(user["wallet_address"]),
+        { valueStyle: this.logger.c.whiteBright },
+      );
     }
   }
 
