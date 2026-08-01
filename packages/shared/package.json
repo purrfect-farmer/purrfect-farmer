@@ -11,6 +11,8 @@
     "@noble/ciphers": "^2.2.0",
     "@noble/hashes": "^2.2.0",
     "@scure/base": "^2.2.0",
+    "@ston-fi/api": "^0.32.0",
+    "@ston-fi/sdk": "^2.7.0",
     "@tanstack/react-start": "^1.168.32",
     "@tanstack/router-core": "^1.171.15",
     "@ton/core": "^0.63.1",

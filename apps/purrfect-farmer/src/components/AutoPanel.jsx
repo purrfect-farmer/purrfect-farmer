@@ -2,12 +2,13 @@ import AutoBoostTab from "./AutoBoostTab";
 import AutoCloudCollectTab from "./AutoCloudCollectTab";
 import AutoDashboardTab from "./AutoDashboardTab";
 import AutoStatusTab from "./AutoStatusTab";
+import AutoSwapTab from "./AutoSwapTab";
 import AutoWithdrawTab from "./AutoWithdrawTab";
 import Tabs from "./Tabs";
 
 const tabs = {
   rootProps: { defaultValue: "dashboard" },
-  list: ["dashboard", "boost", "withdraw", "collect", "status"],
+  list: ["dashboard", "boost", "withdraw", "swap", "collect", "status"],
 };
 
 export default function AutoPanel() {
@@ -21,6 +22,9 @@ export default function AutoPanel() {
       </Tabs.Content>
       <Tabs.Content value="withdraw">
         <AutoWithdrawTab />
+      </Tabs.Content>
+      <Tabs.Content value="swap">
+        <AutoSwapTab />
       </Tabs.Content>
       <Tabs.Content value="collect">
         <AutoCloudCollectTab />
