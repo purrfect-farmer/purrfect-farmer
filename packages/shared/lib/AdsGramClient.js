@@ -143,6 +143,12 @@ export default class AdsGramClient {
    *
    * `Authorization` is cleared per request: a drop's bearer token lives on the
    * shared axios defaults and has no business reaching a third party.
+   *
+   * The publisher's `Origin`/`Referer` have to be on the request — AdsGram
+   * answers `400 {"error":"Wrong referer"}` without them. The cloud runner
+   * sets them for every call and the extension's declarativeNetRequest rules
+   * cover whatever is listed in the farmer's `static domains`, which is why
+   * `api.adsgram.ai` belongs there.
    */
   request(url) {
     return this.farmer.api

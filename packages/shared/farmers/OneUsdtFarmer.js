@@ -1,5 +1,6 @@
 import AdsGramClient from "../lib/AdsGramClient.js";
 import BaseFarmer from "../lib/BaseFarmer.js";
+import MonetagClient from "../lib/MonetagClient.js";
 
 /** Every endpoint hangs off this one host. */
 const API_URL = "https://usdtone.nirajdevbots.space/api";
@@ -32,11 +33,16 @@ export default class OneUsdtFarmer extends BaseFarmer {
   static host = "usdtone.nirajdevbots.space";
 
   /**
-   * AdsGram is listed alongside the drop's own host so the extension's
-   * declarativeNetRequest rules — and the cloud's header defaults — present
-   * the publisher's origin on ad calls too.
+   * Both ad networks are listed alongside the drop's own host so the
+   * extension's declarativeNetRequest rules — and the cloud's header
+   * defaults — present the publisher's origin on ad calls too.
    */
-  static domains = ["usdtone.nirajdevbots.space", "api.adsgram.ai"];
+  static domains = [
+    "usdtone.nirajdevbots.space",
+    "api.adsgram.ai",
+    "e8ys.com",
+    "my.rtmark.net",
+  ];
 
   static telegramLink =
     "https://t.me/oneusdtappbot/play?startapp=ref_1147265290";
@@ -57,6 +63,11 @@ export default class OneUsdtFarmer extends BaseFarmer {
   /** AdsGram, built once per run */
   get adsgram() {
     return (this._adsgram ||= new AdsGramClient(this));
+  }
+
+  /** Monetag, built once per run */
+  get monetag() {
+    return (this._monetag ||= new MonetagClient(this));
   }
 
   /** GET an endpoint */
@@ -428,23 +439,56 @@ export default class OneUsdtFarmer extends BaseFarmer {
    * A provider the drop credits itself.
    *
    * The session token is the whole proof — the drop never learns whether an
-   * ad played, only that the token came back no sooner than `minWatchMs`.
+   * ad played, only that the token came back no sooner than `minWatchMs`. The
+   * ad is played between the two calls anyway, because that is what the page
+   * does: the network is the one party that can tell the difference.
    */
   async watchSessionAd(provider) {
     const session = await this.createAdSession(provider.provider);
     this.debugger.log("Ad session:", session);
 
-    const minWatchMs = Number(session?.minWatchMs) || 0;
+    const startedAt = Date.now();
 
-    await this.utils.delayForSeconds(
-      minWatchMs / 1000 + AD_SESSION_MARGIN_SECONDS,
-      { signal: this.signal },
-    );
+    await this.playNetworkAd(provider);
+
+    /* Whatever the ad did not spend of `minWatchMs` is waited out here */
+    const minWatchMs = Number(session?.minWatchMs) || 0;
+    const elapsed = Date.now() - startedAt;
+    const remaining =
+      minWatchMs + AD_SESSION_MARGIN_SECONDS * 1000 - elapsed;
+
+    if (remaining > 0) {
+      await this.utils.delayForSeconds(remaining / 1000, {
+        signal: this.signal,
+      });
+    }
 
     const result = await this.submitAdWatch(provider.provider, session?.token);
     this.debugger.log("Ad watch:", result);
 
     return Boolean(result?.ok);
+  }
+
+  /**
+   * Play the network's own ad.
+   *
+   * Nothing the drop pays for depends on this, so a network having a bad day
+   * is logged and stepped over rather than costing the reward.
+   */
+  async playNetworkAd(provider) {
+    if (provider.provider !== "monetag" || !provider.zoneId) return;
+
+    const result = await this.monetag
+      .watch(provider.zoneId)
+      .catch((error) => {
+        this.logger.warn(
+          `${provider.provider}: ad did not play -`,
+          this.readError(error),
+        );
+        return null;
+      });
+
+    this.debugger.log("Monetag ad:", result);
   }
 
   /**
