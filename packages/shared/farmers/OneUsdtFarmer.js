@@ -1,3 +1,4 @@
+import AdsGramClient from "../lib/AdsGramClient.js";
 import BaseFarmer from "../lib/BaseFarmer.js";
 
 /** Every endpoint hangs off this one host. */
@@ -5,38 +6,6 @@ const API_URL = "https://usdtone.nirajdevbots.space/api";
 
 /** The drop pays in BEP-20 USDT, so balances are read to 4 decimal places. */
 const BALANCE_PRECISION = 4;
-
-/* ------------------------------------------------------------------------- */
-/* AdsGram                                                                    */
-/* ------------------------------------------------------------------------- */
-
-/** AdsGram's own API — not the drop's. */
-const ADSGRAM_URL = "https://api.adsgram.ai";
-
-/**
- * The SDK version the drop's page loads. AdsGram keys request validation on
- * it, so it travels with the values below rather than being invented.
- */
-const ADSGRAM_SDK_VERSION = "2.2.0";
-
-/**
- * HMAC-SHA256 secret lifted from AdsGram's `sad.min.js`, where it is hidden
- * behind a Vigenère-style string obfuscator.
- *
- * The key actually used is this secret XORed byte-wise with the current hour,
- * so it rotates hourly on its own — see `signAdsGramQuery`. If AdsGram ever
- * rotates the *secret* instead, `/adv` starts rejecting requests and this
- * constant is the thing that has gone stale.
- */
-const ADSGRAM_SIGNING_SECRET = "qK8FwLlQdPDlAXzvMJIdZJsvFtXIQBea";
-
-/**
- * How long to leave a rewarded ad "playing" before claiming it.
- *
- * AdsGram decides server-side whether a view was long enough to pay, so this
- * is deliberately generous rather than the shortest value that happens to work.
- */
-const ADSGRAM_PLAYBACK_SECONDS = 20;
 
 /** How long to wait for AdsGram's server-to-server postback to land. */
 const ADSGRAM_POSTBACK_ATTEMPTS = 6;
@@ -82,9 +51,13 @@ export default class OneUsdtFarmer extends BaseFarmer {
   /*                                                                       */
   /* Every call after login carries `Authorization: Bearer <token>`, which  */
   /* BaseFarmer installs from `getAuthHeaders()` onto the shared axios      */
-  /* defaults. Requests to AdsGram must therefore strip it explicitly —     */
-  /* see `callAdsGram`.                                                     */
+  /* defaults, which is why `AdsGramClient` clears it on its own calls.     */
   /* --------------------------------------------------------------------- */
+
+  /** AdsGram, built once per run */
+  get adsgram() {
+    return (this._adsgram ||= new AdsGramClient(this));
+  }
 
   /** GET an endpoint */
   get(path, config = {}) {
@@ -492,7 +465,7 @@ export default class OneUsdtFarmer extends BaseFarmer {
       provider.watchedToday,
     );
 
-    await this.playAdsGramAd(provider.blockId);
+    await this.adsgram.watch(provider.blockId);
 
     return this.waitForAdPostback(provider.provider, before);
   }
@@ -531,210 +504,6 @@ export default class OneUsdtFarmer extends BaseFarmer {
     );
 
     await this.utils.delay(remaining, { signal: this.signal });
-  }
-
-  /* --------------------------------------------------------------------- */
-  /* AdsGram                                                               */
-  /* --------------------------------------------------------------------- */
-
-  /**
-   * Request a rewarded banner and report it watched.
-   *
-   * The tracker URLs are handed back by `/adv` already signed, so the run
-   * only has to fire them in the order the SDK would: the banner renders, it
-   * is shown, it plays out, and only then does it count as rewarded.
-   */
-  async playAdsGramAd(blockId) {
-    const payload = await this.requestAdsGramBanner(blockId);
-    this.debugger.log("AdsGram banner:", payload);
-
-    const banner = payload?.banners?.[0]?.banner;
-    const trackings = banner?.trackings || [];
-
-    const tracker = (name) =>
-      trackings.find((item) => item.name === name)?.value;
-
-    const reward = tracker("reward");
-
-    /**
-     * An interstitial block has no `reward` tracker. Firing the rest of the
-     * sequence against one would burn the impression for nothing.
-     */
-    if (!reward) {
-      throw new Error("AdsGram returned a block that pays no reward");
-    }
-
-    await this.pingAdsGram(tracker("render"));
-    await this.pingAdsGram(tracker("show"));
-
-    await this.utils.delayForSeconds(ADSGRAM_PLAYBACK_SECONDS, {
-      signal: this.signal,
-    });
-
-    await this.pingAdsGram(reward);
-  }
-
-  /** Ask AdsGram for a banner */
-  async requestAdsGramBanner(blockId) {
-    const query = await this.buildAdsGramQuery(blockId);
-    return this.callAdsGram(`${ADSGRAM_URL}/adv?${query}`);
-  }
-
-  /** Fire one tracker, if the banner carried it */
-  async pingAdsGram(url) {
-    if (!url) return;
-    await this.callAdsGram(url).catch((error) => {
-      this.debugger.log("AdsGram tracker failed:", error.message);
-    });
-  }
-
-  /**
-   * Call AdsGram on the shared client.
-   *
-   * `Authorization` is cleared per request: the drop's bearer token lives on
-   * the axios defaults and has no business reaching a third party.
-   */
-  callAdsGram(url) {
-    return this.api
-      .get(url, { signal: this.signal, headers: { Authorization: null } })
-      .then((res) => res.data);
-  }
-
-  /**
-   * Build a signed `/adv` query.
-   *
-   * Parameter order is the SDK's, and is load-bearing: the signature covers
-   * the serialized query string, so the server recomputes it over exactly
-   * what it received.
-   */
-  async buildAdsGramQuery(blockId) {
-    /**
-     * Read straight from the raw initData rather than `getInitDataUnsafe()`,
-     * which JSON-parses every value. `chat_instance` is a 19-digit id — well
-     * past `Number.MAX_SAFE_INTEGER` — so parsing it rounds off the last few
-     * digits, and AdsGram would receive an id that never existed.
-     */
-    const initDataParams = new URLSearchParams(this.getInitData() || "");
-    const params = new URLSearchParams();
-
-    params.set("envType", "telegram");
-    params.set("blockId", String(blockId));
-    params.set("platform", "Linux x86_64");
-    params.set("language", this.getTelegramUser()?.["language_code"] || "en");
-
-    /**
-     * Read from the Telegram user rather than `getIsPremiumUser()`, which
-     * looks for a top-level `is_premium` this drop's initData does not carry.
-     */
-    if (this.getTelegramUser()?.["is_premium"]) {
-      params.set("is_premium", "true");
-    }
-
-    if (initDataParams.has("chat_type")) {
-      params.set("chat_type", initDataParams.get("chat_type"));
-    }
-
-    if (initDataParams.has("chat_instance")) {
-      params.set("chat_instance", initDataParams.get("chat_instance"));
-    }
-
-    params.set("top_domain", `https://${this.constructor.host}`);
-
-    if (initDataParams.has("signature")) {
-      params.set("signature", initDataParams.get("signature"));
-    }
-
-    params.set("data_check_string", this.buildDataCheckString());
-    params.set("sdk_version", ADSGRAM_SDK_VERSION);
-    params.set("tg_id", String(this.getUserId()));
-    params.set("tg_platform", "android");
-    params.set("tma_version", "8.0");
-    params.set("request_id", this.makeAdsGramRequestId());
-
-    const query = params.toString();
-    params.set("raw", await this.signAdsGramQuery(query));
-
-    return params.toString();
-  }
-
-  /** Three random 32-bit values run together, as the SDK builds it */
-  makeAdsGramRequestId() {
-    return globalThis.crypto
-      .getRandomValues(new Uint32Array(3))
-      .join("");
-  }
-
-  /**
-   * The initData check string, base64url encoded.
-   *
-   * The ordering is `Intl.Collator`'s rather than a plain sort, because that
-   * is what the SDK uses and the two disagree on keys containing `_`.
-   */
-  buildDataCheckString() {
-    const initData = this.getInitData();
-    if (!initData) return "";
-
-    const pairs = [];
-
-    for (const [key, value] of new URLSearchParams(initData)) {
-      if (key === "hash" || key === "signature") continue;
-      pairs.push(`${key}=${value}`);
-    }
-
-    pairs.sort(new Intl.Collator("en").compare);
-
-    return this.toBase64Url(new TextEncoder().encode(pairs.join("\n")));
-  }
-
-  /**
-   * Base64url without padding.
-   *
-   * Built one byte at a time rather than by spreading into
-   * `String.fromCodePoint`, which the SDK does and which blows the call stack
-   * on a long enough input.
-   */
-  toBase64Url(bytes) {
-    let binary = "";
-    for (const byte of bytes) binary += String.fromCodePoint(byte);
-
-    return btoa(binary)
-      .replace(/\+/g, "-")
-      .replace(/\//g, "_")
-      .replace(/=+$/, "");
-  }
-
-  /**
-   * Sign a query string the way AdsGram's SDK does.
-   *
-   * The HMAC key is the baked-in secret XORed with the current hour, so it
-   * changes by itself every hour — a signature is only good for the hour it
-   * was made in.
-   */
-  async signAdsGramQuery(query) {
-    const hour = Math.floor(Date.now() / 1000 / 3600);
-
-    const secret = Uint8Array.from(
-      ADSGRAM_SIGNING_SECRET,
-      (character, index) => character.charCodeAt(0) ^ ((hour + index) % 256),
-    );
-
-    const key = await globalThis.crypto.subtle.importKey(
-      "raw",
-      secret,
-      { name: "HMAC", hash: "SHA-256" },
-      false,
-      ["sign"],
-    );
-
-    const signature = await globalThis.crypto.subtle.sign(
-      "HMAC",
-      key,
-      new TextEncoder().encode(query),
-    );
-
-    return Array.from(new Uint8Array(signature))
-      .map((byte) => byte.toString(16).padStart(2, "0"))
-      .join("");
   }
 
   /* --------------------------------------------------------------------- */
