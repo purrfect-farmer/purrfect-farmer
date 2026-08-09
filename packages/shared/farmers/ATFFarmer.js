@@ -122,7 +122,7 @@ export default class ATFFarmer extends BaseFarmer {
       }
 
       if (captchaStatus.captcha_required) {
-        if (!this.canSolveReCaptcha()) {
+        if (!this.canSolveTurnstile()) {
           throw new Error(
             "Captcha is required but no captcha provider is configured!",
           );
@@ -130,7 +130,7 @@ export default class ATFFarmer extends BaseFarmer {
 
         try {
           /* Solve ReCaptcha */
-          const captchaToken = await this.solveReCaptcha({
+          const captchaToken = await this.solveTurnstile({
             siteKey: captchaStatus.site_key,
             pageUrl: "https://atfminers.asloni.online/miner/index.html",
           });
@@ -1083,9 +1083,7 @@ export default class ATFFarmer extends BaseFarmer {
   getAutoSummary() {
     const user = this.getUserDetails();
     const flags = (user["risk_flags"] || "").trim().split("|").filter(Boolean);
-    const wallet = user["wallet_public_key"]
-      ? this.getUserWallet(user)
-      : null;
+    const wallet = user["wallet_public_key"] ? this.getUserWallet(user) : null;
 
     return {
       level: user["miner_level"],
