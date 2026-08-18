@@ -632,6 +632,15 @@ export default class ATFFarmer extends BaseFarmer {
 
   /** Place withdrawal */
   async withdraw({ max, difference = 20, force = false } = {}) {
+    if (this.scheduled && !force) {
+      return {
+        status: false,
+        skipped: true,
+        message: "Withdrawal is disabled in scheduled mode!",
+        amount: "0",
+      };
+    }
+
     const { user } = this.user_data;
     const balance = new Decimal(user["mined_balance"]);
 
