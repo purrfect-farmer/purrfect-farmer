@@ -44,6 +44,9 @@ export default class BaseFarmer {
   static auto = null;
 
   constructor({ referralLink = null } = {}) {
+    /* Register utilities */
+    this.utils = utils;
+
     /** Configure caching */
     this.cacheAuth = this.constructor.cacheAuth;
     this.cacheTelegramWebApp = this.constructor.cacheTelegramWebApp;
@@ -51,25 +54,13 @@ export default class BaseFarmer {
     /** Configure properties */
     this.platform = this.constructor.platform;
     this.type = this.constructor.type;
-    this.link = referralLink || this.constructor.link;
-    this.telegramLink = referralLink || this.constructor.telegramLink;
+
+    /** Configure startup link */
+    this.configureStartupLink(referralLink);
 
     /** API */
     this.cookies = this.constructor.cookies;
     this.apiDelay = this.constructor.apiDelay;
-
-    /* Register utilities */
-    this.utils = utils;
-
-    /* Parse Telegram Link */
-    if (this.platform === "telegram") {
-      const { entity, shortName, startParam } = this.utils.parseTelegramLink(
-        this.telegramLink,
-      );
-      this.entity = entity;
-      this.shortName = shortName;
-      this.startParam = startParam;
-    }
 
     /* Debugger */
     this.debug = true;
@@ -98,6 +89,22 @@ export default class BaseFarmer {
 
     this.controller = new AbortController();
     this.signal = this.controller.signal;
+  }
+
+  /** Configure Startup Link */
+  configureStartupLink(link) {
+    this.link = link || this.constructor.link;
+    this.telegramLink = link || this.constructor.telegramLink;
+
+    /* Parse Telegram Link */
+    if (this.platform === "telegram") {
+      const { entity, shortName, startParam } = this.utils.parseTelegramLink(
+        this.telegramLink,
+      );
+      this.entity = entity;
+      this.shortName = shortName;
+      this.startParam = startParam;
+    }
   }
 
   /** Set Prompt Functions */

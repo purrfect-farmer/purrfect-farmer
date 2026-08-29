@@ -393,6 +393,20 @@ export default function createRunner(FarmerClass) {
       }
     }
 
+    /** Get Referral Link */
+    async getReferralLink() {
+      if (this.farmer && this.farmer.referralLink) {
+        return this.farmer.referralLink;
+      } else {
+        const link = await super.getReferralLink();
+        if (this.farmer) {
+          this.farmer.referralLink = link;
+          await this.farmer.save();
+        }
+        return link;
+      }
+    }
+
     /** Prepare Instance */
     async prepare() {
       const needsAuth = !this.cacheAuth || !this.farmer;
@@ -596,6 +610,9 @@ export default function createRunner(FarmerClass) {
      */
     static async execute(instance, skipExecution = false) {
       try {
+        /** Configure the startup link for the instance */
+        instance.configureStartupLink(this.getInstanceReferralLink());
+
         /** Prepare instance */
         await instance.prepare();
 
@@ -692,33 +709,42 @@ export default function createRunner(FarmerClass) {
             : null;
 
           if (primary) {
-            /** Remove primary account */
-            this.queue.splice(this.queue.indexOf(primary), 1);
-
-            /** Place primary account as first */
-            this.queue.unshift(primary);
-
             /** Log */
             this.logger.info(
               "Prioritizing primary account:",
               this.primaryAccountId,
             );
-          } else {
-            /** Sort new accounts first */
-            this.queue.sort((a, b) => {
-              const aIsNew = !a.account.farmer ? -1 : 1;
-              const bIsNew = !b.account.farmer ? -1 : 1;
-              return aIsNew - bIsNew;
-            });
           }
 
-          const limit = primary ? 1 : MAX_CONCURRENT_ACCOUNTS;
-          const batch = this.queue.splice(0, limit).map((instance) => ({
+          /** Get new accounts */
+          const newAccounts = this.queue.filter((item) => !item.account.farmer);
+
+          /** Get existing accounts */
+          const existingAccounts = this.queue.filter(
+            (item) => item.account.farmer,
+          );
+
+          /** Determine accounts to process */
+          const accountsToProcess = primary
+            ? [primary]
+            : newAccounts
+                .slice(0, 1) // Process one new account at a time
+                .concat(existingAccounts) // Process existing accounts
+                .slice(0, MAX_CONCURRENT_ACCOUNTS); // Limit to max concurrent accounts
+
+          /** Remove accounts to process from the queue */
+          accountsToProcess.forEach((item) => {
+            this.queue.splice(this.queue.indexOf(item), 1);
+          });
+
+          /** Get batch */
+          const batch = accountsToProcess.map((instance) => ({
             instance,
             skipExecution:
               !instance.account.farmer && this.skipExecutionOfNewAccount,
           }));
 
+          /** Process batch concurrently */
           await Promise.all(
             batch.map((item, index) => this.processQueueItem(item, index)),
           );
