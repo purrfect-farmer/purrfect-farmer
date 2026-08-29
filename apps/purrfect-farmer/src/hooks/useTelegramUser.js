@@ -95,5 +95,5 @@ export default function useTelegramUser(core) {
     }
   }, [telegramInitData]);
 
-  return telegramUser;
+  return { telegramUser, updateTelegramUser };
 }

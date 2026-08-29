@@ -9,7 +9,7 @@ import useZoomies from "./useZoomies";
 export default function useApp() {
   const core = useCore();
   const zoomies = useZoomies(core);
-  const telegramUser = useTelegramUser(core);
+  const { telegramUser, updateTelegramUser } = useTelegramUser(core);
 
   /** Utils Panel State */
   const [showUtilsPanel, setShowUtilsPanel, dispatchAndSetShowUtilsPanel] =
@@ -42,6 +42,7 @@ export default function useApp() {
     ...core,
     zoomies,
     telegramUser,
+    updateTelegramUser,
     utilsPanelTabs,
     showUtilsPanel,
     setShowUtilsPanel,
