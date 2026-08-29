@@ -90,6 +90,7 @@ export default (sequelize, DataTypes) => {
       cookies: DataTypes.JSON,
       options: DataTypes.JSON,
       storage: DataTypes.JSON,
+      referralLink: DataTypes.STRING,
     },
     {
       sequelize,
