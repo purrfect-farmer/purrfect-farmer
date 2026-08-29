@@ -300,8 +300,8 @@ export default class ATFFarmer extends BaseFarmer {
   }
 
   /** Get Withdrawal Puzzle */
-  getWithdrawalPuzzle() {
-    return this.makeAction("get_withdraw_puzzle");
+  getWithdrawalPuzzle(amount) {
+    return this.makeAction("get_withdraw_puzzle", { amount: Number(amount) });
   }
 
   /** Request Withdrawal */
@@ -715,47 +715,28 @@ export default class ATFFarmer extends BaseFarmer {
     amount = Decimal.max(amount, minimum).floor();
 
     /** Get challenge */
-    const challenge = await this.getWithdrawalPuzzle();
+    const challenge = await this.getWithdrawalPuzzle(amount.toNumber());
 
-    const puzzleId = challenge["challenge_id"];
-    const minSolveMs = challenge["min_solve_ms"];
-    const startX = challenge.slider.start_x;
-    const maxX = challenge.slider.max_x;
+    /** Withdrawal Captcha ID */
+    const withdrawalCaptchaId = challenge["challenge_id"];
 
-    const targetPosition = parseFloat(
-      challenge.board.svg.match(/translate\((\d+\.?\d*)\s+[\d.]+\)\s+scale/)[1],
-    );
-
-    const targetOffset = targetPosition + Math.random() * 1.5;
-    const puzzleOffset = parseFloat(targetOffset.toFixed(2));
-
-    const motionPoints = this.generateSliderMotion(
-      puzzleOffset,
-      startX,
-      minSolveMs,
-    );
-
-    const puzzleDuration = motionPoints[motionPoints.length - 1].t;
-
-    /** Log the puzzle data */
-    this.debugger.log("Withdrawal puzzle data", {
-      challenge,
-      puzzleId,
-      puzzleDuration,
-      puzzleOffset,
-      motionPoints,
+    /** Withdrawal Captcha Answer */
+    const withdrawalCaptchaAnswer = await this.promptInput({
+      type: "text",
+      text: "Solve the captcha to proceed with the withdrawal:",
+      image: challenge["captcha_image"],
     });
 
-    /** Wait for puzzle duration */
-    await this.utils.delay(puzzleDuration, { precised: true });
+    this.logger.info("Your answer:", withdrawalCaptchaAnswer);
+
+    /** Wait for a moment */
+    await this.utils.delayForSeconds(2, { signal: this.signal });
 
     /** Request withdrawal */
     const result = await this.requestWithdrawal({
-      amount: amount.toString(),
-      withdraw_puzzle_id: puzzleId,
-      withdraw_puzzle_offset: puzzleOffset,
-      withdraw_puzzle_duration_ms: puzzleDuration,
-      withdraw_puzzle_motion: motionPoints,
+      amount: amount.toNumber(),
+      withdraw_captcha_id: withdrawalCaptchaId,
+      withdraw_captcha_answer: withdrawalCaptchaAnswer,
     });
 
     /** Check status */
