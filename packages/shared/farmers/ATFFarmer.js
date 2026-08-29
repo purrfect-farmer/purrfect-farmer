@@ -266,8 +266,16 @@ export default class ATFFarmer extends BaseFarmer {
   }
 
   /** Sync Wallet */
-  syncWallet({ publicKey, wallet, walletStateInit, network, proof }) {
+  syncWallet({
+    publicKey,
+    wallet,
+    walletStateInit,
+    network,
+    proof,
+    refreshHolding = 1,
+  }) {
     return this.makeAction("sync_wallet", {
+      refresh_holding: refreshHolding,
       public_key: publicKey,
       wallet: wallet,
       wallet_state_init: walletStateInit || "",
