@@ -1,6 +1,6 @@
+import GramClient from "../../lib/GramClient.js";
 import { Model } from "sequelize";
 import seedrandom from "seedrandom";
-import GramClient from "../../lib/GramClient.js";
 
 /**
  * @param {import("sequelize").Sequelize} sequelize
@@ -137,6 +137,7 @@ export default (sequelize, DataTypes) => {
       proxy: DataTypes.STRING,
       user: DataTypes.JSON,
       options: DataTypes.JSON,
+      userAgent: DataTypes.STRING,
     },
     {
       sequelize,
