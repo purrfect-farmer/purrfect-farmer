@@ -558,24 +558,37 @@ export default class ATFFarmer extends BaseFarmer {
     };
 
     this.debugger.log("Syncing ATF Wallet:", data);
-    const result = await this.syncWallet(data);
 
-    if (result.status !== "success") {
-      const message =
-        result.message ||
-        "Failed to sync wallet with proof. Please check your secret key and try again.";
-      this.logger.error(message);
-      return { status: false, message };
-    } else {
-      const user = result.user;
+    let attempts = 0;
 
-      /** Update user */
-      this.user_data.user = Object.assign(this.user_data.user, user);
+    while (true) {
+      const result = await this.syncWallet(data);
+      const isBusy = result.busy || result.status === "busy";
 
-      this.logger.success("Wallet synced successfully!");
-      this.logUserBalance(user);
-      this.logUserRisks(user);
-      return { status: true, user };
+      if (isBusy && attempts < 10) {
+        attempts++;
+        this.logger.warn("Server is busy, retrying...");
+        await this.utils.delayForSeconds(2, { signal: this.signal });
+        continue;
+      }
+
+      if (result.status !== "success") {
+        const message =
+          result.message ||
+          "Failed to sync wallet with proof. Please check your secret key and try again.";
+        this.logger.error(message);
+        return { status: false, message };
+      } else {
+        const user = result.user;
+
+        /** Update user */
+        this.user_data.user = Object.assign(this.user_data.user, user);
+
+        this.logger.success("Wallet synced successfully!");
+        this.logUserBalance(user);
+        this.logUserRisks(user);
+        return { status: true, user };
+      }
     }
   }
 
