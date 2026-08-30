@@ -46,6 +46,11 @@ const autoSchema = {
  * @param {object} opts
  */
 export default async function (fastify, opts) {
+  const farmerRouteOptions = {
+    schema: farmerSchema,
+    preHandler: [fastify.validateWebAppData, fastify.verifySubscription],
+  };
+
   /** Get Server */
   fastify.get("/server", async function (request, reply) {
     return {
@@ -112,10 +117,7 @@ export default async function (fastify, opts) {
   /** Activate Farmer */
   fastify.post(
     "/farmers/activate",
-    {
-      schema: farmerSchema,
-      preHandler: [fastify.validateWebAppData, fastify.verifySubscription],
-    },
+    farmerRouteOptions,
     async function (request, reply) {
       const { account } = request;
 
@@ -131,10 +133,7 @@ export default async function (fastify, opts) {
   /** Deactivate Farmer */
   fastify.post(
     "/farmers/deactivate",
-    {
-      schema: farmerSchema,
-      preHandler: [fastify.validateWebAppData, fastify.verifySubscription],
-    },
+    farmerRouteOptions,
     async function (request, reply) {
       const { account } = request;
 
@@ -144,6 +143,35 @@ export default async function (fastify, opts) {
           where: { id: request.body.id, accountId: account.id },
         },
       );
+    },
+  );
+
+  /** Freeze Farmer */
+  fastify.post(
+    "/farmers/freeze",
+    farmerRouteOptions,
+    async function (request, reply) {
+      const { account } = request;
+
+      await fastify.db.Farmer.update(
+        { status: "frozen" },
+        {
+          where: { id: request.body.id, accountId: account.id },
+        },
+      );
+    },
+  );
+
+  /** Delete Farmer */
+  fastify.post(
+    "/farmers/delete",
+    farmerRouteOptions,
+    async function (request, reply) {
+      const { account } = request;
+
+      await fastify.db.Farmer.destroy({
+        where: { id: request.body.id, accountId: account.id },
+      });
     },
   );
 
@@ -273,7 +301,10 @@ export default async function (fastify, opts) {
     return activeFarmers.map((item) => item.account.id);
   };
 
-  const autoPreHandler = [fastify.validateWebAppData, fastify.verifySubscription];
+  const autoPreHandler = [
+    fastify.validateWebAppData,
+    fastify.verifySubscription,
+  ];
 
   /** Auto - Boost / Collect / Withdraw / Status */
   for (const operation of ["boost", "collect", "withdraw", "status"]) {

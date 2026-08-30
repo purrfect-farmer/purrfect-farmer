@@ -1,5 +1,5 @@
 import { HiOutlinePower, HiPlay } from "react-icons/hi2";
-import { LuPause, LuSnowflake } from "react-icons/lu";
+import { LuPause, LuSnowflake, LuTrash } from "react-icons/lu";
 import { cn, matchesAccountSearch } from "@/utils";
 import { useMemo, useState } from "react";
 
@@ -15,6 +15,7 @@ import { farmersMap } from "@/core/farmers";
 import toast from "react-hot-toast";
 import { useCallback } from "react";
 import useCloudManagerActivateFarmerMutation from "@/hooks/useCloudManagerActivateFarmerMutation";
+import useCloudManagerDeleteFarmerMutation from "@/hooks/useCloudManagerDeleteFarmerMutation";
 import useCloudManagerDisconnectFarmerMutation from "@/hooks/useCloudManagerDisconnectFarmerMutation";
 import useCloudManagerFarmersQuery from "@/hooks/useCloudManagerFarmersQuery";
 import useCloudManagerFreezeFarmerMutation from "@/hooks/useCloudManagerFreezeFarmerMutation";
@@ -37,9 +38,11 @@ const FarmerActionButton = ({ variant, ...props }) => (
         activate: "text-green-500 dark:text-green-400",
         disconnect: "text-orange-500 dark:text-orange-400",
         freeze: "text-sky-500 dark:text-sky-400",
+        delete: "text-red-500 dark:text-red-400",
       }[variant],
-      "bg-neutral-100 dark:bg-neutral-700",
-      "px-3 rounded-lg shrink-0",
+      "bg-neutral-200 dark:bg-neutral-600",
+      "hover:bg-neutral-300 dark:hover:bg-neutral-500",
+      "p-1.5 rounded-lg shrink-0",
     )}
   />
 );
@@ -50,6 +53,7 @@ export default function CloudFarmers() {
   const activateFarmerMutation = useCloudManagerActivateFarmerMutation();
   const disconnectFarmerMutation = useCloudManagerDisconnectFarmerMutation();
   const freezeFarmerMutation = useCloudManagerFreezeFarmerMutation();
+  const deleteFarmerMutation = useCloudManagerDeleteFarmerMutation();
   const farmersQuery = useCloudManagerFarmersQuery();
 
   /* Group Farmers by Type */
@@ -137,6 +141,20 @@ export default function CloudFarmers() {
         .finally(farmersQuery.refetch);
     },
     [freezeFarmerMutation.mutateAsync, farmersQuery.refetch],
+  );
+
+  /* Delete Farmer */
+  const deleteFarmer = useCallback(
+    (id) => {
+      toast
+        .promise(deleteFarmerMutation.mutateAsync(id), {
+          success: "Successfully deleted",
+          loading: "Deleting...",
+          error: "Error...",
+        })
+        .finally(farmersQuery.refetch);
+    },
+    [deleteFarmerMutation.mutateAsync, farmersQuery.refetch],
   );
 
   return farmersQuery.isPending ? (
@@ -239,30 +257,46 @@ export default function CloudFarmers() {
                           }}
                         />
                       </AccountDetailsDialog>
-                      {/* Activate Button */}
-                      <FarmerActionButton
-                        title="Activate Farmer"
-                        onClick={() => activateFarmer(farmer.id)}
-                        variant={"activate"}
+                      <div
+                        className={cn(
+                          "flex gap-1 items-center justify-center",
+                          "bg-neutral-100 dark:bg-neutral-700",
+                          "p-1 rounded-lg shrink-0",
+                        )}
                       >
-                        <HiOutlinePower className="size-4" />
-                      </FarmerActionButton>
-                      {/* Terminate Button */}
-                      <FarmerActionButton
-                        title="Disconnect Farmer"
-                        onClick={() => disconnectFarmer(farmer.id)}
-                        variant={"disconnect"}
-                      >
-                        <LuPause className="size-4" />
-                      </FarmerActionButton>
-                      {/* Freeze Button */}
-                      <FarmerActionButton
-                        title="Freeze Farmer"
-                        onClick={() => freezeFarmer(farmer.id)}
-                        variant={"freeze"}
-                      >
-                        <LuSnowflake className="size-4" />
-                      </FarmerActionButton>
+                        {/* Activate Button */}
+                        <FarmerActionButton
+                          title="Activate Farmer"
+                          onClick={() => activateFarmer(farmer.id)}
+                          variant={"activate"}
+                        >
+                          <HiOutlinePower className="size-4" />
+                        </FarmerActionButton>
+                        {/* Terminate Button */}
+                        <FarmerActionButton
+                          title="Disconnect Farmer"
+                          onClick={() => disconnectFarmer(farmer.id)}
+                          variant={"disconnect"}
+                        >
+                          <LuPause className="size-4" />
+                        </FarmerActionButton>
+                        {/* Freeze Button */}
+                        <FarmerActionButton
+                          title="Freeze Farmer"
+                          onClick={() => freezeFarmer(farmer.id)}
+                          variant={"freeze"}
+                        >
+                          <LuSnowflake className="size-4" />
+                        </FarmerActionButton>
+                        {/* Delete Button */}
+                        <FarmerActionButton
+                          title="Delete Farmer"
+                          onClick={() => deleteFarmer(farmer.id)}
+                          variant={"delete"}
+                        >
+                          <LuTrash className="size-4" />
+                        </FarmerActionButton>
+                      </div>
                     </div>
                   ))}
                 </div>

@@ -326,6 +326,17 @@ export default async function (fastify, opts) {
       },
     );
 
+    /** Delete Farmer */
+    fastify.post(
+      "/farmers/delete",
+      { schema: farmerSchema },
+      async (request) => {
+        await fastify.db.Farmer.destroy({
+          where: { id: request.body.id },
+        });
+      },
+    );
+
     /** Get Members */
     fastify.get("/members", async (request) => {
       const accounts = await fastify.db.Account.findAllWithActiveSubscription({

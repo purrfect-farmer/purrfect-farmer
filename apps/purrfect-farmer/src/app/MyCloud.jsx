@@ -1,3 +1,5 @@
+import { LuPause, LuSnowflake, LuTrash } from "react-icons/lu";
+
 import Alert from "@/components/Alert";
 import AppIcon from "@/assets/images/icon.png?format=webp&w=80";
 import CloudAddressDisplay from "@/cloud/CloudAddressDisplay";
@@ -5,7 +7,6 @@ import CloudStatus from "@/partials/CloudStatus";
 import CloudSubscription from "@/partials/CloudSubscription";
 import Container from "@/components/Container";
 import { HiOutlinePower } from "react-icons/hi2";
-import { LuPause } from "react-icons/lu";
 import ProxyDetails from "@/components/ProxyDetails";
 import Tabs from "@/components/Tabs";
 import { cn } from "@/utils";
@@ -18,18 +19,24 @@ import { useMemo } from "react";
 import useMirroredTabs from "@/hooks/useMirroredTabs";
 import useMyCloudActivateFarmerMutation from "@/hooks/useMyCloudActivateFarmerMutation";
 import useMyCloudDeactivateFarmerMutation from "@/hooks/useMyCloudDeactivateFarmerMutation";
+import useMyCloudDeleteFarmerMutation from "@/hooks/useMyCloudDeleteFarmerMutation";
 import useMyCloudFarmersQuery from "@/hooks/useMyCloudFarmersQuery";
+import useMyCloudFreezeFarmerMutation from "@/hooks/useMyCloudFreezeFarmerMutation";
 
 /* Action Button Component */
 const MyCloudActionButton = ({ variant, ...props }) => (
   <button
     {...props}
     className={cn(
-      variant === "activate"
-        ? "text-green-500 dark:text-green-400"
-        : "text-orange-500 dark:text-orange-400",
-      "bg-neutral-100 dark:bg-neutral-700",
-      "px-3 rounded-lg shrink-0",
+      {
+        activate: "text-green-500 dark:text-green-400",
+        deactivate: "text-orange-500 dark:text-orange-400",
+        freeze: "text-sky-500 dark:text-sky-400",
+        delete: "text-red-500 dark:text-red-400",
+      }[variant],
+      "bg-neutral-200 dark:bg-neutral-600",
+      "hover:bg-neutral-300 dark:hover:bg-neutral-500",
+      "p-1.5 rounded-lg shrink-0",
     )}
   />
 );
@@ -40,6 +47,8 @@ const MyCloudFarmers = () => {
   const farmersQuery = useMyCloudFarmersQuery();
   const activateFarmerMutation = useMyCloudActivateFarmerMutation();
   const deactivateFarmerMutation = useMyCloudDeactivateFarmerMutation();
+  const freezeFarmerMutation = useMyCloudFreezeFarmerMutation();
+  const deleteFarmerMutation = useMyCloudDeleteFarmerMutation();
 
   /* Mapped Data */
   const data = useMemo(
@@ -107,6 +116,34 @@ const MyCloudFarmers = () => {
     [deactivateFarmerMutation.mutateAsync, farmersQuery.refetch],
   );
 
+  /* Freeze Farmer */
+  const freezeFarmer = useCallback(
+    (id) => {
+      toast
+        .promise(freezeFarmerMutation.mutateAsync(id), {
+          success: "Successfully frozen",
+          loading: "Freezing...",
+          error: "Error...",
+        })
+        .finally(farmersQuery.refetch);
+    },
+    [freezeFarmerMutation.mutateAsync, farmersQuery.refetch],
+  );
+
+  /* Delete Farmer */
+  const deleteFarmer = useCallback(
+    (id) => {
+      toast
+        .promise(deleteFarmerMutation.mutateAsync(id), {
+          success: "Successfully deleted",
+          loading: "Deleting...",
+          error: "Error...",
+        })
+        .finally(farmersQuery.refetch);
+    },
+    [deleteFarmerMutation.mutateAsync, farmersQuery.refetch],
+  );
+
   return farmersQuery.isPending ? (
     <p className="text-center">Fetching Farmers...</p>
   ) : farmersQuery.isError ? (
@@ -146,23 +183,49 @@ const MyCloudFarmers = () => {
             />
           </button>
 
-          {/* Activate Button */}
-          <MyCloudActionButton
-            variant={"activate"}
-            title="Activate Farmer"
-            onClick={() => activateFarmer(farmer.id)}
+          <div
+            className={cn(
+              "flex gap-1 items-center justify-center",
+              "bg-neutral-100 dark:bg-neutral-700",
+              "p-1 rounded-lg shrink-0",
+            )}
           >
-            <HiOutlinePower className="size-4" />
-          </MyCloudActionButton>
+            {/* Activate Button */}
+            <MyCloudActionButton
+              variant={"activate"}
+              title="Activate Farmer"
+              onClick={() => activateFarmer(farmer.id)}
+            >
+              <HiOutlinePower className="size-4" />
+            </MyCloudActionButton>
 
-          {/* Deactivate Button */}
-          <MyCloudActionButton
-            variant={"deactivate"}
-            title="Deactivate Farmer"
-            onClick={() => deactivateFarmer(farmer.id)}
-          >
-            <LuPause className="size-4" />
-          </MyCloudActionButton>
+            {/* Deactivate Button */}
+            <MyCloudActionButton
+              variant={"deactivate"}
+              title="Deactivate Farmer"
+              onClick={() => deactivateFarmer(farmer.id)}
+            >
+              <LuPause className="size-4" />
+            </MyCloudActionButton>
+
+            {/* Freeze Button */}
+            <MyCloudActionButton
+              variant={"freeze"}
+              title="Freeze Farmer"
+              onClick={() => freezeFarmer(farmer.id)}
+            >
+              <LuSnowflake className="size-4" />
+            </MyCloudActionButton>
+
+            {/* Delete Button */}
+            <MyCloudActionButton
+              variant={"delete"}
+              title="Delete Farmer"
+              onClick={() => deleteFarmer(farmer.id)}
+            >
+              <LuTrash className="size-4" />
+            </MyCloudActionButton>
+          </div>
         </div>
       ))}
     </div>
