@@ -1,4 +1,5 @@
 import { HiOutlinePower, HiPlay } from "react-icons/hi2";
+import { LuPause, LuSnowflake } from "react-icons/lu";
 import { cn, matchesAccountSearch } from "@/utils";
 import { useMemo, useState } from "react";
 
@@ -9,7 +10,6 @@ import CloudMemberDialog from "./CloudMemberDialog";
 import { Collapsible } from "radix-ui";
 import { Dialog } from "radix-ui";
 import Input from "@/components/Input";
-import { LuPause } from "react-icons/lu";
 import UserIcon from "@/assets/images/user-icon.png?format=webp&w=256";
 import { farmersMap } from "@/core/farmers";
 import toast from "react-hot-toast";
@@ -17,6 +17,7 @@ import { useCallback } from "react";
 import useCloudManagerActivateFarmerMutation from "@/hooks/useCloudManagerActivateFarmerMutation";
 import useCloudManagerDisconnectFarmerMutation from "@/hooks/useCloudManagerDisconnectFarmerMutation";
 import useCloudManagerFarmersQuery from "@/hooks/useCloudManagerFarmersQuery";
+import useCloudManagerFreezeFarmerMutation from "@/hooks/useCloudManagerFreezeFarmerMutation";
 import useCloudManagerRunFarmersMutation from "@/hooks/useCloudManagerRunFarmersMutation";
 
 const AccountDetailsDialog = ({ account, children }) => {
@@ -32,9 +33,11 @@ const FarmerActionButton = ({ variant, ...props }) => (
   <button
     {...props}
     className={cn(
-      variant === "activate"
-        ? "text-green-500 dark:text-green-400"
-        : "text-orange-500 dark:text-orange-400",
+      {
+        activate: "text-green-500 dark:text-green-400",
+        disconnect: "text-orange-500 dark:text-orange-400",
+        freeze: "text-sky-500 dark:text-sky-400",
+      }[variant],
       "bg-neutral-100 dark:bg-neutral-700",
       "px-3 rounded-lg shrink-0",
     )}
@@ -46,6 +49,7 @@ export default function CloudFarmers() {
   const runFarmersMutation = useCloudManagerRunFarmersMutation();
   const activateFarmerMutation = useCloudManagerActivateFarmerMutation();
   const disconnectFarmerMutation = useCloudManagerDisconnectFarmerMutation();
+  const freezeFarmerMutation = useCloudManagerFreezeFarmerMutation();
   const farmersQuery = useCloudManagerFarmersQuery();
 
   /* Group Farmers by Type */
@@ -119,6 +123,20 @@ export default function CloudFarmers() {
         .finally(farmersQuery.refetch);
     },
     [disconnectFarmerMutation.mutateAsync, farmersQuery.refetch],
+  );
+
+  /* Freeze Farmer */
+  const freezeFarmer = useCallback(
+    (id) => {
+      toast
+        .promise(freezeFarmerMutation.mutateAsync(id), {
+          success: "Successfully frozen",
+          loading: "Freezing...",
+          error: "Error...",
+        })
+        .finally(farmersQuery.refetch);
+    },
+    [freezeFarmerMutation.mutateAsync, farmersQuery.refetch],
   );
 
   return farmersQuery.isPending ? (
@@ -236,6 +254,14 @@ export default function CloudFarmers() {
                         variant={"disconnect"}
                       >
                         <LuPause className="size-4" />
+                      </FarmerActionButton>
+                      {/* Freeze Button */}
+                      <FarmerActionButton
+                        title="Freeze Farmer"
+                        onClick={() => freezeFarmer(farmer.id)}
+                        variant={"freeze"}
+                      >
+                        <LuSnowflake className="size-4" />
                       </FarmerActionButton>
                     </div>
                   ))}

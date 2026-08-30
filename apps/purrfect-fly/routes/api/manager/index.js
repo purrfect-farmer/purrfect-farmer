@@ -314,6 +314,18 @@ export default async function (fastify, opts) {
       },
     );
 
+    /** Freeze Farmer */
+    fastify.post(
+      "/farmers/freeze",
+      { schema: farmerSchema },
+      async (request) => {
+        await fastify.db.Farmer.update(
+          { status: "frozen" },
+          { where: { id: request.body.id } },
+        );
+      },
+    );
+
     /** Get Members */
     fastify.get("/members", async (request) => {
       const accounts = await fastify.db.Account.findAllWithActiveSubscription({
