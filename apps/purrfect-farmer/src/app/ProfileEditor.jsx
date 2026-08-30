@@ -15,9 +15,9 @@ import { yupResolver } from "@hookform/resolvers/yup";
 /** Schema */
 const schema = yup
   .object({
-    firstName: yup.string().required().label("First Name"),
-    lastName: yup.string().required().label("Last Name"),
-    username: yup.string().required().label("Username"),
+    firstName: yup.string().optional().label("First Name"),
+    lastName: yup.string().optional().label("Last Name"),
+    username: yup.string().optional().label("Username"),
   })
   .required();
 

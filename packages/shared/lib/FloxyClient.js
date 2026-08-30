@@ -11,11 +11,13 @@ export default class FloxyClient {
     });
   }
 
+  /* Get Balance */
   async getBalance() {
     const { data } = await this.client.get("/balance");
     return data.balance;
   }
 
+  /* Get All Plans */
   async getAllPlans() {
     const { data } = await this.client.get("/plans/all");
     return data;
@@ -32,9 +34,7 @@ export default class FloxyClient {
     let planId = selectedPlanId;
     if (!planId) {
       const list = await this.getAllPlans();
-      const plan = list.find(
-        (item) => item.type === "DEDICATED_DATACENTER",
-      );
+      const plan = list.find((item) => item.type === "DEDICATED_DATACENTER");
 
       if (plan) {
         planId = plan.id;

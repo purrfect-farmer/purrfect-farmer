@@ -56,7 +56,7 @@ export default class ATFFarmer extends BaseFarmer {
   /** Get or create device ID */
   getOrCreateDeviceId() {
     if (!this.deviceId) {
-      this.deviceId = `dev-${this.utils.uuid()}`;
+      this.deviceId = `prs4_${this.utils.uuid()}`;
     }
 
     return this.deviceId;
@@ -294,9 +294,19 @@ export default class ATFFarmer extends BaseFarmer {
     return this.makeAction("get_friends");
   }
 
+  /** Get Withdraw History */
+  getWithdrawHistory() {
+    return this.makeAction("get_withdraw_history");
+  }
+
   /** Claim Referrals */
   claimReferrals() {
     return this.makeAction("claim_referrals");
+  }
+
+  /** Claim Team Wallet */
+  claimTeamWallet() {
+    return this.makeAction("claim_team_wallet");
   }
 
   /** Get Withdrawal Puzzle */
@@ -857,20 +867,28 @@ export default class ATFFarmer extends BaseFarmer {
   }
 
   getMinerRate(level) {
-    return new Decimal(10).times(new Decimal(1.2).pow(level - 1)).floor();
+    const BASE_RATE = new Decimal(10);
+    const RATE_GROWTH = new Decimal("1.0181532961");
+
+    return BASE_RATE.times(RATE_GROWTH.pow(level - 1)).floor();
   }
 
   getMinerCost(level) {
     if (level <= 1) return new Decimal(0);
-    return new Decimal(100).times(new Decimal(1.3).pow(level - 2)).floor();
+
+    const REQ_GROWTH = new Decimal("1.0257185327");
+
+    return new Decimal(100).times(REQ_GROWTH.pow(level - 2)).floor();
   }
 
   findLevelForAtf(atfAmount) {
     const amount = new Decimal(atfAmount);
     let level = 1;
-    while (level < 100 && amount.gte(this.getMinerCost(level + 1))) {
+
+    while (level < 680 && amount.gte(this.getMinerCost(level + 1))) {
       level++;
     }
+
     return level;
   }
 
@@ -888,6 +906,23 @@ export default class ATFFarmer extends BaseFarmer {
     return d.minus(100).div(15).plus(1.99);
   }
 
+  getMiningRewardParts(level, difficulty, exemptMinLevel, exemptMaxLevel) {
+    const rate = this.getMinerRate(level);
+    const divisor = this.getDifficultyDivisor(
+      difficulty,
+      level,
+      exemptMinLevel,
+      exemptMaxLevel,
+    );
+
+    return {
+      rate,
+      divisor,
+      passivePerSecond: rate.div(divisor).div(86400),
+      boostTapReward: rate.div(100000).div(divisor),
+    };
+  }
+
   calculateSessionBalance({
     user,
     difficulty,
@@ -900,19 +935,19 @@ export default class ATFFarmer extends BaseFarmer {
     if (lastMiningStart === 0) return new Decimal(0);
 
     const level = Number(user["miner_level"]);
-    const rate = this.getMinerRate(level);
     const diffSnapshot =
       Number(user["mining_difficulty_snapshot"]) || difficulty;
-    const divisor = this.getDifficultyDivisor(
-      diffSnapshot,
-      level,
-      exemptMinLevel,
-      exemptMaxLevel,
-    );
+    const { rate, divisor, passivePerSecond, boostTapReward } =
+      this.getMiningRewardParts(
+        level,
+        diffSnapshot,
+        exemptMinLevel,
+        exemptMaxLevel,
+      );
     const pendingReward = new Decimal(user["pending_reward"] || 0);
 
     const elapsed = Math.min(Math.max(nowSec - lastMiningStart, 0), 86400);
-    const passiveReward = rate.div(divisor).div(86400).times(elapsed);
+    const passiveReward = passivePerSecond.times(elapsed);
 
     const boostActiveUntil = Number(user["boost_active_until"]) || 0;
     const boostPower = Number(user["boost_power_snapshot"]) || 0;
@@ -929,8 +964,7 @@ export default class ATFFarmer extends BaseFarmer {
         Math.min(cappedNow, boostActiveUntil) -
           Math.max(lastMiningStart, boostStart),
       );
-      const tapReward = rate.div(100000).div(divisor);
-      boostReward = tapReward.times(boostSeconds).times(boostPower);
+      boostReward = boostTapReward.times(boostSeconds).times(boostPower);
     }
 
     return pendingReward
@@ -969,13 +1003,33 @@ export default class ATFFarmer extends BaseFarmer {
     if (user["wallet_public_key"]) {
       this.logUserWallet(user);
     }
+
+    /** Check for flagged withdrawals */
+    const withdrawalHistory = await this.getWithdrawHistory();
+    const hasFlagged = withdrawalHistory.items.some(
+      (item) => !["pending", "approved"].includes(item.status),
+    );
+
+    /** Log flagged withdrawals */
+    this.logger.keyValue("Flagged Withdrawals", hasFlagged ? "Yes" : "No", {
+      valueStyle: hasFlagged
+        ? this.logger.c.redBright
+        : this.logger.c.greenBright,
+    });
+
+    if (hasFlagged) {
+      this.logger.error(
+        "You have flagged withdrawals in your history. Please check your account for details.",
+      );
+    } else {
+      this.logger.success("No flagged withdrawals in your history.");
+    }
   }
 
   getDailyMiningRateForLevel(level, diffData, diffSnapshot) {
-    const rate = this.getMinerRate(level);
-    const divisor = this.getDifficultyDivisor(
-      diffSnapshot || diffData.difficulty,
+    const { rate, divisor } = this.getMiningRewardParts(
       level,
+      diffSnapshot || diffData.difficulty,
       diffData.exemptMinLevel,
       diffData.exemptMaxLevel,
     );
@@ -986,7 +1040,7 @@ export default class ATFFarmer extends BaseFarmer {
     return this.getDailyMiningRateForLevel(
       Number(user["miner_level"]),
       diffData,
-      Number(user["mining_difficulty_snapshot"]) || 0,
+      Number(user["mining_difficulty_snapshot"]) || diffData.difficulty,
     );
   }
 
@@ -1329,6 +1383,7 @@ export default class ATFFarmer extends BaseFarmer {
   async claimFriendsRewards() {
     const friends = await this.getFriends();
     const claimable = friends.claimable;
+    const teamWallet = friends.team_wallet;
 
     if (claimable > 0) {
       const result = await this.claimReferrals();
@@ -1339,8 +1394,29 @@ export default class ATFFarmer extends BaseFarmer {
       this.user_data.user["miner_level"] = result.new_level;
 
       this.logger.success(`Claimed ${claimable} ATF from referrals!`);
+      await this.utils.delayForSeconds(2);
     } else {
       this.logger.info("No referral rewards to claim.");
     }
+
+    if (teamWallet > 0) {
+      const result = await this.claimTeamWallet();
+
+      /** Update balance and level */
+      this.user_data.user["assets_total"] = result.assets_total;
+      this.user_data.user["mined_balance"] = result.new_pool_balance;
+      this.user_data.user["miner_level"] = result.new_level;
+
+      this.logger.success(`Claimed ${teamWallet} ATF from team wallet!`);
+      await this.utils.delayForSeconds(2);
+    } else {
+      this.logger.info("No team wallet rewards to claim.");
+    }
+  }
+
+  /** Get Referrals Count */
+  async getReferralsCount() {
+    const friends = await this.getFriends();
+    return friends.total || 0;
   }
 }

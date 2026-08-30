@@ -643,6 +643,11 @@ export default class BaseFarmer {
     throw new Error("getReferralLink method must be implemented in subclass");
   }
 
+  /** Get Referrals Count */
+  async getReferralsCount() {
+    return 0;
+  }
+
   /** Get Cookies */
   async getCookies(options) {
     throw new Error("getCookies method must be implemented in subclass");
