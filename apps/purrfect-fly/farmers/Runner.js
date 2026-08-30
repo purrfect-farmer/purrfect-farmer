@@ -22,7 +22,7 @@ import utils from "../lib/utils.js";
 const BAN_TRIGGER_COUNT = env("BAN_TRIGGER_COUNT", 5);
 
 /** Concurrent accounts */
-const MAX_CONCURRENT_ACCOUNTS = env("MAX_CONCURRENT_ACCOUNTS", 20);
+const MAX_CONCURRENT_ACCOUNTS = env("MAX_CONCURRENT_ACCOUNTS", 10);
 
 /** Max retries for rate-limited (429) requests */
 const API_MAX_RETRY_COUNT = env("API_MAX_RETRY_COUNT", 10);
@@ -38,27 +38,33 @@ const HttpsProxyAgentWithCookies = createCookieAgent(HttpsProxyAgent);
  */
 export default function createRunner(FarmerClass) {
   /** Environment Variables key */
-  const envKey = "FARMER_" + FarmerClass.id.replace(/-/g, "_").toUpperCase();
+  const FARMER_ENV_BASE_KEY =
+    "FARMER_" + FarmerClass.id.replace(/-/g, "_").toUpperCase();
+
+  /** Get Environment Variable */
+  const getFarmerEnv = (key, defaultValue) => {
+    return env(FARMER_ENV_BASE_KEY + "_" + key, defaultValue);
+  };
 
   /** Is Farmer Enabled */
-  const enabled = env(envKey + "_ENABLED", true);
+  const enabled = getFarmerEnv("ENABLED", true);
 
   /** Interval */
-  const interval = env(envKey + "_INTERVAL", FarmerClass.interval);
+  const interval = getFarmerEnv("INTERVAL", FarmerClass.interval);
 
   /** Telegram message thread */
   const threadId =
-    env(envKey + "_THREAD_ID", "") || env("TELEGRAM_FARMING_THREAD_ID", "");
+    getFarmerEnv("THREAD_ID", "") || env("TELEGRAM_FARMING_THREAD_ID", "");
 
   /** Telegram bot link */
-  const telegramLink = env(envKey + "_LINK", FarmerClass.telegramLink);
+  const telegramLink = getFarmerEnv("LINK", FarmerClass.telegramLink);
 
   /** Default primary account ID */
   const defaultPrimaryAccountId = env("PRIMARY_ACCOUNT_ID");
 
   /** Farmer primary account ID */
-  const farmerPrimaryAccountId = env(
-    envKey + "_PRIMARY_ACCOUNT_ID",
+  const farmerPrimaryAccountId = getFarmerEnv(
+    "PRIMARY_ACCOUNT_ID",
     defaultPrimaryAccountId,
   );
 
