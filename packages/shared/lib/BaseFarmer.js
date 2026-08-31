@@ -21,7 +21,7 @@ export default class BaseFarmer {
   static link = "";
   static telegramLink = "";
   static host = "";
-  static referrerMode = "single";
+  static referrerMode = "random";
   static domains = [];
   static withXSRFToken = false;
   static rating = 1;

@@ -1,7 +1,5 @@
 import { Api, TelegramClient } from "telegram";
 import { NewMessage, Raw } from "telegram/events/index.js";
-import { delayForSeconds } from "../utils/delay.js";
-
 import {
   extractTgWebAppData,
   isBotMiniAppLink,
@@ -11,9 +9,10 @@ import {
 import EventEmitter from "events";
 import { StringSession } from "telegram/sessions/index.js";
 import { UpdateConnectionState } from "telegram/network/index.js";
+import { delayForSeconds } from "../utils/delay.js";
 
 export default class BaseTelegramWebClient extends TelegramClient {
-  static webviewCache = new Map();
+  webviewCache = new Map();
 
   /** Construct Class */
   constructor(session, options = {}) {
@@ -198,6 +197,11 @@ export default class BaseTelegramWebClient extends TelegramClient {
     });
   }
 
+  async getCachedUser() {
+    this.cachedUser = this.cachedUser || (await this.getSelf());
+    return this.cachedUser;
+  }
+
   /** Get Webview */
   getWebview(link, { allowCache = true } = {}) {
     return this.execute(async () => {
@@ -216,9 +220,10 @@ export default class BaseTelegramWebClient extends TelegramClient {
       const entityKey = parsed.entity?.toLowerCase();
       const startParam = parsed.startParam || "start";
       const isStartApp = parsed.isStartApp;
-      const cached = allowCache
-        ? BaseTelegramWebClient.webviewCache.get(entityKey)
-        : null;
+
+      const cacheKey = `${entityKey}`;
+      const cached = allowCache ? this.webviewCache.get(cacheKey) : null;
+
       let webview = cached?.webview;
       let miniApp = cached?.miniApp;
       let result = null;
@@ -281,7 +286,7 @@ export default class BaseTelegramWebClient extends TelegramClient {
 
         /** Cache Webview */
         if (webview || miniApp) {
-          BaseTelegramWebClient.webviewCache.set(entityKey, {
+          this.webviewCache.set(cacheKey, {
             webview,
             miniApp,
           });

@@ -22,7 +22,7 @@ import utils from "../lib/utils.js";
 const BAN_TRIGGER_COUNT = env("BAN_TRIGGER_COUNT", 5);
 
 /** Concurrent accounts */
-const MAX_CONCURRENT_ACCOUNTS = env("MAX_CONCURRENT_ACCOUNTS", 10);
+const MAX_CONCURRENT_ACCOUNTS = env("MAX_CONCURRENT_ACCOUNTS", 20);
 
 /** Max retries for rate-limited (429) requests */
 const API_MAX_RETRY_COUNT = env("API_MAX_RETRY_COUNT", 10);
@@ -413,22 +413,27 @@ export default function createRunner(FarmerClass) {
       }
     }
 
+    /** Create Farmer */
+    async createFarmer() {
+      return this.account.createFarmer({
+        farmer: this.constructor.id,
+        status: "active",
+        errorCount: 0,
+        initData: "",
+        headers: {},
+        cookies: [],
+        storage: {},
+        options: {},
+      });
+    }
+
     /** Prepare Instance */
     async prepare() {
       const needsAuth = !this.cacheAuth || !this.farmer;
 
       /** Create Farmer */
       if (!this.farmer) {
-        this.farmer = await this.account.createFarmer({
-          farmer: this.constructor.id,
-          status: "active",
-          errorCount: 0,
-          initData: "",
-          headers: {},
-          cookies: [],
-          storage: {},
-          options: {},
-        });
+        this.farmer = await this.createFarmer();
       }
 
       /** Update WebAppData */
@@ -442,7 +447,7 @@ export default function createRunner(FarmerClass) {
 
           /** Update the web app data */
           if (this.type === "webapp") {
-            await this.updateWebAppData(needsAuth);
+            await this.updateWebAppData();
           }
         } catch (e) {
           this.logger.error("Failed to update WebAppData", e.message);
@@ -512,21 +517,19 @@ export default function createRunner(FarmerClass) {
     /**
      * Get and update the initData using the telegram link for this farmer
      */
-    async updateWebAppData(force) {
-      if (force || !this.cacheTelegramWebApp) {
-        /** Log link for init data */
-        this.logger.info(
-          `[${this.account.id}] Updating init data:`,
-          this.telegramLink,
-        );
+    async updateWebAppData() {
+      /** Log link for init data */
+      this.logger.info(
+        `[${this.account.id}] Updating init data:`,
+        this.telegramLink,
+      );
 
-        const { url } = await this.client.getWebview(this.telegramLink);
-        const { initData } = this.utils.extractTgWebAppData(url);
+      const { url } = await this.client.getWebview(this.telegramLink);
+      const { initData } = this.utils.extractTgWebAppData(url);
 
-        this.farmer.initData = initData;
+      this.farmer.initData = initData;
 
-        this.logger.success("Successfully updated init data!");
-      }
+      this.logger.success("Successfully updated init data!");
     }
 
     /** Disconnect Farmer */
