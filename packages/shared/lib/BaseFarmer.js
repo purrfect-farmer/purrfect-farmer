@@ -16,7 +16,7 @@ export default class BaseFarmer {
   static telegramWebAppExpiry = 10;
   static syncToCloud = true;
   static cookies = false;
-  static interval = "*/10 * * * *";
+  static interval = "0 * * * *";
   static path = "/";
   static link = "";
   static telegramLink = "";
