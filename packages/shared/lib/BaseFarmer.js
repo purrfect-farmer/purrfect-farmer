@@ -29,7 +29,7 @@ export default class BaseFarmer {
   static deactivateOnError = true;
   static published = true;
   static singleton = false;
-  static autoStart = true;
+  static autoStart = false;
   static skipExecutionOfNewAccount = false;
 
   /**

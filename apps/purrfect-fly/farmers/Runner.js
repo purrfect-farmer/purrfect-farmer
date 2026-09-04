@@ -22,7 +22,7 @@ import utils from "../lib/utils.js";
 const BAN_TRIGGER_COUNT = env("BAN_TRIGGER_COUNT", 5);
 
 /** Concurrent accounts */
-const MAX_CONCURRENT_ACCOUNTS = env("MAX_CONCURRENT_ACCOUNTS", 20);
+const MAX_CONCURRENT_ACCOUNTS = env("MAX_CONCURRENT_ACCOUNTS", 10);
 
 /** Max retries for rate-limited (429) requests */
 const API_MAX_RETRY_COUNT = env("API_MAX_RETRY_COUNT", 10);
@@ -47,7 +47,16 @@ export default function createRunner(FarmerClass) {
   };
 
   /** Is Farmer Enabled */
-  const enabled = getFarmerEnv("ENABLED", true);
+  const enabled = getFarmerEnv("ENABLED", FarmerClass.enabled);
+
+  /** Is Farmer Auto-Started */
+  const autoStart = getFarmerEnv("AUTO_START", FarmerClass.autoStart);
+
+  /** Skip execution of new accounts */
+  const skipExecutionOfNewAccount = getFarmerEnv(
+    "SKIP_EXECUTION_OF_NEW_ACCOUNT",
+    FarmerClass.skipExecutionOfNewAccount,
+  );
 
   /** Interval */
   const interval = getFarmerEnv("INTERVAL", FarmerClass.interval);
@@ -74,7 +83,9 @@ export default function createRunner(FarmerClass) {
   /** Log */
   logger.success(`${FarmerClass.title} Farmer`);
   logger.keyValue("Enabled", enabled);
+  logger.keyValue("Auto-Start", autoStart);
   logger.keyValue("Interval", interval);
+  logger.keyValue("Skip execution of new accounts", skipExecutionOfNewAccount);
   logger.keyValue("Primary account ID", primaryAccountId, {
     format: false,
   });
@@ -83,7 +94,9 @@ export default function createRunner(FarmerClass) {
   return class Runner extends FarmerClass {
     static utils = utils;
     static enabled = enabled;
+    static autoStart = autoStart;
     static threadId = threadId;
+    static skipExecutionOfNewAccount = skipExecutionOfNewAccount;
     static telegramLink = telegramLink;
     static primaryAccountId = primaryAccountId;
     static interval = interval;
@@ -766,7 +779,7 @@ export default function createRunner(FarmerClass) {
     /** Process queue item */
     static async processQueueItem({ instance, skipExecution = false }, index) {
       try {
-        const delay = instance.account.farmer ? 10 : 60;
+        const delay = instance.account.farmer ? 20 : 60;
         await this.utils.delayForSeconds(index * delay);
         await this.execute(instance, skipExecution);
       } catch (err) {
@@ -867,7 +880,7 @@ export default function createRunner(FarmerClass) {
         let subscribedList = accountsWithFarmer;
 
         if (farmerIsRequired) {
-          /** Filter accounts without farmer */
+          /** Filter accounts with farmer */
           subscribedList = subscribedList.filter((item) => item.farmer);
         }
 
@@ -908,13 +921,15 @@ export default function createRunner(FarmerClass) {
 
         /** Get accounts to be executed  */
         const executableList = accounts.filter((account) => {
+          const accountIsActive = account.farmer?.status === "active";
+
           /**
            * A farmer can be automatically created for an
            * account with an active telegram session
            */
           const execute = canAutoStart
-            ? account.farmer?.status === "active" || account.session
-            : account.farmer?.status === "active";
+            ? accountIsActive || account.session
+            : accountIsActive;
 
           return execute;
         });
