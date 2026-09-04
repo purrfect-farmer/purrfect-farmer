@@ -43,15 +43,18 @@ const autoLargeIcons = indexIcons(
 
 /** The drop's token icon — reuses the farmer's icon, keyed by farmer id */
 const tokenIcons = indexIcons(
-  import.meta.glob("../../node_modules/@purrfect/shared/assets/images/farmers/*.png", {
-    eager: true,
-    import: "default",
-    query: { w: 32, h: 32, format: "webp" },
-  }),
+  import.meta.glob(
+    "../../node_modules/@purrfect/shared/assets/images/farmers/*.png",
+    {
+      eager: true,
+      import: "default",
+      query: { w: 32, h: 32, format: "webp" },
+    },
+  ),
 );
 
 const autos = Object.values(farmersGlob)
-  .filter((Farmer) => Farmer.published && Farmer.auto)
+  .filter((Farmer) => Farmer.auto)
   .map((Farmer) => ({
     ...Farmer.auto,
     farmerId: Farmer.id,
