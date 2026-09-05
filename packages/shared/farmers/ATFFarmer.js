@@ -381,7 +381,6 @@ export default class ATFFarmer extends BaseFarmer {
             icon: "history",
             title: "Pending Withdrawals",
             action: this.logPendingWithdrawals.bind(this),
-            dispatch: false,
           },
         ],
       },
