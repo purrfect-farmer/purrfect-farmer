@@ -1,13 +1,5 @@
 /**
  * Moving wallets between Auto drops.
- *
- * The drops are mechanically identical — a TON wallet whose jetton holding
- * drives the miner level — and one wallet can hold every drop's jetton at once,
- * so the accounts curated for one drop are usually the accounts wanted for the
- * next. This module owns the transfer payload and the merge maths; encryption
- * and storage live in `useAutoImportMutation`.
- *
- * Deliberately dependency-free so it can be exercised outside the bundler.
  */
 
 export const EXPORT_TYPE = "purrfect-auto-export";
@@ -22,10 +14,6 @@ export const MERGE_STRATEGY_LABELS = {
   replace: "Replace all accounts",
 };
 
-/**
- * `crypto.randomUUID` rather than the app's `uuid` helper, so this module keeps
- * no imports. Same underlying source — `uuid` delegates to it where available.
- */
 const makeId = () => crypto.randomUUID();
 
 /** The fields of an account that are worth carrying across */
@@ -36,6 +24,7 @@ function pickAccount(account) {
     userId: account.userId,
     version: account.version,
     address: account.address,
+    verified: Boolean(account.verified),
     encryptedPhrase: account.encryptedPhrase,
   };
 }
@@ -97,10 +86,6 @@ export function validateBundle(data) {
 
 /**
  * Whether two accounts are the same farmed account.
- *
- * The Telegram user id is the real identity — the same person farms every drop
- * under it — but it is a number from `AutoAccountForm` and a string elsewhere,
- * hence the coercion. Address is the fallback for accounts saved without one.
  */
 export function matchAccount(a, b) {
   if (a.userId && b.userId && String(a.userId) === String(b.userId)) {
@@ -112,11 +97,6 @@ export function matchAccount(a, b) {
 
 /**
  * Folds `incoming` into `existing`.
- *
- * Overwriting keeps the destination account's `id` — the accounts list, the
- * chooser and cloud results all key off it — and takes everything else from the
- * incoming account, which is what makes a re-import the way to re-sync after
- * rotating wallets in the source drop.
  */
 export function mergeAccounts(existing = [], incoming = [], strategy = "skip") {
   if (!MERGE_STRATEGIES.includes(strategy)) {

@@ -3,6 +3,7 @@ import { LuCircleFadingArrowUp, LuDollarSign } from "react-icons/lu";
 import {
   MdArrowDownward,
   MdCheck,
+  MdHistory,
   MdOutlineKey,
   MdOutlineWallet,
   MdSearch,
@@ -23,6 +24,7 @@ const TOOLS_ICON = {
   import: MdArrowDownward,
   key: MdOutlineKey,
   withdraw: LuDollarSign,
+  history: MdHistory,
 };
 
 export const TerminalFarmerTools = ({ terminalFarmer }) => {

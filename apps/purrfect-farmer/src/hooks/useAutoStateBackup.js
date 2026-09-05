@@ -45,6 +45,7 @@ export default function useAutoStateBackup() {
           userId: account.userId,
           version: account.version,
           address: account.address,
+          verified: Boolean(account.verified),
           phrase: await decryptPhrase(account.encryptedPhrase),
         });
 

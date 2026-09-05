@@ -6,6 +6,8 @@ import AutoAvatar from "./AutoAvatar";
 import AutoBoosterBoostTab from "./AutoBoosterBoostTab";
 import AutoBoosterCollectTab from "./AutoBoosterCollectTab";
 import AutoBoosterDetailsTab from "./AutoBoosterDetailsTab";
+import AutoBoosterWithdrawTab from "./AutoBoosterWithdrawTab";
+import AutoVerifiedBadge from "./AutoVerifiedBadge";
 import AutoVersionBadge from "./AutoVersionBadge";
 import { HiOutlineXMark } from "react-icons/hi2";
 import { MdOutlineContentCopy } from "react-icons/md";
@@ -43,8 +45,9 @@ function BoosterHeader({ account }) {
       {/* Title + info */}
       <div className="flex flex-col justify-center items-center gap-0.5 grow min-w-0">
         {/* Title */}
-        <Dialog.Title className="font-bold text-sm truncate">
+        <Dialog.Title className="font-bold text-sm truncate flex items-center gap-1">
           {account.title}
+          <AutoVerifiedBadge verified={account.verified} />
         </Dialog.Title>
 
         {/* Description */}
@@ -128,9 +131,10 @@ export default function AutoAccountBooster({ account }) {
             defaultValue="boost"
             className="flex flex-col size-full overflow-hidden"
           >
-            <Tabs.List className="grid grid-cols-3 shrink-0">
+            <Tabs.List className="grid grid-cols-4 shrink-0">
               <BoosterTabTrigger title="Boost" value="boost" />
               <BoosterTabTrigger title="Collect" value="collect" />
+              <BoosterTabTrigger title="Withdraw" value="withdraw" />
               <BoosterTabTrigger title="Details" value="details" />
             </Tabs.List>
 
@@ -140,6 +144,13 @@ export default function AutoAccountBooster({ account }) {
               </Tabs.Content>
               <Tabs.Content value="collect">
                 <AutoBoosterCollectTab account={account} />
+              </Tabs.Content>
+              <Tabs.Content
+                forceMount
+                value="withdraw"
+                className="data-[state=inactive]:hidden"
+              >
+                <AutoBoosterWithdrawTab account={account} />
               </Tabs.Content>
               <Tabs.Content value="details">
                 <AutoBoosterDetailsTab account={account} />

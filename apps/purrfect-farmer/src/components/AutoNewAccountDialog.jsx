@@ -25,6 +25,7 @@ export default function AutoNewAccountDialog({ onCreated }) {
       title: data.title,
       version: data.version,
       userId: data.userId,
+      verified: Boolean(data.verified),
       encryptedPhrase,
       address,
     };

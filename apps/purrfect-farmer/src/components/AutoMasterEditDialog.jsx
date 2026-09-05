@@ -90,6 +90,7 @@ export default function AutoMasterEditDialog({ onSave }) {
             submittingLabel="Saving..."
             hideTitle
             hideUserId
+            hideVerified
           />
         </>
       ) : (

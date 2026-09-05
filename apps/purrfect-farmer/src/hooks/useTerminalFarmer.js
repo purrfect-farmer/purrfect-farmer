@@ -4,6 +4,7 @@ import { customLogger } from "@/utils";
 import toast from "react-hot-toast";
 import useAppContext from "./useAppContext";
 import { useEffect } from "react";
+import useFarmerCommandListener from "./useFarmerCommandListener";
 import useFarmerContext from "./useFarmerContext";
 import useMirroredCallback from "./useMirroredCallback";
 import usePrimaryFarmerLink from "./usePrimaryFarmerLink";
@@ -156,6 +157,16 @@ export default function useTerminalFarmer() {
     },
     [id, started, startFarmer, stopFarmer],
   );
+
+  /**
+   * Accept commands addressed to this account.
+   */
+  useFarmerCommandListener({
+    logger,
+    instance,
+    userId: instanceUserId,
+    farmerId: FarmerClass.id,
+  });
 
   /** Configure Prompt */
   useLayoutEffect(() => {

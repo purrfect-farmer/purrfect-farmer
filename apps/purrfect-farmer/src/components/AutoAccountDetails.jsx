@@ -1,3 +1,4 @@
+import AutoVerifiedBadge from "./AutoVerifiedBadge";
 import AutoVersionBadge from "./AutoVersionBadge";
 import { HiOutlineEye } from "react-icons/hi2";
 import { MdOutlineContentCopy, MdOutlineOpenInNew } from "react-icons/md";
@@ -109,6 +110,17 @@ export default function AutoAccountDetails({ account }) {
       <InfoRow
         label="Version"
         value={<AutoVersionBadge version={account.version} />}
+      />
+
+      <InfoRow
+        label="Verified"
+        value={account.verified ? "Yes" : "No"}
+        valueClassName={
+          account.verified
+            ? "text-lime-500 dark:text-lime-300"
+            : "text-neutral-500 dark:text-neutral-400"
+        }
+        rightContent={<AutoVerifiedBadge verified={account.verified} />}
       />
 
       {/* Phrase */}

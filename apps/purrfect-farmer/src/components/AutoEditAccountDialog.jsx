@@ -46,6 +46,7 @@ export default function AutoEditAccountDialog({
       title: data.title,
       version: data.version,
       userId: data.userId,
+      verified: Boolean(data.verified),
       address,
       encryptedPhrase,
     });
@@ -66,6 +67,7 @@ export default function AutoEditAccountDialog({
               title: account.title,
               version: account.version,
               userId: account.userId,
+              verified: account.verified,
               phrase,
             }}
             handleFormSubmit={handleFormSubmit}

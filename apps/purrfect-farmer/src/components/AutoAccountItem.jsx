@@ -8,6 +8,7 @@ import AutoAccountDetailsDialog from "./AutoAccountDetailsDialog";
 import AutoAddress from "./AutoAddress";
 import AutoAvatar from "./AutoAvatar";
 import AutoEditAccountDialog from "./AutoEditAccountDialog";
+import AutoVerifiedBadge from "./AutoVerifiedBadge";
 import AutoVersionBadge from "./AutoVersionBadge";
 import { Dialog } from "radix-ui";
 import { cn } from "@/utils";
@@ -81,6 +82,7 @@ export default memo(function AutoAccountItem({
             <div className="flex items-center gap-1.5 text-blue-800 dark:text-blue-100">
               <AutoAddress address={account.address} />
               <AutoVersionBadge version={account.version} />
+              <AutoVerifiedBadge verified={account.verified} />
             </div>
           </div>
 

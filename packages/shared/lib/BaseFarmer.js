@@ -589,7 +589,7 @@ export default class BaseFarmer {
    * Normalized account snapshot shared by every Auto drop.
    *
    * @returns {object} - {
-   *   level, holding, balance, minWithdrawal,
+   *   level, holding, balance, minWithdrawal, verified,
    *   wallet: { address, version } | null,
    *   banned, banReason,
    *   risk: { score, updatedAt, flags: string[] }

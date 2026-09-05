@@ -9,6 +9,7 @@ import { memo, useMemo } from "react";
 import AutoAccountBalance from "./AutoAccountBalance";
 import AutoAddress from "./AutoAddress";
 import AutoAvatar from "./AutoAvatar";
+import AutoVerifiedBadge from "./AutoVerifiedBadge";
 import AutoVersionBadge from "./AutoVersionBadge";
 import Input from "./Input";
 import { cn } from "@/utils";
@@ -88,6 +89,7 @@ const AccountChooserItem = memo(function AccountChooserItem({
           <div className="flex items-center gap-1.5 text-blue-800 dark:text-blue-100">
             <AutoAddress address={account.address} />
             <AutoVersionBadge version={account.version} />
+            <AutoVerifiedBadge verified={account.verified} />
           </div>
         </div>
         {showBalance ? <AutoAccountBalance account={account} /> : null}

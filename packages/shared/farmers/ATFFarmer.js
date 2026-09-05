@@ -17,6 +17,11 @@ import Decimal from "decimal.js";
  */
 const WITHDRAWAL_BUFFER = 200;
 
+/**
+ * Backstop for the withdrawal captcha loop.
+ */
+const WITHDRAWAL_CAPTCHA_ATTEMPTS = 3;
+
 export default class ATFFarmer extends BaseFarmer {
   static id = "atf";
   static title = "ATF";
@@ -28,7 +33,6 @@ export default class ATFFarmer extends BaseFarmer {
   static interval = "10 */2 * * *";
   static referrerMode = "random";
   static apiDelay = 500;
-  static singleton = true;
   static rating = 5;
   static netRequest = {
     requestHeaders: [
@@ -372,6 +376,13 @@ export default class ATFFarmer extends BaseFarmer {
             action: this.withdraw.bind(this),
             dispatch: false,
           },
+          {
+            id: "pending-withdrawals",
+            icon: "history",
+            title: "Pending Withdrawals",
+            action: this.logPendingWithdrawals.bind(this),
+            dispatch: false,
+          },
         ],
       },
       {
@@ -662,6 +673,111 @@ export default class ATFFarmer extends BaseFarmer {
     };
   }
 
+  /**
+   * Whether a rejected withdrawal was rejected over the captcha.
+   */
+  isWithdrawalCaptchaRejection(result) {
+    return String(result?.["reason"] || "").startsWith("captcha");
+  }
+
+  /** The drop grades an answer that came back too fast as a bot */
+  async waitForCaptchaSolveTime(challenge, issuedAt) {
+    const minSolveMs = Number(challenge["min_solve_ms"]) || 0;
+    const remaining = minSolveMs - (Date.now() - issuedAt);
+
+    await this.utils.delay(Math.max(2000, remaining), {
+      precised: true,
+      signal: this.signal,
+    });
+  }
+
+  /** What to put above the captcha image, once a previous answer was rejected */
+  buildCaptchaPromptText(challenge, rejection) {
+    if (!rejection) {
+      return "Solve the captcha to proceed with the withdrawal:";
+    }
+
+    const attemptsLeft = Number(
+      challenge["attempts_left"] ?? rejection["attempts_left"],
+    );
+
+    return Number.isFinite(attemptsLeft)
+      ? `${rejection["message"]} ${attemptsLeft} attempt(s) left:`
+      : `${rejection["message"]} Try again:`;
+  }
+
+  /**
+   * Ask for the withdrawal captcha until the drop accepts it.
+   */
+  async requestWithdrawalWithCaptcha(amount) {
+    let challenge = await this.getWithdrawalPuzzle(amount.toNumber());
+    let issuedAt = Date.now();
+    let rejection = null;
+    let attempt = 0;
+
+    while (true) {
+      if (this.signal.aborted) {
+        throw new Error("Withdrawal aborted");
+      }
+
+      attempt++;
+
+      /** The drop can waive the captcha, leaving nothing to ask */
+      let answer = "";
+
+      if (challenge["is_captcha"]) {
+        answer = await this.promptInput({
+          type: "text",
+          text: this.buildCaptchaPromptText(challenge, rejection),
+          image: challenge["captcha_image"],
+        });
+
+        this.logger.info("Your answer:", answer);
+      }
+
+      const result = await this.requestWithdrawal({
+        amount: amount.toNumber(),
+        withdraw_captcha_id: challenge["challenge_id"],
+        withdraw_captcha_answer: answer,
+      });
+
+      /** Success, or a refusal that answering again cannot fix */
+      if (!this.isWithdrawalCaptchaRejection(result)) {
+        return result;
+      }
+
+      rejection = result;
+      this.logger.error("Captcha rejected:", result["message"]);
+
+      if (result["locked"]) {
+        this.logger.error(
+          "Withdrawals are locked until",
+          new Date(Number(result["lock_until"]) * 1000).toLocaleString(),
+        );
+        return result;
+      }
+
+      const attemptsLeft = Number(result["attempts_left"]);
+
+      if (attemptsLeft <= 0) {
+        this.logger.error("No captcha attempts left.");
+        return result;
+      }
+
+      if (attempt >= WITHDRAWAL_CAPTCHA_ATTEMPTS) {
+        this.logger.error(
+          `Giving up after ${WITHDRAWAL_CAPTCHA_ATTEMPTS} failed captcha attempts.`,
+        );
+        return result;
+      }
+
+      /** The image is regenerated on every failure, so ask for the new one */
+      this.logger.warn("Fetching a new captcha...");
+      challenge = await this.getWithdrawalPuzzle(amount.toNumber());
+      issuedAt = Date.now();
+    }
+  }
+
   /** Place withdrawal */
   async withdraw({ max, difference = 20, force = false } = {}) {
     if (this.scheduled && !force) {
@@ -725,30 +841,8 @@ export default class ATFFarmer extends BaseFarmer {
     /** Reset amount to minimum */
     amount = Decimal.max(amount, minimum).floor();
 
-    /** Get challenge */
-    const challenge = await this.getWithdrawalPuzzle(amount.toNumber());
-
-    /** Withdrawal Captcha ID */
-    const withdrawalCaptchaId = challenge["challenge_id"];
-
-    /** Withdrawal Captcha Answer */
-    const withdrawalCaptchaAnswer = await this.promptInput({
-      type: "text",
-      text: "Solve the captcha to proceed with the withdrawal:",
-      image: challenge["captcha_image"],
-    });
-
-    this.logger.info("Your answer:", withdrawalCaptchaAnswer);
-
-    /** Wait for a moment */
-    await this.utils.delayForSeconds(2, { signal: this.signal });
-
-    /** Request withdrawal */
-    const result = await this.requestWithdrawal({
-      amount: amount.toNumber(),
-      withdraw_captcha_id: withdrawalCaptchaId,
-      withdraw_captcha_answer: withdrawalCaptchaAnswer,
-    });
+    /** Solve the withdrawal captcha, re-asking while the answer is rejected */
+    const result = await this.requestWithdrawalWithCaptcha(amount);
 
     /** Check status */
     const status = result.status === "success";
@@ -1083,8 +1177,14 @@ export default class ATFFarmer extends BaseFarmer {
 
   logUserRisks(user) {
     const flags = (user["risk_flags"] || "").trim().split("|").filter(Boolean);
+    const isVerified = this.isUserVerified(user);
 
     this.logger.newline();
+    this.logger.keyValue("Verified", isVerified ? "Yes" : "No", {
+      valueStyle: isVerified
+        ? this.logger.c.greenBright
+        : this.logger.c.yellowBright,
+    });
     this.logger.keyValue("Risk Score", user["risk_score"]);
     this.logger.keyValue("Risk Updated", user["risk_updated_at"]);
     this.logger.keyValue("Risk Flags", flags.length);
@@ -1096,6 +1196,66 @@ export default class ATFFarmer extends BaseFarmer {
     this.logger.keyValue("Banned at", user["banned_at"]);
     this.logger.keyValue("Temp banned until", user["temp_banned_until"]);
     this.logger.keyValue("Temp ban reason", user["temp_ban_reason"]);
+  }
+
+  /** Whether the drop has verified the account */
+  isUserVerified(user) {
+    return Number(user["is_verified"]) === 1;
+  }
+
+  /**
+   * Log the withdrawals the drop has not settled yet.
+   */
+  async logPendingWithdrawals() {
+    const history = await this.getWithdrawHistory();
+    const items = history?.items || [];
+    const pending = items.filter((item) => item.status === "pending");
+
+    this.logger.newline();
+    this.logCurrentUser();
+    this.logger.keyValue(
+      "Verified",
+      this.isUserVerified(this.getUserDetails()) ? "Yes" : "No",
+    );
+    this.logger.keyValue("Pending Withdrawals", pending.length, {
+      valueStyle: pending.length
+        ? this.logger.c.yellowBright
+        : this.logger.c.greenBright,
+    });
+
+    if (pending.length === 0) {
+      this.logger.success("No withdrawal is awaiting processing.");
+      return { status: true, pending };
+    }
+
+    for (const item of pending) {
+      this.logger.newline();
+
+      for (const [key, value] of Object.entries(item)) {
+        if (value === null || typeof value === "object") {
+          continue;
+        }
+
+        this.logger.keyValue(this.formatWithdrawalField(key), String(value), {
+          format: false,
+        });
+      }
+    }
+
+    this.logger.newline();
+    this.logger.warn(
+      `${pending.length} withdrawal(s) still awaiting processing.`,
+    );
+
+    return { status: true, pending };
+  }
+
+  /** `send_amount` -> `Send Amount` */
+  formatWithdrawalField(key) {
+    return key
+      .split("_")
+      .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+      .join(" ");
   }
 
   getUserWallet(user) {
@@ -1156,6 +1316,7 @@ export default class ATFFarmer extends BaseFarmer {
       holding: user["wallet_holding_atf"],
       balance: user["mined_balance"],
       minWithdrawal: this.getMinimumWithdrawal(),
+      verified: this.isUserVerified(user),
       wallet: wallet
         ? { address: wallet.address, version: wallet.version }
         : null,

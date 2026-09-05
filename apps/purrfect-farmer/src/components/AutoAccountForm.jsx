@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import FieldStateError from "./FieldStateError";
 import Input from "./Input";
 import Label from "./Label";
+import LabelToggle from "./LabelToggle";
 import PrimaryButton from "./PrimaryButton";
 import Select from "./Select";
 import Textarea from "./Textarea";
@@ -14,7 +15,7 @@ import toast from "react-hot-toast";
 import { yup } from "@/lib/yup";
 import { yupResolver } from "@hookform/resolvers/yup";
 
-function buildSchema({ hideTitle, hideUserId }) {
+function buildSchema({ hideTitle, hideUserId, hideVerified }) {
   const shape = {
     phrase: yup.string().trim().required().label("Wallet Phrase"),
     version: yup.number().required().oneOf([4, 5]).label("Wallet Version"),
@@ -24,6 +25,9 @@ function buildSchema({ hideTitle, hideUserId }) {
   }
   if (!hideUserId) {
     shape.userId = yup.number().required().label("Telegram User ID");
+  }
+  if (!hideVerified) {
+    shape.verified = yup.boolean().default(false).label("Verified");
   }
   return yup.object(shape).required();
 }
@@ -35,13 +39,15 @@ export default function AutoAccountForm({
   submittingLabel = "Saving...",
   hideTitle = false,
   hideUserId = false,
+  hideVerified = false,
 }) {
   const [address, setAddress] = useState("");
   const form = useForm({
-    resolver: yupResolver(buildSchema({ hideTitle, hideUserId })),
+    resolver: yupResolver(buildSchema({ hideTitle, hideUserId, hideVerified })),
     defaultValues: {
       ...(hideTitle ? {} : { title: initialValues?.title || "" }),
       ...(hideUserId ? {} : { userId: initialValues?.userId || "" }),
+      ...(hideVerified ? {} : { verified: initialValues?.verified || false }),
       phrase: initialValues?.phrase || "",
       version: initialValues?.version || 5,
     },
@@ -104,6 +110,29 @@ export default function AutoAccountForm({
                   autoComplete="off"
                   placeholder="e.g 123456789"
                 />
+                <FieldStateError fieldState={fieldState} />
+              </>
+            )}
+          />
+        )}
+
+        {/* Verified */}
+        {!hideVerified && (
+          <Controller
+            control={form.control}
+            name="verified"
+            render={({ field, fieldState }) => (
+              <>
+                <LabelToggle
+                  disabled={isSubmitting}
+                  checked={Boolean(field.value)}
+                  onChange={(ev) => field.onChange(ev.target.checked)}
+                >
+                  Verified
+                </LabelToggle>
+                <p className="text-neutral-500 dark:text-neutral-400">
+                  Verified accounts can withdraw on behalf of other accounts.
+                </p>
                 <FieldStateError fieldState={fieldState} />
               </>
             )}
