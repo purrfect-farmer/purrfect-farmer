@@ -68,6 +68,9 @@ export default function createRunner(FarmerClass) {
   /** Telegram bot link */
   const telegramLink = getFarmerEnv("LINK", FarmerClass.telegramLink);
 
+  /** Referrer mode */
+  const referrerMode = getFarmerEnv("REFERRER_MODE", FarmerClass.referrerMode);
+
   /** Default primary account ID */
   const defaultPrimaryAccountId = env("PRIMARY_ACCOUNT_ID");
 
@@ -84,6 +87,9 @@ export default function createRunner(FarmerClass) {
   logger.success(`${FarmerClass.title} Farmer`);
   logger.keyValue("Enabled", enabled);
   logger.keyValue("Auto-Start", autoStart);
+  logger.keyValue("Telegram link", telegramLink);
+  logger.keyValue("Thread ID", threadId);
+  logger.keyValue("Referrer mode", referrerMode);
   logger.keyValue("Interval", interval);
   logger.keyValue("Skip execution of new accounts", skipExecutionOfNewAccount);
   logger.keyValue("Primary account ID", primaryAccountId, {
@@ -98,6 +104,7 @@ export default function createRunner(FarmerClass) {
     static threadId = threadId;
     static skipExecutionOfNewAccount = skipExecutionOfNewAccount;
     static telegramLink = telegramLink;
+    static referrerMode = referrerMode;
     static primaryAccountId = primaryAccountId;
     static interval = interval;
     static primaryFarmerLink = null;
