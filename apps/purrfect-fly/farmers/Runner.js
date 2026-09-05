@@ -22,7 +22,7 @@ import utils from "../lib/utils.js";
 const BAN_TRIGGER_COUNT = env("BAN_TRIGGER_COUNT", 5);
 
 /** Concurrent accounts */
-const MAX_CONCURRENT_ACCOUNTS = env("MAX_CONCURRENT_ACCOUNTS", 10);
+const MAX_CONCURRENT_ACCOUNTS = env("MAX_CONCURRENT_ACCOUNTS", 20);
 
 /** Max retries for rate-limited (429) requests */
 const API_MAX_RETRY_COUNT = env("API_MAX_RETRY_COUNT", 10);
