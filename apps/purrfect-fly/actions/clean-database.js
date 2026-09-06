@@ -1,4 +1,5 @@
 import db from "../db/models/index.js";
+import farmers from "../farmers/index.js";
 
 /** Clean Database */
 async function cleanDatabase() {
