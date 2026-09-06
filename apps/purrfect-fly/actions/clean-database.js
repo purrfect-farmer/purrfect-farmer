@@ -27,8 +27,8 @@ async function cleanDatabase() {
       ) !== index,
   );
 
-  /* Log duplicate farmers */
-  console.log("Duplicate Farmers:", duplicateFarmers);
+  /* Log number of duplicate farmers */
+  console.log("Number of Duplicate Farmers:", duplicateFarmers.length);
 
   /* Destroy duplicate farmers */
   await db.Farmer.destroy({
