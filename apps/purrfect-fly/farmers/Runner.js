@@ -447,8 +447,28 @@ export default function createRunner(FarmerClass) {
       });
     }
 
+    /** Refresh Account */
+    async refreshFarmerAccount() {
+      const account = await this.account.reload({
+        include: [
+          {
+            required: false,
+            association: "farmers",
+            where: {
+              farmer: this.constructor.id,
+            },
+          },
+        ],
+      });
+      this.account = account;
+      this.farmer = account.farmer;
+    }
+
     /** Prepare Instance */
     async prepare() {
+      /** Refresh Account */
+      await this.refreshFarmerAccount();
+
       const needsAuth = !this.cacheAuth || !this.farmer;
 
       /** Create Farmer */
