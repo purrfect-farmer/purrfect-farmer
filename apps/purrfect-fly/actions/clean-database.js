@@ -16,10 +16,10 @@ async function cleanDatabase() {
   });
 
   /* Get all active farmers */
-  const farmers = await db.Farmer.findAll();
+  const activeFarmers = await db.Farmer.findAll();
 
   /* Find duplicate farmers */
-  const duplicateFarmers = farmers.filter(
+  const duplicateFarmers = activeFarmers.filter(
     (farmer, index, self) =>
       self.findIndex(
         (t) => t.accountId === farmer.accountId && t.farmer === farmer.farmer,
