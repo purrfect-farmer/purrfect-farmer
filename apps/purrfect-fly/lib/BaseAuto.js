@@ -11,19 +11,6 @@ import utils from "./utils.js";
 
 /**
  * BaseAuto
- *
- * Wallet-orchestration engine for a single "Auto" drop: boosts sub-accounts by
- * moving the drop's jetton into their linked wallets, collects it back,
- * withdraws mined balances, and reports status — all narrated to the user over
- * the Telegram bot.
- *
- * Subclasses are produced by `createAuto(FarmerClass)` from the farmer's
- * `static auto` descriptor; they supply `farmerId`, `id`, `title`, `token`,
- * `jettonAddress` and their own `instances` map.
- *
- * Everything drop-specific beyond those statics lives behind the farmer's auto
- * adapter (`connectAutoWallet` / `refreshAutoState` / `getAutoSummary` /
- * `withdraw`), so this class never touches a raw drop API response.
  */
 class BaseAuto {
   /** @type {string} id of the farmer this drop farms */
@@ -534,7 +521,8 @@ class BaseAuto {
     /** Delay for minutes */
     if (!this.isLastAccount(index)) {
       const currentIndex = index + 1;
-      if (currentIndex % 20 === 0) {
+      const shouldBurst = false; // TODO: Make this dynamic
+      if (shouldBurst && currentIndex % 20 === 0) {
         await this.burstBoost();
       } else {
         await this.delayForSafeMinutes();
@@ -556,7 +544,10 @@ class BaseAuto {
     /** Collect token */
     logger.info(`Collecting ${this.token} and TON:`, account.address);
     await booster.collect();
-    logger.success(`Successfully collected ${this.token} and TON:`, account.address);
+    logger.success(
+      `Successfully collected ${this.token} and TON:`,
+      account.address,
+    );
   }
 
   /** Roll to account */
@@ -728,7 +719,9 @@ class BaseAuto {
         await this.sendCancellationCompletionNotification();
       } else {
         /** Notify about completion */
-        await this.sendNotification([`✅ ${this.title} - Collection completed!`]);
+        await this.sendNotification([
+          `✅ ${this.title} - Collection completed!`,
+        ]);
       }
 
       /** Calculate total amount */
@@ -833,7 +826,9 @@ class BaseAuto {
         await this.sendCancellationCompletionNotification();
       } else {
         /** Notify about completion */
-        await this.sendNotification([`✅ ${this.title} - Withdrawal completed!`]);
+        await this.sendNotification([
+          `✅ ${this.title} - Withdrawal completed!`,
+        ]);
       }
 
       /** Calculate total amount */
@@ -1031,7 +1026,10 @@ class BaseAuto {
 
       /** Notify about summary */
       await this.sendSummaryNotification(results, [
-        this.formatKeyValue("Total mined", `💰 ${totalMinedFormatted} ${this.token}`),
+        this.formatKeyValue(
+          "Total mined",
+          `💰 ${totalMinedFormatted} ${this.token}`,
+        ),
         this.formatKeyValue(
           "Withdrawable Amount",
           `🤑 ${withdrawableAmountFormatted} ${this.token}`,
@@ -1079,10 +1077,7 @@ class BaseAuto {
             `ℹ️ User details <b>(${this.formatAccountLink(cloudAccount.id)})</b> ${this.formatAccountPosition(index)}`,
             "",
             this.formatKeyValue("Miner Level", summary.level),
-            this.formatKeyValue(
-              "Holding",
-              `${summary.holding} ${this.token}`,
-            ),
+            this.formatKeyValue("Holding", `${summary.holding} ${this.token}`),
             this.formatKeyValue(
               "Balance",
               `${summary.balance} ${this.token} ${this.isWithdrawable(summary) ? "🟩" : "🟧"}`,
