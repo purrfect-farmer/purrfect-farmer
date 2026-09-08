@@ -143,6 +143,46 @@ class BaseAuto {
     return wallet.version ? `(${wallet.version.toUpperCase()}) ${link}` : link;
   }
 
+  /** Format a unix timestamp for a notification */
+  formatTimestamp(seconds) {
+    return new Date(seconds * 1000).toUTCString();
+  }
+
+  /** Format how long is left until a unix timestamp, e.g. "2d 3h" */
+  formatCountdown(seconds) {
+    const remaining = Math.max(0, Math.floor(seconds - Date.now() / 1000));
+    const days = Math.floor(remaining / 86400);
+    const hours = Math.floor((remaining % 86400) / 3600);
+    const minutes = Math.floor((remaining % 3600) / 60);
+
+    const parts = [];
+    if (days) parts.push(`${days}d`);
+    if (hours) parts.push(`${hours}h`);
+    if (minutes || parts.length === 0) parts.push(`${minutes}m`);
+
+    return parts.join(" ");
+  }
+
+  /**
+   * Format when an account's mining freezes.
+   *
+   * Empty for drops that don't report a mining window, and for accounts that
+   * aren't mining at all.
+   */
+  formatMiningFreeze(summary) {
+    const mining = summary?.mining;
+
+    if (mining?.frozen) {
+      return "\n🧊 Mining is <b>frozen</b>";
+    }
+
+    const freezesAt = Number(mining?.freezesAt) || 0;
+
+    if (!freezesAt) return "";
+
+    return `\n❄️ Freezes <i>${this.formatTimestamp(freezesAt)}</i> — in <i>${this.formatCountdown(freezesAt)}</i>`;
+  }
+
   /** Whether an account's balance has reached the drop's withdrawal minimum */
   isWithdrawable(summary) {
     if (!summary?.minWithdrawal) return false;
@@ -448,6 +488,13 @@ class BaseAuto {
             jettonAmount,
           });
 
+        /** Put the holding to work */
+        const minedSummary = await this.startMining(
+          runner,
+          cloudAccount,
+          settledSummary,
+        );
+
         try {
           /** Set farmer status */
           if (runner.farmer) {
@@ -477,7 +524,7 @@ class BaseAuto {
           );
         }
 
-        return { status: true, summary: settledSummary, settled };
+        return { status: true, summary: minedSummary, settled };
       } catch (e) {
         errorMessage = e.message;
         logger.error(
@@ -500,6 +547,29 @@ class BaseAuto {
     }
 
     return { status: false, message: errorMessage };
+  }
+
+  /**
+   * Start mining at the holding the account is now on.
+   *
+   * The drop snapshots the miner level when mining starts, so this runs after
+   * the boost has settled — otherwise the account mines at the level it held
+   * before the tokens arrived. Failing to start is not fatal: the wallet is
+   * connected either way, so the last summary is kept and reported.
+   */
+  async startMining(runner, cloudAccount, summary) {
+    try {
+      logger.info("Starting mining:", cloudAccount.id);
+
+      const mined = await runner.startAutoMining();
+
+      logger.success("Started mining:", cloudAccount.id);
+
+      return mined || summary;
+    } catch (e) {
+      logger.error("Failed to start mining:", cloudAccount.id, e.message);
+      return summary;
+    }
   }
 
   /**
@@ -637,13 +707,16 @@ class BaseAuto {
     const position = this.formatAccountPosition(index);
     const action = skipped ? "connect" : "boost";
 
+    /** Reported on every success, so the freeze is visible before it bites */
+    const freeze = status ? this.formatMiningFreeze(summary) : "";
+
     await this.sendNotification([
       status
         ? skipped
-          ? `🔗 Connected <b>(${link})</b> holding <i>${summary.holding} ${this.token}</i> — no ${this.token} in master to boost with ${position}`
+          ? `🔗 Connected <b>(${link})</b> holding <i>${summary.holding} ${this.token}</i> — no ${this.token} in master to boost with ${position}${freeze}`
           : settled
-            ? `⚡ Boosted <b>(${link})</b> with <i>${summary.holding} ${this.token}</i> ${position}`
-            : `⏳ Boosted <b>(${link})</b> with <i>${jettonAmount} ${this.token}</i>, but the drop still reads <i>${summary.holding} ${this.token}</i> ${position}`
+            ? `⚡ Boosted <b>(${link})</b> with <i>${summary.holding} ${this.token}</i> ${position}${freeze}`
+            : `⏳ Boosted <b>(${link})</b> with <i>${jettonAmount} ${this.token}</i>, but the drop still reads <i>${summary.holding} ${this.token}</i> ${position}${freeze}`
         : `❌ Failed to ${action} <b>(${link})</b>${skipped ? "" : ` with <i>${jettonAmount} ${this.token}</i>`} ${position}\n<i>Error: ${message || "Unknown error!"}</i>`,
     ]);
 

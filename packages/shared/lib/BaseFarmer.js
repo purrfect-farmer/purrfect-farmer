@@ -607,10 +607,26 @@ export default class BaseFarmer {
   }
 
   /**
+   * Put the account to work at the holding it now has, and report it afresh.
+   *
+   * Defaults to a plain re-read: for most drops claiming pending rewards is
+   * what restarts the miner. Override it when the drop starts mining through a
+   * call of its own.
+   *
+   * @returns {Promise<object>} - see `getAutoSummary`
+   */
+  async startAutoMining() {
+    return this.refreshAutoSummary();
+  }
+
+  /**
    * Normalized account snapshot shared by every Auto drop.
+   *
+   * Drops that don't mine on a clock simply omit `mining`.
    *
    * @returns {object} - {
    *   level, holding, balance, minWithdrawal, verified,
+   *   mining: { startedAt, freezesAt, frozen } | undefined,
    *   wallet: { address, version } | null,
    *   banned, banReason,
    *   risk: { score, updatedAt, flags: string[] }

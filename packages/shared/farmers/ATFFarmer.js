@@ -1335,6 +1335,19 @@ export default class ATFFarmer extends BaseFarmer {
     return this.getAutoSummary();
   }
 
+  /**
+   * Start (or restart) mining, then report the account afresh.
+   *
+   * The miner level is snapshotted when mining starts, so this belongs after a
+   * boost has landed — otherwise the account mines at the level it held before
+   * the tokens arrived. The login that follows is what carries the freeze time
+   * the backend just assigned.
+   */
+  async startAutoMining() {
+    await this.startOrClaimMining();
+    return this.refreshAutoSummary();
+  }
+
   /** Normalized account snapshot */
   getAutoSummary() {
     const user = this.getUserDetails();
@@ -1343,6 +1356,11 @@ export default class ATFFarmer extends BaseFarmer {
 
     return {
       level: user["miner_level"],
+      mining: {
+        startedAt: Number(user["last_mining_start"]) || 0,
+        freezesAt: Number(user["mining_freezes_at"]) || 0,
+        frozen: user["mining_frozen"] === 1,
+      },
       holding: user["wallet_holding_atf"],
       balance: user["mined_balance"],
       minWithdrawal: this.getMinimumWithdrawal(),
