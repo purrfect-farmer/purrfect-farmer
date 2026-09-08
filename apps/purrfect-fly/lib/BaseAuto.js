@@ -42,6 +42,8 @@ class BaseAuto {
     amount = "",
     delay = 0,
     difference = 0,
+    freeze = false,
+    runFarmer = true,
     repeat = false,
     repeatInterval = 15,
   }) {
@@ -71,6 +73,8 @@ class BaseAuto {
     this.delay = Number(delay);
     this.difference = Number(difference);
     this.amount = amount;
+    this.freeze = freeze;
+    this.runFarmer = runFarmer;
     this.repeat = repeat;
     this.repeatInterval = Number(repeatInterval);
     /** Boost mode */
@@ -160,6 +164,32 @@ class BaseAuto {
   /** Format the difference */
   formatDifference() {
     return this.formatKeyValue("Difference", `${this.difference}%`);
+  }
+
+  /**
+   * Whether boosted accounts should be left frozen.
+   *
+   * A repeating run always freezes: the next pass re-connects and re-boosts
+   * every account, so farming in between would only fight it.
+   */
+  shouldFreezeAccounts() {
+    return Boolean(this.repeat || this.freeze);
+  }
+
+  /** Format the freeze */
+  formatFreeze() {
+    return this.formatKeyValue(
+      "Freeze",
+      this.shouldFreezeAccounts() ? "Enabled" : "Disabled",
+    );
+  }
+
+  /** Format the farmer run */
+  formatRunFarmer() {
+    return this.formatKeyValue(
+      "Run Farmer",
+      this.runFarmer ? "Enabled" : "Disabled",
+    );
   }
 
   /** Format the repeat */
@@ -397,15 +427,24 @@ class BaseAuto {
         try {
           /** Set farmer status */
           if (runner.farmer) {
-            runner.farmer.status = this.repeat ? "frozen" : "active";
+            runner.farmer.status = this.shouldFreezeAccounts()
+              ? "frozen"
+              : "active";
             await runner.farmer.save();
           }
 
-          /** Delay for 1s */
-          await this.utils.delayForSeconds(1, { signal: this.signal });
+          /**
+           * Execute runner.
+           *
+           * Skipped when the run is only meant to register wallets with the
+           * drop.
+           */
+          if (this.runFarmer) {
+            /** Delay for 1s */
+            await this.utils.delayForSeconds(1, { signal: this.signal });
 
-          /** Execute runner */
-          await runner.start();
+            await runner.start();
+          }
         } catch (e) {
           logger.error(
             "Failed to set farmer status and start runner:",
@@ -607,6 +646,8 @@ class BaseAuto {
           this.formatAccounts(),
           this.formatDelay(),
           this.formatDifference(),
+          this.formatFreeze(),
+          this.formatRunFarmer(),
           this.formatRepeat(),
           this.formatRepeatInterval(),
         ]);

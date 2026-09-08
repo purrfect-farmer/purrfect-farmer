@@ -37,7 +37,10 @@ const autoSchema = {
       delay: { type: "number" },
       difference: { type: "number" },
       amount: { type: "string" },
+      freeze: { type: "boolean" },
+      runFarmer: { type: "boolean" },
       repeat: { type: "boolean" },
+      repeatInterval: { type: "number" },
     },
   },
 };

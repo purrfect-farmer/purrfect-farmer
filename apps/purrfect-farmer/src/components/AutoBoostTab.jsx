@@ -21,6 +21,8 @@ const schema = yup
   .object({
     delay: yup.number().required().min(1).label("Delay"),
     difference: yup.number().required().label("Difference"),
+    freeze: yup.boolean().required().label("Freeze"),
+    runFarmer: yup.boolean().required().label("Run Farmer"),
     repeat: yup.boolean().required().label("Repeat"),
     repeatInterval: yup.number().required().min(1).label("Repeat Interval"),
   })
@@ -32,6 +34,8 @@ export default function AutoBoostTab() {
     defaultValues: {
       delay: 1,
       difference: 5,
+      freeze: false,
+      runFarmer: true,
       repeat: false,
       repeatInterval: 15,
     },
@@ -167,6 +171,48 @@ export default function AutoBoostTab() {
                   {100 - field.value}-100%
                 </p>
 
+                <FieldStateError fieldState={fieldState} />
+              </div>
+            )}
+          />
+
+          {/* Freeze */}
+          <Controller
+            control={form.control}
+            name="freeze"
+            render={({ field, fieldState }) => (
+              <div className="flex flex-col gap-1">
+                <Label>Freeze</Label>
+
+                <p className="text-center text-neutral-500 dark:text-neutral-400">
+                  Enabling this will freeze each account after it is boosted, so
+                  it stops farming until you activate it again. Repeating always
+                  freezes, whether or not this is enabled.
+                </p>
+                <LabelToggle {...field} checked={field.value}>
+                  Freeze accounts after boost
+                </LabelToggle>
+                <FieldStateError fieldState={fieldState} />
+              </div>
+            )}
+          />
+
+          {/* Run Farmer */}
+          <Controller
+            control={form.control}
+            name="runFarmer"
+            render={({ field, fieldState }) => (
+              <div className="flex flex-col gap-1">
+                <Label>Run Farmer</Label>
+
+                <p className="text-center text-neutral-500 dark:text-neutral-400">
+                  Enabling this will run a full farming session on each account
+                  after its wallet is connected. Disable it to only connect the
+                  wallets, which is much faster.
+                </p>
+                <LabelToggle {...field} checked={field.value}>
+                  Run farmer after connecting
+                </LabelToggle>
                 <FieldStateError fieldState={fieldState} />
               </div>
             )}
