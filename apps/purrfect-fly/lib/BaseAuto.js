@@ -388,7 +388,7 @@ class BaseAuto {
   }
 
   /** Connect Wallet */
-  async connectWallet({ cloudAccount, walletAccount }) {
+  async connectWallet({ cloudAccount, walletAccount, jettonAmount }) {
     /** Seconds of delay before retry */
     const RETRY_SECONDS = 1;
 
@@ -417,11 +417,10 @@ class BaseAuto {
         const runner = await this.getRunner(cloudAccount);
 
         /** Connect and sync */
-        const { status, summary, message } = await runner.connectAutoWallet({
-          phrase: walletAccount.phrase,
-          address: walletAccount.address,
-          version: walletAccount.version,
-        });
+        const { status, summary, message } = await this.syncWallet(
+          runner,
+          walletAccount,
+        );
 
         /** Throw error when not connected */
         if (!status) {
@@ -434,6 +433,16 @@ class BaseAuto {
           cloudAccount.id,
           walletAccount.address,
         );
+
+        /** Wait for the boosted tokens to show up in the drop's view */
+        const { summary: settledSummary, settled } =
+          await this.syncBoostedHolding({
+            runner,
+            cloudAccount,
+            walletAccount,
+            summary,
+            jettonAmount,
+          });
 
         try {
           /** Set farmer status */
@@ -464,7 +473,7 @@ class BaseAuto {
           );
         }
 
-        return { status: true, summary };
+        return { status: true, summary: settledSummary, settled };
       } catch (e) {
         errorMessage = e.message;
         logger.error(
@@ -487,6 +496,97 @@ class BaseAuto {
     }
 
     return { status: false, message: errorMessage };
+  }
+
+  /** Connect the wallet and let the drop re-read it */
+  syncWallet(runner, walletAccount) {
+    return runner.connectAutoWallet({
+      phrase: walletAccount.phrase,
+      address: walletAccount.address,
+      version: walletAccount.version,
+    });
+  }
+
+  /**
+   * Reconnect until the drop sees the tokens we boosted with.
+   *
+   * The boost transfer is fired without waiting for it to land, so the first
+   * connect usually reports the holding from before it arrived. Reconnecting is
+   * what makes the drop re-read the wallet, so keep doing it until the holding
+   * covers what was sent.
+   */
+  async syncBoostedHolding({
+    runner,
+    cloudAccount,
+    walletAccount,
+    summary,
+    jettonAmount,
+  }) {
+    /** Seconds of delay between re-syncs */
+    const RETRY_SECONDS = 5;
+
+    /** Maximum re-syncs, i.e. how long the transfer is given to land */
+    const MAX_ATTEMPTS = 12;
+
+    const expected = new Decimal(jettonAmount || 0);
+
+    /** Nothing was sent, so whatever the drop reports is already current */
+    if (expected.lessThanOrEqualTo(0)) {
+      return { summary, settled: true };
+    }
+
+    let current = summary;
+    let attempts = 0;
+
+    while (true) {
+      const holding = new Decimal(current?.holding || 0);
+
+      if (holding.greaterThanOrEqualTo(expected)) {
+        if (attempts > 0) {
+          logger.success(
+            "Boost settled:",
+            cloudAccount.id,
+            `${holding} / ${expected} ${this.token}`,
+          );
+        }
+        return { summary: current, settled: true };
+      }
+
+      if (attempts >= MAX_ATTEMPTS) break;
+
+      attempts++;
+
+      logger.warn(
+        "Waiting for boost to land:",
+        cloudAccount.id,
+        `${holding} / ${expected} ${this.token}`,
+        `(${attempts}/${MAX_ATTEMPTS})`,
+      );
+
+      await this.utils.delayForSeconds(RETRY_SECONDS, { signal: this.signal });
+
+      const {
+        status,
+        summary: synced,
+        message,
+      } = await this.syncWallet(runner, walletAccount);
+
+      /** Keep the last good summary and try again */
+      if (!status) {
+        logger.error("Failed to re-sync wallet:", cloudAccount.id, message);
+        continue;
+      }
+
+      current = synced;
+    }
+
+    logger.warn(
+      "Boost never settled:",
+      cloudAccount.id,
+      `${new Decimal(current?.holding || 0)} / ${expected} ${this.token}`,
+    );
+
+    return { summary: current, settled: false };
   }
 
   /** Decrypt phrase */
@@ -545,7 +645,7 @@ class BaseAuto {
     }
 
     /** Connect Wallet */
-    const { status, message, summary } = await this.connectWallet({
+    const { status, message, summary, settled } = await this.connectWallet({
       cloudAccount,
       walletAccount,
       jettonAmount,
@@ -560,7 +660,9 @@ class BaseAuto {
       status
         ? skipped
           ? `🔗 Connected <b>(${link})</b> holding <i>${summary.holding} ${this.token}</i> — no ${this.token} in master to boost with ${position}`
-          : `⚡ Boosted <b>(${link})</b> with <i>${summary.holding} ${this.token}</i> ${position}`
+          : settled
+            ? `⚡ Boosted <b>(${link})</b> with <i>${summary.holding} ${this.token}</i> ${position}`
+            : `⏳ Boosted <b>(${link})</b> with <i>${jettonAmount} ${this.token}</i>, but the drop still reads <i>${summary.holding} ${this.token}</i> ${position}`
         : `❌ Failed to ${action} <b>(${link})</b>${skipped ? "" : ` with <i>${jettonAmount} ${this.token}</i>`} ${position}\n<i>Error: ${message || "Unknown error!"}</i>`,
     ]);
 
