@@ -579,7 +579,7 @@ export default class BaseFarmer {
   /**
    * Link a TON wallet to the account and refresh the drop's view of it.
    *
-   * @param {object} wallet - { phrase, address, version }
+   * @param {object} wallet - { phrase, address, version, refresh }
    * @returns {Promise<{ status: boolean, summary?: object, message?: string }>}
    */
   async connectAutoWallet(wallet) {

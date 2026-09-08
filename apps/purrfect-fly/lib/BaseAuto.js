@@ -399,6 +399,9 @@ class BaseAuto {
     let attempts = 0;
     let errorMessage;
 
+    /** Only a boosted wallet needs the drop to re-read it */
+    const boosted = new Decimal(jettonAmount || 0).greaterThan(0);
+
     while (attempts < MAX_ATTEMPTS) {
       /** Stop retrying once the operation is cancelled */
       if (this.signal.aborted) {
@@ -421,6 +424,7 @@ class BaseAuto {
           phrase: walletAccount.phrase,
           address: walletAccount.address,
           version: walletAccount.version,
+          refresh: boosted,
         });
 
         /** Throw error when not connected */

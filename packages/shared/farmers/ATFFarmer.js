@@ -1294,8 +1294,8 @@ export default class ATFFarmer extends BaseFarmer {
   /* Auto adapter                                                          */
   /* --------------------------------------------------------------------- */
 
-  /** Connect a TON wallet and let the backend re-read its ATF holding */
-  async connectAutoWallet({ phrase, version }) {
+  /** Connect a TON wallet, optionally re-reading the account afterwards */
+  async connectAutoWallet({ phrase, version, refresh = false }) {
     try {
       const keyPair = await this.getKeyPair(phrase);
       const { status, message } = await this.connectAndSyncWallet(
@@ -1307,7 +1307,12 @@ export default class ATFFarmer extends BaseFarmer {
         return { status: false, message };
       }
 
-      return { status: true, summary: await this.refreshAutoSummary() };
+      return {
+        status: true,
+        summary: refresh
+          ? await this.refreshAutoSummary()
+          : this.getAutoSummary(),
+      };
     } catch (error) {
       return { status: false, message: error.message || "Unknown error" };
     }
