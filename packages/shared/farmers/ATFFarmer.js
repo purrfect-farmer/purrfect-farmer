@@ -162,7 +162,8 @@ export default class ATFFarmer extends BaseFarmer {
     this.has_solved_captcha = true;
   }
 
-  async completeLogin() {
+  /** @param {boolean} forceFresh - make the backend re-read the account */
+  async completeLogin(forceFresh = false) {
     const MAX_ATTEMPTS = 10;
     let attempts = 0;
 
@@ -173,7 +174,7 @@ export default class ATFFarmer extends BaseFarmer {
       }
 
       try {
-        this.user_data = await this.makeLoginAction();
+        this.user_data = await this.makeLoginAction(forceFresh);
         break;
       } catch (error) {
         attempts++;
@@ -193,20 +194,25 @@ export default class ATFFarmer extends BaseFarmer {
   }
 
   /** Login */
-  async login() {
+  async login(forceFresh = false) {
     /* Solve captcha and complete login */
     await this.solveCaptcha();
-    await this.completeLogin();
+    await this.completeLogin(forceFresh);
 
     return this.user_data;
   }
 
-  makeLoginAction() {
-    return this.makeAction("login", {
-      force_fresh: true,
-      no_cache: true,
-      username: this.getUsername(),
-    });
+  makeLoginAction(forceFresh = false) {
+    return this.makeAction(
+      "login",
+      forceFresh
+        ? {
+            force_fresh: true,
+            no_cache: true,
+            username: this.getUsername(),
+          }
+        : {},
+    );
   }
 
   /** Get Auth Headers */
@@ -1301,7 +1307,7 @@ export default class ATFFarmer extends BaseFarmer {
         return { status: false, message };
       }
 
-      return { status: true, summary: this.getAutoSummary() };
+      return { status: true, summary: await this.refreshAutoSummary() };
     } catch (error) {
       return { status: false, message: error.message || "Unknown error" };
     }
@@ -1310,6 +1316,18 @@ export default class ATFFarmer extends BaseFarmer {
   /** Claim pending mining so the summary reflects the current balance */
   async refreshAutoState() {
     return this.startOrClaimMining();
+  }
+
+  /**
+   * Log in again for a fresh summary.
+   *
+   * Only a forced login makes the backend re-read the wallet on-chain — every
+   * other call answers from the cached user, which is why a wallet sync alone
+   * can report a holding from before the tokens arrived.
+   */
+  async refreshAutoSummary() {
+    await this.login(true);
+    return this.getAutoSummary();
   }
 
   /** Normalized account snapshot */

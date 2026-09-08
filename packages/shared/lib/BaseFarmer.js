@@ -594,6 +594,19 @@ export default class BaseFarmer {
   }
 
   /**
+   * Re-read the account and return a fresh summary.
+   *
+   * Defaults to the claim-then-snapshot pair every drop already implements.
+   * Override it when the drop has a truthful (or cheaper) way to re-read.
+   *
+   * @returns {Promise<object>} - see `getAutoSummary`
+   */
+  async refreshAutoSummary() {
+    await this.refreshAutoState();
+    return this.getAutoSummary();
+  }
+
+  /**
    * Normalized account snapshot shared by every Auto drop.
    *
    * @returns {object} - {

@@ -417,10 +417,11 @@ class BaseAuto {
         const runner = await this.getRunner(cloudAccount);
 
         /** Connect and sync */
-        const { status, summary, message } = await this.syncWallet(
-          runner,
-          walletAccount,
-        );
+        const { status, summary, message } = await runner.connectAutoWallet({
+          phrase: walletAccount.phrase,
+          address: walletAccount.address,
+          version: walletAccount.version,
+        });
 
         /** Throw error when not connected */
         if (!status) {
@@ -439,7 +440,6 @@ class BaseAuto {
           await this.syncBoostedHolding({
             runner,
             cloudAccount,
-            walletAccount,
             summary,
             jettonAmount,
           });
@@ -498,30 +498,14 @@ class BaseAuto {
     return { status: false, message: errorMessage };
   }
 
-  /** Connect the wallet and let the drop re-read it */
-  syncWallet(runner, walletAccount) {
-    return runner.connectAutoWallet({
-      phrase: walletAccount.phrase,
-      address: walletAccount.address,
-      version: walletAccount.version,
-    });
-  }
-
   /**
-   * Reconnect until the drop sees the tokens we boosted with.
+   * Re-read the account until the drop sees the tokens we boosted with.
    *
-   * The boost transfer is fired without waiting for it to land, so the first
-   * connect usually reports the holding from before it arrived. Reconnecting is
-   * what makes the drop re-read the wallet, so keep doing it until the holding
-   * covers what was sent.
+   * The boost transfer is fired without waiting for it to land, so the connect
+   * that follows usually reports the holding from before it arrived. Keep
+   * refreshing until the holding covers what was sent.
    */
-  async syncBoostedHolding({
-    runner,
-    cloudAccount,
-    walletAccount,
-    summary,
-    jettonAmount,
-  }) {
+  async syncBoostedHolding({ runner, cloudAccount, summary, jettonAmount }) {
     /** Seconds of delay between re-syncs */
     const RETRY_SECONDS = 5;
 
@@ -565,19 +549,12 @@ class BaseAuto {
 
       await this.utils.delayForSeconds(RETRY_SECONDS, { signal: this.signal });
 
-      const {
-        status,
-        summary: synced,
-        message,
-      } = await this.syncWallet(runner, walletAccount);
-
-      /** Keep the last good summary and try again */
-      if (!status) {
-        logger.error("Failed to re-sync wallet:", cloudAccount.id, message);
-        continue;
+      try {
+        current = await runner.refreshAutoSummary();
+      } catch (e) {
+        /** Keep the last summary and try again */
+        logger.error("Failed to refresh account:", cloudAccount.id, e.message);
       }
-
-      current = synced;
     }
 
     logger.warn(
@@ -1335,8 +1312,8 @@ class BaseAuto {
       /** Delay for 5s */
       await this.utils.delayForSeconds(5, { signal: this.signal });
 
-      /** Get the normalized snapshot */
-      const summary = runner.getAutoSummary();
+      /** Re-read the account so the snapshot carries the current holding */
+      const summary = await runner.refreshAutoSummary();
 
       return { status: true, summary };
     } catch (e) {
