@@ -553,8 +553,8 @@ class BaseAuto {
         : `❌ Failed to ${action} <b>(${link})</b>${skipped ? "" : ` with <i>${jettonAmount} ${this.token}</i>`} ${position}\n<i>Error: ${message || "Unknown error!"}</i>`,
     ]);
 
-    /** Delay for 5s */
-    await this.utils.delayForSeconds(5, { signal: this.signal });
+    /** Delay for 2s */
+    await this.utils.delayForSeconds(2, { signal: this.signal });
 
     /**
      * Apply mode.
