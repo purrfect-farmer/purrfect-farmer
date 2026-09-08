@@ -687,6 +687,14 @@ export default function createRunner(FarmerClass) {
         await instance.resetErrorCount();
       } catch (error) {
         /**
+         * A terminated instance was aborted deliberately so it is not a farming failure to report.
+         */
+        if (instance.signal.aborted) {
+          this.logger.info("Aborted farming account:", instance.account.id);
+          return;
+        }
+
+        /**
          * Transient errors (proxy/connection timeouts, aborted requests,
          * 5xx server errors) are not the account's fault, so they must not
          * count toward deactivating or banning it.
@@ -820,15 +828,25 @@ export default function createRunner(FarmerClass) {
     static async processQueueItem({ instance, skipExecution = false }, index) {
       try {
         const delay = instance.account.farmer ? 20 : 60;
-        await this.utils.delayForSeconds(index * delay);
+
+        /** Stagger the batch: an account terminated while waiting skips its turn */
+        await this.utils.delayForSeconds(index * delay, {
+          signal: instance.signal,
+        });
+
         await this.execute(instance, skipExecution);
       } catch (err) {
-        /** Log error */
-        this.logger.error("Queue processing error:", err);
+        if (instance.signal.aborted) {
+          /** Terminated before its turn came up */
+          this.logger.info("Skipped terminated account:", instance.account.id);
+        } else {
+          /** Log error */
+          this.logger.error("Queue processing error:", err);
 
-        /** Unblock queue */
-        if (instance.account.id === this.primaryAccountId) {
-          this.resetPrimaryFarmerLink();
+          /** Unblock queue */
+          if (instance.account.id === this.primaryAccountId) {
+            this.resetPrimaryFarmerLink(instance);
+          }
         }
       } finally {
         /** Delete instance */

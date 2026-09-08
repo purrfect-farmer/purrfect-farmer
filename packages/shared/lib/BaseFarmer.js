@@ -348,11 +348,19 @@ export default class BaseFarmer {
     return url.toString();
   }
 
-  /** Start the farmer */
-  async start(signal) {
+  /**
+   * Adopt an external abort signal.
+   */
+  adoptSignal(signal) {
     if (signal) {
       this.signal = signal;
     }
+  }
+
+  /** Start the farmer */
+  async start(signal) {
+    /** Adopt signal */
+    this.adoptSignal(signal);
 
     /** Delay for 3s */
     await this.utils.delayForSeconds(3, { signal: this.signal });

@@ -17,16 +17,18 @@ export function delay(length, { precised = false, signal } = {}) {
         ? length
         : (length * (Math.floor(Math.random() * 50) + 100)) / 100;
 
-      const timeoutId = setTimeout(() => resolve(), duration);
+      const onAbort = () => {
+        clearTimeout(timeoutId);
+        reject(signal.reason ?? new Error("Aborted!"));
+      };
 
-      signal?.addEventListener(
-        "abort",
-        (ev) => {
-          clearTimeout(timeoutId);
-          reject(signal.reason ?? new Error("Aborted!"));
-        },
-        { once: true },
-      );
+      const timeoutId = setTimeout(() => {
+        /** Detach: one signal outlives thousands of delays */
+        signal?.removeEventListener?.("abort", onAbort);
+        resolve();
+      }, duration);
+
+      signal?.addEventListener?.("abort", onAbort, { once: true });
     } catch (e) {
       reject(e);
     }

@@ -368,6 +368,12 @@ class BaseAuto {
       referralLink: FarmerClass.getInstanceReferralLink(),
     });
 
+    /**
+     * Hand the runner this operation's signal so cancelling the operation
+     * also cancels the runner's requests, delays and farming pass.
+     */
+    runner.adoptSignal(this.signal);
+
     /** Disable caching */
     runner.setCacheAuth(false);
     runner.setCacheTelegramWebApp(false);
@@ -394,6 +400,11 @@ class BaseAuto {
     let errorMessage;
 
     while (attempts < MAX_ATTEMPTS) {
+      /** Stop retrying once the operation is cancelled */
+      if (this.signal.aborted) {
+        return { status: false, message: "Operation cancelled!" };
+      }
+
       try {
         /** Log */
         logger.info(
@@ -671,7 +682,13 @@ class BaseAuto {
           if (this.signal.aborted) {
             break;
           }
-          await this.processBoost(account, index);
+
+          try {
+            await this.processBoost(account, index);
+          } catch (e) {
+            if (this.signal.aborted) break;
+            throw e;
+          }
         }
 
         /** Return funds to master */
@@ -759,11 +776,18 @@ class BaseAuto {
         if (this.signal.aborted) {
           break;
         }
-        /** Process collect */
-        const result = await this.processCollect(account, index);
 
-        /** Add result to results */
-        results.push(result);
+        try {
+          /** Process collect */
+          const result = await this.processCollect(account, index);
+
+          /** Add result to results */
+          results.push(result);
+        } catch (e) {
+          /** Cancellation, not a collection failure */
+          if (this.signal.aborted) break;
+          throw e;
+        }
       }
 
       /** Notify about completion */
@@ -866,11 +890,18 @@ class BaseAuto {
         if (this.signal.aborted) {
           break;
         }
-        /** Process withdraw */
-        const result = await this.processWithdraw(account, index);
 
-        /** Add result to results (accounts without a cloud account yield none) */
-        if (result) results.push(result);
+        try {
+          /** Process withdraw */
+          const result = await this.processWithdraw(account, index);
+
+          /** Add result to results (accounts without a cloud account yield none) */
+          if (result) results.push(result);
+        } catch (e) {
+          /** Cancellation, not a withdrawal failure: report what was done */
+          if (this.signal.aborted) break;
+          throw e;
+        }
       }
 
       /** Notify about cancellation completion */
@@ -1033,10 +1064,17 @@ class BaseAuto {
         if (this.signal.aborted) {
           break;
         }
-        const result = await this.processStatus(account, index);
 
-        /** Add result to results (accounts without a cloud account yield none) */
-        if (result) results.push(result);
+        try {
+          const result = await this.processStatus(account, index);
+
+          /** Add result to results (accounts without a cloud account yield none) */
+          if (result) results.push(result);
+        } catch (e) {
+          /** Cancellation, not a status failure: report what was gathered */
+          if (this.signal.aborted) break;
+          throw e;
+        }
       }
 
       /** Notify about cancellation completion */
