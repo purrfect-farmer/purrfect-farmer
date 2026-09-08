@@ -93,16 +93,15 @@ export default class BaseBooster {
             this.master.address,
           ),
         }),
-        ,
       ].concat(
         includeGas
           ? [
-            internal({
-              to: Address.parse(this.account.address),
-              value: TON_FOR_GAS,
-              bounce: false,
-            }),
-          ]
+              internal({
+                to: Address.parse(this.account.address),
+                value: TON_FOR_GAS,
+                bounce: false,
+              }),
+            ]
           : [],
       ),
     });
