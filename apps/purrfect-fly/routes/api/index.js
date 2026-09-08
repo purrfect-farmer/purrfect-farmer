@@ -1,3 +1,4 @@
+import farmers from "../../farmers/index.js";
 import autos from "../../lib/autos.js";
 
 const authSchema = {
@@ -137,12 +138,26 @@ export default async function (fastify, opts) {
     async function (request, reply) {
       const { account } = request;
 
-      await fastify.db.Farmer.update(
-        { status: "inactive" },
-        {
-          where: { id: request.body.id, accountId: account.id },
-        },
-      );
+      /** Find the farmer */
+      const dbFarmer = await fastify.db.Farmer.findOne({
+        where: { id: request.body.id, accountId: account.id },
+      });
+
+      /** If not found, return an error */
+      if (!dbFarmer) {
+        return reply.badRequest("Farmer not found!");
+      }
+
+      /** Get the Farmer Class */
+      const FarmerClass = farmers[dbFarmer.farmer];
+
+      /** Terminate the instance */
+      if (FarmerClass) {
+        FarmerClass.terminate(dbFarmer.accountId);
+      }
+
+      /** Update the instance status */
+      await dbFarmer.update({ status: "inactive" });
     },
   );
 
@@ -153,12 +168,26 @@ export default async function (fastify, opts) {
     async function (request, reply) {
       const { account } = request;
 
-      await fastify.db.Farmer.update(
-        { status: "frozen" },
-        {
-          where: { id: request.body.id, accountId: account.id },
-        },
-      );
+      /** Find the farmer */
+      const dbFarmer = await fastify.db.Farmer.findOne({
+        where: { id: request.body.id, accountId: account.id },
+      });
+
+      /** If not found, return an error */
+      if (!dbFarmer) {
+        return reply.badRequest("Farmer not found!");
+      }
+
+      /** Get the Farmer Class */
+      const FarmerClass = farmers[dbFarmer.farmer];
+
+      /** Terminate the instance */
+      if (FarmerClass) {
+        FarmerClass.terminate(dbFarmer.accountId);
+      }
+
+      /** Update the instance status */
+      await dbFarmer.update({ status: "frozen" });
     },
   );
 
@@ -169,9 +198,26 @@ export default async function (fastify, opts) {
     async function (request, reply) {
       const { account } = request;
 
-      await fastify.db.Farmer.destroy({
+      /** Find the farmer */
+      const dbFarmer = await fastify.db.Farmer.findOne({
         where: { id: request.body.id, accountId: account.id },
       });
+
+      /** If not found, return an error */
+      if (!dbFarmer) {
+        return reply.badRequest("Farmer not found!");
+      }
+
+      /** Get the Farmer Class */
+      const FarmerClass = farmers[dbFarmer.farmer];
+
+      /** Terminate the instance */
+      if (FarmerClass) {
+        FarmerClass.terminate(dbFarmer.accountId);
+      }
+
+      /** Delete the instance */
+      await dbFarmer.destroy();
     },
   );
 
