@@ -30,8 +30,8 @@ export default function AutoBoostTab() {
   const form = useForm({
     resolver: yupResolver(schema),
     defaultValues: {
-      delay: 2,
-      difference: 20,
+      delay: 1,
+      difference: 5,
       repeat: false,
       repeatInterval: 15,
     },
@@ -103,9 +103,9 @@ export default function AutoBoostTab() {
           className="flex flex-col gap-2"
         >
           <Alert variant="info">
-            Perform boost in Cloud. {config.token} will be transferred from the master
-            wallet into each selected account. Ensure the master wallet has
-            enough TON for operations.
+            Perform boost in Cloud. {config.token} will be transferred from the
+            master wallet into each selected account. Ensure the master wallet
+            has enough TON for operations.
           </Alert>
 
           {/* Delay */}
@@ -162,8 +162,9 @@ export default function AutoBoostTab() {
                 {/* Info */}
                 <p className="text-center text-neutral-500 dark:text-neutral-400">
                   This is the difference in the amount to boost based on the
-                  available {config.token} in the master wallet. E.g a difference of{" "}
-                  {field.value}% would boost between {100 - field.value}-100%
+                  available {config.token} in the master wallet. E.g a
+                  difference of {field.value}% would boost between{" "}
+                  {100 - field.value}-100%
                 </p>
 
                 <FieldStateError fieldState={fieldState} />
@@ -204,7 +205,7 @@ export default function AutoBoostTab() {
                 <Slider
                   step={1}
                   min={1}
-                  max={24}
+                  max={72}
                   value={[field.value]}
                   onValueChange={(newValue) => field.onChange(newValue[0])}
                 />
