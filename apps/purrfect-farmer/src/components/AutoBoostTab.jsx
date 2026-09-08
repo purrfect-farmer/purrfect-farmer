@@ -19,7 +19,7 @@ import LabelToggle from "./LabelToggle";
 
 const schema = yup
   .object({
-    delay: yup.number().required().min(1).label("Delay"),
+    delay: yup.number().required().label("Delay"),
     difference: yup.number().required().label("Difference"),
     freeze: yup.boolean().required().label("Freeze"),
     runFarmer: yup.boolean().required().label("Run Farmer"),
@@ -126,7 +126,7 @@ export default function AutoBoostTab() {
                 </Label>
                 <Slider
                   step={1}
-                  min={1}
+                  min={0}
                   max={30}
                   value={[field.value]}
                   onValueChange={(newValue) => field.onChange(newValue[0])}
