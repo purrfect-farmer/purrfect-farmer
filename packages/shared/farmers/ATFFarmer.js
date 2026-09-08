@@ -967,6 +967,14 @@ export default class ATFFarmer extends BaseFarmer {
     return BASE_RATE.times(RATE_GROWTH.pow(level - 1)).floor();
   }
 
+  /**
+   * Hash power exactly as the ATF app shows it. It is a cosmetic restyling of
+   * the level rate: TH/s = rate / 50, so 1 TH/s is 50 ATF/day at difficulty 1.
+   */
+  getMinerHashPower(level) {
+    return this.getMinerRate(level).div(50);
+  }
+
   getMinerCost(level) {
     if (level <= 1) return new Decimal(0);
 
@@ -1351,15 +1359,78 @@ export default class ATFFarmer extends BaseFarmer {
     const level = this.findLevelForAtf(amount);
     const diffData = await this.fetchDifficultyData();
     const dailyRate = this.getDailyMiningRateForLevel(level, diffData);
+    const hashPower = this.getMinerHashPower(level);
+    const divisor = this.getDifficultyDivisor(
+      diffData.difficulty,
+      level,
+      diffData.exemptMinLevel,
+      diffData.exemptMaxLevel,
+    );
 
     this.logger.newline();
     this.logger.keyValue("ATF Amount", amount.toString());
     this.logger.keyValue("Reachable Level", level);
     this.logger.keyValue("Level Cost", this.getMinerCost(level).toString());
     this.logger.keyValue(
-      "Daily Mining",
-      dailyRate.toDecimalPlaces(4).toString(),
-      { valueStyle: this.logger.c.greenBright },
+      "Hash Power",
+      `${hashPower.toDecimalPlaces(2).toString()} TH/s`,
+    );
+    this.logger.keyValue("Difficulty", diffData.difficulty);
+    this.logger.keyValue("Divisor", divisor.toDecimalPlaces(4).toString());
+
+    this.logger.newline();
+    this.logMiningRateBreakdown(dailyRate);
+    this.logHashPowerExplainer(hashPower, divisor);
+  }
+
+  /** Format an ATF amount, keeping sub-1 values readable */
+  formatAtfAmount(value) {
+    return value.toDecimalPlaces(value.abs().gte(1) ? 4 : 8).toString();
+  }
+
+  /** Log a daily mining rate spread across every period */
+  logMiningRateBreakdown(dailyRate) {
+    const periods = [
+      ["Per Second", new Decimal(1).div(86400)],
+      ["Per Minute", new Decimal(1).div(1440)],
+      ["Per Hour", new Decimal(1).div(24)],
+      ["Per Day", new Decimal(1)],
+      ["Per Week (7d)", new Decimal(7)],
+      ["Per Month (30d)", new Decimal(30)],
+    ];
+
+    for (const [label, multiplier] of periods) {
+      this.logger.keyValue(
+        label,
+        this.formatAtfAmount(dailyRate.times(multiplier)),
+        { valueStyle: this.logger.c.greenBright },
+      );
+    }
+  }
+
+  /** Explain the TH/s figure the ATF app advertises */
+  logHashPowerExplainer(hashPower, divisor) {
+    const base = hashPower.times(50);
+
+    this.logger.newline();
+    this.logger.info("What is TH/s?");
+    this.logger.debug(
+      "TH/s (terahashes per second) is only how the app labels a miner's speed;",
+    );
+    this.logger.debug(
+      "nothing is actually hashed. It is the level's base rate divided by 50:",
+    );
+    this.logger.debug(
+      `  ${hashPower.toDecimalPlaces(2).toString()} TH/s x 50 = ${base.toString()} ATF/day at difficulty 1.`,
+    );
+    this.logger.debug(
+      `  Network difficulty then divides that: ${base.toString()} / ${divisor.toDecimalPlaces(4).toString()} = ${this.formatAtfAmount(base.div(divisor))} ATF/day.`,
+    );
+    this.logger.debug(
+      "So a higher TH/s always means a faster miner, but the ATF it actually pays",
+    );
+    this.logger.debug(
+      "drops as difficulty rises. The rates above already include difficulty.",
     );
   }
 
