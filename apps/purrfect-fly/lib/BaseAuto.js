@@ -359,8 +359,8 @@ class BaseAuto {
     FarmerClass.terminate(cloudAccount.id);
     this.terminatedAccounts.add(cloudAccount.id);
 
-    /** Delay for 5s */
-    await this.utils.delayForSeconds(5, { signal: this.signal });
+    /** Delay for 2s */
+    await this.utils.delayForSeconds(2, { signal: this.signal });
 
     /** @type {import("@purrfect/shared/lib/BaseFarmer.js").default} */
     const runner = new FarmerClass({
@@ -620,8 +620,8 @@ class BaseAuto {
       phrase,
     };
 
-    /** Delay for 5s */
-    await this.utils.delayForSeconds(5, { signal: this.signal });
+    /** Delay for 2s */
+    await this.utils.delayForSeconds(2, { signal: this.signal });
 
     /** Prepare account as the master wallet */
     logger.info(`Preparing (${account.address}) as master wallet...`);
@@ -840,8 +840,8 @@ class BaseAuto {
     /** Log completion */
     logger.success("Completed collection:", account.address);
 
-    /** Delay for 5s */
-    await this.utils.delayForSeconds(5, { signal: this.signal });
+    /** Delay for 2s */
+    await this.utils.delayForSeconds(2, { signal: this.signal });
 
     return result;
   }
