@@ -148,6 +148,9 @@ export default function createRunner(FarmerClass) {
       /** Create API */
       this.api = this.createApi();
 
+      /** Register Signal Interceptor */
+      this.registerSignalInterceptor();
+
       /** Apply Delay */
       this.registerDelayInterceptor();
 
@@ -247,6 +250,16 @@ export default function createRunner(FarmerClass) {
           return config;
         });
       }
+    }
+
+    /** Register Signal Interceptor */
+    registerSignalInterceptor() {
+      this.api.interceptors.request.use(async (config) => {
+        if (!config.signal && this.signal) {
+          config.signal = this.signal;
+        }
+        return config;
+      });
     }
 
     /** Register Retry Interceptor */

@@ -40,8 +40,8 @@ class BaseAuto {
     accounts,
     password,
     amount = "",
-    delay = 5,
-    difference = 20,
+    delay = 0,
+    difference = 0,
     repeat = false,
     repeatInterval = 15,
   }) {
@@ -194,6 +194,7 @@ class BaseAuto {
     return this.utils
       .delayForMinutes(this.delay, {
         signal: this.signal,
+        precised: true,
       })
       .catch((error) => {});
   }
@@ -201,7 +202,7 @@ class BaseAuto {
   /** Delay for safe burst */
   delayForSafeBurst() {
     return this.utils
-      .delayForMinutes(20, {
+      .delayForMinutes(10, {
         signal: this.signal,
       })
       .catch((error) => {});
@@ -328,6 +329,9 @@ class BaseAuto {
     FarmerClass.terminate(cloudAccount.id);
     this.terminatedAccounts.add(cloudAccount.id);
 
+    /** Delay for 5s */
+    await this.utils.delayForSeconds(5, { signal: this.signal });
+
     /** @type {import("@purrfect/shared/lib/BaseFarmer.js").default} */
     const runner = new FarmerClass({
       account: cloudAccount,
@@ -341,8 +345,8 @@ class BaseAuto {
     /** Prepare runner */
     await runner.prepare();
 
-    /** Delay for 5s */
-    await this.utils.delayForSeconds(5);
+    /** Delay for 1s */
+    await this.utils.delayForSeconds(1, { signal: this.signal });
 
     return runner;
   }
@@ -350,13 +354,16 @@ class BaseAuto {
   /** Connect Wallet */
   async connectWallet({ cloudAccount, walletAccount }) {
     /** Seconds of delay before retry */
-    const RETRY_SECONDS = 5;
+    const RETRY_SECONDS = 1;
+
+    /** Maximum attempts */
+    const MAX_ATTEMPTS = 3;
 
     /** Initial attempts */
     let attempts = 0;
     let errorMessage;
 
-    while (attempts < 3) {
+    while (attempts < MAX_ATTEMPTS) {
       try {
         /** Log */
         logger.info(
@@ -394,8 +401,8 @@ class BaseAuto {
             await runner.farmer.save();
           }
 
-          /** Delay for 5s */
-          await this.utils.delayForSeconds(5);
+          /** Delay for 1s */
+          await this.utils.delayForSeconds(1, { signal: this.signal });
 
           /** Execute runner */
           await runner.start();
@@ -421,7 +428,10 @@ class BaseAuto {
         /** Delay before retrying... */
         if (attempts < 3) {
           logger.info(`Retrying in ${RETRY_SECONDS}s... (${attempts}/3)`);
-          await this.utils.delayForSeconds(RETRY_SECONDS);
+          await this.utils.delayForSeconds(RETRY_SECONDS, {
+            signal: this.signal,
+            precised: true,
+          });
         }
       }
     }
@@ -481,13 +491,14 @@ class BaseAuto {
 
     /** Give the transfer time to land. Nothing is in flight when skipped */
     if (!skipped) {
-      await this.utils.delayForSeconds(10);
+      await this.utils.delayForSeconds(3, { signal: this.signal });
     }
 
     /** Connect Wallet */
     const { status, message, summary } = await this.connectWallet({
       cloudAccount,
       walletAccount,
+      jettonAmount,
     });
 
     /** Send Boost Notification */
@@ -504,7 +515,7 @@ class BaseAuto {
     ]);
 
     /** Delay for 5s */
-    await this.utils.delayForSeconds(5);
+    await this.utils.delayForSeconds(5, { signal: this.signal });
 
     /**
      * Apply mode.
@@ -571,7 +582,7 @@ class BaseAuto {
     };
 
     /** Delay for 5s */
-    await this.utils.delayForSeconds(5);
+    await this.utils.delayForSeconds(5, { signal: this.signal });
 
     /** Prepare account as the master wallet */
     logger.info(`Preparing (${account.address}) as master wallet...`);
@@ -789,7 +800,7 @@ class BaseAuto {
     logger.success("Completed collection:", account.address);
 
     /** Delay for 5s */
-    await this.utils.delayForSeconds(5);
+    await this.utils.delayForSeconds(5, { signal: this.signal });
 
     return result;
   }
@@ -923,13 +934,13 @@ class BaseAuto {
       const runner = await this.getRunner(cloudAccount);
 
       /** Delay for 5s */
-      await this.utils.delayForSeconds(5);
+      await this.utils.delayForSeconds(5, { signal: this.signal });
 
       /** Claim whatever is pending so the full balance is withdrawable */
       await runner.refreshAutoState();
 
       /** Delay for 5s */
-      await this.utils.delayForSeconds(5);
+      await this.utils.delayForSeconds(5, { signal: this.signal });
 
       /** Result */
       const { status, skipped, amount, message } = await runner.withdraw({
@@ -1135,13 +1146,13 @@ class BaseAuto {
       const runner = await this.getRunner(cloudAccount);
 
       /** Delay for 5s */
-      await this.utils.delayForSeconds(5);
+      await this.utils.delayForSeconds(5, { signal: this.signal });
 
       /** Claim whatever is pending so the balance is current */
       await runner.refreshAutoState();
 
       /** Delay for 5s */
-      await this.utils.delayForSeconds(5);
+      await this.utils.delayForSeconds(5, { signal: this.signal });
 
       /** Get the normalized snapshot */
       const summary = runner.getAutoSummary();

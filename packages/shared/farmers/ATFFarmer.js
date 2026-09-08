@@ -1392,7 +1392,7 @@ export default class ATFFarmer extends BaseFarmer {
       const answer = this.getAnswerForChallenge(challenge.question);
 
       /** Delay before submitting */
-      await this.utils.delayForSeconds(5);
+      await this.utils.delayForSeconds(5, { signal: this.signal });
 
       const result = await this.startMining({
         challengeId: challenge.challenge_id,
@@ -1426,7 +1426,7 @@ export default class ATFFarmer extends BaseFarmer {
       }
 
       /** Delay before claiming */
-      await this.utils.delayForSeconds(5);
+      await this.utils.delayForSeconds(5, { signal: this.signal });
 
       this.logger.info(`Claiming ${balance.toString()} ATF...`);
       const result = await this.claimMining(balance);
@@ -1479,7 +1479,7 @@ export default class ATFFarmer extends BaseFarmer {
     });
 
     /** Delay before activating */
-    await this.utils.delayForSeconds(3);
+    await this.utils.delayForSeconds(3, { signal: this.signal });
 
     const result = await this.activateBoost(balance);
 
@@ -1512,7 +1512,7 @@ export default class ATFFarmer extends BaseFarmer {
       if (this.signal.aborted) break;
       await this.claimTask(task);
       this.logger.success(`Claimed task: ${task}`);
-      await this.utils.delayForSeconds(20);
+      await this.utils.delayForSeconds(20, { signal: this.signal });
     }
   }
 
@@ -1533,10 +1533,10 @@ export default class ATFFarmer extends BaseFarmer {
     for (const task in extraTasks) {
       if (this.signal.aborted) break;
       await this.startTask(task);
-      await this.utils.delayForSeconds(30);
+      await this.utils.delayForSeconds(30, { signal: this.signal });
       await this.claimTask(task);
       this.logger.success(`Completed task: ${task}`);
-      await this.utils.delayForSeconds(10);
+      await this.utils.delayForSeconds(10, { signal: this.signal });
     }
   }
 
@@ -1555,7 +1555,7 @@ export default class ATFFarmer extends BaseFarmer {
       this.user_data.user["miner_level"] = result.new_level;
 
       this.logger.success(`Claimed ${claimable} ATF from referrals!`);
-      await this.utils.delayForSeconds(2);
+      await this.utils.delayForSeconds(2, { signal: this.signal });
     } else {
       this.logger.info("No referral rewards to claim.");
     }
@@ -1569,7 +1569,7 @@ export default class ATFFarmer extends BaseFarmer {
       this.user_data.user["miner_level"] = result.new_level;
 
       this.logger.success(`Claimed ${teamWallet} ATF from team wallet!`);
-      await this.utils.delayForSeconds(2);
+      await this.utils.delayForSeconds(2, { signal: this.signal });
     } else {
       this.logger.info("No team wallet rewards to claim.");
     }
