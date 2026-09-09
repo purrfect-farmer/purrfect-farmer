@@ -1,3 +1,14 @@
+> [!WARNING]
+> **PROJECT ARCHIVED & UNMAINTAINED**
+> 
+> As of September 2026, active development, bug fixes, and feature updates for this repository have officially ended. 
+> 
+> - **Public Support:** Issues, pull requests, and discussions are permanently closed.
+> - **Cloud Services:** Connected backend services and APIs for purrfectfarmer.com will run until **mid-October 2026**, after which they will be permanently decommissioned.
+> - **License:** The source code remains available "as-is" under its existing license for historical and reference purposes. 
+
+---
+
 <p align="center">
   <a href="https://purrfect-farmer.github.io" target="_blank">
     <img src="apps/purrfect-farmer/public/icon.png" width="192" alt="Purrfect Farmer Logo">
