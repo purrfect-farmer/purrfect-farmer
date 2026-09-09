@@ -4,12 +4,15 @@ const PROVIDER_METHODS = {
   "2captcha": {
     recaptcha: "userrecaptcha",
     turnstile: "turnstile",
+    base64: "base64",
   },
   captchaai: {
     turnstile: "turnstile",
+    base64: "base64",
   },
   solvecaptcha: {
     turnstile: "turnstile",
+    base64: "base64",
   },
   captchasonic: {
     turnstile: "AntiTurnstileTaskProxyLess",
@@ -18,6 +21,16 @@ const PROVIDER_METHODS = {
     turnstile: "AntiTurnstileTask",
   },
 };
+
+/** How long to wait before the first result poll */
+const DEFAULT_INITIAL_DELAY = 20_000;
+
+/** Image captchas come back in seconds, and the challenge can expire */
+const IMAGE_INITIAL_DELAY = 5_000;
+
+/** Providers expect raw base64, but an image may arrive as a data URI */
+const normalizeBase64 = (body) =>
+  typeof body === "string" ? body.replace(/^data:[^;,]*;base64,/, "") : body;
 
 export default class CaptchaSolver {
   constructor(provider, apiKey) {
@@ -74,7 +87,18 @@ export default class CaptchaSolver {
     return Boolean(this.provider && this.apiKey);
   }
 
-  async createRequest({ method, siteKey, pageUrl }) {
+  /** Check if the provider offers a given method */
+  supportsMethod(method) {
+    return Boolean(PROVIDER_METHODS[this.provider]?.[method]);
+  }
+
+  async createRequest({ method, siteKey, pageUrl, body }) {
+    if (!this.supportsMethod(method)) {
+      throw new Error(
+        `Captcha provider "${this.provider}" does not support method "${method}"`,
+      );
+    }
+
     const providerMethod = PROVIDER_METHODS[this.provider][method];
 
     if (this.taskBased) {
@@ -85,6 +109,7 @@ export default class CaptchaSolver {
             type: providerMethod,
             websiteURL: pageUrl,
             websiteKey: siteKey,
+            ...(typeof body !== "undefined" ? { body } : {}),
           },
         })
         .then((res) => ({
@@ -100,6 +125,7 @@ export default class CaptchaSolver {
           googlekey: siteKey,
           pageurl: pageUrl,
           json: 1,
+          ...(typeof body !== "undefined" ? { body } : {}),
         })
         .then((res) => res.data);
     }
@@ -144,13 +170,24 @@ export default class CaptchaSolver {
   }
 
   /** Solve Captcha */
-  async solveCaptcha({ method, siteKey, pageUrl }) {
-    console.log("Solving captcha...", method, siteKey, pageUrl);
-    const response = await this.createRequest({ method, siteKey, pageUrl });
+  async solveCaptcha({
+    method,
+    siteKey,
+    pageUrl,
+    body,
+    initialDelay = DEFAULT_INITIAL_DELAY,
+  }) {
+    console.log("Solving captcha...", { method, siteKey, pageUrl });
+    const response = await this.createRequest({
+      method,
+      siteKey,
+      pageUrl,
+      body,
+    });
     const requestId = response.request;
 
-    /* Wait for 20 seconds before polling for the result */
-    await new Promise((resolve) => setTimeout(resolve, 20_000));
+    /* Give the provider a head start before polling for the result */
+    await new Promise((resolve) => setTimeout(resolve, initialDelay));
 
     while (true) {
       const result = await this.getCaptchaResult(requestId);
@@ -173,5 +210,14 @@ export default class CaptchaSolver {
   /** Solve ReCaptcha */
   async solveReCaptcha({ siteKey, pageUrl }) {
     return this.solveCaptcha({ method: "recaptcha", siteKey, pageUrl });
+  }
+
+  /** Solve Image Captcha */
+  async solveImage({ body }) {
+    return this.solveCaptcha({
+      method: "base64",
+      body: normalizeBase64(body),
+      initialDelay: IMAGE_INITIAL_DELAY,
+    });
   }
 }

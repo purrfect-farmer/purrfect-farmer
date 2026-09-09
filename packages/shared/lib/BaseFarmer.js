@@ -199,6 +199,18 @@ export default class BaseFarmer {
     return this.captcha?.solveReCaptcha({ siteKey, pageUrl });
   }
 
+  /** Can Solve Image Captcha */
+  canSolveImage() {
+    return Boolean(
+      this.captcha?.isConfigured() && this.captcha?.supportsMethod("base64"),
+    );
+  }
+
+  /** Solve Image Captcha */
+  solveImage({ body }) {
+    return this.captcha?.solveImage({ body });
+  }
+
   /** Can Join Telegram Link */
   canJoinTelegramLink(link) {
     return Boolean(this.client);

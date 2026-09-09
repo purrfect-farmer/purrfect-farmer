@@ -712,6 +712,46 @@ export default class ATFFarmer extends BaseFarmer {
   }
 
   /**
+   * Resolve one withdrawal captcha answer.
+   *
+   * A configured provider solves it unattended; otherwise - or when the solve
+   * fails - fall back to asking the user, which only the extension can do.
+   */
+  async resolveCaptchaAnswer(challenge, rejection) {
+    if (this.canSolveImage()) {
+      try {
+        this.logger.info("Solving withdrawal captcha...");
+
+        const answer = await this.solveImage({
+          body: challenge["captcha_image"],
+        });
+
+        this.logger.info("Solved captcha:", answer);
+
+        return answer;
+      } catch (error) {
+        this.logger.error("Failed to solve captcha:", error);
+      }
+    }
+
+    if (typeof this.promptInput !== "function") {
+      throw new Error(
+        "No captcha provider is configured and there is no way to ask for the answer!",
+      );
+    }
+
+    const answer = await this.promptInput({
+      type: "text",
+      text: this.buildCaptchaPromptText(challenge, rejection),
+      image: challenge["captcha_image"],
+    });
+
+    this.logger.info("Your answer:", answer);
+
+    return answer;
+  }
+
+  /**
    * Ask for the withdrawal captcha until the drop accepts it.
    */
   async requestWithdrawalWithCaptcha(amount) {
@@ -731,13 +771,10 @@ export default class ATFFarmer extends BaseFarmer {
       let answer = "";
 
       if (challenge["is_captcha"]) {
-        answer = await this.promptInput({
-          type: "text",
-          text: this.buildCaptchaPromptText(challenge, rejection),
-          image: challenge["captcha_image"],
-        });
+        answer = await this.resolveCaptchaAnswer(challenge, rejection);
 
-        this.logger.info("Your answer:", answer);
+        /** An answer that comes back too fast is graded as a bot */
+        await this.waitForCaptchaSolveTime(challenge, issuedAt);
       }
 
       const result = await this.requestWithdrawal({
