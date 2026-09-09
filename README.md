@@ -1,5 +1,5 @@
 <p align="center">
-  <a href="https://purrfectfarmer.com" target="_blank">
+  <a href="https://purrfect-farmer.github.io" target="_blank">
     <img src="apps/purrfect-farmer/public/icon.png" width="192" alt="Purrfect Farmer Logo">
   </a>
 </p>
@@ -69,6 +69,7 @@ pnpm build:farmer
 **Output:** `.crx` and `.zip` files in `apps/purrfect-farmer/dist-bundle`
 
 **Installation:**
+
 1. Open Chrome and navigate to `chrome://extensions/`
 2. Enable "Developer mode"
 3. Drag and drop the `.crx` file or load unpacked from `dist-extension` folder
@@ -108,6 +109,7 @@ pnpm -F purrfect-farmer build-bridge
 ```
 
 **Installation:**
+
 1. Load the extension from `dist-bridge` folder
 2. Or install from `.crx` file in `dist-bundle`
 
