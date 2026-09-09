@@ -1,16 +1,16 @@
 import Alert from "@/components/Alert";
+import Container from "@/components/Container";
 import PrimaryButton from "@/components/PrimaryButton";
-import { Browser } from "@/core/tabs";
-import useAppContext from "@/hooks/useAppContext";
-import { useCallback } from "react";
+import Tabs from "@/components/Tabs";
 import TelegramIcon from "@/assets/images/telegram-logo.svg";
-import { createElement } from "react";
-import { cn, postPortMessage } from "@/utils";
 import toast from "react-hot-toast";
 import useMirroredCallback from "@/hooks/useMirroredCallback";
-import Tabs from "@/components/Tabs";
 import useMirroredTabs from "@/hooks/useMirroredTabs";
-import Container from "@/components/Container";
+import useTelegramWebTransfer from "@/hooks/useTelegramWebTransfer";
+import { cn } from "@/utils";
+
+const TELEGRAM_WEB_URL = "https://web.telegram.org";
+const PURRFECT_GRAM_URL = import.meta.env.VITE_APP_TELEGRAM_WEB_URL;
 
 const TabContent = ({ title, children, ...props }) => (
   <Tabs.Content
@@ -35,106 +35,30 @@ export default function TelegramToPurrfectGram() {
     "purrfect-gram",
     "telegram-web",
   ]);
-  const { messaging, closeTab, pushTab } = useAppContext();
 
-  const closeTelegramWeb = useCallback(() => {
-    closeTab("telegram-web-k");
-    closeTab("telegram-web-a");
-    closeTab("telegram-web-browser");
-  }, [closeTab]);
-
-  const openTelegramWeb = useCallback(
-    (url) => {
-      pushTab(
-        {
-          id: "telegram-web-browser",
-          title: "Telegram Web",
-          icon: TelegramIcon,
-          component: createElement(Browser, {
-            url,
-          }),
-          reloadedAt: Date.now(),
-        },
-        true
-      );
-    },
-    [pushTab]
-  );
+  const { closeTelegramWeb, getLocalStorage, setLocalStorage } =
+    useTelegramWebTransfer();
 
   const [, dispatchAndTransferData] = useMirroredCallback(
     "app.telegram-to-purrfect-gram",
     async (receiver = "telegram-web") => {
-      const getTelegramWebLocalStorage = () => {
-        return new Promise((resolve) => {
-          messaging.handler.once(
-            `port-connected:telegram-web-k`,
-            async (port) => {
-              /** Get Telegram Web Local Storage */
-              const telegramWebLocalStorage = await postPortMessage(port, {
-                action: "get-local-storage",
-              }).then((response) => response.data);
+      const [sender, target] =
+        receiver === "telegram-web"
+          ? [PURRFECT_GRAM_URL, TELEGRAM_WEB_URL]
+          : [TELEGRAM_WEB_URL, PURRFECT_GRAM_URL];
 
-              /** Close Telegram Web */
-              closeTelegramWeb();
+      /** Close Telegram Web Tabs */
+      await closeTelegramWeb();
 
-              /** Resolve */
-              resolve(telegramWebLocalStorage);
-            }
-          );
+      /** Get Data */
+      const data = await getLocalStorage(`${sender}/k`);
 
-          /** Open Telegram Web (Sender) */
-          openTelegramWeb(
-            receiver === "telegram-web"
-              ? "https://gram.purrfectfarmer.com/k"
-              : "https://web.telegram.org/k"
-          );
-        });
-      };
+      /** Restore Data */
+      await setLocalStorage(`${target}/k`, data);
 
-      const restoreData = (data) => {
-        return new Promise(async (resolve) => {
-          /** Wait for Port */
-          messaging.handler.once(
-            `port-connected:telegram-web-k`,
-            async (port) => {
-              /** Set Telegram Web Local Storage */
-              await postPortMessage(port, {
-                action: "set-local-storage",
-                data: data,
-              });
-
-              /** Close Telegram Web */
-              closeTelegramWeb();
-
-              /** Resolve */
-              resolve(true);
-            }
-          );
-
-          /** Open Telegram Web (Receiver) */
-          openTelegramWeb(
-            receiver === "telegram-web"
-              ? "https://web.telegram.org/k"
-              : "https://gram.purrfectfarmer.com/k"
-          );
-        });
-      };
-
-      const transferData = async () => {
-        /** Close Telegram Web Tabs */
-        await closeTelegramWeb();
-
-        /** Get Data */
-        const data = await getTelegramWebLocalStorage();
-
-        /** Restore Data */
-        await restoreData(data);
-      };
-
-      await transferData();
       toast.success("Data transferred successfully!");
     },
-    [messaging.handler, openTelegramWeb, closeTelegramWeb]
+    [closeTelegramWeb, getLocalStorage, setLocalStorage],
   );
 
   return (

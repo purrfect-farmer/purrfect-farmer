@@ -1,9 +1,20 @@
-import { TELEGRAM_WEB_HOSTS } from "@/constants";
-import { clickElementCenter, isElementVisible } from "@/utils";
+import {
+  clickElementCenter,
+  isElementVisible,
+  matchTelegramWebUrl,
+} from "@/utils";
 
-if (TELEGRAM_WEB_HOSTS.includes(location.host)) {
+/** Telegram Web Base URL */
+const TELEGRAM_WEB_BASE = matchTelegramWebUrl();
+
+if (TELEGRAM_WEB_BASE) {
+  /** Base Path */
+  const BASE_PATH = new URL(TELEGRAM_WEB_BASE).pathname.replace(/\/$/, "");
+
   /** Web Version */
-  const WEB_VERSION = location.pathname.startsWith("/k/") ? "k" : "a";
+  const WEB_VERSION = location.pathname.slice(BASE_PATH.length).startsWith("/k")
+    ? "k"
+    : "a";
 
   /** Button Text */
   const JOIN_BUTTON_TEXT_CONTENT = [

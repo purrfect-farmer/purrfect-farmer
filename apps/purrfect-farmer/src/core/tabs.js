@@ -30,6 +30,9 @@ export const WhiskersToFarmer = lazy(() => import("@/app/WhiskersToFarmer"));
 export const TelegramToPurrfectGram = lazy(
   () => import("@/app/TelegramToPurrfectGram"),
 );
+export const LegacyGramToPurrfectGram = lazy(
+  () => import("@/app/LegacyGramToPurrfectGram"),
+);
 
 export const ReorderTelegramWeb = lazy(
   () => import("@/app/ReorderTelegramWeb"),
@@ -184,6 +187,14 @@ export const utils = [
   {
     name: "Telegram Web",
     list: [
+      /** Legacy Gram to Purrfect Gram */
+      {
+        id: "legacy-gram-to-purrfect-gram",
+        title: "Legacy Gram to Purrfect Gram",
+        icon: TelegramToPurrfectGramIcon,
+        component: createElement(LegacyGramToPurrfectGram),
+      },
+
       /** Telegram to Purrfect Gram */
       {
         id: "telegram-to-purrfect-gram",

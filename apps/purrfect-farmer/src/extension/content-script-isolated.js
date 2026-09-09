@@ -1,17 +1,22 @@
 import "./bridge/bridge-isolated";
 import "./telegram-web/telegram-web-isolated";
 
-import { createListener, customLogger, getUserAgent, uuid } from "@/utils";
+import {
+  createListener,
+  customLogger,
+  getUserAgent,
+  matchTelegramWebUrl,
+  uuid,
+} from "@/utils";
 import {
   decryptData,
   encryptData,
   watchTelegramMiniApp,
 } from "./content-script-utils";
 
-import { TELEGRAM_WEB_HOSTS } from "@/constants";
 import { setupMiniAppToolbar } from "./mini-app/mini-app-toolbar-isolated";
 
-if (!TELEGRAM_WEB_HOSTS.includes(location.host)) {
+if (!matchTelegramWebUrl()) {
   /** Initial Location Href */
   const INITIAL_LOCATION = location.href;
 

@@ -1,3 +1,4 @@
+import { TELEGRAM_WEB_URLS } from "@/constants";
 import { clsx } from "clsx";
 import defaultSharedSettings from "@/core/defaultSharedSettings";
 import storage from "../lib/storage";
@@ -18,6 +19,21 @@ export function downloadFile(filename, data) {
   a.click();
 
   URL.revokeObjectURL(url);
+}
+
+/**
+ * Match a URL against the Telegram Web bases
+ * @param {string} href
+ * @returns {string | null} the matched base URL
+ */
+export function matchTelegramWebUrl(href = location.href) {
+  return (
+    TELEGRAM_WEB_URLS.find(
+      (base) =>
+        href === base ||
+        ["/", "?", "#"].some((delimiter) => href.startsWith(base + delimiter)),
+    ) || null
+  );
 }
 
 export function isExtension() {
