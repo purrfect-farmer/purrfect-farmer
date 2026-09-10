@@ -1817,6 +1817,25 @@ class BaseAuto {
       return [];
     }
 
+    /**
+     * The order they will be worked through - the richest pool first, since
+     * a cycle rarely reaches the end of the list.
+     */
+    await this.sendNotification([
+      `📋 ${this.title} - Queue:`,
+      ...candidates
+        .slice(0, ASSIST_QUEUE_PREVIEW)
+        .map((candidate, position) =>
+          this.formatKeyValue(
+            `${position + 1}. ${this.formatAccountLink(candidate.account.userId)}`,
+            `${new Decimal(candidate.snapshot.balance || 0)} ${this.token}`,
+          ),
+        ),
+      ...(candidates.length > ASSIST_QUEUE_PREVIEW
+        ? [`<i>...and ${candidates.length - ASSIST_QUEUE_PREVIEW} more.</i>`]
+        : []),
+    ]);
+
     /** Runners are kept for the whole cycle so each helper logs in once */
     const runners = new Map();
     const results = [];
@@ -1833,27 +1852,6 @@ class BaseAuto {
 
       await this.sendNotification([
         `⏳ ${this.title} - Assisting ${candidates.length} account(s) through ${available.length} verified account(s)...`,
-      ]);
-
-      /**
-       * The order they will be worked through - the richest pool first, since
-       * a cycle rarely reaches the end of the list.
-       */
-      await this.sendNotification([
-        `📋 ${this.title} - Queue:`,
-        ...candidates
-          .slice(0, ASSIST_QUEUE_PREVIEW)
-          .map((candidate, position) =>
-            this.formatKeyValue(
-              `${position + 1}. ${this.formatAccountLink(candidate.account.userId)}`,
-              `${new Decimal(candidate.snapshot.balance || 0)} ${this.token}`,
-            ),
-          ),
-        ...(candidates.length > ASSIST_QUEUE_PREVIEW
-          ? [
-              `<i>...and ${candidates.length - ASSIST_QUEUE_PREVIEW} more.</i>`,
-            ]
-          : []),
       ]);
 
       /**
