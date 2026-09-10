@@ -1832,15 +1832,35 @@ class BaseAuto {
         `⏳ ${this.title} - Assisting ${candidates.length} account(s) through ${available.length} verified account(s)...`,
       ]);
 
+      /**
+       * The drop only lets an account hold one withdrawal at a time, so a
+       * verified account is spent the moment its request goes through: every
+       * later attempt through it comes back as "you already have a withdrawal
+       * request in progress". The pool shrinks as they are used up and the
+       * cycle stops once it runs dry, leaving the rest for the next one.
+       */
+      const pool = [...available];
+      let turn = 0;
+
       for (const [index, candidate] of candidates.entries()) {
         if (this.signal.aborted) break;
 
-        const helper = available[index % available.length];
+        if (!pool.length) {
+          await this.sendNotification([
+            `⏩ ${this.title} - every verified account has a withdrawal in flight. ${candidates.length - index} account(s) left for the next cycle.`,
+          ]);
+          break;
+        }
+
+        const helper = pool[turn % pool.length];
         const helperEntry = runners.get(String(helper.userId));
         const requesterEntry = await this.getAssistRunner(candidate.account);
         const label = this.formatAccountLink(candidate.account.userId);
 
         if (!requesterEntry) continue;
+
+        /** Whether this verified account is still free after the attempt */
+        let spent = false;
 
         try {
           const { status, skipped, amount, message } =
@@ -1852,6 +1872,9 @@ class BaseAuto {
             });
 
           results.push({ status, skipped, amount, message });
+
+          /** A placed request occupies the account until the drop settles it */
+          spent = status && !skipped;
 
           await this.sendNotification([
             skipped
@@ -1881,7 +1904,27 @@ class BaseAuto {
           this.releaseRunner(requesterEntry.cloudAccount);
         }
 
-        if (index < candidates.length - 1) {
+        /**
+         * A failure can still have left a request behind - a 409, a reply lost
+         * on the way back - so ask the drop rather than trust the outcome.
+         */
+        if (!spent) {
+          spent = await helperEntry.runner
+            .hasPendingWithdrawal()
+            .catch(() => false);
+        }
+
+        if (spent) {
+          pool.splice(pool.indexOf(helper), 1);
+
+          await this.sendNotification([
+            `⏳ ${this.formatAccountLink(helper.userId)} has a withdrawal in flight - resting it for the rest of this cycle.`,
+          ]);
+        } else {
+          turn += 1;
+        }
+
+        if (index < candidates.length - 1 && pool.length) {
           await this.delayForSafeMinutes();
         }
       }
