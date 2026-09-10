@@ -14,7 +14,12 @@ const tabs = {
 
 export default function AutoPanel() {
   return (
-    <Tabs tabs={tabs} rootClassName="grow overflow-auto gap-0">
+    <Tabs
+      tabs={tabs}
+      rootClassName="grow overflow-auto gap-0"
+      listClassName="flex overflow-x-auto"
+      triggerClassName="shrink-0"
+    >
       <Tabs.Content value="dashboard">
         <AutoDashboardTab />
       </Tabs.Content>
