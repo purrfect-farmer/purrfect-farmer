@@ -462,6 +462,49 @@ export default async function (fastify, opts) {
       },
     );
 
+    /** Toggle Farming */
+    fastify.post(
+      "/members/farming",
+      {
+        schema: {
+          body: {
+            type: "object",
+            required: ["id", "farming"],
+            properties: {
+              id: { type: "string" },
+              farming: { type: "boolean" },
+            },
+          },
+        },
+      },
+      async (request, reply) => {
+        const account = await fastify.db.Account.findByPk(request.body.id);
+
+        if (!account) {
+          return reply.badRequest("Account not found!");
+        }
+
+        const farming = request.body.farming;
+
+        /** Merge, so the options bag stays open for other keys */
+        await account.update({
+          options: { ...(account.options || {}), farming },
+        });
+
+        /**
+         * A pass already under way has to stop: the point of switching farming
+         * off is that another server may be using this Telegram session.
+         */
+        if (!farming) {
+          for (const FarmerClass of Object.values(farmers)) {
+            FarmerClass.abort(account.id);
+          }
+        }
+
+        return reply.send({ id: account.id, farming });
+      },
+    );
+
     /** Kick Member */
     fastify.post(
       "/members/kick",

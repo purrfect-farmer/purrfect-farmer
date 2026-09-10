@@ -6,6 +6,8 @@ import bot from "./bot.js";
 import db from "../db/models/index.js";
 import farmers from "../farmers/index.js";
 import logger from "./logger.js";
+import { generateMnemonicPhrase } from "@purrfect/shared/lib/auto/wallet.js";
+import { getVault, setVault, summarizeVault } from "./AutoVault.js";
 import { prepareMaster } from "@purrfect/shared/lib/auto/transactions.js";
 import utils from "./utils.js";
 
@@ -34,6 +36,14 @@ class BaseAuto {
    */
   static instances = new Map();
 
+  /**
+   * @type {Map<string, BaseAuto>} the assist loop, keyed by drop rather than
+   * by user: it acts on every account this server holds, and it runs until it
+   * is cancelled, so it must not occupy the single-flight slot the one-shot
+   * operations above share.
+   */
+  static assistInstances = new Map();
+
   constructor({
     id,
     master,
@@ -46,6 +56,7 @@ class BaseAuto {
     runFarmer = true,
     repeat = false,
     repeatInterval = 15,
+    assistInterval = 10,
   }) {
     this.utils = utils;
     this.encryption = Encrypter;
@@ -77,6 +88,10 @@ class BaseAuto {
     this.runFarmer = runFarmer;
     this.repeat = repeat;
     this.repeatInterval = Number(repeatInterval);
+    this.assistInterval = Number(assistInterval);
+
+    /** When this operation was started, reported by the assist status */
+    this.startedAt = Date.now();
     /** Boost mode */
     this.mode = "roll"; // roll or collect
 
@@ -240,6 +255,11 @@ class BaseAuto {
   /** Format the repeat interval */
   formatRepeatInterval() {
     return this.formatKeyValue("Repeat Interval", `${this.repeatInterval}h`);
+  }
+
+  /** Format the assist interval */
+  formatAssistInterval() {
+    return this.formatKeyValue("Assist Interval", `${this.assistInterval}m`);
   }
 
   /** Format the maximum amount */
@@ -1406,6 +1426,496 @@ class BaseAuto {
     }
   }
 
+  /* --------------------------------------------------------------------- */
+  /* Load and assisted withdrawals                                         */
+  /*                                                                       */
+  /* Some drops only settle a withdrawal placed by a verified account, so   */
+  /* a verified account withdraws on an ordinary one's behalf by adopting   */
+  /* its wallet for the length of one withdrawal. `Load` hands this server  */
+  /* the wallets, and `assist` runs that exchange on a timer.               */
+  /* --------------------------------------------------------------------- */
+
+  /** Take an account's wallets, and act on nothing */
+  async load() {
+    const accepted = [];
+    const rejected = [];
+
+    for (const account of this.accounts) {
+      if (this.signal.aborted) break;
+
+      if (!account.userId) {
+        rejected.push([account.title || account.address, "no Telegram user"]);
+        continue;
+      }
+
+      /**
+       * A wallet is only useful here alongside the session that owns it: the
+       * exchange logs in as both accounts, so an account farmed by another
+       * server cannot be helped by this one.
+       */
+      const cloudAccount = await this.getCloudAccount(account, true);
+
+      if (!cloudAccount) {
+        rejected.push([
+          this.formatAccountLink(account.userId),
+          "not farmed by this server",
+        ]);
+        continue;
+      }
+
+      accepted.push(account);
+    }
+
+    setVault(this.constructor.id, {
+      password: this.password,
+      accounts: accepted,
+    });
+
+    const verified = accepted.filter((account) => account.verified);
+
+    await this.sendNotification([
+      `📥 ${this.title} - Wallets loaded.`,
+      this.formatKeyValue("Loaded", `${accepted.length}`),
+      this.formatKeyValue("Verified", `${verified.length}`),
+      ...verified.map((account) =>
+        this.formatKeyValue(
+          "✅",
+          `${this.formatAccountLink(account.userId)} ${this.formatAddressLink(account.address)}`,
+        ),
+      ),
+      ...rejected.map(([label, reason]) =>
+        this.formatKeyValue("⏩", `${label} - <i>${reason}</i>`),
+      ),
+      `<i>Wallets are held in memory only and are lost when the server restarts.</i>`,
+    ]);
+
+    return { accepted: accepted.length, rejected: rejected.length };
+  }
+
+  /** Build a prepared runner for a loaded account, if this server owns it */
+  async getAssistRunner(account) {
+    const cloudAccount = await this.getCloudAccount(account, true);
+
+    if (!cloudAccount) return null;
+
+    const runner = await this.getRunner(cloudAccount);
+
+    return { runner, cloudAccount };
+  }
+
+  /**
+   * Whether the drop still has this account on the wallet it was loaded with.
+   *
+   * Anything else means an exchange is already under way for it — which, since
+   * a verified account only ever helps accounts on its own server, means the
+   * same account was loaded onto a second server. Refuse rather than strand a
+   * wallet on the wrong account.
+   */
+  holdsOwnWallet(runner, account) {
+    const wallet = runner.getAutoSummary()?.wallet;
+
+    return Boolean(wallet && wallet.address === account.address);
+  }
+
+  /**
+   * The loaded accounts that have reached the minimum, fullest pool first.
+   *
+   * Read from the snapshot each farming pass leaves behind, so choosing who to
+   * help costs no logins. It is a prefilter: the withdrawal itself re-reads the
+   * live balance, and a stale candidate is simply skipped as "Not enough
+   * balance!".
+   */
+  async getAssistCandidates(vault, helperIds) {
+    const rows = await db.Farmer.findAll({
+      where: { farmer: this.farmerId },
+      include: [{ required: true, association: "account" }],
+    });
+
+    const candidates = [];
+
+    for (const row of rows) {
+      const userId = String(row.account.id);
+
+      /** Restoring an account's own wallet afterwards needs its phrase */
+      const account = vault.accounts.get(userId);
+
+      if (!account) continue;
+
+      /** A verified account does not queue behind itself */
+      if (helperIds.has(userId)) continue;
+
+      /** Frozen is the operator saying to leave this account alone */
+      if (["banned", "frozen"].includes(row.status)) continue;
+
+      /** An account that no longer farms has no fresh snapshot to trust */
+      if (!row.account.farmingEnabled) continue;
+
+      const snapshot = row.storage?.["autoSnapshot"];
+
+      if (!snapshot || snapshot.banned) continue;
+      if (!this.isWithdrawable(snapshot)) continue;
+
+      candidates.push({ account, snapshot });
+    }
+
+    return candidates.sort((a, b) =>
+      new Decimal(b.snapshot.balance || 0).comparedTo(a.snapshot.balance || 0),
+    );
+  }
+
+  /**
+   * Withdraw a requester's pool through a verified account.
+   *
+   * The wallet is what the drop pays out on, so it is passed along and put
+   * back: the requester parks on a throwaway wallet, the verified account
+   * adopts the requester's, withdraws, and both are restored. A failure at any
+   * point rolls back whatever had moved.
+   */
+  async assistWithdrawal({ requester, requesterRunner, helper, helperRunner }) {
+    /** Never take a wallet from an account that is already mid-exchange */
+    if (!this.holdsOwnWallet(requesterRunner, requester)) {
+      return {
+        status: false,
+        skipped: true,
+        amount: "0",
+        message: "Not on its own wallet - is it loaded on another server?",
+      };
+    }
+
+    const connect = async (runner, phrase, version, label) => {
+      const result = await runner.connectAutoWallet({ phrase, version });
+
+      if (!result.status) {
+        throw new Error(result.message || `${label} failed`);
+      }
+
+      return result;
+    };
+
+    /**
+     * Both phrases are decrypted up front: a rollback needs them, and failing
+     * here costs nothing because no wallet has moved yet.
+     */
+    const requesterPhrase = await this.decryptPhrase(requester.encryptedPhrase);
+    const helperPhrase = await this.decryptPhrase(helper.encryptedPhrase);
+    const temporaryPhrase = await generateMnemonicPhrase();
+
+    let requesterMoved = false;
+    let helperMoved = false;
+
+    /** Best-effort return of both accounts to their own wallets */
+    const rollback = async () => {
+      if (helperMoved) {
+        try {
+          await connect(
+            helperRunner,
+            helperPhrase,
+            helper.version,
+            "helper restore",
+          );
+          helperMoved = false;
+        } catch (error) {
+          logger.error("Failed to restore helper wallet:", error.message);
+        }
+      }
+
+      if (requesterMoved) {
+        try {
+          await connect(
+            requesterRunner,
+            requesterPhrase,
+            requester.version,
+            "requester restore",
+          );
+          requesterMoved = false;
+        } catch (error) {
+          logger.error("Failed to restore requester wallet:", error.message);
+        }
+      }
+
+      return { requesterMoved, helperMoved };
+    };
+
+    try {
+      /** The requester releases its wallet */
+      await connect(
+        requesterRunner,
+        temporaryPhrase,
+        requester.version,
+        "requester park",
+      );
+      requesterMoved = true;
+
+      /** The verified account picks it up */
+      await connect(
+        helperRunner,
+        requesterPhrase,
+        requester.version,
+        "helper adopt",
+      );
+      helperMoved = true;
+
+      /**
+       * A refusal here (an unsettled balance, a rejected captcha) is an
+       * outcome, not a fault: restore both wallets the ordinary way and report
+       * it, rather than routing it through the rollback path.
+       */
+      const withdrawal = await helperRunner.withdraw({
+        force: true,
+        difference: 0,
+      });
+
+      await connect(
+        helperRunner,
+        helperPhrase,
+        helper.version,
+        "helper restore",
+      );
+      helperMoved = false;
+
+      await connect(
+        requesterRunner,
+        requesterPhrase,
+        requester.version,
+        "requester restore",
+      );
+      requesterMoved = false;
+
+      /** Keep the next cycle from re-picking an account just drained */
+      await requesterRunner.storeAutoSnapshot();
+
+      return withdrawal;
+    } catch (error) {
+      const stranded = await rollback();
+
+      if (stranded.requesterMoved || stranded.helperMoved) {
+        await this.sendNotification([
+          `🚨 ${this.title} - a wallet could not be restored!`,
+          this.formatKeyValue(
+            "Requester",
+            `${this.formatAccountLink(requester.userId)}${stranded.requesterMoved ? " - <b>on a throwaway wallet</b>" : ""}`,
+          ),
+          this.formatKeyValue(
+            "Verified",
+            `${this.formatAccountLink(helper.userId)}${stranded.helperMoved ? " - <b>holding the requester's wallet</b>" : ""}`,
+          ),
+          `<i>Reconnect it by hand before running anything else on it.</i>`,
+        ]);
+      }
+
+      throw error;
+    }
+  }
+
+  /** The verified accounts that can take work right now */
+  async getAvailableHelpers(helpers, runners) {
+    const available = [];
+
+    for (const helper of helpers) {
+      if (this.signal.aborted) break;
+
+      const label = this.formatAccountLink(helper.userId);
+      const entry = await this.getAssistRunner(helper);
+
+      if (!entry) {
+        await this.sendNotification([
+          `⏩ Skipped <b>(${label})</b> - not farmed by this server.`,
+        ]);
+        continue;
+      }
+
+      runners.set(String(helper.userId), entry);
+
+      /** An account with a withdrawal in flight must not place another */
+      if (await entry.runner.hasPendingWithdrawal()) {
+        await this.sendNotification([
+          `⏩ Skipped <b>(${label})</b> - a withdrawal is still pending.`,
+        ]);
+        continue;
+      }
+
+      if (!this.holdsOwnWallet(entry.runner, helper)) {
+        await this.sendNotification([
+          `⚠️ Skipped <b>(${label})</b> - it is not on its own wallet. Is it loaded on another server?`,
+        ]);
+        continue;
+      }
+
+      available.push(helper);
+    }
+
+    return available;
+  }
+
+  /** One pass over everyone waiting to be withdrawn for */
+  async runAssistCycle() {
+    const vault = getVault(this.constructor.id);
+
+    if (!vault) {
+      await this.sendNotification([
+        `⚠️ ${this.title} - no wallets are loaded on this server. Run Load first.`,
+      ]);
+      return [];
+    }
+
+    const helpers = [...vault.accounts.values()].filter(
+      (account) => account.verified,
+    );
+
+    if (!helpers.length) {
+      await this.sendNotification([
+        `⚠️ ${this.title} - none of the loaded accounts is verified.`,
+      ]);
+      return [];
+    }
+
+    const helperIds = new Set(helpers.map((account) => String(account.userId)));
+    const candidates = await this.getAssistCandidates(vault, helperIds);
+
+    /** Nothing has reached the minimum yet: wait for the next cycle quietly */
+    if (!candidates.length) return [];
+
+    /** Runners are kept for the whole cycle so each helper logs in once */
+    const runners = new Map();
+    const results = [];
+
+    try {
+      const available = await this.getAvailableHelpers(helpers, runners);
+
+      if (!available.length) {
+        await this.sendNotification([
+          `⏩ ${this.title} - no verified account is free this cycle. ${candidates.length} account(s) waiting.`,
+        ]);
+        return results;
+      }
+
+      await this.sendNotification([
+        `⏳ ${this.title} - Assisting ${candidates.length} account(s) through ${available.length} verified account(s)...`,
+      ]);
+
+      for (const [index, candidate] of candidates.entries()) {
+        if (this.signal.aborted) break;
+
+        const helper = available[index % available.length];
+        const helperEntry = runners.get(String(helper.userId));
+        const requesterEntry = await this.getAssistRunner(candidate.account);
+        const label = this.formatAccountLink(candidate.account.userId);
+
+        if (!requesterEntry) continue;
+
+        try {
+          const { status, skipped, amount, message } =
+            await this.assistWithdrawal({
+              requester: candidate.account,
+              requesterRunner: requesterEntry.runner,
+              helper,
+              helperRunner: helperEntry.runner,
+            });
+
+          results.push({ status, skipped, amount, message });
+
+          await this.sendNotification([
+            skipped
+              ? `⏩ Skipped <b>(${label})</b> - <i>${message}</i>`
+              : status
+                ? `🤑 Withdrawn <b>(${label})</b> - <i>${amount} ${this.token}</i> through ${this.formatAccountLink(helper.userId)}`
+                : `❌ Failed to withdraw <b>(${label})</b>\n<i>Reason: ${message}</i>`,
+          ]);
+        } catch (error) {
+          if (this.signal.aborted) break;
+
+          const errorMessage = error.message || "Unknown error!";
+          logger.error(errorMessage);
+
+          results.push({
+            status: false,
+            skipped: false,
+            amount: "0",
+            message: errorMessage,
+          });
+
+          await this.sendNotification([
+            `❌ Failed to withdraw <b>(${label})</b>\n<i>Reason: ${errorMessage}</i>`,
+          ]);
+        } finally {
+          /** Back into the farming batches while the next account is handled */
+          this.releaseRunner(requesterEntry.cloudAccount);
+        }
+
+        if (index < candidates.length - 1) {
+          await this.delayForSafeMinutes();
+        }
+      }
+    } finally {
+      for (const entry of runners.values()) {
+        this.releaseRunner(entry.cloudAccount);
+      }
+    }
+
+    return results;
+  }
+
+  /** Assist on a timer until cancelled */
+  async assist() {
+    await this.sendNotification([
+      `⏳ ${this.title} - Assisted withdrawals started...`,
+      this.formatAssistInterval(),
+      this.formatDelay(),
+      summarizeVault(this.constructor.id).loaded
+        ? this.formatKeyValue(
+            "Loaded wallets",
+            `${summarizeVault(this.constructor.id).accounts}`,
+          )
+        : this.formatKeyValue("Loaded wallets", "(none)"),
+    ]);
+
+    while (true) {
+      if (this.signal.aborted) break;
+
+      try {
+        await this.runAssistCycle();
+      } catch (error) {
+        if (this.signal.aborted) break;
+
+        /** One bad cycle is not a reason to stop assisting */
+        const errorMessage = error.message || "Unknown error!";
+        logger.error(errorMessage);
+
+        await this.sendNotification([
+          `❌ ${this.title} - an error occurred during an assist cycle!`,
+          errorMessage,
+        ]);
+      }
+
+      if (this.signal.aborted) break;
+
+      await this.utils
+        .delayForMinutes(this.assistInterval, {
+          signal: this.signal,
+          precised: true,
+        })
+        .catch((error) => {});
+    }
+
+    await this.sendNotification([
+      `🛑 ${this.title} - Assisted withdrawals stopped.`,
+    ]);
+  }
+
+  /**
+   * Resume a single account back into farming batches.
+   *
+   * A one-shot operation lets `execute` resume everything at the end, but the
+   * assist loop never ends, so it hands each account back as soon as it is
+   * done with it.
+   */
+  releaseRunner(cloudAccount) {
+    const FarmerClass = farmers[this.farmerId];
+
+    FarmerClass.resume(cloudAccount.id);
+    this.terminatedAccounts.delete(cloudAccount.id);
+  }
+
   /** Resume terminated accounts back into farming batches */
   resumeTerminatedAccounts() {
     const FarmerClass = farmers[this.farmerId];
@@ -1457,6 +1967,58 @@ class BaseAuto {
 
   static status(options) {
     this.execute(options, (instance) => instance.status());
+  }
+
+  static load(options) {
+    this.execute(options, (instance) => instance.load());
+  }
+
+  /**
+   * Start the assist loop for this drop.
+   *
+   * Keyed by drop, not by user: one loop serves every account this server
+   * holds, and it must not occupy the slot `execute` reserves for the one-shot
+   * operations, or starting it would lock its owner out of boosting.
+   */
+  static assist(options) {
+    if (this.assistInstances.has(this.id)) {
+      return this.assistInstances
+        .get(this.id)
+        .sendPendingOperationNotification();
+    }
+
+    const instance = new this(options);
+
+    this.assistInstances.set(this.id, instance);
+
+    instance
+      .assist()
+      .catch((error) => logger.error(error.message || "Unknown error!"))
+      .finally(() => {
+        instance.resumeTerminatedAccounts();
+        this.assistInstances.delete(this.id);
+      });
+  }
+
+  static cancelAssist() {
+    const instance = this.assistInstances.get(this.id);
+
+    if (instance) {
+      instance.cancel();
+    }
+
+    return Boolean(instance);
+  }
+
+  static assistStatus() {
+    const instance = this.assistInstances.get(this.id);
+
+    return {
+      running: Boolean(instance),
+      startedAt: instance?.startedAt || null,
+      interval: instance?.assistInterval || null,
+      vault: summarizeVault(this.id),
+    };
   }
 }
 

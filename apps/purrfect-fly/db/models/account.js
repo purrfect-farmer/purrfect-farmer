@@ -101,6 +101,13 @@ export default (sequelize, DataTypes) => {
       return this.farmers[0];
     }
 
+    /**
+     * Whether scheduled farming may pick this account up.
+     */
+    get farmingEnabled() {
+      return this.options?.farming !== false;
+    }
+
     random() {
       return seedrandom(this.id);
     }

@@ -41,6 +41,7 @@ const autoSchema = {
       runFarmer: { type: "boolean" },
       repeat: { type: "boolean" },
       repeatInterval: { type: "number" },
+      assistInterval: { type: "number" },
     },
   },
 };
@@ -364,11 +365,57 @@ export default async function (fastify, opts) {
     );
   }
 
+  /** Auto - Load / Assist (hand over wallets, then withdraw on a timer) */
+  for (const operation of ["load", "assist"]) {
+    fastify.post(
+      `/auto/:drop/${operation}`,
+      { preHandler: autoPreHandler, schema: autoSchema },
+      dispatchAutoOperation(operation),
+    );
+  }
+
   /** Auto - Cancel */
   fastify.post(
     "/auto/:drop/cancel",
     { preHandler: autoPreHandler, schema: authSchema },
     dispatchAutoOperation("cancel"),
+  );
+
+  /**
+   * Auto - Assist Cancel
+   *
+   * The assist loop is per-drop, not per-user, so it is cancelled and reported
+   * on its own rather than through `dispatchAutoOperation`.
+   */
+  fastify.post(
+    "/auto/:drop/assist-cancel",
+    { preHandler: autoPreHandler, schema: authSchema },
+    async function (request, reply) {
+      const { drop } = request.params;
+      const Auto = autos[drop];
+
+      if (!Auto) {
+        return reply.notFound(`Unknown auto: ${drop}`);
+      }
+
+      return { cancelled: Auto.cancelAssist() };
+    },
+  );
+
+  /** Auto - Assist Status */
+  fastify.post(
+    "/auto/:drop/assist-status",
+    { preHandler: autoPreHandler, schema: authSchema },
+    async function (request, reply) {
+      const { drop } = request.params;
+      const Auto = autos[drop];
+
+      if (!Auto) {
+        return reply.notFound(`Unknown auto: ${drop}`);
+      }
+
+      return Auto.assistStatus();
+    },
   );
 
   /** Auto - Get Active List */

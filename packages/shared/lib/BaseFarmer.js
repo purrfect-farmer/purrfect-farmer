@@ -649,12 +649,43 @@ export default class BaseFarmer {
   }
 
   /**
+   * Persist what this account looks like right now.
+   *
+   * @returns {Promise<object>} - the snapshot that was stored
+   */
+  async storeAutoSnapshot() {
+    const snapshot = {
+      ...this.getAutoSummary(),
+      updatedAt: Date.now(),
+    };
+
+    try {
+      await this.storage.set("autoSnapshot", snapshot);
+    } catch (error) {
+      this.logger.warn("Failed to store the account snapshot:", error.message);
+    }
+
+    return snapshot;
+  }
+
+  /**
    * Request a withdrawal.
    *
    * @returns {Promise<{ status: boolean, skipped: boolean, amount: string, message: string }>}
    */
   async withdraw(options) {
     throw new Error("withdraw method must be implemented in subclass");
+  }
+
+  /**
+   * Whether the drop still owes this account a settlement.
+   *
+   * @returns {Promise<boolean>}
+   */
+  async hasPendingWithdrawal() {
+    throw new Error(
+      "hasPendingWithdrawal method must be implemented in subclass",
+    );
   }
 
   /** Notify the server admin

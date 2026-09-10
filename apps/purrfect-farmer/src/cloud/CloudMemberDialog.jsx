@@ -1,6 +1,7 @@
 import Alert from "@/components/Alert";
 import BottomDialog from "@/components/BottomDialog";
 import Container from "@/components/Container";
+import LabelToggle from "@/components/LabelToggle";
 import { Dialog } from "radix-ui";
 import { HiOutlineArrowUpRight } from "react-icons/hi2";
 import ProxyDetails from "@/components/ProxyDetails";
@@ -12,6 +13,7 @@ import toast from "react-hot-toast";
 import useAppContext from "@/hooks/useAppContext";
 import { useCallback } from "react";
 import useCloudManagerKickMemberMutation from "@/hooks/useCloudManagerKickMemberMutation";
+import useCloudManagerMemberFarmingMutation from "@/hooks/useCloudManagerMemberFarmingMutation";
 import { useQueryClient } from "@tanstack/react-query";
 
 /* Member Dialog Header Component */
@@ -164,6 +166,51 @@ const MemberDialogFarmer = ({ account, farmer }) => {
   );
 };
 
+/* Member Dialog Farming Component */
+const MemberDialogFarming = ({ account }) => {
+  const queryClient = useQueryClient();
+  const farmingMutation = useCloudManagerMemberFarmingMutation();
+  const farming = account.options?.["farming"] !== false;
+
+  const toggleFarming = useCallback(
+    (value) => {
+      toast
+        .promise(
+          farmingMutation.mutateAsync({ id: account.id, farming: value }),
+          {
+            success: value ? "Farming enabled" : "Farming disabled",
+            loading: "Updating...",
+            error: "Error...",
+          },
+        )
+        .finally(() =>
+          queryClient.refetchQueries({ queryKey: ["app", "cloud"] }),
+        );
+    },
+    [account.id, farmingMutation.mutateAsync, queryClient.refetchQueries],
+  );
+
+  return (
+    <div className="flex flex-col gap-2">
+      <LabelToggle
+        disabled={farmingMutation.isPending}
+        checked={farming}
+        onChange={(ev) => toggleFarming(ev.target.checked)}
+      >
+        Farming
+      </LabelToggle>
+
+      <p className="text-neutral-500 dark:text-neutral-400">
+        Turning this off keeps the account out of every scheduled farming batch.
+      </p>
+
+      {!farming ? (
+        <Alert variant="warning">This account is not being farmed.</Alert>
+      ) : null}
+    </div>
+  );
+};
+
 /* Member Dialog Proxy Component */
 const MemberDialogProxy = ({ account }) => {
   return <ProxyDetails defaultOpen proxy={account.proxy} />;
@@ -210,6 +257,9 @@ export default function CloudMemberDialog({ account, farmer }) {
               "No Cloud Telegram Session."
             )}
           </Alert>
+
+          {/* Farming */}
+          <MemberDialogFarming account={account} />
 
           {/* Farmer */}
           {farmer ? (

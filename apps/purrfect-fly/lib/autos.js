@@ -12,6 +12,7 @@ export function createAuto(FarmerClass) {
 
   return class Auto extends BaseAuto {
     static instances = new Map();
+    static assistInstances = new Map();
     static farmerId = FarmerClass.id;
     static id = id;
     static title = title;

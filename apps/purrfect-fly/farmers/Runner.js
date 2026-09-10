@@ -667,6 +667,12 @@ export default function createRunner(FarmerClass) {
       this.terminated.delete(id);
     }
 
+    /** Abort a running instance without excluding the account from future batches
+     */
+    static abort(id) {
+      this.runners.get(id)?.controller.abort();
+    }
+
     /** Execute farming for an instance
      * @param {Runner} instance
      */
@@ -949,11 +955,12 @@ export default function createRunner(FarmerClass) {
           );
         }
 
-        /** Filter out frozen, banned and terminated accounts */
+        /** Filter out frozen, banned, terminated and non-farming accounts */
         const accounts = subscribedList.filter((item) => {
           return (
             !["frozen", "banned"].includes(item.farmer?.status) &&
-            !this.terminated.has(item.id)
+            !this.terminated.has(item.id) &&
+            item.farmingEnabled
           );
         });
 

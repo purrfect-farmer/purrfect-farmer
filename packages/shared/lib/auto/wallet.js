@@ -2,7 +2,7 @@ import { WalletContractV4, WalletContractV5R1 } from "@ton/ton";
 
 import Decimal from "decimal.js";
 import axios from "axios";
-import { mnemonicToPrivateKey } from "@ton/crypto";
+import { mnemonicNew, mnemonicToPrivateKey } from "@ton/crypto";
 
 /** Wraps a function so calls are queued and run one at a time. */
 function serialized(fn) {
@@ -63,6 +63,12 @@ export async function getBalances(jettonAddress, address, options) {
   ]);
 
   return { ton, jetton };
+}
+
+/** A brand-new mnemonic, as a single space-separated phrase */
+export async function generateMnemonicPhrase() {
+  const mnemonic = await mnemonicNew();
+  return mnemonic.join(" ");
 }
 
 export async function keypairFromMnemonic(mnemonic) {

@@ -1129,6 +1129,7 @@ export default class ATFFarmer extends BaseFarmer {
     await this.executeTask("Extra Tasks", () => this.completeExtraTasks());
     await this.executeTask("Friends", () => this.claimFriendsRewards());
     await this.executeTask("Withdraw", () => this.withdraw());
+    await this.storeAutoSnapshot();
   }
 
   /** Get User Details */
@@ -1253,13 +1254,26 @@ export default class ATFFarmer extends BaseFarmer {
     return Number(user["is_verified"]) === 1;
   }
 
+  /** The withdrawals the drop has not settled yet */
+  async getPendingWithdrawals() {
+    const history = await this.getWithdrawHistory();
+    const items = history?.items || [];
+
+    return items.filter((item) => item.status === "pending");
+  }
+
+  /** Whether the drop still owes this account a settlement */
+  async hasPendingWithdrawal() {
+    const pending = await this.getPendingWithdrawals();
+
+    return pending.length > 0;
+  }
+
   /**
    * Log the withdrawals the drop has not settled yet.
    */
   async logPendingWithdrawals() {
-    const history = await this.getWithdrawHistory();
-    const items = history?.items || [];
-    const pending = items.filter((item) => item.status === "pending");
+    const pending = await this.getPendingWithdrawals();
 
     this.logger.newline();
     this.logCurrentUser();
