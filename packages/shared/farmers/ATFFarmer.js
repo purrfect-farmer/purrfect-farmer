@@ -1254,6 +1254,13 @@ export default class ATFFarmer extends BaseFarmer {
     return Number(user["is_verified"]) === 1;
   }
 
+  /**
+   * Whether the drop has banned the account.
+   */
+  isUserBanned(user) {
+    return Number(user["is_banned"]) === 1;
+  }
+
   /** The withdrawals the drop has not settled yet */
   async getPendingWithdrawals() {
     const history = await this.getWithdrawHistory();
@@ -1419,7 +1426,7 @@ export default class ATFFarmer extends BaseFarmer {
       wallet: wallet
         ? { address: wallet.address, version: wallet.version }
         : null,
-      banned: Boolean(user["is_banned"]),
+      banned: this.isUserBanned(user),
       banReason: user["banned_reason"],
       risk: {
         score: user["risk_score"],

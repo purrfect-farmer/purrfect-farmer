@@ -1533,30 +1533,64 @@ class BaseAuto {
 
     const candidates = [];
 
+    /** Why each account was passed over, so an empty cycle can say so */
+    const skipped = {};
+    const skip = (reason) => {
+      skipped[reason] = (skipped[reason] || 0) + 1;
+    };
+
     for (const row of rows) {
       const userId = String(row.account.id);
 
       /** Restoring an account's own wallet afterwards needs its phrase */
       const account = vault.accounts.get(userId);
 
-      if (!account) continue;
+      if (!account) {
+        skip("not loaded");
+        continue;
+      }
 
       /** A verified account does not queue behind itself */
       if (helperIds.has(userId)) continue;
 
       /** Frozen is the operator saying to leave this account alone */
-      if (["banned", "frozen"].includes(row.status)) continue;
+      if (["banned", "frozen"].includes(row.status)) {
+        skip(row.status);
+        continue;
+      }
 
       /** An account that no longer farms has no fresh snapshot to trust */
-      if (!row.account.farmingEnabled) continue;
+      if (!row.account.farmingEnabled) {
+        skip("farming off");
+        continue;
+      }
 
       const snapshot = row.storage?.["autoSnapshot"];
 
-      if (!snapshot || snapshot.banned) continue;
-      if (!this.isWithdrawable(snapshot)) continue;
+      if (!snapshot) {
+        skip("never farmed");
+        continue;
+      }
+
+      if (snapshot.banned) {
+        skip("banned by the drop");
+        continue;
+      }
+
+      if (!this.isWithdrawable(snapshot)) {
+        skip("below the minimum");
+        continue;
+      }
 
       candidates.push({ account, snapshot });
     }
+
+    logger.info(
+      `${this.title} - ${candidates.length} candidate(s) of ${rows.length}`,
+      Object.entries(skipped)
+        .map(([reason, count]) => `${count} ${reason}`)
+        .join(", ") || "",
+    );
 
     return candidates.sort((a, b) =>
       new Decimal(b.snapshot.balance || 0).comparedTo(a.snapshot.balance || 0),
