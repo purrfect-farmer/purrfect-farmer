@@ -1773,7 +1773,12 @@ class BaseAuto {
     const candidates = await this.getAssistCandidates(vault, helperIds);
 
     /** Nothing has reached the minimum yet: wait for the next cycle quietly */
-    if (!candidates.length) return [];
+    if (!candidates.length) {
+      await this.sendNotification([
+        `⏩ ${this.title} - no account has reached the minimum.`,
+      ]);
+      return [];
+    }
 
     /** Runners are kept for the whole cycle so each helper logs in once */
     const runners = new Map();
