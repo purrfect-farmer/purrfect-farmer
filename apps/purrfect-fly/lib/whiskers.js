@@ -32,13 +32,13 @@ async function upsertSubscription(account, endsAt) {
   }
 }
 
-/** Clone a single whiskers session and onboard the account */
-async function processSession(sessionString, passwords, endsAt, counters) {
+/** Clone a single whiskers entry and onboard the account */
+async function processEntry(entry, passwords, endsAt, counters) {
   let user;
 
   try {
     /** Mint a fresh independent cloud session from the imported one */
-    const cloned = await GramClient.cloneSession(sessionString, { passwords });
+    const cloned = await GramClient.cloneSession(entry.session, { passwords });
     user = cloned.user;
 
     const id = Number(user?.id);
@@ -63,14 +63,9 @@ async function processSession(sessionString, passwords, endsAt, counters) {
       const name = crypto.randomBytes(8).toString("hex");
       await GramClient.writeSession(name, cloned.session);
 
-      const fullName = [user.firstName, user.lastName]
-        .filter(Boolean)
-        .join(" ")
-        .trim();
-
       await account.update({
         session: name,
-        title: account.title || `IMP-${id}`,
+        title: account.title || entry.title || `IMP-${id}`,
         user: {
           id,
           username: user.username || null,
@@ -117,7 +112,7 @@ export async function importWhiskersBackup({
   subscriptionDate,
 }) {
   const startDate = new Date();
-  const sessions = utils.whiskersToSessions(backup);
+  const entries = utils.whiskersToEntries(backup);
   const passwordList = parsePasswords(passwords);
   const endsAt = subscriptionDate
     ? new Date(subscriptionDate)
@@ -125,13 +120,11 @@ export async function importWhiskersBackup({
 
   const counters = { created: [], skipped: [], failed: [] };
 
-  logger.info(`Whiskers import - starting for ${sessions.length} session(s)`);
+  logger.info(`Whiskers import - starting for ${entries.length} account(s)`);
 
-  for (const chunk of utils.chunkArrayGenerator(sessions, CONCURRENCY)) {
+  for (const chunk of utils.chunkArrayGenerator(entries, CONCURRENCY)) {
     await Promise.all(
-      chunk.map((sessionString) =>
-        processSession(sessionString, passwordList, endsAt, counters),
-      ),
+      chunk.map((entry) => processEntry(entry, passwordList, endsAt, counters)),
     );
 
     /** Brief pause between batches */
@@ -159,7 +152,7 @@ export async function importWhiskersBackup({
   await bot?.sendAdminMessage([
     `<b>📥 Whiskers Import</b>`,
     `<i>✅ Status: Completed</i>\n`,
-    `<b>Total</b>: ${sessions.length}`,
+    `<b>Total</b>: ${entries.length}`,
     `<b>Created</b>: ${counters.created.length}`,
     `<b>Skipped</b>: ${counters.skipped.length}`,
     `<b>Failed</b>: ${counters.failed.length}`,

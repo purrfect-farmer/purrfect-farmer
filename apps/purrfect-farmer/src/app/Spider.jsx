@@ -46,26 +46,32 @@ export default function SpiderManager() {
   /* All Countries */
   const allCountries = useMemo(() => {
     try {
-      return countriesQuery.data
-        ? Object.entries(countriesQuery.data.countries).reduce(
-            (result, [group, list]) =>
-              result.concat(
-                Object.entries(list).map(([code, price]) => {
-                  const country = getCountryData(code);
-                  const emoji = getEmojiFlag(code);
-                  const name = country?.name || code;
-                  return {
-                    code,
-                    price: parseFloat(price),
-                    emoji,
-                    name,
-                    group,
-                  };
-                })
-              ),
-            []
-          )
-        : [];
+      if (!countriesQuery.data) return [];
+
+      /* Quantities are returned under the misspelled "cuantity" key */
+      const quantities =
+        countriesQuery.data.cuantity || countriesQuery.data.quantity || {};
+
+      return Object.entries(countriesQuery.data.countries).reduce(
+        (result, [group, list]) =>
+          result.concat(
+            Object.entries(list).map(([code, price]) => {
+              const country = getCountryData(code);
+              const emoji = getEmojiFlag(code);
+              const name = country?.name || code;
+              const quantity = quantities?.[group]?.[code] ?? 0;
+              return {
+                code,
+                price: parseFloat(price),
+                quantity,
+                emoji,
+                name,
+                group,
+              };
+            })
+          ),
+        []
+      );
     } catch (e) {
       console.error("Error processing countries:", e);
       return [];
@@ -88,6 +94,10 @@ export default function SpiderManager() {
 
   /** Select Country */
   const selectCountry = (item) => {
+    if (item.quantity <= 0) {
+      toast.error("This country is out of stock.");
+      return;
+    }
     if (item.price > balance) {
       toast.error("Insufficient balance for this country.");
       return;

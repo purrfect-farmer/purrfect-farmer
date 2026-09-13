@@ -171,7 +171,7 @@ export default async function (fastify, opts) {
         const { backup, passwords, subscriptionDate } = request.body;
 
         /** Report how many accounts will be processed */
-        const total = fastify.utils.whiskersToSessions(backup).length;
+        const total = fastify.utils.whiskersToEntries(backup).length;
 
         /** Run in the background; the admin is DM'd on completion */
         importWhiskersBackup({ backup, passwords, subscriptionDate }).catch(

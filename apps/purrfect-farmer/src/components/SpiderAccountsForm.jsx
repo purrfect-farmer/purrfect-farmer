@@ -1,5 +1,9 @@
-import { HiOutlineArrowLeft, HiOutlineCurrencyDollar } from "react-icons/hi2";
-import { useCallback } from "react";
+import {
+  HiOutlineArrowLeft,
+  HiOutlineCurrencyDollar,
+  HiXMark,
+} from "react-icons/hi2";
+import { useCallback, useRef } from "react";
 import PrimaryButton from "./PrimaryButton";
 import Input from "./Input";
 import { useMutation } from "@tanstack/react-query";
@@ -15,8 +19,12 @@ import useMirroredState from "@/hooks/useMirroredState";
 import useMirroredCallback from "@/hooks/useMirroredCallback";
 import storage from "@/lib/storage";
 import Container from "./Container";
+import Slider from "./Slider";
 
 export default function SpiderAccountsForm({ country, clearSelection }) {
+  /* Abort Controller for the Running Purchase */
+  const abortControllerRef = useRef(null);
+
   const {
     messaging,
     setActiveTab,
@@ -127,6 +135,20 @@ export default function SpiderAccountsForm({ country, clearSelection }) {
     dispatchAndSetNumberOfAccounts,
   ] = useMirroredState("spider.number-of-accounts", 1);
 
+  /* Batch Size */
+  const [batch, setBatch, dispatchAndSetBatch] = useMirroredState(
+    "spider.batch",
+    1
+  );
+
+  /* Title Prefix */
+  const [titlePrefix, setTitlePrefix, dispatchAndSetTitlePrefix] =
+    useMirroredState("spider.title-prefix", "");
+
+  /* Starting Number */
+  const [startNumber, setStartNumber, dispatchAndSetStartNumber] =
+    useMirroredState("spider.start-number", 1);
+
   /* 2FA Password */
   const [password, setPassword, dispatchAndSetPassword] = useMirroredState(
     "spider.password",
@@ -149,82 +171,145 @@ export default function SpiderAccountsForm({ country, clearSelection }) {
   /** Calculate Total Price */
   const totalPrice = (numberOfAccounts * country.price).toFixed(2);
 
+  /** Maximum purchasable accounts (available stock) */
+  const maxCount = country?.quantity ?? 0;
+
+  /** Exceeds available stock */
+  const exceedsStock = numberOfAccounts > maxCount;
+
+  /** Preview the titles the current prefix would produce */
+  const titlePreview = titlePrefix
+    ? numberOfAccounts > 1
+      ? `${titlePrefix}${startNumber} … ${titlePrefix}${
+          startNumber + numberOfAccounts - 1
+        }`
+      : `${titlePrefix}${startNumber}`
+    : "Spider <phone number>";
+
   /* Mutation */
   const mutation = useMutation({
     mutationKey: ["purchase-spider-accounts", spiderApiKey, country.code],
-    mutationFn: async ({ count, twoFA, enableLocalTelegramSession }) => {
+    mutationFn: async ({
+      count,
+      batch,
+      twoFA,
+      enableLocalTelegramSession,
+      titlePrefix,
+      startNumber,
+    }) => {
+      const controller = new AbortController();
+      abortControllerRef.current = controller;
+
       resetProgress();
 
       const spider = new Spider(spiderApiKey);
       const results = [];
 
+      /* Accumulate locally so a batch never writes a stale accounts list */
+      const accounts = [...persistedAccounts];
+
       console.log("Starting purchase of", count, "accounts");
+      console.log("Purchasing in batch:", batch);
       console.log("Using 2FA password:", twoFA);
 
-      for (let i = 0; i < count; i++) {
-        try {
-          const purchase = await spider.purchaseAccount({
-            countryCode: country.code,
-            enableLocalTelegramSession,
-            twoFA,
-          });
+      for (let i = 0; i < count; i += batch) {
+        if (controller.signal.aborted) break;
 
-          /* Validate Purchae */
-          if (!purchase.success) {
-            throw new Error(
-              purchase.error || "Unknown error purchasing account"
-            );
-          }
+        /* Purchase the Chunk in Parallel (network only) */
+        const purchases = await Promise.all(
+          Array.from({ length: Math.min(batch, count - i) }, async (_, j) => {
+            /* Fix the account's number before the chunk runs in parallel */
+            const index = i + j;
 
-          /* Log Purchase */
-          console.log("Purchased account from Spider:", purchase);
+            try {
+              if (controller.signal.aborted) {
+                return { index, aborted: true };
+              }
 
-          /** Destructure Purchase */
-          const { account, localTelegramSession, telegramWebLocalStorage } =
-            purchase;
+              const purchase = await spider.purchaseAccount({
+                countryCode: country.code,
+                enableLocalTelegramSession,
+                twoFA,
+              });
 
-          /** New Account */
-          const newPersistedAccount = {
-            id: cryptoRandomString({
-              length: 10,
-            }),
-            title: `Spider ${account["phone"]}`,
-            telegramInitData: null,
-          };
+              /* Validate Purchase */
+              if (!purchase.success) {
+                throw new Error(
+                  purchase.error || "Unknown error purchasing account"
+                );
+              }
 
-          /** Store Account */
-          await storePersistedAccounts([
-            ...persistedAccounts,
-            newPersistedAccount,
-          ]);
+              return { index, purchase };
+            } catch (error) {
+              console.error("Error purchasing account:", error);
+              return { index, error };
+            }
+          })
+        );
 
-          /* Store Local Telegram Session if Enabled */
-          if (enableLocalTelegramSession) {
-            await storage.set(
-              `account-${newPersistedAccount.id}:local-telegram-session`,
-              localTelegramSession
-            );
-
-            await storage.set(`account-${newPersistedAccount.id}:settings`, {
-              farmerMode: "session",
-              onboarded: true,
-            });
-          }
+        /**
+         * Store the Chunk Sequentially
+         *
+         * `transferTelegramWebData` drives the single shared Telegram Web tab
+         * and every account is appended to the same persisted accounts list,
+         * so this half can never run in parallel.
+         */
+        for (const { index, purchase, error, aborted } of purchases) {
+          if (aborted) continue;
 
           try {
-            /* Transfer Telegram Web Local Storage */
-            await transferTelegramWebData(telegramWebLocalStorage);
-          } catch (e) {
-            console.error("Error transferring Telegram Web data:", e);
-          }
+            if (error) throw error;
 
-          /* Push Result */
-          results.push(purchase);
-        } catch (error) {
-          console.error("Error purchasing account:", error);
-          results.push({ success: false, error: error.message });
-        } finally {
-          incrementProgress();
+            /* Log Purchase */
+            console.log("Purchased account from Spider:", purchase);
+
+            /** Destructure Purchase */
+            const { account, localTelegramSession, telegramWebLocalStorage } =
+              purchase;
+
+            /** New Account */
+            const newPersistedAccount = {
+              id: cryptoRandomString({
+                length: 10,
+              }),
+              title: titlePrefix
+                ? `${titlePrefix}${startNumber + index}`
+                : `Spider ${account["phone"]}`,
+              telegramInitData: null,
+            };
+
+            /** Store Account */
+            accounts.push(newPersistedAccount);
+            await storePersistedAccounts([...accounts]);
+
+            /* Store Local Telegram Session if Enabled */
+            if (enableLocalTelegramSession) {
+              await storage.set(
+                `account-${newPersistedAccount.id}:local-telegram-session`,
+                localTelegramSession
+              );
+
+              await storage.set(`account-${newPersistedAccount.id}:settings`, {
+                farmerMode: "session",
+                onboarded: true,
+              });
+            }
+
+            try {
+              /* Transfer Telegram Web Local Storage */
+              await transferTelegramWebData(telegramWebLocalStorage);
+            } catch (e) {
+              console.error("Error transferring Telegram Web data:", e);
+            }
+
+            /* Push Result */
+            results.push(purchase);
+          } catch (error) {
+            console.error("Error storing account:", error);
+            results.push({ success: false, error: error.message });
+          } finally {
+            incrementProgress();
+          }
         }
       }
 
@@ -236,6 +321,12 @@ export default function SpiderAccountsForm({ country, clearSelection }) {
   const [purchaseAccounts, dispatchAndPurchaseAccounts] = useMirroredCallback(
     "spider.purchase-accounts",
     async () => {
+      /* Prevent purchasing above available quantity */
+      if (numberOfAccounts > maxCount) {
+        toast.error(`Only ${maxCount} account(s) available for this country.`);
+        return;
+      }
+
       /* Log Purchase Details */
       console.log("Purchasing", numberOfAccounts, "accounts for country", code);
 
@@ -245,8 +336,11 @@ export default function SpiderAccountsForm({ country, clearSelection }) {
       /* Execute Mutation */
       const results = await mutation.mutateAsync({
         count: numberOfAccounts,
+        batch,
         twoFA: password,
         enableLocalTelegramSession,
+        titlePrefix,
+        startNumber,
       });
 
       /* Log Results */
@@ -262,10 +356,24 @@ export default function SpiderAccountsForm({ country, clearSelection }) {
       dispatchAndSetShowAccountPicker,
       enableLocalTelegramSession,
       numberOfAccounts,
+      batch,
+      titlePrefix,
+      startNumber,
+      maxCount,
       password,
       mutation,
       country.code,
     ]
+  );
+
+  /** Cancel Purchase */
+  const [cancelPurchase, dispatchAndCancelPurchase] = useMirroredCallback(
+    "spider.cancel-purchase",
+    () => {
+      abortControllerRef.current?.abort?.();
+      toast.success("Initiated cancellation...");
+    },
+    []
   );
 
   return (
@@ -284,6 +392,10 @@ export default function SpiderAccountsForm({ country, clearSelection }) {
 
         <p className="text-center text-purple-500 dark:text-purple-300 font-bold">
           Total: ${totalPrice}
+        </p>
+
+        <p className="text-center text-emerald-500 dark:text-emerald-300 font-bold">
+          {maxCount} available
         </p>
       </div>
 
@@ -306,6 +418,53 @@ export default function SpiderAccountsForm({ country, clearSelection }) {
           disabled={mutation.isPending}
         />
       </div>
+
+      {/* Batch */}
+      <div className="flex flex-col">
+        <label className="text-orange-500 text-center">
+          Batch: <span className="font-bold">{batch}</span>
+        </label>
+        <Slider
+          step={1}
+          min={1}
+          max={3}
+          value={[batch]}
+          onValueChange={(value) => dispatchAndSetBatch(value[0])}
+          disabled={mutation.isPending}
+        />
+      </div>
+
+      {/* Title Prefix */}
+      <Input
+        placeholder="Title Prefix (Optional)"
+        value={titlePrefix}
+        disabled={mutation.isPending}
+        onChange={(e) => dispatchAndSetTitlePrefix(e.target.value)}
+      />
+
+      {/* Starting Number */}
+      {titlePrefix ? (
+        <div className="flex flex-col-reverse gap-1">
+          <p className="text-neutral-500 dark:text-neutral-400 px-1">
+            Starting number
+          </p>
+          <Input
+            value={startNumber}
+            onChange={(ev) =>
+              dispatchAndSetStartNumber(
+                Math.max(1, parseInt(ev.target.value) || 1)
+              )
+            }
+            disabled={mutation.isPending}
+          />
+        </div>
+      ) : null}
+
+      {/* Title Preview */}
+      <p className="text-center text-neutral-500 dark:text-neutral-400 px-2">
+        Accounts will be named{" "}
+        <span className="font-bold text-orange-500">{titlePreview}</span>
+      </p>
 
       {/* Enable Local Telegram Session */}
       <LabelToggle
@@ -335,7 +494,7 @@ export default function SpiderAccountsForm({ country, clearSelection }) {
       {/* Purchase Button */}
       <PrimaryButton
         onClick={() => dispatchAndPurchaseAccounts()}
-        disabled={mutation.isPending}
+        disabled={mutation.isPending || exceedsStock}
       >
         <HiOutlineCurrencyDollar className="size-5" />
         {mutation.isPending ? "Purchasing..." : "Purchase Accounts"}
@@ -345,6 +504,17 @@ export default function SpiderAccountsForm({ country, clearSelection }) {
       {mutation.isPending && (
         <Progress current={progress} max={numberOfAccounts} />
       )}
+
+      {/* Cancel Button */}
+      {mutation.isPending ? (
+        <button
+          onClick={() => dispatchAndCancelPurchase()}
+          className="p-2 text-red-500 inline-flex justify-center items-center gap-2"
+        >
+          <HiXMark className="size-5" />
+          Cancel operation
+        </button>
+      ) : null}
     </Container>
   );
 }
