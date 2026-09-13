@@ -191,14 +191,70 @@ class BaseAuto {
     const mining = summary?.mining;
 
     if (mining?.frozen) {
-      return "\n🧊 Mining is <b>frozen</b>";
+      return "🧊 Mining is <b>frozen</b>";
     }
 
     const freezesAt = Number(mining?.freezesAt) || 0;
 
     if (!freezesAt) return "";
 
-    return `\n❄️ Freezes <i>${this.formatTimestamp(freezesAt)}</i> — in <i>${this.formatCountdown(freezesAt)}</i>`;
+    return `❄️ Freezes <i>${this.formatTimestamp(freezesAt)}</i> — in <i>${this.formatCountdown(freezesAt)}</i>`;
+  }
+
+  /**
+   * Format an account snapshot as notification detail lines.
+   *
+   * Shared by every notification that reports on a single account, so the boost
+   * run and the user details command can't drift apart.
+   */
+  formatSummaryDetails(summary) {
+    const freeze = this.formatMiningFreeze(summary);
+
+    return (
+      [
+        this.formatKeyValue("Miner Level", summary.level),
+        this.formatKeyValue("Holding", `${summary.holding} ${this.token}`),
+        this.formatKeyValue(
+          "Pool Balance",
+          `${summary.balance} ${this.token} ${this.isWithdrawable(summary) ? "🟩" : "🟧"}`,
+        ),
+        this.formatKeyValue("Verified", summary.verified ? "✅" : "❌"),
+      ]
+        /** Wallet */
+        .concat(
+          summary.wallet
+            ? [this.formatKeyValue("Wallet", this.formatWallet(summary.wallet))]
+            : [],
+        )
+
+        /** Mining freeze */
+        .concat(freeze ? [freeze] : [])
+
+        /** Ban */
+        .concat(
+          summary.banned
+            ? [
+                "",
+                "<b>🚫 Banned</b>",
+                this.formatKeyValue("Reason", summary.banReason || "Unknown"),
+              ]
+            : [],
+        )
+
+        /** Risks */
+        .concat(
+          summary.risk?.flags?.length > 0
+            ? [
+                "",
+                "<b>🟥 Risks</b>",
+                this.formatKeyValue("Risk Score", summary.risk.score),
+                this.formatKeyValue("Risk Updated", summary.risk.updatedAt),
+                this.formatKeyValue("Risk Flags", summary.risk.flags.length),
+                ...summary.risk.flags.map((flag) => `<b>- ${flag}</b>`),
+              ]
+            : [],
+        )
+    );
   }
 
   /** Whether an account's balance has reached the drop's withdrawal minimum */
@@ -730,18 +786,26 @@ class BaseAuto {
     const position = this.formatAccountPosition(index);
     const action = skipped ? "connect" : "boost";
 
-    /** Reported on every success, so the freeze is visible before it bites */
-    const freeze = status ? this.formatMiningFreeze(summary) : "";
-
-    await this.sendNotification([
+    /**
+     * The full snapshot is reported on every success, so the account's state -
+     * the freeze included - is visible before it bites.
+     */
+    await this.sendNotification(
       status
-        ? skipped
-          ? `🔗 Connected <b>(${link})</b> holding <i>${summary.holding} ${this.token}</i> — no ${this.token} in master to boost with ${position}${freeze}`
-          : settled
-            ? `⚡ Boosted <b>(${link})</b> with <i>${summary.holding} ${this.token}</i> ${position}${freeze}`
-            : `⏳ Boosted <b>(${link})</b> with <i>${jettonAmount} ${this.token}</i>, but the drop still reads <i>${summary.holding} ${this.token}</i> ${position}${freeze}`
-        : `❌ Failed to ${action} <b>(${link})</b>${skipped ? "" : ` with <i>${jettonAmount} ${this.token}</i>`} ${position}\n<i>Error: ${message || "Unknown error!"}</i>`,
-    ]);
+        ? [
+            skipped
+              ? `🔗 Connected <b>(${link})</b> — no ${this.token} in master to boost with ${position}`
+              : settled
+                ? `⚡ Boosted <b>(${link})</b> with <i>${jettonAmount} ${this.token}</i> ${position}`
+                : `⏳ Boosted <b>(${link})</b> with <i>${jettonAmount} ${this.token}</i>, but the drop hasn't settled it yet ${position}`,
+            "",
+            ...this.formatSummaryDetails(summary),
+          ]
+        : [
+            `❌ Failed to ${action} <b>(${link})</b>${skipped ? "" : ` with <i>${jettonAmount} ${this.token}</i>`} ${position}`,
+            `<i>Error: ${message || "Unknown error!"}</i>`,
+          ],
+    );
 
     /** Delay for 2s */
     await this.utils.delayForSeconds(2, { signal: this.signal });
@@ -1345,41 +1409,8 @@ class BaseAuto {
         ? [
             `ℹ️ User details <b>(${this.formatAccountLink(cloudAccount.id)})</b> ${this.formatAccountPosition(index)}`,
             "",
-            this.formatKeyValue("Miner Level", summary.level),
-            this.formatKeyValue("Holding", `${summary.holding} ${this.token}`),
-            this.formatKeyValue(
-              "Balance",
-              `${summary.balance} ${this.token} ${this.isWithdrawable(summary) ? "🟩" : "🟧"}`,
-            ),
+            ...this.formatSummaryDetails(summary),
           ]
-            /** Wallet */
-            .concat(
-              summary.wallet
-                ? [
-                    this.formatKeyValue(
-                      "Wallet",
-                      this.formatWallet(summary.wallet),
-                    ),
-                  ]
-                : [],
-            )
-
-            /** Risks */
-            .concat(
-              summary.risk?.flags?.length > 0
-                ? [
-                    "",
-                    "<b>🟥 Risks</b>",
-                    this.formatKeyValue("Risk Score", summary.risk.score),
-                    this.formatKeyValue("Risk Updated", summary.risk.updatedAt),
-                    this.formatKeyValue(
-                      "Risk Flags",
-                      summary.risk.flags.length,
-                    ),
-                    ...summary.risk.flags.map((flag) => `<b>- ${flag}</b>`),
-                  ]
-                : [],
-            )
         : [
             `❌ Failed to get user details <b>(${this.formatAccountLink(cloudAccount.id)})</b> ${this.formatAccountPosition(index)}`,
             `<i>Error: ${message}</i>`,
