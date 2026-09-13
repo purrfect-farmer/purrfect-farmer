@@ -1,7 +1,11 @@
 import { Api, Logger } from "telegram";
+import {
+  acceptLoginToken,
+  finalizeLoginToken,
+  requestLoginToken,
+} from "@purrfect/shared/utils/loginToken.js";
 
 import BaseTelegramWebClient from "@purrfect/shared/lib/BaseTelegramWebClient.js";
-import { computeCheck } from "telegram/Password.js";
 import fsp from "node:fs/promises";
 import { getCurrentPath } from "./path.js";
 import { getDcDetails } from "@purrfect/shared/utils/dc.js";
@@ -13,10 +17,6 @@ const { __dirname } = getCurrentPath(import.meta.url);
 const DEVICE_MODEL =
   "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36";
 const SYSTEM_VERSION = "Linux x86_64";
-
-/** Telegram API credentials (must match BaseTelegramWebClient) */
-const API_ID = 2496;
-const API_HASH = "8da85b0d5bfe62527e5b244c209159c3";
 
 class GramClient extends BaseTelegramWebClient {
   /**
@@ -74,12 +74,13 @@ class GramClient extends BaseTelegramWebClient {
   }
 
   /** Start Handler */
-  _createStartHandler(stage) {
+  _createStartHandler(stage, extra = null) {
     return () =>
       new Promise((resolve) => {
         /** Resolve Stage Promise */
         this._startStagePromise?.resolve?.({
           stage,
+          ...extra,
         });
 
         /** Remove Previous Handler */
@@ -117,6 +118,7 @@ class GramClient extends BaseTelegramWebClient {
       phone: null,
       code: null,
       password: null,
+      token: null,
     };
   }
 
@@ -204,6 +206,69 @@ class GramClient extends BaseTelegramWebClient {
         })
         .catch((error) => this._startStagePromise?.reject?.(error))
         .finally(() => {
+          /** Clear Timeout */
+          clearTimeout(this._startTimeout);
+        });
+    });
+  }
+
+  /**
+   * Start Pending (Login Token)
+   *
+   * The login-token counterpart of `startPending`.
+   */
+  startTokenPending() {
+    return new Promise((_resolve, _reject) => {
+      /** Automatically Logout */
+      this._startTimeout = setTimeout(() => this.logout(), 10 * 60 * 1000);
+
+      /** Reset Start Stage */
+      this._resetStartStage();
+
+      /** Reset Start Stage Promise */
+      this._startStagePromise = { resolve: _resolve, reject: _reject };
+
+      (async () => {
+        /** Connect */
+        if (this.disconnected) {
+          await this.connect();
+        }
+
+        /** Export Login Token */
+        const exported = await requestLoginToken(this);
+
+        /** Hand the token over and wait for the acceptance to be reported */
+        await this._createStartHandler("token", {
+          token: exported.token.toString("base64"),
+        })();
+
+        /** Collect the authorization (handling DC migration and 2FA) */
+        await finalizeLoginToken(this, {
+          getPassword: this._createStartHandler("password"),
+        });
+
+        /** Get User */
+        const user = await this.getMe();
+
+        await this._saveSession();
+        await this.destroy();
+
+        this._startStagePromise?.resolve?.({
+          stage: "authenticated",
+          user,
+        });
+      })()
+        .catch((error) => {
+          /** Log Error */
+          console.error("Error during login token authentication:", error);
+
+          /** Reject */
+          this._startStagePromise?.reject?.(error);
+        })
+        .finally(() => {
+          /** Reset Start Stage */
+          this._resetStartStage();
+
           /** Clear Timeout */
           clearTimeout(this._startTimeout);
         });
@@ -397,25 +462,15 @@ class GramClient extends BaseTelegramWebClient {
       }
 
       /** Export a login token from the fresh (empty) client */
-      const exported = await fresh.invoke(
-        new Api.auth.ExportLoginToken({
-          apiId: API_ID,
-          apiHash: API_HASH,
-          exceptIds: [],
-        }),
-      );
-
-      if (!(exported instanceof Api.auth.LoginToken)) {
-        throw new Error(`Unexpected export result: ${exported.className}`);
-      }
+      const exported = await requestLoginToken(fresh);
 
       /** Accept the token using the authorized client (server-side QR scan) */
-      await source.invoke(
-        new Api.auth.AcceptLoginToken({ token: exported.token }),
-      );
+      await acceptLoginToken(source, exported.token);
 
       /** Finalize: obtain authorization (handling DC migration and 2FA) */
-      await this._finalizeLoginToken(fresh, passwords);
+      await finalizeLoginToken(fresh, {
+        getPassword: (attempt) => passwords[attempt] ?? null,
+      });
 
       /** Persist the new session and fetch the user */
       const user = await fresh.getMe();
@@ -426,97 +481,6 @@ class GramClient extends BaseTelegramWebClient {
       await source.destroy().catch(() => {});
       await fresh.destroy().catch(() => {});
     }
-  }
-
-  /** Re-export the login token to complete authorization */
-  static async _finalizeLoginToken(client, passwords, attempt = 0) {
-    let result;
-
-    try {
-      result = await client.invoke(
-        new Api.auth.ExportLoginToken({
-          apiId: API_ID,
-          apiHash: API_HASH,
-          exceptIds: [],
-        }),
-      );
-    } catch (error) {
-      if (error.errorMessage === "SESSION_PASSWORD_NEEDED") {
-        return this._checkPassword(client, passwords);
-      }
-      throw error;
-    }
-
-    if (result instanceof Api.auth.LoginTokenSuccess) {
-      return result.authorization;
-    }
-
-    /** Acceptance not yet propagated — retry a few times */
-    if (result instanceof Api.auth.LoginToken) {
-      if (attempt >= 5) {
-        throw new Error("Login token was not accepted in time");
-      }
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-      return this._finalizeLoginToken(client, passwords, attempt + 1);
-    }
-
-    if (result instanceof Api.auth.LoginTokenMigrateTo) {
-      await client._switchDC(result.dcId);
-
-      try {
-        const migrated = await client.invoke(
-          new Api.auth.ImportLoginToken({ token: result.token }),
-        );
-
-        if (migrated instanceof Api.auth.LoginTokenSuccess) {
-          return migrated.authorization;
-        }
-
-        throw new Error(`Unexpected migrate result: ${migrated.className}`);
-      } catch (error) {
-        if (error.errorMessage === "SESSION_PASSWORD_NEEDED") {
-          return this._checkPassword(client, passwords);
-        }
-        throw error;
-      }
-    }
-
-    throw new Error(`Unexpected login token result: ${result.className}`);
-  }
-
-  /** Complete 2FA by trying each candidate password */
-  static async _checkPassword(client, passwords) {
-    if (!passwords.length) {
-      throw new Error("2FA password required but none provided");
-    }
-
-    let lastError;
-
-    for (const password of passwords) {
-      try {
-        const passwordSrp = await client.invoke(new Api.account.GetPassword());
-        const check = await computeCheck(passwordSrp, password);
-
-        return await client.invoke(
-          new Api.auth.CheckPassword({ password: check }),
-        );
-      } catch (error) {
-        lastError = error;
-
-        /** Wrong password — try the next candidate */
-        if (error.errorMessage === "PASSWORD_HASH_INVALID") {
-          continue;
-        }
-
-        throw error;
-      }
-    }
-
-    throw new Error(
-      `2FA failed: no provided password matched${
-        lastError ? ` (${lastError.errorMessage || lastError.message})` : ""
-      }`,
-    );
   }
 }
 

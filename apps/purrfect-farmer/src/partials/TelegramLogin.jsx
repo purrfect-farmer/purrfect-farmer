@@ -11,12 +11,18 @@ import TelegramLoginCodeForm from "./TelegramLoginCodeForm";
 import TelegramLoginPasswordForm from "./TelegramLoginPasswordForm";
 import TelegramLoginPhoneForm from "./TelegramLoginPhoneForm";
 import useMirroredCallback from "@/hooks/useMirroredCallback";
+import useTelegramLoginTokenConfirmMutation from "@/hooks/useTelegramLoginTokenConfirmMutation";
+import useTelegramLoginTokenMutation from "@/hooks/useTelegramLoginTokenMutation";
 import { cn, postPortMessage } from "@/utils";
 import { MemorySession } from "telegram/sessions";
 import { TelegramClient } from "telegram";
 import { AuthKey } from "telegram/crypto/AuthKey";
-import { NewMessage, NewMessageEvent } from "telegram/events";
 import { HiBolt } from "react-icons/hi2";
+import {
+  acceptLoginToken,
+  finalizeLoginToken,
+  requestLoginToken,
+} from "@purrfect/shared/utils/loginToken.js";
 
 /** Create Telegram Client from Session Details */
 const getTelegramClientFromSession = async (details) => {
@@ -33,7 +39,7 @@ const getTelegramClientFromSession = async (details) => {
       deviceModel: navigator.userAgent,
       systemVersion: navigator.platform,
       useWSS: true,
-    }
+    },
   );
 
   /* Get DC Info */
@@ -64,38 +70,6 @@ const getTelegramClientFromSession = async (details) => {
   }
 };
 
-/**
- * Get Auth Code from Telegram Messages
- * @param {import("telegram").TelegramClient} client
- * @returns {Promise<string>}
- */
-const getAuthCode = (client) => {
-  return new Promise((resolve) => {
-    /* Add New Message Handler to the SAME client before connecting */
-    client.addEventHandler(
-      /**
-       * @param {NewMessageEvent} event
-       */
-      (event) => {
-        /* Extract Auth Code from Message */
-        console.log("New message event received:", event.message);
-        const message = event.message?.message || "";
-        const match = message.match(/(\d{5})/);
-
-        if (match) {
-          const authCodeMessage = match[1];
-          console.log("Extracted auth code:", authCodeMessage);
-
-          resolve(authCodeMessage);
-        }
-      },
-      new NewMessage({
-        fromUsers: [777000],
-      })
-    );
-  });
-};
-
 export default function TelegramLogin({
   mode = "cloud",
   storeTelegramSession,
@@ -104,8 +78,6 @@ export default function TelegramLogin({
     useAppContext();
   const [stage, setStage] = useState("phone");
   const [tempSession, setTempSession] = useState(null);
-  const [phone, setPhone] = useState(null);
-  const [code, setCode] = useState(null);
   const [handlers, setHandlers] = useState({
     phone: null,
     code: null,
@@ -113,6 +85,10 @@ export default function TelegramLogin({
   });
 
   const [initialized, setInitialized] = useState(mode === "cloud");
+
+  /** Cloud Login Token Mutations */
+  const loginTokenMutation = useTelegramLoginTokenMutation();
+  const loginTokenConfirmMutation = useTelegramLoginTokenConfirmMutation();
 
   const processingRef = useRef({
     resolve: null,
@@ -144,7 +120,7 @@ export default function TelegramLogin({
         storeTelegramSession(tempSession);
       }
     },
-    [storeTelegramSession, tempSession]
+    [storeTelegramSession, tempSession],
   );
 
   /** Password Confirmation */
@@ -179,7 +155,7 @@ export default function TelegramLogin({
           },
         }));
       }),
-    [setStage, setHandlers, setProcessingResolver]
+    [setStage, setHandlers, setProcessingResolver],
   );
 
   /** Close Telegram Web Tabs */
@@ -188,7 +164,9 @@ export default function TelegramLogin({
     closeTab("telegram-web-a");
   }, [closeTab]);
 
-  /** Quick Sign-In */
+  /**
+   * Quick Sign-In
+   */
   const [, dispatchAndHandleQuickSignIn] = useMirroredCallback(
     "app.quick-telegram-sign-in",
     async () => {
@@ -208,7 +186,7 @@ export default function TelegramLogin({
 
               /** Resolve */
               resolve(telegramWebLocalStorage);
-            }
+            },
           );
 
           /** Open Telegram Web  */
@@ -216,8 +194,8 @@ export default function TelegramLogin({
         });
       };
 
-      /** Auto-fill Code */
-      const autoFillCode = async () => {
+      /** Get the already-authorized client that will accept the token */
+      const getAuthorizedClient = async () => {
         /** Close Telegram Web Tabs */
         await closeTelegramWeb();
 
@@ -225,59 +203,120 @@ export default function TelegramLogin({
         const currentLocalStorage = await getTelegramWebLocalStorage();
         console.log(
           "Current Telegram Web Local Storage Retrieved:",
-          currentLocalStorage
+          currentLocalStorage,
         );
 
         /** Get Account Data */
         const index = account.index + 1;
         const webAccount = currentLocalStorage[`account${index}`];
 
-        if (webAccount) {
-          /* Parse Details */
-          const details = JSON.parse(webAccount);
-          console.log("Web Account Details:", details);
+        if (!webAccount) {
+          throw new Error("Telegram Web account was not found.");
+        }
 
-          /* Create Client from Session */
-          const client = await getTelegramClientFromSession(details);
-          if (client) {
-            console.log("Telegram Client from Session:", client);
+        /* Parse Details */
+        const details = JSON.parse(webAccount);
+        console.log("Web Account Details:", details);
 
-            await new Promise(async (resolve) => {
-              /* Get User */
-              const user = await client.getMe();
-              console.log("Logged in User:", user);
+        /* Create Client from Session */
+        const client = await getTelegramClientFromSession(details);
 
-              /* Add New Message Handler to the SAME client before connecting */
-              getAuthCode(client).then((authCodeMessage) => {
-                console.log("Auth Code Message Retrieved:", authCodeMessage);
+        if (!client) {
+          throw new Error("Failed to create Telegram client from session.");
+        }
 
-                /** Set Code */
-                setCode(authCodeMessage);
+        return client;
+      };
 
-                /** Destroy Client */
-                client.destroy();
+      /** Sign in locally by minting a brand-new session */
+      const signInLocally = async (authorizedClient) => {
+        /** Create Client */
+        const client = createTelegramClient();
 
-                /** Resolve */
-                resolve();
-              });
+        try {
+          /** Connect Without Authenticating */
+          await client.connect();
 
-              /** Set Phone */
-              setPhone(user.phone);
-            });
+          /** Export Login Token */
+          const exported = await requestLoginToken(client);
+
+          /** Accept the Token on the Already-Authorized Client */
+          await acceptLoginToken(authorizedClient, exported.token);
+
+          /** Collect the Authorization (handling DC migration and 2FA) */
+          await finalizeLoginToken(client, {
+            getPassword: createHandler("password"),
+          });
+        } catch (error) {
+          await client.destroy().catch(() => {});
+          throw error;
+        }
+
+        /** Set Client */
+        telegramClient.ref.current = client;
+
+        /** Store Session */
+        storeTelegramSession(client.session.save());
+      };
+
+      /** Sign in on the cloud, which holds the client being authorized */
+      const signInOnCloud = async (authorizedClient) => {
+        /** Request a Login Token from the Cloud */
+        const { session, token } = await loginTokenMutation.mutateAsync({});
+
+        /** Store Session */
+        setTempSession(session);
+
+        /** Accept the Token on the Already-Authorized Client */
+        await acceptLoginToken(authorizedClient, Buffer.from(token, "base64"));
+
+        /** Report the Acceptance */
+        const result = await loginTokenConfirmMutation.mutateAsync({ session });
+
+        if (result.stage === "password") {
+          /** Set Stage */
+          setStage("password");
+        } else {
+          /** Store Session */
+          storeTelegramSession(session);
+        }
+      };
+
+      /** Sign In */
+      const signIn = async () => {
+        const authorizedClient = await getAuthorizedClient();
+        console.log("Telegram Client from Session:", authorizedClient);
+
+        try {
+          if (mode === "local") {
+            await signInLocally(authorizedClient);
           } else {
-            throw new Error("Failed to create Telegram client from session.");
+            await signInOnCloud(authorizedClient);
           }
+        } finally {
+          await authorizedClient.destroy().catch(() => {});
         }
       };
 
       /** Toast */
-      toast.promise(autoFillCode(), {
+      toast.promise(signIn(), {
         loading: "Attempting Quick Sign-In...",
         success: "Quick Sign-In Successful!",
         error: "Quick Sign-In Failed!",
       });
     },
-    [messaging.handler, account, setActiveTab, closeTelegramWeb]
+    [
+      mode,
+      messaging.handler,
+      account,
+      setActiveTab,
+      closeTelegramWeb,
+      createHandler,
+      telegramClient,
+      storeTelegramSession,
+      loginTokenMutation.mutateAsync,
+      loginTokenConfirmMutation.mutateAsync,
+    ],
   );
 
   /** Run a client in local mode */
@@ -347,7 +386,6 @@ export default function TelegramLogin({
         // Code Stage
         <TelegramLoginCodeForm
           mode={mode}
-          code={code}
           session={tempSession}
           handler={handlers.code}
           onSuccess={handleCloudCodeConfirmation}
@@ -357,7 +395,6 @@ export default function TelegramLogin({
         // Phone Stage
         <TelegramLoginPhoneForm
           mode={mode}
-          phone={phone}
           session={tempSession}
           handler={handlers.phone}
           onSuccess={handleCloudPhoneLogin}
@@ -370,7 +407,7 @@ export default function TelegramLogin({
           onClick={() => dispatchAndHandleQuickSignIn()}
           className={cn(
             "text-center text-orange-500",
-            "flex items-center justify-center gap-2"
+            "flex items-center justify-center gap-2",
           )}
         >
           <HiBolt className="w-5 h-5" />
