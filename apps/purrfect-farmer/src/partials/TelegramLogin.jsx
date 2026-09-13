@@ -17,6 +17,7 @@ import { cn, postPortMessage } from "@/utils";
 import { MemorySession } from "telegram/sessions";
 import { TelegramClient } from "telegram";
 import { AuthKey } from "telegram/crypto/AuthKey";
+import { NewMessage, NewMessageEvent } from "telegram/events";
 import { HiBolt } from "react-icons/hi2";
 import {
   acceptLoginToken,
@@ -70,6 +71,38 @@ const getTelegramClientFromSession = async (details) => {
   }
 };
 
+/**
+ * Get Auth Code from Telegram Messages
+ * @param {import("telegram").TelegramClient} client
+ * @returns {Promise<string>}
+ */
+const getAuthCode = (client) => {
+  return new Promise((resolve) => {
+    /* Add New Message Handler to the SAME client before connecting */
+    client.addEventHandler(
+      /**
+       * @param {NewMessageEvent} event
+       */
+      (event) => {
+        /* Extract Auth Code from Message */
+        console.log("New message event received:", event.message);
+        const message = event.message?.message || "";
+        const match = message.match(/(\d{5})/);
+
+        if (match) {
+          const authCodeMessage = match[1];
+          console.log("Extracted auth code:", authCodeMessage);
+
+          resolve(authCodeMessage);
+        }
+      },
+      new NewMessage({
+        fromUsers: [777000],
+      }),
+    );
+  });
+};
+
 export default function TelegramLogin({
   mode = "cloud",
   storeTelegramSession,
@@ -78,6 +111,8 @@ export default function TelegramLogin({
     useAppContext();
   const [stage, setStage] = useState("phone");
   const [tempSession, setTempSession] = useState(null);
+  const [phone, setPhone] = useState(null);
+  const [code, setCode] = useState(null);
   const [handlers, setHandlers] = useState({
     phone: null,
     code: null,
@@ -164,70 +199,114 @@ export default function TelegramLogin({
     closeTab("telegram-web-a");
   }, [closeTab]);
 
+  /** Get Telegram Web Local Storage */
+  const getTelegramWebLocalStorage = useCallback(() => {
+    return new Promise((resolve) => {
+      messaging.handler.once(`port-connected:telegram-web-k`, async (port) => {
+        /** Get Telegram Web Local Storage */
+        const telegramWebLocalStorage = await postPortMessage(port, {
+          action: "get-local-storage",
+        }).then((response) => response.data);
+
+        /** Close Telegram Web */
+        closeTelegramWeb();
+
+        /** Resolve */
+        resolve(telegramWebLocalStorage);
+      });
+
+      /** Open Telegram Web  */
+      setActiveTab("telegram-web-k");
+    });
+  }, [messaging.handler, setActiveTab, closeTelegramWeb]);
+
+  /** Get the already-authorized client from the Telegram Web session */
+  const getAuthorizedClient = useCallback(async () => {
+    /** Close Telegram Web Tabs */
+    await closeTelegramWeb();
+
+    /** Get Data */
+    const currentLocalStorage = await getTelegramWebLocalStorage();
+    console.log(
+      "Current Telegram Web Local Storage Retrieved:",
+      currentLocalStorage,
+    );
+
+    /** Get Account Data */
+    const index = account.index + 1;
+    const webAccount = currentLocalStorage[`account${index}`];
+
+    if (!webAccount) {
+      throw new Error("Telegram Web account was not found.");
+    }
+
+    /* Parse Details */
+    const details = JSON.parse(webAccount);
+    console.log("Web Account Details:", details);
+
+    /* Create Client from Session */
+    const client = await getTelegramClientFromSession(details);
+
+    if (!client) {
+      throw new Error("Failed to create Telegram client from session.");
+    }
+
+    return client;
+  }, [closeTelegramWeb, getTelegramWebLocalStorage, account]);
+
   /**
    * Quick Sign-In
+   *
+   * Auto-fills the phone and the login code sent by Telegram (777000).
    */
   const [, dispatchAndHandleQuickSignIn] = useMirroredCallback(
     "app.quick-telegram-sign-in",
     async () => {
-      /** Get Telegram Web Local Storage */
-      const getTelegramWebLocalStorage = () => {
-        return new Promise((resolve) => {
-          messaging.handler.once(
-            `port-connected:telegram-web-k`,
-            async (port) => {
-              /** Get Telegram Web Local Storage */
-              const telegramWebLocalStorage = await postPortMessage(port, {
-                action: "get-local-storage",
-              }).then((response) => response.data);
+      /** Auto-fill Code */
+      const autoFillCode = async () => {
+        const client = await getAuthorizedClient();
+        console.log("Telegram Client from Session:", client);
 
-              /** Close Telegram Web */
-              closeTelegramWeb();
+        try {
+          /* Get User */
+          const user = await client.getMe();
+          console.log("Logged in User:", user);
 
-              /** Resolve */
-              resolve(telegramWebLocalStorage);
-            },
-          );
+          /* Listen for the Code BEFORE triggering the login request */
+          const authCode = getAuthCode(client);
 
-          /** Open Telegram Web  */
-          setActiveTab("telegram-web-k");
-        });
+          /** Set Phone */
+          setPhone(user.phone);
+
+          /** Set Code */
+          const authCodeMessage = await authCode;
+          console.log("Auth Code Message Retrieved:", authCodeMessage);
+
+          setCode(authCodeMessage);
+        } finally {
+          await client.destroy().catch(() => {});
+        }
       };
 
-      /** Get the already-authorized client that will accept the token */
-      const getAuthorizedClient = async () => {
-        /** Close Telegram Web Tabs */
-        await closeTelegramWeb();
+      /** Toast */
+      toast.promise(autoFillCode(), {
+        loading: "Attempting Quick Sign-In...",
+        success: "Quick Sign-In Successful!",
+        error: "Quick Sign-In Failed!",
+      });
+    },
+    [getAuthorizedClient],
+  );
 
-        /** Get Data */
-        const currentLocalStorage = await getTelegramWebLocalStorage();
-        console.log(
-          "Current Telegram Web Local Storage Retrieved:",
-          currentLocalStorage,
-        );
-
-        /** Get Account Data */
-        const index = account.index + 1;
-        const webAccount = currentLocalStorage[`account${index}`];
-
-        if (!webAccount) {
-          throw new Error("Telegram Web account was not found.");
-        }
-
-        /* Parse Details */
-        const details = JSON.parse(webAccount);
-        console.log("Web Account Details:", details);
-
-        /* Create Client from Session */
-        const client = await getTelegramClientFromSession(details);
-
-        if (!client) {
-          throw new Error("Failed to create Telegram client from session.");
-        }
-
-        return client;
-      };
-
+  /**
+   * Quick Token Login
+   *
+   * Mints a login token on the new client and has the already-authorized
+   * Telegram Web client accept it.
+   */
+  const [, dispatchAndHandleQuickTokenLogin] = useMirroredCallback(
+    "app.quick-telegram-token-login",
+    async () => {
       /** Sign in locally by minting a brand-new session */
       const signInLocally = async (authorizedClient) => {
         /** Create Client */
@@ -300,17 +379,14 @@ export default function TelegramLogin({
 
       /** Toast */
       toast.promise(signIn(), {
-        loading: "Attempting Quick Sign-In...",
-        success: "Quick Sign-In Successful!",
-        error: "Quick Sign-In Failed!",
+        loading: "Attempting Quick Token Login...",
+        success: "Quick Token Login Successful!",
+        error: "Quick Token Login Failed!",
       });
     },
     [
       mode,
-      messaging.handler,
-      account,
-      setActiveTab,
-      closeTelegramWeb,
+      getAuthorizedClient,
       createHandler,
       telegramClient,
       storeTelegramSession,
@@ -386,6 +462,7 @@ export default function TelegramLogin({
         // Code Stage
         <TelegramLoginCodeForm
           mode={mode}
+          code={code}
           session={tempSession}
           handler={handlers.code}
           onSuccess={handleCloudCodeConfirmation}
@@ -395,24 +472,38 @@ export default function TelegramLogin({
         // Phone Stage
         <TelegramLoginPhoneForm
           mode={mode}
+          phone={phone}
           session={tempSession}
           handler={handlers.phone}
           onSuccess={handleCloudPhoneLogin}
         />
       )}
 
-      {/* Quick Sign-in button */}
+      {/* Quick Sign-in buttons */}
       {stage === "phone" && (
-        <button
-          onClick={() => dispatchAndHandleQuickSignIn()}
-          className={cn(
-            "text-center text-orange-500",
-            "flex items-center justify-center gap-2",
-          )}
-        >
-          <HiBolt className="w-5 h-5" />
-          Quick Sign-In
-        </button>
+        <div className="grid gap-2">
+          <button
+            onClick={() => dispatchAndHandleQuickTokenLogin()}
+            className={cn(
+              "text-center text-orange-500",
+              "flex items-center justify-center gap-2",
+            )}
+          >
+            <HiBolt className="w-5 h-5 shrink-0" />
+            Quick Token Login
+          </button>
+
+          <button
+            onClick={() => dispatchAndHandleQuickSignIn()}
+            className={cn(
+              "text-center text-orange-500",
+              "flex items-center justify-center gap-2",
+            )}
+          >
+            <HiBolt className="w-5 h-5 shrink-0" />
+            Quick Phone Sign-In
+          </button>
+        </div>
       )}
     </>
   ) : (
