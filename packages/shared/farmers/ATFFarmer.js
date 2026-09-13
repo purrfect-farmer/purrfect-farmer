@@ -162,6 +162,77 @@ export default class ATFFarmer extends BaseFarmer {
     this.has_solved_captcha = true;
   }
 
+  /**
+   * The drop can answer a login with an image captcha instead of the account.
+   *
+   * It arrives either as a plain 200 body or as the body of a 4xx, so both
+   * paths hand their payload here.
+   */
+  getEntryRiskChallenge(payload) {
+    return payload?.["reason"] === "entry_risk_captcha_required" &&
+      payload?.["captcha_image"]
+      ? payload
+      : null;
+  }
+
+  /**
+   * Answer one entry risk challenge.
+   *
+   * The image is bound to its `challenge_id` and only a new login mints a
+   * fresh one, so a refused answer returns instead of re-submitting - the
+   * login loop asks again and brings back a new image.
+   *
+   * @returns {Promise<boolean>} whether the challenge was verified
+   */
+  async solveEntryRiskCaptcha(challenge) {
+    if (this.signal.aborted) {
+      throw new Error("Captcha solving aborted");
+    }
+
+    /** An answer submitted against an expiring challenge is wasted */
+    const expiresIn = Number(challenge["expires_in"]);
+
+    if (Number.isFinite(expiresIn) && expiresIn <= 5) {
+      this.logger.warn("Entry risk captcha expired, asking for a new one...");
+      return false;
+    }
+
+    const answer = await this.resolveImageCaptchaAnswer({
+      image: challenge["captcha_image"],
+      promptText: challenge["message"] || "Solve the captcha to sign in:",
+      label: "entry risk captcha",
+    });
+
+    /** A wrong answer is refused with a 403 carrying the reason */
+    let result;
+
+    try {
+      result = await this.verifyEntryRiskCaptcha({
+        challengeId: challenge["challenge_id"],
+        answer,
+      });
+    } catch (error) {
+      if (!error.response?.data) {
+        throw error;
+      }
+      result = error.response.data;
+    }
+
+    if (result?.["verified"] === true || result?.["status"] === "success") {
+      this.logger.success("Entry risk captcha verified.");
+      return true;
+    }
+
+    this.logger.error(
+      "Entry risk captcha rejected:",
+      result?.["message"] || "Unknown error",
+    );
+
+    await this.utils.delayForSeconds(2, { signal: this.signal });
+
+    return false;
+  }
+
   /** @param {boolean} forceFresh - make the backend re-read the account */
   async completeLogin(forceFresh = false) {
     const MAX_ATTEMPTS = 10;
@@ -173,21 +244,48 @@ export default class ATFFarmer extends BaseFarmer {
         throw new Error("Login aborted");
       }
 
+      /**
+       * The challenge is answered outside the try, so that having no way to
+       * answer it fails the login instead of being retried as a network error.
+       */
+      let challenge = null;
+
       try {
-        this.user_data = await this.makeLoginAction(forceFresh);
-        break;
-      } catch (error) {
-        attempts++;
-        if (attempts > MAX_ATTEMPTS) {
-          throw new Error("Failed to sign in:", error);
+        const data = await this.makeLoginAction(forceFresh);
+
+        challenge = this.getEntryRiskChallenge(data);
+
+        if (!challenge) {
+          this.user_data = data;
+          break;
         }
-        const errorMessage = error.response?.data?.message || "Unknown error";
-        const retryAfter = error.response?.data?.retry_after || 5;
+      } catch (error) {
+        challenge = this.getEntryRiskChallenge(error.response?.data);
 
-        this.logger.error("Failed to sign in:", errorMessage);
+        if (!challenge) {
+          attempts++;
+          if (attempts > MAX_ATTEMPTS) {
+            throw new Error("Failed to sign in:", error);
+          }
+          const errorMessage = error.response?.data?.message || "Unknown error";
+          const retryAfter = error.response?.data?.retry_after || 5;
 
-        await this.utils.delayForSeconds(retryAfter, { signal: this.signal });
+          this.logger.error("Failed to sign in:", errorMessage);
+
+          await this.utils.delayForSeconds(retryAfter, { signal: this.signal });
+          continue;
+        }
       }
+
+      /** The drop withheld the account behind an image captcha */
+      attempts++;
+      if (attempts > MAX_ATTEMPTS) {
+        throw new Error("Failed to sign in: entry risk captcha required");
+      }
+
+      this.logger.warn("Entry risk captcha required.");
+
+      await this.solveEntryRiskCaptcha(challenge);
     }
 
     return this.user_data;
@@ -212,6 +310,7 @@ export default class ATFFarmer extends BaseFarmer {
             username: this.getUsername(),
           }
         : {},
+      this.constructor.RISK_CHALLENGE_CONFIG,
     );
   }
 
@@ -224,14 +323,21 @@ export default class ATFFarmer extends BaseFarmer {
     };
   }
 
-  makeAction(action, data = {}) {
+  makeAction(action, data = {}, config = {}) {
     return this.api
       .post(
         `https://atfminers.asloni.online/miner/index.php?action=${action}`,
         data,
+        config,
       )
       .then((res) => res.data);
   }
+
+  /**
+   * The drop answers the entry risk challenge with a 403, which the extension
+   * would otherwise read as a dead session and reset the farmer over.
+   */
+  static RISK_CHALLENGE_CONFIG = { ignoreUnauthorizedError: true };
 
   /** Get Captcha Status */
   getCaptchaStatus() {
@@ -246,6 +352,18 @@ export default class ATFFarmer extends BaseFarmer {
       captcha_token: captchaToken,
       username: this.getUsername() || "",
     });
+  }
+
+  /** Verify Entry Risk Captcha */
+  verifyEntryRiskCaptcha({ challengeId, answer }) {
+    return this.makeAction(
+      "verify_entry_risk_captcha",
+      {
+        challenge_id: challengeId,
+        captcha_answer: answer,
+      },
+      this.constructor.RISK_CHALLENGE_CONFIG,
+    );
   }
 
   /** Claim Mining */
@@ -712,25 +830,23 @@ export default class ATFFarmer extends BaseFarmer {
   }
 
   /**
-   * Resolve one withdrawal captcha answer.
+   * Resolve one image captcha answer.
    *
    * A configured provider solves it unattended; otherwise - or when the solve
    * fails - fall back to asking the user, which only the extension can do.
    */
-  async resolveCaptchaAnswer(challenge, rejection) {
+  async resolveImageCaptchaAnswer({ image, promptText, label = "captcha" }) {
     if (this.canSolveImage()) {
       try {
-        this.logger.info("Solving withdrawal captcha...");
+        this.logger.info(`Solving ${label}...`);
 
-        const answer = await this.solveImage({
-          body: challenge["captcha_image"],
-        });
+        const answer = await this.solveImage({ body: image });
 
-        this.logger.info("Solved captcha:", answer);
+        this.logger.info(`Solved ${label}:`, answer);
 
         return answer;
       } catch (error) {
-        this.logger.error("Failed to solve captcha:", error);
+        this.logger.error(`Failed to solve ${label}:`, error);
       }
     }
 
@@ -742,13 +858,22 @@ export default class ATFFarmer extends BaseFarmer {
 
     const answer = await this.promptInput({
       type: "text",
-      text: this.buildCaptchaPromptText(challenge, rejection),
-      image: challenge["captcha_image"],
+      text: promptText,
+      image,
     });
 
     this.logger.info("Your answer:", answer);
 
     return answer;
+  }
+
+  /** Resolve one withdrawal captcha answer. */
+  resolveCaptchaAnswer(challenge, rejection) {
+    return this.resolveImageCaptchaAnswer({
+      image: challenge["captcha_image"],
+      promptText: this.buildCaptchaPromptText(challenge, rejection),
+      label: "withdrawal captcha",
+    });
   }
 
   /**
