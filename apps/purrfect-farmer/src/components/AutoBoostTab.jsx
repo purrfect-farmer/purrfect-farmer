@@ -22,6 +22,7 @@ const schema = yup
     delay: yup.number().required().label("Delay"),
     difference: yup.number().required().label("Difference"),
     freeze: yup.boolean().required().label("Freeze"),
+    withdrawAfterBoost: yup.boolean().required().label("Withdraw"),
     runFarmer: yup.boolean().required().label("Run Farmer"),
     repeat: yup.boolean().required().label("Repeat"),
     repeatInterval: yup.number().required().min(1).label("Repeat Interval"),
@@ -35,6 +36,7 @@ export default function AutoBoostTab() {
       delay: 1,
       difference: 5,
       freeze: false,
+      withdrawAfterBoost: false,
       runFarmer: true,
       repeat: false,
       repeatInterval: 15,
@@ -212,6 +214,28 @@ export default function AutoBoostTab() {
                 </p>
                 <LabelToggle {...field} checked={field.value}>
                   Run farmer after connecting
+                </LabelToggle>
+                <FieldStateError fieldState={fieldState} />
+              </div>
+            )}
+          />
+
+          {/* Withdraw */}
+          <Controller
+            control={form.control}
+            name="withdrawAfterBoost"
+            render={({ field, fieldState }) => (
+              <div className="flex flex-col gap-1">
+                <Label>Withdraw</Label>
+
+                <p className="text-center text-neutral-500 dark:text-neutral-400">
+                  Enabling this will withdraw each account's full balance right
+                  after its boost is confirmed to have landed. Accounts with a
+                  pending or flagged withdrawal are skipped, and so are accounts
+                  whose boost never settled.
+                </p>
+                <LabelToggle {...field} checked={field.value}>
+                  Withdraw after boost
                 </LabelToggle>
                 <FieldStateError fieldState={fieldState} />
               </div>

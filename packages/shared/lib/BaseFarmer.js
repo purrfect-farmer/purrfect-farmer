@@ -688,6 +688,15 @@ export default class BaseFarmer {
     );
   }
 
+  /**
+   * Both withdrawal gates for this account.
+   *
+   * @returns {Promise<{ pending: boolean, flagged: boolean }>}
+   */
+  async getWithdrawalGuard() {
+    return { pending: await this.hasPendingWithdrawal(), flagged: false };
+  }
+
   /** Notify the server admin
    *
    * No-op by default. Environments that support admin messaging (e.g. the

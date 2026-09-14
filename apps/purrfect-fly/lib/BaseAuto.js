@@ -56,6 +56,7 @@ class BaseAuto {
     delay = 0,
     difference = 0,
     freeze = false,
+    withdrawAfterBoost = false,
     runFarmer = true,
     repeat = false,
     repeatInterval = 15,
@@ -88,6 +89,7 @@ class BaseAuto {
     this.difference = Number(difference);
     this.amount = amount;
     this.freeze = freeze;
+    this.withdrawAfterBoost = withdrawAfterBoost;
     this.runFarmer = runFarmer;
     this.repeat = repeat;
     this.repeatInterval = Number(repeatInterval);
@@ -288,6 +290,14 @@ class BaseAuto {
    */
   shouldFreezeAccounts() {
     return Boolean(this.repeat || this.freeze);
+  }
+
+  /** Format the withdraw-after-boost setting */
+  formatWithdrawAfterBoost() {
+    return this.formatKeyValue(
+      "Withdraw after boost",
+      this.withdrawAfterBoost ? "Enabled" : "Disabled",
+    );
   }
 
   /** Format the freeze */
@@ -603,7 +613,7 @@ class BaseAuto {
           );
         }
 
-        return { status: true, summary: minedSummary, settled };
+        return { status: true, summary: minedSummary, settled, runner };
       } catch (e) {
         errorMessage = e.message;
         logger.error(
@@ -775,11 +785,12 @@ class BaseAuto {
     }
 
     /** Connect Wallet */
-    const { status, message, summary, settled } = await this.connectWallet({
-      cloudAccount,
-      walletAccount,
-      jettonAmount,
-    });
+    const { status, message, summary, settled, runner } =
+      await this.connectWallet({
+        cloudAccount,
+        walletAccount,
+        jettonAmount,
+      });
 
     /** Send Boost Notification */
     const link = this.formatAccountLink(cloudAccount.id);
@@ -806,6 +817,18 @@ class BaseAuto {
             `<i>Error: ${message || "Unknown error!"}</i>`,
           ],
     );
+
+    /**
+     * Withdraw what the account has now.
+     */
+    if (this.withdrawAfterBoost && status && settled) {
+      await this.processBoostWithdrawal({
+        cloudAccount,
+        runner,
+        summary,
+        index,
+      });
+    }
 
     /** Delay for 2s */
     await this.utils.delayForSeconds(2, { signal: this.signal });
@@ -900,6 +923,7 @@ class BaseAuto {
           this.formatAccounts(),
           this.formatDelay(),
           this.formatDifference(),
+          this.formatWithdrawAfterBoost(),
           this.formatFreeze(),
           this.formatRunFarmer(),
           this.formatRepeat(),
@@ -1237,6 +1261,117 @@ class BaseAuto {
     }
 
     return result;
+  }
+
+  /**
+   * Re-read an account the drop has just paid out.
+   */
+  async refreshWithdrawnSummary(runner, cloudAccount) {
+    /** Give the drop a moment to record the withdrawal */
+    await this.utils.delayForSeconds(5, { signal: this.signal });
+
+    try {
+      return await runner.refreshAutoSummary();
+    } catch (e) {
+      logger.error(
+        "Failed to refresh withdrawn account:",
+        cloudAccount.id,
+        e.message,
+      );
+
+      /** Stale in the flags, but still truthful about the new balance */
+      return runner.getAutoSummary();
+    }
+  }
+
+  /**
+   * Withdraw an account in the middle of a boost run.
+   */
+  async processBoostWithdrawal({ cloudAccount, runner, summary, index }) {
+    if (this.signal.aborted) return;
+
+    const link = this.formatAccountLink(cloudAccount.id);
+    const position = this.formatAccountPosition(index);
+
+    /** Nothing to withdraw, so the history is not worth a request */
+    if (!this.isWithdrawable(summary)) {
+      return;
+    }
+
+    try {
+      /** Both gates come from a single read of the withdraw history */
+      const { pending, flagged } = await runner.getWithdrawalGuard();
+
+      /** An account with a withdrawal in flight must not place another */
+      if (pending) {
+        await this.sendNotification([
+          `⏩ Skipped <b>(${link})</b> - a withdrawal is still pending ${position}`,
+        ]);
+        return;
+      }
+
+      /** A flagged history is the drop disputing a payout - leave it alone */
+      if (flagged) {
+        await this.sendNotification([
+          `⏩ Skipped <b>(${link})</b> - it has a flagged withdrawal ${position}`,
+        ]);
+        return;
+      }
+
+      logger.info("Withdrawing boosted account:", cloudAccount.id);
+
+      /** The whole balance, unrandomized */
+      const { status, skipped, message, amount } = await runner.withdraw({
+        force: true,
+        difference: 0,
+      });
+
+      logger.success(
+        "Completed boost withdrawal:",
+        cloudAccount.id,
+        status,
+        skipped,
+        message,
+        amount,
+      );
+
+      /**
+       * Refresh the summary to reflect the updated balance and any flags
+       */
+      const updatedSummary = status
+        ? await this.refreshWithdrawnSummary(runner, cloudAccount)
+        : null;
+
+      await this.sendNotification(
+        [
+          skipped
+            ? `⏩ Skipped <b>(${link})</b> - <i>${amount} ${this.token}</i> ${position}\n<i>Reason: ${message}</i>`
+            : status
+              ? `🤑 Withdrawn <b>(${link})</b> - <i>${amount} ${this.token}</i> ${position}\n<i>Message: ${message}</i>`
+              : `❌ Failed to withdraw <b>(${link})</b> - <i>${amount} ${this.token}</i> ${position}\n<i>Reason: ${message}</i>`,
+        ].concat(
+          updatedSummary
+            ? ["", ...this.formatSummaryDetails(updatedSummary)]
+            : [],
+        ),
+      );
+
+      /** Update the snapshot to reflect the updated balance */
+      if (status) {
+        await runner.storeAutoSnapshot();
+      }
+    } catch (e) {
+      if (this.signal.aborted) return;
+
+      const errorMessage = e.message || "Unknown error!";
+
+      logger.error("Failed to withdraw boosted account:", errorMessage);
+
+      await this.sendNotification([
+        `❌ Failed to withdraw <b>(${link})</b> ${position}`,
+        `<i>Error: ${errorMessage}</i>`,
+      ]);
+    }
   }
 
   /** Request withdrawal */

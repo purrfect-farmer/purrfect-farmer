@@ -1276,10 +1276,7 @@ export default class ATFFarmer extends BaseFarmer {
     }
 
     /** Check for flagged withdrawals */
-    const withdrawalHistory = await this.getWithdrawHistory();
-    const hasFlagged = withdrawalHistory.items.some(
-      (item) => !["pending", "approved"].includes(item.status),
-    );
+    const { flagged: hasFlagged } = await this.getWithdrawalGuard();
 
     /** Log flagged withdrawals */
     this.logger.keyValue("Flagged Withdrawals", hasFlagged ? "Yes" : "No", {
@@ -1384,6 +1381,21 @@ export default class ATFFarmer extends BaseFarmer {
    */
   isUserBanned(user) {
     return Number(user["is_banned"]) === 1;
+  }
+
+  /**
+   * Both withdrawal gates from a single read of the history.
+   */
+  async getWithdrawalGuard() {
+    const history = await this.getWithdrawHistory();
+    const items = history?.items || [];
+
+    return {
+      pending: items.some((item) => item.status === "pending"),
+      flagged: items.some(
+        (item) => !["pending", "approved"].includes(item.status),
+      ),
+    };
   }
 
   /** The withdrawals the drop has not settled yet */
