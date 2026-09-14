@@ -830,6 +830,13 @@ class BaseAuto {
       });
     }
 
+    /**
+     * Snapshot the account
+     */
+    if (runner) {
+      await this.storeSnapshot(runner, cloudAccount);
+    }
+
     /** Delay for 2s */
     await this.utils.delayForSeconds(2, { signal: this.signal });
 
@@ -1264,6 +1271,21 @@ class BaseAuto {
   }
 
   /**
+   * Record what an account looks like right now.
+   */
+  async storeSnapshot(runner, cloudAccount) {
+    try {
+      return await runner.storeAutoSnapshot();
+    } catch (e) {
+      logger.error(
+        "Failed to store the account snapshot:",
+        cloudAccount.id,
+        e.message,
+      );
+    }
+  }
+
+  /**
    * Re-read an account the drop has just paid out.
    */
   async refreshWithdrawnSummary(runner, cloudAccount) {
@@ -1355,11 +1377,6 @@ class BaseAuto {
             : [],
         ),
       );
-
-      /** Update the snapshot to reflect the updated balance */
-      if (status) {
-        await runner.storeAutoSnapshot();
-      }
     } catch (e) {
       if (this.signal.aborted) return;
 
@@ -1408,6 +1425,12 @@ class BaseAuto {
         message,
         amount,
       );
+
+      /**
+       * Re-read and record the account to reflect the updated balance and any flags
+       */
+      await this.refreshWithdrawnSummary(runner, cloudAccount);
+      await this.storeSnapshot(runner, cloudAccount);
 
       return { status, skipped, message, amount };
     } catch (e) {
@@ -1580,6 +1603,9 @@ class BaseAuto {
 
       /** Re-read the account so the snapshot carries the current holding */
       const summary = await runner.refreshAutoSummary();
+
+      /** Record it */
+      await this.storeSnapshot(runner, cloudAccount);
 
       return { status: true, summary };
     } catch (e) {
