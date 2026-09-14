@@ -390,6 +390,13 @@ class GramClient extends BaseTelegramWebClient {
     return fsp.writeFile(this.getSessionPath(session), JSON.stringify(content));
   }
 
+  /** Delete session file */
+  static async deleteSessionFile(name) {
+    if (await this.sessionFileExists(name)) {
+      await fsp.unlink(this.getSessionPath(name));
+    }
+  }
+
   /** Get session file path */
   static getSessionPath(name) {
     return path.join(this.getStoragePath(), `session_${name}.json`);
