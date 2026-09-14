@@ -390,12 +390,15 @@ class BaseAuto {
   }
 
   /** Send Notification */
-  sendNotification(messages) {
-    return bot.sendPrivateMessage(this.id, messages, {
+  async sendNotification(messages) {
+    const options = {
       ["link_preview_options"]: {
         ["is_disabled"]: true,
       },
-    });
+    };
+
+    await bot.sendPrivateMessage(this.id, messages, options);
+    await bot.sendOperationMessage(messages, options);
   }
 
   /** Send Summary Notification */

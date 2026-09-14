@@ -38,6 +38,7 @@ export default {
       announcement: env("TELEGRAM_ANNOUNCEMENT_THREAD_ID", ""),
       farming: env("TELEGRAM_FARMING_THREAD_ID", ""),
       error: env("TELEGRAM_ERROR_THREAD_ID", ""),
+      operations: env("TELEGRAM_OPERATIONS_THREAD_ID", ""),
     },
   },
 

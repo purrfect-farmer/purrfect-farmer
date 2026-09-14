@@ -181,6 +181,28 @@ class GroupBot extends Bot {
     }
   }
 
+  /** Send an operations message to the group's Operations topic
+   */
+  async sendOperationMessage(messages, options = {}) {
+    if (
+      app.disableTelegramMessages ||
+      !app.chat.id ||
+      !app.chat.threads.operations
+    ) {
+      return;
+    }
+
+    try {
+      await this.api.sendMessage(app.chat.id, messages.join("\n"), {
+        ["parse_mode"]: "HTML",
+        ["message_thread_id"]: app.chat.threads.operations,
+        ...options,
+      });
+    } catch (error) {
+      logger.error("Failed to send operation message:", error);
+    }
+  }
+
   /** Send Private Message */
   async sendPrivateMessage(id, messages, options = {}) {
     try {
