@@ -56,6 +56,7 @@ class BaseAuto {
     delay = 0,
     difference = 0,
     freeze = false,
+    includeFrozen = false,
     withdrawAfterBoost = false,
     runFarmer = true,
     repeat = false,
@@ -89,6 +90,7 @@ class BaseAuto {
     this.difference = Number(difference);
     this.amount = amount;
     this.freeze = freeze;
+    this.includeFrozen = includeFrozen;
     this.withdrawAfterBoost = withdrawAfterBoost;
     this.runFarmer = runFarmer;
     this.repeat = repeat;
@@ -290,6 +292,14 @@ class BaseAuto {
    */
   shouldFreezeAccounts() {
     return Boolean(this.repeat || this.freeze);
+  }
+
+  /** Format the include-frozen setting */
+  formatIncludeFrozen() {
+    return this.formatKeyValue(
+      "Include frozen",
+      this.includeFrozen ? "Enabled" : "Disabled",
+    );
   }
 
   /** Format the withdraw-after-boost setting */
@@ -1289,6 +1299,28 @@ class BaseAuto {
   }
 
   /**
+   * Hand an account back to farming once its status has been read.
+   *
+   * Reading an account is how a frozen batch is checked on, so a read also
+   * releases it: the account resumes farming instead of staying frozen.
+   */
+  async activateFarmer(runner, cloudAccount) {
+    try {
+      if (runner.farmer && runner.farmer.status !== "active") {
+        runner.farmer.status = "active";
+        runner.farmer.errorCount = 0;
+        await runner.farmer.save();
+      }
+    } catch (e) {
+      logger.error(
+        "Failed to activate the farmer:",
+        cloudAccount.id,
+        e.message,
+      );
+    }
+  }
+
+  /**
    * Re-read an account the drop has just paid out.
    */
   async refreshWithdrawnSummary(runner, cloudAccount) {
@@ -1458,6 +1490,7 @@ class BaseAuto {
       await this.sendNotification([
         `⏳ ${this.title} - Status request initiated...`,
         this.formatAccounts(),
+        this.formatIncludeFrozen(),
       ]);
 
       /** Results */
@@ -1553,7 +1586,10 @@ class BaseAuto {
     if (!account.userId) return;
 
     /** Retrieve Cloud Account */
-    const cloudAccount = await this.getCloudAccount(account);
+    const cloudAccount = await this.getCloudAccount(
+      account,
+      this.includeFrozen,
+    );
 
     /** Skip if cloud account is missing */
     if (!cloudAccount) return;
@@ -1595,20 +1631,23 @@ class BaseAuto {
       /** Get runner */
       const runner = await this.getRunner(cloudAccount);
 
-      /** Delay for 5s */
-      await this.utils.delayForSeconds(5, { signal: this.signal });
+      /** Delay for 2s */
+      await this.utils.delayForSeconds(2, { signal: this.signal });
 
       /** Claim whatever is pending so the balance is current */
       await runner.refreshAutoState();
 
-      /** Delay for 5s */
-      await this.utils.delayForSeconds(5, { signal: this.signal });
+      /** Delay for 2s */
+      await this.utils.delayForSeconds(2, { signal: this.signal });
 
       /** Re-read the account so the snapshot carries the current holding */
       const summary = await runner.refreshAutoSummary();
 
       /** Record it */
       await this.storeSnapshot(runner, cloudAccount);
+
+      /** A read account goes back to farming */
+      await this.activateFarmer(runner, cloudAccount);
 
       return { status: true, summary };
     } catch (e) {

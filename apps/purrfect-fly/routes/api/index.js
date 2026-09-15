@@ -38,6 +38,7 @@ const autoSchema = {
       difference: { type: "number" },
       amount: { type: "string" },
       freeze: { type: "boolean" },
+      includeFrozen: { type: "boolean" },
       withdrawAfterBoost: { type: "boolean" },
       runFarmer: { type: "boolean" },
       repeat: { type: "boolean" },
