@@ -2,6 +2,7 @@ import AutoBooster from "./AutoBooster.js";
 import AutoWalletTransfer from "./AutoWalletTransfer.js";
 import Decimal from "decimal.js";
 import Encrypter from "@purrfect/shared/lib/Encrypter.js";
+import app from "../config/app.js";
 import bot from "./bot.js";
 import db from "../db/models/index.js";
 import farmers from "../farmers/index.js";
@@ -13,6 +14,16 @@ import utils from "./utils.js";
 
 /** How many queued accounts a cycle lists, to stay under Telegram's limit */
 const ASSIST_QUEUE_PREVIEW = 30;
+
+/** Where a helper records the withdrawal it last placed for someone else */
+const ASSIST_RECORD_KEY = "assistLastWithdrawal";
+
+/** Shared by every sender, since none of these messages wants a preview */
+const NOTIFICATION_OPTIONS = {
+  ["link_preview_options"]: {
+    ["is_disabled"]: true,
+  },
+};
 
 /** BaseAuto */
 class BaseAuto {
@@ -157,12 +168,12 @@ class BaseAuto {
     return new Date(seconds * 1000).toUTCString();
   }
 
-  /** Format how long is left until a unix timestamp, e.g. "2d 3h" */
-  formatCountdown(seconds) {
-    const remaining = Math.max(0, Math.floor(seconds - Date.now() / 1000));
-    const days = Math.floor(remaining / 86400);
-    const hours = Math.floor((remaining % 86400) / 3600);
-    const minutes = Math.floor((remaining % 3600) / 60);
+  /** Format a span of seconds as its largest parts, e.g. "2d 3h" */
+  formatDurationParts(seconds) {
+    const total = Math.max(0, Math.floor(seconds));
+    const days = Math.floor(total / 86400);
+    const hours = Math.floor((total % 86400) / 3600);
+    const minutes = Math.floor((total % 3600) / 60);
 
     const parts = [];
     if (days) parts.push(`${days}d`);
@@ -170,6 +181,18 @@ class BaseAuto {
     if (minutes || parts.length === 0) parts.push(`${minutes}m`);
 
     return parts.join(" ");
+  }
+
+  /** Format how long is left until a unix timestamp, e.g. "2d 3h" */
+  formatCountdown(seconds) {
+    return this.formatDurationParts(seconds - Date.now() / 1000);
+  }
+
+  /** Format how long has passed since a millisecond timestamp, e.g. "2h 15m" */
+  formatElapsed(since) {
+    if (!since) return "an unknown time";
+
+    return this.formatDurationParts((Date.now() - Number(since)) / 1000);
   }
 
   /** Format when an account's mining freezes, empty for drops that report no mining window */
@@ -373,14 +396,18 @@ class BaseAuto {
 
   /** Send Notification */
   async sendNotification(messages) {
-    const options = {
-      ["link_preview_options"]: {
-        ["is_disabled"]: true,
-      },
-    };
+    await bot.sendPrivateMessage(this.id, messages, NOTIFICATION_OPTIONS);
+    await bot.sendOperationMessage(messages, NOTIFICATION_OPTIONS);
+  }
 
-    await bot.sendPrivateMessage(this.id, messages, options);
-    await bot.sendOperationMessage(messages, options);
+  /** Send a notification that also reaches the server admin, who is not always the operator */
+  async sendAdminNotification(messages) {
+    await this.sendNotification(messages);
+
+    /** The operator has already had it in their own chat */
+    if (String(app.admin.telegramId) === String(this.id)) return;
+
+    await bot.sendAdminMessage(messages, NOTIFICATION_OPTIONS);
   }
 
   /** Send Summary Notification */
@@ -1864,8 +1891,74 @@ class BaseAuto {
     }
   }
 
+  /** The withdrawals helpers have placed and the drop has not settled yet, read without logging anyone in */
+  async getOutstandingAssists(helpers) {
+    const ids = helpers.map((account) => account.userId);
+
+    const outstanding = new Map();
+
+    if (!ids.length) return outstanding;
+
+    const rows = await db.Farmer.findAll({
+      where: { farmer: this.farmerId, accountId: ids },
+    });
+
+    for (const row of rows) {
+      const record = row.storage?.[ASSIST_RECORD_KEY];
+
+      if (record) {
+        outstanding.set(String(row.accountId), record);
+      }
+    }
+
+    return outstanding;
+  }
+
+  /** Remember the withdrawal a helper has just placed, so its settlement can be reported */
+  async recordAssistWithdrawal(runner, helper, record) {
+    try {
+      await runner.storage.set(ASSIST_RECORD_KEY, record);
+    } catch (error) {
+      logger.error(
+        "Failed to record the assisted withdrawal:",
+        helper.userId,
+        error.message,
+      );
+    }
+  }
+
+  /** Forget what a helper was carrying, once the drop has settled it */
+  async clearAssistWithdrawal(runner, helper) {
+    try {
+      await runner.storage.set(ASSIST_RECORD_KEY, null);
+    } catch (error) {
+      logger.error(
+        "Failed to clear the assisted withdrawal:",
+        helper.userId,
+        error.message,
+      );
+    }
+  }
+
+  /** Tell the admin the withdrawal a helper placed has been settled */
+  async announceAssistSettlement(helper, record) {
+    await this.sendAdminNotification([
+      `✅ ${this.title} - ${this.formatAccountLink(helper.userId)} is free again. The withdrawal it placed has settled.`,
+      this.formatKeyValue(
+        "Requester",
+        this.formatAccountLink(record.requesterId),
+      ),
+      this.formatKeyValue("Amount", `${record.amount} ${this.token}`),
+      this.formatKeyValue(
+        "Placed",
+        this.formatTimestamp(Number(record.placedAt) / 1000),
+      ),
+      this.formatKeyValue("Settled after", this.formatElapsed(record.placedAt)),
+    ]);
+  }
+
   /** The verified accounts that can take work right now */
-  async getAvailableHelpers(helpers, runners) {
+  async getAvailableHelpers(helpers, runners, outstanding = new Map()) {
     const available = [];
 
     for (const helper of helpers) {
@@ -1883,12 +1976,23 @@ class BaseAuto {
 
       runners.set(String(helper.userId), entry);
 
+      /** What this account was last asked to withdraw for someone else */
+      const record = outstanding.get(String(helper.userId));
+
       /** An account with a withdrawal in flight must not place another */
       if (await entry.runner.hasPendingWithdrawal()) {
         await this.sendNotification([
-          `⏩ Skipped <b>(${label})</b> - a withdrawal is still pending.`,
+          record
+            ? `⏩ Skipped <b>(${label})</b> - still waiting on the <i>${record.amount} ${this.token}</i> it withdrew for ${this.formatAccountLink(record.requesterId)}, placed ${this.formatElapsed(record.placedAt)} ago.`
+            : `⏩ Skipped <b>(${label})</b> - a withdrawal is still pending.`,
         ]);
         continue;
+      }
+
+      /** Free again, so whatever it was carrying has been settled */
+      if (record) {
+        await this.announceAssistSettlement(helper, record);
+        await this.clearAssistWithdrawal(entry.runner, helper);
       }
 
       if (!this.holdsOwnWallet(entry.runner, helper)) {
@@ -1927,38 +2031,38 @@ class BaseAuto {
     }
 
     const helperIds = new Set(helpers.map((account) => String(account.userId)));
+
+    /** Withdrawals already in flight, which are worth a cycle even when nothing else is */
+    const outstanding = await this.getOutstandingAssists(helpers);
     const candidates = await this.getAssistCandidates(vault, helperIds);
 
-    /** Nothing has reached the minimum yet: wait for the next cycle quietly */
-    if (!candidates.length) {
+    /** Nothing has reached the minimum and nothing is owed: wait for the next cycle quietly */
+    if (!candidates.length && !outstanding.size) {
       await this.sendNotification([
         `⏩ ${this.title} - no account has reached the minimum.`,
       ]);
       return [];
     }
 
-    /** The order they will be worked through, the richest pool first */
-    await this.sendNotification([
-      `📋 ${this.title} - Queue:`,
-      ...candidates
-        .slice(0, ASSIST_QUEUE_PREVIEW)
-        .map((candidate, position) =>
-          this.formatKeyValue(
-            `${position + 1}. ${this.formatAccountLink(candidate.account.userId)}`,
-            `${new Decimal(candidate.snapshot.balance || 0)} ${this.token}`,
-          ),
-        ),
-      ...(candidates.length > ASSIST_QUEUE_PREVIEW
-        ? [`<i>...and ${candidates.length - ASSIST_QUEUE_PREVIEW} more.</i>`]
-        : []),
-    ]);
-
     /** Runners are kept for the whole cycle so each helper logs in once */
     const runners = new Map();
     const results = [];
 
     try {
-      const available = await this.getAvailableHelpers(helpers, runners);
+      /** Reading the helpers is also what reports a settled withdrawal */
+      const available = await this.getAvailableHelpers(
+        helpers,
+        runners,
+        outstanding,
+      );
+
+      /** Nothing has reached the minimum, so reconciling was this cycle's only job */
+      if (!candidates.length) {
+        await this.sendNotification([
+          `⏩ ${this.title} - no account has reached the minimum.`,
+        ]);
+        return results;
+      }
 
       if (!available.length) {
         await this.sendNotification([
@@ -1966,6 +2070,22 @@ class BaseAuto {
         ]);
         return results;
       }
+
+      /** The order they will be worked through, the richest pool first */
+      await this.sendNotification([
+        `📋 ${this.title} - Queue:`,
+        ...candidates
+          .slice(0, ASSIST_QUEUE_PREVIEW)
+          .map((candidate, position) =>
+            this.formatKeyValue(
+              `${position + 1}. ${this.formatAccountLink(candidate.account.userId)}`,
+              `${new Decimal(candidate.snapshot.balance || 0)} ${this.token}`,
+            ),
+          ),
+        ...(candidates.length > ASSIST_QUEUE_PREVIEW
+          ? [`<i>...and ${candidates.length - ASSIST_QUEUE_PREVIEW} more.</i>`]
+          : []),
+      ]);
 
       await this.sendNotification([
         `⏳ ${this.title} - Assisting ${candidates.length} account(s) through ${available.length} verified account(s)...`,
@@ -1995,14 +2115,21 @@ class BaseAuto {
         /** Whether this verified account is still free after the attempt */
         let spent = false;
 
+        /** Kept out of the attempt, since the record written below outlives it */
+        let amount = "0";
+        let message = "";
+
         try {
-          const { status, skipped, amount, message } =
+          const { status, skipped, ...withdrawal } =
             await this.assistWithdrawal({
               requester: candidate.account,
               requesterRunner: requesterEntry.runner,
               helper,
               helperRunner: helperEntry.runner,
             });
+
+          amount = withdrawal.amount ?? "0";
+          message = withdrawal.message ?? "";
 
           results.push({ status, skipped, amount, message });
 
@@ -2021,6 +2148,8 @@ class BaseAuto {
 
           const errorMessage = error.message || "Unknown error!";
           logger.error(errorMessage);
+
+          message = errorMessage;
 
           results.push({
             status: false,
@@ -2046,6 +2175,14 @@ class BaseAuto {
 
         if (spent) {
           pool.splice(pool.indexOf(helper), 1);
+
+          /** Remember who it went through, so the settlement can be reported when it lands */
+          await this.recordAssistWithdrawal(helperEntry.runner, helper, {
+            requesterId: String(candidate.account.userId),
+            amount,
+            message,
+            placedAt: Date.now(),
+          });
 
           await this.sendNotification([
             `⏳ ${this.formatAccountLink(helper.userId)} has a withdrawal in flight - resting it for the rest of this cycle.`,
