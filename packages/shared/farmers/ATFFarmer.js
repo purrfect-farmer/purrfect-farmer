@@ -10,16 +10,10 @@ import {
 import BaseFarmer from "../lib/BaseFarmer.js";
 import Decimal from "decimal.js";
 
-/**
- * Safety margin above the drop's minimum required by unattended runs, so a
- * scheduled farmer does not withdraw the instant it crosses the minimum.
- * Cloud batch withdrawals pass `force: true` to bypass it.
- */
+/** Safety margin above the drop's minimum, so a scheduled run does not withdraw the instant it crosses it */
 const WITHDRAWAL_BUFFER = 200;
 
-/**
- * Backstop for the withdrawal captcha loop.
- */
+/** Backstop for the withdrawal captcha loop */
 const WITHDRAWAL_CAPTCHA_ATTEMPTS = 3;
 
 export default class ATFFarmer extends BaseFarmer {
@@ -162,12 +156,7 @@ export default class ATFFarmer extends BaseFarmer {
     this.has_solved_captcha = true;
   }
 
-  /**
-   * The drop can answer a login with an image captcha instead of the account.
-   *
-   * It arrives either as a plain 200 body or as the body of a 4xx, so both
-   * paths hand their payload here.
-   */
+  /** The drop can answer a login with an image captcha instead of the account, as a 200 or a 4xx body */
   getEntryRiskChallenge(payload) {
     return payload?.["reason"] === "entry_risk_captcha_required" &&
       payload?.["captcha_image"]
@@ -175,13 +164,7 @@ export default class ATFFarmer extends BaseFarmer {
       : null;
   }
 
-  /**
-   * Answer one entry risk challenge.
-   *
-   * The image is bound to its `challenge_id` and only a new login mints a
-   * fresh one, so a refused answer returns instead of re-submitting - the
-   * login loop asks again and brings back a new image.
-   *
+  /** Answer one entry risk challenge, letting the login loop mint a new image for a refused answer
    * @returns {Promise<boolean>} whether the challenge was verified
    */
   async solveEntryRiskCaptcha(challenge) {
@@ -244,10 +227,7 @@ export default class ATFFarmer extends BaseFarmer {
         throw new Error("Login aborted");
       }
 
-      /**
-       * The challenge is answered outside the try, so that having no way to
-       * answer it fails the login instead of being retried as a network error.
-       */
+      /** Answered outside the try, so having no way to answer fails the login instead of retrying it */
       let challenge = null;
 
       try {
@@ -333,10 +313,7 @@ export default class ATFFarmer extends BaseFarmer {
       .then((res) => res.data);
   }
 
-  /**
-   * The drop answers the entry risk challenge with a 403, which the extension
-   * would otherwise read as a dead session and reset the farmer over.
-   */
+  /** The drop answers the entry risk challenge with a 403, which the extension would reset the farmer over */
   static RISK_CHALLENGE_CONFIG = { ignoreUnauthorizedError: true };
 
   /** Get Captcha Status */
@@ -796,9 +773,7 @@ export default class ATFFarmer extends BaseFarmer {
     };
   }
 
-  /**
-   * Whether a rejected withdrawal was rejected over the captcha.
-   */
+  /** Whether a rejected withdrawal was rejected over the captcha */
   isWithdrawalCaptchaRejection(result) {
     return String(result?.["reason"] || "").startsWith("captcha");
   }
@@ -829,12 +804,7 @@ export default class ATFFarmer extends BaseFarmer {
       : `${rejection["message"]} Try again:`;
   }
 
-  /**
-   * Resolve one image captcha answer.
-   *
-   * A configured provider solves it unattended; otherwise - or when the solve
-   * fails - fall back to asking the user, which only the extension can do.
-   */
+  /** Resolve one image captcha answer, falling back to asking the user when no provider solves it */
   async resolveImageCaptchaAnswer({ image, promptText, label = "captcha" }) {
     if (this.canSolveImage()) {
       try {
@@ -876,9 +846,7 @@ export default class ATFFarmer extends BaseFarmer {
     });
   }
 
-  /**
-   * Ask for the withdrawal captcha until the drop accepts it.
-   */
+  /** Ask for the withdrawal captcha until the drop accepts it */
   async requestWithdrawalWithCaptcha(amount) {
     let challenge = await this.getWithdrawalPuzzle(amount.toNumber());
     let issuedAt = Date.now();
@@ -1031,9 +999,7 @@ export default class ATFFarmer extends BaseFarmer {
       this.logger.keyValue("Requested amount", result["requested_amount"]);
       this.logger.keyValue("Amount to be received", result["send_amount"]);
 
-      /**
-       * Notify the admin, but only when the run was initiated by the scheduler.
-       */
+      /** Notify the admin, but only when the run was initiated by the scheduler */
       if (this.scheduled) {
         await this.notifyAdmin([
           `<b>🤑 ATF Withdrawal</b>`,
@@ -1135,10 +1101,7 @@ export default class ATFFarmer extends BaseFarmer {
     return BASE_RATE.times(RATE_GROWTH.pow(level - 1)).floor();
   }
 
-  /**
-   * Hash power exactly as the ATF app shows it. It is a cosmetic restyling of
-   * the level rate: TH/s = rate / 50, so 1 TH/s is 50 ATF/day at difficulty 1.
-   */
+  /** Hash power exactly as the ATF app shows it: TH/s = rate / 50 */
   getMinerHashPower(level) {
     return this.getMinerRate(level).div(50);
   }
@@ -1376,16 +1339,12 @@ export default class ATFFarmer extends BaseFarmer {
     return Number(user["is_verified"]) === 1;
   }
 
-  /**
-   * Whether the drop has banned the account.
-   */
+  /** Whether the drop has banned the account */
   isUserBanned(user) {
     return Number(user["is_banned"]) === 1;
   }
 
-  /**
-   * Both withdrawal gates from a single read of the history.
-   */
+  /** Both withdrawal gates from a single read of the history */
   async getWithdrawalGuard() {
     const history = await this.getWithdrawHistory();
     const items = history?.items || [];
@@ -1413,9 +1372,7 @@ export default class ATFFarmer extends BaseFarmer {
     return pending.length > 0;
   }
 
-  /**
-   * Log the withdrawals the drop has not settled yet.
-   */
+  /** Log the withdrawals the drop has not settled yet */
   async logPendingWithdrawals() {
     const pending = await this.getPendingWithdrawals();
 
@@ -1518,26 +1475,13 @@ export default class ATFFarmer extends BaseFarmer {
     return this.startOrClaimMining();
   }
 
-  /**
-   * Log in again for a fresh summary.
-   *
-   * Only a forced login makes the backend re-read the wallet on-chain — every
-   * other call answers from the cached user, which is why a wallet sync alone
-   * can report a holding from before the tokens arrived.
-   */
+  /** Log in again for a fresh summary, since only a forced login re-reads the wallet on-chain */
   async refreshAutoSummary() {
     await this.login(true);
     return this.getAutoSummary();
   }
 
-  /**
-   * Start (or restart) mining, then report the account afresh.
-   *
-   * The miner level is snapshotted when mining starts, so this belongs after a
-   * boost has landed — otherwise the account mines at the level it held before
-   * the tokens arrived. The login that follows is what carries the freeze time
-   * the backend just assigned.
-   */
+  /** Start mining and report the account afresh, after a boost has landed so the level is snapshotted */
   async startAutoMining() {
     await this.startOrClaimMining();
     return this.refreshAutoSummary();

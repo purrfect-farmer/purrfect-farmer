@@ -6,12 +6,7 @@ import {
   waitForSeqnoChange,
 } from "./transactions.js";
 
-/**
- * BaseWalletTransfer
- *
- * Drains a master wallet (the drop's jetton plus all remaining TON) into an
- * arbitrary address.
- */
+/** Drains a master wallet, the drop's jetton plus all remaining TON, into an arbitrary address */
 export default class BaseWalletTransfer {
   constructor(master, address, jettonAddress) {
     this.master = master;

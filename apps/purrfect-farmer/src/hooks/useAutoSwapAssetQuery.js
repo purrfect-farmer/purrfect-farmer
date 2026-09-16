@@ -2,12 +2,7 @@ import { getSwapAsset } from "@purrfect/shared/lib/auto/swap.js";
 import useAuto from "./useAuto";
 import { useQuery } from "@tanstack/react-query";
 
-/**
- * Looks the drop's jetton up on STON.fi.
- *
- * Doubles as the availability check for the swap tab: not every drop's token
- * is listed there, and a token STON.fi has never heard of cannot be swapped.
- */
+/** Looks the drop's jetton up on STON.fi, which doubles as the swap tab's availability check */
 export default function useAutoSwapAssetQuery() {
   const { config, enableRequests } = useAuto();
 

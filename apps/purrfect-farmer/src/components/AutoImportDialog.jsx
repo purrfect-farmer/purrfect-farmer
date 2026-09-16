@@ -2,12 +2,7 @@ import AutoImportForm from "./AutoImportForm";
 import CenteredDialog from "./CenteredDialog";
 import { LuArrowDownUp } from "react-icons/lu";
 
-/**
- * Import on its own, for a drop that has no master yet.
- *
- * There is nothing to export at that point, so this skips the tabs that
- * `AutoImportExportDialog` shows.
- */
+/** Import on its own, for a drop that has no master yet and so has nothing to export */
 export default function AutoImportDialog() {
   return (
     <CenteredDialog

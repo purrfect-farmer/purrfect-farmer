@@ -1,10 +1,4 @@
-/**
- * Storage key derivation.
- *
- * `useChromeStorageKey` is the usual way in, but anything that reads a key it
- * doesn't own — the Auto import flow reading another drop's store, for instance
- * — needs the same rules outside of React.
- */
+/** Storage key derivation, for anything reading a key it doesn't own outside of React */
 
 /** Key shared by every account */
 export function sharedStorageKey(key) {

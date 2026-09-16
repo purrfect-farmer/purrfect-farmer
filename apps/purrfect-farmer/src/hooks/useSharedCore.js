@@ -78,10 +78,7 @@ export default function useSharedCore() {
     mirror,
   );
 
-  /**
-   * Auto-launch the only account at startup, otherwise show the account
-   * launcher so the user can pick which account(s) to run.
-   */
+  /** Auto-launch the only account at startup, otherwise show the account launcher */
   const autoLaunch = persistedAccounts.length === 1;
 
   /** Active Account */
@@ -188,11 +185,7 @@ export default function useSharedCore() {
     [persistedAccounts, storePersistedAccounts],
   );
 
-  /** Remove Account
-   *
-   * Any account can be removed, including the last one — removing all
-   * accounts brings up the launcher.
-   */
+  /** Remove Account, including the last one, which brings up the launcher */
   const removeAccount = useRefCallback(
     async (id) => {
       /** Updated List of Accounts */

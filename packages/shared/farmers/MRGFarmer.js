@@ -112,10 +112,7 @@ const STANDARD_WITHDRAWAL_LIMIT = 1000;
 const PRIVILEGED_WITHDRAWAL_LIMIT = 500000;
 const PRIVILEGED_HOLDING = 1000;
 
-/**
- * Safety margin above the drop's minimum required by unattended runs, so a
- * scheduled farmer does not withdraw the instant it crosses the minimum.
- */
+/** Safety margin above the drop's minimum, so a scheduled run does not withdraw the instant it crosses it */
 const WITHDRAWAL_BUFFER = 200;
 
 /** A payout address the drop will accept */
@@ -150,12 +147,9 @@ export default class MRGFarmer extends BaseFarmer {
 
   /* --------------------------------------------------------------------- */
   /* Transport                                                             */
-  /*                                                                       */
-  /* Every endpoint is a POST carrying `initData` in the body - there is no */
-  /* token and no auth header - so the interceptor adds it to each call the */
-  /* drop's own API receives, and leaves third parties like AdsGram alone.  */
   /* --------------------------------------------------------------------- */
 
+  /** Carry `initData` on every call the drop's own API receives, and on no others */
   configureApi() {
     const initDataInterceptor = this.api.interceptors.request.use((config) => {
       if (String(config.url || "").startsWith(API_URL)) {
@@ -173,13 +167,7 @@ export default class MRGFarmer extends BaseFarmer {
     };
   }
 
-  /**
-   * Call the drop's API.
-   *
-   * A refused action answers `400` with the reason in the body, so a 400 is
-   * read as a payload rather than thrown - every caller decides for itself
-   * whether `success: false` is a failure or a skip.
-   */
+  /** Call the drop's API, reading a refused action's `400` as a payload rather than throwing it */
   postToApi(path, data = {}) {
     return this.api
       .post(`${API_URL}${path}`, data, {
@@ -412,10 +400,6 @@ export default class MRGFarmer extends BaseFarmer {
 
   /* --------------------------------------------------------------------- */
   /* Wallet                                                                */
-  /*                                                                       */
-  /* The drop binds an address without a proof, and takes the holding from  */
-  /* whatever the page reports, so re-sending the connect call is how both  */
-  /* the binding and the holding are refreshed.                             */
   /* --------------------------------------------------------------------- */
 
   /** The address the drop currently has the account on */
@@ -485,9 +469,6 @@ export default class MRGFarmer extends BaseFarmer {
 
   /* --------------------------------------------------------------------- */
   /* Levels                                                                */
-  /*                                                                       */
-  /* Both curves are the ones the mini app prices its Miners Store with, so */
-  /* the farmer can tell which level a holding covers without asking.       */
   /* --------------------------------------------------------------------- */
 
   /** The level the drop is currently mining at */
@@ -495,7 +476,7 @@ export default class MRGFarmer extends BaseFarmer {
     return Number(this.account_data?.["activeLevel"]) || 0;
   }
 
-  /** The MRG holding a level is unlocked with */
+  /** The MRG holding a level is unlocked with, priced exactly as the Miners Store does */
   getRequiredHoldingForLevel(level) {
     if (level <= 0) return new Decimal(0);
     if (level === 1) return new Decimal(1e-6);
@@ -646,10 +627,6 @@ export default class MRGFarmer extends BaseFarmer {
 
   /* --------------------------------------------------------------------- */
   /* Tasks                                                                 */
-  /*                                                                       */
-  /* One-time completions come back in `completedTaskIds`; recurring ones   */
-  /* report no cooldown at all, so each claim is remembered locally and a   */
-  /* refused claim is read as "not ready yet" rather than as a failure.     */
   /* --------------------------------------------------------------------- */
 
   /** Every task the drop is currently offering */
@@ -748,9 +725,6 @@ export default class MRGFarmer extends BaseFarmer {
 
   /* --------------------------------------------------------------------- */
   /* Ads                                                                   */
-  /*                                                                       */
-  /* AdsGram credits the drop's backend directly, so the ad is run against  */
-  /* AdsGram itself and the claim is retried while the postback lands.      */
   /* --------------------------------------------------------------------- */
 
   /** The ad task, while the drop is still offering it */
@@ -887,12 +861,7 @@ export default class MRGFarmer extends BaseFarmer {
     return this.getPendingWithdrawals().length > 0;
   }
 
-  /**
-   * The most one request may carry.
-   *
-   * The drop lifts the ceiling for accounts holding a thousand MRG or a
-   * Genesis NFT, and refuses anything above it outright.
-   */
+  /** The most one request may carry, which the drop lifts for a Genesis NFT or a thousand MRG held */
   getWithdrawalLimit() {
     const user = this.getAccountDetails();
     const isPrivileged =
@@ -1093,10 +1062,7 @@ export default class MRGFarmer extends BaseFarmer {
     }
   }
 
-  /**
-   * The drop never reports which contract version an address belongs to, so
-   * the version the wallet was loaded with is kept alongside the account.
-   */
+  /** The drop never reports a contract version, so the one the wallet was loaded with is kept here */
   async rememberWalletVersion(version) {
     this.connectedWalletVersion = version ? `v${version}` : undefined;
 
@@ -1108,13 +1074,7 @@ export default class MRGFarmer extends BaseFarmer {
     return this.claimPendingMining();
   }
 
-  /**
-   * Re-read the account afresh.
-   *
-   * Only re-sending the wallet makes the backend re-read the holding on-chain,
-   * so the sync comes first - otherwise the summary reports a level from
-   * before the tokens arrived.
-   */
+  /** Re-read the account afresh, syncing the wallet first since that is what re-reads the holding on-chain */
   async refreshAutoSummary() {
     await this.syncConnectedWallet();
     await this.loadAccount();
@@ -1122,12 +1082,7 @@ export default class MRGFarmer extends BaseFarmer {
     return this.getAutoSummary();
   }
 
-  /**
-   * Put the account to work at the holding it now has.
-   *
-   * The level is what the miner runs at, and it is only granted on request, so
-   * a boost that is not followed by an unlock mines at the old speed.
-   */
+  /** Put the account to work at the holding it now has, unlocking the level a boost just paid for */
   async startAutoMining() {
     await this.syncConnectedWallet();
     await this.unlockAffordableLevel();
@@ -1253,7 +1208,6 @@ export default class MRGFarmer extends BaseFarmer {
       return;
     }
 
-    /* Checked here so a typo is caught before it becomes the payout address */
     if (!this.validateWalletAddress(address)) {
       this.logger.warn(
         "Not a valid TON address - it should start with UQ or EQ.",

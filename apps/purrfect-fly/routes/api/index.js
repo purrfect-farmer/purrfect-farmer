@@ -291,12 +291,7 @@ export default async function (fastify, opts) {
     },
   );
 
-  /**
-   * Dispatches an Auto operation for the drop named in the path.
-   *
-   * Operations are fire-and-forget — progress is reported to the user over the
-   * Telegram bot, so nothing is awaited here.
-   */
+  /** Dispatches an Auto operation for the drop named in the path, fire-and-forget over the bot */
   const dispatchAutoOperation = (operation) =>
     async function (request, reply) {
       const { drop } = request.params;
@@ -383,12 +378,7 @@ export default async function (fastify, opts) {
     dispatchAutoOperation("cancel"),
   );
 
-  /**
-   * Auto - Assist Cancel
-   *
-   * The assist loop is per-drop, not per-user, so it is cancelled and reported
-   * on its own rather than through `dispatchAutoOperation`.
-   */
+  /** Auto - Assist Cancel, reported on its own because the assist loop is per-drop */
   fastify.post(
     "/auto/:drop/assist-cancel",
     { preHandler: autoPreHandler, schema: authSchema },

@@ -3,12 +3,7 @@ import useAuto from "./useAuto";
 import useAutoMaster from "./useAutoMaster";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 
-/**
- * Executes a swap from the master wallet.
- *
- * Unlike the quote, this needs the decrypted master because the swap message
- * is signed locally - the same path `AutoTransferDialog` uses.
- */
+/** Executes a swap from the master wallet, decrypted because the message is signed locally */
 export default function useAutoSwapMutation() {
   const { config, master } = useAuto();
   const { buildMasterData } = useAutoMaster();

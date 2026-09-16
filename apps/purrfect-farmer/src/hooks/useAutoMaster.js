@@ -3,11 +3,7 @@ import { prepareMaster } from "@purrfect/shared/lib/auto/transactions";
 import useAuto from "./useAuto";
 import { useCallback } from "react";
 
-/**
- * Decrypting the master wallet and opening it against the drop's jetton is the
- * first step of every local on-chain operation, so it lives here rather than
- * being repeated in each mutation.
- */
+/** Decrypts the master wallet and opens it against the drop's jetton, the first step of every local operation */
 export default function useAutoMaster() {
   const { config, master, password } = useAuto();
 

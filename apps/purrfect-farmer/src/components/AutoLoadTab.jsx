@@ -98,7 +98,7 @@ export default function AutoLoadTab() {
     <div className="flex flex-col gap-3 p-2">
       <Alert variant="info">
         Hand this server the wallets it should keep, then let its verified
-        accounts withdraw for the rest. Loading alone performs no action — no
+        accounts withdraw for the rest. Loading alone performs no action - no
         boosting, no collecting, no farming.
       </Alert>
 

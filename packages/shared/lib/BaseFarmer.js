@@ -32,13 +32,7 @@ export default class BaseFarmer {
   static autoStart = false;
   static skipExecutionOfNewAccount = false;
 
-  /**
-   * Auto descriptor.
-   *
-   * Farmers that back a jetton-holding miner declare this to opt into the
-   * "Auto" wallet-orchestration system (boost / collect / withdraw / status),
-   * which is then registered on both the client and the cloud automatically.
-   *
+  /** Auto descriptor, declared by farmers opting into the Auto wallet system
    * @type {null | { id: string, title: string, token: string, jettonAddress: string, storagePrefix: string }}
    */
   static auto = null;
@@ -127,8 +121,7 @@ export default class BaseFarmer {
     );
   }
 
-  /**
-   * Set the API instance for making requests.
+  /** Set the API instance for making requests
    * @param {import("axios").AxiosInstance} api - Axios instance for API requests
    */
   setApi(api) {
@@ -360,9 +353,7 @@ export default class BaseFarmer {
     return url.toString();
   }
 
-  /**
-   * Adopt an external abort signal.
-   */
+  /** Adopt an external abort signal */
   adoptSignal(signal) {
     if (signal) {
       this.signal = signal;
@@ -570,27 +561,14 @@ export default class BaseFarmer {
 
   /* --------------------------------------------------------------------- */
   /* Auto adapter                                                          */
-  /*                                                                       */
-  /* Drops opt in by declaring `static auto`. Every drop's API returns a    */
-  /* different shape, so the orchestrator never touches raw responses — it  */
-  /* only talks to the three methods below plus `withdraw()`, which each    */
-  /* farmer normalizes on its own side.                                     */
   /* --------------------------------------------------------------------- */
 
-  /**
-   * The drop's declared minimum withdrawal.
-   *
-   * Farmers whose backend publishes a live minimum override this and fall back
-   * to the descriptor, so the UI always has a value to show before any account
-   * state has been fetched.
-   */
+  /** The drop's declared minimum withdrawal, overridden by farmers whose backend publishes a live one */
   getMinimumWithdrawal() {
     return Number(this.constructor.auto?.minWithdrawal ?? 0);
   }
 
-  /**
-   * Link a TON wallet to the account and refresh the drop's view of it.
-   *
+  /** Link a TON wallet to the account and refresh the drop's view of it
    * @param {object} wallet - { phrase, address, version, refresh }
    * @returns {Promise<{ status: boolean, summary?: object, message?: string }>}
    */
@@ -598,19 +576,12 @@ export default class BaseFarmer {
     throw new Error("connectAutoWallet method must be implemented in subclass");
   }
 
-  /**
-   * Claim whatever is pending so the next summary reflects current balances.
-   */
+  /** Claim whatever is pending so the next summary reflects current balances */
   async refreshAutoState() {
     throw new Error("refreshAutoState method must be implemented in subclass");
   }
 
-  /**
-   * Re-read the account and return a fresh summary.
-   *
-   * Defaults to the claim-then-snapshot pair every drop already implements.
-   * Override it when the drop has a truthful (or cheaper) way to re-read.
-   *
+  /** Re-read the account and return a fresh summary, defaulting to claim-then-snapshot
    * @returns {Promise<object>} - see `getAutoSummary`
    */
   async refreshAutoSummary() {
@@ -618,24 +589,14 @@ export default class BaseFarmer {
     return this.getAutoSummary();
   }
 
-  /**
-   * Put the account to work at the holding it now has, and report it afresh.
-   *
-   * Defaults to a plain re-read: for most drops claiming pending rewards is
-   * what restarts the miner. Override it when the drop starts mining through a
-   * call of its own.
-   *
+  /** Put the account to work at the holding it now has, and report it afresh
    * @returns {Promise<object>} - see `getAutoSummary`
    */
   async startAutoMining() {
     return this.refreshAutoSummary();
   }
 
-  /**
-   * Normalized account snapshot shared by every Auto drop.
-   *
-   * Drops that don't mine on a clock simply omit `mining`.
-   *
+  /** Normalized account snapshot shared by every Auto drop, without `mining` for drops that mine off the clock
    * @returns {object} - {
    *   level, holding, balance, minWithdrawal, verified,
    *   mining: { startedAt, freezesAt, frozen } | undefined,
@@ -648,9 +609,7 @@ export default class BaseFarmer {
     throw new Error("getAutoSummary method must be implemented in subclass");
   }
 
-  /**
-   * Persist what this account looks like right now.
-   *
+  /** Persist what this account looks like right now
    * @returns {Promise<object>} - the snapshot that was stored
    */
   async storeAutoSnapshot() {
@@ -668,18 +627,14 @@ export default class BaseFarmer {
     return snapshot;
   }
 
-  /**
-   * Request a withdrawal.
-   *
+  /** Request a withdrawal
    * @returns {Promise<{ status: boolean, skipped: boolean, amount: string, message: string }>}
    */
   async withdraw(options) {
     throw new Error("withdraw method must be implemented in subclass");
   }
 
-  /**
-   * Whether the drop still owes this account a settlement.
-   *
+  /** Whether the drop still owes this account a settlement
    * @returns {Promise<boolean>}
    */
   async hasPendingWithdrawal() {
@@ -688,20 +643,14 @@ export default class BaseFarmer {
     );
   }
 
-  /**
-   * Both withdrawal gates for this account.
-   *
+  /** Both withdrawal gates for this account
    * @returns {Promise<{ pending: boolean, flagged: boolean }>}
    */
   async getWithdrawalGuard() {
     return { pending: await this.hasPendingWithdrawal(), flagged: false };
   }
 
-  /** Notify the server admin
-   *
-   * No-op by default. Environments that support admin messaging (e.g. the
-   * cloud runner) override this to deliver the message.
-   *
+  /** Notify the server admin, a no-op unless the environment delivers the message
    * @param {string[]} messages
    */
   async notifyAdmin(messages) {

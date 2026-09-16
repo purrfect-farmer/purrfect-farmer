@@ -25,14 +25,7 @@ const ALL_TAGS = "";
 /** Stable identity so the accounts selector doesn't reset on every render */
 const NO_CANDIDATES = [];
 
-/**
- * Builds this drop's accounts from a Purrfect Whiskers backup.
- *
- * Only the Telegram identity of each Whiskers account is read — the session
- * blobs a backup carries are ignored — so an account already here keeps its
- * wallet and takes the Whiskers title, and one that isn't gets a fresh wallet
- * generated for it.
- */
+/** Builds this drop's accounts from a Purrfect Whiskers backup, reading only each account's Telegram identity */
 export default function AutoWhiskersImportForm({ onImported }) {
   const { config, accounts, master } = useAuto();
   const { mutation, progress } = useAutoWhiskersImportMutation();
@@ -53,11 +46,7 @@ export default function AutoWhiskersImportForm({ onImported }) {
     [parsed, accounts, master],
   );
 
-  /**
-   * Memoised because `useAutoAccountsSelector` resets the selection whenever
-   * the array identity changes — a fresh array per render would clear every
-   * tick, while re-filtering deliberately reselects everything now visible.
-   */
+  /** Memoised, since `useAutoAccountsSelector` clears the selection whenever the array identity changes */
   const visibleCandidates = useMemo(
     () =>
       candidates === NO_CANDIDATES
@@ -106,7 +95,7 @@ export default function AutoWhiskersImportForm({ onImported }) {
   return (
     <div className="flex flex-col gap-2">
       <Alert variant="info">
-        Only the Telegram account of each Whiskers account is read — never its
+        Only the Telegram account of each Whiskers account is read - never its
         session data. Accounts already in {config.title} keep their wallet and
         take the Whiskers title; the rest get a brand-new wallet, which starts
         empty and needs funding.
@@ -114,7 +103,7 @@ export default function AutoWhiskersImportForm({ onImported }) {
 
       <Alert variant="warning">
         A backup of {config.title}'s current wallets downloads first, with the
-        phrases in plain text. Keep it somewhere safe — anyone holding it can
+        phrases in plain text. Keep it somewhere safe - anyone holding it can
         spend from every wallet.
       </Alert>
 

@@ -99,11 +99,8 @@ const AccountChooserItem = memo(function AccountChooserItem({
 });
 
 /**
- * @param {boolean} [props.showBalance] - set false for accounts that aren't in
- *   this drop yet (the import picker), where a per-row balance query would hit
- *   the network for the wrong jetton.
- * @param {boolean} [props.autoFocusSearch] - set false when the chooser shares a
- *   view with other choosers or fields that should hold focus first.
+ * @param {boolean} [props.showBalance] - false for accounts not in this drop yet, whose balance query would hit the wrong jetton
+ * @param {boolean} [props.autoFocusSearch] - false when another chooser or field should hold focus first
  */
 export default function AutoAccountsChooser({
   accounts,

@@ -19,7 +19,8 @@ export default function AutoBoosterBoostTab({ account }) {
   return (
     <div className="flex flex-col gap-3">
       <Alert variant="info">
-        Sends {config.token} from master wallet to this account based on difference.
+        Sends {config.token} from master wallet to this account based on
+        difference.
       </Alert>
 
       {mutation.isSuccess && (
@@ -28,7 +29,7 @@ export default function AutoBoosterBoostTab({ account }) {
             {mutation.data.status
               ? "Boost completed!"
               : mutation.data.skipped
-                ? `Skipped — master has no ${config.token} to send.`
+                ? `Skipped - master has no ${config.token} to send.`
                 : `Failed: ${mutation.data.error?.message || "Unknown error"}`}
           </Alert>
           <PrimaryButton type="button" onClick={() => mutation.reset()}>
@@ -61,7 +62,8 @@ export default function AutoBoosterBoostTab({ account }) {
               disabled={mutation.isPending}
             />
             <p className="text-xs text-neutral-400 px-2">
-              {difference}% means {100 - difference}-100% of master {config.token} balance
+              {difference}% means {100 - difference}-100% of master{" "}
+              {config.token} balance
             </p>
           </div>
 

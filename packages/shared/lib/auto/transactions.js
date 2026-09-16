@@ -1,9 +1,5 @@
 import { Address, TonClient, toNano } from "@ton/ton";
-import {
-  createWallet,
-  getJettonInfo,
-  keypairFromMnemonic,
-} from "./wallet.js";
+import { createWallet, getJettonInfo, keypairFromMnemonic } from "./wallet.js";
 
 import Decimal from "decimal.js";
 import { beginCell } from "@ton/core";
@@ -72,9 +68,7 @@ export async function waitForSeqnoChange(
   throw new Error("Transaction timeout - seqno did not change");
 }
 
-/**
- * Prepares master wallet details once for reuse across operations.
- *
+/** Prepares master wallet details once for reuse across operations
  * @param {object} master - { address, version, phrase, tonCenterApiKey? }
  * @param {string} jettonAddress - the drop's jetton master address
  * @returns {Promise<object>} - { client, wallet, contract, keyPair, jettonAddress, jettonWalletAddress, jettonBalance }

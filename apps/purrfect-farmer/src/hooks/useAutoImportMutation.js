@@ -6,24 +6,7 @@ import useAutoProgress from "./useAutoProgress";
 import useAutoStateBackup from "./useAutoStateBackup";
 import { useMutation } from "@tanstack/react-query";
 
-/**
- * Imports a transfer bundle into the current drop.
- *
- * Re-encrypting a phrase costs two scrypt passes at N = 2**15, so the two cases
- * where it can be avoided are worth taking:
- *
- * - **Bootstrap** — the drop has no master yet, so it adopts the bundle's
- *   `hashedPassword` and the source password becomes its password. Nothing is
- *   re-encrypted and the user lands straight in the panel.
- * - **Same password** — the encrypted blobs already open with the destination's
- *   password, so they are copied verbatim.
- *
- * Otherwise every phrase is decrypted with the source password and re-encrypted
- * with the destination's, reporting progress the way `AutoSettingsDialog` does.
- *
- * Whatever the path, the wallets already here are downloaded first — an import
- * can overwrite them and `replace` drops them outright.
- */
+/** Imports a transfer bundle into the current drop, re-encrypting phrases only when the passwords differ */
 export default function useAutoImportMutation() {
   const {
     config,
@@ -67,10 +50,7 @@ export default function useAutoImportMutation() {
         throw new Error("Nothing selected to import.");
       }
 
-      /**
-       * Verify the source password up front. The bundle's own hash is the cheap
-       * check; without a master the only proof is a trial decryption.
-       */
+      /** Verify the source password up front, against the bundle's hash or by trial decryption */
       if (bundle.master) {
         const matches = await bcrypt.compare(
           sourcePassword,
@@ -97,10 +77,7 @@ export default function useAutoImportMutation() {
 
       setTarget(backupSteps + selected.length + (withMaster ? 1 : 0));
 
-      /**
-       * Snapshot before anything is rewritten. A bootstrapping drop has no
-       * wallets of its own yet, and `downloadStateBackup` no-ops there.
-       */
+      /** Snapshot before anything is rewritten, which no-ops for a bootstrapping drop */
       await downloadStateBackup("import", incrementProgress);
 
       /** Master */
@@ -159,7 +136,7 @@ export default function useAutoImportMutation() {
 
       const merged = mergeAccounts(accounts, importedAccounts, strategy);
 
-      /** Persist — mirrored so other open views follow */
+      /** Persist - mirrored so other open views follow */
       if (importedMaster) {
         dispatchAndStoreMaster(importedMaster);
       }

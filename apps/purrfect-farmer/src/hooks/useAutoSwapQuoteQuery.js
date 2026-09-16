@@ -2,12 +2,7 @@ import BaseSwapper from "@purrfect/shared/lib/auto/BaseSwapper.js";
 import useAuto from "./useAuto";
 import { useQuery } from "@tanstack/react-query";
 
-/**
- * Live STON.fi quote for the swap form.
- *
- * Quoting never touches the master wallet - it only needs the drop's jetton
- * address - so this runs without decrypting anything.
- */
+/** Live STON.fi quote for the swap form, which never touches the master wallet */
 export default function useAutoSwapQuoteQuery({ direction, amount, slippage }) {
   const { config, enableRequests } = useAuto();
   const hasAmount = Number(amount) > 0;

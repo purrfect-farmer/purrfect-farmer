@@ -103,10 +103,7 @@ export default function useAutoBoosterWithdrawMutation() {
         ].map((step) => ({ ...step, status: "pending" })),
       );
 
-      /**
-       * Both real phrases are decrypted up front: a rollback needs them, and
-       * failing a scrypt pass here costs nothing because no wallet has moved.
-       */
+      /** Both real phrases are decrypted up front, because a rollback needs them and nothing has moved yet */
       const { temporaryWallet, requesterWallet, verifiedWallet } =
         await runStep("prepare", async () => {
           const phrase = (await mnemonicNew()).join(" ");
@@ -137,7 +134,7 @@ export default function useAutoBoosterWithdrawMutation() {
         if (verifiedMoved) {
           appendStep({
             id: "rollback-verified",
-            label: `Rollback — restoring ${verifiedAccount.title}'s wallet`,
+            label: `Rollback - restoring ${verifiedAccount.title}'s wallet`,
           });
 
           try {
@@ -157,7 +154,7 @@ export default function useAutoBoosterWithdrawMutation() {
         if (requesterMoved) {
           appendStep({
             id: "rollback-requester",
-            label: `Rollback — restoring ${account.title}'s wallet`,
+            label: `Rollback - restoring ${account.title}'s wallet`,
           });
 
           try {

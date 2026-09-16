@@ -1,12 +1,7 @@
 import BaseAuto from "./BaseAuto.js";
 import farmers from "../farmers/index.js";
 
-/**
- * Builds the Auto subclass for a farmer's `static auto` descriptor.
- *
- * `instances` is redeclared per subclass so an operation on one drop never
- * blocks an operation on another for the same user.
- */
+/** Builds the Auto subclass for a farmer's `static auto` descriptor, with its own instances map */
 export function createAuto(FarmerClass) {
   const { id, title, token, jettonAddress } = FarmerClass.auto;
 
@@ -21,12 +16,7 @@ export function createAuto(FarmerClass) {
   };
 }
 
-/**
- * Every registered Auto, keyed by auto id (e.g. "atf-auto", "pika-bolt").
- *
- * Discovered from the farmers themselves — a farmer opts in purely by
- * declaring `static auto`.
- *
+/** Every registered Auto keyed by auto id, discovered from farmers declaring `static auto`
  * @type {Record<string, ReturnType<typeof createAuto>>}
  */
 const autos = {};

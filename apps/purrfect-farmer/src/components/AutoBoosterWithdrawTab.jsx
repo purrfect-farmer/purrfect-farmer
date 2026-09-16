@@ -107,7 +107,7 @@ export default function AutoBoosterWithdrawTab({ account }) {
               >
                 {verifiedAccounts.map((item) => (
                   <Select.Item key={item.id} value={item.id}>
-                    {item.title} — {truncateAddress(item.address)}
+                    {item.title} - {truncateAddress(item.address)}
                   </Select.Item>
                 ))}
               </Select>

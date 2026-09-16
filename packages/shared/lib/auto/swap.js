@@ -2,13 +2,7 @@ import { StonApiClient } from "@ston-fi/api";
 import { dexFactory } from "@ston-fi/sdk";
 import Decimal from "decimal.js";
 
-/**
- * STON.fi swap helpers.
- *
- * The API quotes the swap and tells us which router to use; the SDK turns that
- * quote into a message we sign with the master wallet, exactly like the jetton
- * transfers in `transactions.js`.
- */
+/** STON.fi swap helpers: the API quotes the swap and names the router, the SDK builds the message */
 
 /** STON.fi addresses native TON with this sentinel rather than a jetton master */
 export const TON_ASSET_ADDRESS =
@@ -56,12 +50,7 @@ export function resolveSwapAssets(direction, jettonAddress, jettonDecimals) {
       };
 }
 
-/**
- * Ask STON.fi what this swap would return.
- *
- * The response carries the `router` metadata `buildSwapTxParams` needs, so a
- * simulation is required before every swap - it is not just for display.
- */
+/** Ask STON.fi what this swap would return, which also carries the router `buildSwapTxParams` needs */
 export async function simulateAutoSwap({
   offerAddress,
   askAddress,
@@ -95,11 +84,7 @@ export async function simulateAutoSwap({
   }
 }
 
-/**
- * Raised when STON.fi cannot swap this pair at all - either the jetton is not
- * listed or no pool exists. Not every drop's token is tradeable there, so the
- * UI treats this as a state to explain rather than an error to report.
- */
+/** Raised when STON.fi cannot swap this pair at all: the jetton is unlisted or has no pool */
 export class SwapUnavailableError extends Error {
   constructor(message) {
     super(message);
@@ -108,11 +93,7 @@ export class SwapUnavailableError extends Error {
   }
 }
 
-/**
- * STON.fi reports a missing pool as code 1010 and an unlisted asset as 1040,
- * both in the response body. The client is ofetch-based, so the body is on
- * `error.data` - `error.message` only ever says "400 Bad Request".
- */
+/** STON.fi reports a missing pool as 1010 and an unlisted asset as 1040, both in the response body */
 function readErrorBody(error) {
   return [error?.data, error?.response?._data]
     .filter(Boolean)
@@ -128,10 +109,7 @@ function isUnlistedAssetError(error) {
   return /1040|could not find asset/i.test(readErrorBody(error));
 }
 
-/**
- * Look up an asset on STON.fi. Doubles as the availability check for a drop:
- * a token STON.fi has never heard of cannot be swapped there.
- */
+/** Look up an asset on STON.fi, which doubles as the availability check for a drop */
 export async function getSwapAsset(address) {
   try {
     return await stonApi.getAsset(address);
@@ -144,9 +122,7 @@ export async function getSwapAsset(address) {
   }
 }
 
-/**
- * Turn a simulation into a signable message.
- *
+/** Turn a simulation into a signable message
  * @returns {Promise<object>} - SenderArguments: { to, value, body }
  */
 export async function buildSwapTxParams({

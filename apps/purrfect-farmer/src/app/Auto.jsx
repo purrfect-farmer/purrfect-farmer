@@ -8,14 +8,7 @@ import useSharedStorageState from "@/hooks/useSharedStorageState";
 import { useMemo } from "react";
 import { useState } from "react";
 
-/**
- * Wallet manager for a single Auto drop.
- *
- * Every drop gets its own master and sub-accounts: boost's "roll" mode drains a
- * whole master into a sub-account, so wallets are never shared across jettons.
- * Storage keys and mirrored-event names are namespaced by the drop's descriptor
- * — ATF keeps `atf-auto-*`, so existing wallets carry over untouched.
- *
+/** Wallet manager for a single Auto drop, its master and sub-accounts namespaced by the descriptor
  * @param {object} props
  * @param {object} props.config - the drop's auto descriptor (see `core/autos`)
  */
@@ -84,13 +77,7 @@ export default function Auto({ config }) {
         dispatchAndResetAuto,
       }}
     >
-      {!master ? (
-        <AutoMasterSetup />
-      ) : password ? (
-        <AutoPanel />
-      ) : (
-        <AutoLogin />
-      )}
+      {!master ? <AutoMasterSetup /> : password ? <AutoPanel /> : <AutoLogin />}
     </AutoContext.Provider>
   );
 }

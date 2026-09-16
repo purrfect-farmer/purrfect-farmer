@@ -1,4 +1,4 @@
-/** AdsGram's own API — never the drop's. */
+/** AdsGram's own API - never the drop's. */
 const ADSGRAM_URL = "https://api.adsgram.ai";
 
 /**
@@ -12,7 +12,7 @@ const SDK_VERSION = "2.2.0";
  * behind a Vigenère-style string obfuscator.
  *
  * The key actually used is this secret XORed byte-wise with the current hour,
- * so it rotates hourly on its own — see `sign()`. If AdsGram ever rotates the
+ * so it rotates hourly on its own - see `sign()`. If AdsGram ever rotates the
  * *secret* instead, `/adv` starts rejecting every request and this constant is
  * the single thing that has gone stale.
  *
@@ -33,7 +33,7 @@ const PLAYBACK_SECONDS = 20;
  * AdsGramClient
  *
  * Runs an AdsGram banner the way the SDK would, for farmers whose drop settles
- * ads server-to-server — where the drop credits nothing directly and the reward
+ * ads server-to-server - where the drop credits nothing directly and the reward
  * only arrives once AdsGram posts it to the drop's backend.
  *
  * The client covers AdsGram and nothing else. Confirming that the reward landed
@@ -57,8 +57,7 @@ export default class AdsGramClient {
     this.farmer = farmer;
 
     this.playbackSeconds = options.playbackSeconds ?? PLAYBACK_SECONDS;
-    this.topDomain =
-      options.topDomain || `https://${farmer.constructor.host}`;
+    this.topDomain = options.topDomain || `https://${farmer.constructor.host}`;
     this.platform = options.platform || "Linux x86_64";
     this.tgPlatform = options.tgPlatform || "android";
     this.tmaVersion = options.tmaVersion || "8.0";
@@ -144,7 +143,7 @@ export default class AdsGramClient {
    * `Authorization` is cleared per request: a drop's bearer token lives on the
    * shared axios defaults and has no business reaching a third party.
    *
-   * The publisher's `Origin`/`Referer` have to be on the request — AdsGram
+   * The publisher's `Origin`/`Referer` have to be on the request - AdsGram
    * answers `400 {"error":"Wrong referer"}` without them. The cloud runner
    * sets them for every call and the extension's declarativeNetRequest rules
    * cover whatever is listed in the farmer's `static domains`, which is why
@@ -168,8 +167,8 @@ export default class AdsGramClient {
 
     /**
      * Read straight from the raw initData rather than `getInitDataUnsafe()`,
-     * which JSON-parses every value. `chat_instance` is a 19-digit id — well
-     * past `Number.MAX_SAFE_INTEGER` — so parsing it rounds off the last few
+     * which JSON-parses every value. `chat_instance` is a 19-digit id - well
+     * past `Number.MAX_SAFE_INTEGER` - so parsing it rounds off the last few
      * digits, and AdsGram would receive an id that never existed.
      */
     const initData = new URLSearchParams(farmer.getInitData() || "");
@@ -263,7 +262,7 @@ export default class AdsGramClient {
    * Sign a query string the way AdsGram's SDK does.
    *
    * The HMAC key is the baked-in secret XORed with the current hour, so it
-   * changes by itself every hour — a signature is only good for the hour it
+   * changes by itself every hour - a signature is only good for the hour it
    * was made in.
    */
   async sign(query) {

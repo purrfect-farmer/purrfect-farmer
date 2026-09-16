@@ -3,12 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import useAuto from "./useAuto";
 import useCloudQueryOptions from "./useCloudQueryOptions";
 
-/**
- * Whether this server is assisting, and what it was handed to assist with.
- *
- * The vault lives in the server's memory, so this is also how the extension
- * notices that a restart dropped the wallets.
- */
+/** Whether this server is assisting and with what, which is also how a restart that dropped the vault shows up */
 export default function useAutoCloudAssistStatusQuery() {
   const { config } = useAuto();
   const { enabled, auth, cloudBackend, cloudServer } = useCloudQueryOptions();

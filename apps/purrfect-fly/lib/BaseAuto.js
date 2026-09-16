@@ -14,9 +14,7 @@ import utils from "./utils.js";
 /** How many queued accounts a cycle lists, to stay under Telegram's limit */
 const ASSIST_QUEUE_PREVIEW = 30;
 
-/**
- * BaseAuto
- */
+/** BaseAuto */
 class BaseAuto {
   /** @type {string} id of the farmer this drop farms */
   static farmerId = null;
@@ -33,18 +31,10 @@ class BaseAuto {
   /** @type {string} jetton master address moved by boost/collect */
   static jettonAddress = null;
 
-  /**
-   * @type {Map<number, BaseAuto>} redeclared per subclass so operations for
-   * different drops can run concurrently for the same user.
-   */
+  /** @type {Map<number, BaseAuto>} redeclared per subclass so drops run concurrently for one user */
   static instances = new Map();
 
-  /**
-   * @type {Map<string, BaseAuto>} the assist loop, keyed by drop rather than
-   * by user: it acts on every account this server holds, and it runs until it
-   * is cancelled, so it must not occupy the single-flight slot the one-shot
-   * operations above share.
-   */
+  /** @type {Map<string, BaseAuto>} the assist loop, keyed by drop and kept out of the single-flight slot */
   static assistInstances = new Map();
 
   constructor({
@@ -156,10 +146,7 @@ class BaseAuto {
     return `<a href="https://tonviewer.com/${address}">${this.truncateAddress(address)}</a>`;
   }
 
-  /**
-   * Format a summary's wallet. Drops that link a wallet by raw address (rather
-   * than by key) have no version to show.
-   */
+  /** Format a summary's wallet, which carries no version when the drop links by raw address */
   formatWallet(wallet) {
     const link = this.formatAddressLink(wallet.address);
     return wallet.version ? `(${wallet.version.toUpperCase()}) ${link}` : link;
@@ -185,12 +172,7 @@ class BaseAuto {
     return parts.join(" ");
   }
 
-  /**
-   * Format when an account's mining freezes.
-   *
-   * Empty for drops that don't report a mining window, and for accounts that
-   * aren't mining at all.
-   */
+  /** Format when an account's mining freezes, empty for drops that report no mining window */
   formatMiningFreeze(summary) {
     const mining = summary?.mining;
 
@@ -202,15 +184,10 @@ class BaseAuto {
 
     if (!freezesAt) return "";
 
-    return `❄️ Freezes <i>${this.formatTimestamp(freezesAt)}</i> — in <i>${this.formatCountdown(freezesAt)}</i>`;
+    return `❄️ Freezes <i>${this.formatTimestamp(freezesAt)}</i> - in <i>${this.formatCountdown(freezesAt)}</i>`;
   }
 
-  /**
-   * Format an account snapshot as notification detail lines.
-   *
-   * Shared by every notification that reports on a single account, so the boost
-   * run and the user details command can't drift apart.
-   */
+  /** Format an account snapshot as notification detail lines, shared by every single-account notification */
   formatSummaryDetails(summary) {
     const freeze = this.formatMiningFreeze(summary);
 
@@ -284,12 +261,7 @@ class BaseAuto {
     return this.formatKeyValue("Difference", `${this.difference}%`);
   }
 
-  /**
-   * Whether boosted accounts should be left frozen.
-   *
-   * A repeating run always freezes: the next pass re-connects and re-boosts
-   * every account, so farming in between would only fight it.
-   */
+  /** Whether boosted accounts should be left frozen, which a repeating run always does */
   shouldFreezeAccounts() {
     return Boolean(this.repeat || this.freeze);
   }
@@ -510,10 +482,7 @@ class BaseAuto {
       referralLink: FarmerClass.getInstanceReferralLink(),
     });
 
-    /**
-     * Hand the runner this operation's signal so cancelling the operation
-     * also cancels the runner's requests, delays and farming pass.
-     */
+    /** Hand the runner this operation's signal, so cancelling the operation cancels the runner too */
     runner.adoptSignal(this.signal);
 
     /** Disable caching */
@@ -606,12 +575,7 @@ class BaseAuto {
             await runner.farmer.save();
           }
 
-          /**
-           * Execute runner.
-           *
-           * Skipped when the run is only meant to register wallets with the
-           * drop.
-           */
+          /** Execute runner, skipped when the run is only meant to register wallets */
           if (this.runFarmer) {
             /** Delay for 1s */
             await this.utils.delayForSeconds(1, { signal: this.signal });
@@ -651,14 +615,7 @@ class BaseAuto {
     return { status: false, message: errorMessage };
   }
 
-  /**
-   * Start mining at the holding the account is now on.
-   *
-   * The drop snapshots the miner level when mining starts, so this runs after
-   * the boost has settled — otherwise the account mines at the level it held
-   * before the tokens arrived. Failing to start is not fatal: the wallet is
-   * connected either way, so the last summary is kept and reported.
-   */
+  /** Start mining at the holding the account is now on, once the boost has settled */
   async startMining(runner, cloudAccount, summary) {
     try {
       logger.info("Starting mining:", cloudAccount.id);
@@ -674,13 +631,7 @@ class BaseAuto {
     }
   }
 
-  /**
-   * Re-read the account until the drop sees the tokens we boosted with.
-   *
-   * The boost transfer is fired without waiting for it to land, so the connect
-   * that follows usually reports the holding from before it arrived. Keep
-   * refreshing until the holding covers what was sent.
-   */
+  /** Re-read the account until the drop sees the tokens the boost sent */
   async syncBoostedHolding({ runner, cloudAccount, summary, jettonAmount }) {
     /** Seconds of delay between re-syncs */
     const RETRY_SECONDS = 5;
@@ -777,7 +728,7 @@ class BaseAuto {
       this.prepared,
     );
 
-    /** Boost — skipped when the master has nothing to send */
+    /** Boost - skipped when the master has nothing to send */
     logger.info("Boosting account:", cloudAccount.id, account.address);
     const { jettonAmount, skipped } = await booster.boost({
       difference: this.difference,
@@ -810,15 +761,12 @@ class BaseAuto {
     const position = this.formatAccountPosition(index);
     const action = skipped ? "connect" : "boost";
 
-    /**
-     * The full snapshot is reported on every success, so the account's state -
-     * the freeze included - is visible before it bites.
-     */
+    /** The full snapshot is reported on every success, so the freeze is visible before it bites */
     await this.sendNotification(
       status
         ? [
             skipped
-              ? `🔗 Connected <b>(${link})</b> — no ${this.token} in master to boost with ${position}`
+              ? `🔗 Connected <b>(${link})</b> - no ${this.token} in master to boost with ${position}`
               : settled
                 ? `⚡ Boosted <b>(${link})</b> with <i>${jettonAmount} ${this.token}</i> ${position}`
                 : `⏳ Boosted <b>(${link})</b> with <i>${jettonAmount} ${this.token}</i>, but the drop hasn't settled it yet ${position}`,
@@ -831,9 +779,7 @@ class BaseAuto {
           ],
     );
 
-    /**
-     * Withdraw what the account has now.
-     */
+    /** Withdraw what the account has now */
     if (this.withdrawAfterBoost && status && settled) {
       await this.processBoostWithdrawal({
         cloudAccount,
@@ -843,9 +789,7 @@ class BaseAuto {
       });
     }
 
-    /**
-     * Snapshot the account
-     */
+    /** Snapshot the account */
     if (runner) {
       await this.storeSnapshot(runner, cloudAccount);
     }
@@ -853,14 +797,7 @@ class BaseAuto {
     /** Delay for 2s */
     await this.utils.delayForSeconds(2, { signal: this.signal });
 
-    /**
-     * Apply mode.
-     *
-     * Rolling exists to daisy-chain the tokens onward, so with none to send it
-     * would only shuffle the master's TON through every account for gas.
-     * Collecting still runs — it guards itself, and may recover jettons an
-     * earlier run left behind.
-     */
+    /** Apply mode: rolling needs tokens to send, while collecting guards itself and still runs */
     if (!skipped || this.mode !== "roll") {
       await this.applyMode(account, phrase, booster);
     }
@@ -953,11 +890,7 @@ class BaseAuto {
         /** Prepare initial master data */
         await this.prepareInitialMasterData();
 
-        /**
-         * An empty master is not a reason to abandon the run. Connecting each
-         * wallet is what registers the account with the drop and refreshes its
-         * holding, and that is worth doing with or without tokens to send.
-         */
+        /** An empty master still connects every wallet, which is what registers the account with the drop */
         if (this.prepared.jettonBalance.lessThanOrEqualTo(0)) {
           await this.sendNotification([
             `<i>🟡 ${this.title} - Master has no ${this.token}. Connecting wallets without boosting...</i>`,
@@ -1283,9 +1216,7 @@ class BaseAuto {
     return result;
   }
 
-  /**
-   * Record what an account looks like right now.
-   */
+  /** Record what an account looks like right now */
   async storeSnapshot(runner, cloudAccount) {
     try {
       return await runner.storeAutoSnapshot();
@@ -1298,12 +1229,7 @@ class BaseAuto {
     }
   }
 
-  /**
-   * Hand an account back to farming once its status has been read.
-   *
-   * Reading an account is how a frozen batch is checked on, so a read also
-   * releases it: the account resumes farming instead of staying frozen.
-   */
+  /** Hand an account back to farming, since reading a frozen account is also what releases it */
   async activateFarmer(runner, cloudAccount) {
     try {
       if (runner.farmer && runner.farmer.status !== "active") {
@@ -1320,9 +1246,7 @@ class BaseAuto {
     }
   }
 
-  /**
-   * Re-read an account the drop has just paid out.
-   */
+  /** Re-read an account the drop has just paid out */
   async refreshWithdrawnSummary(runner, cloudAccount) {
     /** Give the drop a moment to record the withdrawal */
     await this.utils.delayForSeconds(5, { signal: this.signal });
@@ -1341,9 +1265,7 @@ class BaseAuto {
     }
   }
 
-  /**
-   * Withdraw an account in the middle of a boost run.
-   */
+  /** Withdraw an account in the middle of a boost run */
   async processBoostWithdrawal({ cloudAccount, runner, summary, index }) {
     if (this.signal.aborted) return;
 
@@ -1392,9 +1314,7 @@ class BaseAuto {
         amount,
       );
 
-      /**
-       * Refresh the summary to reflect the updated balance and any flags
-       */
+      /** Refresh the summary to reflect the updated balance and any flags */
       const updatedSummary = status
         ? await this.refreshWithdrawnSummary(runner, cloudAccount)
         : null;
@@ -1461,9 +1381,7 @@ class BaseAuto {
         amount,
       );
 
-      /**
-       * Re-read and record the account to reflect the updated balance and any flags
-       */
+      /** Re-read and record the account to reflect the updated balance and any flags */
       await this.refreshWithdrawnSummary(runner, cloudAccount);
       await this.storeSnapshot(runner, cloudAccount);
 
@@ -1685,11 +1603,7 @@ class BaseAuto {
         continue;
       }
 
-      /**
-       * A wallet is only useful here alongside the session that owns it: the
-       * exchange logs in as both accounts, so an account farmed by another
-       * server cannot be helped by this one.
-       */
+      /** A wallet is only useful alongside the session that owns it, so another server's account cannot be helped */
       const cloudAccount = await this.getCloudAccount(account, true);
 
       if (!cloudAccount) {
@@ -1740,28 +1654,14 @@ class BaseAuto {
     return { runner, cloudAccount };
   }
 
-  /**
-   * Whether the drop still has this account on the wallet it was loaded with.
-   *
-   * Anything else means an exchange is already under way for it — which, since
-   * a verified account only ever helps accounts on its own server, means the
-   * same account was loaded onto a second server. Refuse rather than strand a
-   * wallet on the wrong account.
-   */
+  /** Whether the drop still has this account on the wallet it was loaded with */
   holdsOwnWallet(runner, account) {
     const wallet = runner.getAutoSummary()?.wallet;
 
     return Boolean(wallet && wallet.address === account.address);
   }
 
-  /**
-   * The loaded accounts that have reached the minimum, fullest pool first.
-   *
-   * Read from the snapshot each farming pass leaves behind, so choosing who to
-   * help costs no logins. It is a prefilter: the withdrawal itself re-reads the
-   * live balance, and a stale candidate is simply skipped as "Not enough
-   * balance!".
-   */
+  /** The loaded accounts that have reached the minimum, fullest pool first, read from the stored snapshots */
   async getAssistCandidates(vault, helperIds) {
     const rows = await db.Farmer.findAll({
       where: { farmer: this.farmerId },
@@ -1834,14 +1734,7 @@ class BaseAuto {
     );
   }
 
-  /**
-   * Withdraw a requester's pool through a verified account.
-   *
-   * The wallet is what the drop pays out on, so it is passed along and put
-   * back: the requester parks on a throwaway wallet, the verified account
-   * adopts the requester's, withdraws, and both are restored. A failure at any
-   * point rolls back whatever had moved.
-   */
+  /** Withdraw a requester's pool through a verified account, passing the wallet along and putting it back */
   async assistWithdrawal({ requester, requesterRunner, helper, helperRunner }) {
     /** Never take a wallet from an account that is already mid-exchange */
     if (!this.holdsOwnWallet(requesterRunner, requester)) {
@@ -1863,10 +1756,7 @@ class BaseAuto {
       return result;
     };
 
-    /**
-     * Both phrases are decrypted up front: a rollback needs them, and failing
-     * here costs nothing because no wallet has moved yet.
-     */
+    /** Both phrases are decrypted up front, because a rollback needs them and nothing has moved yet */
     const requesterPhrase = await this.decryptPhrase(requester.encryptedPhrase);
     const helperPhrase = await this.decryptPhrase(helper.encryptedPhrase);
     const temporaryPhrase = await generateMnemonicPhrase();
@@ -1926,11 +1816,7 @@ class BaseAuto {
       );
       helperMoved = true;
 
-      /**
-       * A refusal here (an unsettled balance, a rejected captcha) is an
-       * outcome, not a fault: restore both wallets the ordinary way and report
-       * it, rather than routing it through the rollback path.
-       */
+      /** A refusal here is an outcome, not a fault: restore both wallets the ordinary way and report it */
       const withdrawal = await helperRunner.withdraw({
         force: true,
         difference: 0,
@@ -2051,10 +1937,7 @@ class BaseAuto {
       return [];
     }
 
-    /**
-     * The order they will be worked through - the richest pool first, since
-     * a cycle rarely reaches the end of the list.
-     */
+    /** The order they will be worked through, the richest pool first */
     await this.sendNotification([
       `📋 ${this.title} - Queue:`,
       ...candidates
@@ -2088,13 +1971,7 @@ class BaseAuto {
         `⏳ ${this.title} - Assisting ${candidates.length} account(s) through ${available.length} verified account(s)...`,
       ]);
 
-      /**
-       * The drop only lets an account hold one withdrawal at a time, so a
-       * verified account is spent the moment its request goes through: every
-       * later attempt through it comes back as "you already have a withdrawal
-       * request in progress". The pool shrinks as they are used up and the
-       * cycle stops once it runs dry, leaving the rest for the next one.
-       */
+      /** The drop allows one withdrawal per account, so a verified account is spent once its request goes through */
       const pool = [...available];
       let turn = 0;
 
@@ -2160,10 +2037,7 @@ class BaseAuto {
           this.releaseRunner(requesterEntry.cloudAccount);
         }
 
-        /**
-         * A failure can still have left a request behind - a 409, a reply lost
-         * on the way back - so ask the drop rather than trust the outcome.
-         */
+        /** A failure can still have left a request behind, so ask the drop rather than trust the outcome */
         if (!spent) {
           spent = await helperEntry.runner
             .hasPendingWithdrawal()
@@ -2240,13 +2114,7 @@ class BaseAuto {
     ]);
   }
 
-  /**
-   * Resume a single account back into farming batches.
-   *
-   * A one-shot operation lets `execute` resume everything at the end, but the
-   * assist loop never ends, so it hands each account back as soon as it is
-   * done with it.
-   */
+  /** Resume a single account back into farming batches, which the endless assist loop does for itself */
   releaseRunner(cloudAccount) {
     const FarmerClass = farmers[this.farmerId];
 
@@ -2311,13 +2179,7 @@ class BaseAuto {
     this.execute(options, (instance) => instance.load());
   }
 
-  /**
-   * Start the assist loop for this drop.
-   *
-   * Keyed by drop, not by user: one loop serves every account this server
-   * holds, and it must not occupy the slot `execute` reserves for the one-shot
-   * operations, or starting it would lock its owner out of boosting.
-   */
+  /** Start the assist loop for this drop, keyed by drop and outside the slot `execute` reserves */
   static assist(options) {
     if (this.assistInstances.has(this.id)) {
       return this.assistInstances

@@ -1,8 +1,7 @@
 /**
  * Where the SDK sends everything.
  *
- * The host is baked into each `sad`-style build as an obfuscated literal —
- * `Ys('l.xt#.)=ow')` in the copy this was written against, decoded by the same
+ * The host is baked into each `sad`-style build as an obfuscated literal -  * `Ys('l.xt#.)=ow')` in the copy this was written against, decoded by the same
  * cipher as `decodeSettings()` below. Publishers on a different SDK domain can
  * pass `host` instead. If Monetag rotates it, every call here starts failing
  * and this constant is the one thing that has gone stale.
@@ -48,7 +47,7 @@ const RESOLVE_INTERVAL_SECONDS = 1.5;
  * MonetagClient
  *
  * Runs a Monetag zone the way `show_<zoneId>()` would, for farmers whose drop
- * serves Monetag ads — either because the drop settles the reward itself and
+ * serves Monetag ads - either because the drop settles the reward itself and
  * merely expects the ad to have played, or because the zone pays through a
  * server-to-server postback keyed on `ymid`.
  *
@@ -99,7 +98,7 @@ export default class MonetagClient {
   /**
    * Watch a rewarded zone.
    *
-   * `ymid` is what a postback is keyed on — it is the Telegram id the drop's
+   * `ymid` is what a postback is keyed on - it is the Telegram id the drop's
    * backend will be told about, so it has to be the account being farmed.
    *
    * @param {string|number} [zoneId]
@@ -146,10 +145,9 @@ export default class MonetagClient {
 
     await this.countImpression(banner, settings);
 
-    await this.farmer.utils.delayForSeconds(
-      this.getPlaybackSeconds(settings),
-      { signal: this.signal },
-    );
+    await this.farmer.utils.delayForSeconds(this.getPlaybackSeconds(settings), {
+      signal: this.signal,
+    });
 
     const event = ruid ? await this.resolve(ruid) : null;
 
@@ -197,7 +195,10 @@ export default class MonetagClient {
         return (this.deviceId = saved.value);
       }
     } catch (error) {
-      this.farmer.debugger?.log("Failed to read Monetag device:", error.message);
+      this.farmer.debugger?.log(
+        "Failed to read Monetag device:",
+        error.message,
+      );
     }
 
     this.deviceId = this.createDeviceId();
@@ -219,7 +220,8 @@ export default class MonetagClient {
   /** A device id in the shape the SDK generates */
   createDeviceId() {
     const random = (min, max) =>
-      min + (globalThis.crypto.getRandomValues(new Uint32Array(1))[0] %
+      min +
+      (globalThis.crypto.getRandomValues(new Uint32Array(1))[0] %
         (max - min + 1));
 
     return Array.from(DEVICE_ID_PATTERN, (slot) =>
@@ -258,12 +260,12 @@ export default class MonetagClient {
   async fetchSettings(zone, oaid) {
     const query = this.buildParams({
       oo: 1,
-      "sw_version": SDK_VERSION,
+      sw_version: SDK_VERSION,
       oaid,
       tgp: this.tgPlatform,
       tglc: this.getLanguage(),
       tgm: 1,
-      "var_3": this.farmer.getUserId(),
+      var_3: this.farmer.getUserId(),
     });
 
     /**
@@ -274,7 +276,7 @@ export default class MonetagClient {
     const data = await this.farmer.api
       .post(
         `https://${this.host}/401/${zone}?${query}`,
-        { "client_hints": {} },
+        { client_hints: {} },
         { signal: this.signal, headers: { Authorization: null } },
       )
       .then((res) => res.data);
@@ -316,7 +318,8 @@ export default class MonetagClient {
 
   /** Take a banner off the zone's feed */
   async requestAd(zone, oaid, ymid, settings) {
-    const feedUrl = settings?.["fakepushFeedUrl"] || `https://${this.host}/500/`;
+    const feedUrl =
+      settings?.["fakepushFeedUrl"] || `https://${this.host}/500/`;
 
     const query = this.buildParams({
       excludes: "",
@@ -327,14 +330,11 @@ export default class MonetagClient {
 
       /** 1 = the page drives the ad itself, which is what this client does */
       sdkp: 1,
-      "var_3": this.farmer.getUserId(),
+      var_3: this.farmer.getUserId(),
       of: settings?.["fakepushOnlineFiltration"] || undefined,
     });
 
-    const url = this.withCommonParams(
-      `${feedUrl}${zone}?${query}`,
-      settings,
-    );
+    const url = this.withCommonParams(`${feedUrl}${zone}?${query}`, settings);
 
     return this.parseFeed(await this.request(url));
   }
@@ -420,7 +420,7 @@ export default class MonetagClient {
   }
 
   /**
-   * The parameters every call carries — where the page is, what it is running
+   * The parameters every call carries - where the page is, what it is running
    * in, and how big the window is. Monetag weighs these when deciding whether
    * a view was real, so they travel with the feed request and the impression
    * alike.
@@ -429,8 +429,8 @@ export default class MonetagClient {
     const screen = this.screen;
 
     const query = this.buildParams({
-      "sw_version": SDK_VERSION,
-      "branchId": settings?.["fakepushBranchId"] || undefined,
+      sw_version: SDK_VERSION,
+      branchId: settings?.["fakepushBranchId"] || undefined,
       dmn: this.sdkHost,
       tgm: 1,
       fs: 0,
@@ -481,7 +481,7 @@ export default class MonetagClient {
    * Read a feed response.
    *
    * The same endpoint answers with plain JSON or with base64 depending on the
-   * banner, so both are accepted. The decode goes through UTF-8 — banner
+   * banner, so both are accepted. The decode goes through UTF-8 - banner
    * titles carry emoji, and `atob` alone would mangle them.
    */
   parseFeed(data) {

@@ -11,12 +11,7 @@ import useAuto from "@/hooks/useAuto";
 import useAutoAccountsSelector from "@/hooks/useAutoAccountsSelector";
 import { useState } from "react";
 
-/**
- * Writes this drop's wallets out as a bundle file.
- *
- * Phrases leave as the stored encrypted blobs, so the file is only usable by
- * someone who also knows this drop's password.
- */
+/** Writes this drop's wallets out as a bundle file, phrases still encrypted with its password */
 export default function AutoExportForm() {
   const { config, master, accounts } = useAuto();
   const selector = useAutoAccountsSelector(accounts);
@@ -41,7 +36,7 @@ export default function AutoExportForm() {
   return (
     <div className="flex flex-col gap-2">
       <Alert variant="info">
-        Wallet phrases stay encrypted in the file — importing it needs{" "}
+        Wallet phrases stay encrypted in the file - importing it needs{" "}
         {config.title}'s current password. The Toncenter API key is not
         encrypted.
       </Alert>

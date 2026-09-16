@@ -5,16 +5,7 @@ import storage from "@/lib/storage";
 import useAuto from "./useAuto";
 import { useMemo } from "react";
 
-/**
- * The other Auto drops that hold wallets, as import sources.
- *
- * Read straight out of storage rather than through `useSharedStorageState`,
- * because these belong to drops whose `Auto` component isn't mounted. Safe to
- * read synchronously: `main.jsx` awaits `storage.setup()` before rendering.
- *
- * The list is snapshotted per mount — import dialogs unmount when closed, so
- * reopening one picks up anything that changed in the meantime.
- */
+/** The other Auto drops that hold wallets, read straight out of storage and snapshotted per mount */
 export default function useAutoSources() {
   const { config } = useAuto();
 

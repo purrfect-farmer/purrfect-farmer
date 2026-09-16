@@ -15,7 +15,8 @@ export default function AutoBoosterCollectTab({ account }) {
   return (
     <div className="flex flex-col gap-3">
       <Alert variant="info">
-        Checks this account's {config.token} balance, sends TON from master, then returns
+        Checks this account's {config.token} balance, sends TON from master,
+        then returns
         {config.token} and remaining TON back to master.
       </Alert>
 
@@ -25,7 +26,7 @@ export default function AutoBoosterCollectTab({ account }) {
             {mutation.data.status
               ? `Collected ${mutation.data.collected} ${config.token}`
               : mutation.data.skipped
-                ? "Skipped — no jetton balance found."
+                ? "Skipped - no jetton balance found."
                 : `Failed: ${mutation.data.error?.message || "Unknown error"}`}
           </Alert>
           <PrimaryButton type="button" onClick={() => mutation.reset()}>

@@ -86,7 +86,7 @@ async function _finalize(client, getPassword, attempt) {
     return result.authorization;
   }
 
-  /** Acceptance not yet propagated — retry a few times */
+  /** Acceptance not yet propagated - retry a few times */
   if (result instanceof Api.auth.LoginToken) {
     if (attempt >= FINALIZE_ATTEMPTS) {
       throw new Error("Login token was not accepted in time");
@@ -147,11 +147,13 @@ export async function checkPassword(client, getPassword) {
       const passwordSrp = await client.invoke(new Api.account.GetPassword());
       const check = await computeCheck(passwordSrp, password);
 
-      return await client.invoke(new Api.auth.CheckPassword({ password: check }));
+      return await client.invoke(
+        new Api.auth.CheckPassword({ password: check }),
+      );
     } catch (error) {
       lastError = error;
 
-      /** Wrong password — try the next candidate */
+      /** Wrong password - try the next candidate */
       if (error.errorMessage === "PASSWORD_HASH_INVALID") {
         continue;
       }

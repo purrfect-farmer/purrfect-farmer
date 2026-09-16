@@ -7,19 +7,7 @@ import useAutoStateBackup from "./useAutoStateBackup";
 import { useMutation } from "@tanstack/react-query";
 import { uuid } from "@/utils";
 
-/**
- * Turns Whiskers accounts into this drop's accounts.
- *
- * A Whiskers backup carries no wallets — only Telegram identities — so an
- * account that is already here keeps the wallet it has and only takes the
- * Whiskers title, and one that isn't gets a wallet generated for it. Matching
- * is by Telegram user id, the identity that follows a farmed account across
- * every drop.
- *
- * Generating is cheap but encrypting is a scrypt pass at N = 2**15 each, so a
- * few hundred new accounts is minutes of work — hence the progress bar, which
- * also covers the pre-import backup.
- */
+/** Turns Whiskers accounts into this drop's accounts, matched by Telegram user id and given a wallet when new */
 export default function useAutoWhiskersImportMutation() {
   const { config, master, password, accounts, dispatchAndStoreAccounts } =
     useAuto();

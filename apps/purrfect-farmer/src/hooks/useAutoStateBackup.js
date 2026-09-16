@@ -4,20 +4,7 @@ import useAuto from "./useAuto";
 import useAutoMaster from "./useAutoMaster";
 import { useCallback } from "react";
 
-/**
- * Downloads every wallet this drop holds, before something rewrites them.
- *
- * An import folds another wallet set into this one — accounts get overwritten,
- * titles change, and with `replace` the current list is dropped outright. The
- * stored blobs are only recoverable with the password, so the snapshot is taken
- * in plaintext: it survives a forgotten password, which is the case a snapshot
- * exists for. That makes the file worth exactly as much as the wallets, and the
- * import forms say so.
- *
- * Decrypting is a scrypt pass at N = 2**15 per wallet, so a drop with fifty
- * accounts spends ten-odd seconds here. `onStep` is called per wallet so the
- * caller's progress bar keeps moving rather than looking hung.
- */
+/** Downloads every wallet this drop holds in plaintext, so it survives a forgotten password, stepping `onStep` per wallet */
 export default function useAutoStateBackup() {
   const { config, master, accounts } = useAuto();
   const { decryptPhrase } = useAutoMaster();

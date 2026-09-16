@@ -13,22 +13,10 @@ import { prepareMaster, waitForSeqnoChange } from "./transactions.js";
 
 import Decimal from "decimal.js";
 
-/**
- * TON held back for swap gas. A STON.fi v2 jetton swap attaches 0.3 TON, far
- * more than the 0.08 a plain jetton transfer needs, so `TON_FOR_GAS` from
- * `transactions.js` is not a safe reserve here. The exact figure is checked
- * against the built message before signing; this is the friendly estimate the
- * form uses for its "Max" button and its up-front warning.
- */
+/** TON held back for swap gas, since a STON.fi v2 swap attaches far more than a plain jetton transfer */
 export const SWAP_TON_RESERVE = new Decimal("0.35");
 
-/**
- * BaseSwapper
- *
- * Swaps between a drop's jetton and TON on STON.fi, signing with the master
- * wallet. Mirrors `BaseWalletTransfer`: prepare the master, build one message,
- * send it, wait for the seqno to move.
- */
+/** Swaps between a drop's jetton and TON on STON.fi, signing with the master wallet */
 export default class BaseSwapper {
   constructor(master, jettonAddress, options = {}) {
     this.master = master;
@@ -46,11 +34,7 @@ export default class BaseSwapper {
     return this.prepared;
   }
 
-  /**
-   * Decimals for quoting. Read from STON.fi rather than `prepareMaster` so a
-   * quote costs one cached HTTP call instead of decrypting the wallet and
-   * hitting TonCenter.
-   */
+  /** Decimals for quoting, read from STON.fi so a quote costs one cached call */
   async getJettonDecimals() {
     if (this.jettonDecimals === undefined) {
       const asset = await getSwapAsset(this.jettonAddress);
@@ -93,12 +77,7 @@ export default class BaseSwapper {
     };
   }
 
-  /**
-   * Execute the swap.
-   *
-   * Every balance check happens here, before anything is signed - a bad swap
-   * cannot be undone once the message is on-chain.
-   */
+  /** Execute the swap, checking every balance before anything is signed */
   async swap({ direction, amount, slippage }) {
     const prepared = await this.prepare();
     const { contract, keyPair, client, jettonDecimals } = prepared;

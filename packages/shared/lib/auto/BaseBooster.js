@@ -11,19 +11,7 @@ import {
 import Decimal from "decimal.js";
 import { SendMode } from "@ton/core";
 
-/**
- * BaseBooster
- *
- * Handles boost and collect operations for an Auto drop.
- * Each instance is bound to a master account and a single sub account.
- * The jetton being moved is read from `prepared.jettonAddress`.
- *
- * Usage:
- *   const prepared = await prepareMaster(masterData, jettonAddress);
- *   const booster = new BaseBooster(masterData, accountData, prepared);
- *   await booster.boost({ difference: 10 });
- *   await booster.collect();
- */
+/** Boosts and collects one sub account, moving `prepared.jettonAddress` to and from the master */
 export default class BaseBooster {
   /**
    * @param {object} master - { address, version, phrase }
@@ -176,13 +164,7 @@ export default class BaseBooster {
     try {
       const balance = new Decimal(this.prepared.jettonBalance);
 
-      /**
-       * Nothing in the master to send.
-       *
-       * Reported as a skip rather than a failure: the caller still has work
-       * worth doing — connecting the wallet is what registers the account with
-       * the drop — and firing a zero-amount transfer would only burn gas.
-       */
+      /** Skipped rather than failed: connecting the wallet is still worth doing */
       if (balance.lessThanOrEqualTo(0)) {
         return {
           status: false,
@@ -203,10 +185,7 @@ export default class BaseBooster {
         balance.mul(randomPercent).div(100),
       ).toDecimalPlaces(4, Decimal.ROUND_DOWN);
 
-      /**
-       * Deliberately not awaited — callers overlap their own delay with the
-       * transfer — so the rejection has to be caught here to stay handled.
-       */
+      /** Not awaited, so callers can overlap their own delay with the transfer */
       this.sendJettonFromMaster(jettonAmount).catch((error) => {
         console.log("Error while sending jetton from master", error);
       });

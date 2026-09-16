@@ -10,10 +10,7 @@ const tabs = {
   list: ["import", "whiskers", "export"],
 };
 
-/**
- * Moves wallets between Autos or in and out of a bundle file, and builds
- * accounts from a Purrfect Whiskers backup.
- */
+/** Moves wallets between Autos or in and out of a bundle file, and builds accounts from a Whiskers backup */
 export default function AutoImportExportDialog({ onImported }) {
   return (
     <CenteredDialog

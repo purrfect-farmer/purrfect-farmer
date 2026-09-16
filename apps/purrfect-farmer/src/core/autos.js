@@ -1,13 +1,7 @@
 import { customLogger } from "@/utils";
 import path from "path-browserify";
 
-/**
- * Auto drops — wallet managers built on top of a farmer.
- *
- * A farmer opts in purely by declaring `static auto`, exactly like the cloud
- * side does, so a new drop needs no registration here. Icons are matched by
- * auto id: `assets/images/autos/<auto.id>.png`.
- */
+/** Auto drops: wallet managers built on a farmer, opted into with `static auto` and iconed by auto id */
 const farmersGlob = import.meta.glob(
   "../../node_modules/@purrfect/shared/farmers/*.js",
   {
@@ -41,7 +35,7 @@ const autoLargeIcons = indexIcons(
   }),
 );
 
-/** The drop's token icon — reuses the farmer's icon, keyed by farmer id */
+/** The drop's token icon, reusing the farmer's icon keyed by farmer id */
 const tokenIcons = indexIcons(
   import.meta.glob(
     "../../node_modules/@purrfect/shared/assets/images/farmers/*.png",
@@ -68,13 +62,7 @@ const autosMap = autos.reduce((result, auto) => {
   return result;
 }, new Map());
 
-/**
- * The storage keys holding a drop's wallets.
- *
- * `Auto` reads them through `useSharedStorageState`; the import flow reads
- * another drop's through `storage` directly, so the derivation lives here
- * rather than inline in either.
- */
+/** The storage keys holding a drop's wallets, shared by the Auto tab and the import flow */
 export function autoStateKeys(config) {
   return {
     master: `${config.storagePrefix}-master`,

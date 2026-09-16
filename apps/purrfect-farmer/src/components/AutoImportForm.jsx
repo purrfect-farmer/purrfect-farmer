@@ -28,13 +28,7 @@ const FILE_SOURCE = "file";
 /** Stable identity so the accounts selector doesn't reset on every render */
 const NO_ACCOUNTS = [];
 
-/**
- * Pulls a master and accounts into this drop, either from another Auto or from
- * an exported bundle file.
- *
- * Rendered both inside `AutoImportExportDialog` and on `AutoMasterSetup`, where
- * the drop has no master yet and the import is what sets it up.
- */
+/** Pulls a master and accounts into this drop, from another Auto or from an exported bundle file */
 export default function AutoImportForm({ onImported }) {
   const { config, master } = useAuto();
   const sources = useAutoSources();
@@ -113,14 +107,14 @@ export default function AutoImportForm({ onImported }) {
       <Alert variant="danger">
         Imported wallets are the <strong className="font-bold">same</strong>{" "}
         on-chain wallets as the source Auto's. Never run boost, collect or
-        withdraw on both Autos at the same time — two operations sending from one
-        wallet will clash and drop transactions.
+        withdraw on both Autos at the same time - two operations sending from
+        one wallet will clash and drop transactions.
       </Alert>
 
       {!bootstrap && (
         <Alert variant="warning">
           A backup of {config.title}'s current wallets downloads first, with the
-          phrases in plain text. Keep it somewhere safe — anyone holding it can
+          phrases in plain text. Keep it somewhere safe - anyone holding it can
           spend from every wallet.
         </Alert>
       )}
@@ -146,7 +140,7 @@ export default function AutoImportForm({ onImported }) {
 
       {sourceId === FILE_SOURCE && fileBundle && (
         <Alert variant="info">
-          Loaded <strong className="font-bold">{fileBundle.title}</strong> —{" "}
+          Loaded <strong className="font-bold">{fileBundle.title}</strong> -{" "}
           {fileBundle.accounts.length} accounts
           {fileBundle.master ? " and a master wallet" : ""}.
         </Alert>
@@ -192,7 +186,7 @@ export default function AutoImportForm({ onImported }) {
               {withMaster && (
                 <Alert variant="danger">
                   This replaces {config.title}'s master wallet. Withdraw and
-                  collect everything from the current master first — you keep
+                  collect everything from the current master first - you keep
                   its phrase only if you have it saved elsewhere.
                 </Alert>
               )}
@@ -217,8 +211,8 @@ export default function AutoImportForm({ onImported }) {
 
               <p className="text-neutral-500 dark:text-neutral-400">
                 Accounts are matched by Telegram user ID, then by address. Use{" "}
-                <strong className="font-bold">overwrite</strong> to re-sync after
-                rotating wallets in the source Auto.
+                <strong className="font-bold">overwrite</strong> to re-sync
+                after rotating wallets in the source Auto.
               </p>
             </>
           )}
