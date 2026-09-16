@@ -1102,10 +1102,10 @@ class BaseAuto {
     /** Send Notification */
     await this.sendNotification([
       skipped
-        ? `⏩ Skipped <b>(${this.truncateAddress(account.address)})</b> ${this.formatAccountPosition(index)}`
+        ? `⏩ Skipped <b>(${this.formatAddressLink(account.address)})</b> ${this.formatAccountPosition(index)}`
         : status
-          ? `💰 Collected <b>(${this.truncateAddress(account.address)})</b> - <i>${collected?.toString()} ${this.token}</i> ${this.formatAccountPosition(index)}`
-          : `❌ Failed to collect <b>(${this.truncateAddress(account.address)})</b> ${this.formatAccountPosition(index)}\n<i>Error: ${error?.message || "Unknown error!"}</i>`,
+          ? `💰 Collected <b>(${this.formatAddressLink(account.address)})</b> - <i>${collected?.toString()} ${this.token}</i> ${this.formatAccountPosition(index)}`
+          : `❌ Failed to collect <b>(${this.formatAddressLink(account.address)})</b> ${this.formatAccountPosition(index)}\n<i>Error: ${error?.message || "Unknown error!"}</i>`,
     ]);
 
     /** Log completion */
