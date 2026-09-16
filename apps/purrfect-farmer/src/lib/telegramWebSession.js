@@ -51,3 +51,39 @@ export async function getTelegramClientFromSession(details) {
     return null;
   }
 }
+
+/** Build the per-slot account object Telegram Web keeps in localStorage */
+export function buildTelegramWebAccount({ authKey, dcId, userId }) {
+  return {
+    dcId,
+    [`dc${dcId}_auth_key`]: authKey,
+
+    /** Web-K resolves the session through dc2, whatever the real DC is */
+    dc2_auth_key: authKey,
+
+    userId: userId.toString(),
+    auth_key_fingerprint: authKey.slice(0, 8),
+  };
+}
+
+/** Highest occupied account slot, read off the keys rather than the stored counter */
+function getHighestAccountSlot(storage) {
+  return Object.keys(storage).reduce((highest, key) => {
+    const slotMatch = key.match(/^account(\d+)$/);
+
+    return slotMatch ? Math.max(highest, Number(slotMatch[1])) : highest;
+  }, 0);
+}
+
+/** Place an account into its slot, leaving every other slot signed in */
+export function mergeTelegramWebAccount(storage, slotIndex, account) {
+  const merged = {
+    ...storage,
+    [`account${slotIndex}`]: JSON.stringify(account),
+  };
+
+  /** Web-K only enumerates slots 1..number_of_accounts */
+  merged["number_of_accounts"] = String(getHighestAccountSlot(merged));
+
+  return merged;
+}

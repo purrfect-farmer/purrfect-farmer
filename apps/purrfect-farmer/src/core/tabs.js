@@ -11,6 +11,7 @@ import SpiderIcon from "@/assets/images/spider-logo.png?format=webp&w=80";
 import TelegramCleanerIcon from "@/assets/images/telegram-cleaner.png?format=webp&w=80";
 import TelegramToPurrfectGramIcon from "@/assets/images/telegram-to-purrfect-gram.png?format=webp&w=80";
 import TelegramWebAIcon from "@/assets/images/telegram-web-a.png?format=webp&w=80";
+import TelegramWebSessionIcon from "@/assets/images/telegram-web-session.png?format=webp&w=80";
 import TelegramWebKIcon from "@/assets/images/telegram-web-k.png?format=webp&w=80";
 import TinyFlyIcon from "@/assets/images/fly.png?format=webp&w=80";
 import WhiskersIcon from "@/assets/images/whiskers.png?format=webp&w=80";
@@ -38,6 +39,10 @@ export const LegacyGramToPurrfectGram = lazy(
 
 export const ReorderTelegramWeb = lazy(
   () => import("@/app/ReorderTelegramWeb"),
+);
+
+export const TelegramWebSession = lazy(
+  () => import("@/app/TelegramWebSession"),
 );
 
 export const Spider = lazy(() => import("@/app/Spider"));
@@ -211,6 +216,14 @@ export const utils = [
         title: "Telegram to Purrfect Gram",
         icon: TelegramToPurrfectGramIcon,
         component: createElement(TelegramToPurrfectGram),
+      },
+
+      /** Telegram Web Session */
+      {
+        id: "telegram-web-session",
+        title: "Telegram Web Session",
+        icon: TelegramWebSessionIcon,
+        component: createElement(TelegramWebSession),
       },
 
       /** Reorder Telegram Web */

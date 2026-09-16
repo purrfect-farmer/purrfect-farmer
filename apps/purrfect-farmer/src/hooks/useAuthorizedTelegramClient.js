@@ -1,4 +1,5 @@
 import useAppContext from "@/hooks/useAppContext";
+import { createTelegramClient } from "@/lib/createTelegramClient";
 import { getTelegramClientFromSession } from "@/lib/telegramWebSession";
 import { postPortMessage } from "@/utils";
 import { useCallback } from "react";
@@ -9,8 +10,15 @@ const keepClientAlive = () => {};
 
 /** Acquire an authorized Telegram Client, whichever farmer mode is active */
 export default function useAuthorizedTelegramClient() {
-  const { account, farmerMode, telegramClient, messaging, closeTab, setActiveTab } =
-    useAppContext();
+  const {
+    account,
+    farmerMode,
+    localTelegramSession,
+    telegramClient,
+    messaging,
+    closeTab,
+    setActiveTab,
+  } = useAppContext();
 
   /** Close Telegram Web Tabs */
   const closeTelegramWeb = useCallback(() => {
@@ -73,6 +81,32 @@ export default function useAuthorizedTelegramClient() {
     return client;
   }, [closeTelegramWeb, getTelegramWebLocalStorage, account]);
 
+  /** Build a client from the stored local session, for signing other surfaces in */
+  const getClientFromLocalSession = useCallback(async () => {
+    if (!localTelegramSession) {
+      throw new Error("There is no local Telegram session.");
+    }
+
+    if (farmerMode === "session" && telegramClient.ref.current) {
+      const client = telegramClient.ref.current;
+
+      /** The auth key is only populated once the client has connected */
+      if (!client.connected) {
+        await client.connect();
+      }
+
+      return { client, dispose: keepClientAlive };
+    }
+
+    const client = createTelegramClient(localTelegramSession);
+    await client.connect();
+
+    return {
+      client,
+      dispose: () => client.destroy().catch(() => {}),
+    };
+  }, [farmerMode, localTelegramSession, telegramClient]);
+
   /** Acquire a Client */
   const acquire = useCallback(async () => {
     if (farmerMode === "session" && telegramClient.ref.current) {
@@ -92,5 +126,9 @@ export default function useAuthorizedTelegramClient() {
     };
   }, [farmerMode, telegramClient, getClientFromTelegramWeb]);
 
-  return useValuesMemo({ acquire, getClientFromTelegramWeb });
+  return useValuesMemo({
+    acquire,
+    getClientFromTelegramWeb,
+    getClientFromLocalSession,
+  });
 }
