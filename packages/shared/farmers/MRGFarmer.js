@@ -142,6 +142,7 @@ export default class MRGFarmer extends BaseFarmer {
   static referrerMode = "random";
   static apiDelay = 500;
   static rating = 5;
+  static published = false;
 
   static auto = {
     id: "mrg-auto",
