@@ -16,6 +16,15 @@ const WITHDRAWAL_BUFFER = 200;
 /** Backstop for the withdrawal captcha loop */
 const WITHDRAWAL_CAPTCHA_ATTEMPTS = 3;
 
+/** Maximum number of attempts to solve a captcha */
+const MAX_CAPTCHA_ATTEMPTS = 10;
+
+/** Maximum number of attempts to complete a login */
+const MAX_LOGIN_ATTEMPTS = 10;
+
+/** Maximum number of attempts to sync a wallet */
+const MAX_SYNC_ATTEMPTS = 20;
+
 export default class ATFFarmer extends BaseFarmer {
   static id = "atf";
   static title = "ATF";
@@ -97,8 +106,7 @@ export default class ATFFarmer extends BaseFarmer {
       return;
     }
 
-    /* Max attempts */
-    const MAX_ATTEMPTS = 10;
+    /* Attempts */
     let attempts = 0;
 
     this.logger.info("Solving captcha...");
@@ -114,7 +122,7 @@ export default class ATFFarmer extends BaseFarmer {
       if (isDegradedOrCircuitOpen) {
         await this.utils.delayForSeconds(5, { signal: this.signal });
         attempts++;
-        if (attempts > MAX_ATTEMPTS) {
+        if (attempts > MAX_CAPTCHA_ATTEMPTS) {
           throw new Error("Failed to get captcha status");
         }
         continue;
@@ -218,7 +226,7 @@ export default class ATFFarmer extends BaseFarmer {
 
   /** @param {boolean} forceFresh - make the backend re-read the account */
   async completeLogin(forceFresh = false) {
-    const MAX_ATTEMPTS = 10;
+    /* Attempts */
     let attempts = 0;
 
     this.logger.info("Completing login...");
@@ -244,7 +252,7 @@ export default class ATFFarmer extends BaseFarmer {
 
         if (!challenge) {
           attempts++;
-          if (attempts > MAX_ATTEMPTS) {
+          if (attempts > MAX_LOGIN_ATTEMPTS) {
             throw new Error("Failed to sign in:", error);
           }
           const errorMessage = error.response?.data?.message || "Unknown error";
@@ -259,7 +267,7 @@ export default class ATFFarmer extends BaseFarmer {
 
       /** The drop withheld the account behind an image captcha */
       attempts++;
-      if (attempts > MAX_ATTEMPTS) {
+      if (attempts > MAX_LOGIN_ATTEMPTS) {
         throw new Error("Failed to sign in: entry risk captcha required");
       }
 
@@ -695,7 +703,7 @@ export default class ATFFarmer extends BaseFarmer {
       const result = await this.syncWallet(data);
       const isBusy = result.busy || result.status === "busy";
 
-      if (isBusy && attempts < 10) {
+      if (isBusy && attempts < MAX_SYNC_ATTEMPTS) {
         attempts++;
         this.logger.warn("Server is busy, retrying...");
         await this.utils.delayForSeconds(2, { signal: this.signal });
