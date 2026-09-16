@@ -14,7 +14,7 @@ import Decimal from "decimal.js";
 const WITHDRAWAL_BUFFER = 200;
 
 /** Backstop for the withdrawal captcha loop */
-const WITHDRAWAL_CAPTCHA_ATTEMPTS = 3;
+const WITHDRAWAL_CAPTCHA_ATTEMPTS = 5;
 
 /** Maximum number of attempts to solve a captcha */
 const MAX_CAPTCHA_ATTEMPTS = 10;
