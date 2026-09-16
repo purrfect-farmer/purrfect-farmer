@@ -5,6 +5,7 @@ import CloudTelegramSessionIcon from "@/assets/images/cloud-telegram-session.png
 import LocalTelegramSessionIcon from "@/assets/images/local-telegram-session.png?format=webp&w=80";
 import MyCloudIcon from "@/assets/images/my-cloud.png?format=webp&w=80";
 import ProfileEditorIcon from "@/assets/images/profile-editor.png?format=webp&w=80";
+import QuickLoginIcon from "@/assets/images/quick-login.png?format=webp&w=80";
 import ReorderTelegramWebIcon from "@/assets/images/reorder-telegram-web.png?format=webp&w=80";
 import SpiderIcon from "@/assets/images/spider-logo.png?format=webp&w=80";
 import TelegramCleanerIcon from "@/assets/images/telegram-cleaner.png?format=webp&w=80";
@@ -23,6 +24,7 @@ export const Browser = lazy(() => import("@/app/Browser"));
 export const TelegramWeb = lazy(() => import("@/app/TelegramWeb"));
 export const TelegramCleaner = lazy(() => import("@/app/TelegramCleaner"));
 export const ProfileEditor = lazy(() => import("@/app/ProfileEditor"));
+export const QuickLogin = lazy(() => import("@/app/QuickLogin"));
 export const TinyFly = lazy(() => import("@/app/TinyFly"));
 export const HeadlessPicker = lazy(() => import("@/app/HeadlessPicker"));
 export const BackupAndRestore = lazy(() => import("@/app/BackupAndRestore"));
@@ -108,6 +110,14 @@ export const utils = [
         title: "Profile Editor",
         icon: ProfileEditorIcon,
         component: createElement(ProfileEditor),
+      },
+
+      /** Quick Login */
+      {
+        id: "quick-login",
+        title: "Quick Login",
+        icon: QuickLoginIcon,
+        component: createElement(QuickLogin),
       },
 
       /** Telegram Cleaner */

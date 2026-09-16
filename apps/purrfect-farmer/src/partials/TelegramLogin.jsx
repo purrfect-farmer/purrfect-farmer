@@ -1,5 +1,4 @@
 import toast from "react-hot-toast";
-import useAppContext from "@/hooks/useAppContext";
 import { CgSpinner } from "react-icons/cg";
 import { createTelegramClient } from "@/lib/createTelegramClient";
 import { useCallback } from "react";
@@ -10,13 +9,12 @@ import { useState } from "react";
 import TelegramLoginCodeForm from "./TelegramLoginCodeForm";
 import TelegramLoginPasswordForm from "./TelegramLoginPasswordForm";
 import TelegramLoginPhoneForm from "./TelegramLoginPhoneForm";
+import useAppContext from "@/hooks/useAppContext";
+import useAuthorizedTelegramClient from "@/hooks/useAuthorizedTelegramClient";
 import useMirroredCallback from "@/hooks/useMirroredCallback";
 import useTelegramLoginTokenConfirmMutation from "@/hooks/useTelegramLoginTokenConfirmMutation";
 import useTelegramLoginTokenMutation from "@/hooks/useTelegramLoginTokenMutation";
-import { cn, postPortMessage } from "@/utils";
-import { MemorySession } from "telegram/sessions";
-import { TelegramClient } from "telegram";
-import { AuthKey } from "telegram/crypto/AuthKey";
+import { cn } from "@/utils";
 import { NewMessage, NewMessageEvent } from "telegram/events";
 import { HiBolt } from "react-icons/hi2";
 import {
@@ -24,52 +22,6 @@ import {
   finalizeLoginToken,
   requestLoginToken,
 } from "@purrfect/shared/utils/loginToken.js";
-
-/** Create Telegram Client from Session Details */
-const getTelegramClientFromSession = async (details) => {
-  /* Create Session and Client */
-  const session = new MemorySession();
-  const client = new TelegramClient(
-    session,
-    2496,
-    "8da85b0d5bfe62527e5b244c209159c3",
-    {
-      appVersion: "2.2 K",
-      systemLangCode: "en-US",
-      langCode: "en",
-      deviceModel: navigator.userAgent,
-      systemVersion: navigator.platform,
-      useWSS: true,
-    },
-  );
-
-  /* Get DC Info */
-  const info = await client.getDC(details.dcId);
-  console.log("DC Info:", info);
-
-  /* Set Auth Key */
-  const authKeyHex = details[`dc${info.id}_auth_key`];
-  const authKey = new AuthKey();
-  authKey.setKey(Buffer.from(authKeyHex, "hex"));
-
-  /* Set Session Details */
-  session.setDC(info.id, info.ipAddress, info.port);
-  session.setAuthKey(authKey, info.id);
-
-  /* Connect Client */
-  await client.connect();
-
-  /* Check Authorization */
-  const isAuthorized = await client.isUserAuthorized();
-  console.log("Is Client Authorized?", isAuthorized);
-
-  if (isAuthorized) {
-    return client;
-  } else {
-    await client.destroy();
-    return null;
-  }
-};
 
 /**
  * Get Auth Code from Telegram Messages
@@ -107,8 +59,7 @@ export default function TelegramLogin({
   mode = "cloud",
   storeTelegramSession,
 }) {
-  const { account, telegramClient, messaging, closeTab, setActiveTab } =
-    useAppContext();
+  const { telegramClient } = useAppContext();
   const [stage, setStage] = useState("phone");
   const [tempSession, setTempSession] = useState(null);
   const [phone, setPhone] = useState(null);
@@ -193,66 +144,9 @@ export default function TelegramLogin({
     [setStage, setHandlers, setProcessingResolver],
   );
 
-  /** Close Telegram Web Tabs */
-  const closeTelegramWeb = useCallback(() => {
-    closeTab("telegram-web-k");
-    closeTab("telegram-web-a");
-  }, [closeTab]);
-
-  /** Get Telegram Web Local Storage */
-  const getTelegramWebLocalStorage = useCallback(() => {
-    return new Promise((resolve) => {
-      messaging.handler.once(`port-connected:telegram-web-k`, async (port) => {
-        /** Get Telegram Web Local Storage */
-        const telegramWebLocalStorage = await postPortMessage(port, {
-          action: "get-local-storage",
-        }).then((response) => response.data);
-
-        /** Close Telegram Web */
-        closeTelegramWeb();
-
-        /** Resolve */
-        resolve(telegramWebLocalStorage);
-      });
-
-      /** Open Telegram Web  */
-      setActiveTab("telegram-web-k");
-    });
-  }, [messaging.handler, setActiveTab, closeTelegramWeb]);
-
-  /** Get the already-authorized client from the Telegram Web session */
-  const getAuthorizedClient = useCallback(async () => {
-    /** Close Telegram Web Tabs */
-    await closeTelegramWeb();
-
-    /** Get Data */
-    const currentLocalStorage = await getTelegramWebLocalStorage();
-    console.log(
-      "Current Telegram Web Local Storage Retrieved:",
-      currentLocalStorage,
-    );
-
-    /** Get Account Data */
-    const index = account.index + 1;
-    const webAccount = currentLocalStorage[`account${index}`];
-
-    if (!webAccount) {
-      throw new Error("Telegram Web account was not found.");
-    }
-
-    /* Parse Details */
-    const details = JSON.parse(webAccount);
-    console.log("Web Account Details:", details);
-
-    /* Create Client from Session */
-    const client = await getTelegramClientFromSession(details);
-
-    if (!client) {
-      throw new Error("Failed to create Telegram client from session.");
-    }
-
-    return client;
-  }, [closeTelegramWeb, getTelegramWebLocalStorage, account]);
+  /** Telegram Web is the only authorized client during sign-in, since there is no session yet */
+  const { getClientFromTelegramWeb: getAuthorizedClient } =
+    useAuthorizedTelegramClient();
 
   /**
    * Quick Sign-In
