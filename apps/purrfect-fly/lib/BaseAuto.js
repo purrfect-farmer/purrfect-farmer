@@ -13,7 +13,7 @@ import { prepareMaster } from "@purrfect/shared/lib/auto/transactions.js";
 import utils from "./utils.js";
 
 /** How many queued accounts a cycle lists, to stay under Telegram's limit */
-const ASSIST_QUEUE_PREVIEW = 30;
+const ASSIST_QUEUE_PREVIEW = 100;
 
 /** Where a helper records the withdrawal it last placed for someone else */
 const ASSIST_RECORD_KEY = "assistLastWithdrawal";
