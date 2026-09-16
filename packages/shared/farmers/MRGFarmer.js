@@ -321,7 +321,6 @@ export default class MRGFarmer extends BaseFarmer {
     await this.login();
 
     await this.logAccountInfo();
-    await this.executeTask("Wallet", () => this.syncConnectedWallet());
     await this.executeTask("Level", () => this.unlockAffordableLevel());
     await this.executeTask("Mining", () => this.claimPendingMining());
     await this.executeTask("Tasks", () => this.completeTasks());
@@ -428,13 +427,18 @@ export default class MRGFarmer extends BaseFarmer {
 
   /** Read an address on-chain and bind it to the account */
   async connectWalletAddress(address) {
-    const holding = await this.readOnChainHolding(address);
+    return this.reportWallet(address, await this.readOnChainHolding(address));
+  }
+
+  /** Bind an address at the holding it is reported with, which the drop takes at face value */
+  async reportWallet(address, holding) {
+    const amount = new Decimal(holding);
 
     this.logger.info(
-      `Syncing ${address} at ${this.formatAmount(holding)} MRG...`,
+      `Syncing ${address} at ${this.formatAmount(amount)} MRG...`,
     );
 
-    const result = await this.connectWallet(address, holding.toNumber());
+    const result = await this.connectWallet(address, amount.toNumber());
 
     if (!result?.["success"]) {
       const message = result?.["error"] || "Failed to connect the wallet";
@@ -1143,6 +1147,13 @@ export default class MRGFarmer extends BaseFarmer {
             action: this.refreshHolding.bind(this),
             dispatch: false,
           },
+          {
+            id: "report-balance",
+            icon: "import",
+            title: "Report Balance",
+            action: this.reportBalanceInteractive.bind(this),
+            dispatch: false,
+          },
         ],
       },
       {
@@ -1231,13 +1242,63 @@ export default class MRGFarmer extends BaseFarmer {
     }
   }
 
+  /** Report a holding of your own, prompting for it, since the drop takes the figure as given */
+  async reportBalanceInteractive() {
+    await this.ensureAccountLoaded();
+
+    const address = this.getConnectedWalletAddress();
+
+    if (!address) {
+      this.logger.warn(
+        "No wallet connected. Use the Connect Wallet tool to bind one.",
+      );
+      return;
+    }
+
+    const input = await this.promptInput(
+      "How much MRG should the drop credit?",
+    );
+    const trimmed = (input || "").trim();
+
+    if (!trimmed) {
+      this.logger.warn("No balance provided.");
+      return;
+    }
+
+    let holding;
+
+    try {
+      holding = new Decimal(trimmed);
+    } catch {
+      this.logger.error("Invalid MRG amount:", trimmed);
+      return;
+    }
+
+    if (holding.isNegative()) {
+      this.logger.error("MRG amount must be non-negative");
+      return;
+    }
+
+    const { status } = await this.reportWallet(address, holding);
+
+    if (!status) return;
+
+    const reachableLevel = this.findLevelForHolding(this.getWalletHolding());
+
+    this.logger.keyValue("Reachable Level", reachableLevel);
+    this.logger.keyValue(
+      "Speed",
+      `${this.getSpeedForLevel(reachableLevel)} TH/s`,
+    );
+  }
+
   /** Claim mining on demand */
   async claimMiningInteractive() {
     await this.ensureAccountLoaded();
     await this.claimPendingMining();
   }
 
-  /** Unlock a level, prompting for which one */
+  /** Unlock a level, prompting for which one and leaving the holding to the drop to judge */
   async unlockLevelInteractive() {
     await this.ensureAccountLoaded();
 
@@ -1257,11 +1318,11 @@ export default class MRGFarmer extends BaseFarmer {
     this.logger.keyValue("Required Holding", this.formatAmount(required));
     this.logger.keyValue("Your Holding", this.formatAmount(holding));
 
+    /** Reported rather than refused, so a level can be tried whatever the holding reads */
     if (holding.lessThan(required)) {
       this.logger.warn(
-        `${this.formatAmount(required.minus(holding))} MRG short of level ${level}.`,
+        `${this.formatAmount(required.minus(holding))} MRG short of level ${level}, asking anyway.`,
       );
-      return;
     }
 
     const result = await this.unlockLevel(level);
