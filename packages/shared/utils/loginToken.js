@@ -8,13 +8,7 @@ export const TELEGRAM_API_HASH = "8da85b0d5bfe62527e5b244c209159c3";
 /** How many times to re-export while waiting for the token to be accepted */
 const FINALIZE_ATTEMPTS = 5;
 
-/**
- * Export a login token.
- *
- * Returns the raw result, which may be a `LoginToken` (not yet accepted), a
- * `LoginTokenSuccess` (accepted) or a `LoginTokenMigrateTo` (accepted, but the
- * authorization lives on another DC).
- *
+/** Export a login token, raw: a `LoginToken`, a `LoginTokenSuccess` or a `LoginTokenMigrateTo`
  * @param {import("telegram").TelegramClient} client
  */
 export function exportLoginToken(client) {
@@ -27,9 +21,7 @@ export function exportLoginToken(client) {
   );
 }
 
-/**
- * Export a fresh login token, asserting the client is still unauthorized.
- *
+/** Export a fresh login token, asserting the client is still unauthorized
  * @param {import("telegram").TelegramClient} client
  * @returns {Promise<Api.auth.LoginToken>}
  */
@@ -43,11 +35,7 @@ export async function requestLoginToken(client) {
   return result;
 }
 
-/**
- * Accept a login token using an already-authorized client.
- *
- * This is the server-side equivalent of scanning the QR code.
- *
+/** Accept a login token on an authorized client, the equivalent of scanning the QR code
  * @param {import("telegram").TelegramClient} authorizedClient
  * @param {Buffer} token
  */
@@ -55,15 +43,11 @@ export function acceptLoginToken(authorizedClient, token) {
   return authorizedClient.invoke(new Api.auth.AcceptLoginToken({ token }));
 }
 
-/**
- * Re-export the login token to collect the authorization.
- *
- * Handles acceptance not having propagated yet, DC migration and 2FA.
- *
+/** Re-export the token to collect the authorization, through propagation, DC migration and 2FA
  * @param {import("telegram").TelegramClient} client
  * @param {object} options
- * @param {(attempt: number) => Promise<string|null>} [options.getPassword]
- *   Resolves the next 2FA password candidate, or `null` when exhausted.
+ * @param {(attempt: number) => Promise<string|null>} [options.getPassword] - the next 2FA
+ *   password candidate, or `null` when exhausted.
  */
 export async function finalizeLoginToken(client, { getPassword } = {}) {
   return _finalize(client, getPassword, 0);
