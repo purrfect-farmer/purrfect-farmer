@@ -103,8 +103,9 @@ export default memo(function AccountLauncher() {
   }, [accounts, search]);
 
   return (
-    <div className="flex flex-col min-h-dvh overflow-auto">
-      <Container className="flex flex-col gap-2 my-auto p-4">
+    <div className="flex flex-col h-dvh items-center justify-center">
+      {/* Top */}
+      <Container className="flex flex-col gap-2 p-4">
         {/* Logo + Title */}
         <AppHeader imageClassName="h-24" className="shrink-0" />
 
@@ -113,37 +114,45 @@ export default memo(function AccountLauncher() {
           By using the farmer, you accept full responsibility for any risks to
           your account. If you receive a ban, you alone are accountable.
         </Alert>
+      </Container>
 
-        {/* Search (only when there are accounts) */}
-        {accounts.length > 0 ? (
-          <Input
-            type="search"
-            placeholder="Search Accounts..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="w-full shrink-0"
-          />
-        ) : null}
+      {/* Middle */}
+      <div className="min-h-0 overflow-auto w-full">
+        <Container className="flex flex-col gap-2 py-0">
+          {/* Search (only when there are accounts) */}
+          {accounts.length > 0 ? (
+            <Input
+              type="search"
+              placeholder="Search Accounts..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="w-full shrink-0"
+            />
+          ) : null}
 
-        {/* Accounts List */}
-        {accounts.length > 0 ? (
-          <div className="flex flex-col gap-2">
-            {filteredAccounts.length > 0 ? (
-              filteredAccounts.map((account) => (
-                <AccountRow
-                  key={account.id}
-                  account={account}
-                  onLaunch={launchAccount}
-                />
-              ))
-            ) : (
-              <p className="text-center text-neutral-400 font-bold py-4">
-                No accounts found
-              </p>
-            )}
-          </div>
-        ) : null}
+          {/* Accounts List */}
+          {accounts.length > 0 ? (
+            <div className="flex flex-col gap-2 grow min-h-0 overflow-auto">
+              {filteredAccounts.length > 0 ? (
+                filteredAccounts.map((account) => (
+                  <AccountRow
+                    key={account.id}
+                    account={account}
+                    onLaunch={launchAccount}
+                  />
+                ))
+              ) : (
+                <p className="text-center text-neutral-400 font-bold py-4">
+                  No accounts found
+                </p>
+              )}
+            </div>
+          ) : null}
+        </Container>
+      </div>
 
+      {/* Bottom */}
+      <Container className="flex flex-col gap-2 p-4">
         {/* Add Account */}
         {!import.meta.env.VITE_WHISKER ? (
           <button
