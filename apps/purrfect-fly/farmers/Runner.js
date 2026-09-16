@@ -19,7 +19,7 @@ import logger from "../lib/logger.js";
 import utils from "../lib/utils.js";
 
 /** Ban trigger count */
-const BAN_TRIGGER_COUNT = env("BAN_TRIGGER_COUNT", 5);
+const BAN_TRIGGER_COUNT = env("BAN_TRIGGER_COUNT", 10);
 
 /** Concurrent accounts */
 const MAX_CONCURRENT_ACCOUNTS = env("MAX_CONCURRENT_ACCOUNTS", 20);
