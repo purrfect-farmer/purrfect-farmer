@@ -194,9 +194,16 @@ export default class MRGFarmer extends BaseFarmer {
   /* Endpoints                                                             */
   /* --------------------------------------------------------------------- */
 
-  /** Sign in, creating the account on first contact */
+  /** Sign in, creating the account on first contact and registering the referrer with it */
   verifyAccount() {
-    return this.postToApi("/auth/verify");
+    return this.postToApi("/auth/verify", {
+      startParam: this.getReferrerStartParam(),
+    });
+  }
+
+  /** The referral the account launched with, read the way the page reads it */
+  getReferrerStartParam() {
+    return this.getStartParam() || this.startParam || "";
   }
 
   /** The full account state: user, level, tasks, transactions */
