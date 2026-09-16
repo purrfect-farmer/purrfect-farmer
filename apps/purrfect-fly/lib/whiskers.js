@@ -11,6 +11,22 @@ import utils from "./utils.js";
 /** Number of accounts to clone concurrently (kept low to respect flood limits) */
 const CONCURRENCY = 5;
 
+/** Maximum clone attempts per account */
+const MAX_ATTEMPTS = 3;
+
+/** Errors that can never succeed on a retry */
+const PERMANENT_ERRORS = [
+  "Source session is not authorized",
+  "2FA password required but none provided",
+  "2FA failed: no provided password matched",
+  "AUTH_KEY_UNREGISTERED",
+  "AUTH_KEY_DUPLICATED",
+  "SESSION_REVOKED",
+  "SESSION_EXPIRED",
+  "USER_DEACTIVATED",
+  "USER_DEACTIVATED_BAN",
+];
+
 /** Extract candidate 2FA passwords from the comma/space separated input */
 export function parsePasswords(passwords) {
   return String(passwords || "")
@@ -32,13 +48,72 @@ async function upsertSubscription(account, endsAt) {
   }
 }
 
+/** Check if an error is worth retrying */
+function isPermanentError(error) {
+  const message = error?.errorMessage || error?.message || String(error);
+
+  return PERMANENT_ERRORS.some((item) => message.includes(item));
+}
+
+/** Mint a fresh cloud session, retrying transient failures */
+async function cloneEntrySession(entry, passwords) {
+  for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
+    try {
+      return await GramClient.cloneSession(entry.session, { passwords });
+    } catch (error) {
+      logger.error(
+        `Whiskers import - clone failed (attempt ${attempt}/${MAX_ATTEMPTS}):`,
+        entry.title || "(untitled)",
+        error?.message || error,
+      );
+
+      /** Give up early on errors a retry cannot fix */
+      if (isPermanentError(error) || attempt === MAX_ATTEMPTS) {
+        throw error;
+      }
+
+      /** Backoff before the next attempt */
+      await utils.delayForSeconds(attempt * 5);
+    }
+  }
+}
+
+/** Labels for each per-account outcome */
+const STATUS_LABELS = {
+  created: "✅ Created",
+  skipped: "⏭️ Skipped",
+  failed: "❌ Failed",
+};
+
+/** Keep the admin posted as each account lands */
+async function notifyEntryResult(
+  status,
+  { entry, id, message },
+  counters,
+  total,
+) {
+  const done =
+    counters.created.length + counters.skipped.length + counters.failed.length;
+
+  await bot?.sendAdminMessage([
+    `<b>📥 Whiskers Import</b>`,
+    `<i>${STATUS_LABELS[status]}</i>\n`,
+    `<b>Account</b>: ${utils.escapeHtml(entry.title || "(untitled)")}`,
+    `<b>ID</b>: ${id ?? "unknown"}`,
+    ...(message ? [`<b>Error</b>: ${utils.escapeHtml(message)}`] : []),
+    `\n<b>Progress</b>: ${done}/${total}`,
+  ]);
+}
+
 /** Clone a single whiskers entry and onboard the account */
-async function processEntry(entry, passwords, endsAt, counters) {
+async function processEntry(entry, passwords, endsAt, counters, total) {
   let user;
+  let status = "failed";
+  let message = null;
 
   try {
     /** Mint a fresh independent cloud session from the imported one */
-    const cloned = await GramClient.cloneSession(entry.session, { passwords });
+    const cloned = await cloneEntrySession(entry, passwords);
     user = cloned.user;
 
     const id = Number(user?.id);
@@ -75,23 +150,36 @@ async function processEntry(entry, passwords, endsAt, counters) {
       });
 
       counters.created.push(id);
+      status = "created";
     } else {
       counters.skipped.push(id);
+      status = "skipped";
     }
 
     /** Always ensure the subscription reflects the requested end date */
     await upsertSubscription(account, endsAt);
   } catch (error) {
+    status = "failed";
+    message = error?.message || String(error);
+
     logger.error(
       "Whiskers import - failed account:",
       user?.id ?? "(unknown)",
-      error?.message || error,
+      message,
     );
     counters.failed.push({
       id: user?.id ? Number(user.id) : null,
-      message: error?.message || String(error),
+      title: entry.title ?? null,
+      message,
     });
   }
+
+  await notifyEntryResult(
+    status,
+    { entry, id: user?.id ? Number(user.id) : null, message },
+    counters,
+    total,
+  );
 }
 
 /**
@@ -124,7 +212,9 @@ export async function importWhiskersBackup({
 
   for (const chunk of utils.chunkArrayGenerator(entries, CONCURRENCY)) {
     await Promise.all(
-      chunk.map((entry) => processEntry(entry, passwordList, endsAt, counters)),
+      chunk.map((entry) =>
+        processEntry(entry, passwordList, endsAt, counters, entries.length),
+      ),
     );
 
     /** Brief pause between batches */
