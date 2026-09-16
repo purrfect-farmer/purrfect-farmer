@@ -424,6 +424,49 @@ class BaseAuto {
     ]);
   }
 
+  /** Send Boost Summary Notification */
+  sendBoostSummaryNotification(results) {
+    /** What actually left the master, so a run that only connected wallets reads as zero */
+    const boostedAccounts = results.filter((result) =>
+      new Decimal(result.boosted || 0).greaterThan(0),
+    );
+
+    const totalBoosted = boostedAccounts.reduce(
+      (acc, result) => acc.plus(result.boosted),
+      new Decimal(0),
+    );
+
+    /** Only the requests the drop took, since a refusal moved nothing */
+    const withdrawals = results
+      .map((result) => result.withdrawal)
+      .filter((withdrawal) => withdrawal?.status);
+
+    const totalWithdrawn = withdrawals.reduce(
+      (acc, withdrawal) => acc.plus(withdrawal.amount || 0),
+      new Decimal(0),
+    );
+
+    const format = (amount) =>
+      amount.toDecimalPlaces(4, Decimal.ROUND_DOWN).toString();
+
+    return this.sendSummaryNotification(results, [
+      this.formatKeyValue(
+        "Total boosted",
+        `⚡ ${format(totalBoosted)} ${this.token}`,
+      ),
+      this.formatKeyValue("Boosted Accounts", `${boostedAccounts.length}`),
+      ...(this.withdrawAfterBoost
+        ? [
+            this.formatKeyValue(
+              "Total withdrawn",
+              `🤑 ${format(totalWithdrawn)} ${this.token}`,
+            ),
+            this.formatKeyValue("Withdrawn Accounts", `${withdrawals.length}`),
+          ]
+        : []),
+    ]);
+  }
+
   /** Get Summary Counts */
   getSummaryCounts(results) {
     const successful = results.filter(
@@ -731,14 +774,16 @@ class BaseAuto {
 
   /** Process boost for account */
   async processBoost(account, index) {
+    /** An account that never reaches the drop counts as skipped rather than failed */
+
     /** Skip if user ID is not set */
-    if (!account.userId) return;
+    if (!account.userId) return { status: false, skipped: true };
 
     /** Retrieve Cloud Account */
     const cloudAccount = await this.getCloudAccount(account, true);
 
     /** Skip if cloud account is missing */
-    if (!cloudAccount) return;
+    if (!cloudAccount) return { status: false, skipped: true };
 
     /** Decrypt phrase */
     logger.info("Decrypting wallet phrase:", account.address);
@@ -807,8 +852,10 @@ class BaseAuto {
     );
 
     /** Withdraw what the account has now */
+    let withdrawal = null;
+
     if (this.withdrawAfterBoost && status && settled) {
-      await this.processBoostWithdrawal({
+      withdrawal = await this.processBoostWithdrawal({
         cloudAccount,
         runner,
         summary,
@@ -839,6 +886,15 @@ class BaseAuto {
         await this.delayForSafeMinutes();
       }
     }
+
+    return {
+      status,
+      skipped: false,
+      settled: Boolean(settled),
+      /** What left the master, which is nothing when it had nothing to send */
+      boosted: skipped ? new Decimal(0) : jettonAmount,
+      withdrawal,
+    };
   }
 
   /** Apply mode */
@@ -924,6 +980,9 @@ class BaseAuto {
           ]);
         }
 
+        /** Results, rebuilt on every repeated pass */
+        const results = [];
+
         /** Loop through accounts and boost */
         for (const [index, account] of this.accounts.entries()) {
           if (this.signal.aborted) {
@@ -931,7 +990,11 @@ class BaseAuto {
           }
 
           try {
-            await this.processBoost(account, index);
+            /** Process boost */
+            const result = await this.processBoost(account, index);
+
+            /** Add result to results */
+            if (result) results.push(result);
           } catch (e) {
             if (this.signal.aborted) break;
             throw e;
@@ -947,28 +1010,34 @@ class BaseAuto {
         } else {
           /** Notify about boost completion */
           await this.sendNotification([`✅ ${this.title} - Boost completed.`]);
+        }
 
-          if (this.repeat) {
-            /** Calculate repeat time */
-            const repeatTime = this.utils.dateFns.addHours(
-              new Date(),
-              this.repeatInterval,
-            );
+        /** Notify about summary, which reports what a cancelled pass did get through */
+        await this.sendBoostSummaryNotification(results);
 
-            /** Notify about repeat time */
-            await this.sendNotification([
-              `<i>🔄 ${this.title} - Boosting again at ${repeatTime.toUTCString()}</i>`,
-            ]);
+        /** A cancelled pass does not repeat: the check at the top breaks the loop */
+        if (this.signal.aborted) continue;
 
-            /** Delay for repeat interval in hours */
-            await this.utils.delayForHours(this.repeatInterval, {
-              signal: this.signal,
-              precised: true,
-            });
-          } else {
-            /** Break the loop */
-            break;
-          }
+        if (this.repeat) {
+          /** Calculate repeat time */
+          const repeatTime = this.utils.dateFns.addHours(
+            new Date(),
+            this.repeatInterval,
+          );
+
+          /** Notify about repeat time */
+          await this.sendNotification([
+            `<i>🔄 ${this.title} - Boosting again at ${repeatTime.toUTCString()}</i>`,
+          ]);
+
+          /** Delay for repeat interval in hours */
+          await this.utils.delayForHours(this.repeatInterval, {
+            signal: this.signal,
+            precised: true,
+          });
+        } else {
+          /** Break the loop */
+          break;
         }
       }
     } catch (e) {
@@ -1294,14 +1363,14 @@ class BaseAuto {
 
   /** Withdraw an account in the middle of a boost run */
   async processBoostWithdrawal({ cloudAccount, runner, summary, index }) {
-    if (this.signal.aborted) return;
+    if (this.signal.aborted) return null;
 
     const link = this.formatAccountLink(cloudAccount.id);
     const position = this.formatAccountPosition(index);
 
     /** Nothing to withdraw, so the history is not worth a request */
     if (!this.isWithdrawable(summary)) {
-      return;
+      return null;
     }
 
     try {
@@ -1313,7 +1382,7 @@ class BaseAuto {
         await this.sendNotification([
           `⏩ Skipped <b>(${link})</b> - a withdrawal is still pending ${position}`,
         ]);
-        return;
+        return { status: false, skipped: true, amount: "0" };
       }
 
       /** A flagged history is the drop disputing a payout - leave it alone */
@@ -1321,7 +1390,7 @@ class BaseAuto {
         await this.sendNotification([
           `⏩ Skipped <b>(${link})</b> - it has a flagged withdrawal ${position}`,
         ]);
-        return;
+        return { status: false, skipped: true, amount: "0" };
       }
 
       logger.info("Withdrawing boosted account:", cloudAccount.id);
@@ -1359,8 +1428,10 @@ class BaseAuto {
             : [],
         ),
       );
+
+      return { status, skipped, message, amount };
     } catch (e) {
-      if (this.signal.aborted) return;
+      if (this.signal.aborted) return null;
 
       const errorMessage = e.message || "Unknown error!";
 
@@ -1370,6 +1441,13 @@ class BaseAuto {
         `❌ Failed to withdraw <b>(${link})</b> ${position}`,
         `<i>Error: ${errorMessage}</i>`,
       ]);
+
+      return {
+        status: false,
+        skipped: false,
+        message: errorMessage,
+        amount: "0",
+      };
     }
   }
 
