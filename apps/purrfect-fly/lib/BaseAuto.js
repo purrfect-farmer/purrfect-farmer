@@ -2142,13 +2142,6 @@ class BaseAuto {
         return results;
       }
 
-      if (!available.length) {
-        await this.sendNotification([
-          `⏩ ${this.title} - no verified account is free this cycle. ${candidates.length} account(s) waiting.`,
-        ]);
-        return results;
-      }
-
       /** The order they will be worked through, the richest pool first */
       await this.sendNotification([
         `📋 ${this.title} - Queue:`,
@@ -2164,6 +2157,13 @@ class BaseAuto {
           ? [`<i>...and ${candidates.length - ASSIST_QUEUE_PREVIEW} more.</i>`]
           : []),
       ]);
+
+      if (!available.length) {
+        await this.sendNotification([
+          `⏩ ${this.title} - no verified account is free this cycle. ${candidates.length} account(s) waiting.`,
+        ]);
+        return results;
+      }
 
       await this.sendNotification([
         `⏳ ${this.title} - Assisting ${candidates.length} account(s) through ${available.length} verified account(s)...`,
