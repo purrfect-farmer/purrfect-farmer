@@ -2,6 +2,7 @@ import AdsGramClient from "../lib/AdsGramClient.js";
 import BaseFarmer from "../lib/BaseFarmer.js";
 import Decimal from "decimal.js";
 import {
+  fetchTonApi,
   getJettonBalance,
   getWalletAddressFromMnemonic,
 } from "../lib/auto/wallet.js";
@@ -104,6 +105,17 @@ const DAILY_OUTPUT_PER_THS = 25;
 
 /** What level 1 mines per day, before any holding */
 const LEVEL_ONE_DAILY_OUTPUT = 5;
+
+/** The Genesis NFT collection the drop discounts withdrawals for */
+const GENESIS_NFT_COLLECTION =
+  "EQAwe5pFTrqv-sLqHQW8OzZ-COA2dpuxPM_dziNBGZZc1ixS";
+
+/** What one NFT of each rarity takes off the fee, in percent */
+const NFT_RARITY_DISCOUNTS = { mythical: 35, rare: 20, common: 10 };
+
+/** Any three NFTs discount more than the rarest of them on its own */
+const NFT_BUNDLE_SIZE = 3;
+const NFT_BUNDLE_DISCOUNT = 50;
 
 /** The drop's withdrawal rules */
 const MINIMUM_WITHDRAWAL = 500;
@@ -284,6 +296,7 @@ export default class MRGFarmer extends BaseFarmer {
   async load() {
     this.taskClaims = (await this.storage?.get("taskClaims")) || {};
     this.connectedWalletVersion = await this.storage?.get("walletVersion");
+    this.nftHoldings = null;
   }
 
   /** Persist data */
@@ -382,6 +395,16 @@ export default class MRGFarmer extends BaseFarmer {
       },
     );
 
+    const discountPercent = await this.readNftDiscountPercent();
+
+    if (discountPercent) {
+      this.logger.keyValue(
+        "Genesis NFTs",
+        `${this.countNftHoldings(await this.readNftHoldings())} (${discountPercent}% off the fee)`,
+        { valueStyle: this.logger.c.greenBright },
+      );
+    }
+
     if (this.isAccountBanned(user)) {
       this.logger.keyValue("Banned", user["banReason"] || "Yes", {
         valueStyle: this.logger.c.redBright,
@@ -411,7 +434,7 @@ export default class MRGFarmer extends BaseFarmer {
     return new Decimal(this.account_data?.user?.["tonWalletBalance"] || 0);
   }
 
-  /** Re-read the connected wallet on-chain and send it to the drop */
+  /** Re-read the connected wallet on-chain and send it to the drop, which re-reads it too */
   async syncConnectedWallet() {
     const address = this.getConnectedWalletAddress();
 
@@ -433,6 +456,11 @@ export default class MRGFarmer extends BaseFarmer {
   /** Bind an address at the holding it is reported with, which the drop takes at face value */
   async reportWallet(address, holding) {
     const amount = new Decimal(holding);
+
+    /** A different wallet holds different NFTs */
+    if (address !== this.getConnectedWalletAddress()) {
+      this.nftHoldings = null;
+    }
 
     this.logger.info(
       `Syncing ${address} at ${this.formatAmount(amount)} MRG...`,
@@ -469,6 +497,112 @@ export default class MRGFarmer extends BaseFarmer {
   /** Whether an address is one the drop will accept */
   validateWalletAddress(address) {
     return TON_ADDRESS_PATTERN.test(String(address || "").trim());
+  }
+
+  /* --------------------------------------------------------------------- */
+  /* Genesis NFTs                                                          */
+  /* --------------------------------------------------------------------- */
+
+  /** The account's Genesis NFTs, read once per run */
+  async readNftHoldings(address = this.getConnectedWalletAddress()) {
+    if (!address) return [];
+    if (this.nftHoldings) return this.nftHoldings;
+
+    return (this.nftHoldings = await this.fetchNftHoldings(address));
+  }
+
+  /** Ask TonAPI for the address' Genesis NFTs, grouped by rarity */
+  async fetchNftHoldings(address) {
+    const response = await fetchTonApi(
+      `/accounts/${address}/nfts?collection=${GENESIS_NFT_COLLECTION}`,
+      { signal: this.signal },
+    ).catch((error) => {
+      this.logger.warn("Failed to read NFTs on-chain:", error.message);
+      return null;
+    });
+
+    const holdings = new Map();
+
+    for (const item of response?.data?.["nft_items"] || []) {
+      const rarity = this.getNftRarity(item);
+      const holding = holdings.get(rarity);
+
+      if (holding) {
+        holding.quantity += 1;
+      } else {
+        holdings.set(rarity, {
+          name: rarity.charAt(0).toUpperCase() + rarity.slice(1),
+          type: rarity,
+          quantity: 1,
+        });
+      }
+    }
+
+    return [...holdings.values()];
+  }
+
+  /** An NFT's rarity, from its `Rarity` attribute or, failing that, its name */
+  getNftRarity(item) {
+    const attributes = item?.["metadata"]?.["attributes"];
+    const attribute = Array.isArray(attributes)
+      ? attributes.find((entry) => entry["trait_type"] === "Rarity")?.["value"]
+      : null;
+
+    const rarity = String(
+      attribute || item?.["metadata"]?.["name"] || "",
+    ).toLowerCase();
+
+    if (rarity.includes("mythic")) return "mythical";
+    if (rarity.includes("rare")) return "rare";
+
+    return "common";
+  }
+
+  /** How many NFTs the holdings add up to */
+  countNftHoldings(holdings) {
+    return (holdings || []).reduce(
+      (total, holding) => total + (holding.quantity || 0),
+      0,
+    );
+  }
+
+  /** What the holdings take off the withdrawal fee, in percent */
+  getNftDiscountPercent(holdings) {
+    if (!holdings?.length) return 0;
+
+    /** Any three earn more together than the rarest of them earns alone */
+    if (this.countNftHoldings(holdings) >= NFT_BUNDLE_SIZE) {
+      return NFT_BUNDLE_DISCOUNT;
+    }
+
+    return holdings.reduce(
+      (best, holding) =>
+        holding.quantity > 0
+          ? Math.max(best, NFT_RARITY_DISCOUNTS[holding.type] || 0)
+          : best,
+      0,
+    );
+  }
+
+  /** The discount the account's NFTs earn it */
+  async readNftDiscountPercent() {
+    return this.getNftDiscountPercent(await this.readNftHoldings());
+  }
+
+  /** The withdrawal fee once the NFT discount is applied */
+  getWithdrawalFee(discountPercent = 0) {
+    const fee = new Decimal(WITHDRAWAL_FEE);
+
+    return Decimal.max(fee.minus(fee.mul(discountPercent).div(100)), 0);
+  }
+
+  /** Whether the account is on the raised withdrawal ceiling */
+  isPrivilegedAccount(discountPercent = 0) {
+    return (
+      Boolean(this.getAccountDetails()["isNftHolder"]) ||
+      discountPercent > 0 ||
+      this.getWalletHolding().greaterThanOrEqualTo(PRIVILEGED_HOLDING)
+    );
   }
 
   /* --------------------------------------------------------------------- */
@@ -866,13 +1000,8 @@ export default class MRGFarmer extends BaseFarmer {
   }
 
   /** The most one request may carry, which the drop lifts for a Genesis NFT or a thousand MRG held */
-  getWithdrawalLimit() {
-    const user = this.getAccountDetails();
-    const isPrivileged =
-      Boolean(user["isNftHolder"]) ||
-      this.getWalletHolding().greaterThanOrEqualTo(PRIVILEGED_HOLDING);
-
-    return isPrivileged
+  getWithdrawalLimit(discountPercent = 0) {
+    return this.isPrivilegedAccount(discountPercent)
       ? PRIVILEGED_WITHDRAWAL_LIMIT
       : STANDARD_WITHDRAWAL_LIMIT;
   }
@@ -930,8 +1059,11 @@ export default class MRGFarmer extends BaseFarmer {
     /** Log balance */
     this.logger.info("Available balance:", balance.toString());
 
+    /** The NFTs the wallet holds decide both the ceiling and the fee */
+    const discountPercent = await this.readNftDiscountPercent();
+
     /** Initial amount to withdraw */
-    let amount = Decimal.min(balance, this.getWithdrawalLimit());
+    let amount = Decimal.min(balance, this.getWithdrawalLimit(discountPercent));
 
     /** Cap to max */
     if (max) {
@@ -971,7 +1103,10 @@ export default class MRGFarmer extends BaseFarmer {
       this.logger.keyValue("Destination", destinationAddress);
       this.logger.keyValue(
         "To be received",
-        Decimal.max(amount.minus(WITHDRAWAL_FEE), 0).toString(),
+        Decimal.max(
+          amount.minus(this.getWithdrawalFee(discountPercent)),
+          0,
+        ).toString(),
       );
 
       /** Notify the admin, but only when the run was initiated by the scheduler */
@@ -1002,6 +1137,7 @@ export default class MRGFarmer extends BaseFarmer {
     await this.ensureAccountLoaded();
 
     const pending = this.getPendingWithdrawals();
+    const discountPercent = await this.readNftDiscountPercent();
 
     this.logger.newline();
     this.logCurrentUser();
@@ -1010,8 +1146,22 @@ export default class MRGFarmer extends BaseFarmer {
       this.formatAmount(this.getAccountDetails()["inAppBalance"]),
     );
     this.logger.keyValue("Minimum", this.getMinimumWithdrawal());
-    this.logger.keyValue("Limit", this.getWithdrawalLimit());
-    this.logger.keyValue("Fee", WITHDRAWAL_FEE);
+    this.logger.keyValue("Limit", this.getWithdrawalLimit(discountPercent));
+    this.logger.keyValue(
+      "Fee",
+      this.formatAmount(this.getWithdrawalFee(discountPercent)),
+      {
+        valueStyle: discountPercent
+          ? this.logger.c.greenBright
+          : this.logger.c.yellowBright,
+      },
+    );
+
+    if (discountPercent) {
+      this.logger.keyValue("NFT Discount", `${discountPercent}%`, {
+        valueStyle: this.logger.c.greenBright,
+      });
+    }
     this.logger.keyValue("Pending Withdrawals", pending.length, {
       valueStyle: pending.length
         ? this.logger.c.yellowBright
@@ -1078,15 +1228,14 @@ export default class MRGFarmer extends BaseFarmer {
     return this.claimPendingMining();
   }
 
-  /** Re-read the account afresh, syncing the wallet first since that is what re-reads the holding on-chain */
+  /** Re-read the account, without the wallet sync that makes the drop re-read the chain */
   async refreshAutoSummary() {
-    await this.syncConnectedWallet();
     await this.loadAccount();
 
     return this.getAutoSummary();
   }
 
-  /** Put the account to work at the holding it now has, unlocking the level a boost just paid for */
+  /** Put the account to work at the holding a boost just sent it */
   async startAutoMining() {
     await this.syncConnectedWallet();
     await this.unlockAffordableLevel();
@@ -1152,6 +1301,13 @@ export default class MRGFarmer extends BaseFarmer {
             icon: "import",
             title: "Report Balance",
             action: this.reportBalanceInteractive.bind(this),
+            dispatch: false,
+          },
+          {
+            id: "nft-holdings",
+            icon: "search",
+            title: "NFT Holdings",
+            action: this.logNftHoldings.bind(this),
             dispatch: false,
           },
         ],
@@ -1290,6 +1446,55 @@ export default class MRGFarmer extends BaseFarmer {
       "Speed",
       `${this.getSpeedForLevel(reachableLevel)} TH/s`,
     );
+  }
+
+  /** Log the account's Genesis NFTs and what they are worth at withdrawal */
+  async logNftHoldings() {
+    await this.ensureAccountLoaded();
+
+    const address = this.getConnectedWalletAddress();
+
+    if (!address) {
+      this.logger.warn(
+        "No wallet connected. Use the Connect Wallet tool to bind one.",
+      );
+      return;
+    }
+
+    /** Read afresh, since the tool is how a new NFT is checked for */
+    this.nftHoldings = null;
+
+    const holdings = await this.readNftHoldings(address);
+    const discountPercent = this.getNftDiscountPercent(holdings);
+
+    this.logger.newline();
+    this.logger.keyValue("Wallet", address);
+    this.logger.keyValue("Genesis NFTs", this.countNftHoldings(holdings), {
+      valueStyle: holdings.length
+        ? this.logger.c.greenBright
+        : this.logger.c.yellowBright,
+    });
+
+    for (const holding of holdings) {
+      this.logger.keyValue(holding.name, holding.quantity);
+    }
+
+    this.logger.newline();
+    this.logger.keyValue("Fee Discount", `${discountPercent}%`);
+    this.logger.keyValue(
+      "Withdrawal Fee",
+      this.formatAmount(this.getWithdrawalFee(discountPercent)),
+    );
+    this.logger.keyValue(
+      "Withdrawal Limit",
+      this.getWithdrawalLimit(discountPercent),
+    );
+    this.logger.keyValue(
+      "Drop sees an NFT holder",
+      this.getAccountDetails()["isNftHolder"] ? "Yes" : "No",
+    );
+
+    return { holdings, discountPercent };
   }
 
   /** Claim mining on demand */
