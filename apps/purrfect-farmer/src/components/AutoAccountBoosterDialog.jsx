@@ -7,6 +7,7 @@ import AutoBoosterBoostTab from "./AutoBoosterBoostTab";
 import AutoBoosterCollectTab from "./AutoBoosterCollectTab";
 import AutoBoosterDetailsTab from "./AutoBoosterDetailsTab";
 import AutoBoosterWithdrawTab from "./AutoBoosterWithdrawTab";
+import AutoDropVerifiedBadge from "./AutoDropVerifiedBadge";
 import AutoVerifiedBadge from "./AutoVerifiedBadge";
 import AutoVersionBadge from "./AutoVersionBadge";
 import { HiOutlineXMark } from "react-icons/hi2";
@@ -48,6 +49,7 @@ function BoosterHeader({ account }) {
         <Dialog.Title className="font-bold text-sm truncate flex items-center gap-1">
           {account.title}
           <AutoVerifiedBadge verified={account.verified} />
+          <AutoDropVerifiedBadge account={account} />
         </Dialog.Title>
 
         {/* Description */}

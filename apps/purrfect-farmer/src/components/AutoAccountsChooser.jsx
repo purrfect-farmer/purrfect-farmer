@@ -7,13 +7,19 @@ import {
 import { memo, useMemo } from "react";
 
 import AutoAccountBalance from "./AutoAccountBalance";
+import AutoAccountDetailsDialog from "./AutoAccountDetailsDialog";
+import AutoAccountSnapshot from "./AutoAccountSnapshot";
 import AutoAddress from "./AutoAddress";
+import AutoDropVerifiedBadge from "./AutoDropVerifiedBadge";
 import AutoAvatar from "./AutoAvatar";
 import AutoVerifiedBadge from "./AutoVerifiedBadge";
 import AutoVersionBadge from "./AutoVersionBadge";
+import { Dialog } from "radix-ui";
+import FarmerStatusDot from "./FarmerStatusDot";
 import Input from "./Input";
 import { cn } from "@/utils";
 import { searchAutoAccount } from "@purrfect/shared/lib/auto/wallet";
+import { useAutoCloudSnapshot } from "@/hooks/useAutoCloudSnapshotsQuery";
 import { useState } from "react";
 
 function getInitials(title) {
@@ -52,54 +58,86 @@ const AccountChooserItem = memo(function AccountChooserItem({
 }) {
   const initials = useMemo(() => getInitials(account.title), [account.title]);
   const hasResult = typeof result !== "undefined";
+  const [detailsOpen, setDetailsOpen] = useState(false);
+
+  /** Only meaningful for an account this drop already farms */
+  const { row } = useAutoCloudSnapshot(showBalance ? account.userId : null);
 
   return (
-    <label
+    <div
       className={cn(
         "flex items-center gap-2 p-2 rounded-xl",
         "bg-neutral-100 dark:bg-neutral-700",
-        "cursor-pointer",
         disabled && "opacity-60",
       )}
     >
-      {/* Result icon or Checkbox */}
-      {hasResult ? (
-        <ResultIcon result={result} />
-      ) : (
-        <input
-          type="checkbox"
-          checked={checked}
-          disabled={disabled}
-          onChange={(e) => toggleAccount(account, e.target.checked)}
-          className="size-4 shrink-0 accent-orange-500"
-        />
-      )}
+      <label className="flex items-center gap-2 grow min-w-0 cursor-pointer">
+        {/* Result icon or Checkbox */}
+        {hasResult ? (
+          <ResultIcon result={result} />
+        ) : (
+          <input
+            type="checkbox"
+            checked={checked}
+            disabled={disabled}
+            onChange={(e) => toggleAccount(account, e.target.checked)}
+            className="size-4 shrink-0 accent-orange-500"
+          />
+        )}
 
-      {/* Avatar */}
-      <AutoAvatar account={account} className="size-8" />
+        {/* Avatar */}
+        <AutoAvatar account={account} className="size-8" />
 
-      {/* Info */}
-      <div className="flex flex-col grow min-w-0">
-        <div className="flex flex-wrap items-center">
-          {/* Title */}
-          <h3 className="font-bold truncate w-full grow min-w-0">
-            {account.title}
-          </h3>
-          {/* Address */}
-          <div className="flex items-center gap-1.5 text-blue-800 dark:text-blue-100">
-            <AutoAddress address={account.address} />
-            <AutoVersionBadge version={account.version} />
-            <AutoVerifiedBadge verified={account.verified} />
+        {/* Info */}
+        <div className="flex flex-col grow min-w-0">
+          <div className="flex flex-wrap items-center">
+            {/* Title */}
+            <h3 className="font-bold truncate w-full grow min-w-0">
+              {account.title}
+            </h3>
+            {/* Address */}
+            <div className="flex items-center gap-1.5 text-blue-800 dark:text-blue-100">
+              <AutoAddress address={account.address} />
+              <AutoVersionBadge version={account.version} />
+              <AutoVerifiedBadge verified={account.verified} />
+              {showBalance ? <AutoDropVerifiedBadge account={account} /> : null}
+              <FarmerStatusDot status={row?.status} />
+            </div>
           </div>
+          {showBalance ? (
+            <>
+              <AutoAccountBalance account={account} />
+
+              {/* What the drop last said about it */}
+              <AutoAccountSnapshot account={account} />
+            </>
+          ) : null}
         </div>
-        {showBalance ? <AutoAccountBalance account={account} /> : null}
-      </div>
-    </label>
+      </label>
+
+      {/* Details, outside the label so the click does not toggle the account */}
+      {showBalance ? (
+        <Dialog.Root open={detailsOpen} onOpenChange={setDetailsOpen}>
+          <Dialog.Trigger
+            className={cn(
+              "text-neutral-500 dark:text-neutral-400",
+              "hover:bg-neutral-300 dark:hover:bg-neutral-500",
+              "hover:text-black dark:hover:text-white",
+              "p-1.5 rounded-lg shrink-0",
+              "cursor-pointer transition-colors",
+            )}
+          >
+            <MdInfo className="size-5" />
+          </Dialog.Trigger>
+          <AutoAccountDetailsDialog account={account} />
+        </Dialog.Root>
+      ) : null}
+    </div>
   );
 });
 
 /**
- * @param {boolean} [props.showBalance] - false for accounts not in this drop yet, whose balance query would hit the wrong jetton
+ * @param {boolean} [props.showBalance] - false for accounts not in this drop yet, whose balance and snapshot would belong to another drop
  * @param {boolean} [props.autoFocusSearch] - false when another chooser or field should hold focus first
  */
 export default function AutoAccountsChooser({

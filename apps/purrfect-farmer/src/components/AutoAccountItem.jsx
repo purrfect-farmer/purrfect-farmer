@@ -5,13 +5,17 @@ import { memo, useState } from "react";
 import AutoAccountBalance from "./AutoAccountBalance";
 import AutoAccountBoosterDialog from "./AutoAccountBoosterDialog";
 import AutoAccountDetailsDialog from "./AutoAccountDetailsDialog";
+import AutoAccountSnapshot from "./AutoAccountSnapshot";
 import AutoAddress from "./AutoAddress";
+import AutoDropVerifiedBadge from "./AutoDropVerifiedBadge";
 import AutoAvatar from "./AutoAvatar";
 import AutoEditAccountDialog from "./AutoEditAccountDialog";
 import AutoVerifiedBadge from "./AutoVerifiedBadge";
 import AutoVersionBadge from "./AutoVersionBadge";
+import FarmerStatusDot from "./FarmerStatusDot";
 import { Dialog } from "radix-ui";
 import { cn } from "@/utils";
+import { useAutoCloudSnapshot } from "@/hooks/useAutoCloudSnapshotsQuery";
 
 const ActionButton = (props) => (
   <button
@@ -34,6 +38,8 @@ export default memo(function AutoAccountItem({
   onDelete,
 }) {
   const dragControls = useDragControls();
+  const { row } = useAutoCloudSnapshot(account.userId);
+  const farmerStatus = row?.status;
 
   const [editOpen, setEditOpen] = useState(false);
   const [detailsOpen, setDetailsOpen] = useState(false);
@@ -83,11 +89,16 @@ export default memo(function AutoAccountItem({
               <AutoAddress address={account.address} />
               <AutoVersionBadge version={account.version} />
               <AutoVerifiedBadge verified={account.verified} />
+              <AutoDropVerifiedBadge account={account} />
+              <FarmerStatusDot status={farmerStatus} />
             </div>
           </div>
 
           {/* Balance */}
           <AutoAccountBalance account={account} />
+
+          {/* What the drop last said about it */}
+          <AutoAccountSnapshot account={account} />
         </button>
 
         {/* Edit button */}
