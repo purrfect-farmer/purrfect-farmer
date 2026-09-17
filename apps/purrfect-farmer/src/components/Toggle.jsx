@@ -3,7 +3,12 @@ import { memo } from "react";
 
 export default memo(function Toggle({ className, ...props }) {
   return (
-    <>
+    <span
+      className={cn(
+        "inline-flex relative items-center justify-center",
+        className,
+      )}
+    >
       <input {...props} type="checkbox" className="sr-only peer" />
       <div
         className={cn(
@@ -18,9 +23,9 @@ export default memo(function Toggle({ className, ...props }) {
           "before:inline-block before:h-4 before:w-4",
           "before:transform before:transition",
           "before:rounded-full",
-          "before:bg-neutral-400 peer-checked:before:bg-white"
+          "before:bg-neutral-400 peer-checked:before:bg-white",
         )}
       />
-    </>
+    </span>
   );
 });
