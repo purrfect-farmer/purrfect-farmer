@@ -18,6 +18,9 @@ const ASSIST_QUEUE_PREVIEW = 100;
 /** Where a helper records the withdrawal it last placed for someone else */
 const ASSIST_RECORD_KEY = "assistLastWithdrawal";
 
+/** Where a helper keeps the last withdrawal it saw settled for someone else */
+const ASSIST_HELPED_KEY = "assistLastHelped";
+
 /** Shared by every sender, since none of these messages wants a preview */
 const NOTIFICATION_OPTIONS = {
   ["link_preview_options"]: {
@@ -2014,6 +2017,19 @@ class BaseAuto {
     }
   }
 
+  /** Keep who a helper last withdrew for, since the in-flight record is cleared on settlement */
+  async recordLastHelped(runner, helper, record) {
+    try {
+      await runner.storage.set(ASSIST_HELPED_KEY, record);
+    } catch (error) {
+      logger.error(
+        "Failed to record the last assisted account:",
+        helper.userId,
+        error.message,
+      );
+    }
+  }
+
   /** Forget what a helper was carrying, once the drop has settled it */
   async clearAssistWithdrawal(runner, helper) {
     try {
@@ -2079,6 +2095,10 @@ class BaseAuto {
       /** Free again, so whatever it was carrying has been settled */
       if (record) {
         await this.announceAssistSettlement(helper, record);
+        await this.recordLastHelped(entry.runner, helper, {
+          ...record,
+          settledAt: Date.now(),
+        });
         await this.clearAssistWithdrawal(entry.runner, helper);
       }
 
@@ -2443,6 +2463,44 @@ class BaseAuto {
       interval: instance?.assistInterval || null,
       vault: summarizeVault(this.id),
     };
+  }
+
+  /** What every account this server farms for the drop last looked like, from the stored snapshots */
+  static async snapshots() {
+    const rows = await db.Farmer.findAll({
+      where: { farmer: this.farmerId },
+      attributes: [
+        "id",
+        "accountId",
+        "status",
+        "frozenUntil",
+        "errorCount",
+        "storage",
+      ],
+      include: [
+        {
+          required: true,
+          association: "account",
+          attributes: ["id", "options"],
+        },
+      ],
+    });
+
+    return rows.map((row) => ({
+      /** A string, since the UI holds the Telegram id as one */
+      id: String(row.account.id),
+      status: row.status,
+      frozenUntil: row.frozenUntil,
+      errorCount: row.errorCount,
+      farming: row.account.farmingEnabled,
+      snapshot: row.storage?.["autoSnapshot"] || null,
+
+      /** What it is carrying now, and who it last withdrew for */
+      assist: {
+        pending: row.storage?.[ASSIST_RECORD_KEY] || null,
+        last: row.storage?.[ASSIST_HELPED_KEY] || null,
+      },
+    }));
   }
 }
 

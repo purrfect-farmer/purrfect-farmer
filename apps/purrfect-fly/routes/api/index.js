@@ -412,6 +412,22 @@ export default async function (fastify, opts) {
     },
   );
 
+  /** Auto - Snapshots, every account's last known state in one query */
+  fastify.post(
+    "/auto/:drop/snapshots",
+    { preHandler: autoPreHandler, schema: authSchema },
+    async function (request, reply) {
+      const { drop } = request.params;
+      const Auto = autos[drop];
+
+      if (!Auto) {
+        return reply.notFound(`Unknown auto: ${drop}`);
+      }
+
+      return Auto.snapshots();
+    },
+  );
+
   /** Auto - Get Active List */
   fastify.post(
     "/auto/:drop/get-active-list",
