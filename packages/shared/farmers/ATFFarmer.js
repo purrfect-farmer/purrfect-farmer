@@ -1583,6 +1583,7 @@ export default class ATFFarmer extends BaseFarmer {
       ["Per Minute", new Decimal(1).div(1440)],
       ["Per Hour", new Decimal(1).div(24)],
       ["Per Day", new Decimal(1)],
+      ["Per 3 Days", new Decimal(3)],
       ["Per Week (7d)", new Decimal(7)],
       ["Per Month (30d)", new Decimal(30)],
     ];
