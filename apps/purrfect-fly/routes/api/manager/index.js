@@ -296,7 +296,7 @@ export default async function (fastify, opts) {
       { schema: farmerSchema },
       async (request) => {
         await fastify.db.Farmer.update(
-          { status: "active", errorCount: 0 },
+          { status: "active", errorCount: 0, frozenUntil: null },
           { where: { id: request.body.id } },
         );
       },
@@ -324,7 +324,7 @@ export default async function (fastify, opts) {
         }
 
         /** Update the instance status */
-        await dbFarmer.update({ status: "inactive" });
+        await dbFarmer.update({ status: "inactive", frozenUntil: null });
       },
     );
 
@@ -350,7 +350,7 @@ export default async function (fastify, opts) {
         }
 
         /** Update the instance status */
-        await dbFarmer.update({ status: "frozen" });
+        await dbFarmer.update({ status: "frozen", frozenUntil: null });
       },
     );
 

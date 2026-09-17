@@ -91,6 +91,7 @@ export default (sequelize, DataTypes) => {
       options: DataTypes.JSON,
       storage: DataTypes.JSON,
       referralLink: DataTypes.STRING,
+      frozenUntil: DataTypes.DATE,
     },
     {
       sequelize,

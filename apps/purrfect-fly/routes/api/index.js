@@ -129,7 +129,7 @@ export default async function (fastify, opts) {
       const { account } = request;
 
       await fastify.db.Farmer.update(
-        { status: "active", errorCount: 0 },
+        { status: "active", errorCount: 0, frozenUntil: null },
         {
           where: { id: request.body.id, accountId: account.id },
         },
@@ -163,7 +163,7 @@ export default async function (fastify, opts) {
       }
 
       /** Update the instance status */
-      await dbFarmer.update({ status: "inactive" });
+      await dbFarmer.update({ status: "inactive", frozenUntil: null });
     },
   );
 
@@ -193,7 +193,7 @@ export default async function (fastify, opts) {
       }
 
       /** Update the instance status */
-      await dbFarmer.update({ status: "frozen" });
+      await dbFarmer.update({ status: "frozen", frozenUntil: null });
     },
   );
 
@@ -259,6 +259,7 @@ export default async function (fastify, opts) {
           await farmer.update({
             status: "active",
             errorCount: 0,
+            frozenUntil: null,
             farmer: request.body.farmer,
             headers: request.body.headers || {},
             cookies: request.body.cookies || [],
@@ -277,6 +278,7 @@ export default async function (fastify, opts) {
           await account.createFarmer({
             status: "active",
             errorCount: 0,
+            frozenUntil: null,
             farmer: request.body.farmer,
             headers: request.body.headers || {},
             cookies: request.body.cookies || [],

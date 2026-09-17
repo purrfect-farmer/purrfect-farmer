@@ -639,9 +639,17 @@ class BaseAuto {
         try {
           /** Set farmer status */
           if (runner.farmer) {
-            runner.farmer.status = this.shouldFreezeAccounts()
-              ? "frozen"
-              : "active";
+            const freeze = this.shouldFreezeAccounts();
+
+            /** The drop reports when mining freezes, which is when the account is due back */
+            const freezesAt = Number(minedSummary?.mining?.freezesAt) || 0;
+
+            runner.farmer.status = freeze ? "frozen" : "active";
+
+            /** No reported window means the freeze stays indefinite */
+            runner.farmer.frozenUntil =
+              freeze && freezesAt ? new Date(freezesAt * 1000) : null;
+
             await runner.farmer.save();
           }
 
@@ -1331,6 +1339,7 @@ class BaseAuto {
       if (runner.farmer && runner.farmer.status !== "active") {
         runner.farmer.status = "active";
         runner.farmer.errorCount = 0;
+        runner.farmer.frozenUntil = null;
         await runner.farmer.save();
       }
     } catch (e) {
