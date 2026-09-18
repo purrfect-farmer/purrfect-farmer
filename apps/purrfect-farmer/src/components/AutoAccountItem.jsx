@@ -102,7 +102,7 @@ export default memo(function AutoAccountItem({
           <AutoAccountSnapshot account={account} />
 
           {/* A freeze ahead, or a withdrawal in flight */}
-          <AutoAccountFlags account={account} className="mt-0.5" />
+          <AutoAccountFlags account={account} />
         </button>
 
         {/* Edit button */}

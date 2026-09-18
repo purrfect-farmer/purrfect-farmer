@@ -68,3 +68,20 @@ export function* chunkArrayGenerator(arr, size) {
     yield arr.slice(i, i + size);
   }
 }
+
+/** Format a span of seconds as its largest parts, e.g. "3d 1h 45m"
+ * @param {number} seconds
+ */
+export function formatDurationParts(seconds) {
+  const total = Math.max(0, Math.floor(seconds));
+  const days = Math.floor(total / 86400);
+  const hours = Math.floor((total % 86400) / 3600);
+  const minutes = Math.floor((total % 3600) / 60);
+
+  const parts = [];
+  if (days) parts.push(`${days}d`);
+  if (hours) parts.push(`${hours}h`);
+  if (minutes || parts.length === 0) parts.push(`${minutes}m`);
+
+  return parts.join(" ");
+}

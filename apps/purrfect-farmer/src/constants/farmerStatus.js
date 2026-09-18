@@ -28,5 +28,22 @@ export const FARMER_STATUS_LABELS = {
 export const MINING_FREEZE_COLORS = {
   frozen: "text-violet-500 dark:text-violet-400",
   urgent: "text-amber-500 dark:text-amber-400",
-  distant: "text-neutral-500 dark:text-neutral-400",
+  distant: "text-blue-500 dark:text-blue-300",
+};
+
+/** The tint a mining freeze reads in, shared by every place that shows one
+ * @param {{ frozen: boolean, msUntilFreeze: number|null, urgent: boolean }|null} freeze
+ */
+export const getMiningFreezeColor = (freeze) => {
+  if (!freeze) return null;
+
+  if (freeze.frozen) return MINING_FREEZE_COLORS.frozen;
+
+  /** A deadline already behind us is as urgent as one about to land */
+  const deadlinePassed =
+    freeze.msUntilFreeze !== null && freeze.msUntilFreeze <= 0;
+
+  return deadlinePassed || freeze.urgent
+    ? MINING_FREEZE_COLORS.urgent
+    : MINING_FREEZE_COLORS.distant;
 };

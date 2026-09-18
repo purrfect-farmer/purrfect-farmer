@@ -1,8 +1,9 @@
 import { LuHourglass, LuSnowflake, LuTriangleAlert } from "react-icons/lu";
 
-import { MINING_FREEZE_COLORS } from "@/constants/farmerStatus";
+import { getMiningFreezeColor } from "@/constants/farmerStatus";
 import { cn } from "@/utils";
-import { formatDistanceToNowStrict } from "date-fns";
+import { formatDate } from "date-fns";
+import { formatDurationParts } from "@purrfect/shared/utils/core.js";
 import { getMiningFreeze, getWithdrawals } from "@/lib/autoSnapshot";
 import { useAutoCloudSnapshot } from "@/hooks/useAutoCloudSnapshotsQuery";
 
@@ -12,9 +13,7 @@ const Pill = ({ icon: Icon, children, className, title }) => (
     title={title}
     className={cn(
       "inline-flex items-center gap-0.5",
-      "px-1.5 py-0.5 rounded-full",
-      "bg-neutral-200 dark:bg-neutral-600",
-      "text-[10px] font-bold whitespace-nowrap",
+      "text-xs whitespace-nowrap font-bold",
       className,
     )}
   >
@@ -32,7 +31,7 @@ const FreezePill = ({ freeze }) => {
       <Pill
         icon={LuSnowflake}
         title="Mining is frozen"
-        className={MINING_FREEZE_COLORS.frozen}
+        className={getMiningFreezeColor(freeze)}
       >
         Frozen
       </Pill>
@@ -43,21 +42,15 @@ const FreezePill = ({ freeze }) => {
 
   /** A deadline already behind us means the drop has not been read since */
   const deadlinePassed = freeze.msUntilFreeze <= 0;
-  const freezeDistance = formatDistanceToNowStrict(freeze.freezesAt, {
-    addSuffix: true,
-  });
+  const countdown = formatDurationParts(freeze.msUntilFreeze / 1000);
 
   return (
     <Pill
       icon={LuSnowflake}
-      title={`Mining freezes ${freezeDistance}`}
-      className={
-        deadlinePassed || freeze.urgent
-          ? MINING_FREEZE_COLORS.urgent
-          : MINING_FREEZE_COLORS.distant
-      }
+      title={`Mining freezes ${formatDate(freeze.freezesAt, "EEE, PPp")}`}
+      className={getMiningFreezeColor(freeze)}
     >
-      {deadlinePassed ? "Freezing" : `Freezes ${freezeDistance}`}
+      {deadlinePassed ? "Freezing" : countdown}
     </Pill>
   );
 };
@@ -78,7 +71,10 @@ export default function AutoAccountFlags({ account, ...props }) {
   return (
     <span
       {...props}
-      className={cn("flex flex-wrap items-center gap-1", props.className)}
+      className={cn(
+        "flex flex-wrap items-center gap-x-2 gap-y-1",
+        props.className,
+      )}
     >
       <FreezePill freeze={freeze} />
 
@@ -87,9 +83,9 @@ export default function AutoAccountFlags({ account, ...props }) {
         <Pill
           icon={LuHourglass}
           title={`${pending.length} withdrawal(s) awaiting processing`}
-          className="text-sky-500 dark:text-sky-300"
+          className="text-yellow-500 dark:text-yellow-400"
         >
-          Pending{pending.length > 1 ? ` ${pending.length}` : ""}
+          P ({pending.length})
         </Pill>
       ) : null}
 
@@ -100,7 +96,7 @@ export default function AutoAccountFlags({ account, ...props }) {
           title={`${flagged.length} flagged withdrawal(s) in the history`}
           className="text-red-500 dark:text-red-400"
         >
-          Flagged{flagged.length > 1 ? ` ${flagged.length}` : ""}
+          F ({flagged.length})
         </Pill>
       ) : null}
     </span>

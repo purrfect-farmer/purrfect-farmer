@@ -113,7 +113,7 @@ const AccountChooserItem = memo(function AccountChooserItem({
               <AutoAccountSnapshot account={account} />
 
               {/* Why a run would skip it */}
-              <AutoAccountFlags account={account} className="mt-0.5" />
+              <AutoAccountFlags account={account} />
             </>
           ) : null}
         </div>

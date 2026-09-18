@@ -171,22 +171,12 @@ class BaseAuto {
     return new Date(seconds * 1000).toUTCString();
   }
 
-  /** Format a span of seconds as its largest parts, e.g. "2d 3h" */
+  /** Format a span of seconds as its largest parts, e.g. "3d 1h 45m" */
   formatDurationParts(seconds) {
-    const total = Math.max(0, Math.floor(seconds));
-    const days = Math.floor(total / 86400);
-    const hours = Math.floor((total % 86400) / 3600);
-    const minutes = Math.floor((total % 3600) / 60);
-
-    const parts = [];
-    if (days) parts.push(`${days}d`);
-    if (hours) parts.push(`${hours}h`);
-    if (minutes || parts.length === 0) parts.push(`${minutes}m`);
-
-    return parts.join(" ");
+    return this.utils.formatDurationParts(seconds);
   }
 
-  /** Format how long is left until a unix timestamp, e.g. "2d 3h" */
+  /** Format how long is left until a unix timestamp, e.g. "3d 1h 45m" */
   formatCountdown(seconds) {
     return this.formatDurationParts(seconds - Date.now() / 1000);
   }

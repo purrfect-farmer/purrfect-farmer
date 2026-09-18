@@ -1,15 +1,12 @@
-import {
-  formatDate,
-  formatDistanceToNow,
-  formatDistanceToNowStrict,
-} from "date-fns";
+import { formatDate, formatDistanceToNow } from "date-fns";
 
 import AutoDropVerifiedBadge from "./AutoDropVerifiedBadge";
 import {
   FARMER_STATUS_TEXT_COLORS,
-  MINING_FREEZE_COLORS,
+  getMiningFreezeColor,
 } from "@/constants/farmerStatus";
 import FarmerStatusDot from "./FarmerStatusDot";
+import { formatDurationParts } from "@purrfect/shared/utils/core.js";
 import InfoRow from "./InfoRow";
 import {
   formatFigure,
@@ -252,16 +249,10 @@ export default function AutoAccountSnapshotDetails({ account }) {
                 freeze.frozen
                   ? "🧊 Frozen"
                   : freeze.freezesAt
-                    ? `❄️ Freezes ${formatDistanceToNowStrict(freeze.freezesAt, { addSuffix: true })} (${formatDate(freeze.freezesAt, "EEE, PPp")})`
+                    ? `❄️ Freezes in ${formatDurationParts(freeze.msUntilFreeze / 1000)} (${formatDate(freeze.freezesAt, "EEE, PPp")})`
                     : "Running"
               }
-              valueClassName={
-                freeze.frozen
-                  ? MINING_FREEZE_COLORS.frozen
-                  : freeze.urgent
-                    ? MINING_FREEZE_COLORS.urgent
-                    : MUTED
-              }
+              valueClassName={getMiningFreezeColor(freeze)}
             />
           ) : null}
 
