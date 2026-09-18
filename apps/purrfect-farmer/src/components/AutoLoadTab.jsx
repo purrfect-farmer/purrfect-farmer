@@ -104,7 +104,7 @@ export default function AutoLoadTab() {
 
       {/* What the server currently holds */}
       {status ? (
-        <AutoStickyContainer>
+        <AutoStickyContainer className="z-10">
           <div className="flex flex-col gap-1">
             <div className="flex justify-between gap-2">
               <span className="text-neutral-500 dark:text-neutral-400">
