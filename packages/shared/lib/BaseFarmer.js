@@ -3,6 +3,9 @@ import * as changeKeys from "change-case/keys";
 import seedrandom from "seedrandom";
 import utils from "../utils/bundle.js";
 
+/** How many withdrawal records of each kind the snapshot carries */
+const SNAPSHOT_WITHDRAWAL_LIMIT = 2;
+
 export default class BaseFarmer {
   static id = "base-farmer";
   static platform = "telegram";
@@ -615,6 +618,7 @@ export default class BaseFarmer {
   async storeAutoSnapshot() {
     const snapshot = {
       ...this.getAutoSummary(),
+      withdrawal: await this.readAutoWithdrawals(),
       updatedAt: Date.now(),
     };
 
@@ -648,6 +652,33 @@ export default class BaseFarmer {
    */
   async getWithdrawalGuard() {
     return { pending: await this.hasPendingWithdrawal(), flagged: false };
+  }
+
+  /** The account's own withdrawal queue, for the stored snapshot
+   * @returns {Promise<{ pending: object[], flagged: object[] } | null>}
+   */
+  async getAutoWithdrawals() {
+    return null;
+  }
+
+  /** The withdrawal queue as the snapshot carries it, or null when unknown
+   * @returns {Promise<{ pending: object[], flagged: object[], checkedAt: number } | null>}
+   */
+  async readAutoWithdrawals() {
+    try {
+      const result = await this.getAutoWithdrawals();
+
+      if (!result) return null;
+
+      return {
+        pending: (result.pending || []).slice(0, SNAPSHOT_WITHDRAWAL_LIMIT),
+        flagged: (result.flagged || []).slice(0, SNAPSHOT_WITHDRAWAL_LIMIT),
+        checkedAt: Date.now(),
+      };
+    } catch (error) {
+      this.logger.warn("Failed to read the withdrawal queue:", error.message);
+      return null;
+    }
   }
 
   /** Notify the server admin, a no-op unless the environment delivers the message

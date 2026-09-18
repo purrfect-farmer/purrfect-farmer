@@ -5,6 +5,7 @@ import { memo, useState } from "react";
 import AutoAccountBalance from "./AutoAccountBalance";
 import AutoAccountBoosterDialog from "./AutoAccountBoosterDialog";
 import AutoAccountDetailsDialog from "./AutoAccountDetailsDialog";
+import AutoAccountFlags from "./AutoAccountFlags";
 import AutoAccountSnapshot from "./AutoAccountSnapshot";
 import AutoAddress from "./AutoAddress";
 import AutoDropVerifiedBadge from "./AutoDropVerifiedBadge";
@@ -99,6 +100,9 @@ export default memo(function AutoAccountItem({
 
           {/* What the drop last said about it */}
           <AutoAccountSnapshot account={account} />
+
+          {/* A freeze ahead, or a withdrawal in flight */}
+          <AutoAccountFlags account={account} className="mt-0.5" />
         </button>
 
         {/* Edit button */}

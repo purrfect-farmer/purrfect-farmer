@@ -8,6 +8,7 @@ import { memo, useMemo } from "react";
 
 import AutoAccountBalance from "./AutoAccountBalance";
 import AutoAccountDetailsDialog from "./AutoAccountDetailsDialog";
+import AutoAccountFlags from "./AutoAccountFlags";
 import AutoAccountSnapshot from "./AutoAccountSnapshot";
 import AutoAddress from "./AutoAddress";
 import AutoDropVerifiedBadge from "./AutoDropVerifiedBadge";
@@ -110,6 +111,9 @@ const AccountChooserItem = memo(function AccountChooserItem({
 
               {/* What the drop last said about it */}
               <AutoAccountSnapshot account={account} />
+
+              {/* Why a run would skip it */}
+              <AutoAccountFlags account={account} className="mt-0.5" />
             </>
           ) : null}
         </div>

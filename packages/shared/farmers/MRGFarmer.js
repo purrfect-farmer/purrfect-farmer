@@ -1007,6 +1007,13 @@ export default class MRGFarmer extends BaseFarmer {
     return this.getPendingWithdrawals().length > 0;
   }
 
+  /** The account's own withdrawal queue, which this drop never flags */
+  async getAutoWithdrawals() {
+    await this.ensureAccountLoaded();
+
+    return { pending: this.getPendingWithdrawals(), flagged: [] };
+  }
+
   /** The most one request may carry, which the drop lifts for a Genesis NFT or a thousand MRG held */
   getWithdrawalLimit(discountPercent = 0) {
     return this.isPrivilegedAccount(discountPercent)

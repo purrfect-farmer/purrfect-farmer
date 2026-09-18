@@ -1352,17 +1352,24 @@ export default class ATFFarmer extends BaseFarmer {
     return Number(user["is_banned"]) === 1;
   }
 
-  /** Both withdrawal gates from a single read of the history */
-  async getWithdrawalGuard() {
+  /** The account's own withdrawal queue, from one read of the history */
+  async getAutoWithdrawals() {
     const history = await this.getWithdrawHistory();
     const items = history?.items || [];
 
     return {
-      pending: items.some((item) => item.status === "pending"),
-      flagged: items.some(
+      pending: items.filter((item) => item.status === "pending"),
+      flagged: items.filter(
         (item) => !["pending", "approved"].includes(item.status),
       ),
     };
+  }
+
+  /** Both withdrawal gates, from the same read the queue uses */
+  async getWithdrawalGuard() {
+    const { pending, flagged } = await this.getAutoWithdrawals();
+
+    return { pending: pending.length > 0, flagged: flagged.length > 0 };
   }
 
   /** The withdrawals the drop has not settled yet */

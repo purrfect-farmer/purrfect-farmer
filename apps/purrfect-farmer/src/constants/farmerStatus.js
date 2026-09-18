@@ -23,3 +23,10 @@ export const FARMER_STATUS_LABELS = {
   banned: "Banned",
   inactive: "Inactive",
 };
+
+/** Text colour for a mining freeze, which is a different fact from the farmer status */
+export const MINING_FREEZE_COLORS = {
+  frozen: "text-violet-500 dark:text-violet-400",
+  urgent: "text-amber-500 dark:text-amber-400",
+  distant: "text-neutral-500 dark:text-neutral-400",
+};

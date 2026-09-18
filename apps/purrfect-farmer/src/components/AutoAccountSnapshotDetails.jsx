@@ -1,10 +1,24 @@
-import { formatDate, formatDistanceToNow } from "date-fns";
+import {
+  formatDate,
+  formatDistanceToNow,
+  formatDistanceToNowStrict,
+} from "date-fns";
 
 import AutoDropVerifiedBadge from "./AutoDropVerifiedBadge";
-import { FARMER_STATUS_TEXT_COLORS } from "@/constants/farmerStatus";
+import {
+  FARMER_STATUS_TEXT_COLORS,
+  MINING_FREEZE_COLORS,
+} from "@/constants/farmerStatus";
 import FarmerStatusDot from "./FarmerStatusDot";
 import InfoRow from "./InfoRow";
-import { formatFigure, hasValue, isWithdrawable } from "@/lib/autoSnapshot";
+import {
+  formatFigure,
+  formatWithdrawalRecord,
+  getMiningFreeze,
+  getWithdrawals,
+  hasValue,
+  isWithdrawable,
+} from "@/lib/autoSnapshot";
 import useAuto from "@/hooks/useAuto";
 import { useAutoCloudSnapshot } from "@/hooks/useAutoCloudSnapshotsQuery";
 
@@ -22,6 +36,92 @@ const Note = ({ children }) => (
     {children}
   </p>
 );
+
+/** One withdrawal, rendered from whatever fields the drop carries */
+const WithdrawalRecord = ({ label, record, valueClassName, note }) => (
+  <InfoRow
+    label={label}
+    valueClassName={valueClassName}
+    value={
+      <span className="flex flex-col gap-0.5">
+        {formatWithdrawalRecord(record).map(([field, value]) => (
+          <span key={field}>
+            <span className={MUTED}>{field}: </span>
+            {value}
+          </span>
+        ))}
+        {note ? <span className={`font-normal ${MUTED}`}>{note}</span> : null}
+      </span>
+    }
+  />
+);
+
+/** The account's own withdrawal queue */
+const Withdrawals = ({ snapshot }) => {
+  const { known, checkedAt, pending, flagged } = getWithdrawals(snapshot);
+
+  if (!known) {
+    return (
+      <Note>
+        The drop has not reported this account&apos;s withdrawals yet. It will
+        on the next farm.
+      </Note>
+    );
+  }
+
+  if (!pending.length && !flagged.length) {
+    return (
+      <>
+        <InfoRow
+          label="Withdrawals"
+          value="None in flight"
+          valueClassName={GOOD}
+        />
+        {checkedAt ? (
+          <InfoRow
+            label="Withdrawals checked"
+            value={formatMoment(checkedAt)}
+            valueClassName={MUTED}
+          />
+        ) : null}
+      </>
+    );
+  }
+
+  return (
+    <>
+      {/* A flagged history is the drop disputing a payout */}
+      {flagged.map((record, index) => (
+        <WithdrawalRecord
+          key={`flagged-${index}`}
+          label="Flagged withdrawal"
+          record={record}
+          valueClassName={BAD}
+          note="The drop is disputing this payout. Scheduled runs skip the account while it stands."
+        />
+      ))}
+
+      {/* A withdrawal still in flight, which blocks placing another */}
+      {pending.map((record, index) => (
+        <WithdrawalRecord
+          key={`pending-${index}`}
+          label="Pending withdrawal"
+          record={record}
+          valueClassName="text-sky-500 dark:text-sky-300"
+          note="Awaiting processing, so no further withdrawal is placed."
+        />
+      ))}
+
+      {checkedAt ? (
+        <InfoRow
+          label="Withdrawals checked"
+          value={formatMoment(checkedAt)}
+          valueClassName={MUTED}
+        />
+      ) : null}
+    </>
+  );
+};
 
 /** The heading every state of this section shares */
 const Section = ({ children }) => (
@@ -65,7 +165,8 @@ export default function AutoAccountSnapshotDetails({ account }) {
   const { snapshot, assist } = row;
   const minimum = snapshot?.minWithdrawal || config.minWithdrawal;
   const withdrawable = snapshot && isWithdrawable(snapshot, minimum);
-  const mining = snapshot?.mining;
+  const freeze = getMiningFreeze(snapshot);
+  const miningStartedAt = Number(snapshot?.mining?.startedAt) || 0;
   const flags = snapshot?.risk?.flags || [];
 
   /** An assist that has not been restored leaves the account on someone else's wallet */
@@ -144,19 +245,32 @@ export default function AutoAccountSnapshotDetails({ account }) {
           />
 
           {/* Mining, absent on drops that mine off the clock */}
-          {mining ? (
+          {freeze ? (
             <InfoRow
               label="Mining"
               value={
-                mining.frozen
+                freeze.frozen
                   ? "🧊 Frozen"
-                  : mining.freezesAt
-                    ? `❄️ Freezes ${formatMoment(new Date(mining.freezesAt * 1000))}`
+                  : freeze.freezesAt
+                    ? `❄️ Freezes ${formatDistanceToNowStrict(freeze.freezesAt, { addSuffix: true })} (${formatDate(freeze.freezesAt, "EEE, PPp")})`
                     : "Running"
               }
               valueClassName={
-                mining.frozen ? FARMER_STATUS_TEXT_COLORS.frozen : MUTED
+                freeze.frozen
+                  ? MINING_FREEZE_COLORS.frozen
+                  : freeze.urgent
+                    ? MINING_FREEZE_COLORS.urgent
+                    : MUTED
               }
+            />
+          ) : null}
+
+          {/* When the round that sets the freeze above started */}
+          {miningStartedAt > 0 ? (
+            <InfoRow
+              label="Mining started"
+              value={formatMoment(new Date(miningStartedAt * 1000))}
+              valueClassName={MUTED}
             />
           ) : null}
 
@@ -191,6 +305,9 @@ export default function AutoAccountSnapshotDetails({ account }) {
               valueClassName={BAD}
             />
           ) : null}
+
+          {/* Its own withdrawals, which the assist rows below are not */}
+          <Withdrawals snapshot={snapshot} />
         </>
       )}
 
