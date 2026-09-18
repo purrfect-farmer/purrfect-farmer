@@ -31,9 +31,9 @@ const isWithdrawable = (snapshot, minimum) => {
   }
 };
 
-/** A stored timestamp, with how long ago it was */
+/** A stored timestamp, named by its weekday, with how long ago it was */
 const formatMoment = (value) =>
-  `${formatDate(value, "PPp")} (${formatDistanceToNow(value, { addSuffix: true })})`;
+  `${formatDate(value, "EEE, PPp")} (${formatDistanceToNow(value, { addSuffix: true })})`;
 
 /** A note, for everything the drop has not reported */
 const Note = ({ children }) => (
