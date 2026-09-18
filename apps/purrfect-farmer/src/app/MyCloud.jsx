@@ -6,6 +6,8 @@ import CloudAddressDisplay from "@/cloud/CloudAddressDisplay";
 import CloudStatus from "@/partials/CloudStatus";
 import CloudSubscription from "@/partials/CloudSubscription";
 import Container from "@/components/Container";
+import { FARMER_STATUS_TEXT_COLORS } from "@/constants/farmerStatus";
+import FarmerStatusDot from "@/components/FarmerStatusDot";
 import { HiOutlinePower } from "react-icons/hi2";
 import ProxyDetails from "@/components/ProxyDetails";
 import Tabs from "@/components/Tabs";
@@ -29,9 +31,9 @@ const MyCloudActionButton = ({ variant, ...props }) => (
     {...props}
     className={cn(
       {
-        activate: "text-green-500 dark:text-green-400",
-        deactivate: "text-orange-500 dark:text-orange-400",
-        freeze: "text-sky-500 dark:text-sky-400",
+        activate: FARMER_STATUS_TEXT_COLORS.active,
+        deactivate: FARMER_STATUS_TEXT_COLORS.inactive,
+        freeze: FARMER_STATUS_TEXT_COLORS.frozen,
         delete: "text-red-500 dark:text-red-400",
       }[variant],
       "bg-neutral-200 dark:bg-neutral-600",
@@ -169,18 +171,7 @@ const MyCloudFarmers = () => {
             <span className="font-bold grow">{farmer.title}</span>
 
             {/* Active Status */}
-            <span
-              className={cn(
-                "shrink-0 size-2 rounded-full",
-                "border-2 border-white",
-                {
-                  active: "bg-green-500",
-                  frozen: "bg-sky-500",
-                  banned: "bg-red-500",
-                  inactive: "bg-orange-500",
-                }[farmer.status],
-              )}
-            />
+            <FarmerStatusDot status={farmer.status} />
           </button>
 
           <div

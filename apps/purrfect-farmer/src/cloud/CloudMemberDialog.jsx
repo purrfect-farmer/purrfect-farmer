@@ -1,6 +1,10 @@
 import Alert from "@/components/Alert";
 import BottomDialog from "@/components/BottomDialog";
 import Container from "@/components/Container";
+import {
+  FARMER_STATUS_LABELS,
+  FARMER_STATUS_TEXT_COLORS,
+} from "@/constants/farmerStatus";
 import LabelToggle from "@/components/LabelToggle";
 import { Dialog } from "radix-ui";
 import { HiOutlineArrowUpRight } from "react-icons/hi2";
@@ -117,24 +121,8 @@ const MemberDialogFarmer = ({ account, farmer }) => {
       <Dialog.Close asChild onClick={launchFarmer}>
         <div className="grow truncate min-w-0 min-h-0 cursor-pointer">
           <h1 className="font-bold">{farmer.title}</h1>
-          <p
-            className={cn(
-              {
-                active: "text-green-500",
-                frozen: "text-sky-500",
-                banned: "text-red-500",
-                inactive: "text-orange-500",
-              }[farmer.status],
-            )}
-          >
-            {
-              {
-                active: "Active",
-                frozen: "Frozen",
-                banned: "Banned",
-                inactive: "Inactive",
-              }[farmer.status]
-            }{" "}
+          <p className={cn(FARMER_STATUS_TEXT_COLORS[farmer.status])}>
+            {FARMER_STATUS_LABELS[farmer.status]}{" "}
             (<span className="font-bold">{farmer.errorCount}</span>)
           </p>
         </div>

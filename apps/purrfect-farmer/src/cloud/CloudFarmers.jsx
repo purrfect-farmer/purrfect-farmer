@@ -9,6 +9,8 @@ import Button from "@/components/Button";
 import CloudMemberDialog from "./CloudMemberDialog";
 import { Collapsible } from "radix-ui";
 import { Dialog } from "radix-ui";
+import { FARMER_STATUS_TEXT_COLORS } from "@/constants/farmerStatus";
+import FarmerStatusDot from "@/components/FarmerStatusDot";
 import Input from "@/components/Input";
 import UserIcon from "@/assets/images/user-icon.png?format=webp&w=256";
 import { farmersMap } from "@/core/farmers";
@@ -35,9 +37,9 @@ const FarmerActionButton = ({ variant, ...props }) => (
     {...props}
     className={cn(
       {
-        activate: "text-green-500 dark:text-green-400",
-        disconnect: "text-orange-500 dark:text-orange-400",
-        freeze: "text-sky-500 dark:text-sky-400",
+        activate: FARMER_STATUS_TEXT_COLORS.active,
+        disconnect: FARMER_STATUS_TEXT_COLORS.inactive,
+        freeze: FARMER_STATUS_TEXT_COLORS.frozen,
         delete: "text-red-500 dark:text-red-400",
       }[variant],
       "bg-neutral-200 dark:bg-neutral-600",
@@ -230,20 +232,7 @@ export default function CloudFarmers() {
                           <h5 className="grow min-w-0 min-h-0 truncate">
                             {account.user?.["username"] || account.id}
                           </h5>
-                          {typeof farmer.status !== "undefined" ? (
-                            <span
-                              className={cn(
-                                "shrink-0 size-2 rounded-full",
-                                "border-2 border-white",
-                                {
-                                  active: "bg-green-500",
-                                  frozen: "bg-sky-500",
-                                  banned: "bg-red-500",
-                                  inactive: "bg-orange-500",
-                                }[farmer.status],
-                              )}
-                            />
-                          ) : null}
+                          <FarmerStatusDot status={farmer.status} />
                         </Dialog.Trigger>
 
                         <CloudMemberDialog

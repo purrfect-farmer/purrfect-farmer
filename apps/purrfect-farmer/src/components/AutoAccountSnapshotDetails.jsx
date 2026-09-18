@@ -2,6 +2,7 @@ import { formatDate, formatDistanceToNow } from "date-fns";
 
 import AutoDropVerifiedBadge from "./AutoDropVerifiedBadge";
 import Decimal from "decimal.js";
+import { FARMER_STATUS_TEXT_COLORS } from "@/constants/farmerStatus";
 import FarmerStatusDot from "./FarmerStatusDot";
 import InfoRow from "./InfoRow";
 import useAuto from "@/hooks/useAuto";
@@ -98,7 +99,7 @@ export default function AutoAccountSnapshotDetails({ account }) {
         label="Farmer status"
         value={row.status || "unknown"}
         rightContent={<FarmerStatusDot status={row.status} className="mr-2" />}
-        valueClassName={row.status === "active" ? GOOD : MUTED}
+        valueClassName={FARMER_STATUS_TEXT_COLORS[row.status] ?? MUTED}
       />
 
       {/* Freeze deadline, absent on an indefinite freeze */}
@@ -106,7 +107,7 @@ export default function AutoAccountSnapshotDetails({ account }) {
         <InfoRow
           label="Frozen until"
           value={formatMoment(new Date(row.frozenUntil))}
-          valueClassName="text-sky-500 dark:text-sky-300"
+          valueClassName={FARMER_STATUS_TEXT_COLORS.frozen}
         />
       ) : null}
 
@@ -169,7 +170,9 @@ export default function AutoAccountSnapshotDetails({ account }) {
                     ? `❄️ Freezes ${formatMoment(new Date(mining.freezesAt * 1000))}`
                     : "Running"
               }
-              valueClassName={mining.frozen ? "text-sky-500" : MUTED}
+              valueClassName={
+                mining.frozen ? FARMER_STATUS_TEXT_COLORS.frozen : MUTED
+              }
             />
           ) : null}
 
