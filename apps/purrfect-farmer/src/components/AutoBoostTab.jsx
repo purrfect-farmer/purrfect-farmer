@@ -23,6 +23,7 @@ const schema = yup
     difference: yup.number().required().label("Difference"),
     freeze: yup.boolean().required().label("Freeze"),
     withdrawAfterBoost: yup.boolean().required().label("Withdraw"),
+    retainFunds: yup.boolean().required().label("Retain Funds"),
     runFarmer: yup.boolean().required().label("Run Farmer"),
     repeat: yup.boolean().required().label("Repeat"),
     repeatInterval: yup.number().required().min(1).label("Repeat Interval"),
@@ -37,6 +38,7 @@ export default function AutoBoostTab() {
       difference: 5,
       freeze: false,
       withdrawAfterBoost: false,
+      retainFunds: false,
       runFarmer: true,
       repeat: false,
       repeatInterval: 15,
@@ -236,6 +238,27 @@ export default function AutoBoostTab() {
                 </p>
                 <LabelToggle {...field} checked={field.value}>
                   Withdraw after boost
+                </LabelToggle>
+                <FieldStateError fieldState={fieldState} />
+              </div>
+            )}
+          />
+
+          {/* Retain Funds */}
+          <Controller
+            control={form.control}
+            name="retainFunds"
+            render={({ field, fieldState }) => (
+              <div className="flex flex-col gap-1">
+                <Label>Retain Funds</Label>
+
+                <p className="text-center text-neutral-500 dark:text-neutral-400">
+                  Enabling this will leave the funds in the last boosted account
+                  instead of transferring them back into the master wallet. With
+                  Repeat enabled, the next boost continues from that account.
+                </p>
+                <LabelToggle {...field} checked={field.value}>
+                  Keep funds in the last account
                 </LabelToggle>
                 <FieldStateError fieldState={fieldState} />
               </div>

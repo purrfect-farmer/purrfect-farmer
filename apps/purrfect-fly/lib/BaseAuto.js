@@ -71,6 +71,7 @@ class BaseAuto {
     includeFrozen = false,
     includeRevoked = false,
     withdrawAfterBoost = false,
+    retainFunds = false,
     runFarmer = true,
     repeat = false,
     repeatInterval = 15,
@@ -107,6 +108,7 @@ class BaseAuto {
     this.includeFrozen = includeFrozen;
     this.includeRevoked = includeRevoked;
     this.withdrawAfterBoost = withdrawAfterBoost;
+    this.retainFunds = retainFunds;
     this.runFarmer = runFarmer;
     this.repeat = repeat;
     this.repeatInterval = Number(repeatInterval);
@@ -334,6 +336,14 @@ class BaseAuto {
     );
   }
 
+  /** Format the retain-funds setting */
+  formatRetainFunds() {
+    return this.formatKeyValue(
+      "Retain funds",
+      this.retainFunds ? "Enabled" : "Disabled",
+    );
+  }
+
   /** Format the freeze */
   formatFreeze() {
     return this.formatKeyValue(
@@ -416,14 +426,20 @@ class BaseAuto {
       `<i>🟡 ${this.title} - Bursting boost operation for 20 minutes...</i>`,
     ]);
 
-    /** Return funds to master */
-    await this.returnFundsToMaster();
+    /** Return funds to master, unless the run is set to keep them where they are */
+    if (!this.retainFunds) {
+      await this.returnFundsToMaster();
+    }
 
     /** Delay for safe burst */
     await this.delayForSafeBurst();
 
     /** Prepare master data */
-    await this.prepareInitialMasterData();
+    if (this.retainFunds) {
+      await this.prepareCurrentMasterData();
+    } else {
+      await this.prepareInitialMasterData();
+    }
 
     /** Send notification */
     await this.sendNotification([
@@ -501,6 +517,17 @@ class BaseAuto {
             this.formatKeyValue("Withdrawn Accounts", `${withdrawals.length}`),
           ]
         : []),
+      /** Where the funds were left, so a retained run says which wallet to look at */
+      ...(this.retainFunds &&
+      this.masterData?.address &&
+      this.masterData.address !== this.master.address
+        ? [
+            this.formatKeyValue(
+              "Funds retained in",
+              this.formatAddressLink(this.masterData.address),
+            ),
+          ]
+        : []),
     ]);
   }
 
@@ -540,6 +567,18 @@ class BaseAuto {
     logger.info("Preparing master wallet...");
     this.prepared = await prepareMaster(this.masterData, this.jettonAddress);
     logger.success("Successfully prepared the master wallet!");
+  }
+
+  /** Re-read the wallet currently holding the funds, which a retained run carries into the next pass */
+  async prepareCurrentMasterData() {
+    logger.info(
+      "Preparing current holder as master wallet:",
+      this.masterData.address,
+    );
+    this.prepared = await prepareMaster(this.masterData, this.jettonAddress);
+    logger.success(
+      "Successfully prepared the current holder as the master wallet!",
+    );
   }
 
   /** Get cloud account */
@@ -1009,14 +1048,19 @@ class BaseAuto {
           this.formatDelay(),
           this.formatDifference(),
           this.formatWithdrawAfterBoost(),
+          this.formatRetainFunds(),
           this.formatFreeze(),
           this.formatRunFarmer(),
           this.formatRepeat(),
           this.formatRepeatInterval(),
         ]);
 
-        /** Prepare initial master data */
-        await this.prepareInitialMasterData();
+        /** A retained run keeps rolling from wherever the funds are, so only the first pass reads the real master */
+        if (this.retainFunds && this.masterData) {
+          await this.prepareCurrentMasterData();
+        } else {
+          await this.prepareInitialMasterData();
+        }
 
         /** An empty master still connects every wallet, which is what registers the account with the drop */
         if (this.prepared.jettonBalance.lessThanOrEqualTo(0)) {
@@ -1046,8 +1090,10 @@ class BaseAuto {
           }
         }
 
-        /** Return funds to master */
-        await this.returnFundsToMaster();
+        /** Return funds to master, unless the run is set to leave them in the last account */
+        if (!this.retainFunds) {
+          await this.returnFundsToMaster();
+        }
 
         /** Notify about cancellation */
         if (this.signal.aborted) {
