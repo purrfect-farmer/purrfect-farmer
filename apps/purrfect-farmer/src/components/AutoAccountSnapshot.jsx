@@ -47,27 +47,26 @@ export default function AutoAccountSnapshot({ account, ...props }) {
           : "Waiting for the server"
       }
       className={cn(
-        "flex flex-wrap items-center gap-x-2 font-bold",
-        "text-neutral-500 dark:text-neutral-300",
+        "flex flex-wrap items-center gap-x-2 text-xs",
+        "text-neutral-400 dark:text-neutral-300",
         props.className,
       )}
     >
       {/* Holding the drop reports for the linked wallet */}
       <span className="inline-flex items-center gap-0.5">
-        <LuPickaxe className="size-3" />
+        <LuPickaxe className="size-2.5" />
         {snapshot ? format(snapshot.holding) : "-.--"}
       </span>
 
-      {/* Mined pool, marked once it can be withdrawn */}
+      {/* Mined pool, tinted once it can be withdrawn and left quiet until then */}
       <span
         className={cn(
           "inline-flex items-center gap-0.5",
-          withdrawable ? "text-green-500 dark:text-green-400" : null,
+          withdrawable ? "text-emerald-500" : null,
         )}
       >
-        <LuCoins className="size-3" />
+        <LuCoins className="size-2.5" />
         {snapshot ? format(snapshot.balance) : "-.--"}
-        {snapshot ? (withdrawable ? " 🟩" : " 🟧") : null}
       </span>
     </span>
   );
