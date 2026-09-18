@@ -1,7 +1,4 @@
-/** The single source of truth for how a farmer status is shown across Auto,
- * My Cloud and Cloud Manager. Class names are kept literal so the Tailwind
- * scanner picks them up.
- */
+/** The single source of truth for how a farmer status is shown */
 
 /** Dot fill, as the status dot uses */
 export const FARMER_STATUS_DOT_COLORS = {

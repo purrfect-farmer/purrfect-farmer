@@ -1,36 +1,16 @@
 import { formatDate, formatDistanceToNow } from "date-fns";
 
 import AutoDropVerifiedBadge from "./AutoDropVerifiedBadge";
-import Decimal from "decimal.js";
 import { FARMER_STATUS_TEXT_COLORS } from "@/constants/farmerStatus";
 import FarmerStatusDot from "./FarmerStatusDot";
 import InfoRow from "./InfoRow";
+import { formatFigure, hasValue, isWithdrawable } from "@/lib/autoSnapshot";
 import useAuto from "@/hooks/useAuto";
 import { useAutoCloudSnapshot } from "@/hooks/useAutoCloudSnapshotsQuery";
 
 const GOOD = "text-lime-500 dark:text-lime-300";
 const BAD = "text-red-500 dark:text-red-400";
 const MUTED = "text-neutral-500 dark:text-neutral-400";
-
-/** A drop figure is a string, and a drop that reports nothing yields a dash */
-const format = (value) => {
-  try {
-    return new Decimal(value || 0).toFixed(2);
-  } catch {
-    return "-.--";
-  }
-};
-
-/** Whether the pool has reached the drop's minimum, as the server decides it */
-const isWithdrawable = (snapshot, minimum) => {
-  if (!minimum) return false;
-
-  try {
-    return new Decimal(snapshot.balance || 0).greaterThanOrEqualTo(minimum);
-  } catch {
-    return false;
-  }
-};
 
 /** A stored timestamp, named by its weekday, with how long ago it was */
 const formatMoment = (value) =>
@@ -136,14 +116,18 @@ export default function AutoAccountSnapshotDetails({ account }) {
           {/* Holding */}
           <InfoRow
             label="Holding"
-            value={`${format(snapshot.holding)} ${config.token}`}
-            valueClassName="text-orange-500 dark:text-orange-400"
+            value={`${formatFigure(snapshot.holding)} ${config.token}`}
+            valueClassName={
+              hasValue(snapshot.holding)
+                ? "text-orange-500 dark:text-orange-400"
+                : MUTED
+            }
           />
 
           {/* Mined pool */}
           <InfoRow
             label={`Pool balance (minimum ${minimum} ${config.token})`}
-            value={`${format(snapshot.balance)} ${config.token} ${withdrawable ? "🟩" : "🟧"}`}
+            value={`${formatFigure(snapshot.balance)} ${config.token} ${withdrawable ? "🟩" : "🟧"}`}
             valueClassName={withdrawable ? GOOD : MUTED}
           />
 

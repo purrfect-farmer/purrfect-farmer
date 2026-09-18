@@ -1,30 +1,10 @@
 import { LuCoins, LuPickaxe } from "react-icons/lu";
 
-import Decimal from "decimal.js";
 import { cn } from "@/utils";
 import { formatDistanceToNow } from "date-fns";
+import { formatFigure, hasValue, isWithdrawable } from "@/lib/autoSnapshot";
 import useAuto from "@/hooks/useAuto";
 import { useAutoCloudSnapshot } from "@/hooks/useAutoCloudSnapshotsQuery";
-
-/** A drop figure is a string, and a drop that reports nothing yields a dash */
-const format = (value) => {
-  try {
-    return new Decimal(value || 0).toFixed(2);
-  } catch {
-    return "-.--";
-  }
-};
-
-/** Whether the pool has reached the drop's minimum, as the server decides it */
-const isWithdrawable = (snapshot, minimum) => {
-  if (!minimum) return false;
-
-  try {
-    return new Decimal(snapshot.balance || 0).greaterThanOrEqualTo(minimum);
-  } catch {
-    return false;
-  }
-};
 
 /** What the drop last said about an account, from the snapshot the server has stored */
 export default function AutoAccountSnapshot({ account, ...props }) {
@@ -37,6 +17,7 @@ export default function AutoAccountSnapshot({ account, ...props }) {
   const snapshot = row?.snapshot;
   const minimum = snapshot?.minWithdrawal || config.minWithdrawal;
   const withdrawable = snapshot && isWithdrawable(snapshot, minimum);
+  const holding = snapshot && hasValue(snapshot.holding);
 
   return (
     <span
@@ -52,10 +33,15 @@ export default function AutoAccountSnapshot({ account, ...props }) {
         props.className,
       )}
     >
-      {/* Holding the drop reports for the linked wallet */}
-      <span className="inline-flex items-center gap-0.5">
+      {/* Holding the drop reports for the linked wallet, tinted once there is one */}
+      <span
+        className={cn(
+          "inline-flex items-center gap-0.5",
+          holding ? "text-orange-500 dark:text-orange-400" : null,
+        )}
+      >
         <LuPickaxe className="size-2.5" />
-        {snapshot ? format(snapshot.holding) : "-.--"}
+        {snapshot ? formatFigure(snapshot.holding) : "-.--"}
       </span>
 
       {/* Mined pool, tinted once it can be withdrawn and left quiet until then */}
@@ -66,7 +52,7 @@ export default function AutoAccountSnapshot({ account, ...props }) {
         )}
       >
         <LuCoins className="size-2.5" />
-        {snapshot ? format(snapshot.balance) : "-.--"}
+        {snapshot ? formatFigure(snapshot.balance) : "-.--"}
       </span>
     </span>
   );

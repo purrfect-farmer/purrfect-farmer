@@ -122,8 +122,8 @@ const MemberDialogFarmer = ({ account, farmer }) => {
         <div className="grow truncate min-w-0 min-h-0 cursor-pointer">
           <h1 className="font-bold">{farmer.title}</h1>
           <p className={cn(FARMER_STATUS_TEXT_COLORS[farmer.status])}>
-            {FARMER_STATUS_LABELS[farmer.status]}{" "}
-            (<span className="font-bold">{farmer.errorCount}</span>)
+            {FARMER_STATUS_LABELS[farmer.status]} (
+            <span className="font-bold">{farmer.errorCount}</span>)
           </p>
         </div>
       </Dialog.Close>
