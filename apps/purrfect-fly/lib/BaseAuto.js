@@ -2233,7 +2233,7 @@ class BaseAuto {
           /** A placed request occupies the account until the drop settles it */
           spent = status && !skipped;
 
-          await this.sendNotification([
+          await this.sendAdminNotification([
             skipped
               ? `⏩ Skipped <b>(${label})</b> - <i>${message}</i>`
               : status
