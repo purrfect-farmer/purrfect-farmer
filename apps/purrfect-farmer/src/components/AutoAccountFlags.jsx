@@ -13,7 +13,7 @@ const Pill = ({ icon: Icon, children, className, title }) => (
     title={title}
     className={cn(
       "inline-flex items-center gap-0.5",
-      "text-xs whitespace-nowrap font-bold",
+      "text-xs whitespace-nowrap",
       className,
     )}
   >
