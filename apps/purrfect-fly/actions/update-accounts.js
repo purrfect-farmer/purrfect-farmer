@@ -2,6 +2,7 @@ import GramClient from "../lib/GramClient.js";
 import app from "../config/app.js";
 import bot from "../lib/bot.js";
 import db from "../db/models/index.js";
+import { runDatabaseWrite } from "../lib/db-write.js";
 import utils from "../lib/utils.js";
 
 /** Maximum update attempts per account */
@@ -27,19 +28,21 @@ async function updateSingleAccount(account, index) {
       /** Update User */
       account.user = user;
 
-      /** Save Item */
-      await account.save();
+      /** Save Item and set all farmers active, serialized for SQLite */
+      await runDatabaseWrite(async (transaction) => {
+        await account.save({ transaction });
 
-      /** Set all farmers active */
-      await db.Farmer.update(
-        { status: "active" },
-        {
-          where: {
-            accountId: account.id,
-            status: "inactive",
+        await db.Farmer.update(
+          { status: "active" },
+          {
+            where: {
+              accountId: account.id,
+              status: "inactive",
+            },
+            transaction,
           },
-        },
-      );
+        );
+      });
 
       /** Done */
       return;
@@ -77,7 +80,7 @@ async function updateSingleAccount(account, index) {
       account.session = null;
 
       /** Save */
-      await account.save();
+      await runDatabaseWrite((transaction) => account.save({ transaction }));
     }
   }
 }

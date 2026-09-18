@@ -16,6 +16,7 @@ export default (program, inquirer, chalk) => {
       const GramClient = await import("../lib/GramClient.js").then(
         (m) => m.default
       );
+      const { runDatabaseWrite } = await import("../lib/db-write.js");
 
       const sessions = await GramClient.getSessions();
       const accounts = await db.Account.findAll();
@@ -64,7 +65,9 @@ export default (program, inquirer, chalk) => {
               }
 
               await client.destroy();
-              await account.update({ session });
+              await runDatabaseWrite((transaction) =>
+                account.update({ session }, { transaction })
+              );
               assigned.add(userId);
             } catch (error) {
               console.error(

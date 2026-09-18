@@ -5,6 +5,7 @@ import bot from "./bot.js";
 import crypto from "node:crypto";
 import db from "../db/models/index.js";
 import logger from "./logger.js";
+import { runDatabaseWrite } from "./db-write.js";
 import updateProxies from "../actions/update-proxies.js";
 import utils from "./utils.js";
 
@@ -36,15 +37,20 @@ export function parsePasswords(passwords) {
 }
 
 /** Create or extend an active subscription for an account */
-async function upsertSubscription(account, endsAt) {
-  if (account.subscription) {
-    await account.subscription.update({ endsAt });
+async function upsertSubscription(account, endsAt, transaction) {
+  const subscription = account.subscriptions?.[0];
+
+  if (subscription) {
+    await subscription.update({ endsAt }, { transaction });
   } else {
-    await account.createSubscription({
-      active: true,
-      startsAt: new Date(),
-      endsAt,
-    });
+    await account.createSubscription(
+      {
+        active: true,
+        startsAt: new Date(),
+        endsAt,
+      },
+      { transaction },
+    );
   }
 }
 
@@ -121,43 +127,69 @@ async function processEntry(entry, passwords, endsAt, counters, total) {
       throw new Error("Could not resolve Telegram account id");
     }
 
-    /** Find or create the account (with any active subscription eager-loaded) */
-    const [account] = await db.Account.findOrCreate({
-      where: { id },
-      include: [
-        {
-          required: false,
-          association: "subscriptions",
-          where: { active: true },
-        },
-      ],
-    });
+    /** Pick the session name upfront so a retried write reuses the same file */
+    const name = crypto.randomBytes(8).toString("hex");
+    let wroteSessionFile = false;
+    let outcome;
 
-    /** Only write a session for accounts that don't already have one */
-    if (!account.session) {
-      const name = crypto.randomBytes(8).toString("hex");
-      await GramClient.writeSession(name, cloned.session);
+    /** Serialize the database phase, SQLite cannot take concurrent writes */
+    try {
+      await runDatabaseWrite(async (transaction) => {
+        /** Find or create the account (with any active subscription eager-loaded) */
+        const [account] = await db.Account.findOrCreate({
+          where: { id },
+          include: [
+            {
+              required: false,
+              association: "subscriptions",
+              where: { active: true },
+            },
+          ],
+          transaction,
+        });
 
-      await account.update({
-        session: name,
-        title: account.title || entry.title || `IMP-${id}`,
-        user: {
-          id,
-          username: user.username || null,
-          firstName: user.firstName || null,
-          lastName: user.lastName || null,
-        },
+        /** Only write a session for accounts that don't already have one */
+        if (!account.session) {
+          /** Write the file before the commit, a stored name must resolve */
+          if (!wroteSessionFile) {
+            await GramClient.writeSession(name, cloned.session);
+            wroteSessionFile = true;
+          }
+
+          await account.update(
+            {
+              session: name,
+              title: account.title || entry.title || `IMP-${id}`,
+              user: {
+                id,
+                username: user.username || null,
+                firstName: user.firstName || null,
+                lastName: user.lastName || null,
+              },
+            },
+            { transaction },
+          );
+
+          outcome = "created";
+        } else {
+          outcome = "skipped";
+        }
+
+        /** Always ensure the subscription reflects the requested end date */
+        await upsertSubscription(account, endsAt, transaction);
       });
+    } catch (error) {
+      /** Drop the orphaned session file so a re-import can mint cleanly */
+      if (wroteSessionFile) {
+        await GramClient.deleteSessionFile(name).catch(() => {});
+      }
 
-      counters.created.push(id);
-      status = "created";
-    } else {
-      counters.skipped.push(id);
-      status = "skipped";
+      throw error;
     }
 
-    /** Always ensure the subscription reflects the requested end date */
-    await upsertSubscription(account, endsAt);
+    /** Count only once the transaction committed */
+    counters[outcome].push(id);
+    status = outcome;
   } catch (error) {
     status = "failed";
     message = error?.message || String(error);

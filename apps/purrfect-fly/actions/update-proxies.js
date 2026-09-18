@@ -2,6 +2,7 @@ import app from "../config/app.js";
 import chalk from "chalk";
 import db from "../db/models/index.js";
 import proxy from "../lib/proxy.js";
+import { runDatabaseWrite } from "../lib/db-write.js";
 
 /** Update Proxies */
 async function updateProxies() {
@@ -77,11 +78,13 @@ async function updateProxies() {
           account.proxy = newProxy || "";
         });
 
-        /** Save Accounts */
+        /** Save Accounts, serialized so SQLite never sees concurrent writes */
         await Promise.allSettled(
           invalidAccounts
             .filter((account) => account.changed())
-            .map((account) => account.save()),
+            .map((account) =>
+              runDatabaseWrite((transaction) => account.save({ transaction })),
+            ),
         );
       }
 
