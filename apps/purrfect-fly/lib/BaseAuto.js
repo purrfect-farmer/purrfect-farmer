@@ -1477,18 +1477,15 @@ class BaseAuto {
         return { status: false, skipped: true, amount: "0" };
       }
 
-      /** A flagged history is the drop disputing a payout - leave it alone */
-      if (flagged) {
-        await this.sendNotification([
-          `⏩ Skipped <b>(${link})</b> - it has a flagged withdrawal ${position}`,
-        ]);
-        return { status: false, skipped: true, amount: "0" };
-      }
-
       /** The boost may have cost the account its standing, so this is read after it, not before */
       const protection = summary?.protection;
 
-      if (protection && (protection.revoked || !protection.dexBuyer)) {
+      /** The drop keeps taking withdrawals while both of these hold */
+      const protectedBuyer = Boolean(
+        protection && !protection.revoked && protection.dexBuyer,
+      );
+
+      if (protection && !protectedBuyer) {
         const reason = protection.revoked
           ? "its buyer protection has been revoked"
           : "the drop counts no qualified DEX buy";
@@ -1497,6 +1494,23 @@ class BaseAuto {
           `⏩ Skipped <b>(${link})</b> - ${reason} ${position}`,
         ]);
         return { status: false, skipped: true, amount: "0" };
+      }
+
+      /** A flagged history only sticks once protection is gone */
+      if (flagged && !protectedBuyer) {
+        await this.sendNotification([
+          `⏩ Skipped <b>(${link})</b> - it has a flagged withdrawal ${position}`,
+        ]);
+        return { status: false, skipped: true, amount: "0" };
+      }
+
+      /** Asking again while protection holds moves the flagged withdrawal back to pending */
+      const unflagging = flagged && protectedBuyer;
+
+      if (unflagging) {
+        await this.sendNotification([
+          `♻️ Retrying <b>(${link})</b> - its flagged withdrawal can go back to pending while buyer protection holds ${position}`,
+        ]);
       }
 
       logger.info("Withdrawing boosted account:", cloudAccount.id);
@@ -1526,7 +1540,9 @@ class BaseAuto {
           skipped
             ? `⏩ Skipped <b>(${link})</b> - <i>${amount} ${this.token}</i> ${position}\n<i>Reason: ${message}</i>`
             : status
-              ? `🤑 Withdrawn <b>(${link})</b> - <i>${amount} ${this.token}</i> ${position}\n<i>Message: ${message}</i>`
+              ? unflagging
+                ? `♻️ Unflagged <b>(${link})</b> - <i>${amount} ${this.token}</i> is pending again ${position}\n<i>Message: ${message}</i>`
+                : `🤑 Withdrawn <b>(${link})</b> - <i>${amount} ${this.token}</i> ${position}\n<i>Message: ${message}</i>`
               : `❌ Failed to withdraw <b>(${link})</b> - <i>${amount} ${this.token}</i> ${position}\n<i>Reason: ${message}</i>`,
         ].concat(
           updatedSummary
