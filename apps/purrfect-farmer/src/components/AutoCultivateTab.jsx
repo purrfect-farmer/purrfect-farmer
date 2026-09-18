@@ -26,6 +26,7 @@ const schema = yup
       .label("Cultivate Interval"),
     delay: yup.number().required().min(0).label("Delay"),
     difference: yup.number().required().min(0).max(50).label("Difference"),
+    includeFrozen: yup.boolean().label("Include Frozen"),
     freeze: yup.boolean().label("Freeze"),
     runFarmer: yup.boolean().label("Run Farmer"),
   })
@@ -38,6 +39,7 @@ export default function AutoCultivateTab() {
       cultivateInterval: 10,
       delay: 5,
       difference: 5,
+      includeFrozen: false,
       freeze: false,
       runFarmer: true,
     },
@@ -217,6 +219,26 @@ export default function AutoCultivateTab() {
           )}
         />
 
+        {/* Include Frozen */}
+        <Controller
+          control={form.control}
+          name="includeFrozen"
+          render={({ field, fieldState }) => (
+            <div className="flex flex-col gap-1">
+              <Label>Include Frozen</Label>
+
+              <p className="text-center text-neutral-500 dark:text-neutral-400">
+                Frozen accounts are skipped by default. Enabling this cultivates
+                them too.
+              </p>
+              <LabelToggle {...field} checked={field.value}>
+                Include frozen accounts
+              </LabelToggle>
+              <FieldStateError fieldState={fieldState} />
+            </div>
+          )}
+        />
+
         {/* Freeze */}
         <Controller
           control={form.control}
@@ -227,8 +249,8 @@ export default function AutoCultivateTab() {
 
               <p className="text-center text-neutral-500 dark:text-neutral-400">
                 Enabling this will freeze each account once it has been
-                cultivated, so it stops farming in between cycles. The next
-                cycle still picks it up, boosts it and withdraws it.
+                cultivated, so it stops farming in between cycles. Later cycles
+                skip it too, unless Include Frozen is on.
               </p>
               <LabelToggle {...field} checked={field.value}>
                 Freeze accounts after cultivating

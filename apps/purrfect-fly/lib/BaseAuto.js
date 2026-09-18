@@ -2416,9 +2416,14 @@ class BaseAuto {
       /** Verified accounts are kept free to withdraw for everyone else */
       if (helperIds.has(userId)) continue;
 
-      /** Frozen is allowed here, since freezing is what a boost run does to its own accounts */
       if (row.status === "banned") {
         skip("banned");
+        continue;
+      }
+
+      /** Frozen is the operator saying to leave this account alone */
+      if (row.status === "frozen" && !this.includeFrozen) {
+        skip("frozen");
         continue;
       }
 
@@ -2473,7 +2478,10 @@ class BaseAuto {
   async processCultivate(candidate, index, total) {
     const { account } = candidate;
 
-    const cloudAccount = await this.getCloudAccount(account, true);
+    const cloudAccount = await this.getCloudAccount(
+      account,
+      this.includeFrozen,
+    );
 
     if (!cloudAccount) return null;
 
@@ -2717,6 +2725,7 @@ class BaseAuto {
       this.formatCultivateInterval(),
       this.formatDelay(),
       this.formatDifference(),
+      this.formatIncludeFrozen(),
       this.formatFreeze(),
       this.formatRunFarmer(),
       summarizeVault(this.constructor.id).loaded
