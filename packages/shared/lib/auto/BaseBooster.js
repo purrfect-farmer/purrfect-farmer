@@ -41,7 +41,7 @@ export default class BaseBooster {
   }
 
   // ─── TON Transfers (reuse prepared master) ──────────────
-  async sendGasFromMaster() {
+  async sendGasFromMaster(value = TON_FOR_GAS) {
     const { contract, keyPair } = this.prepared;
     const seqno = await contract.getSeqno();
 
@@ -52,7 +52,7 @@ export default class BaseBooster {
       messages: [
         internal({
           to: Address.parse(this.account.address),
-          value: TON_FOR_GAS,
+          value,
           bounce: false,
         }),
       ],
@@ -171,6 +171,7 @@ export default class BaseBooster {
           skipped: true,
           account: this.account,
           jettonAmount: new Decimal(0),
+          transfer: null,
           error: null,
         };
       }
@@ -185,16 +186,23 @@ export default class BaseBooster {
         balance.mul(randomPercent).div(100),
       ).toDecimalPlaces(4, Decimal.ROUND_DOWN);
 
-      /** Not awaited, so callers can overlap their own delay with the transfer */
-      this.sendJettonFromMaster(jettonAmount).catch((error) => {
-        console.log("Error while sending jetton from master", error);
-      });
+      /** Not awaited, so callers can overlap their own delay with the transfer.
+       * It is settled here to keep the rejection handled, and handed back as
+       * `transfer` for callers that need to know whether it landed. */
+      const transfer = this.sendJettonFromMaster(jettonAmount).then(
+        () => ({ status: true, error: null }),
+        (error) => {
+          console.log("Error while sending jetton from master", error);
+          return { status: false, error };
+        },
+      );
 
       return {
         status: true,
         skipped: false,
         account: this.account,
         jettonAmount,
+        transfer,
         error: null,
       };
     } catch (error) {
@@ -204,6 +212,7 @@ export default class BaseBooster {
         skipped: false,
         account: this.account,
         jettonAmount: new Decimal(0),
+        transfer: null,
         error,
       };
     }

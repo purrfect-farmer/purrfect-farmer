@@ -1310,6 +1310,22 @@ class BaseAuto {
 
     logger.info("Boosting single account:", this.accounts[0].address);
     const result = await booster.boost({ difference: this.difference });
+
+    /** The bulk loop overlaps this transfer with its own delay, but a single boost
+     * has nothing to overlap with and must report whether it actually landed */
+    if (result.transfer) {
+      const transfer = await result.transfer;
+
+      if (!transfer.status) {
+        logger.error("Failed single boost:", this.accounts[0].address);
+        return this.formatSingleResult({
+          ...result,
+          status: false,
+          error: transfer.error,
+        });
+      }
+    }
+
     logger.success("Completed single boost:", this.accounts[0].address);
 
     return this.formatSingleResult(result);
