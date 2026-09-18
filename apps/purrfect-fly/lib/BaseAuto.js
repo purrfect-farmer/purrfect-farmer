@@ -718,7 +718,7 @@ class BaseAuto {
     const RETRY_SECONDS = 5;
 
     /** Maximum re-syncs, i.e. how long the transfer is given to land */
-    const MAX_ATTEMPTS = 12;
+    const MAX_ATTEMPTS = 20;
 
     const expected = new Decimal(jettonAmount || 0);
 
