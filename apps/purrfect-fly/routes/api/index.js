@@ -44,6 +44,7 @@ const autoSchema = {
       repeat: { type: "boolean" },
       repeatInterval: { type: "number" },
       assistInterval: { type: "number" },
+      cultivateInterval: { type: "number" },
     },
   },
 };
@@ -364,8 +365,8 @@ export default async function (fastify, opts) {
     );
   }
 
-  /** Auto - Load / Assist (hand over wallets, then withdraw on a timer) */
-  for (const operation of ["load", "assist"]) {
+  /** Auto - Load / Assist / Cultivate (hand over wallets, then work them on a timer) */
+  for (const operation of ["load", "assist", "cultivate"]) {
     fastify.post(
       `/auto/:drop/${operation}`,
       { preHandler: autoPreHandler, schema: autoSchema },
@@ -409,6 +410,38 @@ export default async function (fastify, opts) {
       }
 
       return Auto.assistStatus();
+    },
+  );
+
+  /** Auto - Cultivate Cancel, reported on its own because the cultivate loop is per-drop */
+  fastify.post(
+    "/auto/:drop/cultivate-cancel",
+    { preHandler: autoPreHandler, schema: authSchema },
+    async function (request, reply) {
+      const { drop } = request.params;
+      const Auto = autos[drop];
+
+      if (!Auto) {
+        return reply.notFound(`Unknown auto: ${drop}`);
+      }
+
+      return { cancelled: Auto.cancelCultivate() };
+    },
+  );
+
+  /** Auto - Cultivate Status */
+  fastify.post(
+    "/auto/:drop/cultivate-status",
+    { preHandler: autoPreHandler, schema: authSchema },
+    async function (request, reply) {
+      const { drop } = request.params;
+      const Auto = autos[drop];
+
+      if (!Auto) {
+        return reply.notFound(`Unknown auto: ${drop}`);
+      }
+
+      return Auto.cultivateStatus();
     },
   );
 

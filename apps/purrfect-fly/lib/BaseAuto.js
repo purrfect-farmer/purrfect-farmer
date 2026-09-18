@@ -7,6 +7,7 @@ import bot from "./bot.js";
 import db from "../db/models/index.js";
 import farmers from "../farmers/index.js";
 import logger from "./logger.js";
+import { claimAccount, getClaim, releaseAccount } from "./AutoClaims.js";
 import { generateMnemonicPhrase } from "@purrfect/shared/lib/auto/wallet.js";
 import { getVault, setVault, summarizeVault } from "./AutoVault.js";
 import { prepareMaster } from "@purrfect/shared/lib/auto/transactions.js";
@@ -20,6 +21,10 @@ const ASSIST_RECORD_KEY = "assistLastWithdrawal";
 
 /** Where a helper keeps the last withdrawal it saw settled for someone else */
 const ASSIST_HELPED_KEY = "assistLastHelped";
+
+/** The loop an account is claimed by, so the two never work the same one */
+const ASSIST_OWNER = "assist";
+const CULTIVATE_OWNER = "cultivate";
 
 /** Shared by every sender, since none of these messages wants a preview */
 const NOTIFICATION_OPTIONS = {
@@ -51,6 +56,9 @@ class BaseAuto {
   /** @type {Map<string, BaseAuto>} the assist loop, keyed by drop and kept out of the single-flight slot */
   static assistInstances = new Map();
 
+  /** @type {Map<string, BaseAuto>} the cultivate loop, keyed by drop and running alongside the assist one */
+  static cultivateInstances = new Map();
+
   constructor({
     id,
     master,
@@ -66,6 +74,7 @@ class BaseAuto {
     repeat = false,
     repeatInterval = 15,
     assistInterval = 10,
+    cultivateInterval = 10,
   }) {
     this.utils = utils;
     this.encryption = Encrypter;
@@ -100,6 +109,7 @@ class BaseAuto {
     this.repeat = repeat;
     this.repeatInterval = Number(repeatInterval);
     this.assistInterval = Number(assistInterval);
+    this.cultivateInterval = Number(cultivateInterval);
 
     /** When this operation was started, reported by the assist status */
     this.startedAt = Date.now();
@@ -327,6 +337,14 @@ class BaseAuto {
   /** Format the assist interval */
   formatAssistInterval() {
     return this.formatKeyValue("Assist Interval", `${this.assistInterval}m`);
+  }
+
+  /** Format the cultivate interval */
+  formatCultivateInterval() {
+    return this.formatKeyValue(
+      "Cultivate Interval",
+      `${this.cultivateInterval}m`,
+    );
   }
 
   /** Format the maximum amount */
@@ -2099,6 +2117,14 @@ class BaseAuto {
         continue;
       }
 
+      /** The cultivate loop may already be boosting this account */
+      if (!this.claim(helper.userId, ASSIST_OWNER)) {
+        await this.sendNotification([
+          `⏩ Skipped <b>(${label})</b> - it is being ${getClaim(this.constructor.id, helper.userId)}ed right now.`,
+        ]);
+        continue;
+      }
+
       available.push(helper);
     }
 
@@ -2204,10 +2230,17 @@ class BaseAuto {
 
         const helper = pool[turn % pool.length];
         const helperEntry = runners.get(String(helper.userId));
-        const requesterEntry = await this.getAssistRunner(candidate.account);
         const label = this.formatAccountLink(candidate.account.userId);
 
-        if (!requesterEntry) continue;
+        /** The cultivate loop may already be boosting this account */
+        if (!this.claim(candidate.account.userId, ASSIST_OWNER)) continue;
+
+        const requesterEntry = await this.getAssistRunner(candidate.account);
+
+        if (!requesterEntry) {
+          this.release(candidate.account.userId, ASSIST_OWNER);
+          continue;
+        }
 
         /** Whether this verified account is still free after the attempt */
         let spent = false;
@@ -2261,6 +2294,7 @@ class BaseAuto {
         } finally {
           /** Back into the farming batches while the next account is handled */
           this.releaseRunner(requesterEntry.cloudAccount);
+          this.release(candidate.account.userId, ASSIST_OWNER);
         }
 
         /** A failure can still have left a request behind, so ask the drop rather than trust the outcome */
@@ -2295,6 +2329,11 @@ class BaseAuto {
     } finally {
       for (const entry of runners.values()) {
         this.releaseRunner(entry.cloudAccount);
+      }
+
+      /** Helpers are held for the whole cycle, so they are freed together */
+      for (const helper of helpers) {
+        this.release(helper.userId, ASSIST_OWNER);
       }
     }
 
@@ -2346,6 +2385,387 @@ class BaseAuto {
     await this.sendNotification([
       `🛑 ${this.title} - Assisted withdrawals stopped.`,
     ]);
+  }
+
+  /** The loaded accounts a cultivate cycle may boost, read from the stored snapshots */
+  async getCultivateCandidates(vault, helperIds) {
+    const rows = await db.Farmer.findAll({
+      where: { farmer: this.farmerId },
+      include: [{ required: true, association: "account" }],
+    });
+
+    const candidates = [];
+
+    /** Why each account was passed over, so an empty cycle can say so */
+    const skipped = {};
+    const skip = (reason) => {
+      skipped[reason] = (skipped[reason] || 0) + 1;
+    };
+
+    for (const row of rows) {
+      const userId = String(row.account.id);
+
+      /** Boosting an account needs its phrase, both to send and to reconnect */
+      const account = vault.accounts.get(userId);
+
+      if (!account) {
+        skip("not loaded");
+        continue;
+      }
+
+      /** Verified accounts are kept free to withdraw for everyone else */
+      if (helperIds.has(userId)) continue;
+
+      /** Frozen is allowed here, since freezing is what a boost run does to its own accounts */
+      if (row.status === "banned") {
+        skip("banned");
+        continue;
+      }
+
+      /** An account that no longer farms has no fresh snapshot to trust */
+      if (!row.account.farmingEnabled) {
+        skip("farming off");
+        continue;
+      }
+
+      const snapshot = row.storage?.["autoSnapshot"];
+
+      if (!snapshot) {
+        skip("never farmed");
+        continue;
+      }
+
+      if (snapshot.banned) {
+        skip("banned by the drop");
+        continue;
+      }
+
+      /** Stale by definition, so this only spares a login when a helper is plainly mid-exchange */
+      if (snapshot.wallet?.address !== account.address) {
+        skip("not on its own wallet");
+        continue;
+      }
+
+      /** The assist loop is already working this account */
+      const holder = getClaim(this.constructor.id, userId);
+
+      if (holder) {
+        skip(`${holder}ing`);
+        continue;
+      }
+
+      candidates.push({ account, snapshot });
+    }
+
+    logger.info(
+      `${this.title} - ${candidates.length} candidate(s) of ${rows.length}`,
+      Object.entries(skipped)
+        .map(([reason, count]) => `${count} ${reason}`)
+        .join(", ") || "",
+    );
+
+    return candidates.sort((a, b) =>
+      new Decimal(b.snapshot.balance || 0).comparedTo(a.snapshot.balance || 0),
+    );
+  }
+
+  /** Boost one account, then withdraw it once the drop has settled the boost */
+  async processCultivate(candidate, index, total) {
+    const { account } = candidate;
+
+    const cloudAccount = await this.getCloudAccount(account, true);
+
+    if (!cloudAccount) return null;
+
+    const link = this.formatAccountLink(account.userId);
+    const position = `(${index + 1}/${total})`;
+
+    /** A leaked runner would keep the account out of farming until the loop stops */
+    try {
+      return await this.cultivateAccount({
+        account,
+        cloudAccount,
+        link,
+        position,
+        index,
+      });
+    } finally {
+      this.releaseRunner(cloudAccount);
+    }
+  }
+
+  /** Boost, settle and withdraw one account, with its runner released by the caller */
+  async cultivateAccount({ account, cloudAccount, link, position, index }) {
+    /** Decrypt phrase */
+    logger.info("Decrypting wallet phrase:", account.address);
+    const phrase = await this.decryptPhrase(account.encryptedPhrase);
+    logger.success("Successfully decrypted wallet phrase:", account.address);
+
+    const walletAccount = { ...account, phrase };
+
+    const booster = new AutoBooster(
+      this.masterData,
+      walletAccount,
+      this.prepared,
+    );
+
+    /** Boost - skipped when the master has nothing to send */
+    logger.info("Boosting account:", cloudAccount.id, account.address);
+    const { jettonAmount, skipped } = await booster.boost({
+      difference: this.difference,
+    });
+
+    logger.success(
+      skipped
+        ? "Nothing to boost account with:"
+        : "Successfully boosted account:",
+      cloudAccount.id,
+      account.address,
+    );
+
+    /** Give the transfer time to land. Nothing is in flight when skipped */
+    if (!skipped) {
+      await this.utils.delayForSeconds(3, { signal: this.signal });
+    }
+
+    /** Connecting is also what waits the boost out and starts mining on it */
+    const { status, message, summary, settled, runner } =
+      await this.connectWallet({
+        cloudAccount,
+        walletAccount,
+        jettonAmount,
+      });
+
+    const action = skipped ? "connect" : "boost";
+
+    await this.sendNotification(
+      status
+        ? [
+            skipped
+              ? `🔗 Connected <b>(${link})</b> - no ${this.token} in master to boost with ${position}`
+              : settled
+                ? `⚡ Boosted <b>(${link})</b> with <i>${jettonAmount} ${this.token}</i> ${position}`
+                : `⏳ Boosted <b>(${link})</b> with <i>${jettonAmount} ${this.token}</i>, but the drop hasn't settled it yet ${position}`,
+            "",
+            ...this.formatSummaryDetails(summary),
+          ]
+        : [
+            `❌ Failed to ${action} <b>(${link})</b>${skipped ? "" : ` with <i>${jettonAmount} ${this.token}</i>`} ${position}`,
+            `<i>Error: ${message || "Unknown error!"}</i>`,
+          ],
+    );
+
+    /** An unsettled boost is left for the next cycle rather than withdrawn */
+    let withdrawal = null;
+
+    if (status && settled) {
+      withdrawal = await this.processBoostWithdrawal({
+        cloudAccount,
+        runner,
+        summary,
+        index,
+      });
+
+      /** The withdrawal path stays quiet about this, but a cycle should say so */
+      if (!withdrawal) {
+        await this.sendNotification([
+          `⏩ Skipped <b>(${link})</b> - below the minimum ${position}`,
+        ]);
+      }
+    }
+
+    if (runner) {
+      await this.storeSnapshot(runner, cloudAccount);
+    }
+
+    /** Delay for 2s */
+    await this.utils.delayForSeconds(2, { signal: this.signal });
+
+    /** Rolling needs tokens to send, while collecting guards itself and still runs */
+    if (!skipped || this.mode !== "roll") {
+      await this.applyMode(account, phrase, booster);
+    }
+
+    return {
+      status,
+      skipped: false,
+      settled: Boolean(settled),
+      /** What left the master, which is nothing when it had nothing to send */
+      boosted: skipped ? new Decimal(0) : jettonAmount,
+      withdrawal,
+    };
+  }
+
+  /** One pass over everyone worth boosting and withdrawing */
+  async runCultivateCycle() {
+    const vault = getVault(this.constructor.id);
+
+    if (!vault) {
+      await this.sendNotification([
+        `⚠️ ${this.title} - no wallets are loaded on this server. Run Load first.`,
+      ]);
+      return [];
+    }
+
+    const helperIds = new Set(
+      [...vault.accounts.values()]
+        .filter((account) => account.verified)
+        .map((account) => String(account.userId)),
+    );
+
+    const candidates = await this.getCultivateCandidates(vault, helperIds);
+
+    if (!candidates.length) {
+      await this.sendNotification([
+        `⏩ ${this.title} - no account is free to be boosted.`,
+      ]);
+      return [];
+    }
+
+    /** The master rolls forward through the accounts, so it is re-read every cycle */
+    await this.prepareInitialMasterData();
+
+    /** An empty master still connects every wallet, which is what re-reads the account */
+    if (this.prepared.jettonBalance.lessThanOrEqualTo(0)) {
+      await this.sendNotification([
+        `<i>🟡 ${this.title} - Master has no ${this.token}. Connecting wallets without boosting...</i>`,
+      ]);
+    }
+
+    await this.sendNotification([
+      `📋 ${this.title} - Queue:`,
+      ...candidates
+        .slice(0, ASSIST_QUEUE_PREVIEW)
+        .map((candidate, position) =>
+          this.formatKeyValue(
+            `${position + 1}. ${this.formatAccountLink(candidate.account.userId)}`,
+            `${new Decimal(candidate.snapshot.balance || 0)} ${this.token}`,
+          ),
+        ),
+      ...(candidates.length > ASSIST_QUEUE_PREVIEW
+        ? [`<i>...and ${candidates.length - ASSIST_QUEUE_PREVIEW} more.</i>`]
+        : []),
+    ]);
+
+    const results = [];
+
+    try {
+      for (const [index, candidate] of candidates.entries()) {
+        if (this.signal.aborted) break;
+
+        const { userId } = candidate.account;
+        const label = this.formatAccountLink(userId);
+
+        /** The assist loop may have taken this account since the queue was built */
+        if (!this.claim(userId, CULTIVATE_OWNER)) continue;
+
+        try {
+          const result = await this.processCultivate(
+            candidate,
+            index,
+            candidates.length,
+          );
+
+          if (result) results.push(result);
+        } catch (error) {
+          if (this.signal.aborted) break;
+
+          const errorMessage = error.message || "Unknown error!";
+          logger.error(errorMessage);
+
+          results.push({
+            status: false,
+            skipped: false,
+            settled: false,
+            boosted: new Decimal(0),
+            withdrawal: null,
+          });
+
+          await this.sendNotification([
+            `❌ Failed to cultivate <b>(${label})</b>`,
+            `<i>Error: ${errorMessage}</i>`,
+          ]);
+        } finally {
+          this.release(userId, CULTIVATE_OWNER);
+        }
+
+        if (index < candidates.length - 1) {
+          await this.delayForSafeMinutes();
+        }
+      }
+    } finally {
+      /** Rolling leaves the balance on the last account, so it is walked back */
+      if (this.masterData) {
+        await this.returnFundsToMaster().catch((error) =>
+          logger.error(
+            "Failed to return funds to master:",
+            error.message || "Unknown error!",
+          ),
+        );
+      }
+    }
+
+    await this.sendBoostSummaryNotification(results);
+
+    return results;
+  }
+
+  /** Boost and withdraw on a timer until cancelled */
+  async cultivate() {
+    await this.sendNotification([
+      `⏳ ${this.title} - Cultivation started...`,
+      this.formatCultivateInterval(),
+      this.formatDelay(),
+      this.formatDifference(),
+      this.formatFreeze(),
+      this.formatRunFarmer(),
+      summarizeVault(this.constructor.id).loaded
+        ? this.formatKeyValue(
+            "Loaded wallets",
+            `${summarizeVault(this.constructor.id).accounts}`,
+          )
+        : this.formatKeyValue("Loaded wallets", "(none)"),
+    ]);
+
+    while (true) {
+      if (this.signal.aborted) break;
+
+      try {
+        await this.runCultivateCycle();
+      } catch (error) {
+        if (this.signal.aborted) break;
+
+        /** One bad cycle is not a reason to stop cultivating */
+        const errorMessage = error.message || "Unknown error!";
+        logger.error(errorMessage);
+
+        await this.sendNotification([
+          `❌ ${this.title} - an error occurred during a cultivate cycle!`,
+          errorMessage,
+        ]);
+      }
+
+      if (this.signal.aborted) break;
+
+      await this.utils
+        .delayForMinutes(this.cultivateInterval, {
+          signal: this.signal,
+          precised: true,
+        })
+        .catch((error) => {});
+    }
+
+    await this.sendNotification([`🛑 ${this.title} - Cultivation stopped.`]);
+  }
+
+  /** Take an account for this loop, so the other one passes over it */
+  claim(userId, owner) {
+    return claimAccount(this.constructor.id, userId, owner);
+  }
+
+  /** Hand an account back to whichever loop reaches it next */
+  release(userId, owner) {
+    return releaseAccount(this.constructor.id, userId, owner);
   }
 
   /** Resume a single account back into farming batches, which the endless assist loop does for itself */
@@ -2451,6 +2871,48 @@ class BaseAuto {
       running: Boolean(instance),
       startedAt: instance?.startedAt || null,
       interval: instance?.assistInterval || null,
+      vault: summarizeVault(this.id),
+    };
+  }
+
+  /** Start the cultivate loop for this drop, keyed by drop and outside the slot `execute` reserves */
+  static cultivate(options) {
+    if (this.cultivateInstances.has(this.id)) {
+      return this.cultivateInstances
+        .get(this.id)
+        .sendPendingOperationNotification();
+    }
+
+    const instance = new this(options);
+
+    this.cultivateInstances.set(this.id, instance);
+
+    instance
+      .cultivate()
+      .catch((error) => logger.error(error.message || "Unknown error!"))
+      .finally(() => {
+        instance.resumeTerminatedAccounts();
+        this.cultivateInstances.delete(this.id);
+      });
+  }
+
+  static cancelCultivate() {
+    const instance = this.cultivateInstances.get(this.id);
+
+    if (instance) {
+      instance.cancel();
+    }
+
+    return Boolean(instance);
+  }
+
+  static cultivateStatus() {
+    const instance = this.cultivateInstances.get(this.id);
+
+    return {
+      running: Boolean(instance),
+      startedAt: instance?.startedAt || null,
+      interval: instance?.cultivateInterval || null,
       vault: summarizeVault(this.id),
     };
   }
