@@ -8,6 +8,7 @@ const defaultSettings = {
   miniAppInNewWindow: false,
   closeOtherBots: true,
   enableCloud: false,
+  useCloudForBooster: false,
   enableSeeker: false,
   cloudServer: import.meta.env.VITE_CLOUD_SERVER,
   seekerServer: import.meta.env.VITE_SEEKER_SERVER,

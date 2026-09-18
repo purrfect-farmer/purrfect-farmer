@@ -312,6 +312,26 @@ export default async function (fastify, opts) {
       });
     };
 
+  /** Runs an Auto operation against a single account and replies with its result */
+  const runSingleAutoOperation = (operation) =>
+    async function (request, reply) {
+      const { drop } = request.params;
+      const Auto = autos[drop];
+
+      if (!Auto) {
+        return reply.notFound(`Unknown auto: ${drop}`);
+      }
+
+      if (!request.body.accounts?.length) {
+        return reply.badRequest("No account provided!");
+      }
+
+      return Auto[operation]({
+        ...request.body,
+        id: request.account.id,
+      });
+    };
+
   /** Lists the accounts still farming a drop, destroying banned ones */
   const getAutoActiveList = async function (request, reply) {
     const { drop } = request.params;
@@ -364,6 +384,18 @@ export default async function (fastify, opts) {
       `/auto/:drop/${operation}`,
       { preHandler: autoPreHandler, schema: autoSchema },
       dispatchAutoOperation(operation),
+    );
+  }
+
+  /** Auto - Single account Boost / Collect, awaited so the caller gets the result back */
+  for (const [path, operation] of [
+    ["single-boost", "singleBoost"],
+    ["single-collect", "singleCollect"],
+  ]) {
+    fastify.post(
+      `/auto/:drop/${path}`,
+      { preHandler: autoPreHandler, schema: autoSchema },
+      runSingleAutoOperation(operation),
     );
   }
 

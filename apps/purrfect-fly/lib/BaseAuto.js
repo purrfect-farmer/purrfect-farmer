@@ -1277,6 +1277,55 @@ class BaseAuto {
     return result;
   }
 
+  /** Instantiate a booster for a single account, with its phrase decrypted */
+  async prepareSingleBooster() {
+    /** Prepare master */
+    await this.prepareInitialMasterData();
+
+    /** The single operations always carry exactly one account */
+    const account = this.accounts[0];
+
+    /** Decrypt phrase */
+    logger.info("Decrypting wallet phrase:", account.address);
+    const phrase = await this.decryptPhrase(account.encryptedPhrase);
+    logger.success("Successfully decrypted wallet phrase:", account.address);
+
+    return new AutoBooster(this.masterData, { ...account, phrase }, this.prepared);
+  }
+
+  /** The wallet account carries the decrypted phrase, so only plain values go back to the caller */
+  formatSingleResult({ status, skipped, jettonAmount, collected, error }) {
+    return {
+      status,
+      skipped,
+      jettonAmount: jettonAmount?.toString(),
+      collected: collected?.toString(),
+      error: error ? { message: error.message || "Unknown error!" } : null,
+    };
+  }
+
+  /** Boost one account and nothing else: the same transfer the local booster performs */
+  async singleBoost() {
+    const booster = await this.prepareSingleBooster();
+
+    logger.info("Boosting single account:", this.accounts[0].address);
+    const result = await booster.boost({ difference: this.difference });
+    logger.success("Completed single boost:", this.accounts[0].address);
+
+    return this.formatSingleResult(result);
+  }
+
+  /** Collect one account and nothing else */
+  async singleCollect() {
+    const booster = await this.prepareSingleBooster();
+
+    logger.info("Collecting single account:", this.accounts[0].address);
+    const result = await booster.collect();
+    logger.success("Completed single collection:", this.accounts[0].address);
+
+    return this.formatSingleResult(result);
+  }
+
   /** Withdraw */
   async withdraw() {
     try {
@@ -2937,6 +2986,15 @@ class BaseAuto {
 
   static collect(options) {
     this.execute(options, (instance) => instance.collect());
+  }
+
+  /** Single-account operations run outside the single-flight slot and resolve with their result */
+  static singleBoost(options) {
+    return new this(options).singleBoost();
+  }
+
+  static singleCollect(options) {
+    return new this(options).singleCollect();
   }
 
   static withdraw(options) {

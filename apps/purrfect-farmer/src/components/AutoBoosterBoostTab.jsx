@@ -2,14 +2,26 @@ import Alert from "./Alert";
 import { HiArrowPath } from "react-icons/hi2";
 import Input from "./Input";
 import Label from "./Label";
+import LabelToggle from "./LabelToggle";
 import PrimaryButton from "./PrimaryButton";
+import useAppContext from "@/hooks/useAppContext";
 import useAuto from "@/hooks/useAuto";
+import useAutoCloudSingleBoostMutation from "@/hooks/useAutoCloudSingleBoostMutation";
 import useAutoSingleBoostMutation from "@/hooks/useAutoSingleBoostMutation";
+import useCloudQueryOptions from "@/hooks/useCloudQueryOptions";
 import { useState } from "react";
 
 export default function AutoBoosterBoostTab({ account }) {
   const { config } = useAuto();
-  const mutation = useAutoSingleBoostMutation();
+  const { settings, dispatchAndConfigureSettings } = useAppContext();
+  const { enabled: cloudEnabled } = useCloudQueryOptions();
+
+  const localMutation = useAutoSingleBoostMutation();
+  const cloudMutation = useAutoCloudSingleBoostMutation();
+
+  const useCloud = cloudEnabled && settings.useCloudForBooster;
+  const mutation = useCloud ? cloudMutation : localMutation;
+
   const [difference, setDifference] = useState(20);
 
   const handleBoost = () => {
@@ -66,6 +78,22 @@ export default function AutoBoosterBoostTab({ account }) {
               {config.token} balance
             </p>
           </div>
+
+          {/* Runs the same transfer in the Cloud, which is far quicker than the browser */}
+          {cloudEnabled && (
+            <LabelToggle
+              disabled={mutation.isPending}
+              checked={Boolean(settings.useCloudForBooster)}
+              onChange={(ev) =>
+                dispatchAndConfigureSettings(
+                  "useCloudForBooster",
+                  ev.target.checked,
+                )
+              }
+            >
+              Use Cloud
+            </LabelToggle>
+          )}
 
           <PrimaryButton disabled={mutation.isPending} onClick={handleBoost}>
             {mutation.isPending ? "Boosting..." : "Boost"}

@@ -1,12 +1,23 @@
 import Alert from "./Alert";
 import { HiArrowPath } from "react-icons/hi2";
+import LabelToggle from "./LabelToggle";
 import PrimaryButton from "./PrimaryButton";
+import useAppContext from "@/hooks/useAppContext";
 import useAuto from "@/hooks/useAuto";
+import useAutoCloudSingleCollectMutation from "@/hooks/useAutoCloudSingleCollectMutation";
 import useAutoSingleCollectMutation from "@/hooks/useAutoSingleCollectMutation";
+import useCloudQueryOptions from "@/hooks/useCloudQueryOptions";
 
 export default function AutoBoosterCollectTab({ account }) {
   const { config } = useAuto();
-  const mutation = useAutoSingleCollectMutation();
+  const { settings, dispatchAndConfigureSettings } = useAppContext();
+  const { enabled: cloudEnabled } = useCloudQueryOptions();
+
+  const localMutation = useAutoSingleCollectMutation();
+  const cloudMutation = useAutoCloudSingleCollectMutation();
+
+  const useCloud = cloudEnabled && settings.useCloudForBooster;
+  const mutation = useCloud ? cloudMutation : localMutation;
 
   const handleCollect = () => {
     mutation.mutate({ account });
@@ -47,9 +58,27 @@ export default function AutoBoosterCollectTab({ account }) {
       )}
 
       {!mutation.isSuccess && !mutation.isError && (
-        <PrimaryButton disabled={mutation.isPending} onClick={handleCollect}>
-          {mutation.isPending ? "Collecting..." : "Collect"}
-        </PrimaryButton>
+        <>
+          {/* Runs the same collection in the Cloud, which is far quicker than the browser */}
+          {cloudEnabled && (
+            <LabelToggle
+              disabled={mutation.isPending}
+              checked={Boolean(settings.useCloudForBooster)}
+              onChange={(ev) =>
+                dispatchAndConfigureSettings(
+                  "useCloudForBooster",
+                  ev.target.checked,
+                )
+              }
+            >
+              Use Cloud
+            </LabelToggle>
+          )}
+
+          <PrimaryButton disabled={mutation.isPending} onClick={handleCollect}>
+            {mutation.isPending ? "Collecting..." : "Collect"}
+          </PrimaryButton>
+        </>
       )}
     </div>
   );
