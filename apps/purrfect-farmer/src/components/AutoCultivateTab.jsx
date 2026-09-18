@@ -27,6 +27,7 @@ const schema = yup
     delay: yup.number().required().min(0).label("Delay"),
     difference: yup.number().required().min(0).max(50).label("Difference"),
     includeFrozen: yup.boolean().label("Include Frozen"),
+    includeRevoked: yup.boolean().label("Include Revoked"),
     freeze: yup.boolean().label("Freeze"),
     runFarmer: yup.boolean().label("Run Farmer"),
   })
@@ -40,6 +41,7 @@ export default function AutoCultivateTab() {
       delay: 5,
       difference: 5,
       includeFrozen: false,
+      includeRevoked: false,
       freeze: false,
       runFarmer: true,
     },
@@ -233,6 +235,26 @@ export default function AutoCultivateTab() {
               </p>
               <LabelToggle {...field} checked={field.value}>
                 Include frozen accounts
+              </LabelToggle>
+              <FieldStateError fieldState={fieldState} />
+            </div>
+          )}
+        />
+
+        {/* Include Revoked */}
+        <Controller
+          control={form.control}
+          name="includeRevoked"
+          render={({ field, fieldState }) => (
+            <div className="flex flex-col gap-1">
+              <Label>Include Revoked</Label>
+
+              <p className="text-center text-neutral-500 dark:text-neutral-400">
+                Accounts whose buyer protection the drop has revoked are skipped
+                by default. Enabling this cultivates them too.
+              </p>
+              <LabelToggle {...field} checked={field.value}>
+                Include revoked accounts
               </LabelToggle>
               <FieldStateError fieldState={fieldState} />
             </div>

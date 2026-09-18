@@ -69,6 +69,7 @@ class BaseAuto {
     difference = 0,
     freeze = false,
     includeFrozen = false,
+    includeRevoked = false,
     withdrawAfterBoost = false,
     runFarmer = true,
     repeat = false,
@@ -104,6 +105,7 @@ class BaseAuto {
     this.amount = amount;
     this.freeze = freeze;
     this.includeFrozen = includeFrozen;
+    this.includeRevoked = includeRevoked;
     this.withdrawAfterBoost = withdrawAfterBoost;
     this.runFarmer = runFarmer;
     this.repeat = repeat;
@@ -227,6 +229,22 @@ class BaseAuto {
         ),
         this.formatKeyValue("Verified", summary.verified ? "✅" : "❌"),
       ]
+        /** Buyer protection, absent on drops that do not report it */
+        .concat(
+          summary.protection
+            ? [
+                this.formatKeyValue(
+                  "Buyer Protection",
+                  summary.protection.revoked ? "🚫 Revoked" : "✅ Active",
+                ),
+                this.formatKeyValue(
+                  "DEX Buyer",
+                  summary.protection.dexBuyer ? "✅" : "❌",
+                ),
+              ]
+            : [],
+        )
+
         /** Wallet */
         .concat(
           summary.wallet
@@ -297,6 +315,14 @@ class BaseAuto {
     return this.formatKeyValue(
       "Include frozen",
       this.includeFrozen ? "Enabled" : "Disabled",
+    );
+  }
+
+  /** Format the include-revoked setting */
+  formatIncludeRevoked() {
+    return this.formatKeyValue(
+      "Include revoked",
+      this.includeRevoked ? "Enabled" : "Disabled",
     );
   }
 
@@ -1413,6 +1439,20 @@ class BaseAuto {
         return { status: false, skipped: true, amount: "0" };
       }
 
+      /** The boost may have cost the account its standing, so this is read after it, not before */
+      const protection = summary?.protection;
+
+      if (protection && (protection.revoked || !protection.dexBuyer)) {
+        const reason = protection.revoked
+          ? "its buyer protection has been revoked"
+          : "the drop counts no qualified DEX buy";
+
+        await this.sendNotification([
+          `⏩ Skipped <b>(${link})</b> - ${reason} ${position}`,
+        ]);
+        return { status: false, skipped: true, amount: "0" };
+      }
+
       logger.info("Withdrawing boosted account:", cloudAccount.id);
 
       /** The whole balance, unrandomized */
@@ -2445,6 +2485,12 @@ class BaseAuto {
         continue;
       }
 
+      /** An account the drop has stripped of buyer protection is not worth boosting */
+      if (snapshot.protection?.revoked && !this.includeRevoked) {
+        skip("protection revoked");
+        continue;
+      }
+
       /** Stale by definition, so this only spares a login when a helper is plainly mid-exchange */
       if (snapshot.wallet?.address !== account.address) {
         skip("not on its own wallet");
@@ -2726,6 +2772,7 @@ class BaseAuto {
       this.formatDelay(),
       this.formatDifference(),
       this.formatIncludeFrozen(),
+      this.formatIncludeRevoked(),
       this.formatFreeze(),
       this.formatRunFarmer(),
       summarizeVault(this.constructor.id).loaded

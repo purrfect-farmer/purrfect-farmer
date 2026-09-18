@@ -1,10 +1,22 @@
-import { LuHourglass, LuSnowflake, LuTriangleAlert } from "react-icons/lu";
+import {
+  LuHourglass,
+  LuShieldOff,
+  LuSnowflake,
+  LuTriangleAlert,
+} from "react-icons/lu";
 
-import { getMiningFreezeColor } from "@/constants/farmerStatus";
+import {
+  getMiningFreezeColor,
+  getProtectionColor,
+} from "@/constants/farmerStatus";
 import { cn } from "@/utils";
 import { formatDate } from "date-fns";
 import { formatDurationParts } from "@purrfect/shared/utils/core.js";
-import { getMiningFreeze, getWithdrawals } from "@/lib/autoSnapshot";
+import {
+  getMiningFreeze,
+  getProtection,
+  getWithdrawals,
+} from "@/lib/autoSnapshot";
 import { useAutoCloudSnapshot } from "@/hooks/useAutoCloudSnapshotsQuery";
 
 /** A small tinted badge, in the same idiom as the version and verified badges */
@@ -55,6 +67,35 @@ const FreezePill = ({ freeze }) => {
   );
 };
 
+/** The buyer-protection pill, worst standing first and silent on a healthy account */
+const ProtectionPill = ({ protection }) => {
+  if (!protection) return null;
+
+  if (protection.revoked) {
+    return (
+      <Pill
+        icon={LuShieldOff}
+        title="Buyer protection has been revoked"
+        className={getProtectionColor(protection)}
+      >
+        Unprotected
+      </Pill>
+    );
+  }
+
+  if (protection.dexBuyer) return null;
+
+  return (
+    <Pill
+      icon={LuShieldOff}
+      title="No qualified DEX buy - mining can freeze at random"
+      className={getProtectionColor(protection)}
+    >
+      Non-buyer
+    </Pill>
+  );
+};
+
 /** The signals that decide whether an account needs attention */
 export default function AutoAccountFlags({ account, ...props }) {
   const { enabled, row } = useAutoCloudSnapshot(account.userId);
@@ -64,9 +105,14 @@ export default function AutoAccountFlags({ account, ...props }) {
 
   const freeze = getMiningFreeze(snapshot);
   const { pending, flagged } = getWithdrawals(snapshot);
+  const protection = getProtection(snapshot);
   const hasFreeze = Boolean(freeze && (freeze.frozen || freeze.freezesAt));
+  const hasProtection = Boolean(
+    protection && (protection.revoked || !protection.dexBuyer),
+  );
 
-  if (!hasFreeze && !pending.length && !flagged.length) return null;
+  if (!hasFreeze && !hasProtection && !pending.length && !flagged.length)
+    return null;
 
   return (
     <span
@@ -77,6 +123,8 @@ export default function AutoAccountFlags({ account, ...props }) {
       )}
     >
       <FreezePill freeze={freeze} />
+
+      <ProtectionPill protection={protection} />
 
       {/* A withdrawal in flight, so the account must not place another */}
       {pending.length ? (

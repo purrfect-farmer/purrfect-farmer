@@ -39,6 +39,7 @@ const autoSchema = {
       amount: { type: "string" },
       freeze: { type: "boolean" },
       includeFrozen: { type: "boolean" },
+      includeRevoked: { type: "boolean" },
       withdrawAfterBoost: { type: "boolean" },
       runFarmer: { type: "boolean" },
       repeat: { type: "boolean" },

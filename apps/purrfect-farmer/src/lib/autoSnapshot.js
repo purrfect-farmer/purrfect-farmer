@@ -52,6 +52,18 @@ export const getMiningFreeze = (snapshot) => {
   };
 };
 
+/** The drop's buyer-protection standing, absent on drops that do not report it */
+export const getProtection = (snapshot) => {
+  const protection = snapshot?.protection;
+
+  if (!protection) return null;
+
+  return {
+    revoked: Boolean(protection.revoked),
+    dexBuyer: Boolean(protection.dexBuyer),
+  };
+};
+
 /** The account's own withdrawal queue, and whether the drop reported it */
 export const getWithdrawals = (snapshot) => {
   const withdrawal = snapshot?.withdrawal;

@@ -47,3 +47,23 @@ export const getMiningFreezeColor = (freeze) => {
     ? MINING_FREEZE_COLORS.urgent
     : MINING_FREEZE_COLORS.distant;
 };
+
+/** Text colour for the drop's buyer protection, worst standing first */
+export const PROTECTION_COLORS = {
+  revoked: "text-red-500 dark:text-red-400",
+  nonbuyer: "text-amber-500 dark:text-amber-400",
+  protected: "text-lime-500 dark:text-lime-300",
+};
+
+/** The tint buyer protection reads in, shared by the pill and the detail row
+ * @param {{ revoked: boolean, dexBuyer: boolean }|null} protection
+ */
+export const getProtectionColor = (protection) => {
+  if (!protection) return null;
+
+  if (protection.revoked) return PROTECTION_COLORS.revoked;
+
+  return protection.dexBuyer
+    ? PROTECTION_COLORS.protected
+    : PROTECTION_COLORS.nonbuyer;
+};

@@ -602,6 +602,7 @@ export default class BaseFarmer {
   /** Normalized account snapshot shared by every Auto drop, without `mining` for drops that mine off the clock
    * @returns {object} - {
    *   level, holding, balance, minWithdrawal, verified,
+   *   protection: { revoked, dexBuyer } | undefined,
    *   mining: { startedAt, freezesAt, frozen } | undefined,
    *   wallet: { address, version } | null,
    *   banned, banReason,

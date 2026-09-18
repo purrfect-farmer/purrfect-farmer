@@ -1329,6 +1329,23 @@ export default class ATFFarmer extends BaseFarmer {
         ? this.logger.c.greenBright
         : this.logger.c.yellowBright,
     });
+    const isProtectionRevoked = this.isUserProtectionRevoked(user);
+    const isDexBuyer = this.isUserQualifiedDexBuyer(user);
+
+    this.logger.keyValue(
+      "Buyer Protection",
+      isProtectionRevoked ? "Revoked" : "Active",
+      {
+        valueStyle: isProtectionRevoked
+          ? this.logger.c.redBright
+          : this.logger.c.greenBright,
+      },
+    );
+    this.logger.keyValue("DEX Buyer", isDexBuyer ? "Yes" : "No", {
+      valueStyle: isDexBuyer
+        ? this.logger.c.greenBright
+        : this.logger.c.yellowBright,
+    });
     this.logger.keyValue("Risk Score", user["risk_score"]);
     this.logger.keyValue("Risk Updated", user["risk_updated_at"]);
     this.logger.keyValue("Risk Flags", flags.length);
@@ -1345,6 +1362,16 @@ export default class ATFFarmer extends BaseFarmer {
   /** Whether the drop has verified the account */
   isUserVerified(user) {
     return Number(user["is_verified"]) === 1;
+  }
+
+  /** Whether the drop has revoked the account's buyer protection */
+  isUserProtectionRevoked(user) {
+    return Number(user["buyer_protection_revoked"]) === 1;
+  }
+
+  /** Whether the drop counts the account as a qualified DEX buyer */
+  isUserQualifiedDexBuyer(user) {
+    return Number(user["qualified_dex_buyer"]) === 1;
   }
 
   /** Whether the drop has banned the account */
@@ -1519,6 +1546,10 @@ export default class ATFFarmer extends BaseFarmer {
       balance: user["mined_balance"],
       minWithdrawal: this.getMinimumWithdrawal(),
       verified: this.isUserVerified(user),
+      protection: {
+        revoked: this.isUserProtectionRevoked(user),
+        dexBuyer: this.isUserQualifiedDexBuyer(user),
+      },
       wallet: wallet
         ? { address: wallet.address, version: wallet.version }
         : null,

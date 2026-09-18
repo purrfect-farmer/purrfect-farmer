@@ -4,6 +4,7 @@ import AutoDropVerifiedBadge from "./AutoDropVerifiedBadge";
 import {
   FARMER_STATUS_TEXT_COLORS,
   getMiningFreezeColor,
+  getProtectionColor,
 } from "@/constants/farmerStatus";
 import FarmerStatusDot from "./FarmerStatusDot";
 import { formatDurationParts } from "@purrfect/shared/utils/core.js";
@@ -12,6 +13,7 @@ import {
   formatFigure,
   formatWithdrawalRecord,
   getMiningFreeze,
+  getProtection,
   getWithdrawals,
   hasValue,
   isWithdrawable,
@@ -163,6 +165,7 @@ export default function AutoAccountSnapshotDetails({ account }) {
   const minimum = snapshot?.minWithdrawal || config.minWithdrawal;
   const withdrawable = snapshot && isWithdrawable(snapshot, minimum);
   const freeze = getMiningFreeze(snapshot);
+  const protection = getProtection(snapshot);
   const miningStartedAt = Number(snapshot?.mining?.startedAt) || 0;
   const flags = snapshot?.risk?.flags || [];
 
@@ -240,6 +243,27 @@ export default function AutoAccountSnapshotDetails({ account }) {
               <AutoDropVerifiedBadge account={account} className="mr-2" />
             }
           />
+
+          {/* The drop's buyer protection, absent on drops that do not report it */}
+          {protection ? (
+            <>
+              <InfoRow
+                label="Buyer protection"
+                value={protection.revoked ? "Revoked" : "Active"}
+                valueClassName={getProtectionColor(protection)}
+              />
+
+              <InfoRow
+                label="DEX buyer"
+                value={protection.dexBuyer ? "Yes" : "No"}
+                valueClassName={
+                  protection.dexBuyer
+                    ? "text-lime-500 dark:text-lime-300"
+                    : MUTED
+                }
+              />
+            </>
+          ) : null}
 
           {/* Mining, absent on drops that mine off the clock */}
           {freeze ? (
