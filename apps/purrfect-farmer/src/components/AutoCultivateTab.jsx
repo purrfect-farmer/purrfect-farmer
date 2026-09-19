@@ -32,7 +32,7 @@ const schema = yup
     requalify: yup
       .string()
       .required()
-      .oneOf(["off", "resync"])
+      .oneOf(["off", "resync", "boost"])
       .label("Requalify"),
     ignorePending: yup.boolean().label("Ignore Pending"),
     freeze: yup.boolean().label("Freeze"),
@@ -49,7 +49,7 @@ export default function AutoCultivateTab() {
       difference: 5,
       includeFrozen: false,
       includeRevoked: false,
-      requalify: "resync",
+      requalify: "boost",
       ignorePending: false,
       freeze: false,
       runFarmer: true,
@@ -279,17 +279,21 @@ export default function AutoCultivateTab() {
               <Label>Requalify after withdrawing</Label>
 
               <p className="text-center text-neutral-500 dark:text-neutral-400">
-                Re-reads the wallet on-chain once the withdrawal is in, so the
-                flags reported for the account are what the drop really sees
-                rather than a cached login. It cannot restore a lost DEX buyer
-                standing: only a boost from a different wallet does that, which
-                the chain now rotates for automatically.
+                Withdrawing spends an account's DEX buyer standing, and the drop
+                reviews the payout later against whatever the account looks like
+                then. A second boost pass sends the pool round the withdrawn
+                accounts again, each from a wallet that did not fund it this
+                cycle, so they end the cycle qualified. It roughly doubles how
+                long a cycle takes.
               </p>
 
               <Select {...field}>
                 <Select.Item value="off">Off - leave it alone</Select.Item>
                 <Select.Item value="resync">
                   Re-sync wallet - free, no tokens move
+                </Select.Item>
+                <Select.Item value="boost">
+                  Second boost pass - boost again from a new sender
                 </Select.Item>
               </Select>
 

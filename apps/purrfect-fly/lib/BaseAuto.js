@@ -29,18 +29,20 @@ const CULTIVATE_OWNER = "cultivate";
 /** Where an account records the wallet that last sent it tokens */
 const LAST_FUNDER_KEY = "autoLastFunder";
 
-/** What a run may do to re-read an account's DEX buyer standing after a withdrawal */
-const REQUALIFY_STRATEGIES = ["off", "resync"];
+/** What a run may do about the DEX buyer standing a withdrawal consumes */
+const REQUALIFY_STRATEGIES = ["off", "resync", "boost"];
 
 /** How the requalify strategies read as a setting */
 const REQUALIFY_LABELS = {
   off: "Disabled",
   resync: "Re-sync wallet",
+  boost: "Second boost pass",
 };
 
 /** And how they read as something that was just done to an account */
 const REQUALIFY_ACTIONS = {
   resync: "a wallet re-sync",
+  boost: "a second boost",
 };
 
 /** Shared by every sender, since none of these messages wants a preview */
@@ -89,7 +91,7 @@ class BaseAuto {
     includeRevoked = false,
     withdrawAfterBoost = false,
     retainFunds = false,
-    requalify = "resync",
+    requalify = "boost",
     ignorePending = false,
     runFarmer = true,
     repeat = false,
@@ -130,7 +132,7 @@ class BaseAuto {
     this.retainFunds = retainFunds;
     this.requalify = REQUALIFY_STRATEGIES.includes(requalify)
       ? requalify
-      : "resync";
+      : "boost";
     this.ignorePending = ignorePending;
     this.runFarmer = runFarmer;
     this.repeat = repeat;
@@ -177,9 +179,9 @@ class BaseAuto {
     return `${address.slice(0, 6)}...${address.slice(-4)}`;
   }
 
-  /** Format account position */
-  formatAccountPosition(index) {
-    return `(<i><b>${index + 1}</b>/<b>${this.accounts.length}</b></i>)`;
+  /** Format account position, against the whole run unless a pass sets its own size */
+  formatAccountPosition(index, total = this.accounts.length) {
+    return `(<i><b>${index + 1}</b>/<b>${total}</b></i>)`;
   }
 
   /** Format key value message */
@@ -935,8 +937,8 @@ class BaseAuto {
     });
   }
 
-  /** Process boost for account */
-  async processBoost(account, index) {
+  /** Process boost for account. A requalifying pass boosts without withdrawing */
+  async processBoost(account, index, { withdraw = true, total } = {}) {
     /** An account that never reaches the drop counts as skipped rather than failed */
 
     /** Skip if user ID is not set */
@@ -996,8 +998,12 @@ class BaseAuto {
 
     /** Send Boost Notification */
     const link = this.formatAccountLink(cloudAccount.id);
-    const position = this.formatAccountPosition(index);
+    const position = this.formatAccountPosition(index, total);
     const action = skipped ? "connect" : "boost";
+
+    /** A requalifying pass boosts to win the standing back, not to grow the pool */
+    const verb = withdraw ? "Boosted" : "Requalified";
+    const icon = withdraw ? "⚡" : "♻️";
 
     /** The payout record is read here, since the snapshot is only stored after any withdrawal */
     const reported = status
@@ -1011,8 +1017,8 @@ class BaseAuto {
             skipped
               ? `🔗 Connected <b>(${link})</b> - no ${this.token} in master to boost with ${position}`
               : settled
-                ? `⚡ Boosted <b>(${link})</b> with <i>${jettonAmount} ${this.token}</i> ${position}`
-                : `⏳ Boosted <b>(${link})</b> with <i>${jettonAmount} ${this.token}</i>, but the drop hasn't settled it yet ${position}`,
+                ? `${icon} ${verb} <b>(${link})</b> with <i>${jettonAmount} ${this.token}</i> ${position}`
+                : `⏳ ${verb} <b>(${link})</b> with <i>${jettonAmount} ${this.token}</i>, but the drop hasn't settled it yet ${position}`,
             "",
             ...(skipped ? [] : [this.formatFundedBy(funderAddress)]),
             ...this.formatSummaryDetails(reported),
@@ -1026,7 +1032,7 @@ class BaseAuto {
     /** Withdraw what the account has now */
     let withdrawal = null;
 
-    if (this.withdrawAfterBoost && status && settled) {
+    if (withdraw && this.withdrawAfterBoost && status && settled) {
       withdrawal = await this.processBoostWithdrawal({
         cloudAccount,
         runner,
@@ -1170,6 +1176,9 @@ class BaseAuto {
         /** Results, rebuilt on every repeated pass */
         const results = [];
 
+        /** Withdrawing spends an account's DEX buyer standing, so it goes round again */
+        const withdrawn = [];
+
         /** Loop through accounts and boost */
         for (const [index, account] of this.accounts.entries()) {
           if (this.signal.aborted) {
@@ -1182,11 +1191,15 @@ class BaseAuto {
 
             /** Add result to results */
             if (result) results.push(result);
+
+            if (this.didWithdraw(result)) withdrawn.push(account);
           } catch (e) {
             if (this.signal.aborted) break;
             throw e;
           }
         }
+
+        await this.runBoostRequalifyPass(withdrawn);
 
         /** Return funds to master, unless the run is set to leave them in the last account */
         if (!this.retainFunds) {
@@ -1260,6 +1273,101 @@ class BaseAuto {
       })),
       this.masterData.address,
     ).map((link) => link.item);
+  }
+
+  /** Whether a pass actually placed a withdrawal for this account */
+  didWithdraw(result) {
+    return Boolean(result?.withdrawal?.status && !result.withdrawal.skipped);
+  }
+
+  /** The accounts a pass left unqualified, ordered so none repeats its pass 1 funder
+   * @param {object[]} accounts - vault accounts that placed a withdrawal this pass
+   * @returns {Promise<object[]>} - the same accounts, in the order to boost them again
+   */
+  async orderRequalifyPass(accounts) {
+    const lastFunders = await this.getLastFunders(accounts);
+
+    return this.orderRollChain(
+      accounts.map((account) => ({
+        item: account,
+        address: account.address,
+        lastFunder: lastFunders.get(String(account.userId)) || null,
+      })),
+      this.masterData.address,
+    ).map((link) => link.item);
+  }
+
+  /** Walk the pool back to the master before a requalifying pass, which makes the master
+   * a sender again and is what lets a two account pool requalify both of them */
+  async resetMasterForRequalifyPass() {
+    try {
+      await this.returnFundsToMaster();
+      await this.prepareInitialMasterData();
+    } catch (e) {
+      /** The pass still runs from wherever the pool is, the way it did before */
+      logger.error(
+        "Failed to return funds to master before requalifying:",
+        e.message || "Unknown error!",
+      );
+    }
+  }
+
+  /** Whether a pass is worth running at all */
+  canRequalify(accounts) {
+    return (
+      this.requalify === "boost" &&
+      this.mode === "roll" &&
+      Boolean(this.masterData) &&
+      accounts.length > 0
+    );
+  }
+
+  /** Announce a requalifying pass, listing it the way the cultivate queue does */
+  announceRequalifyPass(accounts) {
+    return this.sendNotification([
+      `♻️ ${this.title} - Requalifying ${accounts.length} withdrawn account(s)...`,
+      ...accounts
+        .slice(0, ASSIST_QUEUE_PREVIEW)
+        .map((account, position) =>
+          this.formatKeyValue(
+            `${position + 1}. ${this.formatAccountLink(account.userId)}`,
+            this.truncateAddress(account.address),
+          ),
+        ),
+      ...(accounts.length > ASSIST_QUEUE_PREVIEW
+        ? [`<i>...and ${accounts.length - ASSIST_QUEUE_PREVIEW} more.</i>`]
+        : []),
+    ]);
+  }
+
+  /** Boost the withdrawn accounts once more, from senders that did not fund them this pass */
+  async runBoostRequalifyPass(accounts) {
+    if (this.signal.aborted || !this.canRequalify(accounts)) return;
+
+    await this.resetMasterForRequalifyPass();
+
+    const ordered = await this.orderRequalifyPass(accounts);
+
+    await this.announceRequalifyPass(ordered);
+
+    for (const [index, account] of ordered.entries()) {
+      if (this.signal.aborted) break;
+
+      try {
+        await this.processBoost(account, index, {
+          withdraw: false,
+          total: ordered.length,
+        });
+      } catch (e) {
+        if (this.signal.aborted) break;
+
+        logger.error(
+          "Failed to requalify the withdrawn account:",
+          account.userId,
+          e.message,
+        );
+      }
+    }
   }
 
   /** Return funds to master */
@@ -1770,7 +1878,8 @@ class BaseAuto {
   }) {
     const strategy = this.requalify;
 
-    if (strategy === "off" || !runner || !walletAccount) {
+    /** A second boost pass restores the standing later in the cycle, not here */
+    if (strategy !== "resync" || !runner || !walletAccount) {
       return { attempted: false, strategy, restored: false, summary };
     }
 
@@ -3000,7 +3109,7 @@ class BaseAuto {
   }
 
   /** Boost one account, then withdraw it once the drop has settled the boost */
-  async processCultivate(candidate, index, total) {
+  async processCultivate(candidate, index, total, { withdraw = true } = {}) {
     const { account } = candidate;
 
     const cloudAccount = await this.getCloudAccount(
@@ -3021,6 +3130,7 @@ class BaseAuto {
         link,
         position,
         index,
+        withdraw,
       });
     } finally {
       this.releaseRunner(cloudAccount);
@@ -3028,7 +3138,14 @@ class BaseAuto {
   }
 
   /** Boost, settle and withdraw one account, with its runner released by the caller */
-  async cultivateAccount({ account, cloudAccount, link, position, index }) {
+  async cultivateAccount({
+    account,
+    cloudAccount,
+    link,
+    position,
+    index,
+    withdraw = true,
+  }) {
     /** Decrypt phrase */
     logger.info("Decrypting wallet phrase:", account.address);
     const phrase = await this.decryptPhrase(account.encryptedPhrase);
@@ -3074,6 +3191,10 @@ class BaseAuto {
 
     const action = skipped ? "connect" : "boost";
 
+    /** A requalifying pass boosts to win the standing back, not to grow the pool */
+    const verb = withdraw ? "Boosted" : "Requalified";
+    const icon = withdraw ? "⚡" : "♻️";
+
     const reported = status
       ? await this.withWithdrawalRecord(runner, summary)
       : summary;
@@ -3084,8 +3205,8 @@ class BaseAuto {
             skipped
               ? `🔗 Connected <b>(${link})</b> - no ${this.token} in master to boost with ${position}`
               : settled
-                ? `⚡ Boosted <b>(${link})</b> with <i>${jettonAmount} ${this.token}</i> ${position}`
-                : `⏳ Boosted <b>(${link})</b> with <i>${jettonAmount} ${this.token}</i>, but the drop hasn't settled it yet ${position}`,
+                ? `${icon} ${verb} <b>(${link})</b> with <i>${jettonAmount} ${this.token}</i> ${position}`
+                : `⏳ ${verb} <b>(${link})</b> with <i>${jettonAmount} ${this.token}</i>, but the drop hasn't settled it yet ${position}`,
             "",
             ...(skipped ? [] : [this.formatFundedBy(funderAddress)]),
             ...this.formatSummaryDetails(reported),
@@ -3099,7 +3220,7 @@ class BaseAuto {
     /** An unsettled boost is left for the next cycle rather than withdrawn */
     let withdrawal = null;
 
-    if (status && settled) {
+    if (withdraw && status && settled) {
       withdrawal = await this.processBoostWithdrawal({
         cloudAccount,
         runner,
@@ -3139,6 +3260,53 @@ class BaseAuto {
       boosted: skipped ? new Decimal(0) : jettonAmount,
       withdrawal,
     };
+  }
+
+  /** Boost the withdrawn candidates once more, from senders that did not fund them this cycle */
+  async runCultivateRequalifyPass(candidates) {
+    const accounts = candidates.map((candidate) => candidate.account);
+
+    if (this.signal.aborted || !this.canRequalify(accounts)) return;
+
+    await this.resetMasterForRequalifyPass();
+
+    const ordered = await this.orderRequalifyPass(accounts);
+
+    await this.announceRequalifyPass(ordered);
+
+    for (const [index, account] of ordered.entries()) {
+      if (this.signal.aborted) break;
+
+      const { userId } = account;
+
+      /** The assist loop may have taken this account since the withdrawal */
+      if (!this.claim(userId, CULTIVATE_OWNER)) continue;
+
+      try {
+        await this.processCultivate({ account }, index, ordered.length, {
+          withdraw: false,
+        });
+      } catch (error) {
+        if (this.signal.aborted) break;
+
+        logger.error(
+          "Failed to requalify the withdrawn account:",
+          userId,
+          error.message || "Unknown error!",
+        );
+
+        await this.sendNotification([
+          `❌ Failed to requalify <b>(${this.formatAccountLink(userId)})</b>`,
+          `<i>Error: ${error.message || "Unknown error!"}</i>`,
+        ]);
+      } finally {
+        this.release(userId, CULTIVATE_OWNER);
+      }
+
+      if (index < ordered.length - 1) {
+        await this.delayForSafeMinutes();
+      }
+    }
   }
 
   /** One pass over everyone worth boosting and withdrawing */
@@ -3194,6 +3362,9 @@ class BaseAuto {
 
     const results = [];
 
+    /** Withdrawing spends an account's DEX buyer standing, so it goes round again */
+    const withdrawn = [];
+
     try {
       for (const [index, candidate] of candidates.entries()) {
         if (this.signal.aborted) break;
@@ -3212,6 +3383,8 @@ class BaseAuto {
           );
 
           if (result) results.push(result);
+
+          if (this.didWithdraw(result)) withdrawn.push(candidate);
         } catch (error) {
           if (this.signal.aborted) break;
 
@@ -3238,6 +3411,8 @@ class BaseAuto {
           await this.delayForSafeMinutes();
         }
       }
+
+      await this.runCultivateRequalifyPass(withdrawn);
     } finally {
       /** Rolling leaves the balance on the last account, so it is walked back */
       if (this.masterData) {
