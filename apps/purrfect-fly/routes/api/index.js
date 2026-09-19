@@ -42,7 +42,7 @@ const autoSchema = {
       includeRevoked: { type: "boolean" },
       withdrawAfterBoost: { type: "boolean" },
       retainFunds: { type: "boolean" },
-      requalify: { type: "string", enum: ["off", "resync", "swap", "cycle"] },
+      requalify: { type: "string", enum: ["off", "resync"] },
       runFarmer: { type: "boolean" },
       repeat: { type: "boolean" },
       repeatInterval: { type: "number" },

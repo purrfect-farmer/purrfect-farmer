@@ -27,7 +27,7 @@ const schema = yup
     requalify: yup
       .string()
       .required()
-      .oneOf(["off", "resync", "swap", "cycle"])
+      .oneOf(["off", "resync"])
       .label("Requalify"),
     retainFunds: yup.boolean().required().label("Retain Funds"),
     runFarmer: yup.boolean().required().label("Run Farmer"),
@@ -262,23 +262,17 @@ export default function AutoBoostTab() {
                   <Label>Requalify after withdrawing</Label>
 
                   <p className="text-center text-neutral-500 dark:text-neutral-400">
-                    The drop reviews a withdrawal later, against whatever the
-                    account looks like then, and an account that stops counting
-                    as a qualified DEX buyer the moment it asks tends to get
-                    flagged. This tries to win that standing back once the
-                    withdrawal is in.
+                    Re-reads the wallet on-chain once the withdrawal is in, so
+                    the flags reported for the account are what the drop really
+                    sees rather than a cached login. It cannot restore a lost
+                    DEX buyer standing: only a boost from a different wallet
+                    does that, which the chain now rotates for automatically.
                   </p>
 
                   <Select {...field}>
                     <Select.Item value="off">Off - leave it alone</Select.Item>
                     <Select.Item value="resync">
                       Re-sync wallet - free, no tokens move
-                    </Select.Item>
-                    <Select.Item value="swap">
-                      Swap wallet - park on a throwaway, take it back
-                    </Select.Item>
-                    <Select.Item value="cycle">
-                      Cycle tokens - send them out and back (costs gas)
                     </Select.Item>
                   </Select>
 

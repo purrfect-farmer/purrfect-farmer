@@ -26,23 +26,21 @@ const ASSIST_HELPED_KEY = "assistLastHelped";
 const ASSIST_OWNER = "assist";
 const CULTIVATE_OWNER = "cultivate";
 
-/** What a cultivate run may do to win an account its DEX buyer standing back after a withdrawal.
- * `resync` is free and always runs first, so the costlier two only pay for what it could not fix. */
-const REQUALIFY_STRATEGIES = ["off", "resync", "swap", "cycle"];
+/** Where an account records the wallet that last sent it tokens */
+const LAST_FUNDER_KEY = "autoLastFunder";
+
+/** What a run may do to re-read an account's DEX buyer standing after a withdrawal */
+const REQUALIFY_STRATEGIES = ["off", "resync"];
 
 /** How the requalify strategies read as a setting */
 const REQUALIFY_LABELS = {
   off: "Disabled",
   resync: "Re-sync wallet",
-  swap: "Swap wallet",
-  cycle: "Cycle tokens",
 };
 
 /** And how they read as something that was just done to an account */
 const REQUALIFY_ACTIONS = {
   resync: "a wallet re-sync",
-  swap: "a wallet swap",
-  cycle: "a token cycle",
 };
 
 /** Shared by every sender, since none of these messages wants a preview */
@@ -404,6 +402,14 @@ class BaseAuto {
     return this.formatKeyValue(
       "Requalify",
       REQUALIFY_LABELS[this.requalify] || this.requalify,
+    );
+  }
+
+  /** Format who sent an account its tokens */
+  formatFundedBy(address) {
+    return this.formatKeyValue(
+      "Funded by",
+      address ? this.formatAddressLink(address) : "Unknown",
     );
   }
 
@@ -947,6 +953,9 @@ class BaseAuto {
       this.prepared,
     );
 
+    /** Read before rolling moves the master on */
+    const funderAddress = this.masterData.address;
+
     /** Boost - skipped when the master has nothing to send */
     logger.info("Boosting account:", cloudAccount.id, account.address);
     const { jettonAmount, skipped } = await booster.boost({
@@ -995,6 +1004,7 @@ class BaseAuto {
                 ? `⚡ Boosted <b>(${link})</b> with <i>${jettonAmount} ${this.token}</i> ${position}`
                 : `⏳ Boosted <b>(${link})</b> with <i>${jettonAmount} ${this.token}</i>, but the drop hasn't settled it yet ${position}`,
             "",
+            ...(skipped ? [] : [this.formatFundedBy(funderAddress)]),
             ...this.formatSummaryDetails(reported),
           ]
         : [
@@ -1013,12 +1023,14 @@ class BaseAuto {
         summary,
         index,
         walletAccount,
-        booster,
       });
     }
 
-    /** Snapshot the account */
+    /** Snapshot the account, and remember who sent it these tokens */
     if (runner) {
+      if (!skipped) {
+        await this.recordLastFunder(runner, cloudAccount, funderAddress);
+      }
       await this.storeSnapshot(runner, cloudAccount);
     }
 
@@ -1133,6 +1145,9 @@ class BaseAuto {
           await this.prepareInitialMasterData();
         }
 
+        /** Nobody should be funded by the wallet that funded them last time */
+        await this.orderAccountsForThisPass();
+
         /** An empty master still connects every wallet, which is what registers the account with the drop */
         if (this.prepared.jettonBalance.lessThanOrEqualTo(0)) {
           await this.sendNotification([
@@ -1214,6 +1229,25 @@ class BaseAuto {
         errorMessage,
       ]);
     }
+  }
+
+  /** Reorder the selected accounts, starting from whoever holds the funds now */
+  async orderAccountsForThisPass() {
+    /** Collecting always sends from the master, so only a rolling chain reorders */
+    if (this.mode !== "roll" || this.accounts.length < 2) return;
+
+    const lastFunders = await this.getLastFunders(this.accounts);
+
+    if (!lastFunders.size) return;
+
+    this.accounts = this.orderRollChain(
+      this.accounts.map((account) => ({
+        item: account,
+        address: account.address,
+        lastFunder: lastFunders.get(String(account.userId)) || null,
+      })),
+      this.masterData.address,
+    ).map((link) => link.item);
   }
 
   /** Return funds to master */
@@ -1571,6 +1605,93 @@ class BaseAuto {
     }
   }
 
+  /** Remember the wallet that just sent an account its tokens */
+  async recordLastFunder(runner, cloudAccount, funderAddress) {
+    if (!runner || !funderAddress) return;
+
+    try {
+      await runner.storage.set(LAST_FUNDER_KEY, {
+        address: funderAddress,
+        updatedAt: Date.now(),
+      });
+    } catch (e) {
+      logger.error(
+        "Failed to record the last funder:",
+        cloudAccount.id,
+        e.message,
+      );
+    }
+  }
+
+  /** What last funded each of these accounts, read without logging anyone in
+   * @param {object[]} accounts - vault accounts, each with a `userId`
+   * @returns {Promise<Map<string, string>>} - userId to the last funder's address
+   */
+  async getLastFunders(accounts) {
+    const lastFunders = new Map();
+    const accountIds = accounts
+      .map((account) => account.userId)
+      .filter(Boolean);
+
+    if (!accountIds.length) return lastFunders;
+
+    try {
+      const rows = await db.Farmer.findAll({
+        where: { farmer: this.farmerId, accountId: accountIds },
+      });
+
+      for (const row of rows) {
+        const record = row.storage?.[LAST_FUNDER_KEY];
+
+        if (record?.address) {
+          lastFunders.set(String(row.accountId), record.address);
+        }
+      }
+    } catch (e) {
+      /** Worth a line, not a failed run */
+      logger.error("Failed to read the last funders:", e.message);
+    }
+
+    return lastFunders;
+  }
+
+  /** Order a roll chain so nobody is funded by the wallet that funded them last time
+   * @param {{ item: any, address: string, lastFunder: string | null }[]} links - the chain to order
+   * @param {string} startAddress - who holds the funds before the chain runs
+   * @returns {typeof links} - the same links, reordered
+   */
+  orderRollChain(links, startAddress) {
+    const pending = [...links];
+    const chain = [];
+
+    let holderAddress = startAddress;
+
+    while (pending.length) {
+      /** An unknown funder cannot be a repeat, and nobody funds themselves */
+      const eligible = pending.filter(
+        (link) =>
+          link.lastFunder !== holderAddress && link.address !== holderAddress,
+      );
+
+      /** Picking the only fresh funder somebody else has left would strand them */
+      const stranding = (link) =>
+        pending.some(
+          (other) => other !== link && other.lastFunder === link.address,
+        );
+
+      /** Whoever is left goes next, repeat or not, rather than stalling the chain */
+      const next =
+        eligible.find((link) => !stranding(link)) || eligible[0] || pending[0];
+
+      pending.splice(pending.indexOf(next), 1);
+
+      chain.push(next);
+      holderAddress = next.address;
+    }
+
+    return chain;
+  }
+
   /** Hand an account back to farming, since reading a frozen account is also what releases it */
   async activateFarmer(runner, cloudAccount) {
     try {
@@ -1628,107 +1749,11 @@ class BaseAuto {
     return summary;
   }
 
-  /** Park the account on a throwaway wallet and take its own one back, the same exchange
-   * `assistWithdrawal` performs, in the hope the drop re-reads the wallet as newly connected */
-  async swapWalletToRequalify(runner, walletAccount) {
-    const connect = async (phrase, refresh, label) => {
-      const result = await runner.connectAutoWallet({
-        phrase,
-        version: walletAccount.version,
-        refresh,
-      });
-
-      if (!result.status) {
-        throw new Error(result.message || `${label} failed`);
-      }
-
-      return result.summary;
-    };
-
-    const temporaryPhrase = await generateMnemonicPhrase();
-
-    let parked = false;
-
-    try {
-      /** The account releases its wallet, tokens and all */
-      await connect(temporaryPhrase, false, "park");
-      parked = true;
-
-      /** And picks it straight back up */
-      const summary = await connect(walletAccount.phrase, true, "restore");
-      parked = false;
-
-      return summary;
-    } catch (error) {
-      /** A stranded account is left on a wallet holding nothing, so it is worth shouting about */
-      if (parked) {
-        try {
-          await connect(walletAccount.phrase, true, "rollback");
-          parked = false;
-        } catch (e) {
-          logger.error("Failed to restore the swapped wallet:", e.message);
-        }
-      }
-
-      if (parked) {
-        await this.sendNotification([
-          `🚨 ${this.title} - a wallet could not be restored!`,
-          this.formatKeyValue(
-            "Account",
-            `${this.formatAccountLink(walletAccount.userId)} - <b>on a throwaway wallet</b>`,
-          ),
-          `<i>Reconnect it by hand before running anything else on it.</i>`,
-        ]);
-      }
-
-      throw error;
-    }
-  }
-
-  /** Take the tokens out and put them back, so the drop sees a fresh inbound transfer.
-   * This is the only strategy that moves anything on-chain, and it pays gas twice. */
-  async cycleTokensToRequalify({
-    runner,
-    cloudAccount,
-    walletAccount,
-    booster,
-  }) {
-    const { status, skipped, collected, error } = await booster.collect();
-
-    if (!status) {
-      throw new Error(
-        skipped
-          ? "Nothing to cycle back"
-          : error?.message || "Failed to collect the tokens",
-      );
-    }
-
-    /** Let the drop see the emptied wallet, which is what makes the return look new */
-    await this.resyncWallet(runner, walletAccount);
-
-    await booster.sendJettonAndGasFromMaster(collected);
-
-    /** Wait the transfer out the same way a boost does */
-    const summary = await this.resyncWallet(runner, walletAccount);
-    const { summary: settledSummary } = await this.syncBoostedHolding({
-      runner,
-      cloudAccount,
-      summary,
-      jettonAmount: collected,
-    });
-
-    return settledSummary;
-  }
-
-  /** Check, and try to repair, the standing a withdrawal is reviewed against.
-   * The drop only approves the payout later, so the account is left flagged when it stops
-   * counting as a protected DEX buyer the moment it asks. Never throws: a cycle that could
-   * not requalify an account is still a cycle that withdrew. */
+  /** Re-read the standing a withdrawal is reviewed against, which a plain login caches */
   async requalifyAfterWithdrawal({
     cloudAccount,
     runner,
     walletAccount,
-    booster,
     summary,
   }) {
     const strategy = this.requalify;
@@ -1747,32 +1772,7 @@ class BaseAuto {
     try {
       logger.info("Requalifying withdrawn account:", cloudAccount.id, strategy);
 
-      /** Free, so it runs whatever the strategy, and often it is the whole answer */
       current = (await this.resyncWallet(runner, walletAccount)) || current;
-
-      if (this.isProtectedBuyer(current)) {
-        await this.storeSnapshot(runner, cloudAccount);
-
-        return {
-          attempted: true,
-          strategy: "resync",
-          restored: true,
-          summary: current,
-        };
-      }
-
-      if (strategy === "swap") {
-        current =
-          (await this.swapWalletToRequalify(runner, walletAccount)) || current;
-      } else if (strategy === "cycle") {
-        current =
-          (await this.cycleTokensToRequalify({
-            runner,
-            cloudAccount,
-            walletAccount,
-            booster,
-          })) || current;
-      }
 
       await this.storeSnapshot(runner, cloudAccount);
 
@@ -1825,7 +1825,6 @@ class BaseAuto {
     summary,
     index,
     walletAccount,
-    booster,
   }) {
     if (this.signal.aborted) return null;
 
@@ -1910,7 +1909,6 @@ class BaseAuto {
             cloudAccount,
             runner,
             walletAccount,
-            booster,
             summary: refreshedSummary,
           })
         : null;
@@ -2950,7 +2948,11 @@ class BaseAuto {
         continue;
       }
 
-      candidates.push({ account, snapshot });
+      candidates.push({
+        account,
+        snapshot,
+        lastFunder: row.storage?.[LAST_FUNDER_KEY]?.address || null,
+      });
     }
 
     logger.info(
@@ -2960,9 +2962,22 @@ class BaseAuto {
         .join(", ") || "",
     );
 
-    return candidates.sort((a, b) =>
+    const sorted = candidates.sort((a, b) =>
       new Decimal(b.snapshot.balance || 0).comparedTo(a.snapshot.balance || 0),
     );
+
+    /** Collecting always sends from the master, so only a rolling chain reorders */
+    if (this.mode !== "roll") return sorted;
+
+    /** The cycle re-reads the real master below, so that is where the chain starts */
+    return this.orderRollChain(
+      sorted.map((candidate) => ({
+        item: candidate,
+        address: candidate.account.address,
+        lastFunder: candidate.lastFunder,
+      })),
+      this.master.address,
+    ).map((link) => link.item);
   }
 
   /** Boost one account, then withdraw it once the drop has settled the boost */
@@ -3008,6 +3023,9 @@ class BaseAuto {
       this.prepared,
     );
 
+    /** Read before rolling moves the master on */
+    const funderAddress = this.masterData.address;
+
     /** Boost - skipped when the master has nothing to send */
     logger.info("Boosting account:", cloudAccount.id, account.address);
     const { jettonAmount, skipped } = await booster.boost({
@@ -3050,6 +3068,7 @@ class BaseAuto {
                 ? `⚡ Boosted <b>(${link})</b> with <i>${jettonAmount} ${this.token}</i> ${position}`
                 : `⏳ Boosted <b>(${link})</b> with <i>${jettonAmount} ${this.token}</i>, but the drop hasn't settled it yet ${position}`,
             "",
+            ...(skipped ? [] : [this.formatFundedBy(funderAddress)]),
             ...this.formatSummaryDetails(reported),
           ]
         : [
@@ -3068,7 +3087,6 @@ class BaseAuto {
         summary,
         index,
         walletAccount,
-        booster,
       });
 
       /** The withdrawal path stays quiet about this, but a cycle should say so */
@@ -3080,6 +3098,9 @@ class BaseAuto {
     }
 
     if (runner) {
+      if (!skipped) {
+        await this.recordLastFunder(runner, cloudAccount, funderAddress);
+      }
       await this.storeSnapshot(runner, cloudAccount);
     }
 
