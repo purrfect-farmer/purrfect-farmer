@@ -8,6 +8,7 @@ import FieldStateError from "./FieldStateError";
 import { HiArrowPath } from "react-icons/hi2";
 import Label from "./Label";
 import PrimaryButton from "./PrimaryButton";
+import Select from "./Select";
 import Slider from "./Slider";
 import toast from "react-hot-toast";
 import useAuto from "@/hooks/useAuto";
@@ -23,6 +24,11 @@ const schema = yup
     difference: yup.number().required().label("Difference"),
     freeze: yup.boolean().required().label("Freeze"),
     withdrawAfterBoost: yup.boolean().required().label("Withdraw"),
+    requalify: yup
+      .string()
+      .required()
+      .oneOf(["off", "resync", "swap", "cycle"])
+      .label("Requalify"),
     retainFunds: yup.boolean().required().label("Retain Funds"),
     runFarmer: yup.boolean().required().label("Run Farmer"),
     repeat: yup.boolean().required().label("Repeat"),
@@ -38,6 +44,7 @@ export default function AutoBoostTab() {
       difference: 5,
       freeze: false,
       withdrawAfterBoost: false,
+      requalify: "resync",
       retainFunds: false,
       runFarmer: true,
       repeat: false,
@@ -46,6 +53,7 @@ export default function AutoBoostTab() {
   });
 
   const { config, password, master, accounts } = useAuto();
+  const withdrawAfterBoost = form.watch("withdrawAfterBoost");
   const selector = useAutoAccountsSelector(accounts);
   const { selectedAccounts } = selector;
   const mutation = useAutoCloudBoostMutation();
@@ -243,6 +251,42 @@ export default function AutoBoostTab() {
               </div>
             )}
           />
+
+          {/* Requalify, which only has anything to do when the run withdraws */}
+          {withdrawAfterBoost ? (
+            <Controller
+              control={form.control}
+              name="requalify"
+              render={({ field, fieldState }) => (
+                <div className="flex flex-col gap-1">
+                  <Label>Requalify after withdrawing</Label>
+
+                  <p className="text-center text-neutral-500 dark:text-neutral-400">
+                    The drop reviews a withdrawal later, against whatever the
+                    account looks like then, and an account that stops counting
+                    as a qualified DEX buyer the moment it asks tends to get
+                    flagged. This tries to win that standing back once the
+                    withdrawal is in.
+                  </p>
+
+                  <Select {...field}>
+                    <Select.Item value="off">Off - leave it alone</Select.Item>
+                    <Select.Item value="resync">
+                      Re-sync wallet - free, no tokens move
+                    </Select.Item>
+                    <Select.Item value="swap">
+                      Swap wallet - park on a throwaway, take it back
+                    </Select.Item>
+                    <Select.Item value="cycle">
+                      Cycle tokens - send them out and back (costs gas)
+                    </Select.Item>
+                  </Select>
+
+                  <FieldStateError fieldState={fieldState} />
+                </div>
+              )}
+            />
+          ) : null}
 
           {/* Retain Funds */}
           <Controller

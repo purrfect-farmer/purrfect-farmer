@@ -7,6 +7,7 @@ import { HiArrowPath } from "react-icons/hi2";
 import Label from "./Label";
 import LabelToggle from "./LabelToggle";
 import PrimaryButton from "./PrimaryButton";
+import Select from "./Select";
 import Slider from "./Slider";
 import { FaPlay, FaStop } from "react-icons/fa6";
 import toast from "react-hot-toast";
@@ -28,6 +29,11 @@ const schema = yup
     difference: yup.number().required().min(0).max(50).label("Difference"),
     includeFrozen: yup.boolean().label("Include Frozen"),
     includeRevoked: yup.boolean().label("Include Revoked"),
+    requalify: yup
+      .string()
+      .required()
+      .oneOf(["off", "resync", "swap", "cycle"])
+      .label("Requalify"),
     freeze: yup.boolean().label("Freeze"),
     runFarmer: yup.boolean().label("Run Farmer"),
   })
@@ -42,6 +48,7 @@ export default function AutoCultivateTab() {
       difference: 5,
       includeFrozen: false,
       includeRevoked: false,
+      requalify: "resync",
       freeze: false,
       runFarmer: true,
     },
@@ -256,6 +263,39 @@ export default function AutoCultivateTab() {
               <LabelToggle {...field} checked={field.value}>
                 Include revoked accounts
               </LabelToggle>
+              <FieldStateError fieldState={fieldState} />
+            </div>
+          )}
+        />
+
+        {/* Requalify */}
+        <Controller
+          control={form.control}
+          name="requalify"
+          render={({ field, fieldState }) => (
+            <div className="flex flex-col gap-1">
+              <Label>Requalify after withdrawing</Label>
+
+              <p className="text-center text-neutral-500 dark:text-neutral-400">
+                The drop reviews a withdrawal later, against whatever the
+                account looks like then, and an account that stops counting as a
+                qualified DEX buyer the moment it asks tends to get flagged.
+                This tries to win that standing back once the withdrawal is in.
+              </p>
+
+              <Select {...field}>
+                <Select.Item value="off">Off - leave it alone</Select.Item>
+                <Select.Item value="resync">
+                  Re-sync wallet - free, no tokens move
+                </Select.Item>
+                <Select.Item value="swap">
+                  Swap wallet - park on a throwaway, take it back
+                </Select.Item>
+                <Select.Item value="cycle">
+                  Cycle tokens - send them out and back (costs gas)
+                </Select.Item>
+              </Select>
+
               <FieldStateError fieldState={fieldState} />
             </div>
           )}

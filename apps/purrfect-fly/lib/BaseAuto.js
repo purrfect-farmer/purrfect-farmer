@@ -26,6 +26,25 @@ const ASSIST_HELPED_KEY = "assistLastHelped";
 const ASSIST_OWNER = "assist";
 const CULTIVATE_OWNER = "cultivate";
 
+/** What a cultivate run may do to win an account its DEX buyer standing back after a withdrawal.
+ * `resync` is free and always runs first, so the costlier two only pay for what it could not fix. */
+const REQUALIFY_STRATEGIES = ["off", "resync", "swap", "cycle"];
+
+/** How the requalify strategies read as a setting */
+const REQUALIFY_LABELS = {
+  off: "Disabled",
+  resync: "Re-sync wallet",
+  swap: "Swap wallet",
+  cycle: "Cycle tokens",
+};
+
+/** And how they read as something that was just done to an account */
+const REQUALIFY_ACTIONS = {
+  resync: "a wallet re-sync",
+  swap: "a wallet swap",
+  cycle: "a token cycle",
+};
+
 /** Shared by every sender, since none of these messages wants a preview */
 const NOTIFICATION_OPTIONS = {
   ["link_preview_options"]: {
@@ -72,6 +91,7 @@ class BaseAuto {
     includeRevoked = false,
     withdrawAfterBoost = false,
     retainFunds = false,
+    requalify = "resync",
     runFarmer = true,
     repeat = false,
     repeatInterval = 15,
@@ -109,6 +129,9 @@ class BaseAuto {
     this.includeRevoked = includeRevoked;
     this.withdrawAfterBoost = withdrawAfterBoost;
     this.retainFunds = retainFunds;
+    this.requalify = REQUALIFY_STRATEGIES.includes(requalify)
+      ? requalify
+      : "resync";
     this.runFarmer = runFarmer;
     this.repeat = repeat;
     this.repeatInterval = Number(repeatInterval);
@@ -317,6 +340,13 @@ class BaseAuto {
     );
   }
 
+  /** The drop keeps taking withdrawals while both of these hold */
+  isProtectedBuyer(summary) {
+    const protection = summary?.protection;
+
+    return Boolean(protection && !protection.revoked && protection.dexBuyer);
+  }
+
   /** Format accounts */
   formatAccounts() {
     return this.formatKeyValue("Accounts to process", this.accounts.length);
@@ -366,6 +396,14 @@ class BaseAuto {
     return this.formatKeyValue(
       "Retain funds",
       this.retainFunds ? "Enabled" : "Disabled",
+    );
+  }
+
+  /** Format the requalify setting */
+  formatRequalify() {
+    return this.formatKeyValue(
+      "Requalify",
+      REQUALIFY_LABELS[this.requalify] || this.requalify,
     );
   }
 
@@ -974,6 +1012,8 @@ class BaseAuto {
         runner,
         summary,
         index,
+        walletAccount,
+        booster,
       });
     }
 
@@ -1078,6 +1118,7 @@ class BaseAuto {
           this.formatDelay(),
           this.formatDifference(),
           this.formatWithdrawAfterBoost(),
+          ...(this.withdrawAfterBoost ? [this.formatRequalify()] : []),
           this.formatRetainFunds(),
           this.formatFreeze(),
           this.formatRunFarmer(),
@@ -1320,7 +1361,11 @@ class BaseAuto {
     const phrase = await this.decryptPhrase(account.encryptedPhrase);
     logger.success("Successfully decrypted wallet phrase:", account.address);
 
-    return new AutoBooster(this.masterData, { ...account, phrase }, this.prepared);
+    return new AutoBooster(
+      this.masterData,
+      { ...account, phrase },
+      this.prepared,
+    );
   }
 
   /** The wallet account carries the decrypted phrase, so only plain values go back to the caller */
@@ -1566,8 +1611,222 @@ class BaseAuto {
     }
   }
 
+  /** Re-sync the wallet, which is the only call that makes the drop read it on-chain again.
+   * A plain login never recomputes the DEX buyer standing, so this is both the cheapest
+   * repair and the measurement that says whether the standing was ever really lost. */
+  async resyncWallet(runner, walletAccount) {
+    const { status, summary, message } = await runner.connectAutoWallet({
+      phrase: walletAccount.phrase,
+      version: walletAccount.version,
+      refresh: true,
+    });
+
+    if (!status) {
+      throw new Error(message || "Failed to re-sync the wallet");
+    }
+
+    return summary;
+  }
+
+  /** Park the account on a throwaway wallet and take its own one back, the same exchange
+   * `assistWithdrawal` performs, in the hope the drop re-reads the wallet as newly connected */
+  async swapWalletToRequalify(runner, walletAccount) {
+    const connect = async (phrase, refresh, label) => {
+      const result = await runner.connectAutoWallet({
+        phrase,
+        version: walletAccount.version,
+        refresh,
+      });
+
+      if (!result.status) {
+        throw new Error(result.message || `${label} failed`);
+      }
+
+      return result.summary;
+    };
+
+    const temporaryPhrase = await generateMnemonicPhrase();
+
+    let parked = false;
+
+    try {
+      /** The account releases its wallet, tokens and all */
+      await connect(temporaryPhrase, false, "park");
+      parked = true;
+
+      /** And picks it straight back up */
+      const summary = await connect(walletAccount.phrase, true, "restore");
+      parked = false;
+
+      return summary;
+    } catch (error) {
+      /** A stranded account is left on a wallet holding nothing, so it is worth shouting about */
+      if (parked) {
+        try {
+          await connect(walletAccount.phrase, true, "rollback");
+          parked = false;
+        } catch (e) {
+          logger.error("Failed to restore the swapped wallet:", e.message);
+        }
+      }
+
+      if (parked) {
+        await this.sendNotification([
+          `🚨 ${this.title} - a wallet could not be restored!`,
+          this.formatKeyValue(
+            "Account",
+            `${this.formatAccountLink(walletAccount.userId)} - <b>on a throwaway wallet</b>`,
+          ),
+          `<i>Reconnect it by hand before running anything else on it.</i>`,
+        ]);
+      }
+
+      throw error;
+    }
+  }
+
+  /** Take the tokens out and put them back, so the drop sees a fresh inbound transfer.
+   * This is the only strategy that moves anything on-chain, and it pays gas twice. */
+  async cycleTokensToRequalify({
+    runner,
+    cloudAccount,
+    walletAccount,
+    booster,
+  }) {
+    const { status, skipped, collected, error } = await booster.collect();
+
+    if (!status) {
+      throw new Error(
+        skipped
+          ? "Nothing to cycle back"
+          : error?.message || "Failed to collect the tokens",
+      );
+    }
+
+    /** Let the drop see the emptied wallet, which is what makes the return look new */
+    await this.resyncWallet(runner, walletAccount);
+
+    await booster.sendJettonAndGasFromMaster(collected);
+
+    /** Wait the transfer out the same way a boost does */
+    const summary = await this.resyncWallet(runner, walletAccount);
+    const { summary: settledSummary } = await this.syncBoostedHolding({
+      runner,
+      cloudAccount,
+      summary,
+      jettonAmount: collected,
+    });
+
+    return settledSummary;
+  }
+
+  /** Check, and try to repair, the standing a withdrawal is reviewed against.
+   * The drop only approves the payout later, so the account is left flagged when it stops
+   * counting as a protected DEX buyer the moment it asks. Never throws: a cycle that could
+   * not requalify an account is still a cycle that withdrew. */
+  async requalifyAfterWithdrawal({
+    cloudAccount,
+    runner,
+    walletAccount,
+    booster,
+    summary,
+  }) {
+    const strategy = this.requalify;
+
+    if (strategy === "off" || !runner || !walletAccount) {
+      return { attempted: false, strategy, restored: false, summary };
+    }
+
+    /** Nothing to win back */
+    if (this.isProtectedBuyer(summary)) {
+      return { attempted: false, strategy, restored: true, summary };
+    }
+
+    let current = summary;
+
+    try {
+      logger.info("Requalifying withdrawn account:", cloudAccount.id, strategy);
+
+      /** Free, so it runs whatever the strategy, and often it is the whole answer */
+      current = (await this.resyncWallet(runner, walletAccount)) || current;
+
+      if (this.isProtectedBuyer(current)) {
+        await this.storeSnapshot(runner, cloudAccount);
+
+        return {
+          attempted: true,
+          strategy: "resync",
+          restored: true,
+          summary: current,
+        };
+      }
+
+      if (strategy === "swap") {
+        current =
+          (await this.swapWalletToRequalify(runner, walletAccount)) || current;
+      } else if (strategy === "cycle") {
+        current =
+          (await this.cycleTokensToRequalify({
+            runner,
+            cloudAccount,
+            walletAccount,
+            booster,
+          })) || current;
+      }
+
+      await this.storeSnapshot(runner, cloudAccount);
+
+      return {
+        attempted: true,
+        strategy,
+        restored: this.isProtectedBuyer(current),
+        summary: current,
+      };
+    } catch (e) {
+      logger.error(
+        "Failed to requalify the withdrawn account:",
+        cloudAccount.id,
+        e.message,
+      );
+
+      return {
+        attempted: true,
+        strategy,
+        restored: this.isProtectedBuyer(current),
+        summary: current,
+        message: e.message,
+      };
+    }
+  }
+
+  /** The one line a requalification attempt is worth in the withdrawal notification */
+  formatRequalifyOutcome(link, result) {
+    if (!result?.attempted) return [];
+
+    const action = REQUALIFY_ACTIONS[result.strategy] || result.strategy;
+
+    if (result.restored) {
+      return [
+        `♻️ Requalified <b>(${link})</b> - DEX Buyer is back ✅ after <i>${action}</i>`,
+      ];
+    }
+
+    return [
+      `⚠️ <b>(${link})</b> is still not a qualified DEX buyer after <i>${action}</i>${
+        result.message ? `\n<i>Error: ${result.message}</i>` : ""
+      }`,
+    ];
+  }
+
   /** Withdraw an account in the middle of a boost run */
-  async processBoostWithdrawal({ cloudAccount, runner, summary, index }) {
+  async processBoostWithdrawal({
+    cloudAccount,
+    runner,
+    summary,
+    index,
+    walletAccount,
+    booster,
+  }) {
     if (this.signal.aborted) return null;
 
     const link = this.formatAccountLink(cloudAccount.id);
@@ -1593,10 +1852,7 @@ class BaseAuto {
       /** The boost may have cost the account its standing, so this is read after it, not before */
       const protection = summary?.protection;
 
-      /** The drop keeps taking withdrawals while both of these hold */
-      const protectedBuyer = Boolean(
-        protection && !protection.revoked && protection.dexBuyer,
-      );
+      const protectedBuyer = this.isProtectedBuyer(summary);
 
       if (protection && !protectedBuyer) {
         const reason = protection.revoked
@@ -1644,9 +1900,22 @@ class BaseAuto {
       );
 
       /** Refresh the summary to reflect the updated balance and any flags */
-      const updatedSummary = status
+      const refreshedSummary = status
         ? await this.refreshWithdrawnSummary(runner, cloudAccount)
         : null;
+
+      /** The drop reviews the payout later, against whatever the account looks like then */
+      const requalified = status
+        ? await this.requalifyAfterWithdrawal({
+            cloudAccount,
+            runner,
+            walletAccount,
+            booster,
+            summary: refreshedSummary,
+          })
+        : null;
+
+      const updatedSummary = requalified?.summary || refreshedSummary;
 
       await this.sendNotification(
         [
@@ -1657,11 +1926,13 @@ class BaseAuto {
                 ? `♻️ Unflagged <b>(${link})</b> - <i>${amount} ${this.token}</i> is pending again ${position}\n<i>Message: ${message}</i>`
                 : `🤑 Withdrawn <b>(${link})</b> - <i>${amount} ${this.token}</i> ${position}\n<i>Message: ${message}</i>`
               : `❌ Failed to withdraw <b>(${link})</b> - <i>${amount} ${this.token}</i> ${position}\n<i>Reason: ${message}</i>`,
-        ].concat(
-          updatedSummary
-            ? ["", ...this.formatSummaryDetails(updatedSummary)]
-            : [],
-        ),
+        ]
+          .concat(this.formatRequalifyOutcome(link, requalified))
+          .concat(
+            updatedSummary
+              ? ["", ...this.formatSummaryDetails(updatedSummary)]
+              : [],
+          ),
       );
 
       return { status, skipped, message, amount };
@@ -2796,6 +3067,8 @@ class BaseAuto {
         runner,
         summary,
         index,
+        walletAccount,
+        booster,
       });
 
       /** The withdrawal path stays quiet about this, but a cycle should say so */
@@ -2951,6 +3224,7 @@ class BaseAuto {
       this.formatDifference(),
       this.formatIncludeFrozen(),
       this.formatIncludeRevoked(),
+      this.formatRequalify(),
       this.formatFreeze(),
       this.formatRunFarmer(),
       summarizeVault(this.constructor.id).loaded
