@@ -217,9 +217,31 @@ class BaseAuto {
     return `❄️ Freezes <i>${this.formatTimestamp(freezesAt)}</i> - in <i>${this.formatCountdown(freezesAt)}</i>`;
   }
 
+  /** The payout record an unverified account has earned, absent until the drop counts it */
+  formatWithdrawalRecord(summary) {
+    const withdrawal = summary?.withdrawal;
+    const approved =
+      typeof withdrawal?.approved === "number" ? withdrawal.approved : null;
+
+    if (approved === null) return "";
+
+    const flagged = withdrawal.flagged?.length || 0;
+
+    /** A verified account already says as much, so this only speaks for the rest */
+    if (!summary.verified && approved > 0 && flagged === 0) {
+      return this.formatKeyValue(
+        "Withdrawal Record",
+        `🤝 Trusted - ${approved} approved, none ever flagged`,
+      );
+    }
+
+    return this.formatKeyValue("Withdrawal Record", `${approved} approved`);
+  }
+
   /** Format an account snapshot as notification detail lines, shared by every single-account notification */
   formatSummaryDetails(summary) {
     const freeze = this.formatMiningFreeze(summary);
+    const record = this.formatWithdrawalRecord(summary);
 
     return (
       [
@@ -231,6 +253,9 @@ class BaseAuto {
         ),
         this.formatKeyValue("Verified", summary.verified ? "✅" : "❌"),
       ]
+        /** The account's own payout record, absent on a summary that carries no withdrawals */
+        .concat(record ? [record] : [])
+
         /** Buyer protection, absent on drops that do not report it */
         .concat(
           summary.protection
@@ -917,6 +942,11 @@ class BaseAuto {
     const position = this.formatAccountPosition(index);
     const action = skipped ? "connect" : "boost";
 
+    /** The payout record is read here, since the snapshot is only stored after any withdrawal */
+    const reported = status
+      ? await this.withWithdrawalRecord(runner, summary)
+      : summary;
+
     /** The full snapshot is reported on every success, so the freeze is visible before it bites */
     await this.sendNotification(
       status
@@ -927,7 +957,7 @@ class BaseAuto {
                 ? `⚡ Boosted <b>(${link})</b> with <i>${jettonAmount} ${this.token}</i> ${position}`
                 : `⏳ Boosted <b>(${link})</b> with <i>${jettonAmount} ${this.token}</i>, but the drop hasn't settled it yet ${position}`,
             "",
-            ...this.formatSummaryDetails(summary),
+            ...this.formatSummaryDetails(reported),
           ]
         : [
             `❌ Failed to ${action} <b>(${link})</b>${skipped ? "" : ` with <i>${jettonAmount} ${this.token}</i>`} ${position}`,
@@ -1468,6 +1498,21 @@ class BaseAuto {
     return result;
   }
 
+  /** Lend a summary the account's payout record, which only the stored snapshot carries otherwise */
+  async withWithdrawalRecord(runner, summary) {
+    if (!runner || !summary || summary.withdrawal) return summary;
+
+    try {
+      const withdrawal = await runner.readAutoWithdrawals();
+
+      return withdrawal ? { ...summary, withdrawal } : summary;
+    } catch (e) {
+      /** Worth a line less, not a failed notification */
+      logger.error("Failed to read the payout record:", e.message);
+      return summary;
+    }
+  }
+
   /** Record what an account looks like right now */
   async storeSnapshot(runner, cloudAccount) {
     try {
@@ -1499,13 +1544,16 @@ class BaseAuto {
     }
   }
 
-  /** Re-read an account the drop has just paid out */
+  /** Re-read and record an account the drop has just paid out */
   async refreshWithdrawnSummary(runner, cloudAccount) {
     /** Give the drop a moment to record the withdrawal */
     await this.utils.delayForSeconds(5, { signal: this.signal });
 
     try {
-      return await runner.refreshAutoSummary();
+      await runner.refreshAutoSummary();
+
+      /** The snapshot is the summary plus the payout record this withdrawal has just changed */
+      return await runner.storeAutoSnapshot();
     } catch (e) {
       logger.error(
         "Failed to refresh withdrawn account:",
@@ -1675,7 +1723,6 @@ class BaseAuto {
 
       /** Re-read and record the account to reflect the updated balance and any flags */
       await this.refreshWithdrawnSummary(runner, cloudAccount);
-      await this.storeSnapshot(runner, cloudAccount);
 
       return { status, skipped, message, amount };
     } catch (e) {
@@ -1853,13 +1900,13 @@ class BaseAuto {
       /** Re-read the account so the snapshot carries the current holding */
       const summary = await runner.refreshAutoSummary();
 
-      /** Record it */
-      await this.storeSnapshot(runner, cloudAccount);
+      /** Record it, and report the snapshot instead, since it also carries the payout record */
+      const snapshot = await this.storeSnapshot(runner, cloudAccount);
 
       /** A read account goes back to farming */
       await this.activateFarmer(runner, cloudAccount);
 
-      return { status: true, summary };
+      return { status: true, summary: snapshot || summary };
     } catch (e) {
       const errorMessage = e.message || "Unknown error!";
 
@@ -2719,6 +2766,10 @@ class BaseAuto {
 
     const action = skipped ? "connect" : "boost";
 
+    const reported = status
+      ? await this.withWithdrawalRecord(runner, summary)
+      : summary;
+
     await this.sendNotification(
       status
         ? [
@@ -2728,7 +2779,7 @@ class BaseAuto {
                 ? `⚡ Boosted <b>(${link})</b> with <i>${jettonAmount} ${this.token}</i> ${position}`
                 : `⏳ Boosted <b>(${link})</b> with <i>${jettonAmount} ${this.token}</i>, but the drop hasn't settled it yet ${position}`,
             "",
-            ...this.formatSummaryDetails(summary),
+            ...this.formatSummaryDetails(reported),
           ]
         : [
             `❌ Failed to ${action} <b>(${link})</b>${skipped ? "" : ` with <i>${jettonAmount} ${this.token}</i>`} ${position}`,

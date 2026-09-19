@@ -1007,7 +1007,7 @@ export default class MRGFarmer extends BaseFarmer {
     return this.getPendingWithdrawals().length > 0;
   }
 
-  /** The account's own withdrawal queue, which this drop never flags */
+  /** The account's own withdrawal queue, which this drop never flags and never counts as approved */
   async getAutoWithdrawals() {
     await this.ensureAccountLoaded();
 

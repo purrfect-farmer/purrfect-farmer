@@ -1386,6 +1386,7 @@ export default class ATFFarmer extends BaseFarmer {
 
     return {
       pending: items.filter((item) => item.status === "pending"),
+      approved: items.filter((item) => item.status === "approved"),
       flagged: items.filter(
         (item) => !["pending", "approved"].includes(item.status),
       ),

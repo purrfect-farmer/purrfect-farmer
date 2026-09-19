@@ -72,7 +72,22 @@ export const getWithdrawals = (snapshot) => {
     known: Boolean(withdrawal),
     checkedAt: withdrawal?.checkedAt || null,
     pending: withdrawal?.pending || [],
+    approved:
+      typeof withdrawal?.approved === "number" ? withdrawal.approved : null,
     flagged: withdrawal?.flagged || [],
+  };
+};
+
+/** Whether the account has earned trust through its payout record alone, absent until the drop counts it */
+export const getWithdrawalTrust = (snapshot) => {
+  const { known, approved, flagged } = getWithdrawals(snapshot);
+
+  if (!known || approved === null) return null;
+
+  return {
+    approved,
+    /** Only worth saying about an account the drop has not verified itself */
+    trusted: !snapshot?.verified && approved > 0 && flagged.length === 0,
   };
 };
 

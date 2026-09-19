@@ -5,6 +5,7 @@ import {
   FARMER_STATUS_TEXT_COLORS,
   getMiningFreezeColor,
   getProtectionColor,
+  getWithdrawalTrustColor,
 } from "@/constants/farmerStatus";
 import FarmerStatusDot from "./FarmerStatusDot";
 import { formatDurationParts } from "@purrfect/shared/utils/core.js";
@@ -15,6 +16,7 @@ import {
   getMiningFreeze,
   getProtection,
   getWithdrawals,
+  getWithdrawalTrust,
   hasValue,
   isWithdrawable,
 } from "@/lib/autoSnapshot";
@@ -55,6 +57,33 @@ const WithdrawalRecord = ({ label, record, valueClassName, note }) => (
   />
 );
 
+/** What the account's settled payouts say about it, once the drop has counted them */
+const TrustRow = ({ snapshot }) => {
+  const trust = getWithdrawalTrust(snapshot);
+
+  if (!trust) {
+    return (
+      <InfoRow
+        label="Withdrawal record"
+        value="Not counted yet - the drop will count it on the next farm"
+        valueClassName={MUTED}
+      />
+    );
+  }
+
+  return (
+    <InfoRow
+      label="Withdrawal record"
+      value={
+        trust.trusted
+          ? `Trusted - ${trust.approved} approved, none ever flagged`
+          : `${trust.approved} approved`
+      }
+      valueClassName={getWithdrawalTrustColor(trust)}
+    />
+  );
+};
+
 /** The account's own withdrawal queue */
 const Withdrawals = ({ snapshot }) => {
   const { known, checkedAt, pending, flagged } = getWithdrawals(snapshot);
@@ -76,6 +105,7 @@ const Withdrawals = ({ snapshot }) => {
           value="None in flight"
           valueClassName={GOOD}
         />
+        <TrustRow snapshot={snapshot} />
         {checkedAt ? (
           <InfoRow
             label="Withdrawals checked"
@@ -110,6 +140,8 @@ const Withdrawals = ({ snapshot }) => {
           note="Awaiting processing, so no further withdrawal is placed."
         />
       ))}
+
+      <TrustRow snapshot={snapshot} />
 
       {checkedAt ? (
         <InfoRow

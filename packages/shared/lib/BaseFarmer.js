@@ -656,14 +656,16 @@ export default class BaseFarmer {
   }
 
   /** The account's own withdrawal queue, for the stored snapshot
-   * @returns {Promise<{ pending: object[], flagged: object[] } | null>}
+   * `approved` is optional, and a drop that omits it reports no payout record at all
+   * @returns {Promise<{ pending: object[], approved?: object[], flagged: object[] } | null>}
    */
   async getAutoWithdrawals() {
     return null;
   }
 
   /** The withdrawal queue as the snapshot carries it, or null when unknown
-   * @returns {Promise<{ pending: object[], flagged: object[], checkedAt: number } | null>}
+   * `approved` is a count rather than records, and null when the drop does not count them
+   * @returns {Promise<{ pending: object[], approved: number|null, flagged: object[], checkedAt: number } | null>}
    */
   async readAutoWithdrawals() {
     try {
@@ -673,6 +675,9 @@ export default class BaseFarmer {
 
       return {
         pending: (result.pending || []).slice(0, SNAPSHOT_WITHDRAWAL_LIMIT),
+        approved: Array.isArray(result.approved)
+          ? result.approved.length
+          : null,
         flagged: (result.flagged || []).slice(0, SNAPSHOT_WITHDRAWAL_LIMIT),
         checkedAt: Date.now(),
       };

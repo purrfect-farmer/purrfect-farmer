@@ -67,3 +67,20 @@ export const getProtectionColor = (protection) => {
     ? PROTECTION_COLORS.protected
     : PROTECTION_COLORS.nonbuyer;
 };
+
+/** Text colour for the account's own payout record */
+export const WITHDRAWAL_TRUST_COLORS = {
+  trusted: "text-teal-500 dark:text-teal-300",
+  untested: "text-neutral-500 dark:text-neutral-400",
+};
+
+/** The tint a payout record reads in, shared by the pill and the detail row
+ * @param {{ approved: number, trusted: boolean }|null} trust
+ */
+export const getWithdrawalTrustColor = (trust) => {
+  if (!trust) return null;
+
+  return trust.trusted
+    ? WITHDRAWAL_TRUST_COLORS.trusted
+    : WITHDRAWAL_TRUST_COLORS.untested;
+};

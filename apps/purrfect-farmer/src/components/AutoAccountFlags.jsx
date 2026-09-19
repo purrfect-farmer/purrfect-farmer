@@ -1,4 +1,5 @@
 import {
+  LuBadgeCheck,
   LuHourglass,
   LuShieldOff,
   LuSnowflake,
@@ -8,6 +9,7 @@ import {
 import {
   getMiningFreezeColor,
   getProtectionColor,
+  getWithdrawalTrustColor,
 } from "@/constants/farmerStatus";
 import { cn } from "@/utils";
 import { formatDate } from "date-fns";
@@ -16,6 +18,7 @@ import {
   getMiningFreeze,
   getProtection,
   getWithdrawals,
+  getWithdrawalTrust,
 } from "@/lib/autoSnapshot";
 import { useAutoCloudSnapshot } from "@/hooks/useAutoCloudSnapshotsQuery";
 
@@ -96,6 +99,21 @@ const ProtectionPill = ({ protection }) => {
   );
 };
 
+/** The payout record an unverified account has earned, silent until it has one */
+const TrustedPill = ({ trust }) => {
+  if (!trust?.trusted) return null;
+
+  return (
+    <Pill
+      icon={LuBadgeCheck}
+      title={`${trust.approved} approved withdrawal(s), none ever flagged`}
+      className={getWithdrawalTrustColor(trust)}
+    >
+      Trusted
+    </Pill>
+  );
+};
+
 /** The signals that decide whether an account needs attention */
 export default function AutoAccountFlags({ account, ...props }) {
   const { enabled, row } = useAutoCloudSnapshot(account.userId);
@@ -106,12 +124,19 @@ export default function AutoAccountFlags({ account, ...props }) {
   const freeze = getMiningFreeze(snapshot);
   const { pending, flagged } = getWithdrawals(snapshot);
   const protection = getProtection(snapshot);
+  const trust = getWithdrawalTrust(snapshot);
   const hasFreeze = Boolean(freeze && (freeze.frozen || freeze.freezesAt));
   const hasProtection = Boolean(
     protection && (protection.revoked || !protection.dexBuyer),
   );
 
-  if (!hasFreeze && !hasProtection && !pending.length && !flagged.length)
+  if (
+    !hasFreeze &&
+    !hasProtection &&
+    !trust?.trusted &&
+    !pending.length &&
+    !flagged.length
+  )
     return null;
 
   return (
@@ -125,6 +150,8 @@ export default function AutoAccountFlags({ account, ...props }) {
       <FreezePill freeze={freeze} />
 
       <ProtectionPill protection={protection} />
+
+      <TrustedPill trust={trust} />
 
       {/* A withdrawal in flight, so the account must not place another */}
       {pending.length ? (
