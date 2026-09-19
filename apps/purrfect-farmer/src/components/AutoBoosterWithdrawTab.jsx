@@ -7,20 +7,15 @@ import {
 import { useMemo, useState } from "react";
 
 import Alert from "./Alert";
+import AutoHelperChooser, { groupHelpers } from "./AutoHelperChooser";
 import { FaDollarSign } from "react-icons/fa6";
 import { HiArrowPath } from "react-icons/hi2";
-import Label from "./Label";
 import PrimaryButton from "./PrimaryButton";
 import { Progress } from "./Progress";
-import Select from "./Select";
 import { cn } from "@/utils";
 import useAuto from "@/hooks/useAuto";
 import useAutoBoosterWithdrawMutation from "@/hooks/useAutoBoosterWithdrawMutation";
-
-function truncateAddress(address) {
-  if (!address || address.length < 12) return address;
-  return `${address.slice(0, 6)}...${address.slice(-4)}`;
-}
+import useAutoCloudSnapshotsQuery from "@/hooks/useAutoCloudSnapshotsQuery";
 
 const StepIcon = ({ status }) => {
   switch (status) {
@@ -67,51 +62,57 @@ const StepRow = ({ step }) => (
 export default function AutoBoosterWithdrawTab({ account }) {
   const { config, accounts } = useAuto();
   const { mutation, steps, reset } = useAutoBoosterWithdrawMutation();
+  const { data: snapshots } = useAutoCloudSnapshotsQuery();
   const [selectedId, setSelectedId] = useState("");
 
-  const verifiedAccounts = useMemo(
-    () => accounts.filter((item) => item.verified && item.id !== account.id),
+  /** An account never withdraws through itself */
+  const others = useMemo(
+    () => accounts.filter((item) => item.id !== account.id),
     [accounts, account.id],
   );
 
-  const verifiedAccount =
-    verifiedAccounts.find((item) => item.id === selectedId) ||
-    verifiedAccounts[0];
+  const { verified, trusted } = useMemo(
+    () => groupHelpers(others, snapshots),
+    [others, snapshots],
+  );
+
+  const helperAccounts = useMemo(
+    () => [...verified, ...trusted],
+    [verified, trusted],
+  );
+
+  /** A verified account is the safer default, so it is preferred over a trusted one */
+  const helperAccount =
+    helperAccounts.find((item) => item.id === selectedId) || helperAccounts[0];
 
   const completed = steps.filter((step) => step.status === "done").length;
 
   const handleWithdraw = () => {
-    mutation.mutate({ account, verifiedAccount });
+    mutation.mutate({ account, helperAccount });
   };
 
   return (
     <div className="flex flex-col gap-3">
       <Alert variant="info">
-        Withdraws this account's {config.token} through a verified account.
+        Withdraws this account's {config.token} through a verified or trusted
+        account.
       </Alert>
 
-      {verifiedAccounts.length === 0 ? (
+      {helperAccounts.length === 0 ? (
         <Alert variant="warning">
-          No other account is marked as verified. Mark one in its edit dialog
-          first.
+          No other account can withdraw for this one. Mark one as verified in
+          its edit dialog, or let one earn a clean payout record. A trusted
+          account is only known while the cloud is on.
         </Alert>
       ) : (
         <>
           {!mutation.isSuccess && !mutation.isError && (
-            <div className="flex flex-col gap-1">
-              <Label>Verified Account</Label>
-              <Select
-                value={verifiedAccount?.id || ""}
-                disabled={mutation.isPending}
-                onChange={(ev) => setSelectedId(ev.target.value)}
-              >
-                {verifiedAccounts.map((item) => (
-                  <Select.Item key={item.id} value={item.id}>
-                    {item.title} - {truncateAddress(item.address)}
-                  </Select.Item>
-                ))}
-              </Select>
-            </div>
+            <AutoHelperChooser
+              accounts={others}
+              value={helperAccount}
+              disabled={mutation.isPending}
+              onChange={(item) => setSelectedId(item.id)}
+            />
           )}
 
           {/* Progress */}
@@ -127,7 +128,7 @@ export default function AutoBoosterWithdrawTab({ account }) {
           {mutation.isSuccess && (
             <Alert variant="success">
               Withdrew {mutation.data.amount} {config.token} through{" "}
-              {verifiedAccount?.title}.
+              {helperAccount?.title}.
             </Alert>
           )}
 
@@ -143,7 +144,7 @@ export default function AutoBoosterWithdrawTab({ account }) {
           ) : (
             <PrimaryButton
               type="button"
-              disabled={mutation.isPending || !verifiedAccount}
+              disabled={mutation.isPending || !helperAccount}
               onClick={handleWithdraw}
             >
               <FaDollarSign className="size-4" />

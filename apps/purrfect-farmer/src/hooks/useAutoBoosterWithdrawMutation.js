@@ -48,9 +48,9 @@ export default function useAutoBoosterWithdrawMutation() {
   const mutation = useMutation({
     mutationKey: [config.id, "booster-withdraw"],
     onError: (error) => {
-      console.log("Error while withdrawing through a verified account", error);
+      console.log("Error while withdrawing through a helper account", error);
     },
-    mutationFn: async ({ account, verifiedAccount }) => {
+    mutationFn: async ({ account, helperAccount }) => {
       /** Sends a command and treats the farmer's own failure as a throw */
       const command = async ({ target, name, payload, label }) => {
         const result = await send({
@@ -85,16 +85,16 @@ export default function useAutoBoosterWithdrawMutation() {
             label: `Connecting temporary wallet to ${account.title}`,
           },
           {
-            id: "verified-connect",
-            label: `Connecting ${account.title}'s wallet to ${verifiedAccount.title}`,
+            id: "helper-connect",
+            label: `Connecting ${account.title}'s wallet to ${helperAccount.title}`,
           },
           {
             id: "withdraw",
-            label: `Withdrawing from ${verifiedAccount.title}`,
+            label: `Withdrawing from ${helperAccount.title}`,
           },
           {
-            id: "restore-verified",
-            label: `Restoring ${verifiedAccount.title}'s wallet`,
+            id: "restore-helper",
+            label: `Restoring ${helperAccount.title}'s wallet`,
           },
           {
             id: "restore-requester",
@@ -104,8 +104,9 @@ export default function useAutoBoosterWithdrawMutation() {
       );
 
       /** Both real phrases are decrypted up front, because a rollback needs them and nothing has moved yet */
-      const { temporaryWallet, requesterWallet, verifiedWallet } =
-        await runStep("prepare", async () => {
+      const { temporaryWallet, requesterWallet, helperWallet } = await runStep(
+        "prepare",
+        async () => {
           const phrase = (await mnemonicNew()).join(" ");
           const address = await getWalletAddressFromMnemonic(
             phrase,
@@ -119,33 +120,34 @@ export default function useAutoBoosterWithdrawMutation() {
               phrase: await decryptPhrase(account.encryptedPhrase),
               version: account.version,
             },
-            verifiedWallet: {
-              phrase: await decryptPhrase(verifiedAccount.encryptedPhrase),
-              version: verifiedAccount.version,
+            helperWallet: {
+              phrase: await decryptPhrase(helperAccount.encryptedPhrase),
+              version: helperAccount.version,
             },
           };
-        });
+        },
+      );
 
       let requesterMoved = false;
-      let verifiedMoved = false;
+      let helperMoved = false;
 
       /** Best-effort return of both accounts to their own wallets */
       const rollback = async () => {
-        if (verifiedMoved) {
+        if (helperMoved) {
           appendStep({
-            id: "rollback-verified",
-            label: `Rollback - restoring ${verifiedAccount.title}'s wallet`,
+            id: "rollback-helper",
+            label: `Rollback - restoring ${helperAccount.title}'s wallet`,
           });
 
           try {
-            await runStep("rollback-verified", () =>
+            await runStep("rollback-helper", () =>
               connectWallet({
-                target: verifiedAccount,
-                wallet: verifiedWallet,
-                label: `${verifiedAccount.title} restore wallet`,
+                target: helperAccount,
+                wallet: helperWallet,
+                label: `${helperAccount.title} restore wallet`,
               }),
             );
-            verifiedMoved = false;
+            helperMoved = false;
           } catch {
             /* reported on the step itself */
           }
@@ -185,35 +187,35 @@ export default function useAutoBoosterWithdrawMutation() {
           return result;
         });
 
-        /** The verified account picks it up */
-        await runStep("verified-connect", async () => {
+        /** The helper account picks it up */
+        await runStep("helper-connect", async () => {
           const result = await connectWallet({
-            target: verifiedAccount,
+            target: helperAccount,
             wallet: requesterWallet,
-            label: `${verifiedAccount.title} connect ${account.title}'s wallet`,
+            label: `${helperAccount.title} connect ${account.title}'s wallet`,
           });
 
-          verifiedMoved = true;
+          helperMoved = true;
           return result;
         });
 
         const withdrawal = await runStep("withdraw", () =>
           command({
-            target: verifiedAccount,
+            target: helperAccount,
             name: "withdraw",
             payload: { force: true, difference: 0 },
-            label: `${verifiedAccount.title} withdraw`,
+            label: `${helperAccount.title} withdraw`,
           }),
         );
 
-        await runStep("restore-verified", async () => {
+        await runStep("restore-helper", async () => {
           const result = await connectWallet({
-            target: verifiedAccount,
-            wallet: verifiedWallet,
-            label: `${verifiedAccount.title} restore wallet`,
+            target: helperAccount,
+            wallet: helperWallet,
+            label: `${helperAccount.title} restore wallet`,
           });
 
-          verifiedMoved = false;
+          helperMoved = false;
           return result;
         });
 
