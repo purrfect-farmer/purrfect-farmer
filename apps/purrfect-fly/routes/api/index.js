@@ -43,6 +43,7 @@ const autoSchema = {
       withdrawAfterBoost: { type: "boolean" },
       retainFunds: { type: "boolean" },
       requalify: { type: "string", enum: ["off", "resync"] },
+      ignorePending: { type: "boolean" },
       runFarmer: { type: "boolean" },
       repeat: { type: "boolean" },
       repeatInterval: { type: "number" },

@@ -29,6 +29,7 @@ const schema = yup
       .required()
       .oneOf(["off", "resync"])
       .label("Requalify"),
+    ignorePending: yup.boolean().label("Ignore Pending"),
     retainFunds: yup.boolean().required().label("Retain Funds"),
     runFarmer: yup.boolean().required().label("Run Farmer"),
     repeat: yup.boolean().required().label("Repeat"),
@@ -45,6 +46,7 @@ export default function AutoBoostTab() {
       freeze: false,
       withdrawAfterBoost: false,
       requalify: "resync",
+      ignorePending: false,
       retainFunds: false,
       runFarmer: true,
       repeat: false,
@@ -252,34 +254,60 @@ export default function AutoBoostTab() {
             )}
           />
 
-          {/* Requalify, which only has anything to do when the run withdraws */}
+          {/* These only have anything to do when the run withdraws */}
           {withdrawAfterBoost ? (
-            <Controller
-              control={form.control}
-              name="requalify"
-              render={({ field, fieldState }) => (
-                <div className="flex flex-col gap-1">
-                  <Label>Requalify after withdrawing</Label>
+            <>
+              <Controller
+                control={form.control}
+                name="requalify"
+                render={({ field, fieldState }) => (
+                  <div className="flex flex-col gap-1">
+                    <Label>Requalify after withdrawing</Label>
 
-                  <p className="text-center text-neutral-500 dark:text-neutral-400">
-                    Re-reads the wallet on-chain once the withdrawal is in, so
-                    the flags reported for the account are what the drop really
-                    sees rather than a cached login. It cannot restore a lost
-                    DEX buyer standing: only a boost from a different wallet
-                    does that, which the chain now rotates for automatically.
-                  </p>
+                    <p className="text-center text-neutral-500 dark:text-neutral-400">
+                      Re-reads the wallet on-chain once the withdrawal is in, so
+                      the flags reported for the account are what the drop
+                      really sees rather than a cached login. It cannot restore
+                      a lost DEX buyer standing: only a boost from a different
+                      wallet does that, which the chain now rotates for
+                      automatically.
+                    </p>
 
-                  <Select {...field}>
-                    <Select.Item value="off">Off - leave it alone</Select.Item>
-                    <Select.Item value="resync">
-                      Re-sync wallet - free, no tokens move
-                    </Select.Item>
-                  </Select>
+                    <Select {...field}>
+                      <Select.Item value="off">
+                        Off - leave it alone
+                      </Select.Item>
+                      <Select.Item value="resync">
+                        Re-sync wallet - free, no tokens move
+                      </Select.Item>
+                    </Select>
 
-                  <FieldStateError fieldState={fieldState} />
-                </div>
-              )}
-            />
+                    <FieldStateError fieldState={fieldState} />
+                  </div>
+                )}
+              />
+
+              {/* Ignore Pending */}
+              <Controller
+                control={form.control}
+                name="ignorePending"
+                render={({ field, fieldState }) => (
+                  <div className="flex flex-col gap-1">
+                    <Label>Ignore Pending</Label>
+
+                    <p className="text-center text-neutral-500 dark:text-neutral-400">
+                      An account with a withdrawal still in flight is skipped by
+                      default. Enabling this withdraws anyway, which puts a
+                      stale pending withdrawal back on the queue.
+                    </p>
+                    <LabelToggle {...field} checked={field.value}>
+                      Withdraw despite a pending withdrawal
+                    </LabelToggle>
+                    <FieldStateError fieldState={fieldState} />
+                  </div>
+                )}
+              />
+            </>
           ) : null}
 
           {/* Retain Funds */}

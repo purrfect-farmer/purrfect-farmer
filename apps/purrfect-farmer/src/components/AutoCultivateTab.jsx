@@ -34,6 +34,7 @@ const schema = yup
       .required()
       .oneOf(["off", "resync"])
       .label("Requalify"),
+    ignorePending: yup.boolean().label("Ignore Pending"),
     freeze: yup.boolean().label("Freeze"),
     runFarmer: yup.boolean().label("Run Farmer"),
   })
@@ -49,6 +50,7 @@ export default function AutoCultivateTab() {
       includeFrozen: false,
       includeRevoked: false,
       requalify: "resync",
+      ignorePending: false,
       freeze: false,
       runFarmer: true,
     },
@@ -291,6 +293,27 @@ export default function AutoCultivateTab() {
                 </Select.Item>
               </Select>
 
+              <FieldStateError fieldState={fieldState} />
+            </div>
+          )}
+        />
+
+        {/* Ignore Pending */}
+        <Controller
+          control={form.control}
+          name="ignorePending"
+          render={({ field, fieldState }) => (
+            <div className="flex flex-col gap-1">
+              <Label>Ignore Pending</Label>
+
+              <p className="text-center text-neutral-500 dark:text-neutral-400">
+                An account with a withdrawal still in flight is skipped by
+                default. Enabling this withdraws anyway, which puts a stale
+                pending withdrawal back on the queue.
+              </p>
+              <LabelToggle {...field} checked={field.value}>
+                Withdraw despite a pending withdrawal
+              </LabelToggle>
               <FieldStateError fieldState={fieldState} />
             </div>
           )}

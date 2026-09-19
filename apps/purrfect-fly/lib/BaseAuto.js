@@ -90,6 +90,7 @@ class BaseAuto {
     withdrawAfterBoost = false,
     retainFunds = false,
     requalify = "resync",
+    ignorePending = false,
     runFarmer = true,
     repeat = false,
     repeatInterval = 15,
@@ -130,6 +131,7 @@ class BaseAuto {
     this.requalify = REQUALIFY_STRATEGIES.includes(requalify)
       ? requalify
       : "resync";
+    this.ignorePending = ignorePending;
     this.runFarmer = runFarmer;
     this.repeat = repeat;
     this.repeatInterval = Number(repeatInterval);
@@ -402,6 +404,14 @@ class BaseAuto {
     return this.formatKeyValue(
       "Requalify",
       REQUALIFY_LABELS[this.requalify] || this.requalify,
+    );
+  }
+
+  /** Format the ignore pending setting */
+  formatIgnorePending() {
+    return this.formatKeyValue(
+      "Ignore pending",
+      this.ignorePending ? "Enabled" : "Disabled",
     );
   }
 
@@ -1130,7 +1140,9 @@ class BaseAuto {
           this.formatDelay(),
           this.formatDifference(),
           this.formatWithdrawAfterBoost(),
-          ...(this.withdrawAfterBoost ? [this.formatRequalify()] : []),
+          ...(this.withdrawAfterBoost
+            ? [this.formatRequalify(), this.formatIgnorePending()]
+            : []),
           this.formatRetainFunds(),
           this.formatFreeze(),
           this.formatRunFarmer(),
@@ -1841,11 +1853,18 @@ class BaseAuto {
       const { pending, flagged } = await runner.getWithdrawalGuard();
 
       /** An account with a withdrawal in flight must not place another */
-      if (pending) {
+      if (pending && !this.ignorePending) {
         await this.sendNotification([
           `⏩ Skipped <b>(${link})</b> - a withdrawal is still pending ${position}`,
         ]);
         return { status: false, skipped: true, amount: "0" };
+      }
+
+      /** Asking again is what puts a stale pending withdrawal back on the queue */
+      if (pending) {
+        await this.sendNotification([
+          `⏭️ Withdrawing <b>(${link})</b> anyway - a withdrawal is still pending ${position}`,
+        ]);
       }
 
       /** The boost may have cost the account its standing, so this is read after it, not before */
@@ -3246,6 +3265,7 @@ class BaseAuto {
       this.formatIncludeFrozen(),
       this.formatIncludeRevoked(),
       this.formatRequalify(),
+      this.formatIgnorePending(),
       this.formatFreeze(),
       this.formatRunFarmer(),
       summarizeVault(this.constructor.id).loaded
