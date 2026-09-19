@@ -22,7 +22,7 @@ export default function AutoBoosterBoostTab({ account }) {
   const useCloud = cloudEnabled && settings.useCloudForBooster;
   const mutation = useCloud ? cloudMutation : localMutation;
 
-  const [difference, setDifference] = useState(20);
+  const [difference, setDifference] = useState(5);
 
   const handleBoost = () => {
     mutation.mutate({ account, difference });
