@@ -1,5 +1,6 @@
 import { formatDate, formatDistanceToNow } from "date-fns";
 
+import AutoAccountFarmerControls from "./AutoAccountFarmerControls";
 import AutoDropVerifiedBadge from "./AutoDropVerifiedBadge";
 import {
   FARMER_STATUS_TEXT_COLORS,
@@ -229,12 +230,8 @@ export default function AutoAccountSnapshotDetails({ account }) {
         <InfoRow label="Errors" value={row.errorCount} valueClassName={BAD} />
       ) : null}
 
-      {/* Scheduled farming */}
-      <InfoRow
-        label="Scheduled farming"
-        value={row.farming ? "Enabled" : "Disabled"}
-        valueClassName={row.farming ? GOOD : MUTED}
-      />
+      {/* Start, pause or freeze it, and gate scheduled farming */}
+      <AutoAccountFarmerControls account={account} row={row} />
 
       {!snapshot ? (
         <Note>

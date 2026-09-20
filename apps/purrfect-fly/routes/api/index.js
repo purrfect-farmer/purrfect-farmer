@@ -53,6 +53,17 @@ const autoSchema = {
   },
 };
 
+const autoFarmerSchema = {
+  body: {
+    type: "object",
+    required: ["auth", "account"],
+    properties: {
+      auth: { type: "string" },
+      account: { type: "string" },
+    },
+  },
+};
+
 /**
  * @param {import("fastify").FastifyInstance} fastify
  * @param {object} opts
@@ -502,5 +513,101 @@ export default async function (fastify, opts) {
     "/auto/:drop/get-active-list",
     { preHandler: autoPreHandler, schema: authSchema },
     getAutoActiveList,
+  );
+
+  /** Sets the drop's farmer for one managed account, named by its Telegram id */
+  const setAutoFarmerStatus = (status) =>
+    async function (request, reply) {
+      const { drop } = request.params;
+      const Auto = autos[drop];
+
+      if (!Auto) {
+        return reply.notFound(`Unknown auto: ${drop}`);
+      }
+
+      /** Find the farmer the drop runs for that account */
+      const dbFarmer = await fastify.db.Farmer.findOne({
+        where: { farmer: Auto.farmerId, accountId: request.body.account },
+      });
+
+      /** If not found, return an error */
+      if (!dbFarmer) {
+        return reply.badRequest("Farmer not found!");
+      }
+
+      /** Get the Farmer Class */
+      const FarmerClass = farmers[dbFarmer.farmer];
+
+      /** A farmer being stopped must not keep running */
+      if (status !== "active" && FarmerClass) {
+        FarmerClass.terminate(dbFarmer.accountId);
+      }
+
+      /** Update the instance status */
+      await dbFarmer.update(
+        status === "active"
+          ? { status: "active", errorCount: 0, frozenUntil: null }
+          : { status, frozenUntil: null },
+      );
+
+      return { id: String(dbFarmer.accountId), status };
+    };
+
+  /** Auto - Activate / Deactivate / Freeze one managed account's farmer */
+  for (const [path, status] of [
+    ["activate", "active"],
+    ["deactivate", "inactive"],
+    ["freeze", "frozen"],
+  ]) {
+    fastify.post(
+      `/auto/:drop/farmer/${path}`,
+      { preHandler: autoPreHandler, schema: autoFarmerSchema },
+      setAutoFarmerStatus(status),
+    );
+  }
+
+  /** Auto - Toggle whether scheduled farming may pick a managed account up */
+  fastify.post(
+    "/auto/:drop/farmer/farming",
+    {
+      preHandler: autoPreHandler,
+      schema: {
+        body: {
+          type: "object",
+          required: ["auth", "account", "farming"],
+          properties: {
+            auth: { type: "string" },
+            account: { type: "string" },
+            farming: { type: "boolean" },
+          },
+        },
+      },
+    },
+    async function (request, reply) {
+      const account = await fastify.db.Account.findByPk(request.body.account);
+
+      if (!account) {
+        return reply.badRequest("Account not found!");
+      }
+
+      const farming = request.body.farming;
+
+      /** Merge, so the options bag stays open for other keys */
+      await account.update({
+        options: { ...(account.options || {}), farming },
+      });
+
+      /**
+       * A pass already under way has to stop: the point of switching farming
+       * off is that another server may be using this Telegram session.
+       */
+      if (!farming) {
+        for (const FarmerClass of Object.values(farmers)) {
+          FarmerClass.abort(account.id);
+        }
+      }
+
+      return { id: String(account.id), farming };
+    },
   );
 }
