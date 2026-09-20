@@ -64,7 +64,18 @@ export default class ATFFarmer extends BaseFarmer {
   /** Get or create device ID */
   getOrCreateDeviceId() {
     if (!this.deviceId) {
-      this.deviceId = `prs4_${this.utils.uuid()}`;
+      /* Seeded by the user, so the device ID stays the same across runs */
+      const random = this.getUserRandomGenerator();
+      const hex = (length) =>
+        Array.from({ length }, () =>
+          Math.floor(random() * 16).toString(16),
+        ).join("");
+
+      const variant = (8 + Math.floor(random() * 4)).toString(16);
+
+      this.deviceId = `dev-${hex(8)}-${hex(4)}-4${hex(3)}-${variant}${hex(
+        3,
+      )}-${hex(12)}`;
     }
 
     return this.deviceId;
