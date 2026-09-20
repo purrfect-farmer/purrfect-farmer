@@ -9,6 +9,7 @@ import AutoNewAccountDialog from "./AutoNewAccountDialog";
 import AutoStickyContainer from "./AutoStickyContainer";
 import Alert from "./Alert";
 import { Dialog } from "radix-ui";
+import AutoTokenContract from "./AutoTokenContract";
 import Input from "./Input";
 import PrimaryButton from "./PrimaryButton";
 import { Reorder } from "motion/react";
@@ -53,6 +54,9 @@ export default function AutoDashboardTab() {
 
   return (
     <div className="flex flex-col gap-3 p-2">
+      {/* The token every boost, collect and swap moves */}
+      <AutoTokenContract />
+
       {/* Net Worth Card  */}
       <AutoNetWorthCard />
 
