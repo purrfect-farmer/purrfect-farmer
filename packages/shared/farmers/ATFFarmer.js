@@ -25,6 +25,12 @@ const MAX_LOGIN_ATTEMPTS = 10;
 /** Maximum number of attempts to sync a wallet */
 const MAX_SYNC_ATTEMPTS = 20;
 
+/** Whether to solve the captcha before login */
+const SHOULD_SOLVE_CAPTCHA_BEFORE_LOGIN = true;
+
+/** Device ID mode */
+const DEVICE_ID_MODE = "random";
+
 export default class ATFFarmer extends BaseFarmer {
   static id = "atf";
   static title = "ATF";
@@ -64,7 +70,7 @@ export default class ATFFarmer extends BaseFarmer {
   /** Get or create device ID */
   getOrCreateDeviceId() {
     if (!this.deviceId) {
-      const mode = "random";
+      const mode = DEVICE_ID_MODE;
 
       if (mode === "unique") {
         /* Seeded by the user, so the device ID stays the same across runs */
@@ -299,6 +305,11 @@ export default class ATFFarmer extends BaseFarmer {
   /** Login */
   async login(forceFresh = false) {
     /* Solve captcha and complete login */
+
+    if (SHOULD_SOLVE_CAPTCHA_BEFORE_LOGIN) {
+      await this.solveCaptcha();
+    }
+
     await this.completeLogin(forceFresh);
 
     return this.user_data;
