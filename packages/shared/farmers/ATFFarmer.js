@@ -302,6 +302,15 @@ export default class ATFFarmer extends BaseFarmer {
     );
   }
 
+  /** Record Navigation Batch */
+  async recordNavigationBatch(delta = 1) {
+    await this.makeAction("record_navigation_batch", {
+      delta: delta,
+      batch_id: `nav_${this.utils.uuid()}`,
+    });
+    await this.utils.delayForSeconds(1, { signal: this.signal });
+  }
+
   /** Get Auth Headers */
   getAuthHeaders(data) {
     return {
@@ -983,6 +992,9 @@ export default class ATFFarmer extends BaseFarmer {
 
     /** Reset amount to minimum */
     amount = Decimal.max(amount, minimum).floor();
+
+    /** Record Navigation Batch */
+    await this.recordNavigationBatch(1);
 
     /** Solve the withdrawal captcha, re-asking while the answer is rejected */
     const result = await this.requestWithdrawalWithCaptcha(amount);
@@ -1792,6 +1804,9 @@ export default class ATFFarmer extends BaseFarmer {
   }
 
   async completeTasks() {
+    /** Record Navigation Batch */
+    await this.recordNavigationBatch(1);
+
     const { user } = this.user_data;
 
     const tasks = [
@@ -1830,6 +1845,9 @@ export default class ATFFarmer extends BaseFarmer {
       return;
     }
 
+    /** Record Navigation Batch */
+    await this.recordNavigationBatch(1);
+
     /** Check Extra Tasks Cooldowns */
     for (const task in extraTasks) {
       if (this.signal.aborted) break;
@@ -1843,6 +1861,9 @@ export default class ATFFarmer extends BaseFarmer {
 
   /** Claim Friends Rewards */
   async claimFriendsRewards() {
+    /** Record Navigation Batch */
+    await this.recordNavigationBatch(1);
+
     const friends = await this.getFriends();
     const claimable = friends.claimable;
     const teamWallet = friends.team_wallet;
