@@ -42,7 +42,7 @@ export default function AutoBoostTab() {
   const form = useForm({
     resolver: yupResolver(schema),
     defaultValues: {
-      delay: 1,
+      delay: 0,
       difference: 5,
       freeze: true,
       reuseLastAmount: false,

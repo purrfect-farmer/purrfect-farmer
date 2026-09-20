@@ -32,7 +32,7 @@ export default function AutoLoadTab() {
     resolver: yupResolver(schema),
     defaultValues: {
       assistInterval: 10,
-      delay: 5,
+      delay: 0,
     },
   });
 
