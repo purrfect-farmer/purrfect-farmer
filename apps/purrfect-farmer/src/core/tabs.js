@@ -93,7 +93,6 @@ export const utils = [
         title: config.title,
         icon: config.icon,
         component: createElement(Auto, { config }),
-        singleton: true,
       })),
     ],
   },
