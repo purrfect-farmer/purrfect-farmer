@@ -2,6 +2,7 @@ import { WalletContractV4, WalletContractV5R1 } from "@ton/ton";
 
 import Decimal from "decimal.js";
 import axios from "axios";
+import { queueBalanceRequest } from "./balanceBatcher.js";
 import { mnemonicNew, mnemonicToPrivateKey } from "@ton/crypto";
 
 /** Wraps a function so calls are queued and run one at a time. */
@@ -55,6 +56,15 @@ export async function getJettonBalance(jettonAddress, ownerAddress, options) {
 }
 
 export async function getBalances(jettonAddress, address, options) {
+  /* Batched Toncenter path; one request covers up to 50 accounts */
+  if (options?.apiKey) {
+    try {
+      return await queueBalanceRequest(jettonAddress, address, options);
+    } catch (e) {
+      console.log("Batched balance fetch failed, falling back", e);
+    }
+  }
+
   const [ton, jetton] = await Promise.all([
     getTonBalance(address, options).catch(() => new Decimal(0)),
     getJettonBalance(jettonAddress, address, options).catch(

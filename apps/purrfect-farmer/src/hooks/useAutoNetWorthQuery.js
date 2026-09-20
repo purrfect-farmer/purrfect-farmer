@@ -4,7 +4,7 @@ import { useCallback } from "react";
 import { useQueries } from "@tanstack/react-query";
 
 export default function useAutoNetWorthQuery() {
-  const { config, accounts, enableRequests } = useAuto();
+  const { config, master, accounts, enableRequests } = useAuto();
   const combine = useCallback((results) => {
     return {
       query: results,
@@ -22,7 +22,10 @@ export default function useAutoNetWorthQuery() {
       return {
         queryKey: [config.id, "balances", address],
         queryFn: ({ signal }) =>
-          getBalances(config.jettonAddress, address, { signal }),
+          getBalances(config.jettonAddress, address, {
+            signal,
+            apiKey: master?.tonCenterApiKey,
+          }),
         refetchInterval: 60_000,
         enabled: enableRequests && Boolean(address),
       };
