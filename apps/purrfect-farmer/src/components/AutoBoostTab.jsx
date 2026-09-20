@@ -44,13 +44,13 @@ export default function AutoBoostTab() {
     defaultValues: {
       delay: 1,
       difference: 5,
-      freeze: false,
+      freeze: true,
       reuseLastAmount: false,
       withdrawAfterBoost: false,
       requalify: "boost",
       ignorePending: false,
       retainFunds: false,
-      runFarmer: true,
+      runFarmer: false,
       repeat: false,
       repeatInterval: 15,
     },
@@ -192,29 +192,6 @@ export default function AutoBoostTab() {
             )}
           />
 
-          {/* Reuse last amount */}
-          <Controller
-            control={form.control}
-            name="reuseLastAmount"
-            render={({ field, fieldState }) => (
-              <div className="flex flex-col gap-1">
-                <Label>Reuse last amount</Label>
-
-                <p className="text-center text-neutral-500 dark:text-neutral-400">
-                  Enabling this will boost each account with the same amount it
-                  last received, instead of rolling a new one from the
-                  difference. Accounts that have never been boosted here fall
-                  back to the difference, and an amount the master can no longer
-                  cover is capped at whatever it holds.
-                </p>
-                <LabelToggle {...field} checked={field.value}>
-                  Reuse each account's last amount
-                </LabelToggle>
-                <FieldStateError fieldState={fieldState} />
-              </div>
-            )}
-          />
-
           {/* Freeze */}
           <Controller
             control={form.control}
@@ -337,6 +314,29 @@ export default function AutoBoostTab() {
               />
             </>
           ) : null}
+
+          {/* Reuse last amount */}
+          <Controller
+            control={form.control}
+            name="reuseLastAmount"
+            render={({ field, fieldState }) => (
+              <div className="flex flex-col gap-1">
+                <Label>Reuse last amount</Label>
+
+                <p className="text-center text-neutral-500 dark:text-neutral-400">
+                  Enabling this will boost each account with the same amount it
+                  last received, instead of rolling a new one from the
+                  difference. Accounts that have never been boosted here fall
+                  back to the difference, and an amount the master can no longer
+                  cover is capped at whatever it holds.
+                </p>
+                <LabelToggle {...field} checked={field.value}>
+                  Reuse each account's last amount
+                </LabelToggle>
+                <FieldStateError fieldState={fieldState} />
+              </div>
+            )}
+          />
 
           {/* Retain Funds */}
           <Controller
