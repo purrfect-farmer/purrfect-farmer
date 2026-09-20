@@ -1,4 +1,15 @@
 if (location.host === "atfminers.asloni.online") {
+  const originalFetch = window.fetch.bind(window);
+  window.fetch = async (...args) => {
+    if (typeof args[0] === "string" && args[0].includes("sync_wallet")) {
+      console.log("Intercepted sync_wallet request");
+      return new Response(JSON.stringify({ status: "busy" }));
+    }
+
+    const response = await originalFetch(...args);
+    return response;
+  };
+
   new MutationObserver((mutations, observer) => {
     for (const mutation of mutations) {
       for (const node of mutation.addedNodes) {
