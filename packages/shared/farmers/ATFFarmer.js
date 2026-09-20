@@ -357,6 +357,19 @@ export default class ATFFarmer extends BaseFarmer {
       .then((res) => res.data);
   }
 
+  makeGetAction(action, data = {}, config = {}) {
+    return this.api
+      .get(`https://atfminers.asloni.online/miner/index.php?action=${action}`, {
+        ...config,
+        params: {
+          ...data,
+          tg_id: this.getUserId(),
+          t: Date.now(),
+        },
+      })
+      .then((res) => res.data);
+  }
+
   /** The drop answers the entry risk challenge with a 403, which the extension would reset the farmer over */
   static RISK_CHALLENGE_CONFIG = { ignoreUnauthorizedError: true };
 
@@ -413,6 +426,11 @@ export default class ATFFarmer extends BaseFarmer {
     return this.makeAction("start_task", {
       task_id: taskId,
     });
+  }
+
+  /** Get Level Journey */
+  getLevelJourney() {
+    return this.makeGetAction("get_level_journey");
   }
 
   /** Sync Wallet */
