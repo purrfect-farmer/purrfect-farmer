@@ -23,6 +23,7 @@ const schema = yup
     delay: yup.number().required().label("Delay"),
     difference: yup.number().required().label("Difference"),
     freeze: yup.boolean().required().label("Freeze"),
+    reuseLastAmount: yup.boolean().required().label("Reuse Last Amount"),
     withdrawAfterBoost: yup.boolean().required().label("Withdraw"),
     requalify: yup
       .string()
@@ -44,6 +45,7 @@ export default function AutoBoostTab() {
       delay: 1,
       difference: 5,
       freeze: false,
+      reuseLastAmount: false,
       withdrawAfterBoost: false,
       requalify: "boost",
       ignorePending: false,
@@ -185,6 +187,29 @@ export default function AutoBoostTab() {
                   {100 - field.value}-100%
                 </p>
 
+                <FieldStateError fieldState={fieldState} />
+              </div>
+            )}
+          />
+
+          {/* Reuse last amount */}
+          <Controller
+            control={form.control}
+            name="reuseLastAmount"
+            render={({ field, fieldState }) => (
+              <div className="flex flex-col gap-1">
+                <Label>Reuse last amount</Label>
+
+                <p className="text-center text-neutral-500 dark:text-neutral-400">
+                  Enabling this will boost each account with the same amount it
+                  last received, instead of rolling a new one from the
+                  difference. Accounts that have never been boosted here fall
+                  back to the difference, and an amount the master can no longer
+                  cover is capped at whatever it holds.
+                </p>
+                <LabelToggle {...field} checked={field.value}>
+                  Reuse each account's last amount
+                </LabelToggle>
                 <FieldStateError fieldState={fieldState} />
               </div>
             )}

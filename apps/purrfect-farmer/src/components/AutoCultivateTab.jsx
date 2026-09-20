@@ -27,6 +27,7 @@ const schema = yup
       .label("Cultivate Interval"),
     delay: yup.number().required().min(0).label("Delay"),
     difference: yup.number().required().min(0).max(50).label("Difference"),
+    reuseLastAmount: yup.boolean().label("Reuse Last Amount"),
     includeFrozen: yup.boolean().label("Include Frozen"),
     includeRevoked: yup.boolean().label("Include Revoked"),
     requalify: yup
@@ -47,6 +48,7 @@ export default function AutoCultivateTab() {
       cultivateInterval: 10,
       delay: 5,
       difference: 5,
+      reuseLastAmount: false,
       includeFrozen: false,
       includeRevoked: false,
       requalify: "boost",
@@ -225,6 +227,29 @@ export default function AutoCultivateTab() {
                 of {field.value}% would boost between {100 - field.value}-100%
               </p>
 
+              <FieldStateError fieldState={fieldState} />
+            </div>
+          )}
+        />
+
+        {/* Reuse last amount */}
+        <Controller
+          control={form.control}
+          name="reuseLastAmount"
+          render={({ field, fieldState }) => (
+            <div className="flex flex-col gap-1">
+              <Label>Reuse last amount</Label>
+
+              <p className="text-center text-neutral-500 dark:text-neutral-400">
+                Enabling this will boost each account with the same amount it
+                last received, instead of rolling a new one from the difference.
+                Accounts that have never been boosted here fall back to the
+                difference, and an amount the master can no longer cover is
+                capped at whatever it holds.
+              </p>
+              <LabelToggle {...field} checked={field.value}>
+                Reuse each account's last amount
+              </LabelToggle>
               <FieldStateError fieldState={fieldState} />
             </div>
           )}

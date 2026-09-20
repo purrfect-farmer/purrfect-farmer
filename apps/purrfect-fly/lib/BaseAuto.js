@@ -5,6 +5,7 @@ import Encrypter from "@purrfect/shared/lib/Encrypter.js";
 import app from "../config/app.js";
 import bot from "./bot.js";
 import db from "../db/models/index.js";
+import { runDatabaseWrite } from "./db-write.js";
 import farmers from "../farmers/index.js";
 import logger from "./logger.js";
 import { claimAccount, getClaim, releaseAccount } from "./AutoClaims.js";
@@ -28,6 +29,9 @@ const CULTIVATE_OWNER = "cultivate";
 
 /** Where an account records the wallet that last sent it tokens */
 const LAST_FUNDER_KEY = "autoLastFunder";
+
+/** What the last boost sent an account, so a later run can send the same again */
+const LAST_BOOST_KEY = "autoLastBoost";
 
 /** What a run may do about the DEX buyer standing a withdrawal consumes */
 const REQUALIFY_STRATEGIES = ["off", "resync", "boost"];
@@ -90,6 +94,7 @@ class BaseAuto {
     includeFrozen = false,
     includeRevoked = false,
     withdrawAfterBoost = false,
+    reuseLastAmount = false,
     retainFunds = false,
     requalify = "boost",
     ignorePending = false,
@@ -129,6 +134,7 @@ class BaseAuto {
     this.includeFrozen = includeFrozen;
     this.includeRevoked = includeRevoked;
     this.withdrawAfterBoost = withdrawAfterBoost;
+    this.reuseLastAmount = reuseLastAmount;
     this.retainFunds = retainFunds;
     this.requalify = REQUALIFY_STRATEGIES.includes(requalify)
       ? requalify
@@ -390,6 +396,14 @@ class BaseAuto {
     return this.formatKeyValue(
       "Withdraw after boost",
       this.withdrawAfterBoost ? "Enabled" : "Disabled",
+    );
+  }
+
+  /** Format the reuse-last-amount setting */
+  formatReuseLastAmount() {
+    return this.formatKeyValue(
+      "Reuse last amount",
+      this.reuseLastAmount ? "Enabled" : "Disabled",
     );
   }
 
@@ -972,6 +986,7 @@ class BaseAuto {
     logger.info("Boosting account:", cloudAccount.id, account.address);
     const { jettonAmount, skipped } = await booster.boost({
       difference: this.difference,
+      amount: this.boostAmountFor(cloudAccount),
     });
 
     /** Log boost completion */
@@ -1046,6 +1061,7 @@ class BaseAuto {
     if (runner) {
       if (!skipped) {
         await this.recordLastFunder(runner, cloudAccount, funderAddress);
+        await this.recordLastBoostAmount(runner, cloudAccount, jettonAmount);
       }
       await this.storeSnapshot(runner, cloudAccount);
     }
@@ -1145,6 +1161,7 @@ class BaseAuto {
           this.formatAccounts(),
           this.formatDelay(),
           this.formatDifference(),
+          this.formatReuseLastAmount(),
           this.formatWithdrawAfterBoost(),
           ...(this.withdrawAfterBoost
             ? [this.formatRequalify(), this.formatIgnorePending()]
@@ -1536,9 +1553,13 @@ class BaseAuto {
   /** Boost one account and nothing else: the same transfer the local booster performs */
   async singleBoost() {
     const booster = await this.prepareSingleBooster();
+    const { userId, address } = this.accounts[0];
 
-    logger.info("Boosting single account:", this.accounts[0].address);
-    const result = await booster.boost({ difference: this.difference });
+    logger.info("Boosting single account:", address);
+    const result = await booster.boost({
+      difference: this.difference,
+      amount: await this.readLastBoostAmount(userId),
+    });
 
     /** The bulk loop overlaps this transfer with its own delay, but a single boost
      * has nothing to overlap with and must report whether it actually landed */
@@ -1546,7 +1567,7 @@ class BaseAuto {
       const transfer = await result.transfer;
 
       if (!transfer.status) {
-        logger.error("Failed single boost:", this.accounts[0].address);
+        logger.error("Failed single boost:", address);
         return this.formatSingleResult({
           ...result,
           status: false,
@@ -1555,7 +1576,12 @@ class BaseAuto {
       }
     }
 
-    logger.success("Completed single boost:", this.accounts[0].address);
+    logger.success("Completed single boost:", address);
+
+    /** Only a transfer that landed is worth repeating later */
+    if (!result.skipped) {
+      await this.storeLastBoostAmount(userId, result.jettonAmount);
+    }
 
     return this.formatSingleResult(result);
   }
@@ -1738,6 +1764,91 @@ class BaseAuto {
       logger.error(
         "Failed to record the last funder:",
         cloudAccount.id,
+        e.message,
+      );
+    }
+  }
+
+  /** The amount a reuse should send, null when the booster should roll its own */
+  boostAmountFor(cloudAccount) {
+    if (!this.reuseLastAmount) return null;
+
+    const stored = new Decimal(
+      cloudAccount?.farmer?.storage?.[LAST_BOOST_KEY]?.amount || 0,
+    );
+
+    return stored.greaterThan(0) ? stored : null;
+  }
+
+  /** Remember what a boost sent, so a later run can send the same again */
+  async recordLastBoostAmount(runner, cloudAccount, jettonAmount) {
+    if (!runner || !jettonAmount) return;
+
+    try {
+      await runner.storage.set(LAST_BOOST_KEY, {
+        amount: jettonAmount.toString(),
+        updatedAt: Date.now(),
+      });
+    } catch (e) {
+      logger.error(
+        "Failed to record the last boosted amount:",
+        cloudAccount.id,
+        e.message,
+      );
+    }
+  }
+
+  /** The stored amount for one account, read without a cloud account in hand */
+  async readLastBoostAmount(accountId) {
+    if (!this.reuseLastAmount || !accountId) return null;
+
+    try {
+      const dbFarmer = await db.Farmer.findOne({
+        where: { farmer: this.farmerId, accountId },
+      });
+
+      const stored = new Decimal(
+        dbFarmer?.storage?.[LAST_BOOST_KEY]?.amount || 0,
+      );
+
+      return stored.greaterThan(0) ? stored : null;
+    } catch (e) {
+      /** Worth a line, not a failed boost */
+      logger.error("Failed to read the last boosted amount:", e.message);
+      return null;
+    }
+  }
+
+  /** Store the amount for a boost made outside a farming session, which has no runner */
+  async storeLastBoostAmount(accountId, jettonAmount) {
+    if (!accountId || !jettonAmount) return;
+
+    try {
+      await runDatabaseWrite(async (transaction) => {
+        const dbFarmer = await db.Farmer.findOne({
+          where: { farmer: this.farmerId, accountId },
+          transaction,
+        });
+
+        if (!dbFarmer) return;
+
+        await dbFarmer.update(
+          {
+            storage: {
+              ...dbFarmer.storage,
+              [LAST_BOOST_KEY]: {
+                amount: jettonAmount.toString(),
+                updatedAt: Date.now(),
+              },
+            },
+          },
+          { transaction },
+        );
+      });
+    } catch (e) {
+      logger.error(
+        "Failed to store the last boosted amount:",
+        accountId,
         e.message,
       );
     }
@@ -3166,6 +3277,7 @@ class BaseAuto {
     logger.info("Boosting account:", cloudAccount.id, account.address);
     const { jettonAmount, skipped } = await booster.boost({
       difference: this.difference,
+      amount: this.boostAmountFor(cloudAccount),
     });
 
     logger.success(
@@ -3240,6 +3352,7 @@ class BaseAuto {
     if (runner) {
       if (!skipped) {
         await this.recordLastFunder(runner, cloudAccount, funderAddress);
+        await this.recordLastBoostAmount(runner, cloudAccount, jettonAmount);
       }
       await this.storeSnapshot(runner, cloudAccount);
     }
@@ -3437,6 +3550,7 @@ class BaseAuto {
       this.formatCultivateInterval(),
       this.formatDelay(),
       this.formatDifference(),
+      this.formatReuseLastAmount(),
       this.formatIncludeFrozen(),
       this.formatIncludeRevoked(),
       this.formatRequalify(),
@@ -3679,6 +3793,9 @@ class BaseAuto {
       errorCount: row.errorCount,
       farming: row.account.farmingEnabled,
       snapshot: row.storage?.["autoSnapshot"] || null,
+
+      /** What the last boost sent it, which a reuse would send again */
+      lastBoost: row.storage?.[LAST_BOOST_KEY] || null,
 
       /** What it is carrying now, and who it last withdrew for */
       assist: {

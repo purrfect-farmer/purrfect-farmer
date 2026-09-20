@@ -41,6 +41,7 @@ const autoSchema = {
       includeFrozen: { type: "boolean" },
       includeRevoked: { type: "boolean" },
       withdrawAfterBoost: { type: "boolean" },
+      reuseLastAmount: { type: "boolean" },
       retainFunds: { type: "boolean" },
       requalify: { type: "string", enum: ["off", "resync", "boost"] },
       ignorePending: { type: "boolean" },

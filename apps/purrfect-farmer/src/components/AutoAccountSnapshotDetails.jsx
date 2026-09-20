@@ -230,6 +230,15 @@ export default function AutoAccountSnapshotDetails({ account }) {
         <InfoRow label="Errors" value={row.errorCount} valueClassName={BAD} />
       ) : null}
 
+      {/* What the last boost sent it, which a reuse would send again */}
+      {row.lastBoost?.amount ? (
+        <InfoRow
+          label="Last boosted"
+          value={`${row.lastBoost.amount} ${config.token}`}
+          valueClassName="text-orange-500 dark:text-orange-400"
+        />
+      ) : null}
+
       {/* Start, pause or freeze it, and gate scheduled farming */}
       <AutoAccountFarmerControls account={account} row={row} />
 

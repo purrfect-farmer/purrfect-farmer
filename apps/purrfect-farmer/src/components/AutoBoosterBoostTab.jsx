@@ -23,9 +23,10 @@ export default function AutoBoosterBoostTab({ account }) {
   const mutation = useCloud ? cloudMutation : localMutation;
 
   const [difference, setDifference] = useState(5);
+  const [reuseLastAmount, setReuseLastAmount] = useState(false);
 
   const handleBoost = () => {
-    mutation.mutate({ account, difference });
+    mutation.mutate({ account, difference, reuseLastAmount });
   };
 
   return (
@@ -78,6 +79,24 @@ export default function AutoBoosterBoostTab({ account }) {
               {config.token} balance
             </p>
           </div>
+
+          {/* Only the Cloud knows what this account was last boosted with */}
+          {useCloud && (
+            <div className="flex flex-col gap-1">
+              <LabelToggle
+                disabled={mutation.isPending}
+                checked={reuseLastAmount}
+                onChange={(ev) => setReuseLastAmount(ev.target.checked)}
+              >
+                Reuse last amount
+              </LabelToggle>
+              <p className="text-xs text-neutral-400 px-2">
+                Sends the same amount this account last received, capped at what
+                the master holds. Falls back to the difference when it has never
+                been boosted here.
+              </p>
+            </div>
+          )}
 
           {/* Runs the same transfer in the Cloud, which is far quicker than the browser */}
           {cloudEnabled && (
