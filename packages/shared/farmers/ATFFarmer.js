@@ -64,18 +64,24 @@ export default class ATFFarmer extends BaseFarmer {
   /** Get or create device ID */
   getOrCreateDeviceId() {
     if (!this.deviceId) {
-      /* Seeded by the user, so the device ID stays the same across runs */
-      const random = this.getUserRandomGenerator();
-      const hex = (length) =>
-        Array.from({ length }, () =>
-          Math.floor(random() * 16).toString(16),
-        ).join("");
+      const mode = "random";
 
-      const variant = (8 + Math.floor(random() * 4)).toString(16);
+      if (mode === "unique") {
+        /* Seeded by the user, so the device ID stays the same across runs */
+        const random = this.getUserRandomGenerator();
+        const hex = (length) =>
+          Array.from({ length }, () =>
+            Math.floor(random() * 16).toString(16),
+          ).join("");
 
-      this.deviceId = `dev-${hex(8)}-${hex(4)}-4${hex(3)}-${variant}${hex(
-        3,
-      )}-${hex(12)}`;
+        const variant = (8 + Math.floor(random() * 4)).toString(16);
+
+        this.deviceId = `dev-${hex(8)}-${hex(4)}-4${hex(3)}-${variant}${hex(
+          3,
+        )}-${hex(12)}`;
+      } else {
+        this.deviceId = `dev-${this.utils.uuid()}`;
+      }
     }
 
     return this.deviceId;
@@ -293,7 +299,6 @@ export default class ATFFarmer extends BaseFarmer {
   /** Login */
   async login(forceFresh = false) {
     /* Solve captcha and complete login */
-    await this.solveCaptcha();
     await this.completeLogin(forceFresh);
 
     return this.user_data;
