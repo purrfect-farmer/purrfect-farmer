@@ -1527,6 +1527,8 @@ export default class ATFFarmer extends BaseFarmer {
   /** Start mining and report the account afresh, after a boost has landed so the level is snapshotted */
   async startAutoMining() {
     await this.startOrClaimMining();
+    await this.applyBoost();
+    await this.claimFriendsRewards();
     return this.refreshAutoSummary();
   }
 
