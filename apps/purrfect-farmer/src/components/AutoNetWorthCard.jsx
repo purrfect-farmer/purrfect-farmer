@@ -1,13 +1,20 @@
 import Decimal from "decimal.js";
 import TonIcon from "@/assets/images/toncoin-ton-logo.svg";
+import { LuCoins, LuPickaxe } from "react-icons/lu";
 import { cn } from "@/utils";
+import { formatFigure, sumSnapshots } from "@/lib/autoSnapshot";
 import useAuto from "@/hooks/useAuto";
+import useAutoCloudSnapshotsQuery from "@/hooks/useAutoCloudSnapshotsQuery";
 import useAutoNetWorthQuery from "@/hooks/useAutoNetWorthQuery";
+import useCloudQueryOptions from "@/hooks/useCloudQueryOptions";
 import { useMemo } from "react";
 
 export function AutoNetWorthCard() {
-  const { config } = useAuto();
+  const { config, accounts } = useAuto();
   const { isSuccess, data } = useAutoNetWorthQuery();
+
+  const { enabled: cloudEnabled } = useCloudQueryOptions();
+  const { data: snapshots } = useAutoCloudSnapshotsQuery();
 
   const balances = useMemo(() => {
     return isSuccess
@@ -31,6 +38,12 @@ export function AutoNetWorthCard() {
       ? data.filter((item) => item.jetton.greaterThan(0)).length
       : 0;
   }, [isSuccess, data]);
+
+  /** Mined pool and wallet holding */
+  const totals = useMemo(
+    () => sumSnapshots(accounts, snapshots),
+    [accounts, snapshots],
+  );
 
   return (
     <div
@@ -57,6 +70,24 @@ export function AutoNetWorthCard() {
         <span>{balances ? balances.ton.toFixed(4) : "-.----"}</span>
         <span className="text-purple-100">TON</span>
       </div>
+
+      {/* Totals the drop reports, absent until the server has farmed something */}
+      {cloudEnabled && totals.count > 0 ? (
+        <div className="flex flex-wrap items-center justify-center gap-x-3 text-xs text-purple-100">
+          <span
+            title="Total holding"
+            className="inline-flex items-center gap-1"
+          >
+            <LuPickaxe className="size-3" />
+            {formatFigure(totals.holding)}
+          </span>
+
+          <span title="Total mined" className="inline-flex items-center gap-1">
+            <LuCoins className="size-3" />
+            {formatFigure(totals.mined)}
+          </span>
+        </div>
+      ) : null}
 
       {/* Count of accounts with balance */}
       {accountsWithBalanceCount ? (

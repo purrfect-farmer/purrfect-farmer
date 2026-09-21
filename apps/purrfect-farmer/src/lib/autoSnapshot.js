@@ -103,3 +103,34 @@ export const formatWithdrawalRecord = (record) =>
   Object.entries(record || {})
     .filter(([, value]) => value !== null && typeof value !== "object")
     .map(([key, value]) => [formatWithdrawalField(key), String(value)]);
+
+/** Convert value to a Decimal */
+const toFigure = (value) => {
+  try {
+    return new Decimal(value || 0);
+  } catch {
+    return new Decimal(0);
+  }
+};
+
+/** Sum up the mined and holding for all accounts */
+export const sumSnapshots = (accounts, snapshots) =>
+  (accounts || []).reduce(
+    (result, account) => {
+      const snapshot =
+        account?.userId && snapshots?.get(String(account.userId))?.snapshot;
+
+      if (!snapshot) return result;
+
+      return {
+        count: result.count + 1,
+        mined: result.mined.plus(toFigure(snapshot.balance)),
+        holding: result.holding.plus(toFigure(snapshot.holding)),
+      };
+    },
+    {
+      count: 0,
+      mined: new Decimal(0),
+      holding: new Decimal(0),
+    },
+  );
