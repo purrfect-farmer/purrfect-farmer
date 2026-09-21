@@ -1,9 +1,14 @@
 if (location.host === "atfminers.asloni.online") {
+  const INTERCEPT_SYNC_WALLET = false;
+
   const originalFetch = window.fetch.bind(window);
   window.fetch = async (...args) => {
     if (typeof args[0] === "string" && args[0].includes("sync_wallet")) {
-      console.log("Intercepted sync_wallet request");
-      return new Response(JSON.stringify({ status: "busy" }));
+      console.log("Received sync_wallet request", args);
+      if (INTERCEPT_SYNC_WALLET) {
+        console.log("Intercepting sync_wallet request");
+        return new Response(JSON.stringify({ status: "busy" }));
+      }
     }
 
     const response = await originalFetch(...args);
