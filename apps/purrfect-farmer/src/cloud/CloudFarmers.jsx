@@ -16,10 +16,14 @@ import UserIcon from "@/assets/images/user-icon.png?format=webp&w=256";
 import { farmersMap } from "@/core/farmers";
 import toast from "react-hot-toast";
 import { useCallback } from "react";
+import useCloudManagerActivateAllFarmersOfTypeMutation from "@/hooks/useCloudManagerActivateAllFarmersOfTypeMutation";
 import useCloudManagerActivateFarmerMutation from "@/hooks/useCloudManagerActivateFarmerMutation";
+import useCloudManagerDeleteAllFarmersMutation from "@/hooks/useCloudManagerDeleteAllFarmersMutation";
 import useCloudManagerDeleteFarmerMutation from "@/hooks/useCloudManagerDeleteFarmerMutation";
+import useCloudManagerDisconnectAllFarmersMutation from "@/hooks/useCloudManagerDisconnectAllFarmersMutation";
 import useCloudManagerDisconnectFarmerMutation from "@/hooks/useCloudManagerDisconnectFarmerMutation";
 import useCloudManagerFarmersQuery from "@/hooks/useCloudManagerFarmersQuery";
+import useCloudManagerFreezeAllFarmersMutation from "@/hooks/useCloudManagerFreezeAllFarmersMutation";
 import useCloudManagerFreezeFarmerMutation from "@/hooks/useCloudManagerFreezeFarmerMutation";
 import useCloudManagerRunFarmersMutation from "@/hooks/useCloudManagerRunFarmersMutation";
 
@@ -56,6 +60,12 @@ export default function CloudFarmers() {
   const disconnectFarmerMutation = useCloudManagerDisconnectFarmerMutation();
   const freezeFarmerMutation = useCloudManagerFreezeFarmerMutation();
   const deleteFarmerMutation = useCloudManagerDeleteFarmerMutation();
+  const activateAllFarmersMutation =
+    useCloudManagerActivateAllFarmersOfTypeMutation();
+  const disconnectAllFarmersMutation =
+    useCloudManagerDisconnectAllFarmersMutation();
+  const freezeAllFarmersMutation = useCloudManagerFreezeAllFarmersMutation();
+  const deleteAllFarmersMutation = useCloudManagerDeleteAllFarmersMutation();
   const farmersQuery = useCloudManagerFarmersQuery();
 
   /* Group Farmers by Type */
@@ -88,8 +98,6 @@ export default function CloudFarmers() {
         : [],
     [search, farmersQuery.data],
   );
-
-  console.log("Farmers Groups:", groups);
 
   /* Run Farmers */
   const runFarmers = useCallback(
@@ -159,6 +167,62 @@ export default function CloudFarmers() {
     [deleteFarmerMutation.mutateAsync, farmersQuery.refetch],
   );
 
+  /* Activate All Farmers */
+  const activateAllFarmers = useCallback(
+    (id) => {
+      toast
+        .promise(activateAllFarmersMutation.mutateAsync(id), {
+          success: "Successfully activated",
+          loading: "Activating...",
+          error: "Error...",
+        })
+        .finally(farmersQuery.refetch);
+    },
+    [activateAllFarmersMutation.mutateAsync, farmersQuery.refetch],
+  );
+
+  /* Disconnect All Farmers */
+  const disconnectAllFarmers = useCallback(
+    (id) => {
+      toast
+        .promise(disconnectAllFarmersMutation.mutateAsync(id), {
+          success: "Successfully disconnected",
+          loading: "Disconnecting...",
+          error: "Error...",
+        })
+        .finally(farmersQuery.refetch);
+    },
+    [disconnectAllFarmersMutation.mutateAsync, farmersQuery.refetch],
+  );
+
+  /* Freeze All Farmers */
+  const freezeAllFarmers = useCallback(
+    (id) => {
+      toast
+        .promise(freezeAllFarmersMutation.mutateAsync(id), {
+          success: "Successfully frozen",
+          loading: "Freezing...",
+          error: "Error...",
+        })
+        .finally(farmersQuery.refetch);
+    },
+    [freezeAllFarmersMutation.mutateAsync, farmersQuery.refetch],
+  );
+
+  /* Delete All Farmers */
+  const deleteAllFarmers = useCallback(
+    (id) => {
+      toast
+        .promise(deleteAllFarmersMutation.mutateAsync(id), {
+          success: "Successfully deleted",
+          loading: "Deleting...",
+          error: "Error...",
+        })
+        .finally(farmersQuery.refetch);
+    },
+    [deleteAllFarmersMutation.mutateAsync, farmersQuery.refetch],
+  );
+
   return farmersQuery.isPending ? (
     <p className="text-center">Fetching Farmers...</p>
   ) : farmersQuery.isError ? (
@@ -195,6 +259,51 @@ export default function CloudFarmers() {
                 <HiPlay />
                 Run farmers
               </Button>
+
+              {/* Bulk Actions */}
+              <div className="grid grid-cols-2 gap-2">
+                {/* Activate All */}
+                <Button
+                  variant="secondary"
+                  onClick={() => activateAllFarmers(group.id)}
+                >
+                  <HiOutlinePower
+                    className={cn("size-4", FARMER_STATUS_TEXT_COLORS.active)}
+                  />
+                  Activate all
+                </Button>
+
+                {/* Disconnect All */}
+                <Button
+                  variant="secondary"
+                  onClick={() => disconnectAllFarmers(group.id)}
+                >
+                  <LuPause
+                    className={cn("size-4", FARMER_STATUS_TEXT_COLORS.inactive)}
+                  />
+                  Disconnect all
+                </Button>
+
+                {/* Freeze All */}
+                <Button
+                  variant="secondary"
+                  onClick={() => freezeAllFarmers(group.id)}
+                >
+                  <LuSnowflake
+                    className={cn("size-4", FARMER_STATUS_TEXT_COLORS.frozen)}
+                  />
+                  Freeze all
+                </Button>
+
+                {/* Delete All */}
+                <Button
+                  variant="danger"
+                  onClick={() => deleteAllFarmers(group.id)}
+                >
+                  <LuTrash className="size-4" />
+                  Delete all
+                </Button>
+              </div>
               {group.farmers.length ? (
                 <div className="flex flex-col gap-1">
                   {group.farmers.map(({ farmer, account }) => (

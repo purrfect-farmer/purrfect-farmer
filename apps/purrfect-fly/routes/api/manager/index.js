@@ -19,6 +19,33 @@ const farmerSchema = {
   },
 };
 
+const optionalFarmerSchema = {
+  body: {
+    type: "object",
+    properties: {
+      id: { type: "string" },
+    },
+  },
+};
+
+/** Terminate every running instance of a farmer type */
+async function terminateAllFarmers(fastify, farmer) {
+  const FarmerClass = farmers[farmer];
+
+  if (!FarmerClass) {
+    return;
+  }
+
+  const dbFarmers = await fastify.db.Farmer.findAll({
+    where: { farmer },
+    attributes: ["accountId"],
+  });
+
+  for (const dbFarmer of dbFarmers) {
+    FarmerClass.terminate(dbFarmer.accountId);
+  }
+}
+
 /**
  * @param {import("fastify").FastifyInstance} fastify
  * @param {object} opts
@@ -259,20 +286,79 @@ export default async function (fastify, opts) {
     });
 
     /** Activate All Farmer */
-    fastify.post("/farmers/all/activate", async (request, reply) => {
-      const [affectedCount] = await fastify.db.Farmer.update(
-        { status: "active", errorCount: 0 },
-        {
-          where: {
-            status: {
-              [fastify.db.Sequelize.Op.not]: "frozen",
-            },
-          },
-        },
-      );
+    fastify.post(
+      "/farmers/all/activate",
+      { schema: optionalFarmerSchema },
+      async (request, reply) => {
+        const farmer = request.body?.id;
 
-      return reply.send({ success: true, affectedCount });
-    });
+        /** Scoped to a farmer type, it also unfreezes like the single activate */
+        const [affectedCount] = farmer
+          ? await fastify.db.Farmer.update(
+              { status: "active", errorCount: 0, frozenUntil: null },
+              { where: { farmer } },
+            )
+          : await fastify.db.Farmer.update(
+              { status: "active", errorCount: 0 },
+              {
+                where: {
+                  status: {
+                    [fastify.db.Sequelize.Op.not]: "frozen",
+                  },
+                },
+              },
+            );
+
+        return reply.send({ success: true, affectedCount });
+      },
+    );
+
+    /** Disconnect All Farmer */
+    fastify.post(
+      "/farmers/all/disconnect",
+      { schema: farmerSchema },
+      async (request, reply) => {
+        await terminateAllFarmers(fastify, request.body.id);
+
+        const [affectedCount] = await fastify.db.Farmer.update(
+          { status: "inactive", frozenUntil: null },
+          { where: { farmer: request.body.id } },
+        );
+
+        return reply.send({ success: true, affectedCount });
+      },
+    );
+
+    /** Freeze All Farmer */
+    fastify.post(
+      "/farmers/all/freeze",
+      { schema: farmerSchema },
+      async (request, reply) => {
+        await terminateAllFarmers(fastify, request.body.id);
+
+        const [affectedCount] = await fastify.db.Farmer.update(
+          { status: "frozen", frozenUntil: null },
+          { where: { farmer: request.body.id } },
+        );
+
+        return reply.send({ success: true, affectedCount });
+      },
+    );
+
+    /** Delete All Farmer */
+    fastify.post(
+      "/farmers/all/delete",
+      { schema: farmerSchema },
+      async (request, reply) => {
+        await terminateAllFarmers(fastify, request.body.id);
+
+        const affectedCount = await fastify.db.Farmer.destroy({
+          where: { farmer: request.body.id },
+        });
+
+        return reply.send({ success: true, affectedCount });
+      },
+    );
 
     /** Run Farmers */
     fastify.post(

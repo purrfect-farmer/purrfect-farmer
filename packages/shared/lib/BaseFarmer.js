@@ -32,7 +32,7 @@ export default class BaseFarmer {
   static deactivateOnError = true;
   static published = true;
   static singleton = false;
-  static autoStart = false;
+  static autoStart = true;
   static skipExecutionOfNewAccount = false;
 
   /** Auto descriptor, declared by farmers opting into the Auto wallet system
