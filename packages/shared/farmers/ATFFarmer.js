@@ -26,10 +26,10 @@ const MAX_LOGIN_ATTEMPTS = 10;
 const MAX_SYNC_ATTEMPTS = 20;
 
 /** Whether to solve the captcha before login */
-const SHOULD_SOLVE_CAPTCHA_BEFORE_LOGIN = true;
+const SHOULD_SOLVE_CAPTCHA_BEFORE_LOGIN = false;
 
 /** Device ID mode */
-const DEVICE_ID_MODE = "random";
+const DEVICE_ID_MODE = "unique";
 
 export default class ATFFarmer extends BaseFarmer {
   static id = "atf";
