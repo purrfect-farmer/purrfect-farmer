@@ -200,6 +200,33 @@ class BaseAuto {
     return `<a href="tg://user?id=${id}">${id}</a>`;
   }
 
+  /** Format the candidate queue, with the total across every candidate */
+  formatCandidateQueue(candidates) {
+    const total = candidates.reduce(
+      (acc, candidate) => acc.plus(candidate.snapshot.balance || 0),
+      new Decimal(0),
+    );
+
+    return [
+      `📋 ${this.title} - Queue:`,
+      ...candidates
+        .slice(0, ASSIST_QUEUE_PREVIEW)
+        .map((candidate, position) =>
+          this.formatKeyValue(
+            `${position + 1}. ${this.formatAccountLink(candidate.account.userId)}`,
+            `${new Decimal(candidate.snapshot.balance || 0)} ${this.token}`,
+          ),
+        ),
+      ...(candidates.length > ASSIST_QUEUE_PREVIEW
+        ? [`<i>...and ${candidates.length - ASSIST_QUEUE_PREVIEW} more.</i>`]
+        : []),
+      this.formatKeyValue(
+        "Total",
+        `💰 ${total.toDecimalPlaces(4, Decimal.ROUND_DOWN)} ${this.token}`,
+      ),
+    ];
+  }
+
   /** Format address link */
   formatAddressLink(address) {
     return `<a href="https://tonviewer.com/${address}">${this.truncateAddress(address)}</a>`;
@@ -2910,20 +2937,7 @@ class BaseAuto {
       }
 
       /** The order they will be worked through, the richest pool first */
-      await this.sendNotification([
-        `📋 ${this.title} - Queue:`,
-        ...candidates
-          .slice(0, ASSIST_QUEUE_PREVIEW)
-          .map((candidate, position) =>
-            this.formatKeyValue(
-              `${position + 1}. ${this.formatAccountLink(candidate.account.userId)}`,
-              `${new Decimal(candidate.snapshot.balance || 0)} ${this.token}`,
-            ),
-          ),
-        ...(candidates.length > ASSIST_QUEUE_PREVIEW
-          ? [`<i>...and ${candidates.length - ASSIST_QUEUE_PREVIEW} more.</i>`]
-          : []),
-      ]);
+      await this.sendNotification(this.formatCandidateQueue(candidates));
 
       if (!available.length) {
         await this.sendNotification([
@@ -3458,20 +3472,7 @@ class BaseAuto {
       ]);
     }
 
-    await this.sendNotification([
-      `📋 ${this.title} - Queue:`,
-      ...candidates
-        .slice(0, ASSIST_QUEUE_PREVIEW)
-        .map((candidate, position) =>
-          this.formatKeyValue(
-            `${position + 1}. ${this.formatAccountLink(candidate.account.userId)}`,
-            `${new Decimal(candidate.snapshot.balance || 0)} ${this.token}`,
-          ),
-        ),
-      ...(candidates.length > ASSIST_QUEUE_PREVIEW
-        ? [`<i>...and ${candidates.length - ASSIST_QUEUE_PREVIEW} more.</i>`]
-        : []),
-    ]);
+    await this.sendNotification(this.formatCandidateQueue(candidates));
 
     const results = [];
 
