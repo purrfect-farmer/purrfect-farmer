@@ -1,13 +1,41 @@
 if (location.host === "atfminers.asloni.online") {
-  const INTERCEPT_SYNC_WALLET = false;
+  const INTERCEPT_SYNC_WALLET = true;
+  const INTERCEPT_SUBSEQUENT_LOGIN = true;
+
+  let initialLogin = false;
 
   const originalFetch = window.fetch.bind(window);
+  const getBusyResponse = () => {
+    return new Response(JSON.stringify({ status: "busy" }));
+  };
+
   window.fetch = async (...args) => {
-    if (typeof args[0] === "string" && args[0].includes("sync_wallet")) {
-      console.log("Received sync_wallet request", args);
-      if (INTERCEPT_SYNC_WALLET) {
-        console.log("Intercepting sync_wallet request");
-        return new Response(JSON.stringify({ status: "busy" }));
+    if (typeof args[0] === "string") {
+      let url = args[0];
+
+      /* Check if the request is to sync the wallet */
+      if (url.includes("sync_wallet")) {
+        console.log("Received sync_wallet request", args);
+
+        /* If the request is to sync the wallet, and the intercept is enabled, return a busy response */
+        if (INTERCEPT_SYNC_WALLET) {
+          console.log("Intercepting sync_wallet request");
+          return getBusyResponse();
+        }
+      }
+
+      /* Check if the request is to login */
+      if (url.includes("login")) {
+        console.log("Received login request", args);
+        if (!initialLogin) {
+          /* If this is the first login request, set the initialLogin flag to true */
+          initialLogin = true;
+        } else {
+          if (INTERCEPT_SUBSEQUENT_LOGIN) {
+            console.log("Intercepting login request");
+            return getBusyResponse();
+          }
+        }
       }
     }
 
