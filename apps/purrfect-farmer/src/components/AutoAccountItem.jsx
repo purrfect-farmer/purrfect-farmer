@@ -106,7 +106,7 @@ export default memo(function AutoAccountItem({
           <AutoAccountFlags account={account} />
         </button>
 
-        <div className="flex items-center gap-1.5">
+        <div className="flex items-center gap-1">
           {/* Launch in Whiskers */}
           <AutoAccountLaunchButton account={account} />
 
