@@ -440,7 +440,7 @@ export default class ATFFarmer extends BaseFarmer {
     walletStateInit,
     network,
     proof,
-    refreshHolding = 0,
+    refreshHolding = 1,
   }) {
     return this.makeAction("sync_wallet", {
       refresh_holding: refreshHolding,
