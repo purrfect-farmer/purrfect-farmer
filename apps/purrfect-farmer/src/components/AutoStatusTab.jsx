@@ -63,8 +63,8 @@ export default function AutoStatusTab() {
         <AutoStickyContainer>
           <div className="flex flex-col gap-2">
             <Alert variant={"success"}>
-              Status request was successfully dispatched to Cloud. Kindly check
-              your notifications for progress.
+              Status request dispatched to Cloud. Check your notifications for
+              progress.
             </Alert>
 
             <PrimaryButton type="button" onClick={() => mutation.reset()}>
@@ -94,8 +94,7 @@ export default function AutoStatusTab() {
           className="flex flex-col gap-2"
         >
           <Alert variant="info">
-            Request for account status in Cloud. Details include mined balance,
-            risks and wallet information.
+            Reads account status in Cloud: mined balance, risks and wallet info.
           </Alert>
 
           {/* Include Frozen */}
@@ -107,9 +106,8 @@ export default function AutoStatusTab() {
                 <Label>Include Frozen</Label>
 
                 <p className="text-center text-neutral-500 dark:text-neutral-400">
-                  Frozen accounts are skipped by default. Enabling this reads
-                  them too. Every account whose status is read is activated
-                  afterwards, so it resumes farming.
+                  Read frozen accounts too. Every account read is activated
+                  afterwards.
                 </p>
                 <LabelToggle {...field} checked={field.value}>
                   Include frozen accounts

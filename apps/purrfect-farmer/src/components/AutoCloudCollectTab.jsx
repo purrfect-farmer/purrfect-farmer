@@ -42,8 +42,8 @@ export default function AutoCloudCollectTab() {
         <AutoStickyContainer>
           <div className="flex flex-col gap-2">
             <Alert variant={"success"}>
-              Collection request was successfully dispatched to Cloud. Kindly
-              check your notifications for progress.
+              Collection dispatched to Cloud. Check your notifications for
+              progress.
             </Alert>
 
             <PrimaryButton type="button" onClick={() => mutation.reset()}>
@@ -70,9 +70,8 @@ export default function AutoCloudCollectTab() {
       {!mutation.isSuccess && !mutation.isError && (
         <>
           <Alert variant="info">
-            Perform collection in Cloud. Checks each account for {config.token} tokens, if
-            found - it sends TON from master, transfers the {config.token} back to master,
-            and returns remaining TON.
+            Collects in Cloud. Sends TON from master, returns any {config.token}{" "}
+            found, then returns leftover TON.
           </Alert>
 
           <AutoStickyContainer>

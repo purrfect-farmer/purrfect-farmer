@@ -98,9 +98,8 @@ export default function AutoCultivateTab() {
   return (
     <div className="flex flex-col gap-3 p-2">
       <Alert variant="info">
-        Boost each wallet this server holds, wait for the drop to settle the
-        boost, then withdraw the account itself. Verified accounts are left out,
-        since they are reserved for assisting.
+        Boosts each loaded wallet, waits for the drop to settle, then withdraws.
+        Verified accounts are skipped.
       </Alert>
 
       {/* What the server currently holds */}
@@ -133,8 +132,7 @@ export default function AutoCultivateTab() {
 
       {status && !status.vault.loaded ? (
         <Alert variant="warning">
-          This server holds no wallets. Load them from the Load tab first, and
-          again after every restart.
+          No wallets loaded. Load them from the Load tab after every restart.
         </Alert>
       ) : null}
 
@@ -192,7 +190,7 @@ export default function AutoCultivateTab() {
               />
 
               <p className="text-center text-neutral-500 dark:text-neutral-400">
-                Configure the delay between accounts
+                Delay between accounts
               </p>
 
               <FieldStateError fieldState={fieldState} />
@@ -222,9 +220,8 @@ export default function AutoCultivateTab() {
               />
 
               <p className="text-center text-neutral-500 dark:text-neutral-400">
-                This is the difference in the amount to boost based on the
-                available {config.token} in the master wallet. E.g a difference
-                of {field.value}% would boost between {100 - field.value}-100%
+                Boosts between {100 - field.value}-100% of the master's{" "}
+                {config.token} balance.
               </p>
 
               <FieldStateError fieldState={fieldState} />
@@ -241,11 +238,8 @@ export default function AutoCultivateTab() {
               <Label>Reuse last amount</Label>
 
               <p className="text-center text-neutral-500 dark:text-neutral-400">
-                Enabling this will boost each account with the same amount it
-                last received, instead of rolling a new one from the difference.
-                Accounts that have never been boosted here fall back to the
-                difference, and an amount the master can no longer cover is
-                capped at whatever it holds.
+                Boost each account with the amount it last received, capped at
+                master's balance.
               </p>
               <LabelToggle {...field} checked={field.value}>
                 Reuse each account's last amount
@@ -264,8 +258,7 @@ export default function AutoCultivateTab() {
               <Label>Include Frozen</Label>
 
               <p className="text-center text-neutral-500 dark:text-neutral-400">
-                Frozen accounts are skipped by default. Enabling this cultivates
-                them too.
+                Cultivate frozen accounts too.
               </p>
               <LabelToggle {...field} checked={field.value}>
                 Include frozen accounts
@@ -284,8 +277,7 @@ export default function AutoCultivateTab() {
               <Label>Include Revoked</Label>
 
               <p className="text-center text-neutral-500 dark:text-neutral-400">
-                Accounts whose buyer protection the drop has revoked are skipped
-                by default. Enabling this cultivates them too.
+                Cultivate accounts with revoked buyer protection too.
               </p>
               <LabelToggle {...field} checked={field.value}>
                 Include revoked accounts
@@ -304,12 +296,8 @@ export default function AutoCultivateTab() {
               <Label>Requalify after withdrawing</Label>
 
               <p className="text-center text-neutral-500 dark:text-neutral-400">
-                Withdrawing spends an account's DEX buyer standing, and the drop
-                reviews the payout later against whatever the account looks like
-                then. A second boost pass sends the pool round the withdrawn
-                accounts again, each from a wallet that did not fund it this
-                cycle, so they end the cycle qualified. It roughly doubles how
-                long a cycle takes.
+                Withdrawing spends buyer standing. A second pass restores it but
+                roughly doubles the cycle.
               </p>
 
               <Select {...field}>
@@ -336,9 +324,7 @@ export default function AutoCultivateTab() {
               <Label>Ignore Pending</Label>
 
               <p className="text-center text-neutral-500 dark:text-neutral-400">
-                An account with a withdrawal still in flight is skipped by
-                default. Enabling this withdraws anyway, which puts a stale
-                pending withdrawal back on the queue.
+                Withdraw even when a withdrawal is still in flight.
               </p>
               <LabelToggle {...field} checked={field.value}>
                 Withdraw despite a pending withdrawal
@@ -357,9 +343,8 @@ export default function AutoCultivateTab() {
               <Label>Freeze</Label>
 
               <p className="text-center text-neutral-500 dark:text-neutral-400">
-                Enabling this will freeze each account once it has been
-                cultivated, so it stops farming in between cycles. Later cycles
-                skip it too, unless Include Frozen is on.
+                Freeze each account after cultivating. Later cycles skip it
+                unless Include Frozen is on.
               </p>
               <LabelToggle {...field} checked={field.value}>
                 Freeze accounts after cultivating
@@ -378,9 +363,7 @@ export default function AutoCultivateTab() {
               <Label>Run Farmer</Label>
 
               <p className="text-center text-neutral-500 dark:text-neutral-400">
-                Enabling this will run a full farming session on each account
-                after its wallet is connected. Disable it to only connect the
-                wallets, which is much faster.
+                Run a full farming session after connecting. Off is much faster.
               </p>
               <LabelToggle {...field} checked={field.value}>
                 Run farmer after connecting

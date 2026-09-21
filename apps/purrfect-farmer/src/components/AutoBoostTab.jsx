@@ -92,8 +92,7 @@ export default function AutoBoostTab() {
         <AutoStickyContainer>
           <div className="flex flex-col gap-2">
             <Alert variant={"success"}>
-              Boost request was successfully dispatched to Cloud. Kindly check
-              your notifications for progress.
+              Boost dispatched to Cloud. Check your notifications for progress.
             </Alert>
 
             <PrimaryButton type="button" onClick={() => mutation.reset()}>
@@ -123,9 +122,8 @@ export default function AutoBoostTab() {
           className="flex flex-col gap-2"
         >
           <Alert variant="info">
-            Perform boost in Cloud. {config.token} will be transferred from the
-            master wallet into each selected account. Ensure the master wallet
-            has enough TON for operations.
+            Boosts in Cloud. {config.token} moves from the master wallet into
+            each selected account, so keep enough TON there.
           </Alert>
 
           {/* Delay */}
@@ -150,7 +148,7 @@ export default function AutoBoostTab() {
 
                 {/* Info */}
                 <p className="text-center text-neutral-500 dark:text-neutral-400">
-                  Configure the delay between accounts
+                  Delay between accounts
                 </p>
 
                 <FieldStateError fieldState={fieldState} />
@@ -181,10 +179,8 @@ export default function AutoBoostTab() {
 
                 {/* Info */}
                 <p className="text-center text-neutral-500 dark:text-neutral-400">
-                  This is the difference in the amount to boost based on the
-                  available {config.token} in the master wallet. E.g a
-                  difference of {field.value}% would boost between{" "}
-                  {100 - field.value}-100%
+                  Boosts between {100 - field.value}-100% of the master's{" "}
+                  {config.token} balance.
                 </p>
 
                 <FieldStateError fieldState={fieldState} />
@@ -201,9 +197,7 @@ export default function AutoBoostTab() {
                 <Label>Freeze</Label>
 
                 <p className="text-center text-neutral-500 dark:text-neutral-400">
-                  Enabling this will freeze each account after it is boosted, so
-                  it stops farming until you activate it again. Repeating always
-                  freezes, whether or not this is enabled.
+                  Freeze each account after boosting. Repeat always freezes.
                 </p>
                 <LabelToggle {...field} checked={field.value}>
                   Freeze accounts after boost
@@ -222,9 +216,8 @@ export default function AutoBoostTab() {
                 <Label>Run Farmer</Label>
 
                 <p className="text-center text-neutral-500 dark:text-neutral-400">
-                  Enabling this will run a full farming session on each account
-                  after its wallet is connected. Disable it to only connect the
-                  wallets, which is much faster.
+                  Run a full farming session after connecting. Off is much
+                  faster.
                 </p>
                 <LabelToggle {...field} checked={field.value}>
                   Run farmer after connecting
@@ -243,10 +236,7 @@ export default function AutoBoostTab() {
                 <Label>Withdraw</Label>
 
                 <p className="text-center text-neutral-500 dark:text-neutral-400">
-                  Enabling this will withdraw each account's full balance right
-                  after its boost is confirmed to have landed. Accounts with a
-                  pending or flagged withdrawal are skipped, and so are accounts
-                  whose boost never settled.
+                  Withdraw each account's full balance once its boost lands.
                 </p>
                 <LabelToggle {...field} checked={field.value}>
                   Withdraw after boost
@@ -267,12 +257,8 @@ export default function AutoBoostTab() {
                     <Label>Requalify after withdrawing</Label>
 
                     <p className="text-center text-neutral-500 dark:text-neutral-400">
-                      Withdrawing spends an account's DEX buyer standing, and
-                      the drop reviews the payout later against whatever the
-                      account looks like then. A second boost pass sends the
-                      pool round the withdrawn accounts again, each from a
-                      wallet that did not fund it this run, so they end the run
-                      qualified. It roughly doubles how long a run takes.
+                      Withdrawing spends buyer standing. A second pass restores
+                      it but roughly doubles the run.
                     </p>
 
                     <Select {...field}>
@@ -301,9 +287,7 @@ export default function AutoBoostTab() {
                     <Label>Ignore Pending</Label>
 
                     <p className="text-center text-neutral-500 dark:text-neutral-400">
-                      An account with a withdrawal still in flight is skipped by
-                      default. Enabling this withdraws anyway, which puts a
-                      stale pending withdrawal back on the queue.
+                      Withdraw even when a withdrawal is still in flight.
                     </p>
                     <LabelToggle {...field} checked={field.value}>
                       Withdraw despite a pending withdrawal
@@ -324,11 +308,8 @@ export default function AutoBoostTab() {
                 <Label>Reuse last amount</Label>
 
                 <p className="text-center text-neutral-500 dark:text-neutral-400">
-                  Enabling this will boost each account with the same amount it
-                  last received, instead of rolling a new one from the
-                  difference. Accounts that have never been boosted here fall
-                  back to the difference, and an amount the master can no longer
-                  cover is capped at whatever it holds.
+                  Boost each account with the amount it last received, capped at
+                  master's balance.
                 </p>
                 <LabelToggle {...field} checked={field.value}>
                   Reuse each account's last amount
@@ -347,9 +328,8 @@ export default function AutoBoostTab() {
                 <Label>Retain Funds</Label>
 
                 <p className="text-center text-neutral-500 dark:text-neutral-400">
-                  Enabling this will leave the funds in the last boosted account
-                  instead of transferring them back into the master wallet. With
-                  Repeat enabled, the next boost continues from that account.
+                  Leave funds in the last boosted account instead of returning
+                  them to master.
                 </p>
                 <LabelToggle {...field} checked={field.value}>
                   Keep funds in the last account
@@ -368,8 +348,8 @@ export default function AutoBoostTab() {
                 <Label>Repeat</Label>
 
                 <p className="text-center text-neutral-500 dark:text-neutral-400">
-                  Enabling this will repeat the boost operation and freeze the
-                  accounts after each boost until the operation is cancelled.
+                  Repeat the boost, freezing accounts each round, until
+                  cancelled.
                 </p>
                 <LabelToggle {...field}>Freeze and repeat</LabelToggle>
                 <FieldStateError fieldState={fieldState} />
@@ -399,7 +379,7 @@ export default function AutoBoostTab() {
 
                 {/* Info */}
                 <p className="text-center text-neutral-500 dark:text-neutral-400">
-                  Configure the interval between repeats
+                  Interval between repeats
                 </p>
 
                 <FieldStateError fieldState={fieldState} />

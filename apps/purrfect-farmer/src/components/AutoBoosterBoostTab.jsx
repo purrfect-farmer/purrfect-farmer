@@ -91,9 +91,8 @@ export default function AutoBoosterBoostTab({ account }) {
                 Reuse last amount
               </LabelToggle>
               <p className="text-xs text-neutral-400 px-2">
-                Sends the same amount this account last received, capped at what
-                the master holds. Falls back to the difference when it has never
-                been boosted here.
+                Sends the amount this account last received, capped at what
+                master holds.
               </p>
             </div>
           )}

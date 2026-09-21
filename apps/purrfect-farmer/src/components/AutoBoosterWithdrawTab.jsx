@@ -100,9 +100,8 @@ export default function AutoBoosterWithdrawTab({ account }) {
 
       {helperAccounts.length === 0 ? (
         <Alert variant="warning">
-          No other account can withdraw for this one. Mark one as verified in
-          its edit dialog, or let one earn a clean payout record. A trusted
-          account is only known while the cloud is on.
+          No account can withdraw for this one. Mark one verified, or wait for a
+          clean payout record.
         </Alert>
       ) : (
         <>

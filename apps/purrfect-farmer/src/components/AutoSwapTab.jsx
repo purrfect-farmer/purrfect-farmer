@@ -172,9 +172,9 @@ export default function AutoSwapTab() {
     return (
       <div className="flex flex-col gap-3 p-2">
         <Alert variant="warning">
-          {config.token} is not listed on STON.fi, so it cannot be swapped here.
-          Use <span className="font-bold">Transfer</span> to move funds out of
-          the master wallet and swap them elsewhere.
+          {config.token} is not on STON.fi. Use{" "}
+          <span className="font-bold">Transfer</span> to move funds out and swap
+          them elsewhere.
         </Alert>
       </div>
     );
@@ -202,8 +202,8 @@ export default function AutoSwapTab() {
         className="flex flex-col gap-2"
       >
         <Alert variant="info">
-          Swap directly from the master wallet on STON.fi. The transaction is
-          signed locally and cannot be reversed.
+          Swaps from the master wallet on STON.fi. Signed locally and
+          irreversible.
         </Alert>
 
         {/* Pair */}
@@ -328,9 +328,9 @@ export default function AutoSwapTab() {
 
         {isHighImpact && (
           <Alert variant="warning">
-            This swap moves the price by{" "}
-            <strong>{priceImpact.mul(100).toFixed(2)}%</strong>. The pool is thin
-            for this size - consider swapping a smaller amount.
+            Moves the price by{" "}
+            <strong>{priceImpact.mul(100).toFixed(2)}%</strong>. Thin pool -
+            consider a smaller amount.
           </Alert>
         )}
 

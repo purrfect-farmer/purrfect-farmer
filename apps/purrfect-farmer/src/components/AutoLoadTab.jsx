@@ -97,9 +97,8 @@ export default function AutoLoadTab() {
   return (
     <div className="flex flex-col gap-3 p-2">
       <Alert variant="info">
-        Hand this server the wallets it should keep, then let its verified
-        accounts withdraw for the rest. Loading alone performs no action - no
-        boosting, no collecting, no farming.
+        Keeps wallets on this server so its verified accounts can withdraw for
+        the rest. Loading alone performs no action.
       </Alert>
 
       {/* What the server currently holds */}
@@ -138,15 +137,14 @@ export default function AutoLoadTab() {
 
       {status && !status.vault.loaded ? (
         <Alert variant="warning">
-          This server holds no wallets. They are kept in memory only, so load
-          them again after every restart.
+          No wallets loaded. They live in memory only, so reload after every
+          restart.
         </Alert>
       ) : null}
 
       {status?.vault.loaded && status.vault.verified.length === 0 ? (
         <Alert variant="warning">
-          None of the loaded accounts is marked as verified, so there is nobody
-          to withdraw on the others' behalf.
+          No loaded account is verified, so nobody can withdraw for the others.
         </Alert>
       ) : null}
 
@@ -175,8 +173,8 @@ export default function AutoLoadTab() {
               />
 
               <p className="text-center text-neutral-500 dark:text-neutral-400">
-                How often to look for accounts that have reached{" "}
-                {config.minWithdrawal} {config.token}
+                How often to check for accounts at {config.minWithdrawal}{" "}
+                {config.token}
               </p>
 
               <FieldStateError fieldState={fieldState} />
@@ -205,7 +203,7 @@ export default function AutoLoadTab() {
               />
 
               <p className="text-center text-neutral-500 dark:text-neutral-400">
-                Configure the delay between accounts
+                Delay between accounts
               </p>
 
               <FieldStateError fieldState={fieldState} />

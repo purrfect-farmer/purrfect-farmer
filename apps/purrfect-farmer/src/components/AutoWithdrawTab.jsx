@@ -70,8 +70,8 @@ export default function AutoWithdrawTab() {
         <AutoStickyContainer>
           <div className="flex flex-col gap-2">
             <Alert variant={"success"}>
-              Withdrawal request was successfully dispatched to Cloud. Kindly
-              check your notifications for progress.
+              Withdrawal dispatched to Cloud. Check your notifications for
+              progress.
             </Alert>
 
             <PrimaryButton type="button" onClick={() => mutation.reset()}>
@@ -101,12 +101,11 @@ export default function AutoWithdrawTab() {
           className="flex flex-col gap-2"
         >
           <Alert variant="info">
-            Perform withdrawal in Cloud. Accounts that have mined up to the
-            minimum account (
+            Withdraws in Cloud. Accounts holding at least{" "}
             <strong>
-              {config.minWithdrawal} {config.token} in Pool Wallet
-            </strong>
-            ) will be processed.
+              {config.minWithdrawal} {config.token}
+            </strong>{" "}
+            are processed.
           </Alert>
 
           {/* Delay */}
@@ -131,7 +130,7 @@ export default function AutoWithdrawTab() {
 
                 {/* Info */}
                 <p className="text-center text-neutral-500 dark:text-neutral-400">
-                  Configure the delay between accounts
+                  Delay between accounts
                 </p>
 
                 <FieldStateError fieldState={fieldState} />
@@ -162,9 +161,8 @@ export default function AutoWithdrawTab() {
 
                 {/* Info */}
                 <p className="text-center text-neutral-500 dark:text-neutral-400">
-                  This is the difference in the amount to withdraw based on the
-                  available balance. E.g a difference of {field.value}% would
-                  withdraw between {100 - field.value}-100%
+                  Withdraws between {100 - field.value}-100% of the available
+                  balance.
                 </p>
 
                 <FieldStateError fieldState={fieldState} />

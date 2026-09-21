@@ -65,9 +65,8 @@ export default function AutoCollectTab() {
       {!mutation.isSuccess && !mutation.isError && (
         <>
           <Alert variant="info">
-            Collect checks each account for {config.token} balance. If found, it sends TON
-            from master, transfers the {config.token} back to master, and returns remaining
-            TON.
+            Checks each account for {config.token}. Sends TON from master,
+            returns it, then returns leftover TON.
           </Alert>
 
           <AutoStickyContainer>

@@ -68,15 +68,14 @@ export default function AutoDashboardTab() {
 
       {/* Rotation Alert */}
       <Alert variant={"danger"}>
-        Make sure the wallets are rotated once before boosting accounts. <br />
-        <strong className="font-bold">Note:</strong> Don't rotate when you
-        haven't withdrawn all your accounts.
+        Rotate wallets once before boosting, and only after every account is
+        withdrawn.
       </Alert>
 
       {/* Requests Alert */}
       <Alert variant={"warning"}>
-        Disable requests by clicking the network toggle in the master balance
-        card before boosting / collecting to speed up operations.
+        Toggle off network requests in the master balance card to speed up
+        operations.
       </Alert>
 
       {/* Add Account */}
