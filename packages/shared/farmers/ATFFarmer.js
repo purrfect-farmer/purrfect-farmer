@@ -26,10 +26,13 @@ const MAX_LOGIN_ATTEMPTS = 10;
 const MAX_SYNC_ATTEMPTS = 20;
 
 /** Whether to solve the captcha before login */
-const SHOULD_SOLVE_CAPTCHA_BEFORE_LOGIN = false;
+const SHOULD_SOLVE_CAPTCHA_BEFORE_LOGIN = true;
 
 /** Device ID mode */
-const DEVICE_ID_MODE = "unique";
+const DEVICE_ID_MODE = "random";
+
+/* Record navigation batch */
+const RECORD_NAVIGATION_BATCH = false;
 
 export default class ATFFarmer extends BaseFarmer {
   static id = "atf";
@@ -331,6 +334,10 @@ export default class ATFFarmer extends BaseFarmer {
 
   /** Record Navigation Batch */
   async recordNavigationBatch(delta = 1) {
+    if (!RECORD_NAVIGATION_BATCH) {
+      return;
+    }
+
     await this.makeAction("record_navigation_batch", {
       delta: delta,
       batch_id: `nav_${this.utils.uuid()}`,
