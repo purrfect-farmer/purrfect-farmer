@@ -1836,6 +1836,9 @@ export default class ATFFarmer extends BaseFarmer {
       exemptMaxLevel: diffData.exemptMaxLevel,
     });
 
+    /* Record navigation batch */
+    await this.recordNavigationBatch(1);
+
     /** Delay before activating */
     await this.utils.delayForSeconds(3, { signal: this.signal });
 
