@@ -160,7 +160,7 @@ export default class BaseBooster {
   }
 
   // ─── Operations ─────────────────────────────────────────
-  async boost({ difference, amount = null }) {
+  async boost({ difference, amount = null, max = null }) {
     try {
       const balance = new Decimal(this.prepared.jettonBalance);
 
@@ -176,15 +176,18 @@ export default class BaseBooster {
         };
       }
 
+      /** A user-entered amount is what the run works with, never more than the master holds */
+      const base = max ? Decimal.min(balance, new Decimal(max)) : balance;
+
       const minPercent = new Decimal(100).minus(difference);
       const randomPercent = minPercent.plus(
         new Decimal(Decimal.random()).mul(difference),
       );
 
-      /** An explicit amount is what a reuse asks for, still capped by what the master holds */
+      /** An explicit amount is what a reuse asks for, still capped by what the run works with */
       const jettonAmount = Decimal.min(
-        balance,
-        amount ? new Decimal(amount) : balance.mul(randomPercent).div(100),
+        base,
+        amount ? new Decimal(amount) : base.mul(randomPercent).div(100),
       ).toDecimalPlaces(4, Decimal.ROUND_DOWN);
 
       /** Not awaited, so callers can overlap their own delay with the transfer.

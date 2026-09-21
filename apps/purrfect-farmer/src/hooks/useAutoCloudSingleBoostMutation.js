@@ -22,7 +22,7 @@ export default function useAutoCloudSingleBoostMutation() {
     onError: (error) => {
       console.log("Error while boosting account in Cloud", error);
     },
-    mutationFn: ({ account, difference, reuseLastAmount }) =>
+    mutationFn: ({ account, difference, amount, reuseLastAmount }) =>
       cloudBackend
         .post(`/api/auto/${config.id}/single-boost`, {
           auth,
@@ -30,6 +30,7 @@ export default function useAutoCloudSingleBoostMutation() {
           master,
           accounts: [account],
           difference,
+          amount,
           reuseLastAmount,
         })
         .then((res) => res.data),

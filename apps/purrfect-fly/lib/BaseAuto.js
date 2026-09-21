@@ -1014,6 +1014,7 @@ class BaseAuto {
     const { jettonAmount, skipped } = await booster.boost({
       difference: this.difference,
       amount: this.boostAmountFor(cloudAccount),
+      max: this.amount,
     });
 
     /** Log boost completion */
@@ -1188,6 +1189,7 @@ class BaseAuto {
           this.formatAccounts(),
           this.formatDelay(),
           this.formatDifference(),
+          this.formatMaximumAmount(),
           this.formatReuseLastAmount(),
           this.formatWithdrawAfterBoost(),
           ...(this.withdrawAfterBoost
@@ -1586,6 +1588,7 @@ class BaseAuto {
     const result = await booster.boost({
       difference: this.difference,
       amount: await this.readLastBoostAmount(userId),
+      max: this.amount,
     });
 
     /** The bulk loop overlaps this transfer with its own delay, but a single boost
@@ -3292,6 +3295,7 @@ class BaseAuto {
     const { jettonAmount, skipped } = await booster.boost({
       difference: this.difference,
       amount: this.boostAmountFor(cloudAccount),
+      max: this.amount,
     });
 
     logger.success(
@@ -3551,6 +3555,7 @@ class BaseAuto {
       this.formatCultivateInterval(),
       this.formatDelay(),
       this.formatDifference(),
+      this.formatMaximumAmount(),
       this.formatReuseLastAmount(),
       this.formatIncludeFrozen(),
       this.formatIncludeRevoked(),

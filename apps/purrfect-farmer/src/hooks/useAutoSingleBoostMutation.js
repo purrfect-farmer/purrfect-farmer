@@ -22,7 +22,7 @@ export default function useAutoSingleBoostMutation() {
     onError: (error) => {
       console.log("Error while boosting account", error);
     },
-    mutationFn: async ({ account, difference }) => {
+    mutationFn: async ({ account, difference, amount }) => {
       console.log("Decrypting sub account wallet...");
       const accountPhrase = await decryptPhrase(account.encryptedPhrase);
       console.log("Successfully decrypted sub account wallet");
@@ -39,7 +39,7 @@ export default function useAutoSingleBoostMutation() {
       );
 
       console.log("Boosting account with difference of " + difference);
-      return booster.boost({ difference });
+      return booster.boost({ difference, max: amount });
     },
   });
 

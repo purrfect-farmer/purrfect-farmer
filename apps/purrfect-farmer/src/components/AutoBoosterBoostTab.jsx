@@ -23,10 +23,14 @@ export default function AutoBoosterBoostTab({ account }) {
   const mutation = useCloud ? cloudMutation : localMutation;
 
   const [difference, setDifference] = useState(5);
+  const [amount, setAmount] = useState("");
   const [reuseLastAmount, setReuseLastAmount] = useState(false);
 
+  /** An amount that is not a positive number would only fail inside the booster */
+  const amountIsValid = !amount || Number(amount) > 0;
+
   const handleBoost = () => {
-    mutation.mutate({ account, difference, reuseLastAmount });
+    mutation.mutate({ account, difference, amount, reuseLastAmount });
   };
 
   return (
@@ -75,8 +79,27 @@ export default function AutoBoosterBoostTab({ account }) {
               disabled={mutation.isPending}
             />
             <p className="text-xs text-neutral-400 px-2">
-              {difference}% means {100 - difference}-100% of master{" "}
-              {config.token} balance
+              {difference}% means {100 - difference}-100% of{" "}
+              {amount
+                ? `${amount} ${config.token}`
+                : `master ${config.token} balance`}
+            </p>
+          </div>
+
+          {/* Amount to boost against, instead of the master's whole balance */}
+          <div className="flex flex-col gap-1">
+            <Label>Amount</Label>
+            <Input
+              value={amount}
+              inputMode="decimal"
+              autoComplete="off"
+              onChange={(e) => setAmount(e.target.value)}
+              disabled={mutation.isPending}
+              placeholder="Leave empty to use the full balance"
+            />
+            <p className="text-xs text-neutral-400 px-2">
+              Boost against this much {config.token} instead of everything
+              master holds.
             </p>
           </div>
 
@@ -113,7 +136,10 @@ export default function AutoBoosterBoostTab({ account }) {
             </LabelToggle>
           )}
 
-          <PrimaryButton disabled={mutation.isPending} onClick={handleBoost}>
+          <PrimaryButton
+            disabled={mutation.isPending || !amountIsValid}
+            onClick={handleBoost}
+          >
             {mutation.isPending ? "Boosting..." : "Boost"}
           </PrimaryButton>
         </>

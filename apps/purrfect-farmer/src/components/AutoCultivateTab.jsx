@@ -4,6 +4,7 @@ import Alert from "./Alert";
 import AutoStickyContainer from "./AutoStickyContainer";
 import FieldStateError from "./FieldStateError";
 import { HiArrowPath } from "react-icons/hi2";
+import Input from "./Input";
 import Label from "./Label";
 import LabelToggle from "./LabelToggle";
 import PrimaryButton from "./PrimaryButton";
@@ -27,6 +28,15 @@ const schema = yup
       .label("Cultivate Interval"),
     delay: yup.number().required().min(0).label("Delay"),
     difference: yup.number().required().min(0).max(50).label("Difference"),
+    amount: yup
+      .string()
+      .nullable()
+      .label("Amount")
+      .test(
+        "positive-number",
+        "Enter a valid amount",
+        (value) => !value || Number(value) > 0,
+      ),
     reuseLastAmount: yup.boolean().label("Reuse Last Amount"),
     includeFrozen: yup.boolean().label("Include Frozen"),
     includeRevoked: yup.boolean().label("Include Revoked"),
@@ -48,6 +58,7 @@ export default function AutoCultivateTab() {
       cultivateInterval: 10,
       delay: 5,
       difference: 5,
+      amount: "",
       reuseLastAmount: false,
       includeFrozen: false,
       includeRevoked: false,
@@ -59,6 +70,7 @@ export default function AutoCultivateTab() {
   });
 
   const { config, password, master, accounts } = useAuto();
+  const amount = form.watch("amount");
 
   const statusQuery = useAutoCloudCultivateStatusQuery();
   const cultivateMutation = useAutoCloudCultivateMutation();
@@ -198,6 +210,30 @@ export default function AutoCultivateTab() {
           )}
         />
 
+        {/* Amount each cycle works with, instead of the master's whole balance */}
+        <Controller
+          control={form.control}
+          name="amount"
+          render={({ field, fieldState }) => (
+            <div className="flex flex-col gap-1">
+              <Label>Amount</Label>
+              <Input
+                {...field}
+                autoComplete="off"
+                inputMode="decimal"
+                placeholder="Leave empty to use the master's full balance"
+              />
+
+              <p className="text-center text-neutral-500 dark:text-neutral-400">
+                Boost against this much {config.token} instead of everything
+                master holds.
+              </p>
+
+              <FieldStateError fieldState={fieldState} />
+            </div>
+          )}
+        />
+
         {/* Difference */}
         <Controller
           control={form.control}
@@ -220,8 +256,11 @@ export default function AutoCultivateTab() {
               />
 
               <p className="text-center text-neutral-500 dark:text-neutral-400">
-                Boosts between {100 - field.value}-100% of the master's{" "}
-                {config.token} balance.
+                Boosts between {100 - field.value}-100% of{" "}
+                {amount
+                  ? `${amount} ${config.token}`
+                  : `the master's ${config.token} balance`}
+                .
               </p>
 
               <FieldStateError fieldState={fieldState} />

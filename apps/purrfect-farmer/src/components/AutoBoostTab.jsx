@@ -6,6 +6,7 @@ import Alert from "./Alert";
 import { FaFire } from "react-icons/fa6";
 import FieldStateError from "./FieldStateError";
 import { HiArrowPath } from "react-icons/hi2";
+import Input from "./Input";
 import Label from "./Label";
 import PrimaryButton from "./PrimaryButton";
 import Select from "./Select";
@@ -22,6 +23,15 @@ const schema = yup
   .object({
     delay: yup.number().required().label("Delay"),
     difference: yup.number().required().label("Difference"),
+    amount: yup
+      .string()
+      .nullable()
+      .label("Amount")
+      .test(
+        "positive-number",
+        "Enter a valid amount",
+        (value) => !value || Number(value) > 0,
+      ),
     freeze: yup.boolean().required().label("Freeze"),
     reuseLastAmount: yup.boolean().required().label("Reuse Last Amount"),
     withdrawAfterBoost: yup.boolean().required().label("Withdraw"),
@@ -44,6 +54,7 @@ export default function AutoBoostTab() {
     defaultValues: {
       delay: 0,
       difference: 5,
+      amount: "",
       freeze: true,
       reuseLastAmount: false,
       withdrawAfterBoost: false,
@@ -58,6 +69,7 @@ export default function AutoBoostTab() {
 
   const { config, password, master, accounts } = useAuto();
   const withdrawAfterBoost = form.watch("withdrawAfterBoost");
+  const amount = form.watch("amount");
   const selector = useAutoAccountsSelector(accounts);
   const { selectedAccounts } = selector;
   const mutation = useAutoCloudBoostMutation();
@@ -156,6 +168,31 @@ export default function AutoBoostTab() {
             )}
           />
 
+          {/* Amount the run works with, instead of the master's whole balance */}
+          <Controller
+            control={form.control}
+            name="amount"
+            render={({ field, fieldState }) => (
+              <div className="flex flex-col gap-1">
+                <Label>Amount</Label>
+                <Input
+                  {...field}
+                  autoComplete="off"
+                  inputMode="decimal"
+                  placeholder="Leave empty to use the master's full balance"
+                />
+
+                {/* Info */}
+                <p className="text-center text-neutral-500 dark:text-neutral-400">
+                  Boost against this much {config.token} instead of everything
+                  master holds.
+                </p>
+
+                <FieldStateError fieldState={fieldState} />
+              </div>
+            )}
+          />
+
           {/* Difference */}
           <Controller
             control={form.control}
@@ -179,8 +216,11 @@ export default function AutoBoostTab() {
 
                 {/* Info */}
                 <p className="text-center text-neutral-500 dark:text-neutral-400">
-                  Boosts between {100 - field.value}-100% of the master's{" "}
-                  {config.token} balance.
+                  Boosts between {100 - field.value}-100% of{" "}
+                  {amount
+                    ? `${amount} ${config.token}`
+                    : `the master's ${config.token} balance`}
+                  .
                 </p>
 
                 <FieldStateError fieldState={fieldState} />
