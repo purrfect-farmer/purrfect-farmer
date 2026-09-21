@@ -388,6 +388,37 @@ export const sendWebviewMessage = (data) => {
   return window.electron.ipcRenderer.sendToHost("webview-message", data);
 };
 
+/** Send a webview message and wait for the host's matching `response-<action>` */
+export function requestWebviewMessage(action, data, timeout = 10_000) {
+  return new Promise((resolve, reject) => {
+    if (!import.meta.env.VITE_WHISKER) {
+      reject(new Error("Not running in Purrfect Whiskers."));
+      return;
+    }
+
+    const cleanup = () => {
+      clearTimeout(timer);
+      window.electron.ipcRenderer.removeListener("host-message", listener);
+    };
+
+    const listener = (_event, message) => {
+      if (message?.action === `response-${action}`) {
+        cleanup();
+        resolve(message.data);
+      }
+    };
+
+    const timer = setTimeout(() => {
+      cleanup();
+      reject(new Error("Purrfect Whiskers did not respond."));
+    }, timeout);
+
+    window.electron.ipcRenderer.on("host-message", listener);
+
+    sendWebviewMessage({ action, data });
+  });
+}
+
 /** Get Cookies */
 export async function getCookies(options) {
   if (import.meta.env.VITE_WHISKER) {

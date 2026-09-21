@@ -6,6 +6,7 @@ import AutoAccountBalance from "./AutoAccountBalance";
 import AutoAccountBoosterDialog from "./AutoAccountBoosterDialog";
 import AutoAccountDetailsDialog from "./AutoAccountDetailsDialog";
 import AutoAccountFlags from "./AutoAccountFlags";
+import AutoAccountLaunchButton from "./AutoAccountLaunchButton";
 import AutoAccountSnapshot from "./AutoAccountSnapshot";
 import AutoAddress from "./AutoAddress";
 import AutoDropVerifiedBadge from "./AutoDropVerifiedBadge";
@@ -105,35 +106,40 @@ export default memo(function AutoAccountItem({
           <AutoAccountFlags account={account} />
         </button>
 
-        {/* Edit button */}
-        <Dialog.Root open={editOpen} onOpenChange={setEditOpen}>
-          <Dialog.Trigger asChild>
-            <ActionButton>
-              <MdEditNote className="size-5" />
-            </ActionButton>
-          </Dialog.Trigger>
-          <AutoEditAccountDialog
-            account={account}
-            onSave={(updated) => {
-              onUpdate(updated);
-              setEditOpen(false);
-            }}
-            onDelete={() => {
-              onDelete(account.id);
-              setEditOpen(false);
-            }}
-          />
-        </Dialog.Root>
+        <div className="flex items-center gap-1.5">
+          {/* Launch in Whiskers */}
+          <AutoAccountLaunchButton account={account} />
 
-        {/* Details button */}
-        <Dialog.Root open={detailsOpen} onOpenChange={setDetailsOpen}>
-          <Dialog.Trigger asChild>
-            <ActionButton>
-              <MdInfo className="size-5" />
-            </ActionButton>
-          </Dialog.Trigger>
-          <AutoAccountDetailsDialog account={account} />
-        </Dialog.Root>
+          {/* Edit button */}
+          <Dialog.Root open={editOpen} onOpenChange={setEditOpen}>
+            <Dialog.Trigger asChild>
+              <ActionButton>
+                <MdEditNote className="size-5" />
+              </ActionButton>
+            </Dialog.Trigger>
+            <AutoEditAccountDialog
+              account={account}
+              onSave={(updated) => {
+                onUpdate(updated);
+                setEditOpen(false);
+              }}
+              onDelete={() => {
+                onDelete(account.id);
+                setEditOpen(false);
+              }}
+            />
+          </Dialog.Root>
+
+          {/* Details button */}
+          <Dialog.Root open={detailsOpen} onOpenChange={setDetailsOpen}>
+            <Dialog.Trigger asChild>
+              <ActionButton>
+                <MdInfo className="size-5" />
+              </ActionButton>
+            </Dialog.Trigger>
+            <AutoAccountDetailsDialog account={account} />
+          </Dialog.Root>
+        </div>
 
         {/* Booster dialog */}
         <Dialog.Root open={boosterOpen} onOpenChange={setBoosterOpen}>

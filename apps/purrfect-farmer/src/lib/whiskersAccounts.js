@@ -1,5 +1,7 @@
 /** Reading Purrfect Whiskers backups as a list of Telegram accounts, ignoring the session blobs they carry */
 
+import { requestWebviewMessage } from "@/utils";
+
 /** The Telegram user id inside a Mini App `initData` query string, dropped rather than guessed when malformed */
 export function parseTelegramUserId(initData) {
   if (!initData || typeof initData !== "string") {
@@ -140,4 +142,25 @@ export function filterCandidates(
 
     return tag ? candidate.tags.includes(tag) : true;
   });
+}
+
+/** Error text per host failure code, so the toast says something useful */
+const LAUNCH_ERRORS = {
+  ACCOUNT_NOT_FOUND: "No Whiskers account with that Telegram user id.",
+  INVALID_REQUEST: "No Telegram user id to launch.",
+};
+
+/** Ask Purrfect Whiskers to launch the account matching this Telegram user id */
+export async function launchWhiskersAccount(telegramUserId) {
+  const result = await requestWebviewMessage("launch-account", {
+    telegramUserId,
+  });
+
+  if (!result?.success) {
+    throw new Error(
+      LAUNCH_ERRORS[result?.error] || "Could not launch the account.",
+    );
+  }
+
+  return result;
 }

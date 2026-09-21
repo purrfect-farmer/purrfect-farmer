@@ -9,6 +9,7 @@ import { memo, useMemo } from "react";
 import AutoAccountBalance from "./AutoAccountBalance";
 import AutoAccountDetailsDialog from "./AutoAccountDetailsDialog";
 import AutoAccountFlags from "./AutoAccountFlags";
+import AutoAccountLaunchButton from "./AutoAccountLaunchButton";
 import AutoAccountSnapshot from "./AutoAccountSnapshot";
 import AutoAddress from "./AutoAddress";
 import AutoDropVerifiedBadge from "./AutoDropVerifiedBadge";
@@ -119,7 +120,10 @@ const AccountChooserItem = memo(function AccountChooserItem({
         </div>
       </label>
 
-      {/* Details, outside the label so the click does not toggle the account */}
+      {/* Launch and details, outside the label so the click does not toggle the account */}
+      <AutoAccountLaunchButton account={account} />
+
+      {/* Details */}
       {showBalance ? (
         <Dialog.Root open={detailsOpen} onOpenChange={setDetailsOpen}>
           <Dialog.Trigger
