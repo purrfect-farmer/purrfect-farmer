@@ -440,15 +440,23 @@ export default class ATFFarmer extends BaseFarmer {
     walletStateInit,
     network,
     proof,
-    refreshHolding = 1,
+    refreshHolding = 0,
   }) {
     return this.makeAction("sync_wallet", {
       refresh_holding: refreshHolding,
-      public_key: publicKey,
-      wallet: wallet,
+      public_key: publicKey || "",
       wallet_state_init: walletStateInit || "",
+      wallet: wallet || "",
       network: network || "",
       proof: proof || null,
+    });
+  }
+
+  /** Resync Wallet */
+  resyncWallet() {
+    return this.syncWallet({
+      refreshHolding: 0,
+      wallet: this.user_data?.user?.["wallet_address"],
     });
   }
 
