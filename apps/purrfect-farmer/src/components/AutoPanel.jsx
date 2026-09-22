@@ -3,6 +3,7 @@ import AutoCloudCollectTab from "./AutoCloudCollectTab";
 import AutoCultivateTab from "./AutoCultivateTab";
 import AutoDashboardTab from "./AutoDashboardTab";
 import AutoLoadTab from "./AutoLoadTab";
+import AutoParcelTab from "./AutoParcelTab";
 import AutoStatusTab from "./AutoStatusTab";
 import AutoSwapTab from "./AutoSwapTab";
 import AutoWithdrawTab from "./AutoWithdrawTab";
@@ -15,6 +16,7 @@ const tabs = {
     "boost",
     "withdraw",
     "swap",
+    "parcel",
     "collect",
     "load",
     "cultivate",
@@ -41,6 +43,9 @@ export default function AutoPanel() {
       </Tabs.Content>
       <Tabs.Content value="swap">
         <AutoSwapTab />
+      </Tabs.Content>
+      <Tabs.Content value="parcel">
+        <AutoParcelTab />
       </Tabs.Content>
       <Tabs.Content value="collect">
         <AutoCloudCollectTab />
