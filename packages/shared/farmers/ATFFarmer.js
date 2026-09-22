@@ -32,7 +32,7 @@ const SHOULD_SOLVE_CAPTCHA_BEFORE_LOGIN = true;
 const DEVICE_ID_MODE = "random";
 
 /* Record navigation batch */
-const RECORD_NAVIGATION_BATCH = false;
+const RECORD_NAVIGATION_BATCH = true;
 
 export default class ATFFarmer extends BaseFarmer {
   static id = "atf";
@@ -342,7 +342,7 @@ export default class ATFFarmer extends BaseFarmer {
       delta: delta,
       batch_id: `nav_${this.utils.uuid()}`,
     });
-    await this.utils.delayForSeconds(1, { signal: this.signal });
+    await this.utils.delay(300, { signal: this.signal });
   }
 
   /** Get Auth Headers */
