@@ -43,6 +43,7 @@ const autoSchema = {
       withdrawAfterBoost: { type: "boolean" },
       reuseLastAmount: { type: "boolean" },
       retainFunds: { type: "boolean" },
+      onlyConnectWallet: { type: "boolean" },
       requalify: { type: "string", enum: ["off", "resync", "boost"] },
       ignorePending: { type: "boolean" },
       runFarmer: { type: "boolean" },

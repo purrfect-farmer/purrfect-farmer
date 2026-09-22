@@ -33,6 +33,7 @@ const schema = yup
         (value) => !value || Number(value) > 0,
       ),
     freeze: yup.boolean().required().label("Freeze"),
+    onlyConnectWallet: yup.boolean().required().label("Only Connect Wallet"),
     reuseLastAmount: yup.boolean().required().label("Reuse Last Amount"),
     withdrawAfterBoost: yup.boolean().required().label("Withdraw"),
     requalify: yup
@@ -56,6 +57,7 @@ export default function AutoBoostTab() {
       difference: 5,
       amount: "",
       freeze: true,
+      onlyConnectWallet: false,
       reuseLastAmount: false,
       withdrawAfterBoost: false,
       requalify: "boost",
@@ -70,6 +72,7 @@ export default function AutoBoostTab() {
   const { config, password, master, accounts } = useAuto();
   const withdrawAfterBoost = form.watch("withdrawAfterBoost");
   const amount = form.watch("amount");
+  const onlyConnectWallet = form.watch("onlyConnectWallet");
   const selector = useAutoAccountsSelector(accounts);
   const { selectedAccounts } = selector;
   const mutation = useAutoCloudBoostMutation();
@@ -168,65 +171,90 @@ export default function AutoBoostTab() {
             )}
           />
 
-          {/* Amount the run works with, instead of the master's whole balance */}
+          {/* Only Connect Wallet */}
           <Controller
             control={form.control}
-            name="amount"
+            name="onlyConnectWallet"
             render={({ field, fieldState }) => (
               <div className="flex flex-col gap-1">
-                <Label>Amount</Label>
-                <Input
-                  {...field}
-                  autoComplete="off"
-                  inputMode="decimal"
-                  placeholder="Leave empty to use the master's full balance"
-                />
+                <Label>Only Connect Wallet</Label>
 
-                {/* Info */}
                 <p className="text-center text-neutral-500 dark:text-neutral-400">
-                  Boost against this much {config.token} instead of everything
-                  master holds.
+                  Connect each account's wallet without sending any{" "}
+                  {config.token}.
                 </p>
-
+                <LabelToggle {...field} checked={field.value}>
+                  Skip boosting, only connect
+                </LabelToggle>
                 <FieldStateError fieldState={fieldState} />
               </div>
             )}
           />
 
-          {/* Difference */}
-          <Controller
-            control={form.control}
-            name="difference"
-            render={({ field, fieldState }) => (
-              <div className="flex flex-col gap-1">
-                <Label>
-                  Difference
-                  <span className="text-blue-500 dark:text-blue-400">
-                    ({field.value}%)
-                  </span>
-                </Label>
+          {/* These only have anything to do when the run sends tokens */}
+          {!onlyConnectWallet ? (
+            <>
+              {/* Amount the run works with, instead of the master's whole balance */}
+              <Controller
+                control={form.control}
+                name="amount"
+                render={({ field, fieldState }) => (
+                  <div className="flex flex-col gap-1">
+                    <Label>Amount</Label>
+                    <Input
+                      {...field}
+                      autoComplete="off"
+                      inputMode="decimal"
+                      placeholder="Leave empty to use the master's full balance"
+                    />
 
-                <Slider
-                  step={1}
-                  min={0}
-                  max={50}
-                  value={[field.value]}
-                  onValueChange={(newValue) => field.onChange(newValue[0])}
-                />
+                    {/* Info */}
+                    <p className="text-center text-neutral-500 dark:text-neutral-400">
+                      Boost against this much {config.token} instead of
+                      everything master holds.
+                    </p>
 
-                {/* Info */}
-                <p className="text-center text-neutral-500 dark:text-neutral-400">
-                  Boosts between {100 - field.value}-100% of{" "}
-                  {amount
-                    ? `${amount} ${config.token}`
-                    : `the master's ${config.token} balance`}
-                  .
-                </p>
+                    <FieldStateError fieldState={fieldState} />
+                  </div>
+                )}
+              />
 
-                <FieldStateError fieldState={fieldState} />
-              </div>
-            )}
-          />
+              {/* Difference */}
+              <Controller
+                control={form.control}
+                name="difference"
+                render={({ field, fieldState }) => (
+                  <div className="flex flex-col gap-1">
+                    <Label>
+                      Difference
+                      <span className="text-blue-500 dark:text-blue-400">
+                        ({field.value}%)
+                      </span>
+                    </Label>
+
+                    <Slider
+                      step={1}
+                      min={0}
+                      max={50}
+                      value={[field.value]}
+                      onValueChange={(newValue) => field.onChange(newValue[0])}
+                    />
+
+                    {/* Info */}
+                    <p className="text-center text-neutral-500 dark:text-neutral-400">
+                      Boosts between {100 - field.value}-100% of{" "}
+                      {amount
+                        ? `${amount} ${config.token}`
+                        : `the master's ${config.token} balance`}
+                      .
+                    </p>
+
+                    <FieldStateError fieldState={fieldState} />
+                  </div>
+                )}
+              />
+            </>
+          ) : null}
 
           {/* Freeze */}
           <Controller
@@ -339,45 +367,49 @@ export default function AutoBoostTab() {
             </>
           ) : null}
 
-          {/* Reuse last amount */}
-          <Controller
-            control={form.control}
-            name="reuseLastAmount"
-            render={({ field, fieldState }) => (
-              <div className="flex flex-col gap-1">
-                <Label>Reuse last amount</Label>
+          {!onlyConnectWallet ? (
+            <>
+              {/* Reuse last amount */}
+              <Controller
+                control={form.control}
+                name="reuseLastAmount"
+                render={({ field, fieldState }) => (
+                  <div className="flex flex-col gap-1">
+                    <Label>Reuse last amount</Label>
 
-                <p className="text-center text-neutral-500 dark:text-neutral-400">
-                  Boost each account with the amount it last received, capped at
-                  master's balance.
-                </p>
-                <LabelToggle {...field} checked={field.value}>
-                  Reuse each account's last amount
-                </LabelToggle>
-                <FieldStateError fieldState={fieldState} />
-              </div>
-            )}
-          />
+                    <p className="text-center text-neutral-500 dark:text-neutral-400">
+                      Boost each account with the amount it last received,
+                      capped at master's balance.
+                    </p>
+                    <LabelToggle {...field} checked={field.value}>
+                      Reuse each account's last amount
+                    </LabelToggle>
+                    <FieldStateError fieldState={fieldState} />
+                  </div>
+                )}
+              />
 
-          {/* Retain Funds */}
-          <Controller
-            control={form.control}
-            name="retainFunds"
-            render={({ field, fieldState }) => (
-              <div className="flex flex-col gap-1">
-                <Label>Retain Funds</Label>
+              {/* Retain Funds */}
+              <Controller
+                control={form.control}
+                name="retainFunds"
+                render={({ field, fieldState }) => (
+                  <div className="flex flex-col gap-1">
+                    <Label>Retain Funds</Label>
 
-                <p className="text-center text-neutral-500 dark:text-neutral-400">
-                  Leave funds in the last boosted account instead of returning
-                  them to master.
-                </p>
-                <LabelToggle {...field} checked={field.value}>
-                  Keep funds in the last account
-                </LabelToggle>
-                <FieldStateError fieldState={fieldState} />
-              </div>
-            )}
-          />
+                    <p className="text-center text-neutral-500 dark:text-neutral-400">
+                      Leave funds in the last boosted account instead of
+                      returning them to master.
+                    </p>
+                    <LabelToggle {...field} checked={field.value}>
+                      Keep funds in the last account
+                    </LabelToggle>
+                    <FieldStateError fieldState={fieldState} />
+                  </div>
+                )}
+              />
+            </>
+          ) : null}
 
           {/* Repeat */}
           <Controller

@@ -96,6 +96,7 @@ class BaseAuto {
     withdrawAfterBoost = false,
     reuseLastAmount = false,
     retainFunds = false,
+    onlyConnectWallet = false,
     requalify = "boost",
     ignorePending = false,
     runFarmer = true,
@@ -136,6 +137,7 @@ class BaseAuto {
     this.withdrawAfterBoost = withdrawAfterBoost;
     this.reuseLastAmount = reuseLastAmount;
     this.retainFunds = retainFunds;
+    this.onlyConnectWallet = onlyConnectWallet;
     this.requalify = REQUALIFY_STRATEGIES.includes(requalify)
       ? requalify
       : "boost";
@@ -439,6 +441,14 @@ class BaseAuto {
     return this.formatKeyValue(
       "Retain funds",
       this.retainFunds ? "Enabled" : "Disabled",
+    );
+  }
+
+  /** Format the only-connect-wallet setting */
+  formatOnlyConnectWallet() {
+    return this.formatKeyValue(
+      "Only connect wallet",
+      this.onlyConnectWallet ? "Enabled" : "Disabled",
     );
   }
 
@@ -1010,17 +1020,27 @@ class BaseAuto {
     const funderAddress = this.masterData.address;
 
     /** Boost - skipped when the master has nothing to send */
-    logger.info("Boosting account:", cloudAccount.id, account.address);
-    const { jettonAmount, skipped } = await booster.boost({
-      difference: this.difference,
-      amount: this.boostAmountFor(cloudAccount),
-      max: this.amount,
-    });
+    logger.info(
+      this.onlyConnectWallet ? "Connecting account:" : "Boosting account:",
+      cloudAccount.id,
+      account.address,
+    );
+
+    /** Connect-only runs never send, so they take the same path as an empty master */
+    const { jettonAmount, skipped } = this.onlyConnectWallet
+      ? { jettonAmount: new Decimal(0), skipped: true }
+      : await booster.boost({
+          difference: this.difference,
+          amount: this.boostAmountFor(cloudAccount),
+          max: this.amount,
+        });
 
     /** Log boost completion */
     logger.success(
       skipped
-        ? "Nothing to boost account with:"
+        ? this.onlyConnectWallet
+          ? "Not boosting, only connecting:"
+          : "Nothing to boost account with:"
         : "Successfully boosted account:",
       cloudAccount.id,
       account.address,
@@ -1058,7 +1078,9 @@ class BaseAuto {
       status
         ? [
             skipped
-              ? `🔗 Connected <b>(${link})</b> - no ${this.token} in master to boost with ${position}`
+              ? this.onlyConnectWallet
+                ? `🔗 Connected <b>(${link})</b> ${position}`
+                : `🔗 Connected <b>(${link})</b> - no ${this.token} in master to boost with ${position}`
               : settled
                 ? `${icon} ${verb} <b>(${link})</b> with <i>${jettonAmount} ${this.token}</i> ${position}`
                 : `⏳ ${verb} <b>(${link})</b> with <i>${jettonAmount} ${this.token}</i>, but the drop hasn't settled it yet ${position}`,
@@ -1188,6 +1210,7 @@ class BaseAuto {
           `⏳ ${this.title} - Boost initiated...`,
           this.formatAccounts(),
           this.formatDelay(),
+          this.formatOnlyConnectWallet(),
           this.formatDifference(),
           this.formatMaximumAmount(),
           this.formatReuseLastAmount(),
@@ -1213,7 +1236,11 @@ class BaseAuto {
         await this.orderAccountsForThisPass();
 
         /** An empty master still connects every wallet, which is what registers the account with the drop */
-        if (this.prepared.jettonBalance.lessThanOrEqualTo(0)) {
+        if (this.onlyConnectWallet) {
+          await this.sendNotification([
+            `<i>🔗 ${this.title} - Only connecting wallets, no ${this.token} will be sent...</i>`,
+          ]);
+        } else if (this.prepared.jettonBalance.lessThanOrEqualTo(0)) {
           await this.sendNotification([
             `<i>🟡 ${this.title} - Master has no ${this.token}. Connecting wallets without boosting...</i>`,
           ]);
@@ -1363,6 +1390,7 @@ class BaseAuto {
     return (
       this.requalify === "boost" &&
       this.mode === "roll" &&
+      !this.onlyConnectWallet &&
       Boolean(this.masterData) &&
       accounts.length > 0
     );
