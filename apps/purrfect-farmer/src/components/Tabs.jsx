@@ -12,6 +12,15 @@ const GRID_SIZES = {
 
 const defaultRenderList = (content) => content;
 
+/** Scroll Trigger into View */
+const handleTriggerClick = (ev) => {
+  ev.currentTarget.scrollIntoView({
+    inline: "center",
+    block: "nearest",
+    behavior: "smooth",
+  });
+};
+
 const Tabs = ({
   children,
   rootClassName,
@@ -34,6 +43,7 @@ const Tabs = ({
               <TabsPrimitive.Trigger
                 key={index}
                 value={value}
+                onClick={handleTriggerClick}
                 className={cn(
                   "p-2 truncate",
                   "border-b-4 border-transparent",
