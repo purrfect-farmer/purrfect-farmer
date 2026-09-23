@@ -17,11 +17,15 @@ import AutoAvatar from "./AutoAvatar";
 import AutoVerifiedBadge from "./AutoVerifiedBadge";
 import AutoVersionBadge from "./AutoVersionBadge";
 import { Dialog } from "radix-ui";
+import { LuArrowUpDown } from "react-icons/lu";
 import FarmerStatusDot from "./FarmerStatusDot";
 import Input from "./Input";
 import { cn } from "@/utils";
+import { groupHelpers } from "./AutoHelperChooser";
 import { searchAutoAccount } from "@purrfect/shared/lib/auto/wallet";
-import { useAutoCloudSnapshot } from "@/hooks/useAutoCloudSnapshotsQuery";
+import useAutoCloudSnapshotsQuery, {
+  useAutoCloudSnapshot,
+} from "@/hooks/useAutoCloudSnapshotsQuery";
 import { useState } from "react";
 
 function getInitials(title) {
@@ -147,6 +151,7 @@ const AccountChooserItem = memo(function AccountChooserItem({
 /**
  * @param {boolean} [props.showBalance] - false for accounts not in this drop yet, whose balance and snapshot would belong to another drop
  * @param {boolean} [props.autoFocusSearch] - false when another chooser or field should hold focus first
+ * @param {boolean} [props.defaultRanked] - start with verified, then trusted, then the rest
  */
 export default function AutoAccountsChooser({
   accounts,
@@ -156,17 +161,37 @@ export default function AutoAccountsChooser({
   results,
   showBalance = true,
   autoFocusSearch = true,
+  defaultRanked = false,
   toggleAccount,
   toggleAllAccounts,
 }) {
   const [search, setSearch] = useState("");
+  const [ranked, setRanked] = useState(defaultRanked);
+  const { data: snapshots } = useAutoCloudSnapshotsQuery();
+
+  /** Only this drop's own accounts have snapshots to rank by */
+  const canRank = showBalance;
+
+  /** Verified first, then trusted, then the rest, sorted for display only so a refetch keeps the selection */
+  const orderedAccounts = useMemo(() => {
+    if (!canRank || !ranked) return accounts;
+
+    const { verified, trusted } = groupHelpers(accounts, snapshots);
+    const rankedSet = new Set([...verified, ...trusted]);
+
+    return [
+      ...verified,
+      ...trusted,
+      ...accounts.filter((account) => !rankedSet.has(account)),
+    ];
+  }, [accounts, snapshots, canRank, ranked]);
 
   const filteredAccounts = useMemo(() => {
     const term = search.trim().toLowerCase();
     return term
-      ? accounts.filter((account) => searchAutoAccount(account, term))
-      : accounts;
-  }, [accounts, search]);
+      ? orderedAccounts.filter((account) => searchAutoAccount(account, term))
+      : orderedAccounts;
+  }, [orderedAccounts, search]);
 
   return (
     <div className="flex flex-col gap-2">
@@ -176,18 +201,39 @@ export default function AutoAccountsChooser({
           Accounts ({selectedAccounts.length} / {accounts.length})
         </h4>
 
-        {!results && (
-          <label className="flex items-center gap-2 cursor-pointer">
-            <input
-              type="checkbox"
-              checked={allSelected}
-              disabled={disabled}
-              onChange={(e) => toggleAllAccounts(e.target.checked)}
-              className="accent-orange-500"
-            />
-            Toggle All
-          </label>
-        )}
+        <div className="flex items-center gap-2">
+          {/* Order */}
+          {canRank && (
+            <button
+              type="button"
+              onClick={() => setRanked((prev) => !prev)}
+              title="Change the order accounts are listed in"
+              className={cn(
+                "flex items-center gap-1 px-2 py-1 rounded-lg shrink-0",
+                "text-neutral-500 dark:text-neutral-400",
+                "bg-neutral-100 dark:bg-neutral-700",
+                "hover:bg-neutral-200 dark:hover:bg-neutral-600",
+                "cursor-pointer transition-colors",
+              )}
+            >
+              <LuArrowUpDown className="size-3.5" />
+              {ranked ? "Ranked" : "Normal"}
+            </button>
+          )}
+
+          {!results && (
+            <label className="flex items-center gap-2 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={allSelected}
+                disabled={disabled}
+                onChange={(e) => toggleAllAccounts(e.target.checked)}
+                className="accent-orange-500"
+              />
+              Toggle All
+            </label>
+          )}
+        </div>
       </div>
 
       {/* Search */}

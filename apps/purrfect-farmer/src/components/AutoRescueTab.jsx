@@ -7,7 +7,7 @@ import Dropzone from "./Dropzone";
 import FieldStateError from "./FieldStateError";
 import { HiArrowPath } from "react-icons/hi2";
 import Label from "./Label";
-import { LuArrowUpDown, LuLifeBuoy } from "react-icons/lu";
+import { LuLifeBuoy } from "react-icons/lu";
 import PasswordInput from "./PasswordInput";
 import PrimaryButton from "./PrimaryButton";
 import Slider from "./Slider";
@@ -15,9 +15,7 @@ import toast from "react-hot-toast";
 import useAuto from "@/hooks/useAuto";
 import useAutoAccountsSelector from "@/hooks/useAutoAccountsSelector";
 import useAutoCloudRescueMutation from "@/hooks/useAutoCloudRescueMutation";
-import useAutoCloudSnapshotsQuery from "@/hooks/useAutoCloudSnapshotsQuery";
-import { groupHelpers } from "./AutoHelperChooser";
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import {
   FLIPPED_EXPORT_TYPE,
   validateBundle,
@@ -25,7 +23,6 @@ import {
 } from "@/lib/autoTransfer";
 import { encryption } from "@/services/encryption";
 import { yup } from "@/lib/yup";
-import { cn } from "@/utils";
 import { yupResolver } from "@hookform/resolvers/yup";
 
 /** Stable identity so the requesters selector doesn't reset on every render */
@@ -70,22 +67,6 @@ export default function AutoRescueTab() {
     bundle?.accounts || NO_ACCOUNTS,
   );
   const helperSelector = useAutoAccountsSelector(accounts);
-  const { data: snapshots } = useAutoCloudSnapshotsQuery();
-  const [rankHelpers, setRankHelpers] = useState(true);
-
-  /** Verified first, then trusted, then the rest, sorted for display only so a refetch keeps the selection */
-  const sortedHelpers = useMemo(() => {
-    if (!rankHelpers) return accounts;
-
-    const { verified, trusted } = groupHelpers(accounts, snapshots);
-    const ranked = new Set([...verified, ...trusted]);
-
-    return [
-      ...verified,
-      ...trusted,
-      ...accounts.filter((account) => !ranked.has(account)),
-    ];
-  }, [accounts, snapshots, rankHelpers]);
 
   const handleFile = (data) => {
     try {
@@ -289,28 +270,11 @@ export default function AutoRescueTab() {
         </>
       )}
 
-      {/* Helpers, with a toggle between the ranked and the stored order */}
-      <div className="flex items-center justify-between gap-2">
-        <Label>Helpers</Label>
-        <button
-          type="button"
-          onClick={() => setRankHelpers((prev) => !prev)}
-          title="Change the order helpers are listed in"
-          className={cn(
-            "flex items-center gap-1 px-2 py-1 rounded-lg shrink-0",
-            "text-neutral-500 dark:text-neutral-400",
-            "bg-neutral-100 dark:bg-neutral-700",
-            "hover:bg-neutral-200 dark:hover:bg-neutral-600",
-            "cursor-pointer transition-colors",
-          )}
-        >
-          <LuArrowUpDown className="size-3.5" />
-          {rankHelpers ? "Verified > Trusted > Others" : "Normal"}
-        </button>
-      </div>
+      {/* Helpers */}
+      <Label>Helpers</Label>
       <AutoAccountsChooser
         {...helperSelector}
-        accounts={sortedHelpers}
+        defaultRanked
         autoFocusSearch={false}
         disabled={mutation.isPending}
       />
