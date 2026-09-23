@@ -53,6 +53,8 @@ const autoSchema = {
       cultivateInterval: { type: "number" },
       trustedWithdrawDirectly: { type: "boolean" },
       trustedAssist: { type: "boolean" },
+      flipDirection: { type: "string", enum: ["flip", "restore"] },
+      requesters: { type: "array" },
     },
   },
 };
@@ -395,8 +397,15 @@ export default async function (fastify, opts) {
     fastify.verifySubscription,
   ];
 
-  /** Auto - Boost / Collect / Withdraw / Status */
-  for (const operation of ["boost", "collect", "withdraw", "status"]) {
+  /** Auto - Boost / Collect / Withdraw / Status / Flip / Rescue */
+  for (const operation of [
+    "boost",
+    "collect",
+    "withdraw",
+    "status",
+    "flip",
+    "rescue",
+  ]) {
     fastify.post(
       `/auto/:drop/${operation}`,
       { preHandler: autoPreHandler, schema: autoSchema },

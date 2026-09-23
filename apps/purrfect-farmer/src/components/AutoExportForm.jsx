@@ -51,7 +51,6 @@ export default function AutoExportForm() {
       <div className="max-h-72 overflow-auto">
         <AutoAccountsChooser
           {...selector}
-          showBalance={false}
           autoFocusSearch={false}
         />
       </div>

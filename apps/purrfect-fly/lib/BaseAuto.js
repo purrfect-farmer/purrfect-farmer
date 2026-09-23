@@ -9,7 +9,10 @@ import { runDatabaseWrite } from "./db-write.js";
 import farmers from "../farmers/index.js";
 import logger from "./logger.js";
 import { claimAccount, getClaim, releaseAccount } from "./AutoClaims.js";
-import { generateMnemonicPhrase } from "@purrfect/shared/lib/auto/wallet.js";
+import {
+  generateMnemonicPhrase,
+  getWalletAddressFromMnemonic,
+} from "@purrfect/shared/lib/auto/wallet.js";
 import { getVault, setVault, summarizeVault } from "./AutoVault.js";
 import { prepareMaster } from "@purrfect/shared/lib/auto/transactions.js";
 import utils from "./utils.js";
@@ -35,6 +38,9 @@ const LAST_BOOST_KEY = "autoLastBoost";
 
 /** What a run may do about the DEX buyer standing a withdrawal consumes */
 const REQUALIFY_STRATEGIES = ["off", "resync", "boost"];
+
+/** Whether a flip moves accounts off their own wallet or back onto it */
+const FLIP_DIRECTIONS = ["flip", "restore"];
 
 /** How the requalify strategies read as a setting */
 const REQUALIFY_LABELS = {
@@ -106,6 +112,8 @@ class BaseAuto {
     cultivateInterval = 10,
     trustedWithdrawDirectly = false,
     trustedAssist = false,
+    flipDirection = "flip",
+    requesters = [],
   }) {
     this.utils = utils;
     this.encryption = Encrypter;
@@ -151,6 +159,10 @@ class BaseAuto {
     this.cultivateInterval = Number(cultivateInterval);
     this.trustedWithdrawDirectly = trustedWithdrawDirectly;
     this.trustedAssist = trustedAssist;
+    this.flipDirection = FLIP_DIRECTIONS.includes(flipDirection)
+      ? flipDirection
+      : "flip";
+    this.requesters = requesters;
 
     /** When this operation was started, reported by the assist status */
     this.startedAt = Date.now();
@@ -537,6 +549,16 @@ class BaseAuto {
     );
   }
 
+  /** Format the flip direction */
+  formatFlipDirection() {
+    return this.formatKeyValue(
+      "Direction",
+      this.flipDirection === "flip"
+        ? "Flip to the other version"
+        : "Restore own wallet",
+    );
+  }
+
   /** Format the cultivate interval */
   formatCultivateInterval() {
     return this.formatKeyValue(
@@ -626,13 +648,17 @@ class BaseAuto {
   }
 
   /** Send Summary Notification */
-  sendSummaryNotification(results, messages) {
+  sendSummaryNotification(
+    results,
+    messages,
+    expected = this.accounts.length,
+  ) {
     const { successful, failed, skipped, total } =
       this.getSummaryCounts(results);
     return this.sendNotification([
       "ℹ️ Operation Summary",
       ...messages,
-      this.formatKeyValue("Total Accounts", `${total}/${this.accounts.length}`),
+      this.formatKeyValue("Total Accounts", `${total}/${expected}`),
       this.formatKeyValue("Successful Accounts", `${successful}`),
       this.formatKeyValue("Skipped Accounts", `${skipped}`),
       this.formatKeyValue("Failed Accounts", `${failed}`),
@@ -3318,6 +3344,389 @@ class BaseAuto {
     ]);
   }
 
+  /** Connect each account to its phrase's other contract version, freeing its own wallet, or back onto its own wallet */
+  async flip() {
+    try {
+      await this.sendNotification([
+        `⏳ ${this.title} - Flip initiated...`,
+        this.formatAccounts(),
+        this.formatFlipDirection(),
+        this.formatDelay(),
+      ]);
+
+      const results = [];
+
+      for (const [index, account] of this.accounts.entries()) {
+        if (this.signal.aborted) break;
+
+        const result = await this.processFlip(account, index);
+
+        if (result) results.push(result);
+      }
+
+      if (this.signal.aborted) {
+        await this.sendCancellationCompletionNotification();
+      } else {
+        await this.sendNotification([`✅ ${this.title} - Flip completed!`]);
+      }
+
+      await this.sendSummaryNotification(results, [this.formatFlipDirection()]);
+    } catch (e) {
+      const errorMessage = e.message || "Unknown error!";
+
+      logger.error(errorMessage);
+
+      await this.sendNotification([
+        `❌ ${this.title} - an error occurred during flip!`,
+        errorMessage,
+      ]);
+    }
+  }
+
+  /** The contract version a flip connects an account to */
+  getFlipVersion(account) {
+    if (this.flipDirection === "restore") return Number(account.version);
+
+    return Number(account.version) === 4 ? 5 : 4;
+  }
+
+  /** Flip a single account, leaving what is stored locally untouched */
+  async processFlip(account, index) {
+    if (!account.userId) return { status: false, skipped: true };
+
+    const cloudAccount = await this.getCloudAccount(account, true);
+
+    if (!cloudAccount) return { status: false, skipped: true };
+
+    const label = this.formatAccountLink(account.userId);
+    const position = this.formatAccountPosition(index);
+
+    /** The assist and cultivate loops must not pick it up mid-flip */
+    if (!this.claim(account.userId, ASSIST_OWNER)) {
+      await this.sendNotification([
+        `⏩ Skipped <b>(${label})</b> - it is being ${getClaim(this.constructor.id, account.userId)}ed right now. ${position}`,
+      ]);
+      return { status: false, skipped: true };
+    }
+
+    let result;
+
+    try {
+      const phrase = await this.decryptPhrase(account.encryptedPhrase);
+      const version = this.getFlipVersion(account);
+      const address = await getWalletAddressFromMnemonic(phrase, version);
+      const runner = await this.getRunner(cloudAccount);
+
+      const connected = await runner.connectAutoWallet({
+        phrase,
+        address,
+        version,
+      });
+
+      if (!connected.status) {
+        throw new Error(connected.message || "Failed to connect wallet");
+      }
+
+      /** Keep the stored snapshot on the wallet it is now connected to */
+      await runner.storeAutoSnapshot();
+
+      result = { status: true, skipped: false };
+
+      await this.sendNotification([
+        `${this.flipDirection === "flip" ? "🔁 Flipped" : "↩️ Restored"} <b>(${label})</b> - ${this.formatWallet({ address, version: `v${version}` })} ${position}`,
+      ]);
+    } catch (error) {
+      if (this.signal.aborted) return null;
+
+      const errorMessage = error.message || "Unknown error!";
+
+      logger.error("Failed to flip:", account.userId, errorMessage);
+
+      result = { status: false, skipped: false, message: errorMessage };
+
+      await this.sendNotification([
+        `❌ Failed to flip <b>(${label})</b> ${position}\n<i>Reason: ${errorMessage}</i>`,
+      ]);
+    } finally {
+      this.releaseRunner(cloudAccount);
+      this.release(account.userId, ASSIST_OWNER);
+    }
+
+    if (!this.isLastAccount(index)) {
+      await this.delayForSafeMinutes();
+    }
+
+    return result;
+  }
+
+  /** Withdraw a freed wallet's pool through a helper, which adopts it for one withdrawal and goes back to its own */
+  async withdrawThroughWallet({ requester, helper, helperRunner }) {
+    const helperPhrase = await this.decryptPhrase(helper.encryptedPhrase);
+
+    const adopted = await helperRunner.connectAutoWallet({
+      address: requester.address,
+      version: requester.version,
+    });
+
+    /** Nothing moved, and the likeliest reason is an account that was never flipped */
+    if (!adopted.status) {
+      return {
+        status: false,
+        skipped: true,
+        amount: "0",
+        message:
+          `Could not adopt its wallet - was it flipped? ${adopted.message || ""}`.trim(),
+      };
+    }
+
+    const restore = async () => {
+      const restored = await helperRunner.connectAutoWallet({
+        phrase: helperPhrase,
+        version: helper.version,
+      });
+
+      if (!restored.status) {
+        throw new Error(restored.message || "helper restore failed");
+      }
+    };
+
+    let withdrawal;
+
+    try {
+      withdrawal = await helperRunner.withdraw({ force: true, difference: 0 });
+    } catch (error) {
+      /** The helper must never be left holding someone else's wallet */
+      try {
+        await restore();
+      } catch (restoreError) {
+        logger.error("Failed to restore helper wallet:", restoreError.message);
+        await this.announceStrandedHelper(requester, helper);
+      }
+
+      throw error;
+    }
+
+    try {
+      await restore();
+    } catch (error) {
+      await this.announceStrandedHelper(requester, helper);
+      throw error;
+    }
+
+    return withdrawal;
+  }
+
+  /** Tell the operator a helper could not get back onto its own wallet */
+  async announceStrandedHelper(requester, helper) {
+    await this.sendNotification([
+      `🚨 ${this.title} - a wallet could not be restored!`,
+      this.formatKeyValue(
+        "Requester",
+        `${this.formatRequesterLabel(requester)} - <b>its wallet is held by the helper</b>`,
+      ),
+      this.formatKeyValue(
+        "Helper",
+        `${this.formatAccountLink(helper.userId)} - <b>holding the requester's wallet</b>`,
+      ),
+      `<i>Reconnect it by hand before running anything else on it.</i>`,
+    ]);
+  }
+
+  /** A requester from an export may have no Telegram user, so fall back to its address */
+  formatRequesterLabel(requester) {
+    return requester.userId
+      ? this.formatAccountLink(requester.userId)
+      : this.formatAddressLink(requester.address);
+  }
+
+  /** Have this server's accounts withdraw for flipped accounts from an export, each adopting a freed wallet in turn */
+  async rescue() {
+    const helpers = this.accounts;
+
+    /** Adopting a wallet only needs its address and version */
+    const requesters = (this.requesters || []).filter(
+      (requester) => requester?.address && requester?.version,
+    );
+
+    const results = [];
+
+    try {
+      await this.sendNotification([
+        `⏳ ${this.title} - Rescue initiated...`,
+        this.formatKeyValue("Requesters", `${requesters.length}`),
+        this.formatKeyValue("Helpers", `${helpers.length}`),
+        this.formatDelay(),
+      ]);
+
+      if (!requesters.length) {
+        await this.sendNotification([
+          `⏩ ${this.title} - no requester to withdraw for.`,
+        ]);
+        return;
+      }
+
+      /** Runners are kept for the whole run so each helper logs in once */
+      const runners = new Map();
+
+      try {
+        /** Reading the helpers is also what reports a settled withdrawal */
+        const available = await this.getAvailableHelpers(
+          helpers,
+          runners,
+          await this.getOutstandingAssists(helpers),
+        );
+
+        if (!available.length) {
+          await this.sendNotification([
+            `⏩ ${this.title} - no helper is free. ${requesters.length} account(s) waiting.`,
+          ]);
+          return;
+        }
+
+        await this.sendNotification([
+          `⏳ ${this.title} - Rescuing ${requesters.length} account(s) through ${available.length} helper(s)...`,
+        ]);
+
+        /** The drop allows one withdrawal per account, so a helper is spent once its request goes through */
+        const pool = [...available];
+        let turn = 0;
+
+        for (const [index, requester] of requesters.entries()) {
+          if (this.signal.aborted) break;
+
+          if (!pool.length) {
+            await this.sendNotification([
+              `⏩ ${this.title} - every helper has a withdrawal in flight. ${requesters.length - index} account(s) left.`,
+            ]);
+            break;
+          }
+
+          const helper = pool[turn % pool.length];
+          const helperEntry = runners.get(String(helper.userId));
+          const label = this.formatRequesterLabel(requester);
+
+          /** Whether this helper is still free after the attempt */
+          let spent = false;
+
+          /** Kept out of the attempt, since the record written below outlives it */
+          let amount = "0";
+          let message = "";
+
+          try {
+            const { status, skipped, ...withdrawal } =
+              await this.withdrawThroughWallet({
+                requester,
+                helper,
+                helperRunner: helperEntry.runner,
+              });
+
+            amount = withdrawal.amount ?? "0";
+            message = withdrawal.message ?? "";
+
+            results.push({ status, skipped, amount, message });
+
+            /** A placed request occupies the account until the drop settles it */
+            spent = status && !skipped;
+
+            await this.sendAdminNotification([
+              skipped
+                ? `⏩ Skipped <b>(${label})</b> - <i>${message}</i>`
+                : status
+                  ? `🤑 Withdrawn <b>(${label})</b> - <i>${amount} ${this.token}</i> through ${this.formatAccountLink(helper.userId)}`
+                  : `❌ Failed to withdraw <b>(${label})</b>\n<i>Reason: ${message}</i>`,
+            ]);
+          } catch (error) {
+            if (this.signal.aborted) break;
+
+            const errorMessage = error.message || "Unknown error!";
+            logger.error(errorMessage);
+
+            message = errorMessage;
+
+            results.push({
+              status: false,
+              skipped: false,
+              amount: "0",
+              message: errorMessage,
+            });
+
+            await this.sendNotification([
+              `❌ Failed to withdraw <b>(${label})</b>\n<i>Reason: ${errorMessage}</i>`,
+            ]);
+          }
+
+          /** A failure can still have left a request behind, so ask the drop rather than trust the outcome */
+          if (!spent) {
+            spent = await helperEntry.runner
+              .hasPendingWithdrawal()
+              .catch(() => false);
+          }
+
+          if (spent) {
+            pool.splice(pool.indexOf(helper), 1);
+
+            /** Remember who it went through, so the assist loop can report the settlement */
+            await this.recordAssistWithdrawal(helperEntry.runner, helper, {
+              requesterId: String(requester.userId || requester.address),
+              amount,
+              message,
+              placedAt: Date.now(),
+            });
+
+            await this.sendNotification([
+              `⏳ ${this.formatAccountLink(helper.userId)} has a withdrawal in flight - resting it for the rest of this run.`,
+            ]);
+          } else {
+            turn += 1;
+          }
+
+          if (index < requesters.length - 1 && pool.length) {
+            await this.delayForSafeMinutes();
+          }
+        }
+      } finally {
+        for (const entry of runners.values()) {
+          this.releaseRunner(entry.cloudAccount);
+        }
+
+        /** Helpers are held for the whole run, so they are freed together */
+        for (const helper of helpers) {
+          this.release(helper.userId, ASSIST_OWNER);
+        }
+      }
+
+      if (this.signal.aborted) {
+        await this.sendCancellationCompletionNotification();
+      } else {
+        await this.sendNotification([`✅ ${this.title} - Rescue completed!`]);
+      }
+
+      const totalWithdrawn = results
+        .filter((result) => result.status && !result.skipped)
+        .reduce((acc, result) => acc.plus(result.amount || 0), new Decimal(0));
+
+      await this.sendSummaryNotification(
+        results,
+        [
+          this.formatKeyValue(
+            "Total withdrawn",
+            `🤑 ${totalWithdrawn.toDecimalPlaces(4, Decimal.ROUND_DOWN)} ${this.token}`,
+          ),
+        ],
+        requesters.length,
+      );
+    } catch (e) {
+      const errorMessage = e.message || "Unknown error!";
+
+      logger.error(errorMessage);
+
+      await this.sendNotification([
+        `❌ ${this.title} - an error occurred during rescue!`,
+        errorMessage,
+      ]);
+    }
+  }
+
   /** The loaded accounts a cultivate cycle may boost, read from the stored snapshots */
   async getCultivateCandidates(vault, helperIds) {
     const rows = await db.Farmer.findAll({
@@ -3868,6 +4277,14 @@ class BaseAuto {
 
   static withdraw(options) {
     this.execute(options, (instance) => instance.withdraw());
+  }
+
+  static flip(options) {
+    this.execute(options, (instance) => instance.flip());
+  }
+
+  static rescue(options) {
+    this.execute(options, (instance) => instance.rescue());
   }
 
   static status(options) {
