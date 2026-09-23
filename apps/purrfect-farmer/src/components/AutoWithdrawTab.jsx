@@ -19,7 +19,7 @@ import { yupResolver } from "@hookform/resolvers/yup";
 
 const schema = yup
   .object({
-    delay: yup.number().required().min(1).label("Delay"),
+    delay: yup.number().required().min(0).label("Delay"),
     difference: yup.number().required().label("Difference"),
     amount: yup.string().nullable().label("Amount"),
   })
