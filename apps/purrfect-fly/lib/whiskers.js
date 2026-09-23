@@ -112,7 +112,14 @@ async function notifyEntryResult(
 }
 
 /** Clone a single whiskers entry and onboard the account */
-async function processEntry(entry, passwords, endsAt, counters, total) {
+async function processEntry(
+  entry,
+  passwords,
+  endsAt,
+  farming,
+  counters,
+  total,
+) {
   let user;
   let status = "failed";
   let message = null;
@@ -166,6 +173,7 @@ async function processEntry(entry, passwords, endsAt, counters, total) {
                 firstName: user.firstName || null,
                 lastName: user.lastName || null,
               },
+              options: { ...(account.options || {}), farming },
             },
             { transaction },
           );
@@ -225,11 +233,13 @@ async function processEntry(entry, passwords, endsAt, counters, total) {
  * @param {object} params.backup - Parsed whiskers backup
  * @param {string} [params.passwords] - Comma/space separated 2FA passwords
  * @param {string} [params.subscriptionDate] - Subscription end date (ISO)
+ * @param {boolean} [params.farming] - Whether newly created accounts farm
  */
 export async function importWhiskersBackup({
   backup,
   passwords,
   subscriptionDate,
+  farming = true,
 }) {
   const startDate = new Date();
   const entries = utils.whiskersToEntries(backup);
@@ -245,7 +255,14 @@ export async function importWhiskersBackup({
   for (const chunk of utils.chunkArrayGenerator(entries, CONCURRENCY)) {
     await Promise.all(
       chunk.map((entry) =>
-        processEntry(entry, passwordList, endsAt, counters, entries.length),
+        processEntry(
+          entry,
+          passwordList,
+          endsAt,
+          farming,
+          counters,
+          entries.length,
+        ),
       ),
     );
 

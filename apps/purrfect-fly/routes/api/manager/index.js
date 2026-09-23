@@ -188,6 +188,7 @@ export default async function (fastify, opts) {
               backup: { type: "object" },
               passwords: { type: "string" },
               subscriptionDate: { type: "string" },
+              farming: { type: "boolean" },
             },
           },
         },
@@ -195,17 +196,20 @@ export default async function (fastify, opts) {
       async (request, reply) => {
         const { importWhiskersBackup } =
           await import("../../../lib/whiskers.js");
-        const { backup, passwords, subscriptionDate } = request.body;
+        const { backup, passwords, subscriptionDate, farming } = request.body;
 
         /** Report how many accounts will be processed */
         const total = fastify.utils.whiskersToEntries(backup).length;
 
         /** Run in the background; the admin is DM'd on completion */
-        importWhiskersBackup({ backup, passwords, subscriptionDate }).catch(
-          (error) => {
-            fastify.log.error(error, "Whiskers import failed");
-          },
-        );
+        importWhiskersBackup({
+          backup,
+          passwords,
+          subscriptionDate,
+          farming,
+        }).catch((error) => {
+          fastify.log.error(error, "Whiskers import failed");
+        });
 
         return reply.send({ started: true, total });
       },

@@ -1,21 +1,50 @@
 import Alert from "@/components/Alert";
 import CloudCenteredDialog from "./CloudCenteredDialog";
+import FieldStateError from "@/components/FieldStateError";
 import Input from "@/components/Input";
+import LabelToggle from "@/components/LabelToggle";
 import PrimaryButton from "@/components/PrimaryButton";
 import Textarea from "@/components/Textarea";
 import toast from "react-hot-toast";
 import useCloudManagerImportWhiskersMutation from "@/hooks/useCloudManagerImportWhiskersMutation";
+import { Controller, useForm } from "react-hook-form";
 import { useDropzone } from "react-dropzone";
 import { useState } from "react";
+import { yup } from "@/lib/yup";
+import { yupResolver } from "@hookform/resolvers/yup";
+
+/** Schema */
+const schema = yup
+  .object({
+    backup: yup
+      .object()
+      .nullable()
+      .required("Please select a whiskers backup file!")
+      .label("Backup"),
+    passwords: yup.string().label("2FA Passwords"),
+    subscriptionDate: yup.string().label("Subscription End Date"),
+    farming: yup.boolean().required().label("Farming"),
+  })
+  .required();
 
 export default function CloudWhiskersImport() {
   const importMutation = useCloudManagerImportWhiskersMutation();
   const isPending = importMutation.isPending;
 
-  const [backup, setBackup] = useState(null);
   const [fileName, setFileName] = useState("");
-  const [passwords, setPasswords] = useState("");
-  const [subscriptionDate, setSubscriptionDate] = useState("");
+
+  /** Form */
+  const form = useForm({
+    resolver: yupResolver(schema),
+    defaultValues: {
+      backup: null,
+      passwords: "",
+      subscriptionDate: "",
+      farming: true,
+    },
+  });
+
+  const backup = form.watch("backup");
 
   /** Read and parse the dropped backup file */
   const onDrop = (acceptedFiles) => {
@@ -26,10 +55,10 @@ export default function CloudWhiskersImport() {
     reader.addEventListener("load", (e) => {
       try {
         const parsed = JSON.parse(e.target.result);
-        setBackup(parsed);
+        form.setValue("backup", parsed, { shouldValidate: true });
         setFileName(file.name);
       } catch {
-        setBackup(null);
+        form.setValue("backup", null);
         setFileName("");
         toast.error("Invalid JSON file!");
       }
@@ -45,25 +74,13 @@ export default function CloudWhiskersImport() {
   });
 
   /** Submit the import */
-  const handleImport = () => {
-    if (!backup) {
-      toast.error("Please select a whiskers backup file!");
-      return;
-    }
-
-    toast.promise(
-      importMutation.mutateAsync({
-        backup,
-        passwords,
-        subscriptionDate,
-      }),
-      {
-        loading: "Starting import...",
-        success: (data) =>
-          `Import started for ${data.total} account(s). The admin will be notified on completion.`,
-        error: "Failed to start import",
-      },
-    );
+  const handleFormSubmit = (data) => {
+    toast.promise(importMutation.mutateAsync(data), {
+      loading: "Starting import...",
+      success: (data) =>
+        `Import started for ${data.total} account(s). The admin will be notified on completion.`,
+      error: "Failed to start import",
+    });
   };
 
   return (
@@ -71,7 +88,10 @@ export default function CloudWhiskersImport() {
       title={"Import Whiskers Backup"}
       description={"Onboard accounts from a purrfect-whiskers backup"}
     >
-      <div className="flex flex-col gap-2">
+      <form
+        onSubmit={form.handleSubmit(handleFormSubmit)}
+        className="flex flex-col gap-2"
+      >
         <Alert variant={"info"}>
           A new cloud session is created for each account. Provide any 2FA
           passwords used (space/comma separated), the server tries each one.
@@ -79,49 +99,88 @@ export default function CloudWhiskersImport() {
         </Alert>
 
         {/* Backup file */}
-        <div
-          {...getRootProps()}
-          className="border border-dashed border-blue-500 px-4 py-8 text-center rounded-xl cursor-pointer"
-        >
-          <input {...getInputProps()} />
-          {fileName ? (
-            <p className="font-bold break-all">{fileName}</p>
-          ) : isDragActive ? (
-            <p>Drop the backup file here ...</p>
-          ) : (
-            <p>Drag 'n' drop the whiskers backup, or click to select</p>
+        <Controller
+          control={form.control}
+          name="backup"
+          render={({ fieldState }) => (
+            <>
+              <div
+                {...getRootProps()}
+                className="border border-dashed border-blue-500 px-4 py-8 text-center rounded-xl cursor-pointer"
+              >
+                <input {...getInputProps()} />
+                {fileName ? (
+                  <p className="font-bold break-all">{fileName}</p>
+                ) : isDragActive ? (
+                  <p>Drop the backup file here ...</p>
+                ) : (
+                  <p>Drag 'n' drop the whiskers backup, or click to select</p>
+                )}
+              </div>
+              <FieldStateError fieldState={fieldState} />
+            </>
           )}
-        </div>
+        />
 
         {/* 2FA passwords */}
-        <Textarea
-          autoComplete="off"
-          placeholder="2FA passwords (space/comma separated)"
-          value={passwords}
+        <Controller
+          control={form.control}
           disabled={isPending}
-          onChange={(e) => setPasswords(e.target.value)}
+          name="passwords"
+          render={({ field, fieldState }) => (
+            <>
+              <Textarea
+                {...field}
+                autoComplete="off"
+                placeholder="2FA passwords (space/comma separated)"
+              />
+              <FieldStateError fieldState={fieldState} />
+            </>
+          )}
         />
 
         {/* Subscription date */}
-        <Input
-          type="date"
-          autoComplete="off"
-          placeholder="Subscription End Date"
-          value={subscriptionDate}
+        <Controller
+          control={form.control}
           disabled={isPending}
-          onChange={(e) => setSubscriptionDate(e.target.value)}
+          name="subscriptionDate"
+          render={({ field, fieldState }) => (
+            <>
+              <Input
+                {...field}
+                type="date"
+                autoComplete="off"
+                placeholder="Subscription End Date"
+              />
+              <FieldStateError fieldState={fieldState} />
+            </>
+          )}
+        />
+
+        {/* Farming */}
+        <Controller
+          control={form.control}
+          disabled={isPending}
+          name="farming"
+          render={({ field, fieldState }) => (
+            <>
+              <LabelToggle {...field} checked={field.value}>
+                Enable Farming
+              </LabelToggle>
+              <FieldStateError fieldState={fieldState} />
+            </>
+          )}
         />
 
         {/* Submit */}
         <PrimaryButton
           className="my-1"
-          type="button"
+          type="submit"
           disabled={isPending || !backup}
-          onClick={handleImport}
         >
           {isPending ? "Starting..." : "Import"}
         </PrimaryButton>
-      </div>
+      </form>
     </CloudCenteredDialog>
   );
 }
