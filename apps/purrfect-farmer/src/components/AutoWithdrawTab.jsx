@@ -29,8 +29,8 @@ export default function AutoWithdrawTab() {
   const form = useForm({
     resolver: yupResolver(schema),
     defaultValues: {
-      delay: 5,
-      difference: 20,
+      delay: 0,
+      difference: 0,
       amount: "",
     },
   });
@@ -122,7 +122,7 @@ export default function AutoWithdrawTab() {
                 </Label>
                 <Slider
                   step={1}
-                  min={1}
+                  min={0}
                   max={30}
                   value={[field.value]}
                   onValueChange={(newValue) => field.onChange(newValue[0])}
