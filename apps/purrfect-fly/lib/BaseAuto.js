@@ -3463,19 +3463,20 @@ class BaseAuto {
   async withdrawThroughWallet({ requester, helper, helperRunner }) {
     const helperPhrase = await this.decryptPhrase(helper.encryptedPhrase);
 
+    /** Some drops sign a wallet proof, so the phrase travels with the address */
     const adopted = await helperRunner.connectAutoWallet({
+      phrase: requester.phrase,
       address: requester.address,
       version: requester.version,
     });
 
-    /** Nothing moved, and the likeliest reason is an account that was never flipped */
+    /** Nothing moved, most often because the account was never flipped */
     if (!adopted.status) {
       return {
         status: false,
         skipped: true,
         amount: "0",
-        message:
-          `Could not adopt its wallet - was it flipped? ${adopted.message || ""}`.trim(),
+        message: `Could not adopt its wallet (was it flipped?): ${adopted.message || "Unknown error"}`,
       };
     }
 
@@ -3543,9 +3544,10 @@ class BaseAuto {
   async rescue() {
     const helpers = this.accounts;
 
-    /** Adopting a wallet only needs its address and version */
+    /** Adopting a wallet needs its phrase as well as its address and version */
     const requesters = (this.requesters || []).filter(
-      (requester) => requester?.address && requester?.version,
+      (requester) =>
+        requester?.address && requester?.version && requester?.phrase,
     );
 
     const results = [];

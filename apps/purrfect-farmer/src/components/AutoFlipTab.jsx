@@ -11,7 +11,7 @@ import { LuArrowLeftRight } from "react-icons/lu";
 import PrimaryButton from "./PrimaryButton";
 import Select from "./Select";
 import Slider from "./Slider";
-import { createBundle } from "@/lib/autoTransfer";
+import { createFlippedBundle } from "@/lib/autoTransfer";
 import { downloadFile } from "@/utils";
 import { formatDate } from "date-fns";
 import { getWalletMismatch } from "@/lib/autoSnapshot";
@@ -21,6 +21,7 @@ import useAuto from "@/hooks/useAuto";
 import useAutoAccountsSelector from "@/hooks/useAutoAccountsSelector";
 import useAutoCloudFlipMutation from "@/hooks/useAutoCloudFlipMutation";
 import useAutoCloudSnapshotsQuery from "@/hooks/useAutoCloudSnapshotsQuery";
+import useAutoMaster from "@/hooks/useAutoMaster";
 import { yup } from "@/lib/yup";
 import { yupResolver } from "@hookform/resolvers/yup";
 
@@ -52,6 +53,7 @@ export default function AutoFlipTab() {
   const selector = useAutoAccountsSelector(accounts);
   const { selectedAccounts } = selector;
   const mutation = useAutoCloudFlipMutation();
+  const { decryptPhrase } = useAutoMaster();
   const { data: snapshots } = useAutoCloudSnapshotsQuery();
 
   /** Accounts the drop has on another wallet, read from Cloud so a forgotten flip still shows */
@@ -79,9 +81,17 @@ export default function AutoFlipTab() {
 
     /** Written before dispatching, so the list survives a failed or interrupted flip */
     if (data.flipDirection === "flip" && downloadExport) {
+      /** Plain phrases, so any other Auto can load the file whatever its password */
+      const flippedAccounts = await Promise.all(
+        selectedAccounts.map(async (account) => ({
+          ...account,
+          phrase: await decryptPhrase(account.encryptedPhrase),
+        })),
+      );
+
       downloadFile(
         `${config.id}-flipped-${formatDate(new Date(), "yyyyMMdd-HHmmss")}.json`,
-        createBundle({ config, master: null, accounts: selectedAccounts }),
+        createFlippedBundle({ config, accounts: flippedAccounts }),
       );
     }
 
@@ -150,7 +160,7 @@ export default function AutoFlipTab() {
             Connects each account in Cloud to the other version of its own
             phrase (V4R2 / W5), freeing its wallet so another account can
             rescue it. Nothing stored here changes. An export of the flipped
-            accounts downloads first - drop it in the Rescue tab.
+            accounts downloads first - drop it in the Rescue tab of any Auto.
           </Alert>
 
           {/* Direction */}
@@ -188,6 +198,13 @@ export default function AutoFlipTab() {
                     Saves the selected accounts for the Rescue tab before
                     flipping.
                   </p>
+
+                  {field.value ? (
+                    <Alert variant="warning">
+                      The file holds the wallet phrases in plain text. Anyone
+                      holding it can spend from these wallets.
+                    </Alert>
+                  ) : null}
                   <LabelToggle {...field} checked={field.value}>
                     Download an export of the flipped accounts
                   </LabelToggle>

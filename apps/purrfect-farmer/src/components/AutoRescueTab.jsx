@@ -8,6 +8,7 @@ import FieldStateError from "./FieldStateError";
 import { HiArrowPath } from "react-icons/hi2";
 import Label from "./Label";
 import { LuLifeBuoy } from "react-icons/lu";
+import PasswordInput from "./PasswordInput";
 import PrimaryButton from "./PrimaryButton";
 import Slider from "./Slider";
 import toast from "react-hot-toast";
@@ -15,7 +16,12 @@ import useAuto from "@/hooks/useAuto";
 import useAutoAccountsSelector from "@/hooks/useAutoAccountsSelector";
 import useAutoCloudRescueMutation from "@/hooks/useAutoCloudRescueMutation";
 import { useState } from "react";
-import { validateBundle } from "@/lib/autoTransfer";
+import {
+  FLIPPED_EXPORT_TYPE,
+  validateBundle,
+  validateFlippedBundle,
+} from "@/lib/autoTransfer";
+import { encryption } from "@/services/encryption";
 import { yup } from "@/lib/yup";
 import { yupResolver } from "@hookform/resolvers/yup";
 
@@ -28,13 +34,14 @@ const schema = yup
   })
   .required();
 
-/** Adopting a freed wallet only needs its address and version, so phrases never leave the device */
-function pickRequester(account) {
+/** What adopting a freed wallet needs, since some drops sign a wallet proof with the phrase */
+function pickRequester(account, phrase) {
   return {
     userId: account.userId,
     title: account.title,
     address: account.address,
     version: account.version,
+    phrase,
   };
 }
 
@@ -49,6 +56,11 @@ export default function AutoRescueTab() {
 
   const { config, password, master, accounts } = useAuto();
   const [bundle, setBundle] = useState(null);
+  const [sourcePassword, setSourcePassword] = useState("");
+  const [decrypting, setDecrypting] = useState(false);
+
+  /** A regular export keeps its phrases under the source Auto's password */
+  const encrypted = Boolean(bundle && bundle.type !== FLIPPED_EXPORT_TYPE);
   const mutation = useAutoCloudRescueMutation();
 
   const requesterSelector = useAutoAccountsSelector(
@@ -58,7 +70,10 @@ export default function AutoRescueTab() {
 
   const handleFile = (data) => {
     try {
-      const loaded = validateBundle(data);
+      const loaded =
+        data?.type === FLIPPED_EXPORT_TYPE
+          ? validateFlippedBundle(data)
+          : validateBundle(data);
 
       if (loaded.auto !== config.id) {
         throw new Error(
@@ -85,13 +100,39 @@ export default function AutoRescueTab() {
       return;
     }
 
+    let requesters;
+
+    try {
+      setDecrypting(true);
+
+      requesters = await Promise.all(
+        requesterSelector.selectedAccounts.map(async (account) =>
+          pickRequester(
+            account,
+            encrypted
+              ? await encryption.decryptData({
+                  ...account.encryptedPhrase,
+                  password: sourcePassword,
+                  asText: true,
+                })
+              : account.phrase,
+          ),
+        ),
+      );
+    } catch {
+      toast.error("Could not unlock the exported wallets. Check the password.");
+      return;
+    } finally {
+      setDecrypting(false);
+    }
+
     await toast.promise(
       mutation.mutateAsync({
         ...data,
         password,
         master,
         accounts: helperSelector.selectedAccounts,
-        requesters: requesterSelector.selectedAccounts.map(pickRequester),
+        requesters,
       }),
       {
         loading: "Dispatching...",
@@ -156,6 +197,20 @@ export default function AutoRescueTab() {
             </Alert>
           )}
 
+          {/* Only a regular export needs unlocking */}
+          {encrypted && (
+            <>
+              <Label>Password of the exported wallets</Label>
+              <PasswordInput
+                value={sourcePassword}
+                disabled={mutation.isPending || decrypting}
+                autoComplete="off"
+                placeholder="Source password"
+                onChange={(ev) => setSourcePassword(ev.target.value)}
+              />
+            </>
+          )}
+
           {/* Delay */}
           <Controller
             control={form.control}
@@ -187,7 +242,12 @@ export default function AutoRescueTab() {
 
           <PrimaryButton
             type="submit"
-            disabled={mutation.isPending || !bundle}
+            disabled={
+              mutation.isPending ||
+              decrypting ||
+              !bundle ||
+              (encrypted && !sourcePassword)
+            }
           >
             <LuLifeBuoy className="size-4" />{" "}
             {mutation.isPending ? "Dispatching..." : "Rescue"}

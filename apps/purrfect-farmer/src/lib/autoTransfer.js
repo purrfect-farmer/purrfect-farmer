@@ -5,6 +5,9 @@
 export const EXPORT_TYPE = "purrfect-auto-export";
 export const EXPORT_VERSION = 1;
 
+/** Flipped accounts handed to any other Auto, so phrases travel in plain text */
+export const FLIPPED_EXPORT_TYPE = "purrfect-auto-flipped";
+
 /** How incoming accounts that already exist in the destination are handled */
 export const MERGE_STRATEGIES = ["skip", "overwrite", "replace"];
 
@@ -55,6 +58,43 @@ export function createBundle({ config, master = null, accounts = [] }) {
     master: master ? pickMaster(master) : null,
     accounts: accounts.map(pickAccount),
   };
+}
+
+/** Builds a flipped-accounts hand-off, with each phrase already decrypted */
+export function createFlippedBundle({ config, accounts = [] }) {
+  return {
+    type: FLIPPED_EXPORT_TYPE,
+    version: EXPORT_VERSION,
+    auto: config.id,
+    title: config.title,
+    exportedAt: new Date().toISOString(),
+    accounts: accounts.map(({ phrase, ...account }) => ({
+      id: account.id,
+      title: account.title,
+      userId: account.userId,
+      version: account.version,
+      address: account.address,
+      verified: Boolean(account.verified),
+      phrase,
+    })),
+  };
+}
+
+/** Throws unless `data` is a flipped-accounts file with every phrase present */
+export function validateFlippedBundle(data) {
+  if (data?.type !== FLIPPED_EXPORT_TYPE) {
+    throw new Error("This file is not a flipped accounts export.");
+  }
+
+  if (!Array.isArray(data.accounts) || !data.accounts.length) {
+    throw new Error("This export is empty.");
+  }
+
+  if (data.accounts.some((account) => !account.phrase)) {
+    throw new Error("This export is missing wallet phrases.");
+  }
+
+  return data;
 }
 
 /** Throws unless `data` is a bundle this build understands */
