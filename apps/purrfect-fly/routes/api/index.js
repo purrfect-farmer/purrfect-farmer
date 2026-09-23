@@ -51,6 +51,8 @@ const autoSchema = {
       repeatInterval: { type: "number" },
       assistInterval: { type: "number" },
       cultivateInterval: { type: "number" },
+      trustedWithdrawDirectly: { type: "boolean" },
+      trustedAssist: { type: "boolean" },
     },
   },
 };

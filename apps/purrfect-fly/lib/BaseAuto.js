@@ -104,6 +104,8 @@ class BaseAuto {
     repeatInterval = 15,
     assistInterval = 10,
     cultivateInterval = 10,
+    trustedWithdrawDirectly = false,
+    trustedAssist = false,
   }) {
     this.utils = utils;
     this.encryption = Encrypter;
@@ -147,6 +149,8 @@ class BaseAuto {
     this.repeatInterval = Number(repeatInterval);
     this.assistInterval = Number(assistInterval);
     this.cultivateInterval = Number(cultivateInterval);
+    this.trustedWithdrawDirectly = trustedWithdrawDirectly;
+    this.trustedAssist = trustedAssist;
 
     /** When this operation was started, reported by the assist status */
     this.startedAt = Date.now();
@@ -285,10 +289,8 @@ class BaseAuto {
 
     if (approved === null) return "";
 
-    const flagged = withdrawal.flagged?.length || 0;
-
     /** A verified account already says as much, so this only speaks for the rest */
-    if (!summary.verified && approved > 0 && flagged === 0) {
+    if (this.isTrusted(summary)) {
       return this.formatKeyValue(
         "Withdrawal Record",
         `🤝 Trusted - ${approved} approved, none ever flagged`,
@@ -296,6 +298,18 @@ class BaseAuto {
     }
 
     return this.formatKeyValue("Withdrawal Record", `${approved} approved`);
+  }
+
+  /** Whether an unverified account has earned trust through its payout record alone */
+  isTrusted(summary) {
+    const withdrawal = summary?.withdrawal;
+
+    return Boolean(
+      !summary?.verified &&
+      typeof withdrawal?.approved === "number" &&
+      withdrawal.approved > 0 &&
+      !withdrawal.flagged?.length,
+    );
   }
 
   /** Format an account snapshot as notification detail lines, shared by every single-account notification */
@@ -505,6 +519,22 @@ class BaseAuto {
   /** Format the assist interval */
   formatAssistInterval() {
     return this.formatKeyValue("Assist Interval", `${this.assistInterval}m`);
+  }
+
+  /** Format the trusted-withdraw-directly setting */
+  formatTrustedWithdrawDirectly() {
+    return this.formatKeyValue(
+      "Trusted withdraw directly",
+      this.trustedWithdrawDirectly ? "Enabled" : "Disabled",
+    );
+  }
+
+  /** Format the trusted-assist setting */
+  formatTrustedAssist() {
+    return this.formatKeyValue(
+      "Trusted assist others",
+      this.trustedAssist ? "Enabled" : "Disabled",
+    );
   }
 
   /** Format the cultivate interval */
@@ -2566,14 +2596,17 @@ class BaseAuto {
     return Boolean(wallet && wallet.address === account.address);
   }
 
-  /** The loaded accounts that have reached the minimum, fullest pool first, read from the stored snapshots */
-  async getAssistCandidates(vault, helperIds) {
+  /** The loaded accounts that have reached the minimum, fullest pool first, and the trusted ones, read from the stored snapshots */
+  async getAssistCandidates(vault, verifiedIds) {
     const rows = await db.Farmer.findAll({
       where: { farmer: this.farmerId },
       include: [{ required: true, association: "account" }],
     });
 
     const candidates = [];
+
+    /** Trusted accounts in good standing, whether or not they have reached the minimum */
+    const trusted = [];
 
     /** Why each account was passed over, so an empty cycle can say so */
     const skipped = {};
@@ -2593,7 +2626,7 @@ class BaseAuto {
       }
 
       /** A verified account does not queue behind itself */
-      if (helperIds.has(userId)) continue;
+      if (verifiedIds.has(userId)) continue;
 
       /** Frozen is the operator saying to leave this account alone */
       if (["banned", "frozen"].includes(row.status)) {
@@ -2619,12 +2652,16 @@ class BaseAuto {
         continue;
       }
 
+      const isTrusted = this.isTrusted(snapshot);
+
+      if (isTrusted) trusted.push(account);
+
       if (!this.isWithdrawable(snapshot)) {
         skip("below the minimum");
         continue;
       }
 
-      candidates.push({ account, snapshot });
+      candidates.push({ account, snapshot, trusted: isTrusted });
     }
 
     logger.info(
@@ -2634,12 +2671,17 @@ class BaseAuto {
         .join(", ") || "",
     );
 
-    return candidates.sort((a, b) =>
-      new Decimal(b.snapshot.balance || 0).comparedTo(a.snapshot.balance || 0),
-    );
+    return {
+      candidates: candidates.sort((a, b) =>
+        new Decimal(b.snapshot.balance || 0).comparedTo(
+          a.snapshot.balance || 0,
+        ),
+      ),
+      trusted,
+    };
   }
 
-  /** Withdraw a requester's pool through a verified account, passing the wallet along and putting it back */
+  /** Withdraw a requester's pool through a helper account, passing the wallet along and putting it back */
   async assistWithdrawal({ requester, requesterRunner, helper, helperRunner }) {
     /** Never take a wallet from an account that is already mid-exchange */
     if (!this.holdsOwnWallet(requesterRunner, requester)) {
@@ -2758,7 +2800,7 @@ class BaseAuto {
             `${this.formatAccountLink(requester.userId)}${stranded.requesterMoved ? " - <b>on a throwaway wallet</b>" : ""}`,
           ),
           this.formatKeyValue(
-            "Verified",
+            "Helper",
             `${this.formatAccountLink(helper.userId)}${stranded.helperMoved ? " - <b>holding the requester's wallet</b>" : ""}`,
           ),
           `<i>Reconnect it by hand before running anything else on it.</i>`,
@@ -2848,7 +2890,7 @@ class BaseAuto {
     ]);
   }
 
-  /** The verified accounts that can take work right now */
+  /** The helper accounts that can take work right now */
   async getAvailableHelpers(helpers, runners, outstanding = new Map()) {
     const available = [];
 
@@ -2911,6 +2953,80 @@ class BaseAuto {
     return available;
   }
 
+  /** Withdraw a trusted account's own pool, with no wallet changing hands */
+  async withdrawDirectly(candidate) {
+    const { account } = candidate;
+    const label = this.formatAccountLink(account.userId);
+
+    /** The cultivate loop may already be boosting this account */
+    if (!this.claim(account.userId, ASSIST_OWNER)) return null;
+
+    const entry = await this.getAssistRunner(account);
+
+    if (!entry) {
+      this.release(account.userId, ASSIST_OWNER);
+      return null;
+    }
+
+    try {
+      /** Never withdraw from a wallet that is mid-exchange elsewhere */
+      if (!this.holdsOwnWallet(entry.runner, account)) {
+        await this.sendNotification([
+          `⚠️ Skipped <b>(${label})</b> - it is not on its own wallet. Is it loaded on another server?`,
+        ]);
+        return null;
+      }
+
+      /** An account with a withdrawal in flight must not place another */
+      if (await entry.runner.hasPendingWithdrawal()) {
+        await this.sendNotification([
+          `⏩ Skipped <b>(${label})</b> - a withdrawal is still pending.`,
+        ]);
+        return null;
+      }
+
+      const { status, skipped, ...withdrawal } = await entry.runner.withdraw({
+        force: true,
+        difference: 0,
+      });
+
+      const amount = withdrawal.amount ?? "0";
+      const message = withdrawal.message ?? "";
+
+      /** Keep the next cycle from re-picking an account just drained */
+      await entry.runner.storeAutoSnapshot();
+
+      await this.sendAdminNotification([
+        skipped
+          ? `⏩ Skipped <b>(${label})</b> - <i>${message}</i>`
+          : status
+            ? `🤑 Withdrawn <b>(${label})</b> - <i>${amount} ${this.token}</i> directly`
+            : `❌ Failed to withdraw <b>(${label})</b> directly\n<i>Reason: ${message}</i>`,
+      ]);
+
+      return { status, skipped, amount, message };
+    } catch (error) {
+      if (this.signal.aborted) return null;
+
+      const errorMessage = error.message || "Unknown error!";
+      logger.error(errorMessage);
+
+      await this.sendNotification([
+        `❌ Failed to withdraw <b>(${label})</b> directly\n<i>Reason: ${errorMessage}</i>`,
+      ]);
+
+      return {
+        status: false,
+        skipped: false,
+        amount: "0",
+        message: errorMessage,
+      };
+    } finally {
+      this.releaseRunner(entry.cloudAccount);
+      this.release(account.userId, ASSIST_OWNER);
+    }
+  }
+
   /** One pass over everyone waiting to be withdrawn for */
   async runAssistCycle() {
     const vault = getVault(this.constructor.id);
@@ -2922,27 +3038,48 @@ class BaseAuto {
       return [];
     }
 
-    const helpers = [...vault.accounts.values()].filter(
+    const verified = [...vault.accounts.values()].filter(
       (account) => account.verified,
     );
 
-    if (!helpers.length) {
+    const verifiedIds = new Set(
+      verified.map((account) => String(account.userId)),
+    );
+
+    const { candidates, trusted } = await this.getAssistCandidates(
+      vault,
+      verifiedIds,
+    );
+
+    /** Trusted accounts only join the pool when asked to */
+    const helpers = this.trustedAssist ? [...verified, ...trusted] : verified;
+
+    /** Trusted accounts withdraw for themselves when asked to */
+    const direct = this.trustedWithdrawDirectly
+      ? candidates.filter((candidate) => candidate.trusted)
+      : [];
+
+    /** A trusted account left out of both is assisted like any other, and a trusted helper never queues behind the pool */
+    const queue = candidates.filter(
+      (candidate) =>
+        !candidate.trusted ||
+        (!this.trustedWithdrawDirectly && !this.trustedAssist),
+    );
+
+    /** Withdrawals already in flight, which are worth a cycle even when nothing else is */
+    const outstanding = await this.getOutstandingAssists(helpers);
+
+    /** Nothing has reached the minimum and nothing is owed: wait for the next cycle quietly */
+    if (!direct.length && !queue.length && !outstanding.size) {
       await this.sendNotification([
-        `⚠️ ${this.title} - none of the loaded accounts is verified.`,
+        `⏩ ${this.title} - no account has reached the minimum.`,
       ]);
       return [];
     }
 
-    const helperIds = new Set(helpers.map((account) => String(account.userId)));
-
-    /** Withdrawals already in flight, which are worth a cycle even when nothing else is */
-    const outstanding = await this.getOutstandingAssists(helpers);
-    const candidates = await this.getAssistCandidates(vault, helperIds);
-
-    /** Nothing has reached the minimum and nothing is owed: wait for the next cycle quietly */
-    if (!candidates.length && !outstanding.size) {
+    if (!helpers.length && !direct.length) {
       await this.sendNotification([
-        `⏩ ${this.title} - no account has reached the minimum.`,
+        `⚠️ ${this.title} - none of the loaded accounts can withdraw for the others.`,
       ]);
       return [];
     }
@@ -2952,6 +3089,29 @@ class BaseAuto {
     const results = [];
 
     try {
+      /** Own pools go first, so a trusted helper that withdraws for itself rests for the rest of the cycle */
+      if (direct.length) {
+        await this.sendNotification([
+          `⏳ ${this.title} - ${direct.length} trusted account(s) withdrawing directly...`,
+        ]);
+      }
+
+      for (const [index, candidate] of direct.entries()) {
+        if (this.signal.aborted) break;
+
+        const result = await this.withdrawDirectly(candidate);
+
+        if (!result) continue;
+
+        results.push(result);
+
+        if (index < direct.length - 1 || queue.length) {
+          await this.delayForSafeMinutes();
+        }
+      }
+
+      if (this.signal.aborted) return results;
+
       /** Reading the helpers is also what reports a settled withdrawal */
       const available = await this.getAvailableHelpers(
         helpers,
@@ -2959,38 +3119,40 @@ class BaseAuto {
         outstanding,
       );
 
-      /** Nothing has reached the minimum, so reconciling was this cycle's only job */
-      if (!candidates.length) {
-        await this.sendNotification([
-          `⏩ ${this.title} - no account has reached the minimum.`,
-        ]);
+      /** Nothing is left for a helper, so reconciling was this cycle's only job */
+      if (!queue.length) {
+        if (!direct.length) {
+          await this.sendNotification([
+            `⏩ ${this.title} - no account has reached the minimum.`,
+          ]);
+        }
         return results;
       }
 
       /** The order they will be worked through, the richest pool first */
-      await this.sendNotification(this.formatCandidateQueue(candidates));
+      await this.sendNotification(this.formatCandidateQueue(queue));
 
       if (!available.length) {
         await this.sendNotification([
-          `⏩ ${this.title} - no verified account is free this cycle. ${candidates.length} account(s) waiting.`,
+          `⏩ ${this.title} - no helper is free this cycle. ${queue.length} account(s) waiting.`,
         ]);
         return results;
       }
 
       await this.sendNotification([
-        `⏳ ${this.title} - Assisting ${candidates.length} account(s) through ${available.length} verified account(s)...`,
+        `⏳ ${this.title} - Assisting ${queue.length} account(s) through ${available.length} helper(s)...`,
       ]);
 
-      /** The drop allows one withdrawal per account, so a verified account is spent once its request goes through */
+      /** The drop allows one withdrawal per account, so a helper is spent once its request goes through */
       const pool = [...available];
       let turn = 0;
 
-      for (const [index, candidate] of candidates.entries()) {
+      for (const [index, candidate] of queue.entries()) {
         if (this.signal.aborted) break;
 
         if (!pool.length) {
           await this.sendNotification([
-            `⏩ ${this.title} - every verified account has a withdrawal in flight. ${candidates.length - index} account(s) left for the next cycle.`,
+            `⏩ ${this.title} - every helper has a withdrawal in flight. ${queue.length - index} account(s) left for the next cycle.`,
           ]);
           break;
         }
@@ -3089,7 +3251,7 @@ class BaseAuto {
           turn += 1;
         }
 
-        if (index < candidates.length - 1 && pool.length) {
+        if (index < queue.length - 1 && pool.length) {
           await this.delayForSafeMinutes();
         }
       }
@@ -3112,6 +3274,8 @@ class BaseAuto {
     await this.sendNotification([
       `⏳ ${this.title} - Assisted withdrawals started...`,
       this.formatAssistInterval(),
+      this.formatTrustedWithdrawDirectly(),
+      this.formatTrustedAssist(),
       this.formatDelay(),
       summarizeVault(this.constructor.id).loaded
         ? this.formatKeyValue(
@@ -3752,6 +3916,8 @@ class BaseAuto {
       running: Boolean(instance),
       startedAt: instance?.startedAt || null,
       interval: instance?.assistInterval || null,
+      trustedWithdrawDirectly: Boolean(instance?.trustedWithdrawDirectly),
+      trustedAssist: Boolean(instance?.trustedAssist),
       vault: summarizeVault(this.id),
     };
   }

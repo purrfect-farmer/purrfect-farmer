@@ -6,6 +6,7 @@ import AutoStickyContainer from "./AutoStickyContainer";
 import FieldStateError from "./FieldStateError";
 import { HiArrowPath } from "react-icons/hi2";
 import Label from "./Label";
+import LabelToggle from "./LabelToggle";
 import { MdCloudUpload } from "react-icons/md";
 import PrimaryButton from "./PrimaryButton";
 import Slider from "./Slider";
@@ -24,6 +25,11 @@ const schema = yup
   .object({
     assistInterval: yup.number().required().min(5).label("Assist Interval"),
     delay: yup.number().required().min(0).label("Delay"),
+    trustedWithdrawDirectly: yup
+      .boolean()
+      .required()
+      .label("Trusted Withdraw Directly"),
+    trustedAssist: yup.boolean().required().label("Trusted Assist"),
   })
   .required();
 
@@ -33,10 +39,13 @@ export default function AutoLoadTab() {
     defaultValues: {
       assistInterval: 10,
       delay: 0,
+      trustedWithdrawDirectly: false,
+      trustedAssist: false,
     },
   });
 
   const { config, password, master, accounts } = useAuto();
+  const trustedAssist = form.watch("trustedAssist");
   const selector = useAutoAccountsSelector(accounts);
   const { selectedAccounts } = selector;
 
@@ -97,8 +106,9 @@ export default function AutoLoadTab() {
   return (
     <div className="flex flex-col gap-3 p-2">
       <Alert variant="info">
-        Keeps wallets on this server so its verified accounts can withdraw for
-        the rest. Loading alone performs no action.
+        Keeps wallets on this server so its verified accounts, and optionally
+        its trusted ones, can withdraw for the rest. Loading alone performs no
+        action.
       </Alert>
 
       {/* What the server currently holds */}
@@ -131,6 +141,26 @@ export default function AutoLoadTab() {
                 {status.running ? `Every ${status.interval}m` : "Stopped"}
               </span>
             </div>
+            {status.running ? (
+              <>
+                <div className="flex justify-between gap-2">
+                  <span className="text-neutral-500 dark:text-neutral-400">
+                    Trusted withdraw directly
+                  </span>
+                  <span className="font-bold">
+                    {status.trustedWithdrawDirectly ? "On" : "Off"}
+                  </span>
+                </div>
+                <div className="flex justify-between gap-2">
+                  <span className="text-neutral-500 dark:text-neutral-400">
+                    Trusted assist others
+                  </span>
+                  <span className="font-bold">
+                    {status.trustedAssist ? "On" : "Off"}
+                  </span>
+                </div>
+              </>
+            ) : null}
           </div>
         </AutoStickyContainer>
       ) : null}
@@ -142,7 +172,9 @@ export default function AutoLoadTab() {
         </Alert>
       ) : null}
 
-      {status?.vault.loaded && status.vault.verified.length === 0 ? (
+      {status?.vault.loaded &&
+      status.vault.verified.length === 0 &&
+      !trustedAssist ? (
         <Alert variant="warning">
           No loaded account is verified, so nobody can withdraw for the others.
         </Alert>
@@ -206,6 +238,46 @@ export default function AutoLoadTab() {
                 Delay between accounts
               </p>
 
+              <FieldStateError fieldState={fieldState} />
+            </div>
+          )}
+        />
+
+        {/* Trusted withdraw directly */}
+        <Controller
+          control={form.control}
+          name="trustedWithdrawDirectly"
+          render={({ field, fieldState }) => (
+            <div className="flex flex-col gap-1">
+              <Label>Trusted Withdraw Directly</Label>
+
+              <p className="text-center text-neutral-500 dark:text-neutral-400">
+                Trusted accounts withdraw their own pool without a verified
+                account.
+              </p>
+              <LabelToggle {...field} checked={field.value}>
+                Withdraw trusted directly
+              </LabelToggle>
+              <FieldStateError fieldState={fieldState} />
+            </div>
+          )}
+        />
+
+        {/* Trusted assist others */}
+        <Controller
+          control={form.control}
+          name="trustedAssist"
+          render={({ field, fieldState }) => (
+            <div className="flex flex-col gap-1">
+              <Label>Trusted Assist Others</Label>
+
+              <p className="text-center text-neutral-500 dark:text-neutral-400">
+                Trusted accounts also withdraw for accounts that are not
+                trusted.
+              </p>
+              <LabelToggle {...field} checked={field.value}>
+                Use trusted as helpers
+              </LabelToggle>
               <FieldStateError fieldState={fieldState} />
             </div>
           )}
