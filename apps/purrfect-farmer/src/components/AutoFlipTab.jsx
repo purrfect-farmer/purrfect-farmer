@@ -14,10 +14,13 @@ import Slider from "./Slider";
 import { createBundle } from "@/lib/autoTransfer";
 import { downloadFile } from "@/utils";
 import { formatDate } from "date-fns";
+import { getWalletMismatch } from "@/lib/autoSnapshot";
+import { useMemo } from "react";
 import toast from "react-hot-toast";
 import useAuto from "@/hooks/useAuto";
 import useAutoAccountsSelector from "@/hooks/useAutoAccountsSelector";
 import useAutoCloudFlipMutation from "@/hooks/useAutoCloudFlipMutation";
+import useAutoCloudSnapshotsQuery from "@/hooks/useAutoCloudSnapshotsQuery";
 import { yup } from "@/lib/yup";
 import { yupResolver } from "@hookform/resolvers/yup";
 
@@ -49,6 +52,24 @@ export default function AutoFlipTab() {
   const selector = useAutoAccountsSelector(accounts);
   const { selectedAccounts } = selector;
   const mutation = useAutoCloudFlipMutation();
+  const { data: snapshots } = useAutoCloudSnapshotsQuery();
+
+  /** Accounts the drop has on another wallet, read from Cloud so a forgotten flip still shows */
+  const flipped = useMemo(
+    () =>
+      accounts.filter((account) =>
+        getWalletMismatch(
+          snapshots?.get(String(account.userId))?.snapshot,
+          account,
+        ),
+      ),
+    [accounts, snapshots],
+  );
+
+  const handleSelectFlipped = () => {
+    selector.selectAccounts(flipped);
+    form.setValue("flipDirection", "restore");
+  };
 
   const handleFlip = async ({ downloadExport, ...data }) => {
     if (selectedAccounts.length === 0) {
@@ -113,6 +134,18 @@ export default function AutoFlipTab() {
           onSubmit={form.handleSubmit(handleFlip)}
           className="flex flex-col gap-2"
         >
+          {flipped.length ? (
+            <div className="flex flex-col gap-2">
+              <Alert variant="warning">
+                {flipped.length} account(s) are not on their own wallet.
+              </Alert>
+              <PrimaryButton type="button" onClick={handleSelectFlipped}>
+                <HiArrowPath className="size-4" />
+                Select for restore
+              </PrimaryButton>
+            </div>
+          ) : null}
+
           <Alert variant="info">
             Connects each account in Cloud to the other version of its own
             phrase (V4R2 / W5), freeing its wallet so another account can

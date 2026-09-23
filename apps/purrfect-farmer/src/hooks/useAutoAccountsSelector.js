@@ -21,6 +21,11 @@ export default function useAutoAccountsSelector(accounts) {
     [accounts]
   );
 
+  /** Replace the selection outright, e.g. with every account a check turned up */
+  const selectAccounts = useCallback((list) => {
+    setSelectedAccounts(list);
+  }, []);
+
   useEffect(() => {
     setSelectedAccounts(accounts);
   }, [accounts]);
@@ -31,5 +36,6 @@ export default function useAutoAccountsSelector(accounts) {
     selectedAccounts,
     toggleAccount,
     toggleAllAccounts,
+    selectAccounts,
   };
 }

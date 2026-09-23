@@ -1,4 +1,5 @@
 import {
+  LuArrowLeftRight,
   LuBadgeCheck,
   LuHourglass,
   LuShieldOff,
@@ -17,6 +18,7 @@ import { formatDurationParts } from "@purrfect/shared/utils/core.js";
 import {
   getMiningFreeze,
   getProtection,
+  getWalletMismatch,
   getWithdrawals,
   getWithdrawalTrust,
 } from "@/lib/autoSnapshot";
@@ -114,6 +116,23 @@ const TrustedPill = ({ trust }) => {
   );
 };
 
+/** The drop holding another wallet for this account, as after a flip, until it is restored */
+const FlippedPill = ({ mismatch }) => {
+  if (!mismatch) return null;
+
+  const { address, version } = mismatch;
+
+  return (
+    <Pill
+      icon={LuArrowLeftRight}
+      title={`Connected to ${address.slice(0, 6)}...${address.slice(-4)}${version ? ` (${version.toUpperCase()})` : ""}, not its own wallet`}
+      className="text-orange-500 dark:text-orange-400"
+    >
+      Flipped
+    </Pill>
+  );
+};
+
 /** The signals that decide whether an account needs attention */
 export default function AutoAccountFlags({ account, ...props }) {
   const { enabled, row } = useAutoCloudSnapshot(account.userId);
@@ -125,12 +144,14 @@ export default function AutoAccountFlags({ account, ...props }) {
   const { pending, flagged } = getWithdrawals(snapshot);
   const protection = getProtection(snapshot);
   const trust = getWithdrawalTrust(snapshot);
+  const mismatch = getWalletMismatch(snapshot, account);
   const hasFreeze = Boolean(freeze && (freeze.frozen || freeze.freezesAt));
   const hasProtection = Boolean(
     protection && (protection.revoked || !protection.dexBuyer),
   );
 
   if (
+    !mismatch &&
     !hasFreeze &&
     !hasProtection &&
     !trust?.trusted &&
@@ -147,6 +168,8 @@ export default function AutoAccountFlags({ account, ...props }) {
         props.className,
       )}
     >
+      <FlippedPill mismatch={mismatch} />
+
       <FreezePill freeze={freeze} />
 
       <ProtectionPill protection={protection} />

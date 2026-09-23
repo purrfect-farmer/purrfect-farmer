@@ -1,3 +1,4 @@
+import { Address } from "@ton/core";
 import Decimal from "decimal.js";
 
 /** A drop figure is a string, and a drop that reports nothing yields a dash */
@@ -89,6 +90,25 @@ export const getWithdrawalTrust = (snapshot) => {
     /** Only worth saying about an account the drop has not verified itself */
     trusted: !snapshot?.verified && approved > 0 && flagged.length === 0,
   };
+};
+
+/** Whether two addresses are the same wallet, whatever form each is written in */
+const isSameAddress = (a, b) => {
+  try {
+    return Address.parse(a).equals(Address.parse(b));
+  } catch {
+    return a === b;
+  }
+};
+
+/** The wallet the drop has connected when it is not the account's own, as after a flip */
+export const getWalletMismatch = (snapshot, account) => {
+  const wallet = snapshot?.wallet;
+
+  if (!wallet?.address || !account?.address) return null;
+  if (isSameAddress(wallet.address, account.address)) return null;
+
+  return { address: wallet.address, version: wallet.version || null };
 };
 
 /** `send_amount` -> `Send Amount`, matching how the farmer logs the same records */
