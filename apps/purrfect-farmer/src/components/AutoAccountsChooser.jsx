@@ -11,21 +11,19 @@ import AutoAccountDetailsDialog from "./AutoAccountDetailsDialog";
 import AutoAccountFlags from "./AutoAccountFlags";
 import AutoAccountLaunchButton from "./AutoAccountLaunchButton";
 import AutoAccountSnapshot from "./AutoAccountSnapshot";
+import AutoAccountsSortControls from "./AutoAccountsSortControls";
 import AutoAddress from "./AutoAddress";
 import AutoDropVerifiedBadge from "./AutoDropVerifiedBadge";
 import AutoAvatar from "./AutoAvatar";
 import AutoVerifiedBadge from "./AutoVerifiedBadge";
 import AutoVersionBadge from "./AutoVersionBadge";
 import { Dialog } from "radix-ui";
-import { LuArrowUpDown } from "react-icons/lu";
 import FarmerStatusDot from "./FarmerStatusDot";
 import Input from "./Input";
 import { cn } from "@/utils";
-import { groupHelpers } from "./AutoHelperChooser";
 import { searchAutoAccount } from "@purrfect/shared/lib/auto/wallet";
-import useAutoCloudSnapshotsQuery, {
-  useAutoCloudSnapshot,
-} from "@/hooks/useAutoCloudSnapshotsQuery";
+import useAutoAccountsSort from "@/hooks/useAutoAccountsSort";
+import { useAutoCloudSnapshot } from "@/hooks/useAutoCloudSnapshotsQuery";
 import { useState } from "react";
 
 function getInitials(title) {
@@ -151,7 +149,7 @@ const AccountChooserItem = memo(function AccountChooserItem({
 /**
  * @param {boolean} [props.showBalance] - false for accounts not in this drop yet, whose balance and snapshot would belong to another drop
  * @param {boolean} [props.autoFocusSearch] - false when another chooser or field should hold focus first
- * @param {boolean} [props.defaultRanked] - start with verified, then trusted, then the rest
+ * @param {string} [props.defaultSort] - the order to start in, one of the SORT_OPTIONS values
  */
 export default function AutoAccountsChooser({
   accounts,
@@ -161,37 +159,23 @@ export default function AutoAccountsChooser({
   results,
   showBalance = true,
   autoFocusSearch = true,
-  defaultRanked = false,
+  defaultSort = "normal",
   toggleAccount,
   toggleAllAccounts,
 }) {
   const [search, setSearch] = useState("");
-  const [ranked, setRanked] = useState(defaultRanked);
-  const { data: snapshots } = useAutoCloudSnapshotsQuery();
-
-  /** Only this drop's own accounts have snapshots to rank by */
-  const canRank = showBalance;
-
-  /** Verified first, then trusted, then the rest, sorted for display only so a refetch keeps the selection */
-  const orderedAccounts = useMemo(() => {
-    if (!canRank || !ranked) return accounts;
-
-    const { verified, trusted } = groupHelpers(accounts, snapshots);
-    const rankedSet = new Set([...verified, ...trusted]);
-
-    return [
-      ...verified,
-      ...trusted,
-      ...accounts.filter((account) => !rankedSet.has(account)),
-    ];
-  }, [accounts, snapshots, canRank, ranked]);
+  const sort = useAutoAccountsSort(accounts, {
+    enabled: showBalance,
+    defaultSort,
+  });
+  const { sortedAccounts } = sort;
 
   const filteredAccounts = useMemo(() => {
     const term = search.trim().toLowerCase();
     return term
-      ? orderedAccounts.filter((account) => searchAutoAccount(account, term))
-      : orderedAccounts;
-  }, [orderedAccounts, search]);
+      ? sortedAccounts.filter((account) => searchAutoAccount(account, term))
+      : sortedAccounts;
+  }, [sortedAccounts, search]);
 
   return (
     <div className="flex flex-col gap-2">
@@ -201,39 +185,18 @@ export default function AutoAccountsChooser({
           Accounts ({selectedAccounts.length} / {accounts.length})
         </h4>
 
-        <div className="flex items-center gap-2">
-          {/* Order */}
-          {canRank && (
-            <button
-              type="button"
-              onClick={() => setRanked((prev) => !prev)}
-              title="Change the order accounts are listed in"
-              className={cn(
-                "flex items-center gap-1 px-2 py-1 rounded-lg shrink-0",
-                "text-neutral-500 dark:text-neutral-400",
-                "bg-neutral-100 dark:bg-neutral-700",
-                "hover:bg-neutral-200 dark:hover:bg-neutral-600",
-                "cursor-pointer transition-colors",
-              )}
-            >
-              <LuArrowUpDown className="size-3.5" />
-              {ranked ? "Ranked" : "Normal"}
-            </button>
-          )}
-
-          {!results && (
-            <label className="flex items-center gap-2 cursor-pointer">
-              <input
-                type="checkbox"
-                checked={allSelected}
-                disabled={disabled}
-                onChange={(e) => toggleAllAccounts(e.target.checked)}
-                className="accent-orange-500"
-              />
-              Toggle All
-            </label>
-          )}
-        </div>
+        {!results && (
+          <label className="flex items-center gap-2 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={allSelected}
+              disabled={disabled}
+              onChange={(e) => toggleAllAccounts(e.target.checked)}
+              className="accent-orange-500"
+            />
+            Toggle All
+          </label>
+        )}
       </div>
 
       {/* Search */}
@@ -244,6 +207,11 @@ export default function AutoAccountsChooser({
         value={search}
         onChange={(e) => setSearch(e.target.value)}
       />
+
+      {/* Order, only for this drop's own accounts */}
+      {showBalance && (
+        <AutoAccountsSortControls {...sort} />
+      )}
 
       {/* Account List */}
       <div className="flex flex-col gap-1.5">

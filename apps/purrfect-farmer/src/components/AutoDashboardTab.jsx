@@ -2,6 +2,7 @@ import { MdOutlineClose, MdOutlineSearch, MdPersonAdd } from "react-icons/md";
 import { useMemo, useState } from "react";
 
 import AutoAccountItem from "./AutoAccountItem";
+import AutoAccountsSortControls from "./AutoAccountsSortControls";
 import { AutoMasterBalanceCard } from "./AutoMasterBalanceCard";
 import { AutoMasterCardActions } from "./AutoMasterCardActions";
 import { AutoNetWorthCard } from "./AutoNetWorthCard";
@@ -15,6 +16,7 @@ import PrimaryButton from "./PrimaryButton";
 import { Reorder } from "motion/react";
 import { searchAutoAccount } from "@purrfect/shared/lib/auto/wallet";
 import useAuto from "@/hooks/useAuto";
+import useAutoAccountsSort from "@/hooks/useAutoAccountsSort";
 import { useDebounce } from "react-use";
 
 export default function AutoDashboardTab() {
@@ -24,14 +26,21 @@ export default function AutoDashboardTab() {
   const [tempSearch, setTempSearch] = useState("");
   const [search, setSearch] = useState("");
 
+  const sort = useAutoAccountsSort(accounts);
+  const { sortedAccounts } = sort;
+
   useDebounce(() => setSearch(tempSearch), 300, [tempSearch]);
 
   const filteredAccounts = useMemo(() => {
     const term = search.trim().toLowerCase();
     return term
-      ? accounts.filter((account) => searchAutoAccount(account, term))
-      : accounts;
-  }, [accounts, search]);
+      ? sortedAccounts.filter((account) => searchAutoAccount(account, term))
+      : sortedAccounts;
+  }, [sortedAccounts, search]);
+
+  /** A drag only means something in the stored order, unfiltered */
+  const isStoredOrder =
+    !search && sort.sortKey === "normal" && sort.direction === "asc";
 
   const toggleSearch = () => {
     setShowSearch(!showSearch);
@@ -112,6 +121,9 @@ export default function AutoDashboardTab() {
         </button>
       </div>
 
+      {/* Order */}
+      <AutoAccountsSortControls {...sort} />
+
       {/* Search Input */}
       {showSearch && (
         <Input
@@ -128,7 +140,7 @@ export default function AutoDashboardTab() {
         <Reorder.Group
           values={accounts}
           onReorder={(newOrder) =>
-            !search && dispatchAndStoreAccounts(newOrder)
+            isStoredOrder && dispatchAndStoreAccounts(newOrder)
           }
           className="flex flex-col gap-2"
         >

@@ -125,7 +125,7 @@ export const formatWithdrawalRecord = (record) =>
     .map(([key, value]) => [formatWithdrawalField(key), String(value)]);
 
 /** Convert value to a Decimal */
-const toFigure = (value) => {
+export const toFigure = (value) => {
   try {
     return new Decimal(value || 0);
   } catch {

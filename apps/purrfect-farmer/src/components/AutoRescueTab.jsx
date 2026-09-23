@@ -274,7 +274,7 @@ export default function AutoRescueTab() {
       <Label>Helpers</Label>
       <AutoAccountsChooser
         {...helperSelector}
-        defaultRanked
+        defaultSort="ranked"
         autoFocusSearch={false}
         disabled={mutation.isPending}
       />
