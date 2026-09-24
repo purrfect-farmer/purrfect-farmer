@@ -63,6 +63,7 @@ export default defineConfig(async ({ mode }) => {
 
   if (isIndexEntry) {
     output = {
+      strictExecutionOrder: true,
       codeSplitting: {
         groups: [
           { name: "vendor-react", test: /node_modules[\\/].*react/ },
@@ -105,6 +106,7 @@ export default defineConfig(async ({ mode }) => {
     },
     build: {
       outDir,
+      modulePreload: false,
       emptyOutDir: isIndexEntry,
       rolldownOptions: {
         input,
@@ -162,7 +164,7 @@ export default defineConfig(async ({ mode }) => {
       nodePolyfills({
         exclude: ["vm"],
         globals: {
-          Buffer: true,
+          Buffer: false,
         },
       }),
       ViteEjsPlugin(env),
