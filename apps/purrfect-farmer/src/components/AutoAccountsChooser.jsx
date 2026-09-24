@@ -4,7 +4,7 @@ import {
   MdInfo,
   MdRemoveCircle,
 } from "react-icons/md";
-import { memo, useMemo } from "react";
+import { memo, useLayoutEffect, useMemo, useRef, useState } from "react";
 
 import AutoAccountBalance from "./AutoAccountBalance";
 import AutoAccountDetailsDialog from "./AutoAccountDetailsDialog";
@@ -18,13 +18,13 @@ import AutoAvatar from "./AutoAvatar";
 import AutoVerifiedBadge from "./AutoVerifiedBadge";
 import AutoVersionBadge from "./AutoVersionBadge";
 import { Dialog } from "radix-ui";
+import { Virtuoso } from "react-virtuoso";
 import FarmerStatusDot from "./FarmerStatusDot";
 import Input from "./Input";
 import { cn } from "@/utils";
 import { searchAutoAccount } from "@purrfect/shared/lib/auto/wallet";
 import useAutoAccountsSort from "@/hooks/useAutoAccountsSort";
 import { useAutoCloudSnapshot } from "@/hooks/useAutoCloudSnapshotsQuery";
-import { useState } from "react";
 
 function getInitials(title) {
   return title
@@ -32,6 +32,15 @@ function getInitials(title) {
     .slice(0, 2)
     .map((w) => w[0]?.toUpperCase() || "")
     .join("");
+}
+
+/** Nearest ancestor that scrolls vertically */
+function getScrollParent(element) {
+  for (let el = element?.parentElement; el; el = el.parentElement) {
+    const { overflowY } = getComputedStyle(el);
+    if (overflowY === "auto" || overflowY === "scroll") return el;
+  }
+  return document.scrollingElement;
 }
 
 function truncateAddress(address) {
@@ -177,6 +186,24 @@ export default function AutoAccountsChooser({
       : sortedAccounts;
   }, [sortedAccounts, search]);
 
+  const selectedIds = useMemo(
+    () => new Set(selectedAccounts.map((item) => item.id)),
+    [selectedAccounts],
+  );
+
+  const resultsById = useMemo(
+    () => (results ? new Map(results.map((r) => [r.account.id, r])) : null),
+    [results],
+  );
+
+  /** The list scrolls with whatever box holds the chooser */
+  const listRef = useRef(null);
+  const [scrollParent, setScrollParent] = useState(null);
+
+  useLayoutEffect(() => {
+    setScrollParent(getScrollParent(listRef.current));
+  }, []);
+
   return (
     <div className="flex flex-col gap-2">
       {/* Header */}
@@ -214,22 +241,28 @@ export default function AutoAccountsChooser({
       )}
 
       {/* Account List */}
-      <div className="flex flex-col gap-1.5">
-        {filteredAccounts.map((account) => (
-          <AccountChooserItem
-            key={account.id}
-            account={account}
-            checked={selectedAccounts.some((item) => item.id === account.id)}
-            result={
-              results
-                ? results.find((r) => r.account.id === account.id) || null
-                : undefined
-            }
-            toggleAccount={toggleAccount}
-            showBalance={showBalance}
-            disabled={disabled}
+      <div ref={listRef}>
+        {scrollParent ? (
+          <Virtuoso
+            customScrollParent={scrollParent}
+            data={filteredAccounts}
+            computeItemKey={(_, account) => account.id}
+            itemContent={(_, account) => (
+              <div className="pb-1.5">
+                <AccountChooserItem
+                  account={account}
+                  checked={selectedIds.has(account.id)}
+                  result={
+                    resultsById ? resultsById.get(account.id) || null : undefined
+                  }
+                  toggleAccount={toggleAccount}
+                  showBalance={showBalance}
+                  disabled={disabled}
+                />
+              </div>
+            )}
           />
-        ))}
+        ) : null}
       </div>
     </div>
   );
