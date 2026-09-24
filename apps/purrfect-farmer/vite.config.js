@@ -2,15 +2,15 @@ import { ViteEjsPlugin } from "vite-plugin-ejs";
 import { VitePWA } from "vite-plugin-pwa";
 import { defineConfig } from "vite";
 import { fileURLToPath } from "url";
-import { generateChromeManifest } from "./plugins/generate-chrome-manifest";
-import { getPackageJson } from "./scripts/get-package-json";
+import { generateChromeManifest } from "./plugins/generate-chrome-manifest.js";
+import { getPackageJson } from "./scripts/get-package-json.js";
 import { imagetools } from "vite-imagetools";
 import { loadEnv } from "vite";
 import { nodePolyfills } from "vite-plugin-node-polyfills";
 import path from "path";
 import react from "@vitejs/plugin-react";
 import tailwindcss from "@tailwindcss/vite";
-import { transformCssBundle } from "./plugins/transform-css-bundle";
+import { transformCssBundle } from "./plugins/transform-css-bundle.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -165,7 +165,7 @@ export default defineConfig(async ({ mode }) => {
       /** Plugins */
       nodePolyfills({
         globals: {
-          Buffer: false,
+          Buffer: true,
         },
       }),
       ViteEjsPlugin(env),
