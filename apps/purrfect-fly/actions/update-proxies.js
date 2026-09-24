@@ -67,15 +67,35 @@ async function updateProxies() {
       );
 
       if (invalidAccounts.length > 0) {
-        /** Available proxies = proxies in working list not currently used by subscribed accounts */
-        const availableProxies = sortedProxies.filter(
-          (p) => !usedProxies.includes(p),
-        );
+        /** Usage count per working proxy, seeded from accounts that keep theirs */
+        const usage = new Map(sortedProxies.map((item) => [item, 0]));
 
-        /** Assign proxies from available list to invalid accounts */
+        usedProxies.forEach((item) => {
+          if (usage.has(item)) {
+            usage.set(item, usage.get(item) + 1);
+          }
+        });
+
+        /** Assign the least used proxy, reusing from the pool once unused ones run out */
         invalidAccounts.forEach((account) => {
-          const newProxy = availableProxies.shift();
-          account.proxy = newProxy || "";
+          let picked = "";
+          let lowest = Infinity;
+
+          /** Sorted fastest first, so a strict minimum prefers the fastest on ties */
+          for (const item of sortedProxies) {
+            const count = usage.get(item);
+
+            if (count < lowest) {
+              lowest = count;
+              picked = item;
+            }
+          }
+
+          if (picked) {
+            usage.set(picked, lowest + 1);
+          }
+
+          account.proxy = picked;
         });
 
         /** Save Accounts, serialized so SQLite never sees concurrent writes */
