@@ -1,25 +1,20 @@
 import { ViteEjsPlugin } from "vite-plugin-ejs";
 import { VitePWA } from "vite-plugin-pwa";
 import { defineConfig } from "vite";
-import { fileURLToPath } from "url";
 import { generateChromeManifest } from "./plugins/generate-chrome-manifest.js";
-import { getPackageJson } from "./scripts/get-package-json.js";
 import { imagetools } from "vite-imagetools";
 import { loadEnv } from "vite";
 import { nodePolyfills } from "vite-plugin-node-polyfills";
 import path from "path";
 import react from "@vitejs/plugin-react";
 import tailwindcss from "@tailwindcss/vite";
+import pkg from "./package.json" with { type: "json" };
 import { transformCssBundle } from "./plugins/transform-css-bundle.js";
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+const __dirname = import.meta.dirname;
 
 // https://vitejs.dev/config/
 export default defineConfig(async ({ mode }) => {
-  /** Pkg */
-  const pkg = getPackageJson();
-
   /** Env */
   const env = loadEnv(mode, process.cwd());
 
@@ -27,11 +22,12 @@ export default defineConfig(async ({ mode }) => {
     !process.env.VITE_ENTRY || process.env.VITE_ENTRY === "index";
   const isPWA = Boolean(process.env.VITE_PWA);
   const isBridge = Boolean(process.env.VITE_BRIDGE);
+  const isWhisker = Boolean(process.env.VITE_WHISKER);
   const isStylesEntry = process.env.VITE_ENTRY?.endsWith("styles");
 
-  const outDir = process.env.VITE_WHISKER
+  const outDir = isWhisker
     ? "dist-whisker"
-    : process.env.VITE_BRIDGE
+    : isBridge
       ? "dist-bridge"
       : process.env.VITE_EXTENSION
         ? "dist-extension"
@@ -67,16 +63,12 @@ export default defineConfig(async ({ mode }) => {
 
   if (isIndexEntry) {
     output = {
-      manualChunks(id) {
-        if (id.includes("node_modules")) {
-          const lib = ["react", "node-forge", "crypto-js", "axios"].find(
-            (item) => id.includes(item),
-          );
-
-          if (lib) {
-            return `vendor-${lib}`;
-          }
-        }
+      codeSplitting: {
+        groups: [
+          { name: "vendor-react", test: /node_modules[\\/].*react/ },
+          { name: "vendor-axios", test: /node_modules[\\/].*axios/ },
+          { name: "vendor-ton", test: /node_modules[\\/].*@ton[\\/]/ },
+        ],
       },
     };
   } else if (isStylesEntry) {
@@ -97,7 +89,7 @@ export default defineConfig(async ({ mode }) => {
   }
 
   return {
-    base: Boolean(process.env.VITE_PWA) ? process.env.BASE_URL : "/",
+    base: isPWA ? process.env.BASE_URL : "/",
     define: {
       __APP_PACKAGE_NAME__: JSON.stringify(pkg.name),
       __APP_PACKAGE_VERSION__: JSON.stringify(pkg.version),
@@ -114,16 +106,20 @@ export default defineConfig(async ({ mode }) => {
     build: {
       outDir,
       emptyOutDir: isIndexEntry,
-      rollupOptions: {
+      rolldownOptions: {
         input,
         output,
       },
     },
     plugins: [
       /** Plugins */
-      generateChromeManifest(env, pkg),
+      generateChromeManifest(env, pkg, {
+        enabled: !isPWA && isIndexEntry,
+        isBridge,
+        isWhisker,
+      }),
       transformCssBundle({
-        enable: process.env.VITE_ENTRY?.endsWith("styles"),
+        enable: isStylesEntry,
       }),
       VitePWA({
         registerType: "prompt",
@@ -164,6 +160,7 @@ export default defineConfig(async ({ mode }) => {
       }),
       /** Plugins */
       nodePolyfills({
+        exclude: ["vm"],
         globals: {
           Buffer: true,
         },
@@ -173,10 +170,5 @@ export default defineConfig(async ({ mode }) => {
       tailwindcss(),
       imagetools(),
     ],
-    esbuild: {
-      supported: {
-        "top-level-await": true,
-      },
-    },
   };
 });

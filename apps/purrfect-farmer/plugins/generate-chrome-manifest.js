@@ -1,9 +1,3 @@
-import path from "path";
-import { fileURLToPath } from "url";
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-
 /**
  * Get Core Net Rules
  * @returns {chrome.declarativeNetRequest.Rule[]}
@@ -49,13 +43,11 @@ function getCoreNetRules() {
  * Generate Chrome Manifest
  * @returns {import("vite").Plugin}
  */
-export function generateChromeManifest(env, pkg) {
-  const isPWA = typeof process.env.VITE_PWA !== "undefined";
-  const isBridge = typeof process.env.VITE_BRIDGE !== "undefined";
-  const isWhisker = typeof process.env.VITE_WHISKER !== "undefined";
-  const isIndex = process.env.VITE_ENTRY === "index";
-  const enabled = isPWA === false && isIndex;
-
+export function generateChromeManifest(
+  env,
+  pkg,
+  { enabled = true, isBridge = false, isWhisker = false } = {},
+) {
   return {
     name: "generate-chrome-manifest",
     async generateBundle() {

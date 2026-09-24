@@ -1,15 +1,10 @@
 import ChromeExtension from "crx";
 import fs from "node:fs/promises";
 import path from "path";
-import { fileURLToPath } from "url";
+import pkg from "../package.json" with { type: "json" };
 import { zip } from "zip-a-folder";
 
-import { getPackageJson } from "./get-package-json.js";
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-
-const pkg = await getPackageJson();
+const __dirname = import.meta.dirname;
 
 const isBridge = Boolean(process.env.VITE_BRIDGE);
 const isWhisker = Boolean(process.env.VITE_WHISKER);
