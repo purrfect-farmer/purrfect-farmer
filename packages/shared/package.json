@@ -31,6 +31,7 @@
     "ethers": "^6.17.0",
     "events": "^3.3.0",
     "hpagent": "^1.2.0",
+    "http-cookie-agent": "^7.0.4",
     "md5": "^2.3.0",
     "papaparse": "^5.7.0",
     "seedrandom": "^3.0.5",
@@ -38,6 +39,7 @@
     "seroval-plugins": "^1.6.7",
     "socket.io-client": "^4.8.3",
     "telegram": "^2.26.22",
+    "tough-cookie": "^5.1.2",
     "uuid": "^14.0.2",
     "vite-plugin-node-polyfills": "^0.28.0"
   }

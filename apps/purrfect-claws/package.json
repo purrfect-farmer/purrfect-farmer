@@ -23,7 +23,9 @@
     "dotenv": "^17.4.2",
     "dotenv-expand": "^13.0.0",
     "hpagent": "^1.2.0",
+    "http-cookie-agent": "^7.0.4",
     "inquirer": "^12.11.1",
-    "telegram": "^2.26.22"
+    "telegram": "^2.26.22",
+    "tough-cookie": "^5.1.2"
   }
 }

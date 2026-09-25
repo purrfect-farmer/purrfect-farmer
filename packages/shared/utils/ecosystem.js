@@ -23,3 +23,32 @@ export function whiskersToEntries(whiskersBackup) {
   const list = backups || accounts;
   return getWhiskerEntries(list);
 }
+
+export function whiskersToSessions(whiskersBackup) {
+  return whiskersToEntries(whiskersBackup).map((item) => item.session);
+}
+
+export function normalizeWhiskersBackup(whiskersBackup) {
+  let { backups, accounts } = whiskersBackup;
+  if (!accounts) {
+    accounts = whiskersBackup.app.accounts.map((item) => {
+      return {
+        account: item,
+        backup: backups.find((backup) => backup.partition === item.partition)
+          ?.backup,
+      };
+    });
+  }
+  return accounts;
+}
+
+export function whiskersToProfiles(whiskersBackup) {
+  const list = normalizeWhiskersBackup(whiskersBackup);
+  return list.map((item) => {
+    const chromeLocalStorage = item.backup?.data?.chromeLocalStorage;
+    return {
+      ...item,
+      session: chromeLocalStorage?.["account-default:local-telegram-session"],
+    };
+  });
+}
