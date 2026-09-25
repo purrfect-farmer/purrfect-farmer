@@ -2,6 +2,8 @@
   "license": "MIT",
   "scripts": {
     "build:farmer": "pnpm -F purrfect-farmer build",
-    "start:fly": "pnpm -F purrfect-fly start"
+    "start:fly": "pnpm -F purrfect-fly start",
+    "claw": "pnpm -F purrfect-claws claw",
+    "claw:execute": "pnpm -F purrfect-claws claw execute"
   }
 }
