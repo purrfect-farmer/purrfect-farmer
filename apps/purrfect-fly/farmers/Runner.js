@@ -770,75 +770,124 @@ export default function createRunner(FarmerClass) {
       }
     }
 
-    /** Process queue */
+    /** Process queue, refilling each freed slot up to MAX_CONCURRENT_ACCOUNTS */
     static async processQueue() {
       if (this.isProcessingQueue) return;
       this.isProcessingQueue = true;
 
-      try {
-        while (this.queue.length > 0) {
-          /** Prioritize primary account if the primary link is not set */
-          const primary = !this.primaryFarmerLink
-            ? this.queue.find(
-                (item) => item.account.id === this.primaryAccountId,
-              )
-            : null;
+      /** In-flight items, keyed by their promise */
+      const active = new Map();
 
-          if (primary) {
-            /** Log */
-            this.logger.info(
-              "Prioritizing primary account:",
-              this.primaryAccountId,
-            );
+      /** Launches so far, used for the initial ramp-up */
+      let launched = 0;
+
+      try {
+        while (this.queue.length > 0 || active.size > 0) {
+          /** Fill every free slot */
+          while (active.size < MAX_CONCURRENT_ACCOUNTS) {
+            const item = this.dequeueQueueItem(active);
+
+            /** Nothing runnable right now */
+            if (!item) break;
+
+            /** Stagger only the initial ramp-up, then refill instantly */
+            const staggerSeconds =
+              item.exclusive || launched >= MAX_CONCURRENT_ACCOUNTS
+                ? 0
+                : launched * (item.instance.account.farmer ? 20 : 60);
+
+            /** Launch and free the slot once it settles */
+            const promise = this.processQueueItem(item, staggerSeconds)
+              .catch(() => {})
+              .finally(() => active.delete(promise));
+
+            active.set(promise, item);
+
+            /** The exclusive primary launch does not consume the ramp-up */
+            if (!item.exclusive) {
+              launched += 1;
+            }
           }
 
-          /** Get new accounts */
-          const newAccounts = this.queue.filter((item) => !item.account.farmer);
+          /** Guard against a stalled queue */
+          if (active.size === 0) break;
 
-          /** Get existing accounts */
-          const existingAccounts = this.queue.filter(
-            (item) => item.account.farmer,
-          );
-
-          /** Determine accounts to process */
-          const accountsToProcess = primary
-            ? [primary]
-            : newAccounts
-                .slice(0, 1) // Process one new account at a time
-                .concat(existingAccounts) // Process existing accounts
-                .slice(0, MAX_CONCURRENT_ACCOUNTS); // Limit to max concurrent accounts
-
-          /** Remove accounts to process from the queue */
-          accountsToProcess.forEach((item) => {
-            this.queue.splice(this.queue.indexOf(item), 1);
-          });
-
-          /** Get batch */
-          const batch = accountsToProcess.map((instance) => ({
-            instance,
-            skipExecution:
-              !instance.account.farmer && this.skipExecutionOfNewAccount,
-          }));
-
-          /** Process batch concurrently */
-          await Promise.all(
-            batch.map((item, index) => this.processQueueItem(item, index)),
-          );
+          /** One completion frees one slot */
+          await Promise.race(active.keys());
         }
       } finally {
         this.isProcessingQueue = false;
       }
     }
 
-    /** Process queue item */
-    static async processQueueItem({ instance, skipExecution = false }, index) {
-      try {
-        const delay = instance.account.farmer ? 20 : 60;
+    /** Pick the next runnable item, or null when nothing may start yet
+     * @param {Map} active
+     */
+    static dequeueQueueItem(active) {
+      if (this.queue.length === 0) return null;
 
-        /** Stagger the batch: an account terminated while waiting skips its turn */
-        await this.utils.delayForSeconds(index * delay, {
-          signal: instance.signal,
-        });
+      /** Prioritize primary account if the primary link is not set */
+      if (!this.primaryFarmerLink) {
+        /** Hold everything back while the primary account runs */
+        if (Array.from(active.values()).some((item) => item.exclusive)) {
+          return null;
+        }
+
+        const primary = this.queue.find(
+          (item) => item.account.id === this.primaryAccountId,
+        );
+
+        if (primary) {
+          /** The primary account runs alone until the link resolves */
+          if (active.size > 0) return null;
+
+          /** Log */
+          this.logger.info(
+            "Prioritizing primary account:",
+            this.primaryAccountId,
+          );
+
+          return this.takeQueueItem(primary, true);
+        }
+      }
+
+      /** Process one new account at a time */
+      const hasNewAccount = Array.from(active.values()).some(
+        (item) => !item.instance.account.farmer,
+      );
+
+      const instance = hasNewAccount
+        ? this.queue.find((item) => item.account.farmer)
+        : this.queue.find((item) => !item.account.farmer) ||
+          this.queue.find((item) => item.account.farmer);
+
+      return instance ? this.takeQueueItem(instance) : null;
+    }
+
+    /** Remove an instance from the queue and wrap it as a queue item */
+    static takeQueueItem(instance, exclusive = false) {
+      this.queue.splice(this.queue.indexOf(instance), 1);
+
+      return {
+        instance,
+        exclusive,
+        skipExecution:
+          !instance.account.farmer && this.skipExecutionOfNewAccount,
+      };
+    }
+
+    /** Process queue item */
+    static async processQueueItem(
+      { instance, skipExecution = false },
+      staggerSeconds = 0,
+    ) {
+      try {
+        /** Stagger the launch: an account terminated while waiting skips its turn */
+        if (staggerSeconds > 0) {
+          await this.utils.delayForSeconds(staggerSeconds, {
+            signal: instance.signal,
+          });
+        }
 
         await this.execute(instance, skipExecution);
       } catch (err) {
