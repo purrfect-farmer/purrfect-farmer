@@ -65,6 +65,15 @@ export const getProtection = (snapshot) => {
   };
 };
 
+/** The exchange the account has linked on the drop, absent when none or unreported */
+export const getExchange = (snapshot) => {
+  const exchange = snapshot?.exchange;
+
+  if (!exchange) return null;
+
+  return { name: exchange.name, uid: exchange.uid || null };
+};
+
 /** The account's own withdrawal queue, and whether the drop reported it */
 export const getWithdrawals = (snapshot) => {
   const withdrawal = snapshot?.withdrawal;

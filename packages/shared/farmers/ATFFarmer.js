@@ -1418,6 +1418,17 @@ export default class ATFFarmer extends BaseFarmer {
         ? this.logger.c.greenBright
         : this.logger.c.yellowBright,
     });
+    const exchange = this.getUserExchange(user);
+
+    this.logger.keyValue(
+      "Toobit",
+      exchange ? exchange.uid || "Connected" : "Not connected",
+      {
+        valueStyle: exchange
+          ? this.logger.c.greenBright
+          : this.logger.c.yellowBright,
+      },
+    );
     this.logger.keyValue("Risk Score", user["risk_score"]);
     this.logger.keyValue("Risk Updated", user["risk_updated_at"]);
     this.logger.keyValue("Risk Flags", flags.length);
@@ -1444,6 +1455,13 @@ export default class ATFFarmer extends BaseFarmer {
   /** Whether the drop counts the account as a qualified DEX buyer */
   isUserQualifiedDexBuyer(user) {
     return Number(user["qualified_dex_buyer"]) === 1;
+  }
+
+  /** The exchange the account has linked on the drop, or null when none */
+  getUserExchange(user) {
+    if (Number(user["toobit_connected"]) !== 1) return null;
+
+    return { name: "Toobit", uid: user["toobit_uid"] || null };
   }
 
   /** Whether the drop has banned the account */
@@ -1628,6 +1646,7 @@ export default class ATFFarmer extends BaseFarmer {
       wallet: wallet
         ? { address: wallet.address, version: wallet.version }
         : null,
+      exchange: this.getUserExchange(user),
       banned: this.isUserBanned(user),
       banReason: user["banned_reason"],
       risk: {

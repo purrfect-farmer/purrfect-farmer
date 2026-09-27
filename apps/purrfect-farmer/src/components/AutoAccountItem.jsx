@@ -10,6 +10,7 @@ import AutoAccountLaunchButton from "./AutoAccountLaunchButton";
 import AutoAccountSnapshot from "./AutoAccountSnapshot";
 import AutoAddress from "./AutoAddress";
 import AutoDropVerifiedBadge from "./AutoDropVerifiedBadge";
+import AutoExchangeBadge from "./AutoExchangeBadge";
 import AutoAvatar from "./AutoAvatar";
 import AutoEditAccountDialog from "./AutoEditAccountDialog";
 import AutoVerifiedBadge from "./AutoVerifiedBadge";
@@ -92,6 +93,7 @@ export default memo(function AutoAccountItem({
               <AutoVersionBadge version={account.version} />
               <AutoVerifiedBadge verified={account.verified} />
               <AutoDropVerifiedBadge account={account} />
+              <AutoExchangeBadge account={account} />
               <FarmerStatusDot status={farmerStatus} />
             </div>
           </div>

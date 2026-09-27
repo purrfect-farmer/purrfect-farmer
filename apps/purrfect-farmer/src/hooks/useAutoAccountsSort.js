@@ -3,12 +3,13 @@ import { useQueries } from "@tanstack/react-query";
 
 import useAutoCloudSnapshotsQuery from "./useAutoCloudSnapshotsQuery";
 import { getHelperKind } from "@/components/AutoHelperChooser";
-import { toFigure } from "@/lib/autoSnapshot";
+import { getExchange, toFigure } from "@/lib/autoSnapshot";
 import { useAutoBalancesQueryOptions } from "./useAutoBalancesQuery";
 
 export const SORT_OPTIONS = [
   { value: "normal", label: "Normal" },
-  { value: "ranked", label: "Verified > Trusted > Others" },
+  { value: "ranked", label: "Verified > Connected > Trusted > Others" },
+  { value: "exchange", label: "Exchange connected" },
   { value: "mined", label: "Mined balance" },
   { value: "holding", label: "Holding" },
   { value: "ton", label: "TON balance" },
@@ -19,7 +20,17 @@ export const SORT_OPTIONS = [
 const defaultDirection = (key) => (key === "normal" ? "asc" : "desc");
 
 /** Rank the kinds so they sort like any other number */
-const HELPER_RANK = { verified: 2, trusted: 1 };
+const HELPER_RANK = { verified: 3, trusted: 1 };
+
+/** An exchange link ranks below verified but above trusted */
+const CONNECTED_RANK = 2;
+
+/** The rank an account sorts by, taking the best of its kind and its exchange link */
+const getRank = (account, snapshot) =>
+  Math.max(
+    HELPER_RANK[getHelperKind(account, snapshot)] || 0,
+    getExchange(snapshot) ? CONNECTED_RANK : 0,
+  );
 
 /** Only the wallet balance keys need the balance queries */
 const BALANCE_KEYS = ["ton", "jetton"];
@@ -69,7 +80,9 @@ export default function useAutoAccountsSort(
 
       switch (sortKey) {
         case "ranked":
-          return HELPER_RANK[getHelperKind(account, snapshot)] || 0;
+          return getRank(account, snapshot);
+        case "exchange":
+          return snapshot ? Number(Boolean(getExchange(snapshot))) : null;
         case "mined":
           return snapshot ? toFigure(snapshot.balance).toNumber() : null;
         case "holding":

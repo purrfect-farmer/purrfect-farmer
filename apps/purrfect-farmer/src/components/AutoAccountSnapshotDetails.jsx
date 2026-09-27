@@ -2,6 +2,7 @@ import { formatDate, formatDistanceToNow } from "date-fns";
 
 import AutoAccountFarmerControls from "./AutoAccountFarmerControls";
 import AutoDropVerifiedBadge from "./AutoDropVerifiedBadge";
+import AutoExchangeBadge from "./AutoExchangeBadge";
 import {
   FARMER_STATUS_TEXT_COLORS,
   getMiningFreezeColor,
@@ -15,6 +16,7 @@ import {
   formatFigure,
   formatWithdrawalRecord,
   getMiningFreeze,
+  getExchange,
   getProtection,
   getWithdrawals,
   getWithdrawalTrust,
@@ -199,6 +201,7 @@ export default function AutoAccountSnapshotDetails({ account }) {
   const withdrawable = snapshot && isWithdrawable(snapshot, minimum);
   const freeze = getMiningFreeze(snapshot);
   const protection = getProtection(snapshot);
+  const exchange = getExchange(snapshot);
   const miningStartedAt = Number(snapshot?.mining?.startedAt) || 0;
   const flags = snapshot?.risk?.flags || [];
 
@@ -301,6 +304,18 @@ export default function AutoAccountSnapshotDetails({ account }) {
                 }
               />
             </>
+          ) : null}
+
+          {/* The exchange the drop has linked, absent when none */}
+          {exchange ? (
+            <InfoRow
+              label={`Exchange (${exchange.name})`}
+              value={exchange.uid || "Connected"}
+              valueClassName="text-teal-500 dark:text-teal-300"
+              rightContent={
+                <AutoExchangeBadge account={account} className="mr-2" />
+              }
+            />
           ) : null}
 
           {/* Mining, absent on drops that mine off the clock */}

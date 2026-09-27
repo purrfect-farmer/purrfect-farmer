@@ -14,6 +14,7 @@ import AutoAccountSnapshot from "./AutoAccountSnapshot";
 import AutoAccountsSortControls from "./AutoAccountsSortControls";
 import AutoAddress from "./AutoAddress";
 import AutoDropVerifiedBadge from "./AutoDropVerifiedBadge";
+import AutoExchangeBadge from "./AutoExchangeBadge";
 import AutoAvatar from "./AutoAvatar";
 import AutoVerifiedBadge from "./AutoVerifiedBadge";
 import AutoVersionBadge from "./AutoVersionBadge";
@@ -114,6 +115,7 @@ const AccountChooserItem = memo(function AccountChooserItem({
               <AutoVersionBadge version={account.version} />
               <AutoVerifiedBadge verified={account.verified} />
               {showBalance ? <AutoDropVerifiedBadge account={account} /> : null}
+              {showBalance ? <AutoExchangeBadge account={account} /> : null}
               <FarmerStatusDot status={row?.status} />
             </div>
           </div>

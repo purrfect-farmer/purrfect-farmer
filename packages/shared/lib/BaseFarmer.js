@@ -605,6 +605,7 @@ export default class BaseFarmer {
    *   protection: { revoked, dexBuyer } | undefined,
    *   mining: { startedAt, freezesAt, frozen } | undefined,
    *   wallet: { address, version } | null,
+   *   exchange: { name, uid } | null | undefined,
    *   banned, banReason,
    *   risk: { score, updatedAt, flags: string[] }
    * }
