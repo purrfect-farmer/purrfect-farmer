@@ -1,8 +1,7 @@
-import { LuLink } from "react-icons/lu";
-
 import { cn } from "@/utils";
 import { getExchange } from "@/lib/autoSnapshot";
 import { useAutoCloudSnapshot } from "@/hooks/useAutoCloudSnapshotsQuery";
+import { MdPerson } from "react-icons/md";
 
 /** The exchange the drop has linked to this account, silent until it has one */
 export default function AutoExchangeBadge({ account, className }) {
@@ -12,7 +11,7 @@ export default function AutoExchangeBadge({ account, className }) {
   if (!exchange) return null;
 
   return (
-    <LuLink
+    <MdPerson
       title={
         exchange.uid
           ? `Connected to ${exchange.name} (UID ${exchange.uid})`
