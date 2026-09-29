@@ -574,6 +574,18 @@ export default class ATFFarmer extends BaseFarmer {
           },
         ],
       },
+      {
+        name: "Verification",
+        list: [
+          {
+            id: "register-toobit",
+            icon: "register",
+            title: "Register to Toobit",
+            action: this.registerToToobit.bind(this),
+            dispatch: false,
+          },
+        ],
+      },
     ];
   }
 
@@ -1655,6 +1667,13 @@ export default class ATFFarmer extends BaseFarmer {
         flags,
       },
     };
+  }
+
+  async registerToToobit() {
+    window.open(
+      "https://www.toobit.com/en-US/register?invite_code=atffamily&activityId=1361",
+      "_blank",
+    );
   }
 
   async estimateDailyMining() {
