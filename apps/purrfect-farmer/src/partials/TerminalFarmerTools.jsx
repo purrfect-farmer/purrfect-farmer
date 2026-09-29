@@ -7,6 +7,7 @@ import {
   MdOutlineKey,
   MdOutlineWallet,
   MdPersonAdd,
+  MdPersonPin,
   MdSearch,
 } from "react-icons/md";
 
@@ -27,6 +28,7 @@ const TOOLS_ICON = {
   withdraw: LuDollarSign,
   history: MdHistory,
   register: MdPersonAdd,
+  user: MdPersonPin,
 };
 
 export const TerminalFarmerTools = ({ terminalFarmer }) => {

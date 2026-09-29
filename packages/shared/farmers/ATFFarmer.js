@@ -407,6 +407,13 @@ export default class ATFFarmer extends BaseFarmer {
     );
   }
 
+  /** Connect to Toobit */
+  connectToobitUid(uid = "") {
+    return this.makeAction("toobit_connect", {
+      uid,
+    });
+  }
+
   /** Claim Mining */
   claimMining(amount) {
     return this.makeAction("claim", {
@@ -582,6 +589,13 @@ export default class ATFFarmer extends BaseFarmer {
             icon: "register",
             title: "Register to Toobit",
             action: this.registerToToobit.bind(this),
+            dispatch: false,
+          },
+          {
+            id: "connect-toobit-user",
+            icon: "user",
+            title: "Connect Toobit User",
+            action: this.connectToobitUser.bind(this),
             dispatch: false,
           },
         ],
@@ -1720,6 +1734,26 @@ export default class ATFFarmer extends BaseFarmer {
     this.logger.newline();
     this.logMiningRateBreakdown(dailyRate);
     this.logHashPowerExplainer(hashPower, divisor);
+  }
+
+  async connectToobitUser() {
+    const input = await this.promptInput("Enter Toobit UID:");
+    const uid = (input || "").trim();
+
+    if (!uid) return;
+
+    try {
+      const { status, message } = await this.connectToobitUid(uid);
+      if (status !== "success") {
+        this.logger.error(message);
+        return;
+      }
+      this.logger.success("Toobit connected!");
+    } catch (error) {
+      const message = error?.response?.data?.message || error.message;
+      this.logger.error(message);
+      return;
+    }
   }
 
   /** Format an ATF amount, keeping sub-1 values readable */
