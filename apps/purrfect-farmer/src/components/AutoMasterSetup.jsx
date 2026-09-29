@@ -40,8 +40,7 @@ const schema = yup
   .required();
 
 export default function AutoMasterSetup() {
-  const { config, dispatchAndSetPassword, dispatchAndStoreMaster } =
-    useAuto();
+  const { config, setPassword, storeMaster } = useAuto();
   const { openTelegramLink } = useAppContext();
   const [showForm, setShowForm] = useState(false);
   const [address, setAddress] = useState("");
@@ -73,7 +72,7 @@ export default function AutoMasterSetup() {
     });
 
     /** Store master */
-    dispatchAndStoreMaster({
+    storeMaster({
       address,
       version,
       hashedPassword,
@@ -82,7 +81,7 @@ export default function AutoMasterSetup() {
     });
 
     /** Set password */
-    dispatchAndSetPassword(password);
+    setPassword(password);
 
     /** Toast */
     toast.success(`${config.title} master setup completed!`);
@@ -105,7 +104,8 @@ export default function AutoMasterSetup() {
       {!showForm ? (
         <>
           <Alert variant={"info"}>
-            {config.title} is a tool for managing multiple {config.token} Farmer Wallets.
+            {config.title} is a tool for managing multiple {config.token} Farmer
+            Wallets.
           </Alert>
           <PrimaryButton onClick={() => setShowForm(true)}>
             Get Started
@@ -129,7 +129,9 @@ export default function AutoMasterSetup() {
         </>
       ) : (
         <>
-          <Alert variant={"info"}>Setup a master wallet for {config.title}</Alert>
+          <Alert variant={"info"}>
+            Setup a master wallet for {config.title}
+          </Alert>
           <FormProvider {...form}>
             <form
               onSubmit={form.handleSubmit(handleFormSubmit)}

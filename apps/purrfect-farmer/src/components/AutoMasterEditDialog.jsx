@@ -12,7 +12,7 @@ import useAuto from "@/hooks/useAuto";
 import useAppContext from "@/hooks/useAppContext";
 
 export default function AutoMasterEditDialog({ onSave }) {
-  const { master, password, dispatchAndStoreMaster } = useAuto();
+  const { master, password, storeMaster } = useAuto();
   const { openTelegramLink } = useAppContext();
   const [phrase, setPhrase] = useState("");
   const [tonCenterApiKey, setToncenterApiKey] = useState(
@@ -41,7 +41,7 @@ export default function AutoMasterEditDialog({ onSave }) {
       data.version,
     );
 
-    dispatchAndStoreMaster({
+    storeMaster({
       ...master,
       address,
       encryptedWalletPhrase,
