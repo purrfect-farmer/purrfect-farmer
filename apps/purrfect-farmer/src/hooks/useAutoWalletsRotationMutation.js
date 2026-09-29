@@ -36,14 +36,8 @@ async function generateNewWallet({ password, encryptedPhrase, version = 5 }) {
 }
 
 export default function useAutoWalletsRotationMutation() {
-  const {
-    config,
-    master,
-    accounts,
-    password,
-    dispatchAndStoreMaster,
-    dispatchAndStoreAccounts,
-  } = useAuto();
+  const { config, master, accounts, password, storeMaster, storeAccounts } =
+    useAuto();
 
   const mutation = useMutation({
     mutationKey: [config.id, "wallets", "rotation"],
@@ -181,7 +175,7 @@ export default function useAutoWalletsRotationMutation() {
       });
 
       /** Store updated master */
-      dispatchAndStoreMaster({
+      storeMaster({
         ...master,
         address: newMasterAddress,
         encryptedWalletPhrase: newEncryptedWalletPhrase,
@@ -189,7 +183,7 @@ export default function useAutoWalletsRotationMutation() {
 
       /** Store updated accounts */
       if (updatedAccounts.length) {
-        dispatchAndStoreAccounts(updatedAccounts);
+        storeAccounts(updatedAccounts);
       }
     },
   });

@@ -9,8 +9,7 @@ import { uuid } from "@/utils";
 
 /** Turns Whiskers accounts into this drop's accounts, matched by Telegram user id and given a wallet when new */
 export default function useAutoWhiskersImportMutation() {
-  const { config, master, password, accounts, dispatchAndStoreAccounts } =
-    useAuto();
+  const { config, master, password, accounts, storeAccounts } = useAuto();
 
   const { downloadStateBackup, backupSteps } = useAutoStateBackup();
 
@@ -74,7 +73,7 @@ export default function useAutoWhiskersImportMutation() {
         )
         .concat(newAccounts);
 
-      dispatchAndStoreAccounts(merged);
+      storeAccounts(merged);
 
       return { added: newAccounts.length, updated: updatedTitles.size };
     },

@@ -20,7 +20,7 @@ import useAutoAccountsSort from "@/hooks/useAutoAccountsSort";
 import { useDebounce } from "react-use";
 
 export default function AutoDashboardTab() {
-  const { accounts, dispatchAndStoreAccounts } = useAuto();
+  const { accounts, storeAccounts } = useAuto();
   const [addOpen, setAddOpen] = useState(false);
   const [showSearch, setShowSearch] = useState(false);
   const [tempSearch, setTempSearch] = useState("");
@@ -51,14 +51,12 @@ export default function AutoDashboardTab() {
   };
   /* Handle Update */
   const handleUpdateAccount = (updated) => {
-    dispatchAndStoreAccounts(
-      accounts.map((a) => (a.id === updated.id ? updated : a)),
-    );
+    storeAccounts(accounts.map((a) => (a.id === updated.id ? updated : a)));
   };
 
   /* Handle delete */
   const handleDeleteAccount = (id) => {
-    dispatchAndStoreAccounts(accounts.filter((a) => a.id !== id));
+    storeAccounts(accounts.filter((a) => a.id !== id));
   };
 
   return (
@@ -139,9 +137,7 @@ export default function AutoDashboardTab() {
       {accounts.length > 0 ? (
         <Reorder.Group
           values={accounts}
-          onReorder={(newOrder) =>
-            isStoredOrder && dispatchAndStoreAccounts(newOrder)
-          }
+          onReorder={(newOrder) => isStoredOrder && storeAccounts(newOrder)}
           className="flex flex-col gap-2"
         >
           {filteredAccounts.map((account) => (

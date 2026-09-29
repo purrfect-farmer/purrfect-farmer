@@ -7,7 +7,7 @@ import useAuto from "@/hooks/useAuto";
 import { uuid } from "@/utils";
 
 export default function AutoNewAccountDialog({ onCreated }) {
-  const { password, dispatchAndStoreAccounts, accounts } = useAuto();
+  const { password, storeAccounts, accounts } = useAuto();
 
   const handleFormSubmit = async (data) => {
     const encryptedPhrase = await encryption.encryptData({
@@ -30,7 +30,7 @@ export default function AutoNewAccountDialog({ onCreated }) {
       address,
     };
 
-    dispatchAndStoreAccounts([...accounts, account]);
+    storeAccounts([...accounts, account]);
     toast.success("Account added!");
     onCreated?.();
   };

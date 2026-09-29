@@ -12,6 +12,7 @@ import toast from "react-hot-toast";
 import useAuto from "@/hooks/useAuto";
 import { yup } from "@/lib/yup";
 import { yupResolver } from "@hookform/resolvers/yup";
+import useMirroredCallback from "@/hooks/useMirroredCallback";
 
 /** Schema */
 const schema = yup
@@ -21,8 +22,7 @@ const schema = yup
   .required();
 
 export default function AutoLogin() {
-  const { config, master, dispatchAndResetAuto, dispatchAndSetPassword } =
-    useAuto();
+  const { config, master, resetAuto, setPassword } = useAuto();
   /** Form */
   const form = useForm({
     resolver: yupResolver(schema),
@@ -32,23 +32,35 @@ export default function AutoLogin() {
   });
 
   const isSubmitting = form.formState.isSubmitting;
-  const handleFormSubmit = async (data) => {
-    const match = await bcrypt.compare(data.password, master.hashedPassword);
 
-    if (match) {
-      dispatchAndSetPassword(data.password);
-      toast.success("Successfully logged in!");
-    } else {
-      form.setError("password", { message: "Invalid password!" });
-      toast.error("Invalid password!");
-    }
+  /** Login */
+  const [, dispatchAndLogin] = useMirroredCallback(
+    `${config.id}.login`,
+    async (password) => {
+      const match = await bcrypt.compare(password, master.hashedPassword);
+
+      if (match) {
+        setPassword(password);
+        toast.success("Successfully logged in!");
+      } else {
+        form.setError("password", { message: "Invalid password!" });
+        toast.error("Invalid password!");
+      }
+    },
+    [setPassword],
+  );
+
+  /** Handle Form Submit */
+  const handleFormSubmit = async (data) => {
+    await dispatchAndLogin(data.password);
   };
 
   return (
     <Container className={cn("flex flex-col justify-center gap-4 p-4 grow")}>
       <AutoHeader />
       <Alert variant={"info"}>
-        <span className="font-bold">{config.title}</span> - Sign in to manage accounts
+        <span className="font-bold">{config.title}</span> - Sign in to manage
+        accounts
       </Alert>
       <FormProvider {...form}>
         <form
@@ -86,7 +98,7 @@ export default function AutoLogin() {
           {/* Reset Button */}
           <button
             type="button"
-            onClick={() => dispatchAndResetAuto()}
+            onClick={() => resetAuto()}
             className="text-red-500 cursor-pointer"
           >
             Reset {config.title}

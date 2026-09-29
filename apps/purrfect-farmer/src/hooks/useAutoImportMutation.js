@@ -13,9 +13,9 @@ export default function useAutoImportMutation() {
     master,
     password,
     accounts,
-    dispatchAndStoreMaster,
-    dispatchAndStoreAccounts,
-    dispatchAndSetPassword,
+    storeMaster,
+    storeAccounts,
+    setPassword,
   } = useAuto();
 
   const { downloadStateBackup, backupSteps } = useAutoStateBackup();
@@ -138,13 +138,13 @@ export default function useAutoImportMutation() {
 
       /** Persist - mirrored so other open views follow */
       if (importedMaster) {
-        dispatchAndStoreMaster(importedMaster);
+        storeMaster(importedMaster);
       }
 
-      dispatchAndStoreAccounts(merged.accounts);
+      storeAccounts(merged.accounts);
 
       if (bootstrap) {
-        dispatchAndSetPassword(destinationPassword);
+        setPassword(destinationPassword);
       }
 
       return { ...merged, bootstrap };

@@ -6,7 +6,7 @@ import { useMutation } from "@tanstack/react-query";
 
 export default function useAutoSweepMutation() {
   const { auth, cloudBackend } = useCloudQueryOptions();
-  const { config, accounts, dispatchAndStoreAccounts } = useAuto();
+  const { config, accounts, storeAccounts } = useAuto();
   const { decryptPhrase } = useAutoMaster();
 
   return useMutation({
@@ -63,7 +63,7 @@ export default function useAutoSweepMutation() {
       );
 
       /** Store accounts */
-      dispatchAndStoreAccounts(updatedAccounts);
+      storeAccounts(updatedAccounts);
     },
   });
 }

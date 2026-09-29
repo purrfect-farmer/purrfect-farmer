@@ -30,9 +30,9 @@ export default function AutoSettingsDialog() {
     master,
     password,
     accounts,
-    dispatchAndStoreMaster,
-    dispatchAndStoreAccounts,
-    dispatchAndSetPassword,
+    storeMaster,
+    storeAccounts,
+    setPassword,
   } = useAuto();
   const { target, progress, setTarget, resetProgress, incrementProgress } =
     useAutoProgress();
@@ -67,7 +67,7 @@ export default function AutoSettingsDialog() {
 
       const hashedPassword = await bcrypt.hash(newPassword, 10);
 
-      dispatchAndStoreMaster({
+      storeMaster({
         ...master,
         encryptedWalletPhrase,
         hashedPassword,
@@ -97,10 +97,10 @@ export default function AutoSettingsDialog() {
         incrementProgress();
       }
 
-      dispatchAndStoreAccounts(updatedAccounts);
+      storeAccounts(updatedAccounts);
 
       // Update in-memory password
-      dispatchAndSetPassword(newPassword);
+      setPassword(newPassword);
 
       return { status: true };
     },
@@ -121,7 +121,7 @@ export default function AutoSettingsDialog() {
   };
 
   const handleLogout = () => {
-    dispatchAndSetPassword(null);
+    setPassword(null);
     toast.success("Logged out.");
   };
 
