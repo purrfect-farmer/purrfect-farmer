@@ -54,6 +54,7 @@ const autoSchema = {
       trustedWithdrawDirectly: { type: "boolean" },
       trustedAssist: { type: "boolean" },
       flipDirection: { type: "string", enum: ["flip", "restore"] },
+      flipAfterBoost: { type: "boolean" },
       requesters: { type: "array" },
     },
   },

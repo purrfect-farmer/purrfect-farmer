@@ -113,6 +113,7 @@ class BaseAuto {
     trustedWithdrawDirectly = false,
     trustedAssist = false,
     flipDirection = "flip",
+    flipAfterBoost = false,
     requesters = [],
   }) {
     this.utils = utils;
@@ -162,6 +163,7 @@ class BaseAuto {
     this.flipDirection = FLIP_DIRECTIONS.includes(flipDirection)
       ? flipDirection
       : "flip";
+    this.flipAfterBoost = flipAfterBoost;
     this.requesters = requesters;
 
     /** When this operation was started, reported by the assist status */
@@ -559,6 +561,14 @@ class BaseAuto {
     );
   }
 
+  /** Format the flip-after-boost setting */
+  formatFlipAfterBoost() {
+    return this.formatKeyValue(
+      "Flip after boost",
+      this.flipAfterBoost ? "Enabled" : "Disabled",
+    );
+  }
+
   /** Format the cultivate interval */
   formatCultivateInterval() {
     return this.formatKeyValue(
@@ -696,6 +706,14 @@ class BaseAuto {
         `⚡ ${format(totalBoosted)} ${this.token}`,
       ),
       this.formatKeyValue("Boosted Accounts", `${boostedAccounts.length}`),
+      ...(this.flipAfterBoost
+        ? [
+            this.formatKeyValue(
+              "Flipped Accounts",
+              `${results.filter((result) => result.flipped).length}`,
+            ),
+          ]
+        : []),
       ...(this.withdrawAfterBoost
         ? [
             this.formatKeyValue(
@@ -1163,13 +1181,42 @@ class BaseAuto {
       });
     }
 
+    /** A withdrawn account boosted again by the requalify pass flips there instead */
+    const requalifying =
+      withdraw &&
+      this.didWithdraw({ withdrawal }) &&
+      this.requalify === "boost" &&
+      this.mode === "roll";
+
+    /** Only a boost that settled leaves anything worth flipping away from */
+    const shouldFlip =
+      Boolean(this.flipAfterBoost && runner && status && settled && !skipped) &&
+      !requalifying;
+
+    let flipped = false;
+
     /** Snapshot the account, and remember who sent it these tokens */
     if (runner) {
       if (!skipped) {
         await this.recordLastFunder(runner, cloudAccount, funderAddress);
         await this.recordLastBoostAmount(runner, cloudAccount, jettonAmount);
       }
-      await this.storeSnapshot(runner, cloudAccount);
+
+      if (shouldFlip) {
+        flipped = await this.flipBoostedWallet({
+          runner,
+          cloudAccount,
+          account,
+          phrase,
+          index,
+          total,
+        });
+      }
+
+      /** A flip already stored the snapshot on its new wallet */
+      if (!flipped) {
+        await this.storeSnapshot(runner, cloudAccount);
+      }
     }
 
     /** Delay for 2s */
@@ -1198,7 +1245,52 @@ class BaseAuto {
       /** What left the master, which is nothing when it had nothing to send */
       boosted: skipped ? new Decimal(0) : jettonAmount,
       withdrawal,
+      flipped,
     };
+  }
+
+  /** Flip a boosted account onto its phrase's other contract version, never failing the boost */
+  async flipBoostedWallet({
+    runner,
+    cloudAccount,
+    account,
+    phrase,
+    index,
+    total,
+  }) {
+    const link = this.formatAccountLink(cloudAccount.id);
+    const position = this.formatAccountPosition(index, total);
+    const version = Number(account.version) === 4 ? 5 : 4;
+
+    try {
+      logger.info("Flipping boosted account:", cloudAccount.id, `v${version}`);
+
+      const address = await this.connectWalletVersion(runner, phrase, version);
+
+      logger.success("Flipped boosted account:", cloudAccount.id, address);
+
+      await this.sendNotification([
+        `🔁 Flipped <b>(${link})</b> - ${this.formatWallet({ address, version: `v${version}` })} ${position}`,
+      ]);
+
+      return true;
+    } catch (e) {
+      if (this.signal.aborted) return false;
+
+      const errorMessage = e.message || "Unknown error!";
+
+      logger.error(
+        "Failed to flip boosted account:",
+        cloudAccount.id,
+        errorMessage,
+      );
+
+      await this.sendNotification([
+        `❌ Failed to flip <b>(${link})</b> ${position}\n<i>Reason: ${errorMessage}</i>`,
+      ]);
+
+      return false;
+    }
   }
 
   /** Apply mode */
@@ -1275,6 +1367,7 @@ class BaseAuto {
             ? [this.formatRequalify(), this.formatIgnorePending()]
             : []),
           this.formatRetainFunds(),
+          ...(!this.onlyConnectWallet ? [this.formatFlipAfterBoost()] : []),
           this.formatFreeze(),
           this.formatRunFarmer(),
           this.formatRepeat(),
@@ -3383,6 +3476,25 @@ class BaseAuto {
     }
   }
 
+  /** Connect an account to one of its phrase's contract versions, keeping the snapshot on it */
+  async connectWalletVersion(runner, phrase, version) {
+    const address = await getWalletAddressFromMnemonic(phrase, version);
+
+    const connected = await runner.connectAutoWallet({
+      phrase,
+      address,
+      version,
+    });
+
+    if (!connected.status) {
+      throw new Error(connected.message || "Failed to connect wallet");
+    }
+
+    await runner.storeAutoSnapshot();
+
+    return address;
+  }
+
   /** The contract version a flip connects an account to */
   getFlipVersion(account) {
     if (this.flipDirection === "restore") return Number(account.version);
@@ -3414,21 +3526,10 @@ class BaseAuto {
     try {
       const phrase = await this.decryptPhrase(account.encryptedPhrase);
       const version = this.getFlipVersion(account);
-      const address = await getWalletAddressFromMnemonic(phrase, version);
       const runner = await this.getRunner(cloudAccount);
 
-      const connected = await runner.connectAutoWallet({
-        phrase,
-        address,
-        version,
-      });
-
-      if (!connected.status) {
-        throw new Error(connected.message || "Failed to connect wallet");
-      }
-
-      /** Keep the stored snapshot on the wallet it is now connected to */
-      await runner.storeAutoSnapshot();
+      /** Keeps the stored snapshot on the wallet it is now connected to */
+      const address = await this.connectWalletVersion(runner, phrase, version);
 
       result = { status: true, skipped: false };
 

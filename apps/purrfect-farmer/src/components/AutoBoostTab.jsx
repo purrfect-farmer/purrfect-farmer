@@ -43,6 +43,7 @@ const schema = yup
       .label("Requalify"),
     ignorePending: yup.boolean().label("Ignore Pending"),
     retainFunds: yup.boolean().required().label("Retain Funds"),
+    flipAfterBoost: yup.boolean().required().label("Flip Wallet"),
     runFarmer: yup.boolean().required().label("Run Farmer"),
     repeat: yup.boolean().required().label("Repeat"),
     repeatInterval: yup.number().required().min(1).label("Repeat Interval"),
@@ -63,6 +64,7 @@ export default function AutoBoostTab() {
       requalify: "boost",
       ignorePending: false,
       retainFunds: false,
+      flipAfterBoost: false,
       runFarmer: false,
       repeat: false,
       repeatInterval: 15,
@@ -403,6 +405,26 @@ export default function AutoBoostTab() {
                     </p>
                     <LabelToggle {...field} checked={field.value}>
                       Keep funds in the last account
+                    </LabelToggle>
+                    <FieldStateError fieldState={fieldState} />
+                  </div>
+                )}
+              />
+
+              {/* Flip Wallet */}
+              <Controller
+                control={form.control}
+                name="flipAfterBoost"
+                render={({ field, fieldState }) => (
+                  <div className="flex flex-col gap-1">
+                    <Label>Flip Wallet</Label>
+
+                    <p className="text-center text-neutral-500 dark:text-neutral-400">
+                      Connect the other wallet version once the boost settles,
+                      freeing the account's own wallet.
+                    </p>
+                    <LabelToggle {...field} checked={field.value}>
+                      Flip wallet version once settled
                     </LabelToggle>
                     <FieldStateError fieldState={fieldState} />
                   </div>
