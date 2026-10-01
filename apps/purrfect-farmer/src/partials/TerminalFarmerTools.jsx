@@ -5,6 +5,7 @@ import {
   MdCheck,
   MdHistory,
   MdOutlineKey,
+  MdOutlineVerifiedUser,
   MdOutlineWallet,
   MdPersonAdd,
   MdPersonPin,
@@ -29,6 +30,7 @@ const TOOLS_ICON = {
   history: MdHistory,
   register: MdPersonAdd,
   user: MdPersonPin,
+  kyc: MdOutlineVerifiedUser,
 };
 
 export const TerminalFarmerTools = ({ terminalFarmer }) => {

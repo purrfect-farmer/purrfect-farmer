@@ -106,10 +106,10 @@ export default class ATFFarmer extends BaseFarmer {
       config.headers["x-telegram-init-data"] = this.getInitData();
 
       config.data = {
+        request_id: this.makeRequestId(),
+        device_id: this.getOrCreateDeviceId(),
         ...config.data,
         initData: this.getInitData(),
-        device_id: this.getOrCreateDeviceId(),
-        request_id: this.makeRequestId(),
         tg_id: this.getUserId(),
       };
       return config;
@@ -332,6 +332,18 @@ export default class ATFFarmer extends BaseFarmer {
     );
   }
 
+  /** Record Daily Interaction */
+  async recordDailyInteraction() {
+    await this.makeAction("record_daily_interaction", {
+      scroll_pixels: 100 + Math.floor(Math.random() * 100),
+      foreground_seconds: 1 + Math.floor(Math.random() * 100),
+      unique_menus: 1 + Math.floor(Math.random() * 10),
+      menu_changes: 1 + Math.floor(Math.random() * 10),
+      trusted_input: 1 + Math.floor(Math.random() * 20),
+    });
+    await this.utils.delay(300, { signal: this.signal });
+  }
+
   /** Record Navigation Batch */
   async recordNavigationBatch(delta = 1) {
     if (!RECORD_NAVIGATION_BATCH) {
@@ -411,6 +423,17 @@ export default class ATFFarmer extends BaseFarmer {
   connectToobitUid(uid = "") {
     return this.makeAction("toobit_connect", {
       uid,
+    });
+  }
+
+  /** Check Toobit KYC */
+  checkToobitKyc() {
+    return this.makeAction("toobit_check_kyc", {
+      request_id:
+        "kyc_" +
+        Date.now().toString(36) +
+        "_" +
+        Math.random().toString(36).slice(2, 12),
     });
   }
 
@@ -596,6 +619,13 @@ export default class ATFFarmer extends BaseFarmer {
             icon: "user",
             title: "Connect Toobit User",
             action: this.connectToobitUser.bind(this),
+            dispatch: false,
+          },
+          {
+            id: "check-toobit-kyc",
+            icon: "kyc",
+            title: "Check Toobit KYC",
+            action: this.checkToobitKycInteractive.bind(this),
             dispatch: false,
           },
         ],
@@ -1317,6 +1347,9 @@ export default class ATFFarmer extends BaseFarmer {
     const { user } = await this.login();
 
     await this.logUserInfo(user);
+    await this.executeTask("Daily Interaction", () =>
+      this.recordDailyInteraction(),
+    );
     await this.executeTask("Mining", () => this.startOrClaimMining());
     await this.executeTask("Boost", () => this.applyBoost());
     await this.executeTask("Tasks", () => this.completeTasks());
@@ -1754,6 +1787,25 @@ export default class ATFFarmer extends BaseFarmer {
       this.logger.error(message);
       return;
     }
+  }
+
+  async checkToobitKycInteractive() {
+    const data = await this.checkToobitKyc();
+    const { status, message } = data;
+
+    if (status !== "success") {
+      this.logger.error(message);
+      return;
+    } else {
+      this.logger.keyValue("Connected", data.connected);
+      this.logger.keyValue("UID", data.uid, { format: false });
+      this.logger.keyValue("KYC Verified", data.kyc_verified);
+      this.logger.keyValue("Whitelisted", data.whitelisted);
+      this.logger.keyValue("Restored Withdrawals", data.restored_withdrawals);
+      this.logger.keyValue("Reserved Withdrawals", data.reserved_withdrawals);
+      this.logger.keyValue("Message", data.message);
+    }
+    this.logger.success("Toobit KYC checked!");
   }
 
   /** Format an ATF amount, keeping sub-1 values readable */
