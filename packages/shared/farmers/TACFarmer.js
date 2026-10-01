@@ -44,6 +44,7 @@ const TON_ADDRESS_PATTERN =
   /^([UEk0][Qq][A-Za-z0-9_-]{46}|-?\d+:[a-fA-F0-9]{64})$/;
 
 export default class TACFarmer extends BaseFarmer {
+  static published = true;
   static id = "tac";
   static title = "TAC";
   static emoji = "💎";
@@ -52,7 +53,6 @@ export default class TACFarmer extends BaseFarmer {
   static telegramLink = "https://t.me/tacairdrop_bot?start=1147265290";
   static path = "/";
   static interval = "0 * * * *";
-  static referrerMode = "random";
   static apiDelay = 500;
   static rating = 5;
   static published = false;

@@ -24,13 +24,13 @@ export default class BaseFarmer {
   static link = "";
   static telegramLink = "";
   static host = "";
-  static referrerMode = "random";
+  static referrerMode = "single";
   static domains = [];
   static withXSRFToken = false;
   static rating = 1;
   static startupDelay = 30;
   static deactivateOnError = true;
-  static published = true;
+  static published = false;
   static singleton = false;
   static autoStart = false;
   static skipExecutionOfNewAccount = false;

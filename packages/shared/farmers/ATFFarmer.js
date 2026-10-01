@@ -38,6 +38,7 @@ const RECORD_NAVIGATION_BATCH = true;
 const RECORD_DAILY_INTERACTION = false;
 
 export default class ATFFarmer extends BaseFarmer {
+  static published = true;
   static id = "atf";
   static title = "ATF";
   static emoji = "🪙";
@@ -46,7 +47,6 @@ export default class ATFFarmer extends BaseFarmer {
   static telegramLink = "https://t.me/ATF_AIRDROP_bot?start=8577109758";
   static path = "/miner/index.html";
   static interval = "0 * * * *";
-  static referrerMode = "random";
   static apiDelay = 500;
   static rating = 5;
   static netRequest = {

@@ -4,6 +4,8 @@ import { fileURLToPath } from "node:url";
 
 import createRunner from "./Runner.js";
 
+const ENABLE_UNPUBLISHED_FARMERS = env("ENABLE_UNPUBLISHED_FARMERS", false);
+
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const farmers = {};
@@ -21,7 +23,7 @@ for (const file of farmerClasses) {
     (m) => m.default,
   );
 
-  if (FarmerClass.published) {
+  if (FarmerClass.published || ENABLE_UNPUBLISHED_FARMERS) {
     farmers[FarmerClass.id] = createRunner(FarmerClass);
   }
 }

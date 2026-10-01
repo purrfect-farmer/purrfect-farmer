@@ -68,8 +68,11 @@ export default function createRunner(FarmerClass) {
   /** Telegram bot link */
   const telegramLink = getFarmerEnv("LINK", FarmerClass.telegramLink);
 
+  const defaultReferrerMode = env("DEFAULT_REFERRER_MODE", "single");
+  const farmerReferrerMode = getFarmerEnv("REFERRER_MODE", defaultReferrerMode);
+
   /** Referrer mode */
-  const referrerMode = getFarmerEnv("REFERRER_MODE", FarmerClass.referrerMode);
+  const referrerMode = farmerReferrerMode || FarmerClass.referrerMode;
 
   /** Default primary account ID */
   const defaultPrimaryAccountId = env("PRIMARY_ACCOUNT_ID");

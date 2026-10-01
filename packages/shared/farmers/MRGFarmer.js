@@ -139,7 +139,6 @@ export default class MRGFarmer extends BaseFarmer {
   static telegramLink = "https://t.me/mrgminerbot/app?startapp=ref_T90OGL9E";
   static path = "/";
   static interval = "0 * * * *";
-  static referrerMode = "random";
   static apiDelay = 500;
   static rating = 5;
   static published = false;
