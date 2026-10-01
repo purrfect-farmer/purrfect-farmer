@@ -34,6 +34,9 @@ const DEVICE_ID_MODE = "random";
 /* Record navigation batch */
 const RECORD_NAVIGATION_BATCH = true;
 
+/** Record Daily Interaction */
+const RECORD_DAILY_INTERACTION = false;
+
 export default class ATFFarmer extends BaseFarmer {
   static id = "atf";
   static title = "ATF";
@@ -334,6 +337,10 @@ export default class ATFFarmer extends BaseFarmer {
 
   /** Record Daily Interaction */
   async recordDailyInteraction() {
+    if (!RECORD_DAILY_INTERACTION) {
+      return;
+    }
+
     await this.makeAction("record_daily_interaction", {
       scroll_pixels: 100 + Math.floor(Math.random() * 100),
       foreground_seconds: 1 + Math.floor(Math.random() * 100),
