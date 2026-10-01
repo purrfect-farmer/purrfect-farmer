@@ -12,7 +12,9 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 // Pass --options via CLI arguments in command to enable these options.
-export const options = {};
+export const options = {
+  logger: process.env.NODE_ENV !== "production",
+};
 
 export default async function (fastify, opts) {
   // Place here your custom code!
