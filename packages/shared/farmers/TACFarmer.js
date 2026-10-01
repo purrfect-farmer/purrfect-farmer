@@ -55,7 +55,6 @@ export default class TACFarmer extends BaseFarmer {
   static interval = "0 * * * *";
   static apiDelay = 500;
   static rating = 5;
-  static published = false;
 
   static auto = {
     id: "tac-auto",
