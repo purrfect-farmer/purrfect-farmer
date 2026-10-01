@@ -27,6 +27,9 @@ const TASK_DWELL_SECONDS = 15;
 /** Miner levels come 20 to a page */
 const LEVELS_PER_PAGE = 20;
 
+/** Pause between levels when upgrading step by step */
+const UPGRADE_STEP_DELAY_SECONDS = 1;
+
 /** Whether to buy the highest level the assets cover on every pass */
 const AUTO_UPGRADE_LEVEL = true;
 
@@ -1038,6 +1041,13 @@ export default class TACFarmer extends BaseFarmer {
             action: this.upgradeLevelInteractive.bind(this),
             dispatch: false,
           },
+          {
+            id: "upgrade-to-level",
+            icon: "reconnect",
+            title: "Upgrade Step by Step",
+            action: this.upgradeStepByStepInteractive.bind(this),
+            dispatch: false,
+          },
         ],
       },
       {
@@ -1161,6 +1171,52 @@ export default class TACFarmer extends BaseFarmer {
     }
 
     await this.upgradeToLevel(level);
+  }
+
+  /** Buy every level from the next one up to a target, prompting for the target */
+  async upgradeStepByStepInteractive() {
+    await this.ensureStateLoaded();
+
+    const currentLevel = Number(this.getUserDetails()["currentLevel"]) || 1;
+    const input = await this.promptInput(
+      `Upgrade from level ${currentLevel} up to which level?`,
+    );
+    const targetLevel = Number((input || "").trim());
+
+    if (!Number.isInteger(targetLevel) || targetLevel <= currentLevel) {
+      this.logger.warn(`Enter a level above ${currentLevel}.`);
+      return;
+    }
+
+    return this.upgradeStepByStep(targetLevel);
+  }
+
+  /** Buy each level in turn up to a target, stopping at the first refusal */
+  async upgradeStepByStep(targetLevel) {
+    const startLevel = Number(this.getUserDetails()["currentLevel"]) || 1;
+
+    this.logger.info(`Upgrading from level ${startLevel} to ${targetLevel}...`);
+
+    for (let level = startLevel + 1; level <= targetLevel; level++) {
+      if (this.signal.aborted) break;
+
+      const { status } = await this.upgradeToLevel(level);
+
+      if (!status) {
+        this.logger.error(`Stopped at level ${level - 1}.`);
+        return { status: false, level: level - 1 };
+      }
+
+      await this.utils.delayForSeconds(UPGRADE_STEP_DELAY_SECONDS, {
+        signal: this.signal,
+      });
+    }
+
+    const reached = Number(this.getUserDetails()["currentLevel"]) || startLevel;
+
+    this.logger.success(`Reached level ${reached}.`);
+
+    return { status: reached >= targetLevel, level: reached };
   }
 
   /** Report what an amount would mine, prompting for it */
