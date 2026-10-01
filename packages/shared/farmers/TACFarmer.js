@@ -601,7 +601,7 @@ export default class TACFarmer extends BaseFarmer {
     return reachable;
   }
 
-  /** Buy the highest level the assets cover */
+  /** Climb one level at a time to the highest level the holding and pool cover */
   async upgradeAffordableLevel() {
     if (!AUTO_UPGRADE_LEVEL) return;
 
@@ -618,7 +618,7 @@ export default class TACFarmer extends BaseFarmer {
       return;
     }
 
-    return this.upgradeToLevel(targetLevel);
+    return this.upgradeStepByStep(targetLevel);
   }
 
   /** Buy a level, reporting whether the drop charged the pool for it */
