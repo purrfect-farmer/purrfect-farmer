@@ -401,6 +401,18 @@ export default class BaseTelegramWebClient extends TelegramClient {
     });
   }
 
+  /** Get 2FA State */
+  getPasswordState() {
+    return this.execute(() => this.invoke(new Api.account.GetPassword()));
+  }
+
+  /** Update 2FA (no newPassword removes it) */
+  updateTwoFa({ currentPassword, newPassword, hint }) {
+    return this.execute(() =>
+      this.updateTwoFaSettings({ currentPassword, newPassword, hint }),
+    );
+  }
+
   /** Delete and Block Bot */
   async deleteAndBlockBot(entity) {
     return this.execute(async () => {
