@@ -3,7 +3,11 @@ import {
   getWalletAddressesFromPublicKey,
   keypairFromMnemonic,
 } from "@purrfect/shared/lib/ton/wallet";
-import { MdOutlineContentCopy, MdVisibility, MdVisibilityOff } from "react-icons/md";
+import {
+  MdOutlineContentCopy,
+  MdVisibility,
+  MdVisibilityOff,
+} from "react-icons/md";
 import { useEffect, useState } from "react";
 
 import Alert from "@/components/Alert";
@@ -106,7 +110,8 @@ export default function TonWalletDeriver() {
 
         {!passphrase && (
           <Alert variant="warning">
-            Without a passphrase anyone who knows this ID can rebuild the wallet.
+            Without a passphrase anyone who knows this ID can rebuild the
+            wallet.
           </Alert>
         )}
 
@@ -126,7 +131,7 @@ export default function TonWalletDeriver() {
               value={address}
               canCopy
               link={`https://tonviewer.com/${address}`}
-              valueClassName="font-mono text-sm"
+              valueClassName="font-mono"
             />
           ))}
 
@@ -134,7 +139,7 @@ export default function TonWalletDeriver() {
             label="Public Key"
             value={result.publicKey}
             canCopy
-            valueClassName="font-mono text-sm"
+            valueClassName="font-mono"
           />
 
           {/* Secrets */}
@@ -165,9 +170,11 @@ export default function TonWalletDeriver() {
                 {result.words.map((word, index) => (
                   <span
                     key={index}
-                    className="px-2 py-1 rounded-lg bg-white dark:bg-neutral-800 font-mono text-sm"
+                    className="px-2 py-1 rounded-lg bg-white dark:bg-neutral-800 font-mono"
                   >
-                    <span className="text-neutral-400">{index + 1}.</span>{" "}
+                    <span className="text-neutral-400 select-none">
+                      {index + 1}.
+                    </span>{" "}
                     {word}
                   </span>
                 ))}
@@ -181,7 +188,7 @@ export default function TonWalletDeriver() {
             label="Secret Key"
             value={revealed ? result.secretKey : "Hidden"}
             canCopy={revealed}
-            valueClassName="font-mono text-sm"
+            valueClassName="font-mono"
           />
         </div>
       )}
