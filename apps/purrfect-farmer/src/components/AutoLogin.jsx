@@ -76,7 +76,6 @@ export default function AutoLogin() {
                 <PasswordInput
                   {...field}
                   disabled={isSubmitting}
-                  type="password"
                   autoComplete="off"
                   placeholder="Password"
                 />

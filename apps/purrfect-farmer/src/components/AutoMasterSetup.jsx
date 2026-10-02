@@ -7,6 +7,7 @@ import Container from "./Container";
 import { Dialog } from "radix-ui";
 import FieldStateError from "./FieldStateError";
 import Input from "./Input";
+import PasswordInput from "./PasswordInput";
 import { LuArrowDownUp } from "react-icons/lu";
 import { MdOutlineAutorenew } from "react-icons/md";
 import PrimaryButton from "./PrimaryButton";
@@ -228,10 +229,9 @@ export default function AutoMasterSetup() {
                 name="password"
                 render={({ field, fieldState }) => (
                   <>
-                    <Input
+                    <PasswordInput
                       {...field}
                       disabled={isSubmitting}
-                      type="password"
                       autoComplete="off"
                       placeholder="Password"
                     />

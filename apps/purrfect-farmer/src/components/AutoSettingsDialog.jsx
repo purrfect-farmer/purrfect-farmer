@@ -6,8 +6,8 @@ import Button from "./Button";
 import CenteredDialog from "./CenteredDialog";
 import FieldStateError from "./FieldStateError";
 import { HiCog6Tooth } from "react-icons/hi2";
-import Input from "./Input";
 import Label from "./Label";
+import PasswordInput from "./PasswordInput";
 import bcrypt from "bcryptjs";
 import { encryption } from "@/services/encryption";
 import toast from "react-hot-toast";
@@ -149,10 +149,9 @@ export default function AutoSettingsDialog() {
               render={({ field, fieldState }) => (
                 <>
                   <Label>Current Password</Label>
-                  <Input
+                  <PasswordInput
                     {...field}
                     disabled={form.formState.isSubmitting}
-                    type="password"
                     autoComplete="off"
                     placeholder="Current Password"
                   />
@@ -168,10 +167,9 @@ export default function AutoSettingsDialog() {
               render={({ field, fieldState }) => (
                 <>
                   <Label>New Password</Label>
-                  <Input
+                  <PasswordInput
                     {...field}
                     disabled={form.formState.isSubmitting}
-                    type="password"
                     autoComplete="off"
                     placeholder="New Password"
                   />

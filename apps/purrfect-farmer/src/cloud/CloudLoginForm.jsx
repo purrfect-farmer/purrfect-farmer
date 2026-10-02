@@ -1,5 +1,6 @@
 import * as yup from "yup";
 import Input from "@/components/Input";
+import PasswordInput from "@/components/PasswordInput";
 import PrimaryButton from "@/components/PrimaryButton";
 import WelcomeIcon from "@/assets/images/icon-unwrapped-cropped.png?format=webp&h=224";
 import toast from "react-hot-toast";
@@ -110,9 +111,8 @@ export default function CloudLoginForm() {
             name="password"
             render={({ field, fieldState }) => (
               <>
-                <Input
+                <PasswordInput
                   {...field}
-                  type="password"
                   autoComplete="off"
                   placeholder="Password"
                 />

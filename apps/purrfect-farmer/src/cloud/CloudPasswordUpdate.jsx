@@ -1,5 +1,5 @@
 import * as yup from "yup";
-import Input from "@/components/Input";
+import PasswordInput from "@/components/PasswordInput";
 import PrimaryButton from "@/components/PrimaryButton";
 import toast from "react-hot-toast";
 import useCloudManagerPasswordUpdateMutation from "@/hooks/useCloudManagerPasswordUpdateMutation";
@@ -58,9 +58,8 @@ export default function CloudPasswordUpdate() {
             name="currentPassword"
             render={({ field, fieldState }) => (
               <>
-                <Input
+                <PasswordInput
                   {...field}
-                  type="password"
                   autoComplete="off"
                   placeholder="Current Password"
                 />
@@ -77,9 +76,8 @@ export default function CloudPasswordUpdate() {
             name="newPassword"
             render={({ field, fieldState }) => (
               <>
-                <Input
+                <PasswordInput
                   {...field}
-                  type="password"
                   autoComplete="off"
                   placeholder="New Password"
                 />
