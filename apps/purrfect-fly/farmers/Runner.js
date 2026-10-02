@@ -991,12 +991,42 @@ export default function createRunner(FarmerClass) {
       };
     }
 
-    /** Notify that the primary account is not configured or not found */
+    /** Explain why the primary account was left out of the run
+     * @param {Array} accountsWithFarmer
+     */
+    static getPrimaryAccountMissingReason(accountsWithFarmer) {
+      if (!this.primaryAccountId) return "not-configured";
+
+      const account = accountsWithFarmer.find(
+        (acc) => acc.id === this.primaryAccountId,
+      );
+
+      if (!account) return "not-found";
+      if (this.platform !== "telegram" && !account.farmer) return "no-farmer";
+      if (["frozen", "banned"].includes(account.farmer?.status)) {
+        return account.farmer.status;
+      }
+      if (this.terminated.has(account.id)) return "terminated";
+      if (!account.farmingEnabled) return "farming-disabled";
+
+      return "not-found";
+    }
+
+    /** Notify that the primary account is not configured or not runnable */
     static async notifyPrimaryAccountMissing(reason) {
+      const account = `primary account (<code>${this.primaryAccountId}</code>)`;
+      const details = {
+        "not-configured": "primary account is not configured",
+        "not-found": `${account} not found or has no active subscription`,
+        "no-farmer": `${account} has no farmer`,
+        frozen: `${account} farmer is frozen`,
+        banned: `${account} farmer is banned`,
+        terminated: `${account} is terminated`,
+        "farming-disabled": `${account} has farming disabled`,
+      };
+
       const messages = [
-        reason === "not-configured"
-          ? `⚠️ <b>${this.title} Farmer</b>: primary account is not configured`
-          : `⚠️ <b>${this.title} Farmer</b>: primary account (<code>${this.primaryAccountId}</code>) not found`,
+        `⚠️ <b>${this.title} Farmer</b>: ${details[reason]}`,
         `<i>New accounts will not auto-start.</i>`,
       ];
 
@@ -1060,7 +1090,7 @@ export default function createRunner(FarmerClass) {
             this.primaryAccountWarning = null;
           } else {
             await this.notifyPrimaryAccountMissing(
-              this.primaryAccountId ? "not-found" : "not-configured",
+              this.getPrimaryAccountMissingReason(accountsWithFarmer),
             );
           }
         }
