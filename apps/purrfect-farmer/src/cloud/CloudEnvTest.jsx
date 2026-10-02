@@ -26,7 +26,7 @@ export default function CloudEnvTest({ service, getValues, disabled }) {
       </Button>
 
       {results ? (
-        <ul className="flex flex-col gap-1 text-sm">
+        <ul className="flex flex-col gap-1">
           {results.map((result, index) => (
             <li
               key={index}

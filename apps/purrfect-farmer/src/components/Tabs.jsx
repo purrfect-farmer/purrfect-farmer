@@ -24,6 +24,7 @@ const handleTriggerClick = (ev) => {
 const Tabs = ({
   children,
   rootClassName,
+  containerClassName,
   listClassName,
   renderList = defaultRenderList,
   triggerClassName,
@@ -34,7 +35,7 @@ const Tabs = ({
       {...tabs.rootProps}
       className={cn("flex flex-col gap-2", rootClassName)}
     >
-      <Container className="p-0 shrink-0">
+      <Container className={cn("p-0 shrink-0", containerClassName)}>
         <TabsPrimitive.List
           className={cn("grid", GRID_SIZES[tabs.list.length], listClassName)}
         >

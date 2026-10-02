@@ -45,6 +45,7 @@
     "date-fns": "^4.4.0",
     "decimal.js": "^10.6.0",
     "deepmerge": "^4.3.1",
+    "diff": "^9.0.0",
     "dotenv": "^17.4.2",
     "fastify": "^5.12.5",
     "fastify-cli": "^7.4.1",

@@ -1,4 +1,5 @@
-import { HiOutlineArrowPath, HiOutlineSparkles } from "react-icons/hi2";
+import { HiOutlineArrowPath } from "react-icons/hi2";
+import { LuDices } from "react-icons/lu";
 import { MdVisibility, MdVisibilityOff } from "react-icons/md";
 import { useController, useFormContext } from "react-hook-form";
 
@@ -92,7 +93,7 @@ const SecretInput = ({ field, secret, controller, disabled }) => {
             "bg-neutral-200 dark:bg-neutral-900 disabled:opacity-50",
           )}
         >
-          <HiOutlineSparkles className="size-4" /> Generate
+          <LuDices className="size-4" /> Generate
         </button>
       ) : null}
     </div>

@@ -64,18 +64,18 @@ const EnvEditor = () => {
 
       {/* Kept mounted while reviewing so edits survive going back */}
       <div className={review ? "hidden" : "contents"}>
-        <Tabs tabs={tabs}>
-          <Tabs.Content value="settings">
+        <Tabs tabs={tabs} containerClassName="max-w-none">
+          <Tabs.Content value="settings" className="max-w-none">
             <CloudEnvSettings onReview={onReview} />
           </Tabs.Content>
 
-          <Tabs.Content value="advanced">
+          <Tabs.Content value="advanced" className="max-w-none">
             {tabs.value === "advanced" ? (
               <CloudEnvAdvanced onReview={onReview} />
             ) : null}
           </Tabs.Content>
 
-          <Tabs.Content value="backups">
+          <Tabs.Content value="backups" className="max-w-none">
             {tabs.value === "backups" ? (
               <CloudEnvBackups onReview={onReview} />
             ) : null}

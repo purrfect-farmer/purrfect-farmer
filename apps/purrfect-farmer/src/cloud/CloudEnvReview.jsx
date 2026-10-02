@@ -1,35 +1,39 @@
+import "react-diff-view/style/index.css";
+
+import {
+  Decoration,
+  Diff,
+  Hunk,
+  markEdits,
+  parseDiff,
+  tokenize,
+} from "react-diff-view";
 import Alert from "@/components/Alert";
 import Button from "@/components/Button";
 import LabelToggle from "@/components/LabelToggle";
 import PrimaryButton from "@/components/PrimaryButton";
-import { cn } from "@/utils";
 import { useMemo } from "react";
 import { useState } from "react";
 
-/** Unchanged lines kept around each change */
-const CONTEXT_LINES = 2;
+/** Parse the server patch, the parser needs a git header */
+const parsePatch = (patch) => {
+  if (!patch) return null;
 
-/** Collapse long unchanged runs of the diff */
-const collapseDiff = (diff) => {
-  const keep = diff.map((item, index) =>
-    diff
-      .slice(Math.max(0, index - CONTEXT_LINES), index + CONTEXT_LINES + 1)
-      .some((other) => other.type !== "same"),
-  );
+  const [file] = parseDiff(`diff --git a/.env b/.env\n${patch}`);
+  if (!file) return null;
 
-  const output = [];
-  diff.forEach((item, index) => {
-    if (keep[index]) output.push(item);
-    else if (output.at(-1)?.type !== "gap") output.push({ type: "gap" });
-  });
-
-  return output;
+  return {
+    file,
+    tokens: tokenize(file.hunks, {
+      enhancers: [markEdits(file.hunks, { type: "block" })],
+    }),
+  };
 };
 
 export default function CloudEnvReview({ preview, isPending, onBack, onConfirm }) {
   const [restart, setRestart] = useState(true);
-  const lines = useMemo(() => collapseDiff(preview.diff), [preview.diff]);
-  const hasChanges = preview.diff.some((item) => item.type !== "same");
+  const diff = useMemo(() => parsePatch(preview.patch), [preview.patch]);
+  const hasChanges = Boolean(diff);
 
   return (
     <div className="flex flex-col gap-2">
@@ -40,30 +44,22 @@ export default function CloudEnvReview({ preview, isPending, onBack, onConfirm }
       ))}
 
       {hasChanges ? (
-        <div className="overflow-auto text-xs rounded-lg bg-neutral-100 dark:bg-neutral-900 max-h-96">
-          <pre className="p-2 font-mono">
-            {lines.map((item, index) =>
-              item.type === "gap" ? (
-                <div key={index} className="text-neutral-400">
-                  ⋯
-                </div>
-              ) : (
-                <div
-                  key={index}
-                  className={cn(
-                    "whitespace-pre-wrap break-all",
-                    item.type === "added" &&
-                      "bg-green-500/20 text-green-700 dark:text-green-400",
-                    item.type === "removed" &&
-                      "bg-red-500/20 text-red-700 dark:text-red-400",
-                  )}
-                >
-                  {item.type === "added" ? "+ " : item.type === "removed" ? "- " : "  "}
-                  {item.line}
-                </div>
-              ),
-            )}
-          </pre>
+        <div className="env-diff overflow-auto text-xs rounded-lg bg-neutral-100 dark:bg-neutral-900 max-h-96">
+          <Diff
+            viewType="unified"
+            diffType={diff.file.type}
+            hunks={diff.file.hunks}
+            tokens={diff.tokens}
+          >
+            {(hunks) =>
+              hunks.flatMap((hunk) => [
+                <Decoration key={`decoration-${hunk.content}`}>
+                  <span className="text-neutral-400">{hunk.content}</span>
+                </Decoration>,
+                <Hunk key={hunk.content} hunk={hunk} />,
+              ])
+            }
+          </Diff>
         </div>
       ) : (
         <Alert variant="info">Nothing changes in the file.</Alert>

@@ -1,9 +1,8 @@
 import {
   applyChanges,
-  diffLines,
+  createEnvPatch,
   findInvalidLines,
   isValidKey,
-  maskLine,
   maskSecret,
   parseEnv,
 } from "./env-file.js";
@@ -357,10 +356,7 @@ export default function registerEnvRoutes(fastify) {
       return {
         changedKeys,
         warnings,
-        diff: diffLines(before, after).map((item) => ({
-          ...item,
-          line: maskLine(item.line, secretKeys),
-        })),
+        patch: createEnvPatch(before, after, secretKeys),
       };
     },
   );

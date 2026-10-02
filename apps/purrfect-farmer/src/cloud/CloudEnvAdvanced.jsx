@@ -52,7 +52,7 @@ const AdvancedForm = ({ initialData, onReview }) => {
               />
               <FieldStateError
                 fieldState={fieldState}
-                className="text-sm whitespace-pre-line"
+                className="whitespace-pre-line"
               />
             </>
           )}

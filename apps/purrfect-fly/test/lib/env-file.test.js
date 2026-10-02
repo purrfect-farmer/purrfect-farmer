@@ -1,7 +1,7 @@
 import {
   applyChanges,
   createEnvStore,
-  diffLines,
+  createEnvPatch,
   findInvalidLines,
   formatValue,
   maskLine,
@@ -86,14 +86,23 @@ test("garbage lines are reported", () => {
   assert.deepEqual(findInvalidLines("A=1\noops\n# fine\n\nB=2\n"), [2]);
 });
 
-test("diff marks added and removed lines", () => {
-  const diff = diffLines("A=1\nB=2\n", "A=1\nB=3\n");
+test("patch marks added and removed lines", () => {
+  const patch = createEnvPatch("A=1\nB=2\n", "A=1\nB=3\n");
 
-  assert.deepEqual(diff, [
-    { type: "same", line: "A=1" },
-    { type: "removed", line: "B=2" },
-    { type: "added", line: "B=3" },
-  ]);
+  assert.match(patch, /^@@ -1,2 \+1,2 @@\n A=1\n-B=2\n\+B=3$/m);
+  assert.equal(createEnvPatch("A=1\n", "A=1\n"), "");
+});
+
+test("patch masks secret values", () => {
+  const patch = createEnvPatch(
+    "TOKEN=1234567890abc\n",
+    "TOKEN=1234567890xyz\n",
+    new Set(["TOKEN"]),
+  );
+
+  assert.match(patch, /^-TOKEN=123•••abc$/m);
+  assert.match(patch, /^\+TOKEN=123•••xyz$/m);
+  assert.doesNotMatch(patch, /4567890/);
 });
 
 test("secret lines are masked", () => {

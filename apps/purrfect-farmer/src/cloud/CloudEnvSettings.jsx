@@ -6,6 +6,7 @@ import CloudEnvTest from "./CloudEnvTest";
 import Input from "@/components/Input";
 import PrimaryButton from "@/components/PrimaryButton";
 import { cn } from "@/utils";
+import { farmersMap } from "@/core/farmers";
 import useCloudManagerEnvPreviewMutation from "@/hooks/useCloudManagerEnvPreviewMutation";
 import useCloudManagerEnvSettingsQuery from "@/hooks/useCloudManagerEnvSettingsQuery";
 
@@ -42,6 +43,7 @@ const SettingsGroup = ({ group, fields, data, resets, toggleReset, getTestValues
   const changed = fields.filter(
     (field) => dirtyFields[field.key] || resets.has(field.key),
   ).length;
+  const farmer = group.farmer ? farmersMap?.get(group.farmer) : null;
 
   return (
     <details
@@ -49,7 +51,12 @@ const SettingsGroup = ({ group, fields, data, resets, toggleReset, getTestValues
       className="rounded-xl bg-neutral-50 dark:bg-neutral-900 group"
     >
       <summary className="flex items-center gap-2 p-3 font-bold cursor-pointer">
-        <span className="grow min-w-0 truncate">{group.title}</span>
+        {farmer?.icon ? (
+          <img src={farmer.icon} className="w-6 h-6 rounded-full shrink-0" />
+        ) : null}
+        <span className="grow min-w-0 truncate">
+          {farmer?.title || group.title}
+        </span>
         {changed ? (
           <span className="px-2 text-xs text-white bg-blue-500 rounded-full">
             {changed} changed
@@ -59,7 +66,7 @@ const SettingsGroup = ({ group, fields, data, resets, toggleReset, getTestValues
 
       <div className="flex flex-col gap-4 px-3 pb-3">
         {group.description ? (
-          <p className="text-sm text-neutral-500 dark:text-neutral-400">
+          <p className="text-neutral-500 dark:text-neutral-400">
             {group.description}
           </p>
         ) : null}

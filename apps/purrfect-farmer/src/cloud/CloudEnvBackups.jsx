@@ -30,7 +30,7 @@ export default function CloudEnvBackups({ onReview }) {
 
   return (
     <div className="flex flex-col gap-2">
-      <p className="text-sm text-center text-neutral-500 dark:text-neutral-400">
+      <p className="text-center text-neutral-500 dark:text-neutral-400">
         A backup is saved before every change. The last 10 are kept.
       </p>
 

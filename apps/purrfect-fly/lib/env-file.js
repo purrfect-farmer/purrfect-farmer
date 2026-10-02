@@ -1,3 +1,5 @@
+import { formatPatch, structuredPatch } from "diff";
+
 import dotenv from "dotenv";
 import fs from "node:fs";
 import fsp from "node:fs/promises";
@@ -11,6 +13,9 @@ const MAX_BACKUPS = 10;
 
 /** Matches an assignment line and captures its key */
 const ASSIGNMENT_REGEX = /^\s*(?:export\s+)?([\w.-]+)\s*=/;
+
+/** Unchanged lines kept around each change in a diff */
+const DIFF_CONTEXT_LINES = 2;
 
 /** Valid key names */
 const KEY_REGEX = /^[A-Za-z_][A-Za-z0-9_]*$/;
@@ -193,42 +198,20 @@ export function isValidKey(key) {
   return KEY_REGEX.test(key);
 }
 
-/** Line diff between two contents using LCS */
-export function diffLines(before, after) {
-  const a = splitLines(before);
-  const b = splitLines(after);
-  const table = Array.from({ length: a.length + 1 }, () =>
-    new Array(b.length + 1).fill(0),
-  );
+/** Unified diff between two contents with secret values masked, empty when unchanged */
+export function createEnvPatch(before, after, secretKeys = new Set()) {
+  const patch = structuredPatch(".env", ".env", before, after, "", "", {
+    context: DIFF_CONTEXT_LINES,
+  });
+  if (!patch.hunks.length) return "";
 
-  for (let i = a.length - 1; i >= 0; i--) {
-    for (let j = b.length - 1; j >= 0; j--) {
-      table[i][j] =
-        a[i] === b[j]
-          ? table[i + 1][j + 1] + 1
-          : Math.max(table[i + 1][j], table[i][j + 1]);
-    }
-  }
+  patch.hunks.forEach((hunk) => {
+    hunk.lines = hunk.lines.map((line) =>
+      /^[ +-]/.test(line) ? line[0] + maskLine(line.slice(1), secretKeys) : line,
+    );
+  });
 
-  const result = [];
-  let i = 0;
-  let j = 0;
-
-  while (i < a.length || j < b.length) {
-    if (i < a.length && j < b.length && a[i] === b[j]) {
-      result.push({ type: "same", line: a[i] });
-      i++;
-      j++;
-    } else if (j < b.length && (i >= a.length || table[i][j + 1] > table[i + 1][j])) {
-      result.push({ type: "added", line: b[j] });
-      j++;
-    } else {
-      result.push({ type: "removed", line: a[i] });
-      i++;
-    }
-  }
-
-  return result;
+  return formatPatch(patch);
 }
 
 /** Short preview of a secret */

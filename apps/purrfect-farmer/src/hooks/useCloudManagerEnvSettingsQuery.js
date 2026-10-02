@@ -7,6 +7,9 @@ export default function useCloudManagerEnvSettingsQuery() {
 
   return useQuery({
     retry: (count, error) => error.response?.status !== 404 && count < 3,
+    /** A refetch remounts the form and drops open groups and edits */
+    refetchOnWindowFocus: false,
+    refetchInterval: false,
     queryKey: ["app", "cloud", "manager", "env", "settings", settings.cloudServer],
     queryFn: ({ signal }) =>
       cloudBackend
