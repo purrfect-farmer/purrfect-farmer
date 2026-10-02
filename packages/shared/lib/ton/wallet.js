@@ -5,6 +5,7 @@ import {
   WalletContractV5R1,
 } from "@ton/ton";
 import {
+  keyPairFromSecretKey,
   mnemonicNew,
   mnemonicToPrivateKey,
   mnemonicValidate,
@@ -23,6 +24,31 @@ export async function keypairFromMnemonic(mnemonic) {
     typeof mnemonic === "string" ? mnemonic.split(" ") : mnemonic,
   );
   return keyPair;
+}
+
+/** A key pair from a 12/24-word phrase or a 64-byte hex secret key */
+export async function keyPairFromPhraseOrSecretKey(input) {
+  const value = String(input || "").trim();
+
+  if (/^[0-9a-fA-F]+$/.test(value)) {
+    const secretKey = Buffer.from(value, "hex");
+
+    if (secretKey.length !== 64) {
+      throw new Error(
+        "Invalid secret key length. Expected 64 bytes (128 hex chars).",
+      );
+    }
+
+    return keyPairFromSecretKey(secretKey);
+  }
+
+  const mnemonic = value.split(/\s+/);
+
+  if (mnemonic.length !== 12 && mnemonic.length !== 24) {
+    throw new Error("Invalid mnemonic. Must be 12 or 24 words.");
+  }
+
+  return keypairFromMnemonic(mnemonic);
 }
 
 export function createWallet(publicKey, version) {

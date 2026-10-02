@@ -7,6 +7,8 @@ import {
   getMinerRequiredHolding,
   getMinerSpeed,
 } from "../lib/auto/minerCurve.js";
+import { buildTonProof } from "../lib/ton/proof.js";
+import { createWallet, keyPairFromPhraseOrSecretKey } from "../lib/ton/wallet.js";
 import { fetchTonApi } from "../lib/ton/tonapi.js";
 
 /** The drop's backend, which the mini app talks to for everything */
@@ -14,6 +16,9 @@ const API_URL = "https://mrg.up.railway.app/api";
 
 /** Mine Rare Gram, the jetton whose holding sets the miner level */
 const MRG_JETTON_ADDRESS = "EQDj-zlSvj4Au154XjsU7ATzt13p8JjYEs0weVv1rVbCJSn0";
+
+/** The domain the page signs its TON proof for */
+const TON_PROOF_DOMAIN = "app.mrgtoken.xyz";
 
 /** Cloudflare Turnstile guarding claims and withdrawals, as the human check renders it */
 const TURNSTILE_SITE_KEY = "0x4AAAAAAFI-XXL7bFNbLU_J";
@@ -180,9 +185,24 @@ export default class MRGFarmer extends BaseFarmer {
     return this.postToApi("/user/friends");
   }
 
-  /** Bind a wallet and report the holding read from the chain */
-  connectWallet(address, balance) {
-    return this.postToApi("/user/connect-wallet", { address, balance });
+  /** A fresh payload for the TON proof a new wallet is bound with */
+  async fetchTonProofPayload() {
+    const result = await this.postToApi("/user/ton-proof-payload");
+
+    if (!result?.["success"] || typeof result["payload"] !== "string") {
+      throw new Error(result?.["error"] || "Failed to get a TON proof payload");
+    }
+
+    return result["payload"];
+  }
+
+  /** Bind a wallet and report the holding, with a TON proof unless the wallet is already bound */
+  connectWallet(address, balance, tonProof) {
+    return this.postToApi("/user/connect-wallet", {
+      address,
+      balance,
+      tonProof: tonProof || undefined,
+    });
   }
 
   /** Unbind the wallet the account is on */
@@ -617,13 +637,42 @@ export default class MRGFarmer extends BaseFarmer {
     return this.connectWalletAddress(address);
   }
 
-  /** Read an address on-chain and bind it to the account */
+  /** Re-sync the bound address at its on-chain holding, which needs no proof */
   async connectWalletAddress(address) {
+    if (address !== this.getConnectedWalletAddress()) {
+      return {
+        status: false,
+        message: "MRG needs the wallet phrase to sign a TON proof",
+      };
+    }
+
     return this.reportWallet(address, await this.readOnChainHolding(address));
   }
 
+  /** Bind the wallet a key pair controls, signing the TON proof the drop asks for */
+  async connectSignedWallet(keyPair, version) {
+    const wallet = createWallet(keyPair.publicKey, Number(version));
+    const address = wallet.address.toString({ bounceable: false });
+    const holding = await this.readOnChainHolding(address);
+
+    const tonProof = await buildTonProof({
+      wallet,
+      secretKey: keyPair.secretKey,
+      domain: TON_PROOF_DOMAIN,
+      payload: await this.fetchTonProofPayload(),
+    });
+
+    const result = await this.reportWallet(address, holding, tonProof);
+
+    if (result.status) {
+      await this.rememberWalletVersion(version);
+    }
+
+    return result;
+  }
+
   /** Bind an address at the holding it is reported with, which the drop takes at face value */
-  async reportWallet(address, holding) {
+  async reportWallet(address, holding, tonProof) {
     const amount = new Decimal(holding);
 
     /** A different wallet holds different NFTs */
@@ -635,7 +684,11 @@ export default class MRGFarmer extends BaseFarmer {
       `Syncing ${address} at ${this.formatAmount(amount)} MRG...`,
     );
 
-    const result = await this.connectWallet(address, amount.toNumber());
+    const result = await this.connectWallet(
+      address,
+      amount.toNumber(),
+      tonProof,
+    );
 
     if (!result?.["success"]) {
       const message = result?.["error"] || "Failed to connect the wallet";
@@ -1337,6 +1390,38 @@ export default class MRGFarmer extends BaseFarmer {
     return this.getAutoSummary();
   }
 
+  /** Bind a wallet from its phrase, since the drop wants a signed TON proof */
+  async connectAutoWallet({ phrase, address, version, refresh = false }) {
+    if (!phrase) {
+      return super.connectAutoWallet({ address, version, refresh });
+    }
+
+    try {
+      await this.ensureStateLoaded();
+
+      const keyPair = await keyPairFromPhraseOrSecretKey(phrase);
+      const { status, message } = await this.connectSignedWallet(
+        keyPair,
+        version,
+      );
+
+      if (!status) {
+        return { status: false, message };
+      }
+
+      await this.afterAutoWalletConnected();
+
+      return {
+        status: true,
+        summary: refresh
+          ? await this.refreshAutoSummary()
+          : this.getAutoSummary(),
+      };
+    } catch (error) {
+      return { status: false, message: error.message || "Unknown error" };
+    }
+  }
+
   /** Put the account to work at the holding a boost just sent it */
   async startAutoMining() {
     await this.syncConnectedWallet();
@@ -1494,27 +1579,34 @@ export default class MRGFarmer extends BaseFarmer {
     ];
   }
 
-  /** Bind a wallet, prompting for its address */
+  /** Bind a wallet, prompting for the phrase that signs its TON proof */
   async connectWalletInteractive() {
-    const input = await this.promptInput("Enter your TON wallet address:");
-    const address = (input || "").trim();
+    const input = await this.promptInput(
+      "Enter your TON Wallet Phrase / Secret Key (hex):",
+    );
 
-    if (!address) {
-      this.logger.warn("No address provided.");
+    if (!(input || "").trim()) {
+      this.logger.warn("No phrase provided.");
       return;
     }
 
-    /** The drop only takes mainnet friendly (EQ/UQ) addresses */
-    if (!this.utils.isTonAddress(address, { raw: false, testnet: false })) {
-      this.logger.warn(
-        "Not a valid TON address - it should start with UQ or EQ.",
-      );
-      return;
-    }
+    const keyPair = await keyPairFromPhraseOrSecretKey(input);
+    const version = await this.promptInput({
+      type: "select",
+      text: "Select wallet version:",
+      options: [
+        { value: "5", label: "Wallet V5R1" },
+        { value: "4", label: "Wallet V4" },
+      ],
+    });
 
     await this.ensureStateLoaded();
-    await this.connectWalletAddress(address);
-    await this.unlockAffordableLevel();
+
+    const { status } = await this.connectSignedWallet(keyPair, version);
+
+    if (status) {
+      await this.unlockAffordableLevel();
+    }
   }
 
   /** Re-read the connected wallet on-chain and unlock what it now covers */

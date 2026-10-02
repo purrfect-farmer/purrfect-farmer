@@ -1,14 +1,9 @@
 import { WalletContractV4, WalletContractV5R1 } from "@ton/ton";
-import { beginCell, storeStateInit } from "@ton/core";
-import {
-  keyPairFromSecretKey,
-  mnemonicToWalletKey,
-  sha256,
-  sign,
-} from "@ton/crypto";
 
 import BaseFarmer from "../lib/BaseFarmer.js";
 import Decimal from "decimal.js";
+import { buildTonProof, getWalletStateInit } from "../lib/ton/proof.js";
+import { keyPairFromPhraseOrSecretKey } from "../lib/ton/wallet.js";
 
 /** Safety margin above the drop's minimum, so a scheduled run does not withdraw the instant it crosses it */
 const WITHDRAWAL_BUFFER = 200;
@@ -704,30 +699,8 @@ export default class ATFFarmer extends BaseFarmer {
   }
 
   /** Get Key Pair */
-  async getKeyPair(secretKeyOrMnemonic) {
-    let keyPair;
-    const isHex = /^[0-9a-fA-F]+$/.test(secretKeyOrMnemonic);
-    if (isHex) {
-      const secretKey = Buffer.from(secretKeyOrMnemonic, "hex");
-
-      if (secretKey.length !== 64) {
-        throw new Error(
-          "Invalid secret key length. Expected 64 bytes (128 hex chars).",
-        );
-      }
-
-      keyPair = keyPairFromSecretKey(secretKey);
-    } else {
-      const mnemonic = secretKeyOrMnemonic.split(/\s+/);
-
-      if (mnemonic.length !== 12 && mnemonic.length !== 24) {
-        throw new Error("Invalid mnemonic. Must be 12 or 24 words.");
-      }
-
-      keyPair = await mnemonicToWalletKey(mnemonic);
-    }
-
-    return keyPair;
+  getKeyPair(secretKeyOrMnemonic) {
+    return keyPairFromPhraseOrSecretKey(secretKeyOrMnemonic);
   }
 
   /** Connect Wallet Secret Key or Mnemonic */
@@ -811,11 +784,7 @@ export default class ATFFarmer extends BaseFarmer {
 
     this.logWallet(version, publicKey, address, rawAddress);
 
-    const walletStateInit = beginCell()
-      .store(storeStateInit(wallet.init))
-      .endCell()
-      .toBoc()
-      .toString("base64");
+    const walletStateInit = getWalletStateInit(wallet);
 
     const { proof } = await this.buildWalletProof(wallet, keyPair.secretKey);
 
@@ -867,50 +836,14 @@ export default class ATFFarmer extends BaseFarmer {
     const proofPayloadData = await this.getWalletProofPayload();
     const payload = proofPayloadData.payload;
 
-    const timestamp = Math.floor(Date.now() / 1000);
-    const domain = "atftoken.com";
-    const domainBuffer = Buffer.from(domain, "utf8");
-    const domainLenBuffer = Buffer.alloc(4);
-    domainLenBuffer.writeUInt32LE(domainBuffer.length);
-
-    const workchainBuffer = Buffer.alloc(4);
-    workchainBuffer.writeInt32BE(wallet.address.workChain);
-
-    const timestampBuffer = Buffer.alloc(8);
-    timestampBuffer.writeUInt32LE(timestamp & 0xffffffff, 0);
-    timestampBuffer.writeUInt32LE(Math.floor(timestamp / 0x100000000), 4);
-
-    const message = Buffer.concat([
-      Buffer.from("ton-proof-item-v2/", "utf8"),
-      workchainBuffer,
-      wallet.address.hash,
-      domainLenBuffer,
-      domainBuffer,
-      timestampBuffer,
-      Buffer.from(payload, "utf8"),
-    ]);
-
-    const messageHash = await sha256(message);
-    const fullMessage = Buffer.concat([
-      Buffer.from([0xff, 0xff]),
-      Buffer.from("ton-connect", "utf8"),
-      messageHash,
-    ]);
-    const fullMessageHash = await sha256(fullMessage);
-    const signature = sign(fullMessageHash, secretKey);
-
-    return {
+    const { proof } = await buildTonProof({
+      wallet,
+      secretKey,
+      domain: "atftoken.com",
       payload,
-      proof: {
-        timestamp,
-        domain: {
-          lengthBytes: domainBuffer.length,
-          value: domain,
-        },
-        payload,
-        signature: signature.toString("base64"),
-      },
-    };
+    });
+
+    return { payload, proof };
   }
 
   /** Whether a rejected withdrawal was rejected over the captcha */
