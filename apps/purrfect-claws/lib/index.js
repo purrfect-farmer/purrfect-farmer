@@ -1,5 +1,5 @@
 import CaptchaSolver from "@purrfect/shared/lib/CaptchaSolver.js";
-import ProxyManager from "@purrfect/shared/lib/ProxyManager.js";
+import ProxyManager from "@purrfect/shared/lib/proxy/ProxyManager.js";
 
 const proxyManager = new ProxyManager({
   provider: process.env.PROXY_PROVIDER,
