@@ -1,11 +1,11 @@
 /** Where the SDK sends everything, baked into each build as an obfuscated literal */
-const MONETAG_HOST = "e8ys.com";
+const MONETAG_HOST = "ill3.com";
 
 /** Where the drop's page loads the SDK from, reported back as `dmn` */
 const SDK_HOST = "libtl.com";
 
 /** The SDK build the drops' pages ship, sent as `sw_version` */
-const SDK_VERSION = "v1.870.0";
+const SDK_VERSION = "v1.931.0";
 
 /** Trades a locally generated device id for a stable one */
 const GIDRATOR_URL = "https://my.rtmark.net/gid.js";
@@ -275,25 +275,9 @@ export default class MonetagClient {
       throw new Error("Monetag returned a banner with no impression URL");
     }
 
-    const separator = impression.includes("?") ? "&" : "?";
+    await this.request(this.withCommonParams(impression, settings));
 
-    await this.request(
-      this.withCommonParams(`${impression}${separator}sdkp=1`, settings),
-    );
-
-    /* Viewability is reported separately, and only some banners carry it */
-    const viewability = banner?.["viewability_url"];
-
-    if (viewability) {
-      await this.request(this.withCommonParams(viewability, settings)).catch(
-        (error) => {
-          this.farmer.debugger?.log(
-            "Monetag viewability failed:",
-            error.message,
-          );
-        },
-      );
-    }
+    /* `viewability_url` is left alone: the SDK only fires it on a click */
   }
 
   /** Ask what the view resolved to, retried the way the SDK retries it */

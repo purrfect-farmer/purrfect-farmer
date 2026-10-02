@@ -12,13 +12,15 @@ await adsgram.watch(blockId);
 
 ## Flow
 
-1. `GET /adv?<signed query>` returns a banner carrying a list of `trackings`.
+1. `GET /adv?<signed query>` returns a banner carrying a list of `trackings`. It goes out
+   with `X-Color-Scheme`, `X-Is-Fullscreen` and `X-Viewport-Height`, as the SDK sends them.
 2. Fire `render`, then `show`.
 3. Wait `playbackSeconds` (20 by default). AdsGram decides server side whether the view
    was long enough to pay, so the wait is generous rather than minimal.
 4. Fire `reward` for a rewarded block, `skip` for an interstitial. A block with no step of
    the requested name is thrown on rather than tracked against the wrong one, which would
-   burn the impression for no credit.
+   burn the impression for no credit. A completion answered with `error` is thrown on,
+   which is the SDK's "not suitable" outcome.
 
 The tracker URLs come back already signed, so only their order matters.
 
@@ -45,6 +47,8 @@ obfuscator: evaluate the bundle and read the value passed to
 
 ## Gotchas
 
+- `int-` and `task-` prefixes are stripped from `blockId` before the request, as the SDK
+  does. Passing the id as the publisher's dashboard shows it is fine.
 - `chat_instance` is read from the raw initData, not `getInitDataUnsafe()`. It is a
   19-digit id, past `Number.MAX_SAFE_INTEGER`, and JSON-parsing it rounds off the last
   few digits.

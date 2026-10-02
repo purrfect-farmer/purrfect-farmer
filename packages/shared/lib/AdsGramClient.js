@@ -2,10 +2,13 @@
 const ADSGRAM_URL = "https://api.adsgram.ai";
 
 /** The SDK version the drops' pages load, which AdsGram keys request validation on */
-const SDK_VERSION = "2.2.0";
+const SDK_VERSION = "2.2.5";
 
 /** HMAC-SHA256 secret lifted from `sad.min.js`, re-extracted as the README describes */
 const SIGNING_SECRET = "qK8FwLlQdPDlAXzvMJIdZJsvFtXIQBea";
+
+/** Block id prefixes the SDK strips before asking for a banner */
+const BLOCK_PREFIXES = ["int-", "task-"];
 
 /** How long to leave a banner playing, generous because AdsGram judges the view server side */
 const PLAYBACK_SECONDS = 20;
@@ -20,6 +23,8 @@ export default class AdsGramClient {
    * @param {string} [options.platform] - `navigator.platform` to report
    * @param {string} [options.tgPlatform] - Telegram client platform
    * @param {string} [options.tmaVersion] - mini-app API version
+   * @param {string} [options.colorScheme] - `dark` or `light`
+   * @param {number} [options.viewportHeight] - mini-app viewport height
    */
   constructor(farmer, options = {}) {
     this.farmer = farmer;
@@ -29,6 +34,8 @@ export default class AdsGramClient {
     this.platform = options.platform || "Linux x86_64";
     this.tgPlatform = options.tgPlatform || "android";
     this.tmaVersion = options.tmaVersion || "8.0";
+    this.colorScheme = options.colorScheme || "dark";
+    this.viewportHeight = options.viewportHeight ?? 632;
   }
 
   /** The farmer's abort signal, read late so each run gets its own */
@@ -72,15 +79,29 @@ export default class AdsGramClient {
       signal: this.signal,
     });
 
-    await this.fireTracker(finish);
+    await this.completeTracker(finish, completion);
 
     return payload;
   }
 
-  /** Ask AdsGram for a banner */
+  /** Ask AdsGram for a banner, with the viewport headers the SDK sends */
   async requestBanner(blockId) {
     const query = await this.buildQuery(blockId);
-    return this.request(`${ADSGRAM_URL}/adv?${query}`);
+
+    return this.request(`${ADSGRAM_URL}/adv?${query}`, {
+      "X-Color-Scheme": this.colorScheme,
+      "X-Is-Fullscreen": "false",
+      "X-Viewport-Height": String(this.viewportHeight),
+    });
+  }
+
+  /** Fire the completion tracker, throwing when AdsGram refuses it as the SDK would */
+  async completeTracker(url, completion) {
+    const result = await this.request(url);
+
+    if (result?.error) {
+      throw new Error(`AdsGram refused "${completion}": ${result.error}`);
+    }
   }
 
   /** Fire one tracker, if the banner carried it */
@@ -93,9 +114,12 @@ export default class AdsGramClient {
   }
 
   /** Call AdsGram on the farmer's client, without the drop's `Authorization` */
-  request(url) {
+  request(url, headers = {}) {
     return this.farmer.api
-      .get(url, { signal: this.signal, headers: { Authorization: null } })
+      .get(url, {
+        signal: this.signal,
+        headers: { ...headers, Authorization: null },
+      })
       .then((res) => res.data);
   }
 
@@ -108,7 +132,7 @@ export default class AdsGramClient {
     const params = new URLSearchParams();
 
     params.set("envType", "telegram");
-    params.set("blockId", String(blockId));
+    params.set("blockId", this.stripBlockPrefix(blockId));
     params.set("platform", this.platform);
     params.set("language", farmer.getTelegramUser()?.["language_code"] || "en");
 
@@ -142,6 +166,14 @@ export default class AdsGramClient {
     params.set("raw", await this.sign(query));
 
     return params.toString();
+  }
+
+  /** The block id without its `int-`/`task-` prefix, as the SDK sends it */
+  stripBlockPrefix(blockId) {
+    const id = String(blockId);
+    const prefix = BLOCK_PREFIXES.find((item) => id.startsWith(item));
+
+    return prefix ? id.slice(prefix.length) : id;
   }
 
   /** Three random 32-bit values run together, as the SDK builds it */
