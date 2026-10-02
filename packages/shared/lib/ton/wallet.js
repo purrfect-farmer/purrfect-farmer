@@ -1,5 +1,16 @@
-import { WalletContractV4, WalletContractV5R1 } from "@ton/ton";
-import { mnemonicNew, mnemonicToPrivateKey } from "@ton/crypto";
+import {
+  WalletContractV3R1,
+  WalletContractV3R2,
+  WalletContractV4,
+  WalletContractV5R1,
+} from "@ton/ton";
+import {
+  mnemonicNew,
+  mnemonicToPrivateKey,
+  mnemonicValidate,
+  mnemonicWordList,
+  sha512,
+} from "@ton/crypto";
 
 /** A brand-new mnemonic, as a single space-separated phrase */
 export async function generateMnemonicPhrase() {
@@ -30,4 +41,37 @@ export async function getWalletAddressFromMnemonic(mnemonic, version) {
   return wallet.address.toString({
     bounceable: false,
   });
+}
+
+/** Mnemonic from SHA-512 of the ID, rehashed until it is a valid TON mnemonic */
+export async function deriveMnemonicFromTelegramId(id, passphrase = "") {
+  const text = passphrase ? `${id}:${passphrase}` : `${id}`;
+  let hash = await sha512(text);
+
+  while (true) {
+    const words = [];
+    for (let i = 0; i < 24; i++) {
+      words.push(
+        mnemonicWordList[((hash[2 * i] << 8) | hash[2 * i + 1]) % 2048],
+      );
+    }
+
+    if (await mnemonicValidate(words)) return words;
+    hash = await sha512(hash);
+  }
+}
+
+/** Non-bounceable addresses of every common wallet version for a public key */
+export function getWalletAddressesFromPublicKey(publicKey) {
+  return [
+    ["V3R1", WalletContractV3R1],
+    ["V3R2", WalletContractV3R2],
+    ["V4R2", WalletContractV4],
+    ["W5", WalletContractV5R1],
+  ].map(([version, Contract]) => ({
+    version,
+    address: Contract.create({ workchain: 0, publicKey }).address.toString({
+      bounceable: false,
+    }),
+  }));
 }

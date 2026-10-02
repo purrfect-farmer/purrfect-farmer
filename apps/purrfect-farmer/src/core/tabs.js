@@ -13,6 +13,7 @@ import TelegramToPurrfectGramIcon from "@/assets/images/telegram-to-purrfect-gra
 import TelegramWebAIcon from "@/assets/images/telegram-web-a.png?format=webp&w=80";
 import TelegramWebSessionIcon from "@/assets/images/telegram-web-session.png?format=webp&w=80";
 import TelegramWebKIcon from "@/assets/images/telegram-web-k.png?format=webp&w=80";
+import TonWalletDeriverIcon from "@/assets/images/toncoin-ton-logo.svg";
 import TinyFlyIcon from "@/assets/images/fly.png?format=webp&w=80";
 import WhiskersIcon from "@/assets/images/whiskers.png?format=webp&w=80";
 import autos from "./autos";
@@ -25,6 +26,7 @@ export const Browser = lazy(() => import("@/app/Browser"));
 export const TelegramWeb = lazy(() => import("@/app/TelegramWeb"));
 export const TelegramCleaner = lazy(() => import("@/app/TelegramCleaner"));
 export const ProfileEditor = lazy(() => import("@/app/ProfileEditor"));
+export const TonWalletDeriver = lazy(() => import("@/app/TonWalletDeriver"));
 export const QuickLogin = lazy(() => import("@/app/QuickLogin"));
 export const TinyFly = lazy(() => import("@/app/TinyFly"));
 export const HeadlessPicker = lazy(() => import("@/app/HeadlessPicker"));
@@ -114,6 +116,14 @@ export const utils = [
         title: "Profile Editor",
         icon: ProfileEditorIcon,
         component: createElement(ProfileEditor),
+      },
+
+      /** TON Wallet Deriver */
+      {
+        id: "ton-wallet-deriver",
+        title: "TON Wallet Deriver",
+        icon: TonWalletDeriverIcon,
+        component: createElement(TonWalletDeriver),
       },
 
       /** Quick Login */
