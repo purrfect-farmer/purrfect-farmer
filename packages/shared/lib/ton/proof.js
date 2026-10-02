@@ -26,9 +26,7 @@ export async function buildTonProof({
   workchainBuffer.writeInt32BE(wallet.address.workChain);
 
   const timestampBuffer = Buffer.alloc(8);
-  // buffer@5 polyfill has no BigInt methods, so write the u64 as two u32 halves
-  timestampBuffer.writeUInt32LE(timestamp % 2 ** 32, 0);
-  timestampBuffer.writeUInt32LE(Math.floor(timestamp / 2 ** 32), 4);
+  timestampBuffer.writeBigUInt64LE(BigInt(timestamp));
 
   const message = Buffer.concat([
     Buffer.from("ton-proof-item-v2/", "utf8"),

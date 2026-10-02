@@ -166,6 +166,9 @@ export default defineConfig(async ({ mode }) => {
         globals: {
           Buffer: false,
         },
+        overrides: {
+          buffer: "buffer",
+        },
       }),
       ViteEjsPlugin(env),
       react(),
