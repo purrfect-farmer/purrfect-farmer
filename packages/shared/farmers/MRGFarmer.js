@@ -8,6 +8,7 @@ import {
   getMinerSpeed,
 } from "../lib/auto/minerCurve.js";
 import { buildTonProof } from "../lib/ton/proof.js";
+import { findSliderX } from "../lib/sliderCaptcha.js";
 import { createWallet, keyPairFromPhraseOrSecretKey } from "../lib/ton/wallet.js";
 import { fetchTonApi } from "../lib/ton/tonapi.js";
 
@@ -1304,7 +1305,11 @@ export default class MRGFarmer extends BaseFarmer {
 
   /** Where the slider piece fits, as the `sliderX` the drop expects (0 to 263 on a 320px canvas) */
   async solveSliderCaptcha(challenge) {
-    throw new Error("Slider captcha solving is not implemented yet");
+    const sliderX = findSliderX(challenge);
+
+    this.logger.info("Slider captcha answer:", sliderX);
+
+    return sliderX;
   }
 
   /** Log the payouts the drop has not settled yet */
@@ -1759,6 +1764,7 @@ export default class MRGFarmer extends BaseFarmer {
     this.logger.keyValue("Piece Offset X", challenge["pieceOffsetX"]);
     this.logger.keyValue("Background", describe(challenge["bgImage"]));
     this.logger.keyValue("Piece", describe(challenge["pieceImage"]));
+    this.logger.keyValue("Slider X", findSliderX(challenge));
     this.logger.keyValue(
       "Other Fields",
       Object.keys(challenge)

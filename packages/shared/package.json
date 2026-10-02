@@ -30,6 +30,7 @@
     "decimal.js": "^10.6.0",
     "ethers": "^6.17.0",
     "events": "^3.3.0",
+    "fast-png": "^8.0.0",
     "hpagent": "^1.2.0",
     "http-cookie-agent": "^7.0.4",
     "md5": "^2.3.0",
