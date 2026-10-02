@@ -1,10 +1,26 @@
 import * as changeKeys from "change-case/keys";
 
+import Decimal from "decimal.js";
 import seedrandom from "seedrandom";
 import utils from "../utils/bundle.js";
+import {
+  getJettonBalance,
+  getWalletAddressFromMnemonic,
+} from "./auto/wallet.js";
 
 /** How many withdrawal records of each kind the snapshot carries */
 const SNAPSHOT_WITHDRAWAL_LIMIT = 2;
+
+/** The periods a daily mining rate is spread across, as label and multiple of a day */
+const MINING_RATE_PERIODS = [
+  ["Per Second", new Decimal(1).div(86400)],
+  ["Per Minute", new Decimal(1).div(1440)],
+  ["Per Hour", new Decimal(1).div(24)],
+  ["Per Day", new Decimal(1)],
+  ["Per 3 Days", new Decimal(3)],
+  ["Per Week (7d)", new Decimal(7)],
+  ["Per Month (30d)", new Decimal(30)],
+];
 
 export default class BaseFarmer {
   static id = "base-farmer";
@@ -36,7 +52,8 @@ export default class BaseFarmer {
   static skipExecutionOfNewAccount = false;
 
   /** Auto descriptor, declared by farmers opting into the Auto wallet system
-   * @type {null | { id: string, title: string, token: string, jettonAddress: string, storagePrefix: string }}
+   * `verifiable` drops answer `verifyAutoWallet`, which the Auto runs on demand
+   * @type {null | { id: string, title: string, token: string, jettonAddress: string, storagePrefix: string, verifiable?: boolean }}
    */
   static auto = null;
 
@@ -317,8 +334,10 @@ export default class BaseFarmer {
   /** Restore cached auth data */
   restoreCachedAuthData(data) {}
 
-  /** Load data */
-  load() {}
+  /** Load data, including the wallet version an Auto connected with */
+  async load() {
+    this.connectedWalletVersion = await this.storage?.get("walletVersion");
+  }
 
   /** Persist data */
   persist() {}
@@ -571,12 +590,100 @@ export default class BaseFarmer {
     return Number(this.constructor.auto?.minWithdrawal ?? 0);
   }
 
+  /** The drop's token symbol, as its Auto descriptor names it */
+  getAutoToken() {
+    return this.constructor.auto?.token || "";
+  }
+
+  /** Read the drop's state once, overridden by farmers that keep one */
+  async ensureStateLoaded() {}
+
+  /** Bind an address to the account, implemented by farmers using the default `connectAutoWallet`
+   * @returns {Promise<{ status: boolean, message?: string }>}
+   */
+  async connectWalletAddress(address) {
+    throw new Error(
+      "connectWalletAddress method must be implemented in subclass",
+    );
+  }
+
+  /** Runs once a wallet is bound by `connectAutoWallet`, for drops with a follow-up step */
+  async afterAutoWalletConnected() {}
+
   /** Link a TON wallet to the account and refresh the drop's view of it
    * @param {object} wallet - { phrase, address, version, refresh }
    * @returns {Promise<{ status: boolean, summary?: object, message?: string }>}
    */
-  async connectAutoWallet(wallet) {
-    throw new Error("connectAutoWallet method must be implemented in subclass");
+  async connectAutoWallet({ phrase, address, version, refresh = false }) {
+    try {
+      await this.ensureStateLoaded();
+
+      const walletAddress =
+        address ||
+        (await getWalletAddressFromMnemonic(phrase, Number(version)));
+
+      const { status, message } =
+        await this.connectWalletAddress(walletAddress);
+
+      if (!status) {
+        return { status: false, message };
+      }
+
+      await this.rememberWalletVersion(version);
+      await this.afterAutoWalletConnected();
+
+      return {
+        status: true,
+        summary: refresh
+          ? await this.refreshAutoSummary()
+          : this.getAutoSummary(),
+      };
+    } catch (error) {
+      return { status: false, message: error.message || "Unknown error" };
+    }
+  }
+
+  /** The drops never report a contract version, so the one the wallet was loaded with is kept here */
+  async rememberWalletVersion(version) {
+    this.connectedWalletVersion = version ? `v${version}` : undefined;
+
+    await this.storage?.set("walletVersion", this.connectedWalletVersion);
+  }
+
+  /** The address' balance of the drop's jetton, straight from the chain */
+  async readOnChainHolding(address) {
+    return getJettonBalance(this.constructor.auto.jettonAddress, address, {
+      signal: this.signal,
+    }).catch((error) => {
+      this.logger.warn("Failed to read the holding on-chain:", error.message);
+      return new Decimal(0);
+    });
+  }
+
+  /** Warn if the drop has moved to a different jetton than the Auto tracks */
+  checkTokenContract(contract) {
+    if (!contract) return;
+
+    const expected = this.constructor.auto.jettonAddress;
+
+    if (!this.utils.toRawAddress(contract)) {
+      this.logger.warn("The drop names an unreadable token address:", contract);
+      return;
+    }
+
+    if (!this.utils.isSameTonAddress(contract, expected)) {
+      this.logger.warn(
+        `The drop now names ${contract} as its token, not ${expected}.`,
+      );
+    }
+  }
+
+  /** Settle the drop's one-time wallet verification, for drops whose descriptor is `verifiable`
+   * @param {object} wallet - { phrase, version }
+   * @returns {Promise<{ status: boolean, skipped?: boolean, message?: string, summary?: object }>}
+   */
+  async verifyAutoWallet(wallet) {
+    throw new Error("verifyAutoWallet method must be implemented in subclass");
   }
 
   /** Claim whatever is pending so the next summary reflects current balances */
@@ -631,6 +738,93 @@ export default class BaseFarmer {
     }
 
     return snapshot;
+  }
+
+  /** A withdrawal that was not attempted, shaped as `withdraw` returns it and logged at `log` unless that is null */
+  skipWithdrawal(message, { amount = "0", log = "error" } = {}) {
+    if (log) {
+      this.logger[log](message);
+    }
+
+    return { status: false, skipped: true, message, amount: String(amount) };
+  }
+
+  /** Scheduled runs only withdraw when forced, and say nothing when they skip */
+  skipScheduledWithdrawal(force) {
+    return this.scheduled && !force
+      ? this.skipWithdrawal("Withdrawal is disabled in scheduled mode!", {
+          log: null,
+        })
+      : null;
+  }
+
+  /** The amount to request: capped, shaved by a random `difference` percent, then floored at the minimum */
+  pickWithdrawalAmount({ balance, minimum, max, difference = 0, ceiling }) {
+    let amount = new Decimal(balance);
+
+    /** Cap to the drop's ceiling */
+    if (ceiling > 0) {
+      amount = Decimal.min(amount, ceiling);
+    }
+
+    /** Cap to max */
+    if (max) {
+      amount = Decimal.min(amount, max);
+    }
+
+    /** Apply difference */
+    if (difference > 0) {
+      const minPercent = new Decimal(100).minus(difference);
+      const randomPercent = minPercent
+        .plus(new Decimal(Math.random()).mul(difference + 1))
+        .clamp(minPercent, 100);
+
+      amount = amount.mul(randomPercent).div(100);
+    }
+
+    /** Reset amount to minimum, never past the balance */
+    return Decimal.min(Decimal.max(amount, minimum), balance).floor();
+  }
+
+  /** Tell the admin about a withdrawal, but only when the run was initiated by the scheduler
+   * @param {[string, string][]} rows - label and HTML value, after the account row
+   */
+  async notifyWithdrawal(rows) {
+    if (!this.scheduled) return;
+
+    await this.notifyAdmin([
+      `<b>🤑 ${this.getAutoToken()} Withdrawal</b>`,
+      `<b>Account</b>: ${this.formatAccountLink(this.getUserId())}`,
+      ...rows.map(([label, value]) => `<b>${label}</b>: ${value}`),
+    ]);
+  }
+
+  /** Log the payouts the drop has not settled yet, implemented by farmers using `withdrawInteractive` */
+  async logWithdrawalStatus() {}
+
+  /** Withdraw, prompting for the amount */
+  async withdrawInteractive() {
+    await this.logWithdrawalStatus();
+
+    const token = this.getAutoToken();
+    const input = await this.promptInput(
+      `How much ${token}? (minimum ${this.getMinimumWithdrawal()})`,
+    );
+    const trimmed = (input || "").trim();
+
+    if (!trimmed) {
+      this.logger.warn("No amount provided.");
+      return;
+    }
+
+    const amount = Number(trimmed);
+
+    if (!Number.isFinite(amount) || amount <= 0) {
+      this.logger.error(`Invalid ${token} amount:`, trimmed);
+      return;
+    }
+
+    return this.withdraw({ max: amount, difference: 0, force: true });
   }
 
   /** Request a withdrawal
@@ -693,6 +887,42 @@ export default class BaseFarmer {
    */
   async notifyAdmin(messages) {
     return false;
+  }
+
+  /** Format a token amount, keeping sub-1 values readable */
+  formatAmount(value) {
+    const amount = new Decimal(value || 0);
+
+    return amount
+      .toDecimalPlaces(amount.abs().greaterThanOrEqualTo(1) ? 4 : 8)
+      .toString();
+  }
+
+  /** Log a daily mining rate spread across every period */
+  logMiningRateBreakdown(dailyRate) {
+    for (const [label, multiplier] of MINING_RATE_PERIODS) {
+      this.logger.keyValue(
+        label,
+        this.formatAmount(new Decimal(dailyRate).times(multiplier)),
+        { valueStyle: this.logger.c.greenBright },
+      );
+    }
+  }
+
+  /** The referral the account launched with, read the way the pages read it */
+  getReferrerStartParam() {
+    return this.getStartParam() || this.startParam || "";
+  }
+
+  /** Join a task's Telegram link when it is one, then dwell the way the page makes you wait */
+  async openTaskLink(url, dwellSeconds) {
+    if (url && this.utils.isTelegramChatLink(url)) {
+      await this.tryToJoinTelegramLink(url);
+    }
+
+    if (dwellSeconds) {
+      await this.utils.delayForSeconds(dwellSeconds, { signal: this.signal });
+    }
   }
 
   /** Format account link (Telegram HTML) */

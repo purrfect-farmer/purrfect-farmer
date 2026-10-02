@@ -2,10 +2,11 @@ import AdsGramClient from "../lib/AdsGramClient.js";
 import BaseFarmer from "../lib/BaseFarmer.js";
 import Decimal from "decimal.js";
 import {
-  fetchTonApi,
-  getJettonBalance,
-  getWalletAddressFromMnemonic,
-} from "../lib/auto/wallet.js";
+  MAXIMUM_MINER_LEVEL,
+  getMinerDailyOutput,
+  getMinerSpeed,
+} from "../lib/auto/minerCurve.js";
+import { fetchTonApi } from "../lib/auto/wallet.js";
 
 /** The drop's backend, which the mini app talks to for everything */
 const API_URL = "https://mrg.up.railway.app/api";
@@ -31,9 +32,6 @@ const AD_CLAIM_INTERVAL_SECONDS = 10;
 
 /** Below this the drop's own claim button stays disabled */
 const MINIMUM_CLAIMABLE_MINING = 0.0001;
-
-/** The highest level the drop sells */
-const MAXIMUM_LEVEL = 1000;
 
 /** Holdings for the levels the drop prices by hand */
 const EARLY_LEVEL_HOLDINGS = {
@@ -84,7 +82,7 @@ const LEVEL_HOLDING_SEGMENTS = [
     exponent: 2.5,
   },
   {
-    maxLevel: MAXIMUM_LEVEL,
+    maxLevel: MAXIMUM_MINER_LEVEL,
     startLevel: 850,
     span: 150,
     startHolding: 348837200,
@@ -92,19 +90,6 @@ const LEVEL_HOLDING_SEGMENTS = [
     exponent: 2.6,
   },
 ];
-
-/** Mining speed, in TH/s, at both ends of the drop's speed curve */
-const BASE_SPEED_THS = 0.2;
-const SPEED_STEP_THS = 0.03643564356435643;
-const MID_SPEED_LEVEL = 203;
-const MID_SPEED_THS = 7.56;
-const MAXIMUM_SPEED_THS = 5000;
-
-/** MRG mined per day, per TH/s */
-const DAILY_OUTPUT_PER_THS = 25;
-
-/** What level 1 mines per day, before any holding */
-const LEVEL_ONE_DAILY_OUTPUT = 5;
 
 /** The Genesis NFT collection the drop discounts withdrawals for */
 const GENESIS_NFT_COLLECTION =
@@ -126,9 +111,6 @@ const PRIVILEGED_HOLDING = 1000;
 
 /** Safety margin above the drop's minimum, so a scheduled run does not withdraw the instant it crosses it */
 const WITHDRAWAL_BUFFER = 200;
-
-/** A payout address the drop will accept */
-const TON_ADDRESS_PATTERN = /^(EQ|UQ)[A-Za-z0-9_-]{46}$/;
 
 export default class MRGFarmer extends BaseFarmer {
   static id = "mrg";
@@ -201,11 +183,6 @@ export default class MRGFarmer extends BaseFarmer {
     });
   }
 
-  /** The referral the account launched with, read the way the page reads it */
-  getReferrerStartParam() {
-    return this.getStartParam() || this.startParam || "";
-  }
-
   /** The full account state: user, level, tasks, transactions */
   fetchAccount() {
     return this.postToApi("/user/me");
@@ -273,11 +250,6 @@ export default class MRGFarmer extends BaseFarmer {
     return this.loadAccount();
   }
 
-  /** Get Auth Headers */
-  getAuthHeaders(data) {
-    return {};
-  }
-
   /** Sign in and read the account */
   async login() {
     await this.verifyAccount();
@@ -291,7 +263,7 @@ export default class MRGFarmer extends BaseFarmer {
   }
 
   /** Read the account once, for entry points that run without a full pass */
-  async ensureAccountLoaded() {
+  async ensureStateLoaded() {
     if (!this.account_data) {
       await this.login();
     }
@@ -301,8 +273,8 @@ export default class MRGFarmer extends BaseFarmer {
 
   /** Load data */
   async load() {
+    await super.load();
     this.taskClaims = (await this.storage?.get("taskClaims")) || {};
-    this.connectedWalletVersion = await this.storage?.get("walletVersion");
     this.nftHoldings = null;
   }
 
@@ -491,21 +463,6 @@ export default class MRGFarmer extends BaseFarmer {
     return { status: true, message: "Wallet synced" };
   }
 
-  /** The address' MRG balance, straight from the chain */
-  async readOnChainHolding(address) {
-    return getJettonBalance(MRG_JETTON_ADDRESS, address, {
-      signal: this.signal,
-    }).catch((error) => {
-      this.logger.warn("Failed to read the holding on-chain:", error.message);
-      return new Decimal(0);
-    });
-  }
-
-  /** Whether an address is one the drop will accept */
-  validateWalletAddress(address) {
-    return TON_ADDRESS_PATTERN.test(String(address || "").trim());
-  }
-
   /* --------------------------------------------------------------------- */
   /* Genesis NFTs                                                          */
   /* --------------------------------------------------------------------- */
@@ -626,7 +583,7 @@ export default class MRGFarmer extends BaseFarmer {
     if (level <= 0) return new Decimal(0);
     if (level === 1) return new Decimal(1e-6);
     if (level <= 10) return new Decimal(EARLY_LEVEL_HOLDINGS[level] || 100);
-    if (level >= MAXIMUM_LEVEL) return new Decimal(3875968992);
+    if (level >= MAXIMUM_MINER_LEVEL) return new Decimal(3875968992);
 
     const segment = LEVEL_HOLDING_SEGMENTS.find(
       (item) => level <= item.maxLevel,
@@ -645,32 +602,12 @@ export default class MRGFarmer extends BaseFarmer {
 
   /** The mining speed, in TH/s, a level runs at */
   getSpeedForLevel(level) {
-    if (level <= 0) return 0;
-    if (level >= MAXIMUM_LEVEL) return MAXIMUM_SPEED_THS;
-
-    if (level <= MID_SPEED_LEVEL) {
-      return Number((BASE_SPEED_THS + (level - 1) * SPEED_STEP_THS).toFixed(2));
-    }
-
-    const progress =
-      (level - MID_SPEED_LEVEL) / (MAXIMUM_LEVEL - MID_SPEED_LEVEL);
-
-    return Number(
-      (
-        MID_SPEED_THS +
-        (MAXIMUM_SPEED_THS - MID_SPEED_THS) * Math.pow(progress, 2.1)
-      ).toFixed(2),
-    );
+    return getMinerSpeed(level);
   }
 
   /** The MRG a level mines per day */
   getDailyOutputForLevel(level) {
-    if (level <= 0) return 0;
-    if (level === 1) return LEVEL_ONE_DAILY_OUTPUT;
-
-    return Number(
-      (this.getSpeedForLevel(level) * DAILY_OUTPUT_PER_THS).toFixed(2),
-    );
+    return getMinerDailyOutput(level);
   }
 
   /** The highest level a holding covers */
@@ -682,7 +619,7 @@ export default class MRGFarmer extends BaseFarmer {
     }
 
     let lowestLevel = 2;
-    let highestLevel = MAXIMUM_LEVEL;
+    let highestLevel = MAXIMUM_MINER_LEVEL;
 
     while (lowestLevel < highestLevel) {
       const middleLevel = Math.ceil((lowestLevel + highestLevel) / 2);
@@ -842,15 +779,7 @@ export default class MRGFarmer extends BaseFarmer {
 
   /** Complete one task the way the page does: open it, dwell, then claim */
   async completeTask(task) {
-    const url = task["url"];
-
-    if (url && this.utils.isTelegramChatLink(url)) {
-      await this.tryToJoinTelegramLink(url);
-    }
-
-    await this.utils.delayForSeconds(TASK_DWELL_SECONDS, {
-      signal: this.signal,
-    });
+    await this.openTaskLink(task["url"], TASK_DWELL_SECONDS);
 
     const result = await this.claimTask(task["taskId"]);
 
@@ -1001,14 +930,14 @@ export default class MRGFarmer extends BaseFarmer {
 
   /** Whether the drop still owes this account a settlement */
   async hasPendingWithdrawal() {
-    await this.ensureAccountLoaded();
+    await this.ensureStateLoaded();
 
     return this.getPendingWithdrawals().length > 0;
   }
 
   /** The account's own withdrawal queue, which this drop never flags and never counts as approved */
   async getAutoWithdrawals() {
-    await this.ensureAccountLoaded();
+    await this.ensureStateLoaded();
 
     return { pending: this.getPendingWithdrawals(), flagged: [] };
   }
@@ -1022,38 +951,23 @@ export default class MRGFarmer extends BaseFarmer {
 
   /** Place withdrawal */
   async withdraw({ max, difference = 20, force = false } = {}) {
-    if (this.scheduled && !force) {
-      return {
-        status: false,
-        skipped: true,
-        message: "Withdrawal is disabled in scheduled mode!",
-        amount: "0",
-      };
-    }
+    const scheduledSkip = this.skipScheduledWithdrawal(force);
 
-    await this.ensureAccountLoaded();
+    if (scheduledSkip) return scheduledSkip;
+
+    await this.ensureStateLoaded();
 
     const user = this.getAccountDetails();
     const destinationAddress = user["tonWalletAddress"];
 
     if (!destinationAddress) {
-      this.logger.error("No wallet connected!");
-      return {
-        status: false,
-        skipped: true,
-        message: "No wallet connected!",
-        amount: "0",
-      };
+      return this.skipWithdrawal("No wallet connected!");
     }
 
     if (this.getPendingWithdrawals().length > 0) {
-      this.logger.warn("A withdrawal is already awaiting processing.");
-      return {
-        status: false,
-        skipped: true,
-        message: "A withdrawal is already pending!",
-        amount: "0",
-      };
+      return this.skipWithdrawal("A withdrawal is already pending!", {
+        log: "warn",
+      });
     }
 
     const balance = new Decimal(user["inAppBalance"] || 0);
@@ -1062,12 +976,10 @@ export default class MRGFarmer extends BaseFarmer {
 
     if (balance.lessThan(requiredBalance)) {
       this.logger.error("Not enough balance:", balance.toString());
-      return {
-        status: false,
-        skipped: true,
-        message: "Not enough balance!",
-        amount: balance.toString(),
-      };
+      return this.skipWithdrawal("Not enough balance!", {
+        amount: balance,
+        log: null,
+      });
     }
 
     /** Log balance */
@@ -1076,26 +988,13 @@ export default class MRGFarmer extends BaseFarmer {
     /** The NFTs the wallet holds decide both the ceiling and the fee */
     const discountPercent = await this.readNftDiscountPercent();
 
-    /** Initial amount to withdraw */
-    let amount = Decimal.min(balance, this.getWithdrawalLimit(discountPercent));
-
-    /** Cap to max */
-    if (max) {
-      amount = Decimal.min(amount, max);
-    }
-
-    /** Apply difference */
-    if (difference > 0) {
-      const minPercent = new Decimal(100).minus(difference);
-      const randomPercent = minPercent
-        .plus(new Decimal(Math.random()).mul(difference + 1))
-        .clamp(minPercent, 100);
-
-      amount = amount.mul(randomPercent).div(100);
-    }
-
-    /** Reset amount to minimum */
-    amount = Decimal.max(amount, minimum).floor();
+    const amount = this.pickWithdrawalAmount({
+      balance,
+      minimum,
+      max,
+      difference,
+      ceiling: this.getWithdrawalLimit(discountPercent),
+    });
 
     const result = await this.requestWithdrawal(amount, destinationAddress);
     const status = Boolean(result?.["success"]);
@@ -1123,16 +1022,11 @@ export default class MRGFarmer extends BaseFarmer {
         ).toString(),
       );
 
-      /** Notify the admin, but only when the run was initiated by the scheduler */
-      if (this.scheduled) {
-        await this.notifyAdmin([
-          `<b>🤑 MRG Withdrawal</b>`,
-          `<b>Account</b>: ${this.formatAccountLink(this.getUserId())}`,
-          `<b>Initial Balance</b>: ${balance.toString()}`,
-          `<b>Requested</b>: ${amount.toString()}`,
-          `<b>Destination</b>: <code>${destinationAddress}</code>`,
-        ]);
-      }
+      await this.notifyWithdrawal([
+        ["Initial Balance", balance.toString()],
+        ["Requested", amount.toString()],
+        ["Destination", `<code>${destinationAddress}</code>`],
+      ]);
     } else {
       this.logger.error("Failed to request withdrawal:", message);
     }
@@ -1148,7 +1042,7 @@ export default class MRGFarmer extends BaseFarmer {
 
   /** Log the payouts the drop has not settled yet */
   async logWithdrawalStatus() {
-    await this.ensureAccountLoaded();
+    await this.ensureStateLoaded();
 
     const pending = this.getPendingWithdrawals();
     const discountPercent = await this.readNftDiscountPercent();
@@ -1200,42 +1094,6 @@ export default class MRGFarmer extends BaseFarmer {
   /* --------------------------------------------------------------------- */
   /* Auto adapter                                                          */
   /* --------------------------------------------------------------------- */
-
-  /** Bind the wallet the orchestrator loaded onto this account */
-  async connectAutoWallet({ phrase, address, version, refresh = false }) {
-    try {
-      await this.ensureAccountLoaded();
-
-      const walletAddress =
-        address ||
-        (await getWalletAddressFromMnemonic(phrase, Number(version)));
-
-      const { status, message } =
-        await this.connectWalletAddress(walletAddress);
-
-      if (!status) {
-        return { status: false, message };
-      }
-
-      await this.rememberWalletVersion(version);
-
-      return {
-        status: true,
-        summary: refresh
-          ? await this.refreshAutoSummary()
-          : this.getAutoSummary(),
-      };
-    } catch (error) {
-      return { status: false, message: error.message || "Unknown error" };
-    }
-  }
-
-  /** The drop never reports a contract version, so the one the wallet was loaded with is kept here */
-  async rememberWalletVersion(version) {
-    this.connectedWalletVersion = version ? `v${version}` : undefined;
-
-    await this.storage?.set("walletVersion", this.connectedWalletVersion);
-  }
 
   /** Claim pending mining so the summary reflects the current balance */
   async refreshAutoState() {
@@ -1389,21 +1247,22 @@ export default class MRGFarmer extends BaseFarmer {
       return;
     }
 
-    if (!this.validateWalletAddress(address)) {
+    /** The drop only takes mainnet friendly (EQ/UQ) addresses */
+    if (!this.utils.isTonAddress(address, { raw: false, testnet: false })) {
       this.logger.warn(
         "Not a valid TON address - it should start with UQ or EQ.",
       );
       return;
     }
 
-    await this.ensureAccountLoaded();
+    await this.ensureStateLoaded();
     await this.connectWalletAddress(address);
     await this.unlockAffordableLevel();
   }
 
   /** Re-read the connected wallet on-chain and unlock what it now covers */
   async refreshHolding() {
-    await this.ensureAccountLoaded();
+    await this.ensureStateLoaded();
 
     const { status } = await this.syncConnectedWallet();
 
@@ -1414,7 +1273,7 @@ export default class MRGFarmer extends BaseFarmer {
 
   /** Report a holding of your own, prompting for it, since the drop takes the figure as given */
   async reportBalanceInteractive() {
-    await this.ensureAccountLoaded();
+    await this.ensureStateLoaded();
 
     const address = this.getConnectedWalletAddress();
 
@@ -1464,7 +1323,7 @@ export default class MRGFarmer extends BaseFarmer {
 
   /** Log the account's Genesis NFTs and what they are worth at withdrawal */
   async logNftHoldings() {
-    await this.ensureAccountLoaded();
+    await this.ensureStateLoaded();
 
     const address = this.getConnectedWalletAddress();
 
@@ -1513,19 +1372,19 @@ export default class MRGFarmer extends BaseFarmer {
 
   /** Claim mining on demand */
   async claimMiningInteractive() {
-    await this.ensureAccountLoaded();
+    await this.ensureStateLoaded();
     await this.claimPendingMining();
   }
 
   /** Unlock a level, prompting for which one and leaving the holding to the drop to judge */
   async unlockLevelInteractive() {
-    await this.ensureAccountLoaded();
+    await this.ensureStateLoaded();
 
     const input = await this.promptInput("Which level?");
     const level = Number((input || "").trim());
 
-    if (!Number.isInteger(level) || level < 1 || level > MAXIMUM_LEVEL) {
-      this.logger.warn(`Enter a level between 1 and ${MAXIMUM_LEVEL}.`);
+    if (!Number.isInteger(level) || level < 1 || level > MAXIMUM_MINER_LEVEL) {
+      this.logger.warn(`Enter a level between 1 and ${MAXIMUM_MINER_LEVEL}.`);
       return;
     }
 
@@ -1594,60 +1453,5 @@ export default class MRGFarmer extends BaseFarmer {
 
     this.logger.newline();
     this.logMiningRateBreakdown(dailyOutput);
-  }
-
-  /** Log a daily mining rate spread across every period */
-  logMiningRateBreakdown(dailyRate) {
-    const periods = [
-      ["Per Second", new Decimal(1).div(86400)],
-      ["Per Minute", new Decimal(1).div(1440)],
-      ["Per Hour", new Decimal(1).div(24)],
-      ["Per Day", new Decimal(1)],
-      ["Per Week (7d)", new Decimal(7)],
-      ["Per Month (30d)", new Decimal(30)],
-    ];
-
-    for (const [label, multiplier] of periods) {
-      this.logger.keyValue(
-        label,
-        this.formatAmount(dailyRate.times(multiplier)),
-        {
-          valueStyle: this.logger.c.greenBright,
-        },
-      );
-    }
-  }
-
-  /** Withdraw, prompting for the amount */
-  async withdrawInteractive() {
-    await this.logWithdrawalStatus();
-
-    const input = await this.promptInput(
-      `How much MRG? (minimum ${this.getMinimumWithdrawal()})`,
-    );
-    const trimmed = (input || "").trim();
-
-    if (!trimmed) {
-      this.logger.warn("No amount provided.");
-      return;
-    }
-
-    const amount = Number(trimmed);
-
-    if (!Number.isFinite(amount) || amount <= 0) {
-      this.logger.error("Invalid MRG amount:", trimmed);
-      return;
-    }
-
-    return this.withdraw({ max: amount, difference: 0, force: true });
-  }
-
-  /** Format an MRG amount, keeping sub-1 values readable */
-  formatAmount(value) {
-    const amount = new Decimal(value || 0);
-
-    return amount
-      .toDecimalPlaces(amount.abs().greaterThanOrEqualTo(1) ? 4 : 8)
-      .toString();
   }
 }

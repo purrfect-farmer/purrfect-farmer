@@ -8,6 +8,7 @@ import LoadOperation from "./auto/operations/LoadOperation.js";
 import RescueOperation from "./auto/operations/RescueOperation.js";
 import SingleOperation from "./auto/operations/SingleOperation.js";
 import StatusOperation from "./auto/operations/StatusOperation.js";
+import VerifyOperation from "./auto/operations/VerifyOperation.js";
 import WithdrawOperation from "./auto/operations/WithdrawOperation.js";
 import logger from "./logger.js";
 import { readSnapshots } from "./auto/AutoRecords.js";
@@ -29,6 +30,9 @@ class BaseAuto {
 
   /** @type {string} jetton master address moved by boost/collect */
   static jettonAddress = null;
+
+  /** @type {boolean} whether the drop has a one-time wallet verification to pay */
+  static verifiable = false;
 
   /** @type {Map<number, AutoContext>} redeclared per subclass so drops run concurrently for one user */
   static instances = new Map();
@@ -95,6 +99,10 @@ class BaseAuto {
 
   static load(options) {
     this.execute(options, LoadOperation);
+  }
+
+  static verify(options) {
+    this.execute(options, VerifyOperation);
   }
 
   /** Single-account operations run outside the single-flight slot and resolve with their result */

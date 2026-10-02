@@ -1,10 +1,5 @@
 import BaseFarmer from "../lib/BaseFarmer.js";
 import Decimal from "decimal.js";
-import { Address } from "@ton/core";
-import {
-  getJettonBalance,
-  getWalletAddressFromMnemonic,
-} from "../lib/auto/wallet.js";
 
 /** The drop's backend, served from the mini app's own origin */
 const API_URL = "https://tacairdrop.xyz/api";
@@ -38,10 +33,6 @@ const MINIMUM_WITHDRAWAL = 100;
 
 /** Safety margin above the drop's minimum, so a scheduled run does not withdraw the instant it crosses it */
 const WITHDRAWAL_BUFFER = 50;
-
-/** Accepts friendly (EQ/UQ/kQ/0Q) and raw (0:hex) TON addresses */
-const TON_ADDRESS_PATTERN =
-  /^([UEk0][Qq][A-Za-z0-9_-]{46}|-?\d+:[a-fA-F0-9]{64})$/;
 
 export default class TACFarmer extends BaseFarmer {
   static published = true;
@@ -200,16 +191,6 @@ export default class TACFarmer extends BaseFarmer {
     return this.loadState();
   }
 
-  /** Get Auth Headers */
-  getAuthHeaders(data) {
-    return {};
-  }
-
-  /** The referral the account launched with, read the way the page reads it */
-  getReferrerStartParam() {
-    return this.getStartParam() || this.startParam || "";
-  }
-
   /** Sign in and read the state */
   login() {
     return this.loadState();
@@ -239,11 +220,6 @@ export default class TACFarmer extends BaseFarmer {
     if (result?.["miningStatus"]) {
       this.state_data.miningStatus = result["miningStatus"];
     }
-  }
-
-  /** Load data */
-  async load() {
-    this.connectedWalletVersion = await this.storage?.get("walletVersion");
   }
 
   /** Get User Details */
@@ -287,7 +263,7 @@ export default class TACFarmer extends BaseFarmer {
     await this.loadState();
 
     this.logAccountInfo();
-    this.checkTokenContract();
+    this.checkTokenContract(this.getSettings()["tokenContractAddress"]);
 
     await this.executeTask("Verify", () => this.verifyIfNeeded());
     await this.executeTask("Mining", () => this.startOrClaimMining());
@@ -344,23 +320,6 @@ export default class TACFarmer extends BaseFarmer {
     });
   }
 
-  /** Warn if the drop has moved to a different jetton than the Auto tracks */
-  checkTokenContract() {
-    const contract = this.getSettings()["tokenContractAddress"];
-
-    if (!contract) return;
-
-    try {
-      if (!Address.parse(contract).equals(Address.parse(TAC_JETTON_ADDRESS))) {
-        this.logger.warn(
-          `The drop now names ${contract} as its token, not ${TAC_JETTON_ADDRESS}.`,
-        );
-      }
-    } catch {
-      this.logger.warn("The drop names an unreadable token address:", contract);
-    }
-  }
-
   /** Verify the account once a wallet is bound */
   async verifyIfNeeded() {
     const user = this.getUserDetails();
@@ -398,31 +357,19 @@ export default class TACFarmer extends BaseFarmer {
   getConnectedWalletAddress() {
     const address = this.state_data?.currentUser?.["walletAddress"];
 
-    return address ? this.toFriendlyAddress(address) : null;
+    return address ? this.utils.toFriendlyAddress(address) : null;
   }
 
-  /** `0:hex` or any friendly form as `UQ...` */
-  toFriendlyAddress(address) {
-    try {
-      return Address.parse(address).toString({ bounceable: false });
-    } catch {
-      return address;
-    }
-  }
-
-  /** Any address form as `0:hex`, the shape TON Connect hands the page */
-  toRawAddress(address) {
-    return Address.parse(address).toRawString();
-  }
-
-  /** Whether an address is one the drop will accept */
-  validateWalletAddress(address) {
-    return TON_ADDRESS_PATTERN.test(String(address || "").trim());
-  }
-
-  /** Bind an address to the account */
+  /** Bind an address to the account, sent as `0:hex` the way TON Connect hands it to the page */
   async connectWalletAddress(address) {
-    const result = await this.connectWallet(this.toRawAddress(address));
+    const rawAddress = this.utils.toRawAddress(address);
+
+    if (!rawAddress) {
+      this.logger.error("Not a valid TON address:", address);
+      return { status: false, message: "Not a valid TON address" };
+    }
+
+    const result = await this.connectWallet(rawAddress);
 
     if (!result?.["user"]) {
       const message = result?.["error"] || "Failed to connect the wallet";
@@ -432,19 +379,11 @@ export default class TACFarmer extends BaseFarmer {
     }
 
     this.applyResult(result);
-    this.logger.success(`Wallet connected: ${this.toFriendlyAddress(address)}`);
+    this.logger.success(
+      `Wallet connected: ${this.utils.toFriendlyAddress(address)}`,
+    );
 
     return { status: true, message: "Wallet connected" };
-  }
-
-  /** The address' TAC balance, straight from the chain */
-  async readOnChainHolding(address) {
-    return getJettonBalance(TAC_JETTON_ADDRESS, address, {
-      signal: this.signal,
-    }).catch((error) => {
-      this.logger.warn("Failed to read the holding on-chain:", error.message);
-      return new Decimal(0);
-    });
   }
 
   /* --------------------------------------------------------------------- */
@@ -681,15 +620,7 @@ export default class TACFarmer extends BaseFarmer {
 
   /** Complete one task the way the page does: open it, dwell, then claim */
   async completeTask(task) {
-    const url = task["url"];
-
-    if (url && this.utils.isTelegramChatLink(url)) {
-      await this.tryToJoinTelegramLink(url);
-    }
-
-    await this.utils.delayForSeconds(TASK_DWELL_SECONDS, {
-      signal: this.signal,
-    });
+    await this.openTaskLink(task["url"], TASK_DWELL_SECONDS);
 
     const result = await this.completeTaskById(task["id"]);
 
@@ -741,14 +672,9 @@ export default class TACFarmer extends BaseFarmer {
 
   /** Place withdrawal */
   async withdraw({ max, difference = 20, force = false } = {}) {
-    if (this.scheduled && !force) {
-      return {
-        status: false,
-        skipped: true,
-        message: "Withdrawal is disabled in scheduled mode!",
-        amount: "0",
-      };
-    }
+    const scheduledSkip = this.skipScheduledWithdrawal(force);
+
+    if (scheduledSkip) return scheduledSkip;
 
     await this.ensureStateLoaded();
 
@@ -756,23 +682,13 @@ export default class TACFarmer extends BaseFarmer {
     const destinationAddress = this.getConnectedWalletAddress();
 
     if (!destinationAddress) {
-      this.logger.error("No wallet connected!");
-      return {
-        status: false,
-        skipped: true,
-        message: "No wallet connected!",
-        amount: "0",
-      };
+      return this.skipWithdrawal("No wallet connected!");
     }
 
     if (this.getPendingWithdrawals().length > 0) {
-      this.logger.warn("A withdrawal is already awaiting processing.");
-      return {
-        status: false,
-        skipped: true,
-        message: "A withdrawal is already pending!",
-        amount: "0",
-      };
+      return this.skipWithdrawal("A withdrawal is already pending!", {
+        log: "warn",
+      });
     }
 
     const balance = new Decimal(user["poolWallet"] || 0);
@@ -781,37 +697,21 @@ export default class TACFarmer extends BaseFarmer {
 
     if (balance.lessThan(requiredBalance)) {
       this.logger.error("Not enough balance:", balance.toString());
-      return {
-        status: false,
-        skipped: true,
-        message: "Not enough balance!",
-        amount: balance.toString(),
-      };
+      return this.skipWithdrawal("Not enough balance!", {
+        amount: balance,
+        log: null,
+      });
     }
 
     /** Log balance */
     this.logger.info("Available balance:", balance.toString());
 
-    /** Initial amount to withdraw */
-    let amount = new Decimal(balance);
-
-    /** Cap to max */
-    if (max) {
-      amount = Decimal.min(amount, max);
-    }
-
-    /** Apply difference */
-    if (difference > 0) {
-      const minPercent = new Decimal(100).minus(difference);
-      const randomPercent = minPercent
-        .plus(new Decimal(Math.random()).mul(difference + 1))
-        .clamp(minPercent, 100);
-
-      amount = amount.mul(randomPercent).div(100);
-    }
-
-    /** Reset amount to minimum, never past the balance */
-    amount = Decimal.min(Decimal.max(amount, minimum), balance).floor();
+    const amount = this.pickWithdrawalAmount({
+      balance,
+      minimum,
+      max,
+      difference,
+    });
 
     const result = await this.requestWithdrawal(amount, destinationAddress);
     const status = Boolean(result?.["withdrawal"] || result?.["user"]);
@@ -830,16 +730,11 @@ export default class TACFarmer extends BaseFarmer {
       this.logger.success(`Requested ${amount.toString()} TAC.`);
       this.logger.keyValue("Destination", destinationAddress);
 
-      /** Notify the admin, but only when the run was initiated by the scheduler */
-      if (this.scheduled) {
-        await this.notifyAdmin([
-          `<b>🤑 TAC Withdrawal</b>`,
-          `<b>Account</b>: ${this.formatAccountLink(this.getUserId())}`,
-          `<b>Initial Balance</b>: ${balance.toString()}`,
-          `<b>Requested</b>: ${amount.toString()}`,
-          `<b>Destination</b>: <code>${destinationAddress}</code>`,
-        ]);
-      }
+      await this.notifyWithdrawal([
+        ["Initial Balance", balance.toString()],
+        ["Requested", amount.toString()],
+        ["Destination", `<code>${destinationAddress}</code>`],
+      ]);
     } else {
       this.logger.error("Failed to request withdrawal:", message);
     }
@@ -894,41 +789,9 @@ export default class TACFarmer extends BaseFarmer {
   /* Auto adapter                                                          */
   /* --------------------------------------------------------------------- */
 
-  /** Bind the wallet the orchestrator loaded onto this account */
-  async connectAutoWallet({ phrase, address, version, refresh = false }) {
-    try {
-      await this.ensureStateLoaded();
-
-      const walletAddress =
-        address ||
-        (await getWalletAddressFromMnemonic(phrase, Number(version)));
-
-      const { status, message } =
-        await this.connectWalletAddress(walletAddress);
-
-      if (!status) {
-        return { status: false, message };
-      }
-
-      await this.rememberWalletVersion(version);
-      await this.verifyIfNeeded();
-
-      return {
-        status: true,
-        summary: refresh
-          ? await this.refreshAutoSummary()
-          : this.getAutoSummary(),
-      };
-    } catch (error) {
-      return { status: false, message: error.message || "Unknown error" };
-    }
-  }
-
-  /** The drop never reports a contract version, so the one the wallet was loaded with is kept here */
-  async rememberWalletVersion(version) {
-    this.connectedWalletVersion = version ? `v${version}` : undefined;
-
-    await this.storage?.set("walletVersion", this.connectedWalletVersion);
+  /** A wallet bound by the Auto is verified straight away */
+  async afterAutoWalletConnected() {
+    await this.verifyIfNeeded();
   }
 
   /** Claim pending mining so the summary reflects the current balance */
@@ -1081,7 +944,7 @@ export default class TACFarmer extends BaseFarmer {
       return;
     }
 
-    if (!this.validateWalletAddress(address)) {
+    if (!this.utils.isTonAddress(address)) {
       this.logger.warn("Not a valid TON address.");
       return;
     }
@@ -1263,60 +1126,5 @@ export default class TACFarmer extends BaseFarmer {
 
     this.logger.newline();
     this.logMiningRateBreakdown(hourlyRate.mul(24));
-  }
-
-  /** Log a daily mining rate spread across every period */
-  logMiningRateBreakdown(dailyRate) {
-    const periods = [
-      ["Per Second", new Decimal(1).div(86400)],
-      ["Per Minute", new Decimal(1).div(1440)],
-      ["Per Hour", new Decimal(1).div(24)],
-      ["Per Day", new Decimal(1)],
-      ["Per Week (7d)", new Decimal(7)],
-      ["Per Month (30d)", new Decimal(30)],
-    ];
-
-    for (const [label, multiplier] of periods) {
-      this.logger.keyValue(
-        label,
-        this.formatAmount(dailyRate.times(multiplier)),
-        {
-          valueStyle: this.logger.c.greenBright,
-        },
-      );
-    }
-  }
-
-  /** Withdraw, prompting for the amount */
-  async withdrawInteractive() {
-    await this.logWithdrawalStatus();
-
-    const input = await this.promptInput(
-      `How much TAC? (minimum ${this.getMinimumWithdrawal()})`,
-    );
-    const trimmed = (input || "").trim();
-
-    if (!trimmed) {
-      this.logger.warn("No amount provided.");
-      return;
-    }
-
-    const amount = Number(trimmed);
-
-    if (!Number.isFinite(amount) || amount <= 0) {
-      this.logger.error("Invalid TAC amount:", trimmed);
-      return;
-    }
-
-    return this.withdraw({ max: amount, difference: 0, force: true });
-  }
-
-  /** Format a TAC amount, keeping sub-1 values readable */
-  formatAmount(value) {
-    const amount = new Decimal(value || 0);
-
-    return amount
-      .toDecimalPlaces(amount.abs().greaterThanOrEqualTo(1) ? 4 : 8)
-      .toString();
   }
 }

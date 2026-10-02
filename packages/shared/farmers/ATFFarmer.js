@@ -1055,26 +1055,15 @@ export default class ATFFarmer extends BaseFarmer {
 
   /** Place withdrawal */
   async withdraw({ max, difference = 20, force = false } = {}) {
-    if (this.scheduled && !force) {
-      return {
-        status: false,
-        skipped: true,
-        message: "Withdrawal is disabled in scheduled mode!",
-        amount: "0",
-      };
-    }
+    const scheduledSkip = this.skipScheduledWithdrawal(force);
+
+    if (scheduledSkip) return scheduledSkip;
 
     const { user } = this.user_data;
     const balance = new Decimal(user["mined_balance"]);
 
     if (!user["wallet_public_key"]) {
-      this.logger.error("No wallet public key found!");
-      return {
-        status: false,
-        skipped: true,
-        message: "No wallet public key found!",
-        amount: "0",
-      };
+      return this.skipWithdrawal("No wallet public key found!");
     }
 
     const minimum = this.getMinimumWithdrawal();
@@ -1084,37 +1073,21 @@ export default class ATFFarmer extends BaseFarmer {
 
     if (balance.lessThan(REQUIRED_WITHDRAWABLE_AMOUNT)) {
       this.logger.error("Not enough balance:", balance.toString());
-      return {
-        status: false,
-        skipped: true,
-        message: "Not enough balance!",
-        amount: balance.toString(),
-      };
+      return this.skipWithdrawal("Not enough balance!", {
+        amount: balance,
+        log: null,
+      });
     }
 
     /** Log balance */
     this.logger.info("Available balance:", balance.toString());
 
-    /** Initial amount to withdraw */
-    let amount = new Decimal(balance);
-
-    /** Cap to max */
-    if (max) {
-      amount = Decimal.min(amount, max);
-    }
-
-    /** Apply difference */
-    if (difference > 0) {
-      const minPercent = new Decimal(100).minus(difference);
-      const randomPercent = minPercent
-        .plus(new Decimal(Math.random()).mul(difference + 1))
-        .clamp(minPercent, 100);
-
-      amount = amount.mul(randomPercent).div(100);
-    }
-
-    /** Reset amount to minimum */
-    amount = Decimal.max(amount, minimum).floor();
+    const amount = this.pickWithdrawalAmount({
+      balance,
+      minimum,
+      max,
+      difference,
+    });
 
     /** Record Navigation Batch */
     await this.recordNavigationBatch(1);
@@ -1142,18 +1115,13 @@ export default class ATFFarmer extends BaseFarmer {
       this.logger.keyValue("Requested amount", result["requested_amount"]);
       this.logger.keyValue("Amount to be received", result["send_amount"]);
 
-      /** Notify the admin, but only when the run was initiated by the scheduler */
-      if (this.scheduled) {
-        await this.notifyAdmin([
-          `<b>🤑 ATF Withdrawal</b>`,
-          `<b>Account</b>: ${this.formatAccountLink(this.getUserId())}`,
-          `<b>Initial Balance</b>: ${balance.toString()}`,
-          `<b>Requested</b>: ${result["requested_amount"]}`,
-          `<b>To receive</b>: ${result["send_amount"]}`,
-          `<b>New Balance</b>: ${result["new_balance"]}`,
-          `<b>Withdraw ID</b>: <code>${result["withdraw_id"]}</code>`,
-        ]);
-      }
+      await this.notifyWithdrawal([
+        ["Initial Balance", balance.toString()],
+        ["Requested", result["requested_amount"]],
+        ["To receive", result["send_amount"]],
+        ["New Balance", result["new_balance"]],
+        ["Withdraw ID", `<code>${result["withdraw_id"]}</code>`],
+      ]);
     } else {
       this.logger.error("Failed to request withdrawal:", result["message"]);
     }
@@ -1815,32 +1783,6 @@ export default class ATFFarmer extends BaseFarmer {
     this.logger.success("Toobit KYC checked!");
   }
 
-  /** Format an ATF amount, keeping sub-1 values readable */
-  formatAtfAmount(value) {
-    return value.toDecimalPlaces(value.abs().gte(1) ? 4 : 8).toString();
-  }
-
-  /** Log a daily mining rate spread across every period */
-  logMiningRateBreakdown(dailyRate) {
-    const periods = [
-      ["Per Second", new Decimal(1).div(86400)],
-      ["Per Minute", new Decimal(1).div(1440)],
-      ["Per Hour", new Decimal(1).div(24)],
-      ["Per Day", new Decimal(1)],
-      ["Per 3 Days", new Decimal(3)],
-      ["Per Week (7d)", new Decimal(7)],
-      ["Per Month (30d)", new Decimal(30)],
-    ];
-
-    for (const [label, multiplier] of periods) {
-      this.logger.keyValue(
-        label,
-        this.formatAtfAmount(dailyRate.times(multiplier)),
-        { valueStyle: this.logger.c.greenBright },
-      );
-    }
-  }
-
   /** Explain the TH/s figure the ATF app advertises */
   logHashPowerExplainer(hashPower, divisor) {
     const base = hashPower.times(50);
@@ -1857,7 +1799,7 @@ export default class ATFFarmer extends BaseFarmer {
       `  ${hashPower.toDecimalPlaces(2).toString()} TH/s x 50 = ${base.toString()} ATF/day at difficulty 1.`,
     );
     this.logger.debug(
-      `  Network difficulty then divides that: ${base.toString()} / ${divisor.toDecimalPlaces(4).toString()} = ${this.formatAtfAmount(base.div(divisor))} ATF/day.`,
+      `  Network difficulty then divides that: ${base.toString()} / ${divisor.toDecimalPlaces(4).toString()} = ${this.formatAmount(base.div(divisor))} ATF/day.`,
     );
     this.logger.debug(
       "So a higher TH/s always means a faster miner, but the ATF it actually pays",

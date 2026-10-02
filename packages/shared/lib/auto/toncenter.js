@@ -1,7 +1,8 @@
-import { Address } from "@ton/core";
-
 import Decimal from "decimal.js";
 import axios from "axios";
+import { toRawAddress } from "../../utils/ton.js";
+
+export { toRawAddress };
 
 /** Addresses per request; 50 keeps the query string near 4KB */
 export const TONCENTER_CHUNK_SIZE = 50;
@@ -14,15 +15,6 @@ const MAX_RETRIES = 3;
 const apiCache = new Map();
 const decimalsCache = new Map();
 const queues = new Map();
-
-/** Normalizes any address form to raw `0:abc...` for matching across providers */
-export function toRawAddress(address) {
-  try {
-    return Address.parse(address).toRawString();
-  } catch {
-    return null;
-  }
-}
 
 /** Paces requests per API key so batches do not trip the rate limit
  * Retries on 429, honouring Retry-After when the server sends it
@@ -41,7 +33,9 @@ function schedule(apiKey, send) {
         if (e?.response?.status !== 429 || attempt >= MAX_RETRIES) throw e;
 
         await wait(
-          retryAfter ? Number(retryAfter) * 1000 : interval * 2 ** (attempt + 1),
+          retryAfter
+            ? Number(retryAfter) * 1000
+            : interval * 2 ** (attempt + 1),
         );
       }
     }

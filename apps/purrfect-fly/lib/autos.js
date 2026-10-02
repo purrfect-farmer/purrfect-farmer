@@ -3,7 +3,7 @@ import farmers from "../farmers/index.js";
 
 /** Builds the Auto subclass for a farmer's `static auto` descriptor, with its own instances map */
 export function createAuto(FarmerClass) {
-  const { id, title, token, jettonAddress } = FarmerClass.auto;
+  const { id, title, token, jettonAddress, verifiable } = FarmerClass.auto;
 
   return class Auto extends BaseAuto {
     static instances = new Map();
@@ -14,6 +14,7 @@ export function createAuto(FarmerClass) {
     static title = title;
     static token = token;
     static jettonAddress = jettonAddress;
+    static verifiable = Boolean(verifiable);
   };
 }
 

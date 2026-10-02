@@ -8,10 +8,14 @@ import AutoParcelTab from "./AutoParcelTab";
 import AutoRescueTab from "./AutoRescueTab";
 import AutoStatusTab from "./AutoStatusTab";
 import AutoSwapTab from "./AutoSwapTab";
+import AutoVerifyTab from "./AutoVerifyTab";
 import AutoWithdrawTab from "./AutoWithdrawTab";
 import Tabs from "./Tabs";
+import useAuto from "@/hooks/useAuto";
+import { useMemo } from "react";
 
-const tabs = {
+/** Every drop gets these, and a verifiable one also gets the verify tab */
+const baseTabs = {
   rootProps: { defaultValue: "dashboard" },
   list: [
     "dashboard",
@@ -29,6 +33,15 @@ const tabs = {
 };
 
 export default function AutoPanel() {
+  const { config } = useAuto();
+  const tabs = useMemo(
+    () =>
+      config.verifiable
+        ? { ...baseTabs, list: [...baseTabs.list, "verify"] }
+        : baseTabs,
+    [config.verifiable],
+  );
+
   return (
     <Tabs
       tabs={tabs}
@@ -69,6 +82,11 @@ export default function AutoPanel() {
       <Tabs.Content value="status">
         <AutoStatusTab />
       </Tabs.Content>
+      {config.verifiable && (
+        <Tabs.Content value="verify">
+          <AutoVerifyTab />
+        </Tabs.Content>
+      )}
     </Tabs>
   );
 }

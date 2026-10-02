@@ -5,7 +5,7 @@ export default function AutoHeader() {
 
   return (
     <div className="flex flex-col gap-2 justify-center items-center">
-      <img src={config.largeIcon} className="size-32" />
+      <img src={config.largeIcon} className="size-32 rounded-full" />
       <h1 className="font-turret-road text-center text-3xl text-orange-500">
         {config.title}
       </h1>

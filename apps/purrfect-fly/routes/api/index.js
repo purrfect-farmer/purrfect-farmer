@@ -414,6 +414,21 @@ export default async function (fastify, opts) {
     );
   }
 
+  /** Auto - Verify, only for drops with a one-time wallet verification */
+  fastify.post(
+    "/auto/:drop/verify",
+    { preHandler: autoPreHandler, schema: autoSchema },
+    async function (request, reply) {
+      const Auto = autos[request.params.drop];
+
+      if (Auto && !Auto.verifiable) {
+        return reply.badRequest(`${Auto.title} has no wallet verification`);
+      }
+
+      return dispatchAutoOperation("verify").call(this, request, reply);
+    },
+  );
+
   /** Auto - Single account Boost / Collect, awaited so the caller gets the result back */
   for (const [path, operation] of [
     ["single-boost", "singleBoost"],
