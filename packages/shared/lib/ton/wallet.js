@@ -61,13 +61,13 @@ export async function deriveMnemonicFromTelegramId(id, passphrase = "") {
   }
 }
 
-/** Non-bounceable addresses of every common wallet version for a public key */
+/** Non-bounceable addresses of every common wallet version, newest first */
 export function getWalletAddressesFromPublicKey(publicKey) {
   return [
-    ["V3R1", WalletContractV3R1],
-    ["V3R2", WalletContractV3R2],
-    ["V4R2", WalletContractV4],
     ["W5", WalletContractV5R1],
+    ["V4R2", WalletContractV4],
+    ["V3R2", WalletContractV3R2],
+    ["V3R1", WalletContractV3R1],
   ].map(([version, Contract]) => ({
     version,
     address: Contract.create({ workchain: 0, publicKey }).address.toString({
