@@ -11,6 +11,25 @@ const WITHDRAWAL_BUFFER = 200;
 /** Backstop for the withdrawal captcha loop */
 const WITHDRAWAL_CAPTCHA_ATTEMPTS = 5;
 
+/** The app freezes mining 72h after the last start or claim */
+const MAX_MINING_CYCLE_SECONDS = 259200;
+
+/** One-time tasks from the app's tasksConfig, without the disabled Instagram ones */
+const ONE_TIME_TASKS = [
+  { id: "telegram_join", link: "https://t.me/AI_TRADING_FOREX" },
+  { id: "telegram_join_fa", link: "https://t.me/ATFFARSI" },
+  { id: "twitter_follow" },
+  { id: "youtube_subscribe" },
+];
+
+/** Repeatable tasks from the app's tasksConfig, claimable once minSeconds pass after a start */
+const COOLDOWN_TASKS = [
+  { id: "youtube_like_comment", minSeconds: 30 },
+  { id: "twitter_retweet", minSeconds: 30 },
+  { id: "website_visit", minSeconds: 10 },
+  { id: "telegram_react_latest", minSeconds: 20 },
+];
+
 /** Maximum number of attempts to solve a captcha */
 const MAX_CAPTCHA_ATTEMPTS = 10;
 
@@ -100,8 +119,7 @@ export default class ATFFarmer extends BaseFarmer {
       const url = new URL(config.url, config.baseURL);
       url.searchParams.set("t", Date.now().toString());
       config.url = url.toString();
-      config.headers["x-requested-with"] = "XMLHttpRequest";
-      config.headers["x-telegram-init-data"] = this.getInitData();
+      Object.assign(config.headers, this.getAuthHeaders());
 
       config.data = {
         request_id: this.makeRequestId(),
@@ -269,6 +287,10 @@ export default class ATFFarmer extends BaseFarmer {
 
         if (!challenge) {
           this.user_data = data;
+
+          if (data?.["tma_session_token"]) {
+            this.tmaSessionToken = data["tma_session_token"];
+          }
           break;
         }
       } catch (error) {
@@ -317,15 +339,16 @@ export default class ATFFarmer extends BaseFarmer {
   }
 
   makeLoginAction(forceFresh = false) {
+    /** The app sends the username and the inviter it was opened with */
+    const refCode = this.getReferrerStartParam();
+
     return this.makeAction(
       "login",
-      forceFresh
-        ? {
-            force_fresh: true,
-            no_cache: true,
-            username: this.getUsername(),
-          }
-        : {},
+      {
+        username: this.getUsername(),
+        ...(refCode ? { ref_code: refCode } : {}),
+        ...(forceFresh ? { force_fresh: true, no_cache: true } : {}),
+      },
       this.constructor.RISK_CHALLENGE_CONFIG,
     );
   }
@@ -336,12 +359,13 @@ export default class ATFFarmer extends BaseFarmer {
       return;
     }
 
+    /** The app only reports once foreground >= 15, scroll >= 300, menus >= 2 and a menu change */
     await this.makeAction("record_daily_interaction", {
-      scroll_pixels: 100 + Math.floor(Math.random() * 100),
-      foreground_seconds: 1 + Math.floor(Math.random() * 100),
-      unique_menus: 1 + Math.floor(Math.random() * 10),
-      menu_changes: 1 + Math.floor(Math.random() * 10),
-      trusted_input: 1 + Math.floor(Math.random() * 20),
+      foreground_seconds: 15 + Math.floor(Math.random() * 60),
+      scroll_pixels: 300 + Math.floor(Math.random() * 900),
+      unique_menus: 2 + Math.floor(Math.random() * 3),
+      menu_changes: 1 + Math.floor(Math.random() * 6),
+      trusted_input: 1,
     });
     await this.utils.delay(300, { signal: this.signal });
   }
@@ -359,13 +383,18 @@ export default class ATFFarmer extends BaseFarmer {
     await this.utils.delay(300, { signal: this.signal });
   }
 
-  /** Get Auth Headers */
-  getAuthHeaders(data) {
-    return {
+  /** Get Auth Headers, with the session token login hands out once it has */
+  getAuthHeaders() {
+    const headers = {
       "x-requested-with": "XMLHttpRequest",
-      "x-atf-tma-session": data["tma_session_token"],
       "x-telegram-init-data": this.getInitData(),
     };
+
+    if (this.tmaSessionToken) {
+      headers["x-atf-tma-session"] = this.tmaSessionToken;
+    }
+
+    return headers;
   }
 
   makeAction(action, data = {}, config = {}) {
@@ -375,19 +404,6 @@ export default class ATFFarmer extends BaseFarmer {
         data,
         config,
       )
-      .then((res) => res.data);
-  }
-
-  makeGetAction(action, data = {}, config = {}) {
-    return this.api
-      .get(`https://atfminers.asloni.online/miner/index.php?action=${action}`, {
-        ...config,
-        params: {
-          ...data,
-          tg_id: this.getUserId(),
-          t: Date.now(),
-        },
-      })
       .then((res) => res.data);
   }
 
@@ -428,7 +444,17 @@ export default class ATFFarmer extends BaseFarmer {
     });
   }
 
-  /** Check Toobit KYC */
+  /** Get Toobit Status */
+  getToobitStatus() {
+    return this.makeAction("toobit_status");
+  }
+
+  /** Disconnect Toobit */
+  disconnectToobitUid() {
+    return this.makeAction("toobit_disconnect");
+  }
+
+  /** Check Toobit KYC, which the live app no longer calls */
   checkToobitKyc() {
     return this.makeAction("toobit_check_kyc", {
       request_id:
@@ -454,22 +480,27 @@ export default class ATFFarmer extends BaseFarmer {
   }
 
   /** Claim Task */
-  claimTask(taskId) {
+  claimTask(taskId, clientStartedAt = 0) {
     return this.makeAction("claim_task", {
       task_id: taskId,
+      client_started_at: clientStartedAt,
     });
   }
 
   /** Start Task */
-  startTask(taskId) {
+  startTask(taskId, clientStartedAt = 0) {
     return this.makeAction("start_task", {
       task_id: taskId,
+      client_started_at: clientStartedAt,
     });
   }
 
-  /** Get Level Journey */
-  getLevelJourney() {
-    return this.makeGetAction("get_level_journey");
+  /** Disconnect Wallet */
+  disconnectWallet(wallet) {
+    return this.makeAction("disconnect_wallet", {
+      wallet,
+      disconnect_intent: "explicit_user",
+    });
   }
 
   /** Sync Wallet */
@@ -581,6 +612,13 @@ export default class ATFFarmer extends BaseFarmer {
             action: this.connectDerivedWalletInteractive.bind(this),
             dispatch: false,
           },
+          {
+            id: "disconnect-wallet",
+            icon: "disconnect",
+            title: "Disconnect Wallet",
+            action: this.disconnectWalletInteractive.bind(this),
+            dispatch: false,
+          },
         ],
       },
       {
@@ -628,6 +666,20 @@ export default class ATFFarmer extends BaseFarmer {
             icon: "user",
             title: "Connect Toobit User",
             action: this.connectToobitUser.bind(this),
+            dispatch: false,
+          },
+          {
+            id: "toobit-status",
+            icon: "check",
+            title: "Toobit Status",
+            action: this.logToobitStatus.bind(this),
+            dispatch: false,
+          },
+          {
+            id: "disconnect-toobit",
+            icon: "disconnect",
+            title: "Disconnect Toobit",
+            action: this.disconnectToobitInteractive.bind(this),
             dispatch: false,
           },
           {
@@ -853,9 +905,16 @@ export default class ATFFarmer extends BaseFarmer {
     return { payload, proof };
   }
 
-  /** Whether a rejected withdrawal was rejected over the captcha */
+  /** Whether a rejected withdrawal was rejected over the captcha, using the app's own retry list */
   isWithdrawalCaptchaRejection(result) {
-    return String(result?.["reason"] || "").startsWith("captcha");
+    const reason = String(result?.["reason"] || "");
+
+    return (
+      reason.startsWith("captcha") ||
+      reason.startsWith("puzzle_") ||
+      reason.startsWith("challenge_") ||
+      reason === "trace_invalid"
+    );
   }
 
   /** The drop grades an answer that came back too fast as a bot */
@@ -943,7 +1002,8 @@ export default class ATFFarmer extends BaseFarmer {
       /** The drop can waive the captcha, leaving nothing to ask */
       let answer = "";
 
-      if (challenge["is_captcha"]) {
+      /** The app always asks for an answer when an image comes back */
+      if (challenge["is_captcha"] || challenge["captcha_image"]) {
         answer = await this.resolveCaptchaAnswer(challenge, rejection);
 
         /** An answer that comes back too fast is graded as a bot */
@@ -1075,57 +1135,6 @@ export default class ATFFarmer extends BaseFarmer {
     };
   }
 
-  generateSliderMotion(targetX, startX = 10, minDurationMs = 1025) {
-    const totalDuration = new Decimal(minDurationMs)
-      .plus(1000)
-      .plus(Decimal.random().times(2000));
-    const points = [];
-
-    points.push({ x: startX, t: 0 });
-    points.push({
-      x: startX,
-      t: new Decimal(100).plus(Decimal.random().times(100)).toNumber(),
-    });
-
-    const numPoints = 60 + Math.floor(Math.random() * 30);
-    const moveStart = new Decimal(150).plus(Decimal.random().times(100));
-    const moveEnd = totalDuration.times(0.85);
-
-    for (let i = 0; i <= numPoints; i++) {
-      const progress = new Decimal(i).div(numPoints);
-      const eased = new Decimal(this.easeInOutWithJitter(progress.toNumber()));
-      const t = moveStart.plus(moveEnd.minus(moveStart).times(progress));
-      const x = new Decimal(startX).plus(
-        new Decimal(targetX).minus(startX).times(eased),
-      );
-      points.push({
-        x: x.toDecimalPlaces(2).toNumber(),
-        t: t.floor().toNumber(),
-      });
-    }
-
-    points.push({
-      x: targetX,
-      t: totalDuration.times(0.92).floor().toNumber(),
-    });
-    points.push({
-      x: targetX,
-      t: totalDuration.floor().toNumber(),
-    });
-
-    return points;
-  }
-
-  easeInOutWithJitter(t) {
-    const dt = new Decimal(t);
-    const eased = dt.lt(0.5)
-      ? dt.times(dt).times(dt).times(4)
-      : new Decimal(1).minus(new Decimal(-2).times(dt).plus(2).pow(3).div(2));
-    const jitter = new Decimal(Math.random()).minus(0.5).times(0.02);
-    const result = eased.plus(jitter);
-    return Decimal.min(1, Decimal.max(0, result)).toNumber();
-  }
-
   getAnswerForChallenge(question) {
     const match = question.toLowerCase().match(/(\d+)\s*([+\-*/÷x])\s*(\d+)/);
     if (!match) throw new Error("Invalid math challenge format");
@@ -1207,6 +1216,40 @@ export default class ATFFarmer extends BaseFarmer {
     };
   }
 
+  /** When the mining cycle freezes, falling back to the app's 72h window from the cycle start */
+  getMiningFreezeAt(user) {
+    const freezesAt = Number(user["mining_freezes_at"]) || 0;
+    if (freezesAt > 0) return freezesAt;
+
+    const cycleStart =
+      Number(user["mining_cycle_started_at"]) ||
+      Number(user["last_mining_start"]) ||
+      0;
+
+    return cycleStart > 0 ? cycleStart + MAX_MINING_CYCLE_SECONDS : 0;
+  }
+
+  /** Keep the mining fields a start, claim or boost hands back */
+  applyMiningState(result) {
+    const user = this.user_data.user;
+
+    for (const key of [
+      "mining_cycle_started_at",
+      "mining_freezes_at",
+      "boost_ready_at",
+      "boost_active_until",
+      "boost_power_snapshot",
+      "mining_difficulty_snapshot",
+    ]) {
+      if (result?.[key] !== undefined) {
+        user[key] = result[key];
+      }
+    }
+
+    /** A fresh segment is no longer frozen */
+    user["mining_frozen"] = 0;
+  }
+
   calculateSessionBalance({
     user,
     difficulty,
@@ -1230,7 +1273,10 @@ export default class ATFFarmer extends BaseFarmer {
       );
     const pendingReward = new Decimal(user["pending_reward"] || 0);
 
-    const elapsed = Math.min(Math.max(nowSec - lastMiningStart, 0), 86400);
+    /** Mining stops accruing at the freeze point, as the app counts it */
+    const freezeAt = this.getMiningFreezeAt(user);
+    const cappedNow = freezeAt > 0 ? Math.min(nowSec, freezeAt) : nowSec;
+    const elapsed = Math.max(cappedNow - lastMiningStart, 0);
     const passiveReward = passivePerSecond.times(elapsed);
 
     const boostActiveUntil = Number(user["boost_active_until"]) || 0;
@@ -1466,10 +1512,9 @@ export default class ATFFarmer extends BaseFarmer {
 
   /** The withdrawals the drop has not settled yet */
   async getPendingWithdrawals() {
-    const history = await this.getWithdrawHistory();
-    const items = history?.items || [];
+    const { pending } = await this.getAutoWithdrawals();
 
-    return items.filter((item) => item.status === "pending");
+    return pending;
   }
 
   /** Whether the drop still owes this account a settlement */
@@ -1684,6 +1729,84 @@ export default class ATFFarmer extends BaseFarmer {
     this.logHashPowerExplainer(hashPower, divisor);
   }
 
+  /** Disconnect the wallet the way the app's disconnect button does, which settles and stops mining */
+  async disconnectWalletInteractive() {
+    const wallet = this.user_data?.user?.["wallet_address"];
+
+    if (!wallet) {
+      this.logger.warn("No wallet connected.");
+      return;
+    }
+
+    const confirm = await this.promptInput({
+      type: "select",
+      text: "Disconnecting settles and stops mining. Continue?",
+      options: [
+        { value: "no", label: "Cancel" },
+        { value: "yes", label: "Disconnect" },
+      ],
+    });
+
+    if (confirm !== "yes") return;
+
+    try {
+      const result = await this.disconnectWallet(wallet);
+
+      if (result.status !== "success") {
+        this.logger.error(result.message || "Failed to disconnect wallet");
+        return;
+      }
+
+      if (result.user) {
+        this.user_data.user = result.user;
+      }
+      this.logger.success("Wallet disconnected!");
+    } catch (error) {
+      this.logger.error(error?.response?.data?.message || error.message);
+    }
+  }
+
+  async logToobitStatus() {
+    try {
+      const data = await this.getToobitStatus();
+
+      if (data.status !== "success") {
+        this.logger.error(data.message);
+        return;
+      }
+
+      const connected = Number(data.connected) === 1;
+
+      this.logger.keyValue("Connected", connected ? "Yes" : "No", {
+        valueStyle: connected
+          ? this.logger.c.greenBright
+          : this.logger.c.yellowBright,
+      });
+      this.logger.keyValue("UID", data.uid || "-", { format: false });
+    } catch (error) {
+      this.logger.error(error?.response?.data?.message || error.message);
+    }
+  }
+
+  async disconnectToobitInteractive() {
+    try {
+      const data = await this.disconnectToobitUid();
+
+      if (data.status !== "success") {
+        this.logger.error(data.message);
+        return;
+      }
+
+      Object.assign(this.user_data.user, {
+        toobit_connected: Number(data.connected) || 0,
+        toobit_uid: data.uid || "",
+      });
+      this.logger.success(data.message || "Toobit disconnected!");
+    } catch (error) {
+      this.logger.error(error?.response?.data?.message || error.message);
+    }
+  }
+
   async connectToobitUser() {
     const input = await this.promptInput("Enter Toobit UID:");
     const uid = (input || "").trim();
@@ -1786,13 +1909,13 @@ export default class ATFFarmer extends BaseFarmer {
       });
 
       if (result.start_time) {
-        this.user_data.user["last_mining_start"] = result.start_time;
-        this.user_data.user["boost_active_until"] =
-          result.boost_active_until || 0;
-        this.user_data.user["boost_power_snapshot"] =
-          result.boost_power_snapshot || 0;
-        this.user_data.user["mining_difficulty_snapshot"] =
-          result.mining_difficulty_snapshot || 0;
+        Object.assign(this.user_data.user, {
+          last_mining_start: result.start_time,
+          boost_active_until: 0,
+          boost_power_snapshot: 0,
+          mining_difficulty_snapshot: 0,
+        });
+        this.applyMiningState(result);
         this.logger.success("Mining started!");
       }
     } else {
@@ -1826,14 +1949,14 @@ export default class ATFFarmer extends BaseFarmer {
 
       /** Mining auto-restarts after claim */
       if (result.server_now) {
-        this.user_data.user["last_mining_start"] = result.server_now;
-        this.user_data.user["pending_reward"] = 0;
-        this.user_data.user["boost_active_until"] =
-          result.boost_active_until || 0;
-        this.user_data.user["boost_power_snapshot"] =
-          result.boost_power_snapshot || 0;
-        this.user_data.user["mining_difficulty_snapshot"] =
-          result.mining_difficulty_snapshot || 0;
+        Object.assign(this.user_data.user, {
+          last_mining_start: result.server_now,
+          pending_reward: 0,
+          boost_active_until: 0,
+          boost_power_snapshot: 0,
+          mining_difficulty_snapshot: 0,
+        });
+        this.applyMiningState(result);
       }
     }
   }
@@ -1855,6 +1978,14 @@ export default class ATFFarmer extends BaseFarmer {
       return;
     }
 
+    /** The app keeps the boost locked until it is ready again */
+    const boostReadyAt = Number(user["boost_ready_at"]) || 0;
+
+    if (boostReadyAt > nowSec) {
+      this.logger.info("Boost not ready yet.");
+      return;
+    }
+
     const diffData = await this.fetchDifficultyData();
     const balance = this.calculateSessionBalance({
       user,
@@ -1873,9 +2004,32 @@ export default class ATFFarmer extends BaseFarmer {
     const result = await this.activateBoost(balance);
 
     if (result.boost_active_until) {
-      this.user_data.user["boost_active_until"] = result.boost_active_until;
-      this.user_data.user["boost_power_snapshot"] = diffData.boostTapsPerSec;
+      /** A boost settles the session into pending and opens a new segment */
+      Object.assign(this.user_data.user, {
+        pending_reward: balance.toNumber(),
+        last_mining_start:
+          Number(result.server_now) || Math.floor(Date.now() / 1000),
+        boost_power_snapshot:
+          Number(result.boost_taps_per_sec) || diffData.boostTapsPerSec,
+        mining_difficulty_snapshot: diffData.difficulty,
+      });
+      this.applyMiningState(result);
       this.logger.success("Boost activated!");
+    }
+  }
+
+  /** Apply the balance and level a claim hands back, keeping what it leaves out */
+  applyClaimResult(result, balanceKey = "new_balance") {
+    const user = this.user_data.user;
+
+    if (result?.[balanceKey] !== undefined) {
+      user["mined_balance"] = result[balanceKey];
+    }
+    if (result?.["new_level"] !== undefined) {
+      user["miner_level"] = result["new_level"];
+    }
+    if (result?.["assets_total"] !== undefined) {
+      user["assets_total"] = result["assets_total"];
     }
   }
 
@@ -1884,39 +2038,52 @@ export default class ATFFarmer extends BaseFarmer {
     await this.recordNavigationBatch(1);
 
     const { user } = this.user_data;
-
-    const tasks = [
-      "telegram_join",
-      "telegram_join_fa",
-      "twitter_follow",
-      "instagram_follow",
-      "youtube_subscribe",
-    ];
-
     const completedTasks = user.completed_tasks || [];
 
-    const availableTasks = tasks.filter(
-      (task) => !completedTasks.includes(task),
+    const availableTasks = ONE_TIME_TASKS.filter(
+      (task) => !completedTasks.includes(task.id),
     );
 
     /** Complete Available Tasks */
     for (const task of availableTasks) {
       if (this.signal.aborted) break;
-      await this.claimTask(task);
-      this.logger.success(`Claimed task: ${task}`);
+
+      try {
+        /** Telegram joins are checked by the bot */
+        if (task.link) {
+          await this.tryToJoinTelegramLink(task.link);
+        }
+
+        const result = await this.claimTask(task.id, 0);
+
+        if (result.status !== "success") {
+          this.logger.error(`Failed to claim ${task.id}:`, result.message);
+        } else {
+          this.applyClaimResult(result);
+          completedTasks.push(task.id);
+          this.logger.success(`Claimed task: ${task.id}`);
+        }
+      } catch (error) {
+        this.logger.error(
+          `Failed to claim ${task.id}:`,
+          error.response?.data?.message || error.message,
+        );
+      }
+
       await this.utils.delayForSeconds(20, { signal: this.signal });
     }
   }
 
-  /** Complete Extra Tasks */
+  /** Complete Extra Tasks, each on its own cooldown */
   async completeExtraTasks() {
-    const { task_cooldowns: extraTasks } = this.user_data;
+    const cooldowns = this.user_data["task_cooldowns"] || {};
+    const nowSec = Math.floor(Date.now() / 1000);
 
-    const allAvailable = Object.values(extraTasks).every((cooldown) =>
-      this.utils.dateFns.isAfter(new Date(), new Date(cooldown * 1000)),
+    const availableTasks = COOLDOWN_TASKS.filter(
+      (task) => !(Number(cooldowns[task.id]) > nowSec),
     );
 
-    if (!allAvailable) {
+    if (availableTasks.length === 0) {
       this.logger.warn("Extra tasks not available");
       return;
     }
@@ -1924,13 +2091,34 @@ export default class ATFFarmer extends BaseFarmer {
     /** Record Navigation Batch */
     await this.recordNavigationBatch(1);
 
-    /** Check Extra Tasks Cooldowns */
-    for (const task in extraTasks) {
+    for (const task of availableTasks) {
       if (this.signal.aborted) break;
-      await this.startTask(task);
-      await this.utils.delayForSeconds(30, { signal: this.signal });
-      await this.claimTask(task);
-      this.logger.success(`Completed task: ${task}`);
+
+      try {
+        /** The claim is checked against the start the app registered */
+        const startedAt = Math.floor(Date.now() / 1000);
+
+        await this.startTask(task.id, startedAt);
+        await this.utils.delayForSeconds(
+          task.minSeconds + 5 + Math.floor(Math.random() * 15),
+          { signal: this.signal },
+        );
+
+        const result = await this.claimTask(task.id, startedAt);
+
+        if (result.status !== "success") {
+          this.logger.error(`Failed to complete ${task.id}:`, result.message);
+        } else {
+          this.applyClaimResult(result);
+          this.logger.success(`Completed task: ${task.id}`);
+        }
+      } catch (error) {
+        this.logger.error(
+          `Failed to complete ${task.id}:`,
+          error.response?.data?.message || error.message,
+        );
+      }
+
       await this.utils.delayForSeconds(10, { signal: this.signal });
     }
   }
@@ -1947,10 +2135,7 @@ export default class ATFFarmer extends BaseFarmer {
     if (claimable > 0) {
       const result = await this.claimReferrals();
 
-      /** Update balance and level */
-      this.user_data.user["assets_total"] = result.assets_total;
-      this.user_data.user["mined_balance"] = result.new_balance;
-      this.user_data.user["miner_level"] = result.new_level;
+      this.applyClaimResult(result);
 
       this.logger.success(`Claimed ${claimable} ATF from referrals!`);
       await this.utils.delayForSeconds(2, { signal: this.signal });
@@ -1959,14 +2144,14 @@ export default class ATFFarmer extends BaseFarmer {
     }
 
     if (teamWallet > 0) {
+      /** Only the pool balance comes back, the level is left as it was */
       const result = await this.claimTeamWallet();
 
-      /** Update balance and level */
-      this.user_data.user["assets_total"] = result.assets_total;
-      this.user_data.user["mined_balance"] = result.new_pool_balance;
-      this.user_data.user["miner_level"] = result.new_level;
+      this.applyClaimResult(result, "new_pool_balance");
 
-      this.logger.success(`Claimed ${teamWallet} ATF from team wallet!`);
+      this.logger.success(
+        `Claimed ${result.claimed_amount ?? teamWallet} ATF from team wallet!`,
+      );
       await this.utils.delayForSeconds(2, { signal: this.signal });
     } else {
       this.logger.info("No team wallet rewards to claim.");

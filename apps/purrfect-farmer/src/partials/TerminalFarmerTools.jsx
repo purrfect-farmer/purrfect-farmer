@@ -15,12 +15,13 @@ import {
 import BottomDialog from "@/components/BottomDialog";
 import BottomDialogTools from "./BottomDialogTools";
 import { Fragment } from "react";
-import { TbPlugConnected } from "react-icons/tb";
+import { TbPlugConnected, TbPlugConnectedX } from "react-icons/tb";
 import useMirroredCallback from "@/hooks/useMirroredCallback";
 
 const TOOLS_ICON = {
   wallet: MdOutlineWallet,
   connect: TbPlugConnected,
+  disconnect: TbPlugConnectedX,
   reconnect: LuCircleFadingArrowUp,
   search: MdSearch,
   check: MdCheck,
