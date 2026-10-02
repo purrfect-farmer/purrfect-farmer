@@ -186,6 +186,23 @@ export default class MRGFarmer extends BaseFarmer {
     return this.postToApi("/user/friends");
   }
 
+  /** The week's earnings, which the page reads on load */
+  fetchPnlHistory() {
+    return this.postToApi("/user/pnl-history", {
+      tzOffsetMinutes: -new Date().getTimezoneOffset(),
+    });
+  }
+
+  /** Mark the account as present, as the page does every 30s while visible */
+  ping() {
+    return this.postToApi("/user/ping");
+  }
+
+  /** Mark the account as gone, as the page does when it is hidden or closed */
+  leavePresence() {
+    return this.postToApi("/user/presence-leave");
+  }
+
   /** A fresh payload for the TON proof a new wallet is bound with */
   async fetchTonProofPayload() {
     const result = await this.postToApi("/user/ton-proof-payload");
@@ -444,7 +461,21 @@ export default class MRGFarmer extends BaseFarmer {
   /** Sign in and read the account */
   async login() {
     await this.verifyAccount();
-    return this.loadAccount();
+    await this.loadAccount();
+
+    /** The page reads these on load too, and their failure blocks nothing */
+    await this.fetchPnlHistory().catch(() => null);
+
+    return this.account_data;
+  }
+
+  /** Report presence without letting a failure stop the pass */
+  async updatePresence(present) {
+    try {
+      await (present ? this.ping() : this.leavePresence());
+    } catch (error) {
+      this.logger.warn("Failed to update presence:", error.message);
+    }
   }
 
   /** Re-read the account into the farmer's state */
@@ -503,6 +534,7 @@ export default class MRGFarmer extends BaseFarmer {
   /** Process Farmer */
   async process() {
     await this.login();
+    await this.updatePresence(true);
 
     await this.logAccountInfo();
     await this.executeTask("Human Check", () => this.ensureHumanCheck());
@@ -512,6 +544,7 @@ export default class MRGFarmer extends BaseFarmer {
     await this.executeTask("Squad", () => this.claimSquadRewards());
     await this.executeTask("Withdraw", () => this.withdraw());
     await this.storeAutoSnapshot();
+    await this.updatePresence(false);
   }
 
   /** Log what the account looks like before the pass starts */
@@ -722,7 +755,7 @@ export default class MRGFarmer extends BaseFarmer {
   /** Ask TonAPI for the address' Genesis NFTs, grouped by rarity */
   async fetchNftHoldings(address) {
     const response = await fetchTonApi(
-      `/accounts/${address}/nfts?collection=${GENESIS_NFT_COLLECTION}`,
+      `/accounts/${address}/nfts?collection=${GENESIS_NFT_COLLECTION}&limit=50&indirect_ownership=true`,
       { signal: this.signal },
     ).catch((error) => {
       this.logger.warn("Failed to read NFTs on-chain:", error.message);
@@ -792,9 +825,12 @@ export default class MRGFarmer extends BaseFarmer {
     );
   }
 
-  /** The discount the account's NFTs earn it */
+  /** The discount the account's NFTs earn it, never below what the drop itself reports */
   async readNftDiscountPercent() {
-    return this.getNftDiscountPercent(await this.readNftHoldings());
+    return Math.max(
+      this.getNftDiscountPercent(await this.readNftHoldings()),
+      Number(this.account_data?.user?.["nftDiscountPercent"]) || 0,
+    );
   }
 
   /** The withdrawal fee once the NFT discount is applied */
@@ -990,6 +1026,9 @@ export default class MRGFarmer extends BaseFarmer {
   isTaskClaimable(task) {
     if (task["isPaused"]) return false;
 
+    /** The drop checks membership, so a chat the farmer may not join is not worth a claim */
+    if (!this.validateTelegramTask(this.getTaskUrl(task))) return false;
+
     if (!task["taskType"] || task["taskType"] === "one_time") {
       return !this.getCompletedTaskIds().includes(task["taskId"]);
     }
@@ -1015,9 +1054,19 @@ export default class MRGFarmer extends BaseFarmer {
     }
   }
 
+  /** The task's link with any referral swapped for this account, as the page opens it */
+  getTaskUrl(task) {
+    const userId = String(this.getUserId() || "0");
+
+    return String(task["url"] || "")
+      .replace(/REFCODE/g, userId)
+      .replace(/(startapp=ref_)[A-Za-z0-9_]+/g, `$1${userId}`)
+      .replace(/(startapp%3Dref_)[A-Za-z0-9_]+/g, `$1${userId}`);
+  }
+
   /** Complete one task the way the page does: open it, dwell, then claim */
   async completeTask(task) {
-    await this.openTaskLink(task["url"], TASK_DWELL_SECONDS);
+    await this.openTaskLink(this.getTaskUrl(task), TASK_DWELL_SECONDS);
 
     const result = await this.claimTask(task["taskId"]);
 
@@ -1490,6 +1539,13 @@ export default class MRGFarmer extends BaseFarmer {
             dispatch: false,
           },
           {
+            id: "disconnect-wallet",
+            icon: "reconnect",
+            title: "Disconnect Wallet",
+            action: this.disconnectWalletInteractive.bind(this),
+            dispatch: false,
+          },
+          {
             id: "refresh-holding",
             icon: "reconnect",
             title: "Refresh Holding",
@@ -1619,6 +1675,31 @@ export default class MRGFarmer extends BaseFarmer {
     if (status) {
       await this.unlockAffordableLevel();
     }
+  }
+
+  /** Unbind the wallet the account is on */
+  async disconnectWalletInteractive() {
+    await this.ensureStateLoaded();
+
+    if (!this.getConnectedWalletAddress()) {
+      this.logger.info("No wallet connected.");
+      return;
+    }
+
+    const result = await this.disconnectWallet();
+
+    if (!result?.["success"]) {
+      this.logger.error(
+        "Failed to disconnect:",
+        result?.["error"] || "Unknown error",
+      );
+      return;
+    }
+
+    this.nftHoldings = null;
+    await this.rememberWalletVersion(undefined);
+    await this.loadAccount();
+    this.logger.success("Wallet disconnected.");
   }
 
   /** Unlock what the derived wallet covers, as a manual connect does */
