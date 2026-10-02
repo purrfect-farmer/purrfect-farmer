@@ -1478,6 +1478,13 @@ export default class MRGFarmer extends BaseFarmer {
             dispatch: false,
           },
           {
+            id: "connect-derived-wallet",
+            icon: "key",
+            title: "Connect Derived Wallet",
+            action: this.connectDerivedWalletInteractive.bind(this),
+            dispatch: false,
+          },
+          {
             id: "refresh-holding",
             icon: "reconnect",
             title: "Refresh Holding",
@@ -1607,6 +1614,11 @@ export default class MRGFarmer extends BaseFarmer {
     if (status) {
       await this.unlockAffordableLevel();
     }
+  }
+
+  /** Unlock what the derived wallet covers, as a manual connect does */
+  async afterDerivedWalletConnected() {
+    await this.unlockAffordableLevel();
   }
 
   /** Re-read the connected wallet on-chain and unlock what it now covers */

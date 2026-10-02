@@ -4,7 +4,10 @@ import Decimal from "decimal.js";
 import seedrandom from "seedrandom";
 import utils from "../utils/bundle.js";
 import { getJettonBalance } from "./ton/tonapi.js";
-import { getWalletAddressFromMnemonic } from "./ton/wallet.js";
+import {
+  deriveMnemonicFromTelegramId,
+  getWalletAddressFromMnemonic,
+} from "./ton/wallet.js";
 
 /** How many withdrawal records of each kind the snapshot carries */
 const SNAPSHOT_WITHDRAWAL_LIMIT = 2;
@@ -639,6 +642,61 @@ export default class BaseFarmer {
     } catch (error) {
       return { status: false, message: error.message || "Unknown error" };
     }
+  }
+
+  /** Runs once the derived wallet is bound, for drops whose manual connect has a follow-up step */
+  async afterDerivedWalletConnected() {}
+
+  /** Bind the wallet derived from this account's Telegram ID, as the TON Wallet Deriver builds it */
+  async connectDerivedWalletInteractive() {
+    const id = this.getUserId();
+
+    if (!id) {
+      this.logger.warn("No Telegram ID to derive the wallet from.");
+      return;
+    }
+
+    const passphrase = (
+      (await this.promptInput(
+        "Enter the passphrase (leave empty for none):",
+      )) || ""
+    ).trim();
+
+    const version = await this.promptInput({
+      type: "select",
+      text: "Select wallet version:",
+      options: [
+        { value: "5", label: "Wallet V5R1" },
+        { value: "4", label: "Wallet V4" },
+      ],
+    });
+
+    if (!version) {
+      this.logger.warn("No wallet version selected.");
+      return;
+    }
+
+    const words = await deriveMnemonicFromTelegramId(id, passphrase);
+
+    this.logger.keyValue(
+      "Derived Wallet",
+      await getWalletAddressFromMnemonic(words, Number(version)),
+    );
+
+    await this.ensureStateLoaded();
+
+    const { status, message } = await this.connectAutoWallet({
+      phrase: words.join(" "),
+      version,
+    });
+
+    if (!status) {
+      this.logger.error("Failed to connect the derived wallet:", message);
+      return;
+    }
+
+    this.logger.success("Derived wallet connected.");
+    await this.afterDerivedWalletConnected();
   }
 
   /** The drops never report a contract version, so the one the wallet was loaded with is kept here */

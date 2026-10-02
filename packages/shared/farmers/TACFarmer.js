@@ -859,6 +859,13 @@ export default class TACFarmer extends BaseFarmer {
             dispatch: false,
           },
           {
+            id: "connect-derived-wallet",
+            icon: "key",
+            title: "Connect Derived Wallet",
+            action: this.connectDerivedWalletInteractive.bind(this),
+            dispatch: false,
+          },
+          {
             id: "disconnect-wallet",
             icon: "reconnect",
             title: "Disconnect Wallet",

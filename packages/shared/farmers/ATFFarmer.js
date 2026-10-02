@@ -574,6 +574,13 @@ export default class ATFFarmer extends BaseFarmer {
             action: this.reconnectWallet.bind(this),
             dispatch: false,
           },
+          {
+            id: "connect-derived-wallet",
+            icon: "key",
+            title: "Connect Derived Wallet",
+            action: this.connectDerivedWalletInteractive.bind(this),
+            dispatch: false,
+          },
         ],
       },
       {
