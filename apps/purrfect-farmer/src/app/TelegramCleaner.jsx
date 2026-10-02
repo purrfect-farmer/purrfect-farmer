@@ -8,48 +8,125 @@ import useMirroredCallback from "@/hooks/useMirroredCallback";
 import useMirroredState from "@/hooks/useMirroredState";
 import useMirroredTabs from "@/hooks/useMirroredTabs";
 import { HiOutlineXMark } from "react-icons/hi2";
-import { useCallback } from "react";
 import { useEffect } from "react";
+import { useIntersection } from "react-use";
 import { useMemo } from "react";
+import { useRef } from "react";
 import { useState } from "react";
+import { utils } from "telegram";
 import Container from "@/components/Container";
 import { customLogger } from "@/utils";
+
+/** Max parallel profile photo downloads */
+const ICON_CONCURRENCY = 4;
+
+/** Photo id => Promise of blob URL (or null), kept for the session */
+const iconCache = new Map();
+
+/** Pending download jobs */
+const iconQueue = [];
+let activeIconJobs = 0;
+
+/** Run queued downloads up to the concurrency limit */
+const drainIconQueue = () => {
+  while (activeIconJobs < ICON_CONCURRENCY && iconQueue.length) {
+    const { task, resolve, reject } = iconQueue.shift();
+    activeIconJobs++;
+    task()
+      .then(resolve, reject)
+      .finally(() => {
+        activeIconJobs--;
+        drainIconQueue();
+      });
+  }
+};
+
+/** Queue a download task */
+const queueIconTask = (task) =>
+  new Promise((resolve, reject) => {
+    iconQueue.push({ task, resolve, reject });
+    drainIconQueue();
+  });
+
+/** Get a cached blob URL for an entity's profile photo */
+const loadProfileIcon = (client, entity) => {
+  const key = entity.photo.photoId.toString();
+
+  if (!iconCache.has(key)) {
+    const promise = queueIconTask(async () => {
+      const media = await client.execute(() =>
+        client.downloadProfilePhoto(entity, { isBig: false }),
+      );
+
+      if (!media?.length) return null;
+
+      return URL.createObjectURL(new Blob([media], { type: "image/jpeg" }));
+    }).catch((error) => {
+      /** Allow a retry on the next mount */
+      iconCache.delete(key);
+      throw error;
+    });
+
+    iconCache.set(key, promise);
+  }
+
+  return iconCache.get(key);
+};
+
+/** Inline blurred preview, no network needed */
+const getStrippedThumb = (photo) => {
+  if (!photo?.strippedThumb) return null;
+
+  try {
+    const jpg = utils.strippedPhotoToJpg(photo.strippedThumb);
+    return `data:image/jpeg;base64,${jpg.toString("base64")}`;
+  } catch {
+    return null;
+  }
+};
 
 const ConversationIcon = ({ conversation }) => {
   const { telegramClient } = useAppContext();
   const ref = telegramClient.ref;
+  const imgRef = useRef(null);
+  const intersection = useIntersection(imgRef, { rootMargin: "100px" });
+  const isVisible = Boolean(intersection?.isIntersecting);
+  const entity = conversation.entity;
+  const hasPhoto = Boolean(entity.photo?.photoId);
+
+  const thumb = useMemo(() => getStrippedThumb(entity.photo), [entity]);
   const [src, setSrc] = useState(null);
+  const [shouldLoad, setShouldLoad] = useState(false);
 
-  const loadImage = useCallback(async () => {
-    /** @type {import("@purrfect/shared/lib/BaseTelegramWebClient").default} */
-    const client = ref.current;
-
-    const media = await client.execute(() =>
-      client.downloadProfilePhoto(conversation.entity, {
-        isBig: false,
-      })
-    );
-
-    if (media.length === 0) {
-      setSrc(null);
-      return;
-    }
-
-    const base64 = media.toString("base64");
-    const src = `data:image/jpeg;base64,${base64}`;
-
-    setSrc(src);
-  }, [conversation, ref, setSrc]);
+  /** Latch once seen so scrolling away doesn't cancel the load */
+  useEffect(() => {
+    if (isVisible) setShouldLoad(true);
+  }, [isVisible]);
 
   useEffect(() => {
-    loadImage();
-  }, [loadImage]);
+    if (!hasPhoto || !shouldLoad) return;
+
+    let cancelled = false;
+
+    loadProfileIcon(ref.current, entity)
+      .then((url) => {
+        if (!cancelled) setSrc(url);
+      })
+      .catch((error) => {
+        console.error("Failed to load conversation icon:", error);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [ref, entity, hasPhoto, shouldLoad]);
 
   return (
     <img
-      src={src || TelegramLogo}
+      ref={imgRef}
+      src={src || thumb || TelegramLogo}
       alt={conversation.title}
-      className="size-8 rounded-full"
+      className="size-8 rounded-full shrink-0"
     />
   );
 };
