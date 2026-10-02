@@ -19,6 +19,7 @@ export default function CloudEnvTest({ service, getValues, disabled }) {
       <Button
         type="button"
         variant="secondary"
+        className="dark:bg-neutral-600"
         onClick={runTest}
         disabled={disabled || testMutation.isPending}
       >
@@ -40,7 +41,7 @@ export default function CloudEnvTest({ service, getValues, disabled }) {
               ) : (
                 <HiOutlineXCircle className="size-4 shrink-0 mt-0.5" />
               )}
-              <span className="min-w-0 break-words">
+              <span className="min-w-0 wrap-break-word">
                 <b>{result.label}:</b> {result.message}
               </span>
             </li>

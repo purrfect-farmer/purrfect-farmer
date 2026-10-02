@@ -90,7 +90,7 @@ const SecretInput = ({ field, secret, controller, disabled }) => {
           disabled={disabled}
           className={cn(
             "px-3 rounded-lg shrink-0 inline-flex items-center gap-1",
-            "bg-neutral-200 dark:bg-neutral-900 disabled:opacity-50",
+            "bg-neutral-200 dark:bg-neutral-600 disabled:opacity-50",
           )}
         >
           <LuDices className="size-4" /> Generate
