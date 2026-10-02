@@ -10,7 +10,7 @@ const TAC_JETTON_ADDRESS = "EQBE_gBrU3mPI9hHjlJoR_kYyrhQgyCFD6EUWfa42W8T7EBP";
 /** Bot the referral links point at, when the drop does not publish one */
 const BOT_USERNAME = "TAC_AIRDROP_bot";
 
-/** Wallet the drop is told the address came from, as TON Connect reports it */
+/** Wallet the drop is told the address came from, as TON Connect's `device.appName` reports it */
 const WALLET_TYPE = "tonkeeper";
 
 /** Smallest mined amount worth a claim */
@@ -282,6 +282,10 @@ export default class TACFarmer extends BaseFarmer {
     this.logger.newline();
     this.logCurrentUser();
     this.logger.keyValue("Level", user["currentLevel"]);
+    this.logger.keyValue(
+      "Peak Level",
+      user["peakLevel"] || user["currentLevel"],
+    );
     this.logger.keyValue("Pool Wallet", this.formatAmount(user["poolWallet"]));
     this.logger.keyValue(
       "Holding Wallet",
@@ -665,7 +669,9 @@ export default class TACFarmer extends BaseFarmer {
 
     return {
       pending: withdrawals.filter((item) => item["status"] === "PENDING"),
-      approved: withdrawals.filter((item) => item["status"] === "COMPLETED"),
+      approved: withdrawals.filter((item) =>
+        ["APPROVED", "COMPLETED"].includes(item["status"]),
+      ),
       flagged: withdrawals.filter((item) => item["status"] === "REJECTED"),
     };
   }
@@ -901,6 +907,30 @@ export default class TACFarmer extends BaseFarmer {
         ],
       },
       {
+        name: "Squad",
+        list: [
+          {
+            id: "claim-squad",
+            icon: "check",
+            title: "Claim Referrals",
+            action: this.claimSquadRewardsInteractive.bind(this),
+            dispatch: false,
+          },
+        ],
+      },
+      {
+        name: "Tasks",
+        list: [
+          {
+            id: "complete-tasks",
+            icon: "check",
+            title: "Complete Tasks",
+            action: this.completeTasksInteractive.bind(this),
+            dispatch: false,
+          },
+        ],
+      },
+      {
         name: "Levels",
         list: [
           {
@@ -1002,6 +1032,18 @@ export default class TACFarmer extends BaseFarmer {
   async claimMiningInteractive() {
     await this.ensureStateLoaded();
     await this.startOrClaimMining();
+  }
+
+  /** Claim referral rewards and team commission on demand */
+  async claimSquadRewardsInteractive() {
+    await this.ensureStateLoaded();
+    await this.claimSquadRewards();
+  }
+
+  /** Claim every open task on demand */
+  async completeTasksInteractive() {
+    await this.ensureStateLoaded();
+    await this.completeTasks();
   }
 
   /** Buy a level, prompting for which one and leaving the assets to the drop to judge */
@@ -1130,6 +1172,15 @@ export default class TACFarmer extends BaseFarmer {
       this.formatAmount(level["requiredHoldingAtf"]),
     );
     this.logger.keyValue("Speed", `${level["speedTh"]} TH/s`);
+
+    /** Holding releases a share into the pool every day */
+    const releasePercent =
+      Number(this.getSettings()["dailyHoldingReleasePercent"]) || 2;
+
+    this.logger.keyValue(
+      "Holding Yield/day",
+      `${this.formatAmount(assets.mul(releasePercent).div(100))} TAC (${releasePercent}%)`,
+    );
 
     this.logger.newline();
     this.logMiningRateBreakdown(hourlyRate.mul(24));
