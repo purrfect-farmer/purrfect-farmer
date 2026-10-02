@@ -1,8 +1,11 @@
+import Input from "@/components/Input";
+import PrimaryButton from "@/components/PrimaryButton";
 import Tabs from "@/components/Tabs";
 import TelegramLogo from "@/assets/images/telegram-logo.svg";
 import toast from "react-hot-toast";
 import useAppContext from "@/hooks/useAppContext";
 import useMirroredCallback from "@/hooks/useMirroredCallback";
+import useMirroredState from "@/hooks/useMirroredState";
 import useMirroredTabs from "@/hooks/useMirroredTabs";
 import { HiOutlineXMark } from "react-icons/hi2";
 import { useCallback } from "react";
@@ -89,11 +92,104 @@ const ChatsCleaner = ({ isPending, conversations, onLeave }) => {
   );
 };
 
+/** Remove every case-insensitive match of text, tidying leftover spaces */
+const stripText = (value, text) => {
+  const escaped = text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  return (value || "")
+    .replace(new RegExp(escaped, "gi"), "")
+    .replace(/\s{2,}/g, " ")
+    .trim();
+};
+
+const NameCleaner = () => {
+  const { telegramClient, updateTelegramUser } = useAppContext();
+  const ref = telegramClient.ref;
+  const [isPending, setIsPending] = useState(false);
+  const [text, , dispatchAndSetText] = useMirroredState(
+    "telegram-cleaner.name-text",
+    "",
+  );
+
+  const [, dispatchAndRemoveText] = useMirroredCallback(
+    "telegram-cleaner.remove-name-text",
+    async (text) => {
+      /** @type {import("@purrfect/shared/lib/BaseTelegramWebClient").default} */
+      const client = ref.current;
+
+      if (!text) return;
+
+      setIsPending(true);
+
+      try {
+        await toast.promise(
+          (async () => {
+            const me = await client.execute(() => client.getMe());
+            const oldFirstName = me.firstName || "";
+            const oldLastName = me.lastName || "";
+            let firstName = stripText(oldFirstName, text);
+            let lastName = stripText(oldLastName, text);
+
+            if (firstName === oldFirstName && lastName === oldLastName) {
+              throw new Error("Name doesn't contain the text");
+            }
+
+            /** Telegram requires a first name */
+            if (!firstName) {
+              if (!lastName) throw new Error("Name would be empty");
+              firstName = lastName;
+              lastName = "";
+            }
+
+            await client.updateProfile({ firstName, lastName });
+            updateTelegramUser(true);
+
+            return [firstName, lastName].filter(Boolean).join(" ");
+          })(),
+          {
+            loading: "Updating name...",
+            success: (name) => `Name updated: ${name}`,
+            error: (error) => `Failed to update name: ${error.message}`,
+          },
+        );
+      } catch (error) {
+        console.error("Failed to remove text from name:", error);
+      } finally {
+        setIsPending(false);
+      }
+    },
+    [ref, setIsPending, updateTelegramUser],
+  );
+
+  return (
+    <div className="flex flex-col gap-2 p-2">
+      <p className="text-center text-neutral-500 dark:text-neutral-400">
+        Remove text from the first and last name (case-insensitive).
+      </p>
+
+      <Input
+        value={text}
+        disabled={isPending}
+        autoComplete="off"
+        placeholder="Text to remove"
+        onChange={(ev) => dispatchAndSetText(ev.target.value)}
+      />
+
+      <PrimaryButton
+        disabled={isPending || !text}
+        onClick={() => dispatchAndRemoveText(text)}
+      >
+        {isPending ? "Updating..." : "Remove from Name"}
+      </PrimaryButton>
+    </div>
+  );
+};
+
 export default function TelegramCleaner() {
   const tabs = useMirroredTabs("telegram-cleaner", [
     "channels",
     "bots",
     "chats",
+    "name",
   ]);
 
   const { farmerMode, telegramClient } = useAppContext();
@@ -226,6 +322,10 @@ export default function TelegramCleaner() {
               conversations={privateChats}
               onLeave={dispatchAndLeaveConversation}
             />
+          </Tabs.Content>
+
+          <Tabs.Content value="name">
+            <NameCleaner />
           </Tabs.Content>
         </Container>
       </div>
