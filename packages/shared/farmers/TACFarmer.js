@@ -1,6 +1,6 @@
 import BaseFarmer from "../lib/BaseFarmer.js";
 import Decimal from "decimal.js";
-import GigaPubClient from "../lib/GigaPubClient.js";
+import GigaPubClient from "../lib/ads/GigaPubClient.js";
 
 /** The drop's backend, served from the mini app's own origin */
 const API_URL = "https://tacairdrop.xyz/api";
@@ -35,8 +35,28 @@ const ADS_PER_WINDOW = 5;
 /** The ad window runs 24 hours from its first ad */
 const ADS_WINDOW_MS = 864e5;
 
-/** The GigaPub project the page loads */
+/** The GigaPub project the page loads, and the networks its script mediates */
 const GIGAPUB_PROJECT_ID = 8412;
+const GIGAPUB_NETWORKS = [
+  { name: "monetag", data: { zone: 11926560 } },
+  { name: "rich", data: { pubId: "958457", appId: "3546" } },
+  { name: "t", data: { wId: "c687b65d-5089-4cfe-87d5-3b6a42b02c0f" } },
+  { name: "b", data: { id: 8412, placeId: 37957, m: 2 } },
+  { name: "rB", data: { pubId: "958457", appId: "4543" } },
+  { name: "rD", data: { pubId: "958457", appId: "3808" } },
+];
+const GIGAPUB_ROTATION = {
+  type: "chanceOrder",
+  order: ["monetag", "rich", "t", "rB", "rD", "mc"],
+  chances: {
+    monetag: 0.975,
+    rich: 0.005,
+    t: 0.005,
+    rB: 0.005,
+    rD: 0.005,
+    mc: 0.005,
+  },
+};
 
 /** How long to dwell instead when GigaPub has no ad to play */
 const AD_WATCH_SECONDS = 15;
@@ -58,10 +78,16 @@ export default class TACFarmer extends BaseFarmer {
   static host = "tacairdrop.xyz";
   static domains = [
     "tacairdrop.xyz",
-    "ad.gigapub.tech",
+    "gigapub.tech",
     "munqu.com",
     "d3rem.com",
     "my.rtmark.net",
+    "adx1.com",
+    "4armn.com",
+    "favorit.work",
+    "convers.link",
+    "trafic.live",
+    "tgads.live",
   ];
   static telegramLink = "https://t.me/tacairdrop_bot?start=1147265290";
   static path = "/";
@@ -185,6 +211,8 @@ export default class TACFarmer extends BaseFarmer {
   get gigapub() {
     return (this._gigapub ||= new GigaPubClient(this, {
       projectId: GIGAPUB_PROJECT_ID,
+      networks: GIGAPUB_NETWORKS,
+      rotation: GIGAPUB_ROTATION,
     }));
   }
 
