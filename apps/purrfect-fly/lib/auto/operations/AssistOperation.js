@@ -1,7 +1,7 @@
 import AutoOperation from "./AutoOperation.js";
 import logger from "../../logger.js";
 import { ASSIST_OWNER } from "../constants.js";
-import { generateMnemonicPhrase } from "@purrfect/shared/lib/auto/wallet.js";
+import { generateMnemonicPhrase } from "@purrfect/shared/lib/ton/wallet.js";
 import { getVault } from "../../AutoVault.js";
 import { isTrusted, isWithdrawable } from "../summary.js";
 

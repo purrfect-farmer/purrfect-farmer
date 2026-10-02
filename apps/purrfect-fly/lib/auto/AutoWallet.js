@@ -1,6 +1,6 @@
 import Decimal from "decimal.js";
 import logger from "../logger.js";
-import { getWalletAddressFromMnemonic } from "@purrfect/shared/lib/auto/wallet.js";
+import { getWalletAddressFromMnemonic } from "@purrfect/shared/lib/ton/wallet.js";
 
 /** Connects accounts to wallets on the drop, and waits the drop out once it has */
 class AutoWallet {

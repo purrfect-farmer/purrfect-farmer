@@ -1,7 +1,7 @@
 import AutoWalletTransfer from "@/lib/AutoWalletTransfer";
 import { downloadFile } from "@/utils";
 import { encryption } from "@/services/encryption";
-import { getWalletFromMnemonic } from "@purrfect/shared/lib/auto/wallet";
+import { getWalletFromMnemonic } from "@purrfect/shared/lib/ton/wallet";
 import { mnemonicNew } from "@ton/crypto";
 import toast from "react-hot-toast";
 import useAuto from "./useAuto";

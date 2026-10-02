@@ -1,6 +1,6 @@
 import { useCallback, useState } from "react";
 
-import { getWalletAddressFromMnemonic } from "@purrfect/shared/lib/auto/wallet";
+import { getWalletAddressFromMnemonic } from "@purrfect/shared/lib/ton/wallet";
 import { mnemonicNew } from "@ton/crypto";
 import useAuto from "./useAuto";
 import useAutoMaster from "./useAutoMaster";

@@ -9,7 +9,7 @@ import PrimaryButton from "./PrimaryButton";
 import Select from "./Select";
 import Textarea from "./Textarea";
 import { cn } from "@/utils";
-import { getWalletAddressFromMnemonic } from "@purrfect/shared/lib/auto/wallet";
+import { getWalletAddressFromMnemonic } from "@purrfect/shared/lib/ton/wallet";
 import { mnemonicNew } from "@ton/crypto";
 import toast from "react-hot-toast";
 import { yup } from "@/lib/yup";

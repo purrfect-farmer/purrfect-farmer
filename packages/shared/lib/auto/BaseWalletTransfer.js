@@ -2,9 +2,9 @@ import { Address, SendMode, internal, toNano } from "@ton/core";
 import {
   JETTON_TRANSFER_GAS,
   buildJettonTransferBody,
-  prepareMaster,
   waitForSeqnoChange,
-} from "./transactions.js";
+} from "../ton/transactions.js";
+import { prepareMaster } from "./transactions.js";
 
 /** Drains a master wallet, the drop's jetton plus all remaining TON, into an arbitrary address */
 export default class BaseWalletTransfer {

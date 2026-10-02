@@ -9,7 +9,8 @@ import {
   simulateAutoSwap,
   toUnits,
 } from "./swap.js";
-import { prepareMaster, waitForSeqnoChange } from "./transactions.js";
+import { prepareMaster } from "./transactions.js";
+import { waitForSeqnoChange } from "../ton/transactions.js";
 
 import Decimal from "decimal.js";
 

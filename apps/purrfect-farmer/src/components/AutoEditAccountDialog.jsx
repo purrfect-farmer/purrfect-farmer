@@ -7,7 +7,7 @@ import Button from "./Button";
 import CenteredDialog from "./CenteredDialog";
 import { TbUserEdit } from "react-icons/tb";
 import { encryption } from "@/services/encryption";
-import { getWalletAddressFromMnemonic } from "@purrfect/shared/lib/auto/wallet";
+import { getWalletAddressFromMnemonic } from "@purrfect/shared/lib/ton/wallet";
 import toast from "react-hot-toast";
 import useAuto from "@/hooks/useAuto";
 

@@ -1,12 +1,13 @@
 import { Address, internal, toNano } from "@ton/ton";
-import { createWallet, getJettonInfo, keypairFromMnemonic } from "./wallet.js";
+import { createWallet, keypairFromMnemonic } from "../ton/wallet.js";
+import { getJettonInfo } from "../ton/tonapi.js";
 import {
   JETTON_TRANSFER_GAS,
   TON_FOR_GAS,
   buildJettonTransferBody,
   getJettonWalletAddress,
   waitForSeqnoChange,
-} from "./transactions.js";
+} from "../ton/transactions.js";
 
 import Decimal from "decimal.js";
 import { SendMode } from "@ton/core";

@@ -1,18 +1,13 @@
 import BaseFarmer from "../lib/BaseFarmer.js";
 import Decimal from "decimal.js";
-import { Address, Cell, SendMode, internal } from "@ton/core";
-import { TonClient } from "@ton/ton";
+import { Cell } from "@ton/core";
 import {
   MAXIMUM_MINER_LEVEL,
+  findMinerLevelForHolding,
   getMinerDailyOutput,
+  getMinerRequiredHolding,
   getMinerSpeed,
 } from "../lib/auto/minerCurve.js";
-import {
-  createWallet,
-  getTonBalance,
-  keypairFromMnemonic,
-} from "../lib/auto/wallet.js";
-import { waitForSeqnoChange } from "../lib/auto/transactions.js";
 
 /** The drop's backend, which the mini app talks to for everything */
 const API_URL = "https://server.victors.company/api";
@@ -60,9 +55,6 @@ const VERIFICATION_CHECK_INTERVAL_SECONDS = 6;
 
 /** A pending verification paid this long ago is assumed lost and paid again */
 const VERIFICATION_RETRY_HOURS = 6;
-
-/** Endpoint the verification transfer is broadcast through */
-const TONCENTER_ENDPOINT = "https://toncenter.com/api/v2/jsonRPC";
 
 export default class VictorsCompanyFarmer extends BaseFarmer {
   static id = "victors";
@@ -686,14 +678,11 @@ export default class VictorsCompanyFarmer extends BaseFarmer {
       return { status: await this.pollVerification(1) };
     }
 
-    const keyPair = await keypairFromMnemonic(phrase);
-    const wallet = createWallet(keyPair.publicKey, Number(version));
+    const wallet = this.utils.wallet.createTonWallet({ phrase, version });
+    const address = await wallet.getAddress();
     const connected = this.getConnectedWalletAddress();
 
-    if (
-      connected &&
-      !this.utils.isSameTonAddress(connected, wallet.address.toString())
-    ) {
+    if (connected && !this.utils.isSameTonAddress(connected, address)) {
       const message = "The phrase does not match the connected wallet";
 
       this.logger.warn(message);
@@ -701,10 +690,9 @@ export default class VictorsCompanyFarmer extends BaseFarmer {
     }
 
     const amountTon = new Decimal(verify["amountTon"] || 0.05);
-    const tonBalance = await getTonBalance(
-      wallet.address.toString({ bounceable: false }),
-      { signal: this.signal },
-    ).catch(() => new Decimal(0));
+    const tonBalance = await wallet
+      .getBalance({ signal: this.signal })
+      .catch(() => new Decimal(0));
 
     if (tonBalance.lessThan(amountTon.plus(VERIFICATION_GAS_TON))) {
       const message = `Verification needs ${amountTon.plus(VERIFICATION_GAS_TON)} TON, the wallet holds ${tonBalance}`;
@@ -723,28 +711,15 @@ export default class VictorsCompanyFarmer extends BaseFarmer {
       return { status: false, message };
     }
 
-    const client = new TonClient({ endpoint: TONCENTER_ENDPOINT });
-    const contract = client.open(wallet);
-    const seqno = await contract.getSeqno();
-
-    await contract.sendTransfer({
-      seqno,
-      secretKey: keyPair.secretKey,
-      sendMode: SendMode.PAY_GAS_SEPARATELY + SendMode.IGNORE_ERRORS,
-      messages: [
-        internal({
-          to: Address.parse(tx["address"]),
-          value: BigInt(tx["amount"]),
-          bounce: false,
-          body: tx["payload"]
-            ? Cell.fromBase64(tx["payload"])
-            : verify["comment"],
-        }),
-      ],
+    const seqno = await wallet.send({
+      to: tx["address"],
+      value: BigInt(tx["amount"]),
+      body: tx["payload"] ? Cell.fromBase64(tx["payload"]) : verify["comment"],
     });
 
+    /** Recorded before confirming, so a lost confirmation is never paid twice */
     await this.storage?.set("verificationSentAt", Date.now());
-    await waitForSeqnoChange(contract, seqno);
+    await wallet.waitForConfirmation(seqno);
 
     this.logger.success(
       `Sent ${amountTon} TON to ${tx["address"]} for verification.`,
@@ -759,32 +734,7 @@ export default class VictorsCompanyFarmer extends BaseFarmer {
 
   /** The VIC holding a level is hired with, priced exactly as the page does */
   getRequiredHoldingForLevel(level) {
-    if (level <= 0) return 0;
-    if (level === 1) return 100;
-    if (level >= MAXIMUM_MINER_LEVEL) return 3875968992;
-
-    if (level <= 203) {
-      return Math.round(100 + 9900 * Math.pow((level - 1) / 202, 1.8));
-    }
-
-    if (level <= 450) {
-      return Math.round(1e4 + 24e4 * Math.pow((level - 203) / 247, 2));
-    }
-
-    if (level <= 650) {
-      return Math.round(25e4 + 26881780 * Math.pow((level - 450) / 200, 2.2));
-    }
-
-    if (level <= 850) {
-      return Math.round(
-        27131780 + 321705420 * Math.pow((level - 650) / 200, 2.5),
-      );
-    }
-
-    return Math.round(
-      348837200 +
-        3527131792 * Math.pow((level - 850) / (MAXIMUM_MINER_LEVEL - 850), 2.6),
-    );
+    return getMinerRequiredHolding(level);
   }
 
   /** The mining speed, in TH/s, a level runs at */
@@ -799,29 +749,7 @@ export default class VictorsCompanyFarmer extends BaseFarmer {
 
   /** The highest level a holding covers, with a connected wallet granting level 1 for free */
   findLevelForHolding(holding, walletConnected = true) {
-    const amount = Number(holding) || 0;
-
-    if (!walletConnected && amount <= 0) return 0;
-    if (amount < this.getRequiredHoldingForLevel(1)) {
-      return walletConnected ? 1 : 0;
-    }
-
-    let lowestLevel = 1;
-    let highestLevel = MAXIMUM_MINER_LEVEL;
-    let reachable = 1;
-
-    while (lowestLevel <= highestLevel) {
-      const middleLevel = Math.floor((lowestLevel + highestLevel) / 2);
-
-      if (amount >= this.getRequiredHoldingForLevel(middleLevel)) {
-        reachable = middleLevel;
-        lowestLevel = middleLevel + 1;
-      } else {
-        highestLevel = middleLevel - 1;
-      }
-    }
-
-    return reachable;
+    return findMinerLevelForHolding(holding, walletConnected);
   }
 
   /** Hire the highest level the combined holding covers */
@@ -1276,8 +1204,7 @@ export default class VictorsCompanyFarmer extends BaseFarmer {
         skipped: false,
         message:
           message || (status ? "Verified" : "Not confirmed yet, check again"),
-        status: true,
-        summary: refresh
+        summary: status
           ? await this.refreshAutoSummary()
           : this.getAutoSummary(),
       };

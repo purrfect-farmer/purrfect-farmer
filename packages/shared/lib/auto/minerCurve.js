@@ -43,3 +43,60 @@ export function getMinerDailyOutput(level) {
 
   return Number((getMinerSpeed(level) * DAILY_OUTPUT_PER_THS).toFixed(2));
 }
+
+/** The holding a level is unlocked with, priced the way both drops price it */
+export function getMinerRequiredHolding(level) {
+  if (level <= 0) return 0;
+  if (level === 1) return 100;
+  if (level >= MAXIMUM_MINER_LEVEL) return 3875968992;
+
+  if (level <= 203) {
+    return Math.round(100 + 9900 * Math.pow((level - 1) / 202, 1.8));
+  }
+
+  if (level <= 450) {
+    return Math.round(1e4 + 24e4 * Math.pow((level - 203) / 247, 2));
+  }
+
+  if (level <= 650) {
+    return Math.round(25e4 + 26881780 * Math.pow((level - 450) / 200, 2.2));
+  }
+
+  if (level <= 850) {
+    return Math.round(
+      27131780 + 321705420 * Math.pow((level - 650) / 200, 2.5),
+    );
+  }
+
+  return Math.round(
+    348837200 +
+      3527131792 * Math.pow((level - 850) / (MAXIMUM_MINER_LEVEL - 850), 2.6),
+  );
+}
+
+/** The highest level a holding covers, with a connected wallet granting level 1 for free */
+export function findMinerLevelForHolding(holding, walletConnected = true) {
+  const amount = Number(holding) || 0;
+
+  if (!walletConnected && amount <= 0) return 0;
+  if (amount < getMinerRequiredHolding(1)) {
+    return walletConnected ? 1 : 0;
+  }
+
+  let lowestLevel = 1;
+  let highestLevel = MAXIMUM_MINER_LEVEL;
+  let reachable = 1;
+
+  while (lowestLevel <= highestLevel) {
+    const middleLevel = Math.floor((lowestLevel + highestLevel) / 2);
+
+    if (amount >= getMinerRequiredHolding(middleLevel)) {
+      reachable = middleLevel;
+      lowestLevel = middleLevel + 1;
+    } else {
+      highestLevel = middleLevel - 1;
+    }
+  }
+
+  return reachable;
+}

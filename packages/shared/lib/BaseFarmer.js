@@ -3,10 +3,8 @@ import * as changeKeys from "change-case/keys";
 import Decimal from "decimal.js";
 import seedrandom from "seedrandom";
 import utils from "../utils/bundle.js";
-import {
-  getJettonBalance,
-  getWalletAddressFromMnemonic,
-} from "./auto/wallet.js";
+import { getJettonBalance } from "./ton/tonapi.js";
+import { getWalletAddressFromMnemonic } from "./ton/wallet.js";
 
 /** How many withdrawal records of each kind the snapshot carries */
 const SNAPSHOT_WITHDRAWAL_LIMIT = 2;

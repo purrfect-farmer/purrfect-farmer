@@ -1,5 +1,5 @@
 import { encryption } from "@/services/encryption";
-import { getWalletAddressFromMnemonic } from "@purrfect/shared/lib/auto/wallet";
+import { getWalletAddressFromMnemonic } from "@purrfect/shared/lib/ton/wallet";
 import { mnemonicNew } from "@ton/crypto";
 import useAuto from "./useAuto";
 import useAutoProgress from "./useAutoProgress";
