@@ -1,5 +1,6 @@
 import BaseFarmer from "../lib/BaseFarmer.js";
 import Decimal from "decimal.js";
+import GigaPubClient from "../lib/GigaPubClient.js";
 
 /** The drop's backend, served from the mini app's own origin */
 const API_URL = "https://tacairdrop.xyz/api";
@@ -34,7 +35,10 @@ const ADS_PER_WINDOW = 5;
 /** The ad window runs 24 hours from its first ad */
 const ADS_WINDOW_MS = 864e5;
 
-/** How long an ad is left playing before it is reported */
+/** The GigaPub project the page loads */
+const GIGAPUB_PROJECT_ID = 8412;
+
+/** How long to dwell instead when GigaPub has no ad to play */
 const AD_WATCH_SECONDS = 15;
 
 /** Pause between ads */
@@ -52,7 +56,13 @@ export default class TACFarmer extends BaseFarmer {
   static title = "TAC";
   static emoji = "💎";
   static host = "tacairdrop.xyz";
-  static domains = ["tacairdrop.xyz"];
+  static domains = [
+    "tacairdrop.xyz",
+    "ad.gigapub.tech",
+    "munqu.com",
+    "d3rem.com",
+    "my.rtmark.net",
+  ];
   static telegramLink = "https://t.me/tacairdrop_bot?start=1147265290";
   static path = "/";
   static interval = "0 * * * *";
@@ -169,6 +179,13 @@ export default class TACFarmer extends BaseFarmer {
   /** Claim one task */
   completeTaskById(taskId) {
     return this.postToApi("/tasks/complete", { taskId });
+  }
+
+  /** The page's GigaPub project, created once per run */
+  get gigapub() {
+    return (this._gigapub ||= new GigaPubClient(this, {
+      projectId: GIGAPUB_PROJECT_ID,
+    }));
   }
 
   /** Report a watched ad */
@@ -683,6 +700,19 @@ export default class TACFarmer extends BaseFarmer {
     };
   }
 
+  /** Play an ad through GigaPub, dwelling instead when it has none to serve */
+  async playGigaAd() {
+    try {
+      await this.gigapub.watch();
+    } catch (error) {
+      this.logger.warn("GigaPub ad failed:", error.message);
+
+      await this.utils.delayForSeconds(AD_WATCH_SECONDS, {
+        signal: this.signal,
+      });
+    }
+  }
+
   /** Watch every ad left in the window, stopping at the first refusal */
   async watchAds() {
     let { remaining, resetInMs } = this.getAdWindow();
@@ -696,9 +726,7 @@ export default class TACFarmer extends BaseFarmer {
     }
 
     while (remaining > 0 && !this.signal.aborted) {
-      await this.utils.delayForSeconds(AD_WATCH_SECONDS, {
-        signal: this.signal,
-      });
+      await this.playGigaAd();
 
       const result = await this.watchAd();
 
