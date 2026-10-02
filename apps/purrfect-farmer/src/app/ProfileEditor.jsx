@@ -3,6 +3,7 @@ import * as yup from "yup";
 import { Controller, FormProvider, useForm } from "react-hook-form";
 import { useCallback, useEffect, useState } from "react";
 
+import Alert from "@/components/Alert";
 import Button from "@/components/Button";
 import FieldStateError from "@/components/FieldStateError";
 import Input from "@/components/Input";
@@ -145,11 +146,11 @@ function TwoFaEditor({ client }) {
         onSubmit={form.handleSubmit(handleSubmit)}
         className="flex flex-col gap-2 p-2"
       >
-        <p className="text-neutral-500 dark:text-neutral-400">
+        <Alert variant={hasPassword ? "success" : "warning"}>
           {hasPassword
             ? `2FA is enabled${state.hint ? ` (hint: ${state.hint})` : ""}`
             : "2FA is disabled"}
-        </p>
+        </Alert>
 
         {/* Current Password */}
         {hasPassword ? (
