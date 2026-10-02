@@ -28,6 +28,18 @@ const UPGRADE_STEP_DELAY_SECONDS = 1;
 /** Whether to buy the highest level the assets cover on every pass */
 const AUTO_UPGRADE_LEVEL = true;
 
+/** Ads the drop pays for in one window */
+const ADS_PER_WINDOW = 5;
+
+/** The ad window runs 24 hours from its first ad */
+const ADS_WINDOW_MS = 864e5;
+
+/** How long an ad is left playing before it is reported */
+const AD_WATCH_SECONDS = 15;
+
+/** Pause between ads */
+const AD_GAP_SECONDS = 5;
+
 /** Fallback minimum, used until the drop's settings have been read */
 const MINIMUM_WITHDRAWAL = 100;
 
@@ -159,6 +171,11 @@ export default class TACFarmer extends BaseFarmer {
     return this.postToApi("/tasks/complete", { taskId });
   }
 
+  /** Report a watched ad */
+  watchAd() {
+    return this.postToApi("/ads/watch");
+  }
+
   /** Buy a miner level */
   upgradeMiner(targetLevel) {
     return this.postToApi("/miners/upgrade", { targetLevel });
@@ -270,6 +287,7 @@ export default class TACFarmer extends BaseFarmer {
     await this.executeTask("Squad", () => this.claimSquadRewards());
     await this.executeTask("Level", () => this.upgradeAffordableLevel());
     await this.executeTask("Tasks", () => this.completeTasks());
+    await this.executeTask("Ads", () => this.watchAds());
     await this.executeTask("Withdraw", () => this.withdraw());
     await this.storeAutoSnapshot();
   }
@@ -314,6 +332,10 @@ export default class TACFarmer extends BaseFarmer {
         : this.logger.c.yellowBright,
     });
     this.logger.keyValue("Referrals", user["referralCount"] || 0);
+    this.logger.keyValue(
+      "Ads Today",
+      `${ADS_PER_WINDOW - this.getAdWindow(user).remaining}/${ADS_PER_WINDOW}`,
+    );
 
     const pending = this.getPendingWithdrawals();
 
@@ -641,6 +663,67 @@ export default class TACFarmer extends BaseFarmer {
   }
 
   /* --------------------------------------------------------------------- */
+  /* Ads                                                                   */
+  /* --------------------------------------------------------------------- */
+
+  /** The ads left in the current window, read the way the page reads them */
+  getAdWindow(user = this.getUserDetails()) {
+    const now = Date.now();
+    let watched = Number(user["adsWatchedToday"]) || 0;
+    let startedAt = Number(user["adsWindowStartedAt"]) || 0;
+
+    if (!startedAt || now - startedAt >= ADS_WINDOW_MS) {
+      watched = 0;
+      startedAt = 0;
+    }
+
+    return {
+      remaining: Math.max(0, ADS_PER_WINDOW - watched),
+      resetInMs: startedAt ? Math.max(0, ADS_WINDOW_MS - (now - startedAt)) : 0,
+    };
+  }
+
+  /** Watch every ad left in the window, stopping at the first refusal */
+  async watchAds() {
+    let { remaining, resetInMs } = this.getAdWindow();
+
+    if (remaining <= 0) {
+      const hours = Math.floor(resetInMs / 36e5);
+      const minutes = Math.floor((resetInMs % 36e5) / 6e4);
+
+      this.logger.info(`No ads left today, resets in ${hours}h ${minutes}m.`);
+      return;
+    }
+
+    while (remaining > 0 && !this.signal.aborted) {
+      await this.utils.delayForSeconds(AD_WATCH_SECONDS, {
+        signal: this.signal,
+      });
+
+      const result = await this.watchAd();
+
+      if (result?.["error"]) {
+        this.logger.warn("Failed to watch ad:", result["error"]);
+        return;
+      }
+
+      this.applyResult(result);
+
+      remaining = Number(result?.["adsRemaining"]) || 0;
+
+      this.logger.success(
+        `Watched ad for ${result?.["reward"]} TAC (${remaining} left today).`,
+      );
+
+      if (remaining > 0) {
+        await this.utils.delayForSeconds(AD_GAP_SECONDS, {
+          signal: this.signal,
+        });
+      }
+    }
+  }
+
+  /* --------------------------------------------------------------------- */
   /* Withdrawal                                                            */
   /* --------------------------------------------------------------------- */
 
@@ -820,6 +903,7 @@ export default class TACFarmer extends BaseFarmer {
     await this.startOrClaimMining();
     await this.claimSquadRewards();
     await this.upgradeAffordableLevel();
+    await this.watchAds();
 
     return this.refreshAutoSummary();
   }
@@ -906,6 +990,13 @@ export default class TACFarmer extends BaseFarmer {
             icon: "check",
             title: "Complete Tasks",
             action: this.completeTasksInteractive.bind(this),
+            dispatch: false,
+          },
+          {
+            id: "watch-ads",
+            icon: "check",
+            title: "Watch Ads",
+            action: this.watchAdsInteractive.bind(this),
             dispatch: false,
           },
         ],
@@ -1024,6 +1115,12 @@ export default class TACFarmer extends BaseFarmer {
   async completeTasksInteractive() {
     await this.ensureStateLoaded();
     await this.completeTasks();
+  }
+
+  /** Watch the window's ads on demand */
+  async watchAdsInteractive() {
+    await this.ensureStateLoaded();
+    await this.watchAds();
   }
 
   /** Buy a level, prompting for which one and leaving the assets to the drop to judge */
