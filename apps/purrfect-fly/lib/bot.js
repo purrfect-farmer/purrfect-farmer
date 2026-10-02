@@ -181,6 +181,19 @@ class GroupBot extends Bot {
     }
   }
 
+  /** Send Primary Account Missing Message */
+  async sendPrimaryAccountMissingMessage(id, messages) {
+    try {
+      return await this.sendGroupMessage(
+        `messages.primary-account.${id}`,
+        messages,
+        { ["message_thread_id"]: app.chat.threads.error },
+      );
+    } catch (error) {
+      logger.error(error);
+    }
+  }
+
   /** Send an operations message to the group's Operations topic
    */
   async sendOperationMessage(messages, options = {}) {

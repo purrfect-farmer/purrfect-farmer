@@ -98,6 +98,12 @@ export default function createRunner(FarmerClass) {
   logger.keyValue("Primary account ID", primaryAccountId, {
     format: false,
   });
+
+  /** Primary account is required */
+  if (!primaryAccountId) {
+    logger.warn("Primary account ID is not configured!");
+  }
+
   logger.newline();
 
   return class Runner extends FarmerClass {
@@ -111,6 +117,8 @@ export default function createRunner(FarmerClass) {
     static primaryAccountId = primaryAccountId;
     static interval = interval;
     static primaryFarmerLink = null;
+    static primaryLinkResolved = false;
+    static primaryAccountWarning = null;
     static runners = new Map();
     static terminated = new Set();
     static referralLinks = new Map();
@@ -738,8 +746,9 @@ export default function createRunner(FarmerClass) {
           this.referralLinks.set(instance.account.id, referralLink);
         }
 
+        /** A real link may replace the default fallback */
         if (
-          this.primaryFarmerLink ||
+          this.primaryLinkResolved ||
           instance.account.id !== this.primaryAccountId
         ) {
           return;
@@ -747,6 +756,7 @@ export default function createRunner(FarmerClass) {
 
         /** Update the primary farmer link */
         this.primaryFarmerLink = referralLink;
+        this.primaryLinkResolved = true;
 
         /** Configure the primary farmer link */
         this.configurePrimaryLink(this.primaryFarmerLink);
@@ -915,7 +925,7 @@ export default function createRunner(FarmerClass) {
     /** Reset primary farmer link */
     static resetPrimaryFarmerLink(instance) {
       if (
-        this.primaryFarmerLink ||
+        this.primaryLinkResolved ||
         instance.account.id !== this.primaryAccountId
       )
         return;
@@ -981,6 +991,29 @@ export default function createRunner(FarmerClass) {
       };
     }
 
+    /** Notify that the primary account is not configured or not found */
+    static async notifyPrimaryAccountMissing(reason) {
+      const messages = [
+        reason === "not-configured"
+          ? `⚠️ <b>${this.title} Farmer</b>: primary account is not configured`
+          : `⚠️ <b>${this.title} Farmer</b>: primary account (<code>${this.primaryAccountId}</code>) not found`,
+        `<i>New accounts will not auto-start.</i>`,
+      ];
+
+      try {
+        /** Group message replaces the previous one */
+        await bot?.sendPrimaryAccountMissingMessage(this.id, messages);
+
+        /** Admin is only messaged when the reason changes */
+        if (this.primaryAccountWarning !== reason) {
+          this.primaryAccountWarning = reason;
+          await bot?.sendAdminMessage(messages);
+        }
+      } catch (error) {
+        this.logger.error("Failed to send primary account notification:", error);
+      }
+    }
+
     /** Run the farmer for all subscribed accounts */
     static async run({ user } = {}) {
       try {
@@ -1016,39 +1049,52 @@ export default function createRunner(FarmerClass) {
           );
         });
 
-        /** Needs Primary Account */
-        const needsPrimaryAccount = Boolean(this.primaryAccountId);
-
         /** Primary account */
-        const primaryAccount = needsPrimaryAccount
+        const primaryAccount = this.primaryAccountId
           ? accounts.find((acc) => acc.id === this.primaryAccountId)
           : null;
 
+        /** Notify when the primary account is missing (a single-user run never includes it) */
+        if (!user) {
+          if (primaryAccount) {
+            this.primaryAccountWarning = null;
+          } else {
+            await this.notifyPrimaryAccountMissing(
+              this.primaryAccountId ? "not-found" : "not-configured",
+            );
+          }
+        }
+
         /** Can launch primary account */
         const canLaunchPrimaryAccount =
-          !needsPrimaryAccount ||
           primaryAccount?.farmer?.status === "active" ||
-          primaryAccount?.session;
+          Boolean(primaryAccount?.session);
 
-        /** Can auto-start accounts without farmer */
+        /** Accounts without farmer may be auto-started */
+        const autoStartEnabled = this.autoStart && this.platform === "telegram";
+
+        /** Single referrer mode waits for the primary link */
         const canAutoStart =
-          this.autoStart &&
-          this.platform === "telegram" &&
-          canLaunchPrimaryAccount;
+          autoStartEnabled &&
+          canLaunchPrimaryAccount &&
+          (this.referrerMode !== "single" || this.primaryLinkResolved);
 
         /** Get accounts to be executed  */
         const executableList = accounts.filter((account) => {
           const accountIsActive = account.farmer?.status === "active";
 
+          /** The primary account may always auto-start to resolve its link */
+          const isPrimary =
+            autoStartEnabled && account.id === this.primaryAccountId;
+
           /**
            * A farmer can be automatically created for an
            * account with an active telegram session
            */
-          const execute = canAutoStart
-            ? accountIsActive || account.session
-            : accountIsActive;
-
-          return execute;
+          return (
+            accountIsActive ||
+            Boolean(account.session && (canAutoStart || isPrimary))
+          );
         });
 
         /* Skipped accounts */
