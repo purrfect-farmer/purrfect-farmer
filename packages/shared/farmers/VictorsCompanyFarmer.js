@@ -68,6 +68,7 @@ export default class VictorsCompanyFarmer extends BaseFarmer {
   static interval = "0 * * * *";
   static apiDelay = 500;
   static rating = 5;
+  static published = true;
 
   static auto = {
     id: "victors-auto",

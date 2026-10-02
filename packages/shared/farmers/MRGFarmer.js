@@ -95,7 +95,7 @@ export default class MRGFarmer extends BaseFarmer {
   static interval = "0 * * * *";
   static apiDelay = 500;
   static rating = 5;
-  static published = false;
+  static published = true;
 
   static auto = {
     id: "mrg-auto",
