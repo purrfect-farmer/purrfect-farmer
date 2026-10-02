@@ -38,82 +38,89 @@ class ProxyProvider {
   }
 
   /**
-   * Fetch Proxy List from Webshare API
+   * Fetch Proxy List, swallowing errors
    */
   async fetchList() {
     try {
-      if (app.proxy.provider === "webshare") {
-        const response = await axios.get(
-          "https://proxy.webshare.io/api/v2/proxy/list",
-          {
-            headers: {
-              Authorization: `Token ${app.proxy.apiKey}`,
-            },
-            params: {
-              ["mode"]: "direct",
-              ["valid"]: true,
-              ["page"]: app.proxy.page,
-              ["page_size"]: app.proxy.pageSize,
-            },
-          },
-        );
-
-        return response.data.results.map(
-          (item) =>
-            `${item.username}:${item.password}@${item.proxy_address}:${item.port}`,
-        );
-      } else if (app.proxy.provider === "floxy") {
-        /** Instantiate Floxy Client */
-        const client = new FloxyClient(app.proxy.apiKey);
-
-        /** Plan ID */
-        let planId = app.proxy.planId;
-
-        if (!planId) {
-          const list = await client.getAllPlans();
-          const plan = list.find(
-            (item) => item.type === "DEDICATED_DATACENTER",
-          );
-
-          if (plan) {
-            planId = plan.id;
-          }
-        }
-
-        /** Return an empty list if not plan ID is configured */
-        if (!planId) {
-          return [];
-        }
-
-        const details = await client.getPlan(planId);
-        const { authorization } = details;
-        const { username, password } = authorization;
-
-        /** Flat map the IPs */
-        const ips = details["ip_list"].flatMap((item) =>
-          item.cities.flatMap((city) => city.ips),
-        );
-
-        return ips.map((ip) => `${username}:${password}@${ip}:1338`);
-      } else if (app.proxy.provider === "iplocate") {
-        const txt = await axios
-          .get(
-            "https://raw.githubusercontent.com/iplocate/free-proxy-list/refs/heads/main/all-proxies.txt",
-          )
-          .then((res) => res.data.trim());
-        const list = txt
-          .split("\n")
-          .filter((item) => item.startsWith("http://"))
-          .map((item) => item.replace("http://", ""));
-
-        return list;
-      } else {
-        return [];
-      }
+      return await this.fetchListFrom(app.proxy);
     } catch (error) {
       if (process.env.NODE_ENV === "development") {
         console.error("Error fetching proxies:", error);
       }
+      return [];
+    }
+  }
+
+  /**
+   * Fetch Proxy List for a provider config
+   */
+  async fetchListFrom(config) {
+    if (config.provider === "webshare") {
+      const response = await axios.get(
+        "https://proxy.webshare.io/api/v2/proxy/list",
+        {
+          headers: {
+            Authorization: `Token ${config.apiKey}`,
+          },
+          params: {
+            ["mode"]: "direct",
+            ["valid"]: true,
+            ["page"]: config.page,
+            ["page_size"]: config.pageSize,
+          },
+        },
+      );
+
+      return response.data.results.map(
+        (item) =>
+          `${item.username}:${item.password}@${item.proxy_address}:${item.port}`,
+      );
+    } else if (config.provider === "floxy") {
+      /** Instantiate Floxy Client */
+      const client = new FloxyClient(config.apiKey);
+
+      /** Plan ID */
+      let planId = config.planId;
+
+      if (!planId) {
+        const list = await client.getAllPlans();
+        const plan = list.find(
+          (item) => item.type === "DEDICATED_DATACENTER",
+        );
+
+        if (plan) {
+          planId = plan.id;
+        }
+      }
+
+      /** Return an empty list if not plan ID is configured */
+      if (!planId) {
+        return [];
+      }
+
+      const details = await client.getPlan(planId);
+      const { authorization } = details;
+      const { username, password } = authorization;
+
+      /** Flat map the IPs */
+      const ips = details["ip_list"].flatMap((item) =>
+        item.cities.flatMap((city) => city.ips),
+      );
+
+      return ips.map((ip) => `${username}:${password}@${ip}:1338`);
+    } else if (config.provider === "iplocate") {
+      const txt = await axios
+        .get(
+          "https://raw.githubusercontent.com/iplocate/free-proxy-list/refs/heads/main/all-proxies.txt",
+        )
+        .then((res) => res.data.trim());
+      const list = txt
+        .split("\n")
+        .filter((item) => item.startsWith("http://"))
+        .map((item) => item.replace("http://", ""));
+
+      return list;
+    } else {
       return [];
     }
   }

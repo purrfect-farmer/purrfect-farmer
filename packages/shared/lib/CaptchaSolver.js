@@ -87,6 +87,34 @@ export default class CaptchaSolver {
     return Boolean(this.provider && this.apiKey);
   }
 
+  /** Get account balance, throwing when the key is rejected */
+  async getBalance() {
+    if (this.taskBased) {
+      const { data } = await this.api.post(
+        "/getBalance",
+        { [this.authProperty]: this.apiKey },
+        { timeout: 15_000 },
+      );
+
+      if (data.errorId) {
+        throw new Error(data.errorDescription || data.errorCode || "Rejected");
+      }
+
+      return Number(data.balance);
+    }
+
+    const { data } = await this.api.get("/res.php", {
+      params: { key: this.apiKey, action: "getbalance", json: 1 },
+      timeout: 15_000,
+    });
+
+    if (data.status !== 1) {
+      throw new Error(data.request || "Rejected");
+    }
+
+    return Number(data.request);
+  }
+
   /** Check if the provider offers a given method */
   supportsMethod(method) {
     return Boolean(PROVIDER_METHODS[this.provider]?.[method]);

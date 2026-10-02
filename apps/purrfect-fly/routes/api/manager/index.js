@@ -4,8 +4,8 @@ import * as dateFns from "date-fns";
 import { exportBackup, importBackup } from "../../../lib/backup.js";
 
 import farmers from "../../../farmers/index.js";
-import fsp from "fs/promises";
 import path from "path";
+import registerEnvRoutes from "../../../lib/env-routes.js";
 import { spawn } from "child_process";
 import updateProxies from "../../../actions/update-proxies.js";
 
@@ -116,34 +116,8 @@ export default async function (fastify, opts) {
       return user;
     });
 
-    /** Get .env */
-    fastify.get("/env", async (request) => {
-      const env = await fsp.readFile(fastify.app.envPath, "utf-8");
-      return { content: env };
-    });
-
-    /** Update .env */
-    fastify.post(
-      "/env",
-      {
-        schema: {
-          body: {
-            type: "object",
-            required: ["content"],
-            properties: {
-              content: { type: "string" },
-            },
-          },
-        },
-      },
-      async (request) => {
-        await fsp.copyFile(fastify.app.envPath, fastify.app.envBackupPath);
-        await fsp.writeFile(fastify.app.envPath, request.body.content, "utf-8");
-        setTimeout(() => {
-          process.exit(0);
-        }, 1000);
-      },
-    );
+    /** Env settings */
+    registerEnvRoutes(fastify);
 
     /** Update proxies */
     fastify.post("/update-proxies", async () => {

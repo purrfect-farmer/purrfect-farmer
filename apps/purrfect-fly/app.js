@@ -1,9 +1,12 @@
+import "./config/boot-guard.js";
 import "./config/env.js";
 import "./startup.js";
 import "./cron.js";
 
 import AutoLoad from "@fastify/autoload";
+import bot from "./lib/bot.js";
 import cors from "@fastify/cors";
+import envStore from "./lib/env-store.js";
 import { fileURLToPath } from "node:url";
 import jwt from "@fastify/jwt";
 import path from "node:path";
@@ -25,6 +28,18 @@ export default async function (fastify, opts) {
   if (process.env.NODE_ENV !== "production") {
     await fastify.register(cors);
   }
+
+  /** Server is up: the env is good, report any automatic rollback */
+  fastify.addHook("onListen", async () => {
+    const restored = await envStore.confirmBoot();
+
+    if (restored) {
+      await bot?.sendAdminMessage([
+        "⚠️ <b>Settings rolled back</b>",
+        `The server failed to start with the new settings, so backup <code>${restored.backup}</code> was restored.`,
+      ]);
+    }
+  });
 
   // Do not touch the following lines
 

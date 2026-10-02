@@ -10,6 +10,7 @@ import userAgents, {
 } from "@purrfect/shared/resources/userAgents.js";
 
 import ConsoleLogger from "@purrfect/shared/lib/ConsoleLogger.js";
+import { getFarmerEnvPrefix } from "../config/env-schema.js";
 import GramClient from "../lib/GramClient.js";
 import axios from "axios";
 import bot from "../lib/bot.js";
@@ -38,8 +39,7 @@ const HttpsProxyAgentWithCookies = createCookieAgent(HttpsProxyAgent);
  */
 export default function createRunner(FarmerClass) {
   /** Environment Variables key */
-  const FARMER_ENV_BASE_KEY =
-    "FARMER_" + FarmerClass.id.replace(/-/g, "_").toUpperCase();
+  const FARMER_ENV_BASE_KEY = getFarmerEnvPrefix(FarmerClass.id);
 
   /** Get Environment Variable */
   const getFarmerEnv = (key, defaultValue) => {
