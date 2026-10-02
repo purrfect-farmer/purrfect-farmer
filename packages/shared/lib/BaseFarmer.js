@@ -644,8 +644,10 @@ export default class BaseFarmer {
     }
   }
 
-  /** Runs once the derived wallet is bound, for drops whose manual connect has a follow-up step */
-  async afterDerivedWalletConnected() {}
+  /** Runs once the derived wallet is bound, for drops whose manual connect has a follow-up step
+   * @param {object} wallet - { phrase, version }
+   */
+  async afterDerivedWalletConnected(wallet) {}
 
   /** Bind the wallet derived from this account's Telegram ID, as the TON Wallet Deriver builds it */
   async connectDerivedWalletInteractive() {
@@ -696,7 +698,10 @@ export default class BaseFarmer {
     }
 
     this.logger.success("Derived wallet connected.");
-    await this.afterDerivedWalletConnected();
+    await this.afterDerivedWalletConnected({
+      phrase: words.join(" "),
+      version,
+    });
   }
 
   /** The drops never report a contract version, so the one the wallet was loaded with is kept here */

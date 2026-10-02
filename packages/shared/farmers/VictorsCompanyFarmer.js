@@ -176,9 +176,11 @@ export default class VictorsCompanyFarmer extends BaseFarmer {
     );
   }
 
-  /** The arcade games and their plays left today */
-  fetchArcade() {
-    return this.getFromApi("/arcade");
+  /** The crew the account has recruited */
+  fetchFriends() {
+    return this.getFromApi("/friends").then(
+      (result) => result["friends"] || [],
+    );
   }
 
   /** Mark the tutorial as seen */
@@ -239,11 +241,6 @@ export default class VictorsCompanyFarmer extends BaseFarmer {
   /** Ask the drop whether the verification transfer has landed */
   checkVerification() {
     return this.postToApi("/wallet/verify/check");
-  }
-
-  /** Spin the lucky wheel */
-  spinWheel() {
-    return this.postToApi("/arcade/wheel/spin");
   }
 
   /** Request a payout to the connected wallet */
@@ -921,34 +918,23 @@ export default class VictorsCompanyFarmer extends BaseFarmer {
   /* Arcade                                                                */
   /* --------------------------------------------------------------------- */
 
-  /** Spin the wheel for every play left today, leaving the skill games alone */
+  /** Report the arcade games open to the public, which only Deep Mine is today and is left unplayed since every run costs VIC */
   async playArcade() {
-    const arcade = await this.fetchArcade();
-    const wheel = (arcade["games"] || []).find(
-      (game) => game["id"] === "wheel",
+    const games = (this.state_data.arcade || []).filter(
+      (game) => !game["test"],
     );
 
-    if (!wheel || wheel["test"] || !(Number(wheel["playsLeft"]) > 0)) {
-      this.logger.info("No wheel spins available.");
+    if (!games.length) {
+      this.logger.info("No arcade games available.");
       return;
     }
 
-    for (let play = 0; play < Number(wheel["playsLeft"]); play++) {
-      if (this.signal.aborted) break;
-
-      const result = await this.spinWheel();
-
-      if (result?.["success"] === false) {
-        this.logger.warn("Failed to spin the wheel:", result["error"]);
-        return;
+    for (const game of games) {
+      if (game["id"] === "mine") {
+        this.logger.warn("Deep Mine is public, not automated (costs VIC).");
+      } else {
+        this.logger.warn(`Unknown arcade game "${game["id"]}" is public.`);
       }
-
-      this.applyResult(result);
-      this.logger.success(
-        `Wheel paid ${result["paid"] ?? result["prize"]} VIC.`,
-      );
-
-      await this.utils.delayForSeconds(3, { signal: this.signal });
     }
   }
 
@@ -1084,6 +1070,9 @@ export default class VictorsCompanyFarmer extends BaseFarmer {
       ceiling: Number(this.getConfig()["withdrawMax"]) || 0,
     });
 
+    /** Read before the request, while the state still holds the pre-payout holding */
+    this.logLevelAfterWithdrawal(amount);
+
     const result = await this.requestWithdrawal(amount);
     const status = result?.["success"] !== false;
     const message = result?.["error"] || result?.["message"] || "";
@@ -1116,6 +1105,22 @@ export default class VictorsCompanyFarmer extends BaseFarmer {
       skipped: false,
       amount: amount.toString(),
     };
+  }
+
+  /** Warn when a payout takes the holding below the active level, as the page does */
+  logLevelAfterWithdrawal(amount) {
+    const activeLevel = Number(this.getMining()["level"]) || 0;
+    const holding = new Decimal(this.state_data["holding"] || 0).minus(amount);
+    const levelAfter = this.findLevelForHolding(
+      Decimal.max(holding, 0).toNumber(),
+      Boolean(this.getConnectedWalletAddress()),
+    );
+
+    if (levelAfter < activeLevel) {
+      this.logger.keyValue("Level After", `${activeLevel} → ${levelAfter}`, {
+        valueStyle: this.logger.c.yellowBright,
+      });
+    }
   }
 
   /** Log the payouts the drop has not settled yet */
@@ -1305,6 +1310,13 @@ export default class VictorsCompanyFarmer extends BaseFarmer {
             dispatch: false,
           },
           {
+            id: "verify-wallet",
+            icon: "kyc",
+            title: "Verify Wallet",
+            action: this.verifyWalletInteractive.bind(this),
+            dispatch: false,
+          },
+          {
             id: "check-verification",
             icon: "kyc",
             title: "Check Verification",
@@ -1345,8 +1357,27 @@ export default class VictorsCompanyFarmer extends BaseFarmer {
         ],
       },
       {
+        name: "Squad",
+        list: [
+          {
+            id: "squad",
+            icon: "user",
+            title: "Squad",
+            action: this.squadInteractive.bind(this),
+            dispatch: false,
+          },
+        ],
+      },
+      {
         name: "Account",
         list: [
+          {
+            id: "human-check",
+            icon: "kyc",
+            title: "Human Check",
+            action: this.obtainHumanPass.bind(this),
+            dispatch: false,
+          },
           {
             id: "reset-human-pass",
             icon: "reconnect",
@@ -1427,6 +1458,56 @@ export default class VictorsCompanyFarmer extends BaseFarmer {
     await this.refreshHolding();
   }
 
+  /** Pay the verification from a wallet phrase, connecting that wallet first when the account has none */
+  async verifyWalletInteractive() {
+    const phrase = ((await this.promptInput("Enter the wallet phrase:")) || "")
+      .trim()
+      .split(/\s+/)
+      .join(" ");
+
+    if (!phrase) {
+      this.logger.warn("No phrase provided.");
+      return;
+    }
+
+    const version = await this.promptInput({
+      type: "select",
+      text: "Select wallet version:",
+      options: [
+        { value: "5", label: "Wallet V5R1" },
+        { value: "4", label: "Wallet V4" },
+      ],
+    });
+
+    if (!version) {
+      this.logger.warn("No wallet version selected.");
+      return;
+    }
+
+    const { status, message } = await this.verifyAutoWallet({
+      phrase,
+      version,
+    });
+
+    if (status) {
+      this.logger.success(message);
+    } else {
+      this.logger.error("Verification failed:", message);
+    }
+  }
+
+  /** A derived wallet's phrase is known, so its verification is paid right after it is bound */
+  async afterDerivedWalletConnected({ phrase, version }) {
+    const { status, message } = await this.verifyWalletIfNeeded({
+      phrase,
+      version,
+    });
+
+    if (!status) {
+      this.logger.warn("Wallet not verified:", message || "not confirmed yet");
+    }
+  }
+
   /** Show what the verification needs and ask the drop whether it has landed */
   async checkVerificationInteractive() {
     await this.ensureStateLoaded();
@@ -1455,6 +1536,49 @@ export default class VictorsCompanyFarmer extends BaseFarmer {
     }
 
     await this.pollVerification(1);
+  }
+
+  /** List the crew and claim what it has earned */
+  async squadInteractive() {
+    await this.ensureStateLoaded();
+
+    const referral = this.state_data.referral || {};
+    const friends = await this.fetchFriends();
+
+    this.logger.newline();
+    this.logger.keyValue("Referrals", referral["referralsCount"] || 0);
+    this.logger.keyValue("With Wallet", referral["walletReferralsCount"] || 0);
+    this.logger.keyValue("Qualified", referral["eligibleCount"] || 0);
+    this.logger.keyValue(
+      "Unclaimed Bonus",
+      this.formatAmount(referral["unclaimedBonus"] || 0),
+    );
+    this.logger.keyValue(
+      "Unclaimed Commission",
+      this.formatAmount(referral["unclaimedCommission"] || 0),
+    );
+
+    for (const friend of friends) {
+      this.logger.newline();
+      this.logger.keyValue(
+        "Friend",
+        `${friend["name"]}${friend["username"] ? ` (@${friend["username"]})` : ""}`,
+      );
+      this.logger.keyValue("Level", friend["level"]);
+      this.logger.keyValue("Wallet", friend["walletConnected"] ? "Yes" : "No");
+      this.logger.keyValue("Qualified", friend["qualified"] ? "Yes" : "No", {
+        valueStyle: friend["qualified"]
+          ? this.logger.c.greenBright
+          : this.logger.c.yellowBright,
+      });
+
+      if (friend["nextStep"]) {
+        this.logger.keyValue("Next Step", friend["nextStep"]);
+      }
+    }
+
+    this.logger.newline();
+    await this.claimSquadRewards();
   }
 
   /** Claim mining on demand */
