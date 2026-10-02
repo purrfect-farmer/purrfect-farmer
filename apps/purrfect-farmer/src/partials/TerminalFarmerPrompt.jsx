@@ -1,5 +1,6 @@
 import { Dialog } from "radix-ui";
 import Dropzone from "@/components/Dropzone";
+import PasswordInput from "@/components/PasswordInput";
 import PromptDialog from "@/components/PromptDialog";
 import Select from "@/components/Select";
 import Textarea from "@/components/Textarea";
@@ -34,6 +35,13 @@ export const TerminalFarmerPrompt = ({ context, userInputPrompt }) => {
           <Textarea
             onChange={(e) => setValue(e.target.value)}
             value={value}
+            className="w-full"
+          />
+        ) : question.type === "password" ? (
+          <PasswordInput
+            onChange={(e) => setValue(e.target.value)}
+            value={value}
+            autoComplete="off"
             className="w-full"
           />
         ) : question.type === "select" ? (

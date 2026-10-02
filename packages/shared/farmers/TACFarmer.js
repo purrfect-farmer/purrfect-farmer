@@ -857,27 +857,7 @@ export default class TACFarmer extends BaseFarmer {
       {
         name: "Wallet",
         list: [
-          {
-            id: "connect-wallet",
-            icon: "wallet",
-            title: "Connect Wallet",
-            action: this.connectWalletInteractive.bind(this),
-            dispatch: false,
-          },
-          {
-            id: "connect-derived-wallet",
-            icon: "key",
-            title: "Connect Derived Wallet",
-            action: this.connectDerivedWalletInteractive.bind(this),
-            dispatch: false,
-          },
-          {
-            id: "disconnect-wallet",
-            icon: "reconnect",
-            title: "Disconnect Wallet",
-            action: this.disconnectWalletInteractive.bind(this),
-            dispatch: false,
-          },
+          ...this.createAutoWalletTools(),
           {
             id: "verify-account",
             icon: "kyc",

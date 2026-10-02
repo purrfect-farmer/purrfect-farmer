@@ -54,7 +54,8 @@ export default class BaseFarmer {
 
   /** Auto descriptor, declared by farmers opting into the Auto wallet system
    * `verifiable` drops answer `verifyAutoWallet`, which the Auto runs on demand
-   * @type {null | { id: string, title: string, token: string, jettonAddress: string, storagePrefix: string, verifiable?: boolean }}
+   * `connectWithPhrase` drops sign with the phrase to connect, so the Auto password is asked
+   * @type {null | { id: string, title: string, token: string, jettonAddress: string, storagePrefix: string, verifiable?: boolean, connectWithPhrase?: boolean }}
    */
   static auto = null;
 
@@ -127,6 +128,13 @@ export default class BaseFarmer {
     this.promptInput = functions.promptInput;
     this.promptAnswer = functions.promptAnswer;
     this.promptCancel = functions.promptCancel;
+  }
+
+  /** Set the provider listing the Auto wallets, ranked with this drop's own Auto first
+   * @param {object} provider - { getSources(): Array<{ id, title, own, accounts, decryptPhrase(account, password) }> }
+   */
+  setAutoWalletProvider(provider) {
+    this.autoWalletProvider = provider;
   }
 
   /** Configure Auth Headers */
@@ -702,6 +710,167 @@ export default class BaseFarmer {
       phrase: words.join(" "),
       version,
     });
+  }
+
+  /** Prompt for a wallet and bind it, implemented by every Auto drop */
+  async connectWalletInteractive() {
+    throw new Error(
+      "connectWalletInteractive method must be implemented in subclass",
+    );
+  }
+
+  /** Unbind the account's wallet, implemented by every Auto drop */
+  async disconnectWalletInteractive() {
+    throw new Error(
+      "disconnectWalletInteractive method must be implemented in subclass",
+    );
+  }
+
+  /** Wallet tools every Auto drop shares, each bound to the drop's own connect and disconnect */
+  createAutoWalletTools() {
+    return [
+      {
+        id: "connect-wallet",
+        icon: "wallet",
+        title: "Connect Wallet",
+        action: this.connectWalletInteractive.bind(this),
+        dispatch: false,
+      },
+      {
+        id: "connect-derived-wallet",
+        icon: "key",
+        title: "Connect Derived Wallet",
+        action: this.connectDerivedWalletInteractive.bind(this),
+        dispatch: false,
+      },
+      {
+        id: "connect-auto-wallet",
+        icon: "auto",
+        title: "Connect Auto Wallet",
+        action: this.connectAutoAccountWalletInteractive.bind(this),
+        dispatch: false,
+      },
+      {
+        id: "disconnect-wallet",
+        icon: "disconnect",
+        title: "Disconnect Wallet",
+        action: this.disconnectWalletInteractive.bind(this),
+        dispatch: false,
+      },
+    ];
+  }
+
+  /** Bind a wallet held by an Auto account, asking for the Auto password only when the drop needs the phrase */
+  async connectAutoAccountWalletInteractive() {
+    const sources = (await this.autoWalletProvider?.getSources()) || [];
+
+    if (!sources.length) {
+      this.logger.warn("No Auto with wallets set up.");
+      return;
+    }
+
+    const sourceId =
+      sources.length === 1
+        ? sources[0].id
+        : await this.promptInput({
+            type: "select",
+            text: "Select Auto:",
+            options: sources.map((item) => ({
+              value: item.id,
+              label: item.own ? `${item.title} (this drop)` : item.title,
+            })),
+          });
+
+    const source = sources.find((item) => item.id === sourceId);
+
+    if (!source) {
+      this.logger.warn("No Auto selected.");
+      return;
+    }
+
+    const userId = String(this.getUserId());
+    const isLinked = (account) => String(account.userId) === userId;
+    const accounts = [
+      ...source.accounts.filter(isLinked),
+      ...source.accounts.filter((account) => !isLinked(account)),
+    ];
+
+    const accountId = await this.promptInput({
+      type: "select",
+      text: `Select ${source.title} account:`,
+      options: accounts.map((account) => {
+        const address = this.utils.toFriendlyAddress(account.address);
+        const label = [
+          account.title,
+          `${address.slice(0, 4)}...${address.slice(-4)}`,
+          Number(account.version) === 4 ? "V4" : "V5R1",
+        ].join(" · ");
+
+        return {
+          value: account.id,
+          label: isLinked(account) ? `${label} (this account)` : label,
+        };
+      }),
+    });
+
+    const account = accounts.find((item) => item.id === accountId);
+
+    if (!account) {
+      this.logger.warn("No account selected.");
+      return;
+    }
+
+    let phrase;
+
+    if (this.constructor.auto?.connectWithPhrase) {
+      const password = await this.promptInput({
+        type: "password",
+        text: `Enter the ${source.title} password:`,
+      });
+
+      if (!password) {
+        this.logger.warn("No password provided.");
+        return;
+      }
+
+      try {
+        phrase = await source.decryptPhrase(account, password);
+      } catch (error) {
+        this.logger.error("Failed to unlock the wallet:", error.message);
+        return;
+      }
+    }
+
+    this.logger.keyValue(
+      "Auto Wallet",
+      this.utils.toFriendlyAddress(account.address),
+    );
+
+    await this.ensureStateLoaded();
+
+    const { status, message } = await this.connectAutoWallet({
+      phrase,
+      address: account.address,
+      version: account.version,
+    });
+
+    if (!status) {
+      this.logger.error("Failed to connect the Auto wallet:", message);
+      return;
+    }
+
+    this.logger.success("Auto wallet connected.");
+
+    if (phrase) {
+      await this.afterDerivedWalletConnected({
+        phrase,
+        version: account.version,
+      });
+    } else {
+      this.logger.info(
+        "Connected without the phrase; run Verify separately if the drop needs it.",
+      );
+    }
   }
 
   /** The drops never report a contract version, so the one the wallet was loaded with is kept here */

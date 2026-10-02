@@ -80,6 +80,7 @@ export default class ATFFarmer extends BaseFarmer {
     jettonAddress: "EQANcW45W0Tp91bzvHayaPO6-6hf1Lm4XlWZ4rN6L5ofPWdb",
     storagePrefix: "atf-auto",
     minWithdrawal: 500,
+    connectWithPhrase: true,
   };
 
   /** Get Referral Link */
@@ -591,32 +592,12 @@ export default class ATFFarmer extends BaseFarmer {
       {
         name: "Wallet",
         list: [
-          {
-            id: "connect-wallet",
-            icon: "wallet",
-            title: "Connect Wallet",
-            action: this.connectWalletSecretKeyOrMnemonic.bind(this),
-            dispatch: false,
-          },
+          ...this.createAutoWalletTools(),
           {
             id: "reconnect-wallet",
             icon: "connect",
             title: "Reconnect Wallet",
             action: this.reconnectWallet.bind(this),
-            dispatch: false,
-          },
-          {
-            id: "connect-derived-wallet",
-            icon: "key",
-            title: "Connect Derived Wallet",
-            action: this.connectDerivedWalletInteractive.bind(this),
-            dispatch: false,
-          },
-          {
-            id: "disconnect-wallet",
-            icon: "disconnect",
-            title: "Disconnect Wallet",
-            action: this.disconnectWalletInteractive.bind(this),
             dispatch: false,
           },
         ],
@@ -763,7 +744,7 @@ export default class ATFFarmer extends BaseFarmer {
   }
 
   /** Connect Wallet Secret Key or Mnemonic */
-  async connectWalletSecretKeyOrMnemonic() {
+  async connectWalletInteractive() {
     const input = await this.promptInput(
       "Enter your TON Wallet Phrase / Secret Key (hex):",
     );
@@ -807,7 +788,7 @@ export default class ATFFarmer extends BaseFarmer {
     const saved = await this.storage.get("wallet");
     if (!saved) {
       this.logger.warn("No wallet was previously saved!");
-      return this.connectWalletSecretKeyOrMnemonic();
+      return this.connectWalletInteractive();
     } else {
       const password = await this.promptInput(
         "Enter your password to decrypt the wallet:",

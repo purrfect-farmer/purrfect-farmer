@@ -1,6 +1,7 @@
 import { HiCheckBadge, HiOutlineCheckBadge } from "react-icons/hi2";
 import { LuCircleFadingArrowUp, LuDollarSign } from "react-icons/lu";
 import {
+  MdAccountBalanceWallet,
   MdArrowDownward,
   MdCheck,
   MdHistory,
@@ -32,6 +33,7 @@ const TOOLS_ICON = {
   register: MdPersonAdd,
   user: MdPersonPin,
   kyc: MdOutlineVerifiedUser,
+  auto: MdAccountBalanceWallet,
 };
 
 export const TerminalFarmerTools = ({ terminalFarmer }) => {

@@ -1,5 +1,9 @@
-import { customLogger } from "@/utils";
+import bcrypt from "bcryptjs";
 import path from "path-browserify";
+import storage from "@/lib/storage";
+import { customLogger } from "@/utils";
+import { encryption } from "@/services/encryption";
+import { sharedStorageKey } from "@/lib/storageKeys";
 
 /** Auto drops: wallet managers built on a farmer, opted into with `static auto` and iconed by auto id */
 const farmersGlob = import.meta.glob(
@@ -68,6 +72,39 @@ export function autoStateKeys(config) {
     master: `${config.storagePrefix}-master`,
     accounts: `${config.storagePrefix}-accounts`,
   };
+}
+
+/** The Autos holding wallets, read straight out of storage with the farmer's own Auto ranked first */
+export function getAutoWalletSources(farmerId) {
+  return autos
+    .map((config) => {
+      const keys = autoStateKeys(config);
+      const master = storage.get(sharedStorageKey(keys.master)) || null;
+      const accounts = storage.get(sharedStorageKey(keys.accounts)) || [];
+
+      return {
+        id: config.id,
+        title: config.title,
+        own: config.farmerId === farmerId,
+        master,
+        accounts,
+
+        /** Check the password against the master hash before decrypting the account's phrase */
+        async decryptPhrase(account, password) {
+          if (!(await bcrypt.compare(password, master.hashedPassword))) {
+            throw new Error("Invalid password");
+          }
+
+          return encryption.decryptData({
+            ...account.encryptedPhrase,
+            password,
+            asText: true,
+          });
+        },
+      };
+    })
+    .filter((source) => source.master && source.accounts.length > 0)
+    .sort((a, b) => Number(b.own) - Number(a.own));
 }
 
 customLogger("AUTOS", autos);
