@@ -9,8 +9,10 @@ import Input from "@/components/Input";
 import Label from "@/components/Label";
 import PasswordInput from "@/components/PasswordInput";
 import PrimaryButton from "@/components/PrimaryButton";
+import Tabs from "@/components/Tabs";
 import toast from "react-hot-toast";
 import useAppContext from "@/hooks/useAppContext";
+import useMirroredTabs from "@/hooks/useMirroredTabs";
 import { useMutation } from "@tanstack/react-query";
 import { yupResolver } from "@hookform/resolvers/yup";
 
@@ -143,8 +145,7 @@ function TwoFaEditor({ client }) {
         onSubmit={form.handleSubmit(handleSubmit)}
         className="flex flex-col gap-2 p-2"
       >
-        <h3 className="font-bold">Two-Step Verification</h3>
-        <p className="text-sm text-neutral-500 dark:text-neutral-400">
+        <p className="text-neutral-500 dark:text-neutral-400">
           {hasPassword
             ? `2FA is enabled${state.hint ? ` (hint: ${state.hint})` : ""}`
             : "2FA is disabled"}
@@ -254,6 +255,7 @@ function TwoFaEditor({ client }) {
 }
 
 export default function ProfileEditor() {
+  const tabs = useMirroredTabs("profile-editor", ["profile", "2fa"]);
   const { farmerMode, telegramClient, updateTelegramUser } = useAppContext();
   const [profile, setProfile] = useState(null);
   const ref = telegramClient.ref;
@@ -311,79 +313,82 @@ export default function ProfileEditor() {
   }
 
   return (
-    <>
-      <FormProvider {...form}>
-        <form
-          onSubmit={form.handleSubmit(handleSubmit)}
-          className="flex flex-col gap-2 p-2"
-        >
-          {/* First Name */}
-          <Controller
-            name="firstName"
-            render={({ field, fieldState }) => (
-              <>
-                <Label>First Name</Label>
-                <Input
-                  {...field}
-                  disabled={mutation.isPending}
-                  autoComplete="off"
-                  placeholder="First Name"
-                />
-
-                <FieldStateError fieldState={fieldState} />
-              </>
-            )}
-          />
-
-          {/* Last Name */}
-          <Controller
-            name="lastName"
-            render={({ field, fieldState }) => (
-              <>
-                <Label>Last Name</Label>
-                <Input
-                  {...field}
-                  disabled={mutation.isPending}
-                  autoComplete="off"
-                  placeholder="Last Name"
-                />
-
-                <FieldStateError fieldState={fieldState} />
-              </>
-            )}
-          />
-
-          {/* Username */}
-          <Controller
-            name="username"
-            render={({ field, fieldState }) => (
-              <>
-                <Label>Username</Label>
-                <Input
-                  {...field}
-                  disabled={mutation.isPending}
-                  autoComplete="off"
-                  placeholder="Username"
-                />
-
-                <FieldStateError fieldState={fieldState} />
-              </>
-            )}
-          />
-
-          {/* Update Profile Button */}
-          <PrimaryButton
-            type="submit"
-            disabled={mutation.isPending}
-            className="mt-4"
+    <Tabs tabs={tabs} rootClassName="grow overflow-auto">
+      <Tabs.Content value="profile">
+        <FormProvider {...form}>
+          <form
+            onSubmit={form.handleSubmit(handleSubmit)}
+            className="flex flex-col gap-2 p-2"
           >
-            {mutation.isPending ? "Updating..." : "Update Profile"}
-          </PrimaryButton>
-        </form>
-      </FormProvider>
+            {/* First Name */}
+            <Controller
+              name="firstName"
+              render={({ field, fieldState }) => (
+                <>
+                  <Label>First Name</Label>
+                  <Input
+                    {...field}
+                    disabled={mutation.isPending}
+                    autoComplete="off"
+                    placeholder="First Name"
+                  />
 
-      {/* 2FA */}
-      <TwoFaEditor client={ref.current} />
-    </>
+                  <FieldStateError fieldState={fieldState} />
+                </>
+              )}
+            />
+
+            {/* Last Name */}
+            <Controller
+              name="lastName"
+              render={({ field, fieldState }) => (
+                <>
+                  <Label>Last Name</Label>
+                  <Input
+                    {...field}
+                    disabled={mutation.isPending}
+                    autoComplete="off"
+                    placeholder="Last Name"
+                  />
+
+                  <FieldStateError fieldState={fieldState} />
+                </>
+              )}
+            />
+
+            {/* Username */}
+            <Controller
+              name="username"
+              render={({ field, fieldState }) => (
+                <>
+                  <Label>Username</Label>
+                  <Input
+                    {...field}
+                    disabled={mutation.isPending}
+                    autoComplete="off"
+                    placeholder="Username"
+                  />
+
+                  <FieldStateError fieldState={fieldState} />
+                </>
+              )}
+            />
+
+            {/* Update Profile Button */}
+            <PrimaryButton
+              type="submit"
+              disabled={mutation.isPending}
+              className="mt-4"
+            >
+              {mutation.isPending ? "Updating..." : "Update Profile"}
+            </PrimaryButton>
+          </form>
+        </FormProvider>
+      </Tabs.Content>
+
+      <Tabs.Content value="2fa">
+        <TwoFaEditor client={ref.current} />
+      </Tabs.Content>
+    </Tabs>
   );
 }
