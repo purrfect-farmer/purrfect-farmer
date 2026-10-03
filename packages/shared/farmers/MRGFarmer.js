@@ -92,7 +92,7 @@ export default class MRGFarmer extends BaseFarmer {
   static domains = ["app.mrgtoken.xyz", "mrg.up.railway.app"];
   static telegramLink = "https://t.me/mrgminerbot/app?startapp=ref_T90OGL9E";
   static path = "/";
-  static interval = "0 * * * *";
+  static interval = "0 */3 * * *";
   static apiDelay = 500;
   static rating = 5;
   static published = true;

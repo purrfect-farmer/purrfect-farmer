@@ -65,7 +65,7 @@ export default class VictorsCompanyFarmer extends BaseFarmer {
   static telegramLink =
     "https://t.me/VictorsCompanybot/app?startapp=ref_6B6CAC6747";
   static path = "/";
-  static interval = "0 * * * *";
+  static interval = "0 */6 * * *";
   static apiDelay = 500;
   static rating = 5;
   static published = true;

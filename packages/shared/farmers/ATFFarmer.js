@@ -60,7 +60,7 @@ export default class ATFFarmer extends BaseFarmer {
   static domains = ["atfminers.asloni.online"];
   static telegramLink = "https://t.me/ATF_AIRDROP_bot?start=8577109758";
   static path = "/miner/index.html";
-  static interval = "0 * * * *";
+  static interval = "0 */2 * * *";
   static apiDelay = 500;
   static rating = 5;
   static netRequest = {
