@@ -17,6 +17,17 @@ export default fp(async function (fastify, opts) {
     }
   });
 
+  /** Every manager route needs a manager JWT unless it sets `config.public` */
+  fastify.addHook("onRoute", (routeOptions) => {
+    if (!routeOptions.url.startsWith("/api/manager/")) return;
+    if (routeOptions.config?.public) return;
+
+    routeOptions.onRequest = [
+      fastify.verifyJWT,
+      ...[].concat(routeOptions.onRequest || []),
+    ];
+  });
+
   /** Verify Subscription */
   fastify.decorate("verifySubscription", async function (request, reply) {
     const { user } = request.auth;

@@ -5,15 +5,15 @@ import {
   isValidKey,
   maskSecret,
   parseEnv,
-} from "./env-file.js";
-import { getEnvSchema, validateField } from "../config/env-schema.js";
+} from "../../../lib/env-file.js";
+import { getEnvSchema, validateField } from "../../../config/env-schema.js";
 
 import { Bot } from "grammy";
 import CaptchaSolver from "@purrfect/shared/lib/CaptchaSolver.js";
 import axios from "axios";
-import envStore from "./env-store.js";
-import farmers from "../farmers/index.js";
-import proxy from "./proxy.js";
+import envStore from "../../../lib/env-store.js";
+import farmers from "../../../farmers/index.js";
+import proxy from "../../../lib/proxy.js";
 
 /** Schema plus lookups */
 const schema = getEnvSchema(farmers);
@@ -283,11 +283,9 @@ const targetSchema = {
 };
 
 /**
- * Env settings routes, registered inside the authenticated manager scope
- *
  * @param {import("fastify").FastifyInstance} fastify
  */
-export default function registerEnvRoutes(fastify) {
+export default async function (fastify) {
   /** Get raw .env */
   fastify.get("/env", async () => {
     return { content: await envStore.readEnv() };
