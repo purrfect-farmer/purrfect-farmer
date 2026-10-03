@@ -46,7 +46,7 @@ export default function selectAccounts({
 
   /** Primary account */
   const primaryAccount = primaryAccountId
-    ? accounts.find((acc) => acc.id === primaryAccountId)
+    ? accounts.find((acc) => Number(acc.id) === Number(primaryAccountId))
     : null;
 
   /** Can launch primary account */
@@ -68,7 +68,8 @@ export default function selectAccounts({
     const accountIsActive = account.farmer?.status === "active";
 
     /** The primary account may always auto-start to resolve its link */
-    const isPrimary = autoStartEnabled && account.id === primaryAccountId;
+    const isPrimary =
+      autoStartEnabled && Number(account.id) === Number(primaryAccountId);
 
     /** A farmer can be automatically created for an account with an active telegram session */
     return (
