@@ -65,6 +65,7 @@ class VerifyOperation extends AutoOperation {
       result = await runner.verifyAutoWallet({
         phrase,
         version: Number(account.version),
+        apiKey: ctx.master.tonCenterApiKey,
       });
 
       await ctx.records.storeSnapshot(runner, cloudAccount);

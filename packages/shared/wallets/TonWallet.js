@@ -1,5 +1,6 @@
 import { Address, SendMode, internal } from "@ton/core";
 import { TonClient } from "@ton/ton";
+import { createToncenterAdapter } from "../lib/auto/toncenter.js";
 import { createWallet, keypairFromMnemonic } from "../lib/ton/wallet.js";
 import { getTonBalance } from "../lib/ton/tonapi.js";
 import { waitForSeqnoChange } from "../lib/ton/transactions.js";
@@ -27,6 +28,7 @@ export default class TonWallet {
       const client = new TonClient({
         endpoint: this.endpoint,
         apiKey: this.apiKey,
+        httpAdapter: createToncenterAdapter(this.apiKey),
       });
 
       return { keyPair, wallet, contract: client.open(wallet) };

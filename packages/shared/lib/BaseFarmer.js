@@ -653,7 +653,7 @@ export default class BaseFarmer {
   }
 
   /** Runs once the derived wallet is bound, for drops whose manual connect has a follow-up step
-   * @param {object} wallet - { phrase, version }
+   * @param {object} wallet - { phrase, version, apiKey? }
    */
   async afterDerivedWalletConnected(wallet) {}
 
@@ -909,7 +909,7 @@ export default class BaseFarmer {
   }
 
   /** Settle the drop's one-time wallet verification, for drops whose descriptor is `verifiable`
-   * @param {object} wallet - { phrase, version }
+   * @param {object} wallet - { phrase, version, apiKey? }
    * @returns {Promise<{ status: boolean, skipped?: boolean, message?: string, summary?: object }>}
    */
   async verifyAutoWallet(wallet) {

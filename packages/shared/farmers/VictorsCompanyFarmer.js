@@ -657,7 +657,7 @@ export default class VictorsCompanyFarmer extends BaseFarmer {
   }
 
   /** Pay the one-time verification transfer from the wallet's phrase, unless it is already settled or on its way */
-  async verifyWalletIfNeeded({ phrase, version }) {
+  async verifyWalletIfNeeded({ phrase, version, apiKey }) {
     const verify = this.getVerify();
 
     if (verify["verified"]) return { status: true };
@@ -676,7 +676,11 @@ export default class VictorsCompanyFarmer extends BaseFarmer {
       return { status: await this.pollVerification(1) };
     }
 
-    const wallet = this.utils.wallet.createTonWallet({ phrase, version });
+    const wallet = this.utils.wallet.createTonWallet({
+      phrase,
+      version,
+      apiKey,
+    });
     const address = await wallet.getAddress();
     const connected = this.getConnectedWalletAddress();
 
@@ -712,7 +716,9 @@ export default class VictorsCompanyFarmer extends BaseFarmer {
     const seqno = await wallet.send({
       to: tx["address"],
       value: BigInt(tx["amount"]),
-      body: tx["payload"] ? Cell.fromBase64(tx["payload"]) : verify["comment"],
+      body: tx["payload"]
+        ? Cell.fromBase64(tx["payload"])
+        : tx["comment"] || verify["comment"],
     });
 
     /** Recorded before confirming, so a lost confirmation is never paid twice */
@@ -720,7 +726,7 @@ export default class VictorsCompanyFarmer extends BaseFarmer {
     await wallet.waitForConfirmation(seqno);
 
     this.logger.success(
-      `Sent ${amountTon} TON to ${tx["address"]} for verification.`,
+      `Sent ${tx["amountTon"] ?? amountTon} TON to ${tx["address"]} for verification.`,
     );
 
     return { status: await this.pollVerification() };
@@ -1181,7 +1187,7 @@ export default class VictorsCompanyFarmer extends BaseFarmer {
   /* --------------------------------------------------------------------- */
 
   /** Pay the one-time verification from the wallet's phrase, connecting the wallet first when the account has none */
-  async verifyAutoWallet({ phrase, version }) {
+  async verifyAutoWallet({ phrase, version, apiKey }) {
     try {
       await this.ensureStateLoaded();
 
@@ -1203,6 +1209,7 @@ export default class VictorsCompanyFarmer extends BaseFarmer {
       const { status, message } = await this.verifyWalletIfNeeded({
         phrase,
         version,
+        apiKey,
       });
 
       return {

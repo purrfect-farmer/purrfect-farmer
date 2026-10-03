@@ -68,6 +68,13 @@ export function createToncenterApi(apiKey) {
   return instance;
 }
 
+/** An axios adapter for TonClient that paces jsonRPC calls on the same per-key queue and retries 429s */
+export function createToncenterAdapter(apiKey) {
+  const send = axios.getAdapter(axios.defaults.adapter);
+
+  return (config) => schedule(apiKey, () => send(config));
+}
+
 /** Splits a list into fixed-size chunks */
 export function chunk(items, size = TONCENTER_CHUNK_SIZE) {
   const chunks = [];

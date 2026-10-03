@@ -2,6 +2,7 @@ import { TonClient } from "@ton/ton";
 import { createWallet, keypairFromMnemonic } from "../ton/wallet.js";
 import { getJettonInfo } from "../ton/tonapi.js";
 import { getJettonWalletAddress } from "../ton/transactions.js";
+import { createToncenterAdapter } from "./toncenter.js";
 
 /** Prepares master wallet details once for reuse across operations
  * @param {object} master - { address, version, phrase, tonCenterApiKey? }
@@ -12,6 +13,7 @@ export async function prepareMaster(master, jettonAddress) {
   const client = new TonClient({
     endpoint: "https://toncenter.com/api/v2/jsonRPC",
     apiKey: master.tonCenterApiKey,
+    httpAdapter: createToncenterAdapter(master.tonCenterApiKey),
   });
 
   const keyPair = await keypairFromMnemonic(master.phrase);
