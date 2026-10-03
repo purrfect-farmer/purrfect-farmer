@@ -1,4 +1,4 @@
-import { HiOutlineArrowPath, HiOutlineXMark } from "react-icons/hi2";
+import { HiBolt, HiOutlineArrowPath, HiOutlineXMark } from "react-icons/hi2";
 import { memo, useCallback, useRef } from "react";
 
 import BrowserIcon from "@/assets/images/browser.png?w=80&format=webp";
@@ -68,6 +68,18 @@ export default memo(function TabButton({
             src={BrowserIcon}
             className="absolute size-5 right-0 bottom-0 translate-x-1 translate-y-0.5"
           />
+        ) : tab.auto ? (
+          <span
+            className={cn(
+              "absolute right-0 bottom-0 translate-x-1 translate-y-0.5",
+              "flex items-center justify-center",
+              "size-4 rounded-full",
+              "bg-orange-500 text-white",
+              "border-2 border-white dark:border-neutral-800",
+            )}
+          >
+            <HiBolt className="size-2.5" />
+          </span>
         ) : null}
         {showMirrorStatus ? (
           <span

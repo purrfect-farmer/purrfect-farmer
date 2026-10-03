@@ -94,6 +94,7 @@ export const utils = [
         id: config.id,
         title: config.title,
         icon: config.icon,
+        auto: true,
         component: createElement(Auto, { config }),
       })),
     ],
