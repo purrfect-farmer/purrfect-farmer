@@ -68,7 +68,7 @@ export default memo(function TabButton({
             src={BrowserIcon}
             className="absolute size-5 right-0 bottom-0 translate-x-1 translate-y-0.5"
           />
-        ) : tab.auto ? (
+        ) : tab.tabType === "auto" ? (
           <span
             className={cn(
               "absolute right-0 bottom-0 translate-x-1 translate-y-0.5",
