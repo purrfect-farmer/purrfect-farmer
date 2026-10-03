@@ -27,6 +27,29 @@ await monetag.watch();
    retries it. It reports, it does not settle: a view that never resolves may still have
    been counted.
 
+## Pop format
+
+`show_<zone>({ type: "pop", ymid })` is a click-through rather than a banner, and `pop()` runs it:
+
+```js
+const { event } = await monetag.pop(zoneId, { ymid });
+```
+
+1. **Read the zone.** This is the same settings call as above. `fakepushTelegramPopUrl`
+   (e.g. `//8rar.com/4/11057881`) is the link to open. A zone without one is shown as a
+   regular ad, as the SDK falls back to `end`.
+2. **Open the link.** Add `var=<zone>_<requestVar>`, `ymid`, `sdkp=3`, `oaid`, `tgp`, `tglc`,
+   `var_3`, `rp_rid`, `bto` and `btz`. Inside Telegram the SDK opens it with `openLink`, so
+   it lands in the browser with no page around it. The first hop logs the click. Later
+   redirects go to advertiser hosts the extension has no rules for, so a failure there is
+   ignored.
+3. **Resolve.** `rp_rid` is a fresh UUID, sent only when the zone has
+   `fakepushRewardPostback`. Two seconds after opening, `/resolve?ruid=<rp_rid>` reports
+   the event (`reward_event_type: valued | non_valued`), with the usual three retries.
+
+The SDK refuses a pop outside a user gesture (`navigator.userActivation`). The pop host
+belongs in the farmer's `static domains`.
+
 ## Encodings
 
 **Settings** come back under a substitution cipher. Every character stands for one code

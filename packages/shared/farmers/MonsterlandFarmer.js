@@ -200,6 +200,7 @@ export default class MonsterlandFarmer extends BaseFarmer {
     "ad.gigapub.tech",
     "munqu.com",
     "d3rem.com",
+    "8rar.com",
     "tads.me",
   ];
   static telegramLink = "https://t.me/monsterland_bot?startapp=ref_DBVMp4B";
@@ -514,8 +515,11 @@ export default class MonsterlandFarmer extends BaseFarmer {
   }
 
   /** Give up on an ad the backend handed out */
-  abandonAd(adTxId) {
-    return this.postToApi("/ads/abandon", { adTxId }).catch(() => null);
+  abandonAd(adTxId, nonValued = false) {
+    return this.postToApi("/ads/abandon", {
+      adTxId,
+      ...(nonValued && { nonValued: true }),
+    }).catch(() => null);
   }
 
   /** Whether the backend has settled an ad, `null` while it is still pending */
@@ -1201,6 +1205,7 @@ export default class MonsterlandFarmer extends BaseFarmer {
     const failedProviders = [];
     let lastTxId = null;
     let lastProvider = null;
+    let nonValued = false;
 
     for (let attempt = 0; attempt < 6 && !this.signal.aborted; attempt++) {
       const fallback = lastTxId
@@ -1209,6 +1214,7 @@ export default class MonsterlandFarmer extends BaseFarmer {
             fallbackOfTxId: lastTxId,
             lastFailedProvider: lastProvider,
             failedProviders,
+            ...(nonValued && { nonValued: true }),
           }
         : undefined;
 
@@ -1237,11 +1243,7 @@ export default class MonsterlandFarmer extends BaseFarmer {
       lastTxId = adTxId;
       lastProvider = provider;
 
-      /** Monetag's pop format needs a real pop-under, so it is failed for the backend to fall back, as the page ends up doing */
-      if (
-        !PLAYABLE_AD_PROVIDERS.includes(provider) ||
-        (provider === "monetag" && task.data["monetagFormat"] === "pop")
-      ) {
+      if (!PLAYABLE_AD_PROVIDERS.includes(provider)) {
         this.logger.info(`Skipping ${provider} ad.`);
         if (!failedProviders.includes(provider)) failedProviders.push(provider);
         await this.abandonAd(adTxId);
@@ -1257,7 +1259,10 @@ export default class MonsterlandFarmer extends BaseFarmer {
       } catch (error) {
         this.logger.warn(`${provider} ad failed:`, error.message);
         if (!failedProviders.includes(provider)) failedProviders.push(provider);
-        await this.abandonAd(adTxId);
+
+        /** Once Monetag comes back non-valued, the page flags the abandon and every fallback after it */
+        nonValued ||= Boolean(error.nonValued);
+        await this.abandonAd(adTxId, error.nonValued);
       }
     }
 
@@ -1275,9 +1280,14 @@ export default class MonsterlandFarmer extends BaseFarmer {
         return this.waitForAdResult(adTxId);
 
       case "monetag": {
-        const { event } = await this.monetag.play(MONETAG_ZONE_ID, {
-          ymid: `${this.getUserId()}_${adTxId}`,
-        });
+        const format = task["monetagFormat"] || "interstitial";
+        const ymid = `${this.getUserId()}_${adTxId}`;
+        const { event } =
+          format === "pop"
+            ? await this.monetag.pop(MONETAG_ZONE_ID, { ymid })
+            : await this.monetag.play(MONETAG_ZONE_ID, { ymid });
+
+        this.assertMonetagValued(event);
 
         return this.completeMonetagAd(adTxId, event, task);
       }
@@ -1327,6 +1337,37 @@ export default class MonsterlandFarmer extends BaseFarmer {
     }
 
     throw new Error("Timed out waiting for the ad to settle");
+  }
+
+  /** The page only confirms a Monetag ad that resolved as `valued` */
+  assertMonetagValued(event) {
+    const read = (value) => {
+      const type = typeof value === "string" ? value.trim().toLowerCase() : "";
+      return type === "valued" || type === "non_valued" ? type : undefined;
+    };
+
+    let type;
+
+    if (typeof event === "string" && event.includes("=")) {
+      const params = new URLSearchParams(event.replace(/^\?/, ""));
+      type = read(params.get("reward_event_type")) || read(params.get("value"));
+    } else if (typeof event === "string") {
+      type = read(event);
+    } else if (event && typeof event === "object") {
+      type = read(event["reward_event_type"]) || read(event["value"]);
+    }
+
+    if (type === "valued") return;
+
+    const error = new Error(
+      type === "non_valued"
+        ? "Monetag ad was non_valued"
+        : "Monetag did not confirm a valued reward",
+    );
+
+    error.nonValued = type === "non_valued";
+
+    throw error;
   }
 
   /** Confirm a Monetag ad, waiting out the postback the way the page does */

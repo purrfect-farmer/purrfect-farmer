@@ -25,6 +25,9 @@ const PLAYBACK_SECONDS = 15;
 const RESOLVE_ATTEMPTS = 3;
 const RESOLVE_INTERVAL_SECONDS = 1.5;
 
+/** How long the SDK waits after opening a pop before it asks what it was worth */
+const POP_RESOLVE_DELAY_SECONDS = 2;
+
 /** Runs a Monetag zone the way `show_<zoneId>()` would. See `MonetagClient.README.md` */
 export default class MonetagClient {
   /**
@@ -106,6 +109,71 @@ export default class MonetagClient {
     const event = ruid ? await this.resolve(ruid) : null;
 
     return { banner, ruid, event };
+  }
+
+  /** Run a zone's pop format, as `show_<zoneId>({ type: "pop" })` would inside Telegram
+   * @param {string|number} [zoneId]
+   * @param {object} [options]
+   * @param {string|number} [options.ymid] - the id a postback is keyed on
+   * @param {string} [options.requestVar] - the `var` the SDK's script tag carries, empty on most pages
+   * @returns {Promise<object>} the opened link, its `ruid`, and the resolved event
+   */
+  async pop(zoneId = this.zoneId, { ymid, requestVar = "" } = {}) {
+    const zone = String(zoneId ?? "");
+
+    if (!zone) {
+      throw new Error("Monetag needs a zone id");
+    }
+
+    const oaid = await this.getOaid();
+    const settings = await this.getSettings(zone, oaid);
+    const popUrl = settings?.["fakepushTelegramPopUrl"];
+
+    /** A zone without a pop link is shown as a regular ad, as the SDK falls back */
+    if (!popUrl) {
+      return this.play(zone, { ymid });
+    }
+
+    /** The reward is only looked up when the zone posts back, keyed on this id */
+    const ruid = settings["fakepushRewardPostback"]
+      ? globalThis.crypto.randomUUID()
+      : undefined;
+
+    const query = this.buildParams({
+      var: `${zone}_${requestVar || settings["fakepushRequestVar"] || ""}`,
+      ymid: ymid ?? "",
+      sdkp: 3,
+      oaid,
+      tgp: this.tgPlatform,
+      tglc: this.getLanguage(),
+      var_3: this.farmer.getUserId(),
+      rp_rid: ruid,
+      bto: String(this.getTimezoneOffset() ?? ""),
+      btz: this.getTimezone() || "",
+    });
+
+    const url = `${popUrl.startsWith("//") ? "https:" : ""}${popUrl}${popUrl.includes("?") ? "&" : "?"}${query}`;
+
+    this.farmer.debugger?.log("Monetag pop:", url);
+
+    /** Telegram opens it in the browser; the first hop logs the click, so a failed redirect later on is fine */
+    await this.farmer.api
+      .get(url, {
+        signal: this.signal,
+        responseType: "text",
+        headers: { Authorization: null },
+      })
+      .catch((error) => {
+        this.farmer.debugger?.log("Monetag pop open failed:", error.message);
+      });
+
+    if (!ruid) return { url, ruid: null, event: null };
+
+    await this.farmer.utils.delayForSeconds(POP_RESOLVE_DELAY_SECONDS, {
+      signal: this.signal,
+    });
+
+    return { url, ruid, event: await this.resolve(ruid) };
   }
 
   /* --------------------------------------------------------------------- */
