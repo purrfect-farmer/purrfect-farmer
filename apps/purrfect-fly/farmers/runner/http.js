@@ -7,8 +7,12 @@ import {
 import { HttpProxyAgent, HttpsProxyAgent } from "hpagent";
 
 import axios from "axios";
-import { API_MAX_RETRY_COUNT, API_RETRY_BASE_DELAY } from "./config.js";
-import { parseRetryAfter } from "./errors.js";
+import {
+  API_MAX_PROXY_RETRY_COUNT,
+  API_MAX_RETRY_COUNT,
+  API_RETRY_BASE_DELAY,
+} from "./config.js";
+import { isProxyConnectError, parseRetryAfter } from "./errors.js";
 
 const HttpProxyAgentWithCookies = createCookieAgent(HttpProxyAgent);
 const HttpsProxyAgentWithCookies = createCookieAgent(HttpsProxyAgent);
@@ -131,6 +135,27 @@ function registerXSRFInterceptor(runner) {
 function registerRetryInterceptor(runner) {
   runner.api.interceptors.response.use(null, async (error) => {
     const config = error.config;
+
+    /** Retry proxy connection failures */
+    if (config && isProxyConnectError(error)) {
+      config.__proxyRetryCount = config.__proxyRetryCount || 0;
+
+      if (config.__proxyRetryCount >= API_MAX_PROXY_RETRY_COUNT) {
+        return Promise.reject(error);
+      }
+
+      config.__proxyRetryCount += 1;
+
+      const delay = API_RETRY_BASE_DELAY * 2 ** (config.__proxyRetryCount - 1);
+
+      runner.logger.warn(
+        `[${runner.account.id}] Proxy error (${error.message}) on ${config.url}. Retrying in ${delay}ms (attempt ${config.__proxyRetryCount}/${API_MAX_PROXY_RETRY_COUNT})`,
+      );
+
+      await runner.utils.delay(delay, { signal: runner.signal });
+
+      return runner.api(config);
+    }
 
     /** If no config or response, reject the error */
     if (!config || !error.response) {

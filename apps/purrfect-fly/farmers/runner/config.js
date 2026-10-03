@@ -10,6 +10,9 @@ export const MAX_CONCURRENT_ACCOUNTS = env("MAX_CONCURRENT_ACCOUNTS", 20);
 /** Max retries for rate-limited (429) requests */
 export const API_MAX_RETRY_COUNT = env("API_MAX_RETRY_COUNT", 10);
 
+/** Max retries for proxy connection failures */
+export const API_MAX_PROXY_RETRY_COUNT = env("API_MAX_PROXY_RETRY_COUNT", 3);
+
 /** Base delay (ms) for retry backoff */
 export const API_RETRY_BASE_DELAY = env("API_RETRY_BASE_DELAY", 1000);
 

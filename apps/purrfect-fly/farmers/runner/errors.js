@@ -12,6 +12,20 @@ export function isTransientError(error) {
   return message.includes("timeout") || message.includes("aborted");
 }
 
+/** Connect-phase proxy errors, the target never received the request so replaying is safe */
+export function isProxyConnectError(error) {
+  if (!error || error.response || error.code === "ERR_CANCELED") return false;
+
+  /** hpagent CONNECT failures */
+  const message = String(error.message || "");
+  if (message === "Proxy timeout" || message.startsWith("Bad response:")) {
+    return true;
+  }
+
+  /** Proxy unreachable */
+  return ["ECONNREFUSED", "EAI_AGAIN", "ENOTFOUND"].includes(error.code);
+}
+
 /** Parse a Retry-After header value into milliseconds */
 export function parseRetryAfter(value) {
   if (!value) return null;
