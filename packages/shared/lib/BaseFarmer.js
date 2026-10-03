@@ -206,12 +206,12 @@ export default class BaseFarmer {
 
   /** Can Solve Turnstile */
   canSolveTurnstile() {
-    return this.captcha?.isConfigured();
+    return Boolean(this.captcha?.canSolve("turnstile"));
   }
 
   /** Can Solve ReCaptcha */
   canSolveReCaptcha() {
-    return this.captcha?.isConfigured();
+    return Boolean(this.captcha?.canSolve("recaptcha"));
   }
 
   /** Solve Turnstile */
@@ -226,9 +226,7 @@ export default class BaseFarmer {
 
   /** Can Solve Image Captcha */
   canSolveImage() {
-    return Boolean(
-      this.captcha?.isConfigured() && this.captcha?.supportsMethod("base64"),
-    );
+    return Boolean(this.captcha?.canSolve("base64"));
   }
 
   /** Solve Image Captcha */

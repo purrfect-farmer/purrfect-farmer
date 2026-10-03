@@ -7,6 +7,7 @@ import {
 import { HiOutlineShieldCheck } from "react-icons/hi2";
 import Select from "@/components/Select";
 import LabelToggle from "@/components/LabelToggle";
+import { CAPTCHA_PROVIDERS } from "@purrfect/shared/lib/captcha/providers";
 
 export default memo(function CaptchaOptionsGroup({
   sharedSettings,
@@ -37,11 +38,11 @@ export default memo(function CaptchaOptionsGroup({
           dispatchAndConfigureSharedSettings("captchaProvider", ev.target.value)
         }
       >
-        <Select.Item value="2captcha">2Captcha</Select.Item>
-        <Select.Item value="captchaai">CaptchaAI</Select.Item>
-        <Select.Item value="solvecaptcha">SolveCaptcha</Select.Item>
-        <Select.Item value="captchasonic">CaptchaSonic</Select.Item>
-        <Select.Item value="nocaptchaai">NoCaptchaAI</Select.Item>
+        {CAPTCHA_PROVIDERS.map((provider) => (
+          <Select.Item key={provider.id} value={provider.id}>
+            {provider.title}
+          </Select.Item>
+        ))}
       </Select>
 
       {/* Captcha API Key */}

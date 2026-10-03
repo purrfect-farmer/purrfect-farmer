@@ -1,4 +1,5 @@
 import { Cron } from "croner";
+import { CAPTCHA_PROVIDERS } from "@purrfect/shared/lib/captcha/providers.js";
 
 /** Settings groups shown in the manager */
 export const ENV_GROUPS = [
@@ -151,7 +152,7 @@ export const ENV_FIELDS = [
     label: "Provider",
     type: "enum",
     default: "2captcha",
-    options: ["2captcha", "captchaai", "solvecaptcha", "captchasonic", "nocaptchaai"],
+    options: CAPTCHA_PROVIDERS.map((provider) => provider.id),
   },
   {
     key: "CAPTCHA_API_KEY",

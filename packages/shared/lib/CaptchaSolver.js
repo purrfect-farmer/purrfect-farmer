@@ -1,26 +1,4 @@
-import axios from "axios";
-
-const PROVIDER_METHODS = {
-  "2captcha": {
-    recaptcha: "userrecaptcha",
-    turnstile: "turnstile",
-    base64: "base64",
-  },
-  captchaai: {
-    turnstile: "turnstile",
-    base64: "base64",
-  },
-  solvecaptcha: {
-    turnstile: "turnstile",
-    base64: "base64",
-  },
-  captchasonic: {
-    turnstile: "AntiTurnstileTaskProxyLess",
-  },
-  nocaptchaai: {
-    turnstile: "AntiTurnstileTask",
-  },
-};
+import { createCaptchaProvider } from "./captcha/providers.js";
 
 /** How long to wait before the first result poll */
 const DEFAULT_INITIAL_DELAY = 20_000;
@@ -33,172 +11,35 @@ const normalizeBase64 = (body) =>
   typeof body === "string" ? body.replace(/^data:[^;,]*;base64,/, "") : body;
 
 export default class CaptchaSolver {
-  constructor(provider, apiKey) {
-    this.provider = provider;
-    this.apiKey = apiKey;
+  constructor(providerId, apiKey) {
+    this.providerId = providerId;
 
-    let baseURL = "";
-    let taskBased = false;
-    let taskType = "";
-    let authProperty = "";
-
-    switch (this.provider) {
-      case "2captcha":
-        baseURL = "https://2captcha.com";
-        break;
-
-      case "captchaai":
-        baseURL = "https://ocr.captchaai.com";
-        break;
-
-      case "solvecaptcha":
-        baseURL = "https://api.solvecaptcha.com";
-        break;
-
-      case "captchasonic":
-        taskBased = true;
-        authProperty = "apiKey";
-        taskType = "AntiTurnstileTaskProxyLess";
-        baseURL = "https://api.captchasonic.com";
-        break;
-
-      case "nocaptchaai":
-        taskBased = true;
-        authProperty = "clientKey";
-        taskType = "AntiTurnstileTask";
-        baseURL = "https://api.nocaptchaai.com";
-        break;
-
-      default:
-        throw new Error(`Unsupported captcha provider: ${this.provider}`);
-    }
-
-    this.taskBased = taskBased;
-    this.authProperty = authProperty;
-    this.taskType = taskType;
-    this.api = axios.create({
-      baseURL: baseURL,
-      timeout: 120_000,
-    });
+    /** @type {import("./captcha/BaseCaptchaProvider.js").default} */
+    this.provider = createCaptchaProvider(providerId, apiKey);
   }
 
   /** Check if configured */
   isConfigured() {
-    return Boolean(this.provider && this.apiKey);
+    return this.provider.isConfigured();
   }
 
   /** Get account balance, throwing when the key is rejected */
-  async getBalance() {
-    if (this.taskBased) {
-      const { data } = await this.api.post(
-        "/getBalance",
-        { [this.authProperty]: this.apiKey },
-        { timeout: 15_000 },
-      );
-
-      if (data.errorId) {
-        throw new Error(data.errorDescription || data.errorCode || "Rejected");
-      }
-
-      return Number(data.balance);
-    }
-
-    const { data } = await this.api.get("/res.php", {
-      params: { key: this.apiKey, action: "getbalance", json: 1 },
-      timeout: 15_000,
-    });
-
-    if (data.status !== 1) {
-      throw new Error(data.request || "Rejected");
-    }
-
-    return Number(data.request);
+  getBalance() {
+    return this.provider.getBalance();
   }
 
   /** Check if the provider offers a given method */
   supportsMethod(method) {
-    return Boolean(PROVIDER_METHODS[this.provider]?.[method]);
+    return this.provider.supportsMethod(method);
   }
 
-  async createRequest({ method, siteKey, pageUrl, body }) {
-    if (!this.supportsMethod(method)) {
-      throw new Error(
-        `Captcha provider "${this.provider}" does not support method "${method}"`,
-      );
-    }
-
-    const providerMethod = PROVIDER_METHODS[this.provider][method];
-
-    if (this.taskBased) {
-      return this.api
-        .post("/createTask", {
-          [this.authProperty]: this.apiKey,
-          task: {
-            type: providerMethod,
-            websiteURL: pageUrl,
-            websiteKey: siteKey,
-            ...(typeof body !== "undefined" ? { body } : {}),
-          },
-        })
-        .then((res) => ({
-          ...res.data,
-          request: res.data.taskId,
-        }));
-    } else {
-      return this.api
-        .post("/in.php", {
-          key: this.apiKey,
-          method: providerMethod,
-          sitekey: siteKey,
-          googlekey: siteKey,
-          pageurl: pageUrl,
-          json: 1,
-          ...(typeof body !== "undefined" ? { body } : {}),
-        })
-        .then((res) => res.data);
-    }
-  }
-
-  /** Get Turnstile Request */
-  getTurnstileRequest({ siteKey, pageUrl }) {
-    return this.createRequest({ method: "turnstile", siteKey, pageUrl });
-  }
-
-  /** Get ReCaptcha Request */
-  getReCaptchaRequest({ siteKey, pageUrl }) {
-    return this.createRequest({ method: "recaptcha", siteKey, pageUrl });
-  }
-
-  /** Get Captcha Result */
-  getCaptchaResult(requestId) {
-    if (this.taskBased) {
-      return this.api
-        .post("/getTaskResult", {
-          [this.authProperty]: this.apiKey,
-          taskId: requestId,
-        })
-        .then((res) => {
-          return {
-            status: res.data.errorId === 0 ? 1 : 0,
-            request: res.data.solution ? res.data.solution.token : null,
-          };
-        });
-    } else {
-      return this.api
-        .get("/res.php", {
-          params: {
-            key: this.apiKey,
-            action: "get",
-            id: requestId,
-            json: 1,
-          },
-        })
-        .then((res) => res.data);
-    }
+  /** Check if a method can be solved right now */
+  canSolve(method) {
+    return this.isConfigured() && this.supportsMethod(method);
   }
 
   /** Solve Captcha */
-  async solveCaptcha({
+  solveCaptcha({
     method,
     siteKey,
     pageUrl,
@@ -206,42 +47,27 @@ export default class CaptchaSolver {
     initialDelay = DEFAULT_INITIAL_DELAY,
   }) {
     console.log("Solving captcha...", { method, siteKey, pageUrl });
-    const response = await this.createRequest({
+    return this.provider.solve({
       method,
       siteKey,
       pageUrl,
       body,
+      initialDelay,
     });
-    const requestId = response.request;
-
-    /* Give the provider a head start before polling for the result */
-    await new Promise((resolve) => setTimeout(resolve, initialDelay));
-
-    while (true) {
-      const result = await this.getCaptchaResult(requestId);
-      if (result.status === 1) {
-        return result.request; /* Captcha solved */
-      } else if (result.request === "CAPCHA_NOT_READY") {
-        /* Wait for 5 seconds before polling again */
-        await new Promise((resolve) => setTimeout(resolve, 5_000));
-      } else {
-        throw new Error(`Captcha solving failed: ${result.request}`);
-      }
-    }
   }
 
   /** Solve Turnstile */
-  async solveTurnstile({ siteKey, pageUrl }) {
+  solveTurnstile({ siteKey, pageUrl }) {
     return this.solveCaptcha({ method: "turnstile", siteKey, pageUrl });
   }
 
   /** Solve ReCaptcha */
-  async solveReCaptcha({ siteKey, pageUrl }) {
+  solveReCaptcha({ siteKey, pageUrl }) {
     return this.solveCaptcha({ method: "recaptcha", siteKey, pageUrl });
   }
 
   /** Solve Image Captcha */
-  async solveImage({ body }) {
+  solveImage({ body }) {
     return this.solveCaptcha({
       method: "base64",
       body: normalizeBase64(body),
