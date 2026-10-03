@@ -45,8 +45,8 @@ const DECAY_MODIFIERS = {
 };
 const PRISTINE_HYGIENE_FLOOR = 50;
 
-/** Where each vital is topped up to: food pays most above 80, the others stop hurting above 30 */
-const VITAL_TARGETS = { food: 80, hygiene: 50, energy: 50 };
+/** Where each vital is topped up to, enough to stay above the penalty lines across a 3h gap */
+const VITAL_TARGETS = { food: 100, hygiene: 70, energy: 85 };
 
 /** Most items used on one vital in one pass */
 const MAXIMUM_ITEMS_PER_VITAL = 6;
@@ -205,7 +205,7 @@ export default class MonsterlandFarmer extends BaseFarmer {
   ];
   static telegramLink = "https://t.me/monsterland_bot?startapp=ref_DBVMp4B";
   static path = "/";
-  static interval = "*/30 * * * *";
+  static interval = "0 */3 * * *";
   static apiDelay = 500;
   static rating = 4;
 
