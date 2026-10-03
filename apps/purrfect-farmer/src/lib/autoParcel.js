@@ -13,7 +13,8 @@ export const NATIVE_TON_TOKEN = {
 
 /** Build the token Parcel should preselect */
 export function getParcelToken(config, useNativeTon) {
-  if (useNativeTon) {
+  /** A native Auto has no jetton, so TON is the only token */
+  if (useNativeTon || !config.jettonAddress) {
     return NATIVE_TON_TOKEN;
   }
 

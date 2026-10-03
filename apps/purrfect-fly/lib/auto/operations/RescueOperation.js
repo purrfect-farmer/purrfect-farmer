@@ -85,7 +85,7 @@ class RescueOperation extends AutoOperation {
         [
           fmt.formatKeyValue(
             "Total withdrawn",
-            `🤑 ${fmt.formatAmount(totalWithdrawn)} ${this.token}`,
+            `🤑 ${fmt.formatAmount(totalWithdrawn)} ${this.currency}`,
           ),
         ],
         requesters.length,

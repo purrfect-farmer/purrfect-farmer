@@ -73,12 +73,11 @@ class AutoMaster {
 
   /** Collect from account */
   async collectFrom(account, booster) {
-    logger.info(`Collecting ${this.ctx.token} and TON:`, account.address);
+    const asset = this.ctx.native ? "TON" : `${this.ctx.token} and TON`;
+
+    logger.info(`Collecting ${asset}:`, account.address);
     await booster.collect();
-    logger.success(
-      `Successfully collected ${this.ctx.token} and TON:`,
-      account.address,
-    );
+    logger.success(`Successfully collected ${asset}:`, account.address);
   }
 
   /** Transfer everything into this account, which then becomes the master */

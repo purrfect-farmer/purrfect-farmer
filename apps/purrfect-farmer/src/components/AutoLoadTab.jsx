@@ -206,7 +206,7 @@ export default function AutoLoadTab() {
 
               <p className="text-center text-neutral-500 dark:text-neutral-400">
                 How often to check for accounts at {config.minWithdrawal}{" "}
-                {config.token}
+                {config.currency}
               </p>
 
               <FieldStateError fieldState={fieldState} />

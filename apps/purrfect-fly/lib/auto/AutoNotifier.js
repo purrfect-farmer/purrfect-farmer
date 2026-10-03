@@ -147,7 +147,7 @@ class AutoNotifier {
         ? [
             this.fmt.formatKeyValue(
               "Total withdrawn",
-              `🤑 ${this.fmt.formatAmount(totalWithdrawn)} ${token}`,
+              `🤑 ${this.fmt.formatAmount(totalWithdrawn)} ${this.ctx.currency}`,
             ),
             this.fmt.formatKeyValue(
               "Withdrawn Accounts",

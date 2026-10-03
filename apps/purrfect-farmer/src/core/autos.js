@@ -2,6 +2,11 @@ import bcrypt from "bcryptjs";
 import path from "path-browserify";
 import storage from "@/lib/storage";
 import { customLogger } from "@/utils";
+import tonLogo from "@/assets/images/toncoin-ton-logo.svg";
+import {
+  getAutoCurrency,
+  isNativeAuto,
+} from "@purrfect/shared/lib/auto/native.js";
 import { encryption } from "@/services/encryption";
 import { sharedStorageKey } from "@/lib/storageKeys";
 
@@ -53,13 +58,20 @@ const tokenIcons = indexIcons(
 
 const autos = Object.values(farmersGlob)
   .filter((Farmer) => Farmer.auto)
-  .map((Farmer) => ({
-    ...Farmer.auto,
-    farmerId: Farmer.id,
-    icon: autoIcons.get(Farmer.auto.id),
-    largeIcon: autoLargeIcons.get(Farmer.auto.id),
-    tokenIcon: tokenIcons.get(Farmer.id),
-  }));
+  .map((Farmer) => {
+    /** A native Auto moves TON, so its token is TON's own logo */
+    const native = isNativeAuto(Farmer.auto);
+
+    return {
+      ...Farmer.auto,
+      native,
+      currency: getAutoCurrency(Farmer.auto),
+      farmerId: Farmer.id,
+      icon: autoIcons.get(Farmer.auto.id),
+      largeIcon: autoLargeIcons.get(Farmer.auto.id),
+      tokenIcon: native ? tonLogo : tokenIcons.get(Farmer.id),
+    };
+  });
 
 const autosMap = autos.reduce((result, auto) => {
   result.set(auto.id, auto);

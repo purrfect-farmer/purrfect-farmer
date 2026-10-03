@@ -76,21 +76,34 @@ export function AutoMasterBalanceCard() {
         <h3 className="font-bold text-neutral-400">Master</h3>
       </div>
 
-      {/* Jetton balance */}
-      <div className="flex items-center gap-2">
-        <img src={config.tokenIcon} className="size-5 rounded-full" />
-        <span className="text-3xl">
-          {balances ? balances.jetton.toFixed(2) : "-.--"}
-        </span>
-        <span className="text-neutral-400">{config.token}</span>
-      </div>
+      {config.native ? (
+        /* TON is the asset, so it takes the headline */
+        <div className="flex items-center gap-2">
+          <img src={TonIcon} className="size-5" />
+          <span className="text-3xl">
+            {balances ? balances.ton.toFixed(4) : "-.----"}
+          </span>
+          <span className="text-neutral-400">TON</span>
+        </div>
+      ) : (
+        <>
+          {/* Jetton balance */}
+          <div className="flex items-center gap-2">
+            <img src={config.tokenIcon} className="size-5 rounded-full" />
+            <span className="text-3xl">
+              {balances ? balances.jetton.toFixed(2) : "-.--"}
+            </span>
+            <span className="text-neutral-400">{config.token}</span>
+          </div>
 
-      {/* TON Balance */}
-      <div className="flex items-center gap-2">
-        <img src={TonIcon} className="size-4" />
-        <span>{balances ? balances.ton.toFixed(4) : "-.----"}</span>
-        <span className="text-neutral-400">TON</span>
-      </div>
+          {/* TON Balance */}
+          <div className="flex items-center gap-2">
+            <img src={TonIcon} className="size-4" />
+            <span>{balances ? balances.ton.toFixed(4) : "-.----"}</span>
+            <span className="text-neutral-400">TON</span>
+          </div>
+        </>
+      )}
 
       {/* Address */}
       <button

@@ -1,9 +1,15 @@
 import BaseAuto from "./BaseAuto.js";
 import farmers from "../farmers/index.js";
+import {
+  getAutoCurrency,
+  isNativeAuto,
+} from "@purrfect/shared/lib/auto/native.js";
 
 /** Builds the Auto subclass for a farmer's `static auto` descriptor, with its own instances map */
 export function createAuto(FarmerClass) {
   const { id, title, token, jettonAddress, verifiable } = FarmerClass.auto;
+  const currency = getAutoCurrency(FarmerClass.auto);
+  const native = isNativeAuto(FarmerClass.auto);
 
   return class Auto extends BaseAuto {
     static instances = new Map();
@@ -13,7 +19,9 @@ export function createAuto(FarmerClass) {
     static id = id;
     static title = title;
     static token = token;
-    static jettonAddress = jettonAddress;
+    static currency = currency;
+    static jettonAddress = jettonAddress || null;
+    static native = native;
     static verifiable = Boolean(verifiable);
   };
 }

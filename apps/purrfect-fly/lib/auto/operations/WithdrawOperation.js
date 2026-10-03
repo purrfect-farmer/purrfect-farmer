@@ -27,7 +27,7 @@ class WithdrawOperation extends AutoOperation {
         return this.notify.sendSummary(results, [
           fmt.formatKeyValue(
             "Total withdrawn",
-            `🤑 ${fmt.formatAmount(withdrawn)}/${fmt.formatAmount(available)} ${this.token}`,
+            `🤑 ${fmt.formatAmount(withdrawn)}/${fmt.formatAmount(available)} ${this.currency}`,
           ),
         ]);
       },

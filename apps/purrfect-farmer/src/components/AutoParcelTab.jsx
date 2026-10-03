@@ -102,8 +102,8 @@ export default function AutoParcelTab() {
         to master.
       </Alert>
 
-      {/* Token */}
-      <div className="flex flex-col gap-1">
+      {/* Token, only a choice when the Auto has a jetton */}
+      <div className={cn("flex flex-col gap-1", config.native && "hidden")}>
         <Label>Token</Label>
         <div className="grid grid-cols-2 gap-2">
           <TokenOption

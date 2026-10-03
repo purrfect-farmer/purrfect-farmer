@@ -6,7 +6,7 @@ import {
 } from "../ton/transactions.js";
 import { prepareMaster } from "./transactions.js";
 
-/** Drains a master wallet, the drop's jetton plus all remaining TON, into an arbitrary address */
+/** Drains a master wallet, the drop's jetton (if it has one) plus all remaining TON, into an arbitrary address */
 export default class BaseWalletTransfer {
   constructor(master, address, jettonAddress) {
     this.master = master;
@@ -27,7 +27,7 @@ export default class BaseWalletTransfer {
     console.log("Wallet prepared for transfer:", this.prepared);
 
     /** Send assets from master to address */
-    if (this.prepared.jettonBalance > 0) {
+    if (!this.prepared.native && this.prepared.jettonBalance > 0) {
       const jettonAmount = this.prepared.jettonBalance;
 
       /** Send Jetton from master */

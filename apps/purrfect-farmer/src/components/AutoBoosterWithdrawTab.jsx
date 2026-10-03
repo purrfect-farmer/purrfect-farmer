@@ -94,7 +94,7 @@ export default function AutoBoosterWithdrawTab({ account }) {
   return (
     <div className="flex flex-col gap-3">
       <Alert variant="info">
-        Withdraws this account's {config.token} through a verified or trusted
+        Withdraws this account's {config.currency} through a verified or trusted
         account.
       </Alert>
 
@@ -126,7 +126,7 @@ export default function AutoBoosterWithdrawTab({ account }) {
 
           {mutation.isSuccess && (
             <Alert variant="success">
-              Withdrew {mutation.data.amount} {config.token} through{" "}
+              Withdrew {mutation.data.amount} {config.currency} through{" "}
               {helperAccount?.title}.
             </Alert>
           )}

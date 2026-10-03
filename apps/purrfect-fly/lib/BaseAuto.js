@@ -28,8 +28,14 @@ class BaseAuto {
   /** @type {string} token symbol used in notifications, e.g. "ATF" */
   static token = null;
 
-  /** @type {string} jetton master address moved by boost/collect */
+  /** @type {string} unit the drop keeps its own balance in, e.g. "LUMIS", the token unless the descriptor names one */
+  static currency = null;
+
+  /** @type {string|null} jetton master address moved by boost/collect, null on a native Auto */
   static jettonAddress = null;
+
+  /** @type {boolean} whether boost/collect move native TON because the drop has no jetton */
+  static native = false;
 
   /** @type {boolean} whether the drop has a one-time wallet verification to pay */
   static verifiable = false;

@@ -35,9 +35,11 @@ export function AutoNetWorthCard() {
 
   const accountsWithBalanceCount = useMemo(() => {
     return isSuccess
-      ? data.filter((item) => item.jetton.greaterThan(0)).length
+      ? data.filter((item) =>
+          (config.native ? item.ton : item.jetton).greaterThan(0),
+        ).length
       : 0;
-  }, [isSuccess, data]);
+  }, [isSuccess, data, config.native]);
 
   /** Mined pool and wallet holding */
   const totals = useMemo(
@@ -55,21 +57,34 @@ export function AutoNetWorthCard() {
     >
       <h3 className="text-purple-100">Net Worth</h3>
 
-      {/* Jetton balance */}
-      <div className="flex items-center gap-2">
-        <img src={config.tokenIcon} className="size-5 rounded-full" />
-        <span className="text-2xl">
-          {balances ? balances.jetton.toFixed(2) : "-.--"}
-        </span>
-        <span className="text-purple-100">{config.token}</span>
-      </div>
+      {config.native ? (
+        /* TON is the asset, so it takes the headline */
+        <div className="flex items-center gap-2">
+          <img src={TonIcon} className="size-5" />
+          <span className="text-2xl">
+            {balances ? balances.ton.toFixed(4) : "-.----"}
+          </span>
+          <span className="text-purple-100">TON</span>
+        </div>
+      ) : (
+        <>
+          {/* Jetton balance */}
+          <div className="flex items-center gap-2">
+            <img src={config.tokenIcon} className="size-5 rounded-full" />
+            <span className="text-2xl">
+              {balances ? balances.jetton.toFixed(2) : "-.--"}
+            </span>
+            <span className="text-purple-100">{config.token}</span>
+          </div>
 
-      {/* TON Balance */}
-      <div className="flex items-center gap-2">
-        <img src={TonIcon} className="size-4" />
-        <span>{balances ? balances.ton.toFixed(4) : "-.----"}</span>
-        <span className="text-purple-100">TON</span>
-      </div>
+          {/* TON Balance */}
+          <div className="flex items-center gap-2">
+            <img src={TonIcon} className="size-4" />
+            <span>{balances ? balances.ton.toFixed(4) : "-.----"}</span>
+            <span className="text-purple-100">TON</span>
+          </div>
+        </>
+      )}
 
       {/* Totals the drop reports, absent until the server has farmed something */}
       {cloudEnabled && totals.count > 0 ? (

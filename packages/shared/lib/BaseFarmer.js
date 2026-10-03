@@ -3,7 +3,8 @@ import * as changeKeys from "change-case/keys";
 import Decimal from "decimal.js";
 import seedrandom from "seedrandom";
 import utils from "../utils/bundle.js";
-import { getJettonBalance } from "./ton/tonapi.js";
+import { getJettonBalance, getTonBalance } from "./ton/tonapi.js";
+import { isNativeAuto } from "./auto/native.js";
 import {
   deriveMnemonicFromTelegramId,
   getWalletAddressFromMnemonic,
@@ -55,7 +56,9 @@ export default class BaseFarmer {
   /** Auto descriptor, declared by farmers opting into the Auto wallet system
    * `verifiable` drops answer `verifyAutoWallet`, which the Auto runs on demand
    * `connectWithPhrase` drops sign with the phrase to connect, so the Auto password is asked
-   * @type {null | { id: string, title: string, token: string, jettonAddress: string, storagePrefix: string, verifiable?: boolean, connectWithPhrase?: boolean }}
+   * A null `jettonAddress` makes a native Auto, which boosts, collects and transfers TON itself
+   * `currency` is the unit the drop keeps its own balance in, defaulting to `token`
+   * @type {null | { id: string, title: string, token: string, currency?: string, jettonAddress?: string|null, storagePrefix: string, minWithdrawal?: number, verifiable?: boolean, connectWithPhrase?: boolean }}
    */
   static auto = null;
 
@@ -880,11 +883,14 @@ export default class BaseFarmer {
     await this.storage?.set("walletVersion", this.connectedWalletVersion);
   }
 
-  /** The address' balance of the drop's jetton, straight from the chain */
+  /** The address' balance of the drop's jetton, or TON on a native Auto, straight from the chain */
   async readOnChainHolding(address) {
-    return getJettonBalance(this.constructor.auto.jettonAddress, address, {
-      signal: this.signal,
-    }).catch((error) => {
+    const auto = this.constructor.auto;
+    const read = isNativeAuto(auto)
+      ? getTonBalance(address, { signal: this.signal })
+      : getJettonBalance(auto.jettonAddress, address, { signal: this.signal });
+
+    return read.catch((error) => {
       this.logger.warn("Failed to read the holding on-chain:", error.message);
       return new Decimal(0);
     });
@@ -892,7 +898,7 @@ export default class BaseFarmer {
 
   /** Warn if the drop has moved to a different jetton than the Auto tracks */
   checkTokenContract(contract) {
-    if (!contract) return;
+    if (!contract || isNativeAuto(this.constructor.auto)) return;
 
     const expected = this.constructor.auto.jettonAddress;
 

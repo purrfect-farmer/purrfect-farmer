@@ -164,8 +164,12 @@ class AutoWallet {
     const { token } = this.ctx;
     const expected = new Decimal(jettonAmount || 0);
 
-    /** Nothing was sent, so whatever the drop reports is already current */
-    if (expected.lessThanOrEqualTo(0)) {
+    /** Nothing was sent, or the drop does not track a holding, so whatever it reports is already current */
+    if (
+      expected.lessThanOrEqualTo(0) ||
+      summary?.holding === null ||
+      summary?.holding === undefined
+    ) {
       return { summary, settled: true };
     }
 

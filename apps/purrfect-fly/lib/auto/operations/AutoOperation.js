@@ -27,6 +27,11 @@ class AutoOperation {
     return this.ctx.token;
   }
 
+  /** The unit the drop keeps its own balance in */
+  get currency() {
+    return this.ctx.currency;
+  }
+
   /** Is Last Account */
   isLastAccount(index) {
     return index === this.ctx.accounts.length - 1;

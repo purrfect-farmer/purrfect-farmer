@@ -19,6 +19,13 @@ export default class AutoBooster extends BaseBooster {
     });
   }
 
+  sendTonFromMaster(amount) {
+    return toast.promise(super.sendTonFromMaster(amount), {
+      loading: `Sending ${amount} TON from master`,
+      success: `Sent ${amount} TON from master`,
+    });
+  }
+
   sendGasFromMaster(amount) {
     return toast.promise(super.sendGasFromMaster(amount), {
       loading: `Sending ${fromNano(amount)} TON from master`,

@@ -14,7 +14,7 @@ import Tabs from "./Tabs";
 import useAuto from "@/hooks/useAuto";
 import { useMemo } from "react";
 
-/** Every drop gets these, and a verifiable one also gets the verify tab */
+/** Every drop gets these, a verifiable one also gets the verify tab, and a native TON one has nothing to swap */
 const baseTabs = {
   rootProps: { defaultValue: "dashboard" },
   list: [
@@ -35,11 +35,14 @@ const baseTabs = {
 export default function AutoPanel() {
   const { config } = useAuto();
   const tabs = useMemo(
-    () =>
-      config.verifiable
-        ? { ...baseTabs, list: [...baseTabs.list, "verify"] }
-        : baseTabs,
-    [config.verifiable],
+    () => ({
+      ...baseTabs,
+      list: [
+        ...baseTabs.list.filter((tab) => !(config.native && tab === "swap")),
+        ...(config.verifiable ? ["verify"] : []),
+      ],
+    }),
+    [config.verifiable, config.native],
   );
 
   return (
@@ -64,9 +67,11 @@ export default function AutoPanel() {
       <Tabs.Content value="rescue">
         <AutoRescueTab />
       </Tabs.Content>
-      <Tabs.Content value="swap">
-        <AutoSwapTab />
-      </Tabs.Content>
+      {!config.native && (
+        <Tabs.Content value="swap">
+          <AutoSwapTab />
+        </Tabs.Content>
+      )}
       <Tabs.Content value="parcel">
         <AutoParcelTab />
       </Tabs.Content>

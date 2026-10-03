@@ -268,8 +268,8 @@ export default function AutoAccountSnapshotDetails({ account }) {
 
           {/* Mined pool */}
           <InfoRow
-            label={`Pool balance (minimum ${minimum} ${config.token})`}
-            value={`${formatFigure(snapshot.balance)} ${config.token} ${withdrawable ? "🟩" : "🟧"}`}
+            label={`Pool balance (minimum ${minimum} ${config.currency})`}
+            value={`${formatFigure(snapshot.balance)} ${config.currency} ${withdrawable ? "🟩" : "🟧"}`}
             valueClassName={withdrawable ? GOOD : MUTED}
           />
 
@@ -383,7 +383,7 @@ export default function AutoAccountSnapshotDetails({ account }) {
       {assist?.last ? (
         <InfoRow
           label="Last helped"
-          value={`${assist.last.requesterId} - ${assist.last.amount} ${config.token}, settled ${formatDistanceToNow(assist.last.settledAt, { addSuffix: true })}`}
+          value={`${assist.last.requesterId} - ${assist.last.amount} ${config.currency}, settled ${formatDistanceToNow(assist.last.settledAt, { addSuffix: true })}`}
           valueClassName="text-lime-500 dark:text-lime-300"
         />
       ) : null}
@@ -392,7 +392,7 @@ export default function AutoAccountSnapshotDetails({ account }) {
       {assist?.pending ? (
         <InfoRow
           label="Helping now"
-          value={`${assist.pending.requesterId} - ${assist.pending.amount} ${config.token}, placed ${formatDistanceToNow(assist.pending.placedAt, { addSuffix: true })}`}
+          value={`${assist.pending.requesterId} - ${assist.pending.amount} ${config.currency}, placed ${formatDistanceToNow(assist.pending.placedAt, { addSuffix: true })}`}
           valueClassName="text-sky-500 dark:text-sky-300"
         />
       ) : null}

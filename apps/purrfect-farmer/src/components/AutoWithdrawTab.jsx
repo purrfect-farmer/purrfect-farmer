@@ -103,7 +103,7 @@ export default function AutoWithdrawTab() {
           <Alert variant="info">
             Withdraws in Cloud. Accounts holding at least{" "}
             <strong>
-              {config.minWithdrawal} {config.token}
+              {config.minWithdrawal} {config.currency}
             </strong>{" "}
             are processed.
           </Alert>

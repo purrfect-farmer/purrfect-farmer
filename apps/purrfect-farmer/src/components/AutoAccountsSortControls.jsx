@@ -3,6 +3,7 @@ import { LuArrowDownWideNarrow, LuArrowUpNarrowWide } from "react-icons/lu";
 import Select from "./Select";
 import { SORT_OPTIONS } from "@/hooks/useAutoAccountsSort";
 import { cn } from "@/utils";
+import useAuto from "@/hooks/useAuto";
 
 /** Pick the order accounts are listed in, fed by useAutoAccountsSort */
 export default function AutoAccountsSortControls({
@@ -11,10 +12,17 @@ export default function AutoAccountsSortControls({
   direction,
   toggleDirection,
 }) {
+  const { config } = useAuto();
+
+  /** A native Auto has no jetton to sort by */
+  const options = config.native
+    ? SORT_OPTIONS.filter((option) => option.value !== "jetton")
+    : SORT_OPTIONS;
+
   return (
     <div className="flex items-center gap-2">
       <Select value={sortKey} onChange={(e) => setSortKey(e.target.value)}>
-        {SORT_OPTIONS.map((option) => (
+        {options.map((option) => (
           <Select.Item key={option.value} value={option.value}>
             {option.label}
           </Select.Item>

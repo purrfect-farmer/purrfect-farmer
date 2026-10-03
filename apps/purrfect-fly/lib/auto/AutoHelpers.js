@@ -28,12 +28,12 @@ class AutoHelpers {
 
   /** Tell the admin the withdrawal a helper placed has been settled */
   async announceSettlement(helper, record) {
-    const { fmt, title, token } = this.ctx;
+    const { fmt, title, currency } = this.ctx;
 
     await this.ctx.notify.sendAdmin([
       `✅ ${title} - ${fmt.formatAccountLink(helper.userId)} is free again. The withdrawal it placed has settled.`,
       fmt.formatKeyValue("Requester", fmt.formatAccountLink(record.requesterId)),
-      fmt.formatKeyValue("Amount", `${record.amount} ${token}`),
+      fmt.formatKeyValue("Amount", `${record.amount} ${currency}`),
       fmt.formatKeyValue(
         "Placed",
         fmt.formatTimestamp(Number(record.placedAt) / 1000),
@@ -44,7 +44,7 @@ class AutoHelpers {
 
   /** The helper accounts that can take work right now, each logged in once into `runners` */
   async getAvailable(helpers, runners, outstanding = new Map()) {
-    const { fmt, notify, records, token } = this.ctx;
+    const { fmt, notify, records, currency } = this.ctx;
     const available = [];
 
     for (const helper of helpers) {
@@ -69,7 +69,7 @@ class AutoHelpers {
       if (await entry.runner.hasPendingWithdrawal()) {
         await notify.send([
           record
-            ? `⏩ Skipped <b>(${label})</b> - still waiting on the <i>${record.amount} ${token}</i> it withdrew for ${fmt.formatAccountLink(record.requesterId)}, placed ${fmt.formatElapsed(record.placedAt)} ago.`
+            ? `⏩ Skipped <b>(${label})</b> - still waiting on the <i>${record.amount} ${currency}</i> it withdrew for ${fmt.formatAccountLink(record.requesterId)}, placed ${fmt.formatElapsed(record.placedAt)} ago.`
             : `⏩ Skipped <b>(${label})</b> - a withdrawal is still pending.`,
         ]);
         continue;

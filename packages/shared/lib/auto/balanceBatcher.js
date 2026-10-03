@@ -8,6 +8,7 @@ import {
 } from "./toncenter.js";
 
 import Decimal from "decimal.js";
+import { isNativeJetton } from "./native.js";
 
 /** How long calls are collected before a batch is sent
  * react-query's useQueries fan-out spans more than one microtask tick
@@ -26,10 +27,14 @@ async function runChunk(jettonAddress, apiKey, waiters) {
   const addresses = [...new Set(waiters.map((waiter) => waiter.raw))];
 
   try {
+    /** A native Auto has no jetton to look up, and an unfiltered lookup returns every jetton the owners hold */
+    const native = isNativeJetton(jettonAddress);
     const [tonBalances, jettonBalances, decimals] = await Promise.all([
       fetchAccountStates(addresses, { apiKey }),
-      fetchJettonWallets(jettonAddress, addresses, { apiKey }),
-      fetchJettonDecimals(jettonAddress, { apiKey }),
+      native
+        ? new Map()
+        : fetchJettonWallets(jettonAddress, addresses, { apiKey }),
+      native ? 9 : fetchJettonDecimals(jettonAddress, { apiKey }),
     ]);
 
     const divisor = new Decimal(10).pow(decimals);

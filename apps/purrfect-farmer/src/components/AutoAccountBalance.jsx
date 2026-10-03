@@ -28,15 +28,17 @@ export default function AutoAccountBalance({ account, ...props }) {
         <img src={TonIcon} className="size-3" />
         {balances ? balances.ton.toFixed(4) : "-.--"}
       </span>
-      <span
-        className={cn(
-          "inline-flex items-center gap-0.5",
-          hasJetton ? "text-green-500 dark:text-green-400" : null,
-        )}
-      >
-        <img src={config.tokenIcon} className="size-3 rounded-full" />
-        {balances ? balances.jetton.toFixed(2) : "-.--"}
-      </span>
+      {!config.native && (
+        <span
+          className={cn(
+            "inline-flex items-center gap-0.5",
+            hasJetton ? "text-green-500 dark:text-green-400" : null,
+          )}
+        >
+          <img src={config.tokenIcon} className="size-3 rounded-full" />
+          {balances ? balances.jetton.toFixed(2) : "-.--"}
+        </span>
+      )}
     </span>
   );
 }

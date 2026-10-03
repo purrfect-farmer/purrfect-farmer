@@ -92,10 +92,12 @@ export default function AutoAccountDetails({ account }) {
             </span>
 
             {/* Jetton */}
-            <span className="inline-flex items-center gap-1 text-orange-500 dark:text-orange-400">
-              <img src={config.tokenIcon} className="size-4 rounded-full" />
-              {balances.jetton.toFixed(2)} {config.token}
-            </span>
+            {!config.native && (
+              <span className="inline-flex items-center gap-1 text-orange-500 dark:text-orange-400">
+                <img src={config.tokenIcon} className="size-4 rounded-full" />
+                {balances.jetton.toFixed(2)} {config.token}
+              </span>
+            )}
           </div>
         ) : (
           <p className="text-neutral-400">Loading...</p>

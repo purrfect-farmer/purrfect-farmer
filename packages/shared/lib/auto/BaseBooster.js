@@ -11,8 +11,9 @@ import {
 
 import Decimal from "decimal.js";
 import { SendMode } from "@ton/core";
+import { NATIVE_TON_DUST, fromNanoDecimal } from "./native.js";
 
-/** Boosts and collects one sub account, moving `prepared.jettonAddress` to and from the master */
+/** Boosts and collects one sub account, moving `prepared.jettonAddress` to and from the master, or TON on a native Auto */
 export default class BaseBooster {
   /**
    * @param {object} master - { address, version, phrase }
@@ -97,6 +98,35 @@ export default class BaseBooster {
 
     await waitForSeqnoChange(contract, seqno);
     return jettonAmount;
+  }
+
+  /** Send TON from the master as the boosted asset, which is how a native Auto boosts */
+  async sendTonFromMaster(amount) {
+    const { contract, keyPair } = this.prepared;
+    const seqno = await contract.getSeqno();
+
+    await contract.sendTransfer({
+      seqno,
+      secretKey: keyPair.secretKey,
+      sendMode: SendMode.PAY_GAS_SEPARATELY + SendMode.IGNORE_ERRORS,
+      messages: [
+        internal({
+          to: Address.parse(this.account.address),
+          value: toNano(amount.toFixed(9)),
+          bounce: false,
+        }),
+      ],
+    });
+
+    await waitForSeqnoChange(contract, seqno);
+    return amount;
+  }
+
+  /** Send the boosted asset, jetton or TON depending on the Auto */
+  sendAssetFromMaster(amount) {
+    return this.prepared.native
+      ? this.sendTonFromMaster(amount)
+      : this.sendJettonFromMaster(amount);
   }
 
   async sendJettonAndGasFromMaster(jettonAmount) {
@@ -194,7 +224,7 @@ export default class BaseBooster {
       /** Not awaited, so callers can overlap their own delay with the transfer.
        * It is settled here to keep the rejection handled, and handed back as
        * `transfer` for callers that need to know whether it landed. */
-      const transfer = this.sendJettonFromMaster(jettonAmount).then(
+      const transfer = this.sendAssetFromMaster(jettonAmount).then(
         () => ({ status: true, error: null }),
         (error) => {
           console.log("Error while sending jetton from master", error);
@@ -223,8 +253,39 @@ export default class BaseBooster {
     }
   }
 
+  /** Return a sub account's TON to the master, the whole of a native Auto's collect */
+  async collectTon() {
+    const { contract } = await this._prepareSubAccount();
+    const balance = await contract.getBalance();
+
+    if (balance <= NATIVE_TON_DUST) {
+      console.log("Skipping due to low TON balance!");
+      return {
+        status: false,
+        skipped: true,
+        account: this.account,
+        collected: new Decimal(0),
+        error: null,
+      };
+    }
+
+    await this.returnTonToMaster();
+
+    return {
+      status: true,
+      skipped: false,
+      account: this.account,
+      collected: fromNanoDecimal(balance),
+      error: null,
+    };
+  }
+
   async collect() {
     try {
+      if (this.prepared.native) {
+        return await this.collectTon();
+      }
+
       console.log("Fetching Jetton Balance...");
       const { balance: jettonBalance } = await getJettonInfo(
         this.prepared.jettonAddress,

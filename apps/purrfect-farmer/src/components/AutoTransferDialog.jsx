@@ -89,7 +89,8 @@ export default function AutoTransferDialog() {
         >
           {/* Warning */}
           <Alert variant={"warning"}>
-            Ensure the address is correct before submitting. All {config.token} and TON in
+            Ensure the address is correct before submitting. All{" "}
+            {config.native ? "TON" : `${config.token} and TON`} in
             the master wallet will be transferred to the specified address
             immediately after submission and cannot be reversed.
           </Alert>

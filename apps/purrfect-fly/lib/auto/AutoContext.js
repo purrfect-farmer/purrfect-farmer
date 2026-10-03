@@ -26,7 +26,9 @@ class AutoContext {
     this.autoId = Auto.id;
     this.title = Auto.title;
     this.token = Auto.token;
+    this.currency = Auto.currency || Auto.token;
     this.jettonAddress = Auto.jettonAddress;
+    this.native = Boolean(Auto.native);
 
     /** Core properties */
     this.id = id;

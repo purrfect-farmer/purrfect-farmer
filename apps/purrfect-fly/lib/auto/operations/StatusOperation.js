@@ -30,11 +30,11 @@ class StatusOperation extends AutoOperation {
         return this.notify.sendSummary(results, [
           fmt.formatKeyValue(
             "Total mined",
-            `💰 ${fmt.formatAmount(sum(results))} ${this.token}`,
+            `💰 ${fmt.formatAmount(sum(results))} ${this.currency}`,
           ),
           fmt.formatKeyValue(
             "Withdrawable Amount",
-            `🤑 ${fmt.formatAmount(sum(withdrawable))} ${this.token}`,
+            `🤑 ${fmt.formatAmount(sum(withdrawable))} ${this.currency}`,
           ),
           fmt.formatKeyValue("Withdrawable Accounts", `${withdrawable.length}`),
         ]);

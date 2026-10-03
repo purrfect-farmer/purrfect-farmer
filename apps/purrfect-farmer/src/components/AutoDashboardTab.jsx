@@ -20,7 +20,7 @@ import useAutoAccountsSort from "@/hooks/useAutoAccountsSort";
 import { useDebounce } from "react-use";
 
 export default function AutoDashboardTab() {
-  const { accounts, storeAccounts } = useAuto();
+  const { config, accounts, storeAccounts } = useAuto();
   const [addOpen, setAddOpen] = useState(false);
   const [showSearch, setShowSearch] = useState(false);
   const [tempSearch, setTempSearch] = useState("");
@@ -61,8 +61,8 @@ export default function AutoDashboardTab() {
 
   return (
     <div className="flex flex-col gap-3 p-2">
-      {/* The token every boost, collect and swap moves */}
-      <AutoTokenContract />
+      {/* The token every boost, collect and swap moves, absent when the Auto moves TON */}
+      {!config.native && <AutoTokenContract />}
 
       {/* Net Worth Card  */}
       <AutoNetWorthCard />

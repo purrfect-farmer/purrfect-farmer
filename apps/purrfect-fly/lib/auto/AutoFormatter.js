@@ -67,6 +67,11 @@ class AutoFormatter {
     return this.ctx.token;
   }
 
+  /** The unit the drop keeps its own balance in */
+  get currency() {
+    return this.ctx.currency;
+  }
+
   get title() {
     return this.ctx.title;
   }
@@ -157,12 +162,12 @@ class AutoFormatter {
       ...this.formatPreviewList(candidates, (candidate, position) =>
         this.formatKeyValue(
           `${position + 1}. ${this.formatAccountLink(candidate.account.userId)}`,
-          `${new Decimal(candidate.snapshot.balance || 0)} ${this.token}`,
+          `${new Decimal(candidate.snapshot.balance || 0)} ${this.currency}`,
         ),
       ),
       this.formatKeyValue(
         "Total",
-        `💰 ${this.formatAmount(total)} ${this.token}`,
+        `💰 ${this.formatAmount(total)} ${this.currency}`,
       ),
     ];
   }
@@ -243,7 +248,7 @@ class AutoFormatter {
         this.formatKeyValue("Holding", `${summary.holding} ${this.token}`),
         this.formatKeyValue(
           "Pool Balance",
-          `${summary.balance} ${this.token} ${isWithdrawable(summary) ? "🟩" : "🟧"}`,
+          `${summary.balance} ${this.currency} ${isWithdrawable(summary) ? "🟩" : "🟧"}`,
         ),
         this.formatKeyValue("Verified", summary.verified ? "✅" : "❌"),
       ]
@@ -332,7 +337,9 @@ class AutoFormatter {
       amount !== null &&
       !(skipped && new Decimal(amount || 0).isZero());
 
-    const amountPart = showAmount ? ` - <i>${amount} ${this.token}</i>` : "";
+    const amountPart = showAmount
+      ? ` - <i>${amount} ${this.currency}</i>`
+      : "";
     const positionPart = position ? ` ${position}` : "";
 
     const head = skipped
