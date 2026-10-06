@@ -401,6 +401,13 @@ export default class BaseTelegramWebClient extends TelegramClient {
     });
   }
 
+  /** Update Username (empty string removes it) */
+  updateUsername(username) {
+    return this.execute(() => {
+      return this.invoke(new Api.account.UpdateUsername({ username }));
+    });
+  }
+
   /** Get 2FA State */
   getPasswordState() {
     return this.execute(() => this.invoke(new Api.account.GetPassword()));
