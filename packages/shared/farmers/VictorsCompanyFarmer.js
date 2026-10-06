@@ -8,12 +8,26 @@ import {
   getMinerRequiredHolding,
   getMinerSpeed,
 } from "../lib/auto/minerCurve.js";
+import { buildTonProof } from "../lib/ton/proof.js";
+import {
+  createWallet,
+  keyPairFromPhraseOrSecretKey,
+} from "../lib/ton/wallet.js";
+import {
+  DEEP_MINE,
+  chooseMove,
+  getMaximumProfit,
+  pickTool,
+} from "../lib/games/deepMine.js";
 
 /** The drop's backend, which the mini app talks to for everything */
 const API_URL = "https://server.victors.company/api";
 
 /** The VIC jetton the drop pays out and levels against */
 const VIC_JETTON_ADDRESS = "EQClb4h8Wnqx-X_sKMFExqxcQusCktlMHxYZ2M80A_WnnFUe";
+
+/** The domain the page signs its TON proof for */
+const TON_PROOF_DOMAIN = "app.victors.company";
 
 /** Cloudflare Turnstile guarding the login, as the loading screen renders it */
 const TURNSTILE_SITE_KEY = "0x4AAAAAAFD0KRgPRFVwDvgn";
@@ -48,6 +62,9 @@ const WITHDRAWAL_HISTORY_LIMIT = 20;
 
 /** TON kept aside for the verification transfer's fees */
 const VERIFICATION_GAS_TON = 0.02;
+
+/** Pause between mine moves, close to the page's pace so the run never idles out */
+const MINE_MOVE_DELAY_SECONDS = 1;
 
 /** How often, and how long, the verification is polled after paying */
 const VERIFICATION_CHECK_ATTEMPTS = 6;
@@ -219,9 +236,9 @@ export default class VictorsCompanyFarmer extends BaseFarmer {
     return this.postToApi("/referral/claim-commission");
   }
 
-  /** Bind a wallet to the account */
-  connectWallet(address) {
-    return this.postToApi("/wallet/connect", { address });
+  /** Bind a wallet to the account, proven as its owner when a TON proof comes along */
+  connectWallet(address, ownership) {
+    return this.postToApi("/wallet/connect", { address, ...ownership });
   }
 
   /** Unbind the wallet the account is on */
@@ -242,6 +259,41 @@ export default class VictorsCompanyFarmer extends BaseFarmer {
   /** Ask the drop whether the verification transfer has landed */
   checkVerification() {
     return this.postToApi("/wallet/verify/check");
+  }
+
+  /** A fresh payload for the TON proof a wallet is bound with */
+  fetchProofPayload() {
+    return this.getFromApi("/wallet/proof-payload").then(
+      (result) => result["payload"],
+    );
+  }
+
+  /** The arcade's games, plays left and any run in progress */
+  fetchArcade() {
+    return this.getFromApi("/arcade");
+  }
+
+  /** Buy gear and start a Deep Mine run */
+  startMineRun(tool, items = {}) {
+    return this.postToApi("/arcade/mine/start", {
+      tool,
+      items: { helmet: 0, drink: 0, scanner: 0, bomb: 0, ...items },
+    });
+  }
+
+  /** Break one block */
+  digMine(x, y) {
+    return this.postToApi("/arcade/mine/dig", { x, y });
+  }
+
+  /** Use an item at an open block */
+  useMineItem(item, x, y) {
+    return this.postToApi("/arcade/mine/use", { item, x, y });
+  }
+
+  /** Climb out, cashing the bag and the unused energy */
+  endMineRun() {
+    return this.postToApi("/arcade/mine/end");
   }
 
   /** Request a payout to the connected wallet */
@@ -515,6 +567,15 @@ export default class VictorsCompanyFarmer extends BaseFarmer {
       "On-chain VIC",
       this.formatAmount(user["walletBalance"]),
     );
+
+    if (user["walletAddress"]) {
+      this.logger.keyValue("Owned", user["walletOwned"] ? "Yes" : "No", {
+        valueStyle: user["walletOwned"]
+          ? this.logger.c.greenBright
+          : this.logger.c.yellowBright,
+      });
+    }
+
     this.logger.keyValue("Verified", verify["verified"] ? "Yes" : "No", {
       valueStyle: verify["verified"]
         ? this.logger.c.greenBright
@@ -593,6 +654,74 @@ export default class VictorsCompanyFarmer extends BaseFarmer {
     this.logger.success(`Wallet connected: ${friendly}`);
 
     return { status: true, message: "Wallet connected" };
+  }
+
+  /** Bind the wallet a key pair controls, signing the TON proof that makes its holding count */
+  async connectSignedWallet(keyPair, version) {
+    const wallet = createWallet(keyPair.publicKey, Number(version));
+    const address = wallet.address.toString({ bounceable: false });
+    const tonProof = await buildTonProof({
+      wallet,
+      secretKey: keyPair.secretKey,
+      domain: TON_PROOF_DOMAIN,
+      payload: await this.fetchProofPayload(),
+    });
+
+    const result = await this.connectWallet(address, {
+      proof: tonProof.proof,
+      stateInit: tonProof.walletStateInit,
+      publicKey: Buffer.from(keyPair.publicKey).toString("hex"),
+    });
+
+    if (result?.["success"] === false) {
+      const message = result["error"] || "Failed to connect the wallet";
+
+      this.logger.error(message);
+      return { status: false, message };
+    }
+
+    this.applyResult(result);
+    await this.rememberWalletVersion(version);
+
+    if (!this.getUserDetails()["walletOwned"]) {
+      this.logger.warn("Wallet connected but its ownership was not accepted.");
+    }
+
+    this.logger.success(`Wallet connected and proven: ${address}`);
+
+    return { status: true, message: "Wallet connected" };
+  }
+
+  /** Bind a wallet from its phrase with a TON proof, or by address alone when no phrase is known */
+  async connectAutoWallet({ phrase, address, version, refresh = false }) {
+    if (!phrase) {
+      return super.connectAutoWallet({ address, version, refresh });
+    }
+
+    try {
+      await this.ensureStateLoaded();
+
+      const keyPair = await keyPairFromPhraseOrSecretKey(phrase);
+      const { status, message } = await this.connectSignedWallet(
+        keyPair,
+        version,
+      );
+
+      if (!status) {
+        return { status: false, message };
+      }
+
+      await this.afterAutoWalletConnected();
+
+      return {
+        status: true,
+        summary: refresh
+          ? await this.refreshAutoSummary()
+          : this.getAutoSummary(),
+      };
+    } catch (error) {
+      return { status: false, message: error.message || "Unknown error" };
+    }
   }
 
   /** Have the drop re-read the on-chain holding */
@@ -925,24 +1054,142 @@ export default class VictorsCompanyFarmer extends BaseFarmer {
   /* Arcade                                                                */
   /* --------------------------------------------------------------------- */
 
-  /** Report the arcade games open to the public, which only Deep Mine is today and is left unplayed since every run costs VIC */
+  /** Play Deep Mine's daily runs, finishing any run left open first */
   async playArcade() {
-    const games = (this.state_data.arcade || []).filter(
-      (game) => !game["test"],
+    const arcade = await this.fetchArcade();
+    const game = (arcade["games"] || []).find(
+      (item) => item["id"] === "mine" && !item["test"],
     );
 
-    if (!games.length) {
-      this.logger.info("No arcade games available.");
+    for (const item of arcade["games"] || []) {
+      if (item["id"] !== "mine" && !item["test"]) {
+        this.logger.warn(`Unknown arcade game "${item["id"]}" is public.`);
+      }
+    }
+
+    if (arcade["mine"]?.["status"] === "active") {
+      this.logger.info("Resuming the Deep Mine run in progress...");
+      await this.recordMineResult(
+        arcade,
+        await this.playMineRun(arcade["mine"]),
+      );
+    }
+
+    if (!game) {
+      this.logger.info("Deep Mine is not open.");
       return;
     }
 
-    for (const game of games) {
-      if (game["id"] === "mine") {
-        this.logger.warn("Deep Mine is public, not automated (costs VIC).");
-      } else {
-        this.logger.warn(`Unknown arcade game "${game["id"]}" is public.`);
+    let playsLeft = Number(game["playsLeft"]) || 0;
+
+    while (playsLeft > 0 && !this.signal.aborted) {
+      const balance = Number(this.getUserDetails()["inAppBalance"]) || 0;
+      const tool = pickTool(balance);
+
+      if (!tool) {
+        this.logger.info("Not enough balance for Deep Mine gear.");
+        break;
       }
+
+      const net = await this.getArcadeNet(arcade["resetsAt"]);
+
+      /** Past the daily win cap a run could only lose */
+      if (net + getMaximumProfit(tool) > DEEP_MINE.dailyWinCap) {
+        this.logger.info(`Deep Mine won ${net.toFixed(1)} VIC today, done.`);
+        break;
+      }
+
+      const started = await this.startMineRun(tool);
+
+      if (started?.["success"] === false || !started?.["run"]) {
+        this.logger.warn("Failed to start Deep Mine:", started?.["error"]);
+        break;
+      }
+
+      this.applyResult(started);
+      this.logger.info(
+        `Deep Mine run with ${tool}, ${playsLeft - 1} left after this.`,
+      );
+
+      await this.recordMineResult(
+        arcade,
+        await this.playMineRun(started["run"]),
+      );
+      playsLeft--;
     }
+  }
+
+  /** Dig a run to its end as the solver directs, returning the final response */
+  async playMineRun(run) {
+    let response = { run };
+
+    while (response?.["run"]?.["status"] === "active") {
+      if (this.signal.aborted) return null;
+
+      const move = chooseMove(response["run"]);
+
+      if (move.action === "end") {
+        response = await this.endMineRun();
+      } else if (move.action === "dig") {
+        response = await this.digMine(move.x, move.y);
+      } else {
+        response = await this.useMineItem(move.action, move.x, move.y);
+      }
+
+      if (response?.["success"] === false) {
+        this.logger.warn("Deep Mine move refused:", response["error"]);
+
+        /** A refused move leaves the run as it was, so climb out with what is in the bag */
+        response = await this.endMineRun();
+
+        if (response?.["success"] === false) {
+          this.logger.error("Failed to end the run:", response["error"]);
+          return null;
+        }
+      }
+
+      await this.utils.delayForSeconds(MINE_MOVE_DELAY_SECONDS, {
+        signal: this.signal,
+      });
+    }
+
+    return response;
+  }
+
+  /** Log a finished run and add its net to today's total */
+  async recordMineResult(arcade, response) {
+    const result = response?.["result"] || response?.["run"]?.["result"];
+
+    if (!result) return;
+
+    this.applyResult(response);
+
+    const net = Number(result["net"]) || 0;
+    const total = (await this.getArcadeNet(arcade["resetsAt"])) + net;
+
+    await this.storage?.set("arcadeNet", {
+      day: arcade["resetsAt"],
+      net: total,
+    });
+
+    const log = net >= 0 ? "success" : "warn";
+
+    this.logger[log](
+      `Deep Mine ended (${result["reason"]}): paid ${result["paid"]} for ${result["spent"]}, net ${net >= 0 ? "+" : ""}${net}, today ${total.toFixed(1)} VIC.`,
+    );
+  }
+
+  /** Today's Deep Mine net, as stored for the day the arcade resets at */
+  async getArcadeNet(day) {
+    const stored = await this.storage?.get("arcadeNet");
+
+    return stored?.["day"] === day ? Number(stored["net"]) || 0 : 0;
+  }
+
+  /** Play Deep Mine on demand */
+  async playArcadeInteractive() {
+    await this.ensureStateLoaded();
+    await this.playArcade();
   }
 
   /* --------------------------------------------------------------------- */
@@ -1345,6 +1592,18 @@ export default class VictorsCompanyFarmer extends BaseFarmer {
         ],
       },
       {
+        name: "Arcade",
+        list: [
+          {
+            id: "deep-mine",
+            icon: "check",
+            title: "Deep Mine",
+            action: this.playArcadeInteractive.bind(this),
+            dispatch: false,
+          },
+        ],
+      },
+      {
         name: "Squad",
         list: [
           {
@@ -1397,22 +1656,48 @@ export default class VictorsCompanyFarmer extends BaseFarmer {
     ];
   }
 
-  /** Bind a wallet, prompting for its address */
+  /** Bind a wallet, proven from its phrase or secret key, or unproven from a bare address */
   async connectWalletInteractive() {
-    const input = await this.promptInput("Enter your TON wallet address:");
-    const address = (input || "").trim();
+    const input = await this.promptInput(
+      "Enter your TON Wallet Phrase / Secret Key (hex), or an address:",
+    );
+    const value = (input || "").trim();
 
-    if (!address) {
-      this.logger.warn("No address provided.");
-      return;
-    }
-
-    if (!this.utils.isTonAddress(address)) {
-      this.logger.warn("Not a valid TON address.");
+    if (!value) {
+      this.logger.warn("Nothing provided.");
       return;
     }
 
     await this.ensureStateLoaded();
+
+    if (!this.utils.isTonAddress(value)) {
+      const version = await this.promptInput({
+        type: "select",
+        text: "Select wallet version:",
+        options: [
+          { value: "5", label: "Wallet V5R1" },
+          { value: "4", label: "Wallet V4" },
+        ],
+      });
+
+      if (!version) {
+        this.logger.warn("No wallet version selected.");
+        return;
+      }
+
+      const keyPair = await keyPairFromPhraseOrSecretKey(value);
+      const { status } = await this.connectSignedWallet(keyPair, version);
+
+      if (status) {
+        await this.refreshHolding();
+      }
+      return;
+    }
+
+    const address = value;
+    this.logger.warn(
+      "Bound by address only, its VIC will not count until proven.",
+    );
 
     const { status } = await this.connectWalletAddress(address);
 
