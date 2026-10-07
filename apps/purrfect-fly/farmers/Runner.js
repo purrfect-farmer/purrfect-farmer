@@ -435,6 +435,9 @@ export default function createRunner(FarmerClass) {
           this.id,
         );
 
+        /** Resolve the stored primary link before anything launches */
+        await this.primaryLink.resolveFromDatabase();
+
         /** Decide which accounts run */
         const { primaryAccount, executable, skipped } = selectAccounts({
           accounts: accountsWithFarmer,

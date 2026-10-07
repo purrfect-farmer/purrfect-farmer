@@ -149,6 +149,11 @@ class AutoContext {
   async getRunner(cloudAccount) {
     const FarmerClass = farmers[this.farmerId];
 
+    /** Only the primary account may launch before its link resolves */
+    if (cloudAccount.id !== FarmerClass.primaryAccountId) {
+      await FarmerClass.primaryLink.ensure();
+    }
+
     /** Terminate (excludes the account from farming batches until resumed) */
     FarmerClass.terminate(cloudAccount.id);
     this.terminatedAccounts.add(cloudAccount.id);

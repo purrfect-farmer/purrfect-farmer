@@ -56,8 +56,11 @@ export default class RunnerQueue {
           }
         }
 
-        /** Guard against a stalled queue */
-        if (active.size === 0) break;
+        /** Nothing may start until the primary link resolves */
+        if (active.size === 0) {
+          this.hold();
+          break;
+        }
 
         /** One completion frees one slot */
         await Promise.race(active.keys());
@@ -75,29 +78,24 @@ export default class RunnerQueue {
 
     if (this.items.length === 0) return null;
 
-    /** Prioritize primary account if the primary link is not set */
-    if (!Runner.primaryLink.link) {
+    /** Nothing but the primary account runs until its link resolves */
+    if (!Runner.primaryLink.resolved) {
       /** Hold everything back while the primary account runs */
-      if (Array.from(active.values()).some((item) => item.exclusive)) {
-        return null;
-      }
+      if (active.size > 0) return null;
 
       const primary = this.items.find(
         (item) => item.account.id === Runner.primaryAccountId,
       );
 
-      if (primary) {
-        /** The primary account runs alone until the link resolves */
-        if (active.size > 0) return null;
+      if (!primary) return null;
 
-        /** Log */
-        Runner.logger.info(
-          "Prioritizing primary account:",
-          Runner.primaryAccountId,
-        );
+      /** Log */
+      Runner.logger.info(
+        "Prioritizing primary account:",
+        Runner.primaryAccountId,
+      );
 
-        return this.take(primary, true);
-      }
+      return this.take(primary, true);
     }
 
     /** Process one new account at a time */
@@ -111,6 +109,24 @@ export default class RunnerQueue {
         this.items.find((item) => item.account.farmer);
 
     return instance ? this.take(instance) : null;
+  }
+
+  /** Release held instances so the next run queues them again */
+  hold() {
+    const Runner = this.Runner;
+
+    if (this.items.length === 0) return;
+
+    /** Log */
+    Runner.logger.warn(
+      `${Runner.title} Farmer - holding ${this.items.length} accounts until the primary link resolves`,
+    );
+
+    for (const instance of this.items) {
+      Runner.runners.delete(instance.account.id);
+    }
+
+    this.items = [];
   }
 
   /** Remove an instance from the queue and wrap it as a queue item */
@@ -145,9 +161,6 @@ export default class RunnerQueue {
       } else {
         /** Log error */
         Runner.logger.error("Queue processing error:", err);
-
-        /** Unblock queue */
-        Runner.primaryLink.reset(instance);
       }
     } finally {
       /** Delete instance */
