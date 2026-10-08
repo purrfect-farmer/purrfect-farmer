@@ -169,6 +169,9 @@ class AutoHelpers {
       const helperEntry = runners.get(String(helper.userId));
       const itemLabel = label(item);
 
+      /** Named on any attempt it placed, so a refusal says whose request it was */
+      const through = ` through ${fmt.formatAccountLink(helper.userId)}`;
+
       /** Whether this helper is still free after the attempt */
       let spent = false;
 
@@ -199,10 +202,7 @@ class AutoHelpers {
             skipped,
             amount,
             message,
-            detail:
-              status && !skipped
-                ? ` through ${fmt.formatAccountLink(helper.userId)}`
-                : "",
+            detail: skipped ? "" : through,
           }),
         ]);
       } catch (error) {
@@ -225,6 +225,7 @@ class AutoHelpers {
             label: itemLabel,
             status: false,
             message: errorMessage,
+            detail: through,
           }),
         ]);
       }
