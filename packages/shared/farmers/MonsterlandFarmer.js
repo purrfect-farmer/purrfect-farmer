@@ -170,12 +170,6 @@ const MISSION_DWELL_SECONDS = 5;
 /** Mission refusals that are not worth a warning */
 const MISSION_SKIP_REASONS = ["NOT_MEMBER", "ALREADY_CLAIMED", "NOT_COMPLETED"];
 
-/** Withdrawals wait for the fee ladder (40% down to 0%) to reach this */
-const MAXIMUM_WITHDRAWAL_FEE = 0;
-
-/** Safety margin above the game's minimum, so a run does not withdraw the instant it crosses it */
-const WITHDRAWAL_BUFFER = 1000;
-
 /** Fallback minimum in lumis, used until the game's config has been read */
 const MINIMUM_WITHDRAWAL = 500000;
 
@@ -1763,26 +1757,14 @@ export default class MonsterlandFarmer extends BaseFarmer {
   /* Withdrawal                                                            */
   /* --------------------------------------------------------------------- */
 
-  /** Request a payout once the fee ladder bottoms out */
-  async withdraw({ max, difference = 20, force = false } = {}) {
-    const scheduledSkip = this.skipScheduledWithdrawal(force);
-
-    if (scheduledSkip) return scheduledSkip;
-
+  /** Request a payout */
+  async placeWithdrawal({ max, difference }) {
     await this.ensureStateLoaded();
 
     const payments = this.getProfile()["payments"] || {};
 
     if (!payments["wallet"]) {
       return this.skipWithdrawal("No wallet connected!");
-    }
-
-    const fee = Number(payments["withdrawal_fee"]);
-
-    if (Number.isFinite(fee) && fee > MAXIMUM_WITHDRAWAL_FEE && !force) {
-      return this.skipWithdrawal(`Withdrawal fee is still ${fee}%!`, {
-        log: "warn",
-      });
     }
 
     const config = await this.fetchConfig();
@@ -1792,15 +1774,9 @@ export default class MonsterlandFarmer extends BaseFarmer {
       quota["remaining_lumis"] ?? quota["remainingLumis"] ?? quota["cap_lumis"],
     );
     const balance = this.getLumis();
-    const requiredBalance = force ? minimum : minimum + WITHDRAWAL_BUFFER;
+    const lowBalance = this.skipLowBalance(balance, minimum);
 
-    if (balance < requiredBalance) {
-      this.logger.error("Not enough balance:", balance);
-      return this.skipWithdrawal("Not enough balance!", {
-        amount: balance,
-        log: null,
-      });
-    }
+    if (lowBalance) return lowBalance;
 
     if (Number.isFinite(remaining) && remaining < minimum) {
       return this.skipWithdrawal("Withdrawal quota is used up!", {

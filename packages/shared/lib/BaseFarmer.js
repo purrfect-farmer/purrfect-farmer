@@ -983,13 +983,19 @@ export default class BaseFarmer {
     return { status: false, skipped: true, message, amount: String(amount) };
   }
 
-  /** Scheduled runs only withdraw when forced, and say nothing when they skip */
-  skipScheduledWithdrawal(force) {
-    return this.scheduled && !force
-      ? this.skipWithdrawal("Withdrawal is disabled in scheduled mode!", {
-          log: null,
-        })
-      : null;
+  /** A balance below the minimum as a skip, otherwise null after logging what is available */
+  skipLowBalance(balance, minimum) {
+    if (new Decimal(balance).lessThan(minimum)) {
+      this.logger.error("Not enough balance:", String(balance));
+      return this.skipWithdrawal("Not enough balance!", {
+        amount: balance,
+        log: null,
+      });
+    }
+
+    this.logger.info("Available balance:", String(balance));
+
+    return null;
   }
 
   /** The amount to request: capped, shaved by a random `difference` percent, then floored at the minimum */
@@ -1061,11 +1067,22 @@ export default class BaseFarmer {
     return this.withdraw({ max: amount, difference: 0, force: true });
   }
 
-  /** Request a withdrawal
+  /** Request a withdrawal, only when forced (auto or the Withdraw tool), skipping quietly otherwise
    * @returns {Promise<{ status: boolean, skipped: boolean, amount: string, message: string }>}
    */
-  async withdraw(options) {
-    throw new Error("withdraw method must be implemented in subclass");
+  async withdraw({ force = false, max, difference = 20 } = {}) {
+    if (!force) {
+      return this.skipWithdrawal("Withdrawal is disabled unless requested!", {
+        log: null,
+      });
+    }
+
+    return this.placeWithdrawal({ max, difference });
+  }
+
+  /** Place a forced withdrawal of up to `max`, shaved by a random `difference` percent */
+  async placeWithdrawal({ max, difference }) {
+    throw new Error("placeWithdrawal method must be implemented in subclass");
   }
 
   /** Whether the drop still owes this account a settlement

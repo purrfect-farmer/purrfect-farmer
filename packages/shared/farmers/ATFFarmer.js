@@ -5,9 +5,6 @@ import Decimal from "decimal.js";
 import { buildTonProof, getWalletStateInit } from "../lib/ton/proof.js";
 import { keyPairFromPhraseOrSecretKey } from "../lib/ton/wallet.js";
 
-/** Safety margin above the drop's minimum, so a scheduled run does not withdraw the instant it crosses it */
-const WITHDRAWAL_BUFFER = 200;
-
 /** Backstop for the withdrawal captcha loop */
 const WITHDRAWAL_CAPTCHA_ATTEMPTS = 5;
 
@@ -1035,11 +1032,7 @@ export default class ATFFarmer extends BaseFarmer {
   }
 
   /** Place withdrawal */
-  async withdraw({ max, difference = 20, force = false } = {}) {
-    const scheduledSkip = this.skipScheduledWithdrawal(force);
-
-    if (scheduledSkip) return scheduledSkip;
-
+  async placeWithdrawal({ max, difference }) {
     const { user } = this.user_data;
     const balance = new Decimal(user["mined_balance"]);
 
@@ -1048,20 +1041,9 @@ export default class ATFFarmer extends BaseFarmer {
     }
 
     const minimum = this.getMinimumWithdrawal();
-    const REQUIRED_WITHDRAWABLE_AMOUNT = force
-      ? minimum
-      : minimum + WITHDRAWAL_BUFFER;
+    const lowBalance = this.skipLowBalance(balance, minimum);
 
-    if (balance.lessThan(REQUIRED_WITHDRAWABLE_AMOUNT)) {
-      this.logger.error("Not enough balance:", balance.toString());
-      return this.skipWithdrawal("Not enough balance!", {
-        amount: balance,
-        log: null,
-      });
-    }
-
-    /** Log balance */
-    this.logger.info("Available balance:", balance.toString());
+    if (lowBalance) return lowBalance;
 
     const amount = this.pickWithdrawalAmount({
       balance,
