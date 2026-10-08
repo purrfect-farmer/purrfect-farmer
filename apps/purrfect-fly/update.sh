@@ -19,7 +19,12 @@ print_heading "Updating Purrfect Farmer repository..."
 git pull origin main
 
 print_heading "Installing project dependencies..."
-pnpm install
+if [ -n "$TERMUX_VERSION" ]; then
+    # Other apps pull deps that may not build on Android
+    pnpm install --filter "purrfect-fly..."
+else
+    pnpm install
+fi
 
 print_heading "Running database migrations and seeders..."
 pnpm -F purrfect-fly db:migrate && pnpm -F purrfect-fly db:seed

@@ -48,6 +48,18 @@ curl -o- https://raw.githubusercontent.com/purrfect-farmer/purrfect-farmer/main/
 wget -qO- https://raw.githubusercontent.com/purrfect-farmer/purrfect-farmer/main/apps/purrfect-fly/install.sh | bash
 ```
 
+**On Android (Termux):**
+```bash
+curl -o- https://raw.githubusercontent.com/purrfect-farmer/purrfect-farmer/main/apps/purrfect-fly/install-termux.sh | bash
+```
+Download [Termux](https://f-droid.org/packages/com.termux/) and [Termux:Boot](https://f-droid.org/packages/com.termux.boot/) from F-Droid (or GitHub releases: [Termux](https://github.com/termux/termux-app/releases), [Termux:Boot](https://github.com/termux/termux-boot/releases)). Get both from the same source, as their signatures must match. Open Termux:Boot once to enable start on boot, and disable battery optimization for Termux.
+
+To keep it running all day (one-time phone settings):
+- Android 14+: Developer options > enable "Disable child process restrictions", or Android kills node in the background.
+- Android 12-13: run once from a computer: `adb shell device_config set_sync_disabled_for_tests persistent` and `adb shell device_config put activity_manager max_phantom_processes 2147483647`.
+- Set Termux battery usage to "Unrestricted", allow autostart (Xiaomi, Oppo, etc.) and lock Termux in recents.
+- Keep the phone charging, and don't tap "Exit" on the Termux notification.
+
 The installation script will:
 - Install system dependencies (Nginx, text editors)
 - Setup Node.js via NVM
