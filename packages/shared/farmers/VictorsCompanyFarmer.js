@@ -42,6 +42,10 @@ const HUMAN_PASS_EXPIRY_MARGIN_SECONDS = 10 * 60;
 /** Below this the drop refuses a mining claim */
 const MINIMUM_CLAIMABLE_MINING = 0.1;
 
+/** The claim fails while the drop cannot read the on-chain holding, and it asks for a retry a minute later */
+const MINING_CLAIM_ATTEMPTS = 10;
+const MINING_CLAIM_RETRY_SECONDS = 5;
+
 /** How long the page leaves a link task open before it lets the claim through */
 const TASK_DWELL_SECONDS = 10;
 
@@ -947,6 +951,27 @@ export default class VictorsCompanyFarmer extends BaseFarmer {
     return accrued.plus(new Decimal(daily).mul(elapsed).div(86400 * 1000));
   }
 
+  /** Claim mining, waiting out server errors such as the holding check being down */
+  async claimMiningWithRetry() {
+    for (let attempt = 1; ; attempt++) {
+      try {
+        return await this.claimMining();
+      } catch (error) {
+        if (attempt >= MINING_CLAIM_ATTEMPTS || this.signal.aborted) {
+          throw error;
+        }
+
+        this.logger.warn(
+          `Mining claim failed, retrying in ${MINING_CLAIM_RETRY_SECONDS}s:`,
+          error.message,
+        );
+        await this.utils.delayForSeconds(MINING_CLAIM_RETRY_SECONDS, {
+          signal: this.signal,
+        });
+      }
+    }
+  }
+
   /** Claim what the miner has produced, which also starts a new session */
   async claimPendingMining() {
     if (!(Number(this.getMining()["level"]) > 0)) {
@@ -963,7 +988,7 @@ export default class VictorsCompanyFarmer extends BaseFarmer {
       return;
     }
 
-    const result = await this.claimMining();
+    const result = await this.claimMiningWithRetry();
 
     if (result?.["success"] === false) {
       this.logger.warn("Failed to claim mining:", result["error"]);
