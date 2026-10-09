@@ -6,6 +6,7 @@ import AutoAvatar from "./AutoAvatar";
 import AutoBoosterBoostTab from "./AutoBoosterBoostTab";
 import AutoBoosterCollectTab from "./AutoBoosterCollectTab";
 import AutoBoosterDetailsTab from "./AutoBoosterDetailsTab";
+import AutoBoosterSendTab from "./AutoBoosterSendTab";
 import AutoBoosterWithdrawTab from "./AutoBoosterWithdrawTab";
 import AutoDropVerifiedBadge from "./AutoDropVerifiedBadge";
 import AutoVerifiedBadge from "./AutoVerifiedBadge";
@@ -133,10 +134,11 @@ export default function AutoAccountBooster({ account }) {
             defaultValue="boost"
             className="flex flex-col size-full overflow-hidden"
           >
-            <Tabs.List className="grid grid-cols-4 shrink-0">
+            <Tabs.List className="grid grid-cols-5 shrink-0">
               <BoosterTabTrigger title="Boost" value="boost" />
               <BoosterTabTrigger title="Collect" value="collect" />
               <BoosterTabTrigger title="Withdraw" value="withdraw" />
+              <BoosterTabTrigger title="Send" value="send" />
               <BoosterTabTrigger title="Details" value="details" />
             </Tabs.List>
 
@@ -153,6 +155,9 @@ export default function AutoAccountBooster({ account }) {
                 className="data-[state=inactive]:hidden"
               >
                 <AutoBoosterWithdrawTab account={account} />
+              </Tabs.Content>
+              <Tabs.Content value="send">
+                <AutoBoosterSendTab account={account} />
               </Tabs.Content>
               <Tabs.Content value="details">
                 <AutoBoosterDetailsTab account={account} />

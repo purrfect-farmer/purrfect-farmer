@@ -8,11 +8,12 @@ import { MdCancel, MdCheckCircle, MdOutlineDoubleArrow } from "react-icons/md";
 import { AutoMasterCardButton } from "./AutoMasterCardButton";
 import AutoImportExportDialog from "./AutoImportExportDialog";
 import AutoRotationDialog from "./AutoRotationDialog";
+import AutoSendDialog from "./AutoSendDialog";
 import AutoSettingsDialog from "./AutoSettingsDialog";
 import AutoTransferDialog from "./AutoTransferDialog";
 import { Dialog } from "radix-ui";
 import { HiCog6Tooth } from "react-icons/hi2";
-import { LuArrowDownUp, LuMerge } from "react-icons/lu";
+import { LuArrowDownUp, LuMerge, LuSend } from "react-icons/lu";
 import { PiBroom } from "react-icons/pi";
 import { cn } from "@/utils";
 import toast from "react-hot-toast";
@@ -195,20 +196,6 @@ export function AutoMasterCardActions() {
           <AutoRotationDialog />
         </Dialog.Root>
 
-        {/* Transfer Button */}
-        <Dialog.Root>
-          <Dialog.Trigger asChild>
-            <AutoMasterCardButton
-              title="Transfer funds from Master"
-              icon={MdOutlineDoubleArrow}
-            >
-              Transfer
-            </AutoMasterCardButton>
-          </Dialog.Trigger>
-
-          <AutoTransferDialog />
-        </Dialog.Root>
-
         {/* Import / Export */}
         <Dialog.Root open={importOpen} onOpenChange={setImportOpen}>
           <Dialog.Trigger asChild>
@@ -232,6 +219,34 @@ export function AutoMasterCardActions() {
           </Dialog.Trigger>
 
           <AutoSettingsDialog />
+        </Dialog.Root>
+      </ActionsGroup>
+
+      {/* Wallet operations */}
+      <ActionsGroup>
+        {/* Send Button */}
+        <Dialog.Root>
+          <Dialog.Trigger asChild>
+            <AutoMasterCardButton title="Send tokens" icon={LuSend}>
+              Send
+            </AutoMasterCardButton>
+          </Dialog.Trigger>
+
+          <AutoSendDialog />
+        </Dialog.Root>
+
+        {/* Transfer Button */}
+        <Dialog.Root>
+          <Dialog.Trigger asChild>
+            <AutoMasterCardButton
+              title="Transfer funds from Master"
+              icon={MdOutlineDoubleArrow}
+            >
+              Transfer
+            </AutoMasterCardButton>
+          </Dialog.Trigger>
+
+          <AutoTransferDialog />
         </Dialog.Root>
       </ActionsGroup>
 
