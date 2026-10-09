@@ -14,9 +14,9 @@ import {
   keyPairFromPhraseOrSecretKey,
 } from "../lib/ton/wallet.js";
 import {
-  DEEP_MINE,
+  MINIMUM_PAYOUT_DIAL,
   chooseMove,
-  getMaximumProfit,
+  getStartCap,
   pickTool,
 } from "../lib/games/deepMine.js";
 
@@ -62,6 +62,9 @@ const VERIFICATION_GAS_TON = 0.02;
 
 /** Pause between mine moves, close to the page's pace so the run never idles out */
 const MINE_MOVE_DELAY_SECONDS = 1;
+
+/** Deep Mine stops for the day once its net is down this much, a shovel's price */
+const MINE_DAILY_LOSS_LIMIT = 25;
 
 /** How often, and how long, the verification is polled after paying */
 const VERIFICATION_CHECK_ATTEMPTS = 6;
@@ -997,6 +1000,9 @@ export default class VictorsCompanyFarmer extends BaseFarmer {
           Number(task["minReferrals"] || 0)
         );
 
+      case "nft_hold":
+        return false;
+
       case "reach_level":
         return (
           Number(this.getMining()["level"] || 0) >=
@@ -1064,16 +1070,23 @@ export default class VictorsCompanyFarmer extends BaseFarmer {
       }
     }
 
+    const dial = Number(game?.["payout"] ?? 100);
+
     if (arcade["mine"]?.["status"] === "active") {
       this.logger.info("Resuming the Deep Mine run in progress...");
       await this.recordMineResult(
         arcade,
-        await this.playMineRun(arcade["mine"]),
+        await this.playMineRun(arcade["mine"], dial),
       );
     }
 
     if (!game) {
       this.logger.info("Deep Mine is not open.");
+      return;
+    }
+
+    if (dial < MINIMUM_PAYOUT_DIAL) {
+      this.logger.info(`Deep Mine pays ${dial}%, too little to play.`);
       return;
     }
 
@@ -1090,9 +1103,8 @@ export default class VictorsCompanyFarmer extends BaseFarmer {
 
       const net = await this.getArcadeNet(arcade["resetsAt"]);
 
-      /** Past the daily win cap a run could only lose */
-      if (net + getMaximumProfit(tool) > DEEP_MINE.dailyWinCap) {
-        this.logger.info(`Deep Mine won ${net.toFixed(1)} VIC today, done.`);
+      if (net <= -MINE_DAILY_LOSS_LIMIT) {
+        this.logger.warn(`Deep Mine lost ${net.toFixed(1)} VIC today, done.`);
         break;
       }
 
@@ -1104,26 +1116,36 @@ export default class VictorsCompanyFarmer extends BaseFarmer {
       }
 
       this.applyResult(started);
+
+      /** A fresh run's cap moves with the bag cap and refund rate, so a mismatch means the rules changed */
+      if (Number(started["run"]["cap"]) !== getStartCap(tool)) {
+        this.logger.warn(
+          `Deep Mine rules changed (cap ${started["run"]["cap"]}, expected ${getStartCap(tool)}), climbing out.`,
+        );
+        await this.recordMineResult(arcade, await this.endMineRun());
+        break;
+      }
+
       this.logger.info(
-        `Deep Mine run with ${tool}, ${playsLeft - 1} left after this.`,
+        `Deep Mine run with ${tool} at ${dial}% payout, ${playsLeft - 1} left after this.`,
       );
 
       await this.recordMineResult(
         arcade,
-        await this.playMineRun(started["run"]),
+        await this.playMineRun(started["run"], dial),
       );
       playsLeft--;
     }
   }
 
   /** Dig a run to its end as the solver directs, returning the final response */
-  async playMineRun(run) {
+  async playMineRun(run, dial) {
     let response = { run };
 
     while (response?.["run"]?.["status"] === "active") {
       if (this.signal.aborted) return null;
 
-      const move = chooseMove(response["run"]);
+      const move = chooseMove(response["run"], { dial });
 
       if (move.action === "end") {
         response = await this.endMineRun();

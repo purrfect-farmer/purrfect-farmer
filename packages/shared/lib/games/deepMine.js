@@ -4,58 +4,73 @@ export const DEEP_MINE = {
   depth: 40,
   layerRows: 8,
   safeRows: 2,
-  bagCap: 1.25,
-  bustKeep: 0.5,
-  dailyWinCap: 150,
+  hearts: 3,
+  bagCap: 1.15,
+  refundRate: 0.9,
 };
 
-/** Hardness, treasure multiplier, hazard rate per mille and the damage of each hazard kind */
+/** Hardness, treasure multiplier, hazard rate per mille and the hazard kinds each layer draws from */
 export const LAYERS = [
-  { name: "Topsoil", hard: 1, mult: 1.2, hazard: 30, damage: 1 },
-  { name: "Clay", hard: 2, mult: 2.2, hazard: 55, damage: 1 },
-  { name: "Stone", hard: 3, mult: 3.4, hazard: 80, damage: 1 },
-  { name: "Granite", hard: 4, mult: 4.8, hazard: 105, damage: 1.33 },
-  { name: "Magma", hard: 6, mult: 7.6, hazard: 135, damage: 1.5 },
+  { name: "Topsoil", hard: 1, mult: 1.05, hazard: 40, hazards: [1] },
+  { name: "Clay", hard: 2, mult: 2, hazard: 75, hazards: [1, 2, 1, 2, 3] },
+  { name: "Stone", hard: 3, mult: 2.8, hazard: 105, hazards: [1, 2, 3] },
+  { name: "Granite", hard: 4, mult: 3.6, hazard: 135, hazards: [1, 2, 3] },
+  { name: "Magma", hard: 6, mult: 5, hazard: 170, hazards: [2, 3] },
 ];
 
-/** Gear prices, the layer each tool profits in, from a simulation of the rules */
+/** Hearts each hazard kind takes: rockfall, gas pocket, lava */
+const HAZARD_DAMAGE = [0, 1, 1, 3];
+
+/** Gear prices, and the deepest layer each tool is played in */
 export const TOOLS = {
   shovel: { cost: 25, power: 1, energy: 25, targetLayer: 0 },
-  pickaxe: { cost: 44, power: 2, energy: 30, targetLayer: 1 },
-  drill: { cost: 55, power: 3, energy: 32, targetLayer: 2 },
+  pickaxe: { cost: 44, power: 2, energy: 30, targetLayer: 0 },
+  drill: { cost: 55, power: 3, energy: 32, targetLayer: 0 },
 };
 
-/** The tools tried in order, the most profitable first */
-const TOOL_PREFERENCE = ["drill", "pickaxe"];
+/** Only the shovel in topsoil pays since busts keep nothing and lava kills deeper */
+const TOOL_PREFERENCE = ["shovel"];
 
-/** The server's coin multiplier on top of the layer's */
-const COIN_FACTOR = 0.77;
+/** An energy drink's price, refunded with unused energy */
+const DRINK_COST = 10;
+
+/** The server's coin multiplier on top of the layer's, before the payout dial */
+const COIN_FACTOR = 1.08;
+
+/** Below this payout dial even the shovel loses (break-even is near 73) */
+export const MINIMUM_PAYOUT_DIAL = 80;
 
 /** Average base coins of each loot tier, and the tier odds per 10000 */
 const LOOT_TIERS = [
   { p: 0, coins: 0 },
   { p: 5500, coins: 1 },
-  { p: 1800, coins: 3 },
+  { p: 1460, coins: 3 },
   { p: 90, coins: 7.5 },
-  { p: 8, coins: 19 },
-  { p: 2, coins: 57.5 },
+  { p: 90, coins: 8.5 },
+  { p: 30, coins: 19 },
 ];
 
-/** Average base coins of a cell that holds no hazard */
-const EXPECTED_BASE_COINS = LOOT_TIERS.reduce(
-  (sum, tier) => sum + (tier.p / 10000) * tier.coins,
-  0,
-);
+/** Odds a hazard-free block holds loot, and its average base coins when it does */
+const LOOT_CHANCE = LOOT_TIERS.reduce((sum, tier) => sum + tier.p, 0) / 10000;
+const LOOT_BASE_COINS =
+  LOOT_TIERS.reduce((sum, tier) => sum + tier.p * tier.coins, 0) /
+  (LOOT_CHANCE * 10000);
 
-/** How often a crack shows over a hazard, and over a safe block */
-const CRACK_ON_HAZARD = 0.45;
-const CRACK_ON_SAFE = 0.12;
+/** How often a sparkle shows over loot and over anything else */
+const SPARKLE_ON_LOOT = 0.26;
+const SPARKLE_ON_OTHER = 0.22;
 
-/** Coins a lost heart is weighed at */
+/** How often a crack shows over a hazard and over a safe block */
+const CRACK_ON_HAZARD = 0.35;
+const CRACK_ON_SAFE = 0.15;
+
+/** Coins a heart lost without busting is weighed at */
 const HEART_PENALTY = 2;
 
 /** The fewest closed blocks a bomb is spent on */
 const MINIMUM_BOMB_BLOCKS = 3;
+
+const round1 = (value) => Math.round(value * 10) / 10;
 
 /** The layer a row sits in */
 export function getLayerIndex(y) {
@@ -67,25 +82,38 @@ export function getDigCost(y, boulder, power) {
   return Math.ceil((LAYERS[getLayerIndex(y)].hard * (boulder ? 2 : 1)) / power);
 }
 
-/** Odds a block hides a hazard, from its layer and whether it shows a crack */
-export function getHazardChance(y, crack) {
-  if (y < DEEP_MINE.safeRows) return 0;
-
-  const rate = LAYERS[getLayerIndex(y)].hazard / 1000;
-  const onHazard = crack ? CRACK_ON_HAZARD : 1 - CRACK_ON_HAZARD;
-  const onSafe = crack ? CRACK_ON_SAFE : 1 - CRACK_ON_SAFE;
-
-  return (rate * onHazard) / (rate * onHazard + (1 - rate) * onSafe);
+/** Coins per base coin a row pays at a payout dial */
+function getCoinScale(y, dial) {
+  return LAYERS[getLayerIndex(y)].mult * COIN_FACTOR * (dial / 100);
 }
 
-/** Coins a block is expected to give, with a scanned block read exactly */
-export function getCellValue(y, crack, scan = "-") {
-  const scale = LAYERS[getLayerIndex(y)].mult * COIN_FACTOR;
+/** Odds a block hides a hazard and holds loot, from its row and both hints */
+export function getCellOdds(y, crack, sparkle) {
+  const rate = y < DEEP_MINE.safeRows ? 0 : LAYERS[getLayerIndex(y)].hazard / 1000;
+  const crackOdds = (hazard) =>
+    crack
+      ? hazard
+        ? CRACK_ON_HAZARD
+        : CRACK_ON_SAFE
+      : hazard
+        ? 1 - CRACK_ON_HAZARD
+        : 1 - CRACK_ON_SAFE;
+  const sparkleOdds = (loot) =>
+    sparkle
+      ? loot
+        ? SPARKLE_ON_LOOT
+        : SPARKLE_ON_OTHER
+      : loot
+        ? 1 - SPARKLE_ON_LOOT
+        : 1 - SPARKLE_ON_OTHER;
 
-  if (/^[0-5]$/.test(scan)) return LOOT_TIERS[Number(scan)].coins * scale;
-  if (/^[abc]$/.test(scan)) return 0;
+  const hazard = rate * crackOdds(true) * sparkleOdds(false);
+  const loot = (1 - rate) * LOOT_CHANCE * crackOdds(false) * sparkleOdds(true);
+  const empty =
+    (1 - rate) * (1 - LOOT_CHANCE) * crackOdds(false) * sparkleOdds(false);
+  const total = hazard + loot + empty;
 
-  return (1 - getHazardChance(y, crack)) * EXPECTED_BASE_COINS * scale;
+  return { hazard: hazard / total, loot: loot / total };
 }
 
 /** The best tool a balance pays for */
@@ -95,9 +123,28 @@ export function pickTool(balance) {
   );
 }
 
-/** The most a run can win over its gear price */
-export function getMaximumProfit(tool) {
-  return TOOLS[tool].cost * (DEEP_MINE.bagCap - 1);
+/** The most a run can pay out, as the server rounds it */
+function getPayoutCap(spent) {
+  return round1(spent * DEEP_MINE.bagCap);
+}
+
+/** What climbing out refunds for unused energy and drinks */
+function getRefund(tool, energy, drinks) {
+  return round1(
+    DEEP_MINE.refundRate *
+      ((Math.min(Math.max(0, energy), tool.energy) * tool.cost) / tool.energy +
+        Math.max(0, drinks) * DRINK_COST),
+  );
+}
+
+/** The `cap` a fresh run with no extra gear reports, which changes whenever the cap or refund rules do */
+export function getStartCap(toolName) {
+  const tool = TOOLS[toolName];
+
+  return Math.max(
+    0,
+    round1(getPayoutCap(tool.cost) - getRefund(tool, tool.energy, 0)),
+  );
 }
 
 /** Read the run's strings into a grid helper */
@@ -124,13 +171,15 @@ function readRun(run) {
   for (let y = 0; y < depth; y++) {
     for (let x = 0; x < width; x++) {
       const i = index(x, y);
+      const hint = Number(run.hint?.[i]) || 0;
 
       cells.push({
         x,
         y,
         open: run.open[i] === "1",
         boulder: run.rock[i] === "1",
-        crack: (Number(run.hint?.[i]) & 2) === 2,
+        sparkle: (hint & 1) === 1,
+        crack: (hint & 2) === 2,
         scan: run.scan?.[i] || "-",
       });
     }
@@ -154,30 +203,56 @@ function countBlastable(grid, x, y) {
   return count;
 }
 
-/** The next move for a run: descend to the tool's layer, mine it while it pays, then climb out */
-export function chooseMove(run) {
-  const tool = TOOLS[run.tool] || TOOLS.drill;
-  const energyRate = tool.cost / tool.energy;
-  const targetRow = tool.targetLayer * DEEP_MINE.layerRows;
-  const grid = readRun(run);
-  const openCells = grid.cells.filter((cell) => cell.open);
-  const deepest = openCells.reduce((max, cell) => Math.max(max, cell.y), -1);
-  const descending = deepest < targetRow;
-  const items = run.items || {};
+/** Hazard odds, loot odds and coins if loot, with a scanned block read exactly */
+function readCell(cell, dial) {
+  const scale = getCoinScale(cell.y, dial);
 
-  if (!descending && run.hearts <= 1) return { action: "end" };
-
-  /** A found scanner shows what lies around the deepest tunnel */
-  if (!descending && items.scanner > 0) {
-    const cell = openCells.find((item) => item.y === deepest);
-
-    return { action: "scanner", x: cell.x, y: cell.y };
+  if (/^[abc]$/.test(cell.scan)) {
+    return { hazard: 1, kind: "abc".indexOf(cell.scan) + 1, loot: 0, coins: 0 };
   }
 
-  /** A found bomb breaks the most blocks it can, for free */
-  if (!descending && items.bomb > 0) {
-    const best = openCells
-      .filter((cell) => cell.y >= targetRow)
+  if (/^[0-5]$/.test(cell.scan)) {
+    const tier = Number(cell.scan);
+
+    return {
+      hazard: 0,
+      loot: tier ? 1 : 0,
+      coins: LOOT_TIERS[tier].coins * scale,
+    };
+  }
+
+  const odds = getCellOdds(cell.y, cell.crack, cell.sparkle);
+
+  return { ...odds, coins: LOOT_BASE_COINS * scale };
+}
+
+/** The next move for a run: dig the block that raises the expected payout most, or climb out */
+export function chooseMove(run, { dial = 100 } = {}) {
+  const tool = TOOLS[run.tool] || TOOLS.shovel;
+  const maxRow = (tool.targetLayer + 1) * DEEP_MINE.layerRows - 1;
+  const grid = readRun(run);
+  const items = run.items || {};
+  const drinks = items.drink || 0;
+  const payoutCap = getPayoutCap(run.spent ?? tool.cost);
+  const refundPerEnergy = (DEEP_MINE.refundRate * tool.cost) / tool.energy;
+  const quitValue = Math.min(
+    run.bag + getRefund(tool, run.energy, drinks),
+    payoutCap,
+  );
+
+  /** A found scanner shows what lies around the deepest tunnel */
+  if (items.scanner > 0) {
+    const cell = grid.cells
+      .filter((item) => item.open && item.y <= maxRow)
+      .sort((a, b) => b.y - a.y)[0];
+
+    if (cell) return { action: "scanner", x: cell.x, y: cell.y };
+  }
+
+  /** A found bomb breaks blocks for free, and its blast takes no damage */
+  if (items.bomb > 0) {
+    const best = grid.cells
+      .filter((cell) => cell.open && cell.y <= maxRow)
       .map((cell) => ({ ...cell, count: countBlastable(grid, cell.x, cell.y) }))
       .sort((a, b) => b.count - a.count)[0];
 
@@ -187,36 +262,34 @@ export function chooseMove(run) {
   }
 
   let best = null;
-  let bestScore = -Infinity;
+  let bestScore = 0;
 
   for (const cell of grid.cells) {
-    if (!grid.canDig(cell.x, cell.y)) continue;
+    if (cell.y > maxRow || !grid.canDig(cell.x, cell.y)) continue;
 
     const cost = getDigCost(cell.y, cell.boulder, tool.power);
 
     if (cost > run.energy) continue;
 
-    const hazardChance = /^[abc]$/.test(cell.scan)
-      ? 1
-      : /^[0-5]$/.test(cell.scan)
-        ? 0
-        : getHazardChance(cell.y, cell.crack);
+    const { hazard, loot, coins, kind } = readCell(cell, dial);
+    const kinds = kind ? [kind] : LAYERS[getLayerIndex(cell.y)].hazards;
+    const lethal =
+      kinds.filter((item) => HAZARD_DAMAGE[item] >= run.hearts).length /
+      kinds.length;
 
-    let score;
+    /** Running dry ends the run with the bag alone, so the spent energy is never refunded */
+    const refundAfter =
+      run.energy - cost > 0
+        ? getRefund(tool, run.energy - cost, drinks)
+        : drinks * DEEP_MINE.refundRate * DRINK_COST;
+    const safeCoins = hazard < 1 ? (loot / (1 - hazard)) * coins : 0;
+    const safeGain =
+      Math.min(run.bag + safeCoins + refundAfter, payoutCap) - quitValue;
+    const hitLoss =
+      lethal * quitValue +
+      (1 - lethal) * (cost * refundPerEnergy + HEART_PENALTY);
 
-    if (descending) {
-      score = cell.y * 10 - cost * 3 - hazardChance * 30;
-    } else {
-      if (getLayerIndex(cell.y) < tool.targetLayer) continue;
-
-      const damage = LAYERS[getLayerIndex(cell.y)].damage;
-      const value =
-        getCellValue(cell.y, cell.crack, cell.scan) -
-        cost * energyRate -
-        hazardChance * damage * HEART_PENALTY;
-
-      score = value / cost;
-    }
+    const score = (1 - hazard) * safeGain - hazard * hitLoss;
 
     if (score > bestScore) {
       bestScore = score;
@@ -224,7 +297,7 @@ export function chooseMove(run) {
     }
   }
 
-  if (!best || (!descending && bestScore <= 0)) return { action: "end" };
+  if (!best) return { action: "end" };
 
   return { action: "dig", x: best.x, y: best.y };
 }
