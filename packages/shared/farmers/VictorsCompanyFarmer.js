@@ -42,7 +42,7 @@ const HUMAN_PASS_EXPIRY_MARGIN_SECONDS = 10 * 60;
 /** Below this the drop refuses a mining claim */
 const MINIMUM_CLAIMABLE_MINING = 0.1;
 
-/** The claim fails while the drop cannot read the on-chain holding, and it asks for a retry a minute later */
+/** The claim fails while the drop cannot read the on-chain holding, so it is retried in short steps */
 const MINING_CLAIM_ATTEMPTS = 10;
 const MINING_CLAIM_RETRY_SECONDS = 5;
 
