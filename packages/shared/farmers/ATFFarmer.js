@@ -27,6 +27,12 @@ const COOLDOWN_TASKS = [
   { id: "telegram_react_latest", minSeconds: 20 },
 ];
 
+/** Repeatable task checked against the channel link in the Telegram bio */
+const BIO_TASK = { id: "bio_referral", bio: "https://t.me/AI_TRADING_FOREX" };
+
+/** Time for a new bio to reach the drop's verifier */
+const BIO_PROPAGATION_SECONDS = 10;
+
 /** Maximum number of attempts to solve a captcha */
 const MAX_CAPTCHA_ATTEMPTS = 10;
 
@@ -289,6 +295,13 @@ export default class ATFFarmer extends BaseFarmer {
           if (data?.["tma_session_token"]) {
             this.tmaSessionToken = data["tma_session_token"];
           }
+
+          /** The app replaces its lease whenever the key is present, even when empty */
+          if (data && "activity_lease_token" in data) {
+            this.activityLeaseToken = String(
+              data["activity_lease_token"] || "",
+            );
+          }
           break;
         }
       } catch (error) {
@@ -517,7 +530,29 @@ export default class ATFFarmer extends BaseFarmer {
       wallet: wallet || "",
       network: network || "",
       proof: proof || null,
+      fg_visible: 1,
+      fg_epoch: this.getForegroundEpoch(),
+      activity_lease: this.activityLeaseToken || "",
     });
+  }
+
+  /** The app starts a new foreground epoch each time it becomes visible, once per run here */
+  getForegroundEpoch() {
+    if (!this.fgEpoch) {
+      this.fgEpoch = Date.now();
+    }
+
+    return this.fgEpoch;
+  }
+
+  /** Get Bio Task Status */
+  getBioTaskStatus() {
+    return this.makeAction("bio_task_status");
+  }
+
+  /** Claim Bio Task */
+  claimBioTask() {
+    return this.makeAction("bio_task_claim");
   }
 
   /** Resync Wallet */
@@ -1278,6 +1313,7 @@ export default class ATFFarmer extends BaseFarmer {
     await this.executeTask("Boost", () => this.applyBoost());
     await this.executeTask("Tasks", () => this.completeTasks());
     await this.executeTask("Extra Tasks", () => this.completeExtraTasks());
+    await this.executeTask("Bio Task", () => this.completeBioTask());
     await this.executeTask("Friends", () => this.claimFriendsRewards());
     await this.executeTask("Withdraw", () => this.withdraw());
     await this.storeAutoSnapshot();
@@ -2084,6 +2120,88 @@ export default class ATFFarmer extends BaseFarmer {
 
       await this.utils.delayForSeconds(10, { signal: this.signal });
     }
+  }
+
+  /** The drop can refuse the bio claim with a 4xx body carrying the reason */
+  async makeBioTaskClaim() {
+    try {
+      return await this.claimBioTask();
+    } catch (error) {
+      if (!error.response?.data) {
+        throw error;
+      }
+      return error.response.data;
+    }
+  }
+
+  /** Record when the bio task is next available */
+  setBioTaskCooldown(result) {
+    const nextAvailable = Number(result?.["next_available"]) || 0;
+
+    this.user_data["task_cooldowns"] = {
+      ...this.user_data["task_cooldowns"],
+      [BIO_TASK.id]: nextAvailable,
+    };
+
+    return nextAvailable;
+  }
+
+  /** Complete Bio Task, setting the channel link as the bio when it is missing */
+  async completeBioTask() {
+    const nowSec = Math.floor(Date.now() / 1000);
+    const cooldowns = this.user_data["task_cooldowns"] || {};
+
+    if (Number(cooldowns[BIO_TASK.id]) > nowSec) {
+      this.logger.warn("Bio task not available");
+      return;
+    }
+
+    const status = await this.getBioTaskStatus();
+
+    if (
+      status?.["status"] === "success" &&
+      this.setBioTaskCooldown(status) > nowSec
+    ) {
+      this.logger.warn("Bio task not available");
+      return;
+    }
+
+    let result = await this.makeBioTaskClaim();
+
+    if (result?.["reason"] === "bio_missing") {
+      this.logger.info("Setting the ATF channel as Telegram bio...");
+
+      const updated = await this.tryToUpdateProfile({ about: BIO_TASK.bio });
+
+      if (!updated) {
+        this.logger.warn("Bio task needs the channel link in the Telegram bio");
+        return;
+      }
+
+      await this.utils.delayForSeconds(BIO_PROPAGATION_SECONDS, {
+        signal: this.signal,
+      });
+
+      result = await this.makeBioTaskClaim();
+    }
+
+    if (result?.["status"] === "success") {
+      this.applyClaimResult(result);
+      this.setBioTaskCooldown(result);
+      this.logger.success(`Completed task: ${BIO_TASK.id}`);
+      return;
+    }
+
+    if (result?.["reason"] === "cooldown") {
+      this.setBioTaskCooldown(result);
+      this.logger.warn("Bio task is on cooldown");
+      return;
+    }
+
+    this.logger.error(
+      `Failed to complete ${BIO_TASK.id}:`,
+      result?.["message"] || result?.["reason"] || "Unknown error",
+    );
   }
 
   /** Claim Friends Rewards */
