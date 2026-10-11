@@ -52,7 +52,7 @@ const DEVICE_ID_MODE = "random";
 const RECORD_NAVIGATION_BATCH = true;
 
 /** Record Daily Interaction */
-const RECORD_DAILY_INTERACTION = false;
+const RECORD_DAILY_INTERACTION = true;
 
 export default class ATFFarmer extends BaseFarmer {
   static published = true;
@@ -302,6 +302,8 @@ export default class ATFFarmer extends BaseFarmer {
               data["activity_lease_token"] || "",
             );
           }
+
+          this.applyActivityUi(data);
           break;
         }
       } catch (error) {
@@ -370,15 +372,71 @@ export default class ATFFarmer extends BaseFarmer {
       return;
     }
 
+    /** The app reports once per UTC day, until the server calls it qualified */
+    const day = new Date().toISOString().slice(0, 10);
+
+    if ((await this.storage?.get("interactionDay")) === day) {
+      return;
+    }
+
     /** The app only reports once foreground >= 15, scroll >= 300, menus >= 2 and a menu change */
-    await this.makeAction("record_daily_interaction", {
+    const result = await this.makeAction("record_daily_interaction", {
       foreground_seconds: 15 + Math.floor(Math.random() * 60),
       scroll_pixels: 300 + Math.floor(Math.random() * 900),
       unique_menus: 2 + Math.floor(Math.random() * 3),
       menu_changes: 1 + Math.floor(Math.random() * 6),
       trusted_input: 1,
     });
+
+    if (result?.["status"] === "success" && result?.["qualified"] === true) {
+      await this.storage?.set("interactionDay", day);
+    }
+
     await this.utils.delay(300, { signal: this.signal });
+  }
+
+  /** Keep the activity snapshot the server sends with login, sync_wallet and sync_mining_state */
+  applyActivityUi(data) {
+    const snapshot = data?.["activity_ui"] ?? data?.["user"]?.["activity_ui"];
+
+    if (snapshot && typeof snapshot === "object" && this.user_data?.user) {
+      this.user_data.user["activity_ui"] = snapshot;
+    }
+  }
+
+  /** The app syncs its verified wallet on open, which carries the foreground presence */
+  async syncPresence() {
+    const { user } = this.user_data;
+
+    /** Without a verified wallet the app waits for a TON proof instead */
+    if (!user["wallet_address"] || Number(user["wallet_verified"]) !== 1) {
+      return;
+    }
+
+    const result = await this.resyncWallet();
+
+    if (result?.["user"]) {
+      Object.assign(user, result["user"]);
+    }
+
+    this.applyActivityUi(result);
+  }
+
+  /** The app beacons the end of each foreground epoch when it is hidden or closed */
+  async sendForegroundHidden() {
+    if (!this.tmaSessionToken) {
+      return;
+    }
+
+    try {
+      await this.makeAction("foreground_transition_shadow", {
+        fg_event: "hidden",
+        fg_epoch: this.getForegroundEpoch(),
+        activity_lease: this.activityLeaseToken || "",
+      });
+    } catch {
+      /** Telemetry, the app never lets it fail anything */
+    }
   }
 
   /** Record Navigation Batch */
@@ -570,7 +628,10 @@ export default class ATFFarmer extends BaseFarmer {
 
   /** Get Friends */
   getFriends() {
-    return this.makeAction("get_friends");
+    return this.makeAction("get_friends", {
+      friends_db_offset: 0,
+      friends_pending_offset: 0,
+    });
   }
 
   /** Get Withdraw History */
@@ -1303,20 +1364,25 @@ export default class ATFFarmer extends BaseFarmer {
 
   /** Process Farmer */
   async process() {
-    const { user } = await this.login();
+    await this.login();
 
-    await this.logUserInfo(user);
-    await this.executeTask("Daily Interaction", () =>
-      this.recordDailyInteraction(),
-    );
-    await this.executeTask("Mining", () => this.startOrClaimMining());
-    await this.executeTask("Boost", () => this.applyBoost());
-    await this.executeTask("Tasks", () => this.completeTasks());
-    await this.executeTask("Extra Tasks", () => this.completeExtraTasks());
-    await this.executeTask("Bio Task", () => this.completeBioTask());
-    await this.executeTask("Friends", () => this.claimFriendsRewards());
-    await this.executeTask("Withdraw", () => this.withdraw());
-    await this.storeAutoSnapshot();
+    try {
+      await this.executeTask("Presence", () => this.syncPresence());
+      await this.logUserInfo(this.user_data.user);
+      await this.executeTask("Daily Interaction", () =>
+        this.recordDailyInteraction(),
+      );
+      await this.executeTask("Mining", () => this.startOrClaimMining());
+      await this.executeTask("Boost", () => this.applyBoost());
+      await this.executeTask("Tasks", () => this.completeTasks());
+      await this.executeTask("Extra Tasks", () => this.completeExtraTasks());
+      await this.executeTask("Bio Task", () => this.completeBioTask());
+      await this.executeTask("Friends", () => this.claimFriendsRewards());
+      await this.executeTask("Withdraw", () => this.withdraw());
+      await this.storeAutoSnapshot();
+    } finally {
+      await this.sendForegroundHidden();
+    }
   }
 
   /** Get User Details */
@@ -1437,6 +1503,26 @@ export default class ATFFarmer extends BaseFarmer {
         ? this.logger.c.greenBright
         : this.logger.c.yellowBright,
     });
+
+    /** Away accounts mine at 1/factor of the rate */
+    const activity = user["activity_ui"];
+
+    if (activity) {
+      const mode = String(activity["mode"] || "active");
+      const factor = (Number(activity["factor_milli"]) || 1000) / 1000;
+      const isThrottled =
+        mode !== "active" && mode !== "investor" && factor > 1;
+
+      this.logger.keyValue(
+        "Activity",
+        isThrottled ? `${mode} (/${factor})` : mode,
+        {
+          valueStyle: isThrottled
+            ? this.logger.c.yellowBright
+            : this.logger.c.greenBright,
+        },
+      );
+    }
     const exchange = this.getUserExchange(user);
 
     this.logger.keyValue(
@@ -2218,7 +2304,12 @@ export default class ATFFarmer extends BaseFarmer {
 
       this.applyClaimResult(result);
 
-      this.logger.success(`Claimed ${claimable} ATF from referrals!`);
+      /** claimable counts friends, each worth reward_per */
+      const claimed =
+        (Number(result?.["claimed_count"]) || claimable) *
+        (Number(friends.reward_per) || 100);
+
+      this.logger.success(`Claimed ${claimed} ATF from referrals!`);
       await this.utils.delayForSeconds(2, { signal: this.signal });
     } else {
       this.logger.info("No referral rewards to claim.");
