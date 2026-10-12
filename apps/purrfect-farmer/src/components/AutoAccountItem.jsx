@@ -1,10 +1,8 @@
 import { MdEditNote, MdInfo } from "react-icons/md";
 import { Reorder, useDragControls } from "motion/react";
-import { memo, useState } from "react";
+import { memo } from "react";
 
 import AutoAccountBalance from "./AutoAccountBalance";
-import AutoAccountBoosterDialog from "./AutoAccountBoosterDialog";
-import AutoAccountDetailsDialog from "./AutoAccountDetailsDialog";
 import AutoAccountFlags from "./AutoAccountFlags";
 import AutoAccountLaunchButton from "./AutoAccountLaunchButton";
 import AutoAccountSnapshot from "./AutoAccountSnapshot";
@@ -12,17 +10,17 @@ import AutoAddress from "./AutoAddress";
 import AutoDropVerifiedBadge from "./AutoDropVerifiedBadge";
 import AutoExchangeBadge from "./AutoExchangeBadge";
 import AutoAvatar from "./AutoAvatar";
-import AutoEditAccountDialog from "./AutoEditAccountDialog";
 import AutoVerifiedBadge from "./AutoVerifiedBadge";
 import AutoVersionBadge from "./AutoVersionBadge";
 import FarmerStatusDot from "./FarmerStatusDot";
-import { Dialog } from "radix-ui";
 import { cn } from "@/utils";
 import { useAutoCloudSnapshot } from "@/hooks/useAutoCloudSnapshotsQuery";
+import useAutoAccountDialogActions from "@/hooks/useAutoAccountDialogActions";
 
 const ActionButton = (props) => (
   <button
     {...props}
+    type="button"
     className={cn(
       "text-neutral-500 dark:text-neutral-400",
       "hover:bg-neutral-300 dark:hover:bg-neutral-500",
@@ -34,23 +32,12 @@ const ActionButton = (props) => (
   />
 );
 
-export default memo(function AutoAccountItem({
-  account,
-  accounts,
-  onUpdate,
-  onDelete,
-}) {
+export default memo(function AutoAccountItem({ account }) {
   const dragControls = useDragControls();
   const { row } = useAutoCloudSnapshot(account.userId);
   const farmerStatus = row?.status;
 
-  const [editOpen, setEditOpen] = useState(false);
-  const [detailsOpen, setDetailsOpen] = useState(false);
-  const [boosterOpen, setBoosterOpen] = useState(false);
-
-  const openBooster = () => {
-    setBoosterOpen(true);
-  };
+  const { openDialog } = useAutoAccountDialogActions();
 
   return (
     <Reorder.Item
@@ -76,7 +63,7 @@ export default memo(function AutoAccountItem({
         {/* Main content - clickable for booster dialog */}
         <button
           type="button"
-          onClick={openBooster}
+          onClick={() => openDialog("booster", account.id)}
           className={cn(
             "flex flex-col grow min-w-0 text-left",
             "px-1 py-0.5 cursor-pointer",
@@ -113,40 +100,15 @@ export default memo(function AutoAccountItem({
           <AutoAccountLaunchButton account={account} />
 
           {/* Edit button */}
-          <Dialog.Root open={editOpen} onOpenChange={setEditOpen}>
-            <Dialog.Trigger asChild>
-              <ActionButton>
-                <MdEditNote className="size-5" />
-              </ActionButton>
-            </Dialog.Trigger>
-            <AutoEditAccountDialog
-              account={account}
-              onSave={(updated) => {
-                onUpdate(updated);
-                setEditOpen(false);
-              }}
-              onDelete={() => {
-                onDelete(account.id);
-                setEditOpen(false);
-              }}
-            />
-          </Dialog.Root>
+          <ActionButton onClick={() => openDialog("edit", account.id)}>
+            <MdEditNote className="size-5" />
+          </ActionButton>
 
           {/* Details button */}
-          <Dialog.Root open={detailsOpen} onOpenChange={setDetailsOpen}>
-            <Dialog.Trigger asChild>
-              <ActionButton>
-                <MdInfo className="size-5" />
-              </ActionButton>
-            </Dialog.Trigger>
-            <AutoAccountDetailsDialog account={account} />
-          </Dialog.Root>
+          <ActionButton onClick={() => openDialog("details", account.id)}>
+            <MdInfo className="size-5" />
+          </ActionButton>
         </div>
-
-        {/* Booster dialog */}
-        <Dialog.Root open={boosterOpen} onOpenChange={setBoosterOpen}>
-          <AutoAccountBoosterDialog account={account} />
-        </Dialog.Root>
       </div>
     </Reorder.Item>
   );

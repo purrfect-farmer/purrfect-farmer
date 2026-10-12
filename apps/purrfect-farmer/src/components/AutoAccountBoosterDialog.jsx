@@ -1,6 +1,7 @@
 import { Dialog, Tabs } from "radix-ui";
 
 import AutoAccountBalance from "./AutoAccountBalance";
+import AutoAccountSwitcher from "./AutoAccountSwitcher";
 import AutoAddress from "./AutoAddress";
 import AutoAvatar from "./AutoAvatar";
 import AutoBoosterBoostTab from "./AutoBoosterBoostTab";
@@ -18,6 +19,7 @@ import { cn } from "@/utils";
 import copy from "copy-to-clipboard";
 import toast from "react-hot-toast";
 import useAuto from "@/hooks/useAuto";
+import { useState } from "react";
 
 const BoosterTabTrigger = ({ title, value }) => (
   <Tabs.Trigger
@@ -113,6 +115,7 @@ function BoosterHeader({ account }) {
 
 export default function AutoAccountBooster({ account }) {
   const { config } = useAuto();
+  const [tab, setTab] = useState("boost");
 
   return (
     <Dialog.Portal>
@@ -133,9 +136,16 @@ export default function AutoAccountBooster({ account }) {
           {/* Header */}
           <BoosterHeader account={account} />
 
+          {/* Previous / next account */}
+          <AutoAccountSwitcher
+            account={account}
+            className="border-b border-neutral-200 dark:border-neutral-700"
+          />
+
           {/* Tabs */}
           <Tabs.Root
-            defaultValue="boost"
+            value={tab}
+            onValueChange={setTab}
             className="flex flex-col size-full overflow-hidden"
           >
             <Tabs.List
@@ -154,7 +164,8 @@ export default function AutoAccountBooster({ account }) {
               <BoosterTabTrigger title="Details" value="details" />
             </Tabs.List>
 
-            <div className="grow overflow-auto p-4">
+            {/* Keyed so no tab state carries over to the next account */}
+            <div key={account.id} className="grow overflow-auto p-4">
               <Tabs.Content value="boost">
                 <AutoBoosterBoostTab account={account} />
               </Tabs.Content>

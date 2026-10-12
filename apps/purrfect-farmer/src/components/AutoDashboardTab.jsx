@@ -1,6 +1,7 @@
 import { MdOutlineClose, MdOutlineSearch, MdPersonAdd } from "react-icons/md";
-import { useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 
+import AutoAccountDialogs from "./AutoAccountDialogs";
 import AutoAccountItem from "./AutoAccountItem";
 import AutoAccountsSortControls from "./AutoAccountsSortControls";
 import { AutoMasterBalanceCard } from "./AutoMasterBalanceCard";
@@ -50,14 +51,20 @@ export default function AutoDashboardTab() {
     }
   };
   /* Handle Update */
-  const handleUpdateAccount = (updated) => {
-    storeAccounts(accounts.map((a) => (a.id === updated.id ? updated : a)));
-  };
+  const handleUpdateAccount = useCallback(
+    (updated) => {
+      storeAccounts(accounts.map((a) => (a.id === updated.id ? updated : a)));
+    },
+    [accounts, storeAccounts],
+  );
 
   /* Handle delete */
-  const handleDeleteAccount = (id) => {
-    storeAccounts(accounts.filter((a) => a.id !== id));
-  };
+  const handleDeleteAccount = useCallback(
+    (id) => {
+      storeAccounts(accounts.filter((a) => a.id !== id));
+    },
+    [accounts, storeAccounts],
+  );
 
   return (
     <div className="flex flex-col gap-3 p-2">
@@ -135,20 +142,21 @@ export default function AutoDashboardTab() {
 
       {/* Accounts List */}
       {accounts.length > 0 ? (
-        <Reorder.Group
-          values={accounts}
-          onReorder={(newOrder) => isStoredOrder && storeAccounts(newOrder)}
-          className="flex flex-col gap-2"
+        <AutoAccountDialogs
+          accounts={filteredAccounts}
+          onUpdate={handleUpdateAccount}
+          onDelete={handleDeleteAccount}
         >
-          {filteredAccounts.map((account) => (
-            <AutoAccountItem
-              key={account.id}
-              account={account}
-              onUpdate={handleUpdateAccount}
-              onDelete={handleDeleteAccount}
-            />
-          ))}
-        </Reorder.Group>
+          <Reorder.Group
+            values={accounts}
+            onReorder={(newOrder) => isStoredOrder && storeAccounts(newOrder)}
+            className="flex flex-col gap-2"
+          >
+            {filteredAccounts.map((account) => (
+              <AutoAccountItem key={account.id} account={account} />
+            ))}
+          </Reorder.Group>
+        </AutoAccountDialogs>
       ) : (
         <p className="text-center text-neutral-400 py-4">
           No accounts yet. Add one to get started.

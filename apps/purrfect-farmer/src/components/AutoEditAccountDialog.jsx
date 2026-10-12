@@ -2,6 +2,7 @@ import { MdDelete, MdHourglassEmpty } from "react-icons/md";
 import { useEffect, useState } from "react";
 
 import AutoAccountForm from "./AutoAccountForm";
+import AutoAccountSwitcher from "./AutoAccountSwitcher";
 import Alert from "./Alert";
 import Button from "./Button";
 import CenteredDialog from "./CenteredDialog";
@@ -60,6 +61,8 @@ export default function AutoEditAccountDialog({
       title={"Edit Account"}
       description={"Update account details"}
     >
+      <AutoAccountSwitcher account={account} />
+
       {phrase ? (
         <>
           <AutoAccountForm
