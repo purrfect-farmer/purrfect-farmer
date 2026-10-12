@@ -30,6 +30,23 @@ export default function useAutoMaster() {
     };
   }, [master, decryptPhrase]);
 
+  /** Decrypt the master or an account into the shape the TON helpers expect */
+  const buildWalletData = useCallback(
+    async (sender) => {
+      if (!sender || sender.address === master.address) {
+        return buildMasterData();
+      }
+
+      return {
+        address: sender.address,
+        version: sender.version,
+        phrase: await decryptPhrase(sender.encryptedPhrase),
+        tonCenterApiKey: master.tonCenterApiKey,
+      };
+    },
+    [master, decryptPhrase, buildMasterData],
+  );
+
   /** Decrypt and open the master wallet against this drop's jetton */
   const prepare = useCallback(async () => {
     const masterData = await buildMasterData();
@@ -38,5 +55,5 @@ export default function useAutoMaster() {
     return { masterData, prepared };
   }, [buildMasterData, config.jettonAddress]);
 
-  return { decryptPhrase, buildMasterData, prepare };
+  return { decryptPhrase, buildMasterData, buildWalletData, prepare };
 }

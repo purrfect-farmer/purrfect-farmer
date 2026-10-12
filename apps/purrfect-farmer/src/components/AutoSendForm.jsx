@@ -54,7 +54,7 @@ const schema = yup
 /** Send form, picking the sender unless an account is given */
 export default function AutoSendForm({ account }) {
   const { config, master, accounts } = useAuto();
-  const { buildMasterData, decryptPhrase } = useAutoMaster();
+  const { buildWalletData } = useAutoMaster();
   const queryClient = useQueryClient();
   const native = isNativeAuto(config);
 
@@ -94,27 +94,13 @@ export default function AutoSendForm({ account }) {
     });
   };
 
-  /** Decrypt the chosen wallet into the shape the TON helpers expect */
-  const buildWalletData = async () => {
-    if (accountId === "master") {
-      return buildMasterData();
-    }
-
-    return {
-      address: sender.address,
-      version: sender.version,
-      phrase: await decryptPhrase(sender.encryptedPhrase),
-      tonCenterApiKey: master.tonCenterApiKey,
-    };
-  };
-
   const mutation = useMutation({
     mutationKey: [config.id, "send"],
     onError: (error) => {
       console.log("Error while sending tokens", error);
     },
     mutationFn: async ({ address, amount }) => {
-      const wallet = await buildWalletData();
+      const wallet = await buildWalletData(sender);
 
       await sendFromWallet(wallet, {
         to: address,

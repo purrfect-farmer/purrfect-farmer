@@ -15,6 +15,11 @@ export const REFERRAL_FEE_BPS = 10;
 export const JETTON_TO_TON = "jettonToTon";
 export const TON_TO_JETTON = "tonToJetton";
 
+/** Assets a drop without a TON pool can route through, VIC only pairs with USDT */
+export const ROUTE_ASSETS = [
+  { address: "EQCxE6mUtQJKFnGfaROTKOt1lZbDiiX1kCixRv7Nw2Id_sDs", symbol: "USDT" },
+];
+
 /** TON always has 9 decimals; the drop's jetton comes from `prepareMaster` */
 export const TON_DECIMALS = 9;
 
@@ -57,6 +62,7 @@ export async function simulateAutoSwap({
   offerUnits,
   slippageTolerance,
   referralAddress,
+  dexVersion,
 }) {
   try {
     return await stonApi.simulateSwap({
@@ -64,6 +70,7 @@ export async function simulateAutoSwap({
       askAddress,
       offerUnits,
       slippageTolerance: String(slippageTolerance),
+      ...(dexVersion ? { dexVersion } : {}),
       ...(referralAddress
         ? {
             referralAddress,
@@ -82,6 +89,65 @@ export async function simulateAutoSwap({
 
     throw error;
   }
+}
+
+/** Simulate the direct pair, falling back to a two-hop route through `ROUTE_ASSETS`
+ * @returns {Promise<object>} - { hops: [simulation, simulation?], via? }
+ */
+export async function simulateRoute({
+  direction,
+  jettonAddress,
+  offerUnits,
+  slippageTolerance,
+  referralAddress,
+}) {
+  const [offerAddress, askAddress] =
+    direction === JETTON_TO_TON
+      ? [jettonAddress, TON_ASSET_ADDRESS]
+      : [TON_ASSET_ADDRESS, jettonAddress];
+
+  try {
+    const simulation = await simulateAutoSwap({
+      offerAddress,
+      askAddress,
+      offerUnits,
+      slippageTolerance,
+      referralAddress,
+    });
+
+    return { hops: [simulation] };
+  } catch (error) {
+    if (!error?.unavailable) throw error;
+  }
+
+  for (const via of ROUTE_ASSETS) {
+    try {
+      /* Only v2 routers forward a custom payload, which is what chains the legs */
+      const first = await simulateAutoSwap({
+        offerAddress,
+        askAddress: via.address,
+        offerUnits,
+        slippageTolerance,
+        dexVersion: [2],
+      });
+
+      /* The referral sits on the final leg only, so the fee is charged once */
+      const second = await simulateAutoSwap({
+        offerAddress: via.address,
+        askAddress,
+        offerUnits: first.askUnits,
+        slippageTolerance,
+        referralAddress,
+        dexVersion: [2],
+      });
+
+      return { hops: [first, second], via };
+    } catch (error) {
+      if (!error?.unavailable) throw error;
+    }
+  }
+
+  throw new SwapUnavailableError("No STON.fi route exists for this pair");
 }
 
 /** Raised when STON.fi cannot swap this pair at all: the jetton is unlisted or has no pool */
@@ -122,49 +188,90 @@ export async function getSwapAsset(address) {
   }
 }
 
-/** Turn a simulation into a signable message
+/** Referral params for a router, v1 routers having a fixed fee */
+function buildReferral(routerInfo, referralAddress) {
+  if (!referralAddress) return {};
+
+  return {
+    referralAddress,
+    ...(routerInfo.majorVersion > 1 ? { referralValue: REFERRAL_FEE_BPS } : {}),
+  };
+}
+
+/** Turn a route into a signable message
  * @returns {Promise<object>} - SenderArguments: { to, value, body }
  */
 export async function buildSwapTxParams({
   client,
-  simulation,
+  route,
   direction,
   userWalletAddress,
   referralAddress,
   queryId,
 }) {
-  const routerInfo = simulation.router;
+  const [first, second] = route.hops;
+  const routerInfo = first.router;
   const contracts = dexFactory(routerInfo);
 
   const router = client.open(contracts.Router.create(routerInfo.address));
   const proxyTon = contracts.pTON.create(routerInfo.ptonMasterAddress);
 
-  const referral = referralAddress
-    ? {
-        referralAddress,
-        /* v1 routers have a fixed referral fee and reject the parameter */
-        ...(routerInfo.majorVersion > 1
-          ? { referralValue: REFERRAL_FEE_BPS }
-          : {}),
-      }
-    : {};
-
   const shared = {
     userWalletAddress,
-    offerAmount: simulation.offerUnits,
-    minAskAmount: simulation.minAskUnits,
+    offerAmount: first.offerUnits,
+    minAskAmount: first.minAskUnits,
     proxyTon,
     queryId,
-    ...referral,
+  };
+
+  if (!second) {
+    const single = { ...shared, ...buildReferral(routerInfo, referralAddress) };
+
+    return direction === JETTON_TO_TON
+      ? router.getSwapJettonToTonTxParams({
+          ...single,
+          offerJettonAddress: first.offerAddress,
+        })
+      : router.getSwapTonToJettonTxParams({
+          ...single,
+          askJettonAddress: first.askAddress,
+        });
+  }
+
+  /* Two hops: the first router pays the middle asset to the second with a swap body, a short leg refunds it */
+  const nextInfo = second.router;
+  const nextRouter = dexFactory(nextInfo).Router.create(nextInfo.address);
+  const nextForwardGas = BigInt(second.gasParams.forwardGas);
+
+  const dexCustomPayload = await nextRouter.createSwapBody({
+    askJettonWalletAddress: second.askJettonWallet,
+    receiverAddress: userWalletAddress,
+    refundAddress: userWalletAddress,
+    minAskAmount: second.minAskUnits,
+    ...buildReferral(nextInfo, referralAddress),
+  });
+
+  const hop = {
+    ...shared,
+    receiverAddress: nextInfo.address,
+    dexCustomPayload,
+    dexCustomPayloadForwardGasAmount: nextForwardGas,
+    forwardGasAmount: BigInt(first.gasParams.forwardGas) + nextForwardGas,
   };
 
   return direction === JETTON_TO_TON
-    ? router.getSwapJettonToTonTxParams({
-        ...shared,
-        offerJettonAddress: simulation.offerAddress,
+    ? router.getSwapJettonToJettonTxParams({
+        ...hop,
+        offerJettonAddress: first.offerAddress,
+        askJettonAddress: first.askAddress,
+        askJettonWalletAddress: first.askJettonWallet,
+        gasAmount:
+          BigInt(first.gasParams.gasBudget ?? first.gasParams.forwardGas) +
+          nextForwardGas,
       })
     : router.getSwapTonToJettonTxParams({
-        ...shared,
-        askJettonAddress: simulation.askAddress,
+        ...hop,
+        askJettonAddress: first.askAddress,
+        askJettonWalletAddress: first.askJettonWallet,
       });
 }

@@ -7,6 +7,7 @@ import AutoBoosterBoostTab from "./AutoBoosterBoostTab";
 import AutoBoosterCollectTab from "./AutoBoosterCollectTab";
 import AutoBoosterDetailsTab from "./AutoBoosterDetailsTab";
 import AutoBoosterSendTab from "./AutoBoosterSendTab";
+import AutoBoosterSwapTab from "./AutoBoosterSwapTab";
 import AutoBoosterWithdrawTab from "./AutoBoosterWithdrawTab";
 import AutoDropVerifiedBadge from "./AutoDropVerifiedBadge";
 import AutoVerifiedBadge from "./AutoVerifiedBadge";
@@ -16,6 +17,7 @@ import { MdOutlineContentCopy } from "react-icons/md";
 import { cn } from "@/utils";
 import copy from "copy-to-clipboard";
 import toast from "react-hot-toast";
+import useAuto from "@/hooks/useAuto";
 
 const BoosterTabTrigger = ({ title, value }) => (
   <Tabs.Trigger
@@ -110,6 +112,8 @@ function BoosterHeader({ account }) {
 }
 
 export default function AutoAccountBooster({ account }) {
+  const { config } = useAuto();
+
   return (
     <Dialog.Portal>
       <Dialog.Overlay
@@ -134,11 +138,19 @@ export default function AutoAccountBooster({ account }) {
             defaultValue="boost"
             className="flex flex-col size-full overflow-hidden"
           >
-            <Tabs.List className="grid grid-cols-5 shrink-0">
+            <Tabs.List
+              className={cn(
+                "grid shrink-0",
+                config.native ? "grid-cols-5" : "grid-cols-6",
+              )}
+            >
               <BoosterTabTrigger title="Boost" value="boost" />
               <BoosterTabTrigger title="Collect" value="collect" />
               <BoosterTabTrigger title="Withdraw" value="withdraw" />
               <BoosterTabTrigger title="Send" value="send" />
+              {!config.native && (
+                <BoosterTabTrigger title="Swap" value="swap" />
+              )}
               <BoosterTabTrigger title="Details" value="details" />
             </Tabs.List>
 
@@ -159,6 +171,11 @@ export default function AutoAccountBooster({ account }) {
               <Tabs.Content value="send">
                 <AutoBoosterSendTab account={account} />
               </Tabs.Content>
+              {!config.native && (
+                <Tabs.Content value="swap">
+                  <AutoBoosterSwapTab account={account} />
+                </Tabs.Content>
+              )}
               <Tabs.Content value="details">
                 <AutoBoosterDetailsTab account={account} />
               </Tabs.Content>
