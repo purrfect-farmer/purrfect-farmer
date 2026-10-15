@@ -25,8 +25,7 @@ export function decodeDataImage(dataUrl) {
     rgba[i * 4] = read(0);
     rgba[i * 4 + 1] = gray ? read(0) : read(1);
     rgba[i * 4 + 2] = gray ? read(0) : read(2);
-    rgba[i * 4 + 3] =
-      channels === 2 ? read(1) : channels === 4 ? read(3) : 255;
+    rgba[i * 4 + 3] = channels === 2 ? read(1) : channels === 4 ? read(3) : 255;
   }
 
   return { width: png.width, height: png.height, rgba };
@@ -141,8 +140,9 @@ function meanAt(values, width, height, points, ox, oy) {
 function zScore(scores) {
   const mean = scores.reduce((a, b) => a + b, 0) / scores.length;
   const spread =
-    Math.sqrt(scores.reduce((a, b) => a + (b - mean) ** 2, 0) / scores.length) ||
-    1;
+    Math.sqrt(
+      scores.reduce((a, b) => a + (b - mean) ** 2, 0) / scores.length,
+    ) || 1;
 
   return scores.map((score) => (score - mean) / spread);
 }
@@ -200,4 +200,43 @@ export function scoreSliderCandidates({
 /** Where the piece fits, as the `sliderX` the captcha verify expects */
 export function findSliderX(challenge) {
   return scoreSliderCandidates(challenge)[0].sliderX;
+}
+
+/** The slider track the page drags its handle along, and the piece travel it maps onto */
+const TRACK_WIDTH = 276;
+const PIECE_TRAVEL = 263;
+
+/** Round to the one decimal the page records */
+const roundTenth = (value) => Math.round(value * 10) / 10;
+
+/** A human-looking drag to `sliderX`, as the `[ms, handleX, dy]` points the page records on pointer moves */
+export function buildSliderTrace(sliderX, random = Math.random) {
+  const target = roundTenth((sliderX * TRACK_WIDTH) / PIECE_TRAVEL);
+  const duration = 650 + random() * 700;
+  const overshoot = 2 + random() * 5;
+  const trace = [[0, 0, 0]];
+
+  let time = 0;
+  let dy = 0;
+
+  while (time < duration) {
+    time += 12 + random() * 8;
+
+    const progress = Math.min(time / duration, 1);
+
+    /** Ease out past the target, then settle back onto it */
+    const eased = 1 - Math.pow(1 - progress, 3);
+    const settle = progress > 0.8 ? (progress - 0.8) / 0.2 : 0;
+    const x = Math.min(
+      TRACK_WIDTH,
+      Math.max(0, target * eased + overshoot * eased * (1 - settle)),
+    );
+
+    dy += (random() - 0.5) * 1.6;
+    trace.push([Math.round(time), roundTenth(x), roundTenth(dy)]);
+  }
+
+  trace.push([Math.round(time + 60 + random() * 120), target, roundTenth(dy)]);
+
+  return trace;
 }

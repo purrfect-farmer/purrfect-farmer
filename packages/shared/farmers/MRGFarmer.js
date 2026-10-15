@@ -1,5 +1,6 @@
 import BaseFarmer from "../lib/BaseFarmer.js";
 import Decimal from "decimal.js";
+import { Cell } from "@ton/core";
 import {
   MAXIMUM_MINER_LEVEL,
   findMinerLevelForHolding,
@@ -8,8 +9,11 @@ import {
   getMinerSpeed,
 } from "../lib/auto/minerCurve.js";
 import { buildTonProof } from "../lib/ton/proof.js";
-import { findSliderX } from "../lib/sliderCaptcha.js";
-import { createWallet, keyPairFromPhraseOrSecretKey } from "../lib/ton/wallet.js";
+import { buildSliderTrace, findSliderX } from "../lib/sliderCaptcha.js";
+import {
+  createWallet,
+  keyPairFromPhraseOrSecretKey,
+} from "../lib/ton/wallet.js";
 import { fetchTonApi } from "../lib/ton/tonapi.js";
 
 /** The drop's backend, which the mini app talks to for everything */
@@ -66,9 +70,25 @@ const NFT_BUNDLE_DISCOUNT = 50;
 /** The drop's withdrawal rules */
 const MINIMUM_WITHDRAWAL = 1000;
 const WITHDRAWAL_FEE = 70;
-const STANDARD_WITHDRAWAL_LIMIT = 1000;
-const PRIVILEGED_WITHDRAWAL_LIMIT = 500000;
-const PRIVILEGED_HOLDING = 5000;
+
+/** The backend refuses a withdrawal whose `initData` is this old, so the page asks for a reopen */
+const INIT_DATA_MAX_AGE_SECONDS = 6 * 60 * 60 - 300;
+
+/** Daily check-in rewards by streak day, which loop every seven days */
+const CHECKIN_REWARDS = [5, 6, 7, 8, 9, 10, 15];
+
+/** Task kinds the drop settles against the wallet's holding, with no link to open */
+const HOLD_TASK_TYPES = ["token_hold", "nft_hold"];
+
+/** TON kept aside for the verification transfer's fees */
+const VERIFICATION_GAS_TON = 0.02;
+
+/** How often, and how long, the verification is polled after paying, as the page does for 3 minutes */
+const VERIFICATION_CHECK_ATTEMPTS = 12;
+const VERIFICATION_CHECK_INTERVAL_SECONDS = 10;
+
+/** A verification paid this long ago without landing is assumed lost and paid again */
+const VERIFICATION_RETRY_HOURS = 6;
 
 /** One withdrawal per this many hours, counted from the last completed one */
 const WITHDRAWAL_COOLDOWN_HOURS = 24;
@@ -102,6 +122,7 @@ export default class MRGFarmer extends BaseFarmer {
     storagePrefix: "mrg-auto",
     minWithdrawal: MINIMUM_WITHDRAWAL,
     connectWithPhrase: true,
+    verifiable: true,
   };
 
   /* --------------------------------------------------------------------- */
@@ -236,6 +257,21 @@ export default class MRGFarmer extends BaseFarmer {
     return this.postToApi("/user/claim-task", { taskId });
   }
 
+  /** Check in for the day, which pays by streak */
+  dailyCheckIn() {
+    return this.postToApi("/user/daily-checkin");
+  }
+
+  /** The on-chain verification the drop wants before a withdrawal, with the transfer it expects */
+  fetchVerificationInfo() {
+    return this.postToApi("/user/onchain-verify/info");
+  }
+
+  /** Ask the drop whether the verification transfer has landed */
+  checkVerification() {
+    return this.postToApi("/user/onchain-verify/check");
+  }
+
   /** Claim the one-time bonus earned by qualified referrals */
   claimOneTimeBonus() {
     return this.postToApi("/user/claim-one-time-bonus");
@@ -256,17 +292,19 @@ export default class MRGFarmer extends BaseFarmer {
     return this.postToApi("/captcha/create");
   }
 
-  /** Answer a slider puzzle with where the piece was dropped */
-  verifyCaptcha(captchaId, sliderX) {
-    return this.postToApi("/captcha/verify", { captchaId, sliderX });
+  /** Answer a slider puzzle with where the piece was dropped and the drag that put it there */
+  verifyCaptcha(captchaId, sliderX, trace) {
+    return this.postToApi("/captcha/verify", { captchaId, sliderX, trace });
   }
 
   /** Request a payout to the connected wallet */
-  requestWithdrawal(amount, destinationAddress, captchaToken) {
+  requestWithdrawal(amount, destinationAddress, captchaToken, turnstileToken) {
     return this.postToApi("/user/withdraw", {
       amount: Number(amount),
       destinationAddress,
       captchaToken,
+      turnstileToken,
+      deviceInfo: this.getDeviceInfo(),
     });
   }
 
@@ -536,6 +574,7 @@ export default class MRGFarmer extends BaseFarmer {
 
     await this.logAccountInfo();
     await this.executeTask("Human Check", () => this.ensureHumanCheck());
+    await this.executeTask("Check-In", () => this.checkInDaily());
     await this.executeTask("Level", () => this.unlockAffordableLevel());
     await this.executeTask("Mining", () => this.claimPendingMining());
     await this.executeTask("Tasks", () => this.completeTasks());
@@ -614,7 +653,10 @@ export default class MRGFarmer extends BaseFarmer {
           : this.logger.c.yellowBright,
       },
     );
-    this.logger.keyValue("KYC", user["kycStatus"] || "none");
+    this.logger.keyValue(
+      "Check-In Streak",
+      `${user["checkinStreak"] || 0} (last ${user["checkinLastDay"] || "never"})`,
+    );
 
     const discountPercent = await this.readNftDiscountPercent();
 
@@ -639,6 +681,56 @@ export default class MRGFarmer extends BaseFarmer {
         ? this.logger.c.yellowBright
         : this.logger.c.greenBright,
     });
+  }
+
+  /* --------------------------------------------------------------------- */
+  /* Check-in                                                              */
+  /* --------------------------------------------------------------------- */
+
+  /** Today and yesterday as the page dates them, in UTC */
+  getCheckInDays() {
+    const today = new Date().toISOString().slice(0, 10);
+    const yesterday = new Date(Date.now() - 86400000)
+      .toISOString()
+      .slice(0, 10);
+
+    return { today, yesterday };
+  }
+
+  /** Check in once a day, which the page offers until the day is marked */
+  async checkInDaily() {
+    const user = this.getAccountDetails();
+    const { today, yesterday } = this.getCheckInDays();
+
+    if (user["checkinLastDay"] === today) {
+      this.logger.info("Already checked in today.");
+      return;
+    }
+
+    const streak =
+      user["checkinLastDay"] === yesterday
+        ? (Number(user["checkinStreak"]) || 0) + 1
+        : 1;
+    const day = ((streak - 1) % CHECKIN_REWARDS.length) + 1;
+    const result = await this.dailyCheckIn();
+
+    if (!result?.["success"]) {
+      this.logger.warn(
+        `Failed to check in: ${result?.["error"] || "Unknown error"}`,
+      );
+      return;
+    }
+
+    if (result["user"]) {
+      this.account_data.user = result["user"];
+    } else {
+      user["checkinStreak"] = result["streak"] ?? streak;
+      user["checkinLastDay"] = today;
+    }
+
+    this.logger.success(
+      `Checked in for day ${day}, +${result["reward"] ?? CHECKIN_REWARDS[day - 1]} MRG.`,
+    );
   }
 
   /* --------------------------------------------------------------------- */
@@ -838,13 +930,121 @@ export default class MRGFarmer extends BaseFarmer {
     return Decimal.max(fee.minus(fee.mul(discountPercent).div(100)), 0);
   }
 
-  /** Whether the account is on the raised withdrawal ceiling */
-  isPrivilegedAccount(discountPercent = 0) {
-    return (
-      Boolean(this.getAccountDetails()["isNftHolder"]) ||
-      discountPercent > 0 ||
-      this.getWalletHolding().greaterThanOrEqualTo(PRIVILEGED_HOLDING)
+  /* --------------------------------------------------------------------- */
+  /* Verification                                                          */
+  /* --------------------------------------------------------------------- */
+
+  /** Poll the drop until it sees the verification transfer */
+  async pollVerification(attempts = VERIFICATION_CHECK_ATTEMPTS) {
+    for (let attempt = 0; attempt < attempts; attempt++) {
+      if (this.signal.aborted) break;
+
+      await this.utils.delayForSeconds(VERIFICATION_CHECK_INTERVAL_SECONDS, {
+        signal: this.signal,
+      });
+
+      const result = await this.checkVerification();
+
+      if (result?.["success"] && result["status"] === "verified") {
+        await this.loadAccount();
+        this.logger.success("Account verified on-chain.");
+        return { status: true };
+      }
+
+      if (result?.["success"] === false) {
+        return {
+          status: false,
+          message: result["error"] || "Verification failed",
+        };
+      }
+
+      if (result?.["status"] === "underpaid") {
+        return {
+          status: false,
+          message: `Paid ${result["amountGram"]} TON, verification needs ${result["requiredGram"]}`,
+        };
+      }
+    }
+
+    this.logger.warn("The verification transfer has not been seen yet.");
+    return { status: false, message: "Not confirmed yet, check again" };
+  }
+
+  /** Pay the one-time verification transfer from the wallet's phrase, unless it is already settled or on its way */
+  async verifyWalletIfNeeded({ phrase, version, apiKey }) {
+    const info = await this.fetchVerificationInfo();
+
+    if (info?.["verified"] && !info["verificationRequired"]) {
+      return { status: true };
+    }
+
+    const payment = info?.["payment"];
+
+    if (!payment?.["address"] || !payment?.["amountNano"]) {
+      const message = info?.["error"] || "The drop returned no transfer";
+
+      this.logger.warn("Failed to start verification:", message);
+      return { status: false, message };
+    }
+
+    if (!phrase) {
+      return { status: false, message: "No phrase to pay verification with" };
+    }
+
+    /** A transfer already sent is only checked, so it is never paid twice */
+    const sentAt = Number(await this.storage?.get("verificationSentAt")) || 0;
+
+    if (Date.now() - sentAt < VERIFICATION_RETRY_HOURS * 60 * 60 * 1000) {
+      this.logger.info("Verification was paid already, checking it...");
+      return this.pollVerification(1);
+    }
+
+    const wallet = this.utils.wallet.createTonWallet({
+      phrase,
+      version,
+      apiKey,
+    });
+    const address = await wallet.getAddress();
+    const connected = this.getConnectedWalletAddress();
+
+    /** Only a payment from the bound wallet counts */
+    if (!connected || !this.utils.isSameTonAddress(connected, address)) {
+      const message = "The phrase does not match the connected wallet";
+
+      this.logger.warn(message);
+      return { status: false, message };
+    }
+
+    const amount = BigInt(payment["amountNano"]);
+    const amountTon = new Decimal(amount.toString()).div(1e9);
+    const tonBalance = await wallet
+      .getBalance({ signal: this.signal })
+      .catch(() => new Decimal(0));
+
+    if (tonBalance.lessThan(amountTon.plus(VERIFICATION_GAS_TON))) {
+      const message = `Verification needs ${amountTon.plus(VERIFICATION_GAS_TON)} TON, the wallet holds ${tonBalance}`;
+
+      this.logger.warn(message);
+      return { status: false, message };
+    }
+
+    const seqno = await wallet.send({
+      to: payment["address"],
+      value: amount,
+      body: payment["payload"]
+        ? Cell.fromBase64(payment["payload"])
+        : undefined,
+    });
+
+    /** Recorded before confirming, so a lost confirmation is never paid twice */
+    await this.storage?.set("verificationSentAt", Date.now());
+    await wallet.waitForConfirmation(seqno);
+
+    this.logger.success(
+      `Sent ${amountTon} TON to ${payment["address"]} for verification.`,
     );
+
+    return this.pollVerification();
   }
 
   /* --------------------------------------------------------------------- */
@@ -1020,15 +1220,44 @@ export default class MRGFarmer extends BaseFarmer {
     this.taskClaims = { ...(this.taskClaims || {}), [taskId]: Date.now() };
   }
 
+  /** Whether a task is settled against the wallet's holding rather than a link */
+  isHoldTask(task) {
+    return HOLD_TASK_TYPES.includes(task["verificationType"]);
+  }
+
+  /** Whether the wallet holds what a hold task asks for, so a claim is not wasted on it */
+  async meetsHoldRequirement(task) {
+    if (!this.getConnectedWalletAddress()) return false;
+
+    if (task["verificationType"] === "token_hold") {
+      return this.getWalletHolding().greaterThanOrEqualTo(
+        task["minHolding"] || 0,
+      );
+    }
+
+    return (
+      this.countNftHoldings(await this.readNftHoldings()) >=
+      (task["minNfts"] || 1)
+    );
+  }
+
   /** Whether a task is worth spending a claim on right now */
   isTaskClaimable(task) {
     if (task["isPaused"]) return false;
 
     /** The drop checks membership, so a chat the farmer may not join is not worth a claim */
-    if (!this.validateTelegramTask(this.getTaskUrl(task))) return false;
+    if (
+      !this.isHoldTask(task) &&
+      !this.validateTelegramTask(this.getTaskUrl(task))
+    ) {
+      return false;
+    }
 
     if (!task["taskType"] || task["taskType"] === "one_time") {
-      return !this.getCompletedTaskIds().includes(task["taskId"]);
+      return (
+        !this.getCompletedTaskIds().includes(task["taskId"]) &&
+        !this.isTaskOnCooldown(task)
+      );
     }
 
     return !this.isTaskOnCooldown(task);
@@ -1048,6 +1277,10 @@ export default class MRGFarmer extends BaseFarmer {
     for (const task of claimableTasks) {
       if (this.signal.aborted) break;
 
+      if (this.isHoldTask(task) && !(await this.meetsHoldRequirement(task))) {
+        continue;
+      }
+
       await this.completeTask(task);
     }
   }
@@ -1062,9 +1295,11 @@ export default class MRGFarmer extends BaseFarmer {
       .replace(/(startapp%3Dref_)[A-Za-z0-9_]+/g, `$1${userId}`);
   }
 
-  /** Complete one task the way the page does: open it, dwell, then claim */
+  /** Complete one task the way the page does: open it, dwell, then claim; a hold task is claimed straight away */
   async completeTask(task) {
-    await this.openTaskLink(this.getTaskUrl(task), TASK_DWELL_SECONDS);
+    if (!this.isHoldTask(task)) {
+      await this.openTaskLink(this.getTaskUrl(task), TASK_DWELL_SECONDS);
+    }
 
     const result = await this.claimTask(task["taskId"]);
 
@@ -1074,6 +1309,11 @@ export default class MRGFarmer extends BaseFarmer {
         `Claimed "${task["title"]}" for ${task["reward"]} MRG.`,
       );
     } else {
+      /** A hold the drop has not counted long enough yet is retried after the task's window */
+      if (this.isHoldTask(task)) {
+        this.recordTaskClaim(task["taskId"]);
+      }
+
       this.logger.warn(
         `Skipped "${task["title"]}": ${result?.["error"] || "Unknown error"}`,
       );
@@ -1195,11 +1435,28 @@ export default class MRGFarmer extends BaseFarmer {
     return { pending: this.getPendingWithdrawals(), flagged: [] };
   }
 
-  /** The most one request may carry, which the drop lifts for a Genesis NFT or a thousand MRG held */
-  getWithdrawalLimit(discountPercent = 0) {
-    return this.isPrivilegedAccount(discountPercent)
-      ? PRIVILEGED_WITHDRAWAL_LIMIT
-      : STANDARD_WITHDRAWAL_LIMIT;
+  /** How old the signed `initData` is, in seconds, which the backend caps for withdrawals */
+  getInitDataAgeSeconds() {
+    const authDate = Number(
+      new URLSearchParams(this.getInitData() || "").get("auth_date"),
+    );
+
+    return authDate ? Date.now() / 1000 - authDate : 0;
+  }
+
+  /** A Turnstile token for the withdrawal, or none, which the page also sends when the widget fails */
+  async solveWithdrawalTurnstile() {
+    if (!this.canSolveTurnstile()) return "";
+
+    try {
+      return await this.solveTurnstile({
+        siteKey: TURNSTILE_SITE_KEY,
+        pageUrl: TURNSTILE_PAGE_URL,
+      });
+    } catch (error) {
+      this.logger.warn("Withdrawal Turnstile failed:", error.message);
+      return "";
+    }
   }
 
   /** Place withdrawal */
@@ -1214,7 +1471,13 @@ export default class MRGFarmer extends BaseFarmer {
     }
 
     if (!this.isAccountVerified(user)) {
-      return this.skipWithdrawal("Account is not KYC verified!", {
+      return this.skipWithdrawal("Account is not verified on-chain!", {
+        log: "warn",
+      });
+    }
+
+    if (this.getInitDataAgeSeconds() > INIT_DATA_MAX_AGE_SECONDS) {
+      return this.skipWithdrawal("Session is too old, reopen the app!", {
         log: "warn",
       });
     }
@@ -1248,7 +1511,6 @@ export default class MRGFarmer extends BaseFarmer {
       minimum,
       max,
       difference,
-      ceiling: this.getWithdrawalLimit(discountPercent),
     });
 
     let result;
@@ -1257,12 +1519,22 @@ export default class MRGFarmer extends BaseFarmer {
       await this.ensureHumanCheck();
 
       const captchaToken = await this.solveWithdrawalCaptcha();
+      const turnstileToken = await this.solveWithdrawalTurnstile();
+      const request = () =>
+        this.requestWithdrawal(
+          amount,
+          destinationAddress,
+          captchaToken,
+          turnstileToken,
+        );
 
-      result = await this.requestWithdrawal(
-        amount,
-        destinationAddress,
-        captchaToken,
-      );
+      result = await request();
+
+      /** The page signs in again once and resends when the backend lost the session */
+      if (!result?.["success"] && result?.["code"] === "NO_APP_SESSION") {
+        await this.verifyAccount();
+        result = await request();
+      }
     } catch (error) {
       result = { success: false, error: error.message || "Unknown error" };
     }
@@ -1324,7 +1596,19 @@ export default class MRGFarmer extends BaseFarmer {
       }
 
       const sliderX = await this.solveSliderCaptcha(challenge);
-      const result = await this.verifyCaptcha(challenge["captchaId"], sliderX);
+
+      /** The page posts the drag only after the pointer is released */
+      const trace = buildSliderTrace(sliderX);
+
+      await this.utils.delayForSeconds(trace.at(-1)[0] / 1000, {
+        signal: this.signal,
+      });
+
+      const result = await this.verifyCaptcha(
+        challenge["captchaId"],
+        sliderX,
+        trace,
+      );
 
       if (result?.["success"] && result["captchaToken"]) {
         return result["captchaToken"];
@@ -1360,9 +1644,8 @@ export default class MRGFarmer extends BaseFarmer {
       this.formatAmount(this.getAccountDetails()["inAppBalance"]),
     );
     this.logger.keyValue("Minimum", this.getMinimumWithdrawal());
-    this.logger.keyValue("Limit", this.getWithdrawalLimit(discountPercent));
     this.logger.keyValue(
-      "KYC Verified",
+      "Verified",
       this.isAccountVerified(this.getAccountDetails()) ? "Yes" : "No",
       {
         valueStyle: this.isAccountVerified(this.getAccountDetails())
@@ -1461,6 +1744,45 @@ export default class MRGFarmer extends BaseFarmer {
     }
   }
 
+  /** Pay the one-time verification from the wallet's phrase, connecting the wallet first when the account has none */
+  async verifyAutoWallet({ phrase, version, apiKey }) {
+    try {
+      await this.ensureStateLoaded();
+
+      if (this.isAccountVerified(this.getAccountDetails())) {
+        return {
+          status: true,
+          skipped: true,
+          message: "Already verified",
+          summary: this.getAutoSummary(),
+        };
+      }
+
+      if (!this.getConnectedWalletAddress()) {
+        const connected = await this.connectAutoWallet({ phrase, version });
+
+        if (!connected.status) return connected;
+      }
+
+      const { status, message } = await this.verifyWalletIfNeeded({
+        phrase,
+        version,
+        apiKey,
+      });
+
+      return {
+        status,
+        skipped: false,
+        message: message || (status ? "Verified" : "Not confirmed yet"),
+        summary: status
+          ? await this.refreshAutoSummary()
+          : this.getAutoSummary(),
+      };
+    } catch (error) {
+      return { status: false, message: error.message || "Unknown error" };
+    }
+  }
+
   /** Put the account to work at the holding a boost just sent it */
   async startAutoMining() {
     await this.syncConnectedWallet();
@@ -1470,9 +1792,9 @@ export default class MRGFarmer extends BaseFarmer {
     return this.refreshAutoSummary();
   }
 
-  /** Whether the drop has verified the account */
+  /** Whether the drop lets the account withdraw, which an admin re-check revokes */
   isAccountVerified(user) {
-    return Boolean(user["isVerified"] || user["isManuallyVerified"]);
+    return Boolean(user["isVerified"]) && !user["isVerificationRequired"];
   }
 
   /** Whether the drop has banned the account */
@@ -1525,6 +1847,20 @@ export default class MRGFarmer extends BaseFarmer {
             dispatch: false,
           },
           {
+            id: "verify-wallet",
+            icon: "kyc",
+            title: "Verify Wallet",
+            action: this.verifyWalletInteractive.bind(this),
+            dispatch: false,
+          },
+          {
+            id: "check-verification",
+            icon: "kyc",
+            title: "Check Verification",
+            action: this.checkVerificationInteractive.bind(this),
+            dispatch: false,
+          },
+          {
             id: "nft-holdings",
             icon: "search",
             title: "NFT Holdings",
@@ -1541,6 +1877,13 @@ export default class MRGFarmer extends BaseFarmer {
             icon: "check",
             title: "Claim Mining",
             action: this.claimMiningInteractive.bind(this),
+            dispatch: false,
+          },
+          {
+            id: "daily-checkin",
+            icon: "check",
+            title: "Daily Check-In",
+            action: this.checkInInteractive.bind(this),
             dispatch: false,
           },
           {
@@ -1667,9 +2010,20 @@ export default class MRGFarmer extends BaseFarmer {
     this.logger.success("Wallet disconnected.");
   }
 
-  /** Unlock what the derived wallet covers, as a manual connect does */
-  async afterDerivedWalletConnected() {
+  /** Unlock what the derived wallet covers, then pay its verification since the phrase is known */
+  async afterDerivedWalletConnected({ phrase, version } = {}) {
     await this.unlockAffordableLevel();
+
+    if (!phrase || this.isAccountVerified(this.getAccountDetails())) return;
+
+    const { status, message } = await this.verifyWalletIfNeeded({
+      phrase,
+      version,
+    });
+
+    if (!status) {
+      this.logger.warn("Account not verified:", message || "not confirmed yet");
+    }
   }
 
   /** Re-read the connected wallet on-chain and unlock what it now covers */
@@ -1771,10 +2125,6 @@ export default class MRGFarmer extends BaseFarmer {
       this.formatAmount(this.getWithdrawalFee(discountPercent)),
     );
     this.logger.keyValue(
-      "Withdrawal Limit",
-      this.getWithdrawalLimit(discountPercent),
-    );
-    this.logger.keyValue(
       "Drop sees an NFT holder",
       this.getAccountDetails()["isNftHolder"] ? "Yes" : "No",
     );
@@ -1833,6 +2183,84 @@ export default class MRGFarmer extends BaseFarmer {
     this.logger.info("Piece:", challenge["pieceImage"]);
 
     return challenge;
+  }
+
+  /** Pay the on-chain verification, prompting for the bound wallet's phrase */
+  async verifyWalletInteractive() {
+    const phrase = ((await this.promptInput("Enter the wallet phrase:")) || "")
+      .trim()
+      .split(/\s+/)
+      .join(" ");
+
+    if (!phrase) {
+      this.logger.warn("No phrase provided.");
+      return;
+    }
+
+    const version = await this.promptInput({
+      type: "select",
+      text: "Select wallet version:",
+      options: [
+        { value: "5", label: "Wallet V5R1" },
+        { value: "4", label: "Wallet V4" },
+      ],
+    });
+
+    if (!version) {
+      this.logger.warn("No wallet version selected.");
+      return;
+    }
+
+    const { status, message } = await this.verifyAutoWallet({
+      phrase,
+      version,
+    });
+
+    if (status) {
+      this.logger.success(message);
+    } else {
+      this.logger.error("Verification failed:", message);
+    }
+  }
+
+  /** Show what the verification needs and ask the drop whether it has landed */
+  async checkVerificationInteractive() {
+    await this.ensureStateLoaded();
+
+    const info = await this.fetchVerificationInfo();
+    const payment = info?.["payment"] || {};
+
+    this.logger.newline();
+    this.logger.keyValue("Verified", info?.["verified"] ? "Yes" : "No");
+    this.logger.keyValue("Via", info?.["via"] || "-");
+    this.logger.keyValue(
+      "Re-verify Required",
+      info?.["verificationRequired"] ? "Yes" : "No",
+    );
+    this.logger.keyValue("Amount", `${payment["amountGram"] ?? "?"} TON`);
+    this.logger.keyValue("To", payment["address"] || "-");
+    this.logger.keyValue(
+      "Exempt Holding",
+      `${info?.["exemptWalletMrg"] ?? 5000} MRG`,
+    );
+
+    if (info?.["verified"]) return info;
+
+    const check = await this.checkVerification();
+
+    this.logger.keyValue("Payment", check?.["status"] || check?.["error"]);
+
+    if (check?.["status"] === "verified") {
+      await this.loadAccount();
+    }
+
+    return info;
+  }
+
+  /** Check in on demand */
+  async checkInInteractive() {
+    await this.ensureStateLoaded();
+    await this.checkInDaily();
   }
 
   /** Claim mining on demand */
