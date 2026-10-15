@@ -1,3 +1,4 @@
+import BaseAdClient from "./BaseAdClient.js";
 import AdexiumClient from "./AdexiumClient.js";
 import GigaBidClient from "./GigaBidClient.js";
 import MonetagClient from "./MonetagClient.js";
@@ -36,10 +37,9 @@ const NETWORK_KINDS = {
 };
 
 /** Mediates a GigaPub project the way `window.showGiga()` would. See `GigaPubClient.README.md` */
-export default class GigaPubClient {
+export default class GigaPubClient extends BaseAdClient {
   /**
-   * @param {object} farmer - the farmer instance, for its api/initData/signal
-   * @param {object} options
+   * @param {object} options - shared context (api, initData, signal, ...), see `BaseAdClient`
    * @param {string|number} options.projectId - the `id` in the page's `ad.gigapub.tech/script?id=` tag
    * @param {string} [options.token] - the project's bearer token, read from its script when left out
    * @param {object[]} [options.networks] - the script's `ads` list, `{ name, data }` per network; Monetag alone when left out
@@ -49,8 +49,8 @@ export default class GigaPubClient {
    * @param {string} [options.tgPlatform] - Telegram client platform
    * @param {string} [options.tgVersion] - Telegram WebApp version
    */
-  constructor(farmer, options = {}) {
-    this.farmer = farmer;
+  constructor(options = {}) {
+    super(options);
 
     this.projectId = String(options.projectId ?? "");
     this.token = options.token;
@@ -67,11 +67,6 @@ export default class GigaPubClient {
     /** When the "page" loaded, which `init` reports seconds against */
     this.loadedAt = Date.now();
     this.showCounter = 0;
-  }
-
-  /** The farmer's abort signal, read late so each run gets its own */
-  get signal() {
-    return this.farmer.signal;
   }
 
   /** Show one rewarded ad, as `showGiga()` would, falling through networks in rotation order
@@ -154,7 +149,7 @@ export default class GigaPubClient {
 
         return shown;
       } catch (error) {
-        this.farmer.debugger?.log(`GigaPub ${network} failed:`, error.message);
+        this.log(`GigaPub ${network} failed:`, error.message);
 
         await this.report("adShowError", {
           ...report,
@@ -209,7 +204,8 @@ export default class GigaPubClient {
 
     switch (NETWORK_KINDS[name]) {
       case "monetag":
-        client = new MonetagClient(this.farmer, {
+        client = new MonetagClient({
+          ...this.context,
           ...common,
           host: MONETAG_HOST,
           sdkHost: MONETAG_SDK_HOST,
@@ -218,7 +214,8 @@ export default class GigaPubClient {
 
       case "richNative":
       case "richInterstitial":
-        client = new RichAdsClient(this.farmer, {
+        client = new RichAdsClient({
+          ...this.context,
           ...common,
           pubId: data["pubId"],
           appId: data["appId"],
@@ -226,14 +223,16 @@ export default class GigaPubClient {
         break;
 
       case "adexium":
-        client = new AdexiumClient(this.farmer, {
+        client = new AdexiumClient({
+          ...this.context,
           ...common,
           wid: data["wId"],
         });
         break;
 
       case "bid":
-        client = new GigaBidClient(this.farmer, {
+        client = new GigaBidClient({
+          ...this.context,
           ...common,
           projectId: data["id"],
           placementId: data["placeId"],
@@ -340,7 +339,7 @@ export default class GigaPubClient {
       throw new Error("GigaPub needs a project id");
     }
 
-    const script = await this.farmer.api
+    const script = await this.api
       .get(`https://${GIGAPUB_HOST}/script`, {
         params: { id: this.projectId },
         responseType: "text",
@@ -362,7 +361,7 @@ export default class GigaPubClient {
       throw new Error("Could not read the GigaPub project script");
     }
 
-    this.farmer.debugger?.log("GigaPub project:", {
+    this.log("GigaPub project:", {
       projectId: this.projectId,
       networks: this.networks.map((item) => item["name"]),
     });
@@ -375,7 +374,7 @@ export default class GigaPubClient {
   /** Post an event to GigaPub's stats API, best-effort as the SDK treats it */
   async report(method, args) {
     try {
-      const response = await this.farmer.api.post(
+      const response = await this.api.post(
         `https://${GIGAPUB_HOST}/v1/ad`,
         { method, args: { user: this.getUserData(), ...args } },
         {
@@ -389,7 +388,7 @@ export default class GigaPubClient {
 
       return response.data;
     } catch (error) {
-      this.farmer.debugger?.log(`GigaPub ${method} failed:`, error.message);
+      this.log(`GigaPub ${method} failed:`, error.message);
       return null;
     }
   }
@@ -397,10 +396,10 @@ export default class GigaPubClient {
   /** The launch data the SDK lifts from `Telegram.WebApp` */
   getUserData() {
     return {
-      user: this.farmer.getTelegramUser(),
+      user: this.user,
       platform: this.tgPlatform,
       version: this.tgVersion,
-      start_param: this.farmer.getStartParam() || null,
+      start_param: this.startParam || null,
     };
   }
 

@@ -1,3 +1,5 @@
+import BaseAdClient from "./BaseAdClient.js";
+
 /** GigaPub's own bid network */
 const BID_NET_URL = "https://bid-net.gigapub.tech";
 
@@ -19,29 +21,23 @@ const REWARDED_SECONDS = 15;
 const INTERSTITIAL_SECONDS = 8;
 
 /** Runs a GigaPub bid-net placement the way `gigaBidInit()`'s show function would. See `GigaBidClient.README.md` */
-export default class GigaBidClient {
+export default class GigaBidClient extends BaseAdClient {
   /**
-   * @param {object} farmer - the farmer instance, for its api/initData/signal
-   * @param {object} options
+   * @param {object} options - shared context (api, initData, signal, ...), see `BaseAdClient`
    * @param {string|number} options.projectId - the GigaPub project id
    * @param {string|number} options.placementId - the bid-net placement id
    * @param {number} [options.mode] - `m` in GigaPub's config, 2 for real-time bidding
    * @param {string} [options.tgPlatform] - Telegram client platform
    * @param {string} [options.tgVersion] - Telegram WebApp version
    */
-  constructor(farmer, options = {}) {
-    this.farmer = farmer;
+  constructor(options = {}) {
+    super(options);
 
     this.projectId = String(options.projectId ?? "");
     this.placementId = String(options.placementId ?? "");
     this.mode = Number(options.mode) || 1;
     this.tgPlatform = options.tgPlatform || "android";
     this.tgVersion = options.tgVersion || "8.0";
-  }
-
-  /** The farmer's abort signal, read late so each run gets its own */
-  get signal() {
-    return this.farmer.signal;
   }
 
   /** Show the next ad, or the whole stack it belongs to
@@ -74,7 +70,7 @@ export default class GigaBidClient {
     const extra = { stackId, stackIndex };
     const passed = () => ({ passedTime: Date.now() - startedAt, ...extra });
 
-    this.farmer.debugger?.log("GigaPub bid-net ad:", ad);
+    this.log("GigaPub bid-net ad:", ad);
 
     await this.fireTracker(trackers["render"]);
     await this.sendEvent("adShowStart", transactionId, passed());
@@ -122,7 +118,7 @@ export default class GigaBidClient {
 
     if (proof) body.tg_proof = proof;
 
-    const data = await this.farmer.api
+    const data = await this.api
       .post(`${BID_NET_URL}${path}`, body, {
         signal: this.signal,
         headers: { ...this.getHeaders(), Authorization: null },
@@ -150,7 +146,7 @@ export default class GigaBidClient {
           : "/v1/ad-event";
 
     try {
-      await this.farmer.api.post(
+      await this.api.post(
         `${BID_NET_URL}${path}`,
         { event, data, userData: this.getUserData() },
         {
@@ -163,7 +159,7 @@ export default class GigaBidClient {
         },
       );
     } catch (error) {
-      this.farmer.debugger?.log(`GigaPub ${event} failed:`, error.message);
+      this.log(`GigaPub ${event} failed:`, error.message);
     }
   }
 
@@ -171,10 +167,10 @@ export default class GigaBidClient {
   async fireTracker(url) {
     if (typeof url !== "string" || !url.startsWith("https://")) return;
 
-    await this.farmer.api
+    await this.api
       .get(url, { signal: this.signal, headers: { Authorization: null } })
       .catch((error) => {
-        this.farmer.debugger?.log("GigaPub tracker failed:", error.message);
+        this.log("GigaPub tracker failed:", error.message);
       });
   }
 
@@ -189,16 +185,16 @@ export default class GigaBidClient {
   /** The launch data the core lifts from `Telegram.WebApp` */
   getUserData() {
     return {
-      user: this.farmer.getTelegramUser(),
+      user: this.user,
       platform: this.tgPlatform,
       version: this.tgVersion,
-      start_param: this.farmer.getStartParam() || null,
+      start_param: this.startParam || null,
     };
   }
 
   /** The init data's signed fields and its third-party `signature`, as the core proves the user */
   getTelegramProof() {
-    const initData = this.farmer.getInitData();
+    const initData = this.initData;
 
     if (!initData || initData.length > 4096) return null;
 
@@ -223,7 +219,4 @@ export default class GigaBidClient {
     return rewarded ? REWARDED_SECONDS : INTERSTITIAL_SECONDS;
   }
 
-  wait(seconds) {
-    return this.farmer.utils.delayForSeconds(seconds, { signal: this.signal });
-  }
 }

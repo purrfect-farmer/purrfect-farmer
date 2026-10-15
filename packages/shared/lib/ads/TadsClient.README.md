@@ -4,7 +4,7 @@ Runs a TADS widget the way `tads.init({ widgetId, type: "fullscreen", onShowRewa
 would, for drops whose page loads `w.tads.me/widget.js`.
 
 ```js
-const tads = new TadsClient(this, { widgetId });
+const tads = new TadsClient({ ...this.getAdClientOptions(), widgetId });
 await tads.watch();
 ```
 

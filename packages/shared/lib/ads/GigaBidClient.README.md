@@ -5,7 +5,7 @@ GigaPub's own network: `bid-net.gigapub.tech/loader.js` pulls in
 `cdn.giga.pub/script/giga.bid.release.v40.js`.
 
 ```js
-const bid = new GigaBidClient(this, { projectId, placementId, mode });
+const bid = new GigaBidClient({ ...this.getAdClientOptions(), projectId, placementId, mode });
 await bid.watch();
 ```
 

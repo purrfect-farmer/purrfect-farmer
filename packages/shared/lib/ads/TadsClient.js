@@ -1,3 +1,5 @@
+import BaseAdClient from "./BaseAdClient.js";
+
 /** TADS' ad server, which picks the ad and records its views */
 const BACKEND_URL = "https://backend.tads.me";
 
@@ -20,10 +22,9 @@ const VIEW_LIMIT = 10;
 const VIEW_WINDOW_MS = 30 * 60 * 1000;
 
 /** Runs a TADS widget the way `tads.init({ widgetId, type: "fullscreen" }).showAd()` would. See `TadsClient.README.md` */
-export default class TadsClient {
+export default class TadsClient extends BaseAdClient {
   /**
-   * @param {object} farmer - the farmer instance, for its api/initData/signal
-   * @param {object} [options]
+   * @param {object} [options] - shared context (api, initData, signal, ...), see `BaseAdClient`
    * @param {string|number} [options.widgetId] - default widget for `watch()`
    * @param {boolean} [options.rewarded] - whether the widget has a reward callback, sent as `is_rewarded`
    * @param {string} [options.tgPlatform] - Telegram client platform
@@ -32,15 +33,14 @@ export default class TadsClient {
    * @param {object} [options.screen] - screen metrics to report
    * @param {number} [options.playbackSeconds] - how long to keep the ad open
    */
-  constructor(farmer, options = {}) {
-    this.farmer = farmer;
+  constructor(options = {}) {
+    super(options);
 
     this.widgetId = options.widgetId;
     this.rewarded = options.rewarded ?? true;
     this.tgPlatform = options.tgPlatform || "android";
     this.tgVersion = options.tgVersion || "8.0";
-    this.referrer =
-      options.referrer || `https://${this.farmer.constructor.host}`;
+    this.referrer = options.referrer || this.origin;
     this.playbackSeconds = options.playbackSeconds;
 
     this.screen = {
@@ -61,11 +61,6 @@ export default class TadsClient {
     this.views = [];
   }
 
-  /** The farmer's abort signal, read late so each run gets its own */
-  get signal() {
-    return this.farmer.signal;
-  }
-
   /** Watch a rewarded fullscreen ad
    * @param {string|number} [widgetId]
    * @returns {Promise<object>} the ad that was shown
@@ -84,7 +79,7 @@ export default class TadsClient {
       throw new Error("TADS returned no ad");
     }
 
-    this.farmer.debugger?.log("TADS ad:", ad);
+    this.log("TADS ad:", ad);
 
     const type = String(data["type"] || "FULLSCREEN").toUpperCase();
     const requestId = data["request_id"];
@@ -153,8 +148,8 @@ export default class TadsClient {
 
   /** Ask TADS for an ad, with the launch and device data the widget collects */
   async requestAd(widgetId) {
-    const user = this.farmer.getTelegramUser() || {};
-    const initData = this.farmer.getInitData() || "";
+    const user = this.user || {};
+    const initData = this.initData || "";
 
     this.sequence++;
 
@@ -185,7 +180,7 @@ export default class TadsClient {
     };
 
     const startedAt = Date.now();
-    const response = await this.farmer.api.get(`${BACKEND_URL}/ads_backend`, {
+    const response = await this.api.get(`${BACKEND_URL}/ads_backend`, {
       params,
       signal: this.signal,
       headers: { Authorization: null, "Content-Type": "application/json" },
@@ -200,12 +195,12 @@ export default class TadsClient {
   async countView(ad, widgetId, requestId, delay = VIEW_DELAY_SECONDS) {
     if (delay) await this.wait(delay);
 
-    const user = this.farmer.getTelegramUser() || {};
+    const user = this.user || {};
     const isRtb = Boolean(ad["isRtb"]);
 
     this.views.push(Date.now());
 
-    await this.farmer.api.post(
+    await this.api.post(
       `${BACKEND_URL}/write-view`,
       {
         is_rtb: isRtb,
@@ -336,18 +331,13 @@ export default class TadsClient {
     }
   }
 
-  /** Fire a tracker on the farmer's client, without the drop's `Authorization` */
+  /** Fire a tracker on the shared client, without the drop's `Authorization` */
   request(url) {
-    return this.farmer.api
+    return this.api
       .get(url, { signal: this.signal, headers: { Authorization: null } })
       .catch((error) => {
-        this.farmer.debugger?.log("TADS tracker failed:", error.message);
+        this.log("TADS tracker failed:", error.message);
       });
   }
 
-  wait(seconds) {
-    if (seconds <= 0) return;
-
-    return this.farmer.utils.delayForSeconds(seconds, { signal: this.signal });
-  }
 }

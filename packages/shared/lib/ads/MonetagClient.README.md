@@ -6,7 +6,7 @@ zone pays through a server-to-server postback keyed on `ymid`. Whether the rewar
 the drop's balance is the drop's business and stays in the farmer.
 
 ```js
-const monetag = new MonetagClient(this, { zoneId });
+const monetag = new MonetagClient({ ...this.getAdClientOptions(), zoneId });
 await monetag.watch();
 ```
 

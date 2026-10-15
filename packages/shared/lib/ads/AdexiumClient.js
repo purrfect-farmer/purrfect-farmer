@@ -1,3 +1,5 @@
+import BaseAdClient from "./BaseAdClient.js";
+
 /** Adexium's bid endpoint, `bidRequestURL` in the widget */
 const BID_URL = "https://bid.tgads.live/bid-request";
 
@@ -8,27 +10,21 @@ const WIDGET_VERSION = 1.81;
 const PLAYBACK_SECONDS = 15;
 
 /** Runs an Adexium widget the way `new AdexiumWidget({ wid }).requestAd()` would. See `AdexiumClient.README.md` */
-export default class AdexiumClient {
+export default class AdexiumClient extends BaseAdClient {
   /**
-   * @param {object} farmer - the farmer instance, for its api/initData/signal
-   * @param {object} [options]
+   * @param {object} [options] - shared context (api, initData, signal, ...), see `BaseAdClient`
    * @param {string} [options.wid] - default widget id for `watch()`
    * @param {string} [options.adFormat] - `interstitial`, `push-like` or `video`
    * @param {string} [options.tgPlatform] - Telegram client platform
    * @param {number} [options.playbackSeconds] - how long to let the ad play
    */
-  constructor(farmer, options = {}) {
-    this.farmer = farmer;
+  constructor(options = {}) {
+    super(options);
 
     this.wid = options.wid;
     this.adFormat = options.adFormat || "interstitial";
     this.tgPlatform = options.tgPlatform || "android";
     this.playbackSeconds = options.playbackSeconds;
-  }
-
-  /** The farmer's abort signal, read late so each run gets its own */
-  get signal() {
-    return this.farmer.signal;
   }
 
   /** Watch a rewarded ad, as `requestRewardedAd()` asks for it
@@ -56,23 +52,21 @@ export default class AdexiumClient {
       throw new Error("Adexium returned no ad");
     }
 
-    this.farmer.debugger?.log("Adexium ad:", ad);
+    this.log("Adexium ad:", ad);
 
     /** The widget fires this the moment the banner is in the page */
     if (ad["notificationUrl"]) {
       await this.request(ad["notificationUrl"]);
     }
 
-    await this.farmer.utils.delayForSeconds(this.getPlaybackSeconds(ad), {
-      signal: this.signal,
-    });
+    await this.wait(this.getPlaybackSeconds(ad));
 
     return ad;
   }
 
   /** Ask Adexium for an ad, as the widget's `requestAd` does */
   async requestAd(wid, motivated) {
-    const response = await this.farmer.api.post(
+    const response = await this.api.post(
       BID_URL,
 
       /** Sent as the widget's `fetch` sends a string body, as `text/plain` */
@@ -99,7 +93,7 @@ export default class AdexiumClient {
 
   /** The viewer as the widget builds it from `Telegram.WebApp` */
   getUser(wid) {
-    const user = this.farmer.getTelegramUser() || {};
+    const user = this.user || {};
 
     return {
       wid,
@@ -114,18 +108,18 @@ export default class AdexiumClient {
       platform: this.tgPlatform,
       serialized: JSON.stringify(user),
       from: "window",
-      initData: this.farmer.getInitData(),
+      initData: this.initData,
       tonConnected: false,
       motivated: false,
     };
   }
 
-  /** Fire a tracker on the farmer's client, without the drop's `Authorization` */
+  /** Fire a tracker on the shared client, without the drop's `Authorization` */
   request(url) {
-    return this.farmer.api
+    return this.api
       .get(url, { signal: this.signal, headers: { Authorization: null } })
       .catch((error) => {
-        this.farmer.debugger?.log("Adexium tracker failed:", error.message);
+        this.log("Adexium tracker failed:", error.message);
       });
   }
 

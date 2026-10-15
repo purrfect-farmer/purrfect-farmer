@@ -341,6 +341,20 @@ export default class BaseFarmer {
     }
   }
 
+  /** The shared context the ad clients in `lib/ads` take */
+  getAdClientOptions() {
+    return {
+      api: this.api,
+      initData: this.getInitData(),
+      origin: `https://${this.constructor.host}`,
+      launchURL: this.getLaunchURL(),
+      userAgent: this.userAgent,
+      storage: this.storage,
+      logger: this.debugger,
+      signal: () => this.signal,
+    };
+  }
+
   /** Restore cached auth data */
   restoreCachedAuthData(data) {}
 

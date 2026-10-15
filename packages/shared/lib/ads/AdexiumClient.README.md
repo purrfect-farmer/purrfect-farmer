@@ -3,7 +3,7 @@
 Runs an Adexium (`tgads`) widget the way `new AdexiumWidget({ wid }).requestAd()` would.
 
 ```js
-const adexium = new AdexiumClient(this, { wid });
+const adexium = new AdexiumClient({ ...this.getAdClientOptions(), wid });
 await adexium.watch(); // motivated: true, as requestRewardedAd()
 await adexium.play(); // motivated: false, as GigaPub asks
 ```

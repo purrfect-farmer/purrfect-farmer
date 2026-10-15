@@ -1,3 +1,4 @@
+import BaseAdClient from "./BaseAdClient.js";
 import { md5 } from "../../utils/core.js";
 
 /** Where each publisher's widget config lives, keyed by the MD5 of its id */
@@ -28,29 +29,23 @@ const INTERSTITIAL_SECONDS = 10;
 const NATIVE_SECONDS = 3.2;
 
 /** Runs a RichAds widget the way `TelegramAdsController` would. See `RichAdsClient.README.md` */
-export default class RichAdsClient {
+export default class RichAdsClient extends BaseAdClient {
   /**
-   * @param {object} farmer - the farmer instance, for its api/initData/signal
-   * @param {object} options
+   * @param {object} options - shared context (api, initData, signal, ...), see `BaseAdClient`
    * @param {string|number} options.pubId - the publisher id passed to `initialize`
    * @param {string|number} options.appId - the app id passed to `initialize`
    * @param {string} [options.tgPlatform] - Telegram client platform
    * @param {string} [options.tgVersion] - Telegram WebApp version
    * @param {number} [options.playbackSeconds] - how long to let the ad play
    */
-  constructor(farmer, options = {}) {
-    this.farmer = farmer;
+  constructor(options = {}) {
+    super(options);
 
     this.pubId = String(options.pubId ?? "");
     this.appId = String(options.appId ?? "");
     this.tgPlatform = options.tgPlatform || "android";
     this.tgVersion = options.tgVersion || "8.0";
     this.playbackSeconds = options.playbackSeconds;
-  }
-
-  /** The farmer's abort signal, read late so each run gets its own */
-  get signal() {
-    return this.farmer.signal;
   }
 
   /** Run the interstitial, as `triggerInterstitialVideo()` and `triggerInterstitialBanner()` do */
@@ -84,7 +79,7 @@ export default class RichAdsClient {
       throw new Error("RichAds returned no ad");
     }
 
-    this.farmer.debugger?.log("RichAds ad:", ad);
+    this.log("RichAds ad:", ad);
 
     if (ad["creative_type"] === "vast") {
       await this.playVast(ad, widget);
@@ -121,7 +116,7 @@ export default class RichAdsClient {
 
   /** The publisher's widget ids, active types and SSPs */
   async loadConfig() {
-    const config = await this.farmer.api
+    const config = await this.api
       .get(`${CONFIG_URL}${md5(this.pubId)}.json`, {
         signal: this.signal,
         headers: { Authorization: null, accept: "application/json" },
@@ -141,7 +136,7 @@ export default class RichAdsClient {
   /** The viewer's IP and region, from the SDK's JSONP lookup */
   async loadUserInfo() {
     const region = await this.getRegion();
-    const text = await this.farmer.api
+    const text = await this.api
       .get(USERINFO_URL.replace("{{region}}", region), {
         signal: this.signal,
         responseType: "text",
@@ -158,7 +153,7 @@ export default class RichAdsClient {
 
     if (next in BID_URLS && next !== region) {
       this.region = next;
-      await this.farmer.storage?.set("richads-region", { value: next });
+      await this.storage?.set("richads-region", { value: next });
     }
   }
 
@@ -167,7 +162,7 @@ export default class RichAdsClient {
     if (this.region) return this.region;
 
     const saved = await Promise.resolve(
-      this.farmer.storage?.get("richads-region"),
+      this.storage?.get("richads-region"),
     ).catch(() => null);
 
     if (saved?.value in BID_URLS) {
@@ -175,7 +170,7 @@ export default class RichAdsClient {
     }
 
     this.region = Math.random() < 0.5 ? "eu" : "us";
-    await this.farmer.storage?.set("richads-region", { value: this.region });
+    await this.storage?.set("richads-region", { value: this.region });
 
     return this.region;
   }
@@ -183,7 +178,7 @@ export default class RichAdsClient {
   /** The device report the SDK sends once a day */
   async sendAntiFraud() {
     const key = `richads-afd-${this.pubId}-${this.appId}`;
-    const sentAt = Number((await this.farmer.storage?.get(key))?.value) || 0;
+    const sentAt = Number((await this.storage?.get(key))?.value) || 0;
 
     if (Date.now() - sentAt < 864e5) return;
 
@@ -192,7 +187,7 @@ export default class RichAdsClient {
       .filter(({ type }) => this.isActive(type))
       .map(({ type, sspId }) => this.getWidgetConfig(type)?.["ssp_id"] ?? sspId);
 
-    await this.farmer.api
+    await this.api
       .post(
         ANTI_FRAUD_URL.replace("{{region}}", this.region),
         JSON.stringify({
@@ -200,7 +195,7 @@ export default class RichAdsClient {
           ssp_id: sspIds,
           publisher_id: this.pubId,
           site_id: Object.values(widgetTypes),
-          telegram_id: String(this.farmer.getUserId()),
+          telegram_id: String(this.userId),
           ip: String(this.ip),
           telegram_init: true,
           current_date: String(Math.floor(Date.now() / 1000)),
@@ -211,9 +206,9 @@ export default class RichAdsClient {
           headers: { Authorization: null, "Content-Type": "text/plain" },
         },
       )
-      .then(() => this.farmer.storage?.set(key, { value: Date.now() }))
+      .then(() => this.storage?.set(key, { value: Date.now() }))
       .catch((error) => {
-        this.farmer.debugger?.log("RichAds anti-fraud failed:", error.message);
+        this.log("RichAds anti-fraud failed:", error.message);
       });
   }
 
@@ -269,14 +264,14 @@ export default class RichAdsClient {
       body.height = widget.height;
     }
 
-    const data = await this.farmer.api
+    const data = await this.api
       .post(url, JSON.stringify(body), {
         signal: this.signal,
         headers: { Authorization: null, "Content-Type": "text/plain" },
       })
       .then((response) => response.data)
       .catch((error) => {
-        this.farmer.debugger?.log("RichAds bid failed:", error.message);
+        this.log("RichAds bid failed:", error.message);
         return [];
       });
 
@@ -285,11 +280,11 @@ export default class RichAdsClient {
 
   /** What the SDK reads off `Telegram.WebApp` and sends with every bid */
   getPublisherInfo() {
-    const user = this.farmer.getTelegramUser() || {};
+    const user = this.user || {};
 
     return {
       publisher_id: this.pubId,
-      user_agent: this.farmer.userAgent || globalThis.navigator?.userAgent,
+      user_agent: this.userAgent || globalThis.navigator?.userAgent,
       language_code: user["language_code"] || "",
       premium: user["is_premium"] || false,
       last_name: user["last_name"] || "",
@@ -364,14 +359,14 @@ export default class RichAdsClient {
       "bid-id": bidId,
     });
 
-    return this.farmer.api
+    return this.api
       .post(
         `${VIDEO_METRICS_URL.replace("{{region}}", this.region)}?${params}`,
         null,
         { signal: this.signal, headers: { Authorization: null } },
       )
       .catch((error) => {
-        this.farmer.debugger?.log("RichAds metrics failed:", error.message);
+        this.log("RichAds metrics failed:", error.message);
       });
   }
 
@@ -419,18 +414,15 @@ export default class RichAdsClient {
     }
   }
 
-  /** Fire a tracker on the farmer's client, without the drop's `Authorization` */
+  /** Fire a tracker on the shared client, without the drop's `Authorization` */
   request(url) {
-    return this.farmer.api
+    return this.api
       .get(url, { signal: this.signal, headers: { Authorization: null } })
       .catch((error) => {
-        this.farmer.debugger?.log("RichAds tracker failed:", error.message);
+        this.log("RichAds tracker failed:", error.message);
       });
   }
 
-  wait(seconds) {
-    return this.farmer.utils.delayForSeconds(seconds, { signal: this.signal });
-  }
 
   getPlaybackSeconds(kind, widget) {
     if (this.playbackSeconds != null) return this.playbackSeconds;
@@ -439,7 +431,7 @@ export default class RichAdsClient {
   }
 
   getAuthDate() {
-    return new URLSearchParams(this.farmer.getInitData() || "").get(
+    return new URLSearchParams(this.initData || "").get(
       "auth_date",
     );
   }
@@ -462,8 +454,8 @@ export default class RichAdsClient {
       ri: null,
       ts_detected: 1,
       tz: Intl.DateTimeFormat().resolvedOptions().timeZone,
-      nl: this.farmer.getTelegramUser()?.["language_code"] || "en",
-      nls: this.farmer.getTelegramUser()?.["language_code"] || "en",
+      nl: this.languageCode,
+      nls: this.languageCode,
       bm: null,
     };
   }

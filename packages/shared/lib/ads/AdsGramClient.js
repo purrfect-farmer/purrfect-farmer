@@ -1,3 +1,5 @@
+import BaseAdClient from "./BaseAdClient.js";
+
 /** AdsGram's own API - never the drop's. */
 const ADSGRAM_URL = "https://api.adsgram.ai";
 
@@ -14,33 +16,27 @@ const BLOCK_PREFIXES = ["int-", "task-"];
 const PLAYBACK_SECONDS = 20;
 
 /** Runs an AdsGram banner the way the SDK would. See `AdsGramClient.README.md` */
-export default class AdsGramClient {
+export default class AdsGramClient extends BaseAdClient {
   /**
-   * @param {object} farmer - the farmer instance, for its api/initData/signal
-   * @param {object} [options]
+   * @param {object} [options] - shared context (api, initData, signal, ...), see `BaseAdClient`
    * @param {number} [options.playbackSeconds] - how long to let the ad play
-   * @param {string} [options.topDomain] - defaults to the farmer's own host
+   * @param {string} [options.topDomain] - defaults to `origin`
    * @param {string} [options.platform] - `navigator.platform` to report
    * @param {string} [options.tgPlatform] - Telegram client platform
    * @param {string} [options.tmaVersion] - mini-app API version
    * @param {string} [options.colorScheme] - `dark` or `light`
    * @param {number} [options.viewportHeight] - mini-app viewport height
    */
-  constructor(farmer, options = {}) {
-    this.farmer = farmer;
+  constructor(options = {}) {
+    super(options);
 
     this.playbackSeconds = options.playbackSeconds ?? PLAYBACK_SECONDS;
-    this.topDomain = options.topDomain || `https://${farmer.constructor.host}`;
+    this.topDomain = options.topDomain || this.origin;
     this.platform = options.platform || "Linux x86_64";
     this.tgPlatform = options.tgPlatform || "android";
     this.tmaVersion = options.tmaVersion || "8.0";
     this.colorScheme = options.colorScheme || "dark";
     this.viewportHeight = options.viewportHeight ?? 632;
-  }
-
-  /** The farmer's abort signal, read late so each run gets its own */
-  get signal() {
-    return this.farmer.signal;
   }
 
   /** Watch a rewarded block
@@ -57,7 +53,7 @@ export default class AdsGramClient {
    */
   async play(blockId, { completion = "reward" } = {}) {
     const payload = await this.requestBanner(blockId);
-    this.farmer.debugger?.log("AdsGram banner:", payload);
+    this.log("AdsGram banner:", payload);
 
     const banner = payload?.banners?.[0]?.banner;
     const trackings = banner?.trackings || [];
@@ -75,9 +71,7 @@ export default class AdsGramClient {
     await this.fireTracker(tracker("render"));
     await this.fireTracker(tracker("show"));
 
-    await this.farmer.utils.delayForSeconds(this.playbackSeconds, {
-      signal: this.signal,
-    });
+    await this.wait(this.playbackSeconds);
 
     await this.completeTracker(finish, completion);
 
@@ -109,13 +103,13 @@ export default class AdsGramClient {
     if (!url) return;
 
     await this.request(url).catch((error) => {
-      this.farmer.debugger?.log("AdsGram tracker failed:", error.message);
+      this.log("AdsGram tracker failed:", error.message);
     });
   }
 
-  /** Call AdsGram on the farmer's client, without the drop's `Authorization` */
+  /** Call AdsGram on the shared client, without the drop's `Authorization` */
   request(url, headers = {}) {
-    return this.farmer.api
+    return this.api
       .get(url, {
         signal: this.signal,
         headers: { ...headers, Authorization: null },
@@ -125,19 +119,17 @@ export default class AdsGramClient {
 
   /** Build a signed `/adv` query, in the SDK's parameter order because the signature covers it */
   async buildQuery(blockId) {
-    const farmer = this.farmer;
-
     /** Read raw, since JSON-parsing rounds off the 19-digit `chat_instance` */
-    const initData = new URLSearchParams(farmer.getInitData() || "");
+    const initData = new URLSearchParams(this.initData || "");
     const params = new URLSearchParams();
 
     params.set("envType", "telegram");
     params.set("blockId", this.stripBlockPrefix(blockId));
     params.set("platform", this.platform);
-    params.set("language", farmer.getTelegramUser()?.["language_code"] || "en");
+    params.set("language", this.languageCode);
 
     /** Read from the Telegram user, the only place initData carries `is_premium` */
-    if (farmer.getTelegramUser()?.["is_premium"]) {
+    if (this.user?.["is_premium"]) {
       params.set("is_premium", "true");
     }
 
@@ -157,7 +149,7 @@ export default class AdsGramClient {
 
     params.set("data_check_string", this.buildDataCheckString());
     params.set("sdk_version", SDK_VERSION);
-    params.set("tg_id", String(farmer.getUserId()));
+    params.set("tg_id", String(this.userId));
     params.set("tg_platform", this.tgPlatform);
     params.set("tma_version", this.tmaVersion);
     params.set("request_id", this.makeRequestId());
@@ -183,7 +175,7 @@ export default class AdsGramClient {
 
   /** The initData check string, base64url encoded and ordered the way the SDK orders it */
   buildDataCheckString() {
-    const initData = this.farmer.getInitData();
+    const initData = this.initData;
     if (!initData) return "";
 
     const pairs = [];

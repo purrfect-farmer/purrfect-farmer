@@ -1170,26 +1170,31 @@ export default class MonsterlandFarmer extends BaseFarmer {
 
   /** The page's AdsGram block, created once per run */
   get adsgram() {
-    return (this._adsgram ||= new AdsGramClient(this));
+    return (this._adsgram ||= new AdsGramClient(this.getAdClientOptions()));
   }
 
   /** The page's Monetag zone, created once per run */
   get monetag() {
-    return (this._monetag ||= new MonetagClient(this, {
+    return (this._monetag ||= new MonetagClient({
+      ...this.getAdClientOptions(),
       zoneId: MONETAG_ZONE_ID,
     }));
   }
 
   /** The page's GigaPub project, created once per run */
   get gigapub() {
-    return (this._gigapub ||= new GigaPubClient(this, {
+    return (this._gigapub ||= new GigaPubClient({
+      ...this.getAdClientOptions(),
       projectId: GIGAPUB_PROJECT_ID,
     }));
   }
 
   /** The page's TADS widget, created once per run */
   get tads() {
-    return (this._tads ||= new TadsClient(this, { widgetId: TADS_WIDGET_ID }));
+    return (this._tads ||= new TadsClient({
+      ...this.getAdClientOptions(),
+      widgetId: TADS_WIDGET_ID,
+    }));
   }
 
   /** Watch an ad for an action, falling back across providers the way the page does

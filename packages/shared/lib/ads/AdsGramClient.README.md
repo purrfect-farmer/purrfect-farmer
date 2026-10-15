@@ -6,8 +6,14 @@ to make the view count. Confirming the reward landed is the drop's business and 
 the farmer.
 
 ```js
-const adsgram = new AdsGramClient(this);
+const adsgram = new AdsGramClient(this.getAdClientOptions());
 await adsgram.watch(blockId);
+```
+
+Outside a farmer, pass the context directly (every key is optional except `initData`):
+
+```js
+const adsgram = new AdsGramClient({ api, initData, origin: "https://app.example.com", signal });
 ```
 
 ## Flow

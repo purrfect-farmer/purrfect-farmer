@@ -6,7 +6,7 @@ it picks a network, plays that network's ad and reports the result to its own st
 Whether the reward reached the drop's balance is the drop's business and stays in the farmer.
 
 ```js
-const gigapub = new GigaPubClient(this, { projectId, networks, rotation });
+const gigapub = new GigaPubClient({ ...this.getAdClientOptions(), projectId, networks, rotation });
 await gigapub.watch();
 ```
 

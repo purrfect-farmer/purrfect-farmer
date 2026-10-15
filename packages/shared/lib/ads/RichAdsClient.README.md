@@ -4,7 +4,7 @@ Runs a RichAds widget the way `TelegramAdsController` (`richinfo.co/richpartners
 would, for its two triggered formats.
 
 ```js
-const rich = new RichAdsClient(this, { pubId, appId });
+const rich = new RichAdsClient({ ...this.getAdClientOptions(), pubId, appId });
 await rich.interstitial(); // triggerInterstitialVideo() / triggerInterstitialBanner()
 await rich.native(); // triggerNativeNotification()
 ```

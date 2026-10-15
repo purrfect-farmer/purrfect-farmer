@@ -1,3 +1,5 @@
+import BaseAdClient from "./BaseAdClient.js";
+
 /** Where the SDK sends everything, baked into each build as an obfuscated literal */
 const MONETAG_HOST = "ill3.com";
 
@@ -29,10 +31,9 @@ const RESOLVE_INTERVAL_SECONDS = 1.5;
 const POP_RESOLVE_DELAY_SECONDS = 2;
 
 /** Runs a Monetag zone the way `show_<zoneId>()` would. See `MonetagClient.README.md` */
-export default class MonetagClient {
+export default class MonetagClient extends BaseAdClient {
   /**
-   * @param {object} farmer - the farmer instance, for its api/initData/signal
-   * @param {object} [options]
+   * @param {object} [options] - shared context (api, initData, signal, ...), see `BaseAdClient`
    * @param {string|number} [options.zoneId] - default zone for `watch()`
    * @param {number} [options.playbackSeconds] - how long to let the ad play
    * @param {string} [options.host] - Monetag's own host
@@ -40,8 +41,8 @@ export default class MonetagClient {
    * @param {string} [options.tgPlatform] - Telegram client platform
    * @param {object} [options.screen] - screen/window metrics to report
    */
-  constructor(farmer, options = {}) {
-    this.farmer = farmer;
+  constructor(options = {}) {
+    super(options);
 
     this.zoneId = options.zoneId;
     this.playbackSeconds = options.playbackSeconds;
@@ -61,16 +62,11 @@ export default class MonetagClient {
     this.settings = new Map();
   }
 
-  /** The farmer's abort signal, read late so each run gets its own */
-  get signal() {
-    return this.farmer.signal;
-  }
-
   /** Watch a rewarded zone, keying the postback on the farmed account's Telegram id
    * @param {string|number} [zoneId]
    */
   watch(zoneId = this.zoneId) {
-    return this.play(zoneId, { ymid: this.farmer.getUserId() });
+    return this.play(zoneId, { ymid: this.userId });
   }
 
   /** Run one ad from a zone, start to finish, in the SDK's order
@@ -98,13 +94,11 @@ export default class MonetagClient {
       throw new Error("Monetag returned an empty feed");
     }
 
-    this.farmer.debugger?.log("Monetag banner:", banner);
+    this.log("Monetag banner:", banner);
 
     await this.countImpression(banner, settings);
 
-    await this.farmer.utils.delayForSeconds(this.getPlaybackSeconds(settings), {
-      signal: this.signal,
-    });
+    await this.wait(this.getPlaybackSeconds(settings));
 
     const event = ruid ? await this.resolve(ruid) : null;
 
@@ -146,7 +140,7 @@ export default class MonetagClient {
       oaid,
       tgp: this.tgPlatform,
       tglc: this.getLanguage(),
-      var_3: this.farmer.getUserId(),
+      var_3: this.userId,
       rp_rid: ruid,
       bto: String(this.getTimezoneOffset() ?? ""),
       btz: this.getTimezone() || "",
@@ -154,24 +148,22 @@ export default class MonetagClient {
 
     const url = `${popUrl.startsWith("//") ? "https:" : ""}${popUrl}${popUrl.includes("?") ? "&" : "?"}${query}`;
 
-    this.farmer.debugger?.log("Monetag pop:", url);
+    this.log("Monetag pop:", url);
 
     /** Telegram opens it in the browser; the first hop logs the click, so a failed redirect later on is fine */
-    await this.farmer.api
+    await this.api
       .get(url, {
         signal: this.signal,
         responseType: "text",
         headers: { Authorization: null },
       })
       .catch((error) => {
-        this.farmer.debugger?.log("Monetag pop open failed:", error.message);
+        this.log("Monetag pop open failed:", error.message);
       });
 
     if (!ruid) return { url, ruid: null, event: null };
 
-    await this.farmer.utils.delayForSeconds(POP_RESOLVE_DELAY_SECONDS, {
-      signal: this.signal,
-    });
+    await this.wait(POP_RESOLVE_DELAY_SECONDS);
 
     return { url, ruid, event: await this.resolve(ruid) };
   }
@@ -189,7 +181,7 @@ export default class MonetagClient {
     const gid = await this.request(`${GIDRATOR_URL}?userId=${deviceId}`)
       .then((data) => data?.gid)
       .catch((error) => {
-        this.farmer.debugger?.log("Monetag gid failed:", error.message);
+        this.log("Monetag gid failed:", error.message);
         return null;
       });
 
@@ -202,12 +194,12 @@ export default class MonetagClient {
     if (this.deviceId) return this.deviceId;
 
     try {
-      const saved = await this.farmer.storage?.get("monetag-device");
+      const saved = await this.storage?.get("monetag-device");
       if (saved?.value) {
         return (this.deviceId = saved.value);
       }
     } catch (error) {
-      this.farmer.debugger?.log(
+      this.log(
         "Failed to read Monetag device:",
         error.message,
       );
@@ -216,11 +208,11 @@ export default class MonetagClient {
     this.deviceId = this.createDeviceId();
 
     try {
-      await this.farmer.storage?.set("monetag-device", {
+      await this.storage?.set("monetag-device", {
         value: this.deviceId,
       });
     } catch (error) {
-      this.farmer.debugger?.log(
+      this.log(
         "Failed to store Monetag device:",
         error.message,
       );
@@ -252,11 +244,11 @@ export default class MonetagClient {
     if (this.settings.has(zone)) return this.settings.get(zone);
 
     const settings = await this.fetchSettings(zone, oaid).catch((error) => {
-      this.farmer.debugger?.log("Monetag settings failed:", error.message);
+      this.log("Monetag settings failed:", error.message);
       return null;
     });
 
-    this.farmer.debugger?.log("Monetag settings:", settings);
+    this.log("Monetag settings:", settings);
     this.settings.set(zone, settings);
 
     return settings;
@@ -271,11 +263,11 @@ export default class MonetagClient {
       tgp: this.tgPlatform,
       tglc: this.getLanguage(),
       tgm: 1,
-      var_3: this.farmer.getUserId(),
+      var_3: this.userId,
     });
 
     /** The SDK's own path for when its fingerprinting collection fails */
-    const data = await this.farmer.api
+    const data = await this.api
       .post(
         `https://${this.host}/401/${zone}?${query}`,
         { client_hints: {} },
@@ -326,7 +318,7 @@ export default class MonetagClient {
 
       /** 1 = the page drives the ad itself, which is what this client does */
       sdkp: 1,
-      var_3: this.farmer.getUserId(),
+      var_3: this.userId,
       of: settings?.["fakepushOnlineFiltration"] || undefined,
     });
 
@@ -358,14 +350,11 @@ export default class MonetagClient {
       ).catch(() => null);
 
       if (event) {
-        this.farmer.debugger?.log("Monetag event:", event);
+        this.log("Monetag event:", event);
         return event;
       }
 
-      await this.farmer.utils.delayForSeconds(
-        RESOLVE_INTERVAL_SECONDS * (attempt + 1),
-        { signal: this.signal },
-      );
+      await this.wait(RESOLVE_INTERVAL_SECONDS * (attempt + 1));
     }
 
     return null;
@@ -375,9 +364,9 @@ export default class MonetagClient {
   /* Requests                                                              */
   /* --------------------------------------------------------------------- */
 
-  /** Call Monetag on the farmer's client, without the drop's `Authorization` */
+  /** Call Monetag on the shared client, without the drop's `Authorization` */
   request(url) {
-    return this.farmer.api
+    return this.api
       .get(url, { signal: this.signal, headers: { Authorization: null } })
       .then((res) => res.data);
   }
@@ -404,7 +393,7 @@ export default class MonetagClient {
       wiw: screen.innerWidth,
       wih: screen.innerHeight,
       wfc: 1,
-      pl: this.farmer.getLaunchURL(),
+      pl: this.launchURL,
       drf: "",
       np: 1,
       pt: 0,
@@ -473,7 +462,7 @@ export default class MonetagClient {
   }
 
   getLanguage() {
-    return this.farmer.getTelegramUser()?.["language_code"] || "en";
+    return this.languageCode;
   }
 
   getTimezoneOffset() {

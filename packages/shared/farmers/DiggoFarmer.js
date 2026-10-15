@@ -148,7 +148,7 @@ export default class DiggoFarmer extends BaseFarmer {
 
   /** The AdsGram client the ad task is watched with */
   get adsgram() {
-    return (this._adsgram ||= new AdsGramClient(this));
+    return (this._adsgram ||= new AdsGramClient(this.getAdClientOptions()));
   }
 
   /* --------------------------------------------------------------------- */
