@@ -30,8 +30,14 @@ const COOLDOWN_TASKS = [
 /** Repeatable task checked against the channel link in the Telegram bio */
 const BIO_TASK = { id: "bio_referral", bio: "https://t.me/AI_TRADING_FOREX" };
 
-/** Time for a new bio to reach the drop's verifier */
-const BIO_PROPAGATION_SECONDS = 10;
+/** Repeatable task checked against the eye emoji in the Telegram display name */
+const NAME_EYE_TASK = { id: "name_eye", emoji: "👁️" };
+
+/** Most taps the app sends in one tap_v2_sync batch */
+const TAP_V2_BATCH_MAX = 240;
+
+/** Time for a profile change to reach the drop's verifier */
+const PROFILE_PROPAGATION_SECONDS = 10;
 
 /** Maximum number of attempts to solve a captcha */
 const MAX_CAPTCHA_ATTEMPTS = 10;
@@ -611,6 +617,49 @@ export default class ATFFarmer extends BaseFarmer {
   /** Claim Bio Task */
   claimBioTask() {
     return this.makeAction("bio_task_claim");
+  }
+
+  /** Get Name Eye Task Status */
+  getNameEyeTaskStatus() {
+    return this.makeAction("name_eye_task_status");
+  }
+
+  /** Claim Name Eye Task */
+  claimNameEyeTask() {
+    return this.makeAction("name_eye_task_claim");
+  }
+
+  /** Random base36 id with the app's prefix, as the tap script makes them */
+  createTapV2Id(prefix, words) {
+    const values = crypto.getRandomValues(new Uint32Array(words));
+    return prefix + Array.from(values, (x) => x.toString(36)).join("");
+  }
+
+  /** Tap client instance, kept per run like the app's sessionStorage value */
+  getTapV2ClientInstance() {
+    if (!this.tapV2ClientInstance) {
+      this.tapV2ClientInstance = this.createTapV2Id("c_", 4);
+    }
+
+    return this.tapV2ClientInstance;
+  }
+
+  /** Get Tap V2 State (session_nonce, last_seq, energy, max_energy, regen_per_sec, reward_per_tap) */
+  getTapV2State() {
+    return this.makeAction("tap_v2_state", {
+      client_instance: this.getTapV2ClientInstance(),
+    });
+  }
+
+  /** Sync Tap V2 batch, seq is last_seq + 1 then next_seq from each reply */
+  syncTapV2({ sessionNonce, seq, taps }) {
+    return this.makeAction("tap_v2_sync", {
+      client_instance: this.getTapV2ClientInstance(),
+      session_nonce: sessionNonce,
+      seq,
+      batch_id: this.createTapV2Id(`b_${Date.now().toString(36)}_`, 3),
+      taps: Math.min(TAP_V2_BATCH_MAX, taps),
+    });
   }
 
   /** Resync Wallet */
@@ -1377,6 +1426,7 @@ export default class ATFFarmer extends BaseFarmer {
       await this.executeTask("Tasks", () => this.completeTasks());
       await this.executeTask("Extra Tasks", () => this.completeExtraTasks());
       await this.executeTask("Bio Task", () => this.completeBioTask());
+      await this.executeTask("Name Eye Task", () => this.completeNameEyeTask());
       await this.executeTask("Friends", () => this.claimFriendsRewards());
       await this.executeTask("Withdraw", () => this.withdraw());
       await this.storeAutoSnapshot();
@@ -2208,10 +2258,10 @@ export default class ATFFarmer extends BaseFarmer {
     }
   }
 
-  /** The drop can refuse the bio claim with a 4xx body carrying the reason */
-  async makeBioTaskClaim() {
+  /** The drop can refuse a profile task claim with a 4xx body carrying the reason */
+  async makeProfileTaskClaim(claim) {
     try {
-      return await this.claimBioTask();
+      return await claim();
     } catch (error) {
       if (!error.response?.data) {
         throw error;
@@ -2220,74 +2270,118 @@ export default class ATFFarmer extends BaseFarmer {
     }
   }
 
-  /** Record when the bio task is next available */
-  setBioTaskCooldown(result) {
+  /** Record when a profile task is next available */
+  setProfileTaskCooldown(id, result) {
     const nextAvailable = Number(result?.["next_available"]) || 0;
 
     this.user_data["task_cooldowns"] = {
       ...this.user_data["task_cooldowns"],
-      [BIO_TASK.id]: nextAvailable,
+      [id]: nextAvailable,
     };
 
     return nextAvailable;
   }
 
-  /** Complete Bio Task, setting the channel link as the bio when it is missing */
-  async completeBioTask() {
+  /** Complete a repeatable task verified against the Telegram profile, updating it when missing */
+  async completeProfileTask({
+    id,
+    label,
+    getStatus,
+    claim,
+    missingReason,
+    update,
+  }) {
     const nowSec = Math.floor(Date.now() / 1000);
     const cooldowns = this.user_data["task_cooldowns"] || {};
 
-    if (Number(cooldowns[BIO_TASK.id]) > nowSec) {
-      this.logger.warn("Bio task not available");
+    if (Number(cooldowns[id]) > nowSec) {
+      this.logger.warn(`${label} task not available`);
       return;
     }
 
-    const status = await this.getBioTaskStatus();
+    const status = await getStatus();
 
     if (
       status?.["status"] === "success" &&
-      this.setBioTaskCooldown(status) > nowSec
+      this.setProfileTaskCooldown(id, status) > nowSec
     ) {
-      this.logger.warn("Bio task not available");
+      this.logger.warn(`${label} task not available`);
       return;
     }
 
-    let result = await this.makeBioTaskClaim();
+    let result = await this.makeProfileTaskClaim(claim);
 
-    if (result?.["reason"] === "bio_missing") {
-      this.logger.info("Setting the ATF channel as Telegram bio...");
-
-      const updated = await this.tryToUpdateProfile({ about: BIO_TASK.bio });
+    if (result?.["reason"] === missingReason) {
+      const updated = await update();
 
       if (!updated) {
-        this.logger.warn("Bio task needs the channel link in the Telegram bio");
+        this.logger.warn(`${label} task needs a Telegram profile update`);
         return;
       }
 
-      await this.utils.delayForSeconds(BIO_PROPAGATION_SECONDS, {
+      await this.utils.delayForSeconds(PROFILE_PROPAGATION_SECONDS, {
         signal: this.signal,
       });
 
-      result = await this.makeBioTaskClaim();
+      result = await this.makeProfileTaskClaim(claim);
     }
 
     if (result?.["status"] === "success") {
       this.applyClaimResult(result);
-      this.setBioTaskCooldown(result);
-      this.logger.success(`Completed task: ${BIO_TASK.id}`);
+      this.setProfileTaskCooldown(id, result);
+      this.logger.success(`Completed task: ${id}`);
       return;
     }
 
     if (result?.["reason"] === "cooldown") {
-      this.setBioTaskCooldown(result);
-      this.logger.warn("Bio task is on cooldown");
+      this.setProfileTaskCooldown(id, result);
+      this.logger.warn(`${label} task is on cooldown`);
       return;
     }
 
     this.logger.error(
-      `Failed to complete ${BIO_TASK.id}:`,
+      `Failed to complete ${id}:`,
       result?.["message"] || result?.["reason"] || "Unknown error",
     );
+  }
+
+  /** Complete Bio Task, setting the channel link as the bio when it is missing */
+  completeBioTask() {
+    return this.completeProfileTask({
+      id: BIO_TASK.id,
+      label: "Bio",
+      getStatus: () => this.getBioTaskStatus(),
+      claim: () => this.claimBioTask(),
+      missingReason: "bio_missing",
+      update: () => {
+        this.logger.info("Setting the ATF channel as Telegram bio...");
+        return this.tryToUpdateProfile({ about: BIO_TASK.bio });
+      },
+    });
+  }
+
+  /** Complete Name Eye Task, appending the eye emoji to the last name when it is missing */
+  completeNameEyeTask() {
+    return this.completeProfileTask({
+      id: NAME_EYE_TASK.id,
+      label: "Name Eye",
+      getStatus: () => this.getNameEyeTaskStatus(),
+      claim: () => this.claimNameEyeTask(),
+      missingReason: "name_eye_missing",
+      update: () => {
+        const lastName = this.getUserLastName();
+
+        /* The verifier may lag behind a name that already has the eye */
+        if (this.getUserFullName().includes(NAME_EYE_TASK.emoji)) {
+          return true;
+        }
+
+        this.logger.info("Adding the eye emoji to Telegram name...");
+        return this.tryToUpdateProfile({
+          lastName: `${lastName} ${NAME_EYE_TASK.emoji}`.trim(),
+        });
+      },
+    });
   }
 
   /** Claim Friends Rewards */
