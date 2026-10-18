@@ -19,6 +19,7 @@ import {
   getStartCap,
   pickTool,
 } from "../lib/games/deepMine.js";
+import { createVictorsDevice } from "../lib/games/victorsDevice.js";
 
 /** The drop's backend, which the mini app talks to for everything */
 const API_URL = "https://server.victors.company/api";
@@ -35,6 +36,9 @@ const TURNSTILE_PAGE_URL = "https://app.victors.company/";
 
 /** The error code the backend answers with once the human pass is missing or stale */
 const HUMAN_REQUIRED_CODE = "HUMAN_REQUIRED";
+
+/** The error code a banned account gets, with whether it may reset and the terms it must accept */
+const BANNED_CODE = "BANNED";
 
 /** A stored pass this close to expiry is replaced rather than risked mid-run */
 const HUMAN_PASS_EXPIRY_MARGIN_SECONDS = 10 * 60;
@@ -69,6 +73,14 @@ const MINE_MOVE_DELAY_SECONDS = 1;
 
 /** Deep Mine stops for the day once its net is down this much, a shovel's price */
 const MINE_DAILY_LOSS_LIMIT = 25;
+
+/** How the page polls a mint: a first wait, then steady checks */
+const NFT_MINT_FIRST_CHECK_SECONDS = 4;
+const NFT_MINT_CHECK_SECONDS = 6;
+const NFT_MINT_CHECK_ATTEMPTS = 14;
+
+/** TON kept aside on top of the mint price, as the page warns */
+const NFT_MINT_GAS_TON = 0.05;
 
 /** How often, and how long, the verification is polled after paying */
 const VERIFICATION_CHECK_ATTEMPTS = 6;
@@ -136,6 +148,10 @@ export default class VictorsCompanyFarmer extends BaseFarmer {
 
     const payload = response.data || {};
 
+    if (payload["code"] === BANNED_CODE) {
+      await this.handleBan(payload);
+    }
+
     if (payload["code"] === HUMAN_REQUIRED_CODE && retryHuman) {
       this.logger.warn("The human pass was refused, passing the check again.");
       await this.obtainHumanPass();
@@ -176,7 +192,11 @@ export default class VictorsCompanyFarmer extends BaseFarmer {
     return this.callApi(
       "post",
       "/auth/login",
-      { startParam: this.getReferrerStartParam(), turnstileToken },
+      {
+        startParam: this.getReferrerStartParam(),
+        turnstileToken,
+        device: this.getDevice().getLoginDevice(),
+      },
       { retryHuman: false },
     );
   }
@@ -300,9 +320,115 @@ export default class VictorsCompanyFarmer extends BaseFarmer {
     return this.postToApi("/arcade/mine/end");
   }
 
-  /** Request a payout to the connected wallet */
+  /** Request a payout to the connected wallet, with the device fingerprint the page sends */
   requestWithdrawal(amount) {
-    return this.postToApi("/withdraw", { amount: Number(amount) });
+    return this.postToApi("/withdraw", {
+      amount: Number(amount),
+      forensics: this.getDevice().getForensics(),
+    });
+  }
+
+  /** Wipe a banned account, accepting the terms the ban names */
+  resetAccount(termsVersion) {
+    return this.callApi(
+      "post",
+      "/auth/reset",
+      { agree: true, termsVersion },
+      { retryHuman: false },
+    );
+  }
+
+  /** The NFT collection, with the account's own NFTs */
+  fetchNft() {
+    return this.getFromApi("/nft").then((result) => result["nft"] || {});
+  }
+
+  /** Get the mint transfer the drop expects */
+  startNftMint() {
+    return this.postToApi("/nft/mint/start");
+  }
+
+  /** Ask the drop whether a mint transfer has landed */
+  checkNftMint() {
+    return this.postToApi("/nft/mint/check");
+  }
+
+  /* --------------------------------------------------------------------- */
+  /* Device                                                                */
+  /* --------------------------------------------------------------------- */
+
+  /** The account's phone, the same on every run */
+  getDevice() {
+    return (this.device ||= createVictorsDevice(
+      this.getUserId(),
+      this.userAgent,
+    ));
+  }
+
+  /* --------------------------------------------------------------------- */
+  /* Ban                                                                   */
+  /* --------------------------------------------------------------------- */
+
+  /** Remember the ban and the pass it carries, then stop whatever was running */
+  async handleBan(payload) {
+    if (payload["humanPass"]) {
+      await this.storeHumanPass(payload["humanPass"]);
+    }
+
+    this.banInfo = {
+      error: payload["error"] || "Account is banned",
+      canReset: payload["canReset"] === true,
+      termsVersion: String(payload["termsVersion"] || ""),
+    };
+
+    throw new Error(
+      `${this.banInfo.error}${this.banInfo.canReset ? " (it can be reset from Account tools)" : ""}`,
+    );
+  }
+
+  /** Reset a banned account after confirming, which wipes its progress */
+  async resetAccountInteractive() {
+    if (!this.banInfo) {
+      try {
+        await this.login();
+      } catch {}
+    }
+
+    if (!this.banInfo) {
+      this.logger.info("The account is not banned.");
+      return;
+    }
+
+    if (!this.banInfo.canReset) {
+      this.logger.error("The ban does not allow a reset.");
+      return;
+    }
+
+    const confirm = await this.promptInput({
+      type: "select",
+      text: "Resetting wipes the account's balance and progress. Continue?",
+      options: [
+        { value: "no", label: "Cancel" },
+        { value: "yes", label: "Reset" },
+      ],
+    });
+
+    if (confirm !== "yes") return;
+
+    const result = await this.resetAccount(this.banInfo.termsVersion);
+
+    if (result?.["success"] === false) {
+      this.logger.error("Failed to reset the account:", result["error"]);
+      return;
+    }
+
+    if (result?.["humanPass"]) {
+      await this.storeHumanPass(result["humanPass"]);
+    }
+
+    this.banInfo = null;
+    this.applyResult(result);
+    this.logger.success("Account reset.");
   }
 
   /* --------------------------------------------------------------------- */
@@ -1026,7 +1152,10 @@ export default class VictorsCompanyFarmer extends BaseFarmer {
         );
 
       case "nft_hold":
-        return false;
+        return (
+          Boolean(user["walletAddress"]) &&
+          this.ownedNftCount >= Number(task["minNfts"] || 1)
+        );
 
       case "reach_level":
         return (
@@ -1041,7 +1170,19 @@ export default class VictorsCompanyFarmer extends BaseFarmer {
 
   /** Claim every open task the account qualifies for */
   async completeTasks() {
-    const tasks = (await this.fetchTasks()).filter(
+    const board = await this.fetchTasks();
+
+    /** The NFT count is only read when an NFT task is open */
+    if (
+      board.some(
+        (task) => task["kind"] === "nft_hold" && task["status"] === "open",
+      )
+    ) {
+      const nft = await this.fetchNft().catch(() => ({}));
+      this.ownedNftCount = (nft["owned"] || []).length;
+    }
+
+    const tasks = board.filter(
       (task) => task["status"] === "open" && this.isTaskQualified(task),
     );
 
@@ -1553,8 +1694,8 @@ export default class VictorsCompanyFarmer extends BaseFarmer {
       wallet: address
         ? { address, version: this.connectedWalletVersion }
         : null,
-      banned: false,
-      banReason: null,
+      banned: Boolean(this.banInfo),
+      banReason: this.banInfo?.error ?? null,
     };
   }
 
@@ -1635,6 +1776,25 @@ export default class VictorsCompanyFarmer extends BaseFarmer {
         ],
       },
       {
+        name: "NFT",
+        list: [
+          {
+            id: "nft-status",
+            icon: "search",
+            title: "NFT Status",
+            action: this.nftStatusInteractive.bind(this),
+            dispatch: false,
+          },
+          {
+            id: "mint-nft",
+            icon: "withdraw",
+            title: "Mint NFT",
+            action: this.mintNftInteractive.bind(this),
+            dispatch: false,
+          },
+        ],
+      },
+      {
         name: "Squad",
         list: [
           {
@@ -1654,6 +1814,13 @@ export default class VictorsCompanyFarmer extends BaseFarmer {
             icon: "kyc",
             title: "Human Check",
             action: this.obtainHumanPass.bind(this),
+            dispatch: false,
+          },
+          {
+            id: "reset-account",
+            icon: "reconnect",
+            title: "Reset Banned Account",
+            action: this.resetAccountInteractive.bind(this),
             dispatch: false,
           },
           {
@@ -1840,6 +2007,166 @@ export default class VictorsCompanyFarmer extends BaseFarmer {
     }
 
     await this.pollVerification(1);
+  }
+
+  /** Log the collection and the account's own NFTs */
+  async nftStatusInteractive() {
+    await this.ensureStateLoaded();
+
+    const nft = await this.fetchNft();
+    const owned = nft["owned"] || [];
+
+    this.logger.newline();
+    this.logger.keyValue("Collection", nft["name"]);
+    this.logger.keyValue("Minted", `${nft["minted"]} / ${nft["supply"]}`);
+    this.logger.keyValue("Price", `${nft["priceTon"]} TON`);
+    this.logger.keyValue("Sale Open", nft["saleOpen"] === false ? "No" : "Yes");
+    this.logger.keyValue("Pending", nft["pending"] || 0);
+    this.logger.keyValue(
+      "Owned",
+      owned.length
+        ? owned.map((item) => `#${item["serial"]}`).join(", ")
+        : "None",
+    );
+
+    return nft;
+  }
+
+  /** Poll the drop until it sees the mint, returning the minted serials */
+  async pollNftMint() {
+    for (let attempt = 0; attempt < NFT_MINT_CHECK_ATTEMPTS; attempt++) {
+      if (this.signal.aborted) break;
+
+      await this.utils.delayForSeconds(
+        attempt === 0 ? NFT_MINT_FIRST_CHECK_SECONDS : NFT_MINT_CHECK_SECONDS,
+        { signal: this.signal },
+      );
+
+      const result = await this.checkNftMint().catch(() => null);
+
+      if (result?.["minted"]?.length) return result["minted"];
+      if (result?.["nft"] && !result["nft"]["pending"]) break;
+    }
+
+    return [];
+  }
+
+  /** Pay for one NFT from the connected wallet's phrase, checking a mint already paid first */
+  async mintNftInteractive() {
+    await this.ensureStateLoaded();
+
+    const connected = this.getConnectedWalletAddress();
+
+    if (!connected) {
+      this.logger.warn("Connect a wallet first.");
+      return;
+    }
+
+    const nft = await this.nftStatusInteractive();
+    const priceTon = new Decimal(nft["priceTon"] || 0);
+
+    if (nft["saleOpen"] === false || nft["minted"] >= nft["supply"]) {
+      this.logger.warn("The NFT sale is closed.");
+      return;
+    }
+
+    /** A mint already paid is only checked, so it is never paid twice */
+    if (nft["pending"]) {
+      this.logger.info("A mint is pending, checking it...");
+      const minted = await this.pollNftMint();
+
+      if (minted.length) {
+        this.logger.success(`Minted NFT #${minted.at(-1)}.`);
+      } else {
+        this.logger.warn("The pending mint has not landed yet.");
+      }
+      return;
+    }
+
+    const phrase = ((await this.promptInput("Enter the wallet phrase:")) || "")
+      .trim()
+      .split(/\s+/)
+      .join(" ");
+
+    if (!phrase) {
+      this.logger.warn("No phrase provided.");
+      return;
+    }
+
+    const version = await this.promptInput({
+      type: "select",
+      text: "Select wallet version:",
+      options: [
+        { value: "5", label: "Wallet V5R1" },
+        { value: "4", label: "Wallet V4" },
+      ],
+    });
+
+    if (!version) {
+      this.logger.warn("No wallet version selected.");
+      return;
+    }
+
+    const wallet = this.utils.wallet.createTonWallet({ phrase, version });
+
+    if (!this.utils.isSameTonAddress(connected, await wallet.getAddress())) {
+      this.logger.warn("The phrase does not match the connected wallet.");
+      return;
+    }
+
+    const tonBalance = await wallet
+      .getBalance({ signal: this.signal })
+      .catch(() => new Decimal(0));
+
+    if (tonBalance.lessThan(priceTon.plus(NFT_MINT_GAS_TON))) {
+      this.logger.warn(
+        `Minting needs ${priceTon.plus(NFT_MINT_GAS_TON)} TON, the wallet holds ${tonBalance}.`,
+      );
+      return;
+    }
+
+    const confirm = await this.promptInput({
+      type: "select",
+      text: `Pay ${priceTon} TON for one NFT?`,
+      options: [
+        { value: "no", label: "Cancel" },
+        { value: "yes", label: "Mint" },
+      ],
+    });
+
+    if (confirm !== "yes") return;
+
+    const result = await this.startNftMint();
+    const tx = result?.["tx"];
+
+    if (!tx?.["address"] || !tx?.["amount"]) {
+      this.logger.error(
+        "Failed to start the mint:",
+        result?.["error"] || "the drop returned no transfer",
+      );
+      return;
+    }
+
+    const seqno = await wallet.send({
+      to: tx["address"],
+      value: BigInt(tx["amount"]),
+      body: tx["payload"] ? Cell.fromBase64(tx["payload"]) : tx["comment"],
+    });
+
+    await wallet.waitForConfirmation(seqno);
+    this.logger.success(
+      `Sent ${tx["amountTon"] ?? priceTon} TON for the mint.`,
+    );
+
+    const minted = await this.pollNftMint();
+
+    if (minted.length) {
+      this.logger.success(`Minted NFT #${minted.at(-1)}.`);
+    } else {
+      this.logger.warn(
+        "The mint has not been seen yet, check NFT Status later.",
+      );
+    }
   }
 
   /** List the crew and claim what it has earned */
