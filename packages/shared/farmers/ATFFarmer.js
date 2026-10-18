@@ -36,6 +36,12 @@ const NAME_EYE_TASK = { id: "name_eye", emoji: "👁️" };
 /** Most taps the app sends in one tap_v2_sync batch */
 const TAP_V2_BATCH_MAX = 240;
 
+/** Seconds the app collects taps before each tap_v2_sync */
+const TAP_V2_BATCH_SECONDS = 30;
+
+/** Human tap pace, well under the autoclick guard */
+const TAP_V2_TAPS_PER_SECOND = 5;
+
 /** Time for a profile change to reach the drop's verifier */
 const PROFILE_PROPAGATION_SECONDS = 10;
 
@@ -426,6 +432,24 @@ export default class ATFFarmer extends BaseFarmer {
     }
 
     this.applyActivityUi(result);
+    await this.sendForegroundSeen();
+  }
+
+  /** The app beacons a positive presence when Telegram reactivates it */
+  async sendForegroundSeen() {
+    if (!this.tmaSessionToken) {
+      return;
+    }
+
+    try {
+      await this.makeAction("foreground_transition_shadow", {
+        fg_event: "seen",
+        fg_epoch: this.getForegroundEpoch(),
+        activity_lease: this.activityLeaseToken || "",
+      });
+    } catch {
+      /** Telemetry, the app never lets it fail anything */
+    }
   }
 
   /** The app beacons the end of each foreground epoch when it is hidden or closed */
@@ -644,7 +668,7 @@ export default class ATFFarmer extends BaseFarmer {
     return this.tapV2ClientInstance;
   }
 
-  /** Get Tap V2 State (session_nonce, last_seq, energy, max_energy, regen_per_sec, reward_per_tap) */
+  /** Get Tap V2 State (tap_locked, engagement_mode, session_nonce, last_seq, energy, energy_cost, reward_per_tap, boost_finishing_until) */
   getTapV2State() {
     return this.makeAction("tap_v2_state", {
       client_instance: this.getTapV2ClientInstance(),
@@ -660,6 +684,81 @@ export default class ATFFarmer extends BaseFarmer {
       batch_id: this.createTapV2Id(`b_${Date.now().toString(36)}_`, 3),
       taps: Math.min(TAP_V2_BATCH_MAX, taps),
     });
+  }
+
+  /** Spend the tap energy in batches before claiming, as the app flushes taps before every claim */
+  async tapV2() {
+    const state = await this.makeProfileTaskClaim(() => this.getTapV2State());
+
+    if (state?.["status"] !== "success") {
+      this.logger.warn("Tap state unavailable");
+      return;
+    }
+
+    if (state["tap_locked"]) {
+      this.logger.warn(`Tap locked for ${state["retry_after"]}s`);
+      return;
+    }
+
+    /** The app only taps in tap mode, boost mode hands the coin to the boost */
+    if (state["engagement_mode"] !== "tap") {
+      this.logger.warn("Tap is in boost mode");
+      return;
+    }
+
+    if (Number(state["boost_finishing_until"]) > Date.now() / 1000) {
+      this.logger.warn("Tap blocked while a boost finishes");
+      return;
+    }
+
+    const sessionNonce = String(state["session_nonce"] || "");
+    let seq = (parseInt(state["last_seq"], 10) || 0) + 1;
+    let energy = Number(state["energy"]) || 0;
+    let energyCost = Math.max(0.25, Number(state["energy_cost"]) || 1.5);
+    let total = 0;
+
+    while (energy >= energyCost) {
+      const taps = Math.min(
+        TAP_V2_BATCH_MAX,
+        TAP_V2_BATCH_SECONDS * TAP_V2_TAPS_PER_SECOND,
+        Math.floor(energy / energyCost),
+      );
+
+      await this.utils.delayForSeconds(
+        Math.ceil(taps / TAP_V2_TAPS_PER_SECOND),
+        { signal: this.signal },
+      );
+
+      const result = await this.makeProfileTaskClaim(() =>
+        this.syncTapV2({ sessionNonce, seq, taps }),
+      );
+
+      if (result?.["status"] !== "success") {
+        if (result?.["reason"] === "tap_autoclick_locked") {
+          this.logger.warn(`Tap autoclick lock for ${result["retry_after"]}s`);
+        } else {
+          this.logger.warn(`Tap sync failed: ${result?.["reason"]}`);
+        }
+        break;
+      }
+
+      seq = parseInt(result["next_seq"], 10) || seq + 1;
+      energy = Number(result["energy"]) || 0;
+      energyCost = Math.max(0.25, Number(result["energy_cost"]) || energyCost);
+      total += taps;
+
+      if (result["pending_reward"] !== undefined) {
+        this.user_data.user["pending_reward"] = result["pending_reward"];
+      }
+
+      this.logger.info(
+        `Tapped ${taps} (pending: ${this.user_data.user["pending_reward"]})`,
+      );
+    }
+
+    if (total > 0) {
+      this.logger.success(`Tapped ${total} times`);
+    }
   }
 
   /** Resync Wallet */
@@ -1421,6 +1520,7 @@ export default class ATFFarmer extends BaseFarmer {
       await this.executeTask("Daily Interaction", () =>
         this.recordDailyInteraction(),
       );
+      await this.executeTask("Tap", () => this.tapV2());
       await this.executeTask("Mining", () => this.startOrClaimMining());
       await this.executeTask("Boost", () => this.applyBoost());
       await this.executeTask("Tasks", () => this.completeTasks());
