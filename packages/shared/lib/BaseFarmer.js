@@ -214,9 +214,9 @@ export default class BaseFarmer {
     return Boolean(this.captcha?.canSolve("recaptcha"));
   }
 
-  /** Solve Turnstile */
-  solveTurnstile({ siteKey, pageUrl }) {
-    return this.captcha?.solveTurnstile({ siteKey, pageUrl });
+  /** Solve Turnstile, with the widget's optional action and cData */
+  solveTurnstile({ siteKey, pageUrl, action, cData }) {
+    return this.captcha?.solveTurnstile({ siteKey, pageUrl, action, cData });
   }
 
   /** Solve ReCaptcha */

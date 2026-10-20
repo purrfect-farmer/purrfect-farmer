@@ -7,7 +7,7 @@ const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
 export default class BasePollingProvider extends BaseCaptchaProvider {
   /** Submit a captcha and return the request id */
-  async createRequest({ method, siteKey, pageUrl, body }) {
+  async createRequest({ method, siteKey, pageUrl, body, action, cData }) {
     throw new Error("createRequest() is not implemented");
   }
 
@@ -17,12 +17,22 @@ export default class BasePollingProvider extends BaseCaptchaProvider {
   }
 
   /** Solve Captcha */
-  async solve({ method, siteKey, pageUrl, body, initialDelay = 0 }) {
+  async solve({
+    method,
+    siteKey,
+    pageUrl,
+    body,
+    action,
+    cData,
+    initialDelay = 0,
+  }) {
     const requestId = await this.createRequest({
       method,
       siteKey,
       pageUrl,
       body,
+      action,
+      cData,
     });
 
     /* Give the provider a head start before polling for the result */

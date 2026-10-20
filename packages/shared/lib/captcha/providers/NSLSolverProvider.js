@@ -37,11 +37,13 @@ export default class NSLSolverProvider extends BaseCaptchaProvider {
     return Number(res.data.balance);
   }
 
-  async solve({ method, siteKey, pageUrl }) {
+  async solve({ method, siteKey, pageUrl, action, cData }) {
     const payload = {
       type: this.getMethod(method),
       site_key: siteKey,
       url: pageUrl,
+      ...(action ? { action } : {}),
+      ...(cData ? { cdata: cData } : {}),
     };
 
     for (let attempt = 0; ; attempt++) {

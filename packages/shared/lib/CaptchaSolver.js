@@ -44,6 +44,8 @@ export default class CaptchaSolver {
     siteKey,
     pageUrl,
     body,
+    action,
+    cData,
     initialDelay = DEFAULT_INITIAL_DELAY,
   }) {
     console.log("Solving captcha...", { method, siteKey, pageUrl });
@@ -52,13 +54,21 @@ export default class CaptchaSolver {
       siteKey,
       pageUrl,
       body,
+      action,
+      cData,
       initialDelay,
     });
   }
 
   /** Solve Turnstile */
-  solveTurnstile({ siteKey, pageUrl }) {
-    return this.solveCaptcha({ method: "turnstile", siteKey, pageUrl });
+  solveTurnstile({ siteKey, pageUrl, action, cData }) {
+    return this.solveCaptcha({
+      method: "turnstile",
+      siteKey,
+      pageUrl,
+      action,
+      cData,
+    });
   }
 
   /** Solve ReCaptcha */

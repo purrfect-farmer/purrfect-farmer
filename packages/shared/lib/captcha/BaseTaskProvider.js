@@ -26,7 +26,7 @@ export default class BaseTaskProvider extends BasePollingProvider {
     return Number(data.balance);
   }
 
-  async createRequest({ method, siteKey, pageUrl, body }) {
+  async createRequest({ method, siteKey, pageUrl, body, action, cData }) {
     const { data } = await this.api.post("/createTask", {
       ...this.getAuth(),
       task: {
@@ -34,6 +34,8 @@ export default class BaseTaskProvider extends BasePollingProvider {
         websiteURL: pageUrl,
         websiteKey: siteKey,
         ...(typeof body !== "undefined" ? { body } : {}),
+        ...(action ? { action } : {}),
+        ...(cData ? { data: cData } : {}),
       },
     });
 

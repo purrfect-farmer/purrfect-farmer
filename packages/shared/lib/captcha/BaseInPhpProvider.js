@@ -15,7 +15,7 @@ export default class BaseInPhpProvider extends BasePollingProvider {
     return Number(data.request);
   }
 
-  async createRequest({ method, siteKey, pageUrl, body }) {
+  async createRequest({ method, siteKey, pageUrl, body, action, cData }) {
     const { data } = await this.api.post("/in.php", {
       key: this.apiKey,
       method: this.getMethod(method),
@@ -24,6 +24,8 @@ export default class BaseInPhpProvider extends BasePollingProvider {
       pageurl: pageUrl,
       json: 1,
       ...(typeof body !== "undefined" ? { body } : {}),
+      ...(action ? { action } : {}),
+      ...(cData ? { data: cData } : {}),
     });
 
     if (data.status !== 1) {
