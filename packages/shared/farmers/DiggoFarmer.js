@@ -3,6 +3,7 @@ import AdsGramClient from "../lib/ads/AdsGramClient.js";
 import Decimal from "decimal.js";
 import { Address, Cell } from "@ton/core";
 import { buildTonProof } from "../lib/ton/proof.js";
+import { createVictorsDevice } from "../lib/games/victorsDevice.js";
 import {
   createWallet,
   deriveMnemonicFromTelegramId,
@@ -28,16 +29,57 @@ const SOCIAL_CONFIRM_MARGIN_SECONDS = 3;
 const AD_CHECK_ATTEMPTS = 10;
 const AD_CHECK_INTERVAL_SECONDS = 1.5;
 
-/** The in-game balance the Auto withdraws, which the game pays out in TON */
-const AUTO_CURRENCY = "DIGGO";
+/** The on-chain DIGGO jetton the Auto boosts, swaps and collects */
+const DIGGO_TOKEN = "DIGGO";
+const DIGGO_JETTON_ADDRESS = "EQD3jHVnwB6upXRphFb-PrWlmiFe6ofGs5pUCDSd-dEVGHNX";
 
-/** Withdrawal statuses, as the history reports them */
+/** The page the risk challenge's Turnstile is rendered on */
+const PAGE_URL = "https://diggo.linkpc.net/";
+
+/** Jetton withdrawal statuses, as the history reports them */
 const PENDING_WITHDRAWAL_STATUSES = ["pending", "approved", "paying"];
 const APPROVED_WITHDRAWAL_STATUSES = ["paid"];
 const FLAGGED_WITHDRAWAL_STATUSES = ["cancelled", "rejected"];
 
-/** How many history rows are read when looking for withdrawals */
-const WITHDRAWAL_HISTORY_LIMIT = 20;
+/** Withdrawals carry at most six decimals, as the page validates them */
+const WITHDRAWAL_DECIMALS = 6;
+
+/** Conversions take TON above this, in nanotons, with at most nine decimals */
+const MINIMUM_CONVERSION_NANO = 50000000n;
+
+/** Conversion errors worth one fresh quote before giving up */
+const CONVERSION_PRICE_ERRORS = [
+  "conversion_price_warming_up",
+  "conversion_price_moving",
+  "conversion_price_unavailable",
+  "conversion_price_stale",
+  "quote_expired",
+];
+
+/** How often, and how long, the activation is polled after paying its fee */
+const ACTIVATION_CHECK_ATTEMPTS = 6;
+const ACTIVATION_CHECK_INTERVAL_SECONDS = 10;
+
+/** Readable messages for the backend's error codes */
+const ERROR_MESSAGES = {
+  invalid_amount: "Invalid amount",
+  insufficient_balance: "Insufficient balance",
+  quote_expired: "Quote expired",
+  price_changed: "Price changed",
+  withdrawal_below_minimum: "Below the withdrawal minimum",
+  withdrawal_pending_limit: "A withdrawal is already pending",
+  ton_wallet_required: "A TON wallet must be bound",
+  jetton_withdrawals_paused: "Jetton withdrawals are paused",
+  dex_transition_paused: "Paused for the DEX transition",
+  dex_conversion_unavailable: "Conversion is unavailable",
+  ton_price_unavailable: "TON price is unavailable",
+  conversion_price_warming_up: "Conversion price is warming up",
+  conversion_price_moving: "Conversion price is moving",
+  conversion_price_unavailable: "Conversion price is unavailable",
+  conversion_price_stale: "Conversion price is stale",
+  risk_challenge_required: "A security check is required",
+  ton_payment_rejected: "The payment was rejected",
+};
 
 /** The level table the page levels the holding against */
 const MINING_LEVELS_URL = "https://diggo.linkpc.net/mining-levels.json";
@@ -83,15 +125,15 @@ export default class DiggoFarmer extends BaseFarmer {
   static rating = 3;
   static published = true;
 
-  /** DIGGO has no on-chain market yet and pays out TON, so the Auto has no jetton */
+  /** DIGGO is a STON.fi jetton, withdrawn on-chain once the wallet pays its activation */
   static auto = {
     id: "diggo-auto",
     title: "Diggo Auto",
-    token: "TON",
-    currency: AUTO_CURRENCY,
-    jettonAddress: null,
+    token: DIGGO_TOKEN,
+    jettonAddress: DIGGO_JETTON_ADDRESS,
     storagePrefix: "diggo-auto",
     minWithdrawal: 800,
+    verifiable: true,
     connectWithPhrase: true,
   };
 
@@ -104,8 +146,8 @@ export default class DiggoFarmer extends BaseFarmer {
     return { Authorization: `Bearer ${data["token"]}` };
   }
 
-  /** Call the game's API, throwing its error code on a refusal as the page does */
-  async callApi(method, path, data, idempotencyKey) {
+  /** Call the game's API, throwing its error code on a refusal as the page does, and clearing a risk challenge once */
+  async callApi(method, path, data, idempotencyKey, { retried = false } = {}) {
     const response = await this.api.request({
       method,
       url: `${API_URL}${path}`,
@@ -119,7 +161,22 @@ export default class DiggoFarmer extends BaseFarmer {
       response.data && typeof response.data === "object" ? response.data : {};
 
     if (response.status < 200 || response.status >= 300) {
-      const error = new Error(payload["error"] || "internal_error");
+      const code = payload["error"] || "internal_error";
+
+      if (
+        code === "risk_challenge_required" &&
+        !retried &&
+        !path.startsWith("/account/risk-challenge")
+      ) {
+        await this.solveRiskChallenge();
+
+        return this.callApi(method, path, data, idempotencyKey, {
+          retried: true,
+        });
+      }
+
+      const error = new Error(ERROR_MESSAGES[code] || code);
+      error.code = code;
       error.status = response.status;
       throw error;
     }
@@ -244,19 +301,95 @@ export default class DiggoFarmer extends BaseFarmer {
     return this.postToApi("/ton/bind", data);
   }
 
-  /** Price a withdrawal, which the request then refers to by its quote */
-  quoteWithdrawal(amount, currency) {
-    return this.postToApi("/withdrawals/quote", {
-      amount: String(amount),
-      currency,
+  /** The jetton withdrawal rules, the withdrawable balance, the destination and any active request */
+  fetchWithdrawalStatus() {
+    return this.getFromApi("/jetton-withdrawals/status");
+  }
+
+  /** Price a jetton withdrawal of a DIGGO amount */
+  quoteWithdrawal(amount) {
+    return this.postToApi("/jetton-withdrawals/quote", { amount });
+  }
+
+  /** Request a jetton withdrawal of a DIGGO amount */
+  requestWithdrawal(amount) {
+    return this.writeToApi("/jetton-withdrawals/request", {
+      amount,
+      accepted: true,
     });
   }
 
-  /** The account's recent withdrawals */
-  fetchWithdrawals() {
+  /** Cancel a jetton withdrawal that is still cancelable */
+  cancelWithdrawal(id) {
+    return this.postToApi("/jetton-withdrawals/cancel", { id });
+  }
+
+  /** A page of the account's jetton withdrawals, newest first */
+  fetchWithdrawals(cursor) {
     return this.getFromApi(
-      `/withdrawals?limit=${WITHDRAWAL_HISTORY_LIMIT}&currency=all&status=all`,
+      `/jetton-withdrawals${cursor ? `?${new URLSearchParams({ cursor })}` : ""}`,
     );
+  }
+
+  /** The one-time withdrawal activation */
+  fetchActivation() {
+    return this.getFromApi("/withdrawal-activation");
+  }
+
+  /** Have the backend check the bound wallet's age */
+  checkActivation() {
+    return this.postToApi("/withdrawal-activation/check");
+  }
+
+  /** Open the activation fee invoice */
+  createActivationOrder() {
+    return this.writeToApi("/withdrawal-activation/order", { accepted: true });
+  }
+
+  /** Have the backend build the activation fee transaction */
+  prepareActivation(orderId) {
+    return this.postToApi("/withdrawal-activation/prepare", { orderId });
+  }
+
+  /** Move the activation invoice to `submitted` once signed, or `rejected` */
+  stageActivation(orderId, stage) {
+    return this.postToApi("/withdrawal-activation/stage", { orderId, stage });
+  }
+
+  /** Open a risk challenge, which names the Turnstile to solve */
+  startRiskChallenge() {
+    return this.postToApi("/account/risk-challenge/start");
+  }
+
+  /** Answer a risk challenge with its Turnstile token */
+  verifyRiskChallenge(challengeId, token) {
+    return this.postToApi("/account/risk-challenge/verify", {
+      challengeId,
+      token,
+    });
+  }
+
+  /** Report the low-entropy device signals the page sends after signing in */
+  sendBrowserSignals(data) {
+    return this.postToApi("/account/browser-signals", data);
+  }
+
+  /** The DEX transition flags, public and read before the state has them */
+  fetchDexTransition() {
+    return this.getFromApi("/dex-transition");
+  }
+
+  /** Price converting in-app TON into DIGGO */
+  quoteConversion(amount) {
+    return this.postToApi("/conversion/quote", { amount });
+  }
+
+  /** Confirm a quoted conversion */
+  confirmConversion(quoteId) {
+    return this.writeToApi("/conversion/confirm", {
+      quoteId,
+      accepted: true,
+    });
   }
 
   /** Price a buy (TON in) or a sell (DIGGO in) */
@@ -309,11 +442,6 @@ export default class DiggoFarmer extends BaseFarmer {
     return this.postToApi("/ton/balance", { asset });
   }
 
-  /** Request the quoted withdrawal */
-  requestWithdrawal(quoteId) {
-    return this.writeToApi("/withdrawals", { quoteId });
-  }
-
   /* --------------------------------------------------------------------- */
   /* Session                                                               */
   /* --------------------------------------------------------------------- */
@@ -321,7 +449,100 @@ export default class DiggoFarmer extends BaseFarmer {
   /** Re-read the game state */
   async loadState() {
     await this.fetchState();
+    await this.reportBrowserSignals();
     return this.state_data;
+  }
+
+  /** The account's phone, the same on every run, which the browser signals describe */
+  getBrowserDevice() {
+    return (this.browserDevice ||= createVictorsDevice(
+      this.getUserId(),
+      this.userAgent,
+      { prefix: "diggo-device" },
+    ));
+  }
+
+  /** Send the page's sign-in signals once per session, never failing the run */
+  async reportBrowserSignals() {
+    if (this.browserSignalsSent) return;
+    this.browserSignalsSent = true;
+
+    const { profile } = this.getBrowserDevice();
+
+    /* Browsers report deviceMemory capped at 8 */
+    await this.sendBrowserSignals({
+      screen: [profile.screen.w, profile.screen.h, profile.screen.depth],
+      cores: profile.cpu,
+      memory: Math.min(8, Number(profile.ram) || 4),
+      touch: profile.touch,
+      webdriver: false,
+    }).catch(() => null);
+  }
+
+  /** The DEX transition flags, from the state or the public endpoint */
+  async getTransition() {
+    if (this.state_data?.["transition"]) return this.state_data["transition"];
+
+    return (this.transition ||= (await this.fetchDexTransition())[
+      "transition"
+    ]);
+  }
+
+  /** Why the market is closed, or null when it is open */
+  async getMarketPause() {
+    const transition = (await this.getTransition()) || {};
+
+    return (transition["marketPaused"] ?? transition["paused"])
+      ? "The market is paused for the DEX transition, buy on STON.fi instead."
+      : null;
+  }
+
+  /** Why deposits are closed, or null when they are open */
+  async getDepositPause() {
+    const transition = (await this.getTransition()) || {};
+
+    return (transition["depositsPaused"] ?? transition["paused"])
+      ? "Deposits are paused for the DEX transition."
+      : null;
+  }
+
+  /* --------------------------------------------------------------------- */
+  /* Risk challenge                                                        */
+  /* --------------------------------------------------------------------- */
+
+  /** Solve the Turnstile the backend asks for before new withdrawals */
+  async solveRiskChallenge() {
+    if (!this.canSolveTurnstile()) {
+      throw new Error("A security check is required, but no captcha solver");
+    }
+
+    const challenge = await this.startRiskChallenge();
+
+    if (!challenge["required"]) return;
+
+    this.logger.info("Solving the security check...");
+
+    const token = await this.solveTurnstile({
+      siteKey: challenge["siteKey"],
+      pageUrl: PAGE_URL,
+      action: challenge["action"],
+      cData: challenge["challengeId"],
+    });
+
+    await this.verifyRiskChallenge(challenge["challengeId"], token);
+    await this.fetchState();
+
+    this.logger.success("Security check passed.");
+  }
+
+  /** Clear a challenge the state already asks for */
+  async clearRiskChallenge() {
+    if (!this.state_data?.["riskChallenge"]?.["required"]) {
+      this.logger.info("No security check pending.");
+      return;
+    }
+
+    await this.solveRiskChallenge();
   }
 
   /** Read the state once, for tools that run without a full pass */
@@ -362,11 +583,14 @@ export default class DiggoFarmer extends BaseFarmer {
 
     this.logAccountInfo();
 
+    await this.executeTask("Security Check", () => this.clearRiskChallenge());
     await this.executeTask("Mining", () => this.claimPendingMining());
     await this.executeTask("Tasks", () => this.completeTasks());
     await this.executeTask("Streak", () => this.claimStreak());
     await this.executeTask("Squad", () => this.claimCommission());
     await this.executeTask("Chests", () => this.openChests());
+    await this.executeTask("Conversion", () => this.convertTon());
+    await this.executeTask("Holding", () => this.refreshHolding());
     await this.executeTask("Withdraw", () => this.withdraw());
     await this.storeAutoSnapshot();
   }
@@ -398,9 +622,12 @@ export default class DiggoFarmer extends BaseFarmer {
         ? new Date(mining["nextClaimAt"]).toLocaleString()
         : "Now",
     );
+    this.logger.keyValue("In-app TON", this.formatAmount(this.getInAppTon()));
     this.logger.keyValue(
-      "TON Available",
-      this.formatAmount(state["market"]?.["tonAvailable"] || 0),
+      "Wallet DIGGO",
+      this.getWalletDiggo() === null
+        ? "-"
+        : this.formatAmount(this.getWalletDiggo()),
     );
     this.logger.keyValue(
       "Wallet",
@@ -782,39 +1009,307 @@ export default class DiggoFarmer extends BaseFarmer {
   }
 
   /* --------------------------------------------------------------------- */
+  /* Holding                                                               */
+  /* --------------------------------------------------------------------- */
+
+  /** The bound wallet's on-chain DIGGO, as the state reads it or the chain does, or null when unknown */
+  getWalletDiggo() {
+    const diggo = this.state_data?.["wallet"]?.["holdings"]?.["diggo"];
+
+    if (diggo?.["known"] && diggo["amount"] !== undefined) {
+      return String(diggo["amount"]);
+    }
+
+    return this.onChainDiggo ?? null;
+  }
+
+  /** The in-app TON balance the conversion spends, in nanotons */
+  getInAppTonNano() {
+    const nano = String(this.state_data?.["wallet"]?.["tonBalanceNano"] ?? "");
+
+    if (/^\d+$/.test(nano)) return BigInt(nano);
+
+    return BigInt(
+      new Decimal(this.state_data?.["market"]?.["tonAvailable"] || 0)
+        .mul(1e9)
+        .floor()
+        .toFixed(),
+    );
+  }
+
+  /** The in-app TON balance, in TON */
+  getInAppTon() {
+    return new Decimal(this.getInAppTonNano().toString()).div(1e9);
+  }
+
+  /** Have the backend re-read the bound wallet's DIGGO, reading the chain when it cannot */
+  async refreshHolding() {
+    const address = this.getConnectedWalletAddress();
+
+    if (!address) {
+      this.logger.info("No wallet bound.");
+      return null;
+    }
+
+    await this.refreshWalletBalance("diggo").catch((error) =>
+      this.logger.warn("Failed to refresh the holding:", error.message),
+    );
+
+    const diggo = this.state_data?.["wallet"]?.["holdings"]?.["diggo"];
+
+    this.onChainDiggo = diggo?.["known"]
+      ? undefined
+      : (await this.readOnChainHolding(address)).toString();
+
+    this.logger.keyValue("Wallet DIGGO", this.getWalletDiggo() ?? "-");
+
+    return this.getWalletDiggo();
+  }
+
+  /* --------------------------------------------------------------------- */
+  /* Conversion                                                            */
+  /* --------------------------------------------------------------------- */
+
+  /** Convert the whole in-app TON balance into DIGGO at the STON.fi rate, once the conversion is open */
+  async convertTon() {
+    const transition = (await this.getTransition()) || {};
+
+    if (!transition["conversion"]?.["enabled"]) {
+      this.logger.info("Conversion is closed.");
+      return;
+    }
+
+    const nano = this.getInAppTonNano();
+
+    if (nano <= MINIMUM_CONVERSION_NANO) {
+      this.logger.info("No in-app TON to convert.");
+      return;
+    }
+
+    const amount = new Decimal(nano.toString()).div(1e9).toFixed();
+
+    for (let attempt = 0; attempt < 2; attempt++) {
+      try {
+        const { quote } = await this.quoteConversion(amount);
+
+        this.logger.newline();
+        this.logger.keyValue("Convert", `${amount} TON`);
+        this.logger.keyValue("Receive", `${quote["diggo"]} DIGGO`);
+
+        const { conversion } = await this.confirmConversion(quote["id"]);
+
+        this.logger.success(
+          `Converted ${amount} TON into ${conversion?.["diggo"] ?? quote["diggo"]} DIGGO.`,
+        );
+        return;
+      } catch (error) {
+        if (!CONVERSION_PRICE_ERRORS.includes(error.code)) throw error;
+
+        if (attempt === 1) {
+          this.logger.warn("Skipped the conversion:", error.message);
+          return;
+        }
+
+        this.logger.warn(`${error.message}, quoting again...`);
+        await this.utils.delayForSeconds(5, { signal: this.signal });
+      }
+    }
+  }
+
+  /* --------------------------------------------------------------------- */
+  /* Withdrawal activation                                                 */
+  /* --------------------------------------------------------------------- */
+
+  /** The withdrawal activation as last read */
+  getActivation() {
+    return (
+      this.activation ||
+      this.state_data?.["jettonWithdrawals"]?.["activation"] ||
+      null
+    );
+  }
+
+  /** Whether withdrawals need no activation, or have it */
+  isActivated(activation = this.getActivation()) {
+    return Boolean(
+      activation && (!activation["required"] || activation["eligible"]),
+    );
+  }
+
+  /** Whether the fee invoice can be opened or continued now, as the page offers it */
+  canPayActivation(activation) {
+    return (
+      activation?.["reason"] === "payment" ||
+      (activation?.["reason"] === "pending" &&
+        activation["order"]?.["stage"] === "created")
+    );
+  }
+
+  /** What stands between the account and withdrawing */
+  describeActivation(activation) {
+    if (!activation) return "Activation unknown";
+    if (this.isActivated(activation)) return "Activated";
+
+    return (
+      {
+        connect: "Bind a wallet first",
+        check: "Wallet age not checked yet",
+        young: `Wallet too young, eligible ${activation["age"]?.["eligibleAt"] ? new Date(activation["age"]["eligibleAt"]).toLocaleString() : "later"}`,
+        uninitialized: "Wallet is not initialized on-chain",
+        ageUnavailable: "Wallet age is unavailable",
+        unavailable: "Activation is unavailable for this account",
+        payment: "Activation fee (0.05 TON) not paid",
+        pending: "Activation fee is pending",
+        review: "Activation is under review, contact support",
+        ready: "Activated",
+      }[activation["reason"]] || `Activation ${activation["reason"]}`
+    );
+  }
+
+  /** Read the activation, having the backend check the wallet's age when it does not know it, as the page does */
+  async loadActivation() {
+    const { activation } = await this.fetchActivation();
+
+    this.activation = activation;
+
+    if (
+      activation?.["required"] &&
+      !activation["age"]?.["known"] &&
+      activation["destination"] &&
+      activation["reason"] !== "unavailable"
+    ) {
+      const checked = await this.checkActivation();
+
+      this.activation = checked["activation"] || activation;
+    }
+
+    return this.activation;
+  }
+
+  /** Pay the one-time activation fee from the bound wallet, then wait for the backend to see it */
+  async payActivation(signer) {
+    const activation = await this.loadActivation();
+
+    if (this.isActivated(activation)) {
+      return { status: true, skipped: true, message: "Already activated" };
+    }
+
+    if (!this.canPayActivation(activation)) {
+      return {
+        status: false,
+        skipped: true,
+        message: this.describeActivation(activation),
+      };
+    }
+
+    const ordered = await this.createActivationOrder();
+    const order = ordered["order"];
+
+    this.activation = ordered["activation"] || this.activation;
+
+    if (order?.["status"] === "pending" && order["stage"] === "created") {
+      const prepared = await this.prepareActivation(order["id"]);
+      const invoice = prepared["order"];
+
+      this.activation = prepared["activation"] || this.activation;
+
+      if (!prepared["activation"]?.["paid"]) {
+        if (
+          !prepared["activation"]?.["age"]?.["eligible"] ||
+          prepared["activation"]["reason"] === "unavailable" ||
+          invoice?.["status"] !== "pending" ||
+          invoice["stage"] !== "wallet_opened" ||
+          invoice["expiresAt"] <= this.getServerNow()
+        ) {
+          throw new Error("The activation payment is unavailable");
+        }
+
+        try {
+          await this.payTonTransaction(signer, invoice["transaction"]);
+        } catch (error) {
+          await this.stageActivation(order["id"], "rejected").catch(() => null);
+          throw error;
+        }
+
+        await this.stageActivation(order["id"], "submitted");
+        this.logger.info("Activation fee sent, waiting for the game...");
+      }
+    }
+
+    for (let attempt = 0; attempt < ACTIVATION_CHECK_ATTEMPTS; attempt++) {
+      if (this.isActivated()) break;
+
+      await this.utils.delayForSeconds(ACTIVATION_CHECK_INTERVAL_SECONDS, {
+        signal: this.signal,
+      });
+
+      this.activation = (await this.fetchActivation())["activation"];
+    }
+
+    const status = this.isActivated();
+
+    return {
+      status,
+      skipped: false,
+      message: status ? "Activated" : this.describeActivation(this.activation),
+    };
+  }
+
+  /** A signer for the bound wallet from its phrase, or null when the phrase is another wallet's */
+  async createSigner({ phrase, version, apiKey }) {
+    const wallet = this.utils.wallet.createTonWallet({
+      phrase,
+      version: Number(version),
+      apiKey,
+    });
+    const address = await wallet.getAddress();
+
+    if (
+      !this.utils.isSameTonAddress(this.getConnectedWalletAddress(), address)
+    ) {
+      return null;
+    }
+
+    return { wallet, address };
+  }
+
+  /* --------------------------------------------------------------------- */
   /* Withdrawal                                                            */
   /* --------------------------------------------------------------------- */
 
-  /** The withdrawal rules for a currency, as the state publishes them */
-  getWithdrawalRule(currency) {
-    return this.state_data?.["withdrawals"]?.["sources"]?.[currency] || {};
+  /** The jetton withdrawal rules, withdrawable balance, destination and active request */
+  async getWithdrawalStatus() {
+    this.withdrawalStatus = await this.fetchWithdrawalStatus();
+
+    if (this.withdrawalStatus["withdrawals"]?.["activation"]) {
+      this.activation = this.withdrawalStatus["withdrawals"]["activation"];
+    }
+
+    return this.withdrawalStatus;
   }
 
-  /** The balance a currency is withdrawn from */
-  getWithdrawableBalance(currency) {
-    return currency === "TON"
-      ? this.state_data["market"]?.["tonAvailable"] || 0
-      : this.state_data["balance"] || 0;
-  }
-
-  /** The game publishes its DIGGO minimum in the state */
+  /** The game publishes its DIGGO minimum with the withdrawal status */
   getMinimumWithdrawal() {
     return (
-      Number(this.getWithdrawalRule(AUTO_CURRENCY)["minimum"]) ||
+      Number(this.withdrawalStatus?.["withdrawals"]?.["minimum"]) ||
       super.getMinimumWithdrawal()
     );
   }
 
-  /** The account's recent withdrawals, newest first */
+  /** The account's recent jetton withdrawals, newest first */
   async getWithdrawals() {
-    const { withdrawals } = await this.fetchWithdrawals();
+    const { items } = await this.fetchWithdrawals();
 
-    return withdrawals || [];
+    return items || [];
   }
 
   /** Whether the game still owes this account a payout */
   async hasPendingWithdrawal() {
     await this.ensureStateLoaded();
+
+    const status = await this.getWithdrawalStatus();
+
+    if (status["activeWithdrawal"]) return true;
 
     const withdrawals = await this.getWithdrawals();
 
@@ -838,43 +1333,61 @@ export default class DiggoFarmer extends BaseFarmer {
     };
   }
 
-  /** Quote a withdrawal, log what it pays, then request it */
-  async placeQuotedWithdrawal(amount, currency) {
-    const { quote } = await this.quoteWithdrawal(amount, currency);
-
-    this.logger.newline();
-    this.logger.keyValue("Amount", `${quote["amount"]} ${currency}`);
-    this.logger.keyValue("Fee", quote["fee"] ?? "-");
-    this.logger.keyValue("You Get", `${quote["ton"] ?? "?"} TON`);
-
-    await this.requestWithdrawal(quote["id"]);
-
-    this.logger.success(`Requested ${quote["amount"]} ${currency}.`);
-
-    return quote;
+  /** A DIGGO amount the way the backend takes it, at most six decimals */
+  toWithdrawalAmount(value) {
+    return new Decimal(value)
+      .toDecimalPlaces(WITHDRAWAL_DECIMALS, Decimal.ROUND_DOWN)
+      .toFixed();
   }
 
-  /** Withdraw DIGGO, which the game pays out in TON */
+  /** Quote a withdrawal, log what it pays, then request it */
+  async placeQuotedWithdrawal(amount) {
+    const { quote } = await this.quoteWithdrawal(
+      this.toWithdrawalAmount(amount),
+    );
+
+    this.logger.newline();
+    this.logger.keyValue("Amount", `${quote["amount"]} DIGGO`);
+    this.logger.keyValue("Fee", `${quote["fee"] ?? "-"} DIGGO`);
+    this.logger.keyValue("You Get", `${quote["received"] ?? "?"} DIGGO`);
+
+    const { withdrawal } = await this.requestWithdrawal(quote["amount"]);
+
+    this.logger.success(`Requested ${quote["amount"]} DIGGO.`);
+
+    return { quote, withdrawal };
+  }
+
+  /** Withdraw DIGGO on-chain to the bound wallet */
   async placeWithdrawal({ max, difference }) {
     await this.ensureStateLoaded();
 
-    const destinationAddress = this.getConnectedWalletAddress();
+    const status = await this.getWithdrawalStatus();
+    const rules = status["withdrawals"] || {};
+    const destinationAddress = status["destination"];
 
     if (!destinationAddress) {
       return this.skipWithdrawal("No wallet connected!");
     }
 
-    if (!this.state_data["withdrawals"]?.["enabled"]) {
+    if (!rules["enabled"]) {
       return this.skipWithdrawal("Withdrawals are disabled!", { log: "warn" });
     }
 
-    if (await this.hasPendingWithdrawal()) {
+    if (status["activeWithdrawal"]) {
       return this.skipWithdrawal("A withdrawal is already pending!", {
         log: "warn",
       });
     }
 
-    const balance = new Decimal(this.getWithdrawableBalance(AUTO_CURRENCY));
+    if (rules["activation"] && !this.isActivated(rules["activation"])) {
+      return this.skipWithdrawal(
+        `${this.describeActivation(rules["activation"])}, run Verify!`,
+        { log: "warn" },
+      );
+    }
+
+    const balance = new Decimal(status["available"] || 0);
     const minimum = this.getMinimumWithdrawal();
     const lowBalance = this.skipLowBalance(balance, minimum);
 
@@ -888,15 +1401,12 @@ export default class DiggoFarmer extends BaseFarmer {
     });
 
     try {
-      const quote = await this.placeQuotedWithdrawal(
-        amount.toString(),
-        AUTO_CURRENCY,
-      );
+      const { quote } = await this.placeQuotedWithdrawal(amount);
 
       await this.notifyWithdrawal([
         ["Initial Balance", balance.toString()],
         ["Requested", amount.toString()],
-        ["To be received", `${quote["ton"] ?? "?"} TON`],
+        ["To be received", `${quote["received"] ?? "?"} DIGGO`],
         ["Destination", `<code>${destinationAddress}</code>`],
       ]);
 
@@ -913,30 +1423,41 @@ export default class DiggoFarmer extends BaseFarmer {
     }
   }
 
-  /** Log the withdrawal rules and the recent requests */
+  /** Log the withdrawal rules, the activation and the recent requests */
   async logWithdrawalStatus() {
     await this.ensureStateLoaded();
     await this.loadState();
 
-    const withdrawals = this.state_data["withdrawals"] || {};
+    const status = await this.getWithdrawalStatus();
+    const rules = status["withdrawals"] || {};
 
     this.logger.newline();
-    this.logger.keyValue("Enabled", withdrawals["enabled"] ? "Yes" : "No");
-    this.logger.keyValue("Paid In", withdrawals["currency"]);
-
-    for (const [currency, rule] of Object.entries(
-      withdrawals["sources"] || {},
-    )) {
-      this.logger.keyValue(
-        currency,
-        `${this.formatAmount(this.getWithdrawableBalance(currency))} (min ${rule["minimum"]}, fee ${rule["fee"]})`,
-      );
-    }
+    this.logger.keyValue("Enabled", rules["enabled"] ? "Yes" : "No");
+    this.logger.keyValue("Available", `${status["available"] ?? "-"} DIGGO`);
+    this.logger.keyValue("Minimum", `${rules["minimum"] ?? "-"} DIGGO`);
+    this.logger.keyValue("Fee", `${rules["fee"] ?? "-"} DIGGO`);
+    this.logger.keyValue("Destination", status["destination"] || "-");
+    this.logger.keyValue(
+      "Activation",
+      this.describeActivation(rules["activation"] || this.getActivation()),
+    );
+    this.logger.keyValue(
+      "Active Request",
+      status["activeWithdrawal"]
+        ? status["activeWithdrawal"]["type"] || "Yes"
+        : "None",
+    );
 
     for (const item of await this.getWithdrawals()) {
       this.logger.keyValue(
         new Date(item["createdAt"] || Date.now()).toLocaleString(),
-        `${item["amount"]} ${item["currency"]} (${item["status"]})`,
+        [
+          `${item["amount"]} DIGGO, gets ${item["received"] ?? "?"} (${item["status"]})`,
+          item["txHash"] ? `tx ${item["txHash"]}` : null,
+          item["cancelable"] ? "cancelable" : null,
+        ]
+          .filter(Boolean)
+          .join(" · "),
       );
     }
   }
@@ -1227,19 +1748,68 @@ export default class DiggoFarmer extends BaseFarmer {
   /** Claim what is pending so the summary reflects the current balance */
   async refreshAutoState() {
     await this.ensureStateLoaded();
+    await this.refreshHolding();
     await this.claimPendingMining();
   }
 
-  /** Re-read the state for a fresh summary */
+  /** Re-read the state and the activation for a fresh summary */
   async refreshAutoSummary() {
     await this.loadState();
+    await this.loadActivation().catch((error) =>
+      this.logger.warn("Failed to read the activation:", error.message),
+    );
 
     return this.getAutoSummary();
+  }
+
+  /** Pay the one-time withdrawal activation from the wallet's phrase, binding the wallet first when the account has none */
+  async verifyAutoWallet({ phrase, version, apiKey }) {
+    try {
+      await this.ensureStateLoaded();
+
+      if (!this.getConnectedWalletAddress()) {
+        const connected = await this.connectAutoWallet({ phrase, version });
+
+        if (!connected.status) return connected;
+      }
+
+      if (this.isActivated(await this.loadActivation())) {
+        return {
+          status: true,
+          skipped: true,
+          message: "Already activated",
+          summary: this.getAutoSummary(),
+        };
+      }
+
+      const signer = await this.createSigner({ phrase, version, apiKey });
+
+      if (!signer) {
+        return {
+          status: false,
+          message: "The phrase does not match the bound wallet",
+        };
+      }
+
+      const { status, skipped, message } = await this.payActivation(signer);
+
+      return {
+        status,
+        skipped,
+        message,
+        summary: status
+          ? await this.refreshAutoSummary()
+          : this.getAutoSummary(),
+      };
+    } catch (error) {
+      return { status: false, message: error.message || "Unknown error" };
+    }
   }
 
   /** Put the account to work and report it afresh */
   async startAutoMining() {
     await this.ensureStateLoaded();
+    await this.refreshHolding();
     await this.claimPendingMining();
     await this.claimStreak();
     await this.claimCommission();
@@ -1247,7 +1817,7 @@ export default class DiggoFarmer extends BaseFarmer {
     return this.refreshAutoSummary();
   }
 
-  /** Normalized account snapshot, with no holding since boosts move TON the game does not level on */
+  /** Normalized account snapshot, holding the bound wallet's on-chain DIGGO */
   getAutoSummary() {
     const state = this.state_data || {};
     const mining = state["mining"] || {};
@@ -1256,10 +1826,11 @@ export default class DiggoFarmer extends BaseFarmer {
 
     return {
       level: Number(state["currentLevel"]) || 0,
-      holding: null,
+      holding:
+        this.getWalletDiggo() === null ? null : Number(this.getWalletDiggo()),
       balance: state["balance"],
       minWithdrawal: this.getMinimumWithdrawal(),
-      verified: true,
+      verified: this.isActivated(),
       mining: {
         startedAt: Math.floor(
           (Number(mining["lastAccrualAt"]) || Date.now()) / 1000,
@@ -1293,10 +1864,31 @@ export default class DiggoFarmer extends BaseFarmer {
             dispatch: false,
           },
           {
+            id: "activate-withdrawals",
+            icon: "kyc",
+            title: "Activate Withdrawals",
+            action: this.activateWithdrawalsInteractive.bind(this),
+            dispatch: false,
+          },
+          {
+            id: "security-check",
+            icon: "check",
+            title: "Security Check",
+            action: this.securityCheckInteractive.bind(this),
+            dispatch: false,
+          },
+          {
             id: "deposit-ton",
             icon: "import",
             title: "Deposit TON",
             action: this.depositTonInteractive.bind(this),
+            dispatch: false,
+          },
+          {
+            id: "convert-ton",
+            icon: "reconnect",
+            title: "Convert TON",
+            action: this.convertTonInteractive.bind(this),
             dispatch: false,
           },
         ],
@@ -1374,7 +1966,14 @@ export default class DiggoFarmer extends BaseFarmer {
             id: "withdraw",
             icon: "withdraw",
             title: "Withdraw",
-            action: this.withdrawDiggoInteractive.bind(this),
+            action: this.withdrawInteractive.bind(this),
+            dispatch: false,
+          },
+          {
+            id: "cancel-withdrawal",
+            icon: "disconnect",
+            title: "Cancel Withdrawal",
+            action: this.cancelWithdrawalInteractive.bind(this),
             dispatch: false,
           },
         ],
@@ -1391,11 +1990,10 @@ export default class DiggoFarmer extends BaseFarmer {
       return;
     }
 
-    for (const asset of ["diggo", "ton"]) {
-      await this.refreshWalletBalance(asset).catch((error) =>
-        this.logger.warn(`Failed to refresh ${asset}:`, error.message),
-      );
-    }
+    await this.refreshHolding();
+    await this.refreshWalletBalance("ton").catch((error) =>
+      this.logger.warn("Failed to refresh ton:", error.message),
+    );
 
     const holdings = this.state_data["wallet"]?.["holdings"] || {};
 
@@ -1405,7 +2003,7 @@ export default class DiggoFarmer extends BaseFarmer {
       this.formatAmount(this.state_data["holding"]),
     );
     this.logger.keyValue("Level", this.state_data["currentLevel"]);
-    this.logger.keyValue("Wallet DIGGO", holdings["diggo"]?.["amount"] ?? "-");
+    this.logger.keyValue("Wallet DIGGO", this.getWalletDiggo() ?? "-");
     this.logger.keyValue("Wallet TON", holdings["ton"]?.["amount"] ?? "-");
   }
 
@@ -1413,6 +2011,13 @@ export default class DiggoFarmer extends BaseFarmer {
   async buyDiggoInteractive() {
     await this.ensureStateLoaded();
     await this.loadState();
+
+    const paused = await this.getMarketPause();
+
+    if (paused) {
+      this.logger.warn(paused);
+      return;
+    }
 
     const minimum = this.getMinimumBuyTon();
     const amount = await this.promptAmount(
@@ -1477,6 +2082,13 @@ export default class DiggoFarmer extends BaseFarmer {
     await this.ensureStateLoaded();
     await this.loadState();
 
+    const paused = await this.getMarketPause();
+
+    if (paused) {
+      this.logger.warn(paused);
+      return;
+    }
+
     if (!this.state_data["price"]?.["sellEnabled"]) {
       this.logger.warn("Selling is disabled right now.");
       return;
@@ -1513,15 +2125,19 @@ export default class DiggoFarmer extends BaseFarmer {
       "Balance",
       `${this.formatAmount(this.state_data["balance"])} DIGGO`,
     );
-    this.logger.keyValue(
-      "In-app TON",
-      this.formatAmount(this.state_data["market"]?.["tonAvailable"] || 0),
-    );
+    this.logger.keyValue("In-app TON", this.formatAmount(this.getInAppTon()));
   }
 
   /** Deposit TON from the bound wallet, prompting for the amount and the signing phrase */
   async depositTonInteractive() {
     await this.ensureStateLoaded();
+
+    const paused = await this.getDepositPause();
+
+    if (paused) {
+      this.logger.warn(paused);
+      return;
+    }
 
     const amount = await this.promptAmount(
       `How much TON to deposit? (minimum ${MINIMUM_DEPOSIT_TON})`,
@@ -1616,50 +2232,89 @@ export default class DiggoFarmer extends BaseFarmer {
     this.logger.warn(`Diggo binds ${address} for good, it cannot be unbound.`);
   }
 
-  /** Withdraw, prompting for the currency and amount */
-  async withdrawDiggoInteractive() {
-    await this.logWithdrawalStatus();
+  /** Pay the one-time withdrawal activation, prompting for the signing phrase */
+  async activateWithdrawalsInteractive() {
+    await this.ensureStateLoaded();
 
     if (!this.getConnectedWalletAddress()) {
       this.logger.warn("Connect a wallet first.");
       return;
     }
 
-    const currency = await this.promptInput({
+    const activation = await this.loadActivation();
+
+    this.logger.keyValue("Activation", this.describeActivation(activation));
+
+    if (this.isActivated(activation) || !this.canPayActivation(activation)) {
+      return;
+    }
+
+    const signer = await this.promptSigner();
+
+    if (!signer) return;
+
+    try {
+      const { status, message } = await this.payActivation(signer);
+
+      this.logger[status ? "success" : "warn"](message);
+    } catch (error) {
+      this.logger.error("Failed to activate withdrawals:", error.message);
+    }
+  }
+
+  /** Clear a pending security check on demand */
+  async securityCheckInteractive() {
+    await this.ensureStateLoaded();
+    await this.loadState();
+
+    try {
+      await this.clearRiskChallenge();
+    } catch (error) {
+      this.logger.error("Failed the security check:", error.message);
+    }
+  }
+
+  /** Convert the in-app TON balance into DIGGO on demand */
+  async convertTonInteractive() {
+    await this.ensureStateLoaded();
+    await this.loadState();
+
+    try {
+      await this.convertTon();
+    } catch (error) {
+      this.logger.error("Failed to convert:", error.message);
+    }
+  }
+
+  /** Cancel a withdrawal the history still marks cancelable */
+  async cancelWithdrawalInteractive() {
+    await this.ensureStateLoaded();
+
+    const cancelable = (await this.getWithdrawals()).filter(
+      (item) => item["cancelable"],
+    );
+
+    if (!cancelable.length) {
+      this.logger.info("No withdrawal to cancel.");
+      return;
+    }
+
+    const id = await this.promptInput({
       type: "select",
-      text: "Withdraw from:",
-      options: [
-        { value: "DIGGO", label: "DIGGO" },
-        { value: "TON", label: "TON" },
-      ],
+      text: "Cancel which withdrawal?",
+      options: cancelable.map((item) => ({
+        value: item["id"],
+        label: `${item["amount"]} DIGGO · ${item["status"]} · ${new Date(item["createdAt"] || Date.now()).toLocaleString()}`,
+      })),
     });
 
-    if (!currency) return;
-
-    const rule = this.getWithdrawalRule(currency);
-    const input = await this.promptInput(
-      `How much ${currency}? (minimum ${rule["minimum"] ?? "?"})`,
-    );
-    const trimmed = (input || "").trim();
-
-    if (!trimmed) {
-      this.logger.warn("No amount provided.");
-      return;
-    }
-
-    let amount;
+    if (!id) return;
 
     try {
-      amount = new Decimal(trimmed);
-    } catch {
-      this.logger.error("Invalid amount:", trimmed);
-      return;
-    }
-
-    try {
-      await this.placeQuotedWithdrawal(amount.toString(), currency);
+      await this.cancelWithdrawal(id);
+      this.logger.success("Withdrawal cancelled.");
     } catch (error) {
-      this.logger.error("Failed to withdraw:", error.message);
+      this.logger.error("Failed to cancel:", error.message);
     }
   }
 }
