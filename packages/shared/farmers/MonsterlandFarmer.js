@@ -58,6 +58,8 @@ const VITAL_ITEMS = {
     { id: "fairy_berries", value: 30, price: 800, ads: 2 },
     { id: "dragon_steak", value: 50, price: 4500, ads: 0 },
     { id: "royal_feast", value: 100, price: 15000, ads: 0 },
+    /** A buff, not a restore: no food decay for `buffHours`, its 5 ads a per-item sequence kept 7 days */
+    { id: "hunger_potion", value: 0, price: 28000, ads: 5, buffHours: 6 },
   ],
   hygiene: [
     { id: "magic_towel", value: 20, price: 200, ads: 1 },
@@ -72,6 +74,9 @@ const VITAL_ITEMS = {
     { id: "phoenix_elixir", value: 100, price: 18000, ads: 0 },
   ],
 };
+
+/** A hunger potion is only worth it when it spares at least this many feeds */
+const HUNGER_POTION_MINIMUM_SAVED_FEEDS = 2;
 
 /** Lumis never spent on vitals, so purchases cannot drain the balance */
 const LUMIS_RESERVE = 2000;
@@ -172,6 +177,9 @@ const MISSION_SKIP_REASONS = ["NOT_MEMBER", "ALREADY_CLAIMED", "NOT_COMPLETED"];
 
 /** Fallback minimum in lumis, used until the game's config has been read */
 const MINIMUM_WITHDRAWAL = 500000;
+
+/** The page's fallback cap on one withdrawal, used when the config leaves it out */
+const MAXIMUM_WITHDRAWAL = 1e7;
 
 /** Withdrawal statuses, as the payment history and its live updates report them */
 const SETTLED_WITHDRAWAL_STATUSES = ["completed"];
@@ -439,7 +447,12 @@ export default class MonsterlandFarmer extends BaseFarmer {
 
   /** Use or buy a vital item on a monster */
   applyVitalItem(monsterId, itemId, action) {
-    return this.postToApi("/vitals", { monsterId, itemId, action });
+    return this.postToApi("/vitals", {
+      monsterId,
+      itemId,
+      action,
+      quantity: 1,
+    });
   }
 
   /** Put a monster to sleep, or wake it */
@@ -933,13 +946,7 @@ export default class MonsterlandFarmer extends BaseFarmer {
     const hours = Math.max(0, (this.getServerNow() - lastUpdated) / 36e5);
     const personality = String(monster["personality"] || "").toLowerCase();
     const modifiers = DECAY_MODIFIERS[personality] || {};
-    const hungerStoppedUntil = monster["active_state"]?.[
-      "hunger_decay_stopped_until"
-    ]
-      ? new Date(
-          monster["active_state"]["hunger_decay_stopped_until"],
-        ).getTime()
-      : 0;
+    const hungerStoppedUntil = this.getHungerStoppedUntil(monster);
     const foodHours = Math.max(
       0,
       (this.getServerNow() - Math.max(lastUpdated, hungerStoppedUntil)) / 36e5,
@@ -962,6 +969,14 @@ export default class MonsterlandFarmer extends BaseFarmer {
         current.energy - DECAY_RATES.energy * (modifiers.energy ?? 1) * hours,
       ),
     };
+  }
+
+  /** When a hunger potion stops holding a monster's food, 0 when none ran */
+  getHungerStoppedUntil(monster) {
+    const until = monster["active_state"]?.["hunger_decay_stopped_until"];
+    const time = until ? new Date(until).getTime() : 0;
+
+    return Number.isFinite(time) ? time : 0;
   }
 
   /** Hours a sleeping monster has been asleep */
@@ -1008,6 +1023,7 @@ export default class MonsterlandFarmer extends BaseFarmer {
     }
 
     const vitals = this.projectVitals(monster);
+    const hungry = vitals.food < VITAL_TARGETS.food;
 
     for (const vital of ["food", "hygiene", "energy"]) {
       vitals[vital] = await this.topUpVital(
@@ -1016,6 +1032,11 @@ export default class MonsterlandFarmer extends BaseFarmer {
         vital,
         vitals[vital],
       );
+
+      /** The potion holds food where it is, so it goes on after the feed */
+      if (vital === "food" && hungry && !this.signal.aborted) {
+        await this.applyHungerPotion(monster, name);
+      }
     }
 
     if (vitals.energy < SLEEP_ENERGY_THRESHOLD) {
@@ -1104,7 +1125,7 @@ export default class MonsterlandFarmer extends BaseFarmer {
 
   /** Restore a vital once, the cheapest way available, or `null` when nothing is left to try */
   async restoreVital(monster, vital) {
-    const items = VITAL_ITEMS[vital];
+    const items = VITAL_ITEMS[vital].filter((item) => !item.buffHours);
     const inventory = this.getInventory();
     const owned = items.find((item) => Number(inventory[item.id]) > 0);
 
@@ -1162,6 +1183,129 @@ export default class MonsterlandFarmer extends BaseFarmer {
     }
 
     return { ...result, item: cheapest, source: "Bought" };
+  }
+
+  /** Stop a fed monster's hunger with a potion, unless one is running or it spares too few feeds */
+  async applyHungerPotion(monster, name) {
+    const potion = VITAL_ITEMS.food.find((item) => item.buffHours);
+    const now = this.getServerNow();
+
+    if (this.getHungerStoppedUntil(monster) > now) return;
+
+    const hours = Math.min(potion.buffHours, this.getLifeHoursLeft(monster));
+    const personality = String(monster["personality"] || "").toLowerCase();
+    const decay =
+      DECAY_RATES.food * (DECAY_MODIFIERS[personality]?.food ?? 1) * hours;
+    const feed = VITAL_ITEMS.food[0];
+    const savedFeeds = Math.floor(decay / feed.value);
+
+    if (savedFeeds < HUNGER_POTION_MINIMUM_SAVED_FEEDS) return;
+
+    const result = await this.obtainHungerPotion(
+      monster,
+      potion,
+      savedFeeds * feed.price,
+    );
+
+    if (!result) return;
+
+    this.applyResult(result.data);
+
+    const until = new Date(result.data["hungerDecayStoppedUntil"]).getTime();
+
+    monster["active_state"] = {
+      ...monster["active_state"],
+      hunger_decay_stopped_until: new Date(
+        Number.isFinite(until) ? until : now + potion.buffHours * 36e5,
+      ).toISOString(),
+    };
+
+    if (result.data["hungerPotionAdClaimedUntil"] !== undefined) {
+      this.getProfile()["hunger_potion_ad_claimed_until"] =
+        result.data["hungerPotionAdClaimedUntil"];
+    }
+
+    this.logger.success(
+      `${result.source} ${potion.id} on ${name}: no hunger for ${potion.buffHours}h.`,
+    );
+  }
+
+  /** Get a hunger potion onto a monster from the inventory, then its ad sequence, then lumis when the feeds it spares cost as much */
+  async obtainHungerPotion(monster, potion, savedLumis) {
+    const inventory = this.getInventory();
+
+    if (Number(inventory[potion.id]) > 0) {
+      const result = await this.applyVitalItem(
+        monster["_id"],
+        potion.id,
+        "use_inventory",
+      );
+
+      if (result.ok) {
+        if (!result.data["inventoryUpdates"]) {
+          inventory[potion.id] = Number(inventory[potion.id]) - 1;
+        }
+
+        return { ...result, source: "Used" };
+      }
+
+      this.logger.warn(`Failed to use ${potion.id}:`, result.data["error"]);
+      inventory[potion.id] = 0;
+    }
+
+    const profile = this.getProfile();
+    const claimedUntil = new Date(
+      profile["hunger_potion_ad_claimed_until"] || 0,
+    ).getTime();
+
+    /** The page locks the potion's ad option until its last claim runs out */
+    if (!this.adsUnavailable && !(claimedUntil > this.getServerNow())) {
+      const progress = profile["hunger_potion_ad_progress"] || {};
+      const watched = Math.max(0, Number(progress["watched"]) || 0);
+
+      this.logger.info(
+        `Watching ${Math.max(1, potion.ads - watched)} ad(s) for ${potion.id}...`,
+      );
+
+      const data = await this.watchAdSequence("vitals", {
+        monsterId: monster["_id"],
+        itemId: potion.id,
+      });
+
+      if (data) return { ok: true, data, source: "Watched ads for" };
+
+      this.logger.info(`${potion.id} ad sequence broke off, progress is kept.`);
+    }
+
+    if (savedLumis < potion.price || !this.canAfford(potion.price)) return null;
+
+    const result = await this.applyVitalItem(
+      monster["_id"],
+      potion.id,
+      "purchase",
+    );
+
+    if (!result.ok) {
+      this.logger.warn(`Failed to buy ${potion.id}:`, result.data["error"]);
+      return null;
+    }
+
+    return { ...result, source: "Bought" };
+  }
+
+  /** Hours a monster has left to live, unbounded when its hatch time is unknown */
+  getLifeHoursLeft(monster) {
+    const hatchedAt = new Date(monster["hatched_at"]).getTime();
+
+    if (!Number.isFinite(hatchedAt)) return Infinity;
+
+    return Math.max(
+      0,
+      (hatchedAt +
+        this.getLifespanDays(monster) * DAY_MS -
+        this.getServerNow()) /
+        36e5,
+    );
   }
 
   /* --------------------------------------------------------------------- */
@@ -1778,6 +1922,8 @@ export default class MonsterlandFarmer extends BaseFarmer {
     const remaining = Number(
       quota["remaining_lumis"] ?? quota["remainingLumis"] ?? quota["cap_lumis"],
     );
+    const maximum =
+      Number(config["max_withdrawal_lumis"]) || MAXIMUM_WITHDRAWAL;
     const balance = this.getLumis();
     const lowBalance = this.skipLowBalance(balance, minimum);
 
@@ -1796,7 +1942,9 @@ export default class MonsterlandFarmer extends BaseFarmer {
           minimum,
           max,
           difference,
-          ceiling: Number.isFinite(remaining) ? remaining : 0,
+          ceiling: Number.isFinite(remaining)
+            ? Math.min(remaining, maximum)
+            : maximum,
         }),
       ),
     );
@@ -1815,6 +1963,17 @@ export default class MonsterlandFarmer extends BaseFarmer {
 
       this.logger.error("Failed to withdraw:", message);
       return { status: false, message, amount: String(amount) };
+    }
+
+    /** The page treats a replay with no real tx as not done */
+    if (
+      result.data["idempotent"] &&
+      (!result.data["txId"] || result.data["txId"] === "pending")
+    ) {
+      return this.skipWithdrawal(
+        "Withdrawal was replayed but is still unconfirmed, check the app!",
+        { amount, log: "warn" },
+      );
     }
 
     this.applyResult(result.data);
