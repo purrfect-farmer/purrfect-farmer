@@ -74,6 +74,9 @@ const MINE_MOVE_DELAY_SECONDS = 1;
 /** Deep Mine stops for the day once its net is down this much, a shovel's price */
 const MINE_DAILY_LOSS_LIMIT = 25;
 
+/** Underground's live websocket games, which the farmer only reports on */
+const UNDERGROUND_GAMES = ["crew", "rush"];
+
 /** How the page polls a mint: a first wait, then steady checks */
 const NFT_MINT_FIRST_CHECK_SECONDS = 4;
 const NFT_MINT_CHECK_SECONDS = 6;
@@ -295,6 +298,11 @@ export default class VictorsCompanyFarmer extends BaseFarmer {
   /** The arcade's games, plays left and any run in progress */
   fetchArcade() {
     return this.getFromApi("/arcade");
+  }
+
+  /** Underground's daily pools and the account's plays left */
+  fetchUnderground() {
+    return this.getFromApi("/underground");
   }
 
   /** Buy gear and start a Deep Mine run */
@@ -626,6 +634,19 @@ export default class VictorsCompanyFarmer extends BaseFarmer {
     return Number(this.getConfig()["withdrawMin"]) || MINIMUM_WITHDRAWAL;
   }
 
+  /** The on-chain VIC the drop wants held before it pays out */
+  getMinimumHolding() {
+    return Number(this.getConfig()["withdrawMinHolding"]) || 0;
+  }
+
+  /** Whether the on-chain holding clears the minimum, with the page's 1 VIC slack */
+  hasMinimumHolding() {
+    return (
+      Number(this.getUserDetails()["walletBalance"] || 0) >=
+      this.getMinimumHolding() - 1
+    );
+  }
+
   /** The flat fee taken off each payout */
   getWithdrawalFee() {
     return Number(this.getConfig()["withdrawFee"] ?? WITHDRAWAL_FEE);
@@ -648,6 +669,7 @@ export default class VictorsCompanyFarmer extends BaseFarmer {
     await this.executeTask("Mining", () => this.claimPendingMining());
     await this.executeTask("Tasks", () => this.completeTasks());
     await this.executeTask("Arcade", () => this.playArcade());
+    await this.executeTask("Underground", () => this.logUnderground());
     await this.executeTask("Squad", () => this.claimSquadRewards());
     await this.executeTask("Withdraw", () => this.withdraw());
     await this.storeAutoSnapshot();
@@ -697,6 +719,18 @@ export default class VictorsCompanyFarmer extends BaseFarmer {
       "On-chain VIC",
       this.formatAmount(user["walletBalance"]),
     );
+
+    if (this.getMinimumHolding()) {
+      this.logger.keyValue(
+        "Min Holding",
+        this.formatAmount(this.getMinimumHolding()),
+        {
+          valueStyle: this.hasMinimumHolding()
+            ? this.logger.c.greenBright
+            : this.logger.c.yellowBright,
+        },
+      );
+    }
 
     if (user["walletAddress"]) {
       this.logger.keyValue("Owned", user["walletOwned"] ? "Yes" : "No", {
@@ -889,7 +923,8 @@ export default class VictorsCompanyFarmer extends BaseFarmer {
       !verify["underReview"] &&
       ageDays !== null &&
       ageDays !== undefined &&
-      Number(ageDays) >= Number(verify["minWalletAgeDays"] || 0)
+      Number(ageDays) >= Number(verify["minWalletAgeDays"] || 0) &&
+      this.hasMinimumHolding()
     );
   }
 
@@ -1231,7 +1266,11 @@ export default class VictorsCompanyFarmer extends BaseFarmer {
     );
 
     for (const item of arcade["games"] || []) {
-      if (item["id"] !== "mine" && !item["test"]) {
+      if (
+        item["id"] !== "mine" &&
+        !UNDERGROUND_GAMES.includes(item["id"]) &&
+        !item["test"]
+      ) {
         this.logger.warn(`Unknown arcade game "${item["id"]}" is public.`);
       }
     }
@@ -1364,6 +1403,23 @@ export default class VictorsCompanyFarmer extends BaseFarmer {
     );
   }
 
+  /** Report Underground's pools and plays left, it is played live and never farmed */
+  async logUnderground() {
+    const underground = await this.fetchUnderground();
+    const profile = underground?.["profile"] || {};
+
+    for (const id of UNDERGROUND_GAMES) {
+      const today = underground?.["games"]?.[id]?.["today"];
+
+      if (!today || profile["test"]?.[id]) continue;
+
+      this.logger.keyValue(
+        id === "crew" ? "Crew Pool" : "Rush Pool",
+        `${this.formatAmount(today["pool"])} (share ${today["share"] ?? 0}, ${profile["playsLeft"]?.[id] ?? 0} plays left)`,
+      );
+    }
+  }
+
   /** Today's Deep Mine net, as stored for the day the arcade resets at */
   async getArcadeNet(day) {
     const stored = await this.storage?.get("arcadeNet");
@@ -1469,9 +1525,12 @@ export default class VictorsCompanyFarmer extends BaseFarmer {
       const verify = this.getVerify();
       const message = !verify["verified"]
         ? "Wallet is not verified!"
-        : verify["underReview"]
-          ? "Wallet is under review!"
-          : `Wallet is younger than ${verify["minWalletAgeDays"]} days!`;
+        : Number(verify["walletAgeDays"] ?? -1) <
+            Number(verify["minWalletAgeDays"] || 0)
+          ? `Wallet is younger than ${verify["minWalletAgeDays"]} days!`
+          : verify["underReview"]
+            ? "Wallet is under review!"
+            : `Wallet holds ${Math.floor(Number(user["walletBalance"] || 0))} VIC on-chain, needs ${this.getMinimumHolding()}!`;
 
       return this.skipWithdrawal(message, { log: "warn" });
     }
@@ -1564,6 +1623,10 @@ export default class VictorsCompanyFarmer extends BaseFarmer {
     );
     this.logger.keyValue("Minimum", this.getMinimumWithdrawal());
     this.logger.keyValue("Fee", this.getWithdrawalFee());
+    this.logger.keyValue(
+      "Holding",
+      `${this.formatAmount(this.getUserDetails()["walletBalance"])} / ${this.getMinimumHolding()}`,
+    );
     this.logger.keyValue(
       "Eligible",
       this.isWithdrawalEligible() ? "Yes" : "No",
