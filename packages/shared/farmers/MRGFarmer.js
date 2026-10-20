@@ -15,6 +15,7 @@ import {
   keyPairFromPhraseOrSecretKey,
 } from "../lib/ton/wallet.js";
 import { fetchTonApi } from "../lib/ton/tonapi.js";
+import { createVictorsDevice } from "../lib/games/victorsDevice.js";
 
 /** The drop's backend, which the mini app talks to for everything */
 const API_URL = "https://mrg.up.railway.app/api";
@@ -31,6 +32,13 @@ const TURNSTILE_PAGE_URL = "https://app.mrgtoken.xyz/";
 
 /** The error code the backend answers with once the human check is missing or stale */
 const HUMAN_CHECK_REQUIRED_CODE = "HUMAN_CHECK_REQUIRED";
+
+/** The claim refusal for a task the account may never take, which the page hides for good */
+const TASK_INELIGIBLE_CODE = "TASK_INELIGIBLE";
+
+/** Withdrawal refusals the page answers with an alert and a reload */
+const SESSION_STALE_CODE = "SESSION_STALE";
+const NO_APP_SESSION_CODE = "NO_APP_SESSION";
 
 /** A human check this close to expiry is renewed rather than risked mid-run */
 const HUMAN_CHECK_EXPIRY_MARGIN_SECONDS = 10 * 60;
@@ -83,9 +91,10 @@ const HOLD_TASK_TYPES = ["token_hold", "nft_hold"];
 /** TON kept aside for the verification transfer's fees */
 const VERIFICATION_GAS_TON = 0.02;
 
-/** How often, and how long, the verification is polled after paying, as the page does for 3 minutes */
-const VERIFICATION_CHECK_ATTEMPTS = 12;
-const VERIFICATION_CHECK_INTERVAL_SECONDS = 10;
+/** The page waits 1.5s after paying, then polls every 5s for 3 minutes */
+const VERIFICATION_CHECK_FIRST_DELAY_SECONDS = 1.5;
+const VERIFICATION_CHECK_INTERVAL_SECONDS = 5;
+const VERIFICATION_CHECK_WINDOW_SECONDS = 180;
 
 /** A verification paid this long ago without landing is assumed lost and paid again */
 const VERIFICATION_RETRY_HOURS = 6;
@@ -96,10 +105,22 @@ const WITHDRAWAL_COOLDOWN_HOURS = 24;
 /** How many fresh slider puzzles a withdrawal tries before giving up */
 const SLIDER_CAPTCHA_ATTEMPTS = 3;
 
-/** Device details the page reports, picked per account so they stay stable */
-const DEVICE_RAM_OPTIONS = ["4 GB", "6 GB", "8 GB", "12 GB"];
-const DEVICE_CPU_CORES = 8;
-const DEVICE_SCREEN_RESOLUTIONS = ["1080x2400", "1080x2340", "720x1600"];
+/** The platform Telegram's WebApp reports on Android, which the page also names the device by when nothing else fits */
+const TELEGRAM_PLATFORM = "android";
+
+/** Samsung model codes the page names, checked in its order */
+const SAMSUNG_MODELS = [
+  [["A155", "A156"], "Galaxy A15"],
+  [["A145", "A146"], "Galaxy A14"],
+  [["A135", "A136"], "Galaxy A13"],
+  [["A546"], "Galaxy A54"],
+  [["A536"], "Galaxy A53"],
+  [["S918"], "Galaxy S23 Ultra"],
+  [["S911"], "Galaxy S23"],
+  [["S928"], "Galaxy S24 Ultra"],
+  [["S921"], "Galaxy S24"],
+  [["G998"], "Galaxy S21 Ultra"],
+];
 
 export default class MRGFarmer extends BaseFarmer {
   static id = "mrg";
@@ -297,7 +318,7 @@ export default class MRGFarmer extends BaseFarmer {
     return this.postToApi("/captcha/verify", { captchaId, sliderX, trace });
   }
 
-  /** Request a payout to the connected wallet */
+  /** Request a payout to the connected wallet, with the device fingerprint the page sends */
   requestWithdrawal(amount, destinationAddress, captchaToken, turnstileToken) {
     return this.postToApi("/user/withdraw", {
       amount: Number(amount),
@@ -305,6 +326,7 @@ export default class MRGFarmer extends BaseFarmer {
       captchaToken,
       turnstileToken,
       deviceInfo: this.getDeviceInfo(),
+      forensics: this.getDevice().getForensics(),
     });
   }
 
@@ -312,41 +334,83 @@ export default class MRGFarmer extends BaseFarmer {
   /* Device                                                                */
   /* --------------------------------------------------------------------- */
 
-  /** The device the page reports alongside sign-in, kept stable per account */
+  /** The account's phone, the same on every run, whose `deviceId` stands in for the page's `mrg_device_id` */
+  getDevice() {
+    return (this.device ||= createVictorsDevice(
+      this.getUserId(),
+      this.userAgent,
+      { prefix: "mrg-device" },
+    ));
+  }
+
+  /** The device the page reports alongside sign-in, as `mn()` builds it from the same phone the forensics describe */
   getDeviceInfo() {
-    const random = this.getUserRandomGenerator();
-    const pick = (list) => list[Math.floor(random() * list.length)];
+    const { profile } = this.getDevice();
     const userAgent = this.userAgent || "";
 
-    let timezone = "";
-
-    try {
-      timezone = Intl.DateTimeFormat().resolvedOptions().timeZone || "";
-    } catch {}
-
     return {
-      platform: "android",
-      deviceName: this.getDeviceName(userAgent),
-      ram: pick(DEVICE_RAM_OPTIONS),
-      cpuCores: DEVICE_CPU_CORES,
-      screenResolution: pick(DEVICE_SCREEN_RESOLUTIONS),
+      platform: TELEGRAM_PLATFORM,
+      deviceName: this.getDeviceName(userAgent, TELEGRAM_PLATFORM),
+      ram: profile.ram ? `${profile.ram} GB` : "Unknown",
+      cpuCores: profile.cpu || 0,
+      screenResolution: `${profile.screen.w}x${profile.screen.h}`,
       userAgent,
-      timezone,
-      language: this.getTelegramUser()?.["language_code"] || "en",
+      timezone: profile.tz || "",
+      language: this.getTelegramUser()?.["language_code"] || profile.locale,
     };
   }
 
-  /** Name the device from its user agent the way the page does for common phones */
-  getDeviceName(userAgent) {
-    const pixel = userAgent.match(
-      /Pixel\s+([0-9a-zA-Z\s]+?)(?=\s+Build|\s+\)|;)/i,
-    );
-
-    if (pixel) return `Google ${pixel[0]}`;
+  /** Name the device from its user agent, as the page's `ha()` does */
+  getDeviceName(userAgent, fallback) {
+    if (!userAgent) return fallback || "Unknown Device";
+    if (/DBeaver/i.test(userAgent)) return "DBeaver DB Client";
+    if (/DataGrip/i.test(userAgent)) return "DataGrip DB Client";
+    if (/Metabase/i.test(userAgent)) return "Metabase Analytics";
+    if (/Postman/i.test(userAgent)) return "Postman API Client";
+    if (/Insomnia/i.test(userAgent)) return "Insomnia API Client";
 
     const samsung = userAgent.match(/SM-[A-Z0-9]+/i);
 
-    if (samsung) return `Samsung Galaxy (${samsung[0].toUpperCase()})`;
+    if (samsung) {
+      const code = samsung[0].toUpperCase();
+      const name = SAMSUNG_MODELS.find(([codes]) =>
+        codes.some((part) => code.includes(part)),
+      )?.[1];
+
+      return `Samsung ${name || "Galaxy"} (${code})`;
+    }
+
+    if (/Redmi/i.test(userAgent)) {
+      const redmi = userAgent.match(
+        /Redmi\s+([A-Za-z0-9\s]+?)(?=\s+Build|\s+\)|;)/i,
+      );
+
+      return redmi ? `Xiaomi ${redmi[0]}` : "Xiaomi Redmi";
+    }
+
+    if (/POCO/i.test(userAgent)) {
+      const poco = userAgent.match(
+        /POCO\s+([A-Za-z0-9\s]+?)(?=\s+Build|\s+\)|;)/i,
+      );
+
+      return poco ? `POCO ${poco[0]}` : "POCO Phone";
+    }
+
+    if (/iPhone/i.test(userAgent)) {
+      const ios = userAgent.match(/OS\s+([0-9_]+)\s+like/i);
+
+      return `Apple iPhone (${ios ? `iOS ${ios[1].replace(/_/g, ".")}` : "iOS"})`;
+    }
+
+    if (/iPad/i.test(userAgent)) return "Apple iPad";
+
+    if (/Pixel/i.test(userAgent)) {
+      const pixel = userAgent.match(
+        /Pixel\s+([0-9a-zA-Z\s]+?)(?=\s+Build|\s+\)|;)/i,
+      );
+
+      return pixel ? `Google ${pixel[0]}` : "Google Pixel";
+    }
 
     const android = userAgent.match(
       /Android\s+([0-9.]+);\s*([^;)]+?)(?=\s+Build|\))/i,
@@ -357,7 +421,11 @@ export default class MRGFarmer extends BaseFarmer {
       return `${model} (Android ${android[1]})`;
     }
 
-    return "Mobile Device";
+    if (/Windows/i.test(userAgent)) return "Windows PC";
+    if (/Macintosh|Mac OS X/i.test(userAgent)) return "Apple Mac PC";
+    if (/Linux/i.test(userAgent)) return "Linux Desktop";
+
+    return fallback || "Mobile Device";
   }
 
   /* --------------------------------------------------------------------- */
@@ -534,12 +602,14 @@ export default class MRGFarmer extends BaseFarmer {
     await super.load();
     await this.restoreHumanCheck();
     this.taskClaims = (await this.storage?.get("taskClaims")) || {};
+    this.ineligibleTasks = (await this.storage?.get("ineligibleTasks")) || [];
     this.nftHoldings = null;
   }
 
   /** Persist data */
   async persist() {
     await this.storage?.set("taskClaims", this.taskClaims || {});
+    await this.storage?.set("ineligibleTasks", this.ineligibleTasks || []);
   }
 
   /** Get User Details */
@@ -653,6 +723,13 @@ export default class MRGFarmer extends BaseFarmer {
           : this.logger.c.yellowBright,
       },
     );
+
+    /** The page flags a re-check without blocking withdrawals on it */
+    if (user["isVerificationRequired"]) {
+      this.logger.keyValue("Re-verify Required", "Yes", {
+        valueStyle: this.logger.c.yellowBright,
+      });
+    }
     this.logger.keyValue(
       "Check-In Streak",
       `${user["checkinStreak"] || 0} (last ${user["checkinLastDay"] || "never"})`,
@@ -934,16 +1011,18 @@ export default class MRGFarmer extends BaseFarmer {
   /* Verification                                                          */
   /* --------------------------------------------------------------------- */
 
-  /** Poll the drop until it sees the verification transfer */
-  async pollVerification(attempts = VERIFICATION_CHECK_ATTEMPTS) {
-    for (let attempt = 0; attempt < attempts; attempt++) {
-      if (this.signal.aborted) break;
+  /** Poll the drop until it sees the verification transfer or the window runs out, as the page does */
+  async pollVerification(windowSeconds = VERIFICATION_CHECK_WINDOW_SECONDS) {
+    const startedAt = Date.now();
+    let result = null;
 
-      await this.utils.delayForSeconds(VERIFICATION_CHECK_INTERVAL_SECONDS, {
-        signal: this.signal,
-      });
+    await this.utils.delayForSeconds(VERIFICATION_CHECK_FIRST_DELAY_SECONDS, {
+      precised: true,
+      signal: this.signal,
+    });
 
-      const result = await this.checkVerification();
+    while (!this.signal.aborted) {
+      result = await this.checkVerification();
 
       if (result?.["success"] && result["status"] === "verified") {
         await this.loadAccount();
@@ -964,6 +1043,19 @@ export default class MRGFarmer extends BaseFarmer {
           message: `Paid ${result["amountGram"]} TON, verification needs ${result["requiredGram"]}`,
         };
       }
+
+      if (Date.now() - startedAt > windowSeconds * 1000) break;
+
+      await this.utils.delayForSeconds(VERIFICATION_CHECK_INTERVAL_SECONDS, {
+        precised: true,
+        signal: this.signal,
+      });
+    }
+
+    /** The page tells a busy chain service apart from a payment not seen yet */
+    if (result?.["status"] === "unavailable") {
+      this.logger.warn("The drop's blockchain service is busy right now.");
+      return { status: false, message: "Blockchain service busy, check again" };
     }
 
     this.logger.warn("The verification transfer has not been seen yet.");
@@ -996,7 +1088,8 @@ export default class MRGFarmer extends BaseFarmer {
 
     if (Date.now() - sentAt < VERIFICATION_RETRY_HOURS * 60 * 60 * 1000) {
       this.logger.info("Verification was paid already, checking it...");
-      return this.pollVerification(1);
+      /** The page's "I already paid" polls for the last 30s of its window */
+      return this.pollVerification(30);
     }
 
     const wallet = this.utils.wallet.createTonWallet({
@@ -1216,8 +1309,37 @@ export default class MRGFarmer extends BaseFarmer {
   }
 
   /** Remember when a task was claimed, so the next pass can wait it out */
-  recordTaskClaim(taskId) {
-    this.taskClaims = { ...(this.taskClaims || {}), [taskId]: Date.now() };
+  recordTaskClaim(taskId, claimedAt = Date.now()) {
+    this.taskClaims = { ...(this.taskClaims || {}), [taskId]: claimedAt };
+  }
+
+  /** Hold a task back for this many hours instead of its own window */
+  deferTask(task, hours) {
+    this.recordTaskClaim(
+      task["taskId"],
+      Date.now() - this.getTaskCooldownMs(task) + hours * 60 * 60 * 1000,
+    );
+  }
+
+  /** Whether the drop has refused this task for the account for good */
+  isTaskIneligible(task) {
+    return (this.ineligibleTasks || []).includes(String(task["taskId"]));
+  }
+
+  /** Never offer a task to the account again once the drop has refused it for good */
+  async markTaskIneligible(task) {
+    if (this.isTaskIneligible(task)) return;
+
+    this.ineligibleTasks = [
+      ...(this.ineligibleTasks || []),
+      String(task["taskId"]),
+    ];
+
+    try {
+      await this.storage?.set("ineligibleTasks", this.ineligibleTasks);
+    } catch (error) {
+      this.logger.warn("Failed to store the ineligible task:", error.message);
+    }
   }
 
   /** Whether a task is settled against the wallet's holding rather than a link */
@@ -1243,7 +1365,7 @@ export default class MRGFarmer extends BaseFarmer {
 
   /** Whether a task is worth spending a claim on right now */
   isTaskClaimable(task) {
-    if (task["isPaused"]) return false;
+    if (task["isPaused"] || this.isTaskIneligible(task)) return false;
 
     /** The drop checks membership, so a chat the farmer may not join is not worth a claim */
     if (
@@ -1308,10 +1430,22 @@ export default class MRGFarmer extends BaseFarmer {
       this.logger.success(
         `Claimed "${task["title"]}" for ${task["reward"]} MRG.`,
       );
+    } else if (result?.["code"] === TASK_INELIGIBLE_CODE) {
+      /** The page hides the task for good, so it is never claimed again */
+      await this.markTaskIneligible(task);
+      this.logger.warn(
+        `"${task["title"]}" is not available for this account, skipping it for good.`,
+      );
     } else {
-      /** A hold the drop has not counted long enough yet is retried after the task's window */
+      /** A hold the drop has not counted long enough yet is retried after the hold it asks for, or the task's window */
       if (this.isHoldTask(task)) {
-        this.recordTaskClaim(task["taskId"]);
+        const holdHours = Number(task["minHoldHours"]);
+
+        if (holdHours > 0) {
+          this.deferTask(task, holdHours);
+        } else {
+          this.recordTaskClaim(task["taskId"]);
+        }
       }
 
       this.logger.warn(
@@ -1444,7 +1578,7 @@ export default class MRGFarmer extends BaseFarmer {
     return authDate ? Date.now() / 1000 - authDate : 0;
   }
 
-  /** A Turnstile token for the withdrawal, or none, which the page also sends when the widget fails */
+  /** A Turnstile token for the withdrawal, rendered with the `withdraw` action, or none, which the page also sends when the widget fails */
   async solveWithdrawalTurnstile() {
     if (!this.canSolveTurnstile()) return "";
 
@@ -1452,6 +1586,7 @@ export default class MRGFarmer extends BaseFarmer {
       return await this.solveTurnstile({
         siteKey: TURNSTILE_SITE_KEY,
         pageUrl: TURNSTILE_PAGE_URL,
+        action: "withdraw",
       });
     } catch (error) {
       this.logger.warn("Withdrawal Turnstile failed:", error.message);
@@ -1531,12 +1666,20 @@ export default class MRGFarmer extends BaseFarmer {
       result = await request();
 
       /** The page signs in again once and resends when the backend lost the session */
-      if (!result?.["success"] && result?.["code"] === "NO_APP_SESSION") {
+      if (!result?.["success"] && result?.["code"] === NO_APP_SESSION_CODE) {
         await this.verifyAccount();
         result = await request();
       }
     } catch (error) {
       result = { success: false, error: error.message || "Unknown error" };
+    }
+
+    /** The page only reloads on a stale session, so a retry would be refused the same way */
+    if (!result?.["success"] && result?.["code"] === SESSION_STALE_CODE) {
+      return this.skipWithdrawal(
+        "Session is stale, reopen the app!",
+        { log: "warn" },
+      );
     }
 
     const status = Boolean(result?.["success"]);
@@ -1792,9 +1935,9 @@ export default class MRGFarmer extends BaseFarmer {
     return this.refreshAutoSummary();
   }
 
-  /** Whether the drop lets the account withdraw, which an admin re-check revokes */
+  /** Whether the drop lets the account withdraw, which the page reads from `isVerified` alone */
   isAccountVerified(user) {
-    return Boolean(user["isVerified"]) && !user["isVerificationRequired"];
+    return Boolean(user["isVerified"]);
   }
 
   /** Whether the drop has banned the account */

@@ -165,9 +165,13 @@ function readLocale() {
   }
 }
 
-/** A stable Android Telegram profile for one account, shaped like the page's `fw()` */
-export function createVictorsDevice(seed, userAgent = "") {
-  const random = seedrandom(`victors-device:${seed}`);
+/** A stable Android Telegram profile for one account, shaped like the page's `fw()`; `prefix` keeps each drop's profile apart */
+export function createVictorsDevice(
+  seed,
+  userAgent = "",
+  { prefix = "victors-device" } = {},
+) {
+  const random = seedrandom(`${prefix}:${seed}`);
   const phone = pick(random, PHONES);
   const chrome =
     String(userAgent).match(/Chrome\/(\d+)/)?.[1] || DEFAULT_CHROME_VERSION;
