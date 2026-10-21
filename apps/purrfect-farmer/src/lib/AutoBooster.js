@@ -40,6 +40,13 @@ export default class AutoBooster extends BaseBooster {
     });
   }
 
+  sendTonToMaster(amount) {
+    return toast.promise(super.sendTonToMaster(amount), {
+      loading: `Returning ${amount} TON to master`,
+      success: `Returned ${amount} TON to master`,
+    });
+  }
+
   returnTonToMaster() {
     return toast.promise(super.returnTonToMaster(), {
       loading: "Returning TON to master",

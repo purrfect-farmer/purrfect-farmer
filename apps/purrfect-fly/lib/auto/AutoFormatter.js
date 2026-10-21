@@ -18,6 +18,14 @@ const SETTINGS = {
     (ctx) =>
       ctx.options.amount ? `${ctx.options.amount} ${ctx.token}` : "(none)",
   ],
+  retain: ["Retain", (ctx) => formatRetain(ctx)],
+  minCollect: [
+    "Min. to collect",
+    (ctx) =>
+      ctx.options.minCollect
+        ? `${ctx.options.minCollect} ${ctx.token}`
+        : "(none)",
+  ],
   includeFrozen: ["Include frozen"],
   includeRevoked: ["Include revoked"],
   withdrawAfterBoost: ["Withdraw after boost"],
@@ -26,15 +34,20 @@ const SETTINGS = {
   onlyConnectWallet: ["Only connect wallet"],
   requalify: [
     "Requalify",
-    (ctx) =>
-      REQUALIFY_LABELS[ctx.options.requalify] || ctx.options.requalify,
+    (ctx) => REQUALIFY_LABELS[ctx.options.requalify] || ctx.options.requalify,
   ],
   ignorePending: ["Ignore pending"],
   freeze: ["Freeze", (ctx) => toggle(ctx.shouldFreezeAccounts())],
   runFarmer: ["Run Farmer"],
   repeat: ["Repeat"],
-  repeatInterval: ["Repeat Interval", (ctx) => `${ctx.options.repeatInterval}h`],
-  assistInterval: ["Assist Interval", (ctx) => `${ctx.options.assistInterval}m`],
+  repeatInterval: [
+    "Repeat Interval",
+    (ctx) => `${ctx.options.repeatInterval}h`,
+  ],
+  assistInterval: [
+    "Assist Interval",
+    (ctx) => `${ctx.options.assistInterval}m`,
+  ],
   cultivateInterval: [
     "Cultivate Interval",
     (ctx) => `${ctx.options.cultivateInterval}m`,
@@ -51,6 +64,18 @@ const SETTINGS = {
   flipAfterBoost: ["Flip after boost"],
   slippage: ["Slippage", (ctx) => `${Number(ctx.options.slippage) * 100}%`],
 };
+
+/** What a collect leaves on each account: nothing, a fixed amount or a range */
+function formatRetain(ctx) {
+  const { retainMin, retainMax } = ctx.options;
+  const range = [retainMin, retainMax].filter(Boolean);
+
+  if (!range.length) return "(none)";
+  if (range.length === 1 || retainMin === retainMax) {
+    return `${range[0]} ${ctx.token}`;
+  }
+  return `${retainMin}-${retainMax} ${ctx.token}`;
+}
 
 /** An on/off setting */
 function toggle(value) {
@@ -338,9 +363,7 @@ class AutoFormatter {
       amount !== null &&
       !(skipped && new Decimal(amount || 0).isZero());
 
-    const amountPart = showAmount
-      ? ` - <i>${amount} ${this.currency}</i>`
-      : "";
+    const amountPart = showAmount ? ` - <i>${amount} ${this.currency}</i>` : "";
     const positionPart = position ? ` ${position}` : "";
 
     const head = skipped

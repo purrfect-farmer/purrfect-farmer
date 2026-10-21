@@ -12,6 +12,7 @@ import {
 import Decimal from "decimal.js";
 import { SendMode } from "@ton/core";
 import { NATIVE_TON_DUST, fromNanoDecimal } from "./native.js";
+import { COLLECT_SKIP_REASONS, planCollect } from "./collectPlan.js";
 
 /** Boosts and collects one sub account, moving `prepared.jettonAddress` to and from the master, or TON on a native Auto */
 export default class BaseBooster {
@@ -153,6 +154,28 @@ export default class BaseBooster {
     await waitForSeqnoChange(contract, seqno);
   }
 
+  /** Send part of a sub account's TON to the master, the rest staying behind to pay the fee */
+  async sendTonToMaster(amount) {
+    const { contract, keyPair } = await this._prepareSubAccount();
+    const seqno = await contract.getSeqno();
+
+    await contract.sendTransfer({
+      seqno,
+      secretKey: keyPair.secretKey,
+      sendMode: SendMode.PAY_GAS_SEPARATELY,
+      messages: [
+        internal({
+          to: Address.parse(this.master.address),
+          value: toNano(amount.toFixed(9, Decimal.ROUND_DOWN)),
+          bounce: false,
+        }),
+      ],
+    });
+
+    await waitForSeqnoChange(contract, seqno);
+    return amount;
+  }
+
   async returnJettonToMaster(jettonBalance) {
     const { client, jettonAddress, jettonDecimals } = this.prepared;
     const { contract, keyPair } = await this._prepareSubAccount();
@@ -253,37 +276,79 @@ export default class BaseBooster {
     }
   }
 
+  /** The result of a collect that moved nothing */
+  skippedCollect(reason, retained = new Decimal(0)) {
+    return {
+      status: false,
+      skipped: true,
+      reason,
+      account: this.account,
+      collected: new Decimal(0),
+      retained,
+      error: null,
+    };
+  }
+
   /** Return a sub account's TON to the master, the whole of a native Auto's collect */
-  async collectTon() {
+  async collectTon(options) {
     const { contract } = await this._prepareSubAccount();
     const balance = await contract.getBalance();
 
     if (balance <= NATIVE_TON_DUST) {
       console.log("Skipping due to low TON balance!");
+      return this.skippedCollect(COLLECT_SKIP_REASONS.EMPTY);
+    }
+
+    const total = fromNanoDecimal(balance);
+    const { amount, retain, reason } = planCollect(total, options);
+
+    if (reason) {
+      console.log("Skipping TON collection:", reason);
+      return this.skippedCollect(reason, retain);
+    }
+
+    if (retain.lte(0)) {
+      await this.returnTonToMaster();
+    } else {
+      /** Whatever stays behind pays the fee, so it is never less than dust */
+      const sent = Decimal.min(
+        amount,
+        total.minus(fromNanoDecimal(NATIVE_TON_DUST)),
+      );
+      await this.sendTonToMaster(sent);
+
       return {
-        status: false,
-        skipped: true,
+        status: true,
+        skipped: false,
+        reason: null,
         account: this.account,
-        collected: new Decimal(0),
+        collected: sent,
+        retained: total.minus(sent),
         error: null,
       };
     }
 
-    await this.returnTonToMaster();
-
     return {
       status: true,
       skipped: false,
+      reason: null,
       account: this.account,
-      collected: fromNanoDecimal(balance),
+      collected: total,
+      retained: new Decimal(0),
       error: null,
     };
   }
 
-  async collect() {
+  /**
+   * @param {object} [options]
+   * @param {string} [options.retainMin] - least to leave on the account
+   * @param {string} [options.retainMax] - most to leave, picked at random from min
+   * @param {string} [options.minCollect] - skip when less than this would be collected
+   */
+  async collect(options = {}) {
     try {
       if (this.prepared.native) {
-        return await this.collectTon();
+        return await this.collectTon(options);
       }
 
       console.log("Fetching Jetton Balance...");
@@ -292,16 +357,13 @@ export default class BaseBooster {
         this.account.address,
       );
 
-      if (jettonBalance.lessThanOrEqualTo(0)) {
-        console.log("Skipping due to low Jetton balance!");
-        return {
-          status: false,
-          skipped: true,
-          account: this.account,
-          collected: new Decimal(0),
-          error: null,
-        };
+      const { amount, retain, reason } = planCollect(jettonBalance, options);
+
+      if (reason) {
+        console.log("Skipping Jetton collection:", reason);
+        return this.skippedCollect(reason, retain);
       }
+
       const { contract } = await this._prepareSubAccount();
       const balance = await contract.getBalance();
 
@@ -311,7 +373,7 @@ export default class BaseBooster {
       }
 
       /** Return Jetton */
-      await this.returnJettonToMaster(jettonBalance);
+      await this.returnJettonToMaster(amount);
 
       /** Return TON */
       await this.returnTonToMaster();
@@ -319,8 +381,10 @@ export default class BaseBooster {
       return {
         status: true,
         skipped: false,
+        reason: null,
         account: this.account,
-        collected: jettonBalance,
+        collected: amount,
+        retained: retain,
         error: null,
       };
     } catch (error) {
@@ -328,8 +392,10 @@ export default class BaseBooster {
       return {
         status: false,
         skipped: false,
+        reason: null,
         account: this.account,
         collected: new Decimal(0),
+        retained: new Decimal(0),
         error,
       };
     }

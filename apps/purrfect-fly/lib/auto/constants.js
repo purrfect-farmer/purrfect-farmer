@@ -46,9 +46,30 @@ export const NOTIFICATION_OPTIONS = {
   },
 };
 
+/** A non-negative amount as a string, or empty when the value is not one */
+function toAmountOption(value) {
+  const amount = Number(value);
+  return value !== "" && Number.isFinite(amount) && amount >= 0
+    ? String(value)
+    : "";
+}
+
+/** The retain range with its bounds in order, either side free to be empty */
+function normalizeRetain(retainMin, retainMax) {
+  const min = toAmountOption(retainMin);
+  const max = toAmountOption(retainMax);
+
+  return min && max && Number(max) < Number(min)
+    ? { retainMin: max, retainMax: min }
+    : { retainMin: min, retainMax: max };
+}
+
 /** The run settings with their defaults, validated the way the request body cannot be */
 export function normalizeOptions({
   amount = "",
+  retainMin = "",
+  retainMax = "",
+  minCollect = "",
   delay = 0,
   difference = 0,
   freeze = false,
@@ -75,6 +96,8 @@ export function normalizeOptions({
 } = {}) {
   return {
     amount,
+    ...normalizeRetain(retainMin, retainMax),
+    minCollect: toAmountOption(minCollect),
     delay: Number(delay),
     difference: Number(difference),
     freeze,
