@@ -121,6 +121,21 @@ export default async function (fastify) {
     },
   );
 
+  /** Auto - Swap every account's TON into the jetton, which a native drop does not have */
+  fastify.post(
+    "/auto/:drop/swap",
+    { preHandler: autoPreHandler, schema: autoSchema },
+    async function (request, reply) {
+      const Auto = autos[request.params.drop];
+
+      if (Auto && Auto.native) {
+        return reply.badRequest(`${Auto.title} has no jetton to swap into`);
+      }
+
+      return dispatchAutoOperation("swap").call(this, request, reply);
+    },
+  );
+
   /** Auto - Single account Boost / Collect, awaited so the caller gets the result back */
   for (const [path, operation] of [
     ["single-boost", "singleBoost"],

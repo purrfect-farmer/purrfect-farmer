@@ -23,6 +23,13 @@ export const ROUTE_ASSETS = [
 /** TON always has 9 decimals; the drop's jetton comes from `prepareMaster` */
 export const TON_DECIMALS = 9;
 
+/** Slippage tolerances the swap forms offer */
+export const SLIPPAGE_OPTIONS = [
+  { value: "0.005", label: "0.5%" },
+  { value: "0.01", label: "1%" },
+  { value: "0.03", label: "3%" },
+];
+
 const stonApi = new StonApiClient();
 
 /** Convert a human amount to the integer units the API and SDK expect */
@@ -91,7 +98,7 @@ export async function simulateAutoSwap({
   }
 }
 
-/** Simulate the direct pair, falling back to a two-hop route through `ROUTE_ASSETS`
+/** Simulate the direct pair and every two-hop route through `ROUTE_ASSETS`, returning whichever pays the most
  * @returns {Promise<object>} - { hops: [simulation, simulation?], via? }
  */
 export async function simulateRoute({
@@ -106,48 +113,64 @@ export async function simulateRoute({
       ? [jettonAddress, TON_ASSET_ADDRESS]
       : [TON_ASSET_ADDRESS, jettonAddress];
 
-  try {
-    const simulation = await simulateAutoSwap({
-      offerAddress,
-      askAddress,
-      offerUnits,
-      slippageTolerance,
-      referralAddress,
-    });
-
-    return { hops: [simulation] };
-  } catch (error) {
-    if (!error?.unavailable) throw error;
-  }
-
-  for (const via of ROUTE_ASSETS) {
-    try {
-      /* Only v2 routers forward a custom payload, which is what chains the legs */
-      const first = await simulateAutoSwap({
+  const direct = async () => ({
+    hops: [
+      await simulateAutoSwap({
         offerAddress,
-        askAddress: via.address,
+        askAddress,
         offerUnits,
         slippageTolerance,
-        dexVersion: [2],
-      });
-
-      /* The referral sits on the final leg only, so the fee is charged once */
-      const second = await simulateAutoSwap({
-        offerAddress: via.address,
-        askAddress,
-        offerUnits: first.askUnits,
-        slippageTolerance,
         referralAddress,
-        dexVersion: [2],
-      });
+      }),
+    ],
+  });
 
-      return { hops: [first, second], via };
-    } catch (error) {
-      if (!error?.unavailable) throw error;
-    }
+  const multiHop = async (via) => {
+    /* Only v2 routers forward a custom payload, which is what chains the legs */
+    const first = await simulateAutoSwap({
+      offerAddress,
+      askAddress: via.address,
+      offerUnits,
+      slippageTolerance,
+      dexVersion: [2],
+    });
+
+    /* The referral sits on the final leg only, so the fee is charged once */
+    const second = await simulateAutoSwap({
+      offerAddress: via.address,
+      askAddress,
+      offerUnits: first.askUnits,
+      slippageTolerance,
+      referralAddress,
+      dexVersion: [2],
+    });
+
+    return { hops: [first, second], via };
+  };
+
+  /* A pool existing says nothing about its depth, so every route is priced */
+  const settled = await Promise.allSettled([
+    direct(),
+    ...ROUTE_ASSETS.map(multiHop),
+  ]);
+
+  const routes = settled
+    .filter((result) => result.status === "fulfilled")
+    .map((result) => result.value);
+
+  if (routes.length === 0) {
+    const failure = settled.find((result) => !result.reason?.unavailable);
+
+    if (failure) throw failure.reason;
+
+    throw new SwapUnavailableError("No STON.fi route exists for this pair");
   }
 
-  throw new SwapUnavailableError("No STON.fi route exists for this pair");
+  return routes.reduce((best, route) =>
+    BigInt(route.hops.at(-1).askUnits) > BigInt(best.hops.at(-1).askUnits)
+      ? route
+      : best,
+  );
 }
 
 /** Raised when STON.fi cannot swap this pair at all: the jetton is unlisted or has no pool */

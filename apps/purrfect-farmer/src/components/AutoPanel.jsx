@@ -8,11 +8,15 @@ import AutoParcelTab from "./AutoParcelTab";
 import AutoRescueTab from "./AutoRescueTab";
 import AutoStatusTab from "./AutoStatusTab";
 import AutoSwapTab from "./AutoSwapTab";
+import AutoSwapperTab from "./AutoSwapperTab";
 import AutoVerifyTab from "./AutoVerifyTab";
 import AutoWithdrawTab from "./AutoWithdrawTab";
 import Tabs from "./Tabs";
 import useAuto from "@/hooks/useAuto";
 import { useMemo } from "react";
+
+/** Tabs a native TON drop hides, having no jetton to swap into */
+const SWAP_TABS = ["swap", "swapper"];
 
 /** Every drop gets these, a verifiable one also gets the verify tab, and a native TON one has nothing to swap */
 const baseTabs = {
@@ -24,6 +28,7 @@ const baseTabs = {
     "flip",
     "rescue",
     "swap",
+    "swapper",
     "parcel",
     "collect",
     "load",
@@ -38,7 +43,9 @@ export default function AutoPanel() {
     () => ({
       ...baseTabs,
       list: [
-        ...baseTabs.list.filter((tab) => !(config.native && tab === "swap")),
+        ...baseTabs.list.filter(
+          (tab) => !(config.native && SWAP_TABS.includes(tab)),
+        ),
         ...(config.verifiable ? ["verify"] : []),
       ],
     }),
@@ -70,6 +77,11 @@ export default function AutoPanel() {
       {!config.native && (
         <Tabs.Content value="swap">
           <AutoSwapTab />
+        </Tabs.Content>
+      )}
+      {!config.native && (
+        <Tabs.Content value="swapper">
+          <AutoSwapperTab />
         </Tabs.Content>
       )}
       <Tabs.Content value="parcel">

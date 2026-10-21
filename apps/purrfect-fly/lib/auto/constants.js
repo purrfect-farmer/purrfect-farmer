@@ -70,6 +70,8 @@ export function normalizeOptions({
   flipDirection = "flip",
   flipAfterBoost = false,
   requesters = [],
+  slippage = "0.01",
+  referralAddress = "",
 } = {}) {
   return {
     amount,
@@ -96,5 +98,7 @@ export function normalizeOptions({
       : "flip",
     flipAfterBoost,
     requesters,
+    slippage: Number(slippage) > 0 ? String(slippage) : "0.01",
+    referralAddress,
   };
 }

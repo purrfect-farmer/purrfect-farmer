@@ -2,6 +2,7 @@ import { Controller, useForm } from "react-hook-form";
 import {
   JETTON_TO_TON,
   REFERRAL_FEE_BPS,
+  SLIPPAGE_OPTIONS,
   TON_TO_JETTON,
 } from "@purrfect/shared/lib/auto/swap.js";
 
@@ -41,12 +42,6 @@ const schema = yup
     slippage: yup.string().required().label("Slippage"),
   })
   .required();
-
-const SLIPPAGE_OPTIONS = [
-  { value: "0.005", label: "0.5%" },
-  { value: "0.01", label: "1%" },
-  { value: "0.03", label: "3%" },
-];
 
 /** Above this the pool is thin enough that the user should think twice */
 const HIGH_PRICE_IMPACT = 0.05;

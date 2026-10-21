@@ -49,6 +49,7 @@ const SETTINGS = {
         : "Restore own wallet",
   ],
   flipAfterBoost: ["Flip after boost"],
+  slippage: ["Slippage", (ctx) => `${Number(ctx.options.slippage) * 100}%`],
 };
 
 /** An on/off setting */

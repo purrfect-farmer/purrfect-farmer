@@ -8,6 +8,7 @@ import LoadOperation from "./auto/operations/LoadOperation.js";
 import RescueOperation from "./auto/operations/RescueOperation.js";
 import SingleOperation from "./auto/operations/SingleOperation.js";
 import StatusOperation from "./auto/operations/StatusOperation.js";
+import SwapOperation from "./auto/operations/SwapOperation.js";
 import VerifyOperation from "./auto/operations/VerifyOperation.js";
 import WithdrawOperation from "./auto/operations/WithdrawOperation.js";
 import logger from "./logger.js";
@@ -101,6 +102,10 @@ class BaseAuto {
 
   static status(options) {
     this.execute(options, StatusOperation);
+  }
+
+  static swap(options) {
+    this.execute(options, SwapOperation);
   }
 
   static load(options) {

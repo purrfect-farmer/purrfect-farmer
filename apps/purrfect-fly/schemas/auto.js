@@ -33,6 +33,8 @@ export const autoSchema = {
       flipDirection: { type: "string", enum: ["flip", "restore"] },
       flipAfterBoost: { type: "boolean" },
       requesters: { type: "array" },
+      slippage: { type: "string" },
+      referralAddress: { type: "string" },
     },
   },
 };

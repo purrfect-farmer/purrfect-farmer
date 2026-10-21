@@ -2,6 +2,7 @@ import { SendMode, internal } from "@ton/core";
 import {
   JETTON_TO_TON,
   TON_DECIMALS,
+  TON_TO_JETTON,
   buildSwapTxParams,
   fromUnits,
   getSwapAsset,
@@ -9,6 +10,7 @@ import {
   simulateRoute,
   toUnits,
 } from "./swap.js";
+import { NATIVE_TON_DUST, fromNanoDecimal } from "./native.js";
 import { prepareMaster } from "./transactions.js";
 import { waitForSeqnoChange } from "../ton/transactions.js";
 
@@ -20,9 +22,22 @@ export const SWAP_TON_RESERVE = new Decimal("0.35");
 /** TON held back for a two-hop swap, which carries gas for both legs */
 export const MULTI_HOP_TON_RESERVE = new Decimal("0.6");
 
+/** Above this an unattended swap refuses, since the pool would eat most of it */
+export const MAX_PRICE_IMPACT = new Decimal("0.1");
+
 /** TON a route needs left over for gas */
 export function getSwapTonReserve(hops = 1) {
   return hops > 1 ? MULTI_HOP_TON_RESERVE : SWAP_TON_RESERVE;
+}
+
+/** A route's total price impact, compounded across its legs */
+export function getRoutePriceImpact(route) {
+  return new Decimal(1).minus(
+    route.hops.reduce(
+      (kept, hop) => kept.mul(new Decimal(1).minus(hop.priceImpact)),
+      new Decimal(1),
+    ),
+  );
 }
 
 /** Swaps between a drop's jetton and TON on STON.fi, signing with any Auto wallet */
@@ -85,13 +100,7 @@ export default class BaseSwapper {
     const offered = fromUnits(first.offerUnits, assets.offerDecimals);
     const expected = fromUnits(last.askUnits, assets.askDecimals);
 
-    /* Impacts compound across legs */
-    const priceImpact = new Decimal(1).minus(
-      route.hops.reduce(
-        (kept, hop) => kept.mul(new Decimal(1).minus(hop.priceImpact)),
-        new Decimal(1),
-      ),
-    );
+    const priceImpact = getRoutePriceImpact(route);
 
     const [from, to] =
       direction === JETTON_TO_TON ? [this.token, "TON"] : ["TON", this.token];
@@ -187,5 +196,69 @@ export default class BaseSwapper {
 
     /* The seqno moving proves the wallet sent the message, not that the pool filled it */
     return this.describeRoute(route, direction, assets);
+  }
+
+  /** Swap all of the wallet's TON into the jetton, keeping the gas its route needs */
+  async swapAll({ slippage }) {
+    const prepared = await this.prepare();
+    const balance = fromUnits(
+      await prepared.contract.getBalance(),
+      TON_DECIMALS,
+    );
+    const dust = fromNanoDecimal(NATIVE_TON_DUST);
+
+    /** What is left to offer once a reserve is held back, null when it is not worth a swap */
+    const available = (reserve) => {
+      const amount = balance.minus(reserve);
+      return amount.gt(dust) ? amount : null;
+    };
+
+    let amount = available(getSwapTonReserve(1));
+
+    if (!amount) {
+      return { status: false, skipped: true, balance };
+    }
+
+    /* The route decides the reserve, and a two-hop one needs more gas */
+    const assets = resolveSwapAssets(
+      TON_TO_JETTON,
+      this.jettonAddress,
+      prepared.jettonDecimals,
+    );
+    const route = await this.simulate(
+      { direction: TON_TO_JETTON, amount: amount.toFixed(), slippage },
+      assets,
+    );
+
+    /* Nobody is watching to back out of a thin pool */
+    const priceImpact = getRoutePriceImpact(route);
+
+    if (priceImpact.gt(MAX_PRICE_IMPACT)) {
+      throw new Error(
+        `Price impact ${priceImpact.mul(100).toFixed(2)}% is too high`,
+      );
+    }
+
+    if (route.hops.length > 1) {
+      amount = available(getSwapTonReserve(route.hops.length));
+
+      if (!amount) {
+        return { status: false, skipped: true, balance };
+      }
+    }
+
+    const result = await this.swap({
+      direction: TON_TO_JETTON,
+      amount: amount.toFixed(),
+      slippage,
+    });
+
+    return {
+      status: true,
+      balance,
+      swapped: amount,
+      expected: result.expected,
+      path: result.path,
+    };
   }
 }
