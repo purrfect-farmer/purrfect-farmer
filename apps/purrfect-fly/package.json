@@ -29,7 +29,7 @@
   "dependencies": {
     "@fastify/autoload": "^6.5.0",
     "@fastify/cors": "^11.3.0",
-    "@fastify/jwt": "^9.1.0",
+    "@fastify/jwt": "^10.2.5",
     "@fastify/sensible": "^6.0.5",
     "@keyv/sqlite": "^4.0.8",
     "@purrfect/shared": "workspace:*",

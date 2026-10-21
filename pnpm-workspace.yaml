@@ -19,3 +19,14 @@ onlyBuiltDependencies:
   - sharp
   - sqlite3
   - utf-8-validate
+
+# Patched floors for transitive deps flagged by Dependabot, kept within each major
+overrides:
+  fast-uri@>=3 <3.1.9: ^3.1.9
+  browserslist@<4.29.4: ^4.29.4
+  baseline-browser-mapping@<2.11.0: ^2.11.0
+  # Pinned until 8.3.5 clears the release-age gate, a peer resolves to the newest otherwise
+  vite@8: 8.3.4
+  valibot@>=1.0.0 <1.4.2: ^1.5.0
+  pbkdf2@<3.1.7: ^3.1.7
+  http-cache-semantics@<4.2.1: ^4.3.0
