@@ -14,6 +14,9 @@ class LoadOperation extends AutoOperation {
     const accepted = [];
     const rejected = [];
 
+    /** A wallet is only useful alongside the session that owns it, so another server's account cannot be helped */
+    const cloudAccounts = await ctx.getCloudAccounts(ctx.accounts, true);
+
     for (const account of ctx.accounts) {
       if (ctx.aborted) break;
 
@@ -22,10 +25,7 @@ class LoadOperation extends AutoOperation {
         continue;
       }
 
-      /** A wallet is only useful alongside the session that owns it, so another server's account cannot be helped */
-      const cloudAccount = await ctx.getCloudAccount(account, true);
-
-      if (!cloudAccount) {
+      if (!cloudAccounts.has(String(account.userId))) {
         rejected.push([
           fmt.formatAccountLink(account.userId),
           "not farmed by this server",

@@ -17,15 +17,20 @@ async function cleanDatabase() {
   });
 
   /* Get all active farmers */
-  const activeFarmers = await db.Farmer.findAll();
+  const activeFarmers = await db.Farmer.findAll({
+    attributes: ["id", "accountId", "farmer"],
+  });
 
-  /* Find duplicate farmers */
-  const duplicateFarmers = activeFarmers.filter(
-    (farmer, index, self) =>
-      self.findIndex(
-        (t) => t.accountId === farmer.accountId && t.farmer === farmer.farmer,
-      ) !== index,
-  );
+  /* Find duplicate farmers, keeping the first row of each account and farmer */
+  const seen = new Set();
+  const duplicateFarmers = activeFarmers.filter((farmer) => {
+    const key = `${farmer.accountId}:${farmer.farmer}`;
+    const isDuplicate = seen.has(key);
+
+    seen.add(key);
+
+    return isDuplicate;
+  });
 
   /* Log number of duplicate farmers */
   console.log("Number of Duplicate Farmers:", duplicateFarmers.length);

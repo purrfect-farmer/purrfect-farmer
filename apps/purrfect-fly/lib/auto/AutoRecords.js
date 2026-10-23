@@ -42,6 +42,7 @@ class AutoRecords {
 
     const rows = await db.Farmer.findAll({
       where: { farmer: this.farmerId, accountId: accountIds },
+      attributes: ["accountId", "storage"],
     });
 
     for (const row of rows) {
@@ -151,6 +152,7 @@ class AutoRecords {
     try {
       const dbFarmer = await db.Farmer.findOne({
         where: { farmer: this.farmerId, accountId },
+        attributes: ["storage"],
       });
 
       const stored = new Decimal(

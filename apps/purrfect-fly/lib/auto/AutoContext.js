@@ -118,20 +118,49 @@ class AutoContext {
     });
   }
 
+  /** Loads an account's farmer row for this drop alongside it */
+  get farmerInclude() {
+    return {
+      required: false,
+      association: "farmers",
+      where: {
+        farmer: this.farmerId,
+      },
+    };
+  }
+
   /** The farmed account behind a vault account, absent when it cannot be worked */
   async getCloudAccount(account, allowFrozen = false) {
     const cloudAccount = await db.Account.findByPk(account.userId, {
-      include: [
-        {
-          required: false,
-          association: "farmers",
-          where: {
-            farmer: this.farmerId,
-          },
-        },
-      ],
+      include: [this.farmerInclude],
     });
 
+    return this.workableCloudAccount(cloudAccount, allowFrozen);
+  }
+
+  /** The workable farmed accounts behind these vault accounts, in one query, keyed by user id */
+  async getCloudAccounts(accounts, allowFrozen = false) {
+    const ids = accounts.map((account) => account.userId).filter(Boolean);
+    const workable = new Map();
+
+    if (!ids.length) return workable;
+
+    const cloudAccounts = await db.Account.findAll({
+      where: { id: ids },
+      include: [this.farmerInclude],
+    });
+
+    for (const cloudAccount of cloudAccounts) {
+      if (this.workableCloudAccount(cloudAccount, allowFrozen)) {
+        workable.set(String(cloudAccount.id), cloudAccount);
+      }
+    }
+
+    return workable;
+  }
+
+  /** The cloud account when it may be worked, absent otherwise */
+  workableCloudAccount(cloudAccount, allowFrozen) {
     /** Skip if cloud account is missing */
     if (!cloudAccount) return;
 

@@ -16,8 +16,10 @@ class AutoNotifier {
 
   /** Send Notification */
   async send(messages) {
-    await bot?.sendPrivateMessage(this.ctx.id, messages, NOTIFICATION_OPTIONS);
-    await bot?.sendOperationMessage(messages, NOTIFICATION_OPTIONS);
+    await Promise.all([
+      bot?.sendPrivateMessage(this.ctx.id, messages, NOTIFICATION_OPTIONS),
+      bot?.sendOperationMessage(messages, NOTIFICATION_OPTIONS),
+    ]);
   }
 
   /** Send a notification that also reaches the server admin, who is not always the operator */

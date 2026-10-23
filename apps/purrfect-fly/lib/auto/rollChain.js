@@ -7,6 +7,13 @@ export function orderRollChain(links, startAddress) {
   const pending = [...links];
   const chain = [];
 
+  /** How many pending links were last funded by each address */
+  const fundedBy = new Map();
+
+  for (const link of pending) {
+    fundedBy.set(link.lastFunder, (fundedBy.get(link.lastFunder) || 0) + 1);
+  }
+
   let holderAddress = startAddress;
 
   while (pending.length) {
@@ -17,16 +24,19 @@ export function orderRollChain(links, startAddress) {
     );
 
     /** Picking the only fresh funder somebody else has left would strand them */
-    const stranding = (link) =>
-      pending.some(
-        (other) => other !== link && other.lastFunder === link.address,
-      );
+    const stranding = (link) => {
+      const funded = fundedBy.get(link.address) || 0;
+      const fundedSelf = link.lastFunder === link.address ? 1 : 0;
+
+      return funded - fundedSelf > 0;
+    };
 
     /** Whoever is left goes next, repeat or not, rather than stalling the chain */
     const next =
       eligible.find((link) => !stranding(link)) || eligible[0] || pending[0];
 
     pending.splice(pending.indexOf(next), 1);
+    fundedBy.set(next.lastFunder, fundedBy.get(next.lastFunder) - 1);
 
     chain.push(next);
     holderAddress = next.address;

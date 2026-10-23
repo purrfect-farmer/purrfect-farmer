@@ -51,10 +51,13 @@ export default async function (fastify) {
 
     /** Get all of the drop's farmers */
     const farmers = await fastify.db.Farmer.findAll({
+      attributes: ["id", "accountId", "status"],
       include: [
         {
           required: true,
           association: "account",
+          /** Destroying an account logs its session out */
+          attributes: ["id", "session"],
         },
       ],
       where: {

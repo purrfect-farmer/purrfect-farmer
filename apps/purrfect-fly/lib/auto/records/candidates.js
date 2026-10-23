@@ -19,7 +19,14 @@ export async function scanCandidates(
 ) {
   const rows = await db.Farmer.findAll({
     where: { farmer: ctx.farmerId },
-    include: [{ required: true, association: "account" }],
+    attributes: ["id", "accountId", "status", "storage"],
+    include: [
+      {
+        required: true,
+        association: "account",
+        attributes: ["id", "options"],
+      },
+    ],
   });
 
   const candidates = [];
