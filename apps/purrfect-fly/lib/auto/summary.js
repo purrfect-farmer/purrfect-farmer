@@ -38,3 +38,13 @@ export function byBalanceDescending(a, b) {
     a.snapshot.balance || 0,
   );
 }
+
+/** A withdrawal that was attempted and failed */
+export function failedWithdrawal(message) {
+  return { status: false, skipped: false, amount: "0", message };
+}
+
+/** A withdrawal that was passed over without asking the drop */
+export function skippedWithdrawal(message) {
+  return { status: false, skipped: true, amount: "0", message };
+}

@@ -2,6 +2,7 @@ import AutoOperation from "./AutoOperation.js";
 import logger from "../../logger.js";
 import { ASSIST_OWNER } from "../constants.js";
 import { FLIP_DIRECTION } from "../../../enums/flip-direction.js";
+import { otherWalletVersion } from "../wallet-version.js";
 
 /** Connect each account to its phrase's other contract version, freeing its own wallet, or back onto its own wallet */
 class FlipOperation extends AutoOperation {
@@ -28,7 +29,7 @@ class FlipOperation extends AutoOperation {
       return Number(account.version);
     }
 
-    return Number(account.version) === 4 ? 5 : 4;
+    return otherWalletVersion(account.version);
   }
 
   /** Flip a single account, leaving what is stored locally untouched */

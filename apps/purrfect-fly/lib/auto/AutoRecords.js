@@ -7,51 +7,8 @@ import {
   ASSIST_RECORD_KEY,
   LAST_BOOST_KEY,
   LAST_FUNDER_KEY,
-  SNAPSHOT_KEY,
 } from "./constants.js";
-import { byBalanceDescending } from "./summary.js";
-import { FARMER_STATUS } from "../../enums/farmer-status.js";
-
-/** What every account this server farms for the drop last looked like, from the stored snapshots */
-export async function readSnapshots(farmerId) {
-  const rows = await db.Farmer.findAll({
-    where: { farmer: farmerId },
-    attributes: [
-      "id",
-      "accountId",
-      "status",
-      "frozenUntil",
-      "errorCount",
-      "storage",
-    ],
-    include: [
-      {
-        required: true,
-        association: "account",
-        attributes: ["id", "options"],
-      },
-    ],
-  });
-
-  return rows.map((row) => ({
-    /** A string, since the UI holds the Telegram id as one */
-    id: String(row.account.id),
-    status: row.status,
-    frozenUntil: row.frozenUntil,
-    errorCount: row.errorCount,
-    farming: row.account.farmingEnabled,
-    snapshot: row.storage?.[SNAPSHOT_KEY] || null,
-
-    /** What the last boost sent it, which a reuse would send again */
-    lastBoost: row.storage?.[LAST_BOOST_KEY] || null,
-
-    /** What it is carrying now, and who it last withdrew for */
-    assist: {
-      pending: row.storage?.[ASSIST_RECORD_KEY] || null,
-      last: row.storage?.[ASSIST_HELPED_KEY] || null,
-    },
-  }));
-}
+import { scanCandidates } from "./records/candidates.js";
 
 /** Reads and writes what the drop's farmer rows remember about each account */
 class AutoRecords {
@@ -284,89 +241,9 @@ class AutoRecords {
     );
   }
 
-  /** The loaded accounts a loop may work, read from the stored snapshots, fullest pool first
-   * @param {object} params
-   * @param {{ accounts: Map<string, object> }} params.vault - the loaded wallets
-   * @param {Set<string>} params.excludeIds - accounts passed over without counting, e.g. the helpers
-   * @param {boolean} params.allowFrozen - whether a frozen farmer may still be worked
-   * @param {(entry: { row: object, account: object, snapshot: object }) => string | object} params.accept -
-   *   returns a skip reason, or the candidate to queue
-   */
-  async scanCandidates({ vault, excludeIds, allowFrozen, accept }) {
-    const rows = await db.Farmer.findAll({
-      where: { farmer: this.farmerId },
-      include: [{ required: true, association: "account" }],
-    });
-
-    const candidates = [];
-
-    /** Why each account was passed over, so an empty cycle can say so */
-    const skipped = {};
-    const skip = (reason) => {
-      skipped[reason] = (skipped[reason] || 0) + 1;
-    };
-
-    for (const row of rows) {
-      const userId = String(row.account.id);
-
-      /** Working an account needs its phrase, both to send and to reconnect */
-      const account = vault.accounts.get(userId);
-
-      if (!account) {
-        skip("not loaded");
-        continue;
-      }
-
-      /** Verified accounts are kept free to withdraw for everyone else */
-      if (excludeIds.has(userId)) continue;
-
-      if (row.status === FARMER_STATUS.BANNED) {
-        skip(FARMER_STATUS.BANNED);
-        continue;
-      }
-
-      /** Frozen is the operator saying to leave this account alone */
-      if (row.status === FARMER_STATUS.FROZEN && !allowFrozen) {
-        skip(FARMER_STATUS.FROZEN);
-        continue;
-      }
-
-      /** An account that no longer farms has no fresh snapshot to trust */
-      if (!row.account.farmingEnabled) {
-        skip("farming off");
-        continue;
-      }
-
-      const snapshot = row.storage?.[SNAPSHOT_KEY];
-
-      if (!snapshot) {
-        skip("never farmed");
-        continue;
-      }
-
-      if (snapshot.banned) {
-        skip("banned by the drop");
-        continue;
-      }
-
-      const accepted = accept({ row, account, snapshot });
-
-      if (typeof accepted === "string") {
-        skip(accepted);
-        continue;
-      }
-
-      candidates.push(accepted);
-    }
-
-    logger.info(
-      `${this.ctx.title} - ${candidates.length} candidate(s) of ${rows.length}`,
-      Object.entries(skipped)
-        .map(([reason, count]) => `${count} ${reason}`)
-        .join(", ") || "",
-    );
-
-    return candidates.sort(byBalanceDescending);
+  /** The loaded accounts a loop may work, fullest pool first */
+  scanCandidates(params) {
+    return scanCandidates(this.ctx, params);
   }
 }
 

@@ -71,7 +71,7 @@ class BoostOperation extends AutoOperation {
           return result;
         });
 
-        await ctx.boostStep.runRequalifyPass(withdrawn, (account, index, total) =>
+        await ctx.requalifier.run(withdrawn, (account, index, total) =>
           this.processBoost(account, index, { requalifying: true, total }),
         );
 

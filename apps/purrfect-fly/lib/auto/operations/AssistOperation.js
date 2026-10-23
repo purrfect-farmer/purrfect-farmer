@@ -1,9 +1,9 @@
 import AutoOperation from "./AutoOperation.js";
-import logger from "../../logger.js";
 import { ASSIST_OWNER } from "../constants.js";
-import { generateMnemonicPhrase } from "@purrfect/shared/lib/ton/wallet.js";
 import { getVault } from "../../AutoVault.js";
 import { isTrusted, isWithdrawable } from "../summary.js";
+import { withdrawDirectly } from "../direct-withdraw.js";
+import { withdrawThroughHelper } from "../wallet-exchange.js";
 
 /** Withdraw loaded accounts' pools through verified (or trusted) helpers, on a timer until cancelled */
 class AssistOperation extends AutoOperation {
@@ -123,7 +123,7 @@ class AssistOperation extends AutoOperation {
       for (const [index, candidate] of direct.entries()) {
         if (ctx.aborted) break;
 
-        const result = await this.withdrawDirectly(candidate);
+        const result = await withdrawDirectly(this.ctx, candidate);
 
         if (!result) continue;
 
@@ -199,7 +199,7 @@ class AssistOperation extends AutoOperation {
 
       if (!requesterEntry) return null;
 
-      return await this.assistWithdrawal({
+      return await withdrawThroughHelper(ctx, {
         requester: candidate.account,
         requesterRunner: requesterEntry.runner,
         helper,
@@ -209,207 +209,6 @@ class AssistOperation extends AutoOperation {
       /** Back into the farming batches while the next account is handled */
       if (requesterEntry) ctx.releaseRunner(requesterEntry.cloudAccount);
       ctx.release(userId, ASSIST_OWNER);
-    }
-  }
-
-  /** Withdraw a requester's pool through a helper account, passing the wallet along and putting it back */
-  async assistWithdrawal({ requester, requesterRunner, helper, helperRunner }) {
-    const { ctx } = this;
-    const { wallet } = ctx;
-
-    /** Never take a wallet from an account that is already mid-exchange */
-    if (!ctx.helpers.holdsOwnWallet(requesterRunner, requester)) {
-      return {
-        status: false,
-        skipped: true,
-        amount: "0",
-        message: "Not on its own wallet - is it loaded on another server?",
-      };
-    }
-
-    /** Both phrases are decrypted up front, because a rollback needs them and nothing has moved yet */
-    const requesterPhrase = await ctx.decryptPhrase(requester.encryptedPhrase);
-    const helperPhrase = await ctx.decryptPhrase(helper.encryptedPhrase);
-    const temporaryPhrase = await generateMnemonicPhrase();
-
-    const connect = (runner, phrase, version, label) =>
-      wallet.connectOrThrow(runner, { phrase, version }, `${label} failed`);
-
-    let requesterMoved = false;
-    let helperMoved = false;
-
-    /** Best-effort return of both accounts to their own wallets */
-    const rollback = async () => {
-      if (helperMoved) {
-        try {
-          await connect(
-            helperRunner,
-            helperPhrase,
-            helper.version,
-            "helper restore",
-          );
-          helperMoved = false;
-        } catch (error) {
-          logger.error("Failed to restore helper wallet:", error.message);
-        }
-      }
-
-      if (requesterMoved) {
-        try {
-          await connect(
-            requesterRunner,
-            requesterPhrase,
-            requester.version,
-            "requester restore",
-          );
-          requesterMoved = false;
-        } catch (error) {
-          logger.error("Failed to restore requester wallet:", error.message);
-        }
-      }
-
-      return { requesterMoved, helperMoved };
-    };
-
-    try {
-      /** The requester releases its wallet */
-      await connect(
-        requesterRunner,
-        temporaryPhrase,
-        requester.version,
-        "requester park",
-      );
-      requesterMoved = true;
-
-      /** The verified account picks it up */
-      await connect(
-        helperRunner,
-        requesterPhrase,
-        requester.version,
-        "helper adopt",
-      );
-      helperMoved = true;
-
-      /** A refusal here is an outcome, not a fault: restore both wallets the ordinary way and report it */
-      const withdrawal = await helperRunner.withdraw({
-        force: true,
-        difference: 0,
-      });
-
-      await connect(
-        helperRunner,
-        helperPhrase,
-        helper.version,
-        "helper restore",
-      );
-      helperMoved = false;
-
-      await connect(
-        requesterRunner,
-        requesterPhrase,
-        requester.version,
-        "requester restore",
-      );
-      requesterMoved = false;
-
-      /** Keep the next cycle from re-picking an account just drained */
-      await requesterRunner.storeAutoSnapshot();
-
-      return withdrawal;
-    } catch (error) {
-      const stranded = await rollback();
-
-      if (stranded.requesterMoved || stranded.helperMoved) {
-        await this.notify.sendStrandedWallet({
-          requester,
-          helper,
-          ...stranded,
-        });
-      }
-
-      throw error;
-    }
-  }
-
-  /** Withdraw a trusted account's own pool, with no wallet changing hands */
-  async withdrawDirectly(candidate) {
-    const { ctx, fmt } = this;
-    const { account } = candidate;
-    const label = fmt.formatAccountLink(account.userId);
-
-    /** The cultivate loop may already be boosting this account */
-    if (!ctx.claim(account.userId, ASSIST_OWNER)) return null;
-
-    let entry = null;
-
-    try {
-      entry = await ctx.helpers.getRunnerFor(account);
-
-      if (!entry) return null;
-
-      /** Never withdraw from a wallet that is mid-exchange elsewhere */
-      if (!ctx.helpers.holdsOwnWallet(entry.runner, account)) {
-        await this.notify.send([
-          `⚠️ Skipped <b>(${label})</b> - it is not on its own wallet. Is it loaded on another server?`,
-        ]);
-        return null;
-      }
-
-      /** An account with a withdrawal in flight must not place another */
-      if (await entry.runner.hasPendingWithdrawal()) {
-        await this.notify.send([
-          `⏩ Skipped <b>(${label})</b> - a withdrawal is still pending.`,
-        ]);
-        return null;
-      }
-
-      const { status, skipped, ...withdrawal } = await entry.runner.withdraw({
-        force: true,
-        difference: 0,
-      });
-
-      const amount = withdrawal.amount ?? "0";
-      const message = withdrawal.message ?? "";
-
-      /** Keep the next cycle from re-picking an account just drained */
-      await entry.runner.storeAutoSnapshot();
-
-      await this.notify.sendAdmin([
-        fmt.formatWithdrawalOutcome({
-          label,
-          status,
-          skipped,
-          amount,
-          message,
-          detail: skipped ? "" : " directly",
-        }),
-      ]);
-
-      return { status, skipped, amount, message };
-    } catch (error) {
-      if (ctx.aborted) return null;
-
-      const errorMessage = error.message || "Unknown error!";
-      logger.error(errorMessage);
-
-      await this.notify.send([
-        fmt.formatWithdrawalOutcome({
-          label,
-          status: false,
-          message: errorMessage,
-          detail: " directly",
-        }),
-      ]);
-
-      return {
-        status: false,
-        skipped: false,
-        amount: "0",
-        message: errorMessage,
-      };
-    } finally {
-      if (entry) ctx.releaseRunner(entry.cloudAccount);
-      ctx.release(account.userId, ASSIST_OWNER);
     }
   }
 }

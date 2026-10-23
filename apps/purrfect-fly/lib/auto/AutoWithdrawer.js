@@ -1,5 +1,9 @@
 import logger from "../logger.js";
-import { isProtectedBuyer, isWithdrawable } from "./summary.js";
+import {
+  failedWithdrawal,
+  isProtectedBuyer,
+  isWithdrawable,
+} from "./summary.js";
 import { REQUALIFY_STRATEGY } from "../../enums/requalify-strategy.js";
 
 /** Places withdrawals, both on their own and in the middle of a boost */
@@ -220,12 +224,7 @@ class AutoWithdrawer {
         }),
       ]);
 
-      return {
-        status: false,
-        skipped: false,
-        message: errorMessage,
-        amount: "0",
-      };
+      return failedWithdrawal(errorMessage);
     }
   }
 
@@ -269,12 +268,7 @@ class AutoWithdrawer {
 
       logger.error(errorMessage);
 
-      return {
-        status: false,
-        skipped: false,
-        message: errorMessage,
-        amount: "0",
-      };
+      return failedWithdrawal(errorMessage);
     }
   }
 }

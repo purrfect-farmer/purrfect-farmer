@@ -1,6 +1,7 @@
 import Decimal from "decimal.js";
 import AutoOperation from "./AutoOperation.js";
 import logger from "../../logger.js";
+import { skippedWithdrawal } from "../summary.js";
 
 /** Have this server's accounts withdraw for flipped accounts from an export, each adopting a freed wallet in turn */
 class RescueOperation extends AutoOperation {
@@ -107,12 +108,9 @@ class RescueOperation extends AutoOperation {
 
     /** Nothing moved, most often because the account was never flipped */
     if (!adopted.status) {
-      return {
-        status: false,
-        skipped: true,
-        amount: "0",
-        message: `Could not adopt its wallet (was it flipped?): ${adopted.message || "Unknown error"}`,
-      };
+      return skippedWithdrawal(
+        `Could not adopt its wallet (was it flipped?): ${adopted.message || "Unknown error"}`,
+      );
     }
 
     const restore = () =>

@@ -199,7 +199,7 @@ class CultivateOperation extends AutoOperation {
         }
       }
 
-      await ctx.boostStep.runRequalifyPass(
+      await ctx.requalifier.run(
         withdrawn,
         async (account, index, total) => {
           /** The assist loop may have taken this account since the withdrawal */

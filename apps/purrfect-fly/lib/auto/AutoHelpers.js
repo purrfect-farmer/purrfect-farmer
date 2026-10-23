@@ -1,5 +1,6 @@
 import logger from "../logger.js";
 import { ASSIST_OWNER } from "./constants.js";
+import { failedWithdrawal } from "./summary.js";
 
 /** The pool of accounts that withdraw on others' behalf, shared by the assist loop and a rescue */
 class AutoHelpers {
@@ -213,12 +214,7 @@ class AutoHelpers {
 
         message = errorMessage;
 
-        results.push({
-          status: false,
-          skipped: false,
-          amount: "0",
-          message: errorMessage,
-        });
+        results.push(failedWithdrawal(errorMessage));
 
         await notify.send([
           fmt.formatWithdrawalOutcome({

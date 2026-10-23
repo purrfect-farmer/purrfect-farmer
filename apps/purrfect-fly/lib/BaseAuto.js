@@ -12,7 +12,7 @@ import SwapOperation from "./auto/operations/SwapOperation.js";
 import VerifyOperation from "./auto/operations/VerifyOperation.js";
 import WithdrawOperation from "./auto/operations/WithdrawOperation.js";
 import logger from "./logger.js";
-import { readSnapshots } from "./auto/AutoRecords.js";
+import { readSnapshots } from "./auto/records/snapshots.js";
 import { summarizeVault } from "./AutoVault.js";
 
 /** The static entry points the routes call; each drop subclasses this with its own descriptor (see autos.js) */

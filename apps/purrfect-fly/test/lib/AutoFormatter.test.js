@@ -1,3 +1,4 @@
+import "../../config/env.js";
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import AutoFormatter from "../../lib/auto/AutoFormatter.js";
@@ -8,6 +9,7 @@ function createFormatter(options = {}) {
   const ctx = {
     title: "ATF Auto",
     token: "ATF",
+    currency: "ATF",
     accounts: [{}, {}, {}],
     options: normalizeOptions(options),
     shouldFreezeAccounts() {

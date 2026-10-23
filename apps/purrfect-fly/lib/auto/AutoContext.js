@@ -4,6 +4,7 @@ import AutoHelpers from "./AutoHelpers.js";
 import AutoMaster from "./AutoMaster.js";
 import AutoNotifier from "./AutoNotifier.js";
 import AutoRecords from "./AutoRecords.js";
+import AutoRequalifier from "./AutoRequalifier.js";
 import AutoWallet from "./AutoWallet.js";
 import AutoWithdrawer from "./AutoWithdrawer.js";
 import Encrypter from "@purrfect/shared/lib/Encrypter.js";
@@ -58,6 +59,7 @@ class AutoContext {
     this.wallet = new AutoWallet(this);
     this.withdrawer = new AutoWithdrawer(this);
     this.boostStep = new AutoBoostStep(this);
+    this.requalifier = new AutoRequalifier(this);
     this.helpers = new AutoHelpers(this);
 
     this.signal.addEventListener("abort", () => this.notify.sendStopping());
