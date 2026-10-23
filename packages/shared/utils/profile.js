@@ -35,3 +35,57 @@ export function generateProfile() {
     username: generateUsername(firstName, lastName),
   };
 }
+
+/** Profile parts a text can be removed from */
+export const PROFILE_FIELDS = Object.freeze({
+  NAME: "name",
+  BIO: "bio",
+});
+
+/** Longest text the profile cleaner accepts */
+export const PROFILE_CLEAN_TEXT_MAX = 64;
+
+/** Remove every case-insensitive match of text, tidying leftover spaces */
+export function stripText(value, text) {
+  const escaped = text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
+  return (value || "")
+    .replace(new RegExp(escaped, "gi"), "")
+    .replace(/\s{2,}/g, " ")
+    .trim();
+}
+
+/** Strip text from the chosen profile fields, returning only the changed values */
+export function stripProfileText(profile, text, fields) {
+  const changes = {};
+
+  if (fields.includes(PROFILE_FIELDS.NAME)) {
+    const oldFirstName = profile.firstName || "";
+    const oldLastName = profile.lastName || "";
+    let firstName = stripText(oldFirstName, text);
+    let lastName = stripText(oldLastName, text);
+
+    if (firstName !== oldFirstName || lastName !== oldLastName) {
+      /** Telegram requires a first name */
+      if (!firstName) {
+        if (!lastName) throw new Error("Name would be empty");
+        firstName = lastName;
+        lastName = "";
+      }
+
+      changes.firstName = firstName;
+      changes.lastName = lastName;
+    }
+  }
+
+  if (fields.includes(PROFILE_FIELDS.BIO)) {
+    const oldAbout = profile.about || "";
+    const about = stripText(oldAbout, text);
+
+    if (about !== oldAbout) {
+      changes.about = about;
+    }
+  }
+
+  return { changes, changed: Object.keys(changes).length > 0 };
+}

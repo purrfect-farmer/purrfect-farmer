@@ -11,13 +11,17 @@ import FieldStateError from "./FieldStateError";
 import Label from "./Label";
 import PrimaryButton from "./PrimaryButton";
 import RandomInput from "./RandomInput";
+import Textarea from "./Textarea";
 import toast from "react-hot-toast";
 import useMirroredCallback from "@/hooks/useMirroredCallback";
-import useProfileEditorProfile from "@/hooks/useProfileEditorProfile";
 import { LuDices } from "react-icons/lu";
 import { useEffect } from "react";
 import { yup } from "@/lib/yup";
 import { yupResolver } from "@hookform/resolvers/yup";
+
+/** Longest bio Telegram accepts, with and without Premium */
+const BIO_MAX_LENGTH = 70;
+const PREMIUM_BIO_MAX_LENGTH = 140;
 
 /** Schema */
 const schema = yup
@@ -25,6 +29,16 @@ const schema = yup
     firstName: yup.string().optional().label("First Name"),
     lastName: yup.string().optional().label("Last Name"),
     username: yup.string().optional().label("Username"),
+    about: yup
+      .string()
+      .trim()
+      .optional()
+      .when("$premium", {
+        is: true,
+        then: (schema) => schema.max(PREMIUM_BIO_MAX_LENGTH),
+        otherwise: (schema) => schema.max(BIO_MAX_LENGTH),
+      })
+      .label("Bio"),
   })
   .required();
 
@@ -35,14 +49,15 @@ const FIELDS = [
   { name: "username", label: "Username" },
 ];
 
-export default function ProfileEditorProfileForm() {
-  const { profile, mutation } = useProfileEditorProfile();
+export default function ProfileEditorProfileForm({ profile, mutation }) {
   const form = useForm({
     resolver: yupResolver(schema),
+    context: { premium: Boolean(profile?.premium) },
     defaultValues: {
       firstName: "",
       lastName: "",
       username: "",
+      about: "",
     },
   });
 
@@ -102,12 +117,9 @@ export default function ProfileEditorProfileForm() {
       firstName: profile.firstName || "",
       lastName: profile.lastName || "",
       username: profile.username || "",
+      about: profile.about || "",
     });
   }, [profile, form.reset]);
-
-  if (!profile) {
-    return <div className="p-2 text-center">Loading profile...</div>;
-  }
 
   return (
     <FormProvider {...form}>
@@ -132,6 +144,25 @@ export default function ProfileEditorProfileForm() {
             )}
           />
         ))}
+
+        {/* Bio */}
+        <Controller
+          name="about"
+          render={({ field, fieldState }) => (
+            <>
+              <Label>Bio</Label>
+              <Textarea
+                {...field}
+                minRows={2}
+                disabled={mutation.isPending}
+                autoComplete="off"
+                placeholder="Bio"
+              />
+
+              <FieldStateError fieldState={fieldState} />
+            </>
+          )}
+        />
 
         {/* Randomize All Button */}
         <Button

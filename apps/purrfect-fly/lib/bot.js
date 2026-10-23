@@ -2,6 +2,7 @@ import { Bot } from "grammy";
 import app from "../config/app.js";
 import cache from "./cache.js";
 import logger from "./logger.js";
+import { PROFILE_CLEAN_ICONS } from "./clean-status.js";
 import utils from "./utils.js";
 
 class GroupBot extends Bot {
@@ -95,6 +96,55 @@ class GroupBot extends Bot {
       );
     } catch (error) {
       logger.error("Error sending farming initiated message:", error);
+    }
+  }
+
+  /** Send Profile Clean Complete Message */
+  async sendProfileCleanCompleteMessage({
+    text,
+    fields,
+    report,
+    startDate,
+    endDate,
+  }) {
+    try {
+      const users = utils.formatUsers(
+        report.map(({ account, status }) => {
+          return {
+            id: account.id,
+            status: PROFILE_CLEAN_ICONS[status],
+            username: account.user?.username || "",
+            title: account.title,
+          };
+        }),
+      );
+
+      const summary = Object.entries(PROFILE_CLEAN_ICONS)
+        .map(([status, icon]) => {
+          const total = report.filter((item) => item.status === status);
+          return `${icon} ${total.length}`;
+        })
+        .join(" | ");
+
+      const format = (date) =>
+        utils.dateFns.format(date, "yyyy-MM-dd HH:mm:ss");
+
+      return await this.sendGroupMessage(
+        "messages.profile-clean.completed",
+        [
+          `<b>🧹 Profile Cleanup</b>`,
+          "<i>✅ Status: Completed</i>",
+          `<b>Text</b>: <code>${utils.escapeHtml(text)}</code>`,
+          `<b>Fields</b>: ${fields.join(", ")}`,
+          summary,
+          `\n<blockquote><i>Profiles cleaned!</i></blockquote>${users}`,
+          `<b>🗓️ Start Date</b>: ${format(startDate)}`,
+          `<b>🗓️ End Date</b>: ${format(endDate)}`,
+        ],
+        { ["message_thread_id"]: app.chat.threads.operations },
+      );
+    } catch (error) {
+      logger.error(error);
     }
   }
 

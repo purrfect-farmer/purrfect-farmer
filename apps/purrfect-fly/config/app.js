@@ -55,6 +55,7 @@ export default {
 
   displayAccountTitle: env("DISPLAY_ACCOUNT_TITLE", false),
   disableTelegramMessages: env("DISABLE_TELEGRAM_MESSAGES", false),
+  allowProfileUpdates: env("ALLOW_PROFILE_UPDATES", false),
 
   /** Server admin (private notifications) */
   admin: {

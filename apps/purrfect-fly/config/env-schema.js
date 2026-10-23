@@ -248,6 +248,14 @@ export const ENV_FIELDS = [
     options: ["sequential", "concurrent"],
   },
   {
+    key: "ALLOW_PROFILE_UPDATES",
+    group: "cron",
+    label: "Allow profile updates",
+    type: "boolean",
+    default: false,
+    help: "Farmer tasks may change account names or bios.",
+  },
+  {
     key: "MINIMUM_FARMER_RATING",
     group: "cron",
     label: "Minimum farmer rating",

@@ -154,11 +154,16 @@ export default function useDropFarmer() {
     [id, external, app.farmerMode, app.joinTelegramLink, app.setActiveTab],
   );
 
+  /** Whether tasks may change the Telegram profile */
+  const allowProfileUpdates = Boolean(settings.allowProfileUpdates);
+
   /** Update Profile */
   const updateProfile = useRefCallback(
     async (...args) => {
       if (external) {
         throw new Error("Running external account!");
+      } else if (!allowProfileUpdates) {
+        throw new Error("Profile updates are disabled in settings!");
       } else if (app.farmerMode === "web") {
         throw new Error("Profile update is only available in session mode!");
       } else {
@@ -167,7 +172,7 @@ export default function useDropFarmer() {
         return client.updateProfile(...args);
       }
     },
-    [external, app.farmerMode, app.telegramClient],
+    [external, allowProfileUpdates, app.farmerMode, app.telegramClient],
   );
 
   /** Instance */
@@ -181,6 +186,7 @@ export default function useDropFarmer() {
     telegramWebApp,
     joinTelegramLink,
     updateProfile,
+    allowProfileUpdates,
   });
 
   /** Data Query */

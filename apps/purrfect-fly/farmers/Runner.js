@@ -7,6 +7,7 @@ import ConsoleLogger from "@purrfect/shared/lib/ConsoleLogger.js";
 import GramClient from "../lib/GramClient.js";
 import PrimaryLink from "./runner/PrimaryLink.js";
 import RunnerQueue from "./runner/RunnerQueue.js";
+import app from "../config/app.js";
 import bot from "../lib/bot.js";
 import captcha from "../lib/captcha.js";
 import db from "../db/models/index.js";
@@ -87,6 +88,9 @@ export default function createRunner(FarmerClass) {
 
       /** Set Captcha Solver */
       this.setCaptcha(captcha);
+
+      /** Profile Updates */
+      this.setAllowProfileUpdates(app.allowProfileUpdates);
 
       /** Configure Telegram Web app */
       this.configureTelegramWebApp();

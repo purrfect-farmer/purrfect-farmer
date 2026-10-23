@@ -20,6 +20,7 @@ const defaultSettings = {
   uncappedPoints: false,
   repeatZoomiesCycle: true,
   farmersRating: 0,
+  allowProfileUpdates: false,
 };
 
 export default defaultSettings;

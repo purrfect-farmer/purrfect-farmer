@@ -11,19 +11,19 @@ export default function useProfileEditorProfile() {
   /** Update Mutation */
   const mutation = useMutation({
     mutationKey: ["profile-editor", "update-profile"],
-    mutationFn: async ({ username, ...names }) => {
+    mutationFn: async ({ username, ...fields }) => {
       if (!ref.current) throw new Error("Telegram client is not initialized");
-      await ref.current.updateProfile(names);
+      await ref.current.updateProfile(fields);
 
       /** Only touch the username when it changed */
       if (username !== (profile.username || "")) {
         await ref.current.updateUsername(username);
       }
 
-      return { ...names, username };
+      return { ...fields, username };
     },
     onSuccess: (data) => {
-      setProfile(data);
+      setProfile((prev) => ({ ...prev, ...data }));
       updateTelegramUser(true);
     },
   });
@@ -34,8 +34,8 @@ export default function useProfileEditorProfile() {
     /** @type {import("@purrfect/shared/lib/BaseTelegramWebClient.js").default} */
     const client = ref.current;
 
-    client.execute(() => client.getMe()).then(setProfile);
+    client.getFullProfile().then(setProfile);
   }, [farmerMode, ref]);
 
-  return { profile, mutation };
+  return { profile, setProfile, mutation };
 }

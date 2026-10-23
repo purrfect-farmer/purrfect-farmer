@@ -1,6 +1,7 @@
 import { FaBan, FaDoorOpen, FaToolbox, FaUserSlash } from "react-icons/fa6";
 import {
   HiOutlineKey,
+  HiOutlineSparkles,
   HiOutlineServerStack,
   HiOutlineUserPlus,
   HiOutlineWifi,
@@ -12,6 +13,7 @@ import BottomDialogTools from "@/partials/BottomDialogTools";
 import Button from "@/components/Button";
 import CloudIcon from "@/assets/images/cloud.png?format=webp&w=128";
 import CloudPasswordUpdate from "./CloudPasswordUpdate";
+import CloudProfileCleaner from "./CloudProfileCleaner";
 import CloudServerBackup from "./CloudServerBackup";
 import CloudServerUpdate from "./CloudServerUpdate";
 import CloudWhiskersImport from "./CloudWhiskersImport";
@@ -37,6 +39,7 @@ export default function CloudTools() {
   const [openServerUpdate, setOpenServerUpdate] = useState(false);
   const [openBackup, setOpenBackup] = useState(false);
   const [openWhiskersImport, setOpenWhiskersImport] = useState(false);
+  const [openProfileCleaner, setOpenProfileCleaner] = useState(false);
 
   /** Activate All Farmers */
   const activateAllFarmers = () => {
@@ -135,6 +138,14 @@ export default function CloudTools() {
               Update Proxies
             </BottomDialogTools.Button>
 
+            {/* Clean Profiles */}
+            <BottomDialogTools.Button
+              icon={HiOutlineSparkles}
+              onClick={() => setOpenProfileCleaner(true)}
+            >
+              Clean Profiles
+            </BottomDialogTools.Button>
+
             {/* Kick all members */}
             <BottomDialogTools.Button
               icon={FaBan}
@@ -176,6 +187,14 @@ export default function CloudTools() {
         onOpenChange={setOpenWhiskersImport}
       >
         <CloudWhiskersImport />
+      </Dialog.Root>
+
+      {/* Clean profiles */}
+      <Dialog.Root
+        open={openProfileCleaner}
+        onOpenChange={setOpenProfileCleaner}
+      >
+        <CloudProfileCleaner />
       </Dialog.Root>
 
       {/* Password */}

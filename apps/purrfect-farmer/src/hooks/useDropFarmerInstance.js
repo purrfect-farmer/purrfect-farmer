@@ -43,7 +43,7 @@ const createDropFarmerInstance = ({ FarmerClass }) => {
 
     /** Can Update Profile */
     canUpdateProfile() {
-      return Boolean(this.updateProfile);
+      return this.allowProfileUpdates && Boolean(this.updateProfile);
     }
 
     /** Get Cookies */
@@ -70,6 +70,7 @@ export default function useDropFarmerInstance({
   telegramWebApp,
   joinTelegramLink,
   updateProfile,
+  allowProfileUpdates,
 }) {
   const storageBaseKey = useChromeStorageKey(`farmer-storage:${id}`);
   const instanceStorage = useMemo(() => {
@@ -114,6 +115,11 @@ export default function useDropFarmerInstance({
     telegramClient,
     instanceStorage,
   ]);
+
+  /** Apply the profile update permission */
+  useLayoutEffect(() => {
+    instance?.setAllowProfileUpdates?.(allowProfileUpdates);
+  }, [instance, allowProfileUpdates]);
 
   return instance;
 }

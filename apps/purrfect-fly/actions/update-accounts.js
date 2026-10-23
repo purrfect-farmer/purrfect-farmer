@@ -2,87 +2,46 @@ import GramClient from "../lib/GramClient.js";
 import app from "../config/app.js";
 import bot from "../lib/bot.js";
 import db from "../db/models/index.js";
+import { forEachAccountSession } from "../lib/account-sessions.js";
 import { runDatabaseWrite } from "../lib/db-write.js";
 import utils from "../lib/utils.js";
 
-/** Maximum update attempts per account */
-const MAX_ATTEMPTS = 3;
+/** Save the account user and reactivate its farmers */
+async function updateSingleAccount(client, account) {
+  const webview = await client.getWebview(app.farmer.botLink);
+  const { initDataUnsafe } = utils.extractTgWebAppData(webview.url);
+  const { user } = initDataUnsafe;
 
-/** Update single account */
-async function updateSingleAccount(account, index) {
-  /** Delay */
-  await utils.delayForSeconds(index * 2);
+  /** Update User */
+  account.user = user;
 
-  for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
-    let client;
+  /** Save Item and set all farmers active, serialized for SQLite */
+  await runDatabaseWrite(async (transaction) => {
+    await account.save({ transaction });
 
-    try {
-      /** Create and Connect Client */
-      client = await GramClient.create(account.session);
-      await client.connect();
+    await db.Farmer.update(
+      { status: "active" },
+      {
+        where: {
+          accountId: account.id,
+          status: "inactive",
+        },
+        transaction,
+      },
+    );
+  });
+}
 
-      const webview = await client.getWebview(app.farmer.botLink);
-      const { initDataUnsafe } = utils.extractTgWebAppData(webview.url);
-      const { user } = initDataUnsafe;
+/** Drop a session that keeps failing */
+async function removeSession(account) {
+  /** Delete Session File */
+  await GramClient.deleteSessionFile(account.session).catch(() => {});
 
-      /** Update User */
-      account.user = user;
+  /** Remove Session */
+  account.session = null;
 
-      /** Save Item and set all farmers active, serialized for SQLite */
-      await runDatabaseWrite(async (transaction) => {
-        await account.save({ transaction });
-
-        await db.Farmer.update(
-          { status: "active" },
-          {
-            where: {
-              accountId: account.id,
-              status: "inactive",
-            },
-            transaction,
-          },
-        );
-      });
-
-      /** Done */
-      return;
-    } catch (error) {
-      /** Log Error */
-      if (process.env.NODE_ENV === "development") {
-        console.error(
-          `Error updating account (attempt ${attempt}/${MAX_ATTEMPTS}):`,
-          error,
-        );
-      }
-
-      /** Destroy Client, so that the next attempt starts cold */
-      client = client || GramClient.instances.get(account.session);
-
-      try {
-        await client?.destroy?.();
-      } catch {
-        /** Ignore */
-      }
-
-      /** Remove Instance */
-      GramClient.delete(account.session);
-
-      /** Retry */
-      if (attempt < MAX_ATTEMPTS) {
-        await utils.delayForSeconds(attempt * 5);
-        continue;
-      }
-
-      /** Delete Session File */
-      await GramClient.deleteSessionFile(account.session).catch(() => {});
-
-      /** Remove Session */
-      account.session = null;
-
-      /** Save */
-      await runDatabaseWrite((transaction) => account.save({ transaction }));
-    }
-  }
+  /** Save */
+  await runDatabaseWrite((transaction) => account.save({ transaction }));
 }
 
 /** Update Accounts */
@@ -93,11 +52,9 @@ async function updateAccounts() {
     const list = utils.shuffle(accounts.filter((account) => account.session));
 
     /** Update accounts in chunk */
-    for (const chunk of utils.chunkArrayGenerator(list, 20)) {
-      await Promise.allSettled(
-        chunk.map((account, index) => updateSingleAccount(account, index)),
-      );
-    }
+    await forEachAccountSession(list, updateSingleAccount, {
+      onFailure: removeSession,
+    });
 
     /** Send message */
     await bot.sendUserUpdateCompleteMessage({

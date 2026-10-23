@@ -2,7 +2,12 @@ import { exportBackup, importBackup } from "../../../lib/backup.js";
 
 import path from "path";
 import { spawn } from "child_process";
+import cleanProfiles from "../../../actions/clean-profiles.js";
 import updateProxies from "../../../actions/update-proxies.js";
+import {
+  PROFILE_CLEAN_TEXT_MAX,
+  PROFILE_FIELDS,
+} from "@purrfect/shared/utils/profile.js";
 
 /**
  * @param {import("fastify").FastifyInstance} fastify
@@ -12,6 +17,54 @@ export default async function (fastify) {
   fastify.post("/update-proxies", async () => {
     await updateProxies();
   });
+
+  /** Remove a text from every account's name or bio */
+  fastify.post(
+    "/clean-profiles",
+    {
+      schema: {
+        body: {
+          type: "object",
+          required: ["text", "fields"],
+          properties: {
+            text: {
+              type: "string",
+              minLength: 1,
+              maxLength: PROFILE_CLEAN_TEXT_MAX,
+            },
+            fields: {
+              type: "array",
+              minItems: 1,
+              uniqueItems: true,
+              items: { type: "string", enum: Object.values(PROFILE_FIELDS) },
+            },
+          },
+        },
+      },
+    },
+    async (request, reply) => {
+      const text = request.body.text.trim();
+      const { fields } = request.body;
+
+      if (!text) {
+        return reply.code(422).send({
+          statusCode: 422,
+          message: "Text is required",
+        });
+      }
+
+      const total = await cleanProfiles({ text, fields });
+
+      if (total === null) {
+        return reply.code(409).send({
+          statusCode: 409,
+          message: "A profile cleanup is already running",
+        });
+      }
+
+      return reply.send({ started: true, total });
+    },
+  );
 
   /** Import backup */
   fastify.post(

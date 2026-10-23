@@ -102,6 +102,9 @@ export default class BaseFarmer {
     /** Whether this run was initiated by the scheduler (vs. user-triggered) */
     this.scheduled = false;
 
+    /** Whether tasks may change the Telegram name or bio */
+    this.allowProfileUpdates = false;
+
     this.startedAt = new Date();
     this.currentTaskStartedAt = null;
     this.currentTask = null;
@@ -185,6 +188,11 @@ export default class BaseFarmer {
     this.userAgent = userAgent;
   }
 
+  /** Set whether tasks may change the Telegram profile */
+  setAllowProfileUpdates(allowProfileUpdates = false) {
+    this.allowProfileUpdates = Boolean(allowProfileUpdates);
+  }
+
   /** Set the Quick Run */
   setQuickRun(quickRun = false) {
     this.quickRun = quickRun;
@@ -246,7 +254,7 @@ export default class BaseFarmer {
 
   /** Can Update Profile */
   canUpdateProfile(options) {
-    return Boolean(this.client);
+    return this.allowProfileUpdates && Boolean(this.client);
   }
 
   /** Update Profile */
@@ -535,6 +543,11 @@ export default class BaseFarmer {
 
   /** Try to update profile */
   async tryToUpdateProfile(options) {
+    if (!this.allowProfileUpdates) {
+      this.logger.warn("Profile updates are disabled in settings");
+      return false;
+    }
+
     if (this.canUpdateProfile(options)) {
       try {
         await this.updateProfile(options);

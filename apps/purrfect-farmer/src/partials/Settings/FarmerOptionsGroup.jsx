@@ -170,6 +170,21 @@ export default memo(function FarmerOptionsGroup({
         Display IP Address
       </LabelToggle>
 
+      {/* Allow Profile Updates */}
+      <LabelToggle
+        onChange={(ev) =>
+          dispatchAndConfigureSettings("allowProfileUpdates", ev.target.checked)
+        }
+        checked={settings?.allowProfileUpdates}
+      >
+        <span className="flex flex-col min-w-0">
+          <span>Allow Profile Updates</span>
+          <span className="text-neutral-500 dark:text-neutral-400">
+            Tasks may change your name or bio
+          </span>
+        </span>
+      </LabelToggle>
+
       {/* (SHARED) - Show Mini-App Toolbar */}
       <LabelToggle
         onChange={(ev) =>

@@ -394,6 +394,24 @@ export default class BaseTelegramWebClient extends TelegramClient {
     });
   }
 
+  /** Get own name, username and bio */
+  getFullProfile() {
+    return this.execute(async () => {
+      const me = await this.getMe();
+      const { fullUser } = await this.invoke(
+        new Api.users.GetFullUser({ id: new Api.InputUserSelf() }),
+      );
+
+      return {
+        firstName: me.firstName || "",
+        lastName: me.lastName || "",
+        username: me.username || "",
+        about: fullUser.about || "",
+        premium: Boolean(me.premium),
+      };
+    });
+  }
+
   /** Update Profile */
   updateProfile(options) {
     return this.execute(() => {
