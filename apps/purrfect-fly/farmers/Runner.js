@@ -1,8 +1,4 @@
 import { CookieJar } from "tough-cookie";
-import userAgents, {
-  regularMobileUserAgents,
-} from "@purrfect/shared/resources/userAgents.js";
-
 import ConsoleLogger from "@purrfect/shared/lib/ConsoleLogger.js";
 import GramClient from "../lib/telegram/GramClient.js";
 import PrimaryLink from "./runner/PrimaryLink.js";
@@ -10,21 +6,19 @@ import RunnerQueue from "./runner/RunnerQueue.js";
 import app from "../config/app.js";
 import bot from "../lib/bot.js";
 import captcha from "../lib/captcha.js";
-import db from "../db/models/index.js";
-import selectAccounts, {
-  assignUnusedProxies,
-} from "./runner/selectAccounts.js";
 import utils from "../lib/utils.js";
 import {
-  BAN_TRIGGER_COUNT,
-  logRunnerConfig,
-  resolveRunnerConfig,
-} from "./runner/config.js";
+  createFarmerRecord,
+  recordFailure,
+  recordSuccess,
+} from "./runner/farmer-record.js";
 import { getCookies, restoreCookies, setupHttp } from "./runner/http.js";
-import { isTransientError } from "./runner/errors.js";
-import { FARMER_STATUS } from "../enums/farmer-status.js";
+import { getRunResult, runFarmer } from "./runner/run.js";
+import { logRunnerConfig, resolveRunnerConfig } from "./runner/config.js";
 import { REFERRER_MODE } from "../enums/referrer-mode.js";
-import { RUNNER_RESULT } from "../enums/runner-result.js";
+import { createFarmerStorage } from "./runner/storage.js";
+import { isTransientError } from "./runner/errors.js";
+import { pickUserAgent } from "./runner/user-agent.js";
 
 /**
  * @param {import("@purrfect/shared/lib/BaseFarmer.js").default} FarmerClass
@@ -72,13 +66,7 @@ export default function createRunner(FarmerClass) {
       this.random = this.account.random(); // Seeded RNG
 
       /** Select User-Agent */
-      this.setUserAgent(
-        this.platform === "telegram"
-          ? userAgents[Math.floor(this.random() * userAgents.length)]
-          : regularMobileUserAgents[
-              Math.floor(this.random() * regularMobileUserAgents.length)
-            ],
-      );
+      this.setUserAgent(pickUserAgent(this.platform, this.random));
 
       /** Cookie Jar */
       this.jar = this.cookies ? new CookieJar() : null;
@@ -98,27 +86,8 @@ export default function createRunner(FarmerClass) {
       /** Configure Telegram Web app */
       this.configureTelegramWebApp();
 
-      /** Setup storage */
-      this.setupStorage();
-    }
-
-    /** Setup storage */
-    setupStorage() {
-      this.storage = {
-        get: async (key) => {
-          return this.farmer?.storage?.[key];
-        },
-        set: async (key, value) => {
-          if (this.farmer) {
-            this.farmer.storage = {
-              ...this.farmer.storage,
-              [key]: value,
-            };
-
-            await this.farmer.save();
-          }
-        },
-      };
+      /** Farmer row storage */
+      this.storage = createFarmerStorage(this);
     }
 
     /** Notify the server admin via the bot */
@@ -152,16 +121,7 @@ export default function createRunner(FarmerClass) {
 
     /** Create Farmer */
     async createFarmer() {
-      return this.account.createFarmer({
-        farmer: this.constructor.id,
-        status: FARMER_STATUS.ACTIVE,
-        errorCount: 0,
-        initData: "",
-        headers: {},
-        cookies: [],
-        storage: {},
-        options: {},
-      });
+      return createFarmerRecord(this);
     }
 
     /** Refresh Account */
@@ -291,19 +251,7 @@ export default function createRunner(FarmerClass) {
     async disconnect() {
       try {
         if (this.farmer) {
-          /** Set as inactive */
-          this.farmer.status = FARMER_STATUS.INACTIVE;
-
-          /** Increase error count */
-          this.farmer.errorCount += 1;
-
-          /** Ban the farmer */
-          if (this.farmer.errorCount >= BAN_TRIGGER_COUNT) {
-            this.farmer.status = FARMER_STATUS.BANNED;
-          }
-
-          /** Save */
-          await this.farmer.save();
+          await recordFailure(this.farmer);
         }
       } catch (error) {
         this.logger.error("Error disconnecting farmer:", error);
@@ -313,15 +261,8 @@ export default function createRunner(FarmerClass) {
     /** Reset error count */
     async resetErrorCount() {
       try {
-        if (this.farmer && this.farmer.errorCount > 0) {
-          /** Set as active */
-          this.farmer.status = FARMER_STATUS.ACTIVE;
-
-          /** Reset error count */
-          this.farmer.errorCount = 0;
-
-          /** Save */
-          await this.farmer.save();
+        if (this.farmer) {
+          await recordSuccess(this.farmer);
         }
       } catch (error) {
         this.logger.error("Error resetting error count:", error);
@@ -420,92 +361,12 @@ export default function createRunner(FarmerClass) {
 
     /** Get Result */
     static getResult(account) {
-      const instance = this.runners.get(account.id);
-      if (!instance) {
-        return { status: RUNNER_RESULT.SKIPPED };
-      }
-
-      return {
-        status: instance.currentTask
-          ? RUNNER_RESULT.RUNNING
-          : RUNNER_RESULT.STARTED,
-        startedAt: instance.startedAt,
-        currentTaskStartedAt: instance.currentTaskStartedAt,
-        currentTask: instance.currentTask,
-        elapsed: instance.getElapsedTime(),
-      };
+      return getRunResult(this, account);
     }
 
     /** Run the farmer for all subscribed accounts */
-    static async run({ user } = {}) {
-      try {
-        /** Fetch accounts with farmer and active subscription */
-        const accountsWithFarmer = await db.Account.findSubscribedWithFarmer(
-          this.id,
-        );
-
-        /** Resolve the stored primary link before anything launches */
-        await this.primaryLink.resolveFromDatabase();
-
-        /** Decide which accounts run */
-        const { primaryAccount, executable, skipped } = selectAccounts({
-          accounts: accountsWithFarmer,
-          user,
-          terminated: this.terminated,
-          primaryAccountId: this.primaryAccountId,
-          platform: this.platform,
-          autoStart: this.autoStart,
-          referrerMode: this.referrerMode,
-          primaryLinkResolved: this.primaryLink.resolved,
-        });
-
-        /** Notify when the primary account is missing (a single-user run never includes it) */
-        if (!user) {
-          if (primaryAccount) {
-            this.primaryLink.warning = null;
-          } else {
-            await this.primaryLink.notifyMissing(
-              await this.primaryLink.getMissingReason(accountsWithFarmer),
-            );
-          }
-        }
-
-        /** Assign unused proxies to executable accounts without proxy */
-        assignUnusedProxies(executable, skipped);
-
-        /** Prepare accounts to be executed */
-        this.utils
-          .shuffle(executable)
-          .forEach((account) => this.prepare(account, true));
-
-        /** Process queue */
-        this.runQueue.process();
-
-        /** Get results */
-        const results = executable.map((account) => {
-          return { account, result: this.getResult(account) };
-        });
-
-        /** Send Farming Initiated Message */
-        try {
-          await bot?.sendFarmingInitiatedMessage({
-            id: this.id,
-            title: `${this.emoji} ${this.title}`,
-            link: this.link,
-            telegramLink: this.telegramLink,
-            threadId: this.threadId,
-            totalCount: accountsWithFarmer.length,
-            executedCount: executable.length,
-            results,
-          });
-        } catch (error) {
-          this.logger.error("Failed to send farming notification:", error);
-        }
-      } catch (error) {
-        this.logger.error("Error during run:", error);
-      } finally {
-        this.logger.success(`> ${this.title} Farmer Initiated`);
-      }
+    static run(options) {
+      return runFarmer(this, options);
     }
   };
 }
