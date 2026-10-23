@@ -112,7 +112,16 @@ function formatUsers(collection) {
   /** Retrieve Links */
   const links = list
     .map((data) => {
-      const { id, status, session, username, title, info, url, count } = data;
+      const {
+        id,
+        status,
+        session = "",
+        username,
+        title,
+        info,
+        url,
+        count,
+      } = data;
       const safeUsername = "@" + escapeHtml(username.trim());
       const titleHtml = title ? ` <b>${escapeHtml("(" + title + ")")}</b>` : "";
 
