@@ -1,8 +1,4 @@
-import {
-  HUMAN_CHECK_EXPIRY_MARGIN_SECONDS,
-  TURNSTILE_PAGE_URL,
-  TURNSTILE_SITE_KEY,
-} from "./constants.js";
+import { HUMAN_CHECK_EXPIRY_MARGIN_SECONDS } from "./constants.js";
 
 /** Trait: the Turnstile human check and how long it is trusted */
 export default class MRGHumanCheck {
@@ -65,26 +61,11 @@ export default class MRGHumanCheck {
 
   /** Pass the human check, sharing one attempt between concurrent callers */
   obtainHumanCheck() {
-    return (this.humanCheckPromise ||= this.solveHumanCheck().finally(() => {
-      this.humanCheckPromise = null;
-    }));
+    return this.ctx.humanCheck.obtain();
   }
 
-  /** Solve Turnstile and store how long the backend now trusts the account */
-  async solveHumanCheck() {
-    if (!this.canSolveTurnstile()) {
-      throw new Error(
-        "Captcha is required but no captcha provider is configured!",
-      );
-    }
-
-    this.logger.info("Solving the security check...");
-
-    const turnstileToken = await this.solveTurnstile({
-      siteKey: TURNSTILE_SITE_KEY,
-      pageUrl: TURNSTILE_PAGE_URL,
-    });
-
+  /** Hand a solved Turnstile token over and store how long the backend now trusts the account */
+  async submitHumanCheck(turnstileToken) {
     const result = await this.verifyHuman(turnstileToken);
 
     if (!result?.["success"] || !result["humanVerifiedUntil"]) {

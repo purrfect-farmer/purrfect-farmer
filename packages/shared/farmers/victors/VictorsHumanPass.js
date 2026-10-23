@@ -1,8 +1,4 @@
-import {
-  HUMAN_PASS_EXPIRY_MARGIN_SECONDS,
-  TURNSTILE_PAGE_URL,
-  TURNSTILE_SITE_KEY,
-} from "./constants.js";
+import { HUMAN_PASS_EXPIRY_MARGIN_SECONDS } from "./constants.js";
 
 /** Trait: the Turnstile human pass and how long it is trusted */
 export default class VictorsHumanPass {
@@ -55,28 +51,11 @@ export default class VictorsHumanPass {
 
   /** Pass the Turnstile check and sign in, sharing one attempt between concurrent callers */
   obtainHumanPass() {
-    return (this.humanPassPromise ||= this.solveHumanCheck().finally(() => {
-      this.humanPassPromise = null;
-    }));
+    return this.ctx.humanCheck.obtain();
   }
 
-  /** Solve Turnstile, sign in and store the pass the backend hands back */
-  async solveHumanCheck() {
-    this.humanPass = null;
-
-    if (!this.canSolveTurnstile()) {
-      throw new Error(
-        "Captcha is required but no captcha provider is configured!",
-      );
-    }
-
-    this.logger.info("Solving the security check...");
-
-    const turnstileToken = await this.solveTurnstile({
-      siteKey: TURNSTILE_SITE_KEY,
-      pageUrl: TURNSTILE_PAGE_URL,
-    });
-
+  /** Sign in with a solved Turnstile token and store the pass the backend hands back */
+  async submitHumanPass(turnstileToken) {
     const result = await this.loginWithToken(turnstileToken);
 
     if (!result?.["humanPass"]) {
