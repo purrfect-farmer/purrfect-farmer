@@ -68,6 +68,22 @@ The installation script will:
 - Install project dependencies
 - Guide you through configuration
 
+### Multiple Instances on One Server
+
+Run several isolated instances side by side. Each one gets its own clone, `.env`, database, PM2 app and public port:
+
+```bash
+curl -o- https://raw.githubusercontent.com/purrfect-farmer/purrfect-farmer/main/apps/purrfect-fly/install-many.sh | bash -s -- example Example 10 4001
+```
+
+Arguments are `slug name count base-port` (defaults shown above). This creates `~/example-1` to `~/example-10`, PM2 apps `example-1` to `example-10`, named `Example (1)` to `Example (10)`, reachable at `http://<ip>:4001` to `http://<ip>:4010`. Nginx owns the public ports and proxies to Node on the port 10000 higher (`14001`, ...). Fill in each `.env` afterwards, then run `pm2 restart all --update-env`.
+
+Update them all with:
+
+```bash
+bash ~/example-1/apps/purrfect-fly/update-all.sh example
+```
+
 ---
 
 ## Requirements
