@@ -460,7 +460,7 @@ export default function createRunner(FarmerClass) {
             this.primaryLink.warning = null;
           } else {
             await this.primaryLink.notifyMissing(
-              this.primaryLink.getMissingReason(accountsWithFarmer),
+              await this.primaryLink.getMissingReason(accountsWithFarmer),
             );
           }
         }

@@ -6,6 +6,13 @@ import { PROFILE_CLEAN_ICONS } from "./clean-status.js";
 import utils from "./utils.js";
 
 class GroupBot extends Bot {
+  /** Append the server name line when one is configured */
+  withServerName(messages) {
+    if (!app.name) return messages;
+
+    return [...messages, `<i>🖥️ ${utils.escapeHtml(app.name)}</i>`];
+  }
+
   /** Send Group Message
    *
    * This method will send a new message and automatically remove the previous message
@@ -14,7 +21,7 @@ class GroupBot extends Bot {
   async sendGroupMessage(cacheKey, message, options = {}) {
     try {
       const previous = await cache.get(cacheKey);
-      const html = message.join("\n");
+      const html = this.withServerName(message).join("\n");
 
       const sent = await this.api.sendMessage(app.chat.id, html, {
         ...options,
@@ -256,7 +263,9 @@ class GroupBot extends Bot {
     }
 
     try {
-      await this.api.sendMessage(app.chat.id, messages.join("\n"), {
+      const html = this.withServerName(messages).join("\n");
+
+      await this.api.sendMessage(app.chat.id, html, {
         ["parse_mode"]: "HTML",
         ["message_thread_id"]: app.chat.threads.operations,
         ...options,
@@ -288,7 +297,11 @@ class GroupBot extends Bot {
       return;
     }
 
-    return this.sendPrivateMessage(app.admin.telegramId, messages, options);
+    return this.sendPrivateMessage(
+      app.admin.telegramId,
+      this.withServerName(messages),
+      options,
+    );
   }
 }
 

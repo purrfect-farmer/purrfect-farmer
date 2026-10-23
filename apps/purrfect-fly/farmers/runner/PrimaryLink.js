@@ -119,7 +119,7 @@ export default class PrimaryLink {
   }
 
   /** Explain why the primary account was left out of the run */
-  getMissingReason(accountsWithFarmer) {
+  async getMissingReason(accountsWithFarmer) {
     const Runner = this.Runner;
 
     if (!Runner.primaryAccountId) return "not-configured";
@@ -128,7 +128,11 @@ export default class PrimaryLink {
       (acc) => acc.id === Runner.primaryAccountId,
     );
 
-    if (!account) return "not-found";
+    /** The list only holds subscribed accounts */
+    if (!account) {
+      const stored = await db.Account.findByPk(Runner.primaryAccountId);
+      return stored ? "no-subscription" : "not-found";
+    }
     if (Runner.platform !== "telegram" && !account.farmer) return "no-farmer";
     if (["frozen", "banned"].includes(account.farmer?.status)) {
       return account.farmer.status;
@@ -145,7 +149,8 @@ export default class PrimaryLink {
     const account = `primary account (<code>${Runner.primaryAccountId}</code>)`;
     const details = {
       "not-configured": "primary account is not configured",
-      "not-found": `${account} not found or has no active subscription`,
+      "not-found": `${account} not found on this server`,
+      "no-subscription": `${account} has no active subscription`,
       "no-farmer": `${account} has no farmer`,
       frozen: `${account} farmer is frozen`,
       banned: `${account} farmer is banned`,
