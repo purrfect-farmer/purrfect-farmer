@@ -1,4 +1,7 @@
-import { RUNNER_RESULT, RUNNER_RESULT_ICONS } from "../../enums/runner-result.js";
+import {
+  RUNNER_RESULT,
+  RUNNER_RESULT_ICONS,
+} from "../../enums/runner-result.js";
 
 import { PROFILE_CLEAN_ICONS } from "../../enums/profile-clean-status.js";
 import { formatDateTime } from "../format-date-time.js";
@@ -48,7 +51,13 @@ export function farmingInitiatedMessage({
 }
 
 /** Lines reporting a finished profile cleanup */
-export function profileCleanMessage({ text, fields, report, startDate, endDate }) {
+export function profileCleanMessage({
+  text,
+  fields,
+  report,
+  startDate,
+  endDate,
+}) {
   const users = utils.formatUsers(
     report.map(({ account, status }) => {
       return {
@@ -112,7 +121,12 @@ export function serverAddressMessage(address) {
 }
 
 /** Lines reporting a failed farmer run */
-export function farmerErrorMessage(title, accountId, currentTask, errorMessage) {
+export function farmerErrorMessage(
+  title,
+  accountId,
+  currentTask,
+  errorMessage,
+) {
   return [
     `❌ Error when executing ${title} Farmer for (<b>${accountId}</b>)`,
     `<i>Current Task: ${currentTask || "(none)"}</i>`,

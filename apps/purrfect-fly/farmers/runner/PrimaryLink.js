@@ -143,7 +143,8 @@ export default class PrimaryLink {
     if (BLOCKED_FARMER_STATUSES.includes(account.farmer?.status)) {
       return account.farmer.status;
     }
-    if (Runner.terminated.has(account.id)) return PRIMARY_MISSING_REASON.TERMINATED;
+    if (Runner.terminated.has(account.id))
+      return PRIMARY_MISSING_REASON.TERMINATED;
     if (!account.farmingEnabled) return PRIMARY_MISSING_REASON.FARMING_DISABLED;
 
     return PRIMARY_MISSING_REASON.NOT_FOUND;
@@ -154,7 +155,8 @@ export default class PrimaryLink {
     const Runner = this.Runner;
     const account = `primary account (<code>${Runner.primaryAccountId}</code>)`;
     const details = {
-      [PRIMARY_MISSING_REASON.NOT_CONFIGURED]: "primary account is not configured",
+      [PRIMARY_MISSING_REASON.NOT_CONFIGURED]:
+        "primary account is not configured",
       [PRIMARY_MISSING_REASON.NOT_FOUND]: `${account} not found on this server`,
       [PRIMARY_MISSING_REASON.NO_SUBSCRIPTION]: `${account} has no active subscription`,
       [PRIMARY_MISSING_REASON.NO_FARMER]: `${account} has no farmer`,

@@ -1,4 +1,7 @@
-import { createSessionId, logoutSession } from "../../../services/telegram-session.js";
+import {
+  createSessionId,
+  logoutSession,
+} from "../../../services/telegram-session.js";
 import { LOGIN_STAGE } from "../../../enums/login-stage.js";
 /** Session Schema */
 const sessionSchema = {
