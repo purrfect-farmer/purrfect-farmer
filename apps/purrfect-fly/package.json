@@ -2,16 +2,13 @@
   "type": "module",
   "name": "purrfect-fly",
   "version": "1.0.0",
-  "description": "This project was bootstrapped with Fastify-CLI.",
+  "description": "Purrfect Farmer cloud server",
   "main": "app.js",
-  "directories": {
-    "test": "test"
-  },
   "bin": {
     "fly": "./fly"
   },
   "scripts": {
-    "test": "node --test test/**/*.test.js",
+    "test": "node --test test/lib/*.test.js",
     "fly": "node fly",
     "start": "fastify start -l info app.js",
     "dev": "fastify start -w -l info -P app.js",
@@ -37,14 +34,10 @@
     "base64url": "^3.0.1",
     "bcryptjs": "^3.0.3",
     "chalk": "^5.6.2",
-    "close-with-grace": "^2.5.0",
     "commander": "^14.0.3",
-    "cron": "^4.4.0",
     "croner": "^9.1.0",
-    "crypto-js": "^4.2.0",
     "date-fns": "^4.4.0",
     "decimal.js": "^10.6.0",
-    "deepmerge": "^4.3.1",
     "diff": "^9.0.0",
     "dotenv": "^17.4.2",
     "fastify": "^5.12.5",
@@ -56,19 +49,14 @@
     "http-cookie-agent": "^7.0.4",
     "inquirer": "^12.11.1",
     "jsdom": "^26.1.0",
-    "jsonwebtoken": "^9.0.3",
     "keyv": "^5.6.0",
-    "mariadb": "^3.5.4",
     "node-gyp": "^12.4.0",
-    "pako": "^2.2.0",
     "seedrandom": "^3.0.5",
     "sequelize": "^6.37.8",
     "sequelize-cli": "^6.6.5",
     "sqlite3": "^6.0.1",
     "telegram": "^2.26.22",
     "tough-cookie": "^5.1.2",
-    "tweetnacl": "^1.0.3",
-    "tweetnacl-util": "^0.15.1",
-    "uuid": "^11.1.1"
+    "tweetnacl": "^1.0.3"
   }
 }
