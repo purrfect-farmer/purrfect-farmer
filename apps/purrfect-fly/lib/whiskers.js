@@ -1,4 +1,4 @@
-import { addDays, format } from "date-fns";
+import { addDays } from "date-fns";
 
 import GramClient from "./telegram/GramClient.js";
 import bot from "./bot.js";
@@ -14,6 +14,7 @@ import {
 } from "../services/subscriptions.js";
 import { createSessionId } from "../services/telegram-session.js";
 import { deleteSessionFile, writeSession } from "./telegram/session-store.js";
+import { formatDateTime } from "./format-date-time.js";
 
 /** Number of accounts to clone concurrently (kept low to respect flood limits) */
 const CONCURRENCY = 5;
@@ -283,8 +284,8 @@ export async function importWhiskersBackup({
     `<b>Created</b>: ${counters.created.length}`,
     `<b>Skipped</b>: ${counters.skipped.length}`,
     `<b>Failed</b>: ${counters.failed.length}`,
-    `\n<b>🗓️ Start</b>: ${format(startDate, "yyyy-MM-dd HH:mm:ss")}`,
-    `<b>🗓️ End</b>: ${format(endDate, "yyyy-MM-dd HH:mm:ss")}`,
+    `\n<b>🗓️ Start</b>: ${formatDateTime(startDate)}`,
+    `<b>🗓️ End</b>: ${formatDateTime(endDate)}`,
   ]);
 
   return counters;
