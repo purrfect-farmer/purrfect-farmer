@@ -1,9 +1,5 @@
 import BaseFarmer from "../../lib/BaseFarmer.js";
-import {
-  FLAGGED_WITHDRAWAL_STATUSES,
-  MAXIMUM_WITHDRAWAL,
-  SETTLED_WITHDRAWAL_STATUSES,
-} from "./constants.js";
+import { MAXIMUM_WITHDRAWAL } from "./constants.js";
 
 /** Trait: payouts and the pending queue */
 export default class MonsterlandWithdrawal {
@@ -102,35 +98,13 @@ export default class MonsterlandWithdrawal {
     return history.filter((item) => item["type"] === "withdrawal");
   }
 
-  /** Whether the game still owes this account a payout */
-  async hasPendingWithdrawal() {
-    const withdrawals = await this.getWithdrawals();
-
-    return withdrawals.some((item) => this.isPendingWithdrawal(item));
-  }
-
-  /** Anything not settled or refused is still in flight, `processing` and `pending_approval` included */
-  isPendingWithdrawal(item) {
-    const status = String(item["status"] || "");
-
-    return (
-      !SETTLED_WITHDRAWAL_STATUSES.includes(status) &&
-      !FLAGGED_WITHDRAWAL_STATUSES.includes(status)
-    );
+  /** Whether the drop still owes this account a settlement */
+  hasPendingWithdrawal() {
+    return this.ctx.withdrawals.hasPending();
   }
 
   /** The account's own withdrawal queue */
-  async getAutoWithdrawals() {
-    const withdrawals = await this.getWithdrawals();
-
-    return {
-      pending: withdrawals.filter((item) => this.isPendingWithdrawal(item)),
-      approved: withdrawals.filter((item) =>
-        SETTLED_WITHDRAWAL_STATUSES.includes(item["status"]),
-      ),
-      flagged: withdrawals.filter((item) =>
-        FLAGGED_WITHDRAWAL_STATUSES.includes(item["status"]),
-      ),
-    };
+  getAutoWithdrawals() {
+    return this.ctx.withdrawals.load();
   }
 }

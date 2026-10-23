@@ -1,5 +1,6 @@
 import BaseFarmer from "../../lib/BaseFarmer.js";
 import applyTraits from "../../lib/applyTraits.js";
+import { createContext } from "./context.js";
 import MonsterlandSession from "./MonsterlandSession.js";
 import MonsterlandApi from "./MonsterlandApi.js";
 import MonsterlandState from "./MonsterlandState.js";
@@ -49,6 +50,9 @@ export default class MonsterlandFarmer extends BaseFarmer {
     storagePrefix: "monsterland-auto",
     minWithdrawal: MINIMUM_WITHDRAWAL,
   };
+
+  /** Collaborators the traits work through */
+  ctx = createContext(this);
 
   /* --------------------------------------------------------------------- */
   /* Process                                                               */
