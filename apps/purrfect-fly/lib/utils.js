@@ -1,9 +1,22 @@
-import { JSDOM } from "jsdom";
 import app from "../config/app.js";
 import base64url from "base64url";
+import { createRequire } from "node:module";
 import crypto from "crypto";
 import sharedUtils from "@purrfect/shared/utils/bundle.js";
 import tweetnacl from "tweetnacl";
+
+const require = createRequire(import.meta.url);
+
+/** Telegram's key for third-party init data signatures */
+const TELEGRAM_PUBLIC_KEY = Buffer.from(app.telegramPublicKey, "hex");
+
+const HTML_ENTITIES = {
+  "&": "&amp;",
+  "<": "&lt;",
+  ">": "&gt;",
+  '"': "&quot;",
+  "'": "&#039;",
+};
 
 const KEYCAP_EMOJIS = [
   "0️⃣",
@@ -31,32 +44,6 @@ function md5(data) {
   return crypto.createHash("md5").update(data).digest("hex");
 }
 
-function isValidInitData(initData) {
-  const secret = crypto
-    .createHmac("sha256", "WebAppData")
-    .update(app.farmer.botToken)
-    .digest();
-
-  const data = Object.fromEntries(new URLSearchParams(initData));
-  const hash = data.hash;
-  delete data.hash;
-
-  const check = Object.keys(data)
-    .sort()
-    .map((key) => `${key}=${data[key]}`)
-    .join("\n");
-
-  const compare = crypto
-    .createHmac("sha256", secret)
-    .update(check)
-    .digest("hex");
-
-  return crypto.timingSafeEqual(
-    Buffer.from(hash, "hex"),
-    Buffer.from(compare, "hex"),
-  );
-}
-
 function isValidEd25519InitData(initData) {
   const data = Object.fromEntries(new URLSearchParams(initData));
 
@@ -70,10 +57,12 @@ function isValidEd25519InitData(initData) {
   const check = sortedKeys.map((k) => `${k}=${data[k]}`).join("\n");
 
   const message = Buffer.from(prefix + check, "utf-8");
-  const publicKey = Buffer.from(app.telegramPublicKey, "hex");
 
-  const isValid = tweetnacl.sign.detached.verify(message, signature, publicKey);
-  return isValid;
+  return tweetnacl.sign.detached.verify(
+    message,
+    signature,
+    TELEGRAM_PUBLIC_KEY,
+  );
 }
 
 function truncateAndPad(input, width) {
@@ -104,10 +93,8 @@ function formatUsers(collection) {
   });
 
   /** Sort By Title or Username */
-  list.sort((a, b) => {
-    const key = app.displayAccountTitle ? "title" : "username";
-    return a[key].localeCompare(b[key]);
-  });
+  const sortKey = app.displayAccountTitle ? "title" : "username";
+  list.sort((a, b) => a[sortKey].localeCompare(b[sortKey]));
 
   /** Retrieve Links */
   const links = list
@@ -146,17 +133,12 @@ function formatUsers(collection) {
 
 /** Utility to escape HTML entities */
 function escapeHtml(text) {
-  const map = {
-    "&": "&amp;",
-    "<": "&lt;",
-    ">": "&gt;",
-    '"': "&quot;",
-    "'": "&#039;",
-  };
-  return text.replace(/[&<>"']/g, (m) => map[m]);
+  return text.replace(/[&<>"']/g, (m) => HTML_ENTITIES[m]);
 }
 
+/** Parse HTML into a document, loading jsdom only when first needed */
 function parseHTML(html) {
+  const { JSDOM } = require("jsdom");
   const dom = new JSDOM(html);
   const { document } = dom.window;
   return document;
@@ -167,7 +149,6 @@ export default {
   md5,
   sha256,
   sha256Hmac,
-  isValidInitData,
   isValidEd25519InitData,
   truncateAndPad,
   formatUsers,
