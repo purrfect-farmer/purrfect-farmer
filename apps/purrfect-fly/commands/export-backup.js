@@ -2,7 +2,7 @@ import fs from "node:fs";
 import { getCurrentPath } from "../lib/path.js";
 import path from "node:path";
 
-const { __dirname, __filename } = getCurrentPath(import.meta.url);
+const { __dirname } = getCurrentPath(import.meta.url);
 
 /**
  * @param {import("commander").Command} program

@@ -60,20 +60,15 @@ export default async function (fastify, opts) {
       },
       async function (request, reply) {
         const session = createSessionId();
-
-        /** Create Client */
         const client = await fastify.lib.GramClient.create(session);
 
-        /** Start Pending */
         await client.startPending();
 
-        /** Send Phone Number */
         const result = await client.startResponse(
           LOGIN_STAGE.PHONE,
           request.body.phone,
         );
 
-        /** Return Response */
         return { ...result, session };
       },
     )
@@ -94,12 +89,9 @@ export default async function (fastify, opts) {
         },
       },
       async function (request, reply) {
-        /** Create Client */
         const client = await fastify.lib.GramClient.create(
           request.body.session,
         );
-
-        /** Send Phone Code */
         const result = await client.startResponse(
           LOGIN_STAGE.CODE,
           request.body.code,
@@ -125,12 +117,9 @@ export default async function (fastify, opts) {
         },
       },
       async function (request, reply) {
-        /** Create Client */
         const client = await fastify.lib.GramClient.create(
           request.body.session,
         );
-
-        /** Send Password */
         const result = await client.startResponse(
           LOGIN_STAGE.PASSWORD,
           request.body.password,
@@ -145,14 +134,9 @@ export default async function (fastify, opts) {
      */
     .post("/login-token", async function (request, reply) {
       const session = createSessionId();
-
-      /** Create Client */
       const client = await fastify.lib.GramClient.create(session);
-
-      /** Start Pending */
       const result = await client.startTokenPending();
 
-      /** Return Response */
       return { ...result, session };
     })
 
@@ -171,12 +155,9 @@ export default async function (fastify, opts) {
         },
       },
       async function (request, reply) {
-        /** Create Client */
         const client = await fastify.lib.GramClient.create(
           request.body.session,
         );
-
-        /** Report the Acceptance */
         const result = await client.startResponse(LOGIN_STAGE.TOKEN, true);
 
         return bindAccount(client, request.body.session, result, reply);

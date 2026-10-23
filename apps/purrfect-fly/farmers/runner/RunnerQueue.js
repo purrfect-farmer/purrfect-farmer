@@ -88,8 +88,6 @@ export default class RunnerQueue {
       );
 
       if (!primary) return null;
-
-      /** Log */
       Runner.logger.info(
         "Prioritizing primary account:",
         Runner.primaryAccountId,
@@ -116,8 +114,6 @@ export default class RunnerQueue {
     const Runner = this.Runner;
 
     if (this.items.length === 0) return;
-
-    /** Log */
     Runner.logger.warn(
       `${Runner.title} Farmer - holding ${this.items.length} accounts until the primary link resolves`,
     );
@@ -159,7 +155,6 @@ export default class RunnerQueue {
         /** Terminated before its turn came up */
         Runner.logger.info("Skipped terminated account:", instance.account.id);
       } else {
-        /** Log error */
         Runner.logger.error("Queue processing error:", err);
       }
     } finally {

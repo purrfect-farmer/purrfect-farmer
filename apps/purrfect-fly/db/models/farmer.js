@@ -1,5 +1,3 @@
-"use strict";
-
 import { Model } from "sequelize";
 import utils from "../../lib/utils.js";
 
@@ -9,11 +7,6 @@ import utils from "../../lib/utils.js";
  */
 export default (sequelize, DataTypes) => {
   class Farmer extends Model {
-    /**
-     * Helper method for defining associations.
-     * This method is not a part of Sequelize lifecycle.
-     * The `models/index` file will call this method automatically.
-     */
     static associate(models) {
       Farmer.belongsTo(models.Account, { as: "account" });
     }
@@ -46,23 +39,8 @@ export default (sequelize, DataTypes) => {
       });
     }
 
-    static findAllWithActiveSubscription({ required = true, ...options } = {}) {
-      return this.findAll({
-        ...options,
-        include: this._getSubscriptionInclude(required),
-      });
-    }
-
     setHeaders(headers = {}) {
       this.headers = Object.assign(this.headers || {}, headers);
-
-      return this;
-    }
-
-    setAuthorizationHeader(value) {
-      this.headers = Object.assign(this.headers || {}, {
-        Authorization: value,
-      });
 
       return this;
     }

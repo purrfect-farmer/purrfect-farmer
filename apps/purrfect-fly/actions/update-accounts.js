@@ -40,8 +40,6 @@ async function removeSession(account) {
 
   /** Remove Session */
   account.session = null;
-
-  /** Save */
   await saveSerialized(account);
 }
 

@@ -27,8 +27,6 @@ import { pickUserAgent } from "./runner/user-agent.js";
 export default function createRunner(FarmerClass) {
   /** Runner settings from the environment */
   const config = resolveRunnerConfig(FarmerClass);
-
-  /** Log */
   logRunnerConfig(FarmerClass, config);
 
   return class Runner extends FarmerClass {
@@ -159,8 +157,6 @@ export default function createRunner(FarmerClass) {
         try {
           /** Create Telegram Client */
           this.client = await GramClient.create(this.account.session);
-
-          /** Connect */
           await this.client.connect();
 
           /** Update the web app data */
@@ -320,8 +316,6 @@ export default function createRunner(FarmerClass) {
         if (this.deactivateOnError && !this.isTransientError(error)) {
           await instance.disconnect();
         }
-
-        /** Log error */
         this.logger.error("Error farming account:", instance.account.id, error);
 
         /** Send error message */

@@ -1,7 +1,4 @@
 import proxy from "../lib/proxy.js";
-import { getCurrentPath } from "../lib/path.js";
-
-const { __dirname, __filename } = getCurrentPath(import.meta.url);
 
 /**
  * @param {import("commander").Command} program

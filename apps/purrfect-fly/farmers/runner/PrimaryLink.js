@@ -57,7 +57,6 @@ export default class PrimaryLink {
 
       this.resolve(referralLink);
     } catch (e) {
-      /** Log */
       Runner.logger.force(() => {
         Runner.logger.error(
           `${Runner.title} Farmer - failed to update primary farmer link:`,
@@ -83,8 +82,6 @@ export default class PrimaryLink {
 
     /** Configure the primary farmer link */
     Runner.configurePrimaryLink(this.link);
-
-    /** Log */
     Runner.logger.force(() =>
       Runner.logger.success(
         `${Runner.title} Farmer - updated primary farmer link:`,

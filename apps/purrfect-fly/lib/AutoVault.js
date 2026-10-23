@@ -33,11 +33,6 @@ export function getVault(dropId) {
   return vaults.get(dropId);
 }
 
-/** Forget a drop's wallets */
-export function clearVault(dropId) {
-  return vaults.delete(dropId);
-}
-
 /** What the vault holds, without ever revealing a phrase */
 export function summarizeVault(dropId) {
   const vault = vaults.get(dropId);

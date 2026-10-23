@@ -1,12 +1,9 @@
-"use strict";
-
 import "../../config/env.js";
 
 import Sequelize from "sequelize";
 import databaseConfig from "../../config/database.js";
 import fs from "node:fs";
 import path from "node:path";
-import process from "process";
 import { getCurrentPath } from "../../lib/path.js";
 
 const { __dirname, __filename } = getCurrentPath(import.meta.url);
@@ -19,17 +16,12 @@ const db = {};
 /**
  * @type {import("sequelize").Sequelize}
  */
-let sequelize;
-if (config.use_env_variable) {
-  sequelize = new Sequelize(process.env[config.use_env_variable], config);
-} else {
-  sequelize = new Sequelize(
-    config.database,
-    config.username,
-    config.password,
-    config,
-  );
-}
+const sequelize = new Sequelize(
+  config.database,
+  config.username,
+  config.password,
+  config,
+);
 
 const models = fs.readdirSync(__dirname).filter((file) => {
   return (

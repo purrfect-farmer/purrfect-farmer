@@ -1,7 +1,5 @@
-import { getCurrentPath } from "../lib/path.js";
 import fsp from "node:fs/promises";
 
-const { __dirname, __filename } = getCurrentPath(import.meta.url);
 
 /**
  * @param {import("commander").Command} program

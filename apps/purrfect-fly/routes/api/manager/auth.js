@@ -35,8 +35,6 @@ export default async function (fastify) {
       if (!user) {
         return reply.badRequest("These credentials do not match any record!");
       }
-
-      /** Compare Password */
       const valid = await bcrypt.compare(request.body.password, user.password);
 
       if (!valid) {
@@ -86,8 +84,6 @@ export default async function (fastify) {
     },
     async function (request, reply) {
       const user = await fastify.db.User.findByPk(request.user.id);
-
-      /** Compare Password */
       const valid = await bcrypt.compare(
         request.body.currentPassword,
         user.password,
