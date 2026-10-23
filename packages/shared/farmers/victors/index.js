@@ -1,5 +1,6 @@
 import BaseFarmer from "../../lib/BaseFarmer.js";
 import applyTraits from "../../lib/applyTraits.js";
+import { createContext } from "./context.js";
 import VictorsSession from "./VictorsSession.js";
 import VictorsApi from "./VictorsApi.js";
 import VictorsHumanPass from "./VictorsHumanPass.js";
@@ -36,6 +37,9 @@ export default class VictorsCompanyFarmer extends BaseFarmer {
     minWithdrawal: MINIMUM_WITHDRAWAL,
     verifiable: true,
   };
+
+  /** Collaborators the traits work through */
+  ctx = createContext(this);
 
   /* --------------------------------------------------------------------- */
   /* Process                                                               */

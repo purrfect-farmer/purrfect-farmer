@@ -1,10 +1,4 @@
-import {
-  APPROVED_WITHDRAWAL_STATUSES,
-  FLAGGED_WITHDRAWAL_STATUSES,
-  MINIMUM_WITHDRAWAL,
-  PENDING_WITHDRAWAL_STATUSES,
-  WITHDRAWAL_FEE,
-} from "./constants.js";
+import { MINIMUM_WITHDRAWAL, WITHDRAWAL_FEE } from "./constants.js";
 import Decimal from "decimal.js";
 
 /** Trait: withdrawal rules, payouts and the pending queue */
@@ -63,32 +57,18 @@ export default class VictorsWithdrawal {
   }
 
   /** The withdrawals the drop has not settled yet */
-  async getPendingWithdrawals() {
-    return (await this.getWithdrawals()).filter((item) =>
-      PENDING_WITHDRAWAL_STATUSES.includes(item["status"]),
-    );
+  getPendingWithdrawals() {
+    return this.ctx.withdrawals.pending();
   }
 
   /** Whether the drop still owes this account a settlement */
-  async hasPendingWithdrawal() {
-    await this.ensureStateLoaded();
-
-    return (await this.getPendingWithdrawals()).length > 0;
+  hasPendingWithdrawal() {
+    return this.ctx.withdrawals.hasPending();
   }
 
   /** The account's own withdrawal queue */
-  async getAutoWithdrawals() {
-    await this.ensureStateLoaded();
-
-    const withdrawals = await this.getWithdrawals();
-    const byStatus = (statuses) =>
-      withdrawals.filter((item) => statuses.includes(item["status"]));
-
-    return {
-      pending: byStatus(PENDING_WITHDRAWAL_STATUSES),
-      approved: byStatus(APPROVED_WITHDRAWAL_STATUSES),
-      flagged: byStatus(FLAGGED_WITHDRAWAL_STATUSES),
-    };
+  getAutoWithdrawals() {
+    return this.ctx.withdrawals.load();
   }
 
   /** Place withdrawal */
