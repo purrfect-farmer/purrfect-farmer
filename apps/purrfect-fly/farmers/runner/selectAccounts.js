@@ -84,8 +84,9 @@ export default function selectAccounts({
   });
 
   /** Skipped accounts */
+  const executableIds = new Set(executable.map((item) => item.id));
   const skipped = accountsWithFarmer.filter(
-    (account) => !executable.some((item) => item.id === account.id),
+    (account) => !executableIds.has(account.id),
   );
 
   return { primaryAccount, executable, skipped };

@@ -2,6 +2,7 @@ import { accountAttributes } from "../../../lib/account-attributes.js";
 import { setAccountFarming } from "../../../services/farming.js";
 import { subscribeAccount } from "../../../services/subscriptions.js";
 import updateProxies from "../../../actions/update-proxies.js";
+import { runDatabaseWrite } from "../../../lib/db-write.js";
 
 /**
  * @param {import("fastify").FastifyInstance} fastify
@@ -46,9 +47,12 @@ export default async function (fastify) {
         .map((s) => Number(s.trim()))
         .filter(Boolean);
 
-      for (const id of ids) {
-        await subscribeAccount(id, request.body.date);
-      }
+      /** One serialized transaction for the whole list */
+      await runDatabaseWrite(async (transaction) => {
+        for (const id of ids) {
+          await subscribeAccount(id, request.body.date, transaction);
+        }
+      });
 
       /** Update proxies */
       await updateProxies();

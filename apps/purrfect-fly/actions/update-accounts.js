@@ -3,7 +3,7 @@ import app from "../config/app.js";
 import bot from "../lib/bot.js";
 import db from "../db/models/index.js";
 import { forEachAccountSession } from "../lib/account-sessions.js";
-import { runDatabaseWrite } from "../lib/db-write.js";
+import { runDatabaseWrite, saveSerialized } from "../lib/db-write.js";
 import utils from "../lib/utils.js";
 import { deleteSessionFile } from "../lib/telegram/session-store.js";
 
@@ -42,7 +42,7 @@ async function removeSession(account) {
   account.session = null;
 
   /** Save */
-  await runDatabaseWrite((transaction) => account.save({ transaction }));
+  await saveSerialized(account);
 }
 
 /** Update Accounts */

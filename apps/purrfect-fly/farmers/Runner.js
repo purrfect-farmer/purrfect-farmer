@@ -17,6 +17,7 @@ import { getRunResult, runFarmer } from "./runner/run.js";
 import { logRunnerConfig, resolveRunnerConfig } from "./runner/config.js";
 import { REFERRER_MODE } from "../enums/referrer-mode.js";
 import { createFarmerStorage } from "./runner/storage.js";
+import { saveSerialized } from "../lib/db-write.js";
 import { isTransientError } from "./runner/errors.js";
 import { pickUserAgent } from "./runner/user-agent.js";
 
@@ -113,7 +114,7 @@ export default function createRunner(FarmerClass) {
         const link = await super.getReferralLink();
         if (this.farmer) {
           this.farmer.referralLink = link;
-          await this.farmer.save();
+          await saveSerialized(this.farmer);
         }
         return link;
       }
@@ -199,7 +200,7 @@ export default function createRunner(FarmerClass) {
 
       /** Save Farmer */
       if (this.farmer.changed()) {
-        await this.farmer.save();
+        await saveSerialized(this.farmer);
       }
 
       /** Update the primary farmer link */

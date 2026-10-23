@@ -19,9 +19,10 @@ export async function upsertSubscription(account, endsAt, transaction) {
 }
 
 /** Subscribe an account until `date`, or extend it by the default period */
-export async function subscribeAccount(id, date) {
+export async function subscribeAccount(id, date, transaction) {
   const [account] = await db.Account.findOrCreate({
     where: { id },
+    transaction,
     include: [
       {
         required: false,
@@ -39,5 +40,5 @@ export async function subscribeAccount(id, date) {
         DEFAULT_SUBSCRIPTION_DAYS,
       );
 
-  await upsertSubscription(account, endsAt);
+  await upsertSubscription(account, endsAt, transaction);
 }

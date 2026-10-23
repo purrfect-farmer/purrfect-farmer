@@ -1,33 +1,38 @@
 import { getSessionPath, getSessions } from "./telegram/session-store.js";
+import app from "../config/app.js";
 import db from "../db/models/index.js";
 import { formatDate } from "date-fns";
 import fs from "node:fs";
 import { getCurrentPath } from "./path.js";
 import path from "node:path";
+import { runDatabaseWrite } from "./db-write.js";
 
-const { __dirname, __filename } = getCurrentPath(import.meta.url);
-const ENV_FILE = path.join(__dirname, "../.env");
+const { __dirname } = getCurrentPath(import.meta.url);
+const ENV_FILE = app.envPath;
+
+/** Tables in restore order, each with its key in the backup */
+const TABLES = [
+  ["User", "users"],
+  ["Account", "accounts"],
+  ["Payment", "payments"],
+  ["Subscription", "subscriptions"],
+  ["Farmer", "farmers"],
+];
 
 export async function importBackup(backup) {
-  /** Truncate Tables */
-  await db.User.truncate();
-  await db.Account.truncate();
-  await db.Payment.truncate();
-  await db.Subscription.truncate();
-  await db.Farmer.truncate();
+  /** Replace every table in one transaction, so a failed restore keeps the old data */
+  await runDatabaseWrite(async (transaction) => {
+    for (const [model] of TABLES) {
+      await db[model].truncate({ transaction });
+    }
 
-  /** Restore Users */
-  await db.User.bulkCreate(backup.users, { ignoreDuplicates: true });
-  /** Restore Accounts */
-  await db.Account.bulkCreate(backup.accounts, { ignoreDuplicates: true });
-  /** Restore Payments */
-  await db.Payment.bulkCreate(backup.payments, { ignoreDuplicates: true });
-  /** Restore Subscriptions */
-  await db.Subscription.bulkCreate(backup.subscriptions, {
-    ignoreDuplicates: true,
+    for (const [model, key] of TABLES) {
+      await db[model].bulkCreate(backup[key], {
+        ignoreDuplicates: true,
+        transaction,
+      });
+    }
   });
-  /** Restore Farmers */
-  await db.Farmer.bulkCreate(backup.farmers, { ignoreDuplicates: true });
 
   /** Restore Sessions */
   backup.sessions.forEach((session) => {
@@ -45,12 +50,15 @@ export async function importBackup(backup) {
 
 export async function exportBackup() {
   const env = fs.readFileSync(ENV_FILE, "utf-8");
-  const users = await db.User.findAll();
-  const accounts = await db.Account.findAll();
-  const payments = await db.Payment.findAll();
-  const subscriptions = await db.Subscription.findAll();
-  const farmers = await db.Farmer.findAll();
-  const telegramSessions = await getSessions();
+  const [users, accounts, payments, subscriptions, farmers, telegramSessions] =
+    await Promise.all([
+      db.User.findAll(),
+      db.Account.findAll(),
+      db.Payment.findAll(),
+      db.Subscription.findAll(),
+      db.Farmer.findAll(),
+      getSessions(),
+    ]);
 
   const sessions = [];
 

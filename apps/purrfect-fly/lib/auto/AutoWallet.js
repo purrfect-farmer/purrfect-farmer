@@ -2,6 +2,7 @@ import Decimal from "decimal.js";
 import logger from "../logger.js";
 import { getWalletAddressFromMnemonic } from "@purrfect/shared/lib/ton/wallet.js";
 import { FARMER_STATUS } from "../../enums/farmer-status.js";
+import { saveSerialized } from "../db-write.js";
 
 /** Connects accounts to wallets on the drop, and waits the drop out once it has */
 class AutoWallet {
@@ -122,7 +123,7 @@ class AutoWallet {
         runner.farmer.frozenUntil =
           freeze && freezesAt ? new Date(freezesAt * 1000) : null;
 
-        await runner.farmer.save();
+        await saveSerialized(runner.farmer);
       }
 
       /** Execute runner, skipped when the run is only meant to register wallets */
@@ -230,7 +231,7 @@ class AutoWallet {
         runner.farmer.status = FARMER_STATUS.ACTIVE;
         runner.farmer.errorCount = 0;
         runner.farmer.frozenUntil = null;
-        await runner.farmer.save();
+        await saveSerialized(runner.farmer);
       }
     } catch (e) {
       logger.error(

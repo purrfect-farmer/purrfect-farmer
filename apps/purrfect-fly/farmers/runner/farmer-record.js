@@ -1,5 +1,6 @@
 import { BAN_TRIGGER_COUNT } from "./config.js";
 import { FARMER_STATUS } from "../../enums/farmer-status.js";
+import { saveSerialized } from "../../lib/db-write.js";
 
 /** Create the farmer row for a runner's account */
 export function createFarmerRecord(runner) {
@@ -24,7 +25,7 @@ export async function recordFailure(farmer) {
     farmer.status = FARMER_STATUS.BANNED;
   }
 
-  await farmer.save();
+  await saveSerialized(farmer);
 }
 
 /** Clear the error count after a successful run */
@@ -33,6 +34,6 @@ export async function recordSuccess(farmer) {
     farmer.status = FARMER_STATUS.ACTIVE;
     farmer.errorCount = 0;
 
-    await farmer.save();
+    await saveSerialized(farmer);
   }
 }

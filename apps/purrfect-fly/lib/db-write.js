@@ -65,4 +65,9 @@ export function runDatabaseWrite(task) {
   });
 }
 
+/** Save a model instance through the serialized write queue */
+export function saveSerialized(instance) {
+  return runDatabaseWrite((transaction) => instance.save({ transaction }));
+}
+
 export default { enqueueDatabaseWrite, isDatabaseLockedError, runDatabaseWrite };

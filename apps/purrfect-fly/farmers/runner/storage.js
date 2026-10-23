@@ -1,3 +1,5 @@
+import { saveSerialized } from "../../lib/db-write.js";
+
 /** Key/value storage kept in the farmer row's `storage` column */
 export function createFarmerStorage(runner) {
   return {
@@ -11,7 +13,7 @@ export function createFarmerStorage(runner) {
           [key]: value,
         };
 
-        await runner.farmer.save();
+        await saveSerialized(runner.farmer);
       }
     },
   };

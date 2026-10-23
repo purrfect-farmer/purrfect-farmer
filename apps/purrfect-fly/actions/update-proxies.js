@@ -2,7 +2,7 @@ import app from "../config/app.js";
 import chalk from "chalk";
 import db from "../db/models/index.js";
 import proxy from "../lib/proxy.js";
-import { runDatabaseWrite } from "../lib/db-write.js";
+import { saveSerialized } from "../lib/db-write.js";
 import { logDevError } from "../lib/dev-log.js";
 
 /** Update Proxies */
@@ -63,8 +63,9 @@ async function updateProxies() {
         .filter(Boolean);
 
       /** Filter accounts that have proxies not in the working list (invalid accounts) */
+      const workingSet = new Set(sortedProxies);
       const invalidAccounts = accounts.filter(
-        (account) => !sortedProxies.includes(account.proxy),
+        (account) => !workingSet.has(account.proxy),
       );
 
       if (invalidAccounts.length > 0) {
@@ -103,9 +104,7 @@ async function updateProxies() {
         await Promise.allSettled(
           invalidAccounts
             .filter((account) => account.changed())
-            .map((account) =>
-              runDatabaseWrite((transaction) => account.save({ transaction })),
-            ),
+            .map((account) => saveSerialized(account)),
         );
       }
 
