@@ -63,7 +63,9 @@ export default async function (fastify) {
 
   /** Get User */
   fastify.get("/user", async (request) => {
-    const user = await fastify.db.User.findByPk(request.user.id);
+    const user = await fastify.db.User.findByPk(request.user.id, {
+      attributes: { exclude: ["password"] },
+    });
     return user;
   });
 

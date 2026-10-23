@@ -24,6 +24,11 @@ class GramClient extends BaseTelegramWebClient {
    */
   static instances = new Map();
 
+  /**
+   * @type {Map<string, Promise<GramClient>>}
+   */
+  static pending = new Map();
+
   /** Constructor */
   constructor({ name, session, proxy, sessionFilePath, sessionFileExists }) {
     super(session, {
@@ -125,7 +130,11 @@ class GramClient extends BaseTelegramWebClient {
   /** Reset Destroy Timeout */
   _resetDestroyTimeout() {
     clearTimeout(this._destroyTimeout);
-    this._destroyTimeout = setTimeout(() => this.destroy(), 15 * 60 * 1000);
+    this._destroyTimeout = setTimeout(() => {
+      this.destroy().catch((error) => {
+        console.error("Error while destroying idle client:", error);
+      });
+    }, 15 * 60 * 1000);
   }
 
   /** Execute on Client */
@@ -140,6 +149,12 @@ class GramClient extends BaseTelegramWebClient {
   destroy() {
     clearTimeout(this._startTimeout);
     clearTimeout(this._destroyTimeout);
+
+    /** Evict so the next create starts a fresh client */
+    if (this.constructor.instances.get(this._name) === this) {
+      this.constructor.delete(this._name);
+    }
+
     return super.destroy();
   }
 
@@ -158,7 +173,11 @@ class GramClient extends BaseTelegramWebClient {
   startPending() {
     return new Promise((_resolve, _reject) => {
       /** Automatically Logout */
-      this._startTimeout = setTimeout(() => this.logout(), 10 * 60 * 1000);
+      this._startTimeout = setTimeout(() => {
+        this.logout().catch((error) => {
+          console.error("Error during automatic logout:", error);
+        });
+      }, 10 * 60 * 1000);
 
       /** Reset Start Stage */
       this._resetStartStage();
@@ -220,7 +239,11 @@ class GramClient extends BaseTelegramWebClient {
   startTokenPending() {
     return new Promise((_resolve, _reject) => {
       /** Automatically Logout */
-      this._startTimeout = setTimeout(() => this.logout(), 10 * 60 * 1000);
+      this._startTimeout = setTimeout(() => {
+        this.logout().catch((error) => {
+          console.error("Error during automatic logout:", error);
+        });
+      }, 10 * 60 * 1000);
 
       /** Reset Start Stage */
       this._resetStartStage();
@@ -335,11 +358,25 @@ class GramClient extends BaseTelegramWebClient {
    * Starts a Client
    * @param {string} name
    * @param {string|null} proxy
-   * @returns {GramClient}
+   * @returns {Promise<GramClient>}
    */
   static async create(name, proxy = null) {
     if (this.instances.has(name)) return this.instances.get(name);
 
+    /** Concurrent calls for one name share a single client */
+    if (!this.pending.has(name)) {
+      const creation = this._createInstance(name, proxy).finally(() => {
+        this.pending.delete(name);
+      });
+
+      this.pending.set(name, creation);
+    }
+
+    return this.pending.get(name);
+  }
+
+  /** Build a client from its session file and register it */
+  static async _createInstance(name, proxy) {
     const sessionFilePath = await this.getSessionPath(name);
     const sessionFileExists = await this.sessionFileExists(name);
 

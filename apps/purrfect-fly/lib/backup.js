@@ -32,7 +32,7 @@ export async function importBackup(backup) {
   /** Restore Sessions */
   backup.sessions.forEach((session) => {
     fs.writeFileSync(
-      path.resolve(__dirname, "../sessions", session.name),
+      path.resolve(__dirname, "../sessions", path.basename(session.name)),
       session.content,
     );
   });

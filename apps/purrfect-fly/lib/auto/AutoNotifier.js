@@ -16,8 +16,8 @@ class AutoNotifier {
 
   /** Send Notification */
   async send(messages) {
-    await bot.sendPrivateMessage(this.ctx.id, messages, NOTIFICATION_OPTIONS);
-    await bot.sendOperationMessage(messages, NOTIFICATION_OPTIONS);
+    await bot?.sendPrivateMessage(this.ctx.id, messages, NOTIFICATION_OPTIONS);
+    await bot?.sendOperationMessage(messages, NOTIFICATION_OPTIONS);
   }
 
   /** Send a notification that also reaches the server admin, who is not always the operator */
@@ -27,7 +27,7 @@ class AutoNotifier {
     /** The operator has already had it in their own chat */
     if (String(app.admin.telegramId) === String(this.ctx.id)) return;
 
-    await bot.sendAdminMessage(messages, NOTIFICATION_OPTIONS);
+    await bot?.sendAdminMessage(messages, NOTIFICATION_OPTIONS);
   }
 
   /** Sent as soon as the run is cancelled */

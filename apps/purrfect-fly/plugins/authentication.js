@@ -13,7 +13,7 @@ export default fp(async function (fastify, opts) {
     try {
       await request.jwtVerify();
     } catch (err) {
-      reply.send(err);
+      return reply.send(err);
     }
   });
 

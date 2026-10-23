@@ -10,7 +10,7 @@ class GroupBot extends Bot {
   withServerName(messages) {
     if (!app.name) return messages;
 
-    return [...messages, `<i>🖥️ ${utils.escapeHtml(app.name)}</i>`];
+    return [...messages, `<i>🖥️ ${utils.escapeHtml(String(app.name))}</i>`];
   }
 
   /** Send Group Message

@@ -23,8 +23,14 @@ export default class BaseWalletTransfer {
     /** Prepare master for transfer */
     this.prepared = await prepareMaster(this.master, this.jettonAddress);
 
-    /* Log the prepared master details */
-    console.log("Wallet prepared for transfer:", this.prepared);
+    /* Log the prepared master details, without its key pair */
+    console.log("Wallet prepared for transfer:", {
+      native: this.prepared.native,
+      jettonAddress: this.prepared.jettonAddress,
+      jettonWalletAddress: this.prepared.jettonWalletAddress,
+      jettonBalance: this.prepared.jettonBalance,
+      jettonDecimals: this.prepared.jettonDecimals,
+    });
 
     /** Send assets from master to address */
     if (!this.prepared.native && this.prepared.jettonBalance > 0) {
