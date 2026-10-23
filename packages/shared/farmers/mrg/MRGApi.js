@@ -1,7 +1,5 @@
-import MRGSession from "./MRGSession.js";
-
-/** The drop's endpoints, one method per call */
-export default class MRGApi extends MRGSession {
+/** Trait: the drop's endpoints, one method per call */
+export default class MRGApi {
   /* --------------------------------------------------------------------- */
   /* Endpoints                                                             */
   /* --------------------------------------------------------------------- */

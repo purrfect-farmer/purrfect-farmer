@@ -10,10 +10,9 @@ import {
   VERIFICATION_RETRY_HOURS,
 } from "./constants.js";
 import { Cell } from "@ton/core";
-import MRGState from "./MRGState.js";
 
-/** Binding the wallet, its holding and the on-chain verification */
-export default class MRGWallet extends MRGState {
+/** Trait: binding the wallet, its holding and the on-chain verification */
+export default class MRGWallet {
   /* --------------------------------------------------------------------- */
   /* Wallet                                                                */
   /* --------------------------------------------------------------------- */

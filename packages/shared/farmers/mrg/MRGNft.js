@@ -7,10 +7,9 @@ import {
   WITHDRAWAL_FEE,
 } from "./constants.js";
 import Decimal from "decimal.js";
-import MRGWallet from "./MRGWallet.js";
 
-/** Genesis NFTs and the withdrawal fee discount they earn */
-export default class MRGNft extends MRGWallet {
+/** Trait: genesis NFTs and the withdrawal fee discount they earn */
+export default class MRGNft {
   /* --------------------------------------------------------------------- */
   /* Genesis NFTs                                                          */
   /* --------------------------------------------------------------------- */

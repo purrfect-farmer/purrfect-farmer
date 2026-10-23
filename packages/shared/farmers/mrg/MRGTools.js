@@ -2,10 +2,9 @@ import { keyPairFromPhraseOrSecretKey } from "../../lib/ton/wallet.js";
 import Decimal from "decimal.js";
 import { findSliderX } from "../../lib/sliderCaptcha.js";
 import { MAXIMUM_MINER_LEVEL } from "../../lib/auto/minerCurve.js";
-import MRGAccount from "./MRGAccount.js";
 
-/** The interactive tools the farmer offers */
-export default class MRGTools extends MRGAccount {
+/** Trait: the interactive tools the farmer offers */
+export default class MRGTools {
   /* --------------------------------------------------------------------- */
   /* Tools (manual actions)                                                */
   /* --------------------------------------------------------------------- */

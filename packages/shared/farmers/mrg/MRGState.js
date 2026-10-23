@@ -1,7 +1,7 @@
-import MRGHumanCheck from "./MRGHumanCheck.js";
+import BaseFarmer from "../../lib/BaseFarmer.js";
 
-/** Loading and persisting the account state */
-export default class MRGState extends MRGHumanCheck {
+/** Trait: loading and persisting the account state */
+export default class MRGState {
   /** Re-read the account into the farmer's state */
   async loadAccount() {
     this.account_data = await this.fetchAccount();
@@ -19,7 +19,7 @@ export default class MRGState extends MRGHumanCheck {
 
   /** Load data */
   async load() {
-    await super.load();
+    await BaseFarmer.prototype.load.call(this);
     await this.restoreHumanCheck();
     this.taskClaims = (await this.storage?.get("taskClaims")) || {};
     this.ineligibleTasks = (await this.storage?.get("ineligibleTasks")) || [];

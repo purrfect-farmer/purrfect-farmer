@@ -1,8 +1,8 @@
+import BaseFarmer from "../../lib/BaseFarmer.js";
 import { keyPairFromPhraseOrSecretKey } from "../../lib/ton/wallet.js";
-import MRGWithdrawal from "./MRGWithdrawal.js";
 
-/** What the account looks like, as logged and summarized for Auto */
-export default class MRGAccount extends MRGWithdrawal {
+/** Trait: what the account looks like, as logged and summarized for Auto */
+export default class MRGAccount {
   /** Log what the account looks like before the pass starts */
   async logAccountInfo() {
     const user = this.getAccountDetails();
@@ -128,7 +128,11 @@ export default class MRGAccount extends MRGWithdrawal {
   /** Bind a wallet from its phrase, since the drop wants a signed TON proof */
   async connectAutoWallet({ phrase, address, version, refresh = false }) {
     if (!phrase) {
-      return super.connectAutoWallet({ address, version, refresh });
+      return BaseFarmer.prototype.connectAutoWallet.call(this, {
+        address,
+        version,
+        refresh,
+      });
     }
 
     try {

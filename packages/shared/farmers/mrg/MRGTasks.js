@@ -6,10 +6,9 @@ import {
   TASK_INELIGIBLE_CODE,
 } from "./constants.js";
 import Decimal from "decimal.js";
-import MRGMining from "./MRGMining.js";
 
-/** Tasks, their cooldowns and squad rewards */
-export default class MRGTasks extends MRGMining {
+/** Trait: tasks, their cooldowns and squad rewards */
+export default class MRGTasks {
   /* --------------------------------------------------------------------- */
   /* Tasks                                                                 */
   /* --------------------------------------------------------------------- */

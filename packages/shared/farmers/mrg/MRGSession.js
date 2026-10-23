@@ -5,10 +5,9 @@ import {
   TELEGRAM_PLATFORM,
 } from "./constants.js";
 import { createVictorsDevice } from "../../lib/games/victorsDevice.js";
-import BaseFarmer from "../../lib/BaseFarmer.js";
 
-/** API transport, device identity, sign-in and presence */
-export default class MRGSession extends BaseFarmer {
+/** Trait: aPI transport, device identity, sign-in and presence */
+export default class MRGSession {
   /* --------------------------------------------------------------------- */
   /* Transport                                                             */
   /* --------------------------------------------------------------------- */

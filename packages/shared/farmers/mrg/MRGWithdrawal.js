@@ -9,10 +9,9 @@ import {
 } from "./constants.js";
 import Decimal from "decimal.js";
 import { buildSliderTrace, findSliderX } from "../../lib/sliderCaptcha.js";
-import MRGTasks from "./MRGTasks.js";
 
-/** Withdrawals, their captchas and the pending queue */
-export default class MRGWithdrawal extends MRGTasks {
+/** Trait: withdrawals, their captchas and the pending queue */
+export default class MRGWithdrawal {
   /* --------------------------------------------------------------------- */
   /* Withdrawal                                                            */
   /* --------------------------------------------------------------------- */

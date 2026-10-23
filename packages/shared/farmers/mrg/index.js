@@ -1,7 +1,19 @@
-import { MINIMUM_WITHDRAWAL, MRG_JETTON_ADDRESS } from "./constants.js";
+import BaseFarmer from "../../lib/BaseFarmer.js";
+import applyTraits from "../../lib/applyTraits.js";
+import MRGSession from "./MRGSession.js";
+import MRGApi from "./MRGApi.js";
+import MRGHumanCheck from "./MRGHumanCheck.js";
+import MRGState from "./MRGState.js";
+import MRGWallet from "./MRGWallet.js";
+import MRGNft from "./MRGNft.js";
+import MRGMining from "./MRGMining.js";
+import MRGTasks from "./MRGTasks.js";
+import MRGWithdrawal from "./MRGWithdrawal.js";
+import MRGAccount from "./MRGAccount.js";
 import MRGTools from "./MRGTools.js";
+import { MINIMUM_WITHDRAWAL, MRG_JETTON_ADDRESS } from "./constants.js";
 
-export default class MRGFarmer extends MRGTools {
+export default class MRGFarmer extends BaseFarmer {
   static id = "mrg";
   static title = "MRG";
   static emoji = "⛏️";
@@ -45,3 +57,17 @@ export default class MRGFarmer extends MRGTools {
     await this.updatePresence(false);
   }
 }
+
+applyTraits(MRGFarmer, [
+  MRGSession,
+  MRGApi,
+  MRGHumanCheck,
+  MRGState,
+  MRGWallet,
+  MRGNft,
+  MRGMining,
+  MRGTasks,
+  MRGWithdrawal,
+  MRGAccount,
+  MRGTools,
+]);

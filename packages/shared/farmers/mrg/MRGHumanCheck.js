@@ -3,10 +3,9 @@ import {
   TURNSTILE_PAGE_URL,
   TURNSTILE_SITE_KEY,
 } from "./constants.js";
-import MRGApi from "./MRGApi.js";
 
-/** The Turnstile human check and how long it is trusted */
-export default class MRGHumanCheck extends MRGApi {
+/** Trait: the Turnstile human check and how long it is trusted */
+export default class MRGHumanCheck {
   /* --------------------------------------------------------------------- */
   /* Human check                                                           */
   /* --------------------------------------------------------------------- */

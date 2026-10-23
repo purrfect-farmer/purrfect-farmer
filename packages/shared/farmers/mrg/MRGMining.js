@@ -10,10 +10,9 @@ import {
   getMinerRequiredHolding,
   getMinerSpeed,
 } from "../../lib/auto/minerCurve.js";
-import MRGNft from "./MRGNft.js";
 
-/** Levels, mining claims and the daily check-in */
-export default class MRGMining extends MRGNft {
+/** Trait: levels, mining claims and the daily check-in */
+export default class MRGMining {
   /* --------------------------------------------------------------------- */
   /* Check-in                                                              */
   /* --------------------------------------------------------------------- */
