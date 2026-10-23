@@ -1,4 +1,4 @@
-import GramClient from "../lib/GramClient.js";
+import GramClient from "../lib/telegram/GramClient.js";
 import appConfig from "../config/app.js";
 import fp from "fastify-plugin";
 import models from "../db/models/index.js";

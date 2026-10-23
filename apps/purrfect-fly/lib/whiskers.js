@@ -1,6 +1,6 @@
 import { addDays, format } from "date-fns";
 
-import GramClient from "./GramClient.js";
+import GramClient from "./telegram/GramClient.js";
 import bot from "./bot.js";
 import db from "../db/models/index.js";
 import logger from "./logger.js";
@@ -13,6 +13,7 @@ import {
   upsertSubscription,
 } from "../services/subscriptions.js";
 import { createSessionId } from "../services/telegram-session.js";
+import { deleteSessionFile, writeSession } from "./telegram/session-store.js";
 
 /** Number of accounts to clone concurrently (kept low to respect flood limits) */
 const CONCURRENCY = 5;
@@ -146,7 +147,7 @@ async function processEntry(
         if (!account.session) {
           /** Write the file before the commit, a stored name must resolve */
           if (!wroteSessionFile) {
-            await GramClient.writeSession(name, cloned.session);
+            await writeSession(name, cloned.session);
             wroteSessionFile = true;
           }
 
@@ -176,7 +177,7 @@ async function processEntry(
     } catch (error) {
       /** Drop the orphaned session file so a re-import can mint cleanly */
       if (wroteSessionFile) {
-        await GramClient.deleteSessionFile(name).catch(() => {});
+        await deleteSessionFile(name).catch(() => {});
       }
 
       throw error;

@@ -4,7 +4,7 @@ import userAgents, {
 } from "@purrfect/shared/resources/userAgents.js";
 
 import ConsoleLogger from "@purrfect/shared/lib/ConsoleLogger.js";
-import GramClient from "../lib/GramClient.js";
+import GramClient from "../lib/telegram/GramClient.js";
 import PrimaryLink from "./runner/PrimaryLink.js";
 import RunnerQueue from "./runner/RunnerQueue.js";
 import app from "../config/app.js";

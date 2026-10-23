@@ -13,12 +13,13 @@ export default (program, inquirer, chalk) => {
     .description("Reassign Telegram Sessions")
     .action(async () => {
       const db = await import("../db/models/index.js").then((m) => m.default);
-      const GramClient = await import("../lib/GramClient.js").then(
+      const GramClient = await import("../lib/telegram/GramClient.js").then(
         (m) => m.default
       );
       const { runDatabaseWrite } = await import("../lib/db-write.js");
+      const { getSessions } = await import("../lib/telegram/session-store.js");
 
-      const sessions = await GramClient.getSessions();
+      const sessions = await getSessions();
       const accounts = await db.Account.findAll();
       const usedSessions = accounts
         .map((account) => account.session)

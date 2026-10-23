@@ -10,9 +10,7 @@ export default (program, inquirer, chalk) => {
     .usage("12345678")
     .action(async (userId) => {
       const db = await import("../db/models/index.js").then((m) => m.default);
-      const GramClient = await import("../lib/GramClient.js").then(
-        (m) => m.default
-      );
+      const { writeSession } = await import("../lib/telegram/session-store.js");
 
       if (!userId) {
         const answers = await inquirer.prompt([
@@ -39,7 +37,7 @@ export default (program, inquirer, chalk) => {
         "../services/telegram-session.js"
       );
       const session = createSessionId();
-      await GramClient.writeSession(session, sessionString);
+      await writeSession(session, sessionString);
 
       /** Update account */
       await account.update({

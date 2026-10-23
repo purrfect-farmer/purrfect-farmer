@@ -1,4 +1,4 @@
-import GramClient from "./GramClient.js";
+import { getSessionPath, getSessions } from "./telegram/session-store.js";
 import db from "../db/models/index.js";
 import { formatDate } from "date-fns";
 import fs from "node:fs";
@@ -50,12 +50,12 @@ export async function exportBackup() {
   const payments = await db.Payment.findAll();
   const subscriptions = await db.Subscription.findAll();
   const farmers = await db.Farmer.findAll();
-  const telegramSessions = await GramClient.getSessions();
+  const telegramSessions = await getSessions();
 
   const sessions = [];
 
   for (const session of telegramSessions) {
-    const filePath = GramClient.getSessionPath(session);
+    const filePath = getSessionPath(session);
     const name = path.basename(filePath);
     const content = fs.readFileSync(filePath, "utf-8");
 

@@ -1,4 +1,4 @@
-import GramClient from "./GramClient.js";
+import GramClient from "./telegram/GramClient.js";
 import utils from "./utils.js";
 import { logDevError } from "./dev-log.js";
 

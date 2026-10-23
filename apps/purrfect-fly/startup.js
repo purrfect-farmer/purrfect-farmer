@@ -1,4 +1,4 @@
-import GramClient from "./lib/GramClient.js";
+import GramClient from "./lib/telegram/GramClient.js";
 import app from "./config/app.js";
 import bot from "./lib/bot.js";
 import cleanDatabase from "./actions/clean-database.js";

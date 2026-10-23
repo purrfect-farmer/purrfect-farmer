@@ -1,4 +1,4 @@
-import GramClient from "../lib/GramClient.js";
+import GramClient from "../lib/telegram/GramClient.js";
 import crypto from "node:crypto";
 import { logDevError } from "../lib/dev-log.js";
 

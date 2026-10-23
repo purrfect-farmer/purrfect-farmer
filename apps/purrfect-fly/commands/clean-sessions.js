@@ -14,11 +14,11 @@ export default (program, inquirer, chalk) => {
     .description("Clean Telegram Sessions")
     .action(async () => {
       const db = await import("../db/models/index.js").then((m) => m.default);
-      const GramClient = await import("../lib/GramClient.js").then(
-        (m) => m.default
+      const { getSessionPath, getSessions } = await import(
+        "../lib/telegram/session-store.js"
       );
 
-      const sessions = await GramClient.getSessions();
+      const sessions = await getSessions();
       const accounts = await db.Account.findAll();
 
       console.log(chalk.yellow.bold(`Found sessions: ${sessions.length}`));
@@ -35,7 +35,7 @@ export default (program, inquirer, chalk) => {
       console.table(unusedSessions);
 
       for (const session of unusedSessions) {
-        const sessionPath = GramClient.getSessionPath(session);
+        const sessionPath = getSessionPath(session);
         await fsp.unlink(sessionPath);
         console.log(chalk.green.bold(`Deleted session file: ${sessionPath}`));
       }

@@ -1,10 +1,11 @@
-import GramClient from "../lib/GramClient.js";
+import GramClient from "../lib/telegram/GramClient.js";
 import app from "../config/app.js";
 import bot from "../lib/bot.js";
 import db from "../db/models/index.js";
 import { forEachAccountSession } from "../lib/account-sessions.js";
 import { runDatabaseWrite } from "../lib/db-write.js";
 import utils from "../lib/utils.js";
+import { deleteSessionFile } from "../lib/telegram/session-store.js";
 
 /** Save the account user and reactivate its farmers */
 async function updateSingleAccount(client, account) {
@@ -35,7 +36,7 @@ async function updateSingleAccount(client, account) {
 /** Drop a session that keeps failing */
 async function removeSession(account) {
   /** Delete Session File */
-  await GramClient.deleteSessionFile(account.session).catch(() => {});
+  await deleteSessionFile(account.session).catch(() => {});
 
   /** Remove Session */
   account.session = null;

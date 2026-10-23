@@ -12,7 +12,7 @@ export default (program, inquirer, chalk) => {
     .command("test-session <session>")
     .description("Test Session")
     .action(async (session) => {
-      const GramClient = await import("../lib/GramClient.js").then(
+      const GramClient = await import("../lib/telegram/GramClient.js").then(
         (m) => m.default
       );
 

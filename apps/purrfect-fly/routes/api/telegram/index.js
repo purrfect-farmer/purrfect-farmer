@@ -1,4 +1,5 @@
 import { createSessionId, logoutSession } from "../../../services/telegram-session.js";
+import { LOGIN_STAGE } from "../../../enums/login-stage.js";
 /** Session Schema */
 const sessionSchema = {
   type: "string",
@@ -64,7 +65,10 @@ export default async function (fastify, opts) {
         await client.startPending();
 
         /** Send Phone Number */
-        const result = await client.startResponse("phone", request.body.phone);
+        const result = await client.startResponse(
+          LOGIN_STAGE.PHONE,
+          request.body.phone,
+        );
 
         /** Return Response */
         return { ...result, session };
@@ -93,7 +97,10 @@ export default async function (fastify, opts) {
         );
 
         /** Send Phone Code */
-        const result = await client.startResponse("code", request.body.code);
+        const result = await client.startResponse(
+          LOGIN_STAGE.CODE,
+          request.body.code,
+        );
 
         return bindAccount(client, request.body.session, result, reply);
       },
@@ -122,7 +129,7 @@ export default async function (fastify, opts) {
 
         /** Send Password */
         const result = await client.startResponse(
-          "password",
+          LOGIN_STAGE.PASSWORD,
           request.body.password,
         );
 
@@ -167,7 +174,7 @@ export default async function (fastify, opts) {
         );
 
         /** Report the Acceptance */
-        const result = await client.startResponse("token", true);
+        const result = await client.startResponse(LOGIN_STAGE.TOKEN, true);
 
         return bindAccount(client, request.body.session, result, reply);
       },
