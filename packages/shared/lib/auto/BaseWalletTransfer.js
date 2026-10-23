@@ -2,7 +2,7 @@ import { Address, SendMode, internal, toNano } from "@ton/core";
 import {
   JETTON_TRANSFER_GAS,
   buildJettonTransferBody,
-  waitForSeqnoChange,
+  sendAndConfirm,
 } from "../ton/transactions.js";
 import { prepareMaster } from "./transactions.js";
 
@@ -58,13 +58,10 @@ export default class BaseWalletTransfer {
       this.prepared;
 
     const jettonAmount = this.prepared.jettonBalance;
-    const seqno = await contract.getSeqno();
-
-    await contract.sendTransfer({
-      seqno,
-      secretKey: keyPair.secretKey,
-      sendMode: SendMode.PAY_GAS_SEPARATELY + SendMode.IGNORE_ERRORS,
-      messages: [
+    await sendAndConfirm(
+      contract,
+      keyPair,
+      [
         internal({
           to: jettonWalletAddress,
           value: JETTON_TRANSFER_GAS,
@@ -76,30 +73,25 @@ export default class BaseWalletTransfer {
           ),
         }),
       ],
-    });
-
-    await waitForSeqnoChange(contract, seqno);
+      SendMode.PAY_GAS_SEPARATELY + SendMode.IGNORE_ERRORS,
+    );
     return jettonAmount;
   }
 
   /** Send remaining TON to address */
   async sendTonToAddress() {
     const { contract, keyPair } = this.prepared;
-    const seqno = await contract.getSeqno();
-
-    await contract.sendTransfer({
-      seqno,
-      secretKey: keyPair.secretKey,
-      sendMode: SendMode.CARRY_ALL_REMAINING_BALANCE,
-      messages: [
+    await sendAndConfirm(
+      contract,
+      keyPair,
+      [
         internal({
           to: Address.parse(this.address),
           value: toNano("0"),
           bounce: false,
         }),
       ],
-    });
-
-    await waitForSeqnoChange(contract, seqno);
+      SendMode.CARRY_ALL_REMAINING_BALANCE,
+    );
   }
 }

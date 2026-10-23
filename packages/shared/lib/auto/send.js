@@ -2,7 +2,7 @@ import { Address, SendMode, internal, toNano } from "@ton/core";
 import {
   JETTON_TRANSFER_GAS,
   buildJettonTransferBody,
-  waitForSeqnoChange,
+  sendAndConfirm,
 } from "../ton/transactions.js";
 import { prepareMaster } from "./transactions.js";
 
@@ -27,12 +27,7 @@ export async function sendFromWallet(wallet, { to, jettonAddress, amount }) {
     message = internal({
       to: jettonWalletAddress,
       value: JETTON_TRANSFER_GAS,
-      body: buildJettonTransferBody(
-        jettonDecimals,
-        amount,
-        to,
-        wallet.address,
-      ),
+      body: buildJettonTransferBody(jettonDecimals, amount, to, wallet.address),
     });
   } else {
     message = internal({
@@ -42,14 +37,10 @@ export async function sendFromWallet(wallet, { to, jettonAddress, amount }) {
     });
   }
 
-  const seqno = await contract.getSeqno();
-
-  await contract.sendTransfer({
-    seqno,
-    secretKey: keyPair.secretKey,
-    sendMode: SendMode.PAY_GAS_SEPARATELY + SendMode.IGNORE_ERRORS,
-    messages: [message],
-  });
-
-  await waitForSeqnoChange(contract, seqno);
+  await sendAndConfirm(
+    contract,
+    keyPair,
+    [message],
+    SendMode.PAY_GAS_SEPARATELY + SendMode.IGNORE_ERRORS,
+  );
 }

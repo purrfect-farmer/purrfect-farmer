@@ -12,7 +12,7 @@ import {
 } from "./swap.js";
 import { NATIVE_TON_DUST, fromNanoDecimal } from "./native.js";
 import { prepareMaster } from "./transactions.js";
-import { waitForSeqnoChange } from "../ton/transactions.js";
+import { sendAndConfirm } from "../ton/transactions.js";
 
 import Decimal from "decimal.js";
 
@@ -177,22 +177,18 @@ export default class BaseSwapper {
       );
     }
 
-    const seqno = await contract.getSeqno();
-
-    await contract.sendTransfer({
-      seqno,
-      secretKey: keyPair.secretKey,
-      sendMode: SendMode.PAY_GAS_SEPARATELY + SendMode.IGNORE_ERRORS,
-      messages: [
+    await sendAndConfirm(
+      contract,
+      keyPair,
+      [
         internal({
           to: txParams.to,
           value: txParams.value,
           body: txParams.body,
         }),
       ],
-    });
-
-    await waitForSeqnoChange(contract, seqno);
+      SendMode.PAY_GAS_SEPARATELY + SendMode.IGNORE_ERRORS,
+    );
 
     /* The seqno moving proves the wallet sent the message, not that the pool filled it */
     return this.describeRoute(route, direction, assets);

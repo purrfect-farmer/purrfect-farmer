@@ -66,3 +66,17 @@ export async function waitForSeqnoChange(
   }
   throw new Error("Transaction timeout - seqno did not change");
 }
+
+/** Sign and send messages from a wallet, then wait until its seqno moves past them */
+export async function sendAndConfirm(contract, keyPair, messages, sendMode) {
+  const seqno = await contract.getSeqno();
+
+  await contract.sendTransfer({
+    seqno,
+    secretKey: keyPair.secretKey,
+    sendMode,
+    messages,
+  });
+
+  await waitForSeqnoChange(contract, seqno);
+}

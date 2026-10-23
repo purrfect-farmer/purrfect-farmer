@@ -6,7 +6,7 @@ import {
   TON_FOR_GAS,
   buildJettonTransferBody,
   getJettonWalletAddress,
-  waitForSeqnoChange,
+  sendAndConfirm,
 } from "../ton/transactions.js";
 
 import Decimal from "decimal.js";
@@ -46,34 +46,27 @@ export default class BaseBooster {
   // ─── TON Transfers (reuse prepared master) ──────────────
   async sendGasFromMaster(value = TON_FOR_GAS) {
     const { contract, keyPair } = this.prepared;
-    const seqno = await contract.getSeqno();
-
-    await contract.sendTransfer({
-      seqno,
-      secretKey: keyPair.secretKey,
-      sendMode: SendMode.PAY_GAS_SEPARATELY + SendMode.IGNORE_ERRORS,
-      messages: [
+    await sendAndConfirm(
+      contract,
+      keyPair,
+      [
         internal({
           to: Address.parse(this.account.address),
           value,
           bounce: false,
         }),
       ],
-    });
-
-    await waitForSeqnoChange(contract, seqno);
+      SendMode.PAY_GAS_SEPARATELY + SendMode.IGNORE_ERRORS,
+    );
   }
 
   async sendJettonFromMaster(jettonAmount, includeGas = false) {
     const { contract, keyPair, jettonWalletAddress, jettonDecimals } =
       this.prepared;
-    const seqno = await contract.getSeqno();
-
-    await contract.sendTransfer({
-      seqno,
-      secretKey: keyPair.secretKey,
-      sendMode: SendMode.PAY_GAS_SEPARATELY + SendMode.IGNORE_ERRORS,
-      messages: [
+    await sendAndConfirm(
+      contract,
+      keyPair,
+      [
         internal({
           to: jettonWalletAddress,
           value: JETTON_TRANSFER_GAS,
@@ -95,31 +88,26 @@ export default class BaseBooster {
             ]
           : [],
       ),
-    });
-
-    await waitForSeqnoChange(contract, seqno);
+      SendMode.PAY_GAS_SEPARATELY + SendMode.IGNORE_ERRORS,
+    );
     return jettonAmount;
   }
 
   /** Send TON from the master as the boosted asset, which is how a native Auto boosts */
   async sendTonFromMaster(amount) {
     const { contract, keyPair } = this.prepared;
-    const seqno = await contract.getSeqno();
-
-    await contract.sendTransfer({
-      seqno,
-      secretKey: keyPair.secretKey,
-      sendMode: SendMode.PAY_GAS_SEPARATELY + SendMode.IGNORE_ERRORS,
-      messages: [
+    await sendAndConfirm(
+      contract,
+      keyPair,
+      [
         internal({
           to: Address.parse(this.account.address),
           value: toNano(amount.toFixed(9)),
           bounce: false,
         }),
       ],
-    });
-
-    await waitForSeqnoChange(contract, seqno);
+      SendMode.PAY_GAS_SEPARATELY + SendMode.IGNORE_ERRORS,
+    );
     return amount;
   }
 
@@ -136,43 +124,35 @@ export default class BaseBooster {
 
   async returnTonToMaster() {
     const { contract, keyPair } = await this._prepareSubAccount();
-    const seqno = await contract.getSeqno();
-
-    await contract.sendTransfer({
-      seqno,
-      secretKey: keyPair.secretKey,
-      sendMode: SendMode.CARRY_ALL_REMAINING_BALANCE,
-      messages: [
+    await sendAndConfirm(
+      contract,
+      keyPair,
+      [
         internal({
           to: Address.parse(this.master.address),
           value: toNano("0"),
           bounce: false,
         }),
       ],
-    });
-
-    await waitForSeqnoChange(contract, seqno);
+      SendMode.CARRY_ALL_REMAINING_BALANCE,
+    );
   }
 
   /** Send part of a sub account's TON to the master, the rest staying behind to pay the fee */
   async sendTonToMaster(amount) {
     const { contract, keyPair } = await this._prepareSubAccount();
-    const seqno = await contract.getSeqno();
-
-    await contract.sendTransfer({
-      seqno,
-      secretKey: keyPair.secretKey,
-      sendMode: SendMode.PAY_GAS_SEPARATELY,
-      messages: [
+    await sendAndConfirm(
+      contract,
+      keyPair,
+      [
         internal({
           to: Address.parse(this.master.address),
           value: toNano(amount.toFixed(9, Decimal.ROUND_DOWN)),
           bounce: false,
         }),
       ],
-    });
-
-    await waitForSeqnoChange(contract, seqno);
+      SendMode.PAY_GAS_SEPARATELY,
+    );
     return amount;
   }
 
@@ -190,26 +170,18 @@ export default class BaseBooster {
 
     if (!subJettonWallet) return jettonBalance;
 
-    const seqno = await contract.getSeqno();
-
-    await contract.sendTransfer({
-      seqno,
-      secretKey: keyPair.secretKey,
-      messages: [
-        internal({
-          to: subJettonWallet,
-          value: JETTON_TRANSFER_GAS,
-          body: buildJettonTransferBody(
-            jettonDecimals,
-            jettonBalance,
-            this.master.address,
-            this.account.address,
-          ),
-        }),
-      ],
-    });
-
-    await waitForSeqnoChange(contract, seqno);
+    await sendAndConfirm(contract, keyPair, [
+      internal({
+        to: subJettonWallet,
+        value: JETTON_TRANSFER_GAS,
+        body: buildJettonTransferBody(
+          jettonDecimals,
+          jettonBalance,
+          this.master.address,
+          this.account.address,
+        ),
+      }),
+    ]);
     return jettonBalance;
   }
 
