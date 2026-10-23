@@ -1,5 +1,5 @@
-import GramClient from "../../lib/GramClient.js";
 import { Model } from "sequelize";
+import { logoutSession } from "../../services/telegram-session.js";
 import seedrandom from "seedrandom";
 
 /**
@@ -114,26 +114,11 @@ export default (sequelize, DataTypes) => {
 
     async destroy() {
       if (this.session) {
-        try {
-          /** Create Client */
-          const client = await GramClient.create(this.session);
-
-          /** Connect */
-          await client.connect();
-
-          /** Logout */
-          await client.logout();
-        } catch (error) {
-          if (process.env.NODE_ENV === "development") {
-            console.error("Error logging out account:", error);
-          }
-        }
+        await logoutSession(this.session);
       }
 
-      /** Destroy */
       await super.destroy();
 
-      /** Return */
       return this;
     }
   }

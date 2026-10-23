@@ -2,13 +2,17 @@ import { addDays, format } from "date-fns";
 
 import GramClient from "./GramClient.js";
 import bot from "./bot.js";
-import crypto from "node:crypto";
 import db from "../db/models/index.js";
 import logger from "./logger.js";
 import { runDatabaseWrite } from "./db-write.js";
 import updateProxies from "../actions/update-proxies.js";
 import utils from "./utils.js";
 import { IMPORT_OUTCOME } from "../enums/import-outcome.js";
+import {
+  DEFAULT_SUBSCRIPTION_DAYS,
+  upsertSubscription,
+} from "../services/subscriptions.js";
+import { createSessionId } from "../services/telegram-session.js";
 
 /** Number of accounts to clone concurrently (kept low to respect flood limits) */
 const CONCURRENCY = 5;
@@ -35,24 +39,6 @@ export function parsePasswords(passwords) {
     .split(/[,\s]+/)
     .map((item) => item.trim())
     .filter(Boolean);
-}
-
-/** Create or extend an active subscription for an account */
-async function upsertSubscription(account, endsAt, transaction) {
-  const subscription = account.subscriptions?.[0];
-
-  if (subscription) {
-    await subscription.update({ endsAt }, { transaction });
-  } else {
-    await account.createSubscription(
-      {
-        active: true,
-        startsAt: new Date(),
-        endsAt,
-      },
-      { transaction },
-    );
-  }
 }
 
 /** Check if an error is worth retrying */
@@ -136,7 +122,7 @@ async function processEntry(
     }
 
     /** Pick the session name upfront so a retried write reuses the same file */
-    const name = crypto.randomBytes(8).toString("hex");
+    const name = createSessionId();
     let wroteSessionFile = false;
     let outcome;
 
@@ -247,7 +233,7 @@ export async function importWhiskersBackup({
   const passwordList = parsePasswords(passwords);
   const endsAt = subscriptionDate
     ? new Date(subscriptionDate)
-    : addDays(new Date(), 30);
+    : addDays(new Date(), DEFAULT_SUBSCRIPTION_DAYS);
 
   const counters = { created: [], skipped: [], failed: [] };
 

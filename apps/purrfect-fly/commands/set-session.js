@@ -1,5 +1,3 @@
-import crypto from "crypto";
-
 /**
  * @param {import("commander").Command} program
  * @param {typeof import("inquirer").default} inquirer
@@ -37,7 +35,10 @@ export default (program, inquirer, chalk) => {
       });
 
       /** Write session string */
-      const session = crypto.randomBytes(8).toString("hex");
+      const { createSessionId } = await import(
+        "../services/telegram-session.js"
+      );
+      const session = createSessionId();
       await GramClient.writeSession(session, sessionString);
 
       /** Update account */

@@ -8,6 +8,7 @@ import {
   PROFILE_CLEAN_TEXT_MAX,
   PROFILE_FIELDS,
 } from "@purrfect/shared/utils/profile.js";
+import { restartSoon } from "../../../lib/process.js";
 
 /**
  * @param {import("fastify").FastifyInstance} fastify
@@ -82,7 +83,7 @@ export default async function (fastify) {
     },
     async (request) => {
       await importBackup(request.body.backup);
-      setTimeout(() => process.exit(0), 1000);
+      restartSoon();
     },
   );
 
@@ -155,7 +156,7 @@ export default async function (fastify) {
       });
 
       child.on("close", (code) => {
-        if (code === 0) setTimeout(() => process.exit(0), 1000);
+        if (code === 0) restartSoon();
         resolve({ success: code === 0, code, stdout, stderr });
       });
     });

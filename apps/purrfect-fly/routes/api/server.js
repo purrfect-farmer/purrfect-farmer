@@ -3,9 +3,9 @@
  */
 export default async function (fastify) {
   /** Get Server */
-  fastify.get("/server", async function (request, reply) {
+  fastify.get("/server", async function () {
     return {
-      name: env("APP_NAME"),
+      name: fastify.app.name,
     };
   });
 }

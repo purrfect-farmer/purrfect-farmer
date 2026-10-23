@@ -1,6 +1,8 @@
+import { removeFarmer, setFarmerStatus } from "../../services/farmer-status.js";
+import { activateFarmers } from "../../services/farmer-activation.js";
 import { authSchema, farmerSchema } from "../../schemas/member.js";
 
-import farmers from "../../farmers/index.js";
+import { FARMER_STATUS } from "../../enums/farmer-status.js";
 
 /**
  * @param {import("fastify").FastifyInstance} fastify
@@ -11,6 +13,22 @@ export default async function (fastify) {
     preHandler: [fastify.validateWebAppData, fastify.verifySubscription],
   };
 
+  /** Load the caller's farmer named in the body into `request.dbFarmer` */
+  const loadOwnFarmer = async function (request, reply) {
+    request.dbFarmer = await fastify.db.Farmer.findOne({
+      where: { id: request.body.id, accountId: request.account.id },
+    });
+
+    if (!request.dbFarmer) {
+      return reply.badRequest("Farmer not found!");
+    }
+  };
+
+  const ownFarmerRouteOptions = {
+    schema: farmerSchema,
+    preHandler: [...farmerRouteOptions.preHandler, loadOwnFarmer],
+  };
+
   /** Get Farmers */
   fastify.post(
     "/farmers",
@@ -18,13 +36,12 @@ export default async function (fastify) {
       schema: authSchema,
       preHandler: [fastify.validateWebAppData],
     },
-    async function (request, reply) {
+    async function (request) {
       const { user } = request.auth;
-      const farmers = await fastify.db.Farmer.findAll({
+
+      return fastify.db.Farmer.findAll({
         where: { accountId: user.id },
       });
-
-      return farmers;
     },
   );
 
@@ -32,105 +49,34 @@ export default async function (fastify) {
   fastify.post(
     "/farmers/activate",
     farmerRouteOptions,
-    async function (request, reply) {
-      const { account } = request;
-
-      await fastify.db.Farmer.update(
-        { status: "active", errorCount: 0, frozenUntil: null },
-        {
-          where: { id: request.body.id, accountId: account.id },
-        },
-      );
-    },
-  );
-
-  /** Deactivate Farmer */
-  fastify.post(
-    "/farmers/deactivate",
-    farmerRouteOptions,
-    async function (request, reply) {
-      const { account } = request;
-
-      /** Find the farmer */
-      const dbFarmer = await fastify.db.Farmer.findOne({
-        where: { id: request.body.id, accountId: account.id },
+    async function (request) {
+      await activateFarmers({
+        id: request.body.id,
+        accountId: request.account.id,
       });
-
-      /** If not found, return an error */
-      if (!dbFarmer) {
-        return reply.badRequest("Farmer not found!");
-      }
-
-      /** Get the Farmer Class */
-      const FarmerClass = farmers[dbFarmer.farmer];
-
-      /** Terminate the instance */
-      if (FarmerClass) {
-        FarmerClass.terminate(dbFarmer.accountId);
-      }
-
-      /** Update the instance status */
-      await dbFarmer.update({ status: "inactive", frozenUntil: null });
     },
   );
 
-  /** Freeze Farmer */
-  fastify.post(
-    "/farmers/freeze",
-    farmerRouteOptions,
-    async function (request, reply) {
-      const { account } = request;
-
-      /** Find the farmer */
-      const dbFarmer = await fastify.db.Farmer.findOne({
-        where: { id: request.body.id, accountId: account.id },
-      });
-
-      /** If not found, return an error */
-      if (!dbFarmer) {
-        return reply.badRequest("Farmer not found!");
-      }
-
-      /** Get the Farmer Class */
-      const FarmerClass = farmers[dbFarmer.farmer];
-
-      /** Terminate the instance */
-      if (FarmerClass) {
-        FarmerClass.terminate(dbFarmer.accountId);
-      }
-
-      /** Update the instance status */
-      await dbFarmer.update({ status: "frozen", frozenUntil: null });
-    },
-  );
+  /** Deactivate / Freeze Farmer */
+  for (const [path, status] of [
+    ["deactivate", FARMER_STATUS.INACTIVE],
+    ["freeze", FARMER_STATUS.FROZEN],
+  ]) {
+    fastify.post(
+      `/farmers/${path}`,
+      ownFarmerRouteOptions,
+      async function (request) {
+        await setFarmerStatus(request.dbFarmer, status);
+      },
+    );
+  }
 
   /** Delete Farmer */
   fastify.post(
     "/farmers/delete",
-    farmerRouteOptions,
-    async function (request, reply) {
-      const { account } = request;
-
-      /** Find the farmer */
-      const dbFarmer = await fastify.db.Farmer.findOne({
-        where: { id: request.body.id, accountId: account.id },
-      });
-
-      /** If not found, return an error */
-      if (!dbFarmer) {
-        return reply.badRequest("Farmer not found!");
-      }
-
-      /** Get the Farmer Class */
-      const FarmerClass = farmers[dbFarmer.farmer];
-
-      /** Terminate the instance */
-      if (FarmerClass) {
-        FarmerClass.terminate(dbFarmer.accountId);
-      }
-
-      /** Delete the instance */
-      await dbFarmer.destroy();
+    ownFarmerRouteOptions,
+    async function (request) {
+      await removeFarmer(request.dbFarmer);
     },
   );
 }

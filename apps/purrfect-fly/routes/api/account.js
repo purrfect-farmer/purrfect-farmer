@@ -1,3 +1,4 @@
+import { ACTIVE_FARMER_FIELDS } from "../../services/farmer-activation.js";
 import { authSchema } from "../../schemas/member.js";
 
 /**
@@ -19,7 +20,7 @@ export default async function (fastify) {
       );
 
       const server = {
-        name: env("APP_NAME"),
+        name: fastify.app.name,
       };
 
       return { server, account, subscription: account?.subscription };
@@ -73,9 +74,7 @@ export default async function (fastify) {
         if (farmer.account.subscription) {
           await farmer.account.update({ title: request.body.title, user });
           await farmer.update({
-            status: "active",
-            errorCount: 0,
-            frozenUntil: null,
+            ...ACTIVE_FARMER_FIELDS,
             farmer: request.body.farmer,
             headers: request.body.headers || {},
             cookies: request.body.cookies || [],
@@ -92,9 +91,7 @@ export default async function (fastify) {
         if (account) {
           await account.update({ title: request.body.title, user });
           await account.createFarmer({
-            status: "active",
-            errorCount: 0,
-            frozenUntil: null,
+            ...ACTIVE_FARMER_FIELDS,
             farmer: request.body.farmer,
             headers: request.body.headers || {},
             cookies: request.body.cookies || [],

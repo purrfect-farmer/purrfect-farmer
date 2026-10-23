@@ -1,9 +1,9 @@
 import GramClient from "./lib/GramClient.js";
 import app from "./config/app.js";
-import axios from "axios";
 import bot from "./lib/bot.js";
 import cleanDatabase from "./actions/clean-database.js";
 import updateProxies from "./actions/update-proxies.js";
+import { getPublicIp, reportToSeeker } from "./services/server-address.js";
 
 /** Handle Graceful Shutdown */
 process.on("SIGINT", async () => {
@@ -34,25 +34,17 @@ if (app.seeker.enabled || app.startup.sendServerAddress) {
   /** Fetch and send server address */
   const fetchAndSendServerAddress = async () => {
     try {
-      const address = await axios
-        .get("https://api.ipify.org?format=json", { timeout: 5000 })
-        .then((response) => response.data.ip);
+      const address = await getPublicIp();
 
       /** Post to Seeker Server */
       if (app.seeker.enabled) {
-        await axios
-          .post(
-            `${app.seeker.server}/api/servers/update`,
-            {
-              key: app.seeker.key,
-              name: app.name,
-              address,
-            },
-            { timeout: 5000 },
-          )
-          .catch((error) => {
-            console.error("Failed to Update Seeker:", error);
-          });
+        await reportToSeeker(app.seeker.server, {
+          key: app.seeker.key,
+          name: app.name,
+          address,
+        }).catch((error) => {
+          console.error("Failed to Update Seeker:", error);
+        });
       }
 
       /** Send to Group */

@@ -1,5 +1,6 @@
 import GramClient from "./GramClient.js";
 import utils from "./utils.js";
+import { logDevError } from "./dev-log.js";
 
 /** Accounts worked on at the same time */
 const BATCH_SIZE = 20;
@@ -35,12 +36,10 @@ export async function withAccountSession(
 
       return { success: true, result: await work(client, account) };
     } catch (error) {
-      if (process.env.NODE_ENV === "development") {
-        console.error(
-          `Account session failed (attempt ${attempt}/${attempts}):`,
-          error,
-        );
-      }
+      logDevError(
+        `Account session failed (attempt ${attempt}/${attempts}):`,
+        error,
+      );
 
       await resetClient(account, client);
 

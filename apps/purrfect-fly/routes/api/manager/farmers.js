@@ -1,37 +1,37 @@
+import {
+  activateFarmers,
+  activateUnfrozenFarmers,
+} from "../../../services/farmer-activation.js";
+import {
+  removeFarmer,
+  removeFarmerType,
+  setFarmerStatus,
+  setFarmerTypeStatus,
+} from "../../../services/farmer-status.js";
 import { farmerSchema, optionalFarmerSchema } from "../../../schemas/manager.js";
 
+import { FARMER_STATUS } from "../../../enums/farmer-status.js";
+import { accountAttributes } from "../../../lib/account-attributes.js";
 import farmers from "../../../farmers/index.js";
-
-/** Terminate every running instance of a farmer type */
-async function terminateAllFarmers(fastify, farmer) {
-  const FarmerClass = farmers[farmer];
-
-  if (!FarmerClass) {
-    return;
-  }
-
-  const dbFarmers = await fastify.db.Farmer.findAll({
-    where: { farmer },
-    attributes: ["accountId"],
-  });
-
-  for (const dbFarmer of dbFarmers) {
-    FarmerClass.terminate(dbFarmer.accountId);
-  }
-}
 
 /**
  * @param {import("fastify").FastifyInstance} fastify
  */
 export default async function (fastify) {
+  /** Load the farmer named in the body into `request.dbFarmer` */
+  const loadFarmer = async function (request, reply) {
+    request.dbFarmer = await fastify.db.Farmer.findByPk(request.body.id);
+
+    if (!request.dbFarmer) {
+      return reply.badRequest("Farmer not found!");
+    }
+  };
+
   /** Get Farmers */
-  fastify.get("/farmers", async (request) => {
-    const accounts = await fastify.db.Account.findAllFarmers({
-      attributes: {
-        exclude: !fastify.app.displayAccountTitle ? ["title"] : [],
-      },
+  fastify.get("/farmers", async () => {
+    return fastify.db.Account.findAllFarmers({
+      attributes: accountAttributes(fastify.app),
     });
-    return accounts;
   });
 
   /** Activate All Farmer */
@@ -42,68 +42,39 @@ export default async function (fastify) {
       const farmer = request.body?.id;
 
       /** Scoped to a farmer type, it also unfreezes like the single activate */
-      const [affectedCount] = farmer
-        ? await fastify.db.Farmer.update(
-            { status: "active", errorCount: 0, frozenUntil: null },
-            { where: { farmer } },
-          )
-        : await fastify.db.Farmer.update(
-            { status: "active", errorCount: 0 },
-            {
-              where: {
-                status: {
-                  [fastify.db.Sequelize.Op.not]: "frozen",
-                },
-              },
-            },
-          );
+      const affectedCount = farmer
+        ? await activateFarmers({ farmer })
+        : await activateUnfrozenFarmers();
 
       return reply.send({ success: true, affectedCount });
     },
   );
 
-  /** Disconnect All Farmer */
-  fastify.post(
-    "/farmers/all/disconnect",
-    { schema: farmerSchema },
-    async (request, reply) => {
-      await terminateAllFarmers(fastify, request.body.id);
+  /** Disconnect / Freeze All Farmer */
+  for (const [path, status] of [
+    ["disconnect", FARMER_STATUS.INACTIVE],
+    ["freeze", FARMER_STATUS.FROZEN],
+  ]) {
+    fastify.post(
+      `/farmers/all/${path}`,
+      { schema: farmerSchema },
+      async (request, reply) => {
+        const affectedCount = await setFarmerTypeStatus(
+          request.body.id,
+          status,
+        );
 
-      const [affectedCount] = await fastify.db.Farmer.update(
-        { status: "inactive", frozenUntil: null },
-        { where: { farmer: request.body.id } },
-      );
-
-      return reply.send({ success: true, affectedCount });
-    },
-  );
-
-  /** Freeze All Farmer */
-  fastify.post(
-    "/farmers/all/freeze",
-    { schema: farmerSchema },
-    async (request, reply) => {
-      await terminateAllFarmers(fastify, request.body.id);
-
-      const [affectedCount] = await fastify.db.Farmer.update(
-        { status: "frozen", frozenUntil: null },
-        { where: { farmer: request.body.id } },
-      );
-
-      return reply.send({ success: true, affectedCount });
-    },
-  );
+        return reply.send({ success: true, affectedCount });
+      },
+    );
+  }
 
   /** Delete All Farmer */
   fastify.post(
     "/farmers/all/delete",
     { schema: farmerSchema },
     async (request, reply) => {
-      await terminateAllFarmers(fastify, request.body.id);
-
-      const affectedCount = await fastify.db.Farmer.destroy({
-        where: { farmer: request.body.id },
-      });
+      const affectedCount = await removeFarmerType(request.body.id);
 
       return reply.send({ success: true, affectedCount });
     },
@@ -114,12 +85,7 @@ export default async function (fastify) {
     "/farmers/run",
     { schema: farmerSchema },
     async (request, reply) => {
-      const FarmerClass = farmers[request.body.id];
-
-      /** Execute */
-      if (FarmerClass) {
-        FarmerClass.run();
-      }
+      farmers[request.body.id]?.run();
 
       return reply.send({ success: true });
     },
@@ -130,88 +96,30 @@ export default async function (fastify) {
     "/farmers/activate",
     { schema: farmerSchema },
     async (request) => {
-      await fastify.db.Farmer.update(
-        { status: "active", errorCount: 0, frozenUntil: null },
-        { where: { id: request.body.id } },
-      );
+      await activateFarmers({ id: request.body.id });
     },
   );
 
-  /** Disconnect Farmer */
-  fastify.post(
-    "/farmers/disconnect",
-    { schema: farmerSchema },
-    async (request, reply) => {
-      /* Find the instance */
-      const dbFarmer = await fastify.db.Farmer.findByPk(request.body.id);
-
-      /** If not found, return an error */
-      if (!dbFarmer) {
-        return reply.badRequest("Farmer not found!");
-      }
-
-      /** Get the Farmer Class */
-      const FarmerClass = farmers[dbFarmer.farmer];
-
-      /** Terminate the instance */
-      if (FarmerClass) {
-        FarmerClass.terminate(dbFarmer.accountId);
-      }
-
-      /** Update the instance status */
-      await dbFarmer.update({ status: "inactive", frozenUntil: null });
-    },
-  );
-
-  /** Freeze Farmer */
-  fastify.post(
-    "/farmers/freeze",
-    { schema: farmerSchema },
-    async (request, reply) => {
-      /* Find the instance */
-      const dbFarmer = await fastify.db.Farmer.findByPk(request.body.id);
-
-      /** If not found, return an error */
-      if (!dbFarmer) {
-        return reply.badRequest("Farmer not found!");
-      }
-
-      /** Get the Farmer Class */
-      const FarmerClass = farmers[dbFarmer.farmer];
-
-      /** Terminate the instance */
-      if (FarmerClass) {
-        FarmerClass.terminate(dbFarmer.accountId);
-      }
-
-      /** Update the instance status */
-      await dbFarmer.update({ status: "frozen", frozenUntil: null });
-    },
-  );
+  /** Disconnect / Freeze Farmer */
+  for (const [path, status] of [
+    ["disconnect", FARMER_STATUS.INACTIVE],
+    ["freeze", FARMER_STATUS.FROZEN],
+  ]) {
+    fastify.post(
+      `/farmers/${path}`,
+      { schema: farmerSchema, preHandler: loadFarmer },
+      async (request) => {
+        await setFarmerStatus(request.dbFarmer, status);
+      },
+    );
+  }
 
   /** Delete Farmer */
   fastify.post(
     "/farmers/delete",
-    { schema: farmerSchema },
-    async (request, reply) => {
-      /* Find the instance */
-      const dbFarmer = await fastify.db.Farmer.findByPk(request.body.id);
-
-      /** If not found, return an error */
-      if (!dbFarmer) {
-        return reply.badRequest("Farmer not found!");
-      }
-
-      /** Get the Farmer Class */
-      const FarmerClass = farmers[dbFarmer.farmer];
-
-      /** Terminate the instance */
-      if (FarmerClass) {
-        FarmerClass.terminate(dbFarmer.accountId);
-      }
-
-      /** Delete the instance */
-      await dbFarmer.destroy();
+    { schema: farmerSchema, preHandler: loadFarmer },
+    async (request) => {
+      await removeFarmer(request.dbFarmer);
     },
   );
 }

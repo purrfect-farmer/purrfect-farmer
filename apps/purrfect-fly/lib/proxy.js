@@ -7,6 +7,7 @@ import cache from "./cache.js";
 import db from "../db/models/index.js";
 import utils from "./utils.js";
 import { PROXY_PROVIDER } from "../enums/proxy-provider.js";
+import { logDevError } from "./dev-log.js";
 
 class ProxyProvider {
   /**
@@ -45,9 +46,7 @@ class ProxyProvider {
     try {
       return await this.fetchListFrom(app.proxy);
     } catch (error) {
-      if (process.env.NODE_ENV === "development") {
-        console.error("Error fetching proxies:", error);
-      }
+      logDevError("Error fetching proxies:", error);
       return [];
     }
   }
@@ -172,9 +171,7 @@ class ProxyProvider {
 
           ip = data.ip;
         } catch (error) {
-          if (process.env.NODE_ENV === "development") {
-            console.error("Error testing proxy:", error);
-          }
+          logDevError("Error testing proxy:", error);
           status = false;
         }
 

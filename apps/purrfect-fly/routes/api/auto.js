@@ -1,24 +1,31 @@
 import { autoFarmerSchema, autoSchema } from "../../schemas/auto.js";
-import { authSchema } from "../../schemas/member.js";
 
+import { AUTO_OPERATION } from "../../enums/auto-operation.js";
+import { FARMER_STATUS } from "../../enums/farmer-status.js";
+import { authSchema } from "../../schemas/member.js";
 import autos from "../../lib/autos.js";
-import farmers from "../../farmers/index.js";
+import { setAccountFarming } from "../../services/farming.js";
+import { setFarmerStatus } from "../../services/farmer-status.js";
 
 /**
  * @param {import("fastify").FastifyInstance} fastify
  */
 export default async function (fastify) {
+  /** Resolve the drop named in the path into `request.auto` */
+  const resolveAuto = async function (request, reply) {
+    const { drop } = request.params;
+
+    request.auto = autos[drop];
+
+    if (!request.auto) {
+      return reply.notFound(`Unknown auto: ${drop}`);
+    }
+  };
+
   /** Dispatches an Auto operation for the drop named in the path, fire-and-forget over the bot */
   const dispatchAutoOperation = (operation) =>
-    async function (request, reply) {
-      const { drop } = request.params;
-      const Auto = autos[drop];
-
-      if (!Auto) {
-        return reply.notFound(`Unknown auto: ${drop}`);
-      }
-
-      Auto[operation]({
+    async function (request) {
+      request.auto[operation]({
         ...request.body,
         id: request.account.id,
       });
@@ -27,32 +34,19 @@ export default async function (fastify) {
   /** Runs an Auto operation against a single account and replies with its result */
   const runSingleAutoOperation = (operation) =>
     async function (request, reply) {
-      const { drop } = request.params;
-      const Auto = autos[drop];
-
-      if (!Auto) {
-        return reply.notFound(`Unknown auto: ${drop}`);
-      }
-
       if (!request.body.accounts?.length) {
         return reply.badRequest("No account provided!");
       }
 
-      return Auto[operation]({
+      return request.auto[operation]({
         ...request.body,
         id: request.account.id,
       });
     };
 
   /** Lists the accounts still farming a drop, destroying banned ones */
-  const getAutoActiveList = async function (request, reply) {
-    const { drop } = request.params;
-    const Auto = autos[drop];
-
-    if (!Auto) {
-      return reply.notFound(`Unknown auto: ${drop}`);
-    }
-
+  const getAutoActiveList = async function (request) {
+    const Auto = request.auto;
     const accountId = request.account.id;
 
     /** Get all of the drop's farmers */
@@ -69,10 +63,14 @@ export default async function (fastify) {
     });
 
     /** Get active farmers */
-    const activeFarmers = farmers.filter((item) => item.status !== "banned");
+    const activeFarmers = farmers.filter(
+      (item) => item.status !== FARMER_STATUS.BANNED,
+    );
 
     /** Get banned farmers */
-    const bannedFarmers = farmers.filter((item) => item.status === "banned");
+    const bannedFarmers = farmers.filter(
+      (item) => item.status === FARMER_STATUS.BANNED,
+    );
 
     /** Destroy banned farmers */
     for (const bannedFarmer of bannedFarmers) {
@@ -85,19 +83,21 @@ export default async function (fastify) {
     return activeFarmers.map((item) => item.account.id);
   };
 
-  const autoPreHandler = [
+  const memberPreHandler = [
     fastify.validateWebAppData,
     fastify.verifySubscription,
   ];
 
+  const autoPreHandler = [...memberPreHandler, resolveAuto];
+
   /** Auto - Boost / Collect / Withdraw / Status / Flip / Rescue */
   for (const operation of [
-    "boost",
-    "collect",
-    "withdraw",
-    "status",
-    "flip",
-    "rescue",
+    AUTO_OPERATION.BOOST,
+    AUTO_OPERATION.COLLECT,
+    AUTO_OPERATION.WITHDRAW,
+    AUTO_OPERATION.STATUS,
+    AUTO_OPERATION.FLIP,
+    AUTO_OPERATION.RESCUE,
   ]) {
     fastify.post(
       `/auto/:drop/${operation}`,
@@ -111,13 +111,17 @@ export default async function (fastify) {
     "/auto/:drop/verify",
     { preHandler: autoPreHandler, schema: autoSchema },
     async function (request, reply) {
-      const Auto = autos[request.params.drop];
+      const Auto = request.auto;
 
-      if (Auto && !Auto.verifiable) {
+      if (!Auto.verifiable) {
         return reply.badRequest(`${Auto.title} has no wallet verification`);
       }
 
-      return dispatchAutoOperation("verify").call(this, request, reply);
+      return dispatchAutoOperation(AUTO_OPERATION.VERIFY).call(
+        this,
+        request,
+        reply,
+      );
     },
   );
 
@@ -126,13 +130,17 @@ export default async function (fastify) {
     "/auto/:drop/swap",
     { preHandler: autoPreHandler, schema: autoSchema },
     async function (request, reply) {
-      const Auto = autos[request.params.drop];
+      const Auto = request.auto;
 
-      if (Auto && Auto.native) {
+      if (Auto.native) {
         return reply.badRequest(`${Auto.title} has no jetton to swap into`);
       }
 
-      return dispatchAutoOperation("swap").call(this, request, reply);
+      return dispatchAutoOperation(AUTO_OPERATION.SWAP).call(
+        this,
+        request,
+        reply,
+      );
     },
   );
 
@@ -149,7 +157,7 @@ export default async function (fastify) {
   }
 
   /** Auto - Load / Assist / Cultivate (hand over wallets, then work them on a timer) */
-  for (const operation of ["load", "assist", "cultivate"]) {
+  for (const operation of [AUTO_OPERATION.LOAD, "assist", "cultivate"]) {
     fastify.post(
       `/auto/:drop/${operation}`,
       { preHandler: autoPreHandler, schema: autoSchema },
@@ -168,15 +176,8 @@ export default async function (fastify) {
   fastify.post(
     "/auto/:drop/assist-cancel",
     { preHandler: autoPreHandler, schema: authSchema },
-    async function (request, reply) {
-      const { drop } = request.params;
-      const Auto = autos[drop];
-
-      if (!Auto) {
-        return reply.notFound(`Unknown auto: ${drop}`);
-      }
-
-      return { cancelled: Auto.cancelAssist() };
+    async function (request) {
+      return { cancelled: request.auto.cancelAssist() };
     },
   );
 
@@ -184,15 +185,8 @@ export default async function (fastify) {
   fastify.post(
     "/auto/:drop/assist-status",
     { preHandler: autoPreHandler, schema: authSchema },
-    async function (request, reply) {
-      const { drop } = request.params;
-      const Auto = autos[drop];
-
-      if (!Auto) {
-        return reply.notFound(`Unknown auto: ${drop}`);
-      }
-
-      return Auto.assistStatus();
+    async function (request) {
+      return request.auto.assistStatus();
     },
   );
 
@@ -200,15 +194,8 @@ export default async function (fastify) {
   fastify.post(
     "/auto/:drop/cultivate-cancel",
     { preHandler: autoPreHandler, schema: authSchema },
-    async function (request, reply) {
-      const { drop } = request.params;
-      const Auto = autos[drop];
-
-      if (!Auto) {
-        return reply.notFound(`Unknown auto: ${drop}`);
-      }
-
-      return { cancelled: Auto.cancelCultivate() };
+    async function (request) {
+      return { cancelled: request.auto.cancelCultivate() };
     },
   );
 
@@ -216,15 +203,8 @@ export default async function (fastify) {
   fastify.post(
     "/auto/:drop/cultivate-status",
     { preHandler: autoPreHandler, schema: authSchema },
-    async function (request, reply) {
-      const { drop } = request.params;
-      const Auto = autos[drop];
-
-      if (!Auto) {
-        return reply.notFound(`Unknown auto: ${drop}`);
-      }
-
-      return Auto.cultivateStatus();
+    async function (request) {
+      return request.auto.cultivateStatus();
     },
   );
 
@@ -232,15 +212,8 @@ export default async function (fastify) {
   fastify.post(
     "/auto/:drop/snapshots",
     { preHandler: autoPreHandler, schema: authSchema },
-    async function (request, reply) {
-      const { drop } = request.params;
-      const Auto = autos[drop];
-
-      if (!Auto) {
-        return reply.notFound(`Unknown auto: ${drop}`);
-      }
-
-      return Auto.snapshots();
+    async function (request) {
+      return request.auto.snapshots();
     },
   );
 
@@ -254,46 +227,28 @@ export default async function (fastify) {
   /** Sets the drop's farmer for one managed account, named by its Telegram id */
   const setAutoFarmerStatus = (status) =>
     async function (request, reply) {
-      const { drop } = request.params;
-      const Auto = autos[drop];
-
-      if (!Auto) {
-        return reply.notFound(`Unknown auto: ${drop}`);
-      }
-
-      /** Find the farmer the drop runs for that account */
+      /** The farmer the drop runs for that account */
       const dbFarmer = await fastify.db.Farmer.findOne({
-        where: { farmer: Auto.farmerId, accountId: request.body.account },
+        where: {
+          farmer: request.auto.farmerId,
+          accountId: request.body.account,
+        },
       });
 
-      /** If not found, return an error */
       if (!dbFarmer) {
         return reply.badRequest("Farmer not found!");
       }
 
-      /** Get the Farmer Class */
-      const FarmerClass = farmers[dbFarmer.farmer];
-
-      /** A farmer being stopped must not keep running */
-      if (status !== "active" && FarmerClass) {
-        FarmerClass.terminate(dbFarmer.accountId);
-      }
-
-      /** Update the instance status */
-      await dbFarmer.update(
-        status === "active"
-          ? { status: "active", errorCount: 0, frozenUntil: null }
-          : { status, frozenUntil: null },
-      );
+      await setFarmerStatus(dbFarmer, status);
 
       return { id: String(dbFarmer.accountId), status };
     };
 
   /** Auto - Activate / Deactivate / Freeze one managed account's farmer */
   for (const [path, status] of [
-    ["activate", "active"],
-    ["deactivate", "inactive"],
-    ["freeze", "frozen"],
+    ["activate", FARMER_STATUS.ACTIVE],
+    ["deactivate", FARMER_STATUS.INACTIVE],
+    ["freeze", FARMER_STATUS.FROZEN],
   ]) {
     fastify.post(
       `/auto/:drop/farmer/${path}`,
@@ -306,7 +261,7 @@ export default async function (fastify) {
   fastify.post(
     "/auto/:drop/farmer/farming",
     {
-      preHandler: autoPreHandler,
+      preHandler: memberPreHandler,
       schema: {
         body: {
           type: "object",
@@ -328,20 +283,7 @@ export default async function (fastify) {
 
       const farming = request.body.farming;
 
-      /** Merge, so the options bag stays open for other keys */
-      await account.update({
-        options: { ...(account.options || {}), farming },
-      });
-
-      /**
-       * A pass already under way has to stop: the point of switching farming
-       * off is that another server may be using this Telegram session.
-       */
-      if (!farming) {
-        for (const FarmerClass of Object.values(farmers)) {
-          FarmerClass.abort(account.id);
-        }
-      }
+      await setAccountFarming(account, farming);
 
       return { id: String(account.id), farming };
     },

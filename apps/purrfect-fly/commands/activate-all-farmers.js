@@ -8,17 +8,10 @@ export default (program, inquirer, chalk) => {
     .command("activate-all-farmers")
     .description("Activate all farmers")
     .action(async () => {
-      const db = await import("../db/models/index.js").then((m) => m.default);
-      await db.Farmer.update(
-        { status: "active", errorCount: 0 },
-        {
-          where: {
-            status: {
-              [db.Sequelize.Op.not]: "frozen",
-            },
-          },
-        },
-      );
+      const { activateUnfrozenFarmers } =
+        await import("../services/farmer-activation.js");
+
+      await activateUnfrozenFarmers();
       console.log(chalk.bold.green("All farmers have been activated!"));
     });
 };

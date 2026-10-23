@@ -1,6 +1,6 @@
-import * as dateFns from "date-fns";
-
-import farmers from "../../../farmers/index.js";
+import { accountAttributes } from "../../../lib/account-attributes.js";
+import { setAccountFarming } from "../../../services/farming.js";
+import { subscribeAccount } from "../../../services/subscriptions.js";
 import updateProxies from "../../../actions/update-proxies.js";
 
 /**
@@ -11,9 +11,7 @@ export default async function (fastify) {
   fastify.get("/members", async (request) => {
     const accounts = await fastify.db.Account.findAllWithActiveSubscription({
       required: false,
-      attributes: {
-        exclude: !fastify.app.displayAccountTitle ? ["title"] : [],
-      },
+      attributes: accountAttributes(fastify.app),
     });
 
     return accounts.sort((a, b) => {
@@ -49,39 +47,7 @@ export default async function (fastify) {
         .filter(Boolean);
 
       for (const id of ids) {
-        /** Find or create account */
-        const [account] = await fastify.db.Account.findOrCreate({
-          where: {
-            id,
-          },
-          include: [
-            {
-              required: false,
-              association: "subscriptions",
-              where: {
-                active: true,
-              },
-            },
-          ],
-        });
-
-        if (account.subscription) {
-          /** Update subscription */
-          await account.subscription.update({
-            endsAt: request.body.date
-              ? new Date(request.body.date)
-              : dateFns.addDays(new Date(account.subscription.endsAt), 30),
-          });
-        } else {
-          /** Create subscription */
-          await account.createSubscription({
-            active: true,
-            startsAt: new Date(),
-            endsAt: request.body.date
-              ? new Date(request.body.date)
-              : dateFns.addDays(new Date(), 30),
-          });
-        }
+        await subscribeAccount(id, request.body.date);
       }
 
       /** Update proxies */
@@ -113,20 +79,7 @@ export default async function (fastify) {
 
       const farming = request.body.farming;
 
-      /** Merge, so the options bag stays open for other keys */
-      await account.update({
-        options: { ...(account.options || {}), farming },
-      });
-
-      /**
-       * A pass already under way has to stop: the point of switching farming
-       * off is that another server may be using this Telegram session.
-       */
-      if (!farming) {
-        for (const FarmerClass of Object.values(farmers)) {
-          FarmerClass.abort(account.id);
-        }
-      }
+      await setAccountFarming(account, farming);
 
       return reply.send({ id: account.id, farming });
     },

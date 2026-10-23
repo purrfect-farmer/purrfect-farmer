@@ -9,8 +9,7 @@ export default (program, inquirer, chalk) => {
     .description("Adds a subscription")
     .usage("12345678 2030-01-01")
     .action(async (userId, endDate) => {
-      const dateFns = await import("date-fns");
-      const db = await import("../db/models/index.js").then((m) => m.default);
+      const { subscribeAccount } = await import("../services/subscriptions.js");
 
       if (!userId) {
         const answers = await inquirer.prompt([
@@ -22,34 +21,7 @@ export default (program, inquirer, chalk) => {
         endDate = answers.endDate;
       }
 
-      const [account] = await db.Account.findOrCreate({
-        where: {
-          id: userId,
-        },
-        include: [
-          {
-            required: false,
-            association: "subscriptions",
-            where: {
-              active: true,
-            },
-          },
-        ],
-      });
-
-      if (account.subscription) {
-        await account.subscription.update({
-          endsAt: endDate
-            ? new Date(endDate)
-            : dateFns.addDays(new Date(account.subscription.endsAt), 30),
-        });
-      } else {
-        await account.createSubscription({
-          active: true,
-          startsAt: new Date(),
-          endsAt: endDate ? new Date(endDate) : dateFns.addDays(new Date(), 30),
-        });
-      }
+      await subscribeAccount(userId, endDate);
 
       console.log("Subscription Updated!");
     });

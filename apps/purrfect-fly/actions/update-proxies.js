@@ -3,6 +3,7 @@ import chalk from "chalk";
 import db from "../db/models/index.js";
 import proxy from "../lib/proxy.js";
 import { runDatabaseWrite } from "../lib/db-write.js";
+import { logDevError } from "../lib/dev-log.js";
 
 /** Update Proxies */
 async function updateProxies() {
@@ -111,9 +112,7 @@ async function updateProxies() {
       console.log(chalk.bold.green("Proxies updated successfully."));
     } catch (error) {
       console.log(chalk.bold.red("Failed to update proxies"));
-      if (process.env.NODE_ENV === "development") {
-        console.error("Error updating proxies:", error);
-      }
+      logDevError("Error updating proxies:", error);
     }
   }
 }

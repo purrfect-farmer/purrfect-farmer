@@ -1,4 +1,4 @@
-import crypto from "crypto";
+import { createSessionId, logoutSession } from "../../../services/telegram-session.js";
 /** Session Schema */
 const sessionSchema = {
   type: "string",
@@ -55,8 +55,7 @@ export default async function (fastify, opts) {
         },
       },
       async function (request, reply) {
-        /** Generate Session ID */
-        const session = crypto.randomBytes(8).toString("hex");
+        const session = createSessionId();
 
         /** Create Client */
         const client = await fastify.lib.GramClient.create(session);
@@ -135,8 +134,7 @@ export default async function (fastify, opts) {
      * Login with an exported login token.
      */
     .post("/login-token", async function (request, reply) {
-      /** Generate Session ID */
-      const session = crypto.randomBytes(8).toString("hex");
+      const session = createSessionId();
 
       /** Create Client */
       const client = await fastify.lib.GramClient.create(session);
@@ -198,22 +196,8 @@ export default async function (fastify, opts) {
         );
 
         if (account?.session) {
-          try {
-            /** Create Client */
-            const client = await fastify.lib.GramClient.create(account.session);
-
-            /** Connect */
-            await client.connect();
-
-            /** Logout */
-            await client.logout();
-          } catch (error) {
-            if (process.env.NODE_ENV === "development") {
-              console.error("Error logging out account:", error);
-            }
-          } finally {
-            await account.update({ session: null });
-          }
+          await logoutSession(account.session);
+          await account.update({ session: null });
         }
 
         return {
