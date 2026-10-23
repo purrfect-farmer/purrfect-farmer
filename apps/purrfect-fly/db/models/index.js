@@ -4,13 +4,12 @@ import "../../config/env.js";
 
 import Sequelize from "sequelize";
 import databaseConfig from "../../config/database.js";
-import { fileURLToPath } from "node:url";
 import fs from "node:fs";
 import path from "node:path";
 import process from "process";
+import { getCurrentPath } from "../../lib/path.js";
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+const { __dirname, __filename } = getCurrentPath(import.meta.url);
 
 const env = process.env.NODE_ENV || "development";
 const basename = path.basename(__filename);

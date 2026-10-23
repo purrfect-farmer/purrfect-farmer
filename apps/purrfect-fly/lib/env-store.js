@@ -1,8 +1,7 @@
 import { createEnvStore } from "./env/store.js";
-import { fileURLToPath } from "node:url";
 import path from "node:path";
+import { getCurrentPath } from "./path.js";
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+const { __dirname } = getCurrentPath(import.meta.url);
 
 export default createEnvStore(path.resolve(__dirname, "../"));

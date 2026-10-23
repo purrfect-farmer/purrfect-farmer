@@ -1,10 +1,9 @@
-import { fileURLToPath } from "node:url";
 import path from "node:path";
 import { PROXY_PROVIDER } from "../enums/proxy-provider.js";
 import { CRON_MODE } from "@purrfect/shared/enums/cron-mode.js";
+import { getCurrentPath } from "../lib/path.js";
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+const { __dirname } = getCurrentPath(import.meta.url);
 
 const basePath = path.resolve(__dirname, "../");
 const rootPath = path.resolve(basePath, "../../");

@@ -1,13 +1,12 @@
 import fs from "node:fs";
 import path from "node:path";
-import { fileURLToPath } from "node:url";
 
 import createRunner from "./Runner.js";
+import { getCurrentPath } from "../lib/path.js";
 
 const ENABLE_UNPUBLISHED_FARMERS = env("ENABLE_UNPUBLISHED_FARMERS", false);
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+const { __dirname } = getCurrentPath(import.meta.url);
 const farmers = {};
 
 const farmersDir = path.join(

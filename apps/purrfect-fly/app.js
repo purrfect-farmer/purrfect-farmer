@@ -7,12 +7,11 @@ import AutoLoad from "@fastify/autoload";
 import bot from "./lib/bot.js";
 import cors from "@fastify/cors";
 import envStore from "./lib/env-store.js";
-import { fileURLToPath } from "node:url";
 import jwt from "@fastify/jwt";
 import path from "node:path";
+import { getCurrentPath } from "./lib/path.js";
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+const { __dirname } = getCurrentPath(import.meta.url);
 
 // Pass --options via CLI arguments in command to enable these options.
 export const options = {
