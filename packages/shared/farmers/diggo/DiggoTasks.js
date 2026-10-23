@@ -4,10 +4,9 @@ import {
   SOCIAL_CONFIRM_MARGIN_SECONDS,
   TASK_TITLES,
 } from "./constants.js";
-import DiggoState from "./DiggoState.js";
 
-/** Mining claims, tasks, streaks, commission and chests */
-export default class DiggoTasks extends DiggoState {
+/** Trait: mining claims, tasks, streaks, commission and chests */
+export default class DiggoTasks {
   /* --------------------------------------------------------------------- */
   /* Mining                                                                */
   /* --------------------------------------------------------------------- */

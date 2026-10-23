@@ -2,10 +2,9 @@ import {
   ACTIVATION_CHECK_ATTEMPTS,
   ACTIVATION_CHECK_INTERVAL_SECONDS,
 } from "./constants.js";
-import DiggoWallet from "./DiggoWallet.js";
 
-/** The one-time withdrawal activation fee */
-export default class DiggoActivation extends DiggoWallet {
+/** Trait: the one-time withdrawal activation fee */
+export default class DiggoActivation {
   /* --------------------------------------------------------------------- */
   /* Withdrawal activation                                                 */
   /* --------------------------------------------------------------------- */

@@ -1,7 +1,5 @@
-import DiggoMarket from "./DiggoMarket.js";
-
-/** What the account looks like, as logged and summarized for Auto */
-export default class DiggoAccount extends DiggoMarket {
+/** Trait: what the account looks like, as logged and summarized for Auto */
+export default class DiggoAccount {
   /** Log what the account looks like before the pass starts */
   logAccountInfo() {
     const state = this.state_data;

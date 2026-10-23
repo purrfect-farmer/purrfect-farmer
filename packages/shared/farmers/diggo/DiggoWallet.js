@@ -1,3 +1,4 @@
+import BaseFarmer from "../../lib/BaseFarmer.js";
 import {
   createWallet,
   deriveMnemonicFromTelegramId,
@@ -11,10 +12,9 @@ import {
   TON_PROOF_DOMAIN,
 } from "./constants.js";
 import Decimal from "decimal.js";
-import DiggoTasks from "./DiggoTasks.js";
 
-/** Binding the wallet, its balances and signing */
-export default class DiggoWallet extends DiggoTasks {
+/** Trait: binding the wallet, its balances and signing */
+export default class DiggoWallet {
   /* --------------------------------------------------------------------- */
   /* Wallet                                                                */
   /* --------------------------------------------------------------------- */
@@ -85,7 +85,11 @@ export default class DiggoWallet extends DiggoTasks {
   /** Bind a wallet from its phrase, since the game wants a signed TON proof */
   async connectAutoWallet({ phrase, address, version, refresh = false }) {
     if (!phrase) {
-      return super.connectAutoWallet({ address, version, refresh });
+      return BaseFarmer.prototype.connectAutoWallet.call(this, {
+        address,
+        version,
+        refresh,
+      });
     }
 
     try {

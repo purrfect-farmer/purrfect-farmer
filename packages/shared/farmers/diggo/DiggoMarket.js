@@ -8,10 +8,9 @@ import {
 } from "./constants.js";
 import Decimal from "decimal.js";
 import { Address, Cell } from "@ton/core";
-import DiggoWithdrawal from "./DiggoWithdrawal.js";
 
-/** Buying, selling and depositing through the in-app market */
-export default class DiggoMarket extends DiggoWithdrawal {
+/** Trait: buying, selling and depositing through the in-app market */
+export default class DiggoMarket {
   /* --------------------------------------------------------------------- */
   /* Market                                                                */
   /* --------------------------------------------------------------------- */

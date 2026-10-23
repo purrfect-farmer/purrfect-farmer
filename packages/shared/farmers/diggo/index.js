@@ -1,7 +1,18 @@
-import { DIGGO_JETTON_ADDRESS, DIGGO_TOKEN } from "./constants.js";
+import BaseFarmer from "../../lib/BaseFarmer.js";
+import applyTraits from "../../lib/applyTraits.js";
+import DiggoSession from "./DiggoSession.js";
+import DiggoApi from "./DiggoApi.js";
+import DiggoState from "./DiggoState.js";
+import DiggoTasks from "./DiggoTasks.js";
+import DiggoWallet from "./DiggoWallet.js";
+import DiggoActivation from "./DiggoActivation.js";
+import DiggoWithdrawal from "./DiggoWithdrawal.js";
+import DiggoMarket from "./DiggoMarket.js";
+import DiggoAccount from "./DiggoAccount.js";
 import DiggoTools from "./DiggoTools.js";
+import { DIGGO_JETTON_ADDRESS, DIGGO_TOKEN } from "./constants.js";
 
-export default class DiggoFarmer extends DiggoTools {
+export default class DiggoFarmer extends BaseFarmer {
   static id = "diggo";
   static title = "Diggo";
   static emoji = "⛏️";
@@ -49,3 +60,16 @@ export default class DiggoFarmer extends DiggoTools {
     await this.storeAutoSnapshot();
   }
 }
+
+applyTraits(DiggoFarmer, [
+  DiggoSession,
+  DiggoApi,
+  DiggoState,
+  DiggoTasks,
+  DiggoWallet,
+  DiggoActivation,
+  DiggoWithdrawal,
+  DiggoMarket,
+  DiggoAccount,
+  DiggoTools,
+]);

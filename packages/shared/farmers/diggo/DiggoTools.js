@@ -1,9 +1,8 @@
 import Decimal from "decimal.js";
 import { MINIMUM_DEPOSIT_TON } from "./constants.js";
-import DiggoAccount from "./DiggoAccount.js";
 
-/** The interactive tools the farmer offers */
-export default class DiggoTools extends DiggoAccount {
+/** Trait: the interactive tools the farmer offers */
+export default class DiggoTools {
   /* --------------------------------------------------------------------- */
   /* Tools (manual actions)                                                */
   /* --------------------------------------------------------------------- */

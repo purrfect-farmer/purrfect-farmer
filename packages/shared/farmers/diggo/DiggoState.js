@@ -1,8 +1,7 @@
 import { PAGE_URL } from "./constants.js";
-import DiggoApi from "./DiggoApi.js";
 
-/** The game state and what it says is open */
-export default class DiggoState extends DiggoApi {
+/** Trait: the game state and what it says is open */
+export default class DiggoState {
   /* --------------------------------------------------------------------- */
   /* Session                                                               */
   /* --------------------------------------------------------------------- */

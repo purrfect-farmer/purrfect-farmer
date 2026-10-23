@@ -1,10 +1,9 @@
 import { API_URL, ERROR_MESSAGES } from "./constants.js";
 import AdsGramClient from "../../lib/ads/AdsGramClient.js";
 import { createVictorsDevice } from "../../lib/games/victorsDevice.js";
-import BaseFarmer from "../../lib/BaseFarmer.js";
 
-/** API transport, sign-in, browser signals and the risk challenge */
-export default class DiggoSession extends BaseFarmer {
+/** Trait: aPI transport, sign-in, browser signals and the risk challenge */
+export default class DiggoSession {
   /* --------------------------------------------------------------------- */
   /* Transport                                                             */
   /* --------------------------------------------------------------------- */

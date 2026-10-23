@@ -1,8 +1,7 @@
 import { CHEST_MODE } from "./constants.js";
-import DiggoSession from "./DiggoSession.js";
 
-/** The game's endpoints, one method per call */
-export default class DiggoApi extends DiggoSession {
+/** Trait: the game's endpoints, one method per call */
+export default class DiggoApi {
   /** The whole game state: balance, mining, tasks, friends, wallet */
   fetchState() {
     return this.getFromApi("/state");

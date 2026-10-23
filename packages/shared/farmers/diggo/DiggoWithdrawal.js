@@ -1,3 +1,4 @@
+import BaseFarmer from "../../lib/BaseFarmer.js";
 import {
   APPROVED_WITHDRAWAL_STATUSES,
   FLAGGED_WITHDRAWAL_STATUSES,
@@ -5,10 +6,9 @@ import {
   WITHDRAWAL_DECIMALS,
 } from "./constants.js";
 import Decimal from "decimal.js";
-import DiggoActivation from "./DiggoActivation.js";
 
-/** Jetton withdrawals and their queue */
-export default class DiggoWithdrawal extends DiggoActivation {
+/** Trait: jetton withdrawals and their queue */
+export default class DiggoWithdrawal {
   /* --------------------------------------------------------------------- */
   /* Withdrawal                                                            */
   /* --------------------------------------------------------------------- */
@@ -28,7 +28,7 @@ export default class DiggoWithdrawal extends DiggoActivation {
   getMinimumWithdrawal() {
     return (
       Number(this.withdrawalStatus?.["withdrawals"]?.["minimum"]) ||
-      super.getMinimumWithdrawal()
+      BaseFarmer.prototype.getMinimumWithdrawal.call(this)
     );
   }
 
