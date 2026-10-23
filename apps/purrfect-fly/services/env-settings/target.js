@@ -1,4 +1,5 @@
-import { applyChanges, parseEnv } from "../../lib/env-file.js";
+import { applyChanges } from "../../lib/env/edit.js";
+import { parseEnv } from "../../lib/env/parse.js";
 import { sectionOf, sectionTitle, toText } from "./schema.js";
 import { validateChanges, validateContent } from "./validate.js";
 
@@ -33,7 +34,9 @@ export async function resolveTarget(body) {
     return {
       before,
       errors: {
-        [field]: [field === "backup" ? "Backup not found." : "Nothing to save."],
+        [field]: [
+          field === "backup" ? "Backup not found." : "Nothing to save.",
+        ],
       },
     };
   }

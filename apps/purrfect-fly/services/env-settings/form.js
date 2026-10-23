@@ -1,4 +1,5 @@
-import { maskSecret, parseEnv } from "../../lib/env-file.js";
+import { maskSecret } from "../../lib/env/patch.js";
+import { parseEnv } from "../../lib/env/parse.js";
 
 import envStore from "../../lib/env-store.js";
 import { schema } from "./schema.js";
@@ -15,7 +16,10 @@ export async function getSettingsForm() {
     const value = current[field.key];
 
     if (field.type === "secret") {
-      secrets[field.key] = { isSet: Boolean(value), preview: maskSecret(value) };
+      secrets[field.key] = {
+        isSet: Boolean(value),
+        preview: maskSecret(value),
+      };
     } else if (value !== undefined) {
       values[field.key] = value;
     }

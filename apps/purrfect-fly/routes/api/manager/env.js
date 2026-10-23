@@ -1,4 +1,5 @@
-import { createEnvPatch, parseEnv } from "../../../lib/env-file.js";
+import { createEnvPatch } from "../../../lib/env/patch.js";
+import { parseEnv } from "../../../lib/env/parse.js";
 import { fieldsByKey, secretKeys } from "../../../services/env-settings/schema.js";
 import {
   getChangedKeys,

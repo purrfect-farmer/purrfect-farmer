@@ -1,12 +1,8 @@
-import {
-  applyChanges,
-  createEnvStore,
-  createEnvPatch,
-  findInvalidLines,
-  formatValue,
-  maskLine,
-  parseEnv,
-} from "../../lib/env-file.js";
+import { applyChanges, formatValue } from "../../lib/env/edit.js";
+import { createEnvPatch, maskLine } from "../../lib/env/patch.js";
+import { findInvalidLines, parseEnv } from "../../lib/env/parse.js";
+
+import { createEnvStore } from "../../lib/env/store.js";
 
 import assert from "node:assert/strict";
 import fs from "node:fs";
@@ -72,7 +68,14 @@ test("multi-line quoted values are replaced whole", () => {
 });
 
 test("values round-trip through dotenv", () => {
-  for (const value of ["", "plain", 'has "quotes"', "back\\slash", "a#b", " padded "]) {
+  for (const value of [
+    "",
+    "plain",
+    'has "quotes"',
+    "back\\slash",
+    "a#b",
+    " padded ",
+  ]) {
     const output = applyChanges("KEY=old\n", { KEY: value });
     assert.equal(parseEnv(output).KEY, value, `round-trip ${value}`);
   }

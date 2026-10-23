@@ -1,4 +1,4 @@
-import { findInvalidLines, isValidKey, parseEnv } from "../../lib/env-file.js";
+import { findInvalidLines, isValidKey, parseEnv } from "../../lib/env/parse.js";
 
 import { fieldsByKey } from "./schema.js";
 import { validateField } from "../../config/env-schema.js";
