@@ -1,0 +1,523 @@
+import { keyPairFromPhraseOrSecretKey } from "../../lib/ton/wallet.js";
+import Decimal from "decimal.js";
+import { findSliderX } from "../../lib/sliderCaptcha.js";
+import { MAXIMUM_MINER_LEVEL } from "../../lib/auto/minerCurve.js";
+import MRGAccount from "./MRGAccount.js";
+
+/** The interactive tools the farmer offers */
+export default class MRGTools extends MRGAccount {
+  /* --------------------------------------------------------------------- */
+  /* Tools (manual actions)                                                */
+  /* --------------------------------------------------------------------- */
+
+  createTools() {
+    return [
+      {
+        name: "Wallet",
+        list: [
+          ...this.createAutoWalletTools(),
+          {
+            id: "refresh-holding",
+            icon: "reconnect",
+            title: "Refresh Holding",
+            action: this.refreshHolding.bind(this),
+            dispatch: false,
+          },
+          {
+            id: "report-balance",
+            icon: "import",
+            title: "Report Balance",
+            action: this.reportBalanceInteractive.bind(this),
+            dispatch: false,
+          },
+          {
+            id: "verify-wallet",
+            icon: "kyc",
+            title: "Verify Wallet",
+            action: this.verifyWalletInteractive.bind(this),
+            dispatch: false,
+          },
+          {
+            id: "check-verification",
+            icon: "kyc",
+            title: "Check Verification",
+            action: this.checkVerificationInteractive.bind(this),
+            dispatch: false,
+          },
+          {
+            id: "nft-holdings",
+            icon: "search",
+            title: "NFT Holdings",
+            action: this.logNftHoldings.bind(this),
+            dispatch: false,
+          },
+        ],
+      },
+      {
+        name: "Mining",
+        list: [
+          {
+            id: "claim-mining",
+            icon: "check",
+            title: "Claim Mining",
+            action: this.claimMiningInteractive.bind(this),
+            dispatch: false,
+          },
+          {
+            id: "daily-checkin",
+            icon: "check",
+            title: "Daily Check-In",
+            action: this.checkInInteractive.bind(this),
+            dispatch: false,
+          },
+          {
+            id: "estimate-mining",
+            icon: "search",
+            title: "Estimate Mining",
+            action: this.estimateMining.bind(this),
+            dispatch: false,
+          },
+        ],
+      },
+      {
+        name: "Levels",
+        list: [
+          {
+            id: "unlock-level",
+            icon: "key",
+            title: "Unlock Level",
+            action: this.unlockLevelInteractive.bind(this),
+            dispatch: false,
+          },
+        ],
+      },
+      {
+        name: "Account",
+        list: [
+          {
+            id: "human-check",
+            icon: "kyc",
+            title: "Human Check",
+            action: this.renewHumanCheck.bind(this),
+            dispatch: false,
+          },
+          {
+            id: "reset-human-check",
+            icon: "reconnect",
+            title: "Reset Human Check",
+            action: this.resetHumanCheck.bind(this),
+            dispatch: false,
+          },
+        ],
+      },
+      {
+        name: "Withdrawal",
+        list: [
+          {
+            id: "inspect-captcha",
+            icon: "search",
+            title: "Inspect Captcha",
+            action: this.inspectCaptcha.bind(this),
+            dispatch: false,
+          },
+          {
+            id: "withdrawal-status",
+            icon: "history",
+            title: "Withdrawal Status",
+            action: this.logWithdrawalStatus.bind(this),
+            dispatch: false,
+          },
+          {
+            id: "withdraw",
+            icon: "withdraw",
+            title: "Withdraw",
+            action: this.withdrawInteractive.bind(this),
+            dispatch: false,
+          },
+        ],
+      },
+    ];
+  }
+
+  /** Bind a wallet, prompting for the phrase that signs its TON proof */
+  async connectWalletInteractive() {
+    const input = await this.promptInput(
+      "Enter your TON Wallet Phrase / Secret Key (hex):",
+    );
+
+    if (!(input || "").trim()) {
+      this.logger.warn("No phrase provided.");
+      return;
+    }
+
+    const keyPair = await keyPairFromPhraseOrSecretKey(input);
+    const version = await this.promptInput({
+      type: "select",
+      text: "Select wallet version:",
+      options: [
+        { value: "5", label: "Wallet V5R1" },
+        { value: "4", label: "Wallet V4" },
+      ],
+    });
+
+    await this.ensureStateLoaded();
+
+    const { status } = await this.connectSignedWallet(keyPair, version);
+
+    if (status) {
+      await this.unlockAffordableLevel();
+    }
+  }
+
+  /** Unbind the wallet the account is on */
+  async disconnectWalletInteractive() {
+    await this.ensureStateLoaded();
+
+    if (!this.getConnectedWalletAddress()) {
+      this.logger.info("No wallet connected.");
+      return;
+    }
+
+    const result = await this.disconnectWallet();
+
+    if (!result?.["success"]) {
+      this.logger.error(
+        "Failed to disconnect:",
+        result?.["error"] || "Unknown error",
+      );
+      return;
+    }
+
+    this.nftHoldings = null;
+    await this.rememberWalletVersion(undefined);
+    await this.loadAccount();
+    this.logger.success("Wallet disconnected.");
+  }
+
+  /** Unlock what the derived wallet covers, then pay its verification since the phrase is known */
+  async afterDerivedWalletConnected({ phrase, version } = {}) {
+    await this.unlockAffordableLevel();
+
+    if (!phrase || this.isAccountVerified(this.getAccountDetails())) return;
+
+    const { status, message } = await this.verifyWalletIfNeeded({
+      phrase,
+      version,
+    });
+
+    if (!status) {
+      this.logger.warn("Account not verified:", message || "not confirmed yet");
+    }
+  }
+
+  /** Re-read the connected wallet on-chain and unlock what it now covers */
+  async refreshHolding() {
+    await this.ensureStateLoaded();
+
+    const { status } = await this.syncConnectedWallet();
+
+    if (status) {
+      await this.unlockAffordableLevel();
+    }
+  }
+
+  /** Report a holding of your own, prompting for it, since the drop takes the figure as given */
+  async reportBalanceInteractive() {
+    await this.ensureStateLoaded();
+
+    const address = this.getConnectedWalletAddress();
+
+    if (!address) {
+      this.logger.warn(
+        "No wallet connected. Use the Connect Wallet tool to bind one.",
+      );
+      return;
+    }
+
+    const input = await this.promptInput(
+      "How much MRG should the drop credit?",
+    );
+    const trimmed = (input || "").trim();
+
+    if (!trimmed) {
+      this.logger.warn("No balance provided.");
+      return;
+    }
+
+    let holding;
+
+    try {
+      holding = new Decimal(trimmed);
+    } catch {
+      this.logger.error("Invalid MRG amount:", trimmed);
+      return;
+    }
+
+    if (holding.isNegative()) {
+      this.logger.error("MRG amount must be non-negative");
+      return;
+    }
+
+    const { status } = await this.reportWallet(address, holding);
+
+    if (!status) return;
+
+    const reachableLevel = this.findLevelForHolding(this.getLevelHolding());
+
+    this.logger.keyValue("Reachable Level", reachableLevel);
+    this.logger.keyValue(
+      "Speed",
+      `${this.getSpeedForLevel(reachableLevel)} TH/s`,
+    );
+  }
+
+  /** Log the account's Genesis NFTs and what they are worth at withdrawal */
+  async logNftHoldings() {
+    await this.ensureStateLoaded();
+
+    const address = this.getConnectedWalletAddress();
+
+    if (!address) {
+      this.logger.warn(
+        "No wallet connected. Use the Connect Wallet tool to bind one.",
+      );
+      return;
+    }
+
+    /** Read afresh, since the tool is how a new NFT is checked for */
+    this.nftHoldings = null;
+
+    const holdings = await this.readNftHoldings(address);
+    const discountPercent = this.getNftDiscountPercent(holdings);
+
+    this.logger.newline();
+    this.logger.keyValue("Wallet", address);
+    this.logger.keyValue("Genesis NFTs", this.countNftHoldings(holdings), {
+      valueStyle: holdings.length
+        ? this.logger.c.greenBright
+        : this.logger.c.yellowBright,
+    });
+
+    for (const holding of holdings) {
+      this.logger.keyValue(holding.name, holding.quantity);
+    }
+
+    this.logger.newline();
+    this.logger.keyValue("Fee Discount", `${discountPercent}%`);
+    this.logger.keyValue(
+      "Withdrawal Fee",
+      this.formatAmount(this.getWithdrawalFee(discountPercent)),
+    );
+    this.logger.keyValue(
+      "Drop sees an NFT holder",
+      this.getAccountDetails()["isNftHolder"] ? "Yes" : "No",
+    );
+
+    return { holdings, discountPercent };
+  }
+
+  /** Fetch a withdrawal slider and log it, so the puzzle can be studied */
+  async inspectCaptcha() {
+    await this.ensureStateLoaded();
+
+    const challenge = await this.createCaptcha();
+
+    if (!challenge?.["success"]) {
+      this.logger.error(
+        "Failed to get a captcha:",
+        challenge?.["error"] || "Unknown error",
+      );
+      return;
+    }
+
+    const describe = (image) => {
+      const match = String(image || "").match(/^data:([^;,]+);base64,/);
+
+      return match
+        ? `${match[1]}, ${image.length - match[0].length} base64 chars`
+        : `${String(image || "").length} chars`;
+    };
+
+    this.logger.newline();
+    this.logger.keyValue("Captcha ID", challenge["captchaId"]);
+    this.logger.keyValue("Piece Top", challenge["pieceTop"]);
+    this.logger.keyValue("Piece Offset X", challenge["pieceOffsetX"]);
+    this.logger.keyValue("Background", describe(challenge["bgImage"]));
+    this.logger.keyValue("Piece", describe(challenge["pieceImage"]));
+    this.logger.keyValue("Slider X", findSliderX(challenge));
+    this.logger.keyValue(
+      "Other Fields",
+      Object.keys(challenge)
+        .filter(
+          (key) =>
+            ![
+              "success",
+              "captchaId",
+              "pieceTop",
+              "pieceOffsetX",
+              "bgImage",
+              "pieceImage",
+            ].includes(key),
+        )
+        .join(", ") || "None",
+    );
+
+    this.logger.newline();
+    this.logger.info("Background:", challenge["bgImage"]);
+    this.logger.info("Piece:", challenge["pieceImage"]);
+
+    return challenge;
+  }
+
+  /** Pay the on-chain verification, prompting for the bound wallet's phrase */
+  async verifyWalletInteractive() {
+    const phrase = ((await this.promptInput("Enter the wallet phrase:")) || "")
+      .trim()
+      .split(/\s+/)
+      .join(" ");
+
+    if (!phrase) {
+      this.logger.warn("No phrase provided.");
+      return;
+    }
+
+    const version = await this.promptInput({
+      type: "select",
+      text: "Select wallet version:",
+      options: [
+        { value: "5", label: "Wallet V5R1" },
+        { value: "4", label: "Wallet V4" },
+      ],
+    });
+
+    if (!version) {
+      this.logger.warn("No wallet version selected.");
+      return;
+    }
+
+    const { status, message } = await this.verifyAutoWallet({
+      phrase,
+      version,
+    });
+
+    if (status) {
+      this.logger.success(message);
+    } else {
+      this.logger.error("Verification failed:", message);
+    }
+  }
+
+  /** Show what the verification needs and ask the drop whether it has landed */
+  async checkVerificationInteractive() {
+    await this.ensureStateLoaded();
+
+    const info = await this.fetchVerificationInfo();
+    const payment = info?.["payment"] || {};
+
+    this.logger.newline();
+    this.logger.keyValue("Verified", info?.["verified"] ? "Yes" : "No");
+    this.logger.keyValue("Via", info?.["via"] || "-");
+    this.logger.keyValue(
+      "Re-verify Required",
+      info?.["verificationRequired"] ? "Yes" : "No",
+    );
+    this.logger.keyValue("Amount", `${payment["amountGram"] ?? "?"} TON`);
+    this.logger.keyValue("To", payment["address"] || "-");
+    this.logger.keyValue(
+      "Exempt Holding",
+      `${info?.["exemptWalletMrg"] ?? 5000} MRG`,
+    );
+
+    if (info?.["verified"]) return info;
+
+    const check = await this.checkVerification();
+
+    this.logger.keyValue("Payment", check?.["status"] || check?.["error"]);
+
+    if (check?.["status"] === "verified") {
+      await this.loadAccount();
+    }
+
+    return info;
+  }
+
+  /** Check in on demand */
+  async checkInInteractive() {
+    await this.ensureStateLoaded();
+    await this.checkInDaily();
+  }
+
+  /** Claim mining on demand */
+  async claimMiningInteractive() {
+    await this.ensureStateLoaded();
+    await this.claimPendingMining();
+  }
+
+  /** Unlock a level, prompting for which one and leaving the holding to the drop to judge */
+  async unlockLevelInteractive() {
+    await this.ensureStateLoaded();
+
+    const input = await this.promptInput("Which level?");
+    const level = Number((input || "").trim());
+
+    if (!Number.isInteger(level) || level < 1 || level > MAXIMUM_MINER_LEVEL) {
+      this.logger.warn(`Enter a level between 1 and ${MAXIMUM_MINER_LEVEL}.`);
+      return;
+    }
+
+    const required = this.getRequiredHoldingForLevel(level);
+    const holding = this.getLevelHolding();
+
+    this.logger.newline();
+    this.logger.keyValue("Level", level);
+    this.logger.keyValue("Required Holding", this.formatAmount(required));
+    this.logger.keyValue("Your Holding", this.formatAmount(holding));
+
+    /** Reported rather than refused, so a level can be tried whatever the holding reads */
+    if (holding.lessThan(required)) {
+      this.logger.warn(
+        `${this.formatAmount(required.minus(holding))} MRG short of level ${level}, asking anyway.`,
+      );
+    }
+
+    await this.unlockToLevel(level);
+  }
+
+  /** Report what a holding would mine, prompting for the amount */
+  async estimateMining() {
+    const input = await this.promptInput("How much MRG?");
+    const trimmed = (input || "").trim();
+
+    if (!trimmed) return;
+
+    let holding;
+
+    try {
+      holding = new Decimal(trimmed);
+    } catch {
+      this.logger.error("Invalid MRG amount:", trimmed);
+      return;
+    }
+
+    if (holding.isNegative()) {
+      this.logger.error("MRG amount must be non-negative");
+      return;
+    }
+
+    const level = this.findLevelForHolding(holding);
+    const speed = this.getSpeedForLevel(level);
+    const dailyOutput = new Decimal(this.getDailyOutputForLevel(level));
+
+    this.logger.newline();
+    this.logger.keyValue("MRG Amount", this.formatAmount(holding));
+    this.logger.keyValue("Reachable Level", level);
+    this.logger.keyValue(
+      "Level Cost",
+      this.formatAmount(this.getRequiredHoldingForLevel(level)),
+    );
+    this.logger.keyValue("Speed", `${speed} TH/s`);
+
+    this.logger.newline();
+    this.logMiningRateBreakdown(dailyOutput);
+  }
+}
