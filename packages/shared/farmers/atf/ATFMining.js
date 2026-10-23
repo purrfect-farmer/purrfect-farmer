@@ -5,10 +5,9 @@ import {
   TAP_V2_TAPS_PER_SECOND,
 } from "./constants.js";
 import Decimal from "decimal.js";
-import ATFWithdrawal from "./ATFWithdrawal.js";
 
-/** Mining math, tapping, boosts and claims */
-export default class ATFMining extends ATFWithdrawal {
+/** Trait: mining math, tapping, boosts and claims */
+export default class ATFMining {
   /** Random base36 id with the app's prefix, as the tap script makes them */
   createTapV2Id(prefix, words) {
     const values = crypto.getRandomValues(new Uint32Array(words));

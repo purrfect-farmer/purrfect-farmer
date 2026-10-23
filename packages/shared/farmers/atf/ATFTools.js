@@ -1,7 +1,5 @@
-import ATFAccount from "./ATFAccount.js";
-
-/** The interactive tools the farmer offers */
-export default class ATFTools extends ATFAccount {
+/** Trait: the interactive tools the farmer offers */
+export default class ATFTools {
   /** Create Tools */
   createTools() {
     return [

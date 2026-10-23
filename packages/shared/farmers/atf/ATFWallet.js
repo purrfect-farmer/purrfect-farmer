@@ -2,10 +2,9 @@ import { WalletContractV4, WalletContractV5R1 } from "@ton/ton";
 import { keyPairFromPhraseOrSecretKey } from "../../lib/ton/wallet.js";
 import { buildTonProof, getWalletStateInit } from "../../lib/ton/proof.js";
 import { MAX_SYNC_ATTEMPTS } from "./constants.js";
-import ATFActivity from "./ATFActivity.js";
 
-/** TON wallet keys, proofs and connection */
-export default class ATFWallet extends ATFActivity {
+/** Trait: tON wallet keys, proofs and connection */
+export default class ATFWallet {
   /** Prepare Wallet */
   prepareWallet(publicKeyBuffer) {
     const walletV4 = WalletContractV4.create({

@@ -5,10 +5,9 @@ import {
   ONE_TIME_TASKS,
   PROFILE_PROPAGATION_SECONDS,
 } from "./constants.js";
-import ATFMining from "./ATFMining.js";
 
-/** One-time, cooldown, profile and referral tasks */
-export default class ATFTasks extends ATFMining {
+/** Trait: one-time, cooldown, profile and referral tasks */
+export default class ATFTasks {
   async completeTasks() {
     /** Record Navigation Batch */
     await this.recordNavigationBatch(1);

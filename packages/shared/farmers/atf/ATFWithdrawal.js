@@ -1,9 +1,8 @@
 import { WITHDRAWAL_CAPTCHA_ATTEMPTS } from "./constants.js";
 import Decimal from "decimal.js";
-import ATFWallet from "./ATFWallet.js";
 
-/** Withdrawal captcha, placement and the pending queue */
-export default class ATFWithdrawal extends ATFWallet {
+/** Trait: withdrawal captcha, placement and the pending queue */
+export default class ATFWithdrawal {
   /** Whether a rejected withdrawal was rejected over the captcha, using the app's own retry list */
   isWithdrawalCaptchaRejection(result) {
     const reason = String(result?.["reason"] || "");

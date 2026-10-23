@@ -2,10 +2,9 @@ import {
   RECORD_DAILY_INTERACTION,
   RECORD_NAVIGATION_BATCH,
 } from "./constants.js";
-import ATFApi from "./ATFApi.js";
 
-/** The presence and navigation beacons the app sends */
-export default class ATFActivity extends ATFApi {
+/** Trait: the presence and navigation beacons the app sends */
+export default class ATFActivity {
   /** Record Daily Interaction */
   async recordDailyInteraction() {
     if (!RECORD_DAILY_INTERACTION) {

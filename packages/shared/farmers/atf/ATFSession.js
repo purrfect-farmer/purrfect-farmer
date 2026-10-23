@@ -4,10 +4,9 @@ import {
   MAX_LOGIN_ATTEMPTS,
   SHOULD_SOLVE_CAPTCHA_BEFORE_LOGIN,
 } from "./constants.js";
-import BaseFarmer from "../../lib/BaseFarmer.js";
 
-/** Device id, API setup, captcha and login */
-export default class ATFSession extends BaseFarmer {
+/** Trait: device id, API setup, captcha and login */
+export default class ATFSession {
   /** Get Referral Link */
   getReferralLink() {
     return `https://t.me/ATF_AIRDROP_bot?start=${this.getUserId()}`;

@@ -1,7 +1,5 @@
-import ATFTasks from "./ATFTasks.js";
-
-/** What the account looks like, as logged and summarized for Auto */
-export default class ATFAccount extends ATFTasks {
+/** Trait: what the account looks like, as logged and summarized for Auto */
+export default class ATFAccount {
   /** Log User Info */
   async logUserInfo(user) {
     this.logger.newline();

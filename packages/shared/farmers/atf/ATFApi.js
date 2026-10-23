@@ -1,8 +1,7 @@
 import { TAP_V2_BATCH_MAX } from "./constants.js";
-import ATFSession from "./ATFSession.js";
 
-/** The drop's endpoints, one method per call */
-export default class ATFApi extends ATFSession {
+/** Trait: the drop's endpoints, one method per call */
+export default class ATFApi {
   /** Get Captcha Status */
   getCaptchaStatus() {
     return this.makeAction("captcha_status", {

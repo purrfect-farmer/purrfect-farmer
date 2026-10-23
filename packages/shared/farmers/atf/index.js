@@ -1,6 +1,16 @@
+import BaseFarmer from "../../lib/BaseFarmer.js";
+import applyTraits from "../../lib/applyTraits.js";
+import ATFSession from "./ATFSession.js";
+import ATFApi from "./ATFApi.js";
+import ATFActivity from "./ATFActivity.js";
+import ATFWallet from "./ATFWallet.js";
+import ATFWithdrawal from "./ATFWithdrawal.js";
+import ATFMining from "./ATFMining.js";
+import ATFTasks from "./ATFTasks.js";
+import ATFAccount from "./ATFAccount.js";
 import ATFTools from "./ATFTools.js";
 
-export default class ATFFarmer extends ATFTools {
+export default class ATFFarmer extends BaseFarmer {
   static published = true;
   static id = "atf";
   static title = "ATF";
@@ -59,3 +69,15 @@ export default class ATFFarmer extends ATFTools {
     }
   }
 }
+
+applyTraits(ATFFarmer, [
+  ATFSession,
+  ATFApi,
+  ATFActivity,
+  ATFWallet,
+  ATFWithdrawal,
+  ATFMining,
+  ATFTasks,
+  ATFAccount,
+  ATFTools,
+]);
