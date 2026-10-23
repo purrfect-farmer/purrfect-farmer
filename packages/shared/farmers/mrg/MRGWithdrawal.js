@@ -29,11 +29,7 @@ export default class MRGWithdrawal {
 
   /** The payouts the drop has not settled yet */
   getPendingWithdrawals() {
-    return this.getWithdrawals().filter((transaction) => {
-      const status = String(transaction["status"] || "").toLowerCase();
-
-      return status === "pending" || status === "processing";
-    });
+    return this.ctx.withdrawals.pendingOf(this.getWithdrawals());
   }
 
   /** How long until the drop takes another request, counted from the last completed payout */
@@ -63,17 +59,13 @@ export default class MRGWithdrawal {
   }
 
   /** Whether the drop still owes this account a settlement */
-  async hasPendingWithdrawal() {
-    await this.ensureStateLoaded();
-
-    return this.getPendingWithdrawals().length > 0;
+  hasPendingWithdrawal() {
+    return this.ctx.withdrawals.hasPending();
   }
 
-  /** The account's own withdrawal queue, which this drop never flags and never counts as approved */
-  async getAutoWithdrawals() {
-    await this.ensureStateLoaded();
-
-    return { pending: this.getPendingWithdrawals(), flagged: [] };
+  /** The account's own withdrawal queue */
+  getAutoWithdrawals() {
+    return this.ctx.withdrawals.load();
   }
 
   /** How old the signed `initData` is, in seconds, which the backend caps for withdrawals */

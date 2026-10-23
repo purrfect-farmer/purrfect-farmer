@@ -1,5 +1,6 @@
 import BaseFarmer from "../../lib/BaseFarmer.js";
 import applyTraits from "../../lib/applyTraits.js";
+import { createContext } from "./context.js";
 import MRGSession from "./MRGSession.js";
 import MRGApi from "./MRGApi.js";
 import MRGHumanCheck from "./MRGHumanCheck.js";
@@ -35,6 +36,9 @@ export default class MRGFarmer extends BaseFarmer {
     connectWithPhrase: true,
     verifiable: true,
   };
+
+  /** Collaborators the traits work through */
+  ctx = createContext(this);
 
   /* --------------------------------------------------------------------- */
   /* Process                                                               */
