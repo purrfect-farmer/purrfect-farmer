@@ -218,18 +218,9 @@ export default class ATFWithdrawal {
     };
   }
 
-  /** The account's own withdrawal queue, from one read of the history */
-  async getAutoWithdrawals() {
-    const history = await this.getWithdrawHistory();
-    const items = history?.items || [];
-
-    return {
-      pending: items.filter((item) => item.status === "pending"),
-      approved: items.filter((item) => item.status === "approved"),
-      flagged: items.filter(
-        (item) => !["pending", "approved"].includes(item.status),
-      ),
-    };
+  /** The account's own withdrawal queue */
+  getAutoWithdrawals() {
+    return this.ctx.withdrawals.load();
   }
 
   /** Both withdrawal gates, from the same read the queue uses */
@@ -240,17 +231,13 @@ export default class ATFWithdrawal {
   }
 
   /** The withdrawals the drop has not settled yet */
-  async getPendingWithdrawals() {
-    const { pending } = await this.getAutoWithdrawals();
-
-    return pending;
+  getPendingWithdrawals() {
+    return this.ctx.withdrawals.pending();
   }
 
   /** Whether the drop still owes this account a settlement */
-  async hasPendingWithdrawal() {
-    const pending = await this.getPendingWithdrawals();
-
-    return pending.length > 0;
+  hasPendingWithdrawal() {
+    return this.ctx.withdrawals.hasPending();
   }
 
   /** Log the withdrawals the drop has not settled yet */

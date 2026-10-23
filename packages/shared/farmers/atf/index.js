@@ -1,5 +1,6 @@
 import BaseFarmer from "../../lib/BaseFarmer.js";
 import applyTraits from "../../lib/applyTraits.js";
+import { createContext } from "./context.js";
 import ATFSession from "./ATFSession.js";
 import ATFApi from "./ATFApi.js";
 import ATFActivity from "./ATFActivity.js";
@@ -43,6 +44,9 @@ export default class ATFFarmer extends BaseFarmer {
 
   /** The drop answers the entry risk challenge with a 403, which the extension would reset the farmer over */
   static RISK_CHALLENGE_CONFIG = { ignoreUnauthorizedError: true };
+
+  /** Collaborators the traits work through */
+  ctx = createContext(this);
 
   /** Process Farmer */
   async process() {
