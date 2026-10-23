@@ -70,25 +70,85 @@ The installation script will:
 
 ### Multiple Instances on One Server
 
-Run several isolated instances side by side. Each one gets its own clone, `.env`, database, PM2 app and public port:
+Run several isolated instances side by side on a fresh Ubuntu / Debian VPS. Each one gets its own clone, `.env`, database, PM2 app and public port. Replace `example` / `Example` below with your own slug and name.
+
+**1. Log in**
+
+```bash
+ssh root@<your-vps-ip>
+```
+
+**2. Install the instances**
 
 ```bash
 curl -o- https://raw.githubusercontent.com/purrfect-farmer/purrfect-farmer/main/apps/purrfect-fly/install-many.sh | bash -s -- example Example 10 4001
 ```
 
-Arguments are `slug name count base-port` (defaults shown above). This creates `~/example-1` to `~/example-10`, PM2 apps `example-1` to `example-10`, named `Example (1)` to `Example (10)`, reachable at `http://<ip>:4001` to `http://<ip>:4010`. Nginx owns the public ports and proxies to Node on the port 10000 higher (`14001`, ...). Fill in each `.env` afterwards, then run `pm2 restart all --update-env`.
+Arguments are `slug name count base-port`. This creates `~/example-1` to `~/example-10`, PM2 apps `example-1` to `example-10`, named `Example (1)` to `Example (10)`, reachable at `http://<ip>:4001` to `http://<ip>:4010`. Nginx owns the public ports and proxies to Node on the port 10000 higher (`14001`, ...).
 
-Set shared values (bot token, chat ID, API keys...) on all of them at once by putting `KEY="VALUE"` lines in one file, e.g. `~/shared.env`. Each line replaces that key in every instance's `.env`, other keys are kept, and each instance is restarted (pass `--no-restart` to skip):
+**3. Load Node and PM2 in your shell**
+
+```bash
+source ~/.nvm/nvm.sh
+```
+
+Logging out and back in works too.
+
+**4. Write the shared settings**
+
+Put the values every instance shares in one file:
+
+```bash
+nano ~/shared.env
+```
+
+```ini
+TELEGRAM_BOT_TOKEN="..."
+TELEGRAM_CHAT_ID="-100..."
+TELEGRAM_ANNOUNCEMENT_THREAD_ID="..."
+TELEGRAM_ERROR_THREAD_ID="..."
+TELEGRAM_FARMING_THREAD_ID="..."
+SERVER_ADMIN_TELEGRAM_ID="..."
+CAPTCHA_API_KEY="..."
+```
+
+**5. Apply them to every instance**
 
 ```bash
 bash ~/example-1/apps/purrfect-fly/apply-env.sh example ~/shared.env
 ```
 
-Update them all with:
+Each line replaces that key in every instance's `.env` and adds it if missing. Other keys (`PORT`, `APP_NAME`, `PM2_APP_NAME`, `JWT_SECRET_KEY`...) are kept. Each instance is then restarted; pass `--no-restart` to skip that.
+
+**6. Per-instance values (optional)**
+
+For a value that differs per instance, such as `PRIMARY_ACCOUNT_ID`:
 
 ```bash
-bash ~/example-1/apps/purrfect-fly/update-all.sh example
+nano ~/example-3/apps/purrfect-fly/.env
+pm2 restart example-3 --update-env
 ```
+
+**7. Check they are running**
+
+```bash
+pm2 ls
+```
+
+All instances should be `online`. If one is not, check `pm2 logs example-N --lines 50`.
+
+**8. Open the ports**
+
+The script opens them in `ufw` when it is active. If your provider has its own firewall or security group, allow TCP `4001-4010` there too.
+
+**9. Connect from Cloud Manager**
+
+Add each server as `http://<your-vps-ip>:4001` to `http://<your-vps-ip>:4010`.
+
+**Later**
+
+- Update all instances: `bash ~/example-1/apps/purrfect-fly/update-all.sh example`
+- Change a shared value: edit `~/shared.env` and repeat step 5.
 
 ---
 
