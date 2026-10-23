@@ -1,18 +1,31 @@
-import { HttpProxyAgent, HttpsProxyAgent } from "hpagent";
-
-import FloxyClient from "./FloxyClient.js";
+import FloxyClient from "@purrfect/shared/lib/proxy/FloxyClient.js";
+import { PROXY_PROVIDER } from "../enums/proxy-provider.js";
+import WebshareClient from "@purrfect/shared/lib/proxy/WebshareClient.js";
 import app from "../config/app.js";
 import axios from "axios";
 import cache from "./cache.js";
-import db from "../db/models/index.js";
-import utils from "./utils.js";
-import { PROXY_PROVIDER } from "../enums/proxy-provider.js";
 import { logDevError } from "./dev-log.js";
+import { mapWithConcurrency } from "@purrfect/shared/utils/core.js";
+import { testProxy } from "@purrfect/shared/lib/proxy/testProxy.js";
+
+/** Proxies tested at the same time, bounding sockets and memory on large lists */
+const TEST_CONCURRENCY = 100;
+
+const IPLOCATE_LIST_URL =
+  "https://raw.githubusercontent.com/iplocate/free-proxy-list/refs/heads/main/all-proxies.txt";
+
+/** The free iplocate HTTP proxies, as `host:port` */
+async function fetchIplocateList() {
+  const txt = await axios.get(IPLOCATE_LIST_URL).then((res) => res.data.trim());
+
+  return txt
+    .split("\n")
+    .filter((item) => item.startsWith("http://"))
+    .map((item) => item.replace("http://", ""));
+}
 
 class ProxyProvider {
-  /**
-   * Get List
-   */
+  /** The cached proxy list, fetched when missing */
   async list() {
     const cached = await cache.get("proxies");
     if (cached) return cached;
@@ -22,26 +35,7 @@ class ProxyProvider {
     return proxies;
   }
 
-  /**
-   * Get Random Unused Proxy
-   */
-  async getRandomUnused() {
-    const proxies = await db.Account.findAllWithActiveSubscription();
-    const available = await this.getAvailable(proxies);
-    return available.length > 0 ? utils.randomItem(available) : null;
-  }
-
-  /**
-   * Get Available Proxies
-   */
-  async getAvailable(usedProxies) {
-    const list = await this.list();
-    return list.filter((proxy) => !usedProxies.includes(proxy));
-  }
-
-  /**
-   * Fetch Proxy List, swallowing errors
-   */
+  /** Fetch the configured provider's list, empty on failure */
   async fetchList() {
     try {
       return await this.fetchListFrom(app.proxy);
@@ -51,83 +45,21 @@ class ProxyProvider {
     }
   }
 
-  /**
-   * Fetch Proxy List for a provider config
-   */
+  /** Fetch the proxy list for a provider config */
   async fetchListFrom(config) {
-    if (config.provider === PROXY_PROVIDER.WEBSHARE) {
-      const response = await axios.get(
-        "https://proxy.webshare.io/api/v2/proxy/list",
-        {
-          headers: {
-            Authorization: `Token ${config.apiKey}`,
-          },
-          params: {
-            ["mode"]: "direct",
-            ["valid"]: true,
-            ["page"]: config.page,
-            ["page_size"]: config.pageSize,
-          },
-        },
-      );
-
-      return response.data.results.map(
-        (item) =>
-          `${item.username}:${item.password}@${item.proxy_address}:${item.port}`,
-      );
-    } else if (config.provider === PROXY_PROVIDER.FLOXY) {
-      /** Instantiate Floxy Client */
-      const client = new FloxyClient(config.apiKey);
-
-      /** Plan ID */
-      let planId = config.planId;
-
-      if (!planId) {
-        const list = await client.getAllPlans();
-        const plan = list.find(
-          (item) => item.type === "DEDICATED_DATACENTER",
-        );
-
-        if (plan) {
-          planId = plan.id;
-        }
-      }
-
-      /** Return an empty list if not plan ID is configured */
-      if (!planId) {
+    switch (config.provider) {
+      case PROXY_PROVIDER.WEBSHARE:
+        return new WebshareClient(config).getProxies();
+      case PROXY_PROVIDER.FLOXY:
+        return new FloxyClient(config).getProxies(config.planId);
+      case PROXY_PROVIDER.IPLOCATE:
+        return fetchIplocateList();
+      default:
         return [];
-      }
-
-      const details = await client.getPlan(planId);
-      const { authorization } = details;
-      const { username, password } = authorization;
-
-      /** Flat map the IPs */
-      const ips = details["ip_list"].flatMap((item) =>
-        item.cities.flatMap((city) => city.ips),
-      );
-
-      return ips.map((ip) => `${username}:${password}@${ip}:1338`);
-    } else if (config.provider === PROXY_PROVIDER.IPLOCATE) {
-      const txt = await axios
-        .get(
-          "https://raw.githubusercontent.com/iplocate/free-proxy-list/refs/heads/main/all-proxies.txt",
-        )
-        .then((res) => res.data.trim());
-      const list = txt
-        .split("\n")
-        .filter((item) => item.startsWith("http://"))
-        .map((item) => item.replace("http://", ""));
-
-      return list;
-    } else {
-      return [];
     }
   }
 
-  /**
-   * Force Update Proxy List
-   */
+  /** Refetch the list and replace the cached one */
   async updateList() {
     const proxies = await this.fetchList();
     await cache.set("proxies", proxies);
@@ -135,57 +67,20 @@ class ProxyProvider {
     return proxies;
   }
 
-  /**
-   * Test Proxies
-   */
+  /** Test every listed proxy */
   async testProxies() {
     const proxies = await this.list();
-    const results = await Promise.all(
-      proxies.map(async (proxy) => {
-        const start = Date.now();
-        const agentTimeout = 5000;
-        const proxyUrl = `http://${proxy}`;
 
-        const httpAgent = new HttpProxyAgent({
-          proxy: proxyUrl,
-          timeout: agentTimeout,
-        });
+    return mapWithConcurrency(proxies, TEST_CONCURRENCY, async (proxy) => {
+      const { error, ...result } = await testProxy(proxy);
 
-        const httpsAgent = new HttpsProxyAgent({
-          proxy: proxyUrl,
-          timeout: agentTimeout,
-        });
+      if (error) logDevError("Error testing proxy:", error);
 
-        let status = true;
-        let ip;
-
-        try {
-          const data = await axios
-            .get("https://api.ipify.org?format=json", {
-              httpAgent,
-              httpsAgent,
-              timeout: 7000,
-              validateStatus: () => true,
-            })
-            .then((res) => res.data);
-
-          ip = data.ip;
-        } catch (error) {
-          logDevError("Error testing proxy:", error);
-          status = false;
-        }
-
-        const duration = (Date.now() - start) / 1000;
-        return { status, proxy, ip, duration };
-      }),
-    );
-
-    return results;
+      return result;
+    });
   }
 
-  /**
-   * Get Only Working Proxies
-   */
+  /** The proxies that passed their test */
   async getWorkingProxies() {
     const results = await this.testProxies();
     return results.filter((p) => p.status);

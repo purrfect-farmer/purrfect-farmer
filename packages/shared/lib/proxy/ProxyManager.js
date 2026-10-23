@@ -1,7 +1,6 @@
-import axios from "axios";
-import { HttpProxyAgent, HttpsProxyAgent } from "hpagent";
 import WebshareClient from "./WebshareClient.js";
 import FloxyClient from "./FloxyClient.js";
+import { testProxy } from "./testProxy.js";
 
 class ProxyManager {
     constructor({ provider = "webshare", ...options }) {
@@ -18,40 +17,8 @@ class ProxyManager {
 
     /* Test Proxy */
     async testProxy(proxy) {
-        const start = Date.now();
-        const agentTimeout = 5000;
-        const proxyUrl = `http://${proxy}`;
-
-        const httpAgent = new HttpProxyAgent({
-            proxy: proxyUrl,
-            timeout: agentTimeout,
-        });
-
-        const httpsAgent = new HttpsProxyAgent({
-            proxy: proxyUrl,
-            timeout: agentTimeout,
-        });
-
-        let status = true;
-        let ip;
-
-        try {
-            const data = await axios
-                .get("https://api.ipify.org?format=json", {
-                    httpAgent,
-                    httpsAgent,
-                    timeout: 7000,
-                    validateStatus: () => true,
-                })
-                .then((res) => res.data);
-
-            ip = data.ip;
-        } catch (error) {
-            status = false;
-        }
-
-        const duration = (Date.now() - start) / 1000;
-        return { status, proxy, ip, duration };
+        const { error, ...result } = await testProxy(proxy);
+        return result;
     }
 
     /* Get Working Proxies */

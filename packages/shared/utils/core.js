@@ -55,11 +55,13 @@ export function tapValue(value, callback) {
       };
 }
 
+const NUMBER_FORMAT = new Intl.NumberFormat("en-US");
+
 /** Format number
  * @param {number} value
  */
 export function formatNumber(value) {
-  return new Intl.NumberFormat("en-US").format(value);
+  return NUMBER_FORMAT.format(value);
 }
 
 /** Chunk array generator */
@@ -67,6 +69,30 @@ export function* chunkArrayGenerator(arr, size) {
   for (let i = 0; i < arr.length; i += size) {
     yield arr.slice(i, i + size);
   }
+}
+
+/** Map items through an async function, running at most `limit` at once, results in input order
+ * @template T, R
+ * @param {T[]} items
+ * @param {number} limit
+ * @param {(item: T, index: number) => Promise<R>} fn
+ * @returns {Promise<R[]>}
+ */
+export async function mapWithConcurrency(items, limit, fn) {
+  const results = new Array(items.length);
+  let next = 0;
+
+  const worker = async () => {
+    while (next < items.length) {
+      const index = next++;
+      results[index] = await fn(items[index], index);
+    }
+  };
+
+  const workers = Math.min(limit, items.length);
+  await Promise.all(Array.from({ length: workers }, worker));
+
+  return results;
 }
 
 /** Format a span of seconds as its largest parts, e.g. "3d 1h 45m"
