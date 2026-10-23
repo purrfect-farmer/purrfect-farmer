@@ -1,10 +1,5 @@
 import BaseFarmer from "../../lib/BaseFarmer.js";
-import {
-  APPROVED_WITHDRAWAL_STATUSES,
-  FLAGGED_WITHDRAWAL_STATUSES,
-  PENDING_WITHDRAWAL_STATUSES,
-  WITHDRAWAL_DECIMALS,
-} from "./constants.js";
+import { WITHDRAWAL_DECIMALS } from "./constants.js";
 import Decimal from "decimal.js";
 
 /** Trait: jetton withdrawals and their queue */
@@ -39,34 +34,14 @@ export default class DiggoWithdrawal {
     return items || [];
   }
 
-  /** Whether the game still owes this account a payout */
-  async hasPendingWithdrawal() {
-    await this.ensureStateLoaded();
-
-    const status = await this.getWithdrawalStatus();
-
-    if (status["activeWithdrawal"]) return true;
-
-    const withdrawals = await this.getWithdrawals();
-
-    return withdrawals.some((item) =>
-      PENDING_WITHDRAWAL_STATUSES.includes(item["status"]),
-    );
+  /** Whether the drop still owes this account a settlement */
+  hasPendingWithdrawal() {
+    return this.ctx.withdrawals.hasPending();
   }
 
   /** The account's own withdrawal queue */
-  async getAutoWithdrawals() {
-    await this.ensureStateLoaded();
-
-    const withdrawals = await this.getWithdrawals();
-    const byStatus = (statuses) =>
-      withdrawals.filter((item) => statuses.includes(item["status"]));
-
-    return {
-      pending: byStatus(PENDING_WITHDRAWAL_STATUSES),
-      approved: byStatus(APPROVED_WITHDRAWAL_STATUSES),
-      flagged: byStatus(FLAGGED_WITHDRAWAL_STATUSES),
-    };
+  getAutoWithdrawals() {
+    return this.ctx.withdrawals.load();
   }
 
   /** A DIGGO amount the way the backend takes it, at most six decimals */

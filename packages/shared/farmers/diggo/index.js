@@ -1,5 +1,6 @@
 import BaseFarmer from "../../lib/BaseFarmer.js";
 import applyTraits from "../../lib/applyTraits.js";
+import { createContext } from "./context.js";
 import DiggoSession from "./DiggoSession.js";
 import DiggoApi from "./DiggoApi.js";
 import DiggoState from "./DiggoState.js";
@@ -37,6 +38,9 @@ export default class DiggoFarmer extends BaseFarmer {
     verifiable: true,
     connectWithPhrase: true,
   };
+
+  /** Collaborators the traits work through */
+  ctx = createContext(this);
 
   /* --------------------------------------------------------------------- */
   /* Process                                                               */
