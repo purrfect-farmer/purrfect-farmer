@@ -394,7 +394,7 @@ Purrfect Farmer supports 20+ Telegram bots including game bots, earning bots, ai
 Contributions are welcome. To add a new farmer:
 
 1. Create a folder named after the farmer id in `packages/shared/farmers/`, e.g. `packages/shared/farmers/example/`
-2. Export the farmer class, extending `BaseFarmer`, as the default export of its `index.js`; split larger farmers into concern classes beside it
+2. Export the farmer class, extending `BaseFarmer`, as the default export of its `index.js`; put larger concerns in trait classes beside it and compose them with `applyTraits` from `packages/shared/lib/applyTraits.js`
 3. Implement required methods
 4. Test thoroughly
 5. Submit pull request
