@@ -1,7 +1,20 @@
-import { MINIMUM_WITHDRAWAL, VIC_JETTON_ADDRESS } from "./constants.js";
+import BaseFarmer from "../../lib/BaseFarmer.js";
+import applyTraits from "../../lib/applyTraits.js";
+import VictorsSession from "./VictorsSession.js";
+import VictorsApi from "./VictorsApi.js";
+import VictorsHumanPass from "./VictorsHumanPass.js";
+import VictorsState from "./VictorsState.js";
+import VictorsWallet from "./VictorsWallet.js";
+import VictorsMining from "./VictorsMining.js";
+import VictorsTasks from "./VictorsTasks.js";
+import VictorsArcade from "./VictorsArcade.js";
+import VictorsWithdrawal from "./VictorsWithdrawal.js";
+import VictorsAccount from "./VictorsAccount.js";
+import VictorsNft from "./VictorsNft.js";
 import VictorsTools from "./VictorsTools.js";
+import { MINIMUM_WITHDRAWAL, VIC_JETTON_ADDRESS } from "./constants.js";
 
-export default class VictorsCompanyFarmer extends VictorsTools {
+export default class VictorsCompanyFarmer extends BaseFarmer {
   static id = "victors";
   static title = "Victor's Company";
   static emoji = "👷";
@@ -47,3 +60,18 @@ export default class VictorsCompanyFarmer extends VictorsTools {
     await this.storeAutoSnapshot();
   }
 }
+
+applyTraits(VictorsCompanyFarmer, [
+  VictorsSession,
+  VictorsApi,
+  VictorsHumanPass,
+  VictorsState,
+  VictorsWallet,
+  VictorsMining,
+  VictorsTasks,
+  VictorsArcade,
+  VictorsWithdrawal,
+  VictorsAccount,
+  VictorsNft,
+  VictorsTools,
+]);

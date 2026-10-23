@@ -1,7 +1,5 @@
-import VictorsWithdrawal from "./VictorsWithdrawal.js";
-
-/** What the account looks like, as logged and summarized for Auto */
-export default class VictorsAccount extends VictorsWithdrawal {
+/** Trait: what the account looks like, as logged and summarized for Auto */
+export default class VictorsAccount {
   /** Log what the account looks like before the pass starts */
   logAccountInfo() {
     const user = this.getUserDetails();

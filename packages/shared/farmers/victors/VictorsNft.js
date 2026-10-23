@@ -6,10 +6,9 @@ import {
 } from "./constants.js";
 import Decimal from "decimal.js";
 import { Cell } from "@ton/core";
-import VictorsAccount from "./VictorsAccount.js";
 
-/** Viewing and minting the drop's NFTs */
-export default class VictorsNft extends VictorsAccount {
+/** Trait: viewing and minting the drop's NFTs */
+export default class VictorsNft {
   /** Log the collection and the account's own NFTs */
   async nftStatusInteractive() {
     await this.ensureStateLoaded();

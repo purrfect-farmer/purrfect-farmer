@@ -1,10 +1,9 @@
 import { keyPairFromPhraseOrSecretKey } from "../../lib/ton/wallet.js";
 import { MAXIMUM_MINER_LEVEL } from "../../lib/auto/minerCurve.js";
 import Decimal from "decimal.js";
-import VictorsNft from "./VictorsNft.js";
 
-/** The interactive tools the farmer offers */
-export default class VictorsTools extends VictorsNft {
+/** Trait: the interactive tools the farmer offers */
+export default class VictorsTools {
   /** Reset a banned account after confirming, which wipes its progress */
   async resetAccountInteractive() {
     if (!this.banInfo) {

@@ -1,8 +1,7 @@
 import { TASK_DWELL_SECONDS } from "./constants.js";
-import VictorsMining from "./VictorsMining.js";
 
-/** Tasks and crew rewards */
-export default class VictorsTasks extends VictorsMining {
+/** Trait: tasks and crew rewards */
+export default class VictorsTasks {
   /* --------------------------------------------------------------------- */
   /* Tasks                                                                 */
   /* --------------------------------------------------------------------- */

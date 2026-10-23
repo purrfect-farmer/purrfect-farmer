@@ -10,10 +10,9 @@ import {
   MINING_CLAIM_ATTEMPTS,
   MINING_CLAIM_RETRY_SECONDS,
 } from "./constants.js";
-import VictorsWallet from "./VictorsWallet.js";
 
-/** Levels, mining claims, the tutorial and the daily check-in */
-export default class VictorsMining extends VictorsWallet {
+/** Trait: levels, mining claims, the tutorial and the daily check-in */
+export default class VictorsMining {
   /** Dismiss the tutorial the way the page does on first launch */
   async completeTutorialIfNeeded() {
     if (this.getUserDetails()["tutorialDone"]) return;

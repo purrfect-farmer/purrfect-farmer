@@ -3,10 +3,9 @@ import {
   TURNSTILE_PAGE_URL,
   TURNSTILE_SITE_KEY,
 } from "./constants.js";
-import VictorsApi from "./VictorsApi.js";
 
-/** The Turnstile human pass and how long it is trusted */
-export default class VictorsHumanPass extends VictorsApi {
+/** Trait: the Turnstile human pass and how long it is trusted */
+export default class VictorsHumanPass {
   /* --------------------------------------------------------------------- */
   /* Human pass                                                            */
   /* --------------------------------------------------------------------- */

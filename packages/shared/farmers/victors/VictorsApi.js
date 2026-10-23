@@ -1,8 +1,7 @@
 import { WITHDRAWAL_HISTORY_LIMIT } from "./constants.js";
-import VictorsSession from "./VictorsSession.js";
 
-/** The drop's endpoints, one method per call */
-export default class VictorsApi extends VictorsSession {
+/** Trait: the drop's endpoints, one method per call */
+export default class VictorsApi {
   /* --------------------------------------------------------------------- */
   /* Endpoints                                                             */
   /* --------------------------------------------------------------------- */

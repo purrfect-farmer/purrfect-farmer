@@ -9,10 +9,9 @@ import {
   getStartCap,
   pickTool,
 } from "../../lib/games/deepMine.js";
-import VictorsTasks from "./VictorsTasks.js";
 
-/** Deep Mine runs and the Underground report */
-export default class VictorsArcade extends VictorsTasks {
+/** Trait: deep Mine runs and the Underground report */
+export default class VictorsArcade {
   /* --------------------------------------------------------------------- */
   /* Arcade                                                                */
   /* --------------------------------------------------------------------- */

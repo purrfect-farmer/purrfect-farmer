@@ -1,3 +1,4 @@
+import BaseFarmer from "../../lib/BaseFarmer.js";
 import {
   createWallet,
   keyPairFromPhraseOrSecretKey,
@@ -12,10 +13,9 @@ import {
 } from "./constants.js";
 import Decimal from "decimal.js";
 import { Cell } from "@ton/core";
-import VictorsState from "./VictorsState.js";
 
-/** Binding the wallet, its holding and the on-chain verification */
-export default class VictorsWallet extends VictorsState {
+/** Trait: binding the wallet, its holding and the on-chain verification */
+export default class VictorsWallet {
   /* --------------------------------------------------------------------- */
   /* Wallet                                                                */
   /* --------------------------------------------------------------------- */
@@ -82,7 +82,11 @@ export default class VictorsWallet extends VictorsState {
   /** Bind a wallet from its phrase with a TON proof, or by address alone when no phrase is known */
   async connectAutoWallet({ phrase, address, version, refresh = false }) {
     if (!phrase) {
-      return super.connectAutoWallet({ address, version, refresh });
+      return BaseFarmer.prototype.connectAutoWallet.call(this, {
+        address,
+        version,
+        refresh,
+      });
     }
 
     try {

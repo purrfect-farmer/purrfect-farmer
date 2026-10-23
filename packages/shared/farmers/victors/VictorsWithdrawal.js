@@ -6,10 +6,9 @@ import {
   WITHDRAWAL_FEE,
 } from "./constants.js";
 import Decimal from "decimal.js";
-import VictorsArcade from "./VictorsArcade.js";
 
-/** Withdrawal rules, payouts and the pending queue */
-export default class VictorsWithdrawal extends VictorsArcade {
+/** Trait: withdrawal rules, payouts and the pending queue */
+export default class VictorsWithdrawal {
   /** The drop publishes its minimum in its config */
   getMinimumWithdrawal() {
     return Number(this.getConfig()["withdrawMin"]) || MINIMUM_WITHDRAWAL;

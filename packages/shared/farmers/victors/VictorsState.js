@@ -1,7 +1,7 @@
-import VictorsHumanPass from "./VictorsHumanPass.js";
+import BaseFarmer from "../../lib/BaseFarmer.js";
 
-/** Loading the account state and reading parts of it */
-export default class VictorsState extends VictorsHumanPass {
+/** Trait: loading the account state and reading parts of it */
+export default class VictorsState {
   /** Re-read the state into the farmer */
   async loadState() {
     this.applyResult(await this.fetchMe());
@@ -35,7 +35,7 @@ export default class VictorsState extends VictorsHumanPass {
 
   /** Load data */
   async load() {
-    await super.load();
+    await BaseFarmer.prototype.load.call(this);
     await this.restoreHumanPass();
   }
 

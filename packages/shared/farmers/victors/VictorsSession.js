@@ -1,9 +1,8 @@
 import { API_URL, BANNED_CODE, HUMAN_REQUIRED_CODE } from "./constants.js";
 import { createVictorsDevice } from "../../lib/games/victorsDevice.js";
-import BaseFarmer from "../../lib/BaseFarmer.js";
 
-/** API transport, device identity, bans and sign-in */
-export default class VictorsSession extends BaseFarmer {
+/** Trait: aPI transport, device identity, bans and sign-in */
+export default class VictorsSession {
   /* --------------------------------------------------------------------- */
   /* Transport                                                             */
   /* --------------------------------------------------------------------- */
