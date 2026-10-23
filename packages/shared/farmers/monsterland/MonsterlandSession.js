@@ -7,10 +7,9 @@ import {
   TURNSTILE_REQUIRED,
   TURNSTILE_SITE_KEY,
 } from "./constants.js";
-import BaseFarmer from "../../lib/BaseFarmer.js";
 
-/** API transport, the Turnstile pass and sign-in */
-export default class MonsterlandSession extends BaseFarmer {
+/** Trait: aPI transport, the Turnstile pass and sign-in */
+export default class MonsterlandSession {
   /* --------------------------------------------------------------------- */
   /* Transport                                                             */
   /* --------------------------------------------------------------------- */

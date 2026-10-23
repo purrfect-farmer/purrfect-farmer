@@ -4,10 +4,9 @@ import {
   FRAGMENTS_PER_EGG,
   INCUBATION_MAXIMUM_ADS,
 } from "./constants.js";
-import MonsterlandRewards from "./MonsterlandRewards.js";
 
-/** Fragments, incubation and hatching */
-export default class MonsterlandEggs extends MonsterlandRewards {
+/** Trait: fragments, incubation and hatching */
+export default class MonsterlandEggs {
   /* --------------------------------------------------------------------- */
   /* Eggs                                                                  */
   /* --------------------------------------------------------------------- */

@@ -15,10 +15,9 @@ import {
   REPLACEMENT_LEAD_HOURS,
   SLOT_2_ADS_REQUIRED,
 } from "./constants.js";
-import MonsterlandCare from "./MonsterlandCare.js";
 
-/** Levelling monsters and growing the farm with slots and eggs */
-export default class MonsterlandGrowth extends MonsterlandCare {
+/** Trait: levelling monsters and growing the farm with slots and eggs */
+export default class MonsterlandGrowth {
   /* --------------------------------------------------------------------- */
   /* Level                                                                 */
   /* --------------------------------------------------------------------- */

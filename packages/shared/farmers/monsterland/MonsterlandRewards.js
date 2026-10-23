@@ -5,10 +5,9 @@ import {
   MISSION_SKIP_REASONS,
   REFERRAL_GOAL_IDS,
 } from "./constants.js";
-import MonsterlandAds from "./MonsterlandAds.js";
 
-/** Streaks, referral rewards and missions */
-export default class MonsterlandRewards extends MonsterlandAds {
+/** Trait: streaks, referral rewards and missions */
+export default class MonsterlandRewards {
   /* --------------------------------------------------------------------- */
   /* Streak                                                                */
   /* --------------------------------------------------------------------- */

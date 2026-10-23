@@ -1,7 +1,5 @@
-import MonsterlandApi from "./MonsterlandApi.js";
-
-/** The account state and the parts of it every pass reads */
-export default class MonsterlandState extends MonsterlandApi {
+/** Trait: the account state and the parts of it every pass reads */
+export default class MonsterlandState {
   /** Re-read the account into the farmer */
   async loadState() {
     this.state_data = await this.fetchUser();

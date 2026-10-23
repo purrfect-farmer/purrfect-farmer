@@ -16,10 +16,9 @@ import {
   VITAL_ITEMS,
   VITAL_TARGETS,
 } from "./constants.js";
-import MonsterlandEggs from "./MonsterlandEggs.js";
 
-/** Monster lifespans, vitals, sleep and potions */
-export default class MonsterlandCare extends MonsterlandEggs {
+/** Trait: monster lifespans, vitals, sleep and potions */
+export default class MonsterlandCare {
   /** How long a monster lives, the way the page works it out */
   getLifespanDays(monster) {
     if (

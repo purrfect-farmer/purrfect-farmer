@@ -1,7 +1,5 @@
-import MonsterlandWallet from "./MonsterlandWallet.js";
-
-/** What the account looks like, as logged and summarized for Auto */
-export default class MonsterlandAccount extends MonsterlandWallet {
+/** Trait: what the account looks like, as logged and summarized for Auto */
+export default class MonsterlandAccount {
   /** Log what the account looks like before the pass starts */
   logAccountInfo() {
     const profile = this.getProfile();

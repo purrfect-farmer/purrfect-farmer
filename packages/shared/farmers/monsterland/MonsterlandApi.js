@@ -1,8 +1,7 @@
 import { MISSIONS_PAGE_SIZE, WITHDRAWAL_HISTORY_LIMIT } from "./constants.js";
-import MonsterlandSession from "./MonsterlandSession.js";
 
-/** The game's endpoints, one method per call */
-export default class MonsterlandApi extends MonsterlandSession {
+/** Trait: the game's endpoints, one method per call */
+export default class MonsterlandApi {
   /* --------------------------------------------------------------------- */
   /* Endpoints                                                             */
   /* --------------------------------------------------------------------- */

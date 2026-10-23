@@ -1,12 +1,12 @@
+import BaseFarmer from "../../lib/BaseFarmer.js";
 import {
   FLAGGED_WITHDRAWAL_STATUSES,
   MAXIMUM_WITHDRAWAL,
   SETTLED_WITHDRAWAL_STATUSES,
 } from "./constants.js";
-import MonsterlandGrowth from "./MonsterlandGrowth.js";
 
-/** Payouts and the pending queue */
-export default class MonsterlandWithdrawal extends MonsterlandGrowth {
+/** Trait: payouts and the pending queue */
+export default class MonsterlandWithdrawal {
   /* --------------------------------------------------------------------- */
   /* Withdrawal                                                            */
   /* --------------------------------------------------------------------- */
@@ -91,7 +91,7 @@ export default class MonsterlandWithdrawal extends MonsterlandGrowth {
   getMinimumWithdrawal() {
     return (
       Number(this.config_data?.["min_withdrawal_lumis"]) ||
-      super.getMinimumWithdrawal()
+      BaseFarmer.prototype.getMinimumWithdrawal.call(this)
     );
   }
 

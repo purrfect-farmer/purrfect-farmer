@@ -1,7 +1,19 @@
-import { MINIMUM_WITHDRAWAL } from "./constants.js";
+import BaseFarmer from "../../lib/BaseFarmer.js";
+import applyTraits from "../../lib/applyTraits.js";
+import MonsterlandSession from "./MonsterlandSession.js";
+import MonsterlandApi from "./MonsterlandApi.js";
+import MonsterlandState from "./MonsterlandState.js";
+import MonsterlandAds from "./MonsterlandAds.js";
+import MonsterlandRewards from "./MonsterlandRewards.js";
+import MonsterlandEggs from "./MonsterlandEggs.js";
+import MonsterlandCare from "./MonsterlandCare.js";
+import MonsterlandGrowth from "./MonsterlandGrowth.js";
+import MonsterlandWithdrawal from "./MonsterlandWithdrawal.js";
+import MonsterlandWallet from "./MonsterlandWallet.js";
 import MonsterlandAccount from "./MonsterlandAccount.js";
+import { MINIMUM_WITHDRAWAL } from "./constants.js";
 
-export default class MonsterlandFarmer extends MonsterlandAccount {
+export default class MonsterlandFarmer extends BaseFarmer {
   static id = "monsterland";
   static title = "Monsterland";
   static emoji = "👾";
@@ -72,3 +84,17 @@ export default class MonsterlandFarmer extends MonsterlandAccount {
     ];
   }
 }
+
+applyTraits(MonsterlandFarmer, [
+  MonsterlandSession,
+  MonsterlandApi,
+  MonsterlandState,
+  MonsterlandAds,
+  MonsterlandRewards,
+  MonsterlandEggs,
+  MonsterlandCare,
+  MonsterlandGrowth,
+  MonsterlandWithdrawal,
+  MonsterlandWallet,
+  MonsterlandAccount,
+]);

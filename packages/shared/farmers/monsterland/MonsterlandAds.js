@@ -13,10 +13,9 @@ import {
 } from "./constants.js";
 import GigaPubClient from "../../lib/ads/GigaPubClient.js";
 import TadsClient from "../../lib/ads/TadsClient.js";
-import MonsterlandState from "./MonsterlandState.js";
 
-/** Watching rewarded ads across the page's providers */
-export default class MonsterlandAds extends MonsterlandState {
+/** Trait: watching rewarded ads across the page's providers */
+export default class MonsterlandAds {
   /* --------------------------------------------------------------------- */
   /* Ads                                                                   */
   /* --------------------------------------------------------------------- */

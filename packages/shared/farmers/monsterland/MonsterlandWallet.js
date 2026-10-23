@@ -1,7 +1,5 @@
-import MonsterlandWithdrawal from "./MonsterlandWithdrawal.js";
-
-/** Binding the payout wallet */
-export default class MonsterlandWallet extends MonsterlandWithdrawal {
+/** Trait: binding the payout wallet */
+export default class MonsterlandWallet {
   /* --------------------------------------------------------------------- */
   /* Wallet                                                                */
   /* --------------------------------------------------------------------- */
