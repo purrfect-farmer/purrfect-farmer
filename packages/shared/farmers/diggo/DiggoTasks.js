@@ -161,7 +161,7 @@ export default class DiggoTasks {
 
     if (!start["waiting"]) {
       try {
-        await this.adsgram.watch(record["blockId"]);
+        await this.ctx.ads.adsgram.watch(record["blockId"]);
       } catch (error) {
         await this.cancelAd(start["attemptId"]).catch(() => null);
         throw error;

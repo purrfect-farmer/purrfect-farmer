@@ -1,5 +1,4 @@
 import { API_URL, ERROR_MESSAGES } from "./constants.js";
-import AdsGramClient from "../../lib/ads/AdsGramClient.js";
 import { createVictorsDevice } from "../../lib/games/victorsDevice.js";
 
 /** Trait: aPI transport, sign-in, browser signals and the risk challenge */
@@ -68,11 +67,6 @@ export default class DiggoSession {
   /** Act on the game's API under a fresh idempotency key, as the page's money writes go out */
   writeToApi(path, data = {}) {
     return this.postToApi(path, data, this.utils.uuid());
-  }
-
-  /** The AdsGram client the ad task is watched with */
-  get adsgram() {
-    return (this._adsgram ||= new AdsGramClient(this.getAdClientOptions()));
   }
 
   /* --------------------------------------------------------------------- */

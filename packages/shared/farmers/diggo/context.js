@@ -1,3 +1,4 @@
+import AdClients from "../../lib/farmer/AdClients.js";
 import {
   APPROVED_WITHDRAWAL_STATUSES,
   FLAGGED_WITHDRAWAL_STATUSES,
@@ -10,6 +11,8 @@ import WithdrawalQueue, {
 /** The collaborators a Diggo farmer works through, as `farmer.ctx` */
 export function createContext(farmer) {
   return {
+    /** The AdsGram client the ad task is watched with */
+    ads: new AdClients(() => farmer.getAdClientOptions()),
     withdrawals: new WithdrawalQueue({
       read: () => farmer.getWithdrawals(),
       classify: statusClassifier({
