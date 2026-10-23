@@ -8,6 +8,7 @@ import logger from "./logger.js";
 import { runDatabaseWrite } from "./db-write.js";
 import updateProxies from "../actions/update-proxies.js";
 import utils from "./utils.js";
+import { IMPORT_OUTCOME } from "../enums/import-outcome.js";
 
 /** Number of accounts to clone concurrently (kept low to respect flood limits) */
 const CONCURRENCY = 5;
@@ -86,9 +87,9 @@ async function cloneEntrySession(entry, passwords) {
 
 /** Labels for each per-account outcome */
 const STATUS_LABELS = {
-  created: "✅ Created",
-  skipped: "⏭️ Skipped",
-  failed: "❌ Failed",
+  [IMPORT_OUTCOME.CREATED]: "✅ Created",
+  [IMPORT_OUTCOME.SKIPPED]: "⏭️ Skipped",
+  [IMPORT_OUTCOME.FAILED]: "❌ Failed",
 };
 
 /** Keep the admin posted as each account lands */
@@ -121,7 +122,7 @@ async function processEntry(
   total,
 ) {
   let user;
-  let status = "failed";
+  let status = IMPORT_OUTCOME.FAILED;
   let message = null;
 
   try {
@@ -178,9 +179,9 @@ async function processEntry(
             { transaction },
           );
 
-          outcome = "created";
+          outcome = IMPORT_OUTCOME.CREATED;
         } else {
-          outcome = "skipped";
+          outcome = IMPORT_OUTCOME.SKIPPED;
         }
 
         /** Always ensure the subscription reflects the requested end date */
@@ -199,7 +200,7 @@ async function processEntry(
     counters[outcome].push(id);
     status = outcome;
   } catch (error) {
-    status = "failed";
+    status = IMPORT_OUTCOME.FAILED;
     message = error?.message || String(error);
 
     logger.error(

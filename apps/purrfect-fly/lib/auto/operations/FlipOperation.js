@@ -1,6 +1,7 @@
 import AutoOperation from "./AutoOperation.js";
 import logger from "../../logger.js";
 import { ASSIST_OWNER } from "../constants.js";
+import { FLIP_DIRECTION } from "../../../enums/flip-direction.js";
 
 /** Connect each account to its phrase's other contract version, freeing its own wallet, or back onto its own wallet */
 class FlipOperation extends AutoOperation {
@@ -23,7 +24,9 @@ class FlipOperation extends AutoOperation {
 
   /** The contract version a flip connects an account to */
   getFlipVersion(account) {
-    if (this.options.flipDirection === "restore") return Number(account.version);
+    if (this.options.flipDirection === FLIP_DIRECTION.RESTORE) {
+      return Number(account.version);
+    }
 
     return Number(account.version) === 4 ? 5 : 4;
   }
@@ -62,7 +65,7 @@ class FlipOperation extends AutoOperation {
       result = { status: true, skipped: false };
 
       await this.notify.send([
-        `${this.options.flipDirection === "flip" ? "🔁 Flipped" : "↩️ Restored"} <b>(${label})</b> - ${fmt.formatWallet({ address, version: `v${version}` })} ${position}`,
+        `${this.options.flipDirection === FLIP_DIRECTION.FLIP ? "🔁 Flipped" : "↩️ Restored"} <b>(${label})</b> - ${fmt.formatWallet({ address, version: `v${version}` })} ${position}`,
       ]);
     } catch (error) {
       if (ctx.aborted) return null;

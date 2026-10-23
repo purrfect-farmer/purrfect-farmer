@@ -2,6 +2,7 @@ import AutoBooster from "../AutoBooster.js";
 import AutoWalletTransfer from "../AutoWalletTransfer.js";
 import logger from "../logger.js";
 import { prepareMaster } from "@purrfect/shared/lib/auto/transactions.js";
+import { MASTER_MODE } from "../../enums/master-mode.js";
 
 /** The wallet a run sends from, which rolls forward through the accounts it boosts */
 class AutoMaster {
@@ -16,7 +17,7 @@ class AutoMaster {
     this.prepared = null;
 
     /** Boost mode: roll or collect */
-    this.mode = "roll";
+    this.mode = MASTER_MODE.ROLL;
   }
 
   /** Prepare initial master data */
@@ -64,7 +65,7 @@ class AutoMaster {
 
   /** Roll onto the account or collect from it, depending on the mode */
   async applyMode(account, phrase, booster) {
-    if (this.mode === "roll") {
+    if (this.mode === MASTER_MODE.ROLL) {
       await this.rollTo(account, phrase);
     } else {
       await this.collectFrom(account, booster);

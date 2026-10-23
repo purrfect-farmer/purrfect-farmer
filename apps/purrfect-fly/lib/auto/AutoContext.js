@@ -13,6 +13,7 @@ import logger from "../logger.js";
 import utils from "../utils.js";
 import { claimAccount, getClaim, releaseAccount } from "../AutoClaims.js";
 import { normalizeOptions } from "./constants.js";
+import { FARMER_STATUS } from "../../enums/farmer-status.js";
 
 /** Everything one Auto run shares: who asked, what with, how to stop, and the collaborators that do the work */
 class AutoContext {
@@ -133,14 +134,19 @@ class AutoContext {
     if (!cloudAccount) return;
 
     /** Skip if cloud account is not active */
-    if (!cloudAccount.session && !cloudAccount.farmer?.status === "active")
+    if (
+      !cloudAccount.session &&
+      !cloudAccount.farmer?.status === FARMER_STATUS.ACTIVE
+    )
       return;
 
     /** Skip if cloud account is banned */
-    if (cloudAccount.farmer?.status === "banned") return;
+    if (cloudAccount.farmer?.status === FARMER_STATUS.BANNED) return;
 
     /** Skip if cloud account is frozen and not allowed */
-    if (!allowFrozen && cloudAccount.farmer?.status === "frozen") return;
+    if (!allowFrozen && cloudAccount.farmer?.status === FARMER_STATUS.FROZEN) {
+      return;
+    }
 
     return cloudAccount;
   }

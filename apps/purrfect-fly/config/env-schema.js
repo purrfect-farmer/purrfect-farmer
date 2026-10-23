@@ -1,5 +1,11 @@
 import { Cron } from "croner";
-import { CAPTCHA_PROVIDERS } from "@purrfect/shared/lib/captcha/providers.js";
+import {
+  CAPTCHA_PROVIDERS,
+  DEFAULT_CAPTCHA_PROVIDER,
+} from "@purrfect/shared/lib/captcha/providers.js";
+import { PROXY_PROVIDER } from "../enums/proxy-provider.js";
+import { CRON_MODE } from "@purrfect/shared/enums/cron-mode.js";
+import { REFERRER_MODE } from "../enums/referrer-mode.js";
 
 /** Settings groups shown in the manager */
 export const ENV_GROUPS = [
@@ -151,7 +157,7 @@ export const ENV_FIELDS = [
     group: "captcha",
     label: "Provider",
     type: "enum",
-    default: "2captcha",
+    default: DEFAULT_CAPTCHA_PROVIDER,
     options: CAPTCHA_PROVIDERS.map((provider) => provider.id),
   },
   {
@@ -174,8 +180,8 @@ export const ENV_FIELDS = [
     group: "proxy",
     label: "Provider",
     type: "enum",
-    default: "webshare",
-    options: ["webshare", "floxy", "iplocate"],
+    default: PROXY_PROVIDER.WEBSHARE,
+    options: Object.values(PROXY_PROVIDER),
   },
   {
     key: "PROXY_API_KEY",
@@ -244,8 +250,8 @@ export const ENV_FIELDS = [
     group: "cron",
     label: "Job mode",
     type: "enum",
-    default: "sequential",
-    options: ["sequential", "concurrent"],
+    default: CRON_MODE.SEQUENTIAL,
+    options: Object.values(CRON_MODE),
   },
   {
     key: "ALLOW_PROFILE_UPDATES",
@@ -271,8 +277,8 @@ export const ENV_FIELDS = [
     group: "advanced",
     label: "Default referrer mode",
     type: "enum",
-    default: "single",
-    options: ["single", "random"],
+    default: REFERRER_MODE.SINGLE,
+    options: Object.values(REFERRER_MODE),
     help: "single uses the primary link, random spreads across members.",
   },
   {
@@ -374,7 +380,7 @@ export function getFarmerFields(FarmerClass) {
       key: `${prefix}_REFERRER_MODE`,
       label: "Referrer mode",
       type: "enum",
-      options: ["single", "random"],
+      options: Object.values(REFERRER_MODE),
       help: "Leave empty to use the default referrer mode.",
     },
   ].map((field) => ({ ...field, group }));

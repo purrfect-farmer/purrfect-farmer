@@ -6,6 +6,7 @@ import axios from "axios";
 import cache from "./cache.js";
 import db from "../db/models/index.js";
 import utils from "./utils.js";
+import { PROXY_PROVIDER } from "../enums/proxy-provider.js";
 
 class ProxyProvider {
   /**
@@ -55,7 +56,7 @@ class ProxyProvider {
    * Fetch Proxy List for a provider config
    */
   async fetchListFrom(config) {
-    if (config.provider === "webshare") {
+    if (config.provider === PROXY_PROVIDER.WEBSHARE) {
       const response = await axios.get(
         "https://proxy.webshare.io/api/v2/proxy/list",
         {
@@ -75,7 +76,7 @@ class ProxyProvider {
         (item) =>
           `${item.username}:${item.password}@${item.proxy_address}:${item.port}`,
       );
-    } else if (config.provider === "floxy") {
+    } else if (config.provider === PROXY_PROVIDER.FLOXY) {
       /** Instantiate Floxy Client */
       const client = new FloxyClient(config.apiKey);
 
@@ -108,7 +109,7 @@ class ProxyProvider {
       );
 
       return ips.map((ip) => `${username}:${password}@${ip}:1338`);
-    } else if (config.provider === "iplocate") {
+    } else if (config.provider === PROXY_PROVIDER.IPLOCATE) {
       const txt = await axios
         .get(
           "https://raw.githubusercontent.com/iplocate/free-proxy-list/refs/heads/main/all-proxies.txt",

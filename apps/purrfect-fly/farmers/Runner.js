@@ -22,6 +22,9 @@ import {
 } from "./runner/config.js";
 import { getCookies, restoreCookies, setupHttp } from "./runner/http.js";
 import { isTransientError } from "./runner/errors.js";
+import { FARMER_STATUS } from "../enums/farmer-status.js";
+import { REFERRER_MODE } from "../enums/referrer-mode.js";
+import { RUNNER_RESULT } from "../enums/runner-result.js";
 
 /**
  * @param {import("@purrfect/shared/lib/BaseFarmer.js").default} FarmerClass
@@ -151,7 +154,7 @@ export default function createRunner(FarmerClass) {
     async createFarmer() {
       return this.account.createFarmer({
         farmer: this.constructor.id,
-        status: "active",
+        status: FARMER_STATUS.ACTIVE,
         errorCount: 0,
         initData: "",
         headers: {},
@@ -289,14 +292,14 @@ export default function createRunner(FarmerClass) {
       try {
         if (this.farmer) {
           /** Set as inactive */
-          this.farmer.status = "inactive";
+          this.farmer.status = FARMER_STATUS.INACTIVE;
 
           /** Increase error count */
           this.farmer.errorCount += 1;
 
           /** Ban the farmer */
           if (this.farmer.errorCount >= BAN_TRIGGER_COUNT) {
-            this.farmer.status = "banned";
+            this.farmer.status = FARMER_STATUS.BANNED;
           }
 
           /** Save */
@@ -312,7 +315,7 @@ export default function createRunner(FarmerClass) {
       try {
         if (this.farmer && this.farmer.errorCount > 0) {
           /** Set as active */
-          this.farmer.status = "active";
+          this.farmer.status = FARMER_STATUS.ACTIVE;
 
           /** Reset error count */
           this.farmer.errorCount = 0;
@@ -392,7 +395,7 @@ export default function createRunner(FarmerClass) {
 
     /** Get instance referral link */
     static getInstanceReferralLink() {
-      if (this.referrerMode === "single") {
+      if (this.referrerMode === REFERRER_MODE.SINGLE) {
         return this.primaryLink.get();
       } else {
         const links = Array.from(this.referralLinks.values());
@@ -419,11 +422,13 @@ export default function createRunner(FarmerClass) {
     static getResult(account) {
       const instance = this.runners.get(account.id);
       if (!instance) {
-        return { status: "skipped" };
+        return { status: RUNNER_RESULT.SKIPPED };
       }
 
       return {
-        status: instance.currentTask ? "running" : "started",
+        status: instance.currentTask
+          ? RUNNER_RESULT.RUNNING
+          : RUNNER_RESULT.STARTED,
         startedAt: instance.startedAt,
         currentTaskStartedAt: instance.currentTaskStartedAt,
         currentTask: instance.currentTask,

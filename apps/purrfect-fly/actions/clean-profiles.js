@@ -1,6 +1,6 @@
 import bot from "../lib/bot.js";
 import db from "../db/models/index.js";
-import { PROFILE_CLEAN_STATUS } from "../lib/clean-status.js";
+import { PROFILE_CLEAN_STATUS } from "../enums/profile-clean-status.js";
 import { forEachAccountSession } from "../lib/account-sessions.js";
 import { stripProfileText } from "@purrfect/shared/utils/profile.js";
 

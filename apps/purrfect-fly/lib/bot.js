@@ -2,8 +2,9 @@ import { Bot } from "grammy";
 import app from "../config/app.js";
 import cache from "./cache.js";
 import logger from "./logger.js";
-import { PROFILE_CLEAN_ICONS } from "./clean-status.js";
+import { PROFILE_CLEAN_ICONS } from "../enums/profile-clean-status.js";
 import utils from "./utils.js";
+import { RUNNER_RESULT, RUNNER_RESULT_ICONS } from "../enums/runner-result.js";
 
 class GroupBot extends Bot {
   /** Append the server name line when one is configured */
@@ -63,18 +64,13 @@ class GroupBot extends Bot {
         results.map(({ account, result }) => {
           return {
             id: account.id,
-            status:
-              result.status === "started"
-                ? "✅"
-                : result.status === "running"
-                  ? "☑️"
-                  : "❌",
+            status: RUNNER_RESULT_ICONS[result.status] ?? "❌",
             session: telegramLink ? (account.session ? "🟨" : "🟪") : "",
             count: account?.farmer?.errorCount || 0,
             username: account.user?.username || "",
             title: account.title,
             info:
-              result.status === "running"
+              result.status === RUNNER_RESULT.RUNNING
                 ? [
                     `<b>TSK:</b> <code>${result.currentTask}</code>`,
                     `<b>ELP:</b> <code>${result.elapsed}</code>`,

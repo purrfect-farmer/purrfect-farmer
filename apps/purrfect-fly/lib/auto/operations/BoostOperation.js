@@ -1,5 +1,6 @@
 import AutoOperation from "./AutoOperation.js";
 import { didWithdraw } from "../summary.js";
+import { MASTER_MODE } from "../../../enums/master-mode.js";
 
 /** Boost every selected account from the master, optionally withdrawing, requalifying and repeating */
 class BoostOperation extends AutoOperation {
@@ -130,7 +131,7 @@ class BoostOperation extends AutoOperation {
     const { ctx } = this;
 
     /** Collecting always sends from the master, so only a rolling chain reorders */
-    if (ctx.masterWallet.mode !== "roll" || ctx.accounts.length < 2) return;
+    if (ctx.masterWallet.mode !== MASTER_MODE.ROLL || ctx.accounts.length < 2) return;
 
     ctx.accounts = await ctx.boostStep.orderAccounts(
       ctx.accounts,

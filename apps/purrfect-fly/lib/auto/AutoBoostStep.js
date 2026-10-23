@@ -2,6 +2,8 @@ import Decimal from "decimal.js";
 import logger from "../logger.js";
 import { didWithdraw } from "./summary.js";
 import { orderByFunder } from "./rollChain.js";
+import { MASTER_MODE } from "../../enums/master-mode.js";
+import { REQUALIFY_STRATEGY } from "../../enums/requalify-strategy.js";
 
 /** Boosting one account, shared by the boost run and the cultivate loop, and the requalifying pass after either */
 class AutoBoostStep {
@@ -140,8 +142,8 @@ class AutoBoostStep {
     /** A withdrawn account boosted again by the requalify pass flips there instead */
     const requalifiesLater =
       didWithdraw({ withdrawal }) &&
-      options.requalify === "boost" &&
-      masterWallet.mode === "roll";
+      options.requalify === REQUALIFY_STRATEGY.BOOST &&
+      masterWallet.mode === MASTER_MODE.ROLL;
 
     /** Only a boost that settled leaves anything worth flipping away from */
     const shouldFlip =
@@ -177,7 +179,7 @@ class AutoBoostStep {
     await this.ctx.delaySeconds(2);
 
     /** Rolling needs tokens to send, while collecting guards itself and still runs */
-    if (!skipped || masterWallet.mode !== "roll") {
+    if (!skipped || masterWallet.mode !== MASTER_MODE.ROLL) {
       await masterWallet.applyMode(account, phrase, booster);
     }
 
@@ -278,8 +280,8 @@ class AutoBoostStep {
     const { options, masterWallet } = this.ctx;
 
     return (
-      options.requalify === "boost" &&
-      masterWallet.mode === "roll" &&
+      options.requalify === REQUALIFY_STRATEGY.BOOST &&
+      masterWallet.mode === MASTER_MODE.ROLL &&
       !options.onlyConnectWallet &&
       Boolean(masterWallet.masterData) &&
       accounts.length > 0

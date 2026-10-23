@@ -14,6 +14,8 @@ import axios from "axios";
 import envStore from "../../../lib/env-store.js";
 import farmers from "../../../farmers/index.js";
 import proxy from "../../../lib/proxy.js";
+import { PROXY_PROVIDER } from "../../../enums/proxy-provider.js";
+import { DEFAULT_CAPTCHA_PROVIDER } from "@purrfect/shared/lib/captcha/providers.js";
 
 /** Schema plus lookups */
 const schema = getEnvSchema(farmers);
@@ -227,7 +229,7 @@ const TESTS = {
   async captcha(values, results) {
     await check(results, "API key", async () => {
       const solver = new CaptchaSolver(
-        values.CAPTCHA_PROVIDER || "2captcha",
+        values.CAPTCHA_PROVIDER || DEFAULT_CAPTCHA_PROVIDER,
         values.CAPTCHA_API_KEY,
       );
       if (!solver.isConfigured()) throw new Error("API key is empty.");
@@ -240,7 +242,7 @@ const TESTS = {
   async proxy(values, results) {
     await check(results, "Proxy list", async () => {
       const list = await proxy.fetchListFrom({
-        provider: values.PROXY_PROVIDER || "webshare",
+        provider: values.PROXY_PROVIDER || PROXY_PROVIDER.WEBSHARE,
         apiKey: values.PROXY_API_KEY || "",
         planId: values.PROXY_PLAN_ID || "",
         page: Number(values.PROXY_PAGE) || 1,

@@ -10,6 +10,7 @@ import {
   SNAPSHOT_KEY,
 } from "./constants.js";
 import { byBalanceDescending } from "./summary.js";
+import { FARMER_STATUS } from "../../enums/farmer-status.js";
 
 /** What every account this server farms for the drop last looked like, from the stored snapshots */
 export async function readSnapshots(farmerId) {
@@ -319,14 +320,14 @@ class AutoRecords {
       /** Verified accounts are kept free to withdraw for everyone else */
       if (excludeIds.has(userId)) continue;
 
-      if (row.status === "banned") {
-        skip("banned");
+      if (row.status === FARMER_STATUS.BANNED) {
+        skip(FARMER_STATUS.BANNED);
         continue;
       }
 
       /** Frozen is the operator saying to leave this account alone */
-      if (row.status === "frozen" && !allowFrozen) {
-        skip("frozen");
+      if (row.status === FARMER_STATUS.FROZEN && !allowFrozen) {
+        skip(FARMER_STATUS.FROZEN);
         continue;
       }
 

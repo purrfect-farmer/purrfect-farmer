@@ -1,7 +1,8 @@
 import { Cron } from "croner";
+import { CRON_MODE } from "../enums/cron-mode.js";
 
 class CronRunner {
-  constructor(mode = "sequential") {
+  constructor(mode = CRON_MODE.SEQUENTIAL) {
     this.mode = mode;
     this.jobs = [];
     this.running = false;
@@ -51,7 +52,7 @@ class CronRunner {
   }
 
   start() {
-    if (this.mode === "sequential") {
+    if (this.mode === CRON_MODE.SEQUENTIAL) {
       console.log("⏱ Running in sequential mode");
       this.schedulers.push(new Cron("*/10 * * * *", this.runner.bind(this)));
     } else {

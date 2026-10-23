@@ -1,5 +1,7 @@
 import { fileURLToPath } from "node:url";
 import path from "node:path";
+import { PROXY_PROVIDER } from "../enums/proxy-provider.js";
+import { CRON_MODE } from "@purrfect/shared/enums/cron-mode.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -45,7 +47,7 @@ export default {
   /** Cron */
   cron: {
     enabled: env("CRON_ENABLED", true),
-    mode: env("CRON_MODE", "sequential"),
+    mode: env("CRON_MODE", CRON_MODE.SEQUENTIAL),
   },
 
   /** Startup */
@@ -64,7 +66,7 @@ export default {
 
   proxy: {
     enabled: env("PROXY_ENABLED", false),
-    provider: env("PROXY_PROVIDER", "webshare"),
+    provider: env("PROXY_PROVIDER", PROXY_PROVIDER.WEBSHARE),
     apiKey: env("PROXY_API_KEY", ""),
     planId: env("PROXY_PLAN_ID", ""),
     page: env("PROXY_PAGE", 1),

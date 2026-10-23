@@ -7,6 +7,7 @@ import {
   REQUALIFY_LABELS,
 } from "./constants.js";
 import { isTrusted, isWithdrawable } from "./summary.js";
+import { FLIP_DIRECTION } from "../../enums/flip-direction.js";
 
 /** How each run setting reads in an initiation message: a label, then a value read from the run */
 const SETTINGS = {
@@ -57,7 +58,7 @@ const SETTINGS = {
   flipDirection: [
     "Direction",
     (ctx) =>
-      ctx.options.flipDirection === "flip"
+      ctx.options.flipDirection === FLIP_DIRECTION.FLIP
         ? "Flip to the other version"
         : "Restore own wallet",
   ],

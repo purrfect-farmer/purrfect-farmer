@@ -1,3 +1,9 @@
+import {
+  BLOCKED_FARMER_STATUSES,
+  FARMER_STATUS,
+} from "../../enums/farmer-status.js";
+import { REFERRER_MODE } from "../../enums/referrer-mode.js";
+
 /**
  * Decide which subscribed accounts run this batch
  * @param {object} options
@@ -38,7 +44,7 @@ export default function selectAccounts({
   /** Filter out frozen, banned, terminated and non-farming accounts */
   const accounts = subscribedList.filter((item) => {
     return (
-      !["frozen", "banned"].includes(item.farmer?.status) &&
+      !BLOCKED_FARMER_STATUSES.includes(item.farmer?.status) &&
       !terminated.has(item.id) &&
       item.farmingEnabled
     );
@@ -51,7 +57,7 @@ export default function selectAccounts({
 
   /** Can launch primary account */
   const canLaunchPrimaryAccount =
-    primaryAccount?.farmer?.status === "active" ||
+    primaryAccount?.farmer?.status === FARMER_STATUS.ACTIVE ||
     Boolean(primaryAccount?.session);
 
   /** Accounts without farmer may be auto-started */
@@ -61,11 +67,11 @@ export default function selectAccounts({
   const canAutoStart =
     autoStartEnabled &&
     canLaunchPrimaryAccount &&
-    (referrerMode !== "single" || primaryLinkResolved);
+    (referrerMode !== REFERRER_MODE.SINGLE || primaryLinkResolved);
 
   /** Get accounts to be executed */
   const executable = accounts.filter((account) => {
-    const accountIsActive = account.farmer?.status === "active";
+    const accountIsActive = account.farmer?.status === FARMER_STATUS.ACTIVE;
 
     /** The primary account may always auto-start to resolve its link */
     const isPrimary =

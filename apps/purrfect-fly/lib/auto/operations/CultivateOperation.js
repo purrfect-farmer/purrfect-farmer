@@ -5,6 +5,7 @@ import { CULTIVATE_OWNER, LAST_FUNDER_KEY } from "../constants.js";
 import { didWithdraw } from "../summary.js";
 import { getVault } from "../../AutoVault.js";
 import { orderByFunder } from "../rollChain.js";
+import { MASTER_MODE } from "../../../enums/master-mode.js";
 
 /** Boost and withdraw loaded accounts on a timer until cancelled */
 class CultivateOperation extends AutoOperation {
@@ -70,7 +71,7 @@ class CultivateOperation extends AutoOperation {
     });
 
     /** Collecting always sends from the master, so only a rolling chain reorders */
-    if (ctx.masterWallet.mode !== "roll") return sorted;
+    if (ctx.masterWallet.mode !== MASTER_MODE.ROLL) return sorted;
 
     /** The cycle re-reads the real master, so that is where the chain starts */
     return orderByFunder(

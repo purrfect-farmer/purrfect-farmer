@@ -1,3 +1,6 @@
+import { FLIP_DIRECTION } from "../enums/flip-direction.js";
+import { REQUALIFY_STRATEGY } from "../enums/requalify-strategy.js";
+
 /** Body of an Auto operation */
 export const autoSchema = {
   body: {
@@ -24,7 +27,7 @@ export const autoSchema = {
       reuseLastAmount: { type: "boolean" },
       retainFunds: { type: "boolean" },
       onlyConnectWallet: { type: "boolean" },
-      requalify: { type: "string", enum: ["off", "resync", "boost"] },
+      requalify: { type: "string", enum: Object.values(REQUALIFY_STRATEGY) },
       ignorePending: { type: "boolean" },
       runFarmer: { type: "boolean" },
       repeat: { type: "boolean" },
@@ -33,7 +36,7 @@ export const autoSchema = {
       cultivateInterval: { type: "number" },
       trustedWithdrawDirectly: { type: "boolean" },
       trustedAssist: { type: "boolean" },
-      flipDirection: { type: "string", enum: ["flip", "restore"] },
+      flipDirection: { type: "string", enum: Object.values(FLIP_DIRECTION) },
       flipAfterBoost: { type: "boolean" },
       requesters: { type: "array" },
       slippage: { type: "string" },

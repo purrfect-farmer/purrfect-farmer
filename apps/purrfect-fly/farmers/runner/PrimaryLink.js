@@ -1,5 +1,7 @@
 import bot from "../../lib/bot.js";
 import db from "../../db/models/index.js";
+import { BLOCKED_FARMER_STATUSES } from "../../enums/farmer-status.js";
+import { PRIMARY_MISSING_REASON } from "../../enums/primary-missing-reason.js";
 
 /** Tracks the primary account's referral link for one farmer */
 export default class PrimaryLink {
@@ -65,7 +67,7 @@ export default class PrimaryLink {
 
       /** Others stay held until the link resolves */
       if (this.isPending(instance)) {
-        await this.notifyMissing("unresolved");
+        await this.notifyMissing(PRIMARY_MISSING_REASON.UNRESOLVED);
       }
     }
   }
@@ -122,7 +124,7 @@ export default class PrimaryLink {
   async getMissingReason(accountsWithFarmer) {
     const Runner = this.Runner;
 
-    if (!Runner.primaryAccountId) return "not-configured";
+    if (!Runner.primaryAccountId) return PRIMARY_MISSING_REASON.NOT_CONFIGURED;
 
     const account = accountsWithFarmer.find(
       (acc) => acc.id === Runner.primaryAccountId,
@@ -131,16 +133,20 @@ export default class PrimaryLink {
     /** The list only holds subscribed accounts */
     if (!account) {
       const stored = await db.Account.findByPk(Runner.primaryAccountId);
-      return stored ? "no-subscription" : "not-found";
+      return stored
+        ? PRIMARY_MISSING_REASON.NO_SUBSCRIPTION
+        : PRIMARY_MISSING_REASON.NOT_FOUND;
     }
-    if (Runner.platform !== "telegram" && !account.farmer) return "no-farmer";
-    if (["frozen", "banned"].includes(account.farmer?.status)) {
+    if (Runner.platform !== "telegram" && !account.farmer) {
+      return PRIMARY_MISSING_REASON.NO_FARMER;
+    }
+    if (BLOCKED_FARMER_STATUSES.includes(account.farmer?.status)) {
       return account.farmer.status;
     }
-    if (Runner.terminated.has(account.id)) return "terminated";
-    if (!account.farmingEnabled) return "farming-disabled";
+    if (Runner.terminated.has(account.id)) return PRIMARY_MISSING_REASON.TERMINATED;
+    if (!account.farmingEnabled) return PRIMARY_MISSING_REASON.FARMING_DISABLED;
 
-    return "not-found";
+    return PRIMARY_MISSING_REASON.NOT_FOUND;
   }
 
   /** Notify that the primary account is not configured or not runnable */
@@ -148,15 +154,15 @@ export default class PrimaryLink {
     const Runner = this.Runner;
     const account = `primary account (<code>${Runner.primaryAccountId}</code>)`;
     const details = {
-      "not-configured": "primary account is not configured",
-      "not-found": `${account} not found on this server`,
-      "no-subscription": `${account} has no active subscription`,
-      "no-farmer": `${account} has no farmer`,
-      frozen: `${account} farmer is frozen`,
-      banned: `${account} farmer is banned`,
-      terminated: `${account} is terminated`,
-      "farming-disabled": `${account} has farming disabled`,
-      unresolved: `${account} referral link could not be resolved`,
+      [PRIMARY_MISSING_REASON.NOT_CONFIGURED]: "primary account is not configured",
+      [PRIMARY_MISSING_REASON.NOT_FOUND]: `${account} not found on this server`,
+      [PRIMARY_MISSING_REASON.NO_SUBSCRIPTION]: `${account} has no active subscription`,
+      [PRIMARY_MISSING_REASON.NO_FARMER]: `${account} has no farmer`,
+      [PRIMARY_MISSING_REASON.FROZEN]: `${account} farmer is frozen`,
+      [PRIMARY_MISSING_REASON.BANNED]: `${account} farmer is banned`,
+      [PRIMARY_MISSING_REASON.TERMINATED]: `${account} is terminated`,
+      [PRIMARY_MISSING_REASON.FARMING_DISABLED]: `${account} has farming disabled`,
+      [PRIMARY_MISSING_REASON.UNRESOLVED]: `${account} referral link could not be resolved`,
     };
 
     const messages = [

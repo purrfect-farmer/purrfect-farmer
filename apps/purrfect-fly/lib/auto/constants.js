@@ -1,3 +1,5 @@
+import { FLIP_DIRECTION } from "../../enums/flip-direction.js";
+import { REQUALIFY_STRATEGY } from "../../enums/requalify-strategy.js";
 /** How many queued accounts a list shows, to stay under Telegram's limit */
 export const ASSIST_QUEUE_PREVIEW = 100;
 
@@ -20,23 +22,17 @@ export const LAST_BOOST_KEY = "autoLastBoost";
 /** Where the farmer stores what an account last looked like */
 export const SNAPSHOT_KEY = "autoSnapshot";
 
-/** What a run may do about the DEX buyer standing a withdrawal consumes */
-export const REQUALIFY_STRATEGIES = ["off", "resync", "boost"];
-
-/** Whether a flip moves accounts off their own wallet or back onto it */
-export const FLIP_DIRECTIONS = ["flip", "restore"];
-
 /** How the requalify strategies read as a setting */
 export const REQUALIFY_LABELS = {
-  off: "Disabled",
-  resync: "Re-sync wallet",
-  boost: "Second boost pass",
+  [REQUALIFY_STRATEGY.OFF]: "Disabled",
+  [REQUALIFY_STRATEGY.RESYNC]: "Re-sync wallet",
+  [REQUALIFY_STRATEGY.BOOST]: "Second boost pass",
 };
 
 /** And how they read as something that was just done to an account */
 export const REQUALIFY_ACTIONS = {
-  resync: "a wallet re-sync",
-  boost: "a second boost",
+  [REQUALIFY_STRATEGY.RESYNC]: "a wallet re-sync",
+  [REQUALIFY_STRATEGY.BOOST]: "a second boost",
 };
 
 /** Shared by every sender, since none of these messages wants a preview */
@@ -45,6 +41,9 @@ export const NOTIFICATION_OPTIONS = {
     ["is_disabled"]: true,
   },
 };
+
+const REQUALIFY_VALUES = Object.values(REQUALIFY_STRATEGY);
+const FLIP_DIRECTION_VALUES = Object.values(FLIP_DIRECTION);
 
 /** A non-negative amount as a string, or empty when the value is not one */
 function toAmountOption(value) {
@@ -79,7 +78,7 @@ export function normalizeOptions({
   reuseLastAmount = false,
   retainFunds = false,
   onlyConnectWallet = false,
-  requalify = "boost",
+  requalify = REQUALIFY_STRATEGY.BOOST,
   ignorePending = false,
   runFarmer = true,
   repeat = false,
@@ -88,7 +87,7 @@ export function normalizeOptions({
   cultivateInterval = 10,
   trustedWithdrawDirectly = false,
   trustedAssist = false,
-  flipDirection = "flip",
+  flipDirection = FLIP_DIRECTION.FLIP,
   flipAfterBoost = false,
   requesters = [],
   slippage = "0.01",
@@ -107,7 +106,9 @@ export function normalizeOptions({
     reuseLastAmount,
     retainFunds,
     onlyConnectWallet,
-    requalify: REQUALIFY_STRATEGIES.includes(requalify) ? requalify : "boost",
+    requalify: REQUALIFY_VALUES.includes(requalify)
+      ? requalify
+      : REQUALIFY_STRATEGY.BOOST,
     ignorePending,
     runFarmer,
     repeat,
@@ -116,9 +117,9 @@ export function normalizeOptions({
     cultivateInterval: Number(cultivateInterval),
     trustedWithdrawDirectly,
     trustedAssist,
-    flipDirection: FLIP_DIRECTIONS.includes(flipDirection)
+    flipDirection: FLIP_DIRECTION_VALUES.includes(flipDirection)
       ? flipDirection
-      : "flip",
+      : FLIP_DIRECTION.FLIP,
     flipAfterBoost,
     requesters,
     slippage: Number(slippage) > 0 ? String(slippage) : "0.01",

@@ -1,6 +1,7 @@
 import Decimal from "decimal.js";
 import logger from "../logger.js";
 import { getWalletAddressFromMnemonic } from "@purrfect/shared/lib/ton/wallet.js";
+import { FARMER_STATUS } from "../../enums/farmer-status.js";
 
 /** Connects accounts to wallets on the drop, and waits the drop out once it has */
 class AutoWallet {
@@ -113,7 +114,9 @@ class AutoWallet {
         /** The drop reports when mining freezes, which is when the account is due back */
         const freezesAt = Number(summary?.mining?.freezesAt) || 0;
 
-        runner.farmer.status = freeze ? "frozen" : "active";
+        runner.farmer.status = freeze
+          ? FARMER_STATUS.FROZEN
+          : FARMER_STATUS.ACTIVE;
 
         /** No reported window means the freeze stays indefinite */
         runner.farmer.frozenUntil =
@@ -223,8 +226,8 @@ class AutoWallet {
   /** Hand an account back to farming, since reading a frozen account is also what releases it */
   async activateFarmer(runner, cloudAccount) {
     try {
-      if (runner.farmer && runner.farmer.status !== "active") {
-        runner.farmer.status = "active";
+      if (runner.farmer && runner.farmer.status !== FARMER_STATUS.ACTIVE) {
+        runner.farmer.status = FARMER_STATUS.ACTIVE;
         runner.farmer.errorCount = 0;
         runner.farmer.frozenUntil = null;
         await runner.farmer.save();

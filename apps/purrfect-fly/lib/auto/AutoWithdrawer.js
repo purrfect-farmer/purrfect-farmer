@@ -1,5 +1,6 @@
 import logger from "../logger.js";
 import { isProtectedBuyer, isWithdrawable } from "./summary.js";
+import { REQUALIFY_STRATEGY } from "../../enums/requalify-strategy.js";
 
 /** Places withdrawals, both on their own and in the middle of a boost */
 class AutoWithdrawer {
@@ -35,7 +36,7 @@ class AutoWithdrawer {
     const strategy = this.ctx.options.requalify;
 
     /** A second boost pass restores the standing later in the cycle, not here */
-    if (strategy !== "resync" || !runner || !walletAccount) {
+    if (strategy !== REQUALIFY_STRATEGY.RESYNC || !runner || !walletAccount) {
       return { attempted: false, strategy, restored: false, summary };
     }
 

@@ -15,6 +15,9 @@ export const CAPTCHA_PROVIDERS = [
   NSLSolverProvider,
 ];
 
+/** Provider used when none is configured */
+export const DEFAULT_CAPTCHA_PROVIDER = TwoCaptchaProvider.id;
+
 /** Create a provider instance by id */
 export function createCaptchaProvider(id, apiKey) {
   const Provider = CAPTCHA_PROVIDERS.find((item) => item.id === id);

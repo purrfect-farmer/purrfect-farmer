@@ -1,5 +1,6 @@
 import { getFarmerEnvPrefix } from "../../config/env-schema.js";
 import logger from "../../lib/logger.js";
+import { REFERRER_MODE } from "../../enums/referrer-mode.js";
 
 /** Ban trigger count */
 export const BAN_TRIGGER_COUNT = env("BAN_TRIGGER_COUNT", 10);
@@ -30,7 +31,10 @@ export function resolveRunnerConfig(FarmerClass) {
   };
 
   /** Default referrer mode */
-  const defaultReferrerMode = env("DEFAULT_REFERRER_MODE", "single");
+  const defaultReferrerMode = env(
+    "DEFAULT_REFERRER_MODE",
+    REFERRER_MODE.SINGLE,
+  );
   const farmerReferrerMode = getFarmerEnv("REFERRER_MODE", defaultReferrerMode);
 
   /** Farmer primary account ID */
