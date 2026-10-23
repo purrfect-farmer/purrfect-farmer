@@ -12,7 +12,7 @@ import { sharedStorageKey } from "@/lib/storageKeys";
 
 /** Auto drops: wallet managers built on a farmer, opted into with `static auto` and iconed by auto id */
 const farmersGlob = import.meta.glob(
-  "../../node_modules/@purrfect/shared/farmers/*.js",
+  "../../node_modules/@purrfect/shared/farmers/*/index.js",
   {
     eager: true,
     import: "default",

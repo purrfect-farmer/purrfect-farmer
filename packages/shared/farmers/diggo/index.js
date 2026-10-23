@@ -1,14 +1,14 @@
-import BaseFarmer from "../lib/BaseFarmer.js";
-import AdsGramClient from "../lib/ads/AdsGramClient.js";
+import BaseFarmer from "../../lib/BaseFarmer.js";
+import AdsGramClient from "../../lib/ads/AdsGramClient.js";
 import Decimal from "decimal.js";
 import { Address, Cell } from "@ton/core";
-import { buildTonProof } from "../lib/ton/proof.js";
-import { createVictorsDevice } from "../lib/games/victorsDevice.js";
+import { buildTonProof } from "../../lib/ton/proof.js";
+import { createVictorsDevice } from "../../lib/games/victorsDevice.js";
 import {
   createWallet,
   deriveMnemonicFromTelegramId,
   keyPairFromPhraseOrSecretKey,
-} from "../lib/ton/wallet.js";
+} from "../../lib/ton/wallet.js";
 
 /** The game's backend, served from the page's own origin */
 const API_URL = "https://diggo.linkpc.net/api";

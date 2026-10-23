@@ -1,8 +1,8 @@
-import BaseFarmer from "../lib/BaseFarmer.js";
-import AdsGramClient from "../lib/ads/AdsGramClient.js";
-import GigaPubClient from "../lib/ads/GigaPubClient.js";
-import MonetagClient from "../lib/ads/MonetagClient.js";
-import TadsClient from "../lib/ads/TadsClient.js";
+import BaseFarmer from "../../lib/BaseFarmer.js";
+import AdsGramClient from "../../lib/ads/AdsGramClient.js";
+import GigaPubClient from "../../lib/ads/GigaPubClient.js";
+import MonetagClient from "../../lib/ads/MonetagClient.js";
+import TadsClient from "../../lib/ads/TadsClient.js";
 
 /** The game's backend, served from the mini app's own origin */
 const API_URL = "https://lets.playmonsterland.com/api";

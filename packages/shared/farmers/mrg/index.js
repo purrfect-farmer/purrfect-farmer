@@ -1,4 +1,4 @@
-import BaseFarmer from "../lib/BaseFarmer.js";
+import BaseFarmer from "../../lib/BaseFarmer.js";
 import Decimal from "decimal.js";
 import { Cell } from "@ton/core";
 import {
@@ -7,15 +7,15 @@ import {
   getMinerDailyOutput,
   getMinerRequiredHolding,
   getMinerSpeed,
-} from "../lib/auto/minerCurve.js";
-import { buildTonProof } from "../lib/ton/proof.js";
-import { buildSliderTrace, findSliderX } from "../lib/sliderCaptcha.js";
+} from "../../lib/auto/minerCurve.js";
+import { buildTonProof } from "../../lib/ton/proof.js";
+import { buildSliderTrace, findSliderX } from "../../lib/sliderCaptcha.js";
 import {
   createWallet,
   keyPairFromPhraseOrSecretKey,
-} from "../lib/ton/wallet.js";
-import { fetchTonApi } from "../lib/ton/tonapi.js";
-import { createVictorsDevice } from "../lib/games/victorsDevice.js";
+} from "../../lib/ton/wallet.js";
+import { fetchTonApi } from "../../lib/ton/tonapi.js";
+import { createVictorsDevice } from "../../lib/games/victorsDevice.js";
 
 /** The drop's backend, which the mini app talks to for everything */
 const API_URL = "https://mrg.up.railway.app/api";

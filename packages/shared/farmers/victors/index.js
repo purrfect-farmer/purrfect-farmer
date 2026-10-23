@@ -1,4 +1,4 @@
-import BaseFarmer from "../lib/BaseFarmer.js";
+import BaseFarmer from "../../lib/BaseFarmer.js";
 import Decimal from "decimal.js";
 import { Cell } from "@ton/core";
 import {
@@ -7,19 +7,19 @@ import {
   getMinerDailyOutput,
   getMinerRequiredHolding,
   getMinerSpeed,
-} from "../lib/auto/minerCurve.js";
-import { buildTonProof } from "../lib/ton/proof.js";
+} from "../../lib/auto/minerCurve.js";
+import { buildTonProof } from "../../lib/ton/proof.js";
 import {
   createWallet,
   keyPairFromPhraseOrSecretKey,
-} from "../lib/ton/wallet.js";
+} from "../../lib/ton/wallet.js";
 import {
   MINIMUM_PAYOUT_DIAL,
   chooseMove,
   getStartCap,
   pickTool,
-} from "../lib/games/deepMine.js";
-import { createVictorsDevice } from "../lib/games/victorsDevice.js";
+} from "../../lib/games/deepMine.js";
+import { createVictorsDevice } from "../../lib/games/victorsDevice.js";
 
 /** The drop's backend, which the mini app talks to for everything */
 const API_URL = "https://server.victors.company/api";

@@ -13,14 +13,15 @@ const farmersDir = path.join(
   __dirname,
   "../node_modules/@purrfect/shared/farmers",
 );
-const farmerClasses = fs
-  .readdirSync(farmersDir)
-  .filter((file) => file.endsWith(".js"));
+/** Each farmer lives in its own folder, entered through index.js */
+const farmerEntries = fs
+  .readdirSync(farmersDir, { withFileTypes: true })
+  .filter((entry) => entry.isDirectory())
+  .map((entry) => path.join(farmersDir, entry.name, "index.js"))
+  .filter((file) => fs.existsSync(file));
 
-for (const file of farmerClasses) {
-  const FarmerClass = await import(path.join(farmersDir, file)).then(
-    (m) => m.default,
-  );
+for (const file of farmerEntries) {
+  const FarmerClass = await import(file).then((m) => m.default);
 
   if (FarmerClass.published || ENABLE_UNPUBLISHED_FARMERS) {
     farmers[FarmerClass.id] = createRunner(FarmerClass);

@@ -3,7 +3,7 @@ import { customLogger } from "@/utils";
 import path from "path-browserify";
 
 const farmersGlob = import.meta.glob(
-  "../../node_modules/@purrfect/shared/farmers/*.js",
+  "../../node_modules/@purrfect/shared/farmers/*/index.js",
   {
     eager: true,
     import: "default",

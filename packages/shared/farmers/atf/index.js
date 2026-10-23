@@ -1,9 +1,9 @@
 import { WalletContractV4, WalletContractV5R1 } from "@ton/ton";
 
-import BaseFarmer from "../lib/BaseFarmer.js";
+import BaseFarmer from "../../lib/BaseFarmer.js";
 import Decimal from "decimal.js";
-import { buildTonProof, getWalletStateInit } from "../lib/ton/proof.js";
-import { keyPairFromPhraseOrSecretKey } from "../lib/ton/wallet.js";
+import { buildTonProof, getWalletStateInit } from "../../lib/ton/proof.js";
+import { keyPairFromPhraseOrSecretKey } from "../../lib/ton/wallet.js";
 
 /** Backstop for the withdrawal captcha loop */
 const WITHDRAWAL_CAPTCHA_ATTEMPTS = 5;
