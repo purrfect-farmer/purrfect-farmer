@@ -3,9 +3,7 @@ import {
   BANNED,
   BOT_USERNAME,
   TURNSTILE_HEADER,
-  TURNSTILE_PAGE_URL,
   TURNSTILE_REQUIRED,
-  TURNSTILE_SITE_KEY,
 } from "./constants.js";
 
 /** Trait: aPI transport, the Turnstile pass and sign-in */
@@ -106,28 +104,11 @@ export default class MonsterlandSession {
 
   /** Pass the Turnstile check, sharing one attempt between concurrent callers */
   obtainHumanSession() {
-    return (this.humanSessionPromise ||= this.solveHumanCheck().finally(() => {
-      this.humanSessionPromise = null;
-    }));
+    return this.ctx.humanCheck.obtain();
   }
 
-  /** Solve Turnstile and hand the token to the backend, which trusts the account for about an hour */
-  async solveHumanCheck() {
-    if (!this.canSolveTurnstile()) {
-      throw new Error(
-        "Captcha is required but no captcha provider is configured!",
-      );
-    }
-
-    await this.logPreviousPassLifespan();
-
-    this.logger.info("Solving the security check...");
-
-    const token = await this.solveTurnstile({
-      siteKey: TURNSTILE_SITE_KEY,
-      pageUrl: TURNSTILE_PAGE_URL,
-    });
-
+  /** Hand a solved Turnstile token to the backend, which trusts the account for about an hour */
+  async submitHumanCheck(token) {
     const result = await this.callApi("post", "/security/turnstile", {
       headers: { [TURNSTILE_HEADER]: token },
       retryTurnstile: false,

@@ -1,53 +1,18 @@
-import AdsGramClient from "../../lib/ads/AdsGramClient.js";
-import MonetagClient from "../../lib/ads/MonetagClient.js";
 import {
   ADSGRAM_BLOCK_ID,
   AD_RESULT_POLL_SECONDS,
   AD_RESULT_TIMEOUT_SECONDS,
-  GIGAPUB_PROJECT_ID,
   MONETAG_COMPLETE_ATTEMPTS,
   MONETAG_COMPLETE_INTERVAL_SECONDS,
   MONETAG_ZONE_ID,
   PLAYABLE_AD_PROVIDERS,
-  TADS_WIDGET_ID,
 } from "./constants.js";
-import GigaPubClient from "../../lib/ads/GigaPubClient.js";
-import TadsClient from "../../lib/ads/TadsClient.js";
 
 /** Trait: watching rewarded ads across the page's providers */
 export default class MonsterlandAds {
   /* --------------------------------------------------------------------- */
   /* Ads                                                                   */
   /* --------------------------------------------------------------------- */
-
-  /** The page's AdsGram block, created once per run */
-  get adsgram() {
-    return (this._adsgram ||= new AdsGramClient(this.getAdClientOptions()));
-  }
-
-  /** The page's Monetag zone, created once per run */
-  get monetag() {
-    return (this._monetag ||= new MonetagClient({
-      ...this.getAdClientOptions(),
-      zoneId: MONETAG_ZONE_ID,
-    }));
-  }
-
-  /** The page's GigaPub project, created once per run */
-  get gigapub() {
-    return (this._gigapub ||= new GigaPubClient({
-      ...this.getAdClientOptions(),
-      projectId: GIGAPUB_PROJECT_ID,
-    }));
-  }
-
-  /** The page's TADS widget, created once per run */
-  get tads() {
-    return (this._tads ||= new TadsClient({
-      ...this.getAdClientOptions(),
-      widgetId: TADS_WIDGET_ID,
-    }));
-  }
 
   /** Watch an ad for an action, falling back across providers the way the page does
    * @returns {Promise<object|null>} the backend's settlement, or `null` when no ad paid
@@ -127,7 +92,7 @@ export default class MonsterlandAds {
 
     switch (provider) {
       case "adsgram":
-        await this.adsgram.watch(ADSGRAM_BLOCK_ID);
+        await this.ctx.ads.adsgram.watch(ADSGRAM_BLOCK_ID);
         return this.waitForAdResult(adTxId);
 
       case "monetag": {
@@ -135,8 +100,8 @@ export default class MonsterlandAds {
         const ymid = `${this.getUserId()}_${adTxId}`;
         const { event } =
           format === "pop"
-            ? await this.monetag.pop(MONETAG_ZONE_ID, { ymid })
-            : await this.monetag.play(MONETAG_ZONE_ID, { ymid });
+            ? await this.ctx.ads.monetag.pop(MONETAG_ZONE_ID, { ymid })
+            : await this.ctx.ads.monetag.play(MONETAG_ZONE_ID, { ymid });
 
         this.assertMonetagValued(event);
 
@@ -144,11 +109,11 @@ export default class MonsterlandAds {
       }
 
       case "tads":
-        await this.tads.watch();
+        await this.ctx.ads.tads.watch();
         return this.waitForAdResult(adTxId);
 
       case "gigapub": {
-        await this.gigapub.watch();
+        await this.ctx.ads.gigapub.watch();
 
         const result = await this.completeAd(adTxId, "gigapub");
 
