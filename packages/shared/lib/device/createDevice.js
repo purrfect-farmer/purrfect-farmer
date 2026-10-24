@@ -1,6 +1,7 @@
 import { DEFAULT_WEB_APP_VERSION } from "../../utils/telegram.js";
 import { getBrands } from "../userAgent/clientHints.js";
 import alea from "seedrandom/lib/alea.js";
+import { getTimeZoneOffset, resolveDeviceLocale } from "./locale.js";
 
 /** Android phones the profile is drawn from, as Telegram's WebView reports them */
 const PHONES = [
@@ -159,22 +160,11 @@ function readTelegramDevice(userAgent) {
   return match ? { model: match[1], android: match[2] } : {};
 }
 
-/** The host's time zone and locale, which a phone in the same place would share */
-function readLocale() {
-  try {
-    const { timeZone, locale } = Intl.DateTimeFormat().resolvedOptions();
-
-    return { tz: timeZone || "UTC", locale: locale || "en-US" };
-  } catch {
-    return { tz: "UTC", locale: "en-US" };
-  }
-}
-
-/** A stable Android Telegram profile for one account, the same phone in every drop and page */
-export function createDevice(seed, userAgent = "") {
+/** A stable Android Telegram profile for one account, the same phone in every drop and page; `deviceLocale` is the account's `{ timeZone, locale }`, else the host's */
+export function createDevice(seed, userAgent = "", deviceLocale) {
   const random = alea(`device:${seed}`);
   const phone = { ...pick(random, PHONES), ...readTelegramDevice(userAgent) };
-  const { tz, locale } = readLocale();
+  const { timeZone: tz, locale } = resolveDeviceLocale(deviceLocale);
   const language = locale.split("-")[0];
   const height = phone.h - TG_CHROME_HEIGHT - between(random, 0, 24);
   const dpr = Math.round(phone.dpr * 100) / 100;
@@ -192,7 +182,7 @@ export function createDevice(seed, userAgent = "") {
     viewport: { w: phone.w, h: height },
     orientation: "portrait-primary",
     tz,
-    tzOffset: new Date().getTimezoneOffset(),
+    tzOffset: getTimeZoneOffset(tz),
     locale,
     langs: language === "en" ? locale : `${locale},${language},en-US,en`,
     cpu: phone.cpu,
@@ -278,22 +268,26 @@ export function createDevice(seed, userAgent = "") {
   };
 }
 
-/** Each farmer core's device, with the account and User-Agent it was built for */
+/** Each farmer core's device, with the account, User-Agent and locale it was built for */
 const coreDevices = new WeakMap();
 
-/** The core's account device, rebuilt when its user or User-Agent changes */
+/** The core's account device, rebuilt when its user, User-Agent or locale changes */
 export function getAccountDevice(core) {
   const userId = core.userId();
-  const { userAgent } = core;
+  const { userAgent, deviceLocale } = core;
   const cached = coreDevices.get(core);
 
-  if (cached?.userId === userId && cached.userAgent === userAgent) {
+  if (
+    cached?.userId === userId &&
+    cached.userAgent === userAgent &&
+    cached.deviceLocale === deviceLocale
+  ) {
     return cached.device;
   }
 
-  const device = createDevice(userId, userAgent);
+  const device = createDevice(userId, userAgent, deviceLocale);
 
-  coreDevices.set(core, { userId, userAgent, device });
+  coreDevices.set(core, { userId, userAgent, deviceLocale, device });
 
   return device;
 }

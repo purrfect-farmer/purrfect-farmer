@@ -2,7 +2,8 @@ import farmers from "@/core/farmers";
 import { getSecChUa } from "@purrfect/shared/lib/userAgent/clientHints";
 import { isExtension } from "@/utils";
 
-export function getNetRules(userAgent) {
+/** The net rules, giving farmer domains and opened mini-app hosts the phone's headers */
+export function getNetRules(userAgent, miniAppHosts = []) {
   const farmerNetRequests = farmers
     .map((item) => item.netRequest)
     .filter(Boolean)
@@ -17,6 +18,8 @@ export function getNetRules(userAgent) {
     (result, item) => result.concat(item.domains),
     [],
   );
+
+  const phoneDomains = [...new Set([...farmerDomains, ...miniAppHosts])];
 
   /**
    * @type {chrome.declarativeNetRequest.Rule[]}
@@ -99,7 +102,7 @@ export function getNetRules(userAgent) {
         ],
       },
       condition: {
-        requestDomains: farmerDomains,
+        requestDomains: phoneDomains,
       },
     },
   ].concat(

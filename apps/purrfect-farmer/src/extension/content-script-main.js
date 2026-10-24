@@ -58,12 +58,19 @@ if (!matchTelegramWebUrl()) {
         );
       };
 
+      /** The Telegram user the mini-app is opened for, null when its init data is unreadable */
+      const readUserId = () => {
+        try {
+          return getTelegramWebApp().initDataUnsafe?.user?.id ?? null;
+        } catch {
+          return null;
+        }
+      };
+
       /** Make the page see the account's phone */
       const overrideDevice = (userAgent) => {
         if (IS_ALLOWED_HOST) {
-          const userId = getTelegramWebApp().initDataUnsafe?.user?.id;
-
-          applyAccountDevice(userId, userAgent);
+          applyAccountDevice(readUserId(), userAgent);
         }
       };
 
@@ -73,6 +80,9 @@ if (!matchTelegramWebUrl()) {
         if (IS_ALLOWED_HOST) {
           injectTelegramWebviewProxy();
         }
+
+        /** Show the phone before any page script runs, the User-Agent follows */
+        overrideDevice(null);
 
         /** Handle Messages */
         window.addEventListener("message", (ev) => {

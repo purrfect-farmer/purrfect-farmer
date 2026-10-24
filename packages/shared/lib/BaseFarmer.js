@@ -144,7 +144,7 @@ export default class BaseFarmer {
   }
 
   /** Hand the farmer the dependencies its host provides, changing only the options given
-   * @param {object} options - any of `FARMER_OPTIONS`: api, utils, logger, captcha, userAgent, client, storage, telegramWebApp, controller, allowProfileUpdates, quickRun, prompts, autoWalletProvider, cacheAuth, cacheTelegramWebApp
+   * @param {object} options - any of `FARMER_OPTIONS`: api, utils, logger, captcha, userAgent, deviceLocale, client, storage, telegramWebApp, controller, allowProfileUpdates, quickRun, prompts, autoWalletProvider, cacheAuth, cacheTelegramWebApp
    * @returns {this}
    */
   configure(options = {}) {

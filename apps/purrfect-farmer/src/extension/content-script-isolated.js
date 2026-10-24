@@ -14,6 +14,8 @@ import {
   watchTelegramMiniApp,
 } from "./content-script-utils";
 
+import { WEB_PLATFORM_EXCLUDED_HOSTS } from "@/constants";
+import { rememberMiniAppHost } from "@/lib/miniAppHosts";
 import { setupMiniAppToolbar } from "./mini-app/mini-app-toolbar-isolated";
 
 if (!matchTelegramWebUrl()) {
@@ -173,6 +175,11 @@ if (!matchTelegramWebUrl()) {
 
     /** Update User-Agent */
     updateUserAgent();
+
+    /** Give this host the phone's headers from now on */
+    if (!WEB_PLATFORM_EXCLUDED_HOSTS.includes(location.host)) {
+      rememberMiniAppHost(location.host);
+    }
 
     /** Setup Mini-App Toolbar */
     setupMiniAppToolbar();

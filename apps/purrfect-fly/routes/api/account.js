@@ -1,6 +1,6 @@
 import { ACTIVE_FARMER_FIELDS } from "../../services/farmer-activation.js";
 import { authSchema } from "../../schemas/member.js";
-import isValidUserAgent from "@purrfect/shared/lib/userAgent/isValidUserAgent.js";
+import { getSyncedAccountFields } from "../../services/synced-account-fields.js";
 
 /**
  * @param {import("fastify").FastifyInstance} fastify
@@ -60,6 +60,8 @@ export default async function (fastify) {
             headers: { type: "object" },
             cookies: { type: "array", items: { type: "object" } },
             userAgent: { type: "string" },
+            timeZone: { type: "string" },
+            locale: { type: "string" },
           },
         },
       },
@@ -67,12 +69,7 @@ export default async function (fastify) {
     async function (request, reply) {
       const { user } = fastify.utils.getInitDataUnsafe(request.body.initData);
 
-      /** Account fields taken from the sync, a User-Agent only when valid */
-      const accountFields = { title: request.body.title, user };
-
-      if (isValidUserAgent(request.body.userAgent)) {
-        accountFields.userAgent = request.body.userAgent;
-      }
+      const accountFields = getSyncedAccountFields(request.body, user);
 
       const farmer = await fastify.db.Farmer.findWithActiveSubscription(
         request.body.farmer,

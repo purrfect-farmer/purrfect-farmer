@@ -30,6 +30,9 @@ export default function createFarmerCore(farmer) {
     get userAgent() {
       return farmer.userAgent;
     },
+    get deviceLocale() {
+      return farmer.deviceLocale;
+    },
     get scheduled() {
       return farmer.scheduled;
     },

@@ -15,6 +15,10 @@ export const FARMER_OPTIONS = Object.freeze({
   userAgent: (farmer, userAgent) => {
     farmer.userAgent = userAgent;
   },
+  /** The account's `{ timeZone, locale }` the device reports, the host's when unset */
+  deviceLocale: (farmer, deviceLocale) => {
+    farmer.deviceLocale = deviceLocale;
+  },
   client: (farmer, client) => {
     farmer.client = client;
   },

@@ -62,11 +62,15 @@ export default function createRunner(FarmerClass) {
 
       this.random = this.account.random(); // Seeded RNG
 
-      /** Static logger and utils, the account's User-Agent, the captcha solver and the profile setting */
+      /** Static logger and utils, the account's User-Agent and locale, the captcha solver and the profile setting */
       this.configure({
         logger: this.constructor.logger,
         utils: this.constructor.utils,
         userAgent: resolveUserAgent(this.account, this.platform, this.random),
+        deviceLocale: {
+          timeZone: this.account.timeZone,
+          locale: this.account.locale,
+        },
         captcha,
         allowProfileUpdates: app.allowProfileUpdates,
       });

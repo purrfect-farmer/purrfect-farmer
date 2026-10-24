@@ -6,6 +6,9 @@ import { installTouch } from "./touch";
 import { installUserAgentData } from "./userAgentData";
 import { installWebGL } from "./webgl";
 
+/** The browser's own User-Agent, read before anything is patched */
+const NATIVE_USER_AGENT = navigator.userAgent;
+
 /** The device the page currently sees */
 let current = null;
 
@@ -30,14 +33,18 @@ export function applyDeviceProfile(device) {
   if (isFirst) install();
 }
 
-/** Make the page see the account's phone, or only its user agent when the account is unknown */
-export function applyAccountDevice(userId, userAgent) {
+/** Make the page see the account's phone; without a User-Agent yet, the browser's own stands in until one is applied */
+export function applyAccountDevice(userId, userAgent = null) {
   if (!userId) {
-    defineNativeGetter(Navigator.prototype, "userAgent", () => userAgent);
+    if (userAgent) {
+      defineNativeGetter(Navigator.prototype, "userAgent", () => userAgent);
+    }
+
     return;
   }
 
-  const { profile, devicePixelRatio } = createDevice(userId, userAgent);
+  const deviceUserAgent = userAgent || NATIVE_USER_AGENT;
+  const { profile, devicePixelRatio } = createDevice(userId, deviceUserAgent);
 
-  applyDeviceProfile({ userAgent, profile, devicePixelRatio });
+  applyDeviceProfile({ userAgent: deviceUserAgent, profile, devicePixelRatio });
 }

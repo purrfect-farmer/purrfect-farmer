@@ -1,10 +1,12 @@
 import { customLogger, getUserAgent } from "../utils";
 
+import { getMiniAppHosts } from "./miniAppHosts";
 import { getNetRules } from "@/extension/rule-resources";
 
 export default async function updateNetRules() {
   const userAgent = await getUserAgent();
-  const newRules = getNetRules(userAgent).map((item, index) => ({
+  const miniAppHosts = await getMiniAppHosts();
+  const newRules = getNetRules(userAgent, miniAppHosts).map((item, index) => ({
     ...item,
     id: index + 1,
   }));

@@ -125,6 +125,8 @@ export default (sequelize, DataTypes) => {
       user: DataTypes.JSON,
       options: DataTypes.JSON,
       userAgent: DataTypes.STRING,
+      timeZone: DataTypes.STRING,
+      locale: DataTypes.STRING,
     },
     {
       sequelize,

@@ -1,4 +1,5 @@
 import isValidUserAgent from "@purrfect/shared/lib/userAgent/isValidUserAgent";
+import { readHostLocale } from "@purrfect/shared/lib/device/locale";
 import { customLogger } from "@/utils";
 import toast from "react-hot-toast";
 import { useCallback } from "react";
@@ -31,6 +32,7 @@ export default function useDropFarmerCloudSync({
       initData: instance.getInitData() || accountTelegramInitData,
       headers: instance.api.defaults.headers.common,
       cookies: cookies || [],
+      ...readHostLocale(),
     };
 
     if (isValidUserAgent(instance.userAgent)) {
