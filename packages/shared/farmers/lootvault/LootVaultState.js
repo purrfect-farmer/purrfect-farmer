@@ -61,9 +61,9 @@ export default class LootVaultState extends FarmerModule {
     return this.auth;
   }
 
-  /** Whether the account is registered */
+  /** Whether the account is registered, or already has a wallet on file */
   isRegistered() {
-    return Boolean(this.auth?.["registered"]);
+    return Boolean(this.auth?.["registered"] || this.auth?.["w"]);
   }
 
   /** Whether the drop is down for maintenance */

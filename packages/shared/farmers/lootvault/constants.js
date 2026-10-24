@@ -36,9 +36,6 @@ export const ERROR_CODE = Object.freeze({
   HISTORY_UNAVAILABLE: "blockchain_history_unavailable",
 });
 
-/** The captcha the page renders as a slider; any other type asks for an answer */
-export const SLIDER_CAPTCHA = "slider";
-
 /** The slide the captcha accepts, as the page measures it */
 export const CAPTCHA_SLIDE = Object.freeze({
   MIN_DURATION: 400,

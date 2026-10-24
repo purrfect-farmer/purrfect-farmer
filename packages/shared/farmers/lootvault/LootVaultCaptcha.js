@@ -1,5 +1,5 @@
 import FarmerModule from "../../lib/farmer/FarmerModule.js";
-import { CAPTCHA_SLIDE, SLIDER_CAPTCHA } from "./constants.js";
+import { CAPTCHA_SLIDE } from "./constants.js";
 
 /** A whole number from `min` to `max` */
 function randomBetween(min, max) {
@@ -12,8 +12,8 @@ export default class LootVaultCaptcha extends FarmerModule {
   async obtainToken() {
     const captcha = await this.ctx.api.fetchCaptcha();
 
-    if (captcha?.["type"] !== SLIDER_CAPTCHA) {
-      throw new Error(`Unknown captcha type: ${captcha?.["type"]}`);
+    if (!captcha?.["id"]) {
+      throw new Error("The captcha returned no id");
     }
 
     const result = await this.ctx.api.verifyCaptcha({
