@@ -1,4 +1,7 @@
-import { serializeLaunchParamsQuery } from "@telegram-apps/transformers";
+import {
+  parseLaunchParamsQuery,
+  serializeLaunchParamsQuery,
+} from "@telegram-apps/transformers";
 
 /** The platform and version a mini app is opened with when the real ones are unknown */
 export const DEFAULT_WEB_APP_PLATFORM = "android";
@@ -80,30 +83,42 @@ export function parseTelegramLink(url) {
  */
 export function extractTgWebAppData(url) {
   const parsedUrl = new URL(url);
-  const params = new URLSearchParams(parsedUrl.hash.replace(/^#/, ""));
-  const initData = params.get("tgWebAppData");
-  const initDataUnsafe = getInitDataUnsafe(initData);
+  const launch = readLaunchParams(parsedUrl.hash.replace(/^#/, ""));
 
   return {
-    platform: params.get("tgWebAppPlatform"),
-    version: params.get("tgWebAppVersion"),
-    themeParams: parseThemeParams(params.get("tgWebAppThemeParams")),
-    initData,
-    initDataUnsafe,
+    ...launch,
+    initDataUnsafe: getInitDataUnsafe(launch.initData),
   };
 }
+/** The raw initData, plus the platform, version and theme a launch query carries, read raw without a theme when Telegram's parser refuses them
+ * @param {string} query - the launch query, as the mini app's hash carries it
+ */
+export function readLaunchParams(query) {
+  const params = new URLSearchParams(query);
+  const initData = params.get("tgWebAppData");
 
-/** The theme a launch hash carries, or null when it carries none or an unreadable one */
-export function parseThemeParams(value) {
-  if (!value) return null;
+  /** The initData stays raw, so only the launch fields go through the parser */
+  const launchOnly = new URLSearchParams(params);
+  launchOnly.delete("tgWebAppData");
 
   try {
-    return JSON.parse(value);
+    const launch = parseLaunchParamsQuery(launchOnly.toString());
+
+    return {
+      initData,
+      platform: launch.tgWebAppPlatform,
+      version: launch.tgWebAppVersion,
+      themeParams: launch.tgWebAppThemeParams,
+    };
   } catch {
-    return null;
+    return {
+      initData,
+      platform: params.get("tgWebAppPlatform"),
+      version: params.get("tgWebAppVersion"),
+      themeParams: null,
+    };
   }
 }
-
 /**
  * Extract and parse initDataUnsafe from a raw initData string
  * @param {string} initData - The raw initData string to parse

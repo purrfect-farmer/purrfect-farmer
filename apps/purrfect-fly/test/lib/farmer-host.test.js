@@ -4,7 +4,8 @@ import {
   DEFAULT_THEME_PARAMS,
   DEFAULT_WEB_APP_PLATFORM,
   DEFAULT_WEB_APP_VERSION,
-  parseThemeParams,
+  extractTgWebAppData,
+  readLaunchParams,
 } from "@purrfect/shared/utils/telegram.js";
 import createDebugger from "@purrfect/shared/lib/farmer/createDebugger.js";
 import TaskRunner from "@purrfect/shared/lib/farmer/TaskRunner.js";
@@ -355,5 +356,38 @@ test("the launch URL carries the version, platform, theme and start parameter", 
   assert.equal(real.get("tgWebAppVersion"), "9.1");
   assert.equal(real.get("tgWebAppThemeParams"), '{"bg_color":"#000000"}');
   assert.equal(real.get("tgWebAppStartParam"), null);
-  assert.deepEqual(parseThemeParams("not json"), null);
+});
+
+test("launch params come from Telegram's parser, or raw when it refuses them", () => {
+  const initData = "user=%7B%22id%22%3A1%7D&auth_date=1729000000&hash=h";
+  const query = new URLSearchParams({
+    tgWebAppData: initData,
+    tgWebAppVersion: "9.1",
+    tgWebAppPlatform: "ios",
+    tgWebAppThemeParams: '{"bg_color":"#000000"}',
+  }).toString();
+
+  assert.deepEqual(readLaunchParams(query), {
+    initData,
+    platform: "ios",
+    version: "9.1",
+    themeParams: { bg_color: "#000000" },
+  });
+
+  const broken = query
+    .replace("9.1", "9.1")
+    .replace(encodeURIComponent('{"bg_color":"#000000"}'), "not-json");
+
+  assert.deepEqual(readLaunchParams(broken), {
+    initData,
+    platform: "ios",
+    version: "9.1",
+    themeParams: null,
+  });
+
+  const webview = extractTgWebAppData(`https://example.com/#${query}`);
+
+  assert.equal(webview.initData, initData);
+  assert.equal(webview.initDataUnsafe.user.id, 1);
+  assert.equal(webview.platform, "ios");
 });
