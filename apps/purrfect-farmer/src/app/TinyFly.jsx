@@ -23,6 +23,7 @@ import utils from "@/utils/bundle";
  * @param {Object} param0
  * @param {import("@purrfect/shared/lib/BaseFarmer.js").default} param0.FarmerClass
  * @param {string} param0.userAgent
+ * @param {boolean} param0.allowProfileUpdates
  * @returns {import("@purrfect/shared/lib/BaseFarmer.js").default}
  */
 const createInstance = ({
@@ -32,6 +33,7 @@ const createInstance = ({
   userAgent,
   controller,
   client,
+  allowProfileUpdates,
 }) => {
   const InstanceClass = class extends FarmerClass {
     constructor() {
@@ -44,6 +46,7 @@ const createInstance = ({
         userAgent,
         controller,
         client,
+        allowProfileUpdates,
       });
 
       this.registerDelayInterceptor();
@@ -73,7 +76,8 @@ const createInstance = ({
 
 function TinyFly() {
   const logger = useMemo(() => new BrowserLogger(), []);
-  const { drops, telegramClient, captcha } = useAppContext();
+  const { drops, telegramClient, captcha, settings } = useAppContext();
+  const allowProfileUpdates = Boolean(settings.allowProfileUpdates);
   const client = telegramClient.ref.current;
   const userAgent = useUserAgent();
 
@@ -126,6 +130,7 @@ function TinyFly() {
               userAgent,
               controller,
               client,
+              allowProfileUpdates,
             });
 
             await instance.run();
@@ -154,7 +159,15 @@ function TinyFly() {
       /* Initial Instructions */
       logger.warn('> Click "Stop" to halt farming');
     },
-    [drops, logger, captcha, client, setStarted],
+    [
+      drops,
+      logger,
+      captcha,
+      client,
+      userAgent,
+      allowProfileUpdates,
+      setStarted,
+    ],
   );
 
   /** Stop Tiny Fly */

@@ -5,6 +5,7 @@ import BrowserLogger from "@purrfect/shared/lib/BrowserLogger";
 import CronRunner from "@purrfect/shared/lib/CronRunner";
 import TelegramWebClient from "@/lib/TelegramWebClient";
 import TerminalArea from "@/components/TerminalArea";
+import { accountStorageKey } from "@/lib/storageKeys";
 import axios from "axios";
 import farmers from "@/core/farmers";
 import seedrandom from "seedrandom";
@@ -57,6 +58,10 @@ const createRunner = ({ FarmerClass, logger, captcha, controller }) => {
         captcha,
         userAgent: userAgents[Math.floor(this.random() * userAgents.length)],
         controller,
+        allowProfileUpdates: Boolean(
+          storage.get(accountStorageKey(account.id, "settings"))
+            ?.allowProfileUpdates,
+        ),
       });
 
       this.registerDelayInterceptor();
