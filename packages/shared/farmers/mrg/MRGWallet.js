@@ -1,6 +1,9 @@
 import Decimal from "decimal.js";
+import FarmerModule from "../../lib/farmer/FarmerModule.js";
 import { createWallet } from "../../lib/ton/wallet.js";
 import { buildTonProof } from "../../lib/ton/proof.js";
+import { formatAmount } from "../../lib/farmer/format.js";
+import { readOnChainHolding } from "../../lib/farmer/onChain.js";
 import {
   TON_PROOF_DOMAIN,
   VERIFICATION_CHECK_FIRST_DELAY_SECONDS,
@@ -11,20 +14,20 @@ import {
 } from "./constants.js";
 import { Cell } from "@ton/core";
 
-/** Trait: binding the wallet, its holding and the on-chain verification */
-export default class MRGWallet {
+/** Binding the wallet, its holding and the on-chain verification */
+export default class MRGWallet extends FarmerModule {
   /* --------------------------------------------------------------------- */
   /* Wallet                                                                */
   /* --------------------------------------------------------------------- */
 
   /** The address the drop currently has the account on */
   getConnectedWalletAddress() {
-    return this.account_data?.user?.["tonWalletAddress"] || null;
+    return this.ctx.state.data?.user?.["tonWalletAddress"] || null;
   }
 
   /** The holding the drop credits the account with */
   getWalletHolding() {
-    return new Decimal(this.account_data?.user?.["tonWalletBalance"] || 0);
+    return new Decimal(this.ctx.state.data?.user?.["tonWalletBalance"] || 0);
   }
 
   /** Re-read the connected wallet on-chain and send it to the drop, which re-reads it too */
@@ -50,29 +53,26 @@ export default class MRGWallet {
       };
     }
 
-    return this.reportWallet(address, await this.readOnChainHolding(address));
+    return this.reportWallet(
+      address,
+      await readOnChainHolding(this.core, address),
+    );
   }
 
   /** Bind the wallet a key pair controls, signing the TON proof the drop asks for */
   async connectSignedWallet(keyPair, version) {
     const wallet = createWallet(keyPair.publicKey, Number(version));
     const address = wallet.address.toString({ bounceable: false });
-    const holding = await this.readOnChainHolding(address);
+    const holding = await readOnChainHolding(this.core, address);
 
     const tonProof = await buildTonProof({
       wallet,
       secretKey: keyPair.secretKey,
       domain: TON_PROOF_DOMAIN,
-      payload: await this.fetchTonProofPayload(),
+      payload: await this.ctx.api.fetchTonProofPayload(),
     });
 
-    const result = await this.reportWallet(address, holding, tonProof);
-
-    if (result.status) {
-      await this.rememberWalletVersion(version);
-    }
-
-    return result;
+    return this.reportWallet(address, holding, tonProof);
   }
 
   /** Bind an address at the holding it is reported with, which the drop takes at face value */
@@ -81,14 +81,12 @@ export default class MRGWallet {
 
     /** A different wallet holds different NFTs */
     if (address !== this.getConnectedWalletAddress()) {
-      this.nftHoldings = null;
+      this.ctx.nft.reset();
     }
 
-    this.logger.info(
-      `Syncing ${address} at ${this.formatAmount(amount)} MRG...`,
-    );
+    this.logger.info(`Syncing ${address} at ${formatAmount(amount)} MRG...`);
 
-    const result = await this.connectWallet(
+    const result = await this.ctx.api.connectWallet(
       address,
       amount.toNumber(),
       tonProof,
@@ -101,10 +99,10 @@ export default class MRGWallet {
       return { status: false, message };
     }
 
-    this.account_data.user = result["user"];
+    this.ctx.state.setUser(result["user"]);
 
     this.logger.success(
-      `Wallet synced at ${this.formatAmount(this.getWalletHolding())} MRG.`,
+      `Wallet synced at ${formatAmount(this.getWalletHolding())} MRG.`,
     );
 
     return { status: true, message: "Wallet synced" };
@@ -125,10 +123,10 @@ export default class MRGWallet {
     });
 
     while (!this.signal.aborted) {
-      result = await this.checkVerification();
+      result = await this.ctx.api.checkVerification();
 
       if (result?.["success"] && result["status"] === "verified") {
-        await this.loadAccount();
+        await this.ctx.state.load();
         this.logger.success("Account verified on-chain.");
         return { status: true };
       }
@@ -167,7 +165,7 @@ export default class MRGWallet {
 
   /** Pay the one-time verification transfer from the wallet's phrase, unless it is already settled or on its way */
   async verifyWalletIfNeeded({ phrase, version, apiKey }) {
-    const info = await this.fetchVerificationInfo();
+    const info = await this.ctx.api.fetchVerificationInfo();
 
     if (info?.["verified"] && !info["verificationRequired"]) {
       return { status: true };

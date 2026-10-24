@@ -1,3 +1,5 @@
+import FarmerModule from "../../lib/farmer/FarmerModule.js";
+import { formatAmount } from "../../lib/farmer/format.js";
 import {
   DEFAULT_TASK_COOLDOWN_HOURS,
   HOLD_TASK_TYPES,
@@ -7,20 +9,38 @@ import {
 } from "./constants.js";
 import Decimal from "decimal.js";
 
-/** Trait: tasks, their cooldowns and squad rewards */
-export default class MRGTasks {
+/** Tasks, their cooldowns and squad rewards */
+export default class MRGTasks extends FarmerModule {
+  /** When each recurring task was last claimed */
+  taskClaims = {};
+
+  /** Tasks the drop has refused the account for good */
+  ineligibleTasks = [];
+
+  /** Read the task records kept between runs */
+  async load() {
+    this.taskClaims = (await this.storage?.get("taskClaims")) || {};
+    this.ineligibleTasks = (await this.storage?.get("ineligibleTasks")) || [];
+  }
+
+  /** Keep the task records for the next run */
+  async persist() {
+    await this.storage?.set("taskClaims", this.taskClaims || {});
+    await this.storage?.set("ineligibleTasks", this.ineligibleTasks || []);
+  }
+
   /* --------------------------------------------------------------------- */
   /* Tasks                                                                 */
   /* --------------------------------------------------------------------- */
 
   /** Every task the drop is currently offering */
   getTasks() {
-    return this.account_data?.["tasks"] || [];
+    return this.ctx.state.data?.["tasks"] || [];
   }
 
   /** The tasks the drop has already settled for good */
   getCompletedTaskIds() {
-    return this.account_data?.["completedTaskIds"] || [];
+    return this.ctx.state.data?.["completedTaskIds"] || [];
   }
 
   /** The window a recurring task waits out, in milliseconds */
@@ -79,16 +99,16 @@ export default class MRGTasks {
 
   /** Whether the wallet holds what a hold task asks for, so a claim is not wasted on it */
   async meetsHoldRequirement(task) {
-    if (!this.getConnectedWalletAddress()) return false;
+    if (!this.ctx.wallet.getConnectedWalletAddress()) return false;
 
     if (task["verificationType"] === "token_hold") {
-      return this.getWalletHolding().greaterThanOrEqualTo(
-        task["minHolding"] || 0,
-      );
+      return this.ctx.wallet
+        .getWalletHolding()
+        .greaterThanOrEqualTo(task["minHolding"] || 0);
     }
 
     return (
-      this.countNftHoldings(await this.readNftHoldings()) >=
+      this.ctx.nft.countNftHoldings(await this.ctx.nft.readNftHoldings()) >=
       (task["minNfts"] || 1)
     );
   }
@@ -100,7 +120,7 @@ export default class MRGTasks {
     /** The drop checks membership, so a chat the farmer may not join is not worth a claim */
     if (
       !this.isHoldTask(task) &&
-      !this.validateTelegramTask(this.getTaskUrl(task))
+      !this.core.telegram.validateTask(this.getTaskUrl(task))
     ) {
       return false;
     }
@@ -139,7 +159,7 @@ export default class MRGTasks {
 
   /** The task's link with any referral swapped for this account, as the page opens it */
   getTaskUrl(task) {
-    const userId = String(this.getUserId() || "0");
+    const userId = String(this.core.userId() || "0");
 
     return String(task["url"] || "")
       .replace(/REFCODE/g, userId)
@@ -150,10 +170,13 @@ export default class MRGTasks {
   /** Complete one task the way the page does: open it, dwell, then claim; a hold task is claimed straight away */
   async completeTask(task) {
     if (!this.isHoldTask(task)) {
-      await this.openTaskLink(this.getTaskUrl(task), TASK_DWELL_SECONDS);
+      await this.core.telegram.openTaskLink(
+        this.getTaskUrl(task),
+        TASK_DWELL_SECONDS,
+      );
     }
 
-    const result = await this.claimTask(task["taskId"]);
+    const result = await this.ctx.api.claimTask(task["taskId"]);
 
     if (result?.["success"]) {
       this.recordTaskClaim(task["taskId"]);
@@ -192,18 +215,18 @@ export default class MRGTasks {
 
   /** Claim the squad bonus and the commission the squad has mined */
   async claimSquadRewards() {
-    const friends = await this.fetchFriends();
+    const friends = await this.ctx.api.fetchFriends();
     const teamStats = friends?.["teamStats"] || {};
     const unclaimedBonus = new Decimal(
       teamStats["unclaimedOneTimeBonusMRG"] || 0,
     );
 
     if (unclaimedBonus.greaterThan(0)) {
-      const result = await this.claimOneTimeBonus();
+      const result = await this.ctx.api.claimOneTimeBonus();
 
       if (result?.["success"]) {
         this.logger.success(
-          `Claimed ${this.formatAmount(unclaimedBonus)} MRG in squad bonuses.`,
+          `Claimed ${formatAmount(unclaimedBonus)} MRG in squad bonuses.`,
         );
       } else {
         this.logger.warn(
@@ -215,15 +238,15 @@ export default class MRGTasks {
     }
 
     const unclaimedCommission = new Decimal(
-      this.getAccountDetails()["unclaimedTeamCommission"] || 0,
+      this.ctx.state.user()["unclaimedTeamCommission"] || 0,
     );
 
     if (unclaimedCommission.greaterThan(0)) {
-      const result = await this.claimTeamCommission();
+      const result = await this.ctx.api.claimTeamCommission();
 
       if (result?.["success"]) {
         this.logger.success(
-          `Claimed ${this.formatAmount(unclaimedCommission)} MRG in commission.`,
+          `Claimed ${formatAmount(unclaimedCommission)} MRG in commission.`,
         );
       } else {
         this.logger.warn(

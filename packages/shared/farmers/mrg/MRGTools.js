@@ -1,53 +1,64 @@
 import { keyPairFromPhraseOrSecretKey } from "../../lib/ton/wallet.js";
 import Decimal from "decimal.js";
+import FarmerModule from "../../lib/farmer/FarmerModule.js";
+import createAutoWalletTools from "../../lib/farmer/autoWalletTools.js";
+import {
+  formatAmount,
+  logMiningRateBreakdown,
+} from "../../lib/farmer/format.js";
+import { promptAmount, promptWalletVersion } from "../../lib/farmer/prompts.js";
 import { findSliderX } from "../../lib/sliderCaptcha.js";
 import { MAXIMUM_MINER_LEVEL } from "../../lib/auto/minerCurve.js";
 
-/** Trait: the interactive tools the farmer offers */
-export default class MRGTools {
+/** The interactive tools the farmer offers */
+export default class MRGTools extends FarmerModule {
   /* --------------------------------------------------------------------- */
   /* Tools (manual actions)                                                */
   /* --------------------------------------------------------------------- */
 
-  createTools() {
+  create() {
     return [
       {
         name: "Wallet",
         list: [
-          ...this.createAutoWalletTools(),
+          ...createAutoWalletTools({
+            connect: () => this.connectWalletInteractive(),
+            disconnect: () => this.disconnectWalletInteractive(),
+            prompts: this.ctx.connectPrompts,
+          }),
           {
             id: "refresh-holding",
             icon: "reconnect",
             title: "Refresh Holding",
-            action: this.refreshHolding.bind(this),
+            action: () => this.refreshHolding(),
             dispatch: false,
           },
           {
             id: "report-balance",
             icon: "import",
             title: "Report Balance",
-            action: this.reportBalanceInteractive.bind(this),
+            action: () => this.reportBalanceInteractive(),
             dispatch: false,
           },
           {
             id: "verify-wallet",
             icon: "kyc",
             title: "Verify Wallet",
-            action: this.verifyWalletInteractive.bind(this),
+            action: () => this.verifyWalletInteractive(),
             dispatch: false,
           },
           {
             id: "check-verification",
             icon: "kyc",
             title: "Check Verification",
-            action: this.checkVerificationInteractive.bind(this),
+            action: () => this.checkVerificationInteractive(),
             dispatch: false,
           },
           {
             id: "nft-holdings",
             icon: "search",
             title: "NFT Holdings",
-            action: this.logNftHoldings.bind(this),
+            action: () => this.logNftHoldings(),
             dispatch: false,
           },
         ],
@@ -59,21 +70,21 @@ export default class MRGTools {
             id: "claim-mining",
             icon: "check",
             title: "Claim Mining",
-            action: this.claimMiningInteractive.bind(this),
+            action: () => this.claimMiningInteractive(),
             dispatch: false,
           },
           {
             id: "daily-checkin",
             icon: "check",
             title: "Daily Check-In",
-            action: this.checkInInteractive.bind(this),
+            action: () => this.checkInInteractive(),
             dispatch: false,
           },
           {
             id: "estimate-mining",
             icon: "search",
             title: "Estimate Mining",
-            action: this.estimateMining.bind(this),
+            action: () => this.estimateMining(),
             dispatch: false,
           },
         ],
@@ -85,7 +96,7 @@ export default class MRGTools {
             id: "unlock-level",
             icon: "key",
             title: "Unlock Level",
-            action: this.unlockLevelInteractive.bind(this),
+            action: () => this.unlockLevelInteractive(),
             dispatch: false,
           },
         ],
@@ -97,14 +108,14 @@ export default class MRGTools {
             id: "human-check",
             icon: "kyc",
             title: "Human Check",
-            action: this.renewHumanCheck.bind(this),
+            action: () => this.ctx.humanCheck.renew(),
             dispatch: false,
           },
           {
             id: "reset-human-check",
             icon: "reconnect",
             title: "Reset Human Check",
-            action: this.resetHumanCheck.bind(this),
+            action: () => this.ctx.humanCheck.reset(),
             dispatch: false,
           },
         ],
@@ -116,21 +127,21 @@ export default class MRGTools {
             id: "inspect-captcha",
             icon: "search",
             title: "Inspect Captcha",
-            action: this.inspectCaptcha.bind(this),
+            action: () => this.inspectCaptcha(),
             dispatch: false,
           },
           {
             id: "withdrawal-status",
             icon: "history",
             title: "Withdrawal Status",
-            action: this.logWithdrawalStatus.bind(this),
+            action: () => this.ctx.withdrawal.logStatus(),
             dispatch: false,
           },
           {
             id: "withdraw",
             icon: "withdraw",
             title: "Withdraw",
-            action: this.withdrawInteractive.bind(this),
+            action: () => this.ctx.flow.withdrawInteractive(),
             dispatch: false,
           },
         ],
@@ -140,7 +151,7 @@ export default class MRGTools {
 
   /** Bind a wallet, prompting for the phrase that signs its TON proof */
   async connectWalletInteractive() {
-    const input = await this.promptInput(
+    const input = await this.core.prompt(
       "Enter your TON Wallet Phrase / Secret Key (hex):",
     );
 
@@ -150,34 +161,31 @@ export default class MRGTools {
     }
 
     const keyPair = await keyPairFromPhraseOrSecretKey(input);
-    const version = await this.promptInput({
-      type: "select",
-      text: "Select wallet version:",
-      options: [
-        { value: "5", label: "Wallet V5R1" },
-        { value: "4", label: "Wallet V4" },
-      ],
-    });
+    const version = await promptWalletVersion(this.core);
 
-    await this.ensureStateLoaded();
+    await this.ctx.state.ensureLoaded();
 
-    const { status } = await this.connectSignedWallet(keyPair, version);
+    const { status } = await this.ctx.wallet.connectSignedWallet(
+      keyPair,
+      version,
+    );
 
     if (status) {
-      await this.unlockAffordableLevel();
+      await this.ctx.walletVersion.remember(version);
+      await this.ctx.mining.unlockAffordableLevel();
     }
   }
 
   /** Unbind the wallet the account is on */
   async disconnectWalletInteractive() {
-    await this.ensureStateLoaded();
+    await this.ctx.state.ensureLoaded();
 
-    if (!this.getConnectedWalletAddress()) {
+    if (!this.ctx.wallet.getConnectedWalletAddress()) {
       this.logger.info("No wallet connected.");
       return;
     }
 
-    const result = await this.disconnectWallet();
+    const result = await this.ctx.api.disconnectWallet();
 
     if (!result?.["success"]) {
       this.logger.error(
@@ -187,19 +195,21 @@ export default class MRGTools {
       return;
     }
 
-    this.nftHoldings = null;
-    await this.rememberWalletVersion(undefined);
-    await this.loadAccount();
+    this.ctx.nft.reset();
+    await this.ctx.walletVersion.remember(undefined);
+    await this.ctx.state.load();
     this.logger.success("Wallet disconnected.");
   }
 
   /** Unlock what the derived wallet covers, then pay its verification since the phrase is known */
   async afterDerivedWalletConnected({ phrase, version } = {}) {
-    await this.unlockAffordableLevel();
+    await this.ctx.mining.unlockAffordableLevel();
 
-    if (!phrase || this.isAccountVerified(this.getAccountDetails())) return;
+    if (!phrase || this.ctx.account.isAccountVerified(this.ctx.state.user())) {
+      return;
+    }
 
-    const { status, message } = await this.verifyWalletIfNeeded({
+    const { status, message } = await this.ctx.wallet.verifyWalletIfNeeded({
       phrase,
       version,
     });
@@ -211,20 +221,20 @@ export default class MRGTools {
 
   /** Re-read the connected wallet on-chain and unlock what it now covers */
   async refreshHolding() {
-    await this.ensureStateLoaded();
+    await this.ctx.state.ensureLoaded();
 
-    const { status } = await this.syncConnectedWallet();
+    const { status } = await this.ctx.wallet.syncConnectedWallet();
 
     if (status) {
-      await this.unlockAffordableLevel();
+      await this.ctx.mining.unlockAffordableLevel();
     }
   }
 
   /** Report a holding of your own, prompting for it, since the drop takes the figure as given */
   async reportBalanceInteractive() {
-    await this.ensureStateLoaded();
+    await this.ctx.state.ensureLoaded();
 
-    const address = this.getConnectedWalletAddress();
+    const address = this.ctx.wallet.getConnectedWalletAddress();
 
     if (!address) {
       this.logger.warn(
@@ -233,48 +243,34 @@ export default class MRGTools {
       return;
     }
 
-    const input = await this.promptInput(
-      "How much MRG should the drop credit?",
-    );
-    const trimmed = (input || "").trim();
+    const holding = await promptAmount(this.core, {
+      question: "How much MRG should the drop credit?",
+      token: "MRG",
+      emptyMessage: "No balance provided.",
+    });
 
-    if (!trimmed) {
-      this.logger.warn("No balance provided.");
-      return;
-    }
+    if (!holding) return;
 
-    let holding;
-
-    try {
-      holding = new Decimal(trimmed);
-    } catch {
-      this.logger.error("Invalid MRG amount:", trimmed);
-      return;
-    }
-
-    if (holding.isNegative()) {
-      this.logger.error("MRG amount must be non-negative");
-      return;
-    }
-
-    const { status } = await this.reportWallet(address, holding);
+    const { status } = await this.ctx.wallet.reportWallet(address, holding);
 
     if (!status) return;
 
-    const reachableLevel = this.findLevelForHolding(this.getLevelHolding());
+    const { mining } = this.ctx;
+    const reachableLevel = mining.findLevelForHolding(mining.getLevelHolding());
 
     this.logger.keyValue("Reachable Level", reachableLevel);
     this.logger.keyValue(
       "Speed",
-      `${this.getSpeedForLevel(reachableLevel)} TH/s`,
+      `${mining.getSpeedForLevel(reachableLevel)} TH/s`,
     );
   }
 
   /** Log the account's Genesis NFTs and what they are worth at withdrawal */
   async logNftHoldings() {
-    await this.ensureStateLoaded();
+    await this.ctx.state.ensureLoaded();
 
-    const address = this.getConnectedWalletAddress();
+    const { nft } = this.ctx;
+    const address = this.ctx.wallet.getConnectedWalletAddress();
 
     if (!address) {
       this.logger.warn(
@@ -284,14 +280,14 @@ export default class MRGTools {
     }
 
     /** Read afresh, since the tool is how a new NFT is checked for */
-    this.nftHoldings = null;
+    nft.reset();
 
-    const holdings = await this.readNftHoldings(address);
-    const discountPercent = this.getNftDiscountPercent(holdings);
+    const holdings = await nft.readNftHoldings(address);
+    const discountPercent = nft.getNftDiscountPercent(holdings);
 
     this.logger.newline();
     this.logger.keyValue("Wallet", address);
-    this.logger.keyValue("Genesis NFTs", this.countNftHoldings(holdings), {
+    this.logger.keyValue("Genesis NFTs", nft.countNftHoldings(holdings), {
       valueStyle: holdings.length
         ? this.logger.c.greenBright
         : this.logger.c.yellowBright,
@@ -305,11 +301,11 @@ export default class MRGTools {
     this.logger.keyValue("Fee Discount", `${discountPercent}%`);
     this.logger.keyValue(
       "Withdrawal Fee",
-      this.formatAmount(this.getWithdrawalFee(discountPercent)),
+      formatAmount(nft.getWithdrawalFee(discountPercent)),
     );
     this.logger.keyValue(
       "Drop sees an NFT holder",
-      this.getAccountDetails()["isNftHolder"] ? "Yes" : "No",
+      this.ctx.state.user()["isNftHolder"] ? "Yes" : "No",
     );
 
     return { holdings, discountPercent };
@@ -317,9 +313,9 @@ export default class MRGTools {
 
   /** Fetch a withdrawal slider and log it, so the puzzle can be studied */
   async inspectCaptcha() {
-    await this.ensureStateLoaded();
+    await this.ctx.state.ensureLoaded();
 
-    const challenge = await this.createCaptcha();
+    const challenge = await this.ctx.api.createCaptcha();
 
     if (!challenge?.["success"]) {
       this.logger.error(
@@ -370,7 +366,7 @@ export default class MRGTools {
 
   /** Pay the on-chain verification, prompting for the bound wallet's phrase */
   async verifyWalletInteractive() {
-    const phrase = ((await this.promptInput("Enter the wallet phrase:")) || "")
+    const phrase = ((await this.core.prompt("Enter the wallet phrase:")) || "")
       .trim()
       .split(/\s+/)
       .join(" ");
@@ -380,21 +376,14 @@ export default class MRGTools {
       return;
     }
 
-    const version = await this.promptInput({
-      type: "select",
-      text: "Select wallet version:",
-      options: [
-        { value: "5", label: "Wallet V5R1" },
-        { value: "4", label: "Wallet V4" },
-      ],
-    });
+    const version = await promptWalletVersion(this.core);
 
     if (!version) {
       this.logger.warn("No wallet version selected.");
       return;
     }
 
-    const { status, message } = await this.verifyAutoWallet({
+    const { status, message } = await this.ctx.auto.verifyWallet({
       phrase,
       version,
     });
@@ -408,9 +397,9 @@ export default class MRGTools {
 
   /** Show what the verification needs and ask the drop whether it has landed */
   async checkVerificationInteractive() {
-    await this.ensureStateLoaded();
+    await this.ctx.state.ensureLoaded();
 
-    const info = await this.fetchVerificationInfo();
+    const info = await this.ctx.api.fetchVerificationInfo();
     const payment = info?.["payment"] || {};
 
     this.logger.newline();
@@ -429,12 +418,12 @@ export default class MRGTools {
 
     if (info?.["verified"]) return info;
 
-    const check = await this.checkVerification();
+    const check = await this.ctx.api.checkVerification();
 
     this.logger.keyValue("Payment", check?.["status"] || check?.["error"]);
 
     if (check?.["status"] === "verified") {
-      await this.loadAccount();
+      await this.ctx.state.load();
     }
 
     return info;
@@ -442,21 +431,22 @@ export default class MRGTools {
 
   /** Check in on demand */
   async checkInInteractive() {
-    await this.ensureStateLoaded();
-    await this.checkInDaily();
+    await this.ctx.state.ensureLoaded();
+    await this.ctx.mining.checkInDaily();
   }
 
   /** Claim mining on demand */
   async claimMiningInteractive() {
-    await this.ensureStateLoaded();
-    await this.claimPendingMining();
+    await this.ctx.state.ensureLoaded();
+    await this.ctx.mining.claimPendingMining();
   }
 
   /** Unlock a level, prompting for which one and leaving the holding to the drop to judge */
   async unlockLevelInteractive() {
-    await this.ensureStateLoaded();
+    await this.ctx.state.ensureLoaded();
 
-    const input = await this.promptInput("Which level?");
+    const { mining } = this.ctx;
+    const input = await this.core.prompt("Which level?");
     const level = Number((input || "").trim());
 
     if (!Number.isInteger(level) || level < 1 || level > MAXIMUM_MINER_LEVEL) {
@@ -464,59 +454,48 @@ export default class MRGTools {
       return;
     }
 
-    const required = this.getRequiredHoldingForLevel(level);
-    const holding = this.getLevelHolding();
+    const required = mining.getRequiredHoldingForLevel(level);
+    const holding = mining.getLevelHolding();
 
     this.logger.newline();
     this.logger.keyValue("Level", level);
-    this.logger.keyValue("Required Holding", this.formatAmount(required));
-    this.logger.keyValue("Your Holding", this.formatAmount(holding));
+    this.logger.keyValue("Required Holding", formatAmount(required));
+    this.logger.keyValue("Your Holding", formatAmount(holding));
 
     /** Reported rather than refused, so a level can be tried whatever the holding reads */
     if (holding.lessThan(required)) {
       this.logger.warn(
-        `${this.formatAmount(required.minus(holding))} MRG short of level ${level}, asking anyway.`,
+        `${formatAmount(required.minus(holding))} MRG short of level ${level}, asking anyway.`,
       );
     }
 
-    await this.unlockToLevel(level);
+    await mining.unlockToLevel(level);
   }
 
   /** Report what a holding would mine, prompting for the amount */
   async estimateMining() {
-    const input = await this.promptInput("How much MRG?");
-    const trimmed = (input || "").trim();
+    const holding = await promptAmount(this.core, {
+      question: "How much MRG?",
+      token: "MRG",
+    });
 
-    if (!trimmed) return;
+    if (!holding) return;
 
-    let holding;
-
-    try {
-      holding = new Decimal(trimmed);
-    } catch {
-      this.logger.error("Invalid MRG amount:", trimmed);
-      return;
-    }
-
-    if (holding.isNegative()) {
-      this.logger.error("MRG amount must be non-negative");
-      return;
-    }
-
-    const level = this.findLevelForHolding(holding);
-    const speed = this.getSpeedForLevel(level);
-    const dailyOutput = new Decimal(this.getDailyOutputForLevel(level));
+    const { mining } = this.ctx;
+    const level = mining.findLevelForHolding(holding);
+    const speed = mining.getSpeedForLevel(level);
+    const dailyOutput = new Decimal(mining.getDailyOutputForLevel(level));
 
     this.logger.newline();
-    this.logger.keyValue("MRG Amount", this.formatAmount(holding));
+    this.logger.keyValue("MRG Amount", formatAmount(holding));
     this.logger.keyValue("Reachable Level", level);
     this.logger.keyValue(
       "Level Cost",
-      this.formatAmount(this.getRequiredHoldingForLevel(level)),
+      formatAmount(mining.getRequiredHoldingForLevel(level)),
     );
     this.logger.keyValue("Speed", `${speed} TH/s`);
 
     this.logger.newline();
-    this.logMiningRateBreakdown(dailyOutput);
+    logMiningRateBreakdown(this.logger, dailyOutput);
   }
 }

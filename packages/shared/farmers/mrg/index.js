@@ -1,17 +1,5 @@
 import BaseFarmer from "../../lib/BaseFarmer.js";
-import applyTraits from "../../lib/applyTraits.js";
 import { createContext } from "./context.js";
-import MRGSession from "./MRGSession.js";
-import MRGApi from "./MRGApi.js";
-import MRGHumanCheck from "./MRGHumanCheck.js";
-import MRGState from "./MRGState.js";
-import MRGWallet from "./MRGWallet.js";
-import MRGNft from "./MRGNft.js";
-import MRGMining from "./MRGMining.js";
-import MRGTasks from "./MRGTasks.js";
-import MRGWithdrawal from "./MRGWithdrawal.js";
-import MRGAccount from "./MRGAccount.js";
-import MRGTools from "./MRGTools.js";
 import { MINIMUM_WITHDRAWAL, MRG_JETTON_ADDRESS } from "./constants.js";
 
 export default class MRGFarmer extends BaseFarmer {
@@ -37,8 +25,8 @@ export default class MRGFarmer extends BaseFarmer {
     verifiable: true,
   };
 
-  /** Collaborators the traits work through */
-  ctx = createContext(this);
+  /** The modules the farmer works through */
+  ctx = createContext(this.core);
 
   /* --------------------------------------------------------------------- */
   /* Process                                                               */
@@ -46,32 +34,110 @@ export default class MRGFarmer extends BaseFarmer {
 
   /** Process Farmer */
   async process() {
-    await this.login();
-    await this.updatePresence(true);
+    const { session, account, humanCheck, mining, tasks } = this.ctx;
 
-    await this.logAccountInfo();
-    await this.executeTask("Human Check", () => this.ensureHumanCheck());
-    await this.executeTask("Check-In", () => this.checkInDaily());
-    await this.executeTask("Level", () => this.unlockAffordableLevel());
-    await this.executeTask("Mining", () => this.claimPendingMining());
-    await this.executeTask("Tasks", () => this.completeTasks());
-    await this.executeTask("Squad", () => this.claimSquadRewards());
+    await session.login();
+    await session.updatePresence(true);
+
+    await account.logInfo();
+    await this.executeTask("Human Check", () => humanCheck.ensure());
+    await this.executeTask("Check-In", () => mining.checkInDaily());
+    await this.executeTask("Level", () => mining.unlockAffordableLevel());
+    await this.executeTask("Mining", () => mining.claimPendingMining());
+    await this.executeTask("Tasks", () => tasks.completeTasks());
+    await this.executeTask("Squad", () => tasks.claimSquadRewards());
     await this.executeTask("Withdraw", () => this.withdraw());
     await this.storeAutoSnapshot();
-    await this.updatePresence(false);
+    await session.updatePresence(false);
+  }
+
+  /* --------------------------------------------------------------------- */
+  /* Host hooks                                                            */
+  /* --------------------------------------------------------------------- */
+
+  /** Carry `initData` on the drop's own API calls */
+  configureApi() {
+    return this.ctx.api.configure();
+  }
+
+  /** Get Auth */
+  fetchAuth() {
+    return this.ctx.api.verifyAccount();
+  }
+
+  /** Get Meta */
+  fetchMeta() {
+    return this.ctx.state.load();
+  }
+
+  /** Load data */
+  async load() {
+    await this.ctx.walletVersion.load();
+    await this.ctx.humanCheck.restore();
+    await this.ctx.tasks.load();
+    this.ctx.nft.reset();
+  }
+
+  /** Persist data */
+  persist() {
+    return this.ctx.tasks.persist();
+  }
+
+  /** Get Referral Link */
+  getReferralLink() {
+    return this.ctx.session.getReferralLink();
+  }
+
+  /** Get Referrals Count */
+  getReferralsCount() {
+    return this.ctx.session.getReferralsCount();
+  }
+
+  createTools() {
+    return this.ctx.tools.create();
+  }
+
+  /* --------------------------------------------------------------------- */
+  /* Auto contract                                                         */
+  /* --------------------------------------------------------------------- */
+
+  connectAutoWallet(wallet) {
+    return this.ctx.auto.connectWallet(wallet);
+  }
+
+  verifyAutoWallet(wallet) {
+    return this.ctx.auto.verifyWallet(wallet);
+  }
+
+  refreshAutoState() {
+    return this.ctx.auto.refreshState();
+  }
+
+  refreshAutoSummary() {
+    return this.ctx.auto.refreshSummary();
+  }
+
+  startAutoMining() {
+    return this.ctx.auto.startMining();
+  }
+
+  getAutoSummary() {
+    return this.ctx.auto.summary();
+  }
+
+  storeAutoSnapshot() {
+    return this.ctx.snapshot.store();
+  }
+
+  readAutoWithdrawals() {
+    return this.ctx.snapshot.readWithdrawals();
+  }
+
+  withdraw(options) {
+    return this.ctx.flow.withdraw(options);
+  }
+
+  hasPendingWithdrawal() {
+    return this.ctx.withdrawals.hasPending();
   }
 }
-
-applyTraits(MRGFarmer, [
-  MRGSession,
-  MRGApi,
-  MRGHumanCheck,
-  MRGState,
-  MRGWallet,
-  MRGNft,
-  MRGMining,
-  MRGTasks,
-  MRGWithdrawal,
-  MRGAccount,
-  MRGTools,
-]);

@@ -1,3 +1,5 @@
+import FarmerModule from "../../lib/farmer/FarmerModule.js";
+import { formatAmount } from "../../lib/farmer/format.js";
 import {
   CHECKIN_REWARDS,
   MINIMUM_CLAIMABLE_MINING,
@@ -11,8 +13,8 @@ import {
   getMinerSpeed,
 } from "../../lib/auto/minerCurve.js";
 
-/** Trait: levels, mining claims and the daily check-in */
-export default class MRGMining {
+/** Levels, mining claims and the daily check-in */
+export default class MRGMining extends FarmerModule {
   /* --------------------------------------------------------------------- */
   /* Check-in                                                              */
   /* --------------------------------------------------------------------- */
@@ -29,7 +31,7 @@ export default class MRGMining {
 
   /** Check in once a day, which the page offers until the day is marked */
   async checkInDaily() {
-    const user = this.getAccountDetails();
+    const user = this.ctx.state.user();
     const { today, yesterday } = this.getCheckInDays();
 
     if (user["checkinLastDay"] === today) {
@@ -42,7 +44,7 @@ export default class MRGMining {
         ? (Number(user["checkinStreak"]) || 0) + 1
         : 1;
     const day = ((streak - 1) % CHECKIN_REWARDS.length) + 1;
-    const result = await this.dailyCheckIn();
+    const result = await this.ctx.api.dailyCheckIn();
 
     if (!result?.["success"]) {
       this.logger.warn(
@@ -52,7 +54,7 @@ export default class MRGMining {
     }
 
     if (result["user"]) {
-      this.account_data.user = result["user"];
+      this.ctx.state.setUser(result["user"]);
     } else {
       user["checkinStreak"] = result["streak"] ?? streak;
       user["checkinLastDay"] = today;
@@ -69,7 +71,7 @@ export default class MRGMining {
 
   /** The level the drop is currently mining at */
   getActiveLevel() {
-    return Number(this.account_data?.["activeLevel"]) || 0;
+    return Number(this.ctx.state.data?.["activeLevel"]) || 0;
   }
 
   /** The MRG holding a level is unlocked with, priced exactly as the Miners Store does */
@@ -79,11 +81,11 @@ export default class MRGMining {
 
   /** What the drop levels against: the in-app balance, plus the wallet once one is connected */
   getLevelHolding() {
-    const user = this.getAccountDetails();
+    const user = this.ctx.state.user();
     const inAppBalance = new Decimal(user["inAppBalance"] || 0);
 
-    return this.getConnectedWalletAddress()
-      ? inAppBalance.plus(this.getWalletHolding())
+    return this.ctx.wallet.getConnectedWalletAddress()
+      ? inAppBalance.plus(this.ctx.wallet.getWalletHolding())
       : inAppBalance;
   }
 
@@ -107,7 +109,7 @@ export default class MRGMining {
 
   /** Unlock the highest level the current holding covers */
   async unlockAffordableLevel() {
-    if (!this.getConnectedWalletAddress()) {
+    if (!this.ctx.wallet.getConnectedWalletAddress()) {
       this.logger.info("Levels need a connected wallet.");
       return;
     }
@@ -118,7 +120,7 @@ export default class MRGMining {
 
     if (targetLevel <= activeLevel) {
       this.logger.info(
-        `Level ${activeLevel} is the highest ${this.formatAmount(holding)} MRG covers.`,
+        `Level ${activeLevel} is the highest ${formatAmount(holding)} MRG covers.`,
       );
       return;
     }
@@ -128,7 +130,7 @@ export default class MRGMining {
 
   /** Unlock a level, which the backend grants against the holding */
   async unlockToLevel(level) {
-    const result = await this.unlockLevel(level);
+    const result = await this.ctx.api.unlockLevel(level);
 
     if (!result?.["success"]) {
       const message = result?.["error"] || "Unknown error";
@@ -137,10 +139,10 @@ export default class MRGMining {
       return { status: false, message };
     }
 
-    this.account_data["activeLevel"] = level;
+    this.ctx.state.data["activeLevel"] = level;
 
     if (result["user"]) {
-      this.account_data.user = result["user"];
+      this.ctx.state.setUser(result["user"]);
     }
 
     this.logger.success(
@@ -157,7 +159,7 @@ export default class MRGMining {
   /** The 24h session the miner runs in, from its last snapshot, in seconds */
   getMiningWindow() {
     const timestamp =
-      this.account_data?.user?.["miningSnapshot"]?.["timestamp"];
+      this.ctx.state.data?.user?.["miningSnapshot"]?.["timestamp"];
     const startedAt = timestamp
       ? Math.floor(new Date(timestamp).getTime() / 1000)
       : 0;
@@ -172,7 +174,7 @@ export default class MRGMining {
 
   /** Claim what the miner has produced since the last claim, which also starts a new window */
   async claimPendingMining() {
-    const user = this.getAccountDetails();
+    const user = this.ctx.state.user();
 
     if (!user["tonWalletAddress"]) {
       this.logger.warn("Mining only runs while a wallet is connected.");
@@ -186,7 +188,7 @@ export default class MRGMining {
       return;
     }
 
-    const result = await this.claimMining();
+    const result = await this.ctx.api.claimMining();
 
     if (!result?.["success"]) {
       this.logger.warn(
@@ -195,10 +197,10 @@ export default class MRGMining {
       return;
     }
 
-    this.account_data.user = result["user"];
+    this.ctx.state.setUser(result["user"]);
 
     this.logger.success(
-      `Claimed ${this.formatAmount(result["claimedAmount"])} MRG.`,
+      `Claimed ${formatAmount(result["claimedAmount"])} MRG.`,
     );
   }
 }

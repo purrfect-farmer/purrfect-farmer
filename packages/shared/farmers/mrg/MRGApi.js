@@ -1,5 +1,57 @@
-/** Trait: the drop's endpoints, one method per call */
-export default class MRGApi {
+import FarmerModule from "../../lib/farmer/FarmerModule.js";
+import { API_URL, HUMAN_CHECK_REQUIRED_CODE } from "./constants.js";
+
+/** The drop's API: its transport and one method per endpoint */
+export default class MRGApi extends FarmerModule {
+  /* --------------------------------------------------------------------- */
+  /* Transport                                                             */
+  /* --------------------------------------------------------------------- */
+
+  /** Carry `initData` on every call the drop's own API receives, and on no others */
+  configure() {
+    const initDataInterceptor = this.api.interceptors.request.use((config) => {
+      if (String(config.url || "").startsWith(API_URL)) {
+        config.data = {
+          ...config.data,
+          initData: this.core.initData(),
+        };
+      }
+
+      return config;
+    });
+
+    return () => {
+      this.api.interceptors.request.eject(initDataInterceptor);
+    };
+  }
+
+  /** Call the drop's API, reading a refused action as a payload and passing the human check once if it is asked for */
+  async callApi(path, data = {}, { retryHuman = true } = {}) {
+    const response = await this.api.post(`${API_URL}${path}`, data, {
+      signal: this.signal,
+      validateStatus: (status) => status < 500,
+    });
+
+    const payload = response.data;
+
+    if (typeof payload !== "object" || payload === null) {
+      throw new Error(`Request failed (${response.status})`);
+    }
+
+    if (payload["code"] === HUMAN_CHECK_REQUIRED_CODE && retryHuman) {
+      this.logger.warn("The human check has lapsed, passing it again.");
+      await this.ctx.humanCheck.obtain();
+      return this.callApi(path, data, { retryHuman: false });
+    }
+
+    return payload;
+  }
+
+  /** Act on the drop's API, returning a refusal as a payload */
+  postToApi(path, data = {}) {
+    return this.callApi(path, data);
+  }
+
   /* --------------------------------------------------------------------- */
   /* Endpoints                                                             */
   /* --------------------------------------------------------------------- */
@@ -7,14 +59,14 @@ export default class MRGApi {
   /** Sign in, creating the account on first contact and registering the referrer with it */
   verifyAccount() {
     return this.postToApi("/auth/verify", {
-      startParam: this.getReferrerStartParam(),
-      deviceInfo: this.getDeviceInfo(),
+      startParam: this.core.referrerStartParam(),
+      deviceInfo: this.ctx.device.info(),
     });
   }
 
   /** The full account state: user, level, tasks, transactions */
   fetchAccount() {
-    return this.postToApi("/user/me", { deviceInfo: this.getDeviceInfo() });
+    return this.postToApi("/user/me", { deviceInfo: this.ctx.device.info() });
   }
 
   /** Trade a solved Turnstile token for a few hours of human check */
@@ -130,8 +182,8 @@ export default class MRGApi {
       destinationAddress,
       captchaToken,
       turnstileToken,
-      deviceInfo: this.getDeviceInfo(),
-      forensics: this.getDevice().getForensics(),
+      deviceInfo: this.ctx.device.info(),
+      forensics: this.ctx.device.get().getForensics(),
     });
   }
 }

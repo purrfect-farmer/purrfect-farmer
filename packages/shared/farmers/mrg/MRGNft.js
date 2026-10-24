@@ -1,3 +1,4 @@
+import FarmerModule from "../../lib/farmer/FarmerModule.js";
 import { fetchTonApi } from "../../lib/ton/tonapi.js";
 import {
   GENESIS_NFT_COLLECTION,
@@ -8,14 +9,22 @@ import {
 } from "./constants.js";
 import Decimal from "decimal.js";
 
-/** Trait: genesis NFTs and the withdrawal fee discount they earn */
-export default class MRGNft {
+/** Genesis NFTs and the withdrawal fee discount they earn */
+export default class MRGNft extends FarmerModule {
+  /** The account's Genesis NFTs, once read this run */
+  nftHoldings = null;
+
+  /** Forget the NFTs read, so the next read asks the chain again */
+  reset() {
+    this.nftHoldings = null;
+  }
+
   /* --------------------------------------------------------------------- */
   /* Genesis NFTs                                                          */
   /* --------------------------------------------------------------------- */
 
   /** The account's Genesis NFTs, read once per run */
-  async readNftHoldings(address = this.getConnectedWalletAddress()) {
+  async readNftHoldings(address = this.ctx.wallet.getConnectedWalletAddress()) {
     if (!address) return [];
     if (this.nftHoldings) return this.nftHoldings;
 
@@ -99,7 +108,7 @@ export default class MRGNft {
   async readNftDiscountPercent() {
     return Math.max(
       this.getNftDiscountPercent(await this.readNftHoldings()),
-      Number(this.account_data?.user?.["nftDiscountPercent"]) || 0,
+      Number(this.ctx.state.data?.user?.["nftDiscountPercent"]) || 0,
     );
   }
 

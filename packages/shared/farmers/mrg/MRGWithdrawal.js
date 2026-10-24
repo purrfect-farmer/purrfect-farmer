@@ -1,3 +1,4 @@
+import FarmerModule from "../../lib/farmer/FarmerModule.js";
 import {
   INIT_DATA_MAX_AGE_SECONDS,
   NO_APP_SESSION_CODE,
@@ -8,17 +9,18 @@ import {
   WITHDRAWAL_COOLDOWN_HOURS,
 } from "./constants.js";
 import Decimal from "decimal.js";
+import { formatAmount, logCurrentUser } from "../../lib/farmer/format.js";
 import { buildSliderTrace, findSliderX } from "../../lib/sliderCaptcha.js";
 
-/** Trait: withdrawals, their captchas and the pending queue */
-export default class MRGWithdrawal {
+/** Withdrawals, their captchas and the pending queue */
+export default class MRGWithdrawal extends FarmerModule {
   /* --------------------------------------------------------------------- */
   /* Withdrawal                                                            */
   /* --------------------------------------------------------------------- */
 
   /** The account's withdrawals, as its transaction history lists them */
   getWithdrawals() {
-    const transactions = this.account_data?.["transactions"] || [];
+    const transactions = this.ctx.state.data?.["transactions"] || [];
 
     return transactions.filter((transaction) =>
       String(transaction["type"] || "")
@@ -58,20 +60,10 @@ export default class MRGWithdrawal {
     return `${hours}h ${minutes}m`;
   }
 
-  /** Whether the drop still owes this account a settlement */
-  hasPendingWithdrawal() {
-    return this.ctx.withdrawals.hasPending();
-  }
-
-  /** The account's own withdrawal queue */
-  getAutoWithdrawals() {
-    return this.ctx.withdrawals.load();
-  }
-
   /** How old the signed `initData` is, in seconds, which the backend caps for withdrawals */
   getInitDataAgeSeconds() {
     const authDate = Number(
-      new URLSearchParams(this.getInitData() || "").get("auth_date"),
+      new URLSearchParams(this.core.initData() || "").get("auth_date"),
     );
 
     return authDate ? Date.now() / 1000 - authDate : 0;
@@ -79,10 +71,10 @@ export default class MRGWithdrawal {
 
   /** A Turnstile token for the withdrawal, rendered with the `withdraw` action, or none, which the page also sends when the widget fails */
   async solveWithdrawalTurnstile() {
-    if (!this.canSolveTurnstile()) return "";
+    if (!this.core.captcha.canSolveTurnstile()) return "";
 
     try {
-      return await this.solveTurnstile({
+      return await this.core.captcha.solveTurnstile({
         siteKey: TURNSTILE_SITE_KEY,
         pageUrl: TURNSTILE_PAGE_URL,
         action: "withdraw",
@@ -94,30 +86,32 @@ export default class MRGWithdrawal {
   }
 
   /** Place withdrawal */
-  async placeWithdrawal({ max, difference }) {
-    await this.ensureStateLoaded();
+  async place({ max, difference }) {
+    const { flow } = this.ctx;
 
-    const user = this.getAccountDetails();
+    await this.ctx.state.ensureLoaded();
+
+    const user = this.ctx.state.user();
     const destinationAddress = user["tonWalletAddress"];
 
     if (!destinationAddress) {
-      return this.skipWithdrawal("No wallet connected!");
+      return flow.skip("No wallet connected!");
     }
 
-    if (!this.isAccountVerified(user)) {
-      return this.skipWithdrawal("Account is not verified on-chain!", {
+    if (!this.ctx.account.isAccountVerified(user)) {
+      return flow.skip("Account is not verified on-chain!", {
         log: "warn",
       });
     }
 
     if (this.getInitDataAgeSeconds() > INIT_DATA_MAX_AGE_SECONDS) {
-      return this.skipWithdrawal("Session is too old, reopen the app!", {
+      return flow.skip("Session is too old, reopen the app!", {
         log: "warn",
       });
     }
 
     if (this.getPendingWithdrawals().length > 0) {
-      return this.skipWithdrawal("A withdrawal is already pending!", {
+      return flow.skip("A withdrawal is already pending!", {
         log: "warn",
       });
     }
@@ -125,22 +119,21 @@ export default class MRGWithdrawal {
     const cooldown = this.getWithdrawalCooldownMs();
 
     if (cooldown > 0) {
-      return this.skipWithdrawal(
-        `Next withdrawal in ${this.formatCooldown(cooldown)}!`,
-        { log: "warn" },
-      );
+      return flow.skip(`Next withdrawal in ${this.formatCooldown(cooldown)}!`, {
+        log: "warn",
+      });
     }
 
     const balance = new Decimal(user["inAppBalance"] || 0);
-    const minimum = this.getMinimumWithdrawal();
-    const lowBalance = this.skipLowBalance(balance, minimum);
+    const minimum = flow.minimum();
+    const lowBalance = flow.skipLowBalance(balance, minimum);
 
     if (lowBalance) return lowBalance;
 
     /** The NFTs the wallet holds decide both the ceiling and the fee */
-    const discountPercent = await this.readNftDiscountPercent();
+    const discountPercent = await this.ctx.nft.readNftDiscountPercent();
 
-    const amount = this.pickWithdrawalAmount({
+    const amount = flow.pickAmount({
       balance,
       minimum,
       max,
@@ -150,12 +143,12 @@ export default class MRGWithdrawal {
     let result;
 
     try {
-      await this.ensureHumanCheck();
+      await this.ctx.humanCheck.ensure();
 
       const captchaToken = await this.solveWithdrawalCaptcha();
       const turnstileToken = await this.solveWithdrawalTurnstile();
       const request = () =>
-        this.requestWithdrawal(
+        this.ctx.api.requestWithdrawal(
           amount,
           destinationAddress,
           captchaToken,
@@ -166,7 +159,7 @@ export default class MRGWithdrawal {
 
       /** The page signs in again once and resends when the backend lost the session */
       if (!result?.["success"] && result?.["code"] === NO_APP_SESSION_CODE) {
-        await this.verifyAccount();
+        await this.ctx.api.verifyAccount();
         result = await request();
       }
     } catch (error) {
@@ -175,7 +168,7 @@ export default class MRGWithdrawal {
 
     /** The page only reloads on a stale session, so a retry would be refused the same way */
     if (!result?.["success"] && result?.["code"] === SESSION_STALE_CODE) {
-      return this.skipWithdrawal("Session is stale, reopen the app!", {
+      return flow.skip("Session is stale, reopen the app!", {
         log: "warn",
       });
     }
@@ -185,13 +178,13 @@ export default class MRGWithdrawal {
 
     if (status) {
       if (result["user"]) {
-        this.account_data.user = result["user"];
+        this.ctx.state.setUser(result["user"]);
       }
 
       if (result["transaction"]) {
-        this.account_data["transactions"] = [
+        this.ctx.state.data["transactions"] = [
           result["transaction"],
-          ...(this.account_data["transactions"] || []),
+          ...(this.ctx.state.data["transactions"] || []),
         ];
       }
 
@@ -200,12 +193,12 @@ export default class MRGWithdrawal {
       this.logger.keyValue(
         "To be received",
         Decimal.max(
-          amount.minus(this.getWithdrawalFee(discountPercent)),
+          amount.minus(this.ctx.nft.getWithdrawalFee(discountPercent)),
           0,
         ).toString(),
       );
 
-      await this.notifyWithdrawal([
+      await flow.notify([
         ["Initial Balance", balance.toString()],
         ["Requested", amount.toString()],
         ["Destination", `<code>${destinationAddress}</code>`],
@@ -230,7 +223,7 @@ export default class MRGWithdrawal {
     for (let attempt = 1; attempt <= SLIDER_CAPTCHA_ATTEMPTS; attempt++) {
       if (this.signal.aborted) break;
 
-      const challenge = await this.createCaptcha();
+      const challenge = await this.ctx.api.createCaptcha();
 
       if (!challenge?.["success"] || !challenge["captchaId"]) {
         throw new Error(challenge?.["error"] || "Failed to get a captcha");
@@ -245,7 +238,7 @@ export default class MRGWithdrawal {
         signal: this.signal,
       });
 
-      const result = await this.verifyCaptcha(
+      const result = await this.ctx.api.verifyCaptcha(
         challenge["captchaId"],
         sliderX,
         trace,
@@ -272,28 +265,25 @@ export default class MRGWithdrawal {
   }
 
   /** Log the payouts the drop has not settled yet */
-  async logWithdrawalStatus() {
-    await this.ensureStateLoaded();
+  async logStatus() {
+    await this.ctx.state.ensureLoaded();
 
     const pending = this.getPendingWithdrawals();
-    const discountPercent = await this.readNftDiscountPercent();
+    const discountPercent = await this.ctx.nft.readNftDiscountPercent();
+    const verified = this.ctx.account.isAccountVerified(this.ctx.state.user());
 
     this.logger.newline();
-    this.logCurrentUser();
+    logCurrentUser(this.logger, this.core.telegramUser());
     this.logger.keyValue(
       "Balance",
-      this.formatAmount(this.getAccountDetails()["inAppBalance"]),
+      formatAmount(this.ctx.state.user()["inAppBalance"]),
     );
-    this.logger.keyValue("Minimum", this.getMinimumWithdrawal());
-    this.logger.keyValue(
-      "Verified",
-      this.isAccountVerified(this.getAccountDetails()) ? "Yes" : "No",
-      {
-        valueStyle: this.isAccountVerified(this.getAccountDetails())
-          ? this.logger.c.greenBright
-          : this.logger.c.yellowBright,
-      },
-    );
+    this.logger.keyValue("Minimum", this.ctx.flow.minimum());
+    this.logger.keyValue("Verified", verified ? "Yes" : "No", {
+      valueStyle: verified
+        ? this.logger.c.greenBright
+        : this.logger.c.yellowBright,
+    });
 
     const cooldown = this.getWithdrawalCooldownMs();
 
@@ -303,7 +293,7 @@ export default class MRGWithdrawal {
     );
     this.logger.keyValue(
       "Fee",
-      this.formatAmount(this.getWithdrawalFee(discountPercent)),
+      formatAmount(this.ctx.nft.getWithdrawalFee(discountPercent)),
       {
         valueStyle: discountPercent
           ? this.logger.c.greenBright
