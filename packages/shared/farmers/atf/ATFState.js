@@ -5,7 +5,7 @@ export default class ATFState extends FarmerModule {
   /** The login payload, with the user record and task cooldowns */
   data = null;
 
-  /** Get User Details */
+  /** The user record */
   user() {
     return this.data.user;
   }

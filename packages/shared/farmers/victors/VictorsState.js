@@ -8,7 +8,7 @@ export default class VictorsState extends FarmerModule {
   /** When `data` was read, for projecting what has been mined since */
   readAt = 0;
 
-  /** Re-read the state into the farmer */
+  /** Re-read the state */
   async load() {
     this.apply(await this.ctx.api.fetchMe());
     return this.data;
@@ -23,7 +23,7 @@ export default class VictorsState extends FarmerModule {
     return this.data;
   }
 
-  /** Fold an action's returned state into the farmer, noting when it was read */
+  /** Fold an action's returned state in, noting when it was read */
   apply(result) {
     if (result?.["state"]) {
       this.data = result["state"];
@@ -39,7 +39,7 @@ export default class VictorsState extends FarmerModule {
     }
   }
 
-  /** Get User Details */
+  /** The user record */
   user() {
     return this.data.user;
   }

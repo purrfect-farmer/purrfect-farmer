@@ -8,7 +8,7 @@ export default class MonsterlandState extends FarmerModule {
   /** The game's config, with the withdrawal rules and quota */
   config = null;
 
-  /** Re-read the account into the farmer */
+  /** Re-read the account */
   async load() {
     this.data = await this.ctx.api.fetchUser();
     this.data.loadedAt = Date.now();
