@@ -24,6 +24,14 @@ export const FARMER_STATUS_LABELS = {
   inactive: "Inactive",
 };
 
+/** How much attention each status needs, as the status sort ranks it */
+export const FARMER_STATUS_SEVERITY = {
+  banned: 4,
+  frozen: 3,
+  inactive: 2,
+  active: 1,
+};
+
 /** Text colour for a mining freeze, which is a different fact from the farmer status */
 export const MINING_FREEZE_COLORS = {
   frozen: "text-violet-500 dark:text-violet-400",

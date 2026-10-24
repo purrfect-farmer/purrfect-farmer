@@ -22,6 +22,7 @@ import {
   validateFlippedBundle,
 } from "@/lib/autoTransfer";
 import { encryption } from "@/services/encryption";
+import { SORT_KEY } from "@/constants/autoAccountsSort";
 import { yup } from "@/lib/yup";
 import { yupResolver } from "@hookform/resolvers/yup";
 
@@ -274,7 +275,7 @@ export default function AutoRescueTab() {
       <Label>Helpers</Label>
       <AutoAccountsChooser
         {...helperSelector}
-        defaultSort="ranked"
+        defaultSort={SORT_KEY.RANKED}
         autoFocusSearch={false}
         disabled={mutation.isPending}
       />

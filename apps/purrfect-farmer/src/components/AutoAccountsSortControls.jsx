@@ -1,7 +1,7 @@
 import { LuArrowDownWideNarrow, LuArrowUpNarrowWide } from "react-icons/lu";
 
 import Select from "./Select";
-import { SORT_OPTIONS } from "@/hooks/useAutoAccountsSort";
+import { SORT_KEY, SORT_OPTIONS } from "@/constants/autoAccountsSort";
 import { cn } from "@/utils";
 import useAuto from "@/hooks/useAuto";
 
@@ -16,7 +16,7 @@ export default function AutoAccountsSortControls({
 
   /** A native Auto has no jetton to sort by */
   const options = config.native
-    ? SORT_OPTIONS.filter((option) => option.value !== "jetton")
+    ? SORT_OPTIONS.filter((option) => option.value !== SORT_KEY.JETTON)
     : SORT_OPTIONS;
 
   return (

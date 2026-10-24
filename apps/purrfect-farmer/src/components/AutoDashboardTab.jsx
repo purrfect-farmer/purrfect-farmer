@@ -18,6 +18,7 @@ import { Reorder } from "motion/react";
 import { searchAutoAccount } from "@purrfect/shared/lib/auto/wallet";
 import useAuto from "@/hooks/useAuto";
 import useAutoAccountsSort from "@/hooks/useAutoAccountsSort";
+import { SORT_KEY } from "@/constants/autoAccountsSort";
 import { useDebounce } from "react-use";
 
 export default function AutoDashboardTab() {
@@ -41,7 +42,7 @@ export default function AutoDashboardTab() {
 
   /** A drag only means something in the stored order, unfiltered */
   const isStoredOrder =
-    !search && sort.sortKey === "normal" && sort.direction === "asc";
+    !search && sort.sortKey === SORT_KEY.NORMAL && sort.direction === "asc";
 
   const toggleSearch = () => {
     setShowSearch(!showSearch);

@@ -2,22 +2,18 @@ import { useCallback, useMemo, useState } from "react";
 import { useQueries } from "@tanstack/react-query";
 
 import useAutoCloudSnapshotsQuery from "./useAutoCloudSnapshotsQuery";
+import { FARMER_STATUS_SEVERITY } from "@/constants/farmerStatus";
+import { SORT_KEY, SORT_OPTIONS } from "@/constants/autoAccountsSort";
+import { getExchange, getWithdrawals, toFigure } from "@/lib/autoSnapshot";
 import { getHelperKind } from "@/components/AutoHelperChooser";
-import { getExchange, toFigure } from "@/lib/autoSnapshot";
 import { useAutoBalancesQueryOptions } from "./useAutoBalancesQuery";
 
-export const SORT_OPTIONS = [
-  { value: "normal", label: "Normal" },
-  { value: "ranked", label: "Verified > Connected > Trusted > Others" },
-  { value: "exchange", label: "Exchange connected" },
-  { value: "mined", label: "Mined balance" },
-  { value: "holding", label: "Holding" },
-  { value: "ton", label: "TON balance" },
-  { value: "jetton", label: "Jetton balance" },
-];
+/** The direction each key starts in */
+const DEFAULT_DIRECTIONS = new Map(
+  SORT_OPTIONS.map((option) => [option.value, option.direction]),
+);
 
-/** Stored order reads naturally first, every other key reads highest first */
-const defaultDirection = (key) => (key === "normal" ? "asc" : "desc");
+const defaultDirection = (key) => DEFAULT_DIRECTIONS.get(key) || "desc";
 
 /** Rank the kinds so they sort like any other number */
 const HELPER_RANK = { verified: 3, trusted: 1 };
@@ -32,8 +28,38 @@ const getRank = (account, snapshot) =>
     getExchange(snapshot) ? CONNECTED_RANK : 0,
   );
 
+/** The pending withdrawals the snapshot carries, null until the drop has reported its queue */
+const getPendingCount = (snapshot) => {
+  const { known, pending } = getWithdrawals(snapshot);
+
+  return known ? pending.length : null;
+};
+
+/** A value per key, null when the account has nothing to sort by yet */
+const SORT_VALUES = {
+  [SORT_KEY.RANKED]: ({ account, snapshot }) => getRank(account, snapshot),
+  [SORT_KEY.STATUS]: ({ row }) => FARMER_STATUS_SEVERITY[row?.status] ?? null,
+  [SORT_KEY.LAST_FARMED]: ({ snapshot }) =>
+    Number(snapshot?.updatedAt) || null,
+  [SORT_KEY.EXCHANGE]: ({ snapshot }) =>
+    snapshot ? Number(Boolean(getExchange(snapshot))) : null,
+  [SORT_KEY.LEVEL]: ({ snapshot }) =>
+    snapshot ? Number(snapshot.level) || 0 : null,
+  [SORT_KEY.FREEZE]: ({ snapshot }) =>
+    Number(snapshot?.mining?.freezesAt) || null,
+  [SORT_KEY.ERRORS]: ({ row }) => (row ? Number(row.errorCount) || 0 : null),
+  [SORT_KEY.PENDING_WITHDRAWALS]: ({ snapshot }) =>
+    snapshot ? getPendingCount(snapshot) : null,
+  [SORT_KEY.MINED]: ({ snapshot }) =>
+    snapshot ? toFigure(snapshot.balance).toNumber() : null,
+  [SORT_KEY.HOLDING]: ({ snapshot }) =>
+    snapshot ? toFigure(snapshot.holding).toNumber() : null,
+  [SORT_KEY.TON]: ({ balance }) => balance?.ton?.toNumber() ?? null,
+  [SORT_KEY.JETTON]: ({ balance }) => balance?.jetton?.toNumber() ?? null,
+};
+
 /** Only the wallet balance keys need the balance queries */
-const BALANCE_KEYS = ["ton", "jetton"];
+const BALANCE_KEYS = [SORT_KEY.TON, SORT_KEY.JETTON];
 
 /** The balances in account order, keeping identity while nothing changed */
 const combineBalances = (results) => results.map((result) => result.data);
@@ -41,7 +67,7 @@ const combineBalances = (results) => results.map((result) => result.data);
 /** Order accounts for display only, so the selection is never reset by a refetch */
 export default function useAutoAccountsSort(
   accounts,
-  { enabled = true, defaultSort = "normal" } = {},
+  { enabled = true, defaultSort = SORT_KEY.NORMAL } = {},
 ) {
   const [sortKey, setKey] = useState(defaultSort);
   const [direction, setDirection] = useState(defaultDirection(defaultSort));
@@ -70,36 +96,26 @@ export default function useAutoAccountsSort(
   const sortedAccounts = useMemo(() => {
     if (!enabled) return accounts;
 
-    if (sortKey === "normal") {
+    const getValue = SORT_VALUES[sortKey];
+
+    if (!getValue) {
       return direction === "asc" ? accounts : accounts.toReversed();
     }
-
-    /** A value per account, null when it has nothing to sort by yet */
-    const getValue = (account, index) => {
-      const snapshot = snapshots?.get(String(account.userId))?.snapshot;
-
-      switch (sortKey) {
-        case "ranked":
-          return getRank(account, snapshot);
-        case "exchange":
-          return snapshot ? Number(Boolean(getExchange(snapshot))) : null;
-        case "mined":
-          return snapshot ? toFigure(snapshot.balance).toNumber() : null;
-        case "holding":
-          return snapshot ? toFigure(snapshot.holding).toNumber() : null;
-        case "ton":
-          return balances[index]?.ton?.toNumber() ?? null;
-        case "jetton":
-          return balances[index]?.jetton?.toNumber() ?? null;
-        default:
-          return null;
-      }
-    };
 
     const sign = direction === "asc" ? 1 : -1;
 
     return accounts
-      .map((account, index) => ({ account, value: getValue(account, index) }))
+      .map((account, index) => {
+        const row = snapshots?.get(String(account.userId)) || null;
+        const value = getValue({
+          account,
+          row,
+          snapshot: row?.snapshot || null,
+          balance: balances[index],
+        });
+
+        return { account, value };
+      })
       .toSorted((a, b) => {
         /** Missing values sit last whichever way the list runs */
         if (a.value === null || b.value === null) {

@@ -25,6 +25,7 @@ import Input from "./Input";
 import { cn } from "@/utils";
 import { searchAutoAccount } from "@purrfect/shared/lib/auto/wallet";
 import useAutoAccountsSort from "@/hooks/useAutoAccountsSort";
+import { SORT_KEY } from "@/constants/autoAccountsSort";
 import { useAutoCloudSnapshot } from "@/hooks/useAutoCloudSnapshotsQuery";
 
 function getInitials(title) {
@@ -160,7 +161,7 @@ const AccountChooserItem = memo(function AccountChooserItem({
 /**
  * @param {boolean} [props.showBalance] - false for accounts not in this drop yet, whose balance and snapshot would belong to another drop
  * @param {boolean} [props.autoFocusSearch] - false when another chooser or field should hold focus first
- * @param {string} [props.defaultSort] - the order to start in, one of the SORT_OPTIONS values
+ * @param {string} [props.defaultSort] - the order to start in, one of the SORT_KEY values
  */
 export default function AutoAccountsChooser({
   accounts,
@@ -170,7 +171,7 @@ export default function AutoAccountsChooser({
   results,
   showBalance = true,
   autoFocusSearch = true,
-  defaultSort = "normal",
+  defaultSort = SORT_KEY.NORMAL,
   toggleAccount,
   toggleAllAccounts,
 }) {
