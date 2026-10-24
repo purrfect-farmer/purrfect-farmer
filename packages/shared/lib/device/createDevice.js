@@ -1,3 +1,4 @@
+import { DEFAULT_WEB_APP_VERSION } from "../../utils/telegram.js";
 import seedrandom from "seedrandom";
 
 /** Android phones the profile is drawn from, as Telegram's WebView reports them */
@@ -125,19 +126,16 @@ const PHONES = [
   },
 ];
 
-/** Values the page's audio fingerprint lands on across Chrome builds */
+/** Values an audio fingerprint lands on across Chrome builds */
 const AUDIO_SUMS = ["124.043475", "124.043476", "124.046743", "124.080345"];
 
-/** The Telegram WebApp version the profile claims */
-const TG_VERSION = "9.1";
-
 /** The Chrome version used when the user agent names none */
-const DEFAULT_CHROME_VERSION = "140";
+const DEFAULT_CHROME_VERSION = "155";
 
 /** Telegram's header and status bar, which the WebView's height loses */
 const TG_CHROME_HEIGHT = 80;
 
-/** The page's math fingerprint, the same in every V8 */
+/** The math fingerprint, the same in every V8 */
 const MATH = [
   Math.tan(-1e300),
   Math.sinh(1),
@@ -165,12 +163,8 @@ function readLocale() {
   }
 }
 
-/** A stable Android Telegram profile for one account, shaped like the page's `fw()`; `prefix` keeps each drop's profile apart */
-export function createVictorsDevice(
-  seed,
-  userAgent = "",
-  { prefix = "victors-device" } = {},
-) {
+/** A stable Android Telegram profile for one account, shaped like the fingerprint the drops collect; `prefix` keeps each drop's profile apart */
+export function createDevice(seed, userAgent = "", { prefix }) {
   const random = seedrandom(`${prefix}:${seed}`);
   const phone = pick(random, PHONES);
   const chrome =
@@ -234,7 +228,7 @@ export function createVictorsDevice(
       save: false,
     },
     tgPlatform: "android",
-    tgVersion: TG_VERSION,
+    tgVersion: DEFAULT_WEB_APP_VERSION,
     tgScheme: random() < 0.7 ? "dark" : "light",
     tgFullscreen: false,
     tgViewport: height,
@@ -251,7 +245,7 @@ export function createVictorsDevice(
   return {
     profile,
 
-    /** The summary the page sends with `/auth/login`, as `OA()` builds it */
+    /** The login summary, as Victor's page builds it in `OA()` */
     getLoginDevice() {
       return {
         platform: profile.tgPlatform,
@@ -262,7 +256,7 @@ export function createVictorsDevice(
       };
     },
 
-    /** The fingerprint the page sends with `/withdraw`, as `$A()` builds it */
+    /** The withdrawal fingerprint, as Victor's page builds it in `$A()` and MRG's sends it */
     getForensics() {
       return {
         ...profile,

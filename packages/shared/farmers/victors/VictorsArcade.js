@@ -5,7 +5,7 @@ import {
   chooseMove,
   getStartCap,
   pickTool,
-} from "../../lib/games/deepMine.js";
+} from "./deepMine.js";
 import {
   MINE_DAILY_LOSS_LIMIT,
   MINE_MOVE_DELAY_SECONDS,

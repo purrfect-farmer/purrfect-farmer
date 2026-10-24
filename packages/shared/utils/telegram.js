@@ -6,7 +6,7 @@ import {
 /** The platform and version a mini app is opened with when the real ones are unknown */
 export const DEFAULT_WEB_APP_PLATFORM = "android";
 
-export const DEFAULT_WEB_APP_VERSION = "8.0";
+export const DEFAULT_WEB_APP_VERSION = "10.3";
 
 /** The light theme every mini app is opened with */
 export const DEFAULT_THEME_PARAMS = Object.freeze({

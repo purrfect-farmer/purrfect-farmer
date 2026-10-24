@@ -1,5 +1,5 @@
 import FarmerModule from "../../lib/farmer/FarmerModule.js";
-import { createVictorsDevice } from "../../lib/games/victorsDevice.js";
+import { createDevice } from "../../lib/device/createDevice.js";
 
 /** The phone the account runs on and the browser signals it reports */
 export default class DiggoBrowser extends FarmerModule {
@@ -8,7 +8,7 @@ export default class DiggoBrowser extends FarmerModule {
 
   /** The account's phone, the same on every run, which the browser signals describe */
   getDevice() {
-    return (this.device ||= createVictorsDevice(
+    return (this.device ||= createDevice(
       this.core.userId(),
       this.core.userAgent,
       { prefix: "diggo-device" },

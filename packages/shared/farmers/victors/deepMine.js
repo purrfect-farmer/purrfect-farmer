@@ -89,7 +89,8 @@ function getCoinScale(y, dial) {
 
 /** Odds a block hides a hazard and holds loot, from its row and both hints */
 export function getCellOdds(y, crack, sparkle) {
-  const rate = y < DEEP_MINE.safeRows ? 0 : LAYERS[getLayerIndex(y)].hazard / 1000;
+  const rate =
+    y < DEEP_MINE.safeRows ? 0 : LAYERS[getLayerIndex(y)].hazard / 1000;
   const crackOdds = (hazard) =>
     crack
       ? hazard
