@@ -1,8 +1,15 @@
+import {
+  PROFILE_CLEAN_ICONS,
+  PROFILE_CLEAN_LABELS,
+  PROFILE_CLEAN_STATUS,
+} from "../enums/profile-clean-status.js";
+
+import JobNotifier from "../lib/bot/JobNotifier.js";
 import bot from "../lib/bot.js";
 import db from "../db/models/index.js";
-import { PROFILE_CLEAN_STATUS } from "../enums/profile-clean-status.js";
 import { forEachAccountSession } from "../lib/account-sessions.js";
 import { stripProfileText } from "@purrfect/shared/utils/profile.js";
+import utils from "../lib/utils.js";
 
 /** Whether a cleanup is running */
 let running = false;
@@ -26,24 +33,64 @@ async function cleanSingleProfile(client, text, fields) {
   return PROFILE_CLEAN_STATUS.CLEANED;
 }
 
-/** Run the cleanup over the accounts, then report through the bot */
+/** Status of one account's settled cleanup */
+const getCleanStatus = (outcome) =>
+  outcome?.success ? outcome.result : PROFILE_CLEAN_STATUS.FAILED;
+
+/** Progress message lines for one account */
+function describeAccount(account, outcome) {
+  const lines = [
+    `<b>Account</b>: ${utils.escapeHtml(account.title || "(untitled)")}`,
+    `<b>ID</b>: <code>${account.id}</code>`,
+  ];
+
+  if (outcome?.error) {
+    const reason = outcome.error.message || String(outcome.error);
+
+    lines.push(`<b>Error</b>: ${utils.escapeHtml(reason)}`);
+  }
+
+  return lines;
+}
+
+/** Run the cleanup over the accounts, reporting each one, then the full report */
 async function runCleanup(accounts, { text, fields }) {
+  const notifier = new JobNotifier({
+    title: "🧹 Profile Cleanup",
+    total: accounts.length,
+  });
+
   try {
     const startDate = new Date();
-    const results = await forEachAccountSession(accounts, (client) =>
-      cleanSingleProfile(client, text, fields),
+
+    notifier.start([
+      `<b>Text</b>: <code>${utils.escapeHtml(text)}</code>`,
+      `<b>Fields</b>: ${fields.join(", ")}`,
+    ]);
+
+    const results = await forEachAccountSession(
+      accounts,
+      (client) => cleanSingleProfile(client, text, fields),
+      {
+        onResult: (account, outcome) => {
+          const status = getCleanStatus(outcome);
+
+          notifier.step({
+            icon: PROFILE_CLEAN_ICONS[status],
+            label: PROFILE_CLEAN_LABELS[status],
+            lines: describeAccount(account, outcome),
+          });
+        },
+      },
     );
 
-    const report = accounts.map((account) => {
-      const outcome = results.get(account);
+    const report = accounts.map((account) => ({
+      account,
+      status: getCleanStatus(results.get(account)),
+    }));
 
-      return {
-        account,
-        status: outcome?.success
-          ? outcome.result
-          : PROFILE_CLEAN_STATUS.FAILED,
-      };
-    });
+    /** The step messages go out before the full report */
+    await notifier.flush();
 
     await bot.sendProfileCleanCompleteMessage({
       text,
@@ -54,6 +101,7 @@ async function runCleanup(accounts, { text, fields }) {
     });
   } catch (error) {
     console.log("Failed to clean profiles:", error);
+    notifier.fail(utils.escapeHtml(error?.message || String(error)));
   } finally {
     running = false;
   }

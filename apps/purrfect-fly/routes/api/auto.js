@@ -245,6 +245,7 @@ export default async function (fastify) {
 
       try {
         return await pushAutoWallets({
+          title: request.auto.title,
           ownerId: request.account.id,
           drop: request.auto.id,
           password,

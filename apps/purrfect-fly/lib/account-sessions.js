@@ -55,8 +55,12 @@ export async function withAccountSession(
   }
 }
 
-/** Run work for every account in staggered batches */
-export async function forEachAccountSession(accounts, work, options = {}) {
+/** Run work for every account in staggered batches, calling onResult as each one settles */
+export async function forEachAccountSession(
+  accounts,
+  work,
+  { onResult, ...options } = {},
+) {
   const results = new Map();
 
   for (const chunk of utils.chunkArrayGenerator(accounts, BATCH_SIZE)) {
@@ -64,10 +68,10 @@ export async function forEachAccountSession(accounts, work, options = {}) {
       chunk.map(async (account, index) => {
         await utils.delayForSeconds(index * 2);
 
-        results.set(
-          account,
-          await withAccountSession(account, work, options),
-        );
+        const outcome = await withAccountSession(account, work, options);
+
+        results.set(account, outcome);
+        onResult?.(account, outcome);
       }),
     );
   }

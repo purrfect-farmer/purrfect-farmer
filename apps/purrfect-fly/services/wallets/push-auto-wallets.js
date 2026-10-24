@@ -2,10 +2,13 @@ import { WALLET_CHAIN } from "@purrfect/shared/enums/wallet-chain.js";
 import { Op } from "sequelize";
 import Encrypter from "@purrfect/shared/lib/Encrypter.js";
 import db from "../../db/models/index.js";
+import JobNotifier from "../../lib/bot/JobNotifier.js";
+import { WALLET_ROLE } from "@purrfect/shared/enums/wallet-role.js";
 import { getAutoWalletEntries } from "./auto-wallet-entries.js";
 import { getTonWalletIdentity } from "./wallet-identity.js";
 import { runDatabaseWrite } from "../../lib/db-write.js";
 import serverCipher from "../../lib/ServerCipher.js";
+import utils from "../../lib/utils.js";
 
 /** Thrown when the Auto's password cannot open one of its wallets */
 export class WalletDecryptionError extends Error {
@@ -28,12 +31,26 @@ async function decryptAutoPhrase(encryptedPhrase, password) {
   }
 }
 
+/** Which wallet an entry is, for progress messages */
+const describeEntry = (entry) =>
+  entry.role === WALLET_ROLE.MASTER
+    ? "<b>Wallet</b>: Master"
+    : `<b>Wallet</b>: Account <code>${entry.accountId}</code>`;
+
 /** Decrypt and identify each wallet one at a time, since scrypt is memory hungry */
-async function prepareWallets(entries, password) {
+async function prepareWallets(entries, password, notifier) {
   const wallets = [];
 
   for (const entry of entries) {
-    const phrase = await decryptAutoPhrase(entry.encryptedPhrase, password);
+    let phrase;
+
+    try {
+      phrase = await decryptAutoPhrase(entry.encryptedPhrase, password);
+    } catch (error) {
+      notifier.fail(`${describeEntry(entry)}\n${error.message}`);
+      throw error;
+    }
+
     const identity = await getTonWalletIdentity(phrase, entry.version);
 
     wallets.push({
@@ -43,6 +60,15 @@ async function prepareWallets(entries, password) {
       chain: WALLET_CHAIN.TON,
       ...identity,
       encryptedPhrase: serverCipher.encrypt(phrase),
+    });
+
+    notifier.step({
+      icon: "🔐",
+      label: "Encrypted for the server",
+      lines: [
+        describeEntry(entry),
+        `<b>Address</b>: <code>${utils.escapeHtml(identity.address)}</code>`,
+      ],
     });
   }
 
@@ -88,6 +114,7 @@ function storeWallets({ ownerId, drop, wallets }) {
 
 /** Store the Auto wallets a push names, under the server's encryption key */
 export async function pushAutoWallets({
+  title,
   ownerId,
   drop,
   password,
@@ -98,7 +125,28 @@ export async function pushAutoWallets({
   serverCipher.assertAvailable();
 
   const entries = getAutoWalletEntries({ master, accounts, pushScope });
-  const wallets = await prepareWallets(entries, password);
+  const notifier = new JobNotifier({
+    title: `🔐 ${title} - Wallet Push`,
+    total: entries.length,
+    operatorId: ownerId,
+  });
 
-  return storeWallets({ ownerId, drop, wallets });
+  notifier.start([`<b>Scope</b>: ${pushScope}`]);
+
+  const wallets = await prepareWallets(entries, password, notifier);
+  let result;
+
+  try {
+    result = await storeWallets({ ownerId, drop, wallets });
+  } catch (error) {
+    notifier.fail("The wallets could not be saved.");
+    throw error;
+  }
+
+  notifier.complete([
+    `<b>Created</b>: ${result.created}`,
+    `<b>Updated</b>: ${result.updated}`,
+  ]);
+
+  return result;
 }

@@ -1,7 +1,7 @@
 import { addDays } from "date-fns";
 
 import GramClient from "./telegram/GramClient.js";
-import bot from "./bot.js";
+import JobNotifier from "./bot/JobNotifier.js";
 import db from "../db/models/index.js";
 import logger from "./logger.js";
 import { runDatabaseWrite } from "./db-write.js";
@@ -14,7 +14,6 @@ import {
 } from "../services/subscriptions.js";
 import { createSessionId } from "../services/telegram-session.js";
 import { deleteSessionFile, writeSession } from "./telegram/session-store.js";
-import { formatDateTime } from "./format-date-time.js";
 
 /** Number of accounts to clone concurrently (kept low to respect flood limits) */
 const CONCURRENCY = 5;
@@ -73,31 +72,23 @@ async function cloneEntrySession(entry, passwords) {
   }
 }
 
-/** Labels for each per-account outcome */
-const STATUS_LABELS = {
-  [IMPORT_OUTCOME.CREATED]: "✅ Created",
-  [IMPORT_OUTCOME.SKIPPED]: "⏭️ Skipped",
-  [IMPORT_OUTCOME.FAILED]: "❌ Failed",
+/** Icon and label for each per-account outcome */
+const STATUS_STEPS = {
+  [IMPORT_OUTCOME.CREATED]: { icon: "✅", label: "Created" },
+  [IMPORT_OUTCOME.SKIPPED]: { icon: "⏭️", label: "Skipped" },
+  [IMPORT_OUTCOME.FAILED]: { icon: "❌", label: "Failed" },
 };
 
-/** Keep the admin posted as each account lands */
-async function notifyEntryResult(
-  status,
-  { entry, id, message },
-  counters,
-  total,
-) {
-  const done =
-    counters.created.length + counters.skipped.length + counters.failed.length;
-
-  await bot?.sendAdminMessage([
-    `<b>📥 Whiskers Import</b>`,
-    `<i>${STATUS_LABELS[status]}</i>\n`,
-    `<b>Account</b>: ${utils.escapeHtml(entry.title || "(untitled)")}`,
-    `<b>ID</b>: ${id ?? "unknown"}`,
-    ...(message ? [`<b>Error</b>: ${utils.escapeHtml(message)}`] : []),
-    `\n<b>Progress</b>: ${done}/${total}`,
-  ]);
+/** Report one account as it lands */
+function notifyEntryResult(notifier, status, { entry, id, message }) {
+  notifier.step({
+    ...STATUS_STEPS[status],
+    lines: [
+      `<b>Account</b>: ${utils.escapeHtml(entry.title || "(untitled)")}`,
+      `<b>ID</b>: ${id ?? "unknown"}`,
+      ...(message ? [`<b>Error</b>: ${utils.escapeHtml(message)}`] : []),
+    ],
+  });
 }
 
 /** Clone a single whiskers entry and onboard the account */
@@ -107,7 +98,7 @@ async function processEntry(
   endsAt,
   farming,
   counters,
-  total,
+  notifier,
 ) {
   let user;
   let status = IMPORT_OUTCOME.FAILED;
@@ -203,12 +194,11 @@ async function processEntry(
     });
   }
 
-  await notifyEntryResult(
-    status,
-    { entry, id: user?.id ? Number(user.id) : null, message },
-    counters,
-    total,
-  );
+  notifyEntryResult(notifier, status, {
+    entry,
+    id: user?.id ? Number(user.id) : null,
+    message,
+  });
 }
 
 /**
@@ -230,7 +220,6 @@ export async function importWhiskersBackup({
   subscriptionDate,
   farming = true,
 }) {
-  const startDate = new Date();
   const entries = utils.whiskersToEntries(backup);
   const passwordList = parsePasswords(passwords);
   const endsAt = subscriptionDate
@@ -238,20 +227,19 @@ export async function importWhiskersBackup({
     : addDays(new Date(), DEFAULT_SUBSCRIPTION_DAYS);
 
   const counters = { created: [], skipped: [], failed: [] };
+  const notifier = new JobNotifier({
+    title: "📥 Whiskers Import",
+    total: entries.length,
+  });
+
+  notifier.start();
 
   logger.info(`Whiskers import - starting for ${entries.length} account(s)`);
 
   for (const chunk of utils.chunkArrayGenerator(entries, CONCURRENCY)) {
     await Promise.all(
       chunk.map((entry) =>
-        processEntry(
-          entry,
-          passwordList,
-          endsAt,
-          farming,
-          counters,
-          entries.length,
-        ),
+        processEntry(entry, passwordList, endsAt, farming, counters, notifier),
       ),
     );
 
@@ -269,23 +257,16 @@ export async function importWhiskersBackup({
     );
   }
 
-  const endDate = new Date();
-
   logger.success(
     `Whiskers import - completed: ${counters.created.length} created, ` +
       `${counters.skipped.length} skipped, ${counters.failed.length} failed`,
   );
 
-  /** Notify the admin */
-  await bot?.sendAdminMessage([
-    `<b>📥 Whiskers Import</b>`,
-    `<i>✅ Status: Completed</i>\n`,
+  await notifier.complete([
     `<b>Total</b>: ${entries.length}`,
     `<b>Created</b>: ${counters.created.length}`,
     `<b>Skipped</b>: ${counters.skipped.length}`,
     `<b>Failed</b>: ${counters.failed.length}`,
-    `\n<b>🗓️ Start</b>: ${formatDateTime(startDate)}`,
-    `<b>🗓️ End</b>: ${formatDateTime(endDate)}`,
   ]);
 
   return counters;
