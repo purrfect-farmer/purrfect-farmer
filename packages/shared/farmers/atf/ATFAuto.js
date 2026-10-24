@@ -15,6 +15,8 @@ export default class ATFAuto extends FarmerModule {
         return { status: false, message };
       }
 
+      await this.ctx.walletVersion.remember(version);
+
       return {
         status: true,
         summary: refresh ? await this.refreshSummary() : this.summary(),
