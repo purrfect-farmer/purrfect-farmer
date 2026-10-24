@@ -92,7 +92,7 @@ async function runCleanup(accounts, { text, fields }) {
     /** The step messages go out before the full report */
     await notifier.flush();
 
-    await bot.sendProfileCleanCompleteMessage({
+    await bot?.sendProfileCleanCompleteMessage({
       text,
       fields,
       report,
