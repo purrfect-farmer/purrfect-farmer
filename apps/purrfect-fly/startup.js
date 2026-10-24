@@ -37,7 +37,9 @@ if (app.seeker.enabled || app.startup.sendServerAddress) {
       const address = await getPublicIp();
 
       /** Post to Seeker Server */
-      if (app.seeker.enabled) {
+      if (app.seeker.enabled && !app.name) {
+        console.error("Seeker needs a server name, set APP_NAME.");
+      } else if (app.seeker.enabled) {
         await reportToSeeker(app.seeker.server, {
           key: app.seeker.key,
           name: app.name,

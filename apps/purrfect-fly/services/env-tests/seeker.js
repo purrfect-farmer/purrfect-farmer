@@ -6,6 +6,7 @@ import { check } from "./check.js";
 export default async function testSeeker(values, results) {
   await check(results, "Seeker server", async () => {
     if (!values.SEEKER_SERVER) throw new Error("Server URL is empty.");
+    if (!values.APP_NAME) throw new Error("Server name is empty.");
 
     const address = await getPublicIp();
 

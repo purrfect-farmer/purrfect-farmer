@@ -1,11 +1,21 @@
 import { findInvalidLines, isValidKey, parseEnv } from "../../lib/env/parse.js";
 
-import { fieldsByKey } from "./schema.js";
+import { fieldsByKey, schema } from "./schema.js";
 import { validateField } from "../../config/env-schema.js";
 
-/** Validate a changes map, returns errors keyed by env key */
-export function validateChanges(changes) {
+/** Unchanged fields made required by a switch among the changed keys */
+const dependentFields = (changedKeys) =>
+  schema.fields.filter(
+    (field) =>
+      field.requiredWhen &&
+      changedKeys.has(field.requiredWhen) &&
+      !changedKeys.has(field.key),
+  );
+
+/** Validate a changes map against the current env, returns errors keyed by env key */
+export function validateChanges(changes, current = {}) {
   const errors = {};
+  const values = { ...current, ...changes };
 
   for (const [key, value] of Object.entries(changes)) {
     const field = fieldsByKey.get(key);
@@ -17,11 +27,16 @@ export function validateChanges(changes) {
     } else if (typeof value !== "string") {
       errors[key] = ["Invalid value."];
     } else if (field) {
-      const error = validateField(field, value);
+      const error = validateField(field, value, values);
       if (error) errors[key] = [error];
     } else if (/[\r\n]/.test(value)) {
       errors[key] = ["Must be a single line."];
     }
+  }
+
+  for (const field of dependentFields(new Set(Object.keys(changes)))) {
+    const error = validateField(field, values[field.key] ?? "", values);
+    if (error) errors[field.key] = [error];
   }
 
   return errors;
@@ -40,13 +55,17 @@ export function validateContent(content, current) {
 
   const next = parseEnv(content);
   const keys = new Set([...Object.keys(current), ...Object.keys(next)]);
+  const changedKeys = new Set(
+    [...keys].filter((key) => current[key] !== next[key]),
+  );
+  const checkedFields = [
+    ...[...changedKeys].map((key) => fieldsByKey.get(key)).filter(Boolean),
+    ...dependentFields(changedKeys),
+  ];
 
-  for (const key of keys) {
-    const field = fieldsByKey.get(key);
-    if (!field || current[key] === next[key]) continue;
-
-    const error = validateField(field, next[key] ?? "");
-    if (error) problems.push(`${key}: ${error}`);
+  for (const field of checkedFields) {
+    const error = validateField(field, next[field.key] ?? "", next);
+    if (error) problems.push(`${field.key}: ${error}`);
   }
 
   return problems;

@@ -31,7 +31,7 @@ async function resolveUnlockedTarget(body) {
     const changes = Object.fromEntries(
       Object.entries(body.changes).map(([key, value]) => [key, toText(value)]),
     );
-    const errors = validateChanges(changes);
+    const errors = validateChanges(changes, current);
 
     if (Object.keys(errors).length) return { before, errors };
 

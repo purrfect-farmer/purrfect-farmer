@@ -59,6 +59,7 @@ export const ENV_FIELDS = [
     label: "Server name",
     type: "string",
     default: "",
+    requiredWhen: "SEEKER_ENABLED",
     help: "Shown in Telegram messages and on the Seeker server.",
   },
   {
@@ -405,7 +406,16 @@ export function getEnvSchema(farmers) {
 }
 
 /** Check one value against its field, returning an error message or null */
-export function validateField(field, value) {
+/** Whether a field must have a value, always or while the switch it names is on */
+export function isFieldRequired(field, values = {}) {
+  if (field.required) return true;
+  if (!field.requiredWhen) return false;
+
+  return /^true$/i.test(String(values[field.requiredWhen] ?? "").trim());
+}
+
+/** Validate one value, with the other env values for fields required by a switch */
+export function validateField(field, value, values = {}) {
   const text = value === null || value === undefined ? "" : String(value).trim();
 
   if (/[\r\n]/.test(String(value ?? ""))) {
@@ -413,7 +423,7 @@ export function validateField(field, value) {
   }
 
   if (text === "") {
-    return field.required ? `${field.label} is required.` : null;
+    return isFieldRequired(field, values) ? `${field.label} is required.` : null;
   }
 
   switch (field.type) {

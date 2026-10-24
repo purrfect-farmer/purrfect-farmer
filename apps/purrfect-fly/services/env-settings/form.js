@@ -4,7 +4,7 @@ import { parseEnv } from "../../lib/env/parse.js";
 import envStore from "../../lib/env-store.js";
 import serverCipher from "../../lib/ServerCipher.js";
 import { schema } from "./schema.js";
-import { validateField } from "../../config/env-schema.js";
+import { isFieldRequired, validateField } from "../../config/env-schema.js";
 
 /** Settings form data: values, masked secrets and current issues */
 export async function getSettingsForm() {
@@ -25,8 +25,8 @@ export async function getSettingsForm() {
       values[field.key] = value;
     }
 
-    if (value !== undefined || field.required) {
-      const error = validateField(field, value ?? "");
+    if (value !== undefined || isFieldRequired(field, current)) {
+      const error = validateField(field, value ?? "", current);
       if (error) issues[field.key] = error;
     }
   }
