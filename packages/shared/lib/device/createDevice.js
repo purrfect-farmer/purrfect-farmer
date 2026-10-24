@@ -278,7 +278,8 @@ export function getAccountDevice(core) {
   const cached = coreDevices.get(core);
 
   if (
-    cached?.userId === userId &&
+    cached &&
+    cached.userId === userId &&
     cached.userAgent === userAgent &&
     cached.deviceLocale === deviceLocale
   ) {

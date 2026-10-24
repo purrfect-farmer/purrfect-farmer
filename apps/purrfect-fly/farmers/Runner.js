@@ -102,6 +102,11 @@ export default function createRunner(FarmerClass) {
       }
     }
 
+    /** Fly accounts are keyed by their Telegram user id, the fallback when the web app carries none */
+    getUserId() {
+      return super.getUserId() || this.account?.id;
+    }
+
     /** Notify the server admin via the bot */
     async notifyAdmin(messages) {
       return bot?.sendAdminMessage(messages);

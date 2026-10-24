@@ -407,6 +407,12 @@ test("the device profile names the phone and Android version of its user agent",
   assert.equal(named.deviceId, unnamed.deviceId);
 });
 
+test("the first device read works before the user id is known", () => {
+  const core = { userId: () => undefined, userAgent: "" };
+
+  assert.doesNotThrow(() => getAccountDevice(core));
+});
+
 test("the account device is kept until its User-Agent changes", () => {
   const core = { userId: () => 42, userAgent: "" };
   const first = getAccountDevice(core);
