@@ -24,7 +24,8 @@ const optionalAmount = (label) =>
     .test(
       "non-negative-number",
       "Enter a valid amount",
-      (value) => !value || Number(value) >= 0,
+      (value) =>
+        !value || (Number.isFinite(Number(value)) && Number(value) >= 0),
     );
 
 const schema = yup
