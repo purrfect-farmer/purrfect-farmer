@@ -1,6 +1,7 @@
 import axios from "axios";
 
 import { delayForSeconds } from "../../utils/delay.js";
+import { getTimeZoneOffset } from "../device/locale.js";
 
 /** Shared context for the ad clients, so they run anywhere with just an api and initData */
 export default class BaseAdClient {
@@ -11,6 +12,7 @@ export default class BaseAdClient {
    * @param {string} [options.origin] - the mini app's origin, e.g. `https://app.example.com`
    * @param {string} [options.launchURL] - the mini app's launch URL, defaults to `origin`
    * @param {string} [options.userAgent] - user agent to report where a network asks for it
+   * @param {ReturnType<import("../device/createDevice.js").createDevice>} [options.device] - the account's device, whose screen and time zone are reported
    * @param {{get: Function, set: Function}} [options.storage] - optional persistence for device ids and regions
    * @param {{log: Function}} [options.logger] - optional console-like logger
    * @param {AbortSignal|(() => AbortSignal)} [options.signal] - abort signal, or a getter read on each wait
@@ -23,6 +25,7 @@ export default class BaseAdClient {
       origin: options.origin,
       launchURL: options.launchURL,
       userAgent: options.userAgent,
+      device: options.device,
       storage: options.storage,
       logger: options.logger,
       signal: options.signal,
@@ -33,6 +36,7 @@ export default class BaseAdClient {
     this.origin = options.origin || "";
     this.launchURL = options.launchURL || this.origin;
     this.userAgent = options.userAgent;
+    this.device = options.device;
     this.storage = options.storage;
     this.logger = options.logger;
 
@@ -58,6 +62,45 @@ export default class BaseAdClient {
   /** The Telegram user's language, `en` when unknown */
   get languageCode() {
     return this.user?.["language_code"] || "en";
+  }
+
+  /** The device's IANA time zone, else the host's */
+  get timeZone() {
+    const timeZone = this.device?.profile.tz;
+
+    if (timeZone) return timeZone;
+
+    try {
+      return Intl.DateTimeFormat().resolvedOptions().timeZone || "";
+    } catch {
+      return "";
+    }
+  }
+
+  /** Minutes the time zone is behind UTC now, signed like `Date#getTimezoneOffset` */
+  get timeZoneOffset() {
+    const timeZone = this.device?.profile.tz;
+
+    return timeZone
+      ? getTimeZoneOffset(timeZone)
+      : new Date().getTimezoneOffset();
+  }
+
+  /** The device's screen and WebView metrics, or null without a device */
+  get deviceScreen() {
+    if (!this.device) return null;
+
+    const { screen, viewport, touch } = this.device.profile;
+
+    return {
+      width: screen.w,
+      height: screen.h,
+      innerWidth: viewport.w,
+      innerHeight: viewport.h,
+      viewportHeight: viewport.h,
+      dpr: this.device.devicePixelRatio,
+      touchPoints: touch,
+    };
   }
 
   /** Parse the Telegram user out of initData */

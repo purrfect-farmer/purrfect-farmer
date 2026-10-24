@@ -55,6 +55,7 @@ export default class MonetagClient extends BaseAdClient {
       height: 900,
       innerWidth: 358,
       innerHeight: 632,
+      ...this.deviceScreen,
       ...options.screen,
     };
 
@@ -466,18 +467,10 @@ export default class MonetagClient extends BaseAdClient {
   }
 
   getTimezoneOffset() {
-    try {
-      return new Date().getTimezoneOffset();
-    } catch {
-      return 0;
-    }
+    return this.timeZoneOffset;
   }
 
   getTimezone() {
-    try {
-      return Intl.DateTimeFormat().resolvedOptions().timeZone;
-    } catch {
-      return "";
-    }
+    return this.timeZone;
   }
 }

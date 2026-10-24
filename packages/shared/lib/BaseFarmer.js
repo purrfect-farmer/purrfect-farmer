@@ -6,6 +6,7 @@ import { createLaunchHash } from "../utils/telegram.js";
 import createDebugger from "./farmer/createDebugger.js";
 import { applyFarmerOptions } from "./farmer/farmerOptions.js";
 import createFarmerCore from "./farmer/createFarmerCore.js";
+import { getAccountDevice } from "./device/createDevice.js";
 
 export default class BaseFarmer {
   static id = "base-farmer";
@@ -298,6 +299,7 @@ export default class BaseFarmer {
       origin: `https://${this.constructor.host}`,
       launchURL: this.getLaunchURL(),
       userAgent: this.userAgent,
+      device: getAccountDevice(this.core),
       storage: this.storage,
       logger: this.debugger,
       signal: () => this.signal,

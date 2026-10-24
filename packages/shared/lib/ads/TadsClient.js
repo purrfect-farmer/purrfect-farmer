@@ -49,6 +49,7 @@ export default class TadsClient extends BaseAdClient {
       dpr: 2.75,
       touchPoints: 5,
       viewportHeight: 873,
+      ...this.deviceScreen,
       ...options.screen,
     };
 
@@ -276,11 +277,7 @@ export default class TadsClient extends BaseAdClient {
   }
 
   getTimezone() {
-    try {
-      return Intl.DateTimeFormat().resolvedOptions().timeZone || "";
-    } catch {
-      return "";
-    }
+    return this.timeZone;
   }
 
   /** The trackers, duration and skip offset out of a VAST document, as the widget's player reads them */

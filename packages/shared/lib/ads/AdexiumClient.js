@@ -98,7 +98,7 @@ export default class AdexiumClient extends BaseAdClient {
     return {
       wid,
       adFormat: this.adFormat,
-      tz: new Date().getTimezoneOffset() / -60,
+      tz: this.timeZoneOffset / -60,
       language: user["language_code"] || "en",
       isPremium: user["is_premium"] || false,
       lastName: user["last_name"] || "",

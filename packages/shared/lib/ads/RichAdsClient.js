@@ -28,6 +28,13 @@ const INTERSTITIAL_SECONDS = 10;
 /** GigaPub holds a native notification at least this long */
 const NATIVE_SECONDS = 3.2;
 
+/** The phone in Telegram the device report describes when no device is given */
+const DEFAULT_SCREEN = Object.freeze({
+  width: 360,
+  height: 800,
+  innerHeight: 632,
+});
+
 /** Runs a RichAds widget the way `TelegramAdsController` would. See `RichAdsClient.README.md` */
 export default class RichAdsClient extends BaseAdClient {
   /**
@@ -438,22 +445,24 @@ export default class RichAdsClient extends BaseAdClient {
 
   /** The device report, filled with the shape of a phone in Telegram */
   getClientInfo() {
+    const screen = this.deviceScreen || DEFAULT_SCREEN;
+
     return {
-      sah: 800,
-      sh: 800,
-      sw: 360,
-      saw: 360,
-      tzo: new Date().getTimezoneOffset(),
-      ww: 360,
-      wh: 800,
-      wiw: 360,
-      wih: 632,
+      sah: screen.height,
+      sh: screen.height,
+      sw: screen.width,
+      saw: screen.width,
+      tzo: this.timeZoneOffset,
+      ww: screen.width,
+      wh: screen.height,
+      wiw: screen.width,
+      wih: screen.innerHeight,
       wx: 0,
       wy: 0,
       ix: 1,
       ri: null,
       ts_detected: 1,
-      tz: Intl.DateTimeFormat().resolvedOptions().timeZone,
+      tz: this.timeZone,
       nl: this.languageCode,
       nls: this.languageCode,
       bm: null,
