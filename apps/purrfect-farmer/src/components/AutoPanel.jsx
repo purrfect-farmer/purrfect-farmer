@@ -10,6 +10,7 @@ import AutoStatusTab from "./AutoStatusTab";
 import AutoSwapTab from "./AutoSwapTab";
 import AutoSwapperTab from "./AutoSwapperTab";
 import AutoVerifyTab from "./AutoVerifyTab";
+import AutoWalletsTab from "./AutoWalletsTab";
 import AutoWithdrawTab from "./AutoWithdrawTab";
 import Tabs from "./Tabs";
 import useAuto from "@/hooks/useAuto";
@@ -34,6 +35,7 @@ const baseTabs = {
     "load",
     "cultivate",
     "status",
+    "wallets",
   ],
 };
 
@@ -98,6 +100,9 @@ export default function AutoPanel() {
       </Tabs.Content>
       <Tabs.Content value="status">
         <AutoStatusTab />
+      </Tabs.Content>
+      <Tabs.Content value="wallets">
+        <AutoWalletsTab />
       </Tabs.Content>
       {config.verifiable && (
         <Tabs.Content value="verify">

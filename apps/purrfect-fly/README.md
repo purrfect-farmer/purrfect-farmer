@@ -283,6 +283,10 @@ nano apps/purrfect-fly/.env
 # JWT
 JWT_SECRET_KEY=<paste-generated-secret-here>
 
+# Encryption (optional, run generate-jwt-secret again for a key)
+# Needed to store Auto wallets. Back it up, losing it loses them.
+ENCRYPTION_KEY=<paste-another-generated-secret-here>
+
 # Telegram
 TELEGRAM_BOT_TOKEN=<your-bot-token>
 TELEGRAM_GROUP_ID=<your-group-id>

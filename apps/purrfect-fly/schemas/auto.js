@@ -1,5 +1,7 @@
 import { FLIP_DIRECTION } from "../enums/flip-direction.js";
 import { REQUALIFY_STRATEGY } from "../enums/requalify-strategy.js";
+import { WALLET_PUSH_SCOPE } from "@purrfect/shared/enums/wallet-push-scope.js";
+import { WALLET_ROLE } from "@purrfect/shared/enums/wallet-role.js";
 
 /** Body of an Auto operation */
 export const autoSchema = {
@@ -41,6 +43,41 @@ export const autoSchema = {
       requesters: { type: "array" },
       slippage: { type: "string" },
       referralAddress: { type: "string" },
+      pushScope: { type: "string", enum: Object.values(WALLET_PUSH_SCOPE) },
+    },
+  },
+};
+
+/** Body of a wallet push, the Auto shape plus which wallets to store */
+export const autoWalletsPushSchema = {
+  body: {
+    ...autoSchema.body,
+    required: [...autoSchema.body.required, "pushScope"],
+  },
+};
+
+/** Body naming the Auto wallets to remove, an account's also names its Telegram id */
+export const autoWalletsRemovalSchema = {
+  body: {
+    type: "object",
+    required: ["auth", "wallets"],
+    properties: {
+      auth: { type: "string" },
+      wallets: {
+        type: "array",
+        minItems: 1,
+        items: {
+          type: "object",
+          required: ["address", "role"],
+          properties: {
+            address: { type: "string", minLength: 1 },
+            role: { type: "string", enum: Object.values(WALLET_ROLE) },
+            accountId: { type: "string", pattern: "^\\d+$" },
+          },
+          if: { properties: { role: { const: WALLET_ROLE.ACCOUNT } } },
+          then: { required: ["address", "role", "accountId"] },
+        },
+      },
     },
   },
 };

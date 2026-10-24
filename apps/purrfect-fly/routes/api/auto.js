@@ -1,10 +1,22 @@
-import { autoFarmerSchema, autoSchema } from "../../schemas/auto.js";
+import {
+  WalletDecryptionError,
+  pushAutoWallets,
+} from "../../services/wallets/push-auto-wallets.js";
+import {
+  autoFarmerSchema,
+  autoSchema,
+  autoWalletsPushSchema,
+  autoWalletsRemovalSchema,
+} from "../../schemas/auto.js";
 
 import { AUTO_OPERATION } from "../../enums/auto-operation.js";
 import { FARMER_STATUS } from "../../enums/farmer-status.js";
+import { WalletPushError } from "../../services/wallets/auto-wallet-entries.js";
 import { authSchema } from "../../schemas/member.js";
 import autos from "../../lib/autos.js";
 import { setAccountFarming } from "../../services/farming.js";
+import { removeAutoWallets } from "../../services/wallets/remove-auto-wallets.js";
+import serverCipher from "../../lib/ServerCipher.js";
 import { setFarmerStatus } from "../../services/farmer-status.js";
 
 /**
@@ -217,6 +229,52 @@ export default async function (fastify) {
     { preHandler: autoPreHandler, schema: authSchema },
     async function (request) {
       return request.auto.snapshots();
+    },
+  );
+
+  /** Auto - Push Wallets, stored under the server's encryption key */
+  fastify.post(
+    "/auto/:drop/push-wallets",
+    { preHandler: autoPreHandler, schema: autoWalletsPushSchema },
+    async function (request, reply) {
+      if (!serverCipher.isAvailable()) {
+        return reply.serviceUnavailable("Server encryption key is not set");
+      }
+
+      const { password, master, accounts, pushScope } = request.body;
+
+      try {
+        return await pushAutoWallets({
+          ownerId: request.account.id,
+          drop: request.auto.id,
+          password,
+          master,
+          accounts,
+          pushScope,
+        });
+      } catch (error) {
+        if (
+          error instanceof WalletPushError ||
+          error instanceof WalletDecryptionError
+        ) {
+          return reply.badRequest(error.message);
+        }
+
+        throw error;
+      }
+    },
+  );
+
+  /** Auto - Remove Wallets a rotation replaced */
+  fastify.post(
+    "/auto/:drop/remove-wallets",
+    { preHandler: autoPreHandler, schema: autoWalletsRemovalSchema },
+    async function (request) {
+      return removeAutoWallets({
+        ownerId: request.account.id,
+        drop: request.auto.id,
+        wallets: request.body.wallets,
+      });
     },
   );
 

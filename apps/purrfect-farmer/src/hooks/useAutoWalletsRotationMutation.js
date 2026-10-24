@@ -1,10 +1,20 @@
+import {
+  accountWalletRemoval,
+  getCloudErrorMessage,
+  masterWalletRemoval,
+  pushAutoCloudWallets,
+  removeAutoCloudWallets,
+} from "@/lib/autoCloudWallets";
+
 import AutoWalletTransfer from "@/lib/AutoWalletTransfer";
+import { WALLET_PUSH_SCOPE } from "@purrfect/shared/enums/wallet-push-scope";
 import { downloadFile } from "@/utils";
 import { encryption } from "@/services/encryption";
 import { getWalletFromMnemonic } from "@purrfect/shared/lib/ton/wallet";
 import { mnemonicNew } from "@ton/crypto";
 import toast from "react-hot-toast";
 import useAuto from "./useAuto";
+import useCloudQueryOptions from "./useCloudQueryOptions";
 import { useMutation } from "@tanstack/react-query";
 
 async function generateNewWallet({ password, encryptedPhrase, version = 5 }) {
@@ -35,9 +45,42 @@ async function generateNewWallet({ password, encryptedPhrase, version = 5 }) {
   };
 }
 
+/** Store the rotated wallets on the Cloud server, then remove the ones they replaced */
+async function syncRotatedCloudWallets(
+  cloudBackend,
+  { drop, auth, password, master, accounts, oldMasterAddress, backup },
+) {
+  await pushAutoCloudWallets(cloudBackend, {
+    drop,
+    auth,
+    password,
+    master,
+    accounts,
+    pushScope: accounts.length
+      ? WALLET_PUSH_SCOPE.ALL
+      : WALLET_PUSH_SCOPE.MASTER,
+  });
+
+  const userIds = new Map(
+    accounts.map((account) => [account.id, account.userId]),
+  );
+
+  await removeAutoCloudWallets(cloudBackend, {
+    drop,
+    auth,
+    wallets: [
+      masterWalletRemoval(oldMasterAddress),
+      ...backup.map((item) =>
+        accountWalletRemoval(item.old.address, userIds.get(item.id)),
+      ),
+    ],
+  });
+}
+
 export default function useAutoWalletsRotationMutation() {
   const { config, master, accounts, password, storeMaster, storeAccounts } =
     useAuto();
+  const { enabled: cloudEnabled, auth, cloudBackend } = useCloudQueryOptions();
 
   const mutation = useMutation({
     mutationKey: [config.id, "wallets", "rotation"],
@@ -175,15 +218,38 @@ export default function useAutoWalletsRotationMutation() {
       });
 
       /** Store updated master */
-      storeMaster({
+      const updatedMaster = {
         ...master,
         address: newMasterAddress,
         encryptedWalletPhrase: newEncryptedWalletPhrase,
-      });
+      };
+
+      storeMaster(updatedMaster);
 
       /** Store updated accounts */
       if (updatedAccounts.length) {
         storeAccounts(updatedAccounts);
+      }
+
+      /** Replace the server's copies, a failure leaves the local rotation as it is */
+      if (cloudEnabled) {
+        try {
+          await syncRotatedCloudWallets(cloudBackend, {
+            drop: config.id,
+            auth,
+            password,
+            master: updatedMaster,
+            accounts: updatedAccounts,
+            oldMasterAddress,
+            backup: accountsBackup,
+          });
+        } catch (error) {
+          const reason = getCloudErrorMessage(error);
+
+          toast.error(
+            `Server wallets not updated: ${reason}. Push from the Wallets tab.`,
+          );
+        }
       }
     },
   });

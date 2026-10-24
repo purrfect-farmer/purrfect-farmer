@@ -72,6 +72,17 @@ export const ENV_FIELDS = [
     help: "Random text used to sign manager logins. Use Generate if unsure.",
   },
   {
+    key: "ENCRYPTION_KEY",
+    group: "general",
+    label: "Encryption key",
+    type: "secret",
+    format: "hexKey",
+    generate: true,
+    warning:
+      "Changing or losing it makes encrypted data unreadable. Back it up.",
+    help: "Encrypts data the server keeps, like Auto wallets.",
+  },
+  {
     key: "PRIMARY_ACCOUNT_ID",
     group: "general",
     label: "Primary account ID",
@@ -465,6 +476,9 @@ export function validateField(field, value) {
     case "secret":
       if (field.format === "botToken" && !/^\d+:[\w-]{30,}$/.test(text)) {
         return "Bot tokens look like 123456789:ABC-DEF...";
+      }
+      if (field.format === "hexKey" && !/^[0-9a-fA-F]{64}$/.test(text)) {
+        return "Must be 64 hex characters. Use Generate if unsure.";
       }
       return null;
 
