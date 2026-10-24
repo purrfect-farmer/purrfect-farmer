@@ -12,7 +12,7 @@ export default class LootVaultFarmer extends BaseFarmer {
   static emoji = "💰";
   static host = "lootvault.lol";
   static domains = ["lootvault.lol"];
-  static telegramLink = "https://t.me/LootVaultDexBot?start=ref_6336634839";
+  static telegramLink = "https://t.me/LootVaultDexBot?start=ref_1147265290";
   static path = "/";
   static interval = "0 */6 * * *";
   static apiDelay = 500;
