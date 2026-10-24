@@ -2,7 +2,7 @@ import Alert from "./Alert";
 import { getCloudErrorMessage } from "@/lib/autoCloudWallets";
 import { memo } from "react";
 
-/** Outcome of a wallet push, or the server's reason when it failed */
+/** A wallet push the server accepted, or its reason for refusing it */
 export default memo(function AutoWalletsPushResult({ data, error }) {
   if (error) {
     return <Alert variant="danger">{getCloudErrorMessage(error)}</Alert>;
@@ -12,7 +12,8 @@ export default memo(function AutoWalletsPushResult({ data, error }) {
 
   return (
     <Alert variant="success">
-      Stored on the server: {data.created} new, {data.updated} updated.
+      Push started for {data.total} wallet{data.total === 1 ? "" : "s"}.
+      Progress is sent to Telegram.
     </Alert>
   );
 });

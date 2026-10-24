@@ -1,6 +1,7 @@
 import {
   WalletDecryptionError,
-  pushAutoWallets,
+  checkAutoWalletsPush,
+  startAutoWalletsPush,
 } from "../../services/wallets/push-auto-wallets.js";
 import {
   autoFarmerSchema,
@@ -89,8 +90,20 @@ export default async function (fastify) {
 
     /** Destroy banned farmers */
     for (const bannedFarmer of bannedFarmers) {
-      if (bannedFarmer.account.id !== accountId) {
-        bannedFarmer.account.destroy();
+      const { account } = bannedFarmer;
+
+      /** An account a running operation still works is left for the next sweep */
+      if (account.id === accountId || Auto.isHoldingAccount(account.id)) {
+        continue;
+      }
+
+      try {
+        await account.destroy();
+      } catch (error) {
+        fastify.log.error(
+          error,
+          `Failed to remove banned account ${account.id}`,
+        );
       }
     }
 
@@ -242,12 +255,11 @@ export default async function (fastify) {
       }
 
       const { password, master, accounts, pushScope } = request.body;
+      let push;
 
+      /** A wrong password or an empty scope is refused before the push starts */
       try {
-        return await pushAutoWallets({
-          title: request.auto.title,
-          ownerId: request.account.id,
-          drop: request.auto.id,
+        push = await checkAutoWalletsPush({
           password,
           master,
           accounts,
@@ -263,6 +275,18 @@ export default async function (fastify) {
 
         throw error;
       }
+
+      /** The rest runs in the background and reports to Telegram */
+      startAutoWalletsPush({
+        ...push,
+        title: request.auto.title,
+        ownerId: request.account.id,
+        drop: request.auto.id,
+        password,
+        pushScope,
+      });
+
+      return { started: true, total: push.entries.length };
     },
   );
 

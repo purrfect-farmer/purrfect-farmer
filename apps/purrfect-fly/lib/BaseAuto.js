@@ -50,6 +50,17 @@ class BaseAuto {
   /** @type {Map<string, AutoContext>} the cultivate loop, keyed by drop and running alongside the assist one */
   static cultivateInstances = new Map();
 
+  /** Whether a running operation or loop of this drop is working the account right now */
+  static isHoldingAccount(id) {
+    const runs = [
+      ...this.instances.values(),
+      ...this.assistInstances.values(),
+      ...this.cultivateInstances.values(),
+    ];
+
+    return runs.some((ctx) => ctx.terminatedAccounts.has(id));
+  }
+
   /** Run in the slot `key` holds in `map`, refusing while another run holds it */
   static runExclusive(map, key, options, run) {
     if (map.has(key)) {
