@@ -1,5 +1,8 @@
 import TelegramIdentity from "@purrfect/shared/lib/farmer/TelegramIdentity.js";
-import { createDevice } from "@purrfect/shared/lib/device/createDevice.js";
+import {
+  createDevice,
+  getAccountDevice,
+} from "@purrfect/shared/lib/device/createDevice.js";
 import BaseFarmer from "@purrfect/shared/lib/BaseFarmer.js";
 import {
   DEFAULT_THEME_PARAMS,
@@ -402,4 +405,20 @@ test("the device profile names the phone and Android version of its user agent",
   assert.equal(named.ua.model, "TECNO KI5q");
   assert.equal(named.ua.platformVersion, "15.0.0");
   assert.equal(named.deviceId, unnamed.deviceId);
+});
+
+test("the account device is kept until its User-Agent changes", () => {
+  const core = { userId: () => 42, userAgent: "" };
+  const first = getAccountDevice(core);
+
+  assert.equal(getAccountDevice(core), first);
+
+  core.userAgent =
+    "Mozilla/5.0 (Linux; Android 15; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/155.0.8059.79 Mobile Safari/537.36 Telegram-Android/13.1.0 (Tecno TECNO KI5q; Android 15; SDK 35; HIGH)";
+
+  const second = getAccountDevice(core);
+
+  assert.notEqual(second, first);
+  assert.equal(second.profile.ua.model, "TECNO KI5q");
+  assert.equal(second.profile.deviceId, first.profile.deviceId);
 });

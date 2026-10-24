@@ -1,15 +1,12 @@
 import FarmerModule from "../../lib/farmer/FarmerModule.js";
 import { SAMSUNG_MODELS, TELEGRAM_PLATFORM } from "./constants.js";
-import { createDevice } from "../../lib/device/createDevice.js";
+import { getAccountDevice } from "../../lib/device/createDevice.js";
 
 /** The phone the account runs on, as the page fingerprints it */
 export default class MRGDevice extends FarmerModule {
   /** The account's phone, the same on every run, whose `deviceId` stands in for the page's `mrg_device_id` */
   get() {
-    return (this.device ||= createDevice(
-      this.core.userId(),
-      this.core.userAgent,
-    ));
+    return getAccountDevice(this.core);
   }
 
   /** The device the page reports alongside sign-in, as `mn()` builds it from the same phone the forensics describe */

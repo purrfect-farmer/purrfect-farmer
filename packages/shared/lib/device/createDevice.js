@@ -130,7 +130,6 @@ const PHONES = [
 /** Values an audio fingerprint lands on across Chrome builds */
 const AUDIO_SUMS = ["124.043475", "124.043476", "124.046743", "124.080345"];
 
-
 /** Telegram's header and status bar, which the WebView's height loses */
 const TG_CHROME_HEIGHT = 80;
 
@@ -277,4 +276,24 @@ export function createDevice(seed, userAgent = "") {
       };
     },
   };
+}
+
+/** Each farmer core's device, with the account and User-Agent it was built for */
+const coreDevices = new WeakMap();
+
+/** The core's account device, rebuilt when its user or User-Agent changes */
+export function getAccountDevice(core) {
+  const userId = core.userId();
+  const { userAgent } = core;
+  const cached = coreDevices.get(core);
+
+  if (cached?.userId === userId && cached.userAgent === userAgent) {
+    return cached.device;
+  }
+
+  const device = createDevice(userId, userAgent);
+
+  coreDevices.set(core, { userId, userAgent, device });
+
+  return device;
 }
