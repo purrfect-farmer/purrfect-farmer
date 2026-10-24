@@ -36,13 +36,15 @@ const createInstance = ({
   const InstanceClass = class extends FarmerClass {
     constructor() {
       super();
-      this.api = axios.create();
-      this.utils = utils;
-      this.logger = logger;
-      this.captcha = captcha;
-      this.userAgent = userAgent;
-      this.controller = controller;
-      this.client = client;
+      this.configure({
+        api: axios.create(),
+        utils,
+        logger,
+        captcha,
+        userAgent,
+        controller,
+        client,
+      });
 
       this.registerDelayInterceptor();
       this.configureApi?.();

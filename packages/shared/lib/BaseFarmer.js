@@ -2,7 +2,9 @@ import TaskRunner from "./farmer/TaskRunner.js";
 import TelegramActions from "./farmer/TelegramActions.js";
 import TelegramIdentity from "./farmer/TelegramIdentity.js";
 import utils from "../utils/bundle.js";
+import { createLaunchHash } from "../utils/telegram.js";
 import createDebugger from "./farmer/createDebugger.js";
+import { applyFarmerOptions } from "./farmer/farmerOptions.js";
 import createFarmerCore from "./farmer/createFarmerCore.js";
 
 export default class BaseFarmer {
@@ -80,7 +82,7 @@ export default class BaseFarmer {
         telegramLink: this.telegramLink,
         client: this.client,
       }),
-      setTelegramWebApp: (webApp) => this.setTelegramWebApp(webApp),
+      setTelegramWebApp: (telegramWebApp) => this.configure({ telegramWebApp }),
     });
 
     this.#tasks = new TaskRunner({
@@ -141,18 +143,13 @@ export default class BaseFarmer {
     }
   }
 
-  /** Set Prompt Functions */
-  setPromptFunctions(functions) {
-    this.promptInput = functions.promptInput;
-    this.promptAnswer = functions.promptAnswer;
-    this.promptCancel = functions.promptCancel;
-  }
-
-  /** Set the provider listing the Auto wallets, ranked with this drop's own Auto first
-   * @param {object} provider - { getSources(): Array<{ id, title, own, accounts, decryptPhrase(account, password) }> }
+  /** Hand the farmer the dependencies its host provides, changing only the options given
+   * @param {object} options - any of `FARMER_OPTIONS`: api, utils, logger, captcha, userAgent, client, storage, telegramWebApp, controller, allowProfileUpdates, quickRun, prompts, autoWalletProvider, cacheAuth, cacheTelegramWebApp
+   * @returns {this}
    */
-  setAutoWalletProvider(provider) {
-    this.autoWalletProvider = provider;
+  configure(options = {}) {
+    applyFarmerOptions(this, options);
+    return this;
   }
 
   /** Configure Auth Headers */
@@ -166,62 +163,6 @@ export default class BaseFarmer {
       this.api.defaults.headers.common,
       headers,
     );
-  }
-
-  /** Set the API instance for making requests
-   * @param {import("axios").AxiosInstance} api - Axios instance for API requests
-   */
-  setApi(api) {
-    /** @type {import("axios").AxiosInstance} */
-    this.api = api;
-  }
-
-  /** Set the Telegram Web App  */
-  setTelegramWebApp(telegramWebApp) {
-    this.telegramWebApp = telegramWebApp;
-  }
-
-  /** Set the Captcha Solver
-   * @param {import("./CaptchaSolver.js").default} captcha - Captcha solver instance
-   */
-  setCaptcha(captcha) {
-    this.captcha = captcha;
-  }
-
-  /** Set the Telegram Client
-   * @param {import("./BaseTelegramWebClient.js").default} client - Telegram client instance
-   */
-  setTelegramClient(client) {
-    return this.setClient(client);
-  }
-
-  /** Set the User Agent */
-  setUserAgent(userAgent) {
-    this.userAgent = userAgent;
-  }
-
-  /** Set whether tasks may change the Telegram profile */
-  setAllowProfileUpdates(allowProfileUpdates = false) {
-    this.allowProfileUpdates = Boolean(allowProfileUpdates);
-  }
-
-  /** Set the Quick Run */
-  setQuickRun(quickRun = false) {
-    this.quickRun = quickRun;
-  }
-
-  /** Set the Logger
-   * @param {import("./BaseLogger.js").default} logger - Logger instance
-   */
-  setLogger(logger) {
-    this.logger = logger;
-  }
-
-  /** Set the Telegram Client
-   * @param {import("./BaseTelegramWebClient.js").default} client - Telegram client instance
-   */
-  setClient(client) {
-    this.client = client;
   }
 
   /** Can Solve Turnstile */
@@ -374,16 +315,6 @@ export default class BaseFarmer {
   /** Persist data */
   persist() {}
 
-  /** Set Cache Auth */
-  setCacheAuth(status) {
-    this.cacheAuth = status;
-  }
-
-  /** Set cache telegram web app */
-  setCacheTelegramWebApp(status) {
-    this.cacheTelegramWebApp = status;
-  }
-
   /** Configure primary link */
   static configurePrimaryLink(link) {
     if (link) {
@@ -395,14 +326,14 @@ export default class BaseFarmer {
     }
   }
 
-  /** Get URL from Init Data */
-  static getUrlFromInitData(initData) {
+  /** The URL the mini app opens at with this initData, carrying the platform, version and theme Telegram adds
+   * @param {string} initData
+   * @param {{ platform?: string, version?: string, themeParams?: object }} [launch] - the real values when known
+   */
+  static getUrlFromInitData(initData, launch = {}) {
     const url = new URL(this.path, `https://${this.host}`);
-    const params = new URLSearchParams();
 
-    params.set("tgWebAppData", initData);
-
-    url.hash = `#${params.toString()}`;
+    url.hash = `#${createLaunchHash({ initData, ...launch })}`;
 
     return url.toString();
   }

@@ -18,7 +18,7 @@ const createDropFarmerInstance = ({ FarmerClass }) => {
     /** Constructor */
     constructor() {
       super();
-      this.utils = utils;
+      this.configure({ utils });
     }
 
     /** Set the Join Telegram Link Handler */
@@ -29,11 +29,6 @@ const createDropFarmerInstance = ({ FarmerClass }) => {
     /** Set the Update Profile Handler */
     setProfileUpdateHandler(handler) {
       this.updateProfile = handler;
-    }
-
-    /** Set storage */
-    setStorage(storage) {
-      this.storage = storage;
     }
 
     /** Can Join Telegram Link */
@@ -93,15 +88,17 @@ export default function useDropFarmerInstance({
   useLayoutEffect(() => {
     if (!instance) return;
     console.log("Configuring farmer instance...", instance);
-    instance.setUserAgent?.(userAgent);
-    instance.setApi?.(api);
-    instance.setCaptcha?.(captcha);
-    instance.setLogger?.(logger);
-    instance.setStorage?.(instanceStorage);
-    instance.setTelegramLinkHandler?.(joinTelegramLink);
-    instance.setProfileUpdateHandler?.(updateProfile);
-    instance.setTelegramWebApp?.(telegramWebApp);
-    instance.setTelegramClient?.(telegramClient.ref.current);
+    instance.configure({
+      userAgent,
+      api,
+      captcha,
+      logger,
+      storage: instanceStorage,
+      telegramWebApp,
+      client: telegramClient.ref.current,
+    });
+    instance.setTelegramLinkHandler(joinTelegramLink);
+    instance.setProfileUpdateHandler(updateProfile);
     return instance.configureApi?.(api);
   }, [
     instance,
@@ -118,7 +115,7 @@ export default function useDropFarmerInstance({
 
   /** Apply the profile update permission */
   useLayoutEffect(() => {
-    instance?.setAllowProfileUpdates?.(allowProfileUpdates);
+    instance?.configure({ allowProfileUpdates });
   }, [instance, allowProfileUpdates]);
 
   return instance;

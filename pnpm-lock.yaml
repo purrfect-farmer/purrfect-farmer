@@ -482,6 +482,9 @@ importers:
       '@tanstack/router-core':
         specifier: ^1.171.32
         version: 1.171.32
+      '@telegram-apps/transformers':
+        specifier: ^2.2.6
+        version: 2.2.6
       '@ton/core':
         specifier: ^0.63.1
         version: 0.63.1(@ton/crypto@3.3.0)

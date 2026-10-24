@@ -1,4 +1,11 @@
 import TelegramIdentity from "@purrfect/shared/lib/farmer/TelegramIdentity.js";
+import BaseFarmer from "@purrfect/shared/lib/BaseFarmer.js";
+import {
+  DEFAULT_THEME_PARAMS,
+  DEFAULT_WEB_APP_PLATFORM,
+  DEFAULT_WEB_APP_VERSION,
+  parseThemeParams,
+} from "@purrfect/shared/utils/telegram.js";
 import createDebugger from "@purrfect/shared/lib/farmer/createDebugger.js";
 import TaskRunner from "@purrfect/shared/lib/farmer/TaskRunner.js";
 import TelegramActions from "@purrfect/shared/lib/farmer/TelegramActions.js";
@@ -236,7 +243,12 @@ test("a task link dwells, and the web app refreshes only for Telegram web apps",
   const { actions, calls } = createActions(farmer);
   const { utils } = actions.core;
 
-  utils.extractTgWebAppData = () => ({ initData: "query_id=1" });
+  utils.extractTgWebAppData = () => ({
+    initData: "query_id=1",
+    platform: "android",
+    version: "8.0",
+    themeParams: { bg_color: "#ffffff" },
+  });
   utils.getInitDataUnsafe = (initData) => ({ parsed: initData });
 
   await actions.openTaskLink("https://example.com/task", 10);
@@ -245,7 +257,13 @@ test("a task link dwells, and the web app refreshes only for Telegram web apps",
   await actions.refreshWebApp();
   assert.deepEqual(calls.at(-1), [
     "webApp",
-    { initData: "query_id=1", initDataUnsafe: { parsed: "query_id=1" } },
+    {
+      initData: "query_id=1",
+      initDataUnsafe: { parsed: "query_id=1" },
+      platform: "android",
+      version: "8.0",
+      themeParams: { bg_color: "#ffffff" },
+    },
   ]);
 
   farmer.launch = { ...farmer.launch, type: "direct" };
@@ -271,4 +289,71 @@ test("the debugger prints only while enabled", () => {
   }
 
   assert.deepEqual(printed, [["shown", 1]]);
+});
+
+/** A farmer with the link a Telegram farmer must have */
+class ExampleFarmer extends BaseFarmer {
+  static host = "example.com";
+  static path = "/app/";
+  static telegramLink = "https://t.me/example_bot/app?startapp=ref_1";
+}
+
+test("configure stores only the options given and refuses unknown ones", () => {
+  const farmer = new ExampleFarmer();
+  const controller = new AbortController();
+  const prompt = () => "answer";
+
+  assert.equal(
+    farmer.configure({
+      logger: "logger",
+      controller,
+      allowProfileUpdates: 1,
+      prompts: { promptInput: prompt },
+    }),
+    farmer,
+  );
+
+  assert.equal(farmer.logger, "logger");
+  assert.equal(farmer.controller, controller);
+  assert.equal(farmer.signal, controller.signal);
+  assert.equal(farmer.allowProfileUpdates, true);
+  assert.equal(farmer.promptInput, prompt);
+  assert.equal(farmer.api, undefined);
+
+  assert.throws(
+    () => farmer.configure({ setApi: {} }),
+    /Unknown farmer option: setApi/,
+  );
+});
+
+test("the launch URL carries the version, platform, theme and start parameter", () => {
+  const initData = "user=%7B%22id%22%3A1%7D&start_param=ref_1";
+  const url = new URL(ExampleFarmer.getUrlFromInitData(initData));
+  const hash = new URLSearchParams(url.hash.slice(1));
+
+  assert.equal(url.origin + url.pathname, "https://example.com/app/");
+  assert.equal(hash.get("tgWebAppData"), initData);
+  assert.equal(hash.get("tgWebAppVersion"), DEFAULT_WEB_APP_VERSION);
+  assert.equal(hash.get("tgWebAppPlatform"), DEFAULT_WEB_APP_PLATFORM);
+  assert.deepEqual(
+    JSON.parse(hash.get("tgWebAppThemeParams")),
+    DEFAULT_THEME_PARAMS,
+  );
+  assert.equal(hash.get("tgWebAppStartParam"), "ref_1");
+
+  const real = new URLSearchParams(
+    new URL(
+      ExampleFarmer.getUrlFromInitData("user=1", {
+        platform: "ios",
+        version: "9.1",
+        themeParams: { bg_color: "#000000" },
+      }),
+    ).hash.slice(1),
+  );
+
+  assert.equal(real.get("tgWebAppPlatform"), "ios");
+  assert.equal(real.get("tgWebAppVersion"), "9.1");
+  assert.equal(real.get("tgWebAppThemeParams"), '{"bg_color":"#000000"}');
+  assert.equal(real.get("tgWebAppStartParam"), null);
+  assert.deepEqual(parseThemeParams("not json"), null);
 });

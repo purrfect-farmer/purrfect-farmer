@@ -1,4 +1,9 @@
-import { extractInitDataUnsafe, postPortMessage } from "@/utils";
+import {
+  DEFAULT_WEB_APP_PLATFORM,
+  DEFAULT_WEB_APP_VERSION,
+  extractInitDataUnsafe,
+  postPortMessage,
+} from "@/utils";
 import { isAfter, subMinutes } from "date-fns";
 import { useCallback, useMemo } from "react";
 
@@ -27,8 +32,8 @@ export default function useTelegramWebApp({
     if (initData) {
       const initDataUnsafe = extractInitDataUnsafe(initData);
       return {
-        platform: "android",
-        version: "8.0",
+        platform: DEFAULT_WEB_APP_PLATFORM,
+        version: DEFAULT_WEB_APP_VERSION,
         initData,
         initDataUnsafe,
       };

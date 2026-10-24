@@ -87,11 +87,17 @@ export default class TelegramIdentity {
 
   /** The URL the mini app opens at, from initData when there is one */
   launchURL() {
-    const initData = this.initData();
+    const webApp = this.webApp();
 
-    return initData
-      ? this.drop().getUrlFromInitData(initData)
-      : this.fallbackLink();
+    if (!webApp?.initData) return this.fallbackLink();
+
+    const { initData, platform, version, themeParams } = webApp;
+
+    return this.drop().getUrlFromInitData(initData, {
+      platform,
+      version,
+      themeParams,
+    });
   }
 
   /** Get User Random Generator */

@@ -14,6 +14,7 @@
     "@ston-fi/api": "^0.32.0",
     "@ston-fi/sdk": "^2.7.0",
     "@tanstack/router-core": "^1.171.32",
+    "@telegram-apps/transformers": "^2.2.6",
     "@ton/core": "^0.63.1",
     "@ton/crypto": "^3.3.0",
     "@ton/ton": "^16.3.0",

@@ -103,11 +103,15 @@ export default class TelegramActions {
     if (platform === "telegram" && type === "webapp") {
       const { utils } = this.core;
       const { url } = await client.getWebview(telegramLink);
-      const { initData } = utils.extractTgWebAppData(url);
+      const { initData, platform, version, themeParams } =
+        utils.extractTgWebAppData(url);
 
       this.setTelegramWebApp({
         initData,
         initDataUnsafe: utils.getInitDataUnsafe(initData),
+        platform,
+        version,
+        themeParams,
       });
     }
   }

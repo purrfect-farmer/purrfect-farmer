@@ -171,17 +171,21 @@ export default function useTerminalFarmer() {
 
   /** Configure Prompt */
   useLayoutEffect(() => {
-    instance.setPromptFunctions({
-      promptInput: userInputPrompt.prompt,
-      promptAnswer: userInputPrompt.answer,
-      promptCancel: userInputPrompt.cancel,
+    instance.configure({
+      prompts: {
+        promptInput: userInputPrompt.prompt,
+        promptAnswer: userInputPrompt.answer,
+        promptCancel: userInputPrompt.cancel,
+      },
     });
   }, [instance, userInputPrompt]);
 
   /** Configure Auto Wallets */
   useLayoutEffect(() => {
-    instance.setAutoWalletProvider({
-      getSources: () => getAutoWalletSources(FarmerClass.id),
+    instance.configure({
+      autoWalletProvider: {
+        getSources: () => getAutoWalletSources(FarmerClass.id),
+      },
     });
   }, [instance, FarmerClass.id]);
 
@@ -195,7 +199,7 @@ export default function useTerminalFarmer() {
   useLayoutEffect(() => {
     if (isZooming) {
       /** Set Quick Run */
-      instance.setQuickRun(zoomies.quickRun);
+      instance.configure({ quickRun: zoomies.quickRun });
 
       /** Start the farmer */
       startFarmer();
@@ -214,7 +218,7 @@ export default function useTerminalFarmer() {
         controllerRef.current?.abort();
 
         /** Reset Quick Run */
-        instance.setQuickRun(false);
+        instance.configure({ quickRun: false });
       };
     }
   }, [isZooming, zoomies.quickRun, startFarmer, processNextTask]);

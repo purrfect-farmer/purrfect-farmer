@@ -1,6 +1,8 @@
 import { Api, TelegramClient } from "telegram";
 import { NewMessage, Raw } from "telegram/events/index.js";
 import {
+  DEFAULT_THEME_PARAMS,
+  DEFAULT_WEB_APP_PLATFORM,
   extractTgWebAppData,
   isBotMiniAppLink,
   parseTelegramLink,
@@ -206,14 +208,7 @@ export default class BaseTelegramWebClient extends TelegramClient {
   getWebview(link, { allowCache = true } = {}) {
     return this.execute(async () => {
       const themeParams = new Api.DataJSON({
-        data: JSON.stringify({
-          bg_color: "#ffffff",
-          text_color: "#000000",
-          hint_color: "#aaaaaa",
-          link_color: "#006aff",
-          button_color: "#2cab37",
-          button_text_color: "#ffffff",
-        }),
+        data: JSON.stringify(DEFAULT_THEME_PARAMS),
       });
 
       const parsed = parseTelegramLink(link);
@@ -298,7 +293,7 @@ export default class BaseTelegramWebClient extends TelegramClient {
         result = await this.invoke(
           webview.type === "webview"
             ? new Api.messages.RequestWebView({
-                platform: "android",
+                platform: DEFAULT_WEB_APP_PLATFORM,
                 bot: parsed.entity,
                 peer: parsed.entity,
                 url: webview.url,
@@ -306,7 +301,7 @@ export default class BaseTelegramWebClient extends TelegramClient {
                 themeParams,
               })
             : new Api.messages.RequestSimpleWebView({
-                platform: "android",
+                platform: DEFAULT_WEB_APP_PLATFORM,
                 bot: parsed.entity,
                 url: webview.url,
                 startParam,
@@ -317,7 +312,7 @@ export default class BaseTelegramWebClient extends TelegramClient {
         /** Mini App Webview */
         result = await this.invoke(
           new Api.messages.RequestAppWebView({
-            platform: "android",
+            platform: DEFAULT_WEB_APP_PLATFORM,
             peer: miniApp.entity,
             app: new Api.InputBotAppShortName({
               botId: await this.getInputEntity(miniApp.entity),
@@ -331,7 +326,7 @@ export default class BaseTelegramWebClient extends TelegramClient {
         /** Main Webview */
         result = await this.invoke(
           new Api.messages.RequestMainWebView({
-            platform: "android",
+            platform: DEFAULT_WEB_APP_PLATFORM,
             bot: parsed.entity,
             peer: parsed.entity,
             startParam,

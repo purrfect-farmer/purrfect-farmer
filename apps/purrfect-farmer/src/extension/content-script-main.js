@@ -4,7 +4,11 @@ import "./content-script-farmers";
 import { WEB_PLATFORM_EXCLUDED_HOSTS, WEB_PLATFORM_REGEXP } from "@/constants";
 import { decryptData, encryptData } from "./content-script-utils";
 
-import { extractInitDataUnsafe, matchTelegramWebUrl } from "@/utils";
+import {
+  extractInitDataUnsafe,
+  matchTelegramWebUrl,
+  parseThemeParams,
+} from "@/utils";
 import { injectTelegramWebviewProxy } from "./webview-proxy/webview-proxy-main";
 import { retrieveRawLaunchParams } from "@telegram-apps/bridge";
 
@@ -32,6 +36,7 @@ if (!matchTelegramWebUrl()) {
         const search = new URLSearchParams(params);
         const platform = search.get("tgWebAppPlatform");
         const version = search.get("tgWebAppVersion");
+        const themeParams = parseThemeParams(search.get("tgWebAppThemeParams"));
         const initData = search.get("tgWebAppData");
         const initDataUnsafe = extractInitDataUnsafe(initData);
 
@@ -40,6 +45,7 @@ if (!matchTelegramWebUrl()) {
           initDataUnsafe,
           platform,
           version,
+          themeParams,
         };
       };
 

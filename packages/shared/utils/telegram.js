@@ -1,3 +1,39 @@
+import { serializeLaunchParamsQuery } from "@telegram-apps/transformers";
+
+/** The platform and version a mini app is opened with when the real ones are unknown */
+export const DEFAULT_WEB_APP_PLATFORM = "android";
+
+export const DEFAULT_WEB_APP_VERSION = "8.0";
+
+/** The light theme every mini app is opened with */
+export const DEFAULT_THEME_PARAMS = Object.freeze({
+  bg_color: "#ffffff",
+  text_color: "#000000",
+  hint_color: "#aaaaaa",
+  link_color: "#006aff",
+  button_color: "#2cab37",
+  button_text_color: "#ffffff",
+});
+
+/** The hash Telegram opens a mini app with: its initData, version, platform, theme and start parameter
+ * @param {object} options
+ * @param {string} options.initData - the raw initData
+ * @param {string} [options.platform]
+ * @param {string} [options.version]
+ * @param {object} [options.themeParams] - snake_case colours, as Telegram sends them
+ */
+export function createLaunchHash({ initData, platform, version, themeParams }) {
+  const startParam = getInitDataUnsafe(initData)["start_param"];
+
+  return serializeLaunchParamsQuery({
+    tgWebAppData: initData,
+    tgWebAppVersion: version || DEFAULT_WEB_APP_VERSION,
+    tgWebAppPlatform: platform || DEFAULT_WEB_APP_PLATFORM,
+    tgWebAppThemeParams: themeParams || DEFAULT_THEME_PARAMS,
+    ...(startParam ? { tgWebAppStartParam: String(startParam) } : {}),
+  });
+}
+
 /**
  * Parse a Telegram link and extract its components
  * @param {string} url - The Telegram URL to parse
@@ -51,9 +87,21 @@ export function extractTgWebAppData(url) {
   return {
     platform: params.get("tgWebAppPlatform"),
     version: params.get("tgWebAppVersion"),
+    themeParams: parseThemeParams(params.get("tgWebAppThemeParams")),
     initData,
     initDataUnsafe,
   };
+}
+
+/** The theme a launch hash carries, or null when it carries none or an unreadable one */
+export function parseThemeParams(value) {
+  if (!value) return null;
+
+  try {
+    return JSON.parse(value);
+  } catch {
+    return null;
+  }
 }
 
 /**

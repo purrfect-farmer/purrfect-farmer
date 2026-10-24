@@ -47,16 +47,17 @@ const createRunner = ({ FarmerClass, logger, captcha, controller }) => {
      */
     constructor({ client, account }) {
       super();
-      this.api = axios.create();
-      this.utils = utils;
       this.account = account;
-      this.client = client;
-      this.logger = logger;
-      this.captcha = captcha;
       this.random = seedrandom(account.id);
-      this.userAgent =
-        userAgents[Math.floor(this.random() * userAgents.length)];
-      this.controller = controller;
+      this.configure({
+        api: axios.create(),
+        utils,
+        client,
+        logger,
+        captcha,
+        userAgent: userAgents[Math.floor(this.random() * userAgents.length)],
+        controller,
+      });
 
       this.registerDelayInterceptor();
       this.configureApi?.();

@@ -24,7 +24,7 @@ export function setupHttp(runner) {
   runner.httpsAgent = createAgent(runner, true);
 
   /** Create API */
-  runner.api = createApi(runner);
+  runner.configure({ api: createApi(runner) });
 
   /** Register Signal Interceptor */
   registerSignalInterceptor(runner);

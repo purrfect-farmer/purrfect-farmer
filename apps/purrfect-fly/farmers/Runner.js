@@ -60,12 +60,16 @@ export default function createRunner(FarmerClass) {
       this.farmer = account.farmer;
       this.scheduled = scheduled;
 
-      this.logger = this.constructor.logger; // Use static logger
-      this.utils = this.constructor.utils; // Use static utils
       this.random = this.account.random(); // Seeded RNG
 
-      /** Select User-Agent */
-      this.setUserAgent(pickUserAgent(this.platform, this.random));
+      /** Static logger and utils, a seeded User-Agent, the captcha solver and the profile setting */
+      this.configure({
+        logger: this.constructor.logger,
+        utils: this.constructor.utils,
+        userAgent: pickUserAgent(this.platform, this.random),
+        captcha,
+        allowProfileUpdates: app.allowProfileUpdates,
+      });
 
       /** Cookie Jar */
       this.jar = this.cookies ? new CookieJar() : null;
@@ -76,17 +80,11 @@ export default function createRunner(FarmerClass) {
       /** Agents, API and interceptors */
       setupHttp(this);
 
-      /** Set Captcha Solver */
-      this.setCaptcha(captcha);
-
-      /** Profile Updates */
-      this.setAllowProfileUpdates(app.allowProfileUpdates);
-
       /** Configure Telegram Web app */
       this.configureTelegramWebApp();
 
       /** Farmer row storage */
-      this.storage = createFarmerStorage(this);
+      this.configure({ storage: createFarmerStorage(this) });
     }
 
     /** Notify the server admin via the bot */
@@ -156,7 +154,9 @@ export default function createRunner(FarmerClass) {
       if (this.platform === "telegram" && this.account.session) {
         try {
           /** Create Telegram Client */
-          this.client = await GramClient.create(this.account.session);
+          this.configure({
+            client: await GramClient.create(this.account.session),
+          });
           await this.client.connect();
 
           /** Update the web app data */
@@ -213,7 +213,7 @@ export default function createRunner(FarmerClass) {
         this.type === "webapp" &&
         this.farmer
       ) {
-        this.setTelegramWebApp(this.farmer.telegramWebApp);
+        this.configure({ telegramWebApp: this.farmer.telegramWebApp });
       }
     }
 

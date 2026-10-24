@@ -207,8 +207,7 @@ class AutoContext {
     runner.adoptSignal(this.signal);
 
     /** Disable caching */
-    runner.setCacheAuth(false);
-    runner.setCacheTelegramWebApp(false);
+    runner.configure({ cacheAuth: false, cacheTelegramWebApp: false });
 
     await runner.prepare();
 
