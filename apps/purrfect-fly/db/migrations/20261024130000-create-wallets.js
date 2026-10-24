@@ -1,6 +1,6 @@
-/** Indexes for finding an Auto's wallets by address, owner and bound account */
+/** Indexes for finding an Auto's wallets by public key, owner and bound account */
 const INDEXES = [
-  ["drop", "address"],
+  ["drop", "publicKey"],
   ["ownerId", "drop"],
   ["accountId", "drop"],
 ];

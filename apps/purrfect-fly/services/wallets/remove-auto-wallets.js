@@ -22,17 +22,20 @@ export function removeAutoWallets({ ownerId, drop, wallets }) {
     const rows = await db.Wallet.findAll({
       where: {
         drop,
-        address: { [Op.in]: wallets.map((wallet) => wallet.address) },
+        publicKey: {
+          [Op.in]: wallets.map((wallet) => wallet.publicKey.toLowerCase()),
+        },
       },
       transaction,
     });
 
-    const rowsByAddress = Map.groupBy(rows, (row) => row.address);
+    const rowsByKey = Map.groupBy(rows, (row) => row.publicKey);
     const removedIds = new Set();
     const missing = [];
 
     for (const request of wallets) {
-      const candidates = rowsByAddress.get(request.address) || [];
+      const publicKey = request.publicKey.toLowerCase();
+      const candidates = rowsByKey.get(publicKey) || [];
       const row = candidates.find(
         (item) =>
           !removedIds.has(item.id) && matchesRemoval(item, request, ownerId),
@@ -41,7 +44,7 @@ export function removeAutoWallets({ ownerId, drop, wallets }) {
       if (row) {
         removedIds.add(row.id);
       } else {
-        missing.push(request.address);
+        missing.push(publicKey);
       }
     }
 

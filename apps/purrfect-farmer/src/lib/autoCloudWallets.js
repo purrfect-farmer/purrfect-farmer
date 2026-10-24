@@ -1,3 +1,4 @@
+import { keyPairFromPhraseOrSecretKey } from "@purrfect/shared/lib/ton/wallet";
 import { WALLET_PUSH_SCOPE } from "@purrfect/shared/enums/wallet-push-scope";
 import { WALLET_ROLE } from "@purrfect/shared/enums/wallet-role";
 
@@ -17,22 +18,29 @@ export function pushAutoCloudWallets(
     .then((res) => res.data);
 }
 
-/** Remove wallets from the Cloud server, each matched by address and role */
+/** Remove wallets from the Cloud server, each matched by public key and role */
 export function removeAutoCloudWallets(cloudBackend, { drop, auth, wallets }) {
   return cloudBackend
     .post(`/api/auto/${drop}/remove-wallets`, { auth, wallets })
     .then((res) => res.data);
 }
 
+/** Hex public key of a phrase, which stays the same across wallet versions */
+export async function getPhrasePublicKey(phrase) {
+  const { publicKey } = await keyPairFromPhraseOrSecretKey(phrase);
+
+  return publicKey.toString("hex");
+}
+
 /** The removal entry for an Auto's master wallet */
-export const masterWalletRemoval = (address) => ({
-  address,
+export const masterWalletRemoval = (publicKey) => ({
+  publicKey,
   role: WALLET_ROLE.MASTER,
 });
 
 /** The removal entry for an Auto account's wallet */
-export const accountWalletRemoval = (address, userId) => ({
-  address,
+export const accountWalletRemoval = (publicKey, userId) => ({
+  publicKey,
   role: WALLET_ROLE.ACCOUNT,
   accountId: String(userId),
 });

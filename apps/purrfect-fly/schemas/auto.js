@@ -68,14 +68,14 @@ export const autoWalletsRemovalSchema = {
         minItems: 1,
         items: {
           type: "object",
-          required: ["address", "role"],
+          required: ["publicKey", "role"],
           properties: {
-            address: { type: "string", minLength: 1 },
+            publicKey: { type: "string", pattern: "^[0-9a-fA-F]{64}$" },
             role: { type: "string", enum: Object.values(WALLET_ROLE) },
             accountId: { type: "string", pattern: "^\\d+$" },
           },
           if: { properties: { role: { const: WALLET_ROLE.ACCOUNT } } },
-          then: { required: ["address", "role", "accountId"] },
+          then: { required: ["publicKey", "role", "accountId"] },
         },
       },
     },

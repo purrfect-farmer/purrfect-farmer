@@ -1,6 +1,7 @@
 import {
   accountWalletRemoval,
   getCloudErrorMessage,
+  getPhrasePublicKey,
   getWalletPushScope,
   masterWalletRemoval,
   pushAutoCloudWallets,
@@ -45,34 +46,58 @@ async function generateNewWallet({ password, encryptedPhrase, version = 5 }) {
   };
 }
 
-/** Store the rotated wallets on the Cloud server, then remove the ones they replaced */
-async function syncRotatedCloudWallets(
-  cloudBackend,
-  { drop, auth, password, master, accounts, oldMasterAddress, backup },
-) {
-  await pushAutoCloudWallets(cloudBackend, {
-    drop,
-    auth,
-    password,
-    master,
-    accounts,
-    pushScope: getWalletPushScope(true, accounts.length > 0),
-  });
-
+/** The old wallets a rotation replaced, named by public key */
+async function getReplacedWallets(oldMasterPhrase, backup, accounts) {
   const userIds = new Map(
     accounts.map((account) => [account.id, account.userId]),
   );
+  const wallets = [
+    masterWalletRemoval(await getPhrasePublicKey(oldMasterPhrase)),
+  ];
 
-  await removeAutoCloudWallets(cloudBackend, {
-    drop,
-    auth,
-    wallets: [
-      masterWalletRemoval(oldMasterAddress),
-      ...backup.map((item) =>
-        accountWalletRemoval(item.old.address, userIds.get(item.id)),
-      ),
-    ],
-  });
+  for (const item of backup) {
+    const publicKey = await getPhrasePublicKey(item.old.phrase);
+
+    wallets.push(accountWalletRemoval(publicKey, userIds.get(item.id)));
+  }
+
+  return wallets;
+}
+
+/** Store the rotated wallets on the Cloud server, then remove the ones they replaced */
+async function syncRotatedCloudWallets(
+  cloudBackend,
+  { drop, auth, password, master, accounts, oldMasterPhrase, backup },
+) {
+  try {
+    await pushAutoCloudWallets(cloudBackend, {
+      drop,
+      auth,
+      password,
+      master,
+      accounts,
+      pushScope: getWalletPushScope(true, accounts.length > 0),
+    });
+  } catch (error) {
+    const reason = getCloudErrorMessage(error);
+
+    toast.error(
+      `Server wallets not updated: ${reason}. Push from the Wallets tab.`,
+    );
+    return;
+  }
+
+  try {
+    await removeAutoCloudWallets(cloudBackend, {
+      drop,
+      auth,
+      wallets: await getReplacedWallets(oldMasterPhrase, backup, accounts),
+    });
+  } catch (error) {
+    const reason = getCloudErrorMessage(error);
+
+    toast.error(`New wallets stored, old ones not removed: ${reason}.`);
+  }
 }
 
 export default function useAutoWalletsRotationMutation() {
@@ -231,23 +256,15 @@ export default function useAutoWalletsRotationMutation() {
 
       /** Replace the server's copies, a failure leaves the local rotation as it is */
       if (cloudEnabled) {
-        try {
-          await syncRotatedCloudWallets(cloudBackend, {
-            drop: config.id,
-            auth,
-            password,
-            master: updatedMaster,
-            accounts: updatedAccounts,
-            oldMasterAddress,
-            backup: accountsBackup,
-          });
-        } catch (error) {
-          const reason = getCloudErrorMessage(error);
-
-          toast.error(
-            `Server wallets not updated: ${reason}. Push from the Wallets tab.`,
-          );
-        }
+        await syncRotatedCloudWallets(cloudBackend, {
+          drop: config.id,
+          auth,
+          password,
+          master: updatedMaster,
+          accounts: updatedAccounts,
+          oldMasterPhrase,
+          backup: accountsBackup,
+        });
       }
     },
   });
