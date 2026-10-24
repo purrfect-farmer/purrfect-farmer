@@ -1,28 +1,21 @@
 import * as changeKeys from "change-case/keys";
 
-import Decimal from "decimal.js";
 import seedrandom from "seedrandom";
 import utils from "../utils/bundle.js";
-import { getJettonBalance, getTonBalance } from "./ton/tonapi.js";
-import { isNativeAuto } from "./auto/native.js";
+import AutoSnapshot from "./farmer/AutoSnapshot.js";
+import AutoWalletConnector from "./farmer/AutoWalletConnector.js";
+import WalletConnectPrompts from "./farmer/WalletConnectPrompts.js";
+import WalletVersion from "./farmer/WalletVersion.js";
+import WithdrawalFlow from "./farmer/WithdrawalFlow.js";
+import createAutoWalletTools from "./farmer/autoWalletTools.js";
+import createFarmerCore from "./farmer/createFarmerCore.js";
 import {
-  deriveMnemonicFromTelegramId,
-  getWalletAddressFromMnemonic,
-} from "./ton/wallet.js";
-
-/** How many withdrawal records of each kind the snapshot carries */
-const SNAPSHOT_WITHDRAWAL_LIMIT = 2;
-
-/** The periods a daily mining rate is spread across, as label and multiple of a day */
-const MINING_RATE_PERIODS = [
-  ["Per Second", new Decimal(1).div(86400)],
-  ["Per Minute", new Decimal(1).div(1440)],
-  ["Per Hour", new Decimal(1).div(24)],
-  ["Per Day", new Decimal(1)],
-  ["Per 3 Days", new Decimal(3)],
-  ["Per Week (7d)", new Decimal(7)],
-  ["Per Month (30d)", new Decimal(30)],
-];
+  formatAccountLink,
+  formatAmount,
+  logCurrentUser,
+  logMiningRateBreakdown,
+} from "./farmer/format.js";
+import { checkTokenContract, readOnChainHolding } from "./farmer/onChain.js";
 
 export default class BaseFarmer {
   static id = "base-farmer";
@@ -62,7 +55,16 @@ export default class BaseFarmer {
    */
   static auto = null;
 
+  /** Tools built on first read, once the subclass's modules exist */
+  #tools = null;
+
+  /** Shared collaborators driven by the overridable hooks */
+  #hookedCollaborators = null;
+
   constructor({ referralLink = null } = {}) {
+    /** Host services the farmer's modules work through */
+    this.core = createFarmerCore(this);
+
     /* Register utilities */
     this.utils = utils;
 
@@ -96,9 +98,6 @@ export default class BaseFarmer {
       },
     });
 
-    /* Initialize Tools */
-    this.tools = this.createTools?.() || [];
-
     /** Whether this run was initiated by the scheduler (vs. user-triggered) */
     this.scheduled = false;
 
@@ -111,6 +110,11 @@ export default class BaseFarmer {
 
     this.controller = new AbortController();
     this.signal = this.controller.signal;
+  }
+
+  /** The tool groups the farmer offers, built on first read */
+  get tools() {
+    return (this.#tools ??= this.createTools?.() || []);
   }
 
   /** Configure Startup Link */
@@ -368,7 +372,7 @@ export default class BaseFarmer {
 
   /** Load data, including the wallet version an Auto connected with */
   async load() {
-    this.connectedWalletVersion = await this.storage?.get("walletVersion");
+    await this.#hooked.walletVersion.load();
   }
 
   /** Persist data */
@@ -622,14 +626,53 @@ export default class BaseFarmer {
   /* Auto adapter                                                          */
   /* --------------------------------------------------------------------- */
 
+  /** Shared collaborators driven by the hooks below, created on first use */
+  get #hooked() {
+    return (this.#hookedCollaborators ??= this.#createHookedCollaborators());
+  }
+
+  /** Wire the shared collaborators to this farmer's overridable hooks */
+  #createHookedCollaborators() {
+    const walletVersion = new WalletVersion(() => this.storage);
+    const prompts = new WalletConnectPrompts({
+      core: this.core,
+      connect: (wallet) => this.connectAutoWallet(wallet),
+      ensureLoaded: () => this.ensureStateLoaded(),
+      afterConnected: (wallet) => this.afterDerivedWalletConnected(wallet),
+    });
+
+    return {
+      walletVersion,
+      prompts,
+      connector: new AutoWalletConnector({
+        connectAddress: (address) => this.connectWalletAddress(address),
+        rememberVersion: (version) => walletVersion.remember(version),
+        summary: () => this.getAutoSummary(),
+        refreshSummary: () => this.refreshAutoSummary(),
+        ensureLoaded: () => this.ensureStateLoaded(),
+      }),
+      flow: new WithdrawalFlow({
+        core: this.core,
+        place: (options) => this.placeWithdrawal(options),
+        minimum: () => this.getMinimumWithdrawal(),
+        logStatus: () => this.logWithdrawalStatus(),
+      }),
+      snapshot: new AutoSnapshot({
+        core: this.core,
+        summary: () => this.getAutoSummary(),
+        withdrawals: () => this.getAutoWithdrawals(),
+      }),
+    };
+  }
+
   /** The drop's declared minimum withdrawal, overridden by farmers whose backend publishes a live one */
   getMinimumWithdrawal() {
-    return Number(this.constructor.auto?.minWithdrawal ?? 0);
+    return this.#hooked.flow.declaredMinimum();
   }
 
   /** The drop's token symbol, as its Auto descriptor names it */
   getAutoToken() {
-    return this.constructor.auto?.token || "";
+    return this.#hooked.flow.token();
   }
 
   /** Read the drop's state once, overridden by farmers that keep one */
@@ -651,33 +694,8 @@ export default class BaseFarmer {
    * @param {object} wallet - { phrase, address, version, refresh }
    * @returns {Promise<{ status: boolean, summary?: object, message?: string }>}
    */
-  async connectAutoWallet({ phrase, address, version, refresh = false }) {
-    try {
-      await this.ensureStateLoaded();
-
-      const walletAddress =
-        address ||
-        (await getWalletAddressFromMnemonic(phrase, Number(version)));
-
-      const { status, message } =
-        await this.connectWalletAddress(walletAddress);
-
-      if (!status) {
-        return { status: false, message };
-      }
-
-      await this.rememberWalletVersion(version);
-      await this.afterAutoWalletConnected();
-
-      return {
-        status: true,
-        summary: refresh
-          ? await this.refreshAutoSummary()
-          : this.getAutoSummary(),
-      };
-    } catch (error) {
-      return { status: false, message: error.message || "Unknown error" };
-    }
+  connectAutoWallet(wallet) {
+    return this.#hooked.connector.connect(wallet);
   }
 
   /** Runs once the derived wallet is bound, for drops whose manual connect has a follow-up step
@@ -686,58 +704,8 @@ export default class BaseFarmer {
   async afterDerivedWalletConnected(wallet) {}
 
   /** Bind the wallet derived from this account's Telegram ID, as the TON Wallet Deriver builds it */
-  async connectDerivedWalletInteractive() {
-    const id = this.getUserId();
-
-    if (!id) {
-      this.logger.warn("No Telegram ID to derive the wallet from.");
-      return;
-    }
-
-    const passphrase = (
-      (await this.promptInput(
-        "Enter the passphrase (leave empty for none):",
-      )) || ""
-    ).trim();
-
-    const version = await this.promptInput({
-      type: "select",
-      text: "Select wallet version:",
-      options: [
-        { value: "5", label: "Wallet V5R1" },
-        { value: "4", label: "Wallet V4" },
-      ],
-    });
-
-    if (!version) {
-      this.logger.warn("No wallet version selected.");
-      return;
-    }
-
-    const words = await deriveMnemonicFromTelegramId(id, passphrase);
-
-    this.logger.keyValue(
-      "Derived Wallet",
-      await getWalletAddressFromMnemonic(words, Number(version)),
-    );
-
-    await this.ensureStateLoaded();
-
-    const { status, message } = await this.connectAutoWallet({
-      phrase: words.join(" "),
-      version,
-    });
-
-    if (!status) {
-      this.logger.error("Failed to connect the derived wallet:", message);
-      return;
-    }
-
-    this.logger.success("Derived wallet connected.");
-    await this.afterDerivedWalletConnected({
-      phrase: words.join(" "),
-      version,
-    });
+  connectDerivedWalletInteractive() {
+    return this.#hooked.prompts.connectDerived();
   }
 
   /** Prompt for a wallet and bind it, implemented by every Auto drop */
@@ -756,187 +724,36 @@ export default class BaseFarmer {
 
   /** Wallet tools every Auto drop shares, each bound to the drop's own connect and disconnect */
   createAutoWalletTools() {
-    return [
-      {
-        id: "connect-wallet",
-        icon: "wallet",
-        title: "Connect Wallet",
-        action: this.connectWalletInteractive.bind(this),
-        dispatch: false,
-      },
-      {
-        id: "connect-derived-wallet",
-        icon: "key",
-        title: "Connect Derived Wallet",
-        action: this.connectDerivedWalletInteractive.bind(this),
-        dispatch: false,
-      },
-      {
-        id: "connect-auto-wallet",
-        icon: "auto",
-        title: "Connect Auto Wallet",
-        action: this.connectAutoAccountWalletInteractive.bind(this),
-        dispatch: false,
-      },
-      {
-        id: "disconnect-wallet",
-        icon: "disconnect",
-        title: "Disconnect Wallet",
-        action: this.disconnectWalletInteractive.bind(this),
-        dispatch: false,
-      },
-    ];
+    return createAutoWalletTools({
+      connect: () => this.connectWalletInteractive(),
+      disconnect: () => this.disconnectWalletInteractive(),
+      prompts: this.#hooked.prompts,
+    });
   }
 
   /** Bind a wallet held by an Auto account, asking for the Auto password only when the drop needs the phrase */
-  async connectAutoAccountWalletInteractive() {
-    const sources = (await this.autoWalletProvider?.getSources()) || [];
+  connectAutoAccountWalletInteractive() {
+    return this.#hooked.prompts.connectFromAuto();
+  }
 
-    if (!sources.length) {
-      this.logger.warn("No Auto with wallets set up.");
-      return;
-    }
-
-    const sourceId =
-      sources.length === 1
-        ? sources[0].id
-        : await this.promptInput({
-            type: "select",
-            text: "Select Auto:",
-            options: sources.map((item) => ({
-              value: item.id,
-              label: item.own ? `${item.title} (this drop)` : item.title,
-            })),
-          });
-
-    const source = sources.find((item) => item.id === sourceId);
-
-    if (!source) {
-      this.logger.warn("No Auto selected.");
-      return;
-    }
-
-    const userId = String(this.getUserId());
-    const isLinked = (account) => String(account.userId) === userId;
-    const accounts = [
-      ...source.accounts.filter(isLinked),
-      ...source.accounts.filter((account) => !isLinked(account)),
-    ];
-
-    const accountId = await this.promptInput({
-      type: "select",
-      text: `Select ${source.title} account:`,
-      options: accounts.map((account) => {
-        const address = this.utils.toFriendlyAddress(account.address);
-        const label = [
-          account.title,
-          `${address.slice(0, 4)}...${address.slice(-4)}`,
-          Number(account.version) === 4 ? "V4" : "V5R1",
-        ].join(" · ");
-
-        return {
-          value: account.id,
-          label: isLinked(account) ? `${label} (this account)` : label,
-        };
-      }),
-    });
-
-    const account = accounts.find((item) => item.id === accountId);
-
-    if (!account) {
-      this.logger.warn("No account selected.");
-      return;
-    }
-
-    let phrase;
-
-    if (this.constructor.auto?.connectWithPhrase) {
-      const password = await this.promptInput({
-        type: "password",
-        text: `Enter the ${source.title} password:`,
-      });
-
-      if (!password) {
-        this.logger.warn("No password provided.");
-        return;
-      }
-
-      try {
-        phrase = await source.decryptPhrase(account, password);
-      } catch (error) {
-        this.logger.error("Failed to unlock the wallet:", error.message);
-        return;
-      }
-    }
-
-    this.logger.keyValue(
-      "Auto Wallet",
-      this.utils.toFriendlyAddress(account.address),
-    );
-
-    await this.ensureStateLoaded();
-
-    const { status, message } = await this.connectAutoWallet({
-      phrase,
-      address: account.address,
-      version: account.version,
-    });
-
-    if (!status) {
-      this.logger.error("Failed to connect the Auto wallet:", message);
-      return;
-    }
-
-    this.logger.success("Auto wallet connected.");
-
-    if (phrase) {
-      await this.afterDerivedWalletConnected({
-        phrase,
-        version: account.version,
-      });
-    } else {
-      this.logger.info(
-        "Connected without the phrase; run Verify separately if the drop needs it.",
-      );
-    }
+  /** The wallet version an Auto connected with */
+  get connectedWalletVersion() {
+    return this.#hooked.walletVersion.current;
   }
 
   /** The drops never report a contract version, so the one the wallet was loaded with is kept here */
-  async rememberWalletVersion(version) {
-    this.connectedWalletVersion = version ? `v${version}` : undefined;
-
-    await this.storage?.set("walletVersion", this.connectedWalletVersion);
+  rememberWalletVersion(version) {
+    return this.#hooked.walletVersion.remember(version);
   }
 
   /** The address' balance of the drop's jetton, or TON on a native Auto, straight from the chain */
-  async readOnChainHolding(address) {
-    const auto = this.constructor.auto;
-    const read = isNativeAuto(auto)
-      ? getTonBalance(address, { signal: this.signal })
-      : getJettonBalance(auto.jettonAddress, address, { signal: this.signal });
-
-    return read.catch((error) => {
-      this.logger.warn("Failed to read the holding on-chain:", error.message);
-      return new Decimal(0);
-    });
+  readOnChainHolding(address) {
+    return readOnChainHolding(this.core, address);
   }
 
   /** Warn if the drop has moved to a different jetton than the Auto tracks */
   checkTokenContract(contract) {
-    if (!contract || isNativeAuto(this.constructor.auto)) return;
-
-    const expected = this.constructor.auto.jettonAddress;
-
-    if (!this.utils.toRawAddress(contract)) {
-      this.logger.warn("The drop names an unreadable token address:", contract);
-      return;
-    }
-
-    if (!this.utils.isSameTonAddress(contract, expected)) {
-      this.logger.warn(
-        `The drop now names ${contract} as its token, not ${expected}.`,
-      );
-    }
+    return checkTokenContract(this.core, contract);
   }
 
   /** Settle the drop's one-time wallet verification, for drops whose descriptor is `verifiable`
@@ -985,126 +802,45 @@ export default class BaseFarmer {
   /** Persist what this account looks like right now
    * @returns {Promise<object>} - the snapshot that was stored
    */
-  async storeAutoSnapshot() {
-    const snapshot = {
-      ...this.getAutoSummary(),
-      withdrawal: await this.readAutoWithdrawals(),
-      updatedAt: Date.now(),
-    };
-
-    try {
-      await this.storage.set("autoSnapshot", snapshot);
-    } catch (error) {
-      this.logger.warn("Failed to store the account snapshot:", error.message);
-    }
-
-    return snapshot;
+  storeAutoSnapshot() {
+    return this.#hooked.snapshot.store();
   }
 
   /** A withdrawal that was not attempted, shaped as `withdraw` returns it and logged at `log` unless that is null */
-  skipWithdrawal(message, { amount = "0", log = "error" } = {}) {
-    if (log) {
-      this.logger[log](message);
-    }
-
-    return { status: false, skipped: true, message, amount: String(amount) };
+  skipWithdrawal(message, options) {
+    return this.#hooked.flow.skip(message, options);
   }
 
   /** A balance below the minimum as a skip, otherwise null after logging what is available */
   skipLowBalance(balance, minimum) {
-    if (new Decimal(balance).lessThan(minimum)) {
-      this.logger.error("Not enough balance:", String(balance));
-      return this.skipWithdrawal("Not enough balance!", {
-        amount: balance,
-        log: null,
-      });
-    }
-
-    this.logger.info("Available balance:", String(balance));
-
-    return null;
+    return this.#hooked.flow.skipLowBalance(balance, minimum);
   }
 
   /** The amount to request: capped, shaved by a random `difference` percent, then floored at the minimum */
-  pickWithdrawalAmount({ balance, minimum, max, difference = 0, ceiling }) {
-    let amount = new Decimal(balance);
-
-    /** Cap to the drop's ceiling */
-    if (ceiling > 0) {
-      amount = Decimal.min(amount, ceiling);
-    }
-
-    /** Cap to max */
-    if (max) {
-      amount = Decimal.min(amount, max);
-    }
-
-    /** Apply difference */
-    if (difference > 0) {
-      const minPercent = new Decimal(100).minus(difference);
-      const randomPercent = minPercent
-        .plus(new Decimal(Math.random()).mul(difference + 1))
-        .clamp(minPercent, 100);
-
-      amount = amount.mul(randomPercent).div(100);
-    }
-
-    /** Reset amount to minimum, never past the balance */
-    return Decimal.min(Decimal.max(amount, minimum), balance).floor();
+  pickWithdrawalAmount(options) {
+    return this.#hooked.flow.pickAmount(options);
   }
 
   /** Tell the admin about a withdrawal, but only when the run was initiated by the scheduler
    * @param {[string, string][]} rows - label and HTML value, after the account row
    */
-  async notifyWithdrawal(rows) {
-    if (!this.scheduled) return;
-
-    await this.notifyAdmin([
-      `<b>🤑 ${this.getAutoToken()} Withdrawal</b>`,
-      `<b>Account</b>: ${this.formatAccountLink(this.getUserId())}`,
-      ...rows.map(([label, value]) => `<b>${label}</b>: ${value}`),
-    ]);
+  notifyWithdrawal(rows) {
+    return this.#hooked.flow.notify(rows);
   }
 
   /** Log the payouts the drop has not settled yet, implemented by farmers using `withdrawInteractive` */
   async logWithdrawalStatus() {}
 
   /** Withdraw, prompting for the amount */
-  async withdrawInteractive() {
-    await this.logWithdrawalStatus();
-
-    const token = this.getAutoToken();
-    const input = await this.promptInput(
-      `How much ${token}? (minimum ${this.getMinimumWithdrawal()})`,
-    );
-    const trimmed = (input || "").trim();
-
-    if (!trimmed) {
-      this.logger.warn("No amount provided.");
-      return;
-    }
-
-    const amount = Number(trimmed);
-
-    if (!Number.isFinite(amount) || amount <= 0) {
-      this.logger.error(`Invalid ${token} amount:`, trimmed);
-      return;
-    }
-
-    return this.withdraw({ max: amount, difference: 0, force: true });
+  withdrawInteractive() {
+    return this.#hooked.flow.withdrawInteractive();
   }
 
   /** Request a withdrawal, only when forced (auto or the Withdraw tool), skipping quietly otherwise
    * @returns {Promise<{ status: boolean, skipped: boolean, amount: string, message: string }>}
    */
-  async withdraw({ force = false, max, difference = 20 } = {}) {
-    if (!force) {
-      return this.skipWithdrawal("Withdrawal is disabled unless requested!", {
-        log: null,
-      });
-    }
-
-    return this.placeWithdrawal({ max, difference });
+  withdraw(options) {
+    return this.#hooked.flow.withdraw(options);
   }
 
   /** Place a forced withdrawal of up to `max`, shaved by a random `difference` percent */
@@ -1137,27 +873,10 @@ export default class BaseFarmer {
   }
 
   /** The withdrawal queue as the snapshot carries it, or null when unknown
-   * `approved` is a count rather than records, and null when the drop does not count them
    * @returns {Promise<{ pending: object[], approved: number|null, flagged: object[], checkedAt: number } | null>}
    */
-  async readAutoWithdrawals() {
-    try {
-      const result = await this.getAutoWithdrawals();
-
-      if (!result) return null;
-
-      return {
-        pending: (result.pending || []).slice(0, SNAPSHOT_WITHDRAWAL_LIMIT),
-        approved: Array.isArray(result.approved)
-          ? result.approved.length
-          : null,
-        flagged: (result.flagged || []).slice(0, SNAPSHOT_WITHDRAWAL_LIMIT),
-        checkedAt: Date.now(),
-      };
-    } catch (error) {
-      this.logger.warn("Failed to read the withdrawal queue:", error.message);
-      return null;
-    }
+  readAutoWithdrawals() {
+    return this.#hooked.snapshot.readWithdrawals();
   }
 
   /** Notify the server admin, a no-op unless the environment delivers the message
@@ -1169,22 +888,12 @@ export default class BaseFarmer {
 
   /** Format a token amount, keeping sub-1 values readable */
   formatAmount(value) {
-    const amount = new Decimal(value || 0);
-
-    return amount
-      .toDecimalPlaces(amount.abs().greaterThanOrEqualTo(1) ? 4 : 8)
-      .toString();
+    return formatAmount(value);
   }
 
   /** Log a daily mining rate spread across every period */
   logMiningRateBreakdown(dailyRate) {
-    for (const [label, multiplier] of MINING_RATE_PERIODS) {
-      this.logger.keyValue(
-        label,
-        this.formatAmount(new Decimal(dailyRate).times(multiplier)),
-        { valueStyle: this.logger.c.greenBright },
-      );
-    }
+    logMiningRateBreakdown(this.logger, dailyRate);
   }
 
   /** The referral the account launched with, read the way the pages read it */
@@ -1205,16 +914,12 @@ export default class BaseFarmer {
 
   /** Format account link (Telegram HTML) */
   formatAccountLink(id) {
-    return `<a href="tg://user?id=${id}">${id}</a>`;
+    return formatAccountLink(id);
   }
 
   /** Log Current User */
   logCurrentUser() {
-    const user = this.getTelegramUser();
-    this.logger.keyValue(
-      "User",
-      `${user.username || "(no-username)"} (${user.id})`,
-    );
+    logCurrentUser(this.logger, this.getTelegramUser());
   }
 
   /** Process */
