@@ -52,6 +52,7 @@ export default function createFarmerCore(farmer) {
     userRandom: () => farmer.getUserRandomGenerator(),
     requestId: () => farmer.makeRequestId(),
     adClientOptions: () => farmer.getAdClientOptions(),
+    canPrompt: () => typeof farmer.promptInput === "function",
     prompt: (question) => farmer.promptInput(question),
     setAuth: () => farmer.setAuth(),
     notifyAdmin: (messages) => farmer.notifyAdmin(messages),

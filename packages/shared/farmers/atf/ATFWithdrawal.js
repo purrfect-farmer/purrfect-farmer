@@ -59,7 +59,7 @@ export default class ATFWithdrawal extends FarmerModule {
       }
     }
 
-    if (typeof this.core.prompt !== "function") {
+    if (!this.core.canPrompt()) {
       throw new Error(
         "No captcha provider is configured and there is no way to ask for the answer!",
       );
