@@ -45,13 +45,17 @@ export const PROFILE_FIELDS = Object.freeze({
 /** Longest text the profile cleaner accepts */
 export const PROFILE_CLEAN_TEXT_MAX = 64;
 
-/** Remove every case-insensitive match of text, tidying leftover spaces */
+/** Remove every case-insensitive match of text, tidying the spaces it leaves */
 export function stripText(value, text) {
   const escaped = text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const pattern = new RegExp(escaped, "gi");
+  const original = value || "";
 
-  return (value || "")
-    .replace(new RegExp(escaped, "gi"), "")
-    .replace(/\s{2,}/g, " ")
+  if (!pattern.test(original)) return original;
+
+  return original
+    .replace(pattern, "")
+    .replace(/[^\S\n]{2,}/g, " ")
     .trim();
 }
 
