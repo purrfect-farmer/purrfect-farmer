@@ -130,6 +130,15 @@ export default class MRGApi extends FarmerModule {
     return this.postToApi("/user/claim-mining");
   }
 
+  /** Report a task being opened, ignoring any refusal or failure */
+  clickTask(taskId) {
+    return this.callApi(
+      "/user/task-click",
+      { taskId },
+      { retryHuman: false },
+    ).catch(() => null);
+  }
+
   /** Claim one task */
   claimTask(taskId) {
     return this.postToApi("/user/claim-task", { taskId });

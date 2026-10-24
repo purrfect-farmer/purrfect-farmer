@@ -167,8 +167,10 @@ export default class MRGTasks extends FarmerModule {
       .replace(/(startapp%3Dref_)[A-Za-z0-9_]+/g, `$1${userId}`);
   }
 
-  /** Complete one task the way the page does: open it, dwell, then claim; a hold task is claimed straight away */
+  /** Complete one task the way the page does: report the click, open it, dwell, then claim; a hold task is claimed straight away */
   async completeTask(task) {
+    await this.ctx.api.clickTask(task["taskId"]);
+
     if (!this.isHoldTask(task)) {
       await this.core.telegram.openTaskLink(
         this.getTaskUrl(task),
