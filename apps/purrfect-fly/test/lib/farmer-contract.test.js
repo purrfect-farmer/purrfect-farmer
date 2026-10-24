@@ -3,7 +3,14 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 import { test } from "node:test";
 
-const FARMER_IDS = ["atf", "diggo", "mrg", "victors", "monsterland"];
+/** Every shared farmer, by its folder name */
+const FARMER_IDS = fs
+  .readdirSync(
+    new URL("../../node_modules/@purrfect/shared/farmers/", import.meta.url),
+    { withFileTypes: true },
+  )
+  .filter((entry) => entry.isDirectory())
+  .map((entry) => entry.name);
 
 /** Methods the Fly runner, the Auto system and the extension call on a farmer */
 const CONTRACT_METHODS = [

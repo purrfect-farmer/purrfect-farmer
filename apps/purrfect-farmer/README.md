@@ -394,10 +394,10 @@ Purrfect Farmer supports 20+ Telegram bots including game bots, earning bots, ai
 Contributions are welcome. To add a new farmer:
 
 1. Create a folder named after the farmer id in `packages/shared/farmers/`, e.g. `packages/shared/farmers/example/`
-2. Export the farmer class, extending `BaseFarmer`, as the default export of its `index.js`; put larger concerns in trait classes beside it and compose them with `applyTraits` from `packages/shared/lib/applyTraits.js`
-3. Give the farmer its collaborators in `context.js` (`createContext(farmer)`, exposed as `this.ctx`), reusing the shared ones in `packages/shared/lib/farmer/` such as `WithdrawalQueue`
-4. Implement required methods
-5. Test thoroughly
+2. Export the farmer class, extending `BaseFarmer`, as the default export of its `index.js`. It holds the statics, `process()` and the host hooks (`fetchAuth`, `configureApi`, `load`, `getReferralLink`, `createTools`...), each delegating to a module
+3. Put each concern in its own module class beside it, extending `FarmerModule` from `packages/shared/lib/farmer/`. A module reaches host services through `this.core` (logger, api, storage, prompts, captcha...) and its sibling modules through `this.ctx`, e.g. `this.ctx.state.user()`
+4. Build the modules in `context.js` (`createContext(core)`, assigned as `ctx = createContext(this.core)`). Every farmer provides `auto` (extending `AutoModule`, which backs the Auto contract), `flow`, `snapshot`, `walletVersion` and `withdrawals`, wired from the shared collaborators in `packages/shared/lib/farmer/`
+5. Test thoroughly, including `pnpm -F purrfect-fly test`, which checks every farmer's contract and tool tree
 6. Submit pull request
 
 ---
