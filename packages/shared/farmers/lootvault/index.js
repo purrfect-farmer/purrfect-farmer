@@ -39,6 +39,11 @@ export default class LootVaultFarmer extends BaseFarmer {
 
     await state.load();
 
+    /** Connecting a wallet is how an unregistered account registers, which reloads the state */
+    if (!state.isBlocked() && !state.isMaintenance()) {
+      await this.connectStoredAutoWallet();
+    }
+
     const reason = state.unplayableReason();
 
     if (reason) {
@@ -48,7 +53,6 @@ export default class LootVaultFarmer extends BaseFarmer {
 
     account.logInfo();
 
-    await this.connectStoredAutoWallet();
     await this.executeTask("Mining", () => mining.collect());
     await this.executeTask("Streak", () => tasks.claimStreak());
     await this.executeTask("Tasks", () => tasks.completeTasks());
