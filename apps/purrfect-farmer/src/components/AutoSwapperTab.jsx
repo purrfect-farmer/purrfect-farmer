@@ -8,6 +8,7 @@ import PrimaryButton from "./PrimaryButton";
 import { SLIPPAGE_OPTIONS } from "@purrfect/shared/lib/auto/swap.js";
 import Select from "./Select";
 import toast from "react-hot-toast";
+import { getCloudErrorMessage } from "@/lib/autoCloudWallets";
 import useAuto from "@/hooks/useAuto";
 import useAutoAccountsSelector from "@/hooks/useAutoAccountsSelector";
 import useAutoCloudSwapMutation from "@/hooks/useAutoCloudSwapMutation";
@@ -63,7 +64,9 @@ export default function AutoSwapperTab() {
       {mutation.isError && (
         <AutoStickyContainer>
           <div className="flex flex-col gap-2">
-            <Alert variant="danger">{mutation.error.message}</Alert>
+            <Alert variant="danger">
+              {getCloudErrorMessage(mutation.error)}
+            </Alert>
             <PrimaryButton type="button" onClick={() => mutation.reset()}>
               <HiArrowPath className="w-4 h-4" />
               Reset
