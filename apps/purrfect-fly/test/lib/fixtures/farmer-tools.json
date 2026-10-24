@@ -163,5 +163,40 @@
         "disconnect-wallet|disconnect|Disconnect Wallet|false"
       ]
     ]
+  ],
+  "lootvault": [
+    [
+      "Wallet",
+      [
+        "connect-wallet|wallet|Connect Wallet|false",
+        "connect-derived-wallet|key|Connect Derived Wallet|false",
+        "connect-auto-wallet|auto|Connect Auto Wallet|false",
+        "disconnect-wallet|disconnect|Disconnect Wallet|false",
+        "refresh-holding|search|Refresh Holding|false"
+      ]
+    ],
+    [
+      "Mining",
+      [
+        "collect-mining|check|Collect Mining|false",
+        "claim-streak|check|Claim Streak|false",
+        "complete-tasks|check|Complete Tasks|false",
+        "claim-friends-reward|user|Claim Friends Reward|false"
+      ]
+    ],
+    [
+      "Tower",
+      [
+        "collect-tower|check|Collect Tower|false",
+        "equip-parts|key|Equip Parts|false"
+      ]
+    ],
+    [
+      "Withdrawal",
+      [
+        "withdrawal-status|history|Withdrawal Status|false",
+        "withdraw|withdraw|Withdraw|false"
+      ]
+    ]
   ]
 }
