@@ -10,6 +10,35 @@ export default class AutoModule extends FarmerModule {
     return this.ctx.connector.connect(wallet);
   }
 
+  /** Address of the wallet the drop has bound to the account, or null
+   * @returns {string|null}
+   */
+  connectedWalletAddress() {
+    return this.ctx.wallet.getConnectedWalletAddress() || null;
+  }
+
+  /** Connect the wallet the host keeps for this account and drop, when the drop has none yet */
+  async connectStoredWallet() {
+    const provider = this.core.autoWalletProvider;
+
+    if (!provider?.getStoredWallet || this.connectedWalletAddress()) return;
+
+    const wallet = await provider.getStoredWallet();
+
+    if (!wallet) return;
+
+    /** No refresh: re-reading the account claims mining, which the run does itself */
+    const result = await this.connectWallet({ ...wallet, refresh: false });
+
+    if (result?.status) {
+      this.logger.success(`Connected the stored wallet ${wallet.address}`);
+    } else {
+      const reason = result?.message || "Unknown error";
+
+      this.logger.warn(`Stored wallet not connected: ${reason}`);
+    }
+  }
+
   /** Settle the drop's one-time wallet verification, for drops whose descriptor is `verifiable`
    * @param {object} wallet - { phrase, version, apiKey? }
    * @returns {Promise<{ status: boolean, skipped?: boolean, message?: string, summary?: object }>}

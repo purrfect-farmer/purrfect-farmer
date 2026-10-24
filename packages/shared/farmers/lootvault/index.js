@@ -48,6 +48,7 @@ export default class LootVaultFarmer extends BaseFarmer {
 
     account.logInfo();
 
+    await this.executeTask("Wallet", () => this.ctx.auto.connectStoredWallet());
     await this.executeTask("Mining", () => mining.collect());
     await this.executeTask("Streak", () => tasks.claimStreak());
     await this.executeTask("Tasks", () => tasks.completeTasks());

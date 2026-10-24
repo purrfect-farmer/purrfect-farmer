@@ -2,6 +2,15 @@ import AutoModule from "../../lib/farmer/AutoModule.js";
 
 /** The account as the Auto system drives it */
 export default class ATFAuto extends AutoModule {
+  /** ATF stores the bound wallet as a public key on the user */
+  connectedWalletAddress() {
+    const user = this.ctx.state.user();
+
+    return user["wallet_public_key"]
+      ? this.ctx.wallet.getUserWallet(user).address
+      : null;
+  }
+
   /** Connect a TON wallet, optionally re-reading the account afterwards */
   async connectWallet({ phrase, version, refresh = false }) {
     try {
