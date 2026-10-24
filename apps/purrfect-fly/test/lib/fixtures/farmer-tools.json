@@ -1,0 +1,167 @@
+{
+  "atf": [
+    [
+      "Wallet",
+      [
+        "connect-wallet|wallet|Connect Wallet|false",
+        "connect-derived-wallet|key|Connect Derived Wallet|false",
+        "connect-auto-wallet|auto|Connect Auto Wallet|false",
+        "disconnect-wallet|disconnect|Disconnect Wallet|false",
+        "reconnect-wallet|connect|Reconnect Wallet|false"
+      ]
+    ],
+    [
+      "Withdrawal",
+      [
+        "withdraw|withdraw|Withdraw|false",
+        "pending-withdrawals|history|Pending Withdrawals|"
+      ]
+    ],
+    ["Mining", ["estimate-daily-mining|search|Estimate Daily Mining|false"]],
+    [
+      "Verification",
+      [
+        "register-toobit|register|Register to Toobit|false",
+        "connect-toobit-user|user|Connect Toobit User|false",
+        "toobit-status|check|Toobit Status|false",
+        "disconnect-toobit|disconnect|Disconnect Toobit|false",
+        "check-toobit-kyc|kyc|Check Toobit KYC|false"
+      ]
+    ]
+  ],
+  "diggo": [
+    [
+      "Wallet",
+      [
+        "connect-wallet|wallet|Connect Wallet|false",
+        "connect-derived-wallet|key|Connect Derived Wallet|false",
+        "connect-auto-wallet|auto|Connect Auto Wallet|false",
+        "disconnect-wallet|disconnect|Disconnect Wallet|false",
+        "refresh-holding|reconnect|Refresh Holding|false",
+        "activate-withdrawals|kyc|Activate Withdrawals|false",
+        "security-check|check|Security Check|false",
+        "deposit-ton|import|Deposit TON|false",
+        "convert-ton|reconnect|Convert TON|false"
+      ]
+    ],
+    [
+      "Boost",
+      [
+        "buy-diggo|import|Buy DIGGO|false",
+        "estimate-boost|search|Estimate Boost|false",
+        "sell-diggo|withdraw|Sell DIGGO|false",
+        "market-price|search|Market Price|false"
+      ]
+    ],
+    [
+      "Mining",
+      [
+        "claim-mining|check|Claim Mining|false",
+        "complete-tasks|check|Complete Tasks|false",
+        "open-chests|key|Open Chests|false"
+      ]
+    ],
+    [
+      "Withdrawal",
+      [
+        "withdrawal-status|history|Withdrawal Status|false",
+        "withdraw|withdraw|Withdraw|false",
+        "cancel-withdrawal|disconnect|Cancel Withdrawal|false"
+      ]
+    ]
+  ],
+  "mrg": [
+    [
+      "Wallet",
+      [
+        "connect-wallet|wallet|Connect Wallet|false",
+        "connect-derived-wallet|key|Connect Derived Wallet|false",
+        "connect-auto-wallet|auto|Connect Auto Wallet|false",
+        "disconnect-wallet|disconnect|Disconnect Wallet|false",
+        "refresh-holding|reconnect|Refresh Holding|false",
+        "report-balance|import|Report Balance|false",
+        "verify-wallet|kyc|Verify Wallet|false",
+        "check-verification|kyc|Check Verification|false",
+        "nft-holdings|search|NFT Holdings|false"
+      ]
+    ],
+    [
+      "Mining",
+      [
+        "claim-mining|check|Claim Mining|false",
+        "daily-checkin|check|Daily Check-In|false",
+        "estimate-mining|search|Estimate Mining|false"
+      ]
+    ],
+    ["Levels", ["unlock-level|key|Unlock Level|false"]],
+    [
+      "Account",
+      [
+        "human-check|kyc|Human Check|false",
+        "reset-human-check|reconnect|Reset Human Check|false"
+      ]
+    ],
+    [
+      "Withdrawal",
+      [
+        "inspect-captcha|search|Inspect Captcha|false",
+        "withdrawal-status|history|Withdrawal Status|false",
+        "withdraw|withdraw|Withdraw|false"
+      ]
+    ]
+  ],
+  "victors": [
+    [
+      "Wallet",
+      [
+        "connect-wallet|wallet|Connect Wallet|false",
+        "connect-derived-wallet|key|Connect Derived Wallet|false",
+        "connect-auto-wallet|auto|Connect Auto Wallet|false",
+        "disconnect-wallet|disconnect|Disconnect Wallet|false",
+        "refresh-holding|search|Refresh Holding|false",
+        "verify-wallet|kyc|Verify Wallet|false",
+        "check-verification|kyc|Check Verification|false"
+      ]
+    ],
+    [
+      "Mining",
+      [
+        "claim-mining|check|Claim Mining|false",
+        "estimate-mining|search|Estimate Mining|false"
+      ]
+    ],
+    ["Levels", ["unlock-level|key|Unlock Level|false"]],
+    ["Arcade", ["deep-mine|check|Deep Mine|false"]],
+    [
+      "NFT",
+      ["nft-status|search|NFT Status|false", "mint-nft|withdraw|Mint NFT|false"]
+    ],
+    ["Squad", ["squad|user|Squad|false"]],
+    [
+      "Account",
+      [
+        "human-check|kyc|Human Check|false",
+        "reset-account|reconnect|Reset Banned Account|false",
+        "reset-human-pass|reconnect|Reset Human Pass|false"
+      ]
+    ],
+    [
+      "Withdrawal",
+      [
+        "withdrawal-status|history|Withdrawal Status|false",
+        "withdraw|withdraw|Withdraw|false"
+      ]
+    ]
+  ],
+  "monsterland": [
+    [
+      "Wallet",
+      [
+        "connect-wallet|wallet|Connect Wallet|false",
+        "connect-derived-wallet|key|Connect Derived Wallet|false",
+        "connect-auto-wallet|auto|Connect Auto Wallet|false",
+        "disconnect-wallet|disconnect|Disconnect Wallet|false"
+      ]
+    ]
+  ]
+}
