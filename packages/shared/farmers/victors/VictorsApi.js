@@ -36,7 +36,12 @@ export default class VictorsApi extends FarmerModule {
     method,
     path,
     data,
-    { retryHuman = true, resetBan = true, replayAfterReset = true } = {},
+    {
+      retryHuman = true,
+      resetBan = true,
+      replayAfterReset = true,
+      readServerRefusal = false,
+    } = {},
   ) {
     const response = await this.api.request({
       method,
@@ -55,16 +60,32 @@ export default class VictorsApi extends FarmerModule {
 
       if (!replayAfterReset) return reset;
 
-      return this.callApi(method, path, data, { retryHuman, resetBan: false });
+      return this.callApi(method, path, data, {
+        retryHuman,
+        resetBan: false,
+        readServerRefusal,
+      });
     }
 
     if (payload["code"] === HUMAN_REQUIRED_CODE && retryHuman) {
       this.logger.warn("The human pass was refused, passing the check again.");
       await this.ctx.humanPass.obtain();
-      return this.callApi(method, path, data, { retryHuman: false });
+      return this.callApi(method, path, data, {
+        retryHuman: false,
+        readServerRefusal,
+      });
     }
 
-    if (response.status >= 500 || typeof payload !== "object") {
+    /** The drop words some server failures, such as not reading the on-chain holding, which the page shows as a refusal */
+    const isServerError = response.status >= 500;
+    const isWordedRefusal =
+      typeof payload === "object" && Boolean(payload["error"]);
+
+    if (isServerError && isWordedRefusal && readServerRefusal) {
+      return { ...payload, success: false, serverError: true };
+    }
+
+    if (isServerError || typeof payload !== "object") {
       throw new Error(
         payload?.["error"] || `Request failed (${response.status})`,
       );
@@ -85,8 +106,8 @@ export default class VictorsApi extends FarmerModule {
   }
 
   /** Act on the drop's API, returning a refusal as a payload */
-  postToApi(path, data = {}) {
-    return this.callApi("post", path, data);
+  postToApi(path, data = {}, options = {}) {
+    return this.callApi("post", path, data, options);
   }
 
   /* --------------------------------------------------------------------- */
@@ -144,7 +165,7 @@ export default class VictorsApi extends FarmerModule {
 
   /** Claim what the session has mined */
   claimMining() {
-    return this.postToApi("/mining/claim");
+    return this.postToApi("/mining/claim", {}, { readServerRefusal: true });
   }
 
   /** Hire the miner of a level the holding covers */
@@ -234,10 +255,14 @@ export default class VictorsApi extends FarmerModule {
 
   /** Request a payout to the connected wallet, with the device fingerprint the page sends */
   requestWithdrawal(amount) {
-    return this.postToApi("/withdraw", {
-      amount: Number(amount),
-      forensics: this.ctx.device.get().getForensics(),
-    });
+    return this.postToApi(
+      "/withdraw",
+      {
+        amount: Number(amount),
+        forensics: this.ctx.device.get().getForensics(),
+      },
+      { readServerRefusal: true },
+    );
   }
 
   /** Wipe a banned account, accepting the terms the ban names */

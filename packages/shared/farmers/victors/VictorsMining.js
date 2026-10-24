@@ -128,24 +128,36 @@ export default class VictorsMining extends FarmerModule {
     return accrued.plus(new Decimal(daily).mul(elapsed).div(86400 * 1000));
   }
 
-  /** Claim mining, waiting out server errors such as the holding check being down */
+  /** Claim mining, waiting out server errors such as the holding check being down, then returning the last refusal */
   async claimMiningWithRetry() {
     for (let attempt = 1; ; attempt++) {
+      const isLastAttempt =
+        attempt >= MINING_CLAIM_ATTEMPTS || this.signal.aborted;
+      let reason;
+
       try {
-        return await this.ctx.api.claimMining();
+        const result = await this.ctx.api.claimMining();
+
+        if (!result?.["serverError"] || isLastAttempt) {
+          return result;
+        }
+
+        reason = result["error"];
       } catch (error) {
-        if (attempt >= MINING_CLAIM_ATTEMPTS || this.signal.aborted) {
+        if (isLastAttempt) {
           throw error;
         }
 
-        this.logger.warn(
-          `Mining claim failed, retrying in ${MINING_CLAIM_RETRY_SECONDS}s:`,
-          error.message,
-        );
-        await this.utils.delayForSeconds(MINING_CLAIM_RETRY_SECONDS, {
-          signal: this.signal,
-        });
+        reason = error.message;
       }
+
+      this.logger.warn(
+        `Mining claim failed, retrying in ${MINING_CLAIM_RETRY_SECONDS}s:`,
+        reason,
+      );
+      await this.utils.delayForSeconds(MINING_CLAIM_RETRY_SECONDS, {
+        signal: this.signal,
+      });
     }
   }
 
