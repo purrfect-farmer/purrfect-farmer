@@ -1,24 +1,22 @@
-import {
-  MINE_DAILY_LOSS_LIMIT,
-  MINE_MOVE_DELAY_SECONDS,
-  UNDERGROUND_GAMES,
-} from "./constants.js";
+import FarmerModule from "../../lib/farmer/FarmerModule.js";
+import { formatAmount } from "../../lib/farmer/format.js";
 import {
   MINIMUM_PAYOUT_DIAL,
   chooseMove,
   getStartCap,
   pickTool,
 } from "../../lib/games/deepMine.js";
+import {
+  MINE_DAILY_LOSS_LIMIT,
+  MINE_MOVE_DELAY_SECONDS,
+  UNDERGROUND_GAMES,
+} from "./constants.js";
 
-/** Trait: deep Mine runs and the Underground report */
-export default class VictorsArcade {
-  /* --------------------------------------------------------------------- */
-  /* Arcade                                                                */
-  /* --------------------------------------------------------------------- */
-
+/** Deep Mine runs and the Underground report */
+export default class VictorsArcade extends FarmerModule {
   /** Play Deep Mine's daily runs, finishing any run left open first */
   async playArcade() {
-    const arcade = await this.fetchArcade();
+    const arcade = await this.ctx.api.fetchArcade();
     const game = (arcade["games"] || []).find(
       (item) => item["id"] === "mine" && !item["test"],
     );
@@ -56,7 +54,7 @@ export default class VictorsArcade {
     let playsLeft = Number(game["playsLeft"]) || 0;
 
     while (playsLeft > 0 && !this.signal.aborted) {
-      const balance = Number(this.getUserDetails()["inAppBalance"]) || 0;
+      const balance = Number(this.ctx.state.user()["inAppBalance"]) || 0;
       const tool = pickTool(balance);
 
       if (!tool) {
@@ -71,21 +69,21 @@ export default class VictorsArcade {
         break;
       }
 
-      const started = await this.startMineRun(tool);
+      const started = await this.ctx.api.startMineRun(tool);
 
       if (started?.["success"] === false || !started?.["run"]) {
         this.logger.warn("Failed to start Deep Mine:", started?.["error"]);
         break;
       }
 
-      this.applyResult(started);
+      this.ctx.state.apply(started);
 
       /** A fresh run's cap moves with the bag cap and refund rate, so a mismatch means the rules changed */
       if (Number(started["run"]["cap"]) !== getStartCap(tool)) {
         this.logger.warn(
           `Deep Mine rules changed (cap ${started["run"]["cap"]}, expected ${getStartCap(tool)}), climbing out.`,
         );
-        await this.recordMineResult(arcade, await this.endMineRun());
+        await this.recordMineResult(arcade, await this.ctx.api.endMineRun());
         break;
       }
 
@@ -111,18 +109,18 @@ export default class VictorsArcade {
       const move = chooseMove(response["run"], { dial });
 
       if (move.action === "end") {
-        response = await this.endMineRun();
+        response = await this.ctx.api.endMineRun();
       } else if (move.action === "dig") {
-        response = await this.digMine(move.x, move.y);
+        response = await this.ctx.api.digMine(move.x, move.y);
       } else {
-        response = await this.useMineItem(move.action, move.x, move.y);
+        response = await this.ctx.api.useMineItem(move.action, move.x, move.y);
       }
 
       if (response?.["success"] === false) {
         this.logger.warn("Deep Mine move refused:", response["error"]);
 
         /** A refused move leaves the run as it was, so climb out with what is in the bag */
-        response = await this.endMineRun();
+        response = await this.ctx.api.endMineRun();
 
         if (response?.["success"] === false) {
           this.logger.error("Failed to end the run:", response["error"]);
@@ -144,7 +142,7 @@ export default class VictorsArcade {
 
     if (!result) return;
 
-    this.applyResult(response);
+    this.ctx.state.apply(response);
 
     const net = Number(result["net"]) || 0;
     const total = (await this.getArcadeNet(arcade["resetsAt"])) + net;
@@ -163,7 +161,7 @@ export default class VictorsArcade {
 
   /** Report Underground's pools and plays left, it is played live and never farmed */
   async logUnderground() {
-    const underground = await this.fetchUnderground();
+    const underground = await this.ctx.api.fetchUnderground();
     const profile = underground?.["profile"] || {};
 
     for (const id of UNDERGROUND_GAMES) {
@@ -173,7 +171,7 @@ export default class VictorsArcade {
 
       this.logger.keyValue(
         id === "crew" ? "Crew Pool" : "Rush Pool",
-        `${this.formatAmount(today["pool"])} (share ${today["share"] ?? 0}, ${profile["playsLeft"]?.[id] ?? 0} plays left)`,
+        `${formatAmount(today["pool"])} (share ${today["share"] ?? 0}, ${profile["playsLeft"]?.[id] ?? 0} plays left)`,
       );
     }
   }

@@ -1,7 +1,83 @@
-import { WITHDRAWAL_HISTORY_LIMIT } from "./constants.js";
+import FarmerModule from "../../lib/farmer/FarmerModule.js";
+import {
+  WITHDRAWAL_HISTORY_LIMIT,
+  API_URL,
+  BANNED_CODE,
+  HUMAN_REQUIRED_CODE,
+} from "./constants.js";
 
-/** Trait: the drop's endpoints, one method per call */
-export default class VictorsApi {
+/** The drop's API: its transport and one method per endpoint */
+export default class VictorsApi extends FarmerModule {
+  /* --------------------------------------------------------------------- */
+  /* Transport                                                             */
+  /* --------------------------------------------------------------------- */
+
+  /** Carry `initData` and the human pass on every call the drop's own API receives, and on no others */
+  configure() {
+    const interceptor = this.api.interceptors.request.use((config) => {
+      if (String(config.url || "").startsWith(API_URL)) {
+        config.headers["Authorization"] = `tma ${this.core.initData()}`;
+
+        if (this.ctx.humanPass.pass) {
+          config.headers["x-human-pass"] = this.ctx.humanPass.pass;
+        }
+      }
+
+      return config;
+    });
+
+    return () => {
+      this.api.interceptors.request.eject(interceptor);
+    };
+  }
+
+  /** Call the drop's API, re-passing the human check once if the backend asks for it */
+  async callApi(method, path, data, { retryHuman = true } = {}) {
+    const response = await this.api.request({
+      method,
+      url: `${API_URL}${path}`,
+      data: method === "post" ? data || {} : undefined,
+      signal: this.signal,
+      validateStatus: () => true,
+    });
+
+    const payload = response.data || {};
+
+    if (payload["code"] === BANNED_CODE) {
+      await this.ctx.session.handleBan(payload);
+    }
+
+    if (payload["code"] === HUMAN_REQUIRED_CODE && retryHuman) {
+      this.logger.warn("The human pass was refused, passing the check again.");
+      await this.ctx.humanPass.obtain();
+      return this.callApi(method, path, data, { retryHuman: false });
+    }
+
+    if (response.status >= 500 || typeof payload !== "object") {
+      throw new Error(
+        payload?.["error"] || `Request failed (${response.status})`,
+      );
+    }
+
+    return payload;
+  }
+
+  /** Read from the drop's API, throwing a refusal */
+  async getFromApi(path) {
+    const result = await this.callApi("get", path);
+
+    if (result["success"] === false) {
+      throw new Error(result["error"] || `Failed to read ${path}`);
+    }
+
+    return result;
+  }
+
+  /** Act on the drop's API, returning a refusal as a payload */
+  postToApi(path, data = {}) {
+    return this.callApi("post", path, data);
+  }
+
   /* --------------------------------------------------------------------- */
   /* Endpoints                                                             */
   /* --------------------------------------------------------------------- */
@@ -12,9 +88,9 @@ export default class VictorsApi {
       "post",
       "/auth/login",
       {
-        startParam: this.getReferrerStartParam(),
+        startParam: this.core.referrerStartParam(),
         turnstileToken,
-        device: this.getDevice().getLoginDevice(),
+        device: this.ctx.device.get().getLoginDevice(),
       },
       { retryHuman: false },
     );
@@ -148,7 +224,7 @@ export default class VictorsApi {
   requestWithdrawal(amount) {
     return this.postToApi("/withdraw", {
       amount: Number(amount),
-      forensics: this.getDevice().getForensics(),
+      forensics: this.ctx.device.get().getForensics(),
     });
   }
 

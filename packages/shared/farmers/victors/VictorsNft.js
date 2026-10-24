@@ -1,19 +1,21 @@
+import FarmerModule from "../../lib/farmer/FarmerModule.js";
 import {
   NFT_MINT_CHECK_ATTEMPTS,
   NFT_MINT_CHECK_SECONDS,
   NFT_MINT_FIRST_CHECK_SECONDS,
   NFT_MINT_GAS_TON,
 } from "./constants.js";
-import Decimal from "decimal.js";
 import { Cell } from "@ton/core";
+import Decimal from "decimal.js";
+import { promptWalletVersion } from "../../lib/farmer/prompts.js";
 
-/** Trait: viewing and minting the drop's NFTs */
-export default class VictorsNft {
+/** Viewing and minting the drop's NFTs */
+export default class VictorsNft extends FarmerModule {
   /** Log the collection and the account's own NFTs */
   async nftStatusInteractive() {
-    await this.ensureStateLoaded();
+    await this.ctx.state.ensureLoaded();
 
-    const nft = await this.fetchNft();
+    const nft = await this.ctx.api.fetchNft();
     const owned = nft["owned"] || [];
 
     this.logger.newline();
@@ -42,7 +44,7 @@ export default class VictorsNft {
         { signal: this.signal },
       );
 
-      const result = await this.checkNftMint().catch(() => null);
+      const result = await this.ctx.api.checkNftMint().catch(() => null);
 
       if (result?.["minted"]?.length) return result["minted"];
       if (result?.["nft"] && !result["nft"]["pending"]) break;
@@ -53,9 +55,9 @@ export default class VictorsNft {
 
   /** Pay for one NFT from the connected wallet's phrase, checking a mint already paid first */
   async mintNftInteractive() {
-    await this.ensureStateLoaded();
+    await this.ctx.state.ensureLoaded();
 
-    const connected = this.getConnectedWalletAddress();
+    const connected = this.ctx.wallet.getConnectedWalletAddress();
 
     if (!connected) {
       this.logger.warn("Connect a wallet first.");
@@ -83,7 +85,7 @@ export default class VictorsNft {
       return;
     }
 
-    const phrase = ((await this.promptInput("Enter the wallet phrase:")) || "")
+    const phrase = ((await this.core.prompt("Enter the wallet phrase:")) || "")
       .trim()
       .split(/\s+/)
       .join(" ");
@@ -93,14 +95,7 @@ export default class VictorsNft {
       return;
     }
 
-    const version = await this.promptInput({
-      type: "select",
-      text: "Select wallet version:",
-      options: [
-        { value: "5", label: "Wallet V5R1" },
-        { value: "4", label: "Wallet V4" },
-      ],
-    });
+    const version = await promptWalletVersion(this.core);
 
     if (!version) {
       this.logger.warn("No wallet version selected.");
@@ -125,7 +120,7 @@ export default class VictorsNft {
       return;
     }
 
-    const confirm = await this.promptInput({
+    const confirm = await this.core.prompt({
       type: "select",
       text: `Pay ${priceTon} TON for one NFT?`,
       options: [
@@ -136,7 +131,7 @@ export default class VictorsNft {
 
     if (confirm !== "yes") return;
 
-    const result = await this.startNftMint();
+    const result = await this.ctx.api.startNftMint();
     const tx = result?.["tx"];
 
     if (!tx?.["address"] || !tx?.["amount"]) {

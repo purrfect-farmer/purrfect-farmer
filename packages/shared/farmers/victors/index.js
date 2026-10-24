@@ -1,18 +1,6 @@
 import BaseFarmer from "../../lib/BaseFarmer.js";
-import applyTraits from "../../lib/applyTraits.js";
+import { checkTokenContract } from "../../lib/farmer/onChain.js";
 import { createContext } from "./context.js";
-import VictorsSession from "./VictorsSession.js";
-import VictorsApi from "./VictorsApi.js";
-import VictorsHumanPass from "./VictorsHumanPass.js";
-import VictorsState from "./VictorsState.js";
-import VictorsWallet from "./VictorsWallet.js";
-import VictorsMining from "./VictorsMining.js";
-import VictorsTasks from "./VictorsTasks.js";
-import VictorsArcade from "./VictorsArcade.js";
-import VictorsWithdrawal from "./VictorsWithdrawal.js";
-import VictorsAccount from "./VictorsAccount.js";
-import VictorsNft from "./VictorsNft.js";
-import VictorsTools from "./VictorsTools.js";
 import { MINIMUM_WITHDRAWAL, VIC_JETTON_ADDRESS } from "./constants.js";
 
 export default class VictorsCompanyFarmer extends BaseFarmer {
@@ -38,8 +26,8 @@ export default class VictorsCompanyFarmer extends BaseFarmer {
     verifiable: true,
   };
 
-  /** Collaborators the traits work through */
-  ctx = createContext(this);
+  /** The modules the farmer works through */
+  ctx = createContext(this.core);
 
   /* --------------------------------------------------------------------- */
   /* Process                                                               */
@@ -47,35 +35,100 @@ export default class VictorsCompanyFarmer extends BaseFarmer {
 
   /** Process Farmer */
   async process() {
-    await this.loadState();
+    const { state, account, mining, tasks, arcade } = this.ctx;
 
-    this.logAccountInfo();
-    this.checkTokenContract(this.getConfig()["jettonMaster"]);
+    await state.load();
 
-    await this.executeTask("Tutorial", () => this.completeTutorialIfNeeded());
-    await this.executeTask("Check-in", () => this.claimCheckIn());
-    await this.executeTask("Level", () => this.unlockAffordableLevel());
-    await this.executeTask("Mining", () => this.claimPendingMining());
-    await this.executeTask("Tasks", () => this.completeTasks());
-    await this.executeTask("Arcade", () => this.playArcade());
-    await this.executeTask("Underground", () => this.logUnderground());
-    await this.executeTask("Squad", () => this.claimSquadRewards());
+    account.logInfo();
+    checkTokenContract(this.core, state.config()["jettonMaster"]);
+
+    await this.executeTask("Tutorial", () => mining.completeTutorialIfNeeded());
+    await this.executeTask("Check-in", () => mining.claimCheckIn());
+    await this.executeTask("Level", () => mining.unlockAffordableLevel());
+    await this.executeTask("Mining", () => mining.claimPendingMining());
+    await this.executeTask("Tasks", () => tasks.completeTasks());
+    await this.executeTask("Arcade", () => arcade.playArcade());
+    await this.executeTask("Underground", () => arcade.logUnderground());
+    await this.executeTask("Squad", () => tasks.claimSquadRewards());
     await this.executeTask("Withdraw", () => this.withdraw());
     await this.storeAutoSnapshot();
   }
-}
 
-applyTraits(VictorsCompanyFarmer, [
-  VictorsSession,
-  VictorsApi,
-  VictorsHumanPass,
-  VictorsState,
-  VictorsWallet,
-  VictorsMining,
-  VictorsTasks,
-  VictorsArcade,
-  VictorsWithdrawal,
-  VictorsAccount,
-  VictorsNft,
-  VictorsTools,
-]);
+  /* --------------------------------------------------------------------- */
+  /* Host hooks                                                            */
+  /* --------------------------------------------------------------------- */
+
+  /** Carry `initData` and the human pass on the drop's own API calls */
+  configureApi() {
+    return this.ctx.api.configure();
+  }
+
+  /** Get Auth */
+  fetchAuth() {
+    return this.ctx.session.login();
+  }
+
+  /** Load data */
+  async load() {
+    await this.ctx.walletVersion.load();
+    await this.ctx.humanPass.restore();
+  }
+
+  /** Get Referral Link */
+  getReferralLink() {
+    return this.ctx.session.getReferralLink();
+  }
+
+  /** Get Referrals Count */
+  getReferralsCount() {
+    return this.ctx.session.getReferralsCount();
+  }
+
+  createTools() {
+    return this.ctx.tools.create();
+  }
+
+  /* --------------------------------------------------------------------- */
+  /* Auto contract                                                         */
+  /* --------------------------------------------------------------------- */
+
+  connectAutoWallet(wallet) {
+    return this.ctx.auto.connectWallet(wallet);
+  }
+
+  verifyAutoWallet(wallet) {
+    return this.ctx.auto.verifyWallet(wallet);
+  }
+
+  refreshAutoState() {
+    return this.ctx.auto.refreshState();
+  }
+
+  refreshAutoSummary() {
+    return this.ctx.auto.refreshSummary();
+  }
+
+  startAutoMining() {
+    return this.ctx.auto.startMining();
+  }
+
+  getAutoSummary() {
+    return this.ctx.auto.summary();
+  }
+
+  storeAutoSnapshot() {
+    return this.ctx.snapshot.store();
+  }
+
+  readAutoWithdrawals() {
+    return this.ctx.snapshot.readWithdrawals();
+  }
+
+  withdraw(options) {
+    return this.ctx.flow.withdraw(options);
+  }
+
+  hasPendingWithdrawal() {
+    return this.ctx.withdrawals.hasPending();
+  }
+}

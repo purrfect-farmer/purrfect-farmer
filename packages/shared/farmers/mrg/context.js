@@ -14,6 +14,7 @@ import MRGTools from "./MRGTools.js";
 import MRGWallet from "./MRGWallet.js";
 import MRGWithdrawal from "./MRGWithdrawal.js";
 import WalletConnectPrompts from "../../lib/farmer/WalletConnectPrompts.js";
+import WalletVerifier from "../../lib/farmer/WalletVerifier.js";
 import WalletVersion from "../../lib/farmer/WalletVersion.js";
 import WithdrawalFlow from "../../lib/farmer/WithdrawalFlow.js";
 import WithdrawalQueue, {
@@ -73,6 +74,16 @@ export function createContext(core) {
     summary: () => ctx.auto.summary(),
     refreshSummary: () => ctx.auto.refreshSummary(),
     ensureLoaded: () => ctx.state.ensureLoaded(),
+  });
+
+  ctx.verifier = new WalletVerifier({
+    ensureLoaded: () => ctx.state.ensureLoaded(),
+    isVerified: () => ctx.account.isAccountVerified(ctx.state.user()),
+    hasWallet: () => Boolean(ctx.wallet.getConnectedWalletAddress()),
+    connect: (wallet) => ctx.auto.connectWallet(wallet),
+    pay: (wallet) => ctx.wallet.verifyWalletIfNeeded(wallet),
+    summary: () => ctx.auto.summary(),
+    refreshSummary: () => ctx.auto.refreshSummary(),
   });
 
   ctx.connectPrompts = new WalletConnectPrompts({

@@ -1,14 +1,15 @@
+import FarmerModule from "../../lib/farmer/FarmerModule.js";
+import { formatAmount } from "../../lib/farmer/format.js";
 import { TASK_DWELL_SECONDS } from "./constants.js";
 
-/** Trait: tasks and crew rewards */
-export default class VictorsTasks {
-  /* --------------------------------------------------------------------- */
-  /* Tasks                                                                 */
-  /* --------------------------------------------------------------------- */
+/** Tasks and crew rewards */
+export default class VictorsTasks extends FarmerModule {
+  /** How many of the drop's NFTs the account owns, read when an NFT task is open */
+  ownedNftCount = 0;
 
   /** Whether the account meets a task's own threshold */
   isTaskQualified(task) {
-    const user = this.getUserDetails();
+    const user = this.ctx.state.user();
 
     switch (task["kind"]) {
       case "wallet_connect":
@@ -22,7 +23,7 @@ export default class VictorsTasks {
 
       case "invite_friends":
         return (
-          Number(this.state_data.referral?.["walletReferralsCount"] || 0) >=
+          Number(this.ctx.state.data.referral?.["walletReferralsCount"] || 0) >=
           Number(task["minReferrals"] || 0)
         );
 
@@ -34,7 +35,7 @@ export default class VictorsTasks {
 
       case "reach_level":
         return (
-          Number(this.getMining()["level"] || 0) >=
+          Number(this.ctx.state.mining()["level"] || 0) >=
           Number(task["minLevel"] || 0)
         );
 
@@ -45,7 +46,7 @@ export default class VictorsTasks {
 
   /** Claim every open task the account qualifies for */
   async completeTasks() {
-    const board = await this.fetchTasks();
+    const board = await this.ctx.api.fetchTasks();
 
     /** The NFT count is only read when an NFT task is open */
     if (
@@ -53,7 +54,7 @@ export default class VictorsTasks {
         (task) => task["kind"] === "nft_hold" && task["status"] === "open",
       )
     ) {
-      const nft = await this.fetchNft().catch(() => ({}));
+      const nft = await this.ctx.api.fetchNft().catch(() => ({}));
       this.ownedNftCount = (nft["owned"] || []).length;
     }
 
@@ -78,14 +79,17 @@ export default class VictorsTasks {
     const isVisitTask =
       task["kind"] === "link_visit" || task["kind"] === "telegram_channel";
 
-    await this.openTaskLink(task["url"], isVisitTask ? TASK_DWELL_SECONDS : 0);
+    await this.core.telegram.openTaskLink(
+      task["url"],
+      isVisitTask ? TASK_DWELL_SECONDS : 0,
+    );
 
-    const result = await this.claimTask(task["taskId"]);
+    const result = await this.ctx.api.claimTask(task["taskId"]);
 
     if (result?.["success"] === false) {
       this.logger.warn(`Skipped "${task["title"].trim()}":`, result["error"]);
     } else {
-      this.applyResult(result);
+      this.ctx.state.apply(result);
       this.logger.success(
         `Claimed "${task["title"].trim()}" for ${task["reward"]} VIC.`,
       );
@@ -94,19 +98,19 @@ export default class VictorsTasks {
     await this.utils.delayForSeconds(3, { signal: this.signal });
   }
 
-  /* --------------------------------------------------------------------- */
-  /* Squad                                                                 */
-  /* --------------------------------------------------------------------- */
-
   /** Claim the hiring bonus and crew commission */
   async claimSquadRewards() {
-    const referral = this.state_data.referral || {};
+    const referral = this.ctx.state.data.referral || {};
     const claims = [
-      ["hiring bonus", referral["unclaimedBonus"], this.claimReferralBonus],
+      [
+        "hiring bonus",
+        referral["unclaimedBonus"],
+        () => this.ctx.api.claimReferralBonus(),
+      ],
       [
         "commission",
         referral["unclaimedCommission"],
-        this.claimReferralCommission,
+        () => this.ctx.api.claimReferralCommission(),
       ],
     ];
 
@@ -116,14 +120,14 @@ export default class VictorsTasks {
         continue;
       }
 
-      const result = await claim.call(this);
+      const result = await claim();
 
       if (result?.["success"] === false) {
         this.logger.warn(`Failed to claim the ${label}:`, result["error"]);
       } else {
-        this.applyResult(result);
+        this.ctx.state.apply(result);
         this.logger.success(
-          `Claimed ${this.formatAmount(result["claimed"] ?? amount)} VIC ${label}.`,
+          `Claimed ${formatAmount(result["claimed"] ?? amount)} VIC ${label}.`,
         );
       }
 

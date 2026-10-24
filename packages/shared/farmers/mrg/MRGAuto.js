@@ -20,40 +20,8 @@ export default class MRGAuto extends FarmerModule {
   }
 
   /** Pay the one-time verification from the wallet's phrase, connecting the wallet first when the account has none */
-  async verifyWallet({ phrase, version, apiKey }) {
-    try {
-      await this.ctx.state.ensureLoaded();
-
-      if (this.ctx.account.isAccountVerified(this.ctx.state.user())) {
-        return {
-          status: true,
-          skipped: true,
-          message: "Already verified",
-          summary: this.summary(),
-        };
-      }
-
-      if (!this.ctx.wallet.getConnectedWalletAddress()) {
-        const connected = await this.connectWallet({ phrase, version });
-
-        if (!connected.status) return connected;
-      }
-
-      const { status, message } = await this.ctx.wallet.verifyWalletIfNeeded({
-        phrase,
-        version,
-        apiKey,
-      });
-
-      return {
-        status,
-        skipped: false,
-        message: message || (status ? "Verified" : "Not confirmed yet"),
-        summary: status ? await this.refreshSummary() : this.summary(),
-      };
-    } catch (error) {
-      return { status: false, message: error.message || "Unknown error" };
-    }
+  verifyWallet(wallet) {
+    return this.ctx.verifier.verify(wallet);
   }
 
   /** Put the account to work at the holding a boost just sent it */

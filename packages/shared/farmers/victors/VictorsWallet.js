@@ -1,9 +1,7 @@
-import BaseFarmer from "../../lib/BaseFarmer.js";
-import {
-  createWallet,
-  keyPairFromPhraseOrSecretKey,
-} from "../../lib/ton/wallet.js";
+import FarmerModule from "../../lib/farmer/FarmerModule.js";
+import { formatAmount } from "../../lib/farmer/format.js";
 import { buildTonProof } from "../../lib/ton/proof.js";
+import { createWallet } from "../../lib/ton/wallet.js";
 import {
   TON_PROOF_DOMAIN,
   VERIFICATION_CHECK_ATTEMPTS,
@@ -11,24 +9,20 @@ import {
   VERIFICATION_GAS_TON,
   VERIFICATION_RETRY_HOURS,
 } from "./constants.js";
-import Decimal from "decimal.js";
 import { Cell } from "@ton/core";
+import Decimal from "decimal.js";
 
-/** Trait: binding the wallet, its holding and the on-chain verification */
-export default class VictorsWallet {
-  /* --------------------------------------------------------------------- */
-  /* Wallet                                                                */
-  /* --------------------------------------------------------------------- */
-
+/** Binding the wallet, its holding and the on-chain verification */
+export default class VictorsWallet extends FarmerModule {
   /** The address the drop currently has the account on */
   getConnectedWalletAddress() {
-    return this.state_data?.user?.["walletAddress"] || null;
+    return this.ctx.state.data?.user?.["walletAddress"] || null;
   }
 
   /** Bind an address to the account, sent as `UQ...` the way the page sends it */
   async connectWalletAddress(address) {
     const friendly = this.utils.toFriendlyAddress(address);
-    const result = await this.connectWallet(friendly);
+    const result = await this.ctx.api.connectWallet(friendly);
 
     if (result?.["success"] === false) {
       const message = result["error"] || "Failed to connect the wallet";
@@ -37,7 +31,7 @@ export default class VictorsWallet {
       return { status: false, message };
     }
 
-    this.applyResult(result);
+    this.ctx.state.apply(result);
     this.logger.success(`Wallet connected: ${friendly}`);
 
     return { status: true, message: "Wallet connected" };
@@ -51,10 +45,10 @@ export default class VictorsWallet {
       wallet,
       secretKey: keyPair.secretKey,
       domain: TON_PROOF_DOMAIN,
-      payload: await this.fetchProofPayload(),
+      payload: await this.ctx.api.fetchProofPayload(),
     });
 
-    const result = await this.connectWallet(address, {
+    const result = await this.ctx.api.connectWallet(address, {
       proof: tonProof.proof,
       stateInit: tonProof.walletStateInit,
       publicKey: Buffer.from(keyPair.publicKey).toString("hex"),
@@ -67,52 +61,15 @@ export default class VictorsWallet {
       return { status: false, message };
     }
 
-    this.applyResult(result);
-    await this.rememberWalletVersion(version);
+    this.ctx.state.apply(result);
 
-    if (!this.getUserDetails()["walletOwned"]) {
+    if (!this.ctx.state.user()["walletOwned"]) {
       this.logger.warn("Wallet connected but its ownership was not accepted.");
     }
 
     this.logger.success(`Wallet connected and proven: ${address}`);
 
     return { status: true, message: "Wallet connected" };
-  }
-
-  /** Bind a wallet from its phrase with a TON proof, or by address alone when no phrase is known */
-  async connectAutoWallet({ phrase, address, version, refresh = false }) {
-    if (!phrase) {
-      return BaseFarmer.prototype.connectAutoWallet.call(this, {
-        address,
-        version,
-        refresh,
-      });
-    }
-
-    try {
-      await this.ensureStateLoaded();
-
-      const keyPair = await keyPairFromPhraseOrSecretKey(phrase);
-      const { status, message } = await this.connectSignedWallet(
-        keyPair,
-        version,
-      );
-
-      if (!status) {
-        return { status: false, message };
-      }
-
-      await this.afterAutoWalletConnected();
-
-      return {
-        status: true,
-        summary: refresh
-          ? await this.refreshAutoSummary()
-          : this.getAutoSummary(),
-      };
-    } catch (error) {
-      return { status: false, message: error.message || "Unknown error" };
-    }
   }
 
   /** Have the drop re-read the on-chain holding */
@@ -122,17 +79,17 @@ export default class VictorsWallet {
       return;
     }
 
-    const result = await this.refreshWallet();
+    const result = await this.ctx.api.refreshWallet();
 
     if (result?.["success"] === false) {
       this.logger.warn("Failed to refresh the wallet:", result["error"]);
       return;
     }
 
-    this.applyResult(result);
+    this.ctx.state.apply(result);
     this.logger.keyValue(
       "On-chain VIC",
-      this.formatAmount(this.getUserDetails()["walletBalance"]),
+      formatAmount(this.ctx.state.user()["walletBalance"]),
     );
   }
 
@@ -145,10 +102,10 @@ export default class VictorsWallet {
         signal: this.signal,
       });
 
-      const result = await this.checkVerification();
+      const result = await this.ctx.api.checkVerification();
 
       if (result?.["verified"]) {
-        this.applyResult(result);
+        this.ctx.state.apply(result);
         this.logger.success("Wallet verified.");
         return true;
       }
@@ -160,7 +117,7 @@ export default class VictorsWallet {
 
   /** Pay the one-time verification transfer from the wallet's phrase, unless it is already settled or on its way */
   async verifyWalletIfNeeded({ phrase, version, apiKey }) {
-    const verify = this.getVerify();
+    const verify = this.ctx.state.verify();
 
     if (verify["verified"]) return { status: true };
 
@@ -205,7 +162,7 @@ export default class VictorsWallet {
       return { status: false, message };
     }
 
-    const result = await this.startVerification();
+    const result = await this.ctx.api.startVerification();
     const tx = result?.["tx"];
 
     if (!tx?.["address"] || !tx?.["amount"]) {

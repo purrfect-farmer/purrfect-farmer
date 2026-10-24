@@ -1,98 +1,14 @@
-import { API_URL, BANNED_CODE, HUMAN_REQUIRED_CODE } from "./constants.js";
-import { createVictorsDevice } from "../../lib/games/victorsDevice.js";
+import FarmerModule from "../../lib/farmer/FarmerModule.js";
 
-/** Trait: aPI transport, device identity, bans and sign-in */
-export default class VictorsSession {
-  /* --------------------------------------------------------------------- */
-  /* Transport                                                             */
-  /* --------------------------------------------------------------------- */
-
-  /** Carry `initData` and the human pass on every call the drop's own API receives, and on no others */
-  configureApi() {
-    const interceptor = this.api.interceptors.request.use((config) => {
-      if (String(config.url || "").startsWith(API_URL)) {
-        config.headers["Authorization"] = `tma ${this.getInitData()}`;
-
-        if (this.humanPass) {
-          config.headers["x-human-pass"] = this.humanPass;
-        }
-      }
-
-      return config;
-    });
-
-    return () => {
-      this.api.interceptors.request.eject(interceptor);
-    };
-  }
-
-  /** Call the drop's API, re-passing the human check once if the backend asks for it */
-  async callApi(method, path, data, { retryHuman = true } = {}) {
-    const response = await this.api.request({
-      method,
-      url: `${API_URL}${path}`,
-      data: method === "post" ? data || {} : undefined,
-      signal: this.signal,
-      validateStatus: () => true,
-    });
-
-    const payload = response.data || {};
-
-    if (payload["code"] === BANNED_CODE) {
-      await this.handleBan(payload);
-    }
-
-    if (payload["code"] === HUMAN_REQUIRED_CODE && retryHuman) {
-      this.logger.warn("The human pass was refused, passing the check again.");
-      await this.obtainHumanPass();
-      return this.callApi(method, path, data, { retryHuman: false });
-    }
-
-    if (response.status >= 500 || typeof payload !== "object") {
-      throw new Error(
-        payload?.["error"] || `Request failed (${response.status})`,
-      );
-    }
-
-    return payload;
-  }
-
-  /** Read from the drop's API, throwing a refusal */
-  async getFromApi(path) {
-    const result = await this.callApi("get", path);
-
-    if (result["success"] === false) {
-      throw new Error(result["error"] || `Failed to read ${path}`);
-    }
-
-    return result;
-  }
-
-  /** Act on the drop's API, returning a refusal as a payload */
-  postToApi(path, data = {}) {
-    return this.callApi("post", path, data);
-  }
-
-  /* --------------------------------------------------------------------- */
-  /* Device                                                                */
-  /* --------------------------------------------------------------------- */
-
-  /** The account's phone, the same on every run */
-  getDevice() {
-    return (this.device ||= createVictorsDevice(
-      this.getUserId(),
-      this.userAgent,
-    ));
-  }
-
-  /* --------------------------------------------------------------------- */
-  /* Ban                                                                   */
-  /* --------------------------------------------------------------------- */
+/** Sign-in, bans and the referral link */
+export default class VictorsSession extends FarmerModule {
+  /** The ban the drop last reported, with whether it may be reset */
+  banInfo = null;
 
   /** Remember the ban and the pass it carries, then stop whatever was running */
   async handleBan(payload) {
     if (payload["humanPass"]) {
-      await this.storeHumanPass(payload["humanPass"]);
+      await this.ctx.humanPass.store(payload["humanPass"]);
     }
 
     this.banInfo = {
@@ -106,34 +22,32 @@ export default class VictorsSession {
     );
   }
 
-  /* --------------------------------------------------------------------- */
-  /* Session                                                               */
-  /* --------------------------------------------------------------------- */
-
-  /** Get Auth */
-  fetchAuth() {
-    return this.login();
-  }
-
   /** Sign in on the stored pass, or pass the human check when there is none */
   async login() {
-    await this.restoreHumanPass();
+    await this.ctx.humanPass.restore();
 
-    if (this.humanPass) {
+    if (this.ctx.humanPass.pass) {
       this.logger.info("Using stored human pass.");
-      return this.loadState();
+      return this.ctx.state.load();
     }
 
-    await this.obtainHumanPass();
+    await this.ctx.humanPass.obtain();
 
-    return this.state_data;
+    return this.ctx.state.data;
   }
 
   /** Get Referral Link */
   getReferralLink() {
     return (
-      this.state_data?.referral?.["link"] ||
-      `https://t.me/VictorsCompanybot/app?startapp=ref_${this.state_data?.referral?.["code"] || ""}`
+      this.ctx.state.data?.referral?.["link"] ||
+      `https://t.me/VictorsCompanybot/app?startapp=ref_${this.ctx.state.data?.referral?.["code"] || ""}`
     );
+  }
+
+  /** Get Referrals Count */
+  async getReferralsCount() {
+    await this.ctx.state.ensureLoaded();
+
+    return Number(this.ctx.state.data.referral?.["referralsCount"]) || 0;
   }
 }
