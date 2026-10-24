@@ -1,4 +1,5 @@
 import TelegramIdentity from "@purrfect/shared/lib/farmer/TelegramIdentity.js";
+import TaskRunner from "@purrfect/shared/lib/farmer/TaskRunner.js";
 import assert from "node:assert/strict";
 import { test } from "node:test";
 
@@ -74,4 +75,91 @@ test("the user random generator is seeded by the user id", () => {
   state.webApp = WEB_APP;
 
   assert.equal(identity.fixedRandomNumber(), identity.fixedRandomNumber());
+});
+
+/** A core whose logger and delays are recorded, with colours as tags */
+function createRunnerCore({ aborted = false } = {}) {
+  const calls = [];
+  const colour = (name) => (text) => `<${name}>${text}`;
+
+  const core = {
+    signal: { aborted },
+    logger: {
+      newline: () => calls.push(["newline"]),
+      log: (message) => calls.push(["log", message]),
+      warn: (message) => calls.push(["warn", message]),
+      c: {
+        magenta: colour("m"),
+        yellow: colour("y"),
+        gray: colour("g"),
+        green: colour("gr"),
+        red: colour("r"),
+      },
+    },
+    utils: {
+      delayForSeconds: async (seconds) => calls.push(["delay", seconds]),
+      dateFns: { formatDistanceToNowStrict: () => "5 seconds" },
+    },
+  };
+
+  return { core, calls };
+}
+
+test("a task logs, waits around its callback and records itself", async () => {
+  const { core, calls } = createRunnerCore();
+  const runner = new TaskRunner({ core, quickRun: () => false });
+
+  assert.ok(runner.startedAt instanceof Date);
+  assert.equal(runner.currentTask, null);
+
+  await runner.execute("Mining", async () => calls.push(["callback"]));
+
+  assert.equal(runner.currentTask, "Mining");
+  assert.ok(runner.currentTaskStartedAt instanceof Date);
+  assert.equal(runner.elapsed(), "5 seconds");
+  assert.deepEqual(calls, [
+    ["newline"],
+    ["log", "<g>⚙ Executing task: <m>Mining"],
+    ["delay", 5],
+    ["callback"],
+    ["log", "<gr>✔ Completed task: <m>Mining"],
+    ["delay", 5],
+  ]);
+});
+
+test("a failing task is logged, still waits, then rethrows", async () => {
+  const { core, calls } = createRunnerCore();
+  const runner = new TaskRunner({ core, quickRun: () => false });
+
+  await assert.rejects(
+    runner.execute("Tasks", async () => {
+      throw new Error("boom");
+    }),
+    /boom/,
+  );
+
+  assert.deepEqual(calls.slice(-2), [
+    ["log", "<r>✖ Error executing task: <m>Tasks\n   <g>boom"],
+    ["delay", 5],
+  ]);
+});
+
+test("aborted runs and quick-run skips never call the task", async () => {
+  const aborted = createRunnerCore({ aborted: true });
+  await new TaskRunner({ core: aborted.core, quickRun: () => false }).execute(
+    "Tap",
+    () => assert.fail("called"),
+  );
+  assert.deepEqual(aborted.calls, [
+    ["newline"],
+    ["warn", "✖ Task aborted: <m>Tap"],
+  ]);
+
+  const quick = createRunnerCore();
+  const runner = new TaskRunner({ core: quick.core, quickRun: () => true });
+  await runner.execute("Slow", () => assert.fail("called"), false);
+  assert.deepEqual(quick.calls, [
+    ["newline"],
+    ["log", "<y>⚡ Skipping in quick run: <m>Slow"],
+  ]);
 });

@@ -1,3 +1,4 @@
+import TaskRunner from "./farmer/TaskRunner.js";
 import TelegramIdentity from "./farmer/TelegramIdentity.js";
 import utils from "../utils/bundle.js";
 import createFarmerCore from "./farmer/createFarmerCore.js";
@@ -46,6 +47,9 @@ export default class BaseFarmer {
   /** Tools built on first read, once the subclass's modules exist */
   #tools = null;
 
+  /** Runs the farmer's tasks and tracks the current one */
+  #tasks = null;
+
   /** Who the farmer runs as, read from its Telegram web app */
   #identity = new TelegramIdentity({
     webApp: () => this.telegramWebApp,
@@ -57,6 +61,12 @@ export default class BaseFarmer {
   constructor({ referralLink = null } = {}) {
     /** Host services the farmer's modules work through */
     this.core = createFarmerCore(this);
+
+    /** The tasks this run executes, one at a time */
+    this.#tasks = new TaskRunner({
+      core: this.core,
+      quickRun: () => this.quickRun,
+    });
 
     /* Register utilities */
     this.utils = utils;
@@ -96,10 +106,6 @@ export default class BaseFarmer {
 
     /** Whether tasks may change the Telegram name or bio */
     this.allowProfileUpdates = false;
-
-    this.startedAt = new Date();
-    this.currentTaskStartedAt = null;
-    this.currentTask = null;
 
     this.controller = new AbortController();
     this.signal = this.controller.signal;
@@ -419,73 +425,27 @@ export default class BaseFarmer {
 
   /** Get elapsed time */
   getElapsedTime() {
-    return this.utils.dateFns.formatDistanceToNowStrict(
-      this.currentTaskStartedAt || new Date(),
-    );
+    return this.#tasks.elapsed();
   }
 
   /** Execute a task with logging */
-  async executeTask(task, callback, allowInQuickRun = true) {
-    /** Update Task */
-    this.currentTaskStartedAt = new Date();
-    this.currentTask = task;
+  executeTask(task, callback, allowInQuickRun = true) {
+    return this.#tasks.execute(task, callback, allowInQuickRun);
+  }
 
-    /* Add newline */
-    this.logger.newline();
+  /** When the farmer was created */
+  get startedAt() {
+    return this.#tasks.startedAt;
+  }
 
-    /* Check Aborted */
-    if (this.signal?.aborted) {
-      this.logger.warn(`✖ Task aborted: ${this.logger.c.magenta(task)}`);
-      return;
-    }
+  /** The task running now, for status reports */
+  get currentTask() {
+    return this.#tasks.currentTask;
+  }
 
-    /* Check Quick Run */
-    const skipInQuickRun = this.quickRun && !allowInQuickRun;
-
-    if (skipInQuickRun) {
-      /* Log Skipped Task */
-      this.logger.log(
-        `${this.logger.c.yellow(
-          "⚡ Skipping in quick run:",
-        )} ${this.logger.c.magenta(task)}`,
-      );
-      return;
-    }
-
-    try {
-      /* Log Task Start */
-      this.logger.log(
-        `${this.logger.c.gray("⚙ Executing task:")} ${this.logger.c.magenta(
-          task,
-        )}`,
-      );
-
-      /** Delay before processing task */
-      await this.utils.delayForSeconds(5, { signal: this.signal });
-
-      /* Execute Callback */
-      await callback();
-
-      /* Log Task Completion */
-      this.logger.log(
-        `${this.logger.c.green("✔ Completed task:")} ${this.logger.c.magenta(
-          task,
-        )}`,
-      );
-    } catch (error) {
-      /* Log Task Error */
-      this.logger.log(
-        `${this.logger.c.red(
-          "✖ Error executing task:",
-        )} ${this.logger.c.magenta(task)}\n   ${this.logger.c.gray(
-          error.message,
-        )}`,
-      );
-      throw error;
-    } finally {
-      /** Delay before processing next task */
-      await this.utils.delayForSeconds(5, { signal: this.signal });
-    }
+  /** When the current task started */
+  get currentTaskStartedAt() {
+    return this.#tasks.currentTaskStartedAt;
   }
 
   /** Validate Telegram Task */
