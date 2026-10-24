@@ -4,7 +4,6 @@ import "./telegram-web/telegram-web-isolated";
 import {
   createListener,
   customLogger,
-  getUserAgent,
   matchTelegramWebUrl,
   uuid,
 } from "@/utils";
@@ -15,6 +14,7 @@ import {
 } from "./content-script-utils";
 
 import { WEB_PLATFORM_EXCLUDED_HOSTS } from "@/constants";
+import { getEngineUserAgent } from "@/lib/engineUserAgent";
 import { rememberMiniAppHost } from "@/lib/miniAppHosts";
 import { setupMiniAppToolbar } from "./mini-app/mini-app-toolbar-isolated";
 
@@ -69,7 +69,7 @@ if (!matchTelegramWebUrl()) {
 
   /** Update User-Agent */
   async function updateUserAgent() {
-    const userAgent = await getUserAgent();
+    const userAgent = await getEngineUserAgent();
 
     return await postWindowMessage({
       action: "set-user-agent",

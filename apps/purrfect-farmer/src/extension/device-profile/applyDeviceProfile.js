@@ -1,3 +1,4 @@
+import { SPOOF_MINI_APP_DEVICE } from "@/constants";
 import { createDevice } from "@purrfect/shared/lib/device/createDevice";
 import { defineNativeGetter } from "./native";
 import { installConnection, installNavigator } from "./navigator";
@@ -35,7 +36,7 @@ export function applyDeviceProfile(device) {
 
 /** Make the page see the account's phone; without a User-Agent yet, the browser's own stands in until one is applied */
 export function applyAccountDevice(userId, userAgent = null) {
-  if (!userId) {
+  if (!SPOOF_MINI_APP_DEVICE || !userId) {
     if (userAgent) {
       defineNativeGetter(Navigator.prototype, "userAgent", () => userAgent);
     }

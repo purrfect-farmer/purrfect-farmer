@@ -16,6 +16,13 @@ export function getFullChromeVersion(userAgent) {
   );
 }
 
+/** The user agent naming `fullVersion` as its Chrome version, unchanged without one */
+export function withChromeVersion(userAgent, fullVersion) {
+  if (!fullVersion) return userAgent;
+
+  return String(userAgent).replace(/Chrome\/[\d.]+/, `Chrome/${fullVersion}`);
+}
+
 /** The brands of an Android WebView running the user agent's Chrome, in the order it reports them */
 export function getBrands(userAgent) {
   const version = getChromeVersion(userAgent);
