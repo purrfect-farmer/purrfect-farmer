@@ -31,8 +31,13 @@ export default class VictorsApi extends FarmerModule {
     };
   }
 
-  /** Call the drop's API, re-passing the human check once if the backend asks for it */
-  async callApi(method, path, data, { retryHuman = true } = {}) {
+  /** Call the drop's API, re-passing the human check or resetting a ban, then replaying the call once */
+  async callApi(
+    method,
+    path,
+    data,
+    { retryHuman = true, resetBan = true, replayAfterReset = true } = {},
+  ) {
     const response = await this.api.request({
       method,
       url: `${API_URL}${path}`,
@@ -44,7 +49,13 @@ export default class VictorsApi extends FarmerModule {
     const payload = response.data || {};
 
     if (payload["code"] === BANNED_CODE) {
-      await this.ctx.session.handleBan(payload);
+      const reset = await this.ctx.session.handleBan(payload, {
+        reset: resetBan,
+      });
+
+      if (!replayAfterReset) return reset;
+
+      return this.callApi(method, path, data, { retryHuman, resetBan: false });
     }
 
     if (payload["code"] === HUMAN_REQUIRED_CODE && retryHuman) {
@@ -92,7 +103,8 @@ export default class VictorsApi extends FarmerModule {
         turnstileToken,
         device: this.ctx.device.get().getLoginDevice(),
       },
-      { retryHuman: false },
+      /** The token is single-use, and the reset result signs in as a login does */
+      { retryHuman: false, replayAfterReset: false },
     );
   }
 
@@ -234,7 +246,7 @@ export default class VictorsApi extends FarmerModule {
       "post",
       "/auth/reset",
       { agree: true, termsVersion },
-      { retryHuman: false },
+      { retryHuman: false, resetBan: false },
     );
   }
 

@@ -41,22 +41,7 @@ export default class VictorsTools extends FarmerModule {
 
     if (confirm !== "yes") return;
 
-    const result = await this.ctx.api.resetAccount(
-      this.ctx.session.banInfo.termsVersion,
-    );
-
-    if (result?.["success"] === false) {
-      this.logger.error("Failed to reset the account:", result["error"]);
-      return;
-    }
-
-    if (result?.["humanPass"]) {
-      await this.ctx.humanPass.store(result["humanPass"]);
-    }
-
-    this.ctx.session.banInfo = null;
-    this.ctx.state.apply(result);
-    this.logger.success("Account reset.");
+    await this.ctx.session.resetAccount();
   }
 
   /** Play Deep Mine on demand */
