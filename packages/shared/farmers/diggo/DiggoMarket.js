@@ -1,3 +1,5 @@
+import FarmerModule from "../../lib/farmer/FarmerModule.js";
+import { formatAmount } from "../../lib/farmer/format.js";
 import {
   MINIMUM_BUY_TON,
   MINING_LEVELS_URL,
@@ -6,18 +8,19 @@ import {
   PAYMENT_GAS_TON,
   SETTLED_ORDER_STATUSES,
 } from "./constants.js";
-import Decimal from "decimal.js";
 import { Address, Cell } from "@ton/core";
+import Decimal from "decimal.js";
 
-/** Trait: buying, selling and depositing through the in-app market */
-export default class DiggoMarket {
-  /* --------------------------------------------------------------------- */
-  /* Market                                                                */
-  /* --------------------------------------------------------------------- */
+/** Buying, selling and depositing through the game's market */
+export default class DiggoMarket extends FarmerModule {
+  /** The mining levels, read once */
+  miningLevels = null;
 
   /** The smallest buy the market takes, in TON */
   getMinimumBuyTon() {
-    return Number(this.state_data?.["price"]?.["minBuyTon"]) || MINIMUM_BUY_TON;
+    return (
+      Number(this.ctx.state.data?.["price"]?.["minBuyTon"]) || MINIMUM_BUY_TON
+    );
   }
 
   /** The page's level table, fetched once per run */
@@ -84,18 +87,18 @@ export default class DiggoMarket {
 
   /** Buy DIGGO with TON from the bound wallet, which raises the holding and with it the level */
   async buyDiggo(signer, tonAmount) {
-    const { quote } = await this.quoteMarket("buy", tonAmount);
+    const { quote } = await this.ctx.api.quoteMarket("buy", tonAmount);
 
     this.logger.newline();
     this.logger.keyValue("Pay", `${quote["payAmount"]} TON`);
     this.logger.keyValue("Fee", `${quote["fee"]} TON`);
     this.logger.keyValue(
       quote["estimated"] ? "Est. Receive" : "Receive",
-      `${this.formatAmount(quote["getAmount"])} DIGGO`,
+      `${formatAmount(quote["getAmount"])} DIGGO`,
     );
     this.logger.keyValue("Price Impact", `${quote["priceImpact"]}%`);
 
-    const { order } = await this.createTonOrder(
+    const { order } = await this.ctx.api.createTonOrder(
       quote["id"],
       quote["execution"] || "protected",
     );
@@ -104,23 +107,28 @@ export default class DiggoMarket {
       try {
         await this.payTonTransaction(signer, order["transaction"]);
       } catch (error) {
-        await this.stageTonOrder(order["id"], "rejected").catch(() => null);
+        await this.ctx.api
+          .stageTonOrder(order["id"], "rejected")
+          .catch(() => null);
         throw error;
       }
 
-      await this.stageTonOrder(order["id"], "submitted");
+      await this.ctx.api.stageTonOrder(order["id"], "submitted");
       this.logger.info("Payment sent, waiting for the game to confirm it...");
     }
 
     const settled = await this.waitForPayment(
-      () => this.fetchTonOrder(order["id"]).then((result) => result["order"]),
+      () =>
+        this.ctx.api
+          .fetchTonOrder(order["id"])
+          .then((result) => result["order"]),
       order,
     );
 
     if (settled["status"] === "paid") {
-      await this.loadState();
+      await this.ctx.state.load();
       this.logger.success(
-        `Bought DIGGO, holding ${this.formatAmount(this.state_data["holding"])} at level ${this.state_data["currentLevel"]}.`,
+        `Bought DIGGO, holding ${formatAmount(this.ctx.state.data["holding"])} at level ${this.ctx.state.data["currentLevel"]}.`,
       );
     }
 
@@ -129,14 +137,14 @@ export default class DiggoMarket {
 
   /** Sell DIGGO into the in-app TON balance */
   async sellDiggo(amount) {
-    const { quote } = await this.quoteMarket("sell", amount);
+    const { quote } = await this.ctx.api.quoteMarket("sell", amount);
 
     this.logger.newline();
     this.logger.keyValue("Sell", `${quote["payAmount"]} DIGGO`);
     this.logger.keyValue("Receive", `${quote["getAmount"]} TON`);
     this.logger.keyValue("Min Received", `${quote["minReceived"]} TON`);
 
-    const { trade } = await this.executeTrade(quote["id"]);
+    const { trade } = await this.ctx.api.executeTrade(quote["id"]);
 
     this.logger.success(
       `Sold ${trade?.["diggo"] ?? amount} DIGGO for ${trade?.["ton"] ?? quote["getAmount"]} TON.`,
@@ -145,24 +153,28 @@ export default class DiggoMarket {
 
   /** Deposit TON from the bound wallet into the in-app TON balance */
   async depositTon(signer, tonAmount) {
-    const { deposit } = await this.createDeposit(tonAmount);
+    const { deposit } = await this.ctx.api.createDeposit(tonAmount);
 
     if (deposit["status"] === "pending") {
-      const { deposit: invoice } = await this.fetchDeposit(deposit["id"]);
+      const { deposit: invoice } = await this.ctx.api.fetchDeposit(
+        deposit["id"],
+      );
 
       try {
         await this.payTonTransaction(signer, invoice["transaction"]);
       } catch (error) {
-        await this.stageDeposit(deposit["id"], "rejected").catch(() => null);
+        await this.ctx.api
+          .stageDeposit(deposit["id"], "rejected")
+          .catch(() => null);
         throw error;
       }
 
-      await this.stageDeposit(deposit["id"], "submitted");
+      await this.ctx.api.stageDeposit(deposit["id"], "submitted");
       this.logger.info("Deposit sent, waiting for the game to confirm it...");
     }
 
     return this.waitForPayment(async () => {
-      const { deposits } = await this.fetchDeposits();
+      const { deposits } = await this.ctx.api.fetchDeposits();
 
       return (
         (deposits || []).find((item) => item["id"] === deposit["id"]) || deposit

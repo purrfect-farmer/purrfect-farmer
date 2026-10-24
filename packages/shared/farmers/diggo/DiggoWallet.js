@@ -1,10 +1,10 @@
-import BaseFarmer from "../../lib/BaseFarmer.js";
+import FarmerModule from "../../lib/farmer/FarmerModule.js";
+import { readOnChainHolding } from "../../lib/farmer/onChain.js";
+import { buildTonProof } from "../../lib/ton/proof.js";
 import {
   createWallet,
   deriveMnemonicFromTelegramId,
-  keyPairFromPhraseOrSecretKey,
 } from "../../lib/ton/wallet.js";
-import { buildTonProof } from "../../lib/ton/proof.js";
 import {
   CONVERSION_PRICE_ERRORS,
   MINIMUM_CONVERSION_NANO,
@@ -12,16 +12,13 @@ import {
   TON_PROOF_DOMAIN,
 } from "./constants.js";
 import Decimal from "decimal.js";
+import { promptWalletVersion } from "../../lib/farmer/prompts.js";
 
-/** Trait: binding the wallet, its balances and signing */
-export default class DiggoWallet {
-  /* --------------------------------------------------------------------- */
-  /* Wallet                                                                */
-  /* --------------------------------------------------------------------- */
-
+/** Binding the wallet, its balances and signing */
+export default class DiggoWallet extends FarmerModule {
   /** The bound address in its friendly, non-bounceable form */
   getConnectedWalletAddress() {
-    const address = this.state_data?.["wallet"]?.["address"];
+    const address = this.ctx.state.data?.["wallet"]?.["address"];
 
     return address ? this.utils.toFriendlyAddress(address) : null;
   }
@@ -41,7 +38,7 @@ export default class DiggoWallet {
           };
     }
 
-    const { payload } = await this.fetchTonChallenge();
+    const { payload } = await this.ctx.api.fetchTonChallenge();
     const { address, walletStateInit, proof } = await buildTonProof({
       wallet,
       secretKey: keyPair.secretKey,
@@ -50,7 +47,7 @@ export default class DiggoWallet {
     });
 
     try {
-      await this.bindWallet({
+      await this.ctx.api.bindWallet({
         address,
         network: TON_NETWORK,
         publicKey: Buffer.from(keyPair.publicKey).toString("hex"),
@@ -82,47 +79,9 @@ export default class DiggoWallet {
     };
   }
 
-  /** Bind a wallet from its phrase, since the game wants a signed TON proof */
-  async connectAutoWallet({ phrase, address, version, refresh = false }) {
-    if (!phrase) {
-      return BaseFarmer.prototype.connectAutoWallet.call(this, {
-        address,
-        version,
-        refresh,
-      });
-    }
-
-    try {
-      await this.ensureStateLoaded();
-
-      const keyPair = await keyPairFromPhraseOrSecretKey(phrase);
-      const { status, message } = await this.connectSignedWallet(
-        keyPair,
-        version,
-      );
-
-      if (!status) return { status: false, message };
-
-      await this.rememberWalletVersion(version);
-
-      return {
-        status: true,
-        summary: refresh
-          ? await this.refreshAutoSummary()
-          : this.getAutoSummary(),
-      };
-    } catch (error) {
-      return { status: false, message: error.message || "Unknown error" };
-    }
-  }
-
-  /* --------------------------------------------------------------------- */
-  /* Holding                                                               */
-  /* --------------------------------------------------------------------- */
-
   /** The bound wallet's on-chain DIGGO, as the state reads it or the chain does, or null when unknown */
   getWalletDiggo() {
-    const diggo = this.state_data?.["wallet"]?.["holdings"]?.["diggo"];
+    const diggo = this.ctx.state.data?.["wallet"]?.["holdings"]?.["diggo"];
 
     if (diggo?.["known"] && diggo["amount"] !== undefined) {
       return String(diggo["amount"]);
@@ -133,12 +92,14 @@ export default class DiggoWallet {
 
   /** The in-app TON balance the conversion spends, in nanotons */
   getInAppTonNano() {
-    const nano = String(this.state_data?.["wallet"]?.["tonBalanceNano"] ?? "");
+    const nano = String(
+      this.ctx.state.data?.["wallet"]?.["tonBalanceNano"] ?? "",
+    );
 
     if (/^\d+$/.test(nano)) return BigInt(nano);
 
     return BigInt(
-      new Decimal(this.state_data?.["market"]?.["tonAvailable"] || 0)
+      new Decimal(this.ctx.state.data?.["market"]?.["tonAvailable"] || 0)
         .mul(1e9)
         .floor()
         .toFixed(),
@@ -159,28 +120,26 @@ export default class DiggoWallet {
       return null;
     }
 
-    await this.refreshWalletBalance("diggo").catch((error) =>
-      this.logger.warn("Failed to refresh the holding:", error.message),
-    );
+    await this.ctx.api
+      .refreshWalletBalance("diggo")
+      .catch((error) =>
+        this.logger.warn("Failed to refresh the holding:", error.message),
+      );
 
-    const diggo = this.state_data?.["wallet"]?.["holdings"]?.["diggo"];
+    const diggo = this.ctx.state.data?.["wallet"]?.["holdings"]?.["diggo"];
 
     this.onChainDiggo = diggo?.["known"]
       ? undefined
-      : (await this.readOnChainHolding(address)).toString();
+      : (await readOnChainHolding(this.core, address)).toString();
 
     this.logger.keyValue("Wallet DIGGO", this.getWalletDiggo() ?? "-");
 
     return this.getWalletDiggo();
   }
 
-  /* --------------------------------------------------------------------- */
-  /* Conversion                                                            */
-  /* --------------------------------------------------------------------- */
-
   /** Convert the whole in-app TON balance into DIGGO at the STON.fi rate, once the conversion is open */
   async convertTon() {
-    const transition = (await this.getTransition()) || {};
+    const transition = (await this.ctx.state.getTransition()) || {};
 
     if (!transition["conversion"]?.["enabled"]) {
       this.logger.info("Conversion is closed.");
@@ -198,13 +157,15 @@ export default class DiggoWallet {
 
     for (let attempt = 0; attempt < 2; attempt++) {
       try {
-        const { quote } = await this.quoteConversion(amount);
+        const { quote } = await this.ctx.api.quoteConversion(amount);
 
         this.logger.newline();
         this.logger.keyValue("Convert", `${amount} TON`);
         this.logger.keyValue("Receive", `${quote["diggo"]} DIGGO`);
 
-        const { conversion } = await this.confirmConversion(quote["id"]);
+        const { conversion } = await this.ctx.api.confirmConversion(
+          quote["id"],
+        );
 
         this.logger.success(
           `Converted ${amount} TON into ${conversion?.["diggo"] ?? quote["diggo"]} DIGGO.`,
@@ -242,10 +203,6 @@ export default class DiggoWallet {
     return { wallet, address };
   }
 
-  /* --------------------------------------------------------------------- */
-  /* Signing wallet                                                        */
-  /* --------------------------------------------------------------------- */
-
   /** Prompt for the bound wallet's phrase, typed or derived from the Telegram ID, and check it is the bound one */
   async promptSigner() {
     const bound = this.getConnectedWalletAddress();
@@ -255,7 +212,7 @@ export default class DiggoWallet {
       return null;
     }
 
-    const source = await this.promptInput({
+    const source = await this.core.prompt({
       type: "select",
       text: "Sign with:",
       options: [
@@ -268,16 +225,16 @@ export default class DiggoWallet {
 
     if (source === "derived") {
       const passphrase = (
-        (await this.promptInput(
+        (await this.core.prompt(
           "Enter the passphrase (leave empty for none):",
         )) || ""
       ).trim();
 
       phrase = (
-        await deriveMnemonicFromTelegramId(this.getUserId(), passphrase)
+        await deriveMnemonicFromTelegramId(this.core.userId(), passphrase)
       ).join(" ");
     } else if (source === "phrase") {
-      phrase = ((await this.promptInput("Enter the wallet phrase:")) || "")
+      phrase = ((await this.core.prompt("Enter the wallet phrase:")) || "")
         .trim()
         .split(/\s+/)
         .join(" ");
@@ -288,14 +245,7 @@ export default class DiggoWallet {
       return null;
     }
 
-    const version = await this.promptInput({
-      type: "select",
-      text: "Select wallet version:",
-      options: [
-        { value: "5", label: "Wallet V5R1" },
-        { value: "4", label: "Wallet V4" },
-      ],
-    });
+    const version = await promptWalletVersion(this.core);
 
     if (!version) {
       this.logger.warn("No wallet version selected.");
@@ -318,7 +268,7 @@ export default class DiggoWallet {
 
   /** Prompt for a positive amount, returning it as a string */
   async promptAmount(text) {
-    const input = ((await this.promptInput(text)) || "").trim();
+    const input = ((await this.core.prompt(text)) || "").trim();
 
     if (!input) {
       this.logger.warn("No amount provided.");

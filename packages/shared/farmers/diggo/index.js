@@ -1,16 +1,5 @@
 import BaseFarmer from "../../lib/BaseFarmer.js";
-import applyTraits from "../../lib/applyTraits.js";
 import { createContext } from "./context.js";
-import DiggoSession from "./DiggoSession.js";
-import DiggoApi from "./DiggoApi.js";
-import DiggoState from "./DiggoState.js";
-import DiggoTasks from "./DiggoTasks.js";
-import DiggoWallet from "./DiggoWallet.js";
-import DiggoActivation from "./DiggoActivation.js";
-import DiggoWithdrawal from "./DiggoWithdrawal.js";
-import DiggoMarket from "./DiggoMarket.js";
-import DiggoAccount from "./DiggoAccount.js";
-import DiggoTools from "./DiggoTools.js";
 import { DIGGO_JETTON_ADDRESS, DIGGO_TOKEN } from "./constants.js";
 
 export default class DiggoFarmer extends BaseFarmer {
@@ -39,8 +28,8 @@ export default class DiggoFarmer extends BaseFarmer {
     connectWithPhrase: true,
   };
 
-  /** Collaborators the traits work through */
-  ctx = createContext(this);
+  /** The modules the farmer works through */
+  ctx = createContext(this.core);
 
   /* --------------------------------------------------------------------- */
   /* Process                                                               */
@@ -48,32 +37,103 @@ export default class DiggoFarmer extends BaseFarmer {
 
   /** Process Farmer */
   async process() {
-    await this.loadState();
+    const { state, account, risk, tasks, wallet } = this.ctx;
 
-    this.logAccountInfo();
+    await state.load();
 
-    await this.executeTask("Security Check", () => this.clearRiskChallenge());
-    await this.executeTask("Mining", () => this.claimPendingMining());
-    await this.executeTask("Tasks", () => this.completeTasks());
-    await this.executeTask("Streak", () => this.claimStreak());
-    await this.executeTask("Squad", () => this.claimCommission());
-    await this.executeTask("Chests", () => this.openChests());
-    await this.executeTask("Conversion", () => this.convertTon());
-    await this.executeTask("Holding", () => this.refreshHolding());
+    account.logInfo();
+
+    await this.executeTask("Security Check", () => risk.clear());
+    await this.executeTask("Mining", () => tasks.claimPendingMining());
+    await this.executeTask("Tasks", () => tasks.completeTasks());
+    await this.executeTask("Streak", () => tasks.claimStreak());
+    await this.executeTask("Squad", () => tasks.claimCommission());
+    await this.executeTask("Chests", () => tasks.openChests());
+    await this.executeTask("Conversion", () => wallet.convertTon());
+    await this.executeTask("Holding", () => wallet.refreshHolding());
     await this.executeTask("Withdraw", () => this.withdraw());
     await this.storeAutoSnapshot();
   }
-}
 
-applyTraits(DiggoFarmer, [
-  DiggoSession,
-  DiggoApi,
-  DiggoState,
-  DiggoTasks,
-  DiggoWallet,
-  DiggoActivation,
-  DiggoWithdrawal,
-  DiggoMarket,
-  DiggoAccount,
-  DiggoTools,
-]);
+  /* --------------------------------------------------------------------- */
+  /* Host hooks                                                            */
+  /* --------------------------------------------------------------------- */
+
+  /** Get Auth Headers */
+  getAuthHeaders(data) {
+    return this.ctx.session.getAuthHeaders(data);
+  }
+
+  /** Get Auth */
+  fetchAuth() {
+    return this.ctx.api.authenticate();
+  }
+
+  /** Get Meta */
+  fetchMeta() {
+    return this.ctx.state.load();
+  }
+
+  /** Load data */
+  async load() {
+    await this.ctx.walletVersion.load();
+  }
+
+  /** Get Referral Link */
+  getReferralLink() {
+    return this.ctx.session.getReferralLink();
+  }
+
+  /** Get Referrals Count */
+  getReferralsCount() {
+    return this.ctx.session.getReferralsCount();
+  }
+
+  createTools() {
+    return this.ctx.tools.create();
+  }
+
+  /* --------------------------------------------------------------------- */
+  /* Auto contract                                                         */
+  /* --------------------------------------------------------------------- */
+
+  connectAutoWallet(wallet) {
+    return this.ctx.auto.connectWallet(wallet);
+  }
+
+  verifyAutoWallet(wallet) {
+    return this.ctx.auto.verifyWallet(wallet);
+  }
+
+  refreshAutoState() {
+    return this.ctx.auto.refreshState();
+  }
+
+  refreshAutoSummary() {
+    return this.ctx.auto.refreshSummary();
+  }
+
+  startAutoMining() {
+    return this.ctx.auto.startMining();
+  }
+
+  getAutoSummary() {
+    return this.ctx.auto.summary();
+  }
+
+  storeAutoSnapshot() {
+    return this.ctx.snapshot.store();
+  }
+
+  readAutoWithdrawals() {
+    return this.ctx.snapshot.readWithdrawals();
+  }
+
+  withdraw(options) {
+    return this.ctx.flow.withdraw(options);
+  }
+
+  hasPendingWithdrawal() {
+    return this.ctx.withdrawals.hasPending();
+  }
+}

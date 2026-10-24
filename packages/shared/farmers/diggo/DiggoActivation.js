@@ -1,19 +1,19 @@
+import FarmerModule from "../../lib/farmer/FarmerModule.js";
 import {
   ACTIVATION_CHECK_ATTEMPTS,
   ACTIVATION_CHECK_INTERVAL_SECONDS,
 } from "./constants.js";
 
-/** Trait: the one-time withdrawal activation fee */
-export default class DiggoActivation {
-  /* --------------------------------------------------------------------- */
-  /* Withdrawal activation                                                 */
-  /* --------------------------------------------------------------------- */
+/** The one-time withdrawal activation the wallet pays */
+export default class DiggoActivation extends FarmerModule {
+  /** The activation as the game last reported it */
+  current = null;
 
   /** The withdrawal activation as last read */
   getActivation() {
     return (
-      this.activation ||
-      this.state_data?.["jettonWithdrawals"]?.["activation"] ||
+      this.current ||
+      this.ctx.state.data?.["jettonWithdrawals"]?.["activation"] ||
       null
     );
   }
@@ -57,9 +57,9 @@ export default class DiggoActivation {
 
   /** Read the activation, having the backend check the wallet's age when it does not know it, as the page does */
   async loadActivation() {
-    const { activation } = await this.fetchActivation();
+    const { activation } = await this.ctx.api.fetchActivation();
 
-    this.activation = activation;
+    this.current = activation;
 
     if (
       activation?.["required"] &&
@@ -67,12 +67,12 @@ export default class DiggoActivation {
       activation["destination"] &&
       activation["reason"] !== "unavailable"
     ) {
-      const checked = await this.checkActivation();
+      const checked = await this.ctx.api.checkActivation();
 
-      this.activation = checked["activation"] || activation;
+      this.current = checked["activation"] || activation;
     }
 
-    return this.activation;
+    return this.current;
   }
 
   /** Pay the one-time activation fee from the bound wallet, then wait for the backend to see it */
@@ -91,16 +91,16 @@ export default class DiggoActivation {
       };
     }
 
-    const ordered = await this.createActivationOrder();
+    const ordered = await this.ctx.api.createActivationOrder();
     const order = ordered["order"];
 
-    this.activation = ordered["activation"] || this.activation;
+    this.current = ordered["activation"] || this.current;
 
     if (order?.["status"] === "pending" && order["stage"] === "created") {
-      const prepared = await this.prepareActivation(order["id"]);
+      const prepared = await this.ctx.api.prepareActivation(order["id"]);
       const invoice = prepared["order"];
 
-      this.activation = prepared["activation"] || this.activation;
+      this.current = prepared["activation"] || this.current;
 
       if (!prepared["activation"]?.["paid"]) {
         if (
@@ -108,19 +108,24 @@ export default class DiggoActivation {
           prepared["activation"]["reason"] === "unavailable" ||
           invoice?.["status"] !== "pending" ||
           invoice["stage"] !== "wallet_opened" ||
-          invoice["expiresAt"] <= this.getServerNow()
+          invoice["expiresAt"] <= this.ctx.state.getServerNow()
         ) {
           throw new Error("The activation payment is unavailable");
         }
 
         try {
-          await this.payTonTransaction(signer, invoice["transaction"]);
+          await this.ctx.market.payTonTransaction(
+            signer,
+            invoice["transaction"],
+          );
         } catch (error) {
-          await this.stageActivation(order["id"], "rejected").catch(() => null);
+          await this.ctx.api
+            .stageActivation(order["id"], "rejected")
+            .catch(() => null);
           throw error;
         }
 
-        await this.stageActivation(order["id"], "submitted");
+        await this.ctx.api.stageActivation(order["id"], "submitted");
         this.logger.info("Activation fee sent, waiting for the game...");
       }
     }
@@ -132,7 +137,7 @@ export default class DiggoActivation {
         signal: this.signal,
       });
 
-      this.activation = (await this.fetchActivation())["activation"];
+      this.current = (await this.ctx.api.fetchActivation())["activation"];
     }
 
     const status = this.isActivated();
@@ -140,7 +145,7 @@ export default class DiggoActivation {
     return {
       status,
       skipped: false,
-      message: status ? "Activated" : this.describeActivation(this.activation),
+      message: status ? "Activated" : this.describeActivation(this.current),
     };
   }
 }

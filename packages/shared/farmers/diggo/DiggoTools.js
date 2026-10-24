@@ -1,51 +1,58 @@
-import Decimal from "decimal.js";
+import FarmerModule from "../../lib/farmer/FarmerModule.js";
+import {
+  formatAmount,
+  logMiningRateBreakdown,
+} from "../../lib/farmer/format.js";
 import { MINIMUM_DEPOSIT_TON } from "./constants.js";
+import Decimal from "decimal.js";
+import createAutoWalletTools from "../../lib/farmer/autoWalletTools.js";
+import { promptWalletVersion } from "../../lib/farmer/prompts.js";
 
-/** Trait: the interactive tools the farmer offers */
-export default class DiggoTools {
-  /* --------------------------------------------------------------------- */
-  /* Tools (manual actions)                                                */
-  /* --------------------------------------------------------------------- */
-
-  createTools() {
+/** The interactive tools the farmer offers */
+export default class DiggoTools extends FarmerModule {
+  create() {
     return [
       {
         name: "Wallet",
         list: [
-          ...this.createAutoWalletTools(),
+          ...createAutoWalletTools({
+            connect: () => this.connectWalletInteractive(),
+            disconnect: () => this.disconnectWalletInteractive(),
+            prompts: this.ctx.connectPrompts,
+          }),
           {
             id: "refresh-holding",
             icon: "reconnect",
             title: "Refresh Holding",
-            action: this.refreshHoldingInteractive.bind(this),
+            action: () => this.refreshHoldingInteractive(),
             dispatch: false,
           },
           {
             id: "activate-withdrawals",
             icon: "kyc",
             title: "Activate Withdrawals",
-            action: this.activateWithdrawalsInteractive.bind(this),
+            action: () => this.activateWithdrawalsInteractive(),
             dispatch: false,
           },
           {
             id: "security-check",
             icon: "check",
             title: "Security Check",
-            action: this.securityCheckInteractive.bind(this),
+            action: () => this.securityCheckInteractive(),
             dispatch: false,
           },
           {
             id: "deposit-ton",
             icon: "import",
             title: "Deposit TON",
-            action: this.depositTonInteractive.bind(this),
+            action: () => this.depositTonInteractive(),
             dispatch: false,
           },
           {
             id: "convert-ton",
             icon: "reconnect",
             title: "Convert TON",
-            action: this.convertTonInteractive.bind(this),
+            action: () => this.convertTonInteractive(),
             dispatch: false,
           },
         ],
@@ -57,28 +64,28 @@ export default class DiggoTools {
             id: "buy-diggo",
             icon: "import",
             title: "Buy DIGGO",
-            action: this.buyDiggoInteractive.bind(this),
+            action: () => this.buyDiggoInteractive(),
             dispatch: false,
           },
           {
             id: "estimate-boost",
             icon: "search",
             title: "Estimate Boost",
-            action: this.estimateBoostInteractive.bind(this),
+            action: () => this.estimateBoostInteractive(),
             dispatch: false,
           },
           {
             id: "sell-diggo",
             icon: "withdraw",
             title: "Sell DIGGO",
-            action: this.sellDiggoInteractive.bind(this),
+            action: () => this.sellDiggoInteractive(),
             dispatch: false,
           },
           {
             id: "market-price",
             icon: "search",
             title: "Market Price",
-            action: this.marketPriceInteractive.bind(this),
+            action: () => this.marketPriceInteractive(),
             dispatch: false,
           },
         ],
@@ -90,21 +97,21 @@ export default class DiggoTools {
             id: "claim-mining",
             icon: "check",
             title: "Claim Mining",
-            action: this.claimMiningInteractive.bind(this),
+            action: () => this.claimMiningInteractive(),
             dispatch: false,
           },
           {
             id: "complete-tasks",
             icon: "check",
             title: "Complete Tasks",
-            action: this.completeTasksInteractive.bind(this),
+            action: () => this.completeTasksInteractive(),
             dispatch: false,
           },
           {
             id: "open-chests",
             icon: "key",
             title: "Open Chests",
-            action: this.openChestsInteractive.bind(this),
+            action: () => this.openChestsInteractive(),
             dispatch: false,
           },
         ],
@@ -116,21 +123,21 @@ export default class DiggoTools {
             id: "withdrawal-status",
             icon: "history",
             title: "Withdrawal Status",
-            action: this.logWithdrawalStatus.bind(this),
+            action: () => this.ctx.withdrawal.logStatus(),
             dispatch: false,
           },
           {
             id: "withdraw",
             icon: "withdraw",
             title: "Withdraw",
-            action: this.withdrawInteractive.bind(this),
+            action: () => this.ctx.flow.withdrawInteractive(),
             dispatch: false,
           },
           {
             id: "cancel-withdrawal",
             icon: "disconnect",
             title: "Cancel Withdrawal",
-            action: this.cancelWithdrawalInteractive.bind(this),
+            action: () => this.cancelWithdrawalInteractive(),
             dispatch: false,
           },
         ],
@@ -140,44 +147,49 @@ export default class DiggoTools {
 
   /** Have the backend re-read the bound wallet's DIGGO and TON */
   async refreshHoldingInteractive() {
-    await this.ensureStateLoaded();
+    await this.ctx.state.ensureLoaded();
 
-    if (!this.getConnectedWalletAddress()) {
+    if (!this.ctx.wallet.getConnectedWalletAddress()) {
       this.logger.warn("Connect a wallet first.");
       return;
     }
 
-    await this.refreshHolding();
-    await this.refreshWalletBalance("ton").catch((error) =>
-      this.logger.warn("Failed to refresh ton:", error.message),
-    );
+    await this.ctx.wallet.refreshHolding();
+    await this.ctx.api
+      .refreshWalletBalance("ton")
+      .catch((error) =>
+        this.logger.warn("Failed to refresh ton:", error.message),
+      );
 
-    const holdings = this.state_data["wallet"]?.["holdings"] || {};
+    const holdings = this.ctx.state.data["wallet"]?.["holdings"] || {};
 
     this.logger.newline();
     this.logger.keyValue(
       "Holding",
-      this.formatAmount(this.state_data["holding"]),
+      formatAmount(this.ctx.state.data["holding"]),
     );
-    this.logger.keyValue("Level", this.state_data["currentLevel"]);
-    this.logger.keyValue("Wallet DIGGO", this.getWalletDiggo() ?? "-");
+    this.logger.keyValue("Level", this.ctx.state.data["currentLevel"]);
+    this.logger.keyValue(
+      "Wallet DIGGO",
+      this.ctx.wallet.getWalletDiggo() ?? "-",
+    );
     this.logger.keyValue("Wallet TON", holdings["ton"]?.["amount"] ?? "-");
   }
 
   /** Buy DIGGO with TON from the bound wallet, prompting for the amount and the signing phrase */
   async buyDiggoInteractive() {
-    await this.ensureStateLoaded();
-    await this.loadState();
+    await this.ctx.state.ensureLoaded();
+    await this.ctx.state.load();
 
-    const paused = await this.getMarketPause();
+    const paused = await this.ctx.state.getMarketPause();
 
     if (paused) {
       this.logger.warn(paused);
       return;
     }
 
-    const minimum = this.getMinimumBuyTon();
-    const amount = await this.promptAmount(
+    const minimum = this.ctx.market.getMinimumBuyTon();
+    const amount = await this.ctx.wallet.promptAmount(
       `How much TON to spend? (minimum ${minimum})`,
     );
 
@@ -188,12 +200,12 @@ export default class DiggoTools {
       return;
     }
 
-    const signer = await this.promptSigner();
+    const signer = await this.ctx.wallet.promptSigner();
 
     if (!signer) return;
 
     try {
-      await this.buyDiggo(signer, amount);
+      await this.ctx.market.buyDiggo(signer, amount);
     } catch (error) {
       this.logger.error("Failed to buy DIGGO:", error.message);
     }
@@ -201,34 +213,35 @@ export default class DiggoTools {
 
   /** Show what a TON buy would bring the account to, without buying */
   async estimateBoostInteractive() {
-    await this.ensureStateLoaded();
-    await this.loadState();
+    await this.ctx.state.ensureLoaded();
+    await this.ctx.state.load();
 
-    const amount = await this.promptAmount("How much TON?");
+    const amount = await this.ctx.wallet.promptAmount("How much TON?");
 
     if (!amount) return;
 
     try {
-      const { quote } = await this.quoteMarket("buy", amount);
-      const levels = await this.readMiningLevels();
-      const current = this.findLevelForHolding(
+      const { quote } = await this.ctx.api.quoteMarket("buy", amount);
+      const levels = await this.ctx.market.readMiningLevels();
+      const current = this.ctx.market.findLevelForHolding(
         levels,
-        Number(this.state_data["holding"]) || 0,
+        Number(this.ctx.state.data["holding"]) || 0,
       );
-      const target = this.findLevelForHolding(
+      const target = this.ctx.market.findLevelForHolding(
         levels,
-        (Number(this.state_data["holding"]) || 0) + Number(quote["getAmount"]),
+        (Number(this.ctx.state.data["holding"]) || 0) +
+          Number(quote["getAmount"]),
       );
 
       this.logger.newline();
       this.logger.keyValue(
         "Receive",
-        `${this.formatAmount(quote["getAmount"])} DIGGO`,
+        `${formatAmount(quote["getAmount"])} DIGGO`,
       );
       this.logger.keyValue("Level", `${current.level} → ${target.level}`);
       this.logger.keyValue("Speed", `${current.ths} → ${target.ths} TH/s`);
       this.logger.newline();
-      this.logMiningRateBreakdown(new Decimal(target.daily));
+      logMiningRateBreakdown(this.logger, new Decimal(target.daily));
     } catch (error) {
       this.logger.error("Failed to estimate:", error.message);
     }
@@ -236,29 +249,29 @@ export default class DiggoTools {
 
   /** Sell DIGGO into the in-app TON balance, prompting for the amount */
   async sellDiggoInteractive() {
-    await this.ensureStateLoaded();
-    await this.loadState();
+    await this.ctx.state.ensureLoaded();
+    await this.ctx.state.load();
 
-    const paused = await this.getMarketPause();
+    const paused = await this.ctx.state.getMarketPause();
 
     if (paused) {
       this.logger.warn(paused);
       return;
     }
 
-    if (!this.state_data["price"]?.["sellEnabled"]) {
+    if (!this.ctx.state.data["price"]?.["sellEnabled"]) {
       this.logger.warn("Selling is disabled right now.");
       return;
     }
 
-    const amount = await this.promptAmount(
-      `How much DIGGO? (balance ${this.formatAmount(this.state_data["balance"])})`,
+    const amount = await this.ctx.wallet.promptAmount(
+      `How much DIGGO? (balance ${formatAmount(this.ctx.state.data["balance"])})`,
     );
 
     if (!amount) return;
 
     try {
-      await this.sellDiggo(amount);
+      await this.ctx.market.sellDiggo(amount);
     } catch (error) {
       this.logger.error("Failed to sell DIGGO:", error.message);
     }
@@ -266,37 +279,43 @@ export default class DiggoTools {
 
   /** Log the market's prices and the account's balances */
   async marketPriceInteractive() {
-    await this.ensureStateLoaded();
-    await this.loadState();
+    await this.ctx.state.ensureLoaded();
+    await this.ctx.state.load();
 
-    const price = this.state_data["price"] || {};
+    const price = this.ctx.state.data["price"] || {};
 
     this.logger.newline();
     this.logger.keyValue("DIGGO", `$${price["tokenUsd"]}`);
     this.logger.keyValue("TON", `$${price["tonUsd"]}`);
-    this.logger.keyValue("DIGGO per TON", this.formatAmount(price["rate"]));
-    this.logger.keyValue("Min Buy", `${this.getMinimumBuyTon()} TON`);
+    this.logger.keyValue("DIGGO per TON", formatAmount(price["rate"]));
+    this.logger.keyValue(
+      "Min Buy",
+      `${this.ctx.market.getMinimumBuyTon()} TON`,
+    );
     this.logger.keyValue("Buy Fee", `${price["buyFeeTon"]} TON`);
     this.logger.keyValue("Sell", price["sellEnabled"] ? "Enabled" : "Disabled");
     this.logger.keyValue(
       "Balance",
-      `${this.formatAmount(this.state_data["balance"])} DIGGO`,
+      `${formatAmount(this.ctx.state.data["balance"])} DIGGO`,
     );
-    this.logger.keyValue("In-app TON", this.formatAmount(this.getInAppTon()));
+    this.logger.keyValue(
+      "In-app TON",
+      formatAmount(this.ctx.wallet.getInAppTon()),
+    );
   }
 
   /** Deposit TON from the bound wallet, prompting for the amount and the signing phrase */
   async depositTonInteractive() {
-    await this.ensureStateLoaded();
+    await this.ctx.state.ensureLoaded();
 
-    const paused = await this.getDepositPause();
+    const paused = await this.ctx.state.getDepositPause();
 
     if (paused) {
       this.logger.warn(paused);
       return;
     }
 
-    const amount = await this.promptAmount(
+    const amount = await this.ctx.wallet.promptAmount(
       `How much TON to deposit? (minimum ${MINIMUM_DEPOSIT_TON})`,
     );
 
@@ -307,13 +326,13 @@ export default class DiggoTools {
       return;
     }
 
-    const signer = await this.promptSigner();
+    const signer = await this.ctx.wallet.promptSigner();
 
     if (!signer) return;
 
     try {
-      await this.depositTon(signer, amount);
-      await this.loadState();
+      await this.ctx.market.depositTon(signer, amount);
+      await this.ctx.state.load();
     } catch (error) {
       this.logger.error("Failed to deposit:", error.message);
     }
@@ -321,28 +340,28 @@ export default class DiggoTools {
 
   /** Claim mining on demand */
   async claimMiningInteractive() {
-    await this.ensureStateLoaded();
-    await this.loadState();
-    await this.claimPendingMining();
+    await this.ctx.state.ensureLoaded();
+    await this.ctx.state.load();
+    await this.ctx.tasks.claimPendingMining();
   }
 
   /** Work the tasks on demand */
   async completeTasksInteractive() {
-    await this.ensureStateLoaded();
-    await this.loadState();
-    await this.completeTasks();
-    await this.claimStreak();
+    await this.ctx.state.ensureLoaded();
+    await this.ctx.state.load();
+    await this.ctx.tasks.completeTasks();
+    await this.ctx.tasks.claimStreak();
   }
 
   /** Open the chests on demand */
   async openChestsInteractive() {
-    await this.ensureStateLoaded();
-    await this.openChests();
+    await this.ctx.state.ensureLoaded();
+    await this.ctx.tasks.openChests();
   }
 
   /** Bind a wallet, prompting for the phrase that signs its TON proof */
   async connectWalletInteractive() {
-    const input = await this.promptInput(
+    const input = await this.core.prompt(
       "Enter your TON Wallet Phrase / Secret Key (hex):",
     );
 
@@ -351,21 +370,14 @@ export default class DiggoTools {
       return;
     }
 
-    const version = await this.promptInput({
-      type: "select",
-      text: "Select wallet version:",
-      options: [
-        { value: "5", label: "Wallet V5R1" },
-        { value: "4", label: "Wallet V4" },
-      ],
-    });
+    const version = await promptWalletVersion(this.core);
 
     if (!version) {
       this.logger.warn("No wallet version selected.");
       return;
     }
 
-    const { status, message } = await this.connectAutoWallet({
+    const { status, message } = await this.ctx.auto.connectWallet({
       phrase: input,
       version,
     });
@@ -377,9 +389,9 @@ export default class DiggoTools {
 
   /** The game has no unbind, so a bound wallet stays for good */
   async disconnectWalletInteractive() {
-    await this.ensureStateLoaded();
+    await this.ctx.state.ensureLoaded();
 
-    const address = this.getConnectedWalletAddress();
+    const address = this.ctx.wallet.getConnectedWalletAddress();
 
     if (!address) {
       this.logger.info("No wallet connected.");
@@ -391,27 +403,34 @@ export default class DiggoTools {
 
   /** Pay the one-time withdrawal activation, prompting for the signing phrase */
   async activateWithdrawalsInteractive() {
-    await this.ensureStateLoaded();
+    await this.ctx.state.ensureLoaded();
 
-    if (!this.getConnectedWalletAddress()) {
+    if (!this.ctx.wallet.getConnectedWalletAddress()) {
       this.logger.warn("Connect a wallet first.");
       return;
     }
 
-    const activation = await this.loadActivation();
+    const activation = await this.ctx.activation.loadActivation();
 
-    this.logger.keyValue("Activation", this.describeActivation(activation));
+    this.logger.keyValue(
+      "Activation",
+      this.ctx.activation.describeActivation(activation),
+    );
 
-    if (this.isActivated(activation) || !this.canPayActivation(activation)) {
+    if (
+      this.ctx.activation.isActivated(activation) ||
+      !this.ctx.activation.canPayActivation(activation)
+    ) {
       return;
     }
 
-    const signer = await this.promptSigner();
+    const signer = await this.ctx.wallet.promptSigner();
 
     if (!signer) return;
 
     try {
-      const { status, message } = await this.payActivation(signer);
+      const { status, message } =
+        await this.ctx.activation.payActivation(signer);
 
       this.logger[status ? "success" : "warn"](message);
     } catch (error) {
@@ -421,11 +440,11 @@ export default class DiggoTools {
 
   /** Clear a pending security check on demand */
   async securityCheckInteractive() {
-    await this.ensureStateLoaded();
-    await this.loadState();
+    await this.ctx.state.ensureLoaded();
+    await this.ctx.state.load();
 
     try {
-      await this.clearRiskChallenge();
+      await this.ctx.risk.clear();
     } catch (error) {
       this.logger.error("Failed the security check:", error.message);
     }
@@ -433,11 +452,11 @@ export default class DiggoTools {
 
   /** Convert the in-app TON balance into DIGGO on demand */
   async convertTonInteractive() {
-    await this.ensureStateLoaded();
-    await this.loadState();
+    await this.ctx.state.ensureLoaded();
+    await this.ctx.state.load();
 
     try {
-      await this.convertTon();
+      await this.ctx.wallet.convertTon();
     } catch (error) {
       this.logger.error("Failed to convert:", error.message);
     }
@@ -445,9 +464,9 @@ export default class DiggoTools {
 
   /** Cancel a withdrawal the history still marks cancelable */
   async cancelWithdrawalInteractive() {
-    await this.ensureStateLoaded();
+    await this.ctx.state.ensureLoaded();
 
-    const cancelable = (await this.getWithdrawals()).filter(
+    const cancelable = (await this.ctx.withdrawal.getWithdrawals()).filter(
       (item) => item["cancelable"],
     );
 
@@ -456,7 +475,7 @@ export default class DiggoTools {
       return;
     }
 
-    const id = await this.promptInput({
+    const id = await this.core.prompt({
       type: "select",
       text: "Cancel which withdrawal?",
       options: cancelable.map((item) => ({
@@ -468,7 +487,7 @@ export default class DiggoTools {
     if (!id) return;
 
     try {
-      await this.cancelWithdrawal(id);
+      await this.ctx.api.cancelWithdrawal(id);
       this.logger.success("Withdrawal cancelled.");
     } catch (error) {
       this.logger.error("Failed to cancel:", error.message);

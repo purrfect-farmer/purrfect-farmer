@@ -1,23 +1,25 @@
-import { PAGE_URL } from "./constants.js";
+import FarmerModule from "../../lib/farmer/FarmerModule.js";
 
-/** Trait: the game state and what it says is open */
-export default class DiggoState {
-  /* --------------------------------------------------------------------- */
-  /* Session                                                               */
-  /* --------------------------------------------------------------------- */
+/** The game state and what it says is open */
+export default class DiggoState extends FarmerModule {
+  /** The game state, refreshed by every call that returns one */
+  data = null;
+
+  /** The DEX transition flags read from the public endpoint */
+  transition = null;
 
   /** Re-read the game state */
-  async loadState() {
-    await this.fetchState();
-    await this.reportBrowserSignals();
-    return this.state_data;
+  async load() {
+    await this.ctx.api.fetchState();
+    await this.ctx.browser.reportSignals();
+    return this.data;
   }
 
   /** The DEX transition flags, from the state or the public endpoint */
   async getTransition() {
-    if (this.state_data?.["transition"]) return this.state_data["transition"];
+    if (this.data?.["transition"]) return this.data["transition"];
 
-    return (this.transition ||= (await this.fetchDexTransition())[
+    return (this.transition ||= (await this.ctx.api.fetchDexTransition())[
       "transition"
     ]);
   }
@@ -40,62 +42,18 @@ export default class DiggoState {
       : null;
   }
 
-  /* --------------------------------------------------------------------- */
-  /* Risk challenge                                                        */
-  /* --------------------------------------------------------------------- */
-
-  /** Solve the Turnstile the backend asks for before new withdrawals */
-  async solveRiskChallenge() {
-    if (!this.canSolveTurnstile()) {
-      throw new Error("A security check is required, but no captcha solver");
-    }
-
-    const challenge = await this.startRiskChallenge();
-
-    if (!challenge["required"]) return;
-
-    this.logger.info("Solving the security check...");
-
-    const token = await this.solveTurnstile({
-      siteKey: challenge["siteKey"],
-      pageUrl: PAGE_URL,
-      action: challenge["action"],
-      cData: challenge["challengeId"],
-    });
-
-    await this.verifyRiskChallenge(challenge["challengeId"], token);
-    await this.fetchState();
-
-    this.logger.success("Security check passed.");
-  }
-
-  /** Clear a challenge the state already asks for */
-  async clearRiskChallenge() {
-    if (!this.state_data?.["riskChallenge"]?.["required"]) {
-      this.logger.info("No security check pending.");
-      return;
-    }
-
-    await this.solveRiskChallenge();
-  }
-
   /** Read the state once, for tools that run without a full pass */
-  async ensureStateLoaded() {
-    if (!this.state_data) {
-      await this.setAuth();
-      await this.loadState();
+  async ensureLoaded() {
+    if (!this.data) {
+      await this.core.setAuth();
+      await this.load();
     }
 
-    return this.state_data;
+    return this.data;
   }
 
   /** The backend's clock, which every timer in the state is measured against */
   getServerNow() {
-    return Number(this.state_data?.["serverNow"]) || Date.now();
-  }
-
-  /** Get Referrals Count */
-  getReferralsCount() {
-    return this.state_data?.["friends"]?.["registeredCount"] || 0;
+    return Number(this.data?.["serverNow"]) || Date.now();
   }
 }

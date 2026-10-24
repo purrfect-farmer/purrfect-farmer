@@ -1,3 +1,5 @@
+import FarmerModule from "../../lib/farmer/FarmerModule.js";
+import { formatAmount } from "../../lib/farmer/format.js";
 import {
   AD_CHECK_ATTEMPTS,
   AD_CHECK_INTERVAL_SECONDS,
@@ -5,18 +7,14 @@ import {
   TASK_TITLES,
 } from "./constants.js";
 
-/** Trait: mining claims, tasks, streaks, commission and chests */
-export default class DiggoTasks {
-  /* --------------------------------------------------------------------- */
-  /* Mining                                                                */
-  /* --------------------------------------------------------------------- */
-
+/** Mining claims, tasks, the streak, commission and chests */
+export default class DiggoTasks extends FarmerModule {
   /** Claim what has been mined once the eight-hour wait is over */
   async claimPendingMining() {
-    const mining = this.state_data["mining"] || {};
+    const mining = this.ctx.state.data["mining"] || {};
     const nextClaimAt = Number(mining["nextClaimAt"]) || 0;
 
-    if (nextClaimAt > this.getServerNow()) {
+    if (nextClaimAt > this.ctx.state.getServerNow()) {
       this.logger.info(
         `Next mining claim at ${new Date(nextClaimAt).toLocaleString()}.`,
       );
@@ -28,20 +26,14 @@ export default class DiggoTasks {
       return;
     }
 
-    const result = await this.claimMining();
+    const result = await this.ctx.api.claimMining();
 
-    this.logger.success(
-      `Claimed ${this.formatAmount(result["amount"])} DIGGO.`,
-    );
+    this.logger.success(`Claimed ${formatAmount(result["amount"])} DIGGO.`);
   }
-
-  /* --------------------------------------------------------------------- */
-  /* Tasks                                                                 */
-  /* --------------------------------------------------------------------- */
 
   /** A task's record as the latest state has it */
   getTask(taskId) {
-    return this.state_data?.["tasks"]?.[taskId];
+    return this.ctx.state.data?.["tasks"]?.[taskId];
   }
 
   /** A readable name for a task */
@@ -66,7 +58,7 @@ export default class DiggoTasks {
 
   /** Work every open task, claiming those whose progress is complete */
   async completeTasks() {
-    const taskIds = Object.keys(this.state_data["tasks"] || {});
+    const taskIds = Object.keys(this.ctx.state.data["tasks"] || {});
 
     for (const taskId of taskIds) {
       if (this.signal.aborted) break;
@@ -105,11 +97,11 @@ export default class DiggoTasks {
 
   /** Claim a task whose progress is complete */
   async claimReadyTask(taskId) {
-    const result = await this.claimTask(taskId);
+    const result = await this.ctx.api.claimTask(taskId);
 
     if (result["amount"] > 0) {
       this.logger.success(
-        `Claimed "${this.getTaskTitle(taskId)}" for ${this.formatAmount(result["amount"])} DIGGO.`,
+        `Claimed "${this.getTaskTitle(taskId)}" for ${formatAmount(result["amount"])} DIGGO.`,
       );
     } else {
       this.logger.info(`"${this.getTaskTitle(taskId)}" was already claimed.`);
@@ -118,10 +110,10 @@ export default class DiggoTasks {
 
   /** Join the community, have the backend check it, then claim */
   async completeTelegramTask(record) {
-    if (!this.validateTelegramTask(record["url"])) return;
+    if (!this.core.telegram.validateTask(record["url"])) return;
 
-    await this.tryToJoinTelegramLink(record["url"]);
-    await this.verifyTelegramTask();
+    await this.core.telegram.tryToJoin(record["url"]);
+    await this.ctx.api.verifyTelegramTask();
 
     const updated = this.getTask("telegram");
 
@@ -132,14 +124,14 @@ export default class DiggoTasks {
 
   /** Open a self-reported task, wait out its confirm time, confirm it, then claim */
   async completeSocialTask(taskId, record) {
-    if (!this.validateTelegramTask(record["url"])) return;
+    if (!this.core.telegram.validateTask(record["url"])) return;
 
-    await this.tryToJoinTelegramLink(record["url"]);
+    await this.core.telegram.tryToJoin(record["url"]);
 
-    const { attempt } = await this.startSocialTask(taskId);
+    const { attempt } = await this.ctx.api.startSocialTask(taskId);
     const waitMs = Math.max(
       0,
-      Number(attempt["confirmAt"]) - this.getServerNow(),
+      Number(attempt["confirmAt"]) - this.ctx.state.getServerNow(),
     );
 
     await this.utils.delayForSeconds(
@@ -147,13 +139,13 @@ export default class DiggoTasks {
       { signal: this.signal },
     );
 
-    await this.confirmSocialTask(taskId, attempt["attemptId"]);
+    await this.ctx.api.confirmSocialTask(taskId, attempt["attemptId"]);
     await this.claimReadyTask(taskId);
   }
 
   /** Watch the rewarded ad, then wait for AdsGram's callback to mark it before claiming */
   async completeAdTask(record) {
-    const start = await this.startAd();
+    const start = await this.ctx.api.startAd();
 
     if (start["ready"]) {
       return this.claimReadyTask("ad");
@@ -163,18 +155,18 @@ export default class DiggoTasks {
       try {
         await this.ctx.ads.adsgram.watch(record["blockId"]);
       } catch (error) {
-        await this.cancelAd(start["attemptId"]).catch(() => null);
+        await this.ctx.api.cancelAd(start["attemptId"]).catch(() => null);
         throw error;
       }
 
-      await this.completeAd(start["attemptId"]);
+      await this.ctx.api.completeAd(start["attemptId"]);
     }
 
     for (let attempt = 0; attempt < AD_CHECK_ATTEMPTS; attempt++) {
       await this.utils.delayForSeconds(AD_CHECK_INTERVAL_SECONDS, {
         signal: this.signal,
       });
-      await this.loadState();
+      await this.ctx.state.load();
 
       const current = this.getTask("ad");
 
@@ -190,13 +182,9 @@ export default class DiggoTasks {
     this.logger.warn("The ad was not credited yet.");
   }
 
-  /* --------------------------------------------------------------------- */
-  /* Streak                                                                */
-  /* --------------------------------------------------------------------- */
-
   /** Claim the streak day whose tasks are done */
   async claimStreak() {
-    const day = (this.state_data["dayRewards"] || []).find(
+    const day = (this.ctx.state.data["dayRewards"] || []).find(
       (item) =>
         item["status"] === "available" &&
         item["completedTasks"] >= item["requiredTasks"],
@@ -207,41 +195,33 @@ export default class DiggoTasks {
       return;
     }
 
-    const result = await this.claimStreakDay(day["day"]);
+    const result = await this.ctx.api.claimStreakDay(day["day"]);
 
     this.logger.success(
-      `Claimed streak day ${day["day"]} for ${this.formatAmount(result["amount"] ?? day["diggo"])} DIGGO.`,
+      `Claimed streak day ${day["day"]} for ${formatAmount(result["amount"] ?? day["diggo"])} DIGGO.`,
     );
   }
 
-  /* --------------------------------------------------------------------- */
-  /* Squad                                                                 */
-  /* --------------------------------------------------------------------- */
-
   /** Claim the commission the squad has mined */
   async claimCommission() {
-    const commission = this.state_data["friends"]?.["commission"] || {};
+    const commission = this.ctx.state.data["friends"]?.["commission"] || {};
 
     if (!(Number(commission["pendingUnits"]) > 0)) {
       this.logger.info("No commission to claim.");
       return;
     }
 
-    const result = await this.claimReferralCommission();
+    const result = await this.ctx.api.claimReferralCommission();
 
     this.logger.success(
-      `Claimed ${this.formatAmount(result["amount"] ?? commission["pending"])} DIGGO in commission.`,
+      `Claimed ${formatAmount(result["amount"] ?? commission["pending"])} DIGGO in commission.`,
     );
   }
 
-  /* --------------------------------------------------------------------- */
-  /* Chests                                                                */
-  /* --------------------------------------------------------------------- */
-
   /** Open every chest the holding unlocks and whose day has come round */
   async openChests() {
-    const { chests } = await this.fetchChests();
-    const now = Number(chests["serverNow"]) || this.getServerNow();
+    const { chests } = await this.ctx.api.fetchChests();
+    const now = Number(chests["serverNow"]) || this.ctx.state.getServerNow();
     const openable = (chests["chests"] || []).filter(
       (chest) =>
         chest["unlocked"] &&
@@ -258,7 +238,7 @@ export default class DiggoTasks {
       if (this.signal.aborted) break;
 
       try {
-        const { opening } = await this.openChest(chest["id"]);
+        const { opening } = await this.ctx.api.openChest(chest["id"]);
         const reward = opening?.["reward"] || {};
         const amount =
           reward["amount"] ??

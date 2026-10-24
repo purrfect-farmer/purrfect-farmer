@@ -1,7 +1,78 @@
-import { CHEST_MODE } from "./constants.js";
+import FarmerModule from "../../lib/farmer/FarmerModule.js";
+import { API_URL, ERROR_MESSAGES, CHEST_MODE } from "./constants.js";
 
-/** Trait: the game's endpoints, one method per call */
-export default class DiggoApi {
+/** The game's API: its transport and one method per endpoint */
+export default class DiggoApi extends FarmerModule {
+  /* --------------------------------------------------------------------- */
+  /* Transport                                                             */
+  /* --------------------------------------------------------------------- */
+
+  /** Call the game's API, throwing its error code on a refusal as the page does, and clearing a risk challenge once */
+  async callApi(method, path, data, idempotencyKey, { retried = false } = {}) {
+    const response = await this.api.request({
+      method,
+      url: `${API_URL}${path}`,
+      data,
+      headers: idempotencyKey ? { "Idempotency-Key": idempotencyKey } : {},
+      signal: this.signal,
+      validateStatus: () => true,
+    });
+
+    const payload =
+      response.data && typeof response.data === "object" ? response.data : {};
+
+    if (response.status < 200 || response.status >= 300) {
+      const code = payload["error"] || "internal_error";
+
+      if (
+        code === "risk_challenge_required" &&
+        !retried &&
+        !path.startsWith("/account/risk-challenge")
+      ) {
+        await this.ctx.risk.solve();
+
+        return this.callApi(method, path, data, idempotencyKey, {
+          retried: true,
+        });
+      }
+
+      const error = new Error(ERROR_MESSAGES[code] || code);
+      error.code = code;
+      error.status = response.status;
+      throw error;
+    }
+
+    if (payload["state"]) {
+      this.ctx.state.data = payload["state"];
+    }
+
+    return payload;
+  }
+
+  /** Read from the game's API */
+  getFromApi(path) {
+    return this.callApi("get", path);
+  }
+
+  /** Act on the game's API */
+  postToApi(path, data = {}, idempotencyKey) {
+    return this.callApi("post", path, data, idempotencyKey);
+  }
+
+  /** Act on the game's API under a fresh idempotency key, as the page's money writes go out */
+  writeToApi(path, data = {}) {
+    return this.postToApi(path, data, this.utils.uuid());
+  }
+
+  /* --------------------------------------------------------------------- */
+  /* Endpoints                                                             */
+  /* --------------------------------------------------------------------- */
+
+  /** Sign in with `initData`, which also registers the referrer */
+  authenticate() {
+    return this.postToApi("/auth/telegram", { initData: this.core.initData() });
+  }
+
   /** The whole game state: balance, mining, tasks, friends, wallet */
   fetchState() {
     return this.getFromApi("/state");

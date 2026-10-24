@@ -1,19 +1,19 @@
-import BaseFarmer from "../../lib/BaseFarmer.js";
+import FarmerModule from "../../lib/farmer/FarmerModule.js";
 import { WITHDRAWAL_DECIMALS } from "./constants.js";
 import Decimal from "decimal.js";
 
-/** Trait: jetton withdrawals and their queue */
-export default class DiggoWithdrawal {
-  /* --------------------------------------------------------------------- */
-  /* Withdrawal                                                            */
-  /* --------------------------------------------------------------------- */
+/** Jetton withdrawals and their queue */
+export default class DiggoWithdrawal extends FarmerModule {
+  /** The withdrawal rules and active request, as last read */
+  withdrawalStatus = null;
 
   /** The jetton withdrawal rules, withdrawable balance, destination and active request */
   async getWithdrawalStatus() {
-    this.withdrawalStatus = await this.fetchWithdrawalStatus();
+    this.withdrawalStatus = await this.ctx.api.fetchWithdrawalStatus();
 
     if (this.withdrawalStatus["withdrawals"]?.["activation"]) {
-      this.activation = this.withdrawalStatus["withdrawals"]["activation"];
+      this.ctx.activation.current =
+        this.withdrawalStatus["withdrawals"]["activation"];
     }
 
     return this.withdrawalStatus;
@@ -23,25 +23,15 @@ export default class DiggoWithdrawal {
   getMinimumWithdrawal() {
     return (
       Number(this.withdrawalStatus?.["withdrawals"]?.["minimum"]) ||
-      BaseFarmer.prototype.getMinimumWithdrawal.call(this)
+      this.ctx.flow.declaredMinimum()
     );
   }
 
   /** The account's recent jetton withdrawals, newest first */
   async getWithdrawals() {
-    const { items } = await this.fetchWithdrawals();
+    const { items } = await this.ctx.api.fetchWithdrawals();
 
     return items || [];
-  }
-
-  /** Whether the drop still owes this account a settlement */
-  hasPendingWithdrawal() {
-    return this.ctx.withdrawals.hasPending();
-  }
-
-  /** The account's own withdrawal queue */
-  getAutoWithdrawals() {
-    return this.ctx.withdrawals.load();
   }
 
   /** A DIGGO amount the way the backend takes it, at most six decimals */
@@ -53,7 +43,7 @@ export default class DiggoWithdrawal {
 
   /** Quote a withdrawal, log what it pays, then request it */
   async placeQuotedWithdrawal(amount) {
-    const { quote } = await this.quoteWithdrawal(
+    const { quote } = await this.ctx.api.quoteWithdrawal(
       this.toWithdrawalAmount(amount),
     );
 
@@ -62,7 +52,9 @@ export default class DiggoWithdrawal {
     this.logger.keyValue("Fee", `${quote["fee"] ?? "-"} DIGGO`);
     this.logger.keyValue("You Get", `${quote["received"] ?? "?"} DIGGO`);
 
-    const { withdrawal } = await this.requestWithdrawal(quote["amount"]);
+    const { withdrawal } = await this.ctx.api.requestWithdrawal(
+      quote["amount"],
+    );
 
     this.logger.success(`Requested ${quote["amount"]} DIGGO.`);
 
@@ -70,41 +62,44 @@ export default class DiggoWithdrawal {
   }
 
   /** Withdraw DIGGO on-chain to the bound wallet */
-  async placeWithdrawal({ max, difference }) {
-    await this.ensureStateLoaded();
+  async place({ max, difference }) {
+    await this.ctx.state.ensureLoaded();
 
     const status = await this.getWithdrawalStatus();
     const rules = status["withdrawals"] || {};
     const destinationAddress = status["destination"];
 
     if (!destinationAddress) {
-      return this.skipWithdrawal("No wallet connected!");
+      return this.ctx.flow.skip("No wallet connected!");
     }
 
     if (!rules["enabled"]) {
-      return this.skipWithdrawal("Withdrawals are disabled!", { log: "warn" });
+      return this.ctx.flow.skip("Withdrawals are disabled!", { log: "warn" });
     }
 
     if (status["activeWithdrawal"]) {
-      return this.skipWithdrawal("A withdrawal is already pending!", {
+      return this.ctx.flow.skip("A withdrawal is already pending!", {
         log: "warn",
       });
     }
 
-    if (rules["activation"] && !this.isActivated(rules["activation"])) {
-      return this.skipWithdrawal(
-        `${this.describeActivation(rules["activation"])}, run Verify!`,
+    if (
+      rules["activation"] &&
+      !this.ctx.activation.isActivated(rules["activation"])
+    ) {
+      return this.ctx.flow.skip(
+        `${this.ctx.activation.describeActivation(rules["activation"])}, run Verify!`,
         { log: "warn" },
       );
     }
 
     const balance = new Decimal(status["available"] || 0);
     const minimum = this.getMinimumWithdrawal();
-    const lowBalance = this.skipLowBalance(balance, minimum);
+    const lowBalance = this.ctx.flow.skipLowBalance(balance, minimum);
 
     if (lowBalance) return lowBalance;
 
-    const amount = this.pickWithdrawalAmount({
+    const amount = this.ctx.flow.pickAmount({
       balance,
       minimum,
       max,
@@ -114,7 +109,7 @@ export default class DiggoWithdrawal {
     try {
       const { quote } = await this.placeQuotedWithdrawal(amount);
 
-      await this.notifyWithdrawal([
+      await this.ctx.flow.notify([
         ["Initial Balance", balance.toString()],
         ["Requested", amount.toString()],
         ["To be received", `${quote["received"] ?? "?"} DIGGO`],
@@ -135,9 +130,9 @@ export default class DiggoWithdrawal {
   }
 
   /** Log the withdrawal rules, the activation and the recent requests */
-  async logWithdrawalStatus() {
-    await this.ensureStateLoaded();
-    await this.loadState();
+  async logStatus() {
+    await this.ctx.state.ensureLoaded();
+    await this.ctx.state.load();
 
     const status = await this.getWithdrawalStatus();
     const rules = status["withdrawals"] || {};
@@ -150,7 +145,9 @@ export default class DiggoWithdrawal {
     this.logger.keyValue("Destination", status["destination"] || "-");
     this.logger.keyValue(
       "Activation",
-      this.describeActivation(rules["activation"] || this.getActivation()),
+      this.ctx.activation.describeActivation(
+        rules["activation"] || this.ctx.activation.getActivation(),
+      ),
     );
     this.logger.keyValue(
       "Active Request",
