@@ -1,4 +1,6 @@
 import { customLogger, withValue } from "@/utils";
+import { encryptData } from "../content-script-utils";
+import { handleTelegramWebAppEvent } from "@/lib/telegramWebAppEvents";
 
 export function overrideMessageEvent() {
   const NativeMessageEvent = MessageEvent;
@@ -46,7 +48,32 @@ export function overrideMessageEvent() {
   });
 }
 
+/** Ask the isolated script to open a t.me link, which it routes to the farmer */
+const requestTelegramLink = (url) =>
+  window.postMessage(
+    {
+      type: "main-request",
+      payload: encryptData({ action: "open-telegram-link", data: { url } }),
+    },
+    "*",
+  );
+
+/** Answer an event of a mini-app opened in its own tab, where no host is listening */
+const answerStandaloneEvent = (eventType, eventData) =>
+  handleTelegramWebAppEvent(eventType, eventData, {
+    /** A real client answers asynchronously */
+    reply: (type, data) =>
+      setTimeout(() => window.Telegram?.WebView?.receiveEvent?.(type, data)),
+    openLink: (url) => window.open(url),
+    openTelegramLink: requestTelegramLink,
+    close: () => window.close(),
+    viewportHeight: window.innerHeight,
+  });
+
 export function injectTelegramWebviewProxy() {
+  /** A mini-app in its own tab has no parent to answer it */
+  const isStandalone = window.self === window.top;
+
   /** Mimic Telegram Webview Proxy */
   window.TelegramWebviewProxy = {
     postEvent(type, data) {
@@ -54,6 +81,10 @@ export function injectTelegramWebviewProxy() {
       const eventData = typeof data !== "undefined" ? JSON.parse(data) : data;
 
       customLogger("TELEGRAM WEBVIEW PROXY", eventType, eventData);
+
+      if (isStandalone) {
+        return answerStandaloneEvent(eventType, eventData);
+      }
 
       return window.parent.postMessage(
         JSON.stringify({

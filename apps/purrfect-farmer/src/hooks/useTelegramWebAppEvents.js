@@ -1,6 +1,9 @@
-import { customLogger } from "@/utils";
+import { handleTelegramWebAppEvent } from "@/lib/telegramWebAppEvents";
 import useAppContext from "./useAppContext";
 import { useLayoutEffect } from "react";
+
+/** The height the in-app browser reports to its mini-app */
+const IN_APP_VIEWPORT_HEIGHT = 600;
 
 export default function useTelegramWebAppEvents(ref) {
   const app = useAppContext();
@@ -33,51 +36,16 @@ export default function useTelegramWebAppEvents(ref) {
         console.log("Received Telegram Web App Event:", eventType, eventData);
 
         /** Handle Event */
-        switch (eventType) {
-          case "web_app_open_popup": {
-            const confirmed = window.confirm(eventData.message);
-            const buttons = eventData.buttons || [];
-            const button_id = confirmed ? buttons[0]?.id : buttons[1]?.id;
-
-            console.log("Popup Response:", { confirmed, button_id });
-
+        handleTelegramWebAppEvent(eventType, eventData, {
+          reply: (type, data) =>
             ev.source.postMessage(
-              JSON.stringify({
-                eventType: "popup_closed",
-                eventData: { button_id },
-              }),
+              JSON.stringify({ eventType: type, eventData: data }),
               "*",
-            );
-            break;
-          }
-
-          case "web_app_request_viewport":
-            ev.source.postMessage(
-              JSON.stringify({
-                eventType: "viewport_changed",
-                eventData: {
-                  height: 600,
-                  is_state_stable: false,
-                  is_expanded: true,
-                },
-              }),
-              "*",
-            );
-            break;
-
-          case "web_app_open_link":
-            window.open(eventData.url);
-            break;
-          case "web_app_open_tg_link":
-            const finalUrl = new URL(eventData["path_full"], "https://t.me")
-              .href;
-
-            customLogger("TELEGRAM LINK", finalUrl);
-
-            /** Open Link */
-            openTelegramLink(finalUrl);
-            break;
-        }
+            ),
+          openLink: (url) => window.open(url),
+          openTelegramLink,
+          viewportHeight: IN_APP_VIEWPORT_HEIGHT,
+        });
       }
     };
 

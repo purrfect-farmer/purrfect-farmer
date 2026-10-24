@@ -18,6 +18,9 @@ import { WEB_PLATFORM_EXCLUDED_HOSTS } from "@/constants";
 import { rememberMiniAppHost } from "@/lib/miniAppHosts";
 import { setupMiniAppToolbar } from "./mini-app/mini-app-toolbar-isolated";
 
+/** How long the farmer has to take a t.me link before it opens in a new tab */
+const FARMER_REPLY_TIMEOUT = 1000;
+
 if (!matchTelegramWebUrl()) {
   /** Initial Location Href */
   const INITIAL_LOCATION = location.href;
@@ -133,6 +136,54 @@ if (!matchTelegramWebUrl()) {
       }
     };
 
+    /** Open a t.me link in the farmer, or in a new tab when no farmer answers */
+    const openTelegramLinkInFarmer = (url) => {
+      const id = uuid();
+      const openInTab = () => window.open(url);
+
+      const listener = (message) => {
+        if (message?.id === id && message?.type === "response") {
+          clearTimeout(fallback);
+          port.onMessage.removeListener(listener);
+        }
+      };
+
+      const fallback = setTimeout(() => {
+        port.onMessage.removeListener(listener);
+        openInTab();
+      }, FARMER_REPLY_TIMEOUT);
+
+      port.onMessage.addListener(listener);
+
+      try {
+        port.postMessage({
+          id,
+          action: "farmer:open-telegram-link",
+          data: { url },
+        });
+      } catch {
+        /** The farmer is not open, so the port is already closed */
+        clearTimeout(fallback);
+        port.onMessage.removeListener(listener);
+        openInTab();
+      }
+    };
+
+    /** Handle requests from the mini-app's own page script */
+    const listenForPageRequests = (ev) => {
+      if (ev.source !== window || ev.data?.type !== "main-request") return;
+
+      try {
+        const { action, data } = decryptData(ev.data.payload);
+
+        if (action === "open-telegram-link") {
+          openTelegramLinkInFarmer(data.url);
+        }
+      } catch (e) {
+        console.error(e);
+      }
+    };
+
     /** Handle Port Messages */
     port.onMessage?.addListener(async (message) => {
       const { id, action, data } = message;
@@ -172,6 +223,9 @@ if (!matchTelegramWebUrl()) {
 
     /** Listen for TelegramWebApp */
     window.addEventListener("message", listenForTelegramWeb);
+
+    /** Listen for the page's requests */
+    window.addEventListener("message", listenForPageRequests);
 
     /** Update User-Agent */
     updateUserAgent();

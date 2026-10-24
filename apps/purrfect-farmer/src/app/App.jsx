@@ -6,6 +6,7 @@ import TabButtonList from "@/components/TabButtonList";
 import TabContent from "@/components/TabContent";
 import useApp from "@/hooks/useApp";
 import useCloudSessionCheck from "@/hooks/useCloudSessionCheck";
+import useMiniAppTelegramLinks from "@/hooks/useMiniAppTelegramLinks";
 import useMiniAppToolbar from "@/hooks/useMiniAppToolbar";
 import useProxy from "@/hooks/useProxy";
 import useSeeker from "@/hooks/useSeeker";
@@ -33,6 +34,9 @@ function App() {
 
   /** Use Toolbar */
   useMiniAppToolbar(app);
+
+  /** Open t.me links from mini-apps in their own tabs */
+  useMiniAppTelegramLinks(app);
 
   return (
     <AppContext.Provider value={app}>
