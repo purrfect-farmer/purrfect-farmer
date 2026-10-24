@@ -263,13 +263,13 @@ Create environment file:
 cp apps/purrfect-fly/.env.example apps/purrfect-fly/.env
 ```
 
-Generate JWT secret:
+Generate the server keys (`JWT_SECRET_KEY` and `ENCRYPTION_KEY`). The server also generates any missing key on its first start:
 
 ```bash
-pnpm -F purrfect-fly fly generate-jwt-secret
+pnpm -F purrfect-fly fly key:generate
 ```
 
-Copy the generated secret and edit `.env`:
+Then edit `.env`:
 
 ```bash
 micro apps/purrfect-fly/.env
@@ -280,12 +280,9 @@ nano apps/purrfect-fly/.env
 **Required environment variables:**
 
 ```env
-# JWT
-JWT_SECRET_KEY=<paste-generated-secret-here>
-
-# Encryption (optional, run generate-jwt-secret again for a key)
-# Needed to store Auto wallets. Back it up, losing it loses them.
-ENCRYPTION_KEY=<paste-another-generated-secret-here>
+# Keys, filled in by key:generate. Back up .env: losing ENCRYPTION_KEY loses stored wallets.
+JWT_SECRET_KEY=<generated>
+ENCRYPTION_KEY=<generated>
 
 # Telegram
 TELEGRAM_BOT_TOKEN=<your-bot-token>
@@ -484,8 +481,8 @@ pnpm -F purrfect-fly db:migrate:refresh
 ### Fly CLI Commands
 
 ```bash
-# Generate JWT secret
-pnpm -F purrfect-fly fly generate-jwt-secret
+# Generate missing server keys
+pnpm -F purrfect-fly fly key:generate
 
 # List accounts
 pnpm -F purrfect-fly fly list-accounts

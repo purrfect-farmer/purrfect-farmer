@@ -110,14 +110,9 @@ for n in $(seq 1 "$COUNT"); do
         print_subheading ".env file not found. Creating from .env.example..."
         cp apps/purrfect-fly/.env.example apps/purrfect-fly/.env
 
-        print_subheading "Generating JWT secret..."
-        jwt_secret=$(
-            pnpm -F purrfect-fly fly generate-jwt-secret \
-            | tail -n 1 \
-            | sed 's/\x1b\[[0-9;]*m//g'
-        )
+        print_subheading "Generating server keys..."
+        pnpm -F purrfect-fly fly key:generate
 
-        set_env JWT_SECRET_KEY "$jwt_secret"
         set_env PM2_APP_NAME "$SLUG-$n"
         set_env APP_NAME "$NAME ($n)"
         set_env PORT "$(internal_port "$n")"

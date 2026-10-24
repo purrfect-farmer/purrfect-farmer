@@ -52,11 +52,8 @@ if [ ! -f apps/purrfect-fly/.env ]; then
     print_subheading ".env file not found. Creating from .env.example..."
     cp apps/purrfect-fly/.env.example apps/purrfect-fly/.env
 
-    print_subheading "Generating JWT secret..."
-    jwt_secret=$(pnpm -F purrfect-fly fly generate-jwt-secret | tail -n 1)
-
-    print_subheading "Writing JWT secret to .env file..."
-    sed -i "s/JWT_SECRET_KEY=\"\"/JWT_SECRET_KEY=\"$jwt_secret\"/" apps/purrfect-fly/.env
+    print_subheading "Generating server keys..."
+    pnpm -F purrfect-fly fly key:generate
 
     # The public IP is not reachable from a phone
     sed -i "s/STARTUP_SEND_SERVER_ADDRESS=true/STARTUP_SEND_SERVER_ADDRESS=false/" apps/purrfect-fly/.env

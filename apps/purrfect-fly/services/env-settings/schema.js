@@ -8,11 +8,15 @@ export const fieldsByKey = new Map(
   schema.fields.map((field) => [field.key, field]),
 );
 
-export const secretKeys = new Set(
-  schema.fields
+/** Keys kept out of the form that diffs must still mask */
+const HIDDEN_SECRET_KEYS = ["ENCRYPTION_KEY"];
+
+export const secretKeys = new Set([
+  ...schema.fields
     .filter((field) => field.type === "secret")
     .map((field) => field.key),
-);
+  ...HIDDEN_SECRET_KEYS,
+]);
 
 const groupTitles = new Map(
   schema.groups.map((group) => [group.id, group.title]),

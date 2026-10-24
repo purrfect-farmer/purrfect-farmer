@@ -4,9 +4,26 @@ import { sectionOf, sectionTitle, toText } from "./schema.js";
 import { validateChanges, validateContent } from "./validate.js";
 
 import envStore from "../../lib/env-store.js";
+import { findLockedChanges } from "./locks.js";
+
+/** The target, refused when it changes a key that stored data depends on */
+async function withLocks(target) {
+  if (target.errors) return target;
+
+  const errors = await findLockedChanges(target.before, target.after);
+
+  return Object.keys(errors).length
+    ? { before: target.before, errors }
+    : target;
+}
 
 /** Work out the new content from changes, raw content or a backup */
 export async function resolveTarget(body) {
+  return withLocks(await resolveUnlockedTarget(body));
+}
+
+/** Work out the new content without checking locked keys */
+async function resolveUnlockedTarget(body) {
   const before = await envStore.readEnv();
   const current = parseEnv(before);
 
