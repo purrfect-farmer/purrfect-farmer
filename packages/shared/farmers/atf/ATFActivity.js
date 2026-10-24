@@ -1,10 +1,14 @@
+import FarmerModule from "../../lib/farmer/FarmerModule.js";
 import {
   RECORD_DAILY_INTERACTION,
   RECORD_NAVIGATION_BATCH,
 } from "./constants.js";
 
-/** Trait: the presence and navigation beacons the app sends */
-export default class ATFActivity {
+/** The presence and activity the page reports */
+export default class ATFActivity extends FarmerModule {
+  /** When the page came to the foreground this run */
+  fgEpoch = null;
+
   /** Record Daily Interaction */
   async recordDailyInteraction() {
     if (!RECORD_DAILY_INTERACTION) {
@@ -19,7 +23,7 @@ export default class ATFActivity {
     }
 
     /** The app only reports once foreground >= 15, scroll >= 300, menus >= 2 and a menu change */
-    const result = await this.makeAction("record_daily_interaction", {
+    const result = await this.ctx.api.makeAction("record_daily_interaction", {
       foreground_seconds: 15 + Math.floor(Math.random() * 60),
       scroll_pixels: 300 + Math.floor(Math.random() * 900),
       unique_menus: 2 + Math.floor(Math.random() * 3),
@@ -38,21 +42,21 @@ export default class ATFActivity {
   applyActivityUi(data) {
     const snapshot = data?.["activity_ui"] ?? data?.["user"]?.["activity_ui"];
 
-    if (snapshot && typeof snapshot === "object" && this.user_data?.user) {
-      this.user_data.user["activity_ui"] = snapshot;
+    if (snapshot && typeof snapshot === "object" && this.ctx.state.data?.user) {
+      this.ctx.state.data.user["activity_ui"] = snapshot;
     }
   }
 
   /** The app syncs its verified wallet on open, which carries the foreground presence */
   async syncPresence() {
-    const { user } = this.user_data;
+    const { user } = this.ctx.state.data;
 
     /** Without a verified wallet the app waits for a TON proof instead */
     if (!user["wallet_address"] || Number(user["wallet_verified"]) !== 1) {
       return;
     }
 
-    const result = await this.resyncWallet();
+    const result = await this.ctx.api.resyncWallet();
 
     if (result?.["user"]) {
       Object.assign(user, result["user"]);
@@ -64,15 +68,15 @@ export default class ATFActivity {
 
   /** The app beacons a positive presence when Telegram reactivates it */
   async sendForegroundSeen() {
-    if (!this.tmaSessionToken) {
+    if (!this.ctx.session.tmaSessionToken) {
       return;
     }
 
     try {
-      await this.makeAction("foreground_transition_shadow", {
+      await this.ctx.api.makeAction("foreground_transition_shadow", {
         fg_event: "seen",
         fg_epoch: this.getForegroundEpoch(),
-        activity_lease: this.activityLeaseToken || "",
+        activity_lease: this.ctx.session.activityLeaseToken || "",
       });
     } catch {
       /** Telemetry, the app never lets it fail anything */
@@ -81,15 +85,15 @@ export default class ATFActivity {
 
   /** The app beacons the end of each foreground epoch when it is hidden or closed */
   async sendForegroundHidden() {
-    if (!this.tmaSessionToken) {
+    if (!this.ctx.session.tmaSessionToken) {
       return;
     }
 
     try {
-      await this.makeAction("foreground_transition_shadow", {
+      await this.ctx.api.makeAction("foreground_transition_shadow", {
         fg_event: "hidden",
         fg_epoch: this.getForegroundEpoch(),
-        activity_lease: this.activityLeaseToken || "",
+        activity_lease: this.ctx.session.activityLeaseToken || "",
       });
     } catch {
       /** Telemetry, the app never lets it fail anything */
@@ -102,7 +106,7 @@ export default class ATFActivity {
       return;
     }
 
-    await this.makeAction("record_navigation_batch", {
+    await this.ctx.api.makeAction("record_navigation_batch", {
       delta: delta,
       batch_id: `nav_${this.utils.uuid()}`,
     });

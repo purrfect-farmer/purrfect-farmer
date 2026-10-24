@@ -1,20 +1,24 @@
-/** Trait: what the account looks like, as logged and summarized for Auto */
-export default class ATFAccount {
+import FarmerModule from "../../lib/farmer/FarmerModule.js";
+import { logCurrentUser } from "../../lib/farmer/format.js";
+
+/** What the account looks like, as logged before a pass */
+export default class ATFAccount extends FarmerModule {
   /** Log User Info */
   async logUserInfo(user) {
     this.logger.newline();
-    this.logCurrentUser();
+    logCurrentUser(this.logger, this.core.telegramUser());
 
-    const diffData = await this.fetchDifficultyData();
+    const diffData = await this.ctx.mining.fetchDifficultyData();
     this.logUserBalance(user, diffData);
     this.logUserRisks(user);
 
     if (user["wallet_public_key"]) {
-      this.logUserWallet(user);
+      this.ctx.wallet.logUserWallet(user);
     }
 
     /** Check for flagged withdrawals */
-    const { flagged: hasFlagged } = await this.getWithdrawalGuard();
+    const { flagged: hasFlagged } =
+      await this.ctx.withdrawal.getWithdrawalGuard();
 
     /** Log flagged withdrawals */
     this.logger.keyValue("Flagged Withdrawals", hasFlagged ? "Yes" : "No", {
@@ -44,7 +48,10 @@ export default class ATFAccount {
     if (diffData) {
       this.logger.keyValue(
         "Daily Mining",
-        this.getDailyMiningRate(user, diffData).toDecimalPlaces(4).toString(),
+        this.ctx.mining
+          .getDailyMiningRate(user, diffData)
+          .toDecimalPlaces(4)
+          .toString(),
         { valueStyle: this.logger.c.greenBright },
       );
     }
@@ -164,87 +171,5 @@ export default class ATFAccount {
   /** Whether the drop has banned the account */
   isUserBanned(user) {
     return Number(user["is_banned"]) === 1;
-  }
-
-  /* --------------------------------------------------------------------- */
-  /* Auto adapter                                                          */
-  /* --------------------------------------------------------------------- */
-
-  /** Connect a TON wallet, optionally re-reading the account afterwards */
-  async connectAutoWallet({ phrase, version, refresh = false }) {
-    try {
-      const keyPair = await this.getKeyPair(phrase);
-      const { status, message } = await this.connectAndSyncWallet(
-        keyPair,
-        `v${version}`,
-      );
-
-      if (!status) {
-        return { status: false, message };
-      }
-
-      return {
-        status: true,
-        summary: refresh
-          ? await this.refreshAutoSummary()
-          : this.getAutoSummary(),
-      };
-    } catch (error) {
-      return { status: false, message: error.message || "Unknown error" };
-    }
-  }
-
-  /** Claim pending mining so the summary reflects the current balance */
-  async refreshAutoState() {
-    return this.startOrClaimMining();
-  }
-
-  /** Log in again for a fresh summary, since only a forced login re-reads the wallet on-chain */
-  async refreshAutoSummary() {
-    await this.login(true);
-    return this.getAutoSummary();
-  }
-
-  /** Start mining and report the account afresh, after a boost has landed so the level is snapshotted */
-  async startAutoMining() {
-    await this.startOrClaimMining();
-    await this.applyBoost();
-    await this.claimFriendsRewards();
-    return this.refreshAutoSummary();
-  }
-
-  /** Normalized account snapshot */
-  getAutoSummary() {
-    const user = this.getUserDetails();
-    const flags = (user["risk_flags"] || "").trim().split("|").filter(Boolean);
-    const wallet = user["wallet_public_key"] ? this.getUserWallet(user) : null;
-
-    return {
-      level: user["miner_level"],
-      mining: {
-        startedAt: Number(user["last_mining_start"]) || 0,
-        freezesAt: Number(user["mining_freezes_at"]) || 0,
-        frozen: user["mining_frozen"] === 1,
-      },
-      holding: user["wallet_holding_atf"],
-      balance: user["mined_balance"],
-      minWithdrawal: this.getMinimumWithdrawal(),
-      verified: this.isUserVerified(user),
-      protection: {
-        revoked: this.isUserProtectionRevoked(user),
-        dexBuyer: this.isUserQualifiedDexBuyer(user),
-      },
-      wallet: wallet
-        ? { address: wallet.address, version: wallet.version }
-        : null,
-      exchange: this.getUserExchange(user),
-      banned: this.isUserBanned(user),
-      banReason: user["banned_reason"],
-      risk: {
-        score: user["risk_score"],
-        updatedAt: user["risk_updated_at"],
-        flags,
-      },
-    };
   }
 }

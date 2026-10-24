@@ -1,3 +1,5 @@
+import FarmerModule from "../../lib/farmer/FarmerModule.js";
+import { logMiningRateBreakdown } from "../../lib/farmer/format.js";
 import {
   MAX_MINING_CYCLE_SECONDS,
   TAP_V2_BATCH_MAX,
@@ -6,8 +8,8 @@ import {
 } from "./constants.js";
 import Decimal from "decimal.js";
 
-/** Trait: mining math, tapping, boosts and claims */
-export default class ATFMining {
+/** Taps, mining sessions, boosts and the maths behind them */
+export default class ATFMining extends FarmerModule {
   /** Random base36 id with the app's prefix, as the tap script makes them */
   createTapV2Id(prefix, words) {
     const values = crypto.getRandomValues(new Uint32Array(words));
@@ -25,7 +27,9 @@ export default class ATFMining {
 
   /** Spend the tap energy in batches before claiming, as the app flushes taps before every claim */
   async tapV2() {
-    const state = await this.makeProfileTaskClaim(() => this.getTapV2State());
+    const state = await this.ctx.tasks.makeProfileTaskClaim(() =>
+      this.ctx.api.getTapV2State(),
+    );
 
     if (state?.["status"] !== "success") {
       this.logger.warn("Tap state unavailable");
@@ -66,8 +70,8 @@ export default class ATFMining {
         { signal: this.signal },
       );
 
-      const result = await this.makeProfileTaskClaim(() =>
-        this.syncTapV2({ sessionNonce, seq, taps }),
+      const result = await this.ctx.tasks.makeProfileTaskClaim(() =>
+        this.ctx.api.syncTapV2({ sessionNonce, seq, taps }),
       );
 
       if (result?.["status"] !== "success") {
@@ -85,11 +89,11 @@ export default class ATFMining {
       total += taps;
 
       if (result["pending_reward"] !== undefined) {
-        this.user_data.user["pending_reward"] = result["pending_reward"];
+        this.ctx.state.data.user["pending_reward"] = result["pending_reward"];
       }
 
       this.logger.info(
-        `Tapped ${taps} (pending: ${this.user_data.user["pending_reward"]})`,
+        `Tapped ${taps} (pending: ${this.ctx.state.data.user["pending_reward"]})`,
       );
     }
 
@@ -194,7 +198,7 @@ export default class ATFMining {
 
   /** Keep the mining fields a start, claim or boost hands back */
   applyMiningState(result) {
-    const user = this.user_data.user;
+    const user = this.ctx.state.data.user;
 
     for (const key of [
       "mining_cycle_started_at",
@@ -285,7 +289,7 @@ export default class ATFMining {
   }
 
   async estimateDailyMining() {
-    const input = await this.promptInput("How much ATF?");
+    const input = await this.core.prompt("How much ATF?");
     const trimmed = (input || "").trim();
 
     if (!trimmed) return;
@@ -326,12 +330,12 @@ export default class ATFMining {
     this.logger.keyValue("Divisor", divisor.toDecimalPlaces(4).toString());
 
     this.logger.newline();
-    this.logMiningRateBreakdown(dailyRate);
-    this.logHashPowerExplainer(hashPower, divisor);
+    logMiningRateBreakdown(this.logger, dailyRate);
+    this.ctx.tools.logHashPowerExplainer(hashPower, divisor);
   }
 
   async fetchDifficultyData() {
-    const data = await this.getDifficulty();
+    const data = await this.ctx.api.getDifficulty();
     return {
       difficulty: Number(data.difficulty) || 1,
       boostCycleSeconds: Number(data.boost_cycle_seconds) || 15,
@@ -343,7 +347,7 @@ export default class ATFMining {
 
   /** Start of claim mining */
   async startOrClaimMining() {
-    const { user } = this.user_data;
+    const { user } = this.ctx.state.data;
     if (!user["wallet_address"]) {
       this.logger.error(
         "No wallet connected. Please connect your wallet first.",
@@ -355,19 +359,19 @@ export default class ATFMining {
 
     if (lastMiningStart === 0) {
       /** Start Mining */
-      const challenge = await this.getMathChallenge("start_mine");
+      const challenge = await this.ctx.api.getMathChallenge("start_mine");
       const answer = this.getAnswerForChallenge(challenge.question);
 
       /** Delay before submitting */
       await this.utils.delayForSeconds(5, { signal: this.signal });
 
-      const result = await this.startMining({
+      const result = await this.ctx.api.startMining({
         challengeId: challenge.challenge_id,
         answer: answer.toString(),
       });
 
       if (result.start_time) {
-        Object.assign(this.user_data.user, {
+        Object.assign(this.ctx.state.data.user, {
           last_mining_start: result.start_time,
           boost_active_until: 0,
           boost_power_snapshot: 0,
@@ -396,10 +400,10 @@ export default class ATFMining {
       await this.utils.delayForSeconds(5, { signal: this.signal });
 
       this.logger.info(`Claiming ${balance.toString()} ATF...`);
-      const result = await this.claimMining(balance);
+      const result = await this.ctx.api.claimMining(balance);
 
       if (result.new_pool_balance !== undefined) {
-        this.user_data.user["mined_balance"] = result.new_pool_balance;
+        this.ctx.state.data.user["mined_balance"] = result.new_pool_balance;
         this.logger.success(
           `Claimed! Pool balance: ${result.new_pool_balance}`,
         );
@@ -407,7 +411,7 @@ export default class ATFMining {
 
       /** Mining auto-restarts after claim */
       if (result.server_now) {
-        Object.assign(this.user_data.user, {
+        Object.assign(this.ctx.state.data.user, {
           last_mining_start: result.server_now,
           pending_reward: 0,
           boost_active_until: 0,
@@ -420,7 +424,7 @@ export default class ATFMining {
   }
 
   async applyBoost() {
-    const { user } = this.user_data;
+    const { user } = this.ctx.state.data;
     const lastMiningStart = Number(user["last_mining_start"]);
 
     if (lastMiningStart === 0) {
@@ -454,16 +458,16 @@ export default class ATFMining {
     });
 
     /* Record navigation batch */
-    await this.recordNavigationBatch(1);
+    await this.ctx.activity.recordNavigationBatch(1);
 
     /** Delay before activating */
     await this.utils.delayForSeconds(3, { signal: this.signal });
 
-    const result = await this.activateBoost(balance);
+    const result = await this.ctx.api.activateBoost(balance);
 
     if (result.boost_active_until) {
       /** A boost settles the session into pending and opens a new segment */
-      Object.assign(this.user_data.user, {
+      Object.assign(this.ctx.state.data.user, {
         pending_reward: balance.toNumber(),
         last_mining_start:
           Number(result.server_now) || Math.floor(Date.now() / 1000),
@@ -478,7 +482,7 @@ export default class ATFMining {
 
   /** Apply the balance and level a claim hands back, keeping what it leaves out */
   applyClaimResult(result, balanceKey = "new_balance") {
-    const user = this.user_data.user;
+    const user = this.ctx.state.data.user;
 
     if (result?.[balanceKey] !== undefined) {
       user["mined_balance"] = result[balanceKey];

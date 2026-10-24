@@ -1,3 +1,4 @@
+import FarmerModule from "../../lib/farmer/FarmerModule.js";
 import {
   BIO_TASK,
   COOLDOWN_TASKS,
@@ -6,13 +7,13 @@ import {
   PROFILE_PROPAGATION_SECONDS,
 } from "./constants.js";
 
-/** Trait: one-time, cooldown, profile and referral tasks */
-export default class ATFTasks {
+/** Tasks, profile tasks and friend rewards */
+export default class ATFTasks extends FarmerModule {
   async completeTasks() {
     /** Record Navigation Batch */
-    await this.recordNavigationBatch(1);
+    await this.ctx.activity.recordNavigationBatch(1);
 
-    const { user } = this.user_data;
+    const { user } = this.ctx.state.data;
     const completedTasks = user.completed_tasks || [];
 
     const availableTasks = ONE_TIME_TASKS.filter(
@@ -26,15 +27,15 @@ export default class ATFTasks {
       try {
         /** Telegram joins are checked by the bot */
         if (task.link) {
-          await this.tryToJoinTelegramLink(task.link);
+          await this.core.telegram.tryToJoin(task.link);
         }
 
-        const result = await this.claimTask(task.id, 0);
+        const result = await this.ctx.api.claimTask(task.id, 0);
 
         if (result.status !== "success") {
           this.logger.error(`Failed to claim ${task.id}:`, result.message);
         } else {
-          this.applyClaimResult(result);
+          this.ctx.mining.applyClaimResult(result);
           completedTasks.push(task.id);
           this.logger.success(`Claimed task: ${task.id}`);
         }
@@ -51,7 +52,7 @@ export default class ATFTasks {
 
   /** Complete Extra Tasks, each on its own cooldown */
   async completeExtraTasks() {
-    const cooldowns = this.user_data["task_cooldowns"] || {};
+    const cooldowns = this.ctx.state.data["task_cooldowns"] || {};
     const nowSec = Math.floor(Date.now() / 1000);
 
     const availableTasks = COOLDOWN_TASKS.filter(
@@ -64,7 +65,7 @@ export default class ATFTasks {
     }
 
     /** Record Navigation Batch */
-    await this.recordNavigationBatch(1);
+    await this.ctx.activity.recordNavigationBatch(1);
 
     for (const task of availableTasks) {
       if (this.signal.aborted) break;
@@ -73,18 +74,18 @@ export default class ATFTasks {
         /** The claim is checked against the start the app registered */
         const startedAt = Math.floor(Date.now() / 1000);
 
-        await this.startTask(task.id, startedAt);
+        await this.ctx.api.startTask(task.id, startedAt);
         await this.utils.delayForSeconds(
           task.minSeconds + 5 + Math.floor(Math.random() * 15),
           { signal: this.signal },
         );
 
-        const result = await this.claimTask(task.id, startedAt);
+        const result = await this.ctx.api.claimTask(task.id, startedAt);
 
         if (result.status !== "success") {
           this.logger.error(`Failed to complete ${task.id}:`, result.message);
         } else {
-          this.applyClaimResult(result);
+          this.ctx.mining.applyClaimResult(result);
           this.logger.success(`Completed task: ${task.id}`);
         }
       } catch (error) {
@@ -114,8 +115,8 @@ export default class ATFTasks {
   setProfileTaskCooldown(id, result) {
     const nextAvailable = Number(result?.["next_available"]) || 0;
 
-    this.user_data["task_cooldowns"] = {
-      ...this.user_data["task_cooldowns"],
+    this.ctx.state.data["task_cooldowns"] = {
+      ...this.ctx.state.data["task_cooldowns"],
       [id]: nextAvailable,
     };
 
@@ -132,7 +133,7 @@ export default class ATFTasks {
     update,
   }) {
     const nowSec = Math.floor(Date.now() / 1000);
-    const cooldowns = this.user_data["task_cooldowns"] || {};
+    const cooldowns = this.ctx.state.data["task_cooldowns"] || {};
 
     if (Number(cooldowns[id]) > nowSec) {
       this.logger.warn(`${label} task not available`);
@@ -167,7 +168,7 @@ export default class ATFTasks {
     }
 
     if (result?.["status"] === "success") {
-      this.applyClaimResult(result);
+      this.ctx.mining.applyClaimResult(result);
       this.setProfileTaskCooldown(id, result);
       this.logger.success(`Completed task: ${id}`);
       return;
@@ -190,12 +191,12 @@ export default class ATFTasks {
     return this.completeProfileTask({
       id: BIO_TASK.id,
       label: "Bio",
-      getStatus: () => this.getBioTaskStatus(),
-      claim: () => this.claimBioTask(),
+      getStatus: () => this.ctx.api.getBioTaskStatus(),
+      claim: () => this.ctx.api.claimBioTask(),
       missingReason: "bio_missing",
       update: () => {
         this.logger.info("Setting the ATF channel as Telegram bio...");
-        return this.tryToUpdateProfile({ about: BIO_TASK.bio });
+        return this.core.telegram.tryToUpdateProfile({ about: BIO_TASK.bio });
       },
     });
   }
@@ -205,19 +206,19 @@ export default class ATFTasks {
     return this.completeProfileTask({
       id: NAME_EYE_TASK.id,
       label: "Name Eye",
-      getStatus: () => this.getNameEyeTaskStatus(),
-      claim: () => this.claimNameEyeTask(),
+      getStatus: () => this.ctx.api.getNameEyeTaskStatus(),
+      claim: () => this.ctx.api.claimNameEyeTask(),
       missingReason: "name_eye_missing",
       update: () => {
-        const lastName = this.getUserLastName();
+        const lastName = this.core.userLastName();
 
         /* The verifier may lag behind a name that already has the eye */
-        if (this.getUserFullName().includes(NAME_EYE_TASK.emoji)) {
+        if (this.core.userFullName().includes(NAME_EYE_TASK.emoji)) {
           return true;
         }
 
         this.logger.info("Adding the eye emoji to Telegram name...");
-        return this.tryToUpdateProfile({
+        return this.core.telegram.tryToUpdateProfile({
           lastName: `${lastName} ${NAME_EYE_TASK.emoji}`.trim(),
         });
       },
@@ -227,16 +228,16 @@ export default class ATFTasks {
   /** Claim Friends Rewards */
   async claimFriendsRewards() {
     /** Record Navigation Batch */
-    await this.recordNavigationBatch(1);
+    await this.ctx.activity.recordNavigationBatch(1);
 
-    const friends = await this.getFriends();
+    const friends = await this.ctx.api.getFriends();
     const claimable = friends.claimable;
     const teamWallet = friends.team_wallet;
 
     if (claimable > 0) {
-      const result = await this.claimReferrals();
+      const result = await this.ctx.api.claimReferrals();
 
-      this.applyClaimResult(result);
+      this.ctx.mining.applyClaimResult(result);
 
       /** claimable counts friends, each worth reward_per */
       const claimed =
@@ -251,9 +252,9 @@ export default class ATFTasks {
 
     if (teamWallet > 0) {
       /** Only the pool balance comes back, the level is left as it was */
-      const result = await this.claimTeamWallet();
+      const result = await this.ctx.api.claimTeamWallet();
 
-      this.applyClaimResult(result, "new_pool_balance");
+      this.ctx.mining.applyClaimResult(result, "new_pool_balance");
 
       this.logger.success(
         `Claimed ${result.claimed_amount ?? teamWallet} ATF from team wallet!`,
@@ -262,11 +263,5 @@ export default class ATFTasks {
     } else {
       this.logger.info("No team wallet rewards to claim.");
     }
-  }
-
-  /** Get Referrals Count */
-  async getReferralsCount() {
-    const friends = await this.getFriends();
-    return friends.total || 0;
   }
 }

@@ -1,11 +1,31 @@
+import FarmerModule from "../../lib/farmer/FarmerModule.js";
 import { TAP_V2_BATCH_MAX } from "./constants.js";
 
-/** Trait: the drop's endpoints, one method per call */
-export default class ATFApi {
+/** The drop's API: one method per action */
+export default class ATFApi extends FarmerModule {
+  /* --------------------------------------------------------------------- */
+  /* Transport                                                             */
+  /* --------------------------------------------------------------------- */
+
+  /** Post one action to the drop, returning the response body */
+  makeAction(action, data = {}, config = {}) {
+    return this.api
+      .post(
+        `https://atfminers.asloni.online/miner/index.php?action=${action}`,
+        data,
+        config,
+      )
+      .then((res) => res.data);
+  }
+
+  /* --------------------------------------------------------------------- */
+  /* Endpoints                                                             */
+  /* --------------------------------------------------------------------- */
+
   /** Get Captcha Status */
   getCaptchaStatus() {
     return this.makeAction("captcha_status", {
-      username: this.getUsername() || "",
+      username: this.core.username() || "",
     });
   }
 
@@ -13,7 +33,7 @@ export default class ATFApi {
   verifyEntryCaptcha(captchaToken) {
     return this.makeAction("verify_entry_captcha", {
       captcha_token: captchaToken,
-      username: this.getUsername() || "",
+      username: this.core.username() || "",
     });
   }
 
@@ -25,7 +45,7 @@ export default class ATFApi {
         challenge_id: challengeId,
         captcha_answer: answer,
       },
-      this.constructor.RISK_CHALLENGE_CONFIG,
+      this.core.drop.RISK_CHALLENGE_CONFIG,
     );
   }
 
@@ -112,8 +132,8 @@ export default class ATFApi {
       network: network || "",
       proof: proof || null,
       fg_visible: 1,
-      fg_epoch: this.getForegroundEpoch(),
-      activity_lease: this.activityLeaseToken || "",
+      fg_epoch: this.ctx.activity.getForegroundEpoch(),
+      activity_lease: this.ctx.session.activityLeaseToken || "",
     });
   }
 
@@ -140,17 +160,20 @@ export default class ATFApi {
   /** Get Tap V2 State (tap_locked, engagement_mode, session_nonce, last_seq, energy, energy_cost, reward_per_tap, boost_finishing_until) */
   getTapV2State() {
     return this.makeAction("tap_v2_state", {
-      client_instance: this.getTapV2ClientInstance(),
+      client_instance: this.ctx.mining.getTapV2ClientInstance(),
     });
   }
 
   /** Sync Tap V2 batch, seq is last_seq + 1 then next_seq from each reply */
   syncTapV2({ sessionNonce, seq, taps }) {
     return this.makeAction("tap_v2_sync", {
-      client_instance: this.getTapV2ClientInstance(),
+      client_instance: this.ctx.mining.getTapV2ClientInstance(),
       session_nonce: sessionNonce,
       seq,
-      batch_id: this.createTapV2Id(`b_${Date.now().toString(36)}_`, 3),
+      batch_id: this.ctx.mining.createTapV2Id(
+        `b_${Date.now().toString(36)}_`,
+        3,
+      ),
       taps: Math.min(TAP_V2_BATCH_MAX, taps),
     });
   }
@@ -159,7 +182,7 @@ export default class ATFApi {
   resyncWallet() {
     return this.syncWallet({
       refreshHolding: 0,
-      wallet: this.user_data?.user?.["wallet_address"],
+      wallet: this.ctx.state.data?.user?.["wallet_address"],
     });
   }
 
@@ -219,10 +242,5 @@ export default class ATFApi {
   /** Get Difficulty */
   getDifficulty() {
     return this.makeAction("get_difficulty");
-  }
-
-  /** Get User Details */
-  getUserDetails() {
-    return this.user_data.user;
   }
 }

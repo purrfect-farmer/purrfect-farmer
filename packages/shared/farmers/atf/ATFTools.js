@@ -1,17 +1,25 @@
-/** Trait: the interactive tools the farmer offers */
-export default class ATFTools {
+import FarmerModule from "../../lib/farmer/FarmerModule.js";
+import { formatAmount } from "../../lib/farmer/format.js";
+import createAutoWalletTools from "../../lib/farmer/autoWalletTools.js";
+
+/** The interactive tools the farmer offers */
+export default class ATFTools extends FarmerModule {
   /** Create Tools */
-  createTools() {
+  create() {
     return [
       {
         name: "Wallet",
         list: [
-          ...this.createAutoWalletTools(),
+          ...createAutoWalletTools({
+            connect: () => this.ctx.wallet.connectWalletInteractive(),
+            disconnect: () => this.ctx.wallet.disconnectWalletInteractive(),
+            prompts: this.ctx.connectPrompts,
+          }),
           {
             id: "reconnect-wallet",
             icon: "connect",
             title: "Reconnect Wallet",
-            action: this.reconnectWallet.bind(this),
+            action: () => this.ctx.wallet.reconnectWallet(),
             dispatch: false,
           },
         ],
@@ -23,14 +31,14 @@ export default class ATFTools {
             id: "withdraw",
             icon: "withdraw",
             title: "Withdraw",
-            action: this.withdraw.bind(this),
+            action: () => this.ctx.flow.withdraw(),
             dispatch: false,
           },
           {
             id: "pending-withdrawals",
             icon: "history",
             title: "Pending Withdrawals",
-            action: this.logPendingWithdrawals.bind(this),
+            action: () => this.ctx.withdrawal.logPendingWithdrawals(),
           },
         ],
       },
@@ -41,7 +49,7 @@ export default class ATFTools {
             id: "estimate-daily-mining",
             icon: "search",
             title: "Estimate Daily Mining",
-            action: this.estimateDailyMining.bind(this),
+            action: () => this.ctx.mining.estimateDailyMining(),
             dispatch: false,
           },
         ],
@@ -53,35 +61,35 @@ export default class ATFTools {
             id: "register-toobit",
             icon: "register",
             title: "Register to Toobit",
-            action: this.registerToToobit.bind(this),
+            action: () => this.registerToToobit(),
             dispatch: false,
           },
           {
             id: "connect-toobit-user",
             icon: "user",
             title: "Connect Toobit User",
-            action: this.connectToobitUser.bind(this),
+            action: () => this.connectToobitUser(),
             dispatch: false,
           },
           {
             id: "toobit-status",
             icon: "check",
             title: "Toobit Status",
-            action: this.logToobitStatus.bind(this),
+            action: () => this.logToobitStatus(),
             dispatch: false,
           },
           {
             id: "disconnect-toobit",
             icon: "disconnect",
             title: "Disconnect Toobit",
-            action: this.disconnectToobitInteractive.bind(this),
+            action: () => this.disconnectToobitInteractive(),
             dispatch: false,
           },
           {
             id: "check-toobit-kyc",
             icon: "kyc",
             title: "Check Toobit KYC",
-            action: this.checkToobitKycInteractive.bind(this),
+            action: () => this.checkToobitKycInteractive(),
             dispatch: false,
           },
         ],
@@ -98,7 +106,7 @@ export default class ATFTools {
 
   async logToobitStatus() {
     try {
-      const data = await this.getToobitStatus();
+      const data = await this.ctx.api.getToobitStatus();
 
       if (data.status !== "success") {
         this.logger.error(data.message);
@@ -120,14 +128,14 @@ export default class ATFTools {
 
   async disconnectToobitInteractive() {
     try {
-      const data = await this.disconnectToobitUid();
+      const data = await this.ctx.api.disconnectToobitUid();
 
       if (data.status !== "success") {
         this.logger.error(data.message);
         return;
       }
 
-      Object.assign(this.user_data.user, {
+      Object.assign(this.ctx.state.data.user, {
         toobit_connected: Number(data.connected) || 0,
         toobit_uid: data.uid || "",
       });
@@ -138,13 +146,13 @@ export default class ATFTools {
   }
 
   async connectToobitUser() {
-    const input = await this.promptInput("Enter Toobit UID:");
+    const input = await this.core.prompt("Enter Toobit UID:");
     const uid = (input || "").trim();
 
     if (!uid) return;
 
     try {
-      const { status, message } = await this.connectToobitUid(uid);
+      const { status, message } = await this.ctx.api.connectToobitUid(uid);
       if (status !== "success") {
         this.logger.error(message);
         return;
@@ -158,7 +166,7 @@ export default class ATFTools {
   }
 
   async checkToobitKycInteractive() {
-    const data = await this.checkToobitKyc();
+    const data = await this.ctx.api.checkToobitKyc();
     const { status, message } = data;
 
     if (status !== "success") {
@@ -192,7 +200,7 @@ export default class ATFTools {
       `  ${hashPower.toDecimalPlaces(2).toString()} TH/s x 50 = ${base.toString()} ATF/day at difficulty 1.`,
     );
     this.logger.debug(
-      `  Network difficulty then divides that: ${base.toString()} / ${divisor.toDecimalPlaces(4).toString()} = ${this.formatAmount(base.div(divisor))} ATF/day.`,
+      `  Network difficulty then divides that: ${base.toString()} / ${divisor.toDecimalPlaces(4).toString()} = ${formatAmount(base.div(divisor))} ATF/day.`,
     );
     this.logger.debug(
       "So a higher TH/s always means a faster miner, but the ATF it actually pays",

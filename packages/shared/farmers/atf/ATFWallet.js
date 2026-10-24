@@ -1,10 +1,11 @@
-import { WalletContractV4, WalletContractV5R1 } from "@ton/ton";
-import { keyPairFromPhraseOrSecretKey } from "../../lib/ton/wallet.js";
+import FarmerModule from "../../lib/farmer/FarmerModule.js";
 import { buildTonProof, getWalletStateInit } from "../../lib/ton/proof.js";
+import { keyPairFromPhraseOrSecretKey } from "../../lib/ton/wallet.js";
 import { MAX_SYNC_ATTEMPTS } from "./constants.js";
+import { WalletContractV4, WalletContractV5R1 } from "@ton/ton";
 
-/** Trait: tON wallet keys, proofs and connection */
-export default class ATFWallet {
+/** Binding and syncing the wallet */
+export default class ATFWallet extends FarmerModule {
   /** Prepare Wallet */
   prepareWallet(publicKeyBuffer) {
     const walletV4 = WalletContractV4.create({
@@ -75,13 +76,13 @@ export default class ATFWallet {
 
   /** Connect Wallet Secret Key or Mnemonic */
   async connectWalletInteractive() {
-    const input = await this.promptInput(
+    const input = await this.core.prompt(
       "Enter your TON Wallet Phrase / Secret Key (hex):",
     );
 
     const secretKeyOrMnemonic = input.trim();
     const keyPair = await this.getKeyPair(secretKeyOrMnemonic);
-    const version = await this.promptInput({
+    const version = await this.core.prompt({
       type: "select",
       text: "Select wallet version:",
       options: [
@@ -93,7 +94,7 @@ export default class ATFWallet {
     const { status } = await this.connectAndSyncWallet(keyPair, version);
 
     if (status) {
-      const password = await this.promptInput(
+      const password = await this.core.prompt(
         "Enter a password to encrypt and store your wallet:",
       );
 
@@ -120,7 +121,7 @@ export default class ATFWallet {
       this.logger.warn("No wallet was previously saved!");
       return this.connectWalletInteractive();
     } else {
-      const password = await this.promptInput(
+      const password = await this.core.prompt(
         "Enter your password to decrypt the wallet:",
       );
 
@@ -166,12 +167,12 @@ export default class ATFWallet {
       proof,
     };
 
-    this.debugger.log("Syncing ATF Wallet:", data);
+    this.core.debugger.log("Syncing ATF Wallet:", data);
 
     let attempts = 0;
 
     while (true) {
-      const result = await this.syncWallet(data);
+      const result = await this.ctx.api.syncWallet(data);
       const isBusy = result.busy || result.status === "busy";
 
       if (isBusy && attempts < MAX_SYNC_ATTEMPTS) {
@@ -191,11 +192,14 @@ export default class ATFWallet {
         const user = result.user;
 
         /** Update user */
-        this.user_data.user = Object.assign(this.user_data.user, user);
+        this.ctx.state.data.user = Object.assign(
+          this.ctx.state.data.user,
+          user,
+        );
 
         this.logger.success("Wallet synced successfully!");
-        this.logUserBalance(user);
-        this.logUserRisks(user);
+        this.ctx.account.logUserBalance(user);
+        this.ctx.account.logUserRisks(user);
         return { status: true, user };
       }
     }
@@ -203,7 +207,7 @@ export default class ATFWallet {
 
   /** Build Wallet Proof */
   async buildWalletProof(wallet, secretKey) {
-    const proofPayloadData = await this.getWalletProofPayload();
+    const proofPayloadData = await this.ctx.api.getWalletProofPayload();
     const payload = proofPayloadData.payload;
 
     const { proof } = await buildTonProof({
@@ -237,14 +241,14 @@ export default class ATFWallet {
 
   /** Disconnect the wallet the way the app's disconnect button does, which settles and stops mining */
   async disconnectWalletInteractive() {
-    const wallet = this.user_data?.user?.["wallet_address"];
+    const wallet = this.ctx.state.data?.user?.["wallet_address"];
 
     if (!wallet) {
       this.logger.warn("No wallet connected.");
       return;
     }
 
-    const confirm = await this.promptInput({
+    const confirm = await this.core.prompt({
       type: "select",
       text: "Disconnecting settles and stops mining. Continue?",
       options: [
@@ -256,7 +260,7 @@ export default class ATFWallet {
     if (confirm !== "yes") return;
 
     try {
-      const result = await this.disconnectWallet(wallet);
+      const result = await this.ctx.api.disconnectWallet(wallet);
 
       if (result.status !== "success") {
         this.logger.error(result.message || "Failed to disconnect wallet");
@@ -264,7 +268,7 @@ export default class ATFWallet {
       }
 
       if (result.user) {
-        this.user_data.user = result.user;
+        this.ctx.state.data.user = result.user;
       }
       this.logger.success("Wallet disconnected!");
     } catch (error) {

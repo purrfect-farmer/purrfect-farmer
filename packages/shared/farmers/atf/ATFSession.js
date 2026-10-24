@@ -1,3 +1,4 @@
+import FarmerModule from "../../lib/farmer/FarmerModule.js";
 import {
   DEVICE_ID_MODE,
   MAX_CAPTCHA_ATTEMPTS,
@@ -5,11 +6,23 @@ import {
   SHOULD_SOLVE_CAPTCHA_BEFORE_LOGIN,
 } from "./constants.js";
 
-/** Trait: device id, API setup, captcha and login */
-export default class ATFSession {
+/** Device id, request setup, the entry captchas and login */
+export default class ATFSession extends FarmerModule {
+  /** The device id the page keeps for the account */
+  deviceId = null;
+
+  /** Whether the entry Turnstile was passed this run */
+  captchaSolved = false;
+
+  /** The session token login hands out */
+  tmaSessionToken = null;
+
+  /** The activity lease the app replaces on every login */
+  activityLeaseToken = null;
+
   /** Get Referral Link */
   getReferralLink() {
-    return `https://t.me/ATF_AIRDROP_bot?start=${this.getUserId()}`;
+    return `https://t.me/ATF_AIRDROP_bot?start=${this.core.userId()}`;
   }
 
   /** Get or create device ID */
@@ -19,7 +32,7 @@ export default class ATFSession {
 
       if (mode === "unique") {
         /* Seeded by the user, so the device ID stays the same across runs */
-        const random = this.getUserRandomGenerator();
+        const random = this.core.userRandom();
         const hex = (length) =>
           Array.from({ length }, () =>
             Math.floor(random() * 16).toString(16),
@@ -39,7 +52,7 @@ export default class ATFSession {
   }
 
   /** Configure API */
-  configureApi() {
+  configure() {
     const headersInterceptor = this.api.interceptors.request.use((config) => {
       const url = new URL(config.url, config.baseURL);
       url.searchParams.set("t", Date.now().toString());
@@ -47,11 +60,11 @@ export default class ATFSession {
       Object.assign(config.headers, this.getAuthHeaders());
 
       config.data = {
-        request_id: this.makeRequestId(),
+        request_id: this.core.requestId(),
         device_id: this.getOrCreateDeviceId(),
         ...config.data,
-        initData: this.getInitData(),
-        tg_id: this.getUserId(),
+        initData: this.core.initData(),
+        tg_id: this.core.userId(),
       };
       return config;
     });
@@ -61,15 +74,10 @@ export default class ATFSession {
     };
   }
 
-  /** Get Auth */
-  async fetchAuth() {
-    return this.login();
-  }
-
   /** Solve Captcha */
   async solveCaptcha() {
     /* Check if captcha has already been solved */
-    if (this.has_solved_captcha) {
+    if (this.captchaSolved) {
       return;
     }
 
@@ -82,7 +90,7 @@ export default class ATFSession {
         throw new Error("Captcha solving aborted");
       }
 
-      const captchaStatus = await this.getCaptchaStatus();
+      const captchaStatus = await this.ctx.api.getCaptchaStatus();
       const isDegradedOrCircuitOpen =
         captchaStatus.degraded || captchaStatus.reason === "db_circuit_open";
 
@@ -96,7 +104,7 @@ export default class ATFSession {
       }
 
       if (captchaStatus.captcha_required) {
-        if (!this.canSolveTurnstile()) {
+        if (!this.core.captcha.canSolveTurnstile()) {
           throw new Error(
             "Captcha is required but no captcha provider is configured!",
           );
@@ -104,13 +112,14 @@ export default class ATFSession {
 
         try {
           /* Solve ReCaptcha */
-          const captchaToken = await this.solveTurnstile({
+          const captchaToken = await this.core.captcha.solveTurnstile({
             siteKey: captchaStatus.site_key,
             pageUrl: "https://atfminers.asloni.online/miner/index.html",
           });
 
           /* Verify Captcha */
-          const captchaResponse = await this.verifyEntryCaptcha(captchaToken);
+          const captchaResponse =
+            await this.ctx.api.verifyEntryCaptcha(captchaToken);
 
           if (captchaResponse.status !== "success") {
             throw new Error(
@@ -128,7 +137,7 @@ export default class ATFSession {
     }
 
     /* Update captcha solved status */
-    this.has_solved_captcha = true;
+    this.captchaSolved = true;
   }
 
   /** The drop can answer a login with an image captcha instead of the account, as a 200 or a 4xx body */
@@ -155,7 +164,7 @@ export default class ATFSession {
       return false;
     }
 
-    const answer = await this.resolveImageCaptchaAnswer({
+    const answer = await this.ctx.withdrawal.resolveImageCaptchaAnswer({
       image: challenge["captcha_image"],
       promptText: challenge["message"] || "Solve the captcha to sign in:",
       label: "entry risk captcha",
@@ -165,7 +174,7 @@ export default class ATFSession {
     let result;
 
     try {
-      result = await this.verifyEntryRiskCaptcha({
+      result = await this.ctx.api.verifyEntryRiskCaptcha({
         challengeId: challenge["challenge_id"],
         answer,
       });
@@ -211,7 +220,7 @@ export default class ATFSession {
         challenge = this.getEntryRiskChallenge(data);
 
         if (!challenge) {
-          this.user_data = data;
+          this.ctx.state.data = data;
 
           if (data?.["tma_session_token"]) {
             this.tmaSessionToken = data["tma_session_token"];
@@ -224,7 +233,7 @@ export default class ATFSession {
             );
           }
 
-          this.applyActivityUi(data);
+          this.ctx.activity.applyActivityUi(data);
           break;
         }
       } catch (error) {
@@ -256,7 +265,7 @@ export default class ATFSession {
       await this.solveEntryRiskCaptcha(challenge);
     }
 
-    return this.user_data;
+    return this.ctx.state.data;
   }
 
   /** Login */
@@ -269,21 +278,21 @@ export default class ATFSession {
 
     await this.completeLogin(forceFresh);
 
-    return this.user_data;
+    return this.ctx.state.data;
   }
 
   makeLoginAction(forceFresh = false) {
     /** The app sends the username and the inviter it was opened with */
-    const refCode = this.getReferrerStartParam();
+    const refCode = this.core.referrerStartParam();
 
-    return this.makeAction(
+    return this.ctx.api.makeAction(
       "login",
       {
-        username: this.getUsername(),
+        username: this.core.username(),
         ...(refCode ? { ref_code: refCode } : {}),
         ...(forceFresh ? { force_fresh: true, no_cache: true } : {}),
       },
-      this.constructor.RISK_CHALLENGE_CONFIG,
+      this.core.drop.RISK_CHALLENGE_CONFIG,
     );
   }
 
@@ -291,7 +300,7 @@ export default class ATFSession {
   getAuthHeaders() {
     const headers = {
       "x-requested-with": "XMLHttpRequest",
-      "x-telegram-init-data": this.getInitData(),
+      "x-telegram-init-data": this.core.initData(),
     };
 
     if (this.tmaSessionToken) {
@@ -301,13 +310,9 @@ export default class ATFSession {
     return headers;
   }
 
-  makeAction(action, data = {}, config = {}) {
-    return this.api
-      .post(
-        `https://atfminers.asloni.online/miner/index.php?action=${action}`,
-        data,
-        config,
-      )
-      .then((res) => res.data);
+  /** Get Referrals Count */
+  async getReferralsCount() {
+    const friends = await this.ctx.api.getFriends();
+    return friends.total || 0;
   }
 }

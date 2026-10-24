@@ -42,6 +42,10 @@ export default function createFarmerCore(farmer) {
 
     userId: () => farmer.getUserId(),
     telegramUser: () => farmer.getTelegramUser(),
+    username: () => farmer.getUsername(),
+    userFirstName: () => farmer.getUserFirstName(),
+    userLastName: () => farmer.getUserLastName(),
+    userFullName: () => farmer.getUserFullName(),
     initData: () => farmer.getInitData(),
     initDataUnsafe: (camelCase) => farmer.getInitDataUnsafe(camelCase),
     referrerStartParam: () => farmer.getReferrerStartParam(),

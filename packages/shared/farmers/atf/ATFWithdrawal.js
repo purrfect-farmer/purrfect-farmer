@@ -1,8 +1,10 @@
+import FarmerModule from "../../lib/farmer/FarmerModule.js";
+import { logCurrentUser } from "../../lib/farmer/format.js";
 import { WITHDRAWAL_CAPTCHA_ATTEMPTS } from "./constants.js";
 import Decimal from "decimal.js";
 
-/** Trait: withdrawal captcha, placement and the pending queue */
-export default class ATFWithdrawal {
+/** Withdrawals, their captchas and the pending queue */
+export default class ATFWithdrawal extends FarmerModule {
   /** Whether a rejected withdrawal was rejected over the captcha, using the app's own retry list */
   isWithdrawalCaptchaRejection(result) {
     const reason = String(result?.["reason"] || "");
@@ -43,11 +45,11 @@ export default class ATFWithdrawal {
 
   /** Resolve one image captcha answer, falling back to asking the user when no provider solves it */
   async resolveImageCaptchaAnswer({ image, promptText, label = "captcha" }) {
-    if (this.canSolveImage()) {
+    if (this.core.captcha.canSolveImage()) {
       try {
         this.logger.info(`Solving ${label}...`);
 
-        const answer = await this.solveImage({ body: image });
+        const answer = await this.core.captcha.solveImage({ body: image });
 
         this.logger.info(`Solved ${label}:`, answer);
 
@@ -57,13 +59,13 @@ export default class ATFWithdrawal {
       }
     }
 
-    if (typeof this.promptInput !== "function") {
+    if (typeof this.core.prompt !== "function") {
       throw new Error(
         "No captcha provider is configured and there is no way to ask for the answer!",
       );
     }
 
-    const answer = await this.promptInput({
+    const answer = await this.core.prompt({
       type: "text",
       text: promptText,
       image,
@@ -85,7 +87,7 @@ export default class ATFWithdrawal {
 
   /** Ask for the withdrawal captcha until the drop accepts it */
   async requestWithdrawalWithCaptcha(amount) {
-    let challenge = await this.getWithdrawalPuzzle(amount.toNumber());
+    let challenge = await this.ctx.api.getWithdrawalPuzzle(amount.toNumber());
     let issuedAt = Date.now();
     let rejection = null;
     let attempt = 0;
@@ -108,7 +110,7 @@ export default class ATFWithdrawal {
         await this.waitForCaptchaSolveTime(challenge, issuedAt);
       }
 
-      const result = await this.requestWithdrawal({
+      const result = await this.ctx.api.requestWithdrawal({
         amount: amount.toNumber(),
         withdraw_captcha_id: challenge["challenge_id"],
         withdraw_captcha_answer: answer,
@@ -146,26 +148,26 @@ export default class ATFWithdrawal {
 
       /** The image is regenerated on every failure, so ask for the new one */
       this.logger.warn("Fetching a new captcha...");
-      challenge = await this.getWithdrawalPuzzle(amount.toNumber());
+      challenge = await this.ctx.api.getWithdrawalPuzzle(amount.toNumber());
       issuedAt = Date.now();
     }
   }
 
   /** Place withdrawal */
-  async placeWithdrawal({ max, difference }) {
-    const { user } = this.user_data;
+  async place({ max, difference }) {
+    const { user } = this.ctx.state.data;
     const balance = new Decimal(user["mined_balance"]);
 
     if (!user["wallet_public_key"]) {
-      return this.skipWithdrawal("No wallet public key found!");
+      return this.ctx.flow.skip("No wallet public key found!");
     }
 
-    const minimum = this.getMinimumWithdrawal();
-    const lowBalance = this.skipLowBalance(balance, minimum);
+    const minimum = this.ctx.flow.minimum();
+    const lowBalance = this.ctx.flow.skipLowBalance(balance, minimum);
 
     if (lowBalance) return lowBalance;
 
-    const amount = this.pickWithdrawalAmount({
+    const amount = this.ctx.flow.pickAmount({
       balance,
       minimum,
       max,
@@ -173,7 +175,7 @@ export default class ATFWithdrawal {
     });
 
     /** Record Navigation Batch */
-    await this.recordNavigationBatch(1);
+    await this.ctx.activity.recordNavigationBatch(1);
 
     /** Solve the withdrawal captcha, re-asking while the answer is rejected */
     const result = await this.requestWithdrawalWithCaptcha(amount);
@@ -187,7 +189,7 @@ export default class ATFWithdrawal {
 
     if (status) {
       /** Update balance */
-      this.user_data.user["mined_balance"] = result["new_balance"];
+      this.ctx.state.data.user["mined_balance"] = result["new_balance"];
 
       /** Set withdrawn amount */
       withdrawn = new Decimal(result["send_amount"]).floor();
@@ -198,7 +200,7 @@ export default class ATFWithdrawal {
       this.logger.keyValue("Requested amount", result["requested_amount"]);
       this.logger.keyValue("Amount to be received", result["send_amount"]);
 
-      await this.notifyWithdrawal([
+      await this.ctx.flow.notify([
         ["Initial Balance", balance.toString()],
         ["Requested", result["requested_amount"]],
         ["To receive", result["send_amount"]],
@@ -218,14 +220,9 @@ export default class ATFWithdrawal {
     };
   }
 
-  /** The account's own withdrawal queue */
-  getAutoWithdrawals() {
-    return this.ctx.withdrawals.load();
-  }
-
   /** Both withdrawal gates, from the same read the queue uses */
   async getWithdrawalGuard() {
-    const { pending, flagged } = await this.getAutoWithdrawals();
+    const { pending, flagged } = await this.ctx.withdrawals.load();
 
     return { pending: pending.length > 0, flagged: flagged.length > 0 };
   }
@@ -235,20 +232,15 @@ export default class ATFWithdrawal {
     return this.ctx.withdrawals.pending();
   }
 
-  /** Whether the drop still owes this account a settlement */
-  hasPendingWithdrawal() {
-    return this.ctx.withdrawals.hasPending();
-  }
-
   /** Log the withdrawals the drop has not settled yet */
   async logPendingWithdrawals() {
     const pending = await this.getPendingWithdrawals();
 
     this.logger.newline();
-    this.logCurrentUser();
+    logCurrentUser(this.logger, this.core.telegramUser());
     this.logger.keyValue(
       "Verified",
-      this.isUserVerified(this.getUserDetails()) ? "Yes" : "No",
+      this.ctx.account.isUserVerified(this.ctx.state.user()) ? "Yes" : "No",
     );
     this.logger.keyValue("Pending Withdrawals", pending.length, {
       valueStyle: pending.length

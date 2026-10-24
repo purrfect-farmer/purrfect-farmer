@@ -1,15 +1,5 @@
 import BaseFarmer from "../../lib/BaseFarmer.js";
-import applyTraits from "../../lib/applyTraits.js";
 import { createContext } from "./context.js";
-import ATFSession from "./ATFSession.js";
-import ATFApi from "./ATFApi.js";
-import ATFActivity from "./ATFActivity.js";
-import ATFWallet from "./ATFWallet.js";
-import ATFWithdrawal from "./ATFWithdrawal.js";
-import ATFMining from "./ATFMining.js";
-import ATFTasks from "./ATFTasks.js";
-import ATFAccount from "./ATFAccount.js";
-import ATFTools from "./ATFTools.js";
 
 export default class ATFFarmer extends BaseFarmer {
   static published = true;
@@ -45,43 +35,117 @@ export default class ATFFarmer extends BaseFarmer {
   /** The drop answers the entry risk challenge with a 403, which the extension would reset the farmer over */
   static RISK_CHALLENGE_CONFIG = { ignoreUnauthorizedError: true };
 
-  /** Collaborators the traits work through */
-  ctx = createContext(this);
+  /** The modules the farmer works through */
+  ctx = createContext(this.core);
 
   /** Process Farmer */
   async process() {
-    await this.login();
+    const { state, session, activity, account, mining, tasks } = this.ctx;
+
+    await session.login();
 
     try {
-      await this.executeTask("Presence", () => this.syncPresence());
-      await this.logUserInfo(this.user_data.user);
+      await this.executeTask("Presence", () => activity.syncPresence());
+      await account.logUserInfo(state.data.user);
       await this.executeTask("Daily Interaction", () =>
-        this.recordDailyInteraction(),
+        activity.recordDailyInteraction(),
       );
-      await this.executeTask("Tap", () => this.tapV2());
-      await this.executeTask("Mining", () => this.startOrClaimMining());
-      await this.executeTask("Boost", () => this.applyBoost());
-      await this.executeTask("Tasks", () => this.completeTasks());
-      await this.executeTask("Extra Tasks", () => this.completeExtraTasks());
-      await this.executeTask("Bio Task", () => this.completeBioTask());
-      await this.executeTask("Name Eye Task", () => this.completeNameEyeTask());
-      await this.executeTask("Friends", () => this.claimFriendsRewards());
+      await this.executeTask("Tap", () => mining.tapV2());
+      await this.executeTask("Mining", () => mining.startOrClaimMining());
+      await this.executeTask("Boost", () => mining.applyBoost());
+      await this.executeTask("Tasks", () => tasks.completeTasks());
+      await this.executeTask("Extra Tasks", () => tasks.completeExtraTasks());
+      await this.executeTask("Bio Task", () => tasks.completeBioTask());
+      await this.executeTask("Name Eye Task", () =>
+        tasks.completeNameEyeTask(),
+      );
+      await this.executeTask("Friends", () => tasks.claimFriendsRewards());
       await this.executeTask("Withdraw", () => this.withdraw());
       await this.storeAutoSnapshot();
     } finally {
-      await this.sendForegroundHidden();
+      await activity.sendForegroundHidden();
     }
   }
-}
 
-applyTraits(ATFFarmer, [
-  ATFSession,
-  ATFApi,
-  ATFActivity,
-  ATFWallet,
-  ATFWithdrawal,
-  ATFMining,
-  ATFTasks,
-  ATFAccount,
-  ATFTools,
-]);
+  /* --------------------------------------------------------------------- */
+  /* Host hooks                                                            */
+  /* --------------------------------------------------------------------- */
+
+  /** Stamp every request the way the page does */
+  configureApi() {
+    return this.ctx.session.configure();
+  }
+
+  /** Get Auth */
+  fetchAuth() {
+    return this.ctx.session.login();
+  }
+
+  /** Get Auth Headers, with the session token login hands out once it has */
+  getAuthHeaders() {
+    return this.ctx.session.getAuthHeaders();
+  }
+
+  /** Load data */
+  async load() {
+    await this.ctx.walletVersion.load();
+  }
+
+  /** Get Referral Link */
+  getReferralLink() {
+    return this.ctx.session.getReferralLink();
+  }
+
+  /** Get Referrals Count */
+  getReferralsCount() {
+    return this.ctx.session.getReferralsCount();
+  }
+
+  createTools() {
+    return this.ctx.tools.create();
+  }
+
+  /* --------------------------------------------------------------------- */
+  /* Auto contract                                                         */
+  /* --------------------------------------------------------------------- */
+
+  connectAutoWallet(wallet) {
+    return this.ctx.auto.connectWallet(wallet);
+  }
+
+  refreshAutoState() {
+    return this.ctx.auto.refreshState();
+  }
+
+  refreshAutoSummary() {
+    return this.ctx.auto.refreshSummary();
+  }
+
+  startAutoMining() {
+    return this.ctx.auto.startMining();
+  }
+
+  getAutoSummary() {
+    return this.ctx.auto.summary();
+  }
+
+  storeAutoSnapshot() {
+    return this.ctx.snapshot.store();
+  }
+
+  readAutoWithdrawals() {
+    return this.ctx.snapshot.readWithdrawals();
+  }
+
+  withdraw(options) {
+    return this.ctx.flow.withdraw(options);
+  }
+
+  hasPendingWithdrawal() {
+    return this.ctx.withdrawals.hasPending();
+  }
+
+  getWithdrawalGuard() {
+    return this.ctx.withdrawal.getWithdrawalGuard();
+  }
+}
