@@ -1,4 +1,4 @@
-import { customLogger, getUserAgent, storeUserAgent } from "../utils";
+import { customLogger, getUserAgent } from "../utils";
 
 import { getNetRules } from "@/extension/rule-resources";
 
@@ -32,7 +32,4 @@ export default async function updateNetRules() {
     removeRuleIds: oldRuleIds,
     addRules: newRules,
   });
-
-  /** Store User-Agent */
-  await storeUserAgent(userAgent);
 }

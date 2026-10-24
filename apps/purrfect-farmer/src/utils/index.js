@@ -97,12 +97,21 @@ export async function getSharedSettings() {
   };
 }
 
-/** Get user agent */
+/** Pick a random user agent from the catalog */
+export function randomUserAgent() {
+  return userAgents[Math.floor(Math.random() * userAgents.length)];
+}
+
+/** Get user agent, storing a random pick when there is none */
 export async function getUserAgent() {
-  return await storage.get(
-    "shared:user-agent",
-    userAgents[Math.floor(Math.random() * userAgents.length)],
-  );
+  const stored = await storage.get("shared:user-agent");
+
+  if (stored) return stored;
+
+  const userAgent = randomUserAgent();
+  await storeUserAgent(userAgent);
+
+  return userAgent;
 }
 
 /** Store user agent */

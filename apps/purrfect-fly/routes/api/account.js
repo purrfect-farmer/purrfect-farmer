@@ -1,5 +1,6 @@
 import { ACTIVE_FARMER_FIELDS } from "../../services/farmer-activation.js";
 import { authSchema } from "../../schemas/member.js";
+import isValidUserAgent from "@purrfect/shared/lib/userAgent/isValidUserAgent.js";
 
 /**
  * @param {import("fastify").FastifyInstance} fastify
@@ -58,12 +59,21 @@ export default async function (fastify) {
             initData: { type: "string" },
             headers: { type: "object" },
             cookies: { type: "array", items: { type: "object" } },
+            userAgent: { type: "string" },
           },
         },
       },
     },
     async function (request, reply) {
       const { user } = fastify.utils.getInitDataUnsafe(request.body.initData);
+
+      /** Account fields taken from the sync, a User-Agent only when valid */
+      const accountFields = { title: request.body.title, user };
+
+      if (isValidUserAgent(request.body.userAgent)) {
+        accountFields.userAgent = request.body.userAgent;
+      }
+
       const farmer = await fastify.db.Farmer.findWithActiveSubscription(
         request.body.farmer,
         user.id,
@@ -72,7 +82,7 @@ export default async function (fastify) {
 
       if (farmer) {
         if (farmer.account.subscription) {
-          await farmer.account.update({ title: request.body.title, user });
+          await farmer.account.update(accountFields);
           await farmer.update({
             ...ACTIVE_FARMER_FIELDS,
             farmer: request.body.farmer,
@@ -89,7 +99,7 @@ export default async function (fastify) {
         );
 
         if (account) {
-          await account.update({ title: request.body.title, user });
+          await account.update(accountFields);
           await account.createFarmer({
             ...ACTIVE_FARMER_FIELDS,
             farmer: request.body.farmer,

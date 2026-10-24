@@ -1,4 +1,5 @@
 import { DEFAULT_WEB_APP_VERSION } from "../../utils/telegram.js";
+import { getChromeVersion } from "../userAgent/clientHints.js";
 import seedrandom from "seedrandom";
 
 /** Android phones the profile is drawn from, as Telegram's WebView reports them */
@@ -129,8 +130,6 @@ const PHONES = [
 /** Values an audio fingerprint lands on across Chrome builds */
 const AUDIO_SUMS = ["124.043475", "124.043476", "124.046743", "124.080345"];
 
-/** The Chrome version used when the user agent names none */
-const DEFAULT_CHROME_VERSION = "155";
 
 /** Telegram's header and status bar, which the WebView's height loses */
 const TG_CHROME_HEIGHT = 80;
@@ -176,8 +175,7 @@ function readLocale() {
 export function createDevice(seed, userAgent = "", { prefix }) {
   const random = seedrandom(`${prefix}:${seed}`);
   const phone = { ...pick(random, PHONES), ...readTelegramDevice(userAgent) };
-  const chrome =
-    String(userAgent).match(/Chrome\/(\d+)/)?.[1] || DEFAULT_CHROME_VERSION;
+  const chrome = getChromeVersion(userAgent);
   const { tz, locale } = readLocale();
   const language = locale.split("-")[0];
   const height = phone.h - TG_CHROME_HEIGHT - between(random, 0, 24);

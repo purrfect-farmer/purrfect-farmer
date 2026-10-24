@@ -5,6 +5,7 @@ import {
   createCookieAgent,
 } from "http-cookie-agent/http";
 import { HttpProxyAgent, HttpsProxyAgent } from "hpagent";
+import { getSecChUa } from "@purrfect/shared/lib/userAgent/clientHints.js";
 
 import axios from "axios";
 import {
@@ -81,13 +82,12 @@ export function createApi(runner) {
     httpsAgent: runner.httpsAgent,
     headers: {
       common: {
-        ["sec-ch-ua"]:
-          '"Android WebView";v="131", "Chromium";v="131", "Not_A Brand";v="24"',
+        ["sec-ch-ua"]: getSecChUa(runner.userAgent),
         ["sec-ch-ua-arch"]: '""',
         ["sec-ch-ua-arch-full-version"]: '""',
         ["sec-ch-ua-bitness"]: '""',
         ["sec-ch-ua-full-version-list"]: "",
-        ["sec-ch-ua-mobile"]: "?0",
+        ["sec-ch-ua-mobile"]: "?1",
         ["sec-ch-ua-model"]: '""',
         ["sec-ch-ua-platform"]: '"Android"',
         ["sec-ch-ua-platform-version"]: '""',

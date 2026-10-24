@@ -22,6 +22,7 @@ import ProxyOptionsGroup from "./Settings/ProxyOptionsGroup";
 import Seeker from "./Seeker";
 import SeekerOptionsGroup from "./Settings/SeekerOptionsGroup";
 import SettingsActions from "./Settings/SettingsActions";
+import UserAgentOptionsGroup from "./Settings/UserAgentOptionsGroup";
 import { SettingsContainer } from "./Settings/SettingsComponents";
 
 export default memo(function Settings({ tabs }) {
@@ -178,6 +179,8 @@ export default memo(function Settings({ tabs }) {
                           dispatchAndConfigureSharedSettings
                         }
                       />
+
+                      <UserAgentOptionsGroup />
 
                       <PCOptionsGroup
                         sharedSettings={sharedSettings}

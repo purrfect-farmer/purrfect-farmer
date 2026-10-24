@@ -1,4 +1,5 @@
 import { sendWebviewMessage } from "@/utils";
+import { syncWhiskerUserAgent } from "@/lib/userAgent";
 import useBackupAndRestore from "./useBackupAndRestore";
 import { useEffect } from "react";
 import useMemoizedCallback from "./useMemoizedCallback";
@@ -57,6 +58,9 @@ export default function useWhiskerData(app) {
 
             /** Update Account */
             updateActiveAccount(account);
+
+            /** Apply or adopt the User-Agent */
+            syncWhiskerUserAgent(account.userAgent);
 
             /** Update Settings */
             updateSettings({ ...settings }, false);

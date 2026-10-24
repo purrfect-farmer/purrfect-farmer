@@ -1,4 +1,5 @@
 import farmers from "@/core/farmers";
+import { getSecChUa } from "@purrfect/shared/lib/userAgent/clientHints";
 import { isExtension } from "@/utils";
 
 export function getNetRules(userAgent) {
@@ -53,13 +54,12 @@ export function getNetRules(userAgent) {
           {
             header: "sec-ch-ua",
             operation: "set",
-            value:
-              '"Android WebView";v="131", "Chromium";v="131", "Not_A Brand";v="24"',
+            value: getSecChUa(userAgent),
           },
           {
             header: "sec-ch-ua-mobile",
             operation: "set",
-            value: "?0",
+            value: "?1",
           },
           {
             header: "sec-ch-ua-platform",

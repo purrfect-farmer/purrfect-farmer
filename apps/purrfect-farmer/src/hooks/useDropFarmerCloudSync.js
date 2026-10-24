@@ -1,3 +1,4 @@
+import isValidUserAgent from "@purrfect/shared/lib/userAgent/isValidUserAgent";
 import { customLogger } from "@/utils";
 import toast from "react-hot-toast";
 import { useCallback } from "react";
@@ -31,6 +32,11 @@ export default function useDropFarmerCloudSync({
       headers: instance.api.defaults.headers.common,
       cookies: cookies || [],
     };
+
+    if (isValidUserAgent(instance.userAgent)) {
+      data.userAgent = instance.userAgent;
+    }
+
     customLogger("SYNCING FARMER TO CLOUD", data);
     mutateAsync(data).then(() => {
       toast.success(`${title} - Synced to Cloud`);

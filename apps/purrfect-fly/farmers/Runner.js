@@ -19,7 +19,7 @@ import { REFERRER_MODE } from "../enums/referrer-mode.js";
 import { createFarmerStorage } from "./runner/storage.js";
 import { saveSerialized } from "../lib/db-write.js";
 import { isTransientError } from "./runner/errors.js";
-import { pickUserAgent } from "./runner/user-agent.js";
+import { ensureUserAgent, resolveUserAgent } from "./runner/user-agent.js";
 
 /**
  * @param {import("@purrfect/shared/lib/BaseFarmer.js").default} FarmerClass
@@ -62,11 +62,11 @@ export default function createRunner(FarmerClass) {
 
       this.random = this.account.random(); // Seeded RNG
 
-      /** Static logger and utils, a seeded User-Agent, the captcha solver and the profile setting */
+      /** Static logger and utils, the account's User-Agent, the captcha solver and the profile setting */
       this.configure({
         logger: this.constructor.logger,
         utils: this.constructor.utils,
-        userAgent: pickUserAgent(this.platform, this.random),
+        userAgent: resolveUserAgent(this.account, this.platform, this.random),
         captcha,
         allowProfileUpdates: app.allowProfileUpdates,
       });
@@ -142,6 +142,9 @@ export default function createRunner(FarmerClass) {
     async prepare() {
       /** Refresh Account */
       await this.refreshFarmerAccount();
+
+      /** Store the User-Agent on an account without one */
+      await ensureUserAgent(this);
 
       const needsAuth = !this.cacheAuth || !this.farmer;
 
