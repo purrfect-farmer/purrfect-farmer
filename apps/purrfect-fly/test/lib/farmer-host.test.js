@@ -1,4 +1,5 @@
 import TelegramIdentity from "@purrfect/shared/lib/farmer/TelegramIdentity.js";
+import createDebugger from "@purrfect/shared/lib/farmer/createDebugger.js";
 import TaskRunner from "@purrfect/shared/lib/farmer/TaskRunner.js";
 import TelegramActions from "@purrfect/shared/lib/farmer/TelegramActions.js";
 import assert from "node:assert/strict";
@@ -250,4 +251,24 @@ test("a task link dwells, and the web app refreshes only for Telegram web apps",
   farmer.launch = { ...farmer.launch, type: "direct" };
   await actions.refreshWebApp();
   assert.equal(calls.length, 2);
+});
+
+test("the debugger prints only while enabled", () => {
+  const printed = [];
+  const original = console.info;
+  let enabled = false;
+
+  console.info = (...args) => printed.push(args);
+
+  try {
+    const debug = createDebugger(() => enabled);
+
+    debug.info("hidden");
+    enabled = true;
+    debug.info("shown", 1);
+  } finally {
+    console.info = original;
+  }
+
+  assert.deepEqual(printed, [["shown", 1]]);
 });

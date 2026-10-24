@@ -2,6 +2,7 @@ import TaskRunner from "./farmer/TaskRunner.js";
 import TelegramActions from "./farmer/TelegramActions.js";
 import TelegramIdentity from "./farmer/TelegramIdentity.js";
 import utils from "../utils/bundle.js";
+import createDebugger from "./farmer/createDebugger.js";
 import createFarmerCore from "./farmer/createFarmerCore.js";
 
 export default class BaseFarmer {
@@ -66,7 +67,6 @@ export default class BaseFarmer {
     /** Host services the farmer's modules work through */
     this.core = createFarmerCore(this);
 
-    /** Joining chats, editing the profile and refreshing the web app */
     this.#telegram = new TelegramActions({
       core: this.core,
       canJoin: (link) => this.canJoinTelegramLink(link),
@@ -83,7 +83,6 @@ export default class BaseFarmer {
       setTelegramWebApp: (webApp) => this.setTelegramWebApp(webApp),
     });
 
-    /** The tasks this run executes, one at a time */
     this.#tasks = new TaskRunner({
       core: this.core,
       quickRun: () => this.quickRun,
@@ -109,18 +108,7 @@ export default class BaseFarmer {
 
     /* Debugger */
     this.debug = true;
-    this.debugger = new Proxy(globalThis.console, {
-      get: (target, prop) => {
-        if (typeof target[prop] === "function") {
-          return (...args) => {
-            if (this.debug) {
-              target[prop](...args);
-            }
-          };
-        }
-        return target[prop];
-      },
-    });
+    this.debugger = createDebugger(() => this.debug);
 
     /** Whether this run was initiated by the scheduler (vs. user-triggered) */
     this.scheduled = false;
