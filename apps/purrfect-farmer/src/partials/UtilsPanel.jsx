@@ -1,4 +1,8 @@
-import { HiArrowTopRightOnSquare, HiUserPlus } from "react-icons/hi2";
+import {
+  HiArrowTopRightOnSquare,
+  HiRocketLaunch,
+  HiUserPlus,
+} from "react-icons/hi2";
 import { cn, isBotURL } from "@/utils";
 import { memo } from "react";
 
@@ -97,6 +101,24 @@ export default memo(function UtilsPanel() {
                 <HiArrowTopRightOnSquare className="w-4 h-4 " /> Open
               </button>
             </div>
+
+            {/* Launch Button, opening a bot's web app even from a plain start link */}
+            <button
+              disabled={!isBotURL(telegramLink)}
+              className={cn(
+                "inline-flex gap-2 items-center justify-center",
+                "py-2 px-4 rounded-lg font-bold",
+                "text-white bg-purple-500 disabled:cursor-not-allowed",
+              )}
+              onClick={() => {
+                dispatchAndOpenTelegramBot(telegramLink, {
+                  forceWebview: true,
+                });
+                dispatchAndSetShowUtilsPanel(false);
+              }}
+            >
+              <HiRocketLaunch className="w-4 h-4 " /> Launch
+            </button>
             <p
               className={cn(
                 "bg-yellow-100",
@@ -105,7 +127,8 @@ export default memo(function UtilsPanel() {
               )}
             >
               You can paste any valid telegram link e.g your referral link, a
-              channel etc.
+              channel etc. Launch opens a bot&apos;s web app, even from a plain
+              start link.
             </p>
           </div>
         </Tabs.Content>
