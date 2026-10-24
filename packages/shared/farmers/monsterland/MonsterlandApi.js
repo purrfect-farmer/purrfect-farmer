@@ -160,6 +160,11 @@ export default class MonsterlandApi extends FarmerModule {
     return this.postToApi("/daily-streak", { action: "claim" });
   }
 
+  /** Have the backend check the account joined the official channel */
+  checkStreakChannel() {
+    return this.postToApi("/daily-streak", { action: "check_channel" });
+  }
+
   /** Use or buy a vital item on a monster */
   applyVitalItem(monsterId, itemId, action) {
     return this.postToApi("/vitals", {

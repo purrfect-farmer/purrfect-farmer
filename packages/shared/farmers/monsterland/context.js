@@ -2,6 +2,7 @@ import AdClients from "../../lib/farmer/AdClients.js";
 import AutoSnapshot from "../../lib/farmer/AutoSnapshot.js";
 import AutoWalletConnector from "../../lib/farmer/AutoWalletConnector.js";
 import {
+  ADEXIUM_WIDGET_ID,
   FLAGGED_WITHDRAWAL_STATUSES,
   GIGAPUB_PROJECT_ID,
   MONETAG_ZONE_ID,
@@ -55,6 +56,7 @@ export function createContext(core) {
     monetag: { zoneId: MONETAG_ZONE_ID },
     gigapub: { projectId: GIGAPUB_PROJECT_ID },
     tads: { widgetId: TADS_WIDGET_ID },
+    adexium: { wid: ADEXIUM_WIDGET_ID },
   });
 
   ctx.walletVersion = new WalletVersion(() => core.storage);

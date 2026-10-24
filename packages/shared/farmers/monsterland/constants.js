@@ -25,8 +25,22 @@ export const GIGAPUB_PROJECT_ID = "7583";
 
 export const TADS_WIDGET_ID = "11616";
 
+export const ADEXIUM_WIDGET_ID = "f77b8bd0-ebfa-4d4e-a1ac-6bde82688a7c";
+
+/** The refusal a streak claim gets until the account is in the official channel */
+export const NEED_OFFICIAL_CHANNEL_REASON = "NEED_OFFICIAL_CHANNEL";
+
+/** The channel the page links when the refusal names none */
+export const OFFICIAL_CHANNEL_URL = "https://t.me/monsterland_official";
+
 /** Providers the farmer can play, the rest are reported failed so the backend falls back */
-export const PLAYABLE_AD_PROVIDERS = ["adsgram", "monetag", "gigapub", "tads"];
+export const PLAYABLE_AD_PROVIDERS = [
+  "adsgram",
+  "monetag",
+  "gigapub",
+  "tads",
+  "adexium",
+];
 
 /** How the page waits on an ad's server side settlement */
 export const AD_RESULT_POLL_SECONDS = 2.5;

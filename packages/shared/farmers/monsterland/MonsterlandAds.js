@@ -112,18 +112,25 @@ export default class MonsterlandAds extends FarmerModule {
         await this.ctx.ads.tads.watch();
         return this.waitForAdResult(adTxId);
 
-      case "gigapub": {
+      case "gigapub":
         await this.ctx.ads.gigapub.watch();
+        return this.completeWatchedAd(adTxId, provider);
 
-        const result = await this.ctx.api.completeAd(adTxId, "gigapub");
-
-        if (!result.ok) {
-          throw new Error(result.data["error"] || "GigaPub was not verified");
-        }
-
-        return result.data;
-      }
+      case "adexium":
+        await this.ctx.ads.adexium.watch();
+        return this.completeWatchedAd(adTxId, provider);
     }
+  }
+
+  /** Report an ad the page settles itself once it has played */
+  async completeWatchedAd(adTxId, provider) {
+    const result = await this.ctx.api.completeAd(adTxId, provider);
+
+    if (!result.ok) {
+      throw new Error(result.data["error"] || `${provider} was not verified`);
+    }
+
+    return result.data;
   }
 
   /** Poll for an ad the provider settles with the backend directly */

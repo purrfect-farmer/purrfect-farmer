@@ -4,6 +4,8 @@ import {
   MISSION_BUCKETS,
   MISSION_DWELL_SECONDS,
   MISSION_SKIP_REASONS,
+  NEED_OFFICIAL_CHANNEL_REASON,
+  OFFICIAL_CHANNEL_URL,
   REFERRAL_GOAL_IDS,
 } from "./constants.js";
 
@@ -28,7 +30,13 @@ export default class MonsterlandRewards extends FarmerModule {
       return;
     }
 
-    const result = await this.ctx.api.claimDailyStreak();
+    let result = await this.ctx.api.claimDailyStreak();
+
+    if (result.data?.["reason"] === NEED_OFFICIAL_CHANNEL_REASON) {
+      if (!(await this.joinOfficialChannel(result.data["channelUrl"]))) return;
+
+      result = await this.ctx.api.claimDailyStreak();
+    }
 
     if (!result.ok) {
       this.logger.warn("Failed to claim streak:", result.data["error"]);
@@ -37,6 +45,27 @@ export default class MonsterlandRewards extends FarmerModule {
 
     this.ctx.state.apply(result.data);
     this.logger.success(`Claimed streak day ${(streak["days"] || 0) + 1}.`);
+  }
+
+  /** Join the official channel the streak asks for, and have the backend check it */
+  async joinOfficialChannel(channelUrl) {
+    const url = channelUrl || OFFICIAL_CHANNEL_URL;
+
+    if (!this.core.telegram.validateTask(url)) {
+      this.logger.warn("The streak needs the official channel, skipping it.");
+      return false;
+    }
+
+    await this.core.telegram.tryToJoin(url);
+
+    const check = await this.ctx.api.checkStreakChannel();
+
+    if (!check.ok) {
+      this.logger.warn("The official channel was not confirmed yet.");
+      return false;
+    }
+
+    return true;
   }
 
   /** Claim referral lumis, the newcomer bonus and every goal reached */

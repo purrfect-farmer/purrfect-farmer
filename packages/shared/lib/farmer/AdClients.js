@@ -1,3 +1,4 @@
+import AdexiumClient from "../ads/AdexiumClient.js";
 import AdsGramClient from "../ads/AdsGramClient.js";
 import GigaPubClient from "../ads/GigaPubClient.js";
 import MonetagClient from "../ads/MonetagClient.js";
@@ -5,6 +6,7 @@ import TadsClient from "../ads/TadsClient.js";
 
 /** The ad networks a drop can show, by name */
 const AD_CLIENTS = Object.freeze({
+  adexium: AdexiumClient,
   adsgram: AdsGramClient,
   monetag: MonetagClient,
   gigapub: GigaPubClient,
@@ -35,6 +37,10 @@ export default class AdClients {
     }
 
     return this.clients.get(name);
+  }
+
+  get adexium() {
+    return this.get("adexium");
   }
 
   get adsgram() {
