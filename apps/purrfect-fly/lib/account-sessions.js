@@ -21,7 +21,7 @@ async function resetClient(account, client) {
   GramClient.delete(account.session);
 }
 
-/** Run work with a connected client, retrying with a fresh client on failure */
+/** Run work with a connected client, retrying on failure and starting cold when it could not connect */
 export async function withAccountSession(
   account,
   work,
@@ -29,10 +29,12 @@ export async function withAccountSession(
 ) {
   for (let attempt = 1; attempt <= attempts; attempt++) {
     let client;
+    let connected = false;
 
     try {
       client = await GramClient.create(account.session);
       await client.connect();
+      connected = true;
 
       return { success: true, result: await work(client, account) };
     } catch (error) {
@@ -41,7 +43,8 @@ export async function withAccountSession(
         error,
       );
 
-      await resetClient(account, client);
+      /** A connected client may be shared with a running farmer, so only one that failed to connect is destroyed */
+      if (!connected) await resetClient(account, client);
 
       if (attempt < attempts) {
         await utils.delayForSeconds(attempt * 5);
