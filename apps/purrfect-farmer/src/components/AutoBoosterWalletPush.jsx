@@ -21,12 +21,12 @@ export default function AutoBoosterWalletPush({ account }) {
 
   return (
     <div className="flex flex-col gap-2">
-      <AutoWalletsPushResult data={mutation.data} error={mutation.error} />
-
       <PrimaryButton onClick={pushWallet} disabled={mutation.isPending}>
         <MdCloudUpload className="size-4" />
         {mutation.isPending ? "Pushing..." : "Push wallet to server"}
       </PrimaryButton>
+
+      <AutoWalletsPushResult data={mutation.data} error={mutation.error} />
     </div>
   );
 }

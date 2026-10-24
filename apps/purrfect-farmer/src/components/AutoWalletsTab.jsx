@@ -1,3 +1,5 @@
+import { getWalletPushLabel, getWalletPushScope } from "@/lib/autoCloudWallets";
+
 import Alert from "./Alert";
 import AutoAccountsChooser from "./AutoAccountsChooser";
 import AutoStickyContainer from "./AutoStickyContainer";
@@ -5,8 +7,6 @@ import AutoWalletsPushResult from "./AutoWalletsPushResult";
 import LabelToggle from "./LabelToggle";
 import { MdCloudUpload } from "react-icons/md";
 import PrimaryButton from "./PrimaryButton";
-import { WALLET_PUSH_SCOPE } from "@purrfect/shared/enums/wallet-push-scope";
-import toast from "react-hot-toast";
 import useAuto from "@/hooks/useAuto";
 import useAutoAccountsSelector from "@/hooks/useAutoAccountsSelector";
 import useAutoCloudWalletsPushMutation from "@/hooks/useAutoCloudWalletsPushMutation";
@@ -16,25 +16,19 @@ import { useState } from "react";
 export default function AutoWalletsTab() {
   const { accounts } = useAuto();
   const { enabled: cloudEnabled } = useCloudQueryOptions();
-  const [includeAccounts, setIncludeAccounts] = useState(true);
+  const [includeMaster, setIncludeMaster] = useState(true);
   const selector = useAutoAccountsSelector(accounts);
   const { selectedAccounts } = selector;
 
   const mutation = useAutoCloudWalletsPushMutation();
   const disabled = !cloudEnabled || mutation.isPending;
+  const pushScope = getWalletPushScope(
+    includeMaster,
+    selectedAccounts.length > 0,
+  );
 
   const pushWallets = () => {
-    if (includeAccounts && selectedAccounts.length === 0) {
-      toast.error("No accounts selected.");
-      return;
-    }
-
-    mutation.mutate({
-      pushScope: includeAccounts
-        ? WALLET_PUSH_SCOPE.ALL
-        : WALLET_PUSH_SCOPE.MASTER,
-      accounts: includeAccounts ? selectedAccounts : [],
-    });
+    mutation.mutate({ pushScope, accounts: selectedAccounts });
   };
 
   return (
@@ -49,32 +43,26 @@ export default function AutoWalletsTab() {
       ) : null}
 
       <AutoStickyContainer className="z-10 gap-2">
-        {/* Include accounts */}
+        {/* Include master */}
         <LabelToggle
-          onChange={(ev) => setIncludeAccounts(ev.target.checked)}
-          checked={includeAccounts}
+          onChange={(ev) => setIncludeMaster(ev.target.checked)}
+          checked={includeMaster}
           disabled={disabled}
         >
-          Push accounts
+          Push master
         </LabelToggle>
 
         {/* Push button */}
-        <PrimaryButton onClick={pushWallets} disabled={disabled}>
+        <PrimaryButton onClick={pushWallets} disabled={disabled || !pushScope}>
           <MdCloudUpload className="size-4" />
-          {mutation.isPending
-            ? "Pushing..."
-            : includeAccounts
-              ? "Push all Wallets"
-              : "Push Master Wallet"}
+          {mutation.isPending ? "Pushing..." : getWalletPushLabel(pushScope)}
         </PrimaryButton>
       </AutoStickyContainer>
 
       <AutoWalletsPushResult data={mutation.data} error={mutation.error} />
 
       {/* Accounts Chooser */}
-      {includeAccounts ? (
-        <AutoAccountsChooser {...selector} disabled={disabled} />
-      ) : null}
+      <AutoAccountsChooser {...selector} disabled={disabled} />
     </div>
   );
 }

@@ -1,13 +1,13 @@
 import {
   accountWalletRemoval,
   getCloudErrorMessage,
+  getWalletPushScope,
   masterWalletRemoval,
   pushAutoCloudWallets,
   removeAutoCloudWallets,
 } from "@/lib/autoCloudWallets";
 
 import AutoWalletTransfer from "@/lib/AutoWalletTransfer";
-import { WALLET_PUSH_SCOPE } from "@purrfect/shared/enums/wallet-push-scope";
 import { downloadFile } from "@/utils";
 import { encryption } from "@/services/encryption";
 import { getWalletFromMnemonic } from "@purrfect/shared/lib/ton/wallet";
@@ -56,9 +56,7 @@ async function syncRotatedCloudWallets(
     password,
     master,
     accounts,
-    pushScope: accounts.length
-      ? WALLET_PUSH_SCOPE.ALL
-      : WALLET_PUSH_SCOPE.MASTER,
+    pushScope: getWalletPushScope(true, accounts.length > 0),
   });
 
   const userIds = new Map(

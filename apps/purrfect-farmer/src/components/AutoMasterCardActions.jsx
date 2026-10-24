@@ -3,11 +3,17 @@ import {
   LiaFireAltSolid,
   LiaUserNinjaSolid,
 } from "react-icons/lia";
-import { MdCancel, MdCheckCircle, MdOutlineDoubleArrow } from "react-icons/md";
+import {
+  MdCancel,
+  MdCheckCircle,
+  MdCloudUpload,
+  MdOutlineDoubleArrow,
+} from "react-icons/md";
 
 import { AutoMasterCardButton } from "./AutoMasterCardButton";
 import AutoImportExportDialog from "./AutoImportExportDialog";
 import AutoRotationDialog from "./AutoRotationDialog";
+import AutoWalletsPushDialog from "./AutoWalletsPushDialog";
 import AutoSendDialog from "./AutoSendDialog";
 import AutoSettingsDialog from "./AutoSettingsDialog";
 import AutoTransferDialog from "./AutoTransferDialog";
@@ -194,6 +200,20 @@ export function AutoMasterCardActions() {
           </Dialog.Trigger>
 
           <AutoRotationDialog />
+        </Dialog.Root>
+
+        {/* Push */}
+        <Dialog.Root>
+          <Dialog.Trigger asChild>
+            <AutoMasterCardButton
+              title="Push wallets to Cloud"
+              icon={MdCloudUpload}
+            >
+              Push
+            </AutoMasterCardButton>
+          </Dialog.Trigger>
+
+          <AutoWalletsPushDialog />
         </Dialog.Root>
 
         {/* Import / Export */}
