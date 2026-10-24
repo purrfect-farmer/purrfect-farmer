@@ -13,7 +13,7 @@ const GRID_SIZES = {
 const defaultRenderList = (content) => content;
 
 /** Scroll Trigger into View */
-const handleTriggerClick = (ev) => {
+export const handleTriggerClick = (ev) => {
   ev.currentTarget.scrollIntoView({
     inline: "center",
     block: "nearest",

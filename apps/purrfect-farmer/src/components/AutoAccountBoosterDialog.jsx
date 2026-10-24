@@ -16,6 +16,7 @@ import AutoVersionBadge from "./AutoVersionBadge";
 import { HiOutlineXMark } from "react-icons/hi2";
 import { MdOutlineContentCopy } from "react-icons/md";
 import { cn } from "@/utils";
+import { handleTriggerClick } from "./Tabs";
 import copy from "copy-to-clipboard";
 import toast from "react-hot-toast";
 import useAuto from "@/hooks/useAuto";
@@ -24,8 +25,9 @@ import { useState } from "react";
 const BoosterTabTrigger = ({ title, value }) => (
   <Tabs.Trigger
     value={value}
+    onClick={handleTriggerClick}
     className={cn(
-      "px-4 py-2 truncate",
+      "px-4 py-2 truncate shrink-0",
       "font-bold cursor-pointer",
       "text-neutral-500 dark:text-neutral-400 hover:text-orange-500",
       "data-[state=active]:text-orange-500 border-b-2 border-b-transparent",
@@ -148,12 +150,7 @@ export default function AutoAccountBooster({ account }) {
             onValueChange={setTab}
             className="flex flex-col size-full overflow-hidden"
           >
-            <Tabs.List
-              className={cn(
-                "grid shrink-0",
-                config.native ? "grid-cols-5" : "grid-cols-6",
-              )}
-            >
+            <Tabs.List className="flex shrink-0 overflow-x-auto">
               <BoosterTabTrigger title="Boost" value="boost" />
               <BoosterTabTrigger title="Collect" value="collect" />
               <BoosterTabTrigger title="Withdraw" value="withdraw" />
