@@ -1,5 +1,13 @@
 import FarmerModule from "../../lib/farmer/FarmerModule.js";
-import { TAP_V2_BATCH_MAX } from "./constants.js";
+import { TAP_V2_BATCH_MAX, THROWN_STATUSES } from "./constants.js";
+
+/** The drop's endpoint for one action */
+const actionUrl = (action) =>
+  `https://atfminers.asloni.online/miner/index.php?action=${action}`;
+
+/** The drop refuses an action with a 4xx JSON body, which is read like a reply */
+const readsRefusalBody = (status) =>
+  status < 400 || (status < 500 && !THROWN_STATUSES.has(status));
 
 /** The drop's API: one method per action */
 export default class ATFApi extends FarmerModule {
@@ -10,12 +18,25 @@ export default class ATFApi extends FarmerModule {
   /** Post one action to the drop, returning the response body */
   makeAction(action, data = {}, config = {}) {
     return this.api
-      .post(
-        `https://atfminers.asloni.online/miner/index.php?action=${action}`,
-        data,
-        config,
-      )
+      .post(actionUrl(action), data, config)
       .then((res) => res.data);
+  }
+
+  /** Post an action whose caller checks the reply, returning a 4xx refusal body instead of throwing */
+  async makeRefusableAction(action, data = {}, config = {}) {
+    const res = await this.api.post(actionUrl(action), data, {
+      ...config,
+      validateStatus: readsRefusalBody,
+    });
+
+    const isRefusal = res.status >= 400;
+    const hasBody = res.data !== null && typeof res.data === "object";
+
+    if (isRefusal && !hasBody) {
+      throw new Error(`Request failed with status code ${res.status}`);
+    }
+
+    return res.data;
   }
 
   /* --------------------------------------------------------------------- */
@@ -86,7 +107,7 @@ export default class ATFApi extends FarmerModule {
 
   /** Activate Boost */
   activateBoost(preview) {
-    return this.makeAction("activate_boost", {
+    return this.makeRefusableAction("activate_boost", {
       display_preview: Number(preview),
     });
   }
@@ -124,7 +145,7 @@ export default class ATFApi extends FarmerModule {
     proof,
     refreshHolding = 1,
   }) {
-    return this.makeAction("sync_wallet", {
+    return this.makeRefusableAction("sync_wallet", {
       refresh_holding: refreshHolding,
       public_key: publicKey || "",
       wallet_state_init: walletStateInit || "",

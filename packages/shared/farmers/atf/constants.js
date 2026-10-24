@@ -1,3 +1,6 @@
+/** 4xx statuses that still throw: auth resets the farmer and 429 is retried */
+export const THROWN_STATUSES = new Set([401, 403, 418, 429]);
+
 /** Backstop for the withdrawal captcha loop */
 export const WITHDRAWAL_CAPTCHA_ATTEMPTS = 5;
 

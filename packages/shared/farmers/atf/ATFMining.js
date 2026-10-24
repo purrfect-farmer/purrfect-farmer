@@ -477,6 +477,11 @@ export default class ATFMining extends FarmerModule {
       });
       this.applyMiningState(result);
       this.logger.success("Boost activated!");
+    } else {
+      this.logger.warn(
+        "Boost refused:",
+        result?.["message"] || result?.["reason"] || result?.["status"],
+      );
     }
   }
 

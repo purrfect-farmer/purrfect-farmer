@@ -58,6 +58,13 @@ export default class ATFActivity extends FarmerModule {
 
     const result = await this.ctx.api.resyncWallet();
 
+    if (result?.["status"] !== "success") {
+      this.logger.warn(
+        "Presence sync refused:",
+        result?.["message"] || result?.["reason"] || result?.["status"],
+      );
+    }
+
     if (result?.["user"]) {
       Object.assign(user, result["user"]);
     }
