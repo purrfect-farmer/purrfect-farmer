@@ -9,6 +9,7 @@ import {
   matchTelegramWebUrl,
   readLaunchParams,
 } from "@/utils";
+import { applyAccountDevice } from "./device-profile/applyDeviceProfile";
 import { injectTelegramWebviewProxy } from "./webview-proxy/webview-proxy-main";
 import { retrieveRawLaunchParams } from "@telegram-apps/bridge";
 
@@ -57,13 +58,12 @@ if (!matchTelegramWebUrl()) {
         );
       };
 
-      const overrideUserAgent = (userAgent) => {
-        /** Override User Agent */
+      /** Make the page see the account's phone */
+      const overrideDevice = (userAgent) => {
         if (IS_ALLOWED_HOST) {
-          Object.defineProperty(navigator, "userAgent", {
-            get: () => userAgent,
-            configurable: true,
-          });
+          const userId = getTelegramWebApp().initDataUnsafe?.user?.id;
+
+          applyAccountDevice(userId, userAgent);
         }
       };
 
@@ -97,7 +97,7 @@ if (!matchTelegramWebUrl()) {
 
               switch (action) {
                 case "set-user-agent":
-                  overrideUserAgent(data.userAgent);
+                  overrideDevice(data.userAgent);
                   reply(true);
                   break;
 

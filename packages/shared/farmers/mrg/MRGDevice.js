@@ -9,7 +9,6 @@ export default class MRGDevice extends FarmerModule {
     return (this.device ||= createDevice(
       this.core.userId(),
       this.core.userAgent,
-      { prefix: "mrg-device" },
     ));
   }
 

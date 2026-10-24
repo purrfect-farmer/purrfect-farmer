@@ -11,7 +11,6 @@ export default class DiggoBrowser extends FarmerModule {
     return (this.device ||= createDevice(
       this.core.userId(),
       this.core.userAgent,
-      { prefix: "diggo-device" },
     ));
   }
 

@@ -396,8 +396,8 @@ test("launch params come from Telegram's parser, or raw when it refuses them", (
 test("the device profile names the phone and Android version of its user agent", () => {
   const userAgent =
     "Mozilla/5.0 (Linux; Android 15; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/155.0.8059.79 Mobile Safari/537.36 Telegram-Android/13.1.0 (Tecno TECNO KI5q; Android 15; SDK 35; HIGH)";
-  const named = createDevice(42, userAgent, { prefix: "example" }).profile;
-  const unnamed = createDevice(42, "", { prefix: "example" }).profile;
+  const named = createDevice(42, userAgent).profile;
+  const unnamed = createDevice(42, "").profile;
 
   assert.equal(named.ua.model, "TECNO KI5q");
   assert.equal(named.ua.platformVersion, "15.0.0");

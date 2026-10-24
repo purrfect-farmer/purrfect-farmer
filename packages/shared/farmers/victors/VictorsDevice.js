@@ -8,7 +8,6 @@ export default class VictorsDevice extends FarmerModule {
     return (this.device ||= createDevice(
       this.core.userId(),
       this.core.userAgent,
-      { prefix: "victors-device" },
     ));
   }
 }

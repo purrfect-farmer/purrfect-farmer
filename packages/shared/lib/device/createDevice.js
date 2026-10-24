@@ -1,6 +1,6 @@
 import { DEFAULT_WEB_APP_VERSION } from "../../utils/telegram.js";
-import { getChromeVersion } from "../userAgent/clientHints.js";
-import seedrandom from "seedrandom";
+import { getBrands } from "../userAgent/clientHints.js";
+import alea from "seedrandom/lib/alea.js";
 
 /** Android phones the profile is drawn from, as Telegram's WebView reports them */
 const PHONES = [
@@ -171,11 +171,10 @@ function readLocale() {
   }
 }
 
-/** A stable Android Telegram profile for one account, shaped like the fingerprint the drops collect; `prefix` keeps each drop's profile apart */
-export function createDevice(seed, userAgent = "", { prefix }) {
-  const random = seedrandom(`${prefix}:${seed}`);
+/** A stable Android Telegram profile for one account, the same phone in every drop and page */
+export function createDevice(seed, userAgent = "") {
+  const random = alea(`device:${seed}`);
   const phone = { ...pick(random, PHONES), ...readTelegramDevice(userAgent) };
-  const chrome = getChromeVersion(userAgent);
   const { tz, locale } = readLocale();
   const language = locale.split("-")[0];
   const height = phone.h - TG_CHROME_HEIGHT - between(random, 0, 24);
@@ -214,11 +213,9 @@ export function createDevice(seed, userAgent = "", { prefix }) {
     math: MATH,
     media: { mic: 1, cam: between(random, 1, 2), out: 1 },
     ua: {
-      brands: [
-        `Chromium ${chrome}`,
-        `Android WebView ${chrome}`,
-        "Not_A Brand 24",
-      ],
+      brands: getBrands(userAgent).map(
+        ({ brand, version }) => `${brand} ${version}`,
+      ),
       mobile: true,
       platform: "Android",
       model: phone.model,
@@ -251,6 +248,9 @@ export function createDevice(seed, userAgent = "", { prefix }) {
 
   return {
     profile,
+
+    /** The unrounded `devicePixelRatio` the phone's browser reports */
+    devicePixelRatio: phone.dpr,
 
     /** The login summary, as Victor's page builds it in `OA()` */
     getLoginDevice() {
