@@ -1,12 +1,7 @@
-import FarmerModule from "../../lib/farmer/FarmerModule.js";
+import AutoModule from "../../lib/farmer/AutoModule.js";
 
 /** The account as the Auto system drives it */
-export default class DiggoAuto extends FarmerModule {
-  /** Bind a wallet from its phrase, since the game wants a signed TON proof */
-  connectWallet(wallet) {
-    return this.ctx.connector.connect(wallet);
-  }
-
+export default class DiggoAuto extends AutoModule {
   /** Claim what is pending so the summary reflects the current balance */
   async refreshState() {
     await this.ctx.state.ensureLoaded();

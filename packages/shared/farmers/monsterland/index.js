@@ -79,11 +79,6 @@ export default class MonsterlandFarmer extends BaseFarmer {
     return this.ctx.state.load();
   }
 
-  /** Load data */
-  async load() {
-    await this.ctx.walletVersion.load();
-  }
-
   /** Get Referral Link */
   getReferralLink() {
     return this.ctx.session.getReferralLink();
@@ -96,45 +91,5 @@ export default class MonsterlandFarmer extends BaseFarmer {
 
   createTools() {
     return this.ctx.tools.create();
-  }
-
-  /* --------------------------------------------------------------------- */
-  /* Auto contract                                                         */
-  /* --------------------------------------------------------------------- */
-
-  connectAutoWallet(wallet) {
-    return this.ctx.auto.connectWallet(wallet);
-  }
-
-  refreshAutoState() {
-    return this.ctx.auto.refreshState();
-  }
-
-  refreshAutoSummary() {
-    return this.ctx.auto.refreshSummary();
-  }
-
-  startAutoMining() {
-    return this.ctx.auto.startMining();
-  }
-
-  getAutoSummary() {
-    return this.ctx.auto.summary();
-  }
-
-  storeAutoSnapshot() {
-    return this.ctx.snapshot.store();
-  }
-
-  readAutoWithdrawals() {
-    return this.ctx.snapshot.readWithdrawals();
-  }
-
-  withdraw(options) {
-    return this.ctx.flow.withdraw(options);
-  }
-
-  hasPendingWithdrawal() {
-    return this.ctx.withdrawals.hasPending();
   }
 }

@@ -1,3 +1,4 @@
+import AutoModule from "@purrfect/shared/lib/farmer/AutoModule.js";
 import assert from "node:assert/strict";
 import fs from "node:fs";
 import { test } from "node:test";
@@ -80,6 +81,19 @@ for (const id of FARMER_IDS) {
 
     for (const name of CONTRACT_METHODS) {
       assert.equal(typeof farmer[name], "function", `${id}.${name}`);
+    }
+  });
+
+  test(`${id} farmer works through a frozen ctx`, async () => {
+    const FarmerClass = await loadFarmer(id);
+    const { ctx, core } = new FarmerClass();
+
+    assert.ok(Object.isFrozen(ctx), "ctx is frozen");
+    assert.ok(Object.isFrozen(core), "core is frozen");
+    assert.ok(ctx.auto instanceof AutoModule, "ctx.auto is an AutoModule");
+
+    for (const name of ["flow", "snapshot", "walletVersion", "withdrawals"]) {
+      assert.ok(ctx[name], `ctx.${name}`);
     }
   });
 

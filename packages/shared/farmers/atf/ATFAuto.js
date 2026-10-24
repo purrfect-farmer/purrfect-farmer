@@ -1,7 +1,7 @@
-import FarmerModule from "../../lib/farmer/FarmerModule.js";
+import AutoModule from "../../lib/farmer/AutoModule.js";
 
 /** The account as the Auto system drives it */
-export default class ATFAuto extends FarmerModule {
+export default class ATFAuto extends AutoModule {
   /** Connect a TON wallet, optionally re-reading the account afterwards */
   async connectWallet({ phrase, version, refresh = false }) {
     try {
@@ -80,5 +80,10 @@ export default class ATFAuto extends FarmerModule {
         flags,
       },
     };
+  }
+
+  /** Both withdrawal gates, from the same read the queue uses */
+  withdrawalGuard() {
+    return this.ctx.withdrawal.getWithdrawalGuard();
   }
 }

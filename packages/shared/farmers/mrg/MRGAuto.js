@@ -1,7 +1,7 @@
-import FarmerModule from "../../lib/farmer/FarmerModule.js";
+import AutoModule from "../../lib/farmer/AutoModule.js";
 
 /** The account as the Auto system drives it */
-export default class MRGAuto extends FarmerModule {
+export default class MRGAuto extends AutoModule {
   /** Claim pending mining so the summary reflects the current balance */
   refreshState() {
     return this.ctx.mining.claimPendingMining();
@@ -12,11 +12,6 @@ export default class MRGAuto extends FarmerModule {
     await this.ctx.state.load();
 
     return this.summary();
-  }
-
-  /** Bind a wallet, signing with its phrase since the drop wants a TON proof */
-  connectWallet(wallet) {
-    return this.ctx.connector.connect(wallet);
   }
 
   /** Pay the one-time verification from the wallet's phrase, connecting the wallet first when the account has none */

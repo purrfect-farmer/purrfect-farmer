@@ -2,20 +2,7 @@ import * as changeKeys from "change-case/keys";
 
 import seedrandom from "seedrandom";
 import utils from "../utils/bundle.js";
-import AutoSnapshot from "./farmer/AutoSnapshot.js";
-import AutoWalletConnector from "./farmer/AutoWalletConnector.js";
-import WalletConnectPrompts from "./farmer/WalletConnectPrompts.js";
-import WalletVersion from "./farmer/WalletVersion.js";
-import WithdrawalFlow from "./farmer/WithdrawalFlow.js";
-import createAutoWalletTools from "./farmer/autoWalletTools.js";
 import createFarmerCore from "./farmer/createFarmerCore.js";
-import {
-  formatAccountLink,
-  formatAmount,
-  logCurrentUser,
-  logMiningRateBreakdown,
-} from "./farmer/format.js";
-import { checkTokenContract, readOnChainHolding } from "./farmer/onChain.js";
 
 export default class BaseFarmer {
   static id = "base-farmer";
@@ -55,11 +42,11 @@ export default class BaseFarmer {
    */
   static auto = null;
 
+  /** The drop's modules, which each farmer builds from its `context.js` */
+  ctx = null;
+
   /** Tools built on first read, once the subclass's modules exist */
   #tools = null;
-
-  /** Shared collaborators driven by the overridable hooks */
-  #hookedCollaborators = null;
 
   constructor({ referralLink = null } = {}) {
     /** Host services the farmer's modules work through */
@@ -372,7 +359,7 @@ export default class BaseFarmer {
 
   /** Load data, including the wallet version an Auto connected with */
   async load() {
-    await this.#hooked.walletVersion.load();
+    await this.ctx.walletVersion.load();
   }
 
   /** Persist data */
@@ -623,260 +610,78 @@ export default class BaseFarmer {
   }
 
   /* --------------------------------------------------------------------- */
-  /* Auto adapter                                                          */
+  /* Auto contract                                                         */
   /* --------------------------------------------------------------------- */
-
-  /** Shared collaborators driven by the hooks below, created on first use */
-  get #hooked() {
-    return (this.#hookedCollaborators ??= this.#createHookedCollaborators());
-  }
-
-  /** Wire the shared collaborators to this farmer's overridable hooks */
-  #createHookedCollaborators() {
-    const walletVersion = new WalletVersion(() => this.storage);
-    const prompts = new WalletConnectPrompts({
-      core: this.core,
-      connect: (wallet) => this.connectAutoWallet(wallet),
-      ensureLoaded: () => this.ensureStateLoaded(),
-      afterConnected: (wallet) => this.afterDerivedWalletConnected(wallet),
-    });
-
-    return {
-      walletVersion,
-      prompts,
-      connector: new AutoWalletConnector({
-        connectAddress: (address) => this.connectWalletAddress(address),
-        rememberVersion: (version) => walletVersion.remember(version),
-        summary: () => this.getAutoSummary(),
-        refreshSummary: () => this.refreshAutoSummary(),
-        ensureLoaded: () => this.ensureStateLoaded(),
-      }),
-      flow: new WithdrawalFlow({
-        core: this.core,
-        place: (options) => this.placeWithdrawal(options),
-        minimum: () => this.getMinimumWithdrawal(),
-        logStatus: () => this.logWithdrawalStatus(),
-      }),
-      snapshot: new AutoSnapshot({
-        core: this.core,
-        summary: () => this.getAutoSummary(),
-        withdrawals: () => this.getAutoWithdrawals(),
-      }),
-    };
-  }
-
-  /** The drop's declared minimum withdrawal, overridden by farmers whose backend publishes a live one */
-  getMinimumWithdrawal() {
-    return this.#hooked.flow.declaredMinimum();
-  }
-
-  /** The drop's token symbol, as its Auto descriptor names it */
-  getAutoToken() {
-    return this.#hooked.flow.token();
-  }
-
-  /** Read the drop's state once, overridden by farmers that keep one */
-  async ensureStateLoaded() {}
-
-  /** Bind an address to the account, implemented by farmers using the default `connectAutoWallet`
-   * @returns {Promise<{ status: boolean, message?: string }>}
-   */
-  async connectWalletAddress(address) {
-    throw new Error(
-      "connectWalletAddress method must be implemented in subclass",
-    );
-  }
-
-  /** Runs once a wallet is bound by `connectAutoWallet`, for drops with a follow-up step */
-  async afterAutoWalletConnected() {}
 
   /** Link a TON wallet to the account and refresh the drop's view of it
    * @param {object} wallet - { phrase, address, version, refresh }
    * @returns {Promise<{ status: boolean, summary?: object, message?: string }>}
    */
   connectAutoWallet(wallet) {
-    return this.#hooked.connector.connect(wallet);
-  }
-
-  /** Runs once the derived wallet is bound, for drops whose manual connect has a follow-up step
-   * @param {object} wallet - { phrase, version, apiKey? }
-   */
-  async afterDerivedWalletConnected(wallet) {}
-
-  /** Bind the wallet derived from this account's Telegram ID, as the TON Wallet Deriver builds it */
-  connectDerivedWalletInteractive() {
-    return this.#hooked.prompts.connectDerived();
-  }
-
-  /** Prompt for a wallet and bind it, implemented by every Auto drop */
-  async connectWalletInteractive() {
-    throw new Error(
-      "connectWalletInteractive method must be implemented in subclass",
-    );
-  }
-
-  /** Unbind the account's wallet, implemented by every Auto drop */
-  async disconnectWalletInteractive() {
-    throw new Error(
-      "disconnectWalletInteractive method must be implemented in subclass",
-    );
-  }
-
-  /** Wallet tools every Auto drop shares, each bound to the drop's own connect and disconnect */
-  createAutoWalletTools() {
-    return createAutoWalletTools({
-      connect: () => this.connectWalletInteractive(),
-      disconnect: () => this.disconnectWalletInteractive(),
-      prompts: this.#hooked.prompts,
-    });
-  }
-
-  /** Bind a wallet held by an Auto account, asking for the Auto password only when the drop needs the phrase */
-  connectAutoAccountWalletInteractive() {
-    return this.#hooked.prompts.connectFromAuto();
-  }
-
-  /** The wallet version an Auto connected with */
-  get connectedWalletVersion() {
-    return this.#hooked.walletVersion.current;
-  }
-
-  /** The drops never report a contract version, so the one the wallet was loaded with is kept here */
-  rememberWalletVersion(version) {
-    return this.#hooked.walletVersion.remember(version);
-  }
-
-  /** The address' balance of the drop's jetton, or TON on a native Auto, straight from the chain */
-  readOnChainHolding(address) {
-    return readOnChainHolding(this.core, address);
-  }
-
-  /** Warn if the drop has moved to a different jetton than the Auto tracks */
-  checkTokenContract(contract) {
-    return checkTokenContract(this.core, contract);
+    return this.ctx.auto.connectWallet(wallet);
   }
 
   /** Settle the drop's one-time wallet verification, for drops whose descriptor is `verifiable`
    * @param {object} wallet - { phrase, version, apiKey? }
    * @returns {Promise<{ status: boolean, skipped?: boolean, message?: string, summary?: object }>}
    */
-  async verifyAutoWallet(wallet) {
-    throw new Error("verifyAutoWallet method must be implemented in subclass");
+  verifyAutoWallet(wallet) {
+    return this.ctx.auto.verifyWallet(wallet);
   }
 
   /** Claim whatever is pending so the next summary reflects current balances */
-  async refreshAutoState() {
-    throw new Error("refreshAutoState method must be implemented in subclass");
+  refreshAutoState() {
+    return this.ctx.auto.refreshState();
   }
 
-  /** Re-read the account and return a fresh summary, defaulting to claim-then-snapshot
-   * @returns {Promise<object>} - see `getAutoSummary`
-   */
-  async refreshAutoSummary() {
-    await this.refreshAutoState();
-    return this.getAutoSummary();
+  /** Re-read the account and return a fresh summary */
+  refreshAutoSummary() {
+    return this.ctx.auto.refreshSummary();
   }
 
-  /** Put the account to work at the holding it now has, and report it afresh
-   * @returns {Promise<object>} - see `getAutoSummary`
-   */
-  async startAutoMining() {
-    return this.refreshAutoSummary();
+  /** Put the account to work at the holding it now has, and report it afresh */
+  startAutoMining() {
+    return this.ctx.auto.startMining();
   }
 
-  /** Normalized account snapshot shared by every Auto drop, without `mining` for drops that mine off the clock
-   * @returns {object} - {
-   *   level, holding, balance, minWithdrawal, verified,
-   *   protection: { revoked, dexBuyer } | undefined,
-   *   mining: { startedAt, freezesAt, frozen } | undefined,
-   *   wallet: { address, version } | null,
-   *   exchange: { name, uid } | null | undefined,
-   *   banned, banReason,
-   *   risk: { score, updatedAt, flags: string[] }
-   * }
-   */
+  /** Normalized account snapshot shared by every Auto drop, see `AutoModule.summary` */
   getAutoSummary() {
-    throw new Error("getAutoSummary method must be implemented in subclass");
+    return this.ctx.auto.summary();
   }
 
   /** Persist what this account looks like right now
    * @returns {Promise<object>} - the snapshot that was stored
    */
   storeAutoSnapshot() {
-    return this.#hooked.snapshot.store();
-  }
-
-  /** A withdrawal that was not attempted, shaped as `withdraw` returns it and logged at `log` unless that is null */
-  skipWithdrawal(message, options) {
-    return this.#hooked.flow.skip(message, options);
-  }
-
-  /** A balance below the minimum as a skip, otherwise null after logging what is available */
-  skipLowBalance(balance, minimum) {
-    return this.#hooked.flow.skipLowBalance(balance, minimum);
-  }
-
-  /** The amount to request: capped, shaved by a random `difference` percent, then floored at the minimum */
-  pickWithdrawalAmount(options) {
-    return this.#hooked.flow.pickAmount(options);
-  }
-
-  /** Tell the admin about a withdrawal, but only when the run was initiated by the scheduler
-   * @param {[string, string][]} rows - label and HTML value, after the account row
-   */
-  notifyWithdrawal(rows) {
-    return this.#hooked.flow.notify(rows);
-  }
-
-  /** Log the payouts the drop has not settled yet, implemented by farmers using `withdrawInteractive` */
-  async logWithdrawalStatus() {}
-
-  /** Withdraw, prompting for the amount */
-  withdrawInteractive() {
-    return this.#hooked.flow.withdrawInteractive();
-  }
-
-  /** Request a withdrawal, only when forced (auto or the Withdraw tool), skipping quietly otherwise
-   * @returns {Promise<{ status: boolean, skipped: boolean, amount: string, message: string }>}
-   */
-  withdraw(options) {
-    return this.#hooked.flow.withdraw(options);
-  }
-
-  /** Place a forced withdrawal of up to `max`, shaved by a random `difference` percent */
-  async placeWithdrawal({ max, difference }) {
-    throw new Error("placeWithdrawal method must be implemented in subclass");
-  }
-
-  /** Whether the drop still owes this account a settlement
-   * @returns {Promise<boolean>}
-   */
-  async hasPendingWithdrawal() {
-    throw new Error(
-      "hasPendingWithdrawal method must be implemented in subclass",
-    );
-  }
-
-  /** Both withdrawal gates for this account
-   * @returns {Promise<{ pending: boolean, flagged: boolean }>}
-   */
-  async getWithdrawalGuard() {
-    return { pending: await this.hasPendingWithdrawal(), flagged: false };
-  }
-
-  /** The account's own withdrawal queue, for the stored snapshot
-   * `approved` is optional, and a drop that omits it reports no payout record at all
-   * @returns {Promise<{ pending: object[], approved?: object[], flagged: object[] } | null>}
-   */
-  async getAutoWithdrawals() {
-    return null;
+    return this.ctx.snapshot.store();
   }
 
   /** The withdrawal queue as the snapshot carries it, or null when unknown
    * @returns {Promise<{ pending: object[], approved: number|null, flagged: object[], checkedAt: number } | null>}
    */
   readAutoWithdrawals() {
-    return this.#hooked.snapshot.readWithdrawals();
+    return this.ctx.snapshot.readWithdrawals();
+  }
+
+  /** Request a withdrawal, only when forced (auto or the Withdraw tool), skipping quietly otherwise
+   * @returns {Promise<{ status: boolean, skipped: boolean, amount: string, message: string }>}
+   */
+  withdraw(options) {
+    return this.ctx.flow.withdraw(options);
+  }
+
+  /** Whether the drop still owes this account a settlement
+   * @returns {Promise<boolean>}
+   */
+  hasPendingWithdrawal() {
+    return this.ctx.auto.hasPendingWithdrawal();
+  }
+
+  /** Both withdrawal gates for this account
+   * @returns {Promise<{ pending: boolean, flagged: boolean }>}
+   */
+  getWithdrawalGuard() {
+    return this.ctx.auto.withdrawalGuard();
   }
 
   /** Notify the server admin, a no-op unless the environment delivers the message
@@ -884,16 +689,6 @@ export default class BaseFarmer {
    */
   async notifyAdmin(messages) {
     return false;
-  }
-
-  /** Format a token amount, keeping sub-1 values readable */
-  formatAmount(value) {
-    return formatAmount(value);
-  }
-
-  /** Log a daily mining rate spread across every period */
-  logMiningRateBreakdown(dailyRate) {
-    logMiningRateBreakdown(this.logger, dailyRate);
   }
 
   /** The referral the account launched with, read the way the pages read it */
@@ -910,16 +705,6 @@ export default class BaseFarmer {
     if (dwellSeconds) {
       await this.utils.delayForSeconds(dwellSeconds, { signal: this.signal });
     }
-  }
-
-  /** Format account link (Telegram HTML) */
-  formatAccountLink(id) {
-    return formatAccountLink(id);
-  }
-
-  /** Log Current User */
-  logCurrentUser() {
-    logCurrentUser(this.logger, this.getTelegramUser());
   }
 
   /** Process */

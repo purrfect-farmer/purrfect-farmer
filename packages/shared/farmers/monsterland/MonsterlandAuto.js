@@ -1,12 +1,7 @@
-import FarmerModule from "../../lib/farmer/FarmerModule.js";
+import AutoModule from "../../lib/farmer/AutoModule.js";
 
 /** The account as the Auto system drives it */
-export default class MonsterlandAuto extends FarmerModule {
-  /** Bind a wallet by its address */
-  connectWallet(wallet) {
-    return this.ctx.connector.connect(wallet);
-  }
-
+export default class MonsterlandAuto extends AutoModule {
   /** Collect the day's free rewards so the summary reflects the current balance */
   async refreshState() {
     await this.ctx.state.ensureLoaded();

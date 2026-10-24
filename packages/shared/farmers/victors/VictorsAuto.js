@@ -1,12 +1,7 @@
-import FarmerModule from "../../lib/farmer/FarmerModule.js";
+import AutoModule from "../../lib/farmer/AutoModule.js";
 
 /** The account as the Auto system drives it */
-export default class VictorsAuto extends FarmerModule {
-  /** Bind a wallet from its phrase with a TON proof, or by address alone when no phrase is known */
-  connectWallet(wallet) {
-    return this.ctx.connector.connect(wallet);
-  }
-
+export default class VictorsAuto extends AutoModule {
   /** Pay the one-time verification from the wallet's phrase, connecting the wallet first when the account has none */
   verifyWallet(wallet) {
     return this.ctx.verifier.verify(wallet);
