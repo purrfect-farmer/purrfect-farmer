@@ -5,7 +5,6 @@ import {
   getWalletPushScope,
   masterWalletRemoval,
   pushAutoCloudWallets,
-  removeAutoCloudWallets,
 } from "@/lib/autoCloudWallets";
 
 import AutoWalletTransfer from "@/lib/AutoWalletTransfer";
@@ -64,7 +63,7 @@ async function getReplacedWallets(oldMasterPhrase, backup, accounts) {
   return wallets;
 }
 
-/** Store the rotated wallets on the Cloud server, then remove the ones they replaced */
+/** Store the rotated wallets on the Cloud server, which removes the ones they replaced once stored */
 async function syncRotatedCloudWallets(
   cloudBackend,
   { drop, auth, password, master, accounts, oldMasterPhrase, backup },
@@ -77,6 +76,7 @@ async function syncRotatedCloudWallets(
       master,
       accounts,
       pushScope: getWalletPushScope(true, accounts.length > 0),
+      replaces: await getReplacedWallets(oldMasterPhrase, backup, accounts),
     });
   } catch (error) {
     const reason = getCloudErrorMessage(error);
@@ -84,19 +84,6 @@ async function syncRotatedCloudWallets(
     toast.error(
       `Server wallets not updated: ${reason}. Push from the Wallets tab.`,
     );
-    return;
-  }
-
-  try {
-    await removeAutoCloudWallets(cloudBackend, {
-      drop,
-      auth,
-      wallets: await getReplacedWallets(oldMasterPhrase, backup, accounts),
-    });
-  } catch (error) {
-    const reason = getCloudErrorMessage(error);
-
-    toast.error(`New wallets stored, old ones not removed: ${reason}.`);
   }
 }
 

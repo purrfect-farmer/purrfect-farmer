@@ -48,11 +48,28 @@ export const autoSchema = {
   },
 };
 
-/** Body of a wallet push, the Auto shape plus which wallets to store */
+/** One stored wallet named by public key and role, an account's also by its Telegram id */
+const walletReferenceSchema = {
+  type: "object",
+  required: ["publicKey", "role"],
+  properties: {
+    publicKey: { type: "string", pattern: "^[0-9a-fA-F]{64}$" },
+    role: { type: "string", enum: Object.values(WALLET_ROLE) },
+    accountId: { type: "string", pattern: "^\\d+$" },
+  },
+  if: { properties: { role: { const: WALLET_ROLE.ACCOUNT } } },
+  then: { required: ["publicKey", "role", "accountId"] },
+};
+
+/** Body of a wallet push, the Auto shape plus which wallets to store and the ones they replace */
 export const autoWalletsPushSchema = {
   body: {
     ...autoSchema.body,
     required: [...autoSchema.body.required, "pushScope"],
+    properties: {
+      ...autoSchema.body.properties,
+      replaces: { type: "array", items: walletReferenceSchema },
+    },
   },
 };
 
@@ -66,17 +83,7 @@ export const autoWalletsRemovalSchema = {
       wallets: {
         type: "array",
         minItems: 1,
-        items: {
-          type: "object",
-          required: ["publicKey", "role"],
-          properties: {
-            publicKey: { type: "string", pattern: "^[0-9a-fA-F]{64}$" },
-            role: { type: "string", enum: Object.values(WALLET_ROLE) },
-            accountId: { type: "string", pattern: "^\\d+$" },
-          },
-          if: { properties: { role: { const: WALLET_ROLE.ACCOUNT } } },
-          then: { required: ["publicKey", "role", "accountId"] },
-        },
+        items: walletReferenceSchema,
       },
     },
   },

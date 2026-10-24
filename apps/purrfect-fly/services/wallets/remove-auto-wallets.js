@@ -16,45 +16,53 @@ function matchesRemoval(row, request, ownerId) {
   return String(row.accountId) === String(request.accountId);
 }
 
-/** Delete the Auto wallets a rotation left behind, only where they match what is stored */
-export function removeAutoWallets({ ownerId, drop, wallets }) {
-  return runDatabaseWrite(async (transaction) => {
-    const rows = await db.Wallet.findAll({
-      where: {
-        drop,
-        publicKey: {
-          [Op.in]: wallets.map((wallet) => wallet.publicKey.toLowerCase()),
-        },
+/** Delete the named wallets inside a transaction, only where they match what is stored */
+export async function destroyAutoWallets(
+  transaction,
+  { ownerId, drop, wallets },
+) {
+  const rows = await db.Wallet.findAll({
+    where: {
+      drop,
+      publicKey: {
+        [Op.in]: wallets.map((wallet) => wallet.publicKey.toLowerCase()),
       },
+    },
+    transaction,
+  });
+
+  const rowsByKey = Map.groupBy(rows, (row) => row.publicKey);
+  const removedIds = new Set();
+  const missing = [];
+
+  for (const request of wallets) {
+    const publicKey = request.publicKey.toLowerCase();
+    const candidates = rowsByKey.get(publicKey) || [];
+    const row = candidates.find(
+      (item) =>
+        !removedIds.has(item.id) && matchesRemoval(item, request, ownerId),
+    );
+
+    if (row) {
+      removedIds.add(row.id);
+    } else {
+      missing.push(publicKey);
+    }
+  }
+
+  if (removedIds.size > 0) {
+    await db.Wallet.destroy({
+      where: { id: { [Op.in]: [...removedIds] } },
       transaction,
     });
+  }
 
-    const rowsByKey = Map.groupBy(rows, (row) => row.publicKey);
-    const removedIds = new Set();
-    const missing = [];
+  return { removed: removedIds.size, missing };
+}
 
-    for (const request of wallets) {
-      const publicKey = request.publicKey.toLowerCase();
-      const candidates = rowsByKey.get(publicKey) || [];
-      const row = candidates.find(
-        (item) =>
-          !removedIds.has(item.id) && matchesRemoval(item, request, ownerId),
-      );
-
-      if (row) {
-        removedIds.add(row.id);
-      } else {
-        missing.push(publicKey);
-      }
-    }
-
-    if (removedIds.size > 0) {
-      await db.Wallet.destroy({
-        where: { id: { [Op.in]: [...removedIds] } },
-        transaction,
-      });
-    }
-
-    return { removed: removedIds.size, missing };
-  });
+/** Delete the Auto wallets a rotation left behind */
+export function removeAutoWallets(removal) {
+  return runDatabaseWrite((transaction) =>
+    destroyAutoWallets(transaction, removal),
+  );
 }

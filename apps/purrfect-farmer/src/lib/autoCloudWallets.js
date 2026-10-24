@@ -2,10 +2,10 @@ import { keyPairFromPhraseOrSecretKey } from "@purrfect/shared/lib/ton/wallet";
 import { WALLET_PUSH_SCOPE } from "@purrfect/shared/enums/wallet-push-scope";
 import { WALLET_ROLE } from "@purrfect/shared/enums/wallet-role";
 
-/** Store an Auto's wallets on the Cloud server, which decrypts them with the Auto's password */
+/** Store an Auto's wallets on the Cloud server, which decrypts them with the Auto's password and removes the ones they replace */
 export function pushAutoCloudWallets(
   cloudBackend,
-  { drop, auth, password, master, accounts = [], pushScope },
+  { drop, auth, password, master, accounts = [], pushScope, replaces = [] },
 ) {
   return cloudBackend
     .post(`/api/auto/${drop}/push-wallets`, {
@@ -14,14 +14,8 @@ export function pushAutoCloudWallets(
       master,
       accounts,
       pushScope,
+      replaces,
     })
-    .then((res) => res.data);
-}
-
-/** Remove wallets from the Cloud server, each matched by public key and role */
-export function removeAutoCloudWallets(cloudBackend, { drop, auth, wallets }) {
-  return cloudBackend
-    .post(`/api/auto/${drop}/remove-wallets`, { auth, wallets })
     .then((res) => res.data);
 }
 

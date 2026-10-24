@@ -5,6 +5,7 @@ import db from "../../db/models/index.js";
 import JobNotifier from "../../lib/bot/JobNotifier.js";
 import logger from "../../lib/logger.js";
 import { WALLET_ROLE } from "@purrfect/shared/enums/wallet-role.js";
+import { destroyAutoWallets } from "./remove-auto-wallets.js";
 import { getAutoWalletEntries } from "./auto-wallet-entries.js";
 import { getTonWalletIdentity } from "./wallet-identity.js";
 import { runDatabaseWrite } from "../../lib/db-write.js";
@@ -82,8 +83,17 @@ async function prepareWallets({ entries, firstPhrase, password, notifier }) {
   return wallets;
 }
 
-/** Create or update each wallet, matched by drop and public key */
-function storeWallets({ ownerId, drop, wallets }) {
+/** The replaced wallets to delete, leaving any the push stores again */
+function getStaleWallets(replaces, wallets) {
+  const storedKeys = new Set(wallets.map((wallet) => wallet.publicKey));
+
+  return replaces.filter(
+    (wallet) => !storedKeys.has(wallet.publicKey.toLowerCase()),
+  );
+}
+
+/** Create or update each wallet, matched by drop and public key, then delete the ones it replaces */
+function storeWallets({ ownerId, drop, wallets, replaces }) {
   return runDatabaseWrite(async (transaction) => {
     const existing = await db.Wallet.findAll({
       where: {
@@ -115,7 +125,17 @@ function storeWallets({ ownerId, drop, wallets }) {
       }
     }
 
-    return { created, updated };
+    const stale = getStaleWallets(replaces, wallets);
+    const { removed } =
+      stale.length > 0
+        ? await destroyAutoWallets(transaction, {
+            ownerId,
+            drop,
+            wallets: stale,
+          })
+        : { removed: 0 };
+
+    return { created, updated, removed };
   });
 }
 
@@ -146,6 +166,7 @@ async function runAutoWalletsPush({
   ownerId,
   drop,
   pushScope,
+  replaces,
   ...push
 }) {
   const notifier = new JobNotifier({
@@ -161,7 +182,7 @@ async function runAutoWalletsPush({
     let result;
 
     try {
-      result = await storeWallets({ ownerId, drop, wallets });
+      result = await storeWallets({ ownerId, drop, wallets, replaces });
     } catch (error) {
       notifier.fail("The wallets could not be saved.");
       throw error;
@@ -170,6 +191,7 @@ async function runAutoWalletsPush({
     await notifier.complete([
       `<b>Created</b>: ${result.created}`,
       `<b>Updated</b>: ${result.updated}`,
+      ...(replaces.length > 0 ? [`<b>Removed</b>: ${result.removed}`] : []),
     ]);
   } catch (error) {
     logger.error("Wallet push failed:", error?.message || error);

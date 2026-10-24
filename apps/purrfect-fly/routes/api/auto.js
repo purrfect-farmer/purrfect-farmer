@@ -254,7 +254,8 @@ export default async function (fastify) {
         return reply.serviceUnavailable("Server encryption key is not set");
       }
 
-      const { password, master, accounts, pushScope } = request.body;
+      const { password, master, accounts, pushScope, replaces = [] } =
+        request.body;
       let push;
 
       /** A wrong password or an empty scope is refused before the push starts */
@@ -284,6 +285,7 @@ export default async function (fastify) {
         drop: request.auto.id,
         password,
         pushScope,
+        replaces,
       });
 
       return { started: true, total: push.entries.length };
