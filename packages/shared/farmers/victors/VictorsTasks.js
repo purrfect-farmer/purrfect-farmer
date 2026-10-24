@@ -76,8 +76,12 @@ export default class VictorsTasks extends FarmerModule {
 
   /** Complete one task the way the page does: open it, dwell, then claim */
   async completeTask(task) {
+    const isPartnerVisit =
+      task["kind"] === "partner_api" && Boolean(task["url"]);
     const isVisitTask =
-      task["kind"] === "link_visit" || task["kind"] === "telegram_channel";
+      task["kind"] === "link_visit" ||
+      task["kind"] === "telegram_channel" ||
+      isPartnerVisit;
 
     await this.core.telegram.openTaskLink(
       task["url"],

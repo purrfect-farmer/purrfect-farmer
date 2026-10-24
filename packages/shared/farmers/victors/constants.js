@@ -13,6 +13,11 @@ export const TURNSTILE_SITE_KEY = "0x4AAAAAAFD0KRgPRFVwDvgn";
 
 export const TURNSTILE_PAGE_URL = "https://app.victors.company/";
 
+/** The actions the page renders its Turnstile widgets with */
+export const TURNSTILE_ACTION = Object.freeze({
+  LOGIN: "login",
+});
+
 /** The error code the backend answers with once the human pass is missing or stale */
 export const HUMAN_REQUIRED_CODE = "HUMAN_REQUIRED";
 

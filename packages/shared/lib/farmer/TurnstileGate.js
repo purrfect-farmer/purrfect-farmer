@@ -7,6 +7,7 @@ export default class TurnstileGate {
    * @param {object} options
    * @param {string} options.siteKey - the drop's Turnstile site key
    * @param {string} options.pageUrl - the page the widget is rendered on
+   * @param {string} [options.action] - the action the widget is rendered with
    * @param {() => boolean} options.canSolve - whether a captcha solver is configured
    * @param {(params: object) => Promise<string>} options.solveTurnstile - solves the widget
    * @param {(token: string) => Promise<any>} options.submit - hands the token to the drop, throwing on refusal
@@ -17,6 +18,7 @@ export default class TurnstileGate {
   constructor({
     siteKey,
     pageUrl,
+    action = null,
     canSolve,
     solveTurnstile,
     submit,
@@ -26,6 +28,7 @@ export default class TurnstileGate {
   }) {
     this.siteKey = siteKey;
     this.pageUrl = pageUrl;
+    this.action = action;
     this.canSolve = canSolve;
     this.solveTurnstile = solveTurnstile;
     this.submit = submit;
@@ -60,10 +63,13 @@ export default class TurnstileGate {
 
     this.logger().info("Solving the security check...");
 
-    const token = await this.solveTurnstile({
-      siteKey: this.siteKey,
-      pageUrl: this.pageUrl,
-    });
+    const params = { siteKey: this.siteKey, pageUrl: this.pageUrl };
+
+    if (this.action) {
+      params.action = this.action;
+    }
+
+    const token = await this.solveTurnstile(params);
 
     return this.submit(token);
   }

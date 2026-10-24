@@ -2,6 +2,7 @@ import FarmerModule from "../../lib/farmer/FarmerModule.js";
 import TurnstileGate from "../../lib/farmer/TurnstileGate.js";
 import {
   HUMAN_PASS_EXPIRY_MARGIN_SECONDS,
+  TURNSTILE_ACTION,
   TURNSTILE_PAGE_URL,
   TURNSTILE_SITE_KEY,
 } from "./constants.js";
@@ -18,6 +19,7 @@ export default class VictorsHumanPass extends FarmerModule {
   gate = new TurnstileGate({
     siteKey: TURNSTILE_SITE_KEY,
     pageUrl: TURNSTILE_PAGE_URL,
+    action: TURNSTILE_ACTION.LOGIN,
     canSolve: () => this.core.captcha.canSolveTurnstile(),
     solveTurnstile: (params) => this.core.captcha.solveTurnstile(params),
     submit: (token) => this.submit(token),
