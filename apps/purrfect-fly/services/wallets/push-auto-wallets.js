@@ -59,7 +59,7 @@ async function prepareWallets(entries, password, notifier) {
       version: entry.version,
       chain: WALLET_CHAIN.TON,
       ...identity,
-      encryptedPhrase: serverCipher.encrypt(phrase),
+      encryptedPhrase: await serverCipher.encrypt(phrase),
     });
 
     notifier.step({
