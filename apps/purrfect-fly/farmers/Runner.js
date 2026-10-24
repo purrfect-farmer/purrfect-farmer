@@ -96,6 +96,11 @@ export default function createRunner(FarmerClass) {
       return bot?.sendAdminMessage(messages);
     }
 
+    /** Notify the account's own Telegram user via the bot */
+    async notifyUser(messages) {
+      return bot?.sendUserMessage(this.account.id, messages);
+    }
+
     /** Get Cookies */
     async getCookies({ url }) {
       return getCookies(this.jar, url);

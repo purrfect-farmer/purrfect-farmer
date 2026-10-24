@@ -20,6 +20,20 @@ export function formatAmount(value) {
     .toString();
 }
 
+/** The characters Telegram HTML treats as markup */
+const HTML_ENTITIES = {
+  "&": "&amp;",
+  "<": "&lt;",
+  ">": "&gt;",
+  '"': "&quot;",
+  "'": "&#39;",
+};
+
+/** Escape text for a Telegram HTML message */
+export function escapeHtml(text) {
+  return String(text).replace(/[&<>"']/g, (char) => HTML_ENTITIES[char]);
+}
+
 /** Format account link (Telegram HTML) */
 export function formatAccountLink(id) {
   return `<a href="tg://user?id=${id}">${id}</a>`;

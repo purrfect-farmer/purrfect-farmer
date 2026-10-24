@@ -59,6 +59,7 @@ export default function createFarmerCore(farmer) {
     prompt: (question) => farmer.promptInput(question),
     setAuth: () => farmer.setAuth(),
     notifyAdmin: (messages) => farmer.notifyAdmin(messages),
+    notifyUser: (messages) => farmer.notifyUser(messages),
 
     captcha: Object.freeze({
       canSolveTurnstile: () => farmer.canSolveTurnstile(),

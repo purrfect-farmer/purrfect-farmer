@@ -1,4 +1,5 @@
 import FarmerModule from "../../lib/farmer/FarmerModule.js";
+import { escapeHtml, formatAccountLink } from "../../lib/farmer/format.js";
 
 /** Sign-in, bans and the referral link */
 export default class VictorsSession extends FarmerModule {
@@ -55,7 +56,29 @@ export default class VictorsSession extends FarmerModule {
       `Account was banned (${error}), reset and accepted terms ${terms}.`,
     );
 
+    await this.notifyReset(error, terms);
+
     return result;
+  }
+
+  /** Tell the admin and the account's user that the ban was reset and its progress wiped */
+  async notifyReset(error, terms) {
+    const messages = [
+      `<b>♻️ ${escapeHtml(this.core.drop.title)} Account Reset</b>`,
+      `<b>Account</b>: ${formatAccountLink(this.core.userId())}`,
+      `<b>Ban</b>: ${escapeHtml(error)}`,
+      `<b>Terms</b>: ${escapeHtml(terms)}`,
+      `<i>The balance and progress were wiped, so the wallet must be connected and verified again.</i>`,
+    ];
+
+    try {
+      await Promise.all([
+        this.core.notifyAdmin(messages),
+        this.core.notifyUser(messages),
+      ]);
+    } catch (error) {
+      this.logger.warn("Failed to send the reset notice:", error.message);
+    }
   }
 
   /** Sign in on the stored pass, or pass the human check when there is none */

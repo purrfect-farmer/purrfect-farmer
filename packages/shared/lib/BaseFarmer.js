@@ -536,6 +536,13 @@ export default class BaseFarmer {
     return false;
   }
 
+  /** Notify the account's own user, a no-op unless the environment delivers the message
+   * @param {string[]} messages
+   */
+  async notifyUser(messages) {
+    return false;
+  }
+
   /** The referral the account launched with, read the way the pages read it */
   getReferrerStartParam() {
     return this.#identity.referrerStartParam();

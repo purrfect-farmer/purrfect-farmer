@@ -179,4 +179,13 @@ export default class GroupBot extends Bot {
       options,
     );
   }
+
+  /** Send a private message to an account's own Telegram user; no-op when messages are off */
+  async sendUserMessage(id, messages, options = {}) {
+    if (app.disableTelegramMessages || !id) {
+      return;
+    }
+
+    return this.sendPrivateMessage(id, this.withServerName(messages), options);
+  }
 }
