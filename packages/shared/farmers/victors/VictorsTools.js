@@ -16,7 +16,7 @@ export default class VictorsTools extends FarmerModule {
   async resetAccountInteractive() {
     if (!this.ctx.session.banInfo) {
       try {
-        await this.ctx.session.login();
+        await this.ctx.session.loginWithoutReset();
       } catch {}
     }
 

@@ -9,6 +9,9 @@ export default class VictorsSession extends FarmerModule {
   /** The reset in flight, shared by concurrent banned calls */
   resetting = null;
 
+  /** Whether a resettable ban is reset on its own, off while a tool asks first */
+  autoReset = true;
+
   /** Remember the ban and the pass it carries, then reset it when allowed or stop whatever was running */
   async handleBan(payload, { reset = true } = {}) {
     if (payload["humanPass"]) {
@@ -21,7 +24,7 @@ export default class VictorsSession extends FarmerModule {
       termsVersion: String(payload["termsVersion"] || ""),
     };
 
-    if (reset && this.banInfo.canReset) {
+    if (reset && this.autoReset && this.banInfo.canReset) {
       return this.resetAccount();
     }
 
@@ -93,6 +96,17 @@ export default class VictorsSession extends FarmerModule {
     await this.ctx.humanPass.obtain();
 
     return this.ctx.state.data;
+  }
+
+  /** Sign in without resetting a ban, so the caller can ask before the account is wiped */
+  async loginWithoutReset() {
+    this.autoReset = false;
+
+    try {
+      return await this.login();
+    } finally {
+      this.autoReset = true;
+    }
   }
 
   /** Get Referral Link */
