@@ -31,7 +31,7 @@ export default class ATFTools extends FarmerModule {
             id: "withdraw",
             icon: "withdraw",
             title: "Withdraw",
-            action: () => this.ctx.flow.withdraw(),
+            action: () => this.ctx.flow.withdrawInteractive(),
             dispatch: false,
           },
           {
