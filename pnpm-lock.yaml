@@ -392,6 +392,9 @@ importers:
       commander:
         specifier: ^14.0.3
         version: 14.0.3
+      compare-versions:
+        specifier: ^6.1.1
+        version: 6.1.1
       croner:
         specifier: ^9.1.0
         version: 9.1.0
@@ -3578,6 +3581,9 @@ packages:
   common-tags@1.8.2:
     resolution: {integrity: sha512-gk/Z852D2Wtb//0I+kRFNKKE9dIIVirjoqPoA1wJU+XePVXZfGeBpk45+A1rKO4Q43prqWBNY/MiIeRLbPWUaA==}
     engines: {node: '>=4.0.0'}
+
+  compare-versions@6.1.1:
+    resolution: {integrity: sha512-4hm4VPpIecmlg59CHXnRDnqGplJFrbLG4aFEl5vl6cK1u76ws3LLvX7ikFnTDl5vo39sjWD6AaDPYodJp/NNHg==}
 
   compress-commons@2.1.1:
     resolution: {integrity: sha512-eVw6n7CnEMFzc3duyFVrQEuY1BlHR3rYsSztyG32ibGMW722i3C6IizEGMFmfMU+A+fALvBIwxN3czffTcdA+Q==}
@@ -10040,6 +10046,8 @@ snapshots:
   commist@3.2.0: {}
 
   common-tags@1.8.2: {}
+
+  compare-versions@6.1.1: {}
 
   compress-commons@2.1.1:
     dependencies:
