@@ -16,12 +16,10 @@ export async function withdrawThroughHelper(
     );
   }
 
-  /** Both phrases are decrypted up front, because a rollback needs them and nothing has moved yet */
-  const [requesterPhrase, helperPhrase, temporaryPhrase] = await Promise.all([
-    ctx.decryptPhrase(requester.encryptedPhrase),
-    ctx.decryptPhrase(helper.encryptedPhrase),
-    generateMnemonicPhrase(),
-  ]);
+  /** Both phrases are decrypted up front, one at a time since scrypt is memory hungry, because a rollback needs them */
+  const requesterPhrase = await ctx.decryptPhrase(requester.encryptedPhrase);
+  const helperPhrase = await ctx.decryptPhrase(helper.encryptedPhrase);
+  const temporaryPhrase = await generateMnemonicPhrase();
 
   const connect = (runner, phrase, version, label) =>
     wallet.connectOrThrow(runner, { phrase, version }, `${label} failed`);
