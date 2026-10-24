@@ -75,7 +75,9 @@ async function prepareWallets({ entries, firstPhrase, password, notifier }) {
         ],
       });
     } catch (error) {
-      notifier.fail(`${describeEntry(entry)}\n${error.message}`);
+      notifier.fail(
+        `${describeEntry(entry)}\n${utils.escapeHtml(error.message)}`,
+      );
       throw error;
     }
   }
