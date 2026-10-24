@@ -104,6 +104,36 @@ for (const id of FARMER_IDS) {
     }
   });
 
+  test(`${id} farmer reaches its runtime overrides`, async () => {
+    const FarmerClass = await loadFarmer(id);
+    const farmer = new FarmerClass();
+    const joined = [];
+
+    assert.ok(farmer.startedAt instanceof Date);
+    assert.equal(farmer.currentTask, null);
+    assert.equal(farmer.currentTaskStartedAt, null);
+
+    /** The extension swaps the join in as an instance property */
+    farmer.utils = {
+      ...farmer.utils,
+      delayForMinutes: async () => {},
+      isTelegramChatLink: () => true,
+    };
+    farmer.logger = {
+      log() {},
+      error() {},
+      c: new Proxy({}, { get: () => (text) => text }),
+    };
+    farmer.canJoinTelegramLink = () => true;
+    farmer.joinTelegramLink = async (link) => joined.push(link);
+
+    assert.equal(
+      await farmer.tryToJoinTelegramLink("https://t.me/example"),
+      true,
+    );
+    assert.deepEqual(joined, ["https://t.me/example"]);
+  });
+
   test(`${id} farmer keeps its tool tree`, async () => {
     const FarmerClass = await loadFarmer(id);
     const tools = new FarmerClass().tools;

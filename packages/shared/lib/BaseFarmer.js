@@ -1,4 +1,5 @@
 import TaskRunner from "./farmer/TaskRunner.js";
+import TelegramActions from "./farmer/TelegramActions.js";
 import TelegramIdentity from "./farmer/TelegramIdentity.js";
 import utils from "../utils/bundle.js";
 import createFarmerCore from "./farmer/createFarmerCore.js";
@@ -50,6 +51,9 @@ export default class BaseFarmer {
   /** Runs the farmer's tasks and tracks the current one */
   #tasks = null;
 
+  /** Joining chats, editing the profile and refreshing the web app */
+  #telegram = null;
+
   /** Who the farmer runs as, read from its Telegram web app */
   #identity = new TelegramIdentity({
     webApp: () => this.telegramWebApp,
@@ -61,6 +65,23 @@ export default class BaseFarmer {
   constructor({ referralLink = null } = {}) {
     /** Host services the farmer's modules work through */
     this.core = createFarmerCore(this);
+
+    /** Joining chats, editing the profile and refreshing the web app */
+    this.#telegram = new TelegramActions({
+      core: this.core,
+      canJoin: (link) => this.canJoinTelegramLink(link),
+      join: (link) => this.joinTelegramLink(link),
+      canUpdateProfile: (options) => this.canUpdateProfile(options),
+      updateProfile: (options) => this.updateProfile(options),
+      allowProfileUpdates: () => this.allowProfileUpdates,
+      launch: () => ({
+        platform: this.platform,
+        type: this.type,
+        telegramLink: this.telegramLink,
+        client: this.client,
+      }),
+      setTelegramWebApp: (webApp) => this.setTelegramWebApp(webApp),
+    });
 
     /** The tasks this run executes, one at a time */
     this.#tasks = new TaskRunner({
@@ -450,71 +471,22 @@ export default class BaseFarmer {
 
   /** Validate Telegram Task */
   validateTelegramTask(link) {
-    return (
-      !this.utils.isTelegramChatLink(link) || this.canJoinTelegramLink(link)
-    );
+    return this.#telegram.validateTask(link);
   }
 
   /** Try to join Telegram Link */
-  async tryToJoinTelegramLink(link) {
-    if (this.utils.isTelegramChatLink(link) && this.canJoinTelegramLink(link)) {
-      try {
-        /* Generate a random delay between 1 to 5 minutes */
-        const duration = 1 + Math.floor(Math.random() * 5);
-
-        /* Log Delayed Join */
-        this.logger.log(
-          `${this.logger.c.yellow("⏳ Delaying for")} ${this.logger.c.magenta(
-            `${duration} minute(s)`,
-          )} ${this.logger.c.yellow(
-            "before joining Telegram link:",
-          )} ${this.logger.c.magenta(link)}`,
-        );
-
-        /* Wait for a random duration between 1 to 5 minutes */
-        await this.utils.delayForMinutes(duration, {
-          signal: this.signal,
-        });
-
-        /* Try to Join Telegram Link */
-        await this.joinTelegramLink(link);
-        return true;
-      } catch (error) {
-        this.logger.error("Failed to join Telegram link:", error.message);
-        return false;
-      }
-    }
+  tryToJoinTelegramLink(link) {
+    return this.#telegram.tryToJoin(link);
   }
 
   /** Try to update profile */
-  async tryToUpdateProfile(options) {
-    if (!this.allowProfileUpdates) {
-      this.logger.warn("Profile updates are disabled in settings");
-      return false;
-    }
-
-    if (this.canUpdateProfile(options)) {
-      try {
-        await this.updateProfile(options);
-        return true;
-      } catch (error) {
-        this.logger.error("Failed to update profile:", error.message);
-        return false;
-      }
-    }
+  tryToUpdateProfile(options) {
+    return this.#telegram.tryToUpdateProfile(options);
   }
 
   /** Update Web App Data */
-  async updateWebAppData() {
-    if (this.platform === "telegram" && this.type === "webapp") {
-      const { url } = await this.client.getWebview(this.telegramLink);
-      const { initData } = this.utils.extractTgWebAppData(url);
-
-      this.setTelegramWebApp({
-        initData,
-        initDataUnsafe: this.utils.getInitDataUnsafe(initData),
-      });
-    }
+  updateWebAppData() {
+    return this.#telegram.refreshWebApp();
   }
 
   /** Set Auth */
@@ -651,14 +623,8 @@ export default class BaseFarmer {
   }
 
   /** Join a task's Telegram link when it is one, then dwell the way the page makes you wait */
-  async openTaskLink(url, dwellSeconds) {
-    if (url && this.utils.isTelegramChatLink(url)) {
-      await this.tryToJoinTelegramLink(url);
-    }
-
-    if (dwellSeconds) {
-      await this.utils.delayForSeconds(dwellSeconds, { signal: this.signal });
-    }
+  openTaskLink(url, dwellSeconds) {
+    return this.#telegram.openTaskLink(url, dwellSeconds);
   }
 
   /** Process */

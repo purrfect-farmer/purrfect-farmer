@@ -1,5 +1,6 @@
 import TelegramIdentity from "@purrfect/shared/lib/farmer/TelegramIdentity.js";
 import TaskRunner from "@purrfect/shared/lib/farmer/TaskRunner.js";
+import TelegramActions from "@purrfect/shared/lib/farmer/TelegramActions.js";
 import assert from "node:assert/strict";
 import { test } from "node:test";
 
@@ -162,4 +163,91 @@ test("aborted runs and quick-run skips never call the task", async () => {
     ["newline"],
     ["log", "<y>⚡ Skipping in quick run: <m>Slow"],
   ]);
+});
+
+/** Telegram actions over a recorded core, with joins and profile edits answered by `farmer` */
+function createActions(farmer) {
+  const { core, calls } = createRunnerCore();
+
+  core.logger.error = (...args) => calls.push(["error", ...args]);
+  core.utils.isTelegramChatLink = (link) => link.startsWith("https://t.me/");
+  core.utils.delayForMinutes = async (minutes) =>
+    calls.push(["delayMinutes", minutes]);
+
+  const actions = new TelegramActions({
+    core,
+    canJoin: () => farmer.canJoin,
+    join: (link) => farmer.join(link),
+    canUpdateProfile: () => true,
+    updateProfile: async (options) => calls.push(["profile", options]),
+    allowProfileUpdates: () => farmer.allowProfileUpdates,
+    launch: () => farmer.launch,
+    setTelegramWebApp: (webApp) => calls.push(["webApp", webApp]),
+  });
+
+  return { actions, calls };
+}
+
+test("a chat link is joined after the wait, through the farmer's current join", async () => {
+  const farmer = { canJoin: true };
+  const { actions, calls } = createActions(farmer);
+
+  farmer.join = async (link) => calls.push(["join", link]);
+
+  assert.equal(await actions.tryToJoin("https://t.me/example"), true);
+  assert.deepEqual(calls.at(-1), ["join", "https://t.me/example"]);
+  assert.equal(calls.filter(([name]) => name === "delayMinutes").length, 1);
+
+  farmer.join = async () => {
+    throw new Error("flood");
+  };
+  assert.equal(await actions.tryToJoin("https://t.me/example"), false);
+
+  assert.equal(await actions.tryToJoin("https://example.com/"), undefined);
+  assert.equal(actions.validateTask("https://example.com/"), true);
+
+  farmer.canJoin = false;
+  assert.equal(actions.validateTask("https://t.me/example"), false);
+});
+
+test("profile edits respect the setting", async () => {
+  const farmer = { allowProfileUpdates: false };
+  const { actions, calls } = createActions(farmer);
+
+  assert.equal(await actions.tryToUpdateProfile({ bio: "x" }), false);
+  assert.deepEqual(calls, [
+    ["warn", "Profile updates are disabled in settings"],
+  ]);
+
+  farmer.allowProfileUpdates = true;
+  assert.equal(await actions.tryToUpdateProfile({ bio: "x" }), true);
+});
+
+test("a task link dwells, and the web app refreshes only for Telegram web apps", async () => {
+  const farmer = {
+    launch: {
+      platform: "telegram",
+      type: "webapp",
+      telegramLink: "https://t.me/example_bot/app",
+      client: { getWebview: async () => ({ url: "https://example.com/" }) },
+    },
+  };
+  const { actions, calls } = createActions(farmer);
+  const { utils } = actions.core;
+
+  utils.extractTgWebAppData = () => ({ initData: "query_id=1" });
+  utils.getInitDataUnsafe = (initData) => ({ parsed: initData });
+
+  await actions.openTaskLink("https://example.com/task", 10);
+  assert.deepEqual(calls, [["delay", 10]]);
+
+  await actions.refreshWebApp();
+  assert.deepEqual(calls.at(-1), [
+    "webApp",
+    { initData: "query_id=1", initDataUnsafe: { parsed: "query_id=1" } },
+  ]);
+
+  farmer.launch = { ...farmer.launch, type: "direct" };
+  await actions.refreshWebApp();
+  assert.equal(calls.length, 2);
 });
