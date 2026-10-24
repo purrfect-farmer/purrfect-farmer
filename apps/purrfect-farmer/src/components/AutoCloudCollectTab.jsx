@@ -1,4 +1,4 @@
-import { Controller, useForm } from "react-hook-form";
+import { Controller, useForm, useWatch } from "react-hook-form";
 
 import AutoAccountsChooser from "./AutoAccountsChooser";
 import AutoStickyContainer from "./AutoStickyContainer";
@@ -8,6 +8,7 @@ import { HiArrowPath } from "react-icons/hi2";
 import Input from "./Input";
 import Label from "./Label";
 import { LuMerge } from "react-icons/lu";
+import { memo } from "react";
 import PrimaryButton from "./PrimaryButton";
 import toast from "react-hot-toast";
 import useAuto from "@/hooks/useAuto";
@@ -52,6 +53,20 @@ function describeRetain(min, max, unit) {
   return `Collects everything. Set a range to leave a random amount behind.`;
 }
 
+/** The retain range in words, re-rendering alone as its fields change */
+const RetainDescription = memo(function RetainDescription({ control, unit }) {
+  const [retainMin, retainMax] = useWatch({
+    control,
+    name: ["retainMin", "retainMax"],
+  });
+
+  return (
+    <p className="text-center text-neutral-500 dark:text-neutral-400">
+      {describeRetain(retainMin, retainMax, unit)}
+    </p>
+  );
+});
+
 export default function AutoCloudCollectTab() {
   const form = useForm({
     resolver: yupResolver(schema),
@@ -68,7 +83,6 @@ export default function AutoCloudCollectTab() {
   const mutation = useAutoCloudCollectionMutation();
 
   const unit = config.native ? "TON" : config.token;
-  const [retainMin, retainMax] = form.watch(["retainMin", "retainMax"]);
 
   const handleCollect = async (data) => {
     if (selectedAccounts.length === 0) {
@@ -158,9 +172,7 @@ export default function AutoCloudCollectTab() {
               ))}
             </div>
 
-            <p className="text-center text-neutral-500 dark:text-neutral-400">
-              {describeRetain(retainMin, retainMax, unit)}
-            </p>
+            <RetainDescription control={form.control} unit={unit} />
           </div>
 
           {/* Minimum to collect, so dust is not worth the gas */}
