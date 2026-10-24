@@ -1,4 +1,5 @@
 import TelegramIdentity from "@purrfect/shared/lib/farmer/TelegramIdentity.js";
+import { createDevice } from "@purrfect/shared/lib/device/createDevice.js";
 import BaseFarmer from "@purrfect/shared/lib/BaseFarmer.js";
 import {
   DEFAULT_THEME_PARAMS,
@@ -390,4 +391,15 @@ test("launch params come from Telegram's parser, or raw when it refuses them", (
   assert.equal(webview.initData, initData);
   assert.equal(webview.initDataUnsafe.user.id, 1);
   assert.equal(webview.platform, "ios");
+});
+
+test("the device profile names the phone and Android version of its user agent", () => {
+  const userAgent =
+    "Mozilla/5.0 (Linux; Android 15; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/155.0.8059.79 Mobile Safari/537.36 Telegram-Android/13.1.0 (Tecno TECNO KI5q; Android 15; SDK 35; HIGH)";
+  const named = createDevice(42, userAgent, { prefix: "example" }).profile;
+  const unnamed = createDevice(42, "", { prefix: "example" }).profile;
+
+  assert.equal(named.ua.model, "TECNO KI5q");
+  assert.equal(named.ua.platformVersion, "15.0.0");
+  assert.equal(named.deviceId, unnamed.deviceId);
 });

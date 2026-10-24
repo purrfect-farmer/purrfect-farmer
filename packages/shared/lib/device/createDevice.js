@@ -152,6 +152,15 @@ const between = (random, min, max) =>
 const hex = (random, length) =>
   Array.from({ length }, () => Math.floor(random() * 16).toString(16)).join("");
 
+/** The model and Android version a Telegram user agent names, so the profile agrees with it */
+function readTelegramDevice(userAgent) {
+  const match = String(userAgent).match(
+    /Telegram-Android\/[\d.]+ \(\S+ (.+); Android (\d+)/,
+  );
+
+  return match ? { model: match[1], android: match[2] } : {};
+}
+
 /** The host's time zone and locale, which a phone in the same place would share */
 function readLocale() {
   try {
@@ -166,7 +175,7 @@ function readLocale() {
 /** A stable Android Telegram profile for one account, shaped like the fingerprint the drops collect; `prefix` keeps each drop's profile apart */
 export function createDevice(seed, userAgent = "", { prefix }) {
   const random = seedrandom(`${prefix}:${seed}`);
-  const phone = pick(random, PHONES);
+  const phone = { ...pick(random, PHONES), ...readTelegramDevice(userAgent) };
   const chrome =
     String(userAgent).match(/Chrome\/(\d+)/)?.[1] || DEFAULT_CHROME_VERSION;
   const { tz, locale } = readLocale();
