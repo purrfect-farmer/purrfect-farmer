@@ -1,11 +1,10 @@
 import { getSessionPath, getSessions } from "./telegram/session-store.js";
 import app from "../config/app.js";
-import { applyChanges } from "./env/edit.js";
 import db from "../db/models/index.js";
 import { formatDate } from "date-fns";
 import fs from "node:fs";
 import { getCurrentPath } from "./path.js";
-import { parseEnv } from "./env/parse.js";
+import { mergeInstanceEnv } from "./env/merge.js";
 import path from "node:path";
 import { runDatabaseWrite } from "./db-write.js";
 
@@ -15,17 +14,13 @@ const ENV_FILE = app.envPath;
 /** Keys that belong to this instance, kept from its own .env when a backup is restored */
 const INSTANCE_ENV_KEYS = ["PORT", "PM2_APP_NAME", "APP_NAME"];
 
-/** The backup's env with this instance's own keys kept as they are, or left out when unset */
-function keepInstanceEnv(restoredEnv) {
+/** The backup's env with the given keys kept as this instance has them */
+function keepInstanceEnv(restoredEnv, keys) {
   const currentEnv = fs.existsSync(ENV_FILE)
     ? fs.readFileSync(ENV_FILE, "utf-8")
     : "";
-  const current = parseEnv(currentEnv);
-  const changes = Object.fromEntries(
-    INSTANCE_ENV_KEYS.map((key) => [key, current[key] ?? null]),
-  );
 
-  return applyChanges(restoredEnv, changes);
+  return mergeInstanceEnv(restoredEnv, currentEnv, keys);
 }
 
 /** Tables in restore order, each with its key in the backup */
@@ -66,7 +61,12 @@ export async function importBackup(backup) {
 
   /** Restore .env */
   if (backup.env) {
-    fs.writeFileSync(ENV_FILE, keepInstanceEnv(backup.env));
+    /** Wallets the backup doesn't replace stay readable only under the current key */
+    const keys = Array.isArray(backup.wallets)
+      ? INSTANCE_ENV_KEYS
+      : [...INSTANCE_ENV_KEYS, "ENCRYPTION_KEY"];
+
+    fs.writeFileSync(ENV_FILE, keepInstanceEnv(backup.env, keys));
   }
 }
 

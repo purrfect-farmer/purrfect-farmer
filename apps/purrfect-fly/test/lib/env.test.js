@@ -1,6 +1,7 @@
 import { applyChanges, formatValue } from "../../lib/env/edit.js";
 import { createEnvPatch, maskLine } from "../../lib/env/patch.js";
 import { findInvalidLines, parseEnv } from "../../lib/env/parse.js";
+import { mergeInstanceEnv } from "../../lib/env/merge.js";
 
 import { createEnvStore } from "../../lib/env/store.js";
 
@@ -150,4 +151,16 @@ test("a successful boot clears the guard", async () => {
   await assert.rejects(store.readBackup("../.env"));
 
   fs.rmSync(dir, { recursive: true, force: true });
+});
+
+test("a restore keeps this instance's own keys and drops ones it lacks", () => {
+  const restored = 'PORT=3000\nAPP_NAME="Other"\nENCRYPTION_KEY="old"\n';
+  const current = 'PORT=13001\nENCRYPTION_KEY="current"\n';
+  const merged = parseEnv(
+    mergeInstanceEnv(restored, current, ["PORT", "APP_NAME", "ENCRYPTION_KEY"]),
+  );
+
+  assert.equal(merged.PORT, "13001");
+  assert.equal(merged.ENCRYPTION_KEY, "current");
+  assert.equal(merged.APP_NAME, undefined);
 });

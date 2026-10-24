@@ -29,25 +29,27 @@ function createAuto({ connected = null, provider, result = { status: true } }) {
   return { auto: new AutoModule({ core, ctx }), calls };
 }
 
-test("a host without stored wallets does nothing", async () => {
-  const { auto, calls } = createAuto({ provider: { getSources: () => [] } });
+test("a host without stored wallets has nothing to connect", () => {
+  const { auto } = createAuto({ provider: { getSources: () => [] } });
 
-  await auto.connectStoredWallet();
-
-  assert.deepEqual(calls, []);
+  assert.equal(auto.canConnectStoredWallet(), false);
 });
 
-test("a drop that already has a wallet keeps it", async () => {
-  let asked = false;
-  const { auto, calls } = createAuto({
+test("a drop that already has a wallet keeps it", () => {
+  const { auto } = createAuto({
     connected: "UQmine",
-    provider: { getStoredWallet: async () => ((asked = true), STORED) },
+    provider: { getStoredWallet: async () => STORED },
   });
 
-  await auto.connectStoredWallet();
+  assert.equal(auto.canConnectStoredWallet(), false);
+});
 
-  assert.equal(asked, false);
-  assert.deepEqual(calls, []);
+test("a drop without a wallet can take the stored one", () => {
+  const { auto } = createAuto({
+    provider: { getStoredWallet: async () => STORED },
+  });
+
+  assert.equal(auto.canConnectStoredWallet(), true);
 });
 
 test("no stored wallet means no connect", async () => {
@@ -82,5 +84,21 @@ test("a refused connect is logged, not thrown", async () => {
   assert.deepEqual(calls[1], [
     "warn",
     "Stored wallet not connected: Proof rejected",
+  ]);
+});
+
+test("a stored wallet that fails to load is logged, not thrown", async () => {
+  const { auto, calls } = createAuto({
+    provider: {
+      getStoredWallet: async () => {
+        throw new Error("Unsupported cipher version");
+      },
+    },
+  });
+
+  await auto.connectStoredWallet();
+
+  assert.deepEqual(calls, [
+    ["warn", "Stored wallet not connected: Unsupported cipher version"],
   ]);
 });

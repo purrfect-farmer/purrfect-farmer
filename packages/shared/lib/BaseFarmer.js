@@ -466,6 +466,13 @@ export default class BaseFarmer {
     return this.ctx.auto.connectWallet(wallet);
   }
 
+  /** Connect the host's stored wallet as a task, skipped without a delay when there is nothing to do */
+  async connectStoredAutoWallet() {
+    if (!this.ctx.auto.canConnectStoredWallet()) return;
+
+    await this.executeTask("Wallet", () => this.ctx.auto.connectStoredWallet());
+  }
+
   /** Settle the drop's one-time wallet verification, for drops whose descriptor is `verifiable`
    * @param {object} wallet - { phrase, version, apiKey? }
    * @returns {Promise<{ status: boolean, skipped?: boolean, message?: string, summary?: object }>}

@@ -17,25 +17,37 @@ export default class AutoModule extends FarmerModule {
     return this.ctx.wallet.getConnectedWalletAddress() || null;
   }
 
-  /** Connect the wallet the host keeps for this account and drop, when the drop has none yet */
+  /** Whether the host keeps wallets and the drop has none connected yet */
+  canConnectStoredWallet() {
+    if (!this.core.autoWalletProvider?.getStoredWallet) return false;
+
+    /** A drop whose state can't be read yet has nothing to connect to */
+    try {
+      return !this.connectedWalletAddress();
+    } catch {
+      return false;
+    }
+  }
+
+  /** Connect the wallet the host keeps for this account and drop, never failing the run */
   async connectStoredWallet() {
-    const provider = this.core.autoWalletProvider;
+    try {
+      const wallet = await this.core.autoWalletProvider.getStoredWallet();
 
-    if (!provider?.getStoredWallet || this.connectedWalletAddress()) return;
+      if (!wallet) return;
 
-    const wallet = await provider.getStoredWallet();
+      /** No refresh: re-reading the account claims mining, which the run does itself */
+      const result = await this.connectWallet({ ...wallet, refresh: false });
 
-    if (!wallet) return;
+      if (result?.status) {
+        this.logger.success(`Connected the stored wallet ${wallet.address}`);
+      } else {
+        const reason = result?.message || "Unknown error";
 
-    /** No refresh: re-reading the account claims mining, which the run does itself */
-    const result = await this.connectWallet({ ...wallet, refresh: false });
-
-    if (result?.status) {
-      this.logger.success(`Connected the stored wallet ${wallet.address}`);
-    } else {
-      const reason = result?.message || "Unknown error";
-
-      this.logger.warn(`Stored wallet not connected: ${reason}`);
+        this.logger.warn(`Stored wallet not connected: ${reason}`);
+      }
+    } catch (error) {
+      this.logger.warn(`Stored wallet not connected: ${error.message}`);
     }
   }
 
