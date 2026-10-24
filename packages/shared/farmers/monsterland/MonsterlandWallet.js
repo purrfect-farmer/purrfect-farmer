@@ -1,12 +1,10 @@
-/** Trait: binding the payout wallet */
-export default class MonsterlandWallet {
-  /* --------------------------------------------------------------------- */
-  /* Wallet                                                                */
-  /* --------------------------------------------------------------------- */
+import FarmerModule from "../../lib/farmer/FarmerModule.js";
 
+/** Binding the payout wallet */
+export default class MonsterlandWallet extends FarmerModule {
   /** The bound address in its friendly, non-bounceable form */
   getConnectedWalletAddress() {
-    const address = this.getProfile()["payments"]?.["wallet"];
+    const address = this.ctx.state.profile()["payments"]?.["wallet"];
 
     return address ? this.utils.toFriendlyAddress(address) : null;
   }
@@ -19,7 +17,7 @@ export default class MonsterlandWallet {
     }
 
     const wallet = this.utils.toFriendlyAddress(address);
-    const result = await this.patchUser({ wallet });
+    const result = await this.ctx.api.patchUser({ wallet });
 
     if (!result.ok || result.data["success"] === false) {
       const message = result.data["error"] || "Failed to connect the wallet";
@@ -28,7 +26,7 @@ export default class MonsterlandWallet {
       return { status: false, message };
     }
 
-    const profile = this.getProfile();
+    const profile = this.ctx.state.profile();
 
     profile["payments"] = result.data["payments"] || {
       ...profile["payments"],
@@ -42,12 +40,12 @@ export default class MonsterlandWallet {
 
   /** Unbind the wallet, which the page does by saving an empty one */
   disconnectWallet() {
-    return this.patchUser({ wallet: "" });
+    return this.ctx.api.patchUser({ wallet: "" });
   }
 
   /** Bind a wallet, prompting for its address */
   async connectWalletInteractive() {
-    const input = await this.promptInput("Enter your TON wallet address:");
+    const input = await this.core.prompt("Enter your TON wallet address:");
     const address = (input || "").trim();
 
     if (!address) {
@@ -60,13 +58,13 @@ export default class MonsterlandWallet {
       return;
     }
 
-    await this.ensureStateLoaded();
+    await this.ctx.state.ensureLoaded();
     await this.connectWalletAddress(address);
   }
 
   /** Unbind the wallet the account is on */
   async disconnectWalletInteractive() {
-    await this.ensureStateLoaded();
+    await this.ctx.state.ensureLoaded();
 
     const result = await this.disconnectWallet();
 
@@ -75,11 +73,11 @@ export default class MonsterlandWallet {
       return;
     }
 
-    const profile = this.getProfile();
+    const profile = this.ctx.state.profile();
 
     profile["payments"] = { ...profile["payments"], wallet: "" };
 
-    await this.rememberWalletVersion(undefined);
+    await this.ctx.walletVersion.remember(undefined);
     this.logger.success("Wallet disconnected.");
   }
 }

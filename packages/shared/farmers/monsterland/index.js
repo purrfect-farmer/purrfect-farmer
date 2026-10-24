@@ -1,17 +1,5 @@
 import BaseFarmer from "../../lib/BaseFarmer.js";
-import applyTraits from "../../lib/applyTraits.js";
 import { createContext } from "./context.js";
-import MonsterlandSession from "./MonsterlandSession.js";
-import MonsterlandApi from "./MonsterlandApi.js";
-import MonsterlandState from "./MonsterlandState.js";
-import MonsterlandAds from "./MonsterlandAds.js";
-import MonsterlandRewards from "./MonsterlandRewards.js";
-import MonsterlandEggs from "./MonsterlandEggs.js";
-import MonsterlandCare from "./MonsterlandCare.js";
-import MonsterlandGrowth from "./MonsterlandGrowth.js";
-import MonsterlandWithdrawal from "./MonsterlandWithdrawal.js";
-import MonsterlandWallet from "./MonsterlandWallet.js";
-import MonsterlandAccount from "./MonsterlandAccount.js";
 import { MINIMUM_WITHDRAWAL } from "./constants.js";
 
 export default class MonsterlandFarmer extends BaseFarmer {
@@ -51,8 +39,8 @@ export default class MonsterlandFarmer extends BaseFarmer {
     minWithdrawal: MINIMUM_WITHDRAWAL,
   };
 
-  /** Collaborators the traits work through */
-  ctx = createContext(this);
+  /** The modules the farmer works through */
+  ctx = createContext(this.core);
 
   /* --------------------------------------------------------------------- */
   /* Process                                                               */
@@ -60,45 +48,93 @@ export default class MonsterlandFarmer extends BaseFarmer {
 
   /** Process Farmer */
   async process() {
-    await this.loadState();
+    const { state, account, rewards, eggs, care, growth } = this.ctx;
 
-    this.logAccountInfo();
+    await state.load();
 
-    await this.executeTask("Streak", () => this.claimStreak());
-    await this.executeTask("Referrals", () => this.claimReferrals());
-    await this.executeTask("Eggs", () => this.manageEggs());
-    await this.executeTask("Care", () => this.careForMonsters());
-    await this.executeTask("Level", () => this.levelUpMonsters());
-    await this.executeTask("Grow", () => this.growFarm());
-    await this.executeTask("Missions", () => this.completeMissions());
+    account.logInfo();
+
+    await this.executeTask("Streak", () => rewards.claimStreak());
+    await this.executeTask("Referrals", () => rewards.claimReferrals());
+    await this.executeTask("Eggs", () => eggs.manageEggs());
+    await this.executeTask("Care", () => care.careForMonsters());
+    await this.executeTask("Level", () => growth.levelUpMonsters());
+    await this.executeTask("Grow", () => growth.growFarm());
+    await this.executeTask("Missions", () => rewards.completeMissions());
     await this.executeTask("Withdraw", () => this.withdraw());
     await this.storeAutoSnapshot();
   }
 
   /* --------------------------------------------------------------------- */
-  /* Tools (manual actions)                                                */
+  /* Host hooks                                                            */
   /* --------------------------------------------------------------------- */
 
+  /** Carry `initData` on the game's own API calls */
+  configureApi() {
+    return this.ctx.api.configure();
+  }
+
+  /** Get Auth */
+  fetchAuth() {
+    return this.ctx.state.load();
+  }
+
+  /** Load data */
+  async load() {
+    await this.ctx.walletVersion.load();
+  }
+
+  /** Get Referral Link */
+  getReferralLink() {
+    return this.ctx.session.getReferralLink();
+  }
+
+  /** Get Referrals Count */
+  getReferralsCount() {
+    return this.ctx.session.getReferralsCount();
+  }
+
   createTools() {
-    return [
-      {
-        name: "Wallet",
-        list: this.createAutoWalletTools(),
-      },
-    ];
+    return this.ctx.tools.create();
+  }
+
+  /* --------------------------------------------------------------------- */
+  /* Auto contract                                                         */
+  /* --------------------------------------------------------------------- */
+
+  connectAutoWallet(wallet) {
+    return this.ctx.auto.connectWallet(wallet);
+  }
+
+  refreshAutoState() {
+    return this.ctx.auto.refreshState();
+  }
+
+  refreshAutoSummary() {
+    return this.ctx.auto.refreshSummary();
+  }
+
+  startAutoMining() {
+    return this.ctx.auto.startMining();
+  }
+
+  getAutoSummary() {
+    return this.ctx.auto.summary();
+  }
+
+  storeAutoSnapshot() {
+    return this.ctx.snapshot.store();
+  }
+
+  readAutoWithdrawals() {
+    return this.ctx.snapshot.readWithdrawals();
+  }
+
+  withdraw(options) {
+    return this.ctx.flow.withdraw(options);
+  }
+
+  hasPendingWithdrawal() {
+    return this.ctx.withdrawals.hasPending();
   }
 }
-
-applyTraits(MonsterlandFarmer, [
-  MonsterlandSession,
-  MonsterlandApi,
-  MonsterlandState,
-  MonsterlandAds,
-  MonsterlandRewards,
-  MonsterlandEggs,
-  MonsterlandCare,
-  MonsterlandGrowth,
-  MonsterlandWithdrawal,
-  MonsterlandWallet,
-  MonsterlandAccount,
-]);

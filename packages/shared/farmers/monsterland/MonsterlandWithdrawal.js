@@ -1,23 +1,19 @@
-import BaseFarmer from "../../lib/BaseFarmer.js";
+import FarmerModule from "../../lib/farmer/FarmerModule.js";
 import { MAXIMUM_WITHDRAWAL } from "./constants.js";
 
-/** Trait: payouts and the pending queue */
-export default class MonsterlandWithdrawal {
-  /* --------------------------------------------------------------------- */
-  /* Withdrawal                                                            */
-  /* --------------------------------------------------------------------- */
-
+/** Payouts and the pending queue */
+export default class MonsterlandWithdrawal extends FarmerModule {
   /** Request a payout */
-  async placeWithdrawal({ max, difference }) {
-    await this.ensureStateLoaded();
+  async place({ max, difference }) {
+    await this.ctx.state.ensureLoaded();
 
-    const payments = this.getProfile()["payments"] || {};
+    const payments = this.ctx.state.profile()["payments"] || {};
 
     if (!payments["wallet"]) {
-      return this.skipWithdrawal("No wallet connected!");
+      return this.ctx.flow.skip("No wallet connected!");
     }
 
-    const config = await this.fetchConfig();
+    const config = await this.ctx.api.fetchConfig();
     const minimum = this.getMinimumWithdrawal();
     const quota = config["withdraw_quota"] || {};
     const remaining = Number(
@@ -25,20 +21,20 @@ export default class MonsterlandWithdrawal {
     );
     const maximum =
       Number(config["max_withdrawal_lumis"]) || MAXIMUM_WITHDRAWAL;
-    const balance = this.getLumis();
-    const lowBalance = this.skipLowBalance(balance, minimum);
+    const balance = this.ctx.state.lumis();
+    const lowBalance = this.ctx.flow.skipLowBalance(balance, minimum);
 
     if (lowBalance) return lowBalance;
 
     if (Number.isFinite(remaining) && remaining < minimum) {
-      return this.skipWithdrawal("Withdrawal quota is used up!", {
+      return this.ctx.flow.skip("Withdrawal quota is used up!", {
         log: "warn",
       });
     }
 
     const amount = Math.floor(
       Number(
-        this.pickWithdrawalAmount({
+        this.ctx.flow.pickAmount({
           balance,
           minimum,
           max,
@@ -50,10 +46,10 @@ export default class MonsterlandWithdrawal {
       ),
     );
 
-    const result = await this.requestWithdrawal(amount);
+    const result = await this.ctx.api.requestWithdrawal(amount);
 
     if (result.data["status"] === "requires_reconciliation") {
-      return this.skipWithdrawal(
+      return this.ctx.flow.skip(
         "Monsterland wants the balance reconciled first, do it in the app!",
         { amount, log: "warn" },
       );
@@ -71,13 +67,13 @@ export default class MonsterlandWithdrawal {
       result.data["idempotent"] &&
       (!result.data["txId"] || result.data["txId"] === "pending")
     ) {
-      return this.skipWithdrawal(
+      return this.ctx.flow.skip(
         "Withdrawal was replayed but is still unconfirmed, check the app!",
         { amount, log: "warn" },
       );
     }
 
-    this.applyResult(result.data);
+    this.ctx.state.apply(result.data);
     this.logger.success(`Requested a withdrawal of ${amount} lumis.`);
 
     return { status: true, amount: String(amount) };
@@ -86,25 +82,15 @@ export default class MonsterlandWithdrawal {
   /** The game publishes its minimum in its config */
   getMinimumWithdrawal() {
     return (
-      Number(this.config_data?.["min_withdrawal_lumis"]) ||
-      BaseFarmer.prototype.getMinimumWithdrawal.call(this)
+      Number(this.ctx.state.config?.["min_withdrawal_lumis"]) ||
+      this.ctx.flow.declaredMinimum()
     );
   }
 
   /** Payout rows from the payment history, newest first */
   async getWithdrawals() {
-    const history = await this.fetchPaymentHistory();
+    const history = await this.ctx.api.fetchPaymentHistory();
 
     return history.filter((item) => item["type"] === "withdrawal");
-  }
-
-  /** Whether the drop still owes this account a settlement */
-  hasPendingWithdrawal() {
-    return this.ctx.withdrawals.hasPending();
-  }
-
-  /** The account's own withdrawal queue */
-  getAutoWithdrawals() {
-    return this.ctx.withdrawals.load();
   }
 }

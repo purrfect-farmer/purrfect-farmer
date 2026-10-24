@@ -1,3 +1,4 @@
+import FarmerModule from "../../lib/farmer/FarmerModule.js";
 import {
   ADSGRAM_BLOCK_ID,
   AD_RESULT_POLL_SECONDS,
@@ -8,11 +9,10 @@ import {
   PLAYABLE_AD_PROVIDERS,
 } from "./constants.js";
 
-/** Trait: watching rewarded ads across the page's providers */
-export default class MonsterlandAds {
-  /* --------------------------------------------------------------------- */
-  /* Ads                                                                   */
-  /* --------------------------------------------------------------------- */
+/** Watching the page's ads, falling back across networks */
+export default class MonsterlandAds extends FarmerModule {
+  /** Whether every ad network refused this run, so ad-paid steps are skipped */
+  unavailable = false;
 
   /** Watch an ad for an action, falling back across providers the way the page does
    * @returns {Promise<object|null>} the backend's settlement, or `null` when no ad paid
@@ -34,7 +34,7 @@ export default class MonsterlandAds {
           }
         : undefined;
 
-      const task = await this.createAdTask(action, metadata, fallback);
+      const task = await this.ctx.api.createAdTask(action, metadata, fallback);
 
       if (!task.ok) {
         const reason = task.data["reason"];
@@ -50,7 +50,7 @@ export default class MonsterlandAds {
         }
 
         this.logger.warn("No ad available:", task.data["error"] || reason);
-        this.adsUnavailable = true;
+        this.unavailable = true;
         return null;
       }
 
@@ -62,7 +62,7 @@ export default class MonsterlandAds {
       if (!PLAYABLE_AD_PROVIDERS.includes(provider)) {
         this.logger.info(`Skipping ${provider} ad.`);
         if (!failedProviders.includes(provider)) failedProviders.push(provider);
-        await this.abandonAd(adTxId);
+        await this.ctx.api.abandonAd(adTxId);
         continue;
       }
 
@@ -78,11 +78,11 @@ export default class MonsterlandAds {
 
         /** Once Monetag comes back non-valued, the page flags the abandon and every fallback after it */
         nonValued ||= Boolean(error.nonValued);
-        await this.abandonAd(adTxId, error.nonValued);
+        await this.ctx.api.abandonAd(adTxId, error.nonValued);
       }
     }
 
-    this.adsUnavailable = true;
+    this.unavailable = true;
     return null;
   }
 
@@ -97,7 +97,7 @@ export default class MonsterlandAds {
 
       case "monetag": {
         const format = task["monetagFormat"] || "interstitial";
-        const ymid = `${this.getUserId()}_${adTxId}`;
+        const ymid = `${this.core.userId()}_${adTxId}`;
         const { event } =
           format === "pop"
             ? await this.ctx.ads.monetag.pop(MONETAG_ZONE_ID, { ymid })
@@ -115,7 +115,7 @@ export default class MonsterlandAds {
       case "gigapub": {
         await this.ctx.ads.gigapub.watch();
 
-        const result = await this.completeAd(adTxId, "gigapub");
+        const result = await this.ctx.api.completeAd(adTxId, "gigapub");
 
         if (!result.ok) {
           throw new Error(result.data["error"] || "GigaPub was not verified");
@@ -137,7 +137,7 @@ export default class MonsterlandAds {
       attempt < attempts && !this.signal.aborted;
       attempt++
     ) {
-      const result = await this.fetchAdTaskResult(adTxId);
+      const result = await this.ctx.api.fetchAdTaskResult(adTxId);
 
       if (result) {
         if (result["success"] === false) {
@@ -193,7 +193,7 @@ export default class MonsterlandAds {
     );
 
     for (let attempt = 0; attempt < MONETAG_COMPLETE_ATTEMPTS; attempt++) {
-      const result = await this.completeAd(adTxId, "monetag", {
+      const result = await this.ctx.api.completeAd(adTxId, "monetag", {
         monetagEstimatedPrice: Number.isFinite(estimatedPrice)
           ? estimatedPrice
           : null,

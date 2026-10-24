@@ -1,3 +1,4 @@
+import FarmerModule from "../../lib/farmer/FarmerModule.js";
 import {
   DAY_MS,
   DECAY_MODIFIERS,
@@ -17,8 +18,8 @@ import {
   VITAL_TARGETS,
 } from "./constants.js";
 
-/** Trait: monster lifespans, vitals, sleep and potions */
-export default class MonsterlandCare {
+/** Feeding, resting and keeping the monsters alive */
+export default class MonsterlandCare extends FarmerModule {
   /** How long a monster lives, the way the page works it out */
   getLifespanDays(monster) {
     if (
@@ -47,18 +48,21 @@ export default class MonsterlandCare {
 
     return (
       Number.isFinite(hatchedAt) &&
-      this.getServerNow() - hatchedAt >= this.getLifespanDays(monster) * DAY_MS
+      this.ctx.state.getServerNow() - hatchedAt >=
+        this.getLifespanDays(monster) * DAY_MS
     );
   }
 
   /** Hatched monsters that still produce */
   getLiveMonsters() {
-    return this.getMonsters().filter(
-      (monster) =>
-        !monster["is_egg"] &&
-        !monster["is_mentor"] &&
-        !this.hasLifespanExpired(monster),
-    );
+    return this.ctx.state
+      .monsters()
+      .filter(
+        (monster) =>
+          !monster["is_egg"] &&
+          !monster["is_mentor"] &&
+          !this.hasLifespanExpired(monster),
+      );
   }
 
   /** A monster's vitals now, decayed from when the server last wrote them */
@@ -84,14 +88,19 @@ export default class MonsterlandCare {
 
     const lastUpdated = vitals["last_updated"]
       ? new Date(vitals["last_updated"]).getTime()
-      : this.getServerNow();
-    const hours = Math.max(0, (this.getServerNow() - lastUpdated) / 36e5);
+      : this.ctx.state.getServerNow();
+    const hours = Math.max(
+      0,
+      (this.ctx.state.getServerNow() - lastUpdated) / 36e5,
+    );
     const personality = String(monster["personality"] || "").toLowerCase();
     const modifiers = DECAY_MODIFIERS[personality] || {};
     const hungerStoppedUntil = this.getHungerStoppedUntil(monster);
     const foodHours = Math.max(
       0,
-      (this.getServerNow() - Math.max(lastUpdated, hungerStoppedUntil)) / 36e5,
+      (this.ctx.state.getServerNow() -
+        Math.max(lastUpdated, hungerStoppedUntil)) /
+        36e5,
     );
     const hygieneFloor =
       personality === "pristine" ? PRISTINE_HYGIENE_FLOOR : 0;
@@ -125,9 +134,9 @@ export default class MonsterlandCare {
   getSleepHours(monster) {
     const startedAt = monster["sleep_started_at"]
       ? new Date(monster["sleep_started_at"]).getTime()
-      : this.getServerNow();
+      : this.ctx.state.getServerNow();
 
-    return Math.max(0, (this.getServerNow() - startedAt) / 36e5);
+    return Math.max(0, (this.ctx.state.getServerNow() - startedAt) / 36e5);
   }
 
   /** Energy a monster recovers per hour of sleep */
@@ -139,7 +148,7 @@ export default class MonsterlandCare {
 
   /** Keep every monster fed, clean and rested */
   async careForMonsters() {
-    await this.loadState();
+    await this.ctx.state.load();
 
     const monsters = this.getLiveMonsters();
 
@@ -203,7 +212,7 @@ export default class MonsterlandCare {
       return;
     }
 
-    const result = await this.changeSleep(monster["_id"], "wake_up");
+    const result = await this.ctx.api.changeSleep(monster["_id"], "wake_up");
 
     if (!result.ok) {
       if (result.data["reason"] === "no_coffee") {
@@ -214,7 +223,7 @@ export default class MonsterlandCare {
       return;
     }
 
-    this.applyResult(result.data);
+    this.ctx.state.apply(result.data);
     this.logger.success(
       `${name} woke up rested${result.data["xp_gained"] ? ` (+${result.data["xp_gained"]} XP)` : ""}.`,
     );
@@ -222,7 +231,10 @@ export default class MonsterlandCare {
 
   /** Put a tired monster to sleep */
   async startSleep(monster, name) {
-    const result = await this.changeSleep(monster["_id"], "start_sleep");
+    const result = await this.ctx.api.changeSleep(
+      monster["_id"],
+      "start_sleep",
+    );
 
     if (!result.ok) {
       this.logger.warn(`Failed to put ${name} to sleep:`, result.data["error"]);
@@ -252,7 +264,7 @@ export default class MonsterlandCare {
       }
 
       used++;
-      this.applyResult(result.data);
+      this.ctx.state.apply(result.data);
 
       const next = Number(result.data["newVitalValue"]);
       value = Number.isFinite(next) ? next : value + result.item.value;
@@ -268,11 +280,11 @@ export default class MonsterlandCare {
   /** Restore a vital once, the cheapest way available, or `null` when nothing is left to try */
   async restoreVital(monster, vital) {
     const items = VITAL_ITEMS[vital].filter((item) => !item.buffHours);
-    const inventory = this.getInventory();
+    const inventory = this.ctx.state.inventory();
     const owned = items.find((item) => Number(inventory[item.id]) > 0);
 
     if (owned) {
-      const result = await this.applyVitalItem(
+      const result = await this.ctx.api.applyVitalItem(
         monster["_id"],
         owned.id,
         "use_inventory",
@@ -292,8 +304,8 @@ export default class MonsterlandCare {
 
     const adItem = items.find((item) => item.ads === 1);
 
-    if (adItem && !this.adsUnavailable) {
-      const data = await this.watchAdFor("vitals", {
+    if (adItem && !this.ctx.adWatcher.unavailable) {
+      const data = await this.ctx.adWatcher.watchAdFor("vitals", {
         monsterId: monster["_id"],
         itemId: adItem.id,
       });
@@ -308,12 +320,12 @@ export default class MonsterlandCare {
 
     const cheapest = items[0];
 
-    if (this.getLumis() - cheapest.price < LUMIS_RESERVE) {
+    if (this.ctx.state.lumis() - cheapest.price < LUMIS_RESERVE) {
       this.logger.info(`Not enough lumis to buy ${cheapest.id}.`);
       return null;
     }
 
-    const result = await this.applyVitalItem(
+    const result = await this.ctx.api.applyVitalItem(
       monster["_id"],
       cheapest.id,
       "purchase",
@@ -330,7 +342,7 @@ export default class MonsterlandCare {
   /** Stop a fed monster's hunger with a potion, unless one is running or it spares too few feeds */
   async applyHungerPotion(monster, name) {
     const potion = VITAL_ITEMS.food.find((item) => item.buffHours);
-    const now = this.getServerNow();
+    const now = this.ctx.state.getServerNow();
 
     if (this.getHungerStoppedUntil(monster) > now) return;
 
@@ -351,7 +363,7 @@ export default class MonsterlandCare {
 
     if (!result) return;
 
-    this.applyResult(result.data);
+    this.ctx.state.apply(result.data);
 
     const until = new Date(result.data["hungerDecayStoppedUntil"]).getTime();
 
@@ -363,7 +375,7 @@ export default class MonsterlandCare {
     };
 
     if (result.data["hungerPotionAdClaimedUntil"] !== undefined) {
-      this.getProfile()["hunger_potion_ad_claimed_until"] =
+      this.ctx.state.profile()["hunger_potion_ad_claimed_until"] =
         result.data["hungerPotionAdClaimedUntil"];
     }
 
@@ -374,10 +386,10 @@ export default class MonsterlandCare {
 
   /** Get a hunger potion onto a monster from the inventory, then its ad sequence, then lumis when the feeds it spares cost as much */
   async obtainHungerPotion(monster, potion, savedLumis) {
-    const inventory = this.getInventory();
+    const inventory = this.ctx.state.inventory();
 
     if (Number(inventory[potion.id]) > 0) {
-      const result = await this.applyVitalItem(
+      const result = await this.ctx.api.applyVitalItem(
         monster["_id"],
         potion.id,
         "use_inventory",
@@ -395,13 +407,16 @@ export default class MonsterlandCare {
       inventory[potion.id] = 0;
     }
 
-    const profile = this.getProfile();
+    const profile = this.ctx.state.profile();
     const claimedUntil = new Date(
       profile["hunger_potion_ad_claimed_until"] || 0,
     ).getTime();
 
     /** The page locks the potion's ad option until its last claim runs out */
-    if (!this.adsUnavailable && !(claimedUntil > this.getServerNow())) {
+    if (
+      !this.ctx.adWatcher.unavailable &&
+      !(claimedUntil > this.ctx.state.getServerNow())
+    ) {
       const progress = profile["hunger_potion_ad_progress"] || {};
       const watched = Math.max(0, Number(progress["watched"]) || 0);
 
@@ -409,7 +424,7 @@ export default class MonsterlandCare {
         `Watching ${Math.max(1, potion.ads - watched)} ad(s) for ${potion.id}...`,
       );
 
-      const data = await this.watchAdSequence("vitals", {
+      const data = await this.ctx.adWatcher.watchAdSequence("vitals", {
         monsterId: monster["_id"],
         itemId: potion.id,
       });
@@ -419,9 +434,10 @@ export default class MonsterlandCare {
       this.logger.info(`${potion.id} ad sequence broke off, progress is kept.`);
     }
 
-    if (savedLumis < potion.price || !this.canAfford(potion.price)) return null;
+    if (savedLumis < potion.price || !this.ctx.growth.canAfford(potion.price))
+      return null;
 
-    const result = await this.applyVitalItem(
+    const result = await this.ctx.api.applyVitalItem(
       monster["_id"],
       potion.id,
       "purchase",
@@ -445,7 +461,7 @@ export default class MonsterlandCare {
       0,
       (hatchedAt +
         this.getLifespanDays(monster) * DAY_MS -
-        this.getServerNow()) /
+        this.ctx.state.getServerNow()) /
         36e5,
     );
   }

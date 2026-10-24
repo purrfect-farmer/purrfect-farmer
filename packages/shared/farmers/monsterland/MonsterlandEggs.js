@@ -1,3 +1,4 @@
+import FarmerModule from "../../lib/farmer/FarmerModule.js";
 import {
   DEFAULT_MONSTER_SLOTS,
   EGG_TYPES,
@@ -5,20 +6,17 @@ import {
   INCUBATION_MAXIMUM_ADS,
 } from "./constants.js";
 
-/** Trait: fragments, incubation and hatching */
-export default class MonsterlandEggs {
-  /* --------------------------------------------------------------------- */
-  /* Eggs                                                                  */
-  /* --------------------------------------------------------------------- */
-
+/** Hatching, incubating and boosting eggs */
+export default class MonsterlandEggs extends FarmerModule {
   /** Turn fragments into eggs, incubate what fits, and hatch what is ready */
   async manageEggs() {
     for (const type of EGG_TYPES) {
-      const fragments = Number(this.getInventory()[`${type}_fragment`]) || 0;
+      const fragments =
+        Number(this.ctx.state.inventory()[`${type}_fragment`]) || 0;
 
       if (fragments < FRAGMENTS_PER_EGG) continue;
 
-      const result = await this.claimEggFromFragments(type);
+      const result = await this.ctx.api.claimEggFromFragments(type);
 
       if (!result.ok) {
         this.logger.warn(
@@ -29,7 +27,7 @@ export default class MonsterlandEggs {
       }
 
       if (result.data["inventory"]) {
-        Object.assign(this.getInventory(), result.data["inventory"]);
+        Object.assign(this.ctx.state.inventory(), result.data["inventory"]);
       }
 
       this.logger.success(`Claimed a ${type} from fragments.`);
@@ -41,16 +39,18 @@ export default class MonsterlandEggs {
 
   /** Hatch every egg whose incubation has ended */
   async hatchReadyEggs() {
-    const now = this.getServerNow();
-    const ready = this.getMonsters().filter(
-      (egg) =>
-        egg["is_egg"] &&
-        egg["incubation"]?.["ends_at"] &&
-        new Date(egg["incubation"]["ends_at"]).getTime() <= now,
-    );
+    const now = this.ctx.state.getServerNow();
+    const ready = this.ctx.state
+      .monsters()
+      .filter(
+        (egg) =>
+          egg["is_egg"] &&
+          egg["incubation"]?.["ends_at"] &&
+          new Date(egg["incubation"]["ends_at"]).getTime() <= now,
+      );
 
     for (const egg of ready) {
-      const result = await this.hatchEgg(egg["_id"]);
+      const result = await this.ctx.api.hatchEgg(egg["_id"]);
 
       if (result.ok && result.data["monster"]) {
         this.logger.success(
@@ -68,33 +68,38 @@ export default class MonsterlandEggs {
     }
 
     if (ready.length) {
-      await this.loadState();
+      await this.ctx.state.load();
     }
   }
 
   /** Incubate eggs from the inventory while slots are free */
   async incubateEggs() {
     const slots =
-      Number(this.getProfile()["monster_slots"]) || DEFAULT_MONSTER_SLOTS;
-    let occupied = this.getMonsters().filter(
-      (monster) => !monster["is_mentor"] && !this.hasLifespanExpired(monster),
-    ).length;
+      Number(this.ctx.state.profile()["monster_slots"]) ||
+      DEFAULT_MONSTER_SLOTS;
+    let occupied = this.ctx.state
+      .monsters()
+      .filter(
+        (monster) =>
+          !monster["is_mentor"] && !this.ctx.care.hasLifespanExpired(monster),
+      ).length;
 
     for (const type of EGG_TYPES) {
       while (
         occupied < slots &&
-        (Number(this.getInventory()[type]) || 0) > 0 &&
+        (Number(this.ctx.state.inventory()[type]) || 0) > 0 &&
         !this.signal.aborted
       ) {
-        const result = await this.incubateEgg(type);
+        const result = await this.ctx.api.incubateEgg(type);
 
         if (!result.ok || !result.data["egg"]) {
           this.logger.warn(`Failed to incubate ${type}:`, result.data["error"]);
           return;
         }
 
-        this.getInventory()[type] = Number(this.getInventory()[type]) - 1;
-        this.getMonsters().push(result.data["egg"]);
+        this.ctx.state.inventory()[type] =
+          Number(this.ctx.state.inventory()[type]) - 1;
+        this.ctx.state.monsters().push(result.data["egg"]);
         occupied++;
 
         this.logger.success(`Incubating a ${type}.`);
@@ -104,12 +109,15 @@ export default class MonsterlandEggs {
 
   /** Watch incubation ads on every egg still incubating, so it hatches sooner */
   async boostIncubations() {
-    const eggs = this.getMonsters().filter(
-      (egg) =>
-        egg["is_egg"] &&
-        egg["incubation"]?.["ends_at"] &&
-        new Date(egg["incubation"]["ends_at"]).getTime() > this.getServerNow(),
-    );
+    const eggs = this.ctx.state
+      .monsters()
+      .filter(
+        (egg) =>
+          egg["is_egg"] &&
+          egg["incubation"]?.["ends_at"] &&
+          new Date(egg["incubation"]["ends_at"]).getTime() >
+            this.ctx.state.getServerNow(),
+      );
 
     let boosted = 0;
 
@@ -121,10 +129,10 @@ export default class MonsterlandEggs {
 
       while (
         watched < maximum &&
-        !this.adsUnavailable &&
+        !this.ctx.adWatcher.unavailable &&
         !this.signal.aborted
       ) {
-        const result = await this.watchAdFor("incubation_boost", {
+        const result = await this.ctx.adWatcher.watchAdFor("incubation_boost", {
           eggId: egg["_id"],
         });
 
@@ -143,7 +151,7 @@ export default class MonsterlandEggs {
 
         if (
           new Date(egg["incubation"]["ends_at"]).getTime() <=
-          this.getServerNow()
+          this.ctx.state.getServerNow()
         ) {
           break;
         }
@@ -151,7 +159,7 @@ export default class MonsterlandEggs {
     }
 
     if (boosted) {
-      await this.loadState();
+      await this.ctx.state.load();
       await this.hatchReadyEggs();
     }
   }

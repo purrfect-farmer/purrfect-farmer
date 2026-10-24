@@ -1,7 +1,104 @@
-import { MISSIONS_PAGE_SIZE, WITHDRAWAL_HISTORY_LIMIT } from "./constants.js";
+import FarmerModule from "../../lib/farmer/FarmerModule.js";
+import {
+  API_URL,
+  BANNED,
+  TURNSTILE_REQUIRED,
+  MISSIONS_PAGE_SIZE,
+  WITHDRAWAL_HISTORY_LIMIT,
+} from "./constants.js";
 
-/** Trait: the game's endpoints, one method per call */
-export default class MonsterlandApi {
+/** The game's API: its transport and one method per endpoint */
+export default class MonsterlandApi extends FarmerModule {
+  /* --------------------------------------------------------------------- */
+  /* Transport                                                             */
+  /* --------------------------------------------------------------------- */
+
+  /** Carry `initData` on every call the game's own API receives, and on no others */
+  configure() {
+    const interceptor = this.api.interceptors.request.use((config) => {
+      if (String(config.url || "").startsWith(API_URL)) {
+        config.headers["Authorization"] = `tma ${this.core.initData()}`;
+      }
+
+      return config;
+    });
+
+    return () => {
+      this.api.interceptors.request.eject(interceptor);
+    };
+  }
+
+  /** Call the game's API, passing Turnstile once if the backend asks for it
+   * @returns {Promise<{ ok: boolean, status: number, data: object }>}
+   */
+  async callApi(
+    method,
+    path,
+    { data, params, headers, retryTurnstile = true } = {},
+  ) {
+    const response = await this.api.request({
+      method,
+      url: `${API_URL}${path}`,
+      data: method === "get" ? undefined : data || {},
+      params,
+      headers,
+      signal: this.signal,
+      validateStatus: () => true,
+    });
+
+    const payload =
+      response.data && typeof response.data === "object" ? response.data : {};
+
+    if (response.status === 403 && payload["error"] === BANNED) {
+      throw new Error("This account is banned by Monsterland.");
+    }
+
+    if (
+      response.status === 403 &&
+      payload["error"] === TURNSTILE_REQUIRED &&
+      retryTurnstile
+    ) {
+      this.logger.warn("Monsterland asked for the security check.");
+      await this.ctx.humanCheck.obtain();
+      return this.callApi(method, path, {
+        data,
+        params,
+        headers,
+        retryTurnstile: false,
+      });
+    }
+
+    if (response.status >= 500) {
+      throw new Error(
+        payload["error"] || `Request failed (${response.status})`,
+      );
+    }
+
+    return {
+      ok: response.status >= 200 && response.status < 300,
+      status: response.status,
+      data: payload,
+    };
+  }
+
+  /** Read from the game's API, throwing a refusal */
+  async getFromApi(path, params) {
+    const result = await this.callApi("get", path, { params });
+
+    if (!result.ok) {
+      throw new Error(
+        result.data["error"] || `Failed to read ${path} (${result.status})`,
+      );
+    }
+
+    return result.data;
+  }
+
+  /** Act on the game's API, returning a refusal for the caller to read */
+  postToApi(path, data = {}, headers) {
+    return this.callApi("post", path, { data, headers });
+  }
+
   /* --------------------------------------------------------------------- */
   /* Endpoints                                                             */
   /* --------------------------------------------------------------------- */
@@ -29,8 +126,8 @@ export default class MonsterlandApi {
 
   /** The game's live settings, withdrawal quota included, kept for the minimum */
   async fetchConfig() {
-    this.config_data = await this.getFromApi("/config", { quota: 1 });
-    return this.config_data;
+    this.ctx.state.config = await this.getFromApi("/config", { quota: 1 });
+    return this.ctx.state.config;
   }
 
   /** Change the player's own settings, the wallet included */

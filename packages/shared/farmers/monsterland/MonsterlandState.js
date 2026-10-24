@@ -1,44 +1,52 @@
-/** Trait: the account state and the parts of it every pass reads */
-export default class MonsterlandState {
+import FarmerModule from "../../lib/farmer/FarmerModule.js";
+
+/** The account state and the parts of it every pass reads */
+export default class MonsterlandState extends FarmerModule {
+  /** The account state, stamped with when it was read */
+  data = null;
+
+  /** The game's config, with the withdrawal rules and quota */
+  config = null;
+
   /** Re-read the account into the farmer */
-  async loadState() {
-    this.state_data = await this.fetchUser();
-    this.state_data.loadedAt = Date.now();
-    return this.state_data;
+  async load() {
+    this.data = await this.ctx.api.fetchUser();
+    this.data.loadedAt = Date.now();
+    return this.data;
   }
 
   /** Read the state once, for entry points that run without a full pass */
-  async ensureStateLoaded() {
-    if (!this.state_data) {
-      await this.loadState();
+  async ensureLoaded() {
+    if (!this.data) {
+      await this.load();
     }
 
-    return this.state_data;
+    return this.data;
   }
 
   /** The player's profile */
-  getProfile() {
-    return this.state_data?.profile || {};
+  profile() {
+    return this.data?.profile || {};
   }
 
   /** The player's item and egg counts */
-  getInventory() {
-    return this.state_data?.inventory || {};
+  inventory() {
+    return this.data?.inventory || {};
   }
 
   /** Every monster and egg the account holds */
-  getMonsters() {
-    return this.state_data?.monsters || [];
+  monsters() {
+    return this.data?.monsters || [];
   }
 
   /** The lumis balance */
-  getLumis() {
-    return Number(this.getProfile()["lumis"]) || 0;
+  lumis() {
+    return Number(this.profile()["lumis"]) || 0;
   }
 
   /** Fold a returned balance and inventory changes into the state */
-  applyResult(result) {
-    const profile = this.getProfile();
+  apply(result) {
+    const profile = this.profile();
     const lumis = result?.["newLumis"] ?? result?.["new_balance"];
 
     if (lumis !== undefined && lumis !== null) {
@@ -46,27 +54,14 @@ export default class MonsterlandState {
     }
 
     if (result?.["inventoryUpdates"]) {
-      Object.assign(this.getInventory(), result["inventoryUpdates"]);
+      Object.assign(this.inventory(), result["inventoryUpdates"]);
     }
   }
 
-  /** Get Referrals Count */
-  async getReferralsCount() {
-    await this.ensureStateLoaded();
-
-    return Number(this.state_data?.referral?.["total_referrals"]) || 0;
-  }
-
-  /* --------------------------------------------------------------------- */
-  /* Care                                                                  */
-  /* --------------------------------------------------------------------- */
-
   /** Server time, as the last state read reported it */
   getServerNow() {
-    const serverTime = Number(this.state_data?.serverTime);
-    const offset = this.state_data?.loadedAt
-      ? Date.now() - this.state_data.loadedAt
-      : 0;
+    const serverTime = Number(this.data?.serverTime);
+    const offset = this.data?.loadedAt ? Date.now() - this.data.loadedAt : 0;
 
     return serverTime ? serverTime + offset : Date.now();
   }

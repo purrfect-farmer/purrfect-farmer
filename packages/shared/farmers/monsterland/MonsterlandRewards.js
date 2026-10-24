@@ -1,3 +1,4 @@
+import FarmerModule from "../../lib/farmer/FarmerModule.js";
 import {
   INITIAL_BONUS_REFERRALS,
   MISSION_BUCKETS,
@@ -6,15 +7,11 @@ import {
   REFERRAL_GOAL_IDS,
 } from "./constants.js";
 
-/** Trait: streaks, referral rewards and missions */
-export default class MonsterlandRewards {
-  /* --------------------------------------------------------------------- */
-  /* Streak                                                                */
-  /* --------------------------------------------------------------------- */
-
+/** The streak, referral rewards and missions */
+export default class MonsterlandRewards extends FarmerModule {
   /** Claim today's streak reward once */
   async claimStreak() {
-    const streak = this.getProfile()["daily_streak_state"];
+    const streak = this.ctx.state.profile()["daily_streak_state"];
 
     if (!streak) {
       this.logger.info("No streak state to read.");
@@ -31,24 +28,20 @@ export default class MonsterlandRewards {
       return;
     }
 
-    const result = await this.claimDailyStreak();
+    const result = await this.ctx.api.claimDailyStreak();
 
     if (!result.ok) {
       this.logger.warn("Failed to claim streak:", result.data["error"]);
       return;
     }
 
-    this.applyResult(result.data);
+    this.ctx.state.apply(result.data);
     this.logger.success(`Claimed streak day ${(streak["days"] || 0) + 1}.`);
   }
 
-  /* --------------------------------------------------------------------- */
-  /* Referrals                                                             */
-  /* --------------------------------------------------------------------- */
-
   /** Claim referral lumis, the newcomer bonus and every goal reached */
   async claimReferrals() {
-    const referral = await this.fetchReferral();
+    const referral = await this.ctx.api.fetchReferral();
     const total = Number(referral["total_referrals"]) || 0;
 
     if (Number(referral["claimable_lumis"]) > 0) {
@@ -87,20 +80,16 @@ export default class MonsterlandRewards {
 
   /** Claim one referral reward and log it */
   async claimReferralReward(type, id, label) {
-    const result = await this.claimReferral(type, id);
+    const result = await this.ctx.api.claimReferral(type, id);
 
     if (!result.ok || result.data["success"] === false) {
       this.logger.warn(`Failed to claim ${label}:`, result.data["error"]);
       return;
     }
 
-    this.applyResult(result.data);
+    this.ctx.state.apply(result.data);
     this.logger.success(`Claimed ${label}.`);
   }
-
-  /* --------------------------------------------------------------------- */
-  /* Missions                                                              */
-  /* --------------------------------------------------------------------- */
 
   /** Claim every available mission across the board's buckets */
   async completeMissions() {
@@ -121,7 +110,7 @@ export default class MonsterlandRewards {
     let cursor = null;
 
     do {
-      const page = await this.fetchMissions(bucket, cursor);
+      const page = await this.ctx.api.fetchMissions(bucket, cursor);
 
       missions.push(...(page["missions"] || []));
       cursor = page["hasMore"] ? page["nextCursor"] : null;
@@ -134,13 +123,13 @@ export default class MonsterlandRewards {
   async completeMission(mission) {
     const url = mission["url"];
 
-    if (url && !this.validateTelegramTask(url)) {
+    if (url && !this.core.telegram.validateTask(url)) {
       return;
     }
 
-    await this.openTaskLink(url, MISSION_DWELL_SECONDS);
+    await this.core.telegram.openTaskLink(url, MISSION_DWELL_SECONDS);
 
-    const result = await this.claimMission(mission["id"]);
+    const result = await this.ctx.api.claimMission(mission["id"]);
 
     if (!result.ok) {
       const reason = result.data["reason"];
@@ -159,7 +148,7 @@ export default class MonsterlandRewards {
       return;
     }
 
-    this.applyResult(result.data);
+    this.ctx.state.apply(result.data);
     this.logger.success(
       `Claimed "${mission["title"]}" for ${mission["rewardLumis"] ?? "?"} lumis.`,
     );
