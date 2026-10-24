@@ -134,7 +134,7 @@ test("the admin hears of a withdrawal only on a scheduled run", async () => {
   ]);
 });
 
-test("the snapshot trims each queue and counts approvals", async () => {
+test("the snapshot trims each queue and counts approvals and pending", async () => {
   const { core, calls } = createCore();
   const snapshot = new AutoSnapshot({
     core,
@@ -151,7 +151,13 @@ test("the snapshot trims each queue and counts approvals", async () => {
   assert.equal(stored.level, 3);
   assert.deepEqual(
     { ...stored.withdrawal, checkedAt: 0 },
-    { pending: [1, 2], approved: 4, flagged: [1], checkedAt: 0 },
+    {
+      pending: [1, 2],
+      pendingCount: 3,
+      approved: 4,
+      flagged: [1],
+      checkedAt: 0,
+    },
   );
   assert.deepEqual(calls[0].slice(0, 2), ["set", "autoSnapshot"]);
 });

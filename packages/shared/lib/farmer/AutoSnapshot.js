@@ -41,7 +41,8 @@ export default class AutoSnapshot {
 
   /** The withdrawal queue as the snapshot carries it, or null when unknown
    * `approved` is a count rather than records, and null when the drop does not count them
-   * @returns {Promise<{ pending: object[], approved: number|null, flagged: object[], checkedAt: number } | null>}
+   * `pendingCount` counts every pending record, beyond the ones kept
+   * @returns {Promise<{ pending: object[], pendingCount: number, approved: number|null, flagged: object[], checkedAt: number } | null>}
    */
   async readWithdrawals() {
     try {
@@ -49,8 +50,11 @@ export default class AutoSnapshot {
 
       if (!result) return null;
 
+      const pending = result.pending || [];
+
       return {
-        pending: (result.pending || []).slice(0, SNAPSHOT_WITHDRAWAL_LIMIT),
+        pending: pending.slice(0, SNAPSHOT_WITHDRAWAL_LIMIT),
+        pendingCount: pending.length,
         approved: Array.isArray(result.approved)
           ? result.approved.length
           : null,

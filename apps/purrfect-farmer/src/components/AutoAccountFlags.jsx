@@ -141,7 +141,7 @@ export default function AutoAccountFlags({ account, ...props }) {
   if (!enabled || !snapshot) return null;
 
   const freeze = getMiningFreeze(snapshot);
-  const { pending, flagged } = getWithdrawals(snapshot);
+  const { pendingCount, flagged } = getWithdrawals(snapshot);
   const protection = getProtection(snapshot);
   const trust = getWithdrawalTrust(snapshot);
   const mismatch = getWalletMismatch(snapshot, account);
@@ -155,7 +155,7 @@ export default function AutoAccountFlags({ account, ...props }) {
     !hasFreeze &&
     !hasProtection &&
     !trust?.trusted &&
-    !pending.length &&
+    !pendingCount &&
     !flagged.length
   )
     return null;
@@ -177,13 +177,13 @@ export default function AutoAccountFlags({ account, ...props }) {
       <TrustedPill trust={trust} />
 
       {/* A withdrawal in flight, so the account must not place another */}
-      {pending.length ? (
+      {pendingCount ? (
         <Pill
           icon={LuHourglass}
-          title={`${pending.length} withdrawal(s) awaiting processing`}
+          title={`${pendingCount} withdrawal(s) awaiting processing`}
           className="text-yellow-500 dark:text-yellow-400"
         >
-          P ({pending.length})
+          P ({pendingCount})
         </Pill>
       ) : null}
 

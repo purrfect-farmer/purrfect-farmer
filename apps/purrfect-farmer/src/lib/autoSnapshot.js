@@ -77,11 +77,17 @@ export const getExchange = (snapshot) => {
 /** The account's own withdrawal queue, and whether the drop reported it */
 export const getWithdrawals = (snapshot) => {
   const withdrawal = snapshot?.withdrawal;
+  const pending = withdrawal?.pending || [];
 
   return {
     known: Boolean(withdrawal),
     checkedAt: withdrawal?.checkedAt || null,
-    pending: withdrawal?.pending || [],
+    pending,
+    /** Older snapshots only carry the kept records */
+    pendingCount:
+      typeof withdrawal?.pendingCount === "number"
+        ? withdrawal.pendingCount
+        : pending.length,
     approved:
       typeof withdrawal?.approved === "number" ? withdrawal.approved : null,
     flagged: withdrawal?.flagged || [],

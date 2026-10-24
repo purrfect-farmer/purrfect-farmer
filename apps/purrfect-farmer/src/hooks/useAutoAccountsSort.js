@@ -30,9 +30,9 @@ const getRank = (account, snapshot) =>
 
 /** The pending withdrawals the snapshot carries, null until the drop has reported its queue */
 const getPendingCount = (snapshot) => {
-  const { known, pending } = getWithdrawals(snapshot);
+  const { known, pendingCount } = getWithdrawals(snapshot);
 
-  return known ? pending.length : null;
+  return known ? pendingCount : null;
 };
 
 /** A value per key, null when the account has nothing to sort by yet */
