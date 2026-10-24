@@ -15,6 +15,7 @@ import { FARMER_STATUS } from "../../enums/farmer-status.js";
 import { WalletPushError } from "../../services/wallets/auto-wallet-entries.js";
 import { authSchema } from "../../schemas/member.js";
 import autos from "../../lib/autos.js";
+import { isAccountInUse } from "../../services/account-in-use.js";
 import { setAccountFarming } from "../../services/farming.js";
 import { removeAutoWallets } from "../../services/wallets/remove-auto-wallets.js";
 import serverCipher from "../../lib/ServerCipher.js";
@@ -92,8 +93,8 @@ export default async function (fastify) {
     for (const bannedFarmer of bannedFarmers) {
       const { account } = bannedFarmer;
 
-      /** An account a running operation still works is left for the next sweep */
-      if (account.id === accountId || Auto.isHoldingAccount(account.id)) {
+      /** Destroying an account removes it from every drop, so one any drop still works is left for the next sweep */
+      if (account.id === accountId || isAccountInUse(account.id)) {
         continue;
       }
 
@@ -254,8 +255,13 @@ export default async function (fastify) {
         return reply.serviceUnavailable("Server encryption key is not set");
       }
 
-      const { password, master, accounts, pushScope, replaces = [] } =
-        request.body;
+      const {
+        password,
+        master,
+        accounts,
+        pushScope,
+        replaces = [],
+      } = request.body;
       let push;
 
       /** A wrong password or an empty scope is refused before the push starts */
