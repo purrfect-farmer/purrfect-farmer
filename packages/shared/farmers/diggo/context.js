@@ -11,6 +11,7 @@ import DiggoActivation from "./DiggoActivation.js";
 import DiggoApi from "./DiggoApi.js";
 import DiggoAuto from "./DiggoAuto.js";
 import DiggoBrowser from "./DiggoBrowser.js";
+import DiggoLaunchTasks from "./DiggoLaunchTasks.js";
 import DiggoMarket from "./DiggoMarket.js";
 import DiggoRiskChallenge from "./DiggoRiskChallenge.js";
 import DiggoSession from "./DiggoSession.js";
@@ -37,6 +38,7 @@ export function createContext(core) {
   ctx.session = new DiggoSession(deps);
   ctx.risk = new DiggoRiskChallenge(deps);
   ctx.tasks = new DiggoTasks(deps);
+  ctx.launch = new DiggoLaunchTasks(deps);
   ctx.wallet = new DiggoWallet(deps);
   ctx.activation = new DiggoActivation(deps);
   ctx.withdrawal = new DiggoWithdrawal(deps);

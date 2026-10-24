@@ -37,7 +37,7 @@ export default class DiggoFarmer extends BaseFarmer {
 
   /** Process Farmer */
   async process() {
-    const { state, account, risk, tasks, wallet } = this.ctx;
+    const { state, account, risk, tasks, launch, wallet } = this.ctx;
 
     await state.load();
 
@@ -47,6 +47,7 @@ export default class DiggoFarmer extends BaseFarmer {
     await this.executeTask("Security Check", () => risk.clear());
     await this.executeTask("Mining", () => tasks.claimPendingMining());
     await this.executeTask("Tasks", () => tasks.completeTasks());
+    await this.executeTask("Launch Quiz", () => launch.completeQuiz());
     await this.executeTask("Streak", () => tasks.claimStreak());
     await this.executeTask("Squad", () => tasks.claimCommission());
     await this.executeTask("Chests", () => tasks.openChests());

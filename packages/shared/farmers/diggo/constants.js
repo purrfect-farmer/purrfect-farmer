@@ -73,6 +73,8 @@ export const ERROR_MESSAGES = {
   conversion_price_stale: "Conversion price is stale",
   risk_challenge_required: "A security check is required",
   ton_payment_rejected: "The payment was rejected",
+  launch_quiz_incorrect: "The launch quiz answer was wrong",
+  telegram_not_member: "Join the community first",
 };
 
 /** The level table the page levels the holding against */
@@ -93,6 +95,9 @@ export const PAYMENT_CHECK_INTERVAL_SECONDS = 10;
 
 /** Order statuses that end the wait */
 export const SETTLED_ORDER_STATUSES = ["paid", "cancelled", "expired"];
+
+/** The launch quiz's answer, which the page states beside the question */
+export const LAUNCH_QUIZ_ANSWER = "ton_continues";
 
 /** The tasks the page offers, in the order it lists them */
 export const TASK_TITLES = {

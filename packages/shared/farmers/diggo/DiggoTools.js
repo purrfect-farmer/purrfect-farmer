@@ -351,6 +351,7 @@ export default class DiggoTools extends FarmerModule {
     await this.ctx.state.load();
     await this.ctx.tasks.completeTasks();
     await this.ctx.tasks.claimStreak();
+    await this.ctx.launch.completeQuiz();
   }
 
   /** Open the chests on demand */

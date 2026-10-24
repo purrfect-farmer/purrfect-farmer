@@ -122,6 +122,16 @@ export default class DiggoApi extends FarmerModule {
     return this.postToApi("/adsgram/cancel", { attemptId });
   }
 
+  /** Read the launch campaign beside the task list */
+  fetchLaunchTasks() {
+    return this.getFromApi("/launch-tasks");
+  }
+
+  /** Answer the launch campaign's quiz */
+  answerLaunchQuiz(answer) {
+    return this.writeToApi("/launch-tasks/quiz", { answer });
+  }
+
   /** Claim a day of the weekly streak */
   claimStreakDay(day) {
     return this.writeToApi("/streak/claim", { day });
