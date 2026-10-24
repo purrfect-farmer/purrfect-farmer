@@ -18,52 +18,22 @@ async function generateUserAgents(count = 5000) {
     }
   }
 
-  /* Android version → SDK (weighted toward 13/14) */
+  /* Android version → SDK (weighted toward 14/15) */
   const androidVersions = [
-    { version: "11", sdk: 30, weight: 3 },
-    { version: "12", sdk: 32, weight: 8 },
-    { version: "13", sdk: 33, weight: 22 },
-    { version: "14", sdk: 34, weight: 42 },
-    { version: "15", sdk: 35, weight: 20 },
-    { version: "16", sdk: 36, weight: 5 },
+    { version: "11", sdk: 30, weight: 2 },
+    { version: "12", sdk: 32, weight: 5 },
+    { version: "13", sdk: 33, weight: 15 },
+    { version: "14", sdk: 34, weight: 30 },
+    { version: "15", sdk: 35, weight: 28 },
+    { version: "16", sdk: 36, weight: 15 },
+    { version: "17", sdk: 37, weight: 5 },
   ];
 
-  /* Chrome minor builds */
-  const chromeVersions = [
-    "129.0.6635.90",
-    "129.0.6635.101",
-    "130.0.6667.75",
-    "130.0.6667.95",
-    "130.0.6667.121",
-    "131.0.6778.112",
-    "131.0.6778.120",
-    "131.0.6778.135",
-    "132.0.6834.79",
-    "132.0.6834.163",
-    "133.0.6943.121",
-    "133.0.6943.134",
-    "134.0.6998.99",
-    "134.0.6998.135",
-    "135.0.7049.100",
-    "135.0.7049.111",
-    "136.0.7103.60",
-    "136.0.7103.78",
-    "146.0.7680.177",
-  ];
+  /* Chrome for Android stable builds */
+  const chromeVersions = ["153.0.8010.36", "155.0.8059.39", "155.0.8059.79"];
 
   /* Telegram versions */
-  const telegramVersions = [
-    "11.5.3",
-    "11.6.1",
-    "11.7.0",
-    "11.8.1",
-    "12.0.0",
-    "12.1.0",
-    "12.2.1",
-    "12.3.0",
-    "12.4.1",
-    "12.5.2",
-  ];
+  const telegramVersions = ["12.5.2", "13.0.0", "13.0.1", "13.1.0"];
 
   /* Quality flag */
   const qualities = ["HIGH", "HIGH", "HIGH", "MEDIUM"];
