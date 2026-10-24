@@ -1,4 +1,4 @@
-import { cn, getPrimaryFarmerLinkStorageKey } from "@/utils";
+import { cn, getPrimaryFarmerLinkStorageKey, getUserAgent } from "@/utils";
 
 import AppIcon from "@/assets/images/icon.png?format=webp&w=80";
 import BrowserLogger from "@purrfect/shared/lib/BrowserLogger";
@@ -8,12 +8,10 @@ import TerminalArea from "@/components/TerminalArea";
 import { accountStorageKey } from "@/lib/storageKeys";
 import axios from "axios";
 import farmers from "@/core/farmers";
-import seedrandom from "seedrandom";
 import storage from "@/lib/storage";
 import { useEffect } from "react";
 import { useRef } from "react";
 import useSharedContext from "@/hooks/useSharedContext";
-import userAgents from "@purrfect/shared/resources/userAgents";
 import utils from "@/utils/bundle";
 
 /** Headless Telegram Client */
@@ -46,17 +44,16 @@ const createRunner = ({ FarmerClass, logger, captcha, controller }) => {
      * @param {Object} param0
      * @param {import("@purrfect/shared/lib/BaseTelegramWebClient.js").default} param0.client
      */
-    constructor({ client, account }) {
+    constructor({ client, account, userAgent }) {
       super();
       this.account = account;
-      this.random = seedrandom(account.id);
       this.configure({
         api: axios.create(),
         utils,
         client,
         logger,
         captcha,
-        userAgent: userAgents[Math.floor(this.random() * userAgents.length)],
+        userAgent,
         controller,
         allowProfileUpdates: Boolean(
           storage.get(accountStorageKey(account.id, "settings"))
@@ -105,7 +102,9 @@ const createRunner = ({ FarmerClass, logger, captcha, controller }) => {
         account.id,
         account.localTelegramSession,
       );
-      const instance = new this({ account, client });
+      /** The browser's shared User-Agent, which its net rules also send */
+      const userAgent = await getUserAgent();
+      const instance = new this({ account, client, userAgent });
       await instance.run();
       return instance;
     }
