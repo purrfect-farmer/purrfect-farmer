@@ -237,12 +237,12 @@ export default class BaseFarmer {
 
   /** Get Fixed Random Number */
   getFixedRandomNumber() {
-    return this.#identity.fixedRandomNumber();
+    return this.getUserRandomGenerator()();
   }
 
   /** Get User Random Generator */
   getUserRandomGenerator() {
-    return this.#identity.randomGenerator();
+    return this.#identity.randomGenerator(this.getUserId());
   }
 
   /** Get User ID */

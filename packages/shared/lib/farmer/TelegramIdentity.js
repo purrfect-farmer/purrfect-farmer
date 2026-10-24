@@ -100,9 +100,9 @@ export default class TelegramIdentity {
     });
   }
 
-  /** Get User Random Generator */
-  randomGenerator() {
-    return seedrandom(this.userId());
+  /** Get User Random Generator, seeded by the given user id */
+  randomGenerator(userId = this.userId()) {
+    return seedrandom(userId);
   }
 
   /** Get Fixed Random Number */
