@@ -1,4 +1,8 @@
-import { exportBackup, importBackup } from "../../../lib/backup.js";
+import {
+  BackupError,
+  exportBackup,
+  importBackup,
+} from "../../../lib/backup.js";
 
 import path from "path";
 import { spawn } from "child_process";
@@ -81,8 +85,17 @@ export default async function (fastify) {
         },
       },
     },
-    async (request) => {
-      await importBackup(request.body.backup);
+    async (request, reply) => {
+      try {
+        await importBackup(request.body.backup);
+      } catch (error) {
+        if (error instanceof BackupError) {
+          return reply.badRequest(error.message);
+        }
+
+        throw error;
+      }
+
       restartSoon();
     },
   );
@@ -111,8 +124,7 @@ export default async function (fastify) {
       },
     },
     async (request, reply) => {
-      const { importWhiskersBackup } =
-        await import("../../../lib/whiskers.js");
+      const { importWhiskersBackup } = await import("../../../lib/whiskers.js");
       const { backup, passwords, subscriptionDate, farming } = request.body;
 
       /** Report how many accounts will be processed */

@@ -14,8 +14,14 @@ export default (program, inquirer, chalk) => {
       const backup = JSON.parse(fs.readFileSync(file, "utf-8"));
       const { importBackup } = await import("../lib/backup.js");
 
-      await importBackup(backup);
+      const { envRestored } = await importBackup(backup);
 
       console.log(chalk.bold.green("Imported successfully!"));
+
+      if (envRestored) {
+        console.log(
+          chalk.yellow("Restart the server to load the restored settings."),
+        );
+      }
     });
 };
