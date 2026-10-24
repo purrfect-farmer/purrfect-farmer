@@ -7,11 +7,13 @@ export const MINI_APP_HOSTS_KEY = sharedStorageKey("mini-app-hosts");
 /** How many recent mini-app hosts get the phone's headers */
 const MAX_MINI_APP_HOSTS = 100;
 
-/** The hosts of recently opened mini-apps, newest first */
+/** The hostnames of recently opened mini-apps, newest first, without the ports older entries kept */
 export async function getMiniAppHosts() {
   const hosts = await storage.get(MINI_APP_HOSTS_KEY);
 
-  return Array.isArray(hosts) ? hosts : [];
+  if (!Array.isArray(hosts)) return [];
+
+  return [...new Set(hosts.map((host) => host.replace(/:\d+$/, "")))];
 }
 
 /** Remember a mini-app's host so its requests carry the phone's headers */

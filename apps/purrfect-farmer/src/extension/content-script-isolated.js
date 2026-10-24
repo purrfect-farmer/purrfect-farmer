@@ -178,7 +178,7 @@ if (!matchTelegramWebUrl()) {
 
     /** Give this host the phone's headers from now on */
     if (!WEB_PLATFORM_EXCLUDED_HOSTS.includes(location.host)) {
-      rememberMiniAppHost(location.host);
+      rememberMiniAppHost(location.hostname);
     }
 
     /** Setup Mini-App Toolbar */
