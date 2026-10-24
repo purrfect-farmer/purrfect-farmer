@@ -325,10 +325,17 @@ export default function createRunner(FarmerClass) {
         }
 
         /** Transient errors are not the account's fault, so they must not count toward deactivating or banning it */
-        if (this.deactivateOnError && !this.isTransientError(error)) {
+        const transient = this.isTransientError(error);
+
+        if (this.deactivateOnError && !transient) {
           await instance.disconnect();
         }
         this.logger.error("Error farming account:", instance.account.id, error);
+
+        /** Transient errors are only logged */
+        if (transient) {
+          return;
+        }
 
         /** Send error message */
         await bot?.sendFarmerErrorMessage(
