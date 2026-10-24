@@ -1,6 +1,4 @@
-import * as changeKeys from "change-case/keys";
-
-import seedrandom from "seedrandom";
+import TelegramIdentity from "./farmer/TelegramIdentity.js";
 import utils from "../utils/bundle.js";
 import createFarmerCore from "./farmer/createFarmerCore.js";
 
@@ -47,6 +45,14 @@ export default class BaseFarmer {
 
   /** Tools built on first read, once the subclass's modules exist */
   #tools = null;
+
+  /** Who the farmer runs as, read from its Telegram web app */
+  #identity = new TelegramIdentity({
+    webApp: () => this.telegramWebApp,
+    drop: () => this.constructor,
+    startParam: () => this.startParam,
+    fallbackLink: () => this.telegramLink || this.link,
+  });
 
   constructor({ referralLink = null } = {}) {
     /** Host services the farmer's modules work through */
@@ -255,89 +261,77 @@ export default class BaseFarmer {
 
   /** Get Init Data */
   getInitData() {
-    return this.telegramWebApp?.initData;
+    return this.#identity.initData();
   }
 
   /** Get Init Data Unsafe */
   getInitDataUnsafe(camelCase = false) {
-    return camelCase
-      ? changeKeys.camelCase(this.telegramWebApp?.initDataUnsafe, Infinity)
-      : this.telegramWebApp?.initDataUnsafe;
+    return this.#identity.initDataUnsafe(camelCase);
   }
 
   /** Get Init Data Hash */
   getInitDataHash() {
-    return this.getInitDataUnsafe()?.hash;
+    return this.#identity.initDataHash();
   }
 
   /** Get Telegram User */
   getTelegramUser() {
-    return this.getInitDataUnsafe()?.user;
+    return this.#identity.user();
   }
 
   /** Get Fixed Random Number */
   getFixedRandomNumber() {
-    return this.getUserRandomGenerator()();
+    return this.#identity.fixedRandomNumber();
   }
 
   /** Get User Random Generator */
   getUserRandomGenerator() {
-    return seedrandom(this.getUserId());
+    return this.#identity.randomGenerator();
   }
 
   /** Get User ID */
   getUserId() {
-    return this.getTelegramUser()?.id;
+    return this.#identity.userId();
   }
 
   /** Get Username */
   getUsername() {
-    return this.getTelegramUser()?.username;
+    return this.#identity.username();
   }
 
   /** Get User First Name */
   getUserFirstName() {
-    return this.getTelegramUser()?.["first_name"] || "";
+    return this.#identity.firstName();
   }
 
   /** Get User Last Name */
   getUserLastName() {
-    return this.getTelegramUser()?.["last_name"] || "";
+    return this.#identity.lastName();
   }
 
   /** Get User Full Name */
   getUserFullName() {
-    const firstName = this.getUserFirstName();
-    const lastName = this.getUserLastName();
-
-    return `${firstName} ${lastName}`.trim();
+    return this.#identity.fullName();
   }
 
   /** Get Profile Photo URL */
   getProfilePhotoUrl() {
-    const user = this.getTelegramUser();
-    if (user && user["photo_url"]) {
-      return user["photo_url"];
-    }
-    return null;
+    return this.#identity.photoUrl();
   }
 
   /** Get Is Premium User */
   getIsPremiumUser() {
-    return this.getInitDataUnsafe()?.["is_premium"] || false;
+    return this.#identity.isPremium();
   }
 
   /** Get Start Parameter */
   getStartParam() {
-    return this.getInitDataUnsafe()?.["start_param"];
+    return this.#identity.startParam();
   }
 
+  /** The URL the mini app opens at, from initData when there is one */
   getLaunchURL() {
-    if (this.getInitData()) {
-      return this.constructor.getUrlFromInitData(this.getInitData());
-    } else {
-      return this.telegramLink || this.link;
-    }
+    return this.#identity.launchURL();
   }
 
   /** The shared context the ad clients in `lib/ads` take */
@@ -693,7 +687,7 @@ export default class BaseFarmer {
 
   /** The referral the account launched with, read the way the pages read it */
   getReferrerStartParam() {
-    return this.getStartParam() || this.startParam || "";
+    return this.#identity.referrerStartParam();
   }
 
   /** Join a task's Telegram link when it is one, then dwell the way the page makes you wait */
