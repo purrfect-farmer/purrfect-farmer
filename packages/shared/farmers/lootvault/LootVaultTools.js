@@ -86,14 +86,16 @@ export default class LootVaultTools extends FarmerModule {
             id: "withdrawal-status",
             icon: "history",
             title: "Withdrawal Status",
-            action: () => this.ctx.withdrawal.logStatus(),
+            action: () =>
+              this.whenPlayable(() => this.ctx.withdrawal.logStatus()),
             dispatch: false,
           },
           {
             id: "withdraw",
             icon: "withdraw",
             title: "Withdraw",
-            action: () => this.ctx.flow.withdrawInteractive(),
+            action: () =>
+              this.whenPlayable(() => this.ctx.flow.withdrawInteractive()),
             dispatch: false,
           },
         ],
