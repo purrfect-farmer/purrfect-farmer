@@ -76,6 +76,12 @@ export default class MonsterlandWithdrawal extends FarmerModule {
     this.ctx.state.apply(result.data);
     this.logger.success(`Requested a withdrawal of ${amount} lumis.`);
 
+    await this.ctx.flow.notify([
+      ["Initial Balance", `${balance} lumis`],
+      ["Requested", `${amount} lumis`],
+      ["Destination", `<code>${payments["wallet"]}</code>`],
+    ]);
+
     return { status: true, amount: String(amount) };
   }
 
