@@ -20,6 +20,7 @@ import WithdrawalQueue, {
 } from "../../lib/farmer/WithdrawalQueue.js";
 import {
   APPROVED_WITHDRAWAL_STATUSES,
+  FLAGGED_WITHDRAWAL_STATUSES,
   PENDING_WITHDRAWAL_STATUSES,
 } from "./constants.js";
 
@@ -48,6 +49,7 @@ export function createContext(core) {
     classify: statusClassifier({
       pending: PENDING_WITHDRAWAL_STATUSES,
       approved: APPROVED_WITHDRAWAL_STATUSES,
+      flagged: FLAGGED_WITHDRAWAL_STATUSES,
     }),
     prepare: () => ctx.state.ensureLoaded(),
   });

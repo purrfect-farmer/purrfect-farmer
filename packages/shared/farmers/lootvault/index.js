@@ -48,6 +48,7 @@ export default class LootVaultFarmer extends BaseFarmer {
 
     if (reason) {
       this.logger.warn(reason);
+      await this.storeAutoSnapshot();
       return;
     }
 

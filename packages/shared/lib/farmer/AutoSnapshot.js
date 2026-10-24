@@ -19,9 +19,11 @@ export default class AutoSnapshot {
    * @returns {Promise<object>} - the snapshot that was stored
    */
   async store() {
+    /** Reading the queue may load what the summary reads, such as the drop's minimum */
+    const withdrawal = await this.readWithdrawals();
     const snapshot = {
       ...this.summary(),
-      withdrawal: await this.readWithdrawals(),
+      withdrawal,
       updatedAt: Date.now(),
     };
 
