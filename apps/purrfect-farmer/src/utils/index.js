@@ -2,6 +2,7 @@ import { TELEGRAM_WEB_URLS } from "@/constants";
 import { clsx } from "clsx";
 import defaultSharedSettings from "@/core/defaultSharedSettings";
 import storage from "../lib/storage";
+import { toEngineUserAgent } from "../lib/engineUserAgent";
 import { twMerge } from "tailwind-merge";
 import userAgents from "@purrfect/shared/resources/userAgents.js";
 import { uuid } from "@purrfect/shared/utils";
@@ -102,21 +103,21 @@ export function randomUserAgent() {
   return userAgents[Math.floor(Math.random() * userAgents.length)];
 }
 
-/** Get user agent, storing a random pick when there is none */
+/** Get user agent naming the running browser's Chrome version, storing a random pick when there is none */
 export async function getUserAgent() {
   const stored = await storage.get("shared:user-agent");
+  const userAgent = await toEngineUserAgent(stored || randomUserAgent());
 
-  if (stored) return stored;
-
-  const userAgent = randomUserAgent();
-  await storeUserAgent(userAgent);
+  if (userAgent !== stored) {
+    await storage.set("shared:user-agent", userAgent);
+  }
 
   return userAgent;
 }
 
-/** Store user agent */
+/** Store user agent, naming the running browser's Chrome version */
 export async function storeUserAgent(value) {
-  return await storage.set("shared:user-agent", value);
+  return await storage.set("shared:user-agent", await toEngineUserAgent(value));
 }
 
 export function isElementVisible(element) {
@@ -337,8 +338,8 @@ export async function getWindowCoords() {
         270,
         Math.floor(
           maxWidth /
-          (sharedSettings.farmersPerWindow ||
-            defaultSharedSettings.farmersPerWindow),
+            (sharedSettings.farmersPerWindow ||
+              defaultSharedSettings.farmersPerWindow),
         ),
       );
       const left = Math.max(1, Math.floor(position * width) - width);
@@ -350,8 +351,7 @@ export async function getWindowCoords() {
         height: maxHeight,
       };
     }
-  }
-  catch (e) {
+  } catch (e) {
     console.error("Error getting window coords:", e);
   }
 

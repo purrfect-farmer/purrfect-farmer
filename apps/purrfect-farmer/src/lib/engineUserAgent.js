@@ -1,4 +1,3 @@
-import { getUserAgent } from "@/utils";
 import { withChromeVersion } from "@purrfect/shared/lib/userAgent/clientHints";
 
 /** The running browser's full Chrome version, read once */
@@ -24,12 +23,7 @@ export function getEngineChromeVersion() {
   return engineChromeVersion;
 }
 
-/** The account's user agent, naming the running browser's Chrome version */
-export async function getEngineUserAgent() {
-  const [userAgent, chromeVersion] = await Promise.all([
-    getUserAgent(),
-    getEngineChromeVersion(),
-  ]);
-
-  return withChromeVersion(userAgent, chromeVersion);
+/** The user agent naming the running browser's Chrome version */
+export async function toEngineUserAgent(userAgent) {
+  return withChromeVersion(userAgent, await getEngineChromeVersion());
 }
