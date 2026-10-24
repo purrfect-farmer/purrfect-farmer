@@ -21,6 +21,65 @@ export function getNetRules(userAgent, miniAppHosts = []) {
 
   const phoneDomains = [...new Set([...farmerDomains, ...miniAppHosts])];
 
+  /** The headers a phone's Telegram WebView sends */
+  const phoneHeaders = [
+    {
+      header: "user-agent",
+      operation: "set",
+      value: userAgent,
+    },
+    {
+      header: "x-requested-with",
+      operation: "set",
+      value: "org.telegram.messenger",
+    },
+    {
+      header: "sec-ch-ua",
+      operation: "set",
+      value: getSecChUa(userAgent),
+    },
+    {
+      header: "sec-ch-ua-mobile",
+      operation: "set",
+      value: "?1",
+    },
+    {
+      header: "sec-ch-ua-platform",
+      operation: "set",
+      value: '"Android"',
+    },
+    {
+      header: "sec-ch-ua-arch",
+      operation: "set",
+      value: '""',
+    },
+    {
+      header: "sec-ch-ua-arch-full-version",
+      operation: "set",
+      value: '""',
+    },
+    {
+      header: "sec-ch-ua-platform-version",
+      operation: "set",
+      value: '""',
+    },
+    {
+      header: "sec-ch-ua-full-version-list",
+      operation: "set",
+      value: "",
+    },
+    {
+      header: "sec-ch-ua-bitness",
+      operation: "set",
+      value: '""',
+    },
+    {
+      header: "sec-ch-ua-model",
+      operation: "set",
+      value: '""',
+    },
+  ];
+
   /**
    * @type {chrome.declarativeNetRequest.Rule[]}
    */
@@ -41,71 +100,20 @@ export function getNetRules(userAgent, miniAppHosts = []) {
       },
     },
     {
-      action: {
-        type: "modifyHeaders",
-        requestHeaders: [
-          {
-            header: "user-agent",
-            operation: "set",
-            value: userAgent,
-          },
-          {
-            header: "x-requested-with",
-            operation: "set",
-            value: "org.telegram.messenger",
-          },
-          {
-            header: "sec-ch-ua",
-            operation: "set",
-            value: getSecChUa(userAgent),
-          },
-          {
-            header: "sec-ch-ua-mobile",
-            operation: "set",
-            value: "?1",
-          },
-          {
-            header: "sec-ch-ua-platform",
-            operation: "set",
-            value: '"Android"',
-          },
-          {
-            header: "sec-ch-ua-arch",
-            operation: "set",
-            value: '""',
-          },
-          {
-            header: "sec-ch-ua-arch-full-version",
-            operation: "set",
-            value: '""',
-          },
-          {
-            header: "sec-ch-ua-platform-version",
-            operation: "set",
-            value: '""',
-          },
-          {
-            header: "sec-ch-ua-full-version-list",
-            operation: "set",
-            value: "",
-          },
-          {
-            header: "sec-ch-ua-bitness",
-            operation: "set",
-            value: '""',
-          },
-          {
-            header: "sec-ch-ua-model",
-            operation: "set",
-            value: '""',
-          },
-        ],
-      },
-      condition: {
-        requestDomains: phoneDomains,
-      },
+      action: { type: "modifyHeaders", requestHeaders: phoneHeaders },
+      condition: { requestDomains: phoneDomains },
     },
-  ].concat(
+  ];
+
+  /** Requests a mini-app makes to its API, ad and captcha hosts carry the phone's headers too */
+  if (miniAppHosts.length > 0) {
+    rules.push({
+      action: { type: "modifyHeaders", requestHeaders: phoneHeaders },
+      condition: { initiatorDomains: miniAppHosts },
+    });
+  }
+
+  return rules.concat(
     farmerNetRequests.map(
       /**
        * @returns {chrome.declarativeNetRequest.Rule}
@@ -155,6 +163,4 @@ export function getNetRules(userAgent, miniAppHosts = []) {
       }),
     ),
   );
-
-  return rules;
 }
