@@ -19,7 +19,8 @@ import { REFERRER_MODE } from "../enums/referrer-mode.js";
 import { createFarmerStorage } from "./runner/storage.js";
 import { getStoredAutoWallet } from "./runner/stored-wallet.js";
 import { saveSerialized } from "../lib/db-write.js";
-import { isTransientError } from "./runner/errors.js";
+import { AccountRemovedError, isTransientError } from "./runner/errors.js";
+import { InstanceError } from "sequelize";
 import { ensureUserAgent, resolveUserAgent } from "./runner/user-agent.js";
 
 /**
@@ -146,19 +147,30 @@ export default function createRunner(FarmerClass) {
       return createFarmerRecord(this);
     }
 
-    /** Refresh Account */
+    /** Refresh Account, a row deleted meanwhile becomes an AccountRemovedError */
     async refreshFarmerAccount() {
-      const account = await this.account.reload({
-        include: [
-          {
-            required: false,
-            association: "farmers",
-            where: {
-              farmer: this.constructor.id,
+      let account;
+
+      try {
+        account = await this.account.reload({
+          include: [
+            {
+              required: false,
+              association: "farmers",
+              where: {
+                farmer: this.constructor.id,
+              },
             },
-          },
-        ],
-      });
+          ],
+        });
+      } catch (error) {
+        if (error instanceof InstanceError) {
+          throw new AccountRemovedError(this.account.id);
+        }
+
+        throw error;
+      }
+
       this.account = account;
       this.farmer = account.farmer;
     }
@@ -334,6 +346,12 @@ export default function createRunner(FarmerClass) {
         /** Reset error count */
         await instance.resetErrorCount();
       } catch (error) {
+        /** An account deleted meanwhile has nothing left to farm */
+        if (error instanceof AccountRemovedError) {
+          this.logger.info("Skipped removed account:", instance.account.id);
+          return;
+        }
+
         /** A terminated instance was aborted deliberately so it is not a farming failure to report */
         if (instance.signal.aborted) {
           this.logger.info("Aborted farming account:", instance.account.id);

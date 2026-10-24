@@ -1,3 +1,11 @@
+/** The account's row was deleted while a runner still held it */
+export class AccountRemovedError extends Error {
+  constructor(id) {
+    super(`Account ${id} was removed`);
+    this.name = "AccountRemovedError";
+  }
+}
+
 /** Transient errors (proxy timeout, aborted, or 5xx) must not count toward deactivating or banning the account */
 export function isTransientError(error) {
   if (!error) return false;
