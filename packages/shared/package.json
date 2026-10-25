@@ -4,7 +4,8 @@
   "main": "index.js",
   "type": "module",
   "scripts": {
-    "generate-user-agents": "node generate-user-agents.js"
+    "generate-user-agents": "node generate-user-agents.js",
+    "test:live": "node --env-file-if-exists=../../.env.test.local --test test/live/*.test.js"
   },
   "dependencies": {
     "@faker-js/faker": "^10.6.0",
