@@ -1,3 +1,4 @@
+import AutoAccountCloudWallet from "./AutoAccountCloudWallet";
 import AutoAccountSnapshotDetails from "./AutoAccountSnapshotDetails";
 import AutoVerifiedBadge from "./AutoVerifiedBadge";
 import AutoVersionBadge from "./AutoVersionBadge";
@@ -62,6 +63,9 @@ export default function AutoAccountDetails({ account }) {
         }
         rightContent={<AutoVerifiedBadge verified={account.verified} />}
       />
+
+      {/* What the Cloud server stores */}
+      <AutoAccountCloudWallet account={account} />
 
       {/* Phrase */}
       <InfoRow

@@ -16,6 +16,7 @@ import { WalletPushError } from "../../services/wallets/auto-wallet-entries.js";
 import { authSchema } from "../../schemas/member.js";
 import autos from "../../lib/autos.js";
 import { isAccountInUse } from "../../services/account-in-use.js";
+import { listAutoWallets } from "../../services/wallets/list-auto-wallets.js";
 import { setAccountFarming } from "../../services/farming.js";
 import { removeAutoWallets } from "../../services/wallets/remove-auto-wallets.js";
 import serverCipher from "../../lib/ServerCipher.js";
@@ -243,6 +244,18 @@ export default async function (fastify) {
     { preHandler: autoPreHandler, schema: authSchema },
     async function (request) {
       return request.auto.snapshots();
+    },
+  );
+
+  /** Auto - Wallets, what the server stores for the drop without the phrases */
+  fastify.post(
+    "/auto/:drop/wallets",
+    { preHandler: autoPreHandler, schema: authSchema },
+    async function (request) {
+      return listAutoWallets({
+        ownerId: request.account.id,
+        drop: request.auto.id,
+      });
     },
   );
 

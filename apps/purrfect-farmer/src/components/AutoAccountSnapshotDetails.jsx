@@ -31,7 +31,7 @@ const BAD = "text-red-500 dark:text-red-400";
 const MUTED = "text-neutral-500 dark:text-neutral-400";
 
 /** A stored timestamp, named by its weekday, with how long ago it was */
-const formatMoment = (value) =>
+export const formatMoment = (value) =>
   `${formatDate(value, "EEE, PPp")} (${formatDistanceToNow(value, { addSuffix: true })})`;
 
 /** A note, for everything the drop has not reported */

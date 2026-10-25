@@ -108,7 +108,7 @@ export const getWithdrawalTrust = (snapshot) => {
 };
 
 /** Whether two addresses are the same wallet, whatever form each is written in */
-const isSameAddress = (a, b) => {
+export const isSameAddress = (a, b) => {
   try {
     return Address.parse(a).equals(Address.parse(b));
   } catch {

@@ -1,7 +1,13 @@
 import { useCallback, useMemo, useState } from "react";
 import { useQueries } from "@tanstack/react-query";
 
+import { CLOUD_WALLET_STATUS } from "@/constants/cloudWalletStatus";
 import useAutoCloudSnapshotsQuery from "./useAutoCloudSnapshotsQuery";
+import useAutoCloudWalletsQuery from "./useAutoCloudWalletsQuery";
+import {
+  getAccountCloudWallet,
+  getCloudWalletStatus,
+} from "@/lib/autoCloudWallets";
 import { FARMER_STATUS_SEVERITY } from "@/constants/farmerStatus";
 import { SORT_KEY, SORT_OPTIONS } from "@/constants/autoAccountsSort";
 import { getExchange, getWithdrawals, toFigure } from "@/lib/autoSnapshot";
@@ -35,12 +41,27 @@ const getPendingCount = (snapshot) => {
   return known ? pendingCount : null;
 };
 
+/** Rank the stored wallet statuses, the ones still to push lowest */
+const CLOUD_WALLET_RANK = {
+  [CLOUD_WALLET_STATUS.MISSING]: 0,
+  [CLOUD_WALLET_STATUS.OUTDATED]: 1,
+  [CLOUD_WALLET_STATUS.PUSHED]: 2,
+};
+
+/** How the account's wallet compares with the stored one, null until the server has answered */
+const getCloudWalletRank = (account, cloudWallets) => {
+  if (!cloudWallets) return null;
+
+  const row = getAccountCloudWallet(cloudWallets, account);
+
+  return CLOUD_WALLET_RANK[getCloudWalletStatus(row, account)];
+};
+
 /** A value per key, null when the account has nothing to sort by yet */
 const SORT_VALUES = {
   [SORT_KEY.RANKED]: ({ account, snapshot }) => getRank(account, snapshot),
   [SORT_KEY.STATUS]: ({ row }) => FARMER_STATUS_SEVERITY[row?.status] ?? null,
-  [SORT_KEY.LAST_FARMED]: ({ snapshot }) =>
-    Number(snapshot?.updatedAt) || null,
+  [SORT_KEY.LAST_FARMED]: ({ snapshot }) => Number(snapshot?.updatedAt) || null,
   [SORT_KEY.EXCHANGE]: ({ snapshot }) =>
     snapshot ? Number(Boolean(getExchange(snapshot))) : null,
   [SORT_KEY.LEVEL]: ({ snapshot }) =>
@@ -56,6 +77,8 @@ const SORT_VALUES = {
     snapshot ? toFigure(snapshot.holding).toNumber() : null,
   [SORT_KEY.TON]: ({ balance }) => balance?.ton?.toNumber() ?? null,
   [SORT_KEY.JETTON]: ({ balance }) => balance?.jetton?.toNumber() ?? null,
+  [SORT_KEY.CLOUD_WALLET]: ({ account, cloudWallets }) =>
+    getCloudWalletRank(account, cloudWallets),
 };
 
 /** Only the wallet balance keys need the balance queries */
@@ -73,6 +96,7 @@ export default function useAutoAccountsSort(
   const [direction, setDirection] = useState(defaultDirection(defaultSort));
 
   const { data: snapshots } = useAutoCloudSnapshotsQuery();
+  const { data: cloudWallets } = useAutoCloudWalletsQuery();
   const balancesOptions = useAutoBalancesQueryOptions();
 
   /** Read the same cache the rows fill, and only while a balance key is picked */
@@ -112,6 +136,7 @@ export default function useAutoAccountsSort(
           row,
           snapshot: row?.snapshot || null,
           balance: balances[index],
+          cloudWallets,
         });
 
         return { account, value };
@@ -125,7 +150,15 @@ export default function useAutoAccountsSort(
         return (a.value - b.value) * sign;
       })
       .map((item) => item.account);
-  }, [accounts, snapshots, balances, enabled, sortKey, direction]);
+  }, [
+    accounts,
+    snapshots,
+    cloudWallets,
+    balances,
+    enabled,
+    sortKey,
+    direction,
+  ]);
 
   return { sortedAccounts, sortKey, setSortKey, direction, toggleDirection };
 }

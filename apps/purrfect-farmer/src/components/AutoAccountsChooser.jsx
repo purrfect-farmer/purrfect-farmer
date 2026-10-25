@@ -16,6 +16,7 @@ import AutoAddress from "./AutoAddress";
 import AutoDropVerifiedBadge from "./AutoDropVerifiedBadge";
 import AutoExchangeBadge from "./AutoExchangeBadge";
 import AutoAvatar from "./AutoAvatar";
+import AutoCloudWalletBadge from "./AutoCloudWalletBadge";
 import AutoVerifiedBadge from "./AutoVerifiedBadge";
 import AutoVersionBadge from "./AutoVersionBadge";
 import { Dialog } from "radix-ui";
@@ -117,6 +118,7 @@ const AccountChooserItem = memo(function AccountChooserItem({
               <AutoVerifiedBadge verified={account.verified} />
               {showBalance ? <AutoDropVerifiedBadge account={account} /> : null}
               {showBalance ? <AutoExchangeBadge account={account} /> : null}
+              {showBalance ? <AutoCloudWalletBadge account={account} /> : null}
               <FarmerStatusDot status={row?.status} />
             </div>
           </div>

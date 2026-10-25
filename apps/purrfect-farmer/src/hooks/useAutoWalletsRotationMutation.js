@@ -15,7 +15,7 @@ import { mnemonicNew } from "@ton/crypto";
 import toast from "react-hot-toast";
 import useAuto from "./useAuto";
 import useCloudQueryOptions from "./useCloudQueryOptions";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 async function generateNewWallet({ password, encryptedPhrase, version = 5 }) {
   /** Decrypt the old wallet */
@@ -91,11 +91,17 @@ export default function useAutoWalletsRotationMutation() {
   const { config, master, accounts, password, storeMaster, storeAccounts } =
     useAuto();
   const { enabled: cloudEnabled, auth, cloudBackend } = useCloudQueryOptions();
+  const queryClient = useQueryClient();
 
   const mutation = useMutation({
     mutationKey: [config.id, "wallets", "rotation"],
     onError: (error) => {
       console.log("Error while rotating wallets", error);
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({
+        queryKey: [config.id, "cloud", "wallets"],
+      });
     },
     mutationFn: async ({ transferFunds = true, includeAccounts = true }) => {
       const { address: oldMasterAddress, version, tonCenterApiKey } = master;

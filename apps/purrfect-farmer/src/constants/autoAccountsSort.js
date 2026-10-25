@@ -13,6 +13,7 @@ export const SORT_KEY = Object.freeze({
   HOLDING: "holding",
   TON: "ton",
   JETTON: "jetton",
+  CLOUD_WALLET: "cloud-wallet",
 });
 
 /** Each key with its label and the direction it starts in */
@@ -50,4 +51,9 @@ export const SORT_OPTIONS = [
   { value: SORT_KEY.HOLDING, label: "Holding", direction: "desc" },
   { value: SORT_KEY.TON, label: "TON balance", direction: "desc" },
   { value: SORT_KEY.JETTON, label: "Jetton balance", direction: "desc" },
+  {
+    value: SORT_KEY.CLOUD_WALLET,
+    label: "Cloud wallet (not pushed first)",
+    direction: "asc",
+  },
 ];

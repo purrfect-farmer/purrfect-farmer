@@ -2,6 +2,7 @@ import { getWalletPushLabel, getWalletPushScope } from "@/lib/autoCloudWallets";
 
 import Alert from "./Alert";
 import AutoAccountsChooser from "./AutoAccountsChooser";
+import AutoCloudWalletsSummary from "./AutoCloudWalletsSummary";
 import AutoStickyContainer from "./AutoStickyContainer";
 import AutoWalletsPushResult from "./AutoWalletsPushResult";
 import LabelToggle from "./LabelToggle";
@@ -14,11 +15,11 @@ import useCloudQueryOptions from "@/hooks/useCloudQueryOptions";
 import { useState } from "react";
 
 export default function AutoWalletsTab() {
-  const { accounts } = useAuto();
+  const { accounts, master } = useAuto();
   const { enabled: cloudEnabled } = useCloudQueryOptions();
   const [includeMaster, setIncludeMaster] = useState(true);
   const selector = useAutoAccountsSelector(accounts);
-  const { selectedAccounts } = selector;
+  const { selectedAccounts, selectAccounts } = selector;
 
   const mutation = useAutoCloudWalletsPushMutation();
   const disabled = !cloudEnabled || mutation.isPending;
@@ -40,7 +41,14 @@ export default function AutoWalletsTab() {
 
       {!cloudEnabled ? (
         <Alert variant="warning">Enable the Cloud to push wallets.</Alert>
-      ) : null}
+      ) : (
+        <AutoCloudWalletsSummary
+          master={master}
+          accounts={accounts}
+          disabled={disabled}
+          selectAccounts={selectAccounts}
+        />
+      )}
 
       <AutoStickyContainer className="z-10 gap-2">
         {/* Include master */}
