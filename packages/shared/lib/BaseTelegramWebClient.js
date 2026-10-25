@@ -204,6 +204,21 @@ export default class BaseTelegramWebClient extends TelegramClient {
     return this.cachedUser;
   }
 
+  /** The bot's menu button webview, or null when it has a main app or no web menu */
+  async _getMenuButtonWebview(entity) {
+    const { users, fullUser } = await this.invoke(
+      new Api.users.GetFullUser({ id: entity }),
+    );
+    const bot = users[0];
+    const menuButton = fullUser.botInfo?.menuButton;
+
+    if (bot?.botHasMainApp || !(menuButton instanceof Api.BotMenuButton)) {
+      return null;
+    }
+
+    return { url: menuButton.url, type: "menu" };
+  }
+
   /** Get Webview */
   getWebview(link, { allowCache = true } = {}) {
     return this.execute(async () => {
@@ -234,11 +249,16 @@ export default class BaseTelegramWebClient extends TelegramClient {
         );
 
         if (!botChat) {
-          /** Start Bot if no chat found */
-          await this.startBot({
-            entity: parsed.entity,
-            startParam,
-          });
+          try {
+            /** Start Bot if no chat found */
+            await this.startBot({
+              entity: parsed.entity,
+              startParam,
+            });
+          } catch (error) {
+            /** A silent bot still received /start */
+            if (error?.message !== "TIMEOUT") throw error;
+          }
         }
 
         /** Fetch Messages with Buttons */
@@ -279,6 +299,11 @@ export default class BaseTelegramWebClient extends TelegramClient {
           }
         }
 
+        /** Menu Button Webview */
+        if (!webview && !miniApp) {
+          webview = await this._getMenuButtonWebview(parsed.entity);
+        }
+
         /** Cache Webview */
         if (webview || miniApp) {
           this.webviewCache.set(cacheKey, {
@@ -291,18 +316,19 @@ export default class BaseTelegramWebClient extends TelegramClient {
       /** Request Webview */
       if (webview) {
         result = await this.invoke(
-          webview.type === "webview"
-            ? new Api.messages.RequestWebView({
+          webview.type === "simple-webview"
+            ? new Api.messages.RequestSimpleWebView({
                 platform: DEFAULT_WEB_APP_PLATFORM,
                 bot: parsed.entity,
-                peer: parsed.entity,
                 url: webview.url,
                 startParam,
                 themeParams,
               })
-            : new Api.messages.RequestSimpleWebView({
+            : new Api.messages.RequestWebView({
                 platform: DEFAULT_WEB_APP_PLATFORM,
+                fromBotMenu: webview.type === "menu",
                 bot: parsed.entity,
+                peer: parsed.entity,
                 url: webview.url,
                 startParam,
                 themeParams,
