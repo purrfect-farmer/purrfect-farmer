@@ -3,9 +3,10 @@ import "./telegram-web/telegram-web-isolated";
 
 import {
   createListener,
+  USER_AGENT_STORAGE_KEY,
   customLogger,
-  getUserAgent,
   matchTelegramWebUrl,
+  readUserAgent,
   uuid,
 } from "@/utils";
 import {
@@ -16,6 +17,7 @@ import {
 
 import { WEB_PLATFORM_EXCLUDED_HOSTS } from "@/constants";
 import { rememberMiniAppHost } from "@/lib/miniAppHosts";
+import storage from "@/lib/storage";
 import { setupMiniAppToolbar } from "./mini-app/mini-app-toolbar-isolated";
 
 /** How long the farmer has to take a t.me link before it opens in a new tab */
@@ -70,9 +72,11 @@ if (!matchTelegramWebUrl()) {
     });
   }
 
-  /** Update User-Agent */
+  /** Show the page the stored User-Agent, leaving the browser's own until the farmer stores one */
   async function updateUserAgent() {
-    const userAgent = await getUserAgent();
+    const userAgent = await readUserAgent();
+
+    if (!userAgent) return;
 
     return await postWindowMessage({
       action: "set-user-agent",
@@ -227,8 +231,9 @@ if (!matchTelegramWebUrl()) {
     /** Listen for the page's requests */
     window.addEventListener("message", listenForPageRequests);
 
-    /** Update User-Agent */
+    /** Update User-Agent, and again whenever the farmer changes it */
     updateUserAgent();
+    storage.watch(USER_AGENT_STORAGE_KEY, updateUserAgent);
 
     /** Give this host the phone's headers from now on */
     if (!WEB_PLATFORM_EXCLUDED_HOSTS.includes(location.host)) {

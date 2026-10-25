@@ -103,6 +103,16 @@ export default class StorageAdapter {
     return this.adapter.removeItem(itemsToRemove);
   }
 
+  /** Call `listener` with each new value of `key`, without needing `setup` */
+  watch(key, listener) {
+    this.adapter.onChanged(({ updated, deleted }) => {
+      const change = updated.find((item) => item.key === key);
+
+      if (change) listener(change.value);
+      else if (deleted.includes(key)) listener(undefined);
+    });
+  }
+
   on(event, listener) {
     this.emitter.on(event, listener);
   }

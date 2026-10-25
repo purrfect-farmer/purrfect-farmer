@@ -103,13 +103,23 @@ export function randomUserAgent() {
   return userAgents[Math.floor(Math.random() * userAgents.length)];
 }
 
+/** Where the account's user agent is stored */
+export const USER_AGENT_STORAGE_KEY = "shared:user-agent";
+
+/** The stored user agent naming the running browser's Chrome version, or null when there is none */
+export async function readUserAgent() {
+  const stored = await storage.get(USER_AGENT_STORAGE_KEY);
+
+  return stored ? await toEngineUserAgent(stored) : null;
+}
+
 /** Get user agent naming the running browser's Chrome version, storing a random pick when there is none */
 export async function getUserAgent() {
-  const stored = await storage.get("shared:user-agent");
+  const stored = await storage.get(USER_AGENT_STORAGE_KEY);
   const userAgent = await toEngineUserAgent(stored || randomUserAgent());
 
   if (userAgent !== stored) {
-    await storage.set("shared:user-agent", userAgent);
+    await storage.set(USER_AGENT_STORAGE_KEY, userAgent);
   }
 
   return userAgent;
@@ -117,7 +127,10 @@ export async function getUserAgent() {
 
 /** Store user agent, naming the running browser's Chrome version */
 export async function storeUserAgent(value) {
-  return await storage.set("shared:user-agent", await toEngineUserAgent(value));
+  return await storage.set(
+    USER_AGENT_STORAGE_KEY,
+    await toEngineUserAgent(value),
+  );
 }
 
 export function isElementVisible(element) {

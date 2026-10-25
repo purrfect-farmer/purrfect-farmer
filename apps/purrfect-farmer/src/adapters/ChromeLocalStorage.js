@@ -14,9 +14,7 @@ export default class ChromeLocalStorage {
   }
 
   static async getItem(key, defaultValue) {
-    const { [key]: value } = await chrome.storage.local.get({
-      [key]: defaultValue,
-    });
+    const { [key]: value } = await chrome.storage.local.get(key);
 
     return typeof value === "undefined" ? defaultValue : value;
   }
