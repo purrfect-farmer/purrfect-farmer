@@ -1,4 +1,4 @@
-import { MdOutlineContentCopy } from "react-icons/md";
+import { MdOutlineContentCopy, MdOutlineOpenInNew } from "react-icons/md";
 import { useState } from "react";
 
 import AutoAddress from "./AutoAddress";
@@ -106,15 +106,38 @@ export function AutoMasterBalanceCard() {
       )}
 
       {/* Address */}
-      <button
-        onClick={() => {
-          copy(master.address);
-          toast.success("Copied");
-        }}
-        className="font-mono flex items-center justify-center gap-1 text-blue-300"
-      >
-        <MdOutlineContentCopy /> <AutoAddress address={master?.address} />
-      </button>
+      <div className="flex items-center justify-center gap-1 max-w-full min-w-0">
+        <button
+          onClick={() => {
+            copy(master.address);
+            toast.success("Copied");
+          }}
+          className={cn(
+            "font-mono flex items-center justify-center gap-1 min-w-0",
+            "text-blue-300 cursor-pointer",
+          )}
+        >
+          <MdOutlineContentCopy className="shrink-0" />
+          <AutoAddress address={master?.address} />
+        </button>
+
+        {/* Explorer */}
+        {master?.address ? (
+          <a
+            href={`https://tonviewer.com/address/${master.address}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            title="View on Tonviewer"
+            className={cn(
+              "shrink-0 p-1.5 rounded-full",
+              "text-neutral-400 hover:text-white hover:bg-neutral-800",
+              "transition-colors",
+            )}
+          >
+            <MdOutlineOpenInNew className="size-4" />
+          </a>
+        ) : null}
+      </div>
       <AutoVersionBadge version={master?.version} />
     </div>
   );
