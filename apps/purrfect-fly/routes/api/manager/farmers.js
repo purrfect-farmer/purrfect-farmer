@@ -37,7 +37,13 @@ export default async function (fastify) {
   /** Activate All Farmer */
   fastify.post(
     "/farmers/all/activate",
-    { schema: optionalFarmerSchema },
+    {
+      schema: optionalFarmerSchema,
+      /** A missing body means every farmer, so the optional schema still applies */
+      preValidation: async (request) => {
+        request.body ??= {};
+      },
+    },
     async (request, reply) => {
       const farmer = request.body?.id;
 
