@@ -1,5 +1,8 @@
 import { sendWebviewMessage } from "@/utils";
-import { syncWhiskerUserAgent } from "@/lib/userAgent";
+import {
+  resyncWhiskerUserAgent,
+  syncWhiskerUserAgent,
+} from "@/lib/userAgent";
 import useBackupAndRestore from "./useBackupAndRestore";
 import { useEffect } from "react";
 import useMemoizedCallback from "./useMemoizedCallback";
@@ -42,9 +45,11 @@ export default function useWhiskerData(app) {
           case "restore-backup-data":
             console.log("Restoring backup from Whisker...", data);
             const { data: backupData } = data;
-            restoreBackupData(backupData).then(() => {
-              reply(true);
-            });
+            restoreBackupData(backupData)
+              .then(() => resyncWhiskerUserAgent())
+              .then(() => {
+                reply(true);
+              });
             break;
 
           /** Set Whisker Data */
