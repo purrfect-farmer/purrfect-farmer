@@ -1,16 +1,20 @@
 import assert from "node:assert/strict";
 import { after, before, test } from "node:test";
 
-import { createTestClient, skipWithoutSession } from "./session.js";
+import {
+  closeTestClient,
+  createTestClient,
+  skipWithoutSession,
+} from "./session.js";
 import { extractTgWebAppData } from "../../utils/telegram.js";
 
 let client;
 
-before(() => {
-  if (!skipWithoutSession) client = createTestClient();
+before(async () => {
+  if (!skipWithoutSession) client = await createTestClient();
 });
 
-after(() => client?.destroy());
+after(() => closeTestClient(client));
 
 test(
   "opens a bot through its menu button",
