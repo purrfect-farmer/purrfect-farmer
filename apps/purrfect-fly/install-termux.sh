@@ -85,7 +85,7 @@ print_heading "Acquiring wake lock..."
 termux-wake-lock
 
 port=$(grep -E "^PORT=" apps/purrfect-fly/.env | cut -d= -f2 | tr -d '"')
-port=${port:-3000}
+port=${port:-4000}
 
 print_heading "Server Address"
 print_subheading "You can access Purrfect Fly at: http://localhost:$port"

@@ -39,6 +39,25 @@ else
 fi
 
 
+# Print the public port of the Nginx server block that proxies to the given Node port
+find_public_port() {
+    local target="//127.0.0.1:$1;"
+
+    awk -v target="$target" '
+        $1 == "server" { listen = "" }
+        $1 == "listen" && listen == "" && $2 ~ /^[0-9]+;?$/ { listen = $2; sub(";", "", listen) }
+        $1 == "proxy_pass" && index($2, target) && listen != "" { print listen; exit }
+    ' /etc/nginx/sites-enabled/* 2> /dev/null
+}
+
 print_heading "Server Address"
-ip=$(curl ifconfig.me)
-print_subheading "You can access Purrfect Fly at: http://$ip"
+node_port=$(grep -E "^PORT=" apps/purrfect-fly/.env | cut -d= -f2 | tr -d '"')
+node_port=${node_port:-4000}
+public_port=$(find_public_port "$node_port")
+
+if [ -n "$public_port" ]; then
+    ip=$(curl -s ifconfig.me)
+    print_subheading "You can access Purrfect Fly at: http://$ip:$public_port"
+else
+    print_subheading "Purrfect Fly is running on port $node_port (no Nginx site found for it)"
+fi

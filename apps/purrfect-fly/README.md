@@ -66,7 +66,10 @@ The installation script will:
 - Install pnpm and PM2
 - Clone the repository
 - Install project dependencies
+- Serve it through Nginx at `http://<your-server-ip>:4000` (Node runs on `14000` behind it)
 - Guide you through configuration
+
+An existing Nginx site at `/etc/nginx/sites-available/purrfect-fly` is kept as it is, so running the script again on an older install does not move it off its port.
 
 ### Multiple Instances on One Server
 
@@ -78,15 +81,37 @@ Run several isolated instances side by side on a fresh Ubuntu / Debian VPS. Each
 ssh root@<your-vps-ip>
 ```
 
-**2. Install the instances**
+**2. Install Seeker (optional)**
+
+```bash
+curl -o- https://raw.githubusercontent.com/purrfect-farmer/purrfect-seeker/main/install.sh | bash -s -- 3000 Example 10 4001
+```
+
+This serves [Purrfect Seeker](https://github.com/purrfect-farmer/purrfect-seeker) at `http://<ip>:3000` and registers `Example (1)` to `Example (10)` at `http://<ip>:4001` to `http://<ip>:4010`. Use the same name, count and base port as step 3. Skip it if you don't use Seeker or run it on another server.
+
+| # | Argument | Default | Role |
+| - | -------- | ------- | ---- |
+| 1 | `port` | `3000` | Public port Seeker is served on through Nginx. Node runs on this port + 10000 (`13000` by default). |
+| 2 | `fly-name` | none | Name of the Fly servers to register, as `<fly-name> (n)`. Leave it out to only install Seeker. |
+| 3 | `fly-count` | `10` | How many Fly servers to register, `1` to `fly-count`. |
+| 4 | `fly-base-port` | `4001` | Public port of the first Fly server; server `n` is registered at `http://<ip>:<fly-base-port + n - 1>`. |
+
+**3. Install the instances**
 
 ```bash
 curl -o- https://raw.githubusercontent.com/purrfect-farmer/purrfect-farmer/main/apps/purrfect-fly/install-many.sh | bash -s -- example Example 10 4001
 ```
 
-Arguments are `slug name count base-port`. This creates `~/example-1` to `~/example-10`, PM2 apps `example-1` to `example-10`, named `Example (1)` to `Example (10)`, reachable at `http://<ip>:4001` to `http://<ip>:4010`. Nginx owns the public ports and proxies to Node on the port 10000 higher (`14001`, ...).
+| # | Argument | Default | Role |
+| - | -------- | ------- | ---- |
+| 1 | `slug` | `example` | Folder and PM2 name prefix: instance `n` lives in `~/<slug>-n` and runs as PM2 app `<slug>-n`. |
+| 2 | `name` | `Example` | Display name prefix: instance `n` is named `<name> (n)` (`APP_NAME`). |
+| 3 | `count` | `10` | How many instances to install, `1` to `count`. |
+| 4 | `base-port` | `4001` | Public port of the first instance; instance `n` is served at `http://<ip>:<base-port + n - 1>`, with Node on that port + 10000. |
 
-**3. Load Node and PM2 in your shell**
+This creates `~/example-1` to `~/example-10`, PM2 apps `example-1` to `example-10`, named `Example (1)` to `Example (10)`, reachable at `http://<ip>:4001` to `http://<ip>:4010`. Nginx owns the public ports and proxies to Node on the port 10000 higher (`14001`, ...).
+
+**4. Load Node and PM2 in your shell**
 
 ```bash
 source ~/.nvm/nvm.sh
@@ -94,7 +119,7 @@ source ~/.nvm/nvm.sh
 
 Logging out and back in works too.
 
-**4. Write the shared settings**
+**5. Write the shared settings**
 
 Put the values every instance shares in one file:
 
@@ -112,7 +137,7 @@ SERVER_ADMIN_TELEGRAM_ID="..."
 CAPTCHA_API_KEY="..."
 ```
 
-**5. Apply them to every instance**
+**6. Apply them to every instance**
 
 ```bash
 bash ~/example-1/apps/purrfect-fly/apply-env.sh example ~/shared.env
@@ -120,7 +145,7 @@ bash ~/example-1/apps/purrfect-fly/apply-env.sh example ~/shared.env
 
 Each line replaces that key in every instance's `.env` and adds it if missing. Other keys (`PORT`, `APP_NAME`, `PM2_APP_NAME`, `JWT_SECRET_KEY`...) are kept. Each instance is then restarted; pass `--no-restart` to skip that.
 
-**6. Per-instance values (optional)**
+**7. Per-instance values (optional)**
 
 For a value that differs per instance, such as `PRIMARY_ACCOUNT_ID`:
 
@@ -129,7 +154,7 @@ nano ~/example-3/apps/purrfect-fly/.env
 pm2 restart example-3 --update-env
 ```
 
-**7. Check they are running**
+**8. Check they are running**
 
 ```bash
 pm2 ls
@@ -137,18 +162,18 @@ pm2 ls
 
 All instances should be `online`. If one is not, check `pm2 logs example-N --lines 50`.
 
-**8. Open the ports**
+**9. Open the ports**
 
-The script opens them in `ufw` when it is active. If your provider has its own firewall or security group, allow TCP `4001-4010` there too.
+The script opens them in `ufw` when it is active. If your provider has its own firewall or security group, allow TCP `4001-4010` there too (and `3000` for Seeker).
 
-**9. Connect from Cloud Manager**
+**10. Connect from Cloud Manager**
 
-Add each server as `http://<your-vps-ip>:4001` to `http://<your-vps-ip>:4010`.
+Add each server as `http://<your-vps-ip>:4001` to `http://<your-vps-ip>:4010`. With Seeker, set the Seeker server to `http://<your-vps-ip>:3000` in the farmer settings and pick each server from its list instead.
 
 **Later**
 
 - Update all instances: `bash ~/example-1/apps/purrfect-fly/update-all.sh example`
-- Change a shared value: edit `~/shared.env` and repeat step 5.
+- Change a shared value: edit `~/shared.env` and repeat step 6.
 
 ---
 
@@ -292,7 +317,7 @@ TELEGRAM_ERRORS_TOPIC_ID=<topic-id>
 TELEGRAM_FARMING_TOPIC_ID=<topic-id>
 
 # Server
-PORT=3000
+PORT=4000
 NODE_ENV=production
 ```
 
@@ -334,6 +359,8 @@ pm2 logs purrfect-fly
 
 ## Nginx Configuration
 
+The install script already serves Purrfect Fly on port `4000`. Follow this section to serve it on your own domain instead (ports 80/443, needed for HTTPS with Certbot).
+
 ### Step 1: Create Nginx Server Block
 
 ```bash
@@ -369,12 +396,12 @@ server {
         proxy_set_header X-Forwarded-Proto $scheme;
         
         # Proxy pass
-        proxy_pass http://127.0.0.1:3000;
+        proxy_pass http://127.0.0.1:4000;
     }
 
     # Optional: Static file caching
     location ~* \.(jpg|jpeg|png|gif|ico|css|js|svg|woff|woff2|ttf)$ {
-        proxy_pass http://127.0.0.1:3000;
+        proxy_pass http://127.0.0.1:4000;
         expires 30d;
         add_header Cache-Control "public, immutable";
     }
@@ -510,8 +537,8 @@ pnpm -F purrfect-fly fly import-backup <file>
 ### Port Already in Use
 
 ```bash
-# Find process using port 3000
-sudo lsof -i :3000
+# Find process using port 4000
+sudo lsof -i :4000
 
 # Kill the process
 sudo kill -9 <PID>

@@ -1,5 +1,10 @@
 #!/usr/bin/env bash
 
+# Nginx owns the public port and proxies to Node on the port 10000 higher
+PUBLIC_PORT=4000
+INTERNAL_PORT=$((PUBLIC_PORT + 10000))
+NGINX_SITE_PATH="/etc/nginx/sites-available/purrfect-fly"
+
 # Colors
 GREEN='\033[1;32m'
 YELLOW='\033[1;33m'
@@ -27,6 +32,7 @@ print_heading "Installing Node Version Manager (NVM) and Node.js LTS..."
 
 if [ -d "$HOME/.nvm" ]; then
     print_subheading "NVM is already installed."
+    \. "$HOME/.nvm/nvm.sh"
 else
     print_subheading "NVM is not installed. Proceeding with installation..."
     curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.3/install.sh | bash
@@ -71,8 +77,17 @@ if [ ! -f apps/purrfect-fly/.env ]; then
     
     print_subheading "Generating server keys..."
     pnpm -F purrfect-fly fly key:generate
+
+    sed -i "s|^PORT=.*|PORT=$INTERNAL_PORT|" apps/purrfect-fly/.env
 else
     print_subheading ".env file already exists. Skipping setup."
+fi
+
+# Nginx takes the public port, so a new site needs Node off it
+env_port=$(grep -E "^PORT=" apps/purrfect-fly/.env | cut -d= -f2 | tr -d '"')
+if [ ! -f "$NGINX_SITE_PATH" ] && [ "$env_port" = "$PUBLIC_PORT" ]; then
+    print_subheading "Moving Node from port $PUBLIC_PORT to $INTERNAL_PORT so Nginx can serve $PUBLIC_PORT..."
+    sed -i "s|^PORT=.*|PORT=$INTERNAL_PORT|" apps/purrfect-fly/.env
 fi
 
 
@@ -85,13 +100,16 @@ pm2 save
 
 
 print_heading "Configuring Nginx as a reverse proxy..."
-cat <<EOF | sudo tee /etc/nginx/sites-available/purrfect-fly > /dev/null
-server {
-    listen 80;
-    listen [::]:80;
-    server_name _; # Change if needed
+if [ -f "$NGINX_SITE_PATH" ]; then
+    print_subheading "Nginx site already exists. Keeping it."
+else
+    node_port=$(grep -E "^PORT=" apps/purrfect-fly/.env | cut -d= -f2 | tr -d '"')
 
-    add_header Strict-Transport-Security "max-age=63072000" always;
+    cat <<EOF | sudo tee "$NGINX_SITE_PATH" > /dev/null
+server {
+    listen $PUBLIC_PORT;
+    listen [::]:$PUBLIC_PORT;
+    server_name _;
 
     location / {
         proxy_http_version 1.1;
@@ -102,19 +120,26 @@ server {
         proxy_set_header X-Real-IP \$remote_addr;
         proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
         proxy_set_header X-Forwarded-Proto \$scheme;
-        proxy_pass http://127.0.0.1:3000;
+        proxy_pass http://127.0.0.1:${node_port:-$INTERNAL_PORT};
     }
 }
 EOF
+fi
 
 print_heading "Enabling Nginx site configuration..."
-sudo rm -f /etc/nginx/sites-enabled/default
-sudo ln -sf /etc/nginx/sites-available/purrfect-fly /etc/nginx/sites-enabled/purrfect-fly
+sudo ln -sf "$NGINX_SITE_PATH" /etc/nginx/sites-enabled/purrfect-fly
 
 print_heading "Testing and reloading Nginx configuration..."
 sudo nginx -t
 sudo systemctl reload nginx
 
+public_port=$(grep -m1 -oE "listen [0-9]+" "$NGINX_SITE_PATH" | grep -oE "[0-9]+")
+
+if command -v ufw > /dev/null && sudo ufw status | grep -q "Status: active"; then
+    print_heading "Opening port in UFW..."
+    sudo ufw allow "$public_port/tcp"
+fi
+
 print_heading "Server Address"
-ip=$(curl ifconfig.me)
-print_subheading "You can access Purrfect Fly at: http://$ip"
+ip=$(curl -s ifconfig.me)
+print_subheading "You can access Purrfect Fly at: http://$ip:$public_port"

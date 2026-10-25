@@ -13,7 +13,7 @@ module.exports = {
       kill_timeout: 5000,
       cwd: __dirname,
       env: {
-        PORT: env.PORT || 3000,
+        PORT: env.PORT || 4000,
         NODE_ENV: env.NODE_ENV || "production",
         FORCE_COLOR: true,
       },
