@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 
 # Installs several Purrfect Fly instances on one server.
-# Usage: install-many.sh [slug] [name] [count] [base-port]
-# Defaults: example Example 10 4001 (base-port defaults to the existing install's)
+# Usage: install-many.sh [--slug example] [--name Example] [--count 10] [--base-port 4001]
+# base-port defaults to the existing install's, else 4001.
 # Instance n lives in ~/<slug>-n, runs as pm2 app <slug>-n, is named "<name> (n)"
 # and is reachable at http://<ip>:<base-port + n - 1> through Nginx.
 # Safe to re-run: running instances are left as they are, stopped or half-installed
@@ -10,10 +10,61 @@
 
 set -e
 
-SLUG="${1:-example}"
-NAME="${2:-Example}"
-COUNT="${3:-10}"
-BASE_PORT_ARG="$4"
+SLUG="example"
+NAME="Example"
+COUNT=10
+BASE_PORT_ARG=""
+
+# Print the usage message
+print_usage() {
+    cat <<'EOF'
+Usage: install-many.sh [--slug example] [--name Example] [--count 10] [--base-port 4001]
+
+  --slug       Folder and pm2 name prefix: ~/<slug>-n, pm2 app <slug>-n (default: example)
+  --name       Display name prefix: "<name> (n)" (default: Example)
+  --count      Install instances 1 to count (default: 10)
+  --base-port  Public port of instance 1 (default: the existing install's, else 4001)
+EOF
+}
+
+# Print an error and the usage message, then stop
+fail_usage() {
+    echo "$1" >&2
+    print_usage >&2
+    exit 1
+}
+
+# Stop unless the flag's value is a positive whole number (or not given)
+require_positive_int() {
+    if [ -n "$2" ] && ! [[ "$2" =~ ^[1-9][0-9]*$ ]]; then
+        fail_usage "$1 must be a positive whole number, got: $2"
+    fi
+}
+
+while [ $# -gt 0 ]; do
+    flag="$1"
+
+    case "$flag" in
+        -h|--help) print_usage; exit 0 ;;
+        --*=*) set -- "${flag%%=*}" "${flag#*=}" "${@:2}"; continue ;;
+        --slug|--name|--count|--base-port) ;;
+        *) fail_usage "Unknown option: $flag" ;;
+    esac
+
+    [ $# -ge 2 ] || fail_usage "Missing value for $flag"
+
+    case "$flag" in
+        --slug) SLUG="$2" ;;
+        --name) NAME="$2" ;;
+        --count) COUNT="$2" ;;
+        --base-port) BASE_PORT_ARG="$2" ;;
+    esac
+
+    shift 2
+done
+
+require_positive_int "--count" "$COUNT"
+require_positive_int "--base-port" "$BASE_PORT_ARG"
 
 # Node listens on this offset from the public port, Nginx owns the public one
 INTERNAL_PORT_OFFSET=10000

@@ -74,30 +74,30 @@ ssh root@<your-vps-ip>
 **2. Install Seeker (recommended)**
 
 ```bash
-curl -o- https://raw.githubusercontent.com/purrfect-farmer/purrfect-seeker/main/install.sh | bash -s -- 3000 Example 10 4001
+curl -o- https://raw.githubusercontent.com/purrfect-farmer/purrfect-seeker/main/install.sh | bash -s -- --port 3000 --fly-name Example --fly-count 10 --fly-base-port 4001
 ```
 
 This serves [Purrfect Seeker](https://github.com/purrfect-farmer/purrfect-seeker) at `http://<ip>:3000` and registers `Example (1)` to `Example (10)` at `http://<ip>:4001` to `http://<ip>:4010`. Use the same name, count and base port as step 3. Seeker is recommended: accounts look their server up by ID, so when a server moves to a new address you update Seeker instead of every account. Skip this step only if Seeker already runs on another server.
 
-| # | Argument | Default | Role |
-| - | -------- | ------- | ---- |
-| 1 | `port` | `3000` | Public port Seeker is served on through Nginx. Node runs on this port + 10000 (`13000` by default). |
-| 2 | `fly-name` | none | Name of the Fly servers to register, as `<fly-name> (n)`. Leave it out to only install Seeker. |
-| 3 | `fly-count` | `10` | How many Fly servers to register, `1` to `fly-count`. Re-run with a higher count to register more; existing names are skipped. |
-| 4 | `fly-base-port` | `4001` | Public port of the first Fly server; server `n` is registered at `http://<ip>:<fly-base-port + n - 1>`. |
+| Flag | Default | Role |
+| ---- | ------- | ---- |
+| `--port` | existing site's, else `3000` | Public port Seeker is served on through Nginx. Node runs on this port + 10000 (`13000` by default). |
+| `--fly-name` | none | Name of the Fly servers to register, as `<fly-name> (n)`. Leave it out to only install Seeker. |
+| `--fly-count` | `10` | How many Fly servers to register, `1` to `--fly-count`. Re-run with a higher count to register more; existing names are skipped. |
+| `--fly-base-port` | `4001` | Public port of the first Fly server; server `n` is registered at `http://<ip>:<fly-base-port + n - 1>`. |
 
 **3. Install the instances**
 
 ```bash
-curl -o- https://raw.githubusercontent.com/purrfect-farmer/purrfect-farmer/main/apps/purrfect-fly/install-many.sh | bash -s -- example Example 10 4001
+curl -o- https://raw.githubusercontent.com/purrfect-farmer/purrfect-farmer/main/apps/purrfect-fly/install-many.sh | bash -s -- --slug example --name Example --count 10 --base-port 4001
 ```
 
-| # | Argument | Default | Role |
-| - | -------- | ------- | ---- |
-| 1 | `slug` | `example` | Folder and PM2 name prefix: instance `n` lives in `~/<slug>-n` and runs as PM2 app `<slug>-n`. |
-| 2 | `name` | `Example` | Display name prefix: instance `n` is named `<name> (n)` (`APP_NAME`). |
-| 3 | `count` | `10` | How many instances to install, `1` to `count`. Re-run with a higher count to add instances; running ones are left untouched and stopped ones are repaired. |
-| 4 | `base-port` | `4001` | Public port of the first instance; instance `n` is served at `http://<ip>:<base-port + n - 1>`, with Node on that port + 10000. |
+| Flag | Default | Role |
+| ---- | ------- | ---- |
+| `--slug` | `example` | Folder and PM2 name prefix: instance `n` lives in `~/<slug>-n` and runs as PM2 app `<slug>-n`. |
+| `--name` | `Example` | Display name prefix: instance `n` is named `<name> (n)` (`APP_NAME`). |
+| `--count` | `10` | How many instances to install, `1` to `--count`. Re-run with a higher count to add instances; running ones are left untouched and stopped ones are repaired. |
+| `--base-port` | existing install's, else `4001` | Public port of the first instance; instance `n` is served at `http://<ip>:<base-port + n - 1>`, with Node on that port + 10000. |
 
 This creates `~/example-1` to `~/example-10`, PM2 apps `example-1` to `example-10`, named `Example (1)` to `Example (10)`, reachable at `http://<ip>:4001` to `http://<ip>:4010`. Nginx owns the public ports and proxies to Node on the port 10000 higher (`14001`, ...).
 
