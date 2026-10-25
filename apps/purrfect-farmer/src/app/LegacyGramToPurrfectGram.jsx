@@ -4,7 +4,7 @@ import PrimaryButton from "@/components/PrimaryButton";
 import TelegramIcon from "@/assets/images/telegram-logo.svg";
 import toast from "react-hot-toast";
 import useMirroredCallback from "@/hooks/useMirroredCallback";
-import useTelegramWebTransfer from "@/hooks/useTelegramWebTransfer";
+import useTelegramWebPort from "@/hooks/useTelegramWebPort";
 import { LEGACY_PURRFECT_GRAM_URL } from "@/constants";
 import { cn } from "@/utils";
 
@@ -12,7 +12,7 @@ const PURRFECT_GRAM_URL = import.meta.env.VITE_APP_TELEGRAM_WEB_URL;
 
 export default function LegacyGramToPurrfectGram() {
   const { closeTelegramWeb, getLocalStorage, setLocalStorage } =
-    useTelegramWebTransfer();
+    useTelegramWebPort();
 
   const [, dispatchAndTransferData] = useMirroredCallback(
     "app.legacy-gram-to-purrfect-gram",
@@ -24,7 +24,7 @@ export default function LegacyGramToPurrfectGram() {
       const data = await getLocalStorage(`${LEGACY_PURRFECT_GRAM_URL}/k`);
 
       /** Restore Data (Purrfect Gram) */
-      await setLocalStorage(`${PURRFECT_GRAM_URL}/k`, data);
+      await setLocalStorage(data, `${PURRFECT_GRAM_URL}/k`);
 
       toast.success("Data transferred successfully!");
     },

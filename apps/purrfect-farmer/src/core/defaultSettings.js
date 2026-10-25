@@ -1,8 +1,10 @@
+import { FARMER_MODE } from "@/constants/farmerMode";
+
 /** Default Settings */
 const defaultSettings = {
   dropsStatus: {},
   dropsOrder: [],
-  farmerMode: import.meta.env.VITE_SETTING_FARMER_MODE || "web",
+  farmerMode: import.meta.env.VITE_SETTING_FARMER_MODE || FARMER_MODE.WEB,
   onboarded: import.meta.env.VITE_SETTING_ONBOARDED || false,
   enableInAppBrowser: true,
   miniAppInNewWindow: false,

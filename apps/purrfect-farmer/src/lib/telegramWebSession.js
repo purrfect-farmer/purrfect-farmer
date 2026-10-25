@@ -6,8 +6,16 @@ import {
   TELEGRAM_API_ID,
 } from "@purrfect/shared/utils/loginToken.js";
 
-/** Create a connected Client from a Telegram Web account entry, or null when unauthorized */
-export async function getTelegramClientFromSession(details) {
+/** Thrown when an account has no Telegram Web K entry to build a client from */
+export class NoTelegramWebAccountError extends Error {
+  constructor() {
+    super("Telegram Web account was not found.");
+    this.name = "NoTelegramWebAccountError";
+  }
+}
+
+/** Create a connected Client from a Telegram Web account entry */
+export async function connectTelegramWebClient(details) {
   /* Create Session and Client */
   const session = new MemorySession();
   const client = new TelegramClient(
@@ -37,8 +45,20 @@ export async function getTelegramClientFromSession(details) {
   session.setDC(dcInfo.id, dcInfo.ipAddress, dcInfo.port);
   session.setAuthKey(authKey, dcInfo.id);
 
-  /* Connect Client */
-  await client.connect();
+  /* Connect Client, without leaving a failed one reconnecting */
+  try {
+    await client.connect();
+  } catch (error) {
+    await client.destroy().catch(() => {});
+    throw error;
+  }
+
+  return client;
+}
+
+/** Create a connected Client from a Web K entry, or null when unauthorized */
+export async function getTelegramClientFromSession(details) {
+  const client = await connectTelegramWebClient(details);
 
   /* Check Authorization */
   const isAuthorized = await client.isUserAuthorized();

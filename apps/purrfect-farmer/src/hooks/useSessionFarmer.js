@@ -8,6 +8,7 @@ import { useState } from "react";
 import useAppContext from "./useAppContext";
 import useTabContext from "./useTabContext";
 import useValuesMemo from "./useValuesMemo";
+import { FARMER_MODE } from "@/constants/farmerMode";
 
 export default function useSessionFarmer() {
   const { farmerMode, telegramClient } = useAppContext();
@@ -43,7 +44,7 @@ export default function useSessionFarmer() {
 
   /** Start Bot */
   useEffect(() => {
-    if (farmerMode === "session") {
+    if (farmerMode === FARMER_MODE.SESSION) {
       messenger.startBot().then((message) => {
         if (typeof handleStartReply !== "undefined") {
           handleStartReply(messenger, message).then(() => {

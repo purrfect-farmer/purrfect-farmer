@@ -5,6 +5,7 @@ import { useRef } from "react";
 import { useState } from "react";
 
 import useValuesMemo from "./useValuesMemo";
+import { FARMER_MODE } from "@/constants/farmerMode";
 
 export default function useTelegramClient(mode, session) {
   const ref = useRef(null);
@@ -13,7 +14,7 @@ export default function useTelegramClient(mode, session) {
 
   /** Initiate Client */
   useLayoutEffect(() => {
-    if (mode === "session" && session) {
+    if (mode === FARMER_MODE.SESSION && session) {
       /** Log Session */
       customLogger("TG CLIENT SESSION", session);
 

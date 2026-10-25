@@ -1,4 +1,8 @@
 import { addDays } from "date-fns";
+import {
+  DEACTIVATED_ERRORS,
+  LOGGED_OUT_ERRORS,
+} from "@purrfect/shared/utils/sessionStatus.js";
 
 import GramClient from "./telegram/GramClient.js";
 import JobNotifier from "./bot/JobNotifier.js";
@@ -26,12 +30,8 @@ const PERMANENT_ERRORS = [
   "Source session is not authorized",
   "2FA password required but none provided",
   "2FA failed: no provided password matched",
-  "AUTH_KEY_UNREGISTERED",
-  "AUTH_KEY_DUPLICATED",
-  "SESSION_REVOKED",
-  "SESSION_EXPIRED",
-  "USER_DEACTIVATED",
-  "USER_DEACTIVATED_BAN",
+  ...LOGGED_OUT_ERRORS,
+  ...DEACTIVATED_ERRORS,
 ];
 
 /** Extract candidate 2FA passwords from the comma/space separated input */

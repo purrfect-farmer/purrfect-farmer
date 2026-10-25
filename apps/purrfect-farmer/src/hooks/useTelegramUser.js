@@ -6,6 +6,7 @@ import useMessageHandlers from "./useMessageHandlers";
 import { useRef } from "react";
 import useRefCallback from "./useRefCallback";
 import useTelegramInitData from "./useTelegramInitData";
+import { FARMER_MODE } from "@/constants/farmerMode";
 
 export default function useTelegramUser(core) {
   const {
@@ -19,7 +20,7 @@ export default function useTelegramUser(core) {
   const telegramUser = useTelegramInitData(telegramInitData);
 
   const willUpdateUser = !telegramUser || telegramUser.shouldUpdate;
-  const canUpdateUser = farmerMode === "session" && willUpdateUser;
+  const canUpdateUser = farmerMode === FARMER_MODE.SESSION && willUpdateUser;
   const isUpdateNeeded = Boolean(telegramUser?.shouldUpdate);
 
   const updatingRef = useRef(false);

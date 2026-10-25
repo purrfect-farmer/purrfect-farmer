@@ -15,6 +15,7 @@ import TelegramWebAIcon from "@/assets/images/telegram-web-a.png?format=webp&w=8
 import TelegramWebKIcon from "@/assets/images/telegram-web-k.png?format=webp&w=80";
 import { cn } from "@/utils";
 import { memo } from "react";
+import { FARMER_MODE } from "@/constants/farmerMode";
 
 export default memo(function FarmerOptionsGroup({
   account,
@@ -77,18 +78,21 @@ export default memo(function FarmerOptionsGroup({
       <SettingsLabel>Farmer Mode</SettingsLabel>
 
       <div className="grid grid-cols-2 gap-2">
-        {["web", "session"].map((mode) => (
+        {Object.values(FARMER_MODE).map((mode) => (
           <SettingsGridButton
             key={mode}
             onClick={() => dispatchAndConfigureSettings("farmerMode", mode)}
-            disabled={mode === "session" && telegramClient.hasSession === false}
+            disabled={
+              mode === FARMER_MODE.SESSION &&
+              telegramClient.hasSession === false
+            }
             className={cn(
               farmerMode === mode
                 ? ["bg-blue-100 dark:bg-blue-100", "text-blue-800"]
                 : null,
             )}
           >
-            {mode === "web" ? (
+            {mode === FARMER_MODE.WEB ? (
               <HiOutlineGlobeAlt className="size-4" />
             ) : (
               <HiBolt className="size-4" />

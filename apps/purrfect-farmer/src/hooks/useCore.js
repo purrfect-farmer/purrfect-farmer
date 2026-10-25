@@ -27,6 +27,7 @@ import { useState } from "react";
 import useTelegramClient from "./useTelegramClient";
 import useUserAgent from "./useUserAgent";
 import useValuesMemo from "./useValuesMemo";
+import { FARMER_MODE } from "@/constants/farmerMode";
 
 export const BOT_TELEGRAM_WEB_APP_ACTION = `set-telegram-web-app:${
   import.meta.env.VITE_APP_BOT_HOST
@@ -65,9 +66,10 @@ export default function useCore() {
 
   /** Farmer Mode */
   const farmerMode =
-    settings.farmerMode === "session" && localTelegramSession !== null
-      ? "session"
-      : "web";
+    settings.farmerMode === FARMER_MODE.SESSION &&
+    localTelegramSession !== null
+      ? FARMER_MODE.SESSION
+      : FARMER_MODE.WEB;
 
   /** User Agent */
   const userAgent = useUserAgent();
@@ -552,7 +554,7 @@ export default function useCore() {
     async (url, { version = preferredTelegramWebVersion } = {}) => {
       if (!url) {
         return;
-      } else if (farmerMode === "session") {
+      } else if (farmerMode === FARMER_MODE.SESSION) {
         try {
           await toast.promise(
             telegramClient.ref.current.joinTelegramLink(url),
@@ -628,7 +630,7 @@ export default function useCore() {
 
         const canLaunchWebview =
           shouldUseWebview &&
-          farmerMode === "session" &&
+          farmerMode === FARMER_MODE.SESSION &&
           embedWebPage === true &&
           settings.enableInAppBrowser === true;
 

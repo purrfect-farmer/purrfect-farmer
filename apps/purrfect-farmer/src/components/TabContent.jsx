@@ -11,6 +11,7 @@ import { cn } from "@/utils";
 import useAppContext from "@/hooks/useAppContext";
 import usePrimaryFarmerLink from "@/hooks/usePrimaryFarmerLink";
 import useStorageState from "@/hooks/useStorageState";
+import { FARMER_MODE } from "@/constants/farmerMode";
 
 const LinkButton = (props) => {
   return (
@@ -70,7 +71,7 @@ export default memo(function TabContent({ tab }) {
 
   /* Open links in app-browser */
   const openLinksInAppBrowser =
-    settings.enableInAppBrowser && farmerMode === "session";
+    settings.enableInAppBrowser && farmerMode === FARMER_MODE.SESSION;
 
   /* Should open web app */
   const shouldOpenWebApp = tab.type === "webapp" && openLinksInAppBrowser;

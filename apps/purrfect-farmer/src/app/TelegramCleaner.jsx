@@ -13,6 +13,7 @@ import { useState } from "react";
 import { utils } from "telegram";
 import Container from "@/components/Container";
 import { customLogger } from "@/utils";
+import { FARMER_MODE } from "@/constants/farmerMode";
 
 /** Max parallel profile photo downloads */
 const ICON_CONCURRENCY = 4;
@@ -193,7 +194,7 @@ export default function TelegramCleaner() {
   );
 
   useEffect(() => {
-    if (farmerMode !== "session") return;
+    if (farmerMode !== FARMER_MODE.SESSION) return;
     /** @type {import("@purrfect/shared/lib/BaseTelegramWebClient").default} */
     const client = ref.current;
 
@@ -265,7 +266,7 @@ export default function TelegramCleaner() {
   customLogger("Bots", bots);
   customLogger("Private Chats", privateChats);
 
-  if (farmerMode !== "session") {
+  if (farmerMode !== FARMER_MODE.SESSION) {
     return (
       <Container className="p-4 text-center">
         <h2 className="text-2xl font-bold mb-4">Telegram Cleaner</h2>

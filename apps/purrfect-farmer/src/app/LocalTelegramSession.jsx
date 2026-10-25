@@ -8,6 +8,7 @@ import { cn } from "@/utils";
 import { createTelegramClient } from "@/lib/createTelegramClient";
 import { useCallback } from "react";
 import Container from "@/components/Container";
+import { FARMER_MODE } from "@/constants/farmerMode";
 
 export default function LocalTelegramSession() {
   const {
@@ -30,7 +31,7 @@ export default function LocalTelegramSession() {
           setLocalTelegramSession(null);
 
           /** Reset Farmer Mode */
-          configureSettings("farmerMode", "web", false);
+          configureSettings("farmerMode", FARMER_MODE.WEB, false);
 
           try {
             /** Try to reconnect */
@@ -65,7 +66,7 @@ export default function LocalTelegramSession() {
       setLocalTelegramSession(session);
 
       /** Configure Settings */
-      configureSettings("farmerMode", "session", false);
+      configureSettings("farmerMode", FARMER_MODE.SESSION, false);
     },
     [configureSettings, setLocalTelegramSession]
   );

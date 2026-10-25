@@ -6,7 +6,7 @@ import TelegramIcon from "@/assets/images/telegram-logo.svg";
 import toast from "react-hot-toast";
 import useMirroredCallback from "@/hooks/useMirroredCallback";
 import useMirroredTabs from "@/hooks/useMirroredTabs";
-import useTelegramWebTransfer from "@/hooks/useTelegramWebTransfer";
+import useTelegramWebPort from "@/hooks/useTelegramWebPort";
 import { cn } from "@/utils";
 
 const TELEGRAM_WEB_URL = "https://web.telegram.org";
@@ -37,7 +37,7 @@ export default function TelegramToPurrfectGram() {
   ]);
 
   const { closeTelegramWeb, getLocalStorage, setLocalStorage } =
-    useTelegramWebTransfer();
+    useTelegramWebPort();
 
   const [, dispatchAndTransferData] = useMirroredCallback(
     "app.telegram-to-purrfect-gram",
@@ -54,7 +54,7 @@ export default function TelegramToPurrfectGram() {
       const data = await getLocalStorage(`${sender}/k`);
 
       /** Restore Data */
-      await setLocalStorage(`${target}/k`, data);
+      await setLocalStorage(data, `${target}/k`);
 
       toast.success("Data transferred successfully!");
     },

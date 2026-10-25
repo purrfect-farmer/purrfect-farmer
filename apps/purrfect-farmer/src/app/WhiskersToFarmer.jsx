@@ -3,19 +3,14 @@ import toast from "react-hot-toast";
 import { useCallback } from "react";
 import { useDropzone } from "react-dropzone";
 import cryptoRandomString from "crypto-random-string";
-import useAppContext from "@/hooks/useAppContext";
-import { cn, postPortMessage } from "@/utils";
+import useTelegramWebPort from "@/hooks/useTelegramWebPort";
+import { cn } from "@/utils";
 import storage from "@/lib/storage";
 import Container from "@/components/Container";
 import WhiskersIcon from "@/assets/images/whiskers.png?format=webp&w=256";
 
 export default function WhiskersToFarmer() {
-  const { messaging, setActiveTab, closeTab } = useAppContext();
-
-  const closeTelegramWeb = useCallback(() => {
-    closeTab("telegram-web-k");
-    closeTab("telegram-web-a");
-  }, [closeTab]);
+  const { setLocalStorage } = useTelegramWebPort();
 
   const restoreBackupData = (data) => {
     return new Promise(async (resolve) => {
@@ -76,33 +71,7 @@ export default function WhiskersToFarmer() {
         chromeNewStorage["shared:accounts"] = accounts;
         telegramWebNewStorage["number_of_accounts"] = accounts.length;
 
-        /** Restore Telegram Web Data */
-        const restoreTelegramWebData = (data) => {
-          return new Promise(async (resolve) => {
-            /** Wait for Port */
-            messaging.handler.once(
-              `port-connected:telegram-web-k`,
-              async (port) => {
-                /** Set Telegram Web Local Storage */
-                await postPortMessage(port, {
-                  action: "set-local-storage",
-                  data: data,
-                });
-
-                /** Close Telegram Web */
-                closeTelegramWeb();
-
-                /** Resolve */
-                resolve(true);
-              }
-            );
-
-            /** Open Purrfect Gram */
-            setActiveTab("telegram-web-k");
-          });
-        };
-
-        await restoreTelegramWebData(telegramWebNewStorage);
+        await setLocalStorage(telegramWebNewStorage);
         await storage.set(chromeNewStorage);
 
         resolve(true);

@@ -44,6 +44,7 @@ import { useMemo } from "react";
 import useMirroredState from "@/hooks/useMirroredState";
 import useMirroredTabs from "@/hooks/useMirroredTabs";
 import { useState } from "react";
+import { FARMER_MODE } from "@/constants/farmerMode";
 
 /** Telegram Web Button */
 const TelegramWebButton = memo(
@@ -260,7 +261,7 @@ export default memo(function Welcome() {
 
           {/* App Title */}
           <div className="flex items-center justify-center gap-2">
-            {farmerMode === "session" ? (
+            {farmerMode === FARMER_MODE.SESSION ? (
               telegramClient.connected ? (
                 <HiBolt className="size-5 shrink-0 text-green-500" />
               ) : (

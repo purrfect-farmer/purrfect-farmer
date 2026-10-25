@@ -148,6 +148,7 @@ export function filterCandidates(
 const LAUNCH_ERRORS = {
   ACCOUNT_NOT_FOUND: "No Whiskers account with that Telegram user id.",
   INVALID_REQUEST: "No Telegram user id to launch.",
+  ACCOUNT_BUSY: "That Whiskers account is busy with a background task.",
 };
 
 /** Ask Purrfect Whiskers to launch the account matching this Telegram user id */

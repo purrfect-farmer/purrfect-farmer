@@ -8,7 +8,7 @@ import toast from "react-hot-toast";
 import useAppContext from "@/hooks/useAppContext";
 import useAuthorizedTelegramClient from "@/hooks/useAuthorizedTelegramClient";
 import useMirroredTabs from "@/hooks/useMirroredTabs";
-import useTelegramWebTransfer from "@/hooks/useTelegramWebTransfer";
+import useTelegramWebPort from "@/hooks/useTelegramWebPort";
 import usePrompt from "@/hooks/usePrompt";
 import { cn, postPortMessage } from "@/utils";
 import { mintTelegramClient } from "@/lib/mintTelegramClient";
@@ -49,7 +49,7 @@ export default function TelegramWebSession() {
   const { account, localTelegramSession } = useAppContext();
   const { getClientFromLocalSession } = useAuthorizedTelegramClient();
   const { closeTelegramWeb, openTelegramWeb, withTelegramWebPort } =
-    useTelegramWebTransfer();
+    useTelegramWebPort();
 
   const [signedInUrl, setSignedInUrl] = useState(null);
   const [signingIn, setSigningIn] = useState(false);
@@ -105,7 +105,7 @@ export default function TelegramWebSession() {
         const telegramWebAccount = await createTelegramWebSession();
 
         /** Read and write on the same port, so the tab opens only once */
-        await withTelegramWebPort(url, async (port) => {
+        await withTelegramWebPort(async (port) => {
           const currentLocalStorage = await postPortMessage(port, {
             action: "get-local-storage",
           }).then((response) => response.data);
@@ -120,7 +120,7 @@ export default function TelegramWebSession() {
             action: "set-local-storage",
             data: updatedLocalStorage,
           });
-        });
+        }, url);
       };
 
       try {

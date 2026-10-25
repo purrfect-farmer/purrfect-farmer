@@ -4,75 +4,19 @@ import Container from "@/components/Container";
 import PrimaryButton from "@/components/PrimaryButton";
 import useAppContext from "@/hooks/useAppContext";
 import useMirroredCallback from "@/hooks/useMirroredCallback";
-import { postPortMessage } from "@/utils";
-import { useCallback } from "react";
+import useTelegramWebPort from "@/hooks/useTelegramWebPort";
 import toast from "react-hot-toast";
 
 export default function ReorderTelegramWeb() {
-  const { accounts, messaging, closeTab, setActiveTab } = useAppContext();
-
-  const closeTelegramWeb = useCallback(() => {
-    closeTab("telegram-web-k");
-    closeTab("telegram-web-a");
-  }, [closeTab]);
+  const { accounts } = useAppContext();
+  const { getLocalStorage, setLocalStorage } = useTelegramWebPort();
 
   const [, dispatchAndReorderAccounts] = useMirroredCallback(
     "app.reorder-telegram-web",
     async () => {
-      const getTelegramWebLocalStorage = () => {
-        return new Promise((resolve) => {
-          messaging.handler.once(
-            `port-connected:telegram-web-k`,
-            async (port) => {
-              /** Get Telegram Web Local Storage */
-              const telegramWebLocalStorage = await postPortMessage(port, {
-                action: "get-local-storage",
-              }).then((response) => response.data);
-
-              /** Close Telegram Web */
-              closeTelegramWeb();
-
-              /** Resolve */
-              resolve(telegramWebLocalStorage);
-            }
-          );
-
-          /** Open Telegram Web  */
-          setActiveTab("telegram-web-k");
-        });
-      };
-
-      const updateTelegramWebLocalStorage = (data) => {
-        return new Promise(async (resolve) => {
-          /** Wait for Port */
-          messaging.handler.once(
-            `port-connected:telegram-web-k`,
-            async (port) => {
-              /** Set Telegram Web Local Storage */
-              await postPortMessage(port, {
-                action: "set-local-storage",
-                data: data,
-              });
-
-              /** Close Telegram Web */
-              closeTelegramWeb();
-
-              /** Resolve */
-              resolve(true);
-            }
-          );
-
-          /** Open Telegram Web */
-          setActiveTab("telegram-web-k");
-        });
-      };
-
       const transferData = async () => {
-        /** Close Telegram Web Tabs */
-        await closeTelegramWeb();
-
         /** Get Data */
-        const currentLocalStorage = await getTelegramWebLocalStorage();
+        const currentLocalStorage = await getLocalStorage();
 
         console.log(
           "Current Telegram Web Local Storage Retrieved:",
@@ -127,13 +71,13 @@ export default function ReorderTelegramWeb() {
         );
 
         /** Update Telegram Web Local Storage */
-        await updateTelegramWebLocalStorage(updatedLocalStorage);
+        await setLocalStorage(updatedLocalStorage);
       };
 
       await transferData();
       toast.success("Accounts reordered successfully!");
     },
-    [messaging.handler, accounts, setActiveTab, closeTelegramWeb]
+    [accounts, getLocalStorage, setLocalStorage]
   );
 
   return (

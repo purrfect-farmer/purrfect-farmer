@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useMutation } from "@tanstack/react-query";
 
 import useAppContext from "./useAppContext";
+import { FARMER_MODE } from "@/constants/farmerMode";
 
 export default function useProfileEditorProfile() {
   const { farmerMode, telegramClient, updateTelegramUser } = useAppContext();
@@ -30,7 +31,7 @@ export default function useProfileEditorProfile() {
 
   /** Fetch Profile */
   useEffect(() => {
-    if (farmerMode !== "session") return;
+    if (farmerMode !== FARMER_MODE.SESSION) return;
     /** @type {import("@purrfect/shared/lib/BaseTelegramWebClient.js").default} */
     const client = ref.current;
 

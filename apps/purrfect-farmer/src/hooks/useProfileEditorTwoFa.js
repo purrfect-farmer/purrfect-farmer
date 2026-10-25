@@ -3,6 +3,7 @@ import { useCallback, useEffect, useState } from "react";
 import { useMutation } from "@tanstack/react-query";
 
 import useAppContext from "./useAppContext";
+import { FARMER_MODE } from "@/constants/farmerMode";
 
 export default function useProfileEditorTwoFa() {
   const { farmerMode, telegramClient } = useAppContext();
@@ -23,7 +24,7 @@ export default function useProfileEditorTwoFa() {
   });
 
   useEffect(() => {
-    if (farmerMode !== "session") return;
+    if (farmerMode !== FARMER_MODE.SESSION) return;
 
     loadState().catch((err) =>
       toast.error(`Error loading 2FA: ${err.message}`),

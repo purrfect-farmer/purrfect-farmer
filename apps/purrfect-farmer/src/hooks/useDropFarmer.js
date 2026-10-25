@@ -23,6 +23,7 @@ import useTabContext from "./useTabContext";
 import useTelegramWebApp from "./useTelegramWebApp";
 import useUnauthorizedInterceptor from "./useUnauthorizedInterceptor";
 import useValuesMemo from "./useValuesMemo";
+import { FARMER_MODE } from "@/constants/farmerMode";
 
 export default function useDropFarmer() {
   const app = useAppContext();
@@ -146,7 +147,7 @@ export default function useDropFarmer() {
         await app.joinTelegramLink(...args);
       } finally {
         /** Restore Tab */
-        if (app.farmerMode === "web") {
+        if (app.farmerMode === FARMER_MODE.WEB) {
           app.setActiveTab(id);
         }
       }
@@ -164,7 +165,7 @@ export default function useDropFarmer() {
         throw new Error("Running external account!");
       } else if (!allowProfileUpdates) {
         throw new Error("Profile updates are disabled in settings!");
-      } else if (app.farmerMode === "web") {
+      } else if (app.farmerMode === FARMER_MODE.WEB) {
         throw new Error("Profile update is only available in session mode!");
       } else {
         const client = app.telegramClient.ref.current;

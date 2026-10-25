@@ -8,6 +8,7 @@ import useMirroredCallback from "./useMirroredCallback";
 import useProcessLock from "./useProcessLock";
 import useStorageState from "./useStorageState";
 import useValuesMemo from "./useValuesMemo";
+import { FARMER_MODE } from "@/constants/farmerMode";
 
 const INITIAL_POSITION = 0;
 
@@ -139,7 +140,7 @@ export default function useZoomies(core) {
   /** Open Bot */
   const openBot = useCallback(
     (force = true) => {
-      if (farmerMode === "web") {
+      if (farmerMode === FARMER_MODE.WEB) {
         core.setActiveTab(current.drop?.id);
         core.closeOtherBots();
         core.openTelegramBot(current.drop.telegramLink, {

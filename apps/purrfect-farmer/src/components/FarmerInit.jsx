@@ -3,6 +3,7 @@ import { cn } from "@/utils";
 import { memo } from "react";
 
 import Alert from "./Alert";
+import { FARMER_MODE } from "@/constants/farmerMode";
 
 export default memo(function FarmerInit({
   mode,
@@ -32,9 +33,9 @@ export default memo(function FarmerInit({
             )}
           </h3>
           <p className={cn("text-center text-neutral-400", className)}>
-            {mode === "session" ? (
+            {mode === FARMER_MODE.SESSION ? (
               <>Sending /start Message</>
-            ) : farmerMode === "session" ? (
+            ) : farmerMode === FARMER_MODE.SESSION ? (
               <>Please wait...</>
             ) : status === "pending-mini-app" ? (
               <>Please open/reload the bot</>

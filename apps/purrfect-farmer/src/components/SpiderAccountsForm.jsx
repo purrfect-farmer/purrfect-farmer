@@ -13,6 +13,7 @@ import { Progress } from "./Progress";
 import toast from "react-hot-toast";
 import LabelToggle from "./LabelToggle";
 import useAppContext from "@/hooks/useAppContext";
+import useTelegramWebPort from "@/hooks/useTelegramWebPort";
 import cryptoRandomString from "crypto-random-string";
 import { postPortMessage } from "@/utils";
 import useMirroredState from "@/hooks/useMirroredState";
@@ -20,109 +21,74 @@ import useMirroredCallback from "@/hooks/useMirroredCallback";
 import storage from "@/lib/storage";
 import Container from "./Container";
 import Slider from "./Slider";
+import { FARMER_MODE } from "@/constants/farmerMode";
 
 export default function SpiderAccountsForm({ country, clearSelection }) {
   /* Abort Controller for the Running Purchase */
   const abortControllerRef = useRef(null);
 
   const {
-    messaging,
     setActiveTab,
-    closeTab,
     sharedSettings,
     persistedAccounts,
     storePersistedAccounts,
     dispatchAndSetShowAccountPicker,
   } = useAppContext();
-
-  /** Close Telegram Web Tabs */
-  const closeTelegramWeb = useCallback(() => {
-    closeTab("telegram-web-k");
-    closeTab("telegram-web-a");
-  }, [closeTab]);
+  const { withTelegramWebPort } = useTelegramWebPort();
 
   /** Transfer Telegram Web Data */
   const transferTelegramWebData = useCallback(
     async (telegramWebLocalStorage) => {
-      /** Update Telegram Web Local Storage */
-      const updateTelegramWebLocalStorage = () => {
-        return new Promise(async (resolve) => {
-          /** Wait for Port */
-          messaging.handler.once(
-            `port-connected:telegram-web-k`,
-            async (port) => {
-              /** Get Telegram Web Local Storage */
-              const currentLocalStorage = await postPortMessage(port, {
-                action: "get-local-storage",
-              }).then((response) => response.data);
+      const newAccountNumber = await withTelegramWebPort(async (port) => {
+        /** Get Telegram Web Local Storage */
+        const currentLocalStorage = await postPortMessage(port, {
+          action: "get-local-storage",
+        }).then((response) => response.data);
 
-              /** Log Current Local Storage */
-              console.log(
-                "Current Telegram Web Local Storage:",
-                currentLocalStorage
-              );
+        /** Log Current Local Storage */
+        console.log("Current Telegram Web Local Storage:", currentLocalStorage);
 
-              /* Determine New Account Number */
-              let maxAccount = 0;
+        /* Determine New Account Number */
+        let maxAccount = 0;
 
-              /* Find Max Account Number */
-              for (const key in currentLocalStorage) {
-                const match = key.match(/account(\d+)/);
-                if (match) {
-                  const accountNumber = parseInt(match[1], 10);
-                  if (accountNumber > maxAccount) {
-                    maxAccount = accountNumber;
-                  }
-                }
-              }
-
-              /* New Account Number */
-              const newAccountNumber = maxAccount + 1;
-
-              /** Updated Local Storage */
-              const updatedLocalStorage = {
-                ...currentLocalStorage,
-                [`account${newAccountNumber}`]:
-                  telegramWebLocalStorage["account1"],
-              };
-
-              /** Log Updated Local Storage */
-              console.log(
-                "Updated Telegram Web Local Storage:",
-                updatedLocalStorage
-              );
-
-              /** Set Telegram Web Local Storage */
-              await postPortMessage(port, {
-                action: "set-local-storage",
-                data: updatedLocalStorage,
-              });
-
-              /** Close Telegram Web */
-              closeTelegramWeb();
-
-              /** Resolve */
-              resolve(newAccountNumber);
+        /* Find Max Account Number */
+        for (const key in currentLocalStorage) {
+          const match = key.match(/account(\d+)/);
+          if (match) {
+            const accountNumber = parseInt(match[1], 10);
+            if (accountNumber > maxAccount) {
+              maxAccount = accountNumber;
             }
-          );
+          }
+        }
 
-          /** Open Purrfect Gram */
-          setActiveTab("telegram-web-k");
+        /* New Account Number */
+        const nextAccountNumber = maxAccount + 1;
+
+        /** Updated Local Storage */
+        const updatedLocalStorage = {
+          ...currentLocalStorage,
+          [`account${nextAccountNumber}`]: telegramWebLocalStorage["account1"],
+        };
+
+        /** Log Updated Local Storage */
+        console.log("Updated Telegram Web Local Storage:", updatedLocalStorage);
+
+        /** Set Telegram Web Local Storage */
+        await postPortMessage(port, {
+          action: "set-local-storage",
+          data: updatedLocalStorage,
         });
-      };
 
-      /** Close Telegram Web Tabs */
-      await closeTelegramWeb();
-
-      /** Restore Data */
-      const newAccountNumber = await updateTelegramWebLocalStorage();
+        return nextAccountNumber;
+      });
 
       /** Activate Spider Tab */
       await setActiveTab("spider");
 
       return newAccountNumber;
     },
-    [messaging.handler, setActiveTab, closeTelegramWeb]
+    [withTelegramWebPort, setActiveTab],
   );
 
   /** Spider API Key */
@@ -290,7 +256,7 @@ export default function SpiderAccountsForm({ country, clearSelection }) {
               );
 
               await storage.set(`account-${newPersistedAccount.id}:settings`, {
-                farmerMode: "session",
+                farmerMode: FARMER_MODE.SESSION,
                 onboarded: true,
               });
             }

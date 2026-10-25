@@ -13,6 +13,7 @@ import useChromeStorageKey from "./useChromeStorageKey";
 import { useEffect } from "react";
 import useMessageHandlers from "./useMessageHandlers";
 import { useState } from "react";
+import { FARMER_MODE } from "@/constants/farmerMode";
 
 /**
  * TelegramWebApp Hook
@@ -138,7 +139,7 @@ export default function useTelegramWebApp({
 
     /** Set From Session or Port */
     const setWebAppFromSessionOrPort = () => {
-      if (farmerMode === "session" && telegramLink) {
+      if (farmerMode === FARMER_MODE.SESSION && telegramLink) {
         setWebAppFromSession();
       } else {
         setWebAppFromPort();

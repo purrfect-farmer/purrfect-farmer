@@ -6,12 +6,14 @@ import {
 import useBackupAndRestore from "./useBackupAndRestore";
 import { useEffect } from "react";
 import useMemoizedCallback from "./useMemoizedCallback";
+import useTelegramSessionStatus from "./useTelegramSessionStatus";
 
 export default function useWhiskerData(app) {
   const [backup, restore] = useBackupAndRestore(app);
 
   const getBackupData = useMemoizedCallback(backup);
   const restoreBackupData = useMemoizedCallback(restore);
+  const getSessionStatus = useMemoizedCallback(useTelegramSessionStatus(app));
 
   const updateSettings = useMemoizedCallback(app.updateSettings);
   const updateSharedSettings = useMemoizedCallback(app.updateSharedSettings);
@@ -50,6 +52,14 @@ export default function useWhiskerData(app) {
               .then(() => {
                 reply(true);
               });
+            break;
+
+          /** Get Session Status */
+          case "get-session-status":
+            console.log("Checking Telegram session for Whisker...");
+            getSessionStatus().then((status) => {
+              reply(status);
+            });
             break;
 
           /** Set Whisker Data */
@@ -91,6 +101,7 @@ export default function useWhiskerData(app) {
     }
   }, [
     getBackupData,
+    getSessionStatus,
     updateSettings,
     updateSharedSettings,
     updateActiveAccount,
