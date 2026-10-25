@@ -17,10 +17,13 @@ The script:
 - Installs pnpm and PM2
 - Clones `~/purrfect-farmer` and installs only Purrfect Fly's dependencies
 - Creates `apps/purrfect-fly/.env` with generated keys and `STARTUP_SEND_SERVER_ADDRESS=false`
+- Sets `FASTIFY_ADDRESS="0.0.0.0"` (when `.env` has no value yet) so other devices on the same network can reach it
 - Runs the database migrations and seeders, then starts Fly with PM2
 - Adds a Termux:Boot script that takes a wake lock and runs `pm2 resurrect` on boot
 
-When it finishes, Fly runs at `http://localhost:4000` (the `PORT` in `.env`).
+When it finishes, Fly runs at `http://localhost:4000` (the `PORT` in `.env`). From another device on the same Wi-Fi, use `http://<phone-ip>:4000`; the phone's IP is in its Wi-Fi settings.
+
+Anyone on that network can reach the server (logging in still needs its JWT). To keep it phone-only, set `FASTIFY_ADDRESS="127.0.0.1"` in `.env` and run `pm2 restart all --update-env`.
 
 ## 3. Configure
 

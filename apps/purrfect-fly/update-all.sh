@@ -2,11 +2,13 @@
  
 set -e
  
-FOLDERS=(
-  "$HOME/purrfect-farmer-one"
-  "$HOME/purrfect-farmer-two"
-  "$HOME/purrfect-farmer-three"
-)
+SLUG="$1"
+
+if [ -z "$SLUG" ]; then
+  echo "Usage: update-all.sh <slug>"
+  echo "Updates every ~/<slug>-N instance created by install-many.sh"
+  exit 1
+fi
 
 # Print every ~/<slug>-N folder (N a number) that has a .env, in number order
 list_instances() {
@@ -20,9 +22,11 @@ list_instances() {
   done | sort -n | cut -d" " -f2-
 }
 
-# With a slug (e.g. "example"), update every ~/<slug>-N from install-many.sh
-if [ -n "$1" ]; then
-  mapfile -t FOLDERS < <(list_instances "$1")
+mapfile -t FOLDERS < <(list_instances "$SLUG")
+
+if [ ${#FOLDERS[@]} -eq 0 ]; then
+  echo "No instances found matching $HOME/$SLUG-N"
+  exit 1
 fi
  
 for FOLDER in "${FOLDERS[@]}"; do

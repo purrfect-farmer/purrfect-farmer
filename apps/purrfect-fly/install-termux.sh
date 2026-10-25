@@ -61,6 +61,12 @@ else
     print_subheading ".env file already exists. Skipping setup."
 fi
 
+# Listen on every interface so other devices on the network can reach it
+if ! grep -q "^FASTIFY_ADDRESS=" apps/purrfect-fly/.env; then
+    print_subheading "Listening on all network interfaces (FASTIFY_ADDRESS=0.0.0.0)..."
+    echo 'FASTIFY_ADDRESS="0.0.0.0"' >> apps/purrfect-fly/.env
+fi
+
 
 print_heading "Running database migrations and seeders..."
 pnpm -F purrfect-fly db:migrate && pnpm -F purrfect-fly db:seed
@@ -89,7 +95,7 @@ port=${port:-4000}
 
 print_heading "Server Address"
 print_subheading "You can access Purrfect Fly at: http://localhost:$port"
-print_subheading "On the same Wi-Fi use http://<phone-ip>:$port"
+print_subheading "On the same Wi-Fi use http://<phone-ip>:$port (the phone's IP is in its Wi-Fi settings)"
 print_subheading "Disable battery optimization for Termux so Android does not kill it."
 print_subheading "Android 12+: disable child process restrictions (see TERMUX.md) or node gets killed in the background."
 print_subheading "Now edit apps/purrfect-fly/.env and run: pm2 restart all --update-env"
