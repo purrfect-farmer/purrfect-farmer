@@ -164,10 +164,10 @@ class AutoContext {
     /** Skip if cloud account is missing */
     if (!cloudAccount) return;
 
-    /** Skip if cloud account is not active */
+    /** Skip if cloud account has no session to start from and no active farmer */
     if (
       !cloudAccount.session &&
-      !cloudAccount.farmer?.status === FARMER_STATUS.ACTIVE
+      cloudAccount.farmer?.status !== FARMER_STATUS.ACTIVE
     )
       return;
 
