@@ -139,6 +139,40 @@ Or with wget:
 wget -qO- https://raw.githubusercontent.com/purrfect-farmer/purrfect-farmer/main/apps/purrfect-fly/install.sh | bash
 ```
 
+This serves Purrfect Fly at `http://<your-server-ip>:4000` (Nginx on `4000`, Node on `14000` behind it).
+
+### Multiple Instances on One Server
+
+Install [Purrfect Seeker](https://github.com/purrfect-farmer/purrfect-seeker) (recommended) and several Fly instances on one VPS. With Seeker, accounts look their server up by ID, so when a server moves to a new address you update Seeker instead of every account. Replace `example` / `Example` with your own slug and name, and give both commands the same name, count and base port.
+
+**1. Install Seeker.** Edit the arguments, then run:
+
+```bash
+curl -o- https://raw.githubusercontent.com/purrfect-farmer/purrfect-seeker/main/install.sh | bash -s -- 3000 Example 10 4001
+```
+
+| # | Argument | Default | Role |
+| - | -------- | ------- | ---- |
+| 1 | `port` | `3000` | Public port Seeker is served on through Nginx. Node runs on this port + 10000 (`13000` by default). |
+| 2 | `fly-name` | none | Name of the Fly servers to register, as `<fly-name> (n)`. Leave it out to only install Seeker. |
+| 3 | `fly-count` | `10` | How many Fly servers to register, `1` to `fly-count`. Re-run with a higher count to register more; existing names are skipped. |
+| 4 | `fly-base-port` | `4001` | Public port of the first Fly server; server `n` is registered at `http://<ip>:<fly-base-port + n - 1>`. |
+
+**2. Install the Fly instances.** Edit the arguments, then run:
+
+```bash
+curl -o- https://raw.githubusercontent.com/purrfect-farmer/purrfect-farmer/main/apps/purrfect-fly/install-many.sh | bash -s -- example Example 10 4001
+```
+
+| # | Argument | Default | Role |
+| - | -------- | ------- | ---- |
+| 1 | `slug` | `example` | Folder and PM2 name prefix: instance `n` lives in `~/<slug>-n` and runs as PM2 app `<slug>-n`. |
+| 2 | `name` | `Example` | Display name prefix: instance `n` is named `<name> (n)` (`APP_NAME`). |
+| 3 | `count` | `10` | How many instances to install, `1` to `count`. Re-run with a higher count to add instances; running ones are left untouched and stopped ones are repaired. |
+| 4 | `base-port` | `4001` | Public port of the first instance; instance `n` is served at `http://<ip>:<base-port + n - 1>`, with Node on that port + 10000. |
+
+The full step-by-step guide (shared settings, updates, Cloud Manager) is in the [Purrfect Fly README](apps/purrfect-fly/README.md#multiple-instances-on-one-server).
+
 **Detailed Setup:** See [Purrfect Fly README](apps/purrfect-fly/README.md)
 
 ---

@@ -21,30 +21,30 @@ print_subheading() {
 }
 
 print_heading "Installing Nginx web server..."
-sudo apt-get update
-sudo apt-get upgrade -y
-sudo apt-get install \
+export DEBIAN_FRONTEND=noninteractive NEEDRESTART_MODE=a
+sudo -E apt-get update < /dev/null
+sudo -E apt-get upgrade -y < /dev/null
+sudo -E apt-get install \
 nginx \
--y
+-y < /dev/null
 
 
 print_heading "Installing Node Version Manager (NVM) and Node.js LTS..."
 
-if [ -d "$HOME/.nvm" ]; then
-    print_subheading "NVM is already installed."
-    \. "$HOME/.nvm/nvm.sh"
-else
+if [ ! -s "$HOME/.nvm/nvm.sh" ]; then
     print_subheading "NVM is not installed. Proceeding with installation..."
     curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.3/install.sh | bash
-
-    \. "$HOME/.nvm/nvm.sh"
-
-    nvm install --lts
-
-    npm i -g npm
-    npm i -g pnpm
-    npm i -g pm2
 fi
+
+\. "$HOME/.nvm/nvm.sh"
+
+if ! command -v node > /dev/null; then
+    nvm install --lts
+    npm i -g npm
+fi
+
+command -v pnpm > /dev/null || npm i -g pnpm
+command -v pm2 > /dev/null || npm i -g pm2
 
 
 print_heading "Setting up PM2 to run on startup..."
@@ -85,9 +85,10 @@ fi
 
 # Nginx takes the public port, so a new site needs Node off it
 env_port=$(grep -E "^PORT=" apps/purrfect-fly/.env | cut -d= -f2 | tr -d '"')
-if [ ! -f "$NGINX_SITE_PATH" ] && [ "$env_port" = "$PUBLIC_PORT" ]; then
-    print_subheading "Moving Node from port $PUBLIC_PORT to $INTERNAL_PORT so Nginx can serve $PUBLIC_PORT..."
-    sed -i "s|^PORT=.*|PORT=$INTERNAL_PORT|" apps/purrfect-fly/.env
+if [ ! -f "$NGINX_SITE_PATH" ] && { [ -z "$env_port" ] || [ "$env_port" = "$PUBLIC_PORT" ]; }; then
+    print_subheading "Setting Node to port $INTERNAL_PORT so Nginx can serve $PUBLIC_PORT..."
+    sed -i "/^PORT=/d" apps/purrfect-fly/.env
+    echo "PORT=$INTERNAL_PORT" >> apps/purrfect-fly/.env
 fi
 
 

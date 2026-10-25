@@ -48,17 +48,7 @@ curl -o- https://raw.githubusercontent.com/purrfect-farmer/purrfect-farmer/main/
 wget -qO- https://raw.githubusercontent.com/purrfect-farmer/purrfect-farmer/main/apps/purrfect-fly/install.sh | bash
 ```
 
-**On Android (Termux):**
-```bash
-curl -o- https://raw.githubusercontent.com/purrfect-farmer/purrfect-farmer/main/apps/purrfect-fly/install-termux.sh | bash
-```
-Download [Termux](https://f-droid.org/packages/com.termux/) and [Termux:Boot](https://f-droid.org/packages/com.termux.boot/) from F-Droid (or GitHub releases: [Termux](https://github.com/termux/termux-app/releases), [Termux:Boot](https://github.com/termux/termux-boot/releases)). Get both from the same source, as their signatures must match. Open Termux:Boot once to enable start on boot, and disable battery optimization for Termux.
-
-To keep it running all day (one-time phone settings):
-- Android 14+: Developer options > enable "Disable child process restrictions", or Android kills node in the background.
-- Android 12-13: run once from a computer: `adb shell device_config set_sync_disabled_for_tests persistent` and `adb shell device_config put activity_manager max_phantom_processes 2147483647`.
-- Set Termux battery usage to "Unrestricted", allow autostart (Xiaomi, Oppo, etc.) and lock Termux in recents.
-- Keep the phone charging, and don't tap "Exit" on the Termux notification.
+Android phones (Termux) have their own guide: [TERMUX.md](TERMUX.md).
 
 The installation script will:
 - Install system dependencies (Nginx, text editors)
@@ -81,19 +71,19 @@ Run several isolated instances side by side on a fresh Ubuntu / Debian VPS. Each
 ssh root@<your-vps-ip>
 ```
 
-**2. Install Seeker (optional)**
+**2. Install Seeker (recommended)**
 
 ```bash
 curl -o- https://raw.githubusercontent.com/purrfect-farmer/purrfect-seeker/main/install.sh | bash -s -- 3000 Example 10 4001
 ```
 
-This serves [Purrfect Seeker](https://github.com/purrfect-farmer/purrfect-seeker) at `http://<ip>:3000` and registers `Example (1)` to `Example (10)` at `http://<ip>:4001` to `http://<ip>:4010`. Use the same name, count and base port as step 3. Skip it if you don't use Seeker or run it on another server.
+This serves [Purrfect Seeker](https://github.com/purrfect-farmer/purrfect-seeker) at `http://<ip>:3000` and registers `Example (1)` to `Example (10)` at `http://<ip>:4001` to `http://<ip>:4010`. Use the same name, count and base port as step 3. Seeker is recommended: accounts look their server up by ID, so when a server moves to a new address you update Seeker instead of every account. Skip this step only if Seeker already runs on another server.
 
 | # | Argument | Default | Role |
 | - | -------- | ------- | ---- |
 | 1 | `port` | `3000` | Public port Seeker is served on through Nginx. Node runs on this port + 10000 (`13000` by default). |
 | 2 | `fly-name` | none | Name of the Fly servers to register, as `<fly-name> (n)`. Leave it out to only install Seeker. |
-| 3 | `fly-count` | `10` | How many Fly servers to register, `1` to `fly-count`. |
+| 3 | `fly-count` | `10` | How many Fly servers to register, `1` to `fly-count`. Re-run with a higher count to register more; existing names are skipped. |
 | 4 | `fly-base-port` | `4001` | Public port of the first Fly server; server `n` is registered at `http://<ip>:<fly-base-port + n - 1>`. |
 
 **3. Install the instances**
@@ -106,7 +96,7 @@ curl -o- https://raw.githubusercontent.com/purrfect-farmer/purrfect-farmer/main/
 | - | -------- | ------- | ---- |
 | 1 | `slug` | `example` | Folder and PM2 name prefix: instance `n` lives in `~/<slug>-n` and runs as PM2 app `<slug>-n`. |
 | 2 | `name` | `Example` | Display name prefix: instance `n` is named `<name> (n)` (`APP_NAME`). |
-| 3 | `count` | `10` | How many instances to install, `1` to `count`. |
+| 3 | `count` | `10` | How many instances to install, `1` to `count`. Re-run with a higher count to add instances; running ones are left untouched and stopped ones are repaired. |
 | 4 | `base-port` | `4001` | Public port of the first instance; instance `n` is served at `http://<ip>:<base-port + n - 1>`, with Node on that port + 10000. |
 
 This creates `~/example-1` to `~/example-10`, PM2 apps `example-1` to `example-10`, named `Example (1)` to `Example (10)`, reachable at `http://<ip>:4001` to `http://<ip>:4010`. Nginx owns the public ports and proxies to Node on the port 10000 higher (`14001`, ...).
@@ -173,6 +163,7 @@ Add each server as `http://<your-vps-ip>:4001` to `http://<your-vps-ip>:4010`. W
 **Later**
 
 - Update all instances: `bash ~/example-1/apps/purrfect-fly/update-all.sh example`
+- Add instances: re-run steps 2 and 3 with the new total count. Existing instances and Seeker entries are skipped.
 - Change a shared value: edit `~/shared.env` and repeat step 6.
 
 ---
