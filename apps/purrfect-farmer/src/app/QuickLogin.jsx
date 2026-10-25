@@ -4,6 +4,7 @@ import Container from "@/components/Container";
 import Input from "@/components/Input";
 import PrimaryButton from "@/components/PrimaryButton";
 import QrScanner, { decodeImageFile } from "@/components/QrScanner";
+import QuickLoginMintTab from "@/app/QuickLoginMintTab";
 import Tabs from "@/components/Tabs";
 import TelegramLogo from "@/assets/images/telegram-logo.svg";
 import copy from "copy-to-clipboard";
@@ -335,7 +336,11 @@ const CodesTab = ({ client }) => {
 export default function QuickLogin() {
   const { farmerMode } = useAppContext();
   const { acquire } = useAuthorizedTelegramClient();
-  const tabs = useMirroredTabs("quick-login", ["authorize", "codes"]);
+  const tabs = useMirroredTabs("quick-login", [
+    "authorize",
+    "codes",
+    "mint",
+  ]);
 
   const [client, setClient] = useState(null);
   const [error, setError] = useState(null);
@@ -409,6 +414,10 @@ export default function QuickLogin() {
 
           <Tabs.Content value="codes">
             <CodesTab client={client} />
+          </Tabs.Content>
+
+          <Tabs.Content value="mint">
+            <QuickLoginMintTab client={client} />
           </Tabs.Content>
         </Container>
       </div>

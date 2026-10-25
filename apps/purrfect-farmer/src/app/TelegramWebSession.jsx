@@ -1,26 +1,19 @@
 import Alert from "@/components/Alert";
 import Container from "@/components/Container";
-import PasswordInput from "@/components/PasswordInput";
 import PrimaryButton from "@/components/PrimaryButton";
-import PromptDialog from "@/components/PromptDialog";
 import Tabs from "@/components/Tabs";
 import TelegramIcon from "@/assets/images/telegram-logo.svg";
+import TwoFactorPrompt from "@/components/TwoFactorPrompt";
 import toast from "react-hot-toast";
 import useAppContext from "@/hooks/useAppContext";
 import useAuthorizedTelegramClient from "@/hooks/useAuthorizedTelegramClient";
 import useMirroredTabs from "@/hooks/useMirroredTabs";
 import useTelegramWebTransfer from "@/hooks/useTelegramWebTransfer";
-import { Dialog } from "radix-ui";
+import usePrompt from "@/hooks/usePrompt";
 import { cn, postPortMessage } from "@/utils";
-import { createTelegramClient } from "@/lib/createTelegramClient";
+import { mintTelegramClient } from "@/lib/mintTelegramClient";
 import { useCallback } from "react";
-import { useRef } from "react";
 import { useState } from "react";
-import {
-  acceptLoginToken,
-  finalizeLoginToken,
-  requestLoginToken,
-} from "@purrfect/shared/utils/loginToken.js";
 import {
   buildTelegramWebAccount,
   mergeTelegramWebAccount,
@@ -47,45 +40,6 @@ const TabContent = ({ title, children, ...props }) => (
   </Tabs.Content>
 );
 
-/** Ask for the 2FA password, re-asking while Telegram rejects it */
-const PasswordPrompt = ({ prompt, onSubmit, onCancel }) => {
-  const [password, setPassword] = useState("");
-
-  if (!prompt) return null;
-
-  return (
-    <Dialog.Root open={true} onOpenChange={() => onCancel()}>
-      <PromptDialog
-        icon={TelegramIcon}
-        title="Two-Factor Authentication"
-        description={
-          prompt.attempt > 0
-            ? "That password was rejected. Try again."
-            : "Enter your Telegram cloud password to finish signing in."
-        }
-        onCloseButtonClick={() => onCancel()}
-      >
-        <PasswordInput
-          autoFocus
-          value={password}
-          onChange={(event) => setPassword(event.target.value)}
-          placeholder="Cloud password"
-        />
-
-        <Dialog.Close
-          onClick={() => {
-            onSubmit(password);
-            setPassword("");
-          }}
-          className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
-        >
-          Submit
-        </Dialog.Close>
-      </PromptDialog>
-    </Dialog.Root>
-  );
-};
-
 export default function TelegramWebSession() {
   const tabs = useMirroredTabs("telegram-web-session", [
     "purrfect-gram",
@@ -99,28 +53,16 @@ export default function TelegramWebSession() {
 
   const [signedInUrl, setSignedInUrl] = useState(null);
   const [signingIn, setSigningIn] = useState(false);
-  const [passwordPrompt, setPasswordPrompt] = useState(null);
-
-  const passwordResolverRef = useRef(null);
-
-  /** Resolve the pending prompt and close it */
-  const answerPasswordPrompt = useCallback(
-    (password) => {
-      setPasswordPrompt(null);
-      passwordResolverRef.current?.(password);
-      passwordResolverRef.current = null;
-    },
-    [setPasswordPrompt],
-  );
+  const {
+    prompt: promptPassword,
+    answer: answerPasswordPrompt,
+    question: passwordQuestion,
+  } = usePrompt();
 
   /** Hand finalizeLoginToken the next password candidate, or null to give up */
   const getPassword = useCallback(
-    (attempt) =>
-      new Promise((resolve) => {
-        passwordResolverRef.current = resolve;
-        setPasswordPrompt({ attempt });
-      }),
-    [setPasswordPrompt],
+    (attempt) => promptPassword({ attempt }),
+    [promptPassword],
   );
 
   /** Mint a brand new authorization for Telegram Web */
@@ -129,20 +71,10 @@ export default function TelegramWebSession() {
     const { client: authorizingClient, dispose } =
       await getClientFromLocalSession();
 
-    const client = createTelegramClient();
+    let client = null;
 
     try {
-      /** Connect Without Authenticating */
-      await client.connect();
-
-      /** Export Login Token */
-      const exported = await requestLoginToken(client);
-
-      /** Accept the Token on the Already-Authorized Client */
-      await acceptLoginToken(authorizingClient, exported.token);
-
-      /** Collect the Authorization, handling DC migration and 2FA */
-      await finalizeLoginToken(client, { getPassword });
+      client = await mintTelegramClient(authorizingClient, { getPassword });
 
       /** Read the new session before tearing the client down */
       const user = await client.getMe();
@@ -154,7 +86,7 @@ export default function TelegramWebSession() {
       });
     } finally {
       /** Disconnect only, the authorization now belongs to Telegram Web */
-      await client.destroy().catch(() => {});
+      await client?.destroy().catch(() => {});
       await dispose();
     }
   }, [getClientFromLocalSession, getPassword]);
@@ -271,8 +203,8 @@ export default function TelegramWebSession() {
         {renderTab("telegram-web", "Telegram Web", TELEGRAM_WEB_URL)}
       </Tabs>
 
-      <PasswordPrompt
-        prompt={passwordPrompt}
+      <TwoFactorPrompt
+        prompt={passwordQuestion}
         onSubmit={answerPasswordPrompt}
         onCancel={() => answerPasswordPrompt(null)}
       />
