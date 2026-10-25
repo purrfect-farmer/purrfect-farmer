@@ -18,10 +18,10 @@ const getDefaultValues = ({ fields, values }) =>
       const value = values[field.key];
 
       if (field.type === "boolean") {
-        return [
-          field.key,
-          value !== undefined ? parseBoolean(value) : Boolean(field.default),
-        ];
+        if (value !== undefined) return [field.key, parseBoolean(value)];
+
+        /** Unset inheriting toggles stay empty to follow their parent */
+        return [field.key, field.inherits ? null : Boolean(field.default)];
       }
 
       return [field.key, field.type === "secret" ? "" : (value ?? "")];
@@ -46,6 +46,12 @@ export default function CloudEnvSettingsForm({ data, onReview }) {
   const fieldsByKey = useMemo(
     () => new Map(data.fields.map((field) => [field.key, field])),
     [data.fields],
+  );
+
+  /** Keys the server environment sets over the file */
+  const overriddenKeys = useMemo(
+    () => new Set(data.overridden ?? []),
+    [data.overridden],
   );
 
   /** Fields matching the search, grouped */
@@ -128,6 +134,8 @@ export default function CloudEnvSettingsForm({ data, onReview }) {
       group={group}
       fields={fields}
       data={data}
+      fieldsByKey={fieldsByKey}
+      overriddenKeys={overriddenKeys}
       resets={resets}
       toggleReset={toggleReset}
       getTestValues={getTestValues}

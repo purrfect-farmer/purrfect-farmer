@@ -255,6 +255,14 @@ export const ENV_FIELDS = [
     options: Object.values(CRON_MODE),
   },
   {
+    key: "DEFAULT_AUTO_START",
+    group: "cron",
+    label: "Auto-start new accounts",
+    type: "boolean",
+    default: false,
+    help: "Farmers start by themselves on accounts with a Telegram session.",
+  },
+  {
     key: "ALLOW_PROFILE_UPDATES",
     group: "cron",
     label: "Allow profile updates",
@@ -344,6 +352,8 @@ export function getFarmerFields(FarmerClass) {
       label: "Auto-start new accounts",
       type: "boolean",
       default: FarmerClass.autoStart,
+      inherits: "DEFAULT_AUTO_START",
+      help: "Leave unset to use the default auto-start.",
     },
     {
       key: `${prefix}_SKIP_EXECUTION_OF_NEW_ACCOUNT`,
@@ -362,12 +372,14 @@ export function getFarmerFields(FarmerClass) {
       key: `${prefix}_PRIMARY_ACCOUNT_ID`,
       label: "Primary account ID",
       type: "telegramId",
+      inherits: "PRIMARY_ACCOUNT_ID",
       help: "Leave empty to use the general primary account.",
     },
     {
       key: `${prefix}_THREAD_ID`,
       label: "Topic ID",
       type: "threadId",
+      inherits: "TELEGRAM_FARMING_THREAD_ID",
       help: "Leave empty to use the farming topic.",
     },
     {
@@ -382,6 +394,7 @@ export function getFarmerFields(FarmerClass) {
       label: "Referrer mode",
       type: "enum",
       options: Object.values(REFERRER_MODE),
+      inherits: "DEFAULT_REFERRER_MODE",
       help: "Leave empty to use the default referrer mode.",
     },
   ].map((field) => ({ ...field, group }));

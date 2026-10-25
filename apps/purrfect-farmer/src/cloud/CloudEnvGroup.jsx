@@ -13,6 +13,8 @@ export default function CloudEnvGroup({
   group,
   fields,
   data,
+  fieldsByKey,
+  overriddenKeys,
   resets,
   toggleReset,
   getTestValues,
@@ -68,6 +70,11 @@ export default function CloudEnvGroup({
           <CloudEnvField
             key={field.key}
             field={field}
+            parent={field.inherits ? fieldsByKey.get(field.inherits) : null}
+            parentSaved={
+              field.inherits in data.values && !resets.has(field.inherits)
+            }
+            overridden={overriddenKeys.has(field.key)}
             secret={data.secrets[field.key]}
             issue={data.issues[field.key]}
             isSet={

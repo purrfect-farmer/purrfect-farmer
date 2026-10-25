@@ -2,6 +2,7 @@ import { applyChanges, formatValue } from "../../lib/env/edit.js";
 import { createEnvPatch, maskLine } from "../../lib/env/patch.js";
 import { findInvalidLines, parseEnv } from "../../lib/env/parse.js";
 import { mergeInstanceEnv } from "../../lib/env/merge.js";
+import { parseEnvValue, readEnvValue } from "../../lib/env/value.js";
 
 import { createEnvStore } from "../../lib/env/store.js";
 
@@ -163,4 +164,25 @@ test("a restore keeps this instance's own keys and drops ones it lacks", () => {
   assert.equal(merged.PORT, "13001");
   assert.equal(merged.ENCRYPTION_KEY, "current");
   assert.equal(merged.APP_NAME, undefined);
+});
+
+test("env values are typed", () => {
+  assert.equal(parseEnvValue(" true "), true);
+  assert.equal(parseEnvValue("(false)"), false);
+  assert.equal(parseEnvValue("null"), null);
+  assert.equal(parseEnvValue("(empty)"), "");
+  assert.equal(parseEnvValue("42"), 42);
+  assert.equal(parseEnvValue(""), "");
+  assert.equal(parseEnvValue("single"), "single");
+});
+
+test("unset env keys return the default", () => {
+  const key = "PURRFECT_TEST_UNSET_KEY";
+  delete process.env[key];
+
+  assert.equal(readEnvValue(key, "fallback"), "fallback");
+
+  process.env[key] = "false";
+  assert.equal(readEnvValue(key, true), false);
+  delete process.env[key];
 });

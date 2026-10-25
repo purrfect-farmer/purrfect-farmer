@@ -1,7 +1,9 @@
+import "../lib/env/external.js";
 import dotenv from "dotenv";
 import { ensureGeneratedKeys } from "../lib/env/generated-keys.js";
 import path from "node:path";
 import { getCurrentPath } from "../lib/path.js";
+import { readEnvValue } from "../lib/env/value.js";
 
 const { __dirname } = getCurrentPath(import.meta.url);
 const envPath = path.resolve(__dirname, "../.env");
@@ -13,31 +15,4 @@ for (const key of ensureGeneratedKeys(envPath)) {
 
 dotenv.config({ path: envPath });
 
-global.env = function (key, defaultValue) {
-  let value = process.env[key];
-
-  if (value === undefined) return defaultValue;
-
-  value = value.trim();
-
-  switch (value.toLowerCase()) {
-    case "true":
-    case "(true)":
-      return true;
-    case "false":
-    case "(false)":
-      return false;
-    case "null":
-    case "(null)":
-      return null;
-    case "empty":
-    case "(empty)":
-      return "";
-  }
-
-  if (!isNaN(value) && value !== "") {
-    return Number(value);
-  }
-
-  return value;
-};
+global.env = readEnvValue;

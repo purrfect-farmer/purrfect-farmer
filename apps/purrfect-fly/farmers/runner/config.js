@@ -37,6 +37,9 @@ export function resolveRunnerConfig(FarmerClass) {
   );
   const farmerReferrerMode = getFarmerEnv("REFERRER_MODE", defaultReferrerMode);
 
+  /** Default auto-start */
+  const defaultAutoStart = env("DEFAULT_AUTO_START", FarmerClass.autoStart);
+
   /** Farmer primary account ID */
   const farmerPrimaryAccountId = getFarmerEnv(
     "PRIMARY_ACCOUNT_ID",
@@ -48,7 +51,7 @@ export function resolveRunnerConfig(FarmerClass) {
     enabled: getFarmerEnv("ENABLED", FarmerClass.enabled),
 
     /** Is Farmer Auto-Started */
-    autoStart: getFarmerEnv("AUTO_START", FarmerClass.autoStart),
+    autoStart: getFarmerEnv("AUTO_START", defaultAutoStart),
 
     /** Skip execution of new accounts */
     skipExecutionOfNewAccount: getFarmerEnv(

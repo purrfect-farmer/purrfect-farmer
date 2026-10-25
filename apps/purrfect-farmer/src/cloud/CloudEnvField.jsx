@@ -10,6 +10,7 @@ import LabelToggle from "@/components/LabelToggle";
 import Select from "@/components/Select";
 import { cn } from "@/utils";
 import toast from "react-hot-toast";
+import useCloudEnvFieldDefault from "@/hooks/useCloudEnvFieldDefault";
 import useCloudManagerEnvRevealMutation from "@/hooks/useCloudManagerEnvRevealMutation";
 import { useState } from "react";
 
@@ -20,13 +21,13 @@ const generateSecret = () =>
   ).join("");
 
 /** Placeholder hinting the value used when the field is empty */
-const getPlaceholder = (field, secret) => {
+const getPlaceholder = (field, secret, fallback) => {
   if (field.type === "secret") {
     return secret?.isSet ? `Saved (${secret.preview})` : "Not set";
   }
 
-  return field.default !== undefined && field.default !== ""
-    ? `Default: ${field.default}`
+  return fallback !== undefined && fallback !== ""
+    ? `Default: ${fallback}`
     : "Not set";
 };
 
@@ -102,6 +103,9 @@ const SecretInput = ({ field, secret, controller, disabled }) => {
 
 export default function CloudEnvField({
   field,
+  parent,
+  parentSaved,
+  overridden,
   secret,
   issue,
   isSet,
@@ -110,8 +114,17 @@ export default function CloudEnvField({
   disabled,
 }) {
   const controller = useController({ name: field.key });
+  const { resetField } = useFormContext();
   const { fieldState } = controller;
   const isDisabled = disabled || resetting;
+  const fallback = useCloudEnvFieldDefault(field, parent, parentSaved);
+
+  /** Toggle left empty to follow the field it inherits */
+  const isInheritedToggle =
+    field.type === "boolean" && controller.field.value === null;
+
+  /** An unsaved change to an inheriting field can go back to the default */
+  const canUseDefault = field.inherits && !isSet && fieldState.isDirty;
 
   /** Input for the field type */
   const renderInput = () => {
@@ -121,7 +134,7 @@ export default function CloudEnvField({
           <LabelToggle
             name={controller.field.name}
             onBlur={controller.field.onBlur}
-            checked={Boolean(controller.field.value)}
+            checked={Boolean(controller.field.value ?? fallback)}
             onChange={(ev) => controller.field.onChange(ev.target.checked)}
             disabled={isDisabled}
           >
@@ -134,7 +147,7 @@ export default function CloudEnvField({
           <Select {...controller.field} disabled={isDisabled}>
             {!field.required ? (
               <Select.Item value="">
-                {field.default ? `Default (${field.default})` : "Default"}
+                {fallback ? `Default (${fallback})` : "Default"}
               </Select.Item>
             ) : null}
             {field.options.map((option) => (
@@ -168,7 +181,7 @@ export default function CloudEnvField({
                   ? "url"
                   : undefined
             }
-            placeholder={getPlaceholder(field, secret)}
+            placeholder={getPlaceholder(field, secret, fallback)}
             className={cn(field.type === "cron" && "font-mono")}
           />
         );
@@ -196,6 +209,20 @@ export default function CloudEnvField({
         </p>
       ) : null}
 
+      {/* Inherited state of an empty toggle */}
+      {isInheritedToggle ? (
+        <p className="text-xs text-neutral-500 dark:text-neutral-400">
+          Following the default ({fallback ? "on" : "off"}).
+        </p>
+      ) : null}
+
+      {/* Set by the server environment */}
+      {overridden ? (
+        <p className="text-xs text-orange-500">
+          The server environment sets this, which wins over the value here.
+        </p>
+      ) : null}
+
       {/* Change warning */}
       {field.warning && fieldState.isDirty ? (
         <p className="text-xs text-orange-500">{field.warning}</p>
@@ -207,6 +234,22 @@ export default function CloudEnvField({
       ) : null}
 
       <FieldStateError fieldState={fieldState} className="text-xs" />
+
+      {/* Drop an unsaved override */}
+      {canUseDefault ? (
+        <button
+          type="button"
+          onClick={() => resetField(field.key)}
+          disabled={disabled}
+          className={cn(
+            "self-start text-xs inline-flex items-center gap-1",
+            "text-blue-500",
+          )}
+        >
+          <HiOutlineArrowPath className="size-3" />
+          Use default
+        </button>
+      ) : null}
 
       {/* Reset to default */}
       {isSet && !field.required ? (
