@@ -410,7 +410,7 @@ export const sendWebviewMessage = (data) => {
   return window.electron.ipcRenderer.sendToHost("webview-message", data);
 };
 
-/** Send a webview message and wait for the host's matching `response-<action>` */
+/** Send a webview message and wait for the host's `response-<action>` carrying the same request id */
 export function requestWebviewMessage(action, data, timeout = 10_000) {
   return new Promise((resolve, reject) => {
     if (!import.meta.env.VITE_WHISKER) {
@@ -423,11 +423,16 @@ export function requestWebviewMessage(action, data, timeout = 10_000) {
       window.electron.ipcRenderer.removeListener("host-message", listener);
     };
 
+    /** The id the host echoes back on its reply */
+    const id = uuid();
+
+    /** The listener for this request's reply, which older hosts send without an id */
     const listener = (_event, message) => {
-      if (message?.action === `response-${action}`) {
-        cleanup();
-        resolve(message.data);
-      }
+      if (message?.action !== `response-${action}`) return;
+      if (message.id !== undefined && message.id !== id) return;
+
+      cleanup();
+      resolve(message.data);
     };
 
     const timer = setTimeout(() => {
@@ -437,7 +442,7 @@ export function requestWebviewMessage(action, data, timeout = 10_000) {
 
     window.electron.ipcRenderer.on("host-message", listener);
 
-    sendWebviewMessage({ action, data });
+    sendWebviewMessage({ action, data, id });
   });
 }
 

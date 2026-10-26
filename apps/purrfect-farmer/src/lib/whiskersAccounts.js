@@ -1,5 +1,6 @@
 /** Reading Purrfect Whiskers backups as a list of Telegram accounts, ignoring the session blobs they carry */
 
+import { WHISKERS_ACTION } from "@/constants/whiskersAction";
 import { requestWebviewMessage } from "@/utils";
 
 /** The Telegram user id inside a Mini App `initData` query string, dropped rather than guessed when malformed */
@@ -153,7 +154,7 @@ const LAUNCH_ERRORS = {
 
 /** Ask Purrfect Whiskers to launch the account matching this Telegram user id */
 export async function launchWhiskersAccount(telegramUserId) {
-  const result = await requestWebviewMessage("launch-account", {
+  const result = await requestWebviewMessage(WHISKERS_ACTION.LAUNCH_ACCOUNT, {
     telegramUserId,
   });
 
@@ -164,4 +165,68 @@ export async function launchWhiskersAccount(telegramUserId) {
   }
 
   return result;
+}
+
+/** The longest a lookup of many accounts may take, in milliseconds */
+const GET_ACCOUNTS_TIMEOUT = 30_000;
+
+/** The longest the user may take to pick accounts in Whiskers, in milliseconds */
+const PICK_ACCOUNTS_TIMEOUT = 10 * 60_000;
+
+/** A Whiskers account from a host reply, in the shape `parseWhiskersBackup` gives, or null when malformed */
+export function toWhiskersAccount(item) {
+  const userId = item?.userId;
+
+  if (userId === null || userId === undefined || userId === "") {
+    return null;
+  }
+
+  const key = String(userId);
+
+  return {
+    partition: typeof item.partition === "string" ? item.partition : key,
+    title:
+      typeof item.title === "string" && item.title.trim()
+        ? item.title.trim()
+        : key,
+    userId,
+    tags: Array.isArray(item.tags) ? item.tags : [],
+  };
+}
+
+/** The valid accounts of a host reply, throwing on a refusal or an unknown shape */
+function readAccountsReply(result) {
+  if (result?.error) {
+    throw new Error(
+      LAUNCH_ERRORS[result.error] || "Purrfect Whiskers refused the request.",
+    );
+  }
+
+  if (!Array.isArray(result?.accounts)) {
+    throw new Error("Update Purrfect Whiskers to use this.");
+  }
+
+  return result.accounts.map(toWhiskersAccount).filter(Boolean);
+}
+
+/** Ask Purrfect Whiskers for its accounts with these Telegram user ids */
+export async function fetchWhiskersAccounts(telegramUserIds) {
+  const result = await requestWebviewMessage(
+    WHISKERS_ACTION.GET_ACCOUNTS,
+    { telegramUserIds },
+    GET_ACCOUNTS_TIMEOUT,
+  );
+
+  return readAccountsReply(result);
+}
+
+/** Ask Purrfect Whiskers to let the user pick accounts, resolving to null when cancelled */
+export async function pickWhiskersAccounts({ title } = {}) {
+  const result = await requestWebviewMessage(
+    WHISKERS_ACTION.PICK_ACCOUNTS,
+    { title },
+    PICK_ACCOUNTS_TIMEOUT,
+  );
+
+  return result?.cancelled ? null : readAccountsReply(result);
 }

@@ -2,8 +2,9 @@ import {
   buildCandidates,
   filterCandidates,
   parseWhiskersBackup,
+  pickWhiskersAccounts,
 } from "@/lib/whiskersAccounts";
-import { useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import AutoAccountsChooser from "./AutoAccountsChooser";
 import AutoProgress from "./AutoProgress";
@@ -11,7 +12,7 @@ import Alert from "./Alert";
 import Dropzone from "./Dropzone";
 import Label from "./Label";
 import LabelToggle from "./LabelToggle";
-import { LuDownload } from "react-icons/lu";
+import { LuDownload, LuUserCheck } from "react-icons/lu";
 import PrimaryButton from "./PrimaryButton";
 import Select from "./Select";
 import { formatMergeSummary } from "@/lib/autoTransfer";
@@ -27,12 +28,22 @@ const NO_CANDIDATES = [];
 
 /** Builds this drop's accounts from a Purrfect Whiskers backup, reading only each account's Telegram identity */
 export default function AutoWhiskersImportForm({ onImported }) {
-  const { config, accounts, master } = useAuto();
+  const {
+    config,
+    accounts,
+    master,
+    pendingWhiskersPick,
+    setPendingWhiskersPick,
+  } = useAuto();
   const { mutation, progress } = useAutoWhiskersImportMutation();
 
   const [parsed, setParsed] = useState(null);
   const [tag, setTag] = useState(ALL_TAGS);
   const [hideExisting, setHideExisting] = useState(false);
+  const [isPicking, setIsPicking] = useState(false);
+
+  /** Whether a pick is waiting on Whiskers, which answers only one at a time */
+  const pickingRef = useRef(false);
 
   const candidates = useMemo(
     () =>
@@ -75,6 +86,47 @@ export default function AutoWhiskersImportForm({ onImported }) {
     }
   };
 
+  /** The handler for picking the accounts in Whiskers */
+  const handlePick = useCallback(async () => {
+    if (pickingRef.current) return;
+
+    pickingRef.current = true;
+    setIsPicking(true);
+
+    try {
+      const picked = await pickWhiskersAccounts({ title: config.title });
+
+      if (!picked) return;
+
+      if (!picked.length) {
+        toast.error("None of the picked accounts have Telegram data.");
+        return;
+      }
+
+      setParsed({
+        accounts: picked,
+        tags: [],
+        total: picked.length,
+        withoutTelegram: 0,
+      });
+      setTag(ALL_TAGS);
+      setHideExisting(false);
+    } catch (error) {
+      toast.error(error.message);
+    } finally {
+      pickingRef.current = false;
+      setIsPicking(false);
+    }
+  }, [config.title]);
+
+  /** Starts the pick once when the master setup asked for a Whiskers import */
+  useEffect(() => {
+    if (!pendingWhiskersPick) return;
+
+    setPendingWhiskersPick(false);
+    handlePick();
+  }, [pendingWhiskersPick, setPendingWhiskersPick, handlePick]);
+
   const handleImport = async () => {
     try {
       await toast.promise(
@@ -106,6 +158,18 @@ export default function AutoWhiskersImportForm({ onImported }) {
         phrases in plain text. Keep it somewhere safe - anyone holding it can
         spend from every wallet.
       </Alert>
+
+      {/* Pick in Whiskers */}
+      {import.meta.env.VITE_WHISKER && (
+        <PrimaryButton
+          type="button"
+          onClick={handlePick}
+          disabled={isPicking || mutation.isPending}
+        >
+          <LuUserCheck className="size-4" />
+          {isPicking ? "Waiting for Whiskers..." : "Pick from Whiskers"}
+        </PrimaryButton>
+      )}
 
       <Dropzone title="Whiskers backup" onData={handleFile} />
 

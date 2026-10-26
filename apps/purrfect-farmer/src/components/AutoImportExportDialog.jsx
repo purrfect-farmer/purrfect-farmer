@@ -4,14 +4,29 @@ import AutoWhiskersImportForm from "./AutoWhiskersImportForm";
 import CenteredDialog from "./CenteredDialog";
 import { LuArrowDownUp } from "react-icons/lu";
 import Tabs from "./Tabs";
+import { useMemo } from "react";
 
-const tabs = {
-  rootProps: { defaultValue: "import" },
-  list: ["import", "whiskers", "export"],
-};
+/** The tabs of the import dialog */
+export const IMPORT_TAB = Object.freeze({
+  IMPORT: "import",
+  WHISKERS: "whiskers",
+  EXPORT: "export",
+});
 
 /** Moves wallets between Autos or in and out of a bundle file, and builds accounts from a Whiskers backup */
-export default function AutoImportExportDialog({ onImported }) {
+export default function AutoImportExportDialog({
+  defaultTab = IMPORT_TAB.IMPORT,
+  onImported,
+}) {
+  /** The tabs, opening on `defaultTab` */
+  const tabs = useMemo(
+    () => ({
+      rootProps: { defaultValue: defaultTab },
+      list: Object.values(IMPORT_TAB),
+    }),
+    [defaultTab],
+  );
+
   return (
     <CenteredDialog
       icon={LuArrowDownUp}
@@ -19,13 +34,13 @@ export default function AutoImportExportDialog({ onImported }) {
       description={"Move wallets between Autos"}
     >
       <Tabs tabs={tabs} rootClassName="gap-0">
-        <Tabs.Content value="import" className="py-2">
+        <Tabs.Content value={IMPORT_TAB.IMPORT} className="py-2">
           <AutoImportForm onImported={onImported} />
         </Tabs.Content>
-        <Tabs.Content value="whiskers" className="py-2">
+        <Tabs.Content value={IMPORT_TAB.WHISKERS} className="py-2">
           <AutoWhiskersImportForm onImported={onImported} />
         </Tabs.Content>
-        <Tabs.Content value="export" className="py-2">
+        <Tabs.Content value={IMPORT_TAB.EXPORT} className="py-2">
           <AutoExportForm />
         </Tabs.Content>
       </Tabs>

@@ -15,6 +15,9 @@ import { useState } from "react";
 export default function Auto({ config }) {
   const [enableRequests, setEnableRequests] = useState(true);
   const [password, setPassword] = useState(null);
+
+  /** Whether the panel should start a Whiskers import once it opens, set by the master setup */
+  const [pendingWhiskersPick, setPendingWhiskersPick] = useState(false);
   const keys = useMemo(() => autoStateKeys(config), [config]);
 
   const { value: master, storeValue: storeMaster } = useSharedStorageState(
@@ -71,6 +74,8 @@ export default function Auto({ config }) {
         resetAuto,
         enableRequests,
         setEnableRequests,
+        pendingWhiskersPick,
+        setPendingWhiskersPick,
         dispatchAndSetPassword,
         dispatchAndStoreMaster,
         dispatchAndStoreAccounts,

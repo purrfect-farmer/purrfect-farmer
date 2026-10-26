@@ -11,7 +11,7 @@ import {
 } from "react-icons/md";
 
 import { AutoMasterCardButton } from "./AutoMasterCardButton";
-import AutoImportExportDialog from "./AutoImportExportDialog";
+import AutoImportExportDialog, { IMPORT_TAB } from "./AutoImportExportDialog";
 import AutoRotationDialog from "./AutoRotationDialog";
 import AutoWalletsPushDialog from "./AutoWalletsPushDialog";
 import AutoSendDialog from "./AutoSendDialog";
@@ -19,7 +19,7 @@ import AutoSettingsDialog from "./AutoSettingsDialog";
 import AutoTransferDialog from "./AutoTransferDialog";
 import { Dialog } from "radix-ui";
 import { HiCog6Tooth } from "react-icons/hi2";
-import { LuArrowDownUp, LuMerge, LuSend } from "react-icons/lu";
+import { LuArrowDownUp, LuMerge, LuRefreshCw, LuSend } from "react-icons/lu";
 import { PiBroom } from "react-icons/pi";
 import { cn } from "@/utils";
 import toast from "react-hot-toast";
@@ -30,7 +30,8 @@ import useAutoCloudCollectionMutation from "@/hooks/useAutoCloudCollectionMutati
 import useAutoCloudStatusMutation from "@/hooks/useAutoCloudStatusMutation";
 import useAutoCloudWithdrawalMutation from "@/hooks/useAutoCloudWithdrawalMutation";
 import useAutoSweepMutation from "@/hooks/useAutoSweepMutation";
-import { useState } from "react";
+import useAutoWhiskersResyncMutation from "@/hooks/useAutoWhiskersResyncMutation";
+import { useEffect, useState } from "react";
 
 function ActionsGroup(props) {
   return (
@@ -45,8 +46,11 @@ function ActionsGroup(props) {
 }
 
 export function AutoMasterCardActions() {
-  const { password, master, accounts } = useAuto();
+  const { password, master, accounts, pendingWhiskersPick } = useAuto();
   const [importOpen, setImportOpen] = useState(false);
+
+  /** The tab the import dialog opens on */
+  const [importTab, setImportTab] = useState(IMPORT_TAB.IMPORT);
 
   const boostMutation = useAutoCloudBoostMutation();
   const withdrawMutation = useAutoCloudWithdrawalMutation();
@@ -54,6 +58,22 @@ export function AutoMasterCardActions() {
   const cancellationMutation = useAutoCloudCancellationMutation();
   const statusMutation = useAutoCloudStatusMutation();
   const sweepMutation = useAutoSweepMutation();
+  const resyncMutation = useAutoWhiskersResyncMutation();
+
+  /** Opens the Whiskers import right after a master setup that asked for it */
+  useEffect(() => {
+    if (!pendingWhiskersPick) return;
+
+    setImportTab(IMPORT_TAB.WHISKERS);
+    setImportOpen(true);
+  }, [pendingWhiskersPick]);
+
+  /** The handler for opening or closing the import dialog, which reopens on its first tab */
+  const handleImportOpenChange = (open) => {
+    setImportOpen(open);
+
+    if (!open) setImportTab(IMPORT_TAB.IMPORT);
+  };
 
   const boostWithCloud = () => {
     toast.promise(
@@ -120,6 +140,17 @@ export function AutoMasterCardActions() {
       loading: "Dispatching...",
       success: "Dispatched",
       error: "Failed to dispatch cancellation request",
+    });
+  };
+
+  const resyncNamesFromWhiskers = () => {
+    toast.promise(resyncMutation.mutateAsync(), {
+      loading: "Resyncing...",
+      success: ({ updated, missing }) =>
+        `Renamed ${updated} account(s)` +
+        (missing ? `, ${missing} not in Whiskers` : "") +
+        ".",
+      error: (error) => error.message,
     });
   };
 
@@ -216,8 +247,21 @@ export function AutoMasterCardActions() {
           <AutoWalletsPushDialog />
         </Dialog.Root>
 
+        {/* Resync names from Whiskers */}
+        {import.meta.env.VITE_WHISKER && (
+          <AutoMasterCardButton
+            type="button"
+            title="Resync names from Whiskers"
+            icon={LuRefreshCw}
+            onClick={resyncNamesFromWhiskers}
+            disabled={resyncMutation.isPending}
+          >
+            {resyncMutation.isPending ? "Syncing..." : "Resync"}
+          </AutoMasterCardButton>
+        )}
+
         {/* Import / Export */}
-        <Dialog.Root open={importOpen} onOpenChange={setImportOpen}>
+        <Dialog.Root open={importOpen} onOpenChange={handleImportOpenChange}>
           <Dialog.Trigger asChild>
             <AutoMasterCardButton
               title="Import / Export wallets"
@@ -227,7 +271,10 @@ export function AutoMasterCardActions() {
             </AutoMasterCardButton>
           </Dialog.Trigger>
 
-          <AutoImportExportDialog onImported={() => setImportOpen(false)} />
+          <AutoImportExportDialog
+            defaultTab={importTab}
+            onImported={() => handleImportOpenChange(false)}
+          />
         </Dialog.Root>
 
         {/* Settings */}

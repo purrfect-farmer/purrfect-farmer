@@ -8,7 +8,7 @@ import { Dialog } from "radix-ui";
 import FieldStateError from "./FieldStateError";
 import Input from "./Input";
 import PasswordInput from "./PasswordInput";
-import { LuArrowDownUp } from "react-icons/lu";
+import { LuArrowDownUp, LuUserCheck } from "react-icons/lu";
 import { MdOutlineAutorenew } from "react-icons/md";
 import PrimaryButton from "./PrimaryButton";
 import Select from "./Select";
@@ -41,9 +41,13 @@ const schema = yup
   .required();
 
 export default function AutoMasterSetup() {
-  const { config, setPassword, storeMaster } = useAuto();
+  const { config, setPassword, storeMaster, setPendingWhiskersPick } =
+    useAuto();
   const { openTelegramLink } = useAppContext();
   const [showForm, setShowForm] = useState(false);
+
+  /** Whether the Whiskers pick starts once the master is set up */
+  const [pickAfterSetup, setPickAfterSetup] = useState(false);
   const [address, setAddress] = useState("");
   const form = useForm({
     resolver: yupResolver(schema),
@@ -83,6 +87,9 @@ export default function AutoMasterSetup() {
 
     /** Set password */
     setPassword(password);
+
+    /** Start the Whiskers import once the panel opens */
+    if (pickAfterSetup) setPendingWhiskersPick(true);
 
     /** Toast */
     toast.success(`${config.title} master setup completed!`);
@@ -127,12 +134,36 @@ export default function AutoMasterSetup() {
 
             <AutoImportDialog />
           </Dialog.Root>
+
+          {/* Set up the master, then pick the accounts in Whiskers */}
+          {import.meta.env.VITE_WHISKER && (
+            <button
+              type="button"
+              onClick={() => {
+                setPickAfterSetup(true);
+                setShowForm(true);
+              }}
+              className={cn(
+                "text-blue-500 dark:text-blue-400",
+                "cursor-pointer hover:underline",
+                "flex items-center justify-center gap-1",
+              )}
+            >
+              <LuUserCheck className="size-3" />
+              Import from Whiskers
+            </button>
+          )}
         </>
       ) : (
         <>
           <Alert variant={"info"}>
             Setup a master wallet for {config.title}
           </Alert>
+          {pickAfterSetup && (
+            <Alert variant={"info"}>
+              Once the master is set up, Whiskers asks which accounts to import.
+            </Alert>
+          )}
           <FormProvider {...form}>
             <form
               onSubmit={form.handleSubmit(handleFormSubmit)}
