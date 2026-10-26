@@ -17,6 +17,7 @@ import { useRef } from "react";
 import { useState } from "react";
 import useUserAgent from "@/hooks/useUserAgent";
 import utils from "@/utils/bundle";
+import { withRetries } from "@purrfect/shared/utils/retry.js";
 
 /**
  *
@@ -24,6 +25,7 @@ import utils from "@/utils/bundle";
  * @param {import("@purrfect/shared/lib/BaseFarmer.js").default} param0.FarmerClass
  * @param {string} param0.userAgent
  * @param {boolean} param0.allowProfileUpdates
+ * @param {number} param0.taskRetries
  * @returns {import("@purrfect/shared/lib/BaseFarmer.js").default}
  */
 const createInstance = ({
@@ -34,6 +36,7 @@ const createInstance = ({
   controller,
   client,
   allowProfileUpdates,
+  taskRetries,
 }) => {
   const InstanceClass = class extends FarmerClass {
     constructor() {
@@ -47,6 +50,7 @@ const createInstance = ({
         controller,
         client,
         allowProfileUpdates,
+        taskRetries,
       });
 
       this.registerDelayInterceptor();
@@ -78,6 +82,7 @@ function TinyFly() {
   const logger = useMemo(() => new BrowserLogger(), []);
   const { drops, telegramClient, captcha, settings } = useAppContext();
   const allowProfileUpdates = Boolean(settings.allowProfileUpdates);
+  const { taskRetries, farmerRetries } = settings;
   const client = telegramClient.ref.current;
   const userAgent = useUserAgent();
 
@@ -122,18 +127,28 @@ function TinyFly() {
           const callback = async () => {
             if (controller.signal.aborted) return;
 
-            /* Create Farmer Instance */
-            const instance = createInstance({
-              FarmerClass,
-              logger,
-              captcha,
-              userAgent,
-              controller,
-              client,
-              allowProfileUpdates,
-            });
-
-            await instance.run();
+            /* Run a fresh instance, bootstrapping it again on failure */
+            await withRetries(
+              farmerRetries,
+              () =>
+                createInstance({
+                  FarmerClass,
+                  logger,
+                  captcha,
+                  userAgent,
+                  controller,
+                  client,
+                  allowProfileUpdates,
+                  taskRetries,
+                }).run(),
+              {
+                shouldRetry: () => !controller.signal.aborted,
+                onRetry: (attempt, attempts, error) =>
+                  logger.warn(
+                    `> Re-bootstrapping ${FarmerClass.title} (${attempt}/${attempts}): ${error.message}`,
+                  ),
+              },
+            );
           };
 
           /* Register Task */
@@ -166,6 +181,8 @@ function TinyFly() {
       client,
       userAgent,
       allowProfileUpdates,
+      taskRetries,
+      farmerRetries,
       setStarted,
     ],
   );

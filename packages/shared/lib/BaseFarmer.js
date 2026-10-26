@@ -89,6 +89,7 @@ export default class BaseFarmer {
     this.#tasks = new TaskRunner({
       core: this.core,
       quickRun: () => this.quickRun,
+      retries: () => this.taskRetries,
     });
 
     /* Register utilities */
@@ -119,6 +120,9 @@ export default class BaseFarmer {
     /** Whether tasks may change the Telegram name or bio */
     this.allowProfileUpdates = false;
 
+    /** How many times a failed task is retried */
+    this.taskRetries = 0;
+
     this.controller = new AbortController();
     this.signal = this.controller.signal;
   }
@@ -145,7 +149,7 @@ export default class BaseFarmer {
   }
 
   /** Hand the farmer the dependencies its host provides, changing only the options given
-   * @param {object} options - any of `FARMER_OPTIONS`: api, utils, logger, captcha, userAgent, deviceLocale, client, storage, telegramWebApp, controller, allowProfileUpdates, quickRun, prompts, autoWalletProvider, cacheAuth, cacheTelegramWebApp
+   * @param {object} options - any of `FARMER_OPTIONS`: api, utils, logger, captcha, userAgent, deviceLocale, client, storage, telegramWebApp, controller, allowProfileUpdates, quickRun, taskRetries, prompts, autoWalletProvider, cacheAuth, cacheTelegramWebApp
    * @returns {this}
    */
   configure(options = {}) {

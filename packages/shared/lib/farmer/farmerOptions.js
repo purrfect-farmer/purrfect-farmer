@@ -1,3 +1,5 @@
+import { toRetryCount } from "../../utils/retry.js";
+
 /** How each option `configure` takes is stored on the farmer, keyed by option name */
 export const FARMER_OPTIONS = Object.freeze({
   api: (farmer, api) => {
@@ -38,6 +40,10 @@ export const FARMER_OPTIONS = Object.freeze({
   },
   quickRun: (farmer, quickRun) => {
     farmer.quickRun = Boolean(quickRun);
+  },
+  /** How many times a failed task is retried */
+  taskRetries: (farmer, taskRetries) => {
+    farmer.taskRetries = toRetryCount(taskRetries);
   },
   /** The prompts the terminal answers: { promptInput, promptAnswer, promptCancel } */
   prompts: (farmer, { promptInput, promptAnswer, promptCancel }) => {

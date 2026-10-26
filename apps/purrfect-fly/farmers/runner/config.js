@@ -40,6 +40,10 @@ export function resolveRunnerConfig(FarmerClass) {
   /** Default auto-start */
   const defaultAutoStart = env("DEFAULT_AUTO_START", FarmerClass.autoStart);
 
+  /** Default retries */
+  const defaultTaskRetries = env("TASK_RETRY_COUNT", 1);
+  const defaultFarmerRetries = env("FARMER_RETRY_COUNT", 1);
+
   /** Farmer primary account ID */
   const farmerPrimaryAccountId = getFarmerEnv(
     "PRIMARY_ACCOUNT_ID",
@@ -74,6 +78,12 @@ export function resolveRunnerConfig(FarmerClass) {
 
     /** Primary account ID */
     primaryAccountId: Number(farmerPrimaryAccountId) || 0,
+
+    /** Retries of a failed task in a scheduled run */
+    taskRetries: getFarmerEnv("TASK_RETRY_COUNT", defaultTaskRetries),
+
+    /** Re-bootstraps of a failed scheduled run */
+    farmerRetries: getFarmerEnv("FARMER_RETRY_COUNT", defaultFarmerRetries),
   };
 }
 
@@ -90,6 +100,8 @@ export function logRunnerConfig(FarmerClass, config) {
     "Skip execution of new accounts",
     config.skipExecutionOfNewAccount,
   );
+  logger.keyValue("Task retries", config.taskRetries);
+  logger.keyValue("Farmer retries", config.farmerRetries);
   logger.keyValue("Primary account ID", config.primaryAccountId, {
     format: false,
   });

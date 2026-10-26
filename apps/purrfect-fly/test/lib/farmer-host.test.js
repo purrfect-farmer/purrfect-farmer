@@ -178,6 +178,71 @@ test("aborted runs and quick-run skips never call the task", async () => {
   ]);
 });
 
+test("a failed task is retried until it succeeds", async () => {
+  const { core, calls } = createRunnerCore();
+  const runner = new TaskRunner({
+    core,
+    quickRun: () => false,
+    retries: () => 2,
+  });
+  let runs = 0;
+
+  await runner.execute("Claim", async () => {
+    if (++runs < 2) throw new Error("flaky");
+  });
+
+  assert.equal(runs, 2);
+  assert.deepEqual(
+    calls.filter(([type]) => type === "log").map(([, message]) => message),
+    [
+      "<g>⚙ Executing task: <m>Claim",
+      "<r>✖ Error executing task: <m>Claim\n   <g>flaky",
+      "<y>↻ Retrying task: <m>Claim (2/3)",
+      "<g>⚙ Executing task: <m>Claim",
+      "<gr>✔ Completed task: <m>Claim",
+    ],
+  );
+});
+
+test("a task rethrows once its retries run out", async () => {
+  const { core } = createRunnerCore();
+  const runner = new TaskRunner({
+    core,
+    quickRun: () => false,
+    retries: () => 1,
+  });
+  let runs = 0;
+
+  await assert.rejects(
+    runner.execute("Claim", async () => {
+      runs++;
+      throw new Error("down");
+    }),
+    /down/,
+  );
+  assert.equal(runs, 2);
+});
+
+test("an aborted run is not retried", async () => {
+  const { core } = createRunnerCore();
+  const runner = new TaskRunner({
+    core,
+    quickRun: () => false,
+    retries: () => 3,
+  });
+  let runs = 0;
+
+  await assert.rejects(
+    runner.execute("Claim", async () => {
+      runs++;
+      core.signal.aborted = true;
+      throw new Error("aborted");
+    }),
+    /aborted/,
+  );
+  assert.equal(runs, 1);
+});
+
 /** Telegram actions over a recorded core, with joins and profile edits answered by `farmer` */
 function createActions(farmer) {
   const { core, calls } = createRunnerCore();
@@ -329,6 +394,18 @@ test("configure stores only the options given and refuses unknown ones", () => {
     () => farmer.configure({ setApi: {} }),
     /Unknown farmer option: setApi/,
   );
+});
+
+test("task retries are stored as a non-negative integer", () => {
+  const farmer = new ExampleFarmer();
+
+  assert.equal(farmer.taskRetries, 0);
+
+  farmer.configure({ taskRetries: "2.7" });
+  assert.equal(farmer.taskRetries, 2);
+
+  farmer.configure({ taskRetries: -1 });
+  assert.equal(farmer.taskRetries, 0);
 });
 
 test("the launch URL carries the version, platform, theme and start parameter", () => {

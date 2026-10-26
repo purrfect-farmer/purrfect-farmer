@@ -37,6 +37,8 @@ export default function useTerminalFarmer() {
     isZooming,
     zoomies,
     processNextTask,
+    reset,
+    farmerRetry,
   } = context;
 
   /** Primary farmer user ID */
@@ -131,17 +133,41 @@ export default function useTerminalFarmer() {
       const controller = new AbortController();
       controllerRef.current = controller;
 
-      logger.clear();
+      /** A re-bootstrapped run keeps the failed run's log */
+      if (farmerRetry.beginRun() === 1) {
+        logger.clear();
+      }
+
       logger.info(`> Starting ${title} Farmer...`);
-      instance.start(controller.signal).finally(() => {
-        if (controllerRef.current === controller) {
-          stopFarmer();
-        }
-      });
+      instance
+        .start(controller.signal)
+        .catch((error) => {
+          /** The next attempt, while farmer retries remain */
+          const next = controller.signal.aborted
+            ? null
+            : farmerRetry.nextAttempt();
+
+          if (!next) {
+            throw error;
+          }
+
+          /** Detach the failed run's controller */
+          controllerRef.current = null;
+
+          logger.warn(
+            `> Re-bootstrapping ${title} Farmer (${next.attempt}/${next.attempts}): ${error.message}`,
+          );
+          reset();
+        })
+        .finally(() => {
+          if (controllerRef.current === controller) {
+            stopFarmer();
+          }
+        });
 
       setStarted(true);
     },
-    [id, title, instance, logger, stopFarmer],
+    [id, title, instance, logger, reset, farmerRetry, stopFarmer],
   );
 
   /** Toggle farmer */
@@ -194,6 +220,13 @@ export default function useTerminalFarmer() {
     logger.setElement(terminalRef.current);
     logger.success(`> ${title} Farmer Initiated`);
   }, [logger, title]);
+
+  /** Start a re-bootstrapped run outside Zoomies */
+  useLayoutEffect(() => {
+    if (!isZooming && farmerRetry.hasPendingRetry()) {
+      startFarmer();
+    }
+  }, [isZooming, farmerRetry, startFarmer]);
 
   /** Auto Start in Zoomies */
   useLayoutEffect(() => {

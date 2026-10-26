@@ -23,6 +23,8 @@ const defaultSettings = {
   repeatZoomiesCycle: true,
   farmersRating: 0,
   allowProfileUpdates: false,
+  taskRetries: 1,
+  farmerRetries: 1,
 };
 
 export default defaultSettings;

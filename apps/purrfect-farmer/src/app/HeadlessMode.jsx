@@ -1,4 +1,5 @@
 import { cn, getPrimaryFarmerLinkStorageKey, getUserAgent } from "@/utils";
+import defaultSettings from "@/core/defaultSettings";
 
 import AppIcon from "@/assets/images/icon.png?format=webp&w=80";
 import BrowserLogger from "@purrfect/shared/lib/BrowserLogger";
@@ -13,6 +14,7 @@ import { useEffect } from "react";
 import { useRef } from "react";
 import useSharedContext from "@/hooks/useSharedContext";
 import utils from "@/utils/bundle";
+import { withRetries } from "@purrfect/shared/utils/retry.js";
 
 /** Headless Telegram Client */
 class HeadlessTelegramClient extends TelegramWebClient {
@@ -28,6 +30,12 @@ class HeadlessTelegramClient extends TelegramWebClient {
     }
   }
 }
+
+/** The account's own settings over the default settings */
+const getAccountSettings = (account) => ({
+  ...defaultSettings,
+  ...storage.get(accountStorageKey(account.id, "settings")),
+});
 
 /**
  *
@@ -47,6 +55,10 @@ const createRunner = ({ FarmerClass, logger, captcha, controller }) => {
     constructor({ client, account, userAgent }) {
       super();
       this.account = account;
+
+      /** The account's own settings */
+      const settings = getAccountSettings(account);
+
       this.configure({
         api: axios.create(),
         utils,
@@ -55,10 +67,8 @@ const createRunner = ({ FarmerClass, logger, captcha, controller }) => {
         captcha,
         userAgent,
         controller,
-        allowProfileUpdates: Boolean(
-          storage.get(accountStorageKey(account.id, "settings"))
-            ?.allowProfileUpdates,
-        ),
+        allowProfileUpdates: Boolean(settings.allowProfileUpdates),
+        taskRetries: settings.taskRetries,
       });
 
       this.registerDelayInterceptor();
@@ -71,13 +81,13 @@ const createRunner = ({ FarmerClass, logger, captcha, controller }) => {
     }
 
     /** Run Farmer */
-    async run() {
+    async run({ delayStartup = true } = {}) {
       /**
        * Random startup delay to avoid all accounts starting at the same time
        */
-      const startupDelay = Math.floor(
-        Math.random() * 10 * this.constructor.startupDelay,
-      );
+      const startupDelay = delayStartup
+        ? Math.floor(Math.random() * 10 * this.constructor.startupDelay)
+        : 0;
 
       /** Delay */
       if (startupDelay) {
@@ -104,9 +114,25 @@ const createRunner = ({ FarmerClass, logger, captcha, controller }) => {
       );
       /** The browser's shared User-Agent, which its net rules also send */
       const userAgent = await getUserAgent();
-      const instance = new this({ account, client, userAgent });
-      await instance.run();
-      return instance;
+
+      /** How many times a failed run is bootstrapped again */
+      const { farmerRetries } = getAccountSettings(account);
+
+      return withRetries(
+        farmerRetries,
+        async (attempt) => {
+          const instance = new this({ account, client, userAgent });
+          await instance.run({ delayStartup: attempt === 1 });
+          return instance;
+        },
+        {
+          shouldRetry: () => !controller.signal.aborted,
+          onRetry: (attempt, attempts, error) =>
+            logger.warn(
+              `[${account.title}] Re-bootstrapping ${this.title} (${attempt}/${attempts}): ${error.message}`,
+            ),
+        },
+      );
     }
 
     /** Execute Farmer Instance */

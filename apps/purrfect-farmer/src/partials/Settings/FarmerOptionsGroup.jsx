@@ -6,6 +6,7 @@ import {
 import {
   SettingsGridButton,
   SettingsGroup,
+  SettingsInput,
   SettingsLabel,
 } from "./SettingsComponents";
 
@@ -16,10 +17,12 @@ import TelegramWebKIcon from "@/assets/images/telegram-web-k.png?format=webp&w=8
 import { cn } from "@/utils";
 import { memo } from "react";
 import { FARMER_MODE } from "@/constants/farmerMode";
+import { toRetryCount } from "@purrfect/shared/utils/retry.js";
 
 export default memo(function FarmerOptionsGroup({
   account,
   settings,
+  defaultSettings,
   sharedSettings,
   farmerMode,
   telegramClient,
@@ -188,6 +191,37 @@ export default memo(function FarmerOptionsGroup({
           </span>
         </span>
       </LabelToggle>
+
+      {/* Task Retries */}
+      <SettingsLabel>Task Retries</SettingsLabel>
+      <SettingsInput
+        type="number"
+        min="0"
+        inputMode="numeric"
+        placeholder="Task Retries"
+        defaultValue={String(defaultSettings.taskRetries)}
+        initialValue={String(settings?.taskRetries ?? "")}
+        onConfirm={(taskRetries) =>
+          dispatchAndConfigureSettings("taskRetries", toRetryCount(taskRetries))
+        }
+      />
+
+      {/* Farmer Retries */}
+      <SettingsLabel>Farmer Retries</SettingsLabel>
+      <SettingsInput
+        type="number"
+        min="0"
+        inputMode="numeric"
+        placeholder="Farmer Retries"
+        defaultValue={String(defaultSettings.farmerRetries)}
+        initialValue={String(settings?.farmerRetries ?? "")}
+        onConfirm={(farmerRetries) =>
+          dispatchAndConfigureSettings(
+            "farmerRetries",
+            toRetryCount(farmerRetries),
+          )
+        }
+      />
 
       {/* (SHARED) - Show Mini-App Toolbar */}
       <LabelToggle

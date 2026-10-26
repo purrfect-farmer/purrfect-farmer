@@ -1,13 +1,17 @@
+import { withRetries } from "../../utils/retry.js";
+
 /** Runs a farmer's tasks one at a time, logging each and keeping what is running for status reports */
 export default class TaskRunner {
   /**
    * @param {object} options
    * @param {ReturnType<import("./createFarmerCore.js").default>} options.core
    * @param {() => boolean} options.quickRun - whether tasks marked as slow are skipped
+   * @param {() => number} [options.retries] - how many times a failed task is retried
    */
-  constructor({ core, quickRun }) {
+  constructor({ core, quickRun, retries = () => 0 }) {
     this.core = core;
     this.quickRun = quickRun;
+    this.retries = retries;
 
     this.startedAt = new Date();
     this.currentTaskStartedAt = null;
@@ -23,7 +27,7 @@ export default class TaskRunner {
 
   /** Execute a task with logging */
   async execute(task, callback, allowInQuickRun = true) {
-    const { logger, utils } = this.core;
+    const { logger } = this.core;
 
     /** Update Task */
     this.currentTaskStartedAt = new Date();
@@ -45,6 +49,21 @@ export default class TaskRunner {
       );
       return;
     }
+
+    await withRetries(this.retries(), () => this.#attempt(task, callback), {
+      shouldRetry: () => !this.core.signal?.aborted,
+      onRetry: (attempt, attempts) =>
+        logger.log(
+          `${logger.c.yellow("↻ Retrying task:")} ${logger.c.magenta(
+            task,
+          )} (${attempt}/${attempts})`,
+        ),
+    });
+  }
+
+  /** Run a task once, logging its result */
+  async #attempt(task, callback) {
+    const { logger, utils } = this.core;
 
     try {
       logger.log(

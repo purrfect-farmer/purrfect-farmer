@@ -11,7 +11,14 @@ const FarmerClass = { id: "example", autoStart: false };
 
 /** Resolve the config with only the given env keys set */
 const resolveWith = (vars) => {
-  const keys = ["DEFAULT_AUTO_START", "FARMER_EXAMPLE_AUTO_START"];
+  const keys = [
+    "DEFAULT_AUTO_START",
+    "FARMER_EXAMPLE_AUTO_START",
+    "TASK_RETRY_COUNT",
+    "FARMER_EXAMPLE_TASK_RETRY_COUNT",
+    "FARMER_RETRY_COUNT",
+    "FARMER_EXAMPLE_FARMER_RETRY_COUNT",
+  ];
   const saved = keys.map((key) => [key, process.env[key]]);
 
   keys.forEach((key) => delete process.env[key]);
@@ -43,4 +50,22 @@ test("the farmer override wins over the default", () => {
   });
 
   assert.equal(config.autoStart, false);
+});
+
+test("retries default to one", () => {
+  const config = resolveWith({});
+
+  assert.equal(config.taskRetries, 1);
+  assert.equal(config.farmerRetries, 1);
+});
+
+test("the farmer's retries override the default retries", () => {
+  const config = resolveWith({
+    TASK_RETRY_COUNT: "2",
+    FARMER_RETRY_COUNT: "1",
+    FARMER_EXAMPLE_TASK_RETRY_COUNT: "3",
+  });
+
+  assert.equal(config.taskRetries, 3);
+  assert.equal(config.farmerRetries, 1);
 });

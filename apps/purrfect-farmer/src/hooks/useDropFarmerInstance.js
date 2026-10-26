@@ -66,6 +66,7 @@ export default function useDropFarmerInstance({
   joinTelegramLink,
   updateProfile,
   allowProfileUpdates,
+  taskRetries,
 }) {
   const storageBaseKey = useChromeStorageKey(`farmer-storage:${id}`);
   const instanceStorage = useMemo(() => {
@@ -117,6 +118,11 @@ export default function useDropFarmerInstance({
   useLayoutEffect(() => {
     instance?.configure({ allowProfileUpdates });
   }, [instance, allowProfileUpdates]);
+
+  /** Apply the task retries */
+  useLayoutEffect(() => {
+    instance?.configure({ taskRetries });
+  }, [instance, taskRetries]);
 
   return instance;
 }

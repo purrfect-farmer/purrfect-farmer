@@ -271,6 +271,24 @@ export const ENV_FIELDS = [
     help: "Farmer tasks may change account names or bios.",
   },
   {
+    key: "TASK_RETRY_COUNT",
+    group: "cron",
+    label: "Task retries",
+    type: "number",
+    default: 1,
+    min: 0,
+    help: "Times a failed task is retried in a scheduled run.",
+  },
+  {
+    key: "FARMER_RETRY_COUNT",
+    group: "cron",
+    label: "Farmer retries",
+    type: "number",
+    default: 1,
+    min: 0,
+    help: "Times the farmer is bootstrapped again once task retries run out.",
+  },
+  {
     key: "MINIMUM_FARMER_RATING",
     group: "cron",
     label: "Minimum farmer rating",
@@ -396,6 +414,22 @@ export function getFarmerFields(FarmerClass) {
       options: Object.values(REFERRER_MODE),
       inherits: "DEFAULT_REFERRER_MODE",
       help: "Leave empty to use the default referrer mode.",
+    },
+    {
+      key: `${prefix}_TASK_RETRY_COUNT`,
+      label: "Task retries",
+      type: "number",
+      min: 0,
+      inherits: "TASK_RETRY_COUNT",
+      help: "Leave empty to use the default task retries.",
+    },
+    {
+      key: `${prefix}_FARMER_RETRY_COUNT`,
+      label: "Farmer retries",
+      type: "number",
+      min: 0,
+      inherits: "FARMER_RETRY_COUNT",
+      help: "Leave empty to use the default farmer retries.",
     },
   ].map((field) => ({ ...field, group }));
 }

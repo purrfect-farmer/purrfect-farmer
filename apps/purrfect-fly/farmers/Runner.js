@@ -20,6 +20,7 @@ import { createFarmerStorage } from "./runner/storage.js";
 import { getStoredAutoWallet } from "./runner/stored-wallet.js";
 import { saveSerialized } from "../lib/db-write.js";
 import { AccountRemovedError, isTransientError } from "./runner/errors.js";
+import { withRetries } from "@purrfect/shared/utils/retry.js";
 import { InstanceError } from "sequelize";
 import { ensureUserAgent, resolveUserAgent } from "./runner/user-agent.js";
 
@@ -35,6 +36,8 @@ export default function createRunner(FarmerClass) {
     static utils = utils;
     static enabled = config.enabled;
     static autoStart = config.autoStart;
+    static taskRetries = config.taskRetries;
+    static farmerRetries = config.farmerRetries;
     static threadId = config.threadId;
     static skipExecutionOfNewAccount = config.skipExecutionOfNewAccount;
     static telegramLink = config.telegramLink;
@@ -76,6 +79,14 @@ export default function createRunner(FarmerClass) {
         captcha,
         allowProfileUpdates: app.allowProfileUpdates,
       });
+
+      /** Scheduled runs retry failed tasks */
+      if (scheduled) {
+        this.configure({ taskRetries: this.constructor.taskRetries });
+      }
+
+      /** Whether `prepare` fetches new auth even when cached auth exists */
+      this.forceAuth = false;
 
       /** Cookie Jar */
       this.jar = this.cookies ? new CookieJar() : null;
@@ -183,7 +194,7 @@ export default function createRunner(FarmerClass) {
       /** Store the User-Agent on an account without one */
       await ensureUserAgent(this);
 
-      const needsAuth = !this.cacheAuth || !this.farmer;
+      const needsAuth = this.forceAuth || !this.cacheAuth || !this.farmer;
 
       /** Create Farmer */
       if (!this.farmer) {
@@ -331,30 +342,47 @@ export default function createRunner(FarmerClass) {
      * @param {Runner} instance
      */
     static async execute(instance, skipExecution = false) {
+      /** How many times a scheduled run is bootstrapped again */
+      const retries = instance.scheduled ? this.farmerRetries : 0;
+
+      /** The instance of the current attempt */
+      let current = instance;
+
       try {
-        /** Configure the startup link for the instance */
-        instance.configureStartupLink(this.getInstanceReferralLink());
+        await withRetries(
+          retries,
+          async (attempt) => {
+            if (attempt > 1) {
+              current = this.rebootstrap(current);
+            }
 
-        /** Prepare instance */
-        await instance.prepare();
-
-        /** Start instance */
-        if (!skipExecution) {
-          await instance.start();
-        }
+            await this.bootstrap(current, skipExecution);
+          },
+          {
+            shouldRetry: (error) =>
+              !(error instanceof AccountRemovedError) &&
+              !current.signal.aborted &&
+              !this.terminated.has(current.account.id),
+            onRetry: (attempt, attempts, error) =>
+              this.logger.warn(
+                `Re-bootstrapping account ${current.account.id} (${attempt}/${attempts}):`,
+                error.message,
+              ),
+          },
+        );
 
         /** Reset error count */
-        await instance.resetErrorCount();
+        await current.resetErrorCount();
       } catch (error) {
         /** An account deleted meanwhile has nothing left to farm */
         if (error instanceof AccountRemovedError) {
-          this.logger.info("Skipped removed account:", instance.account.id);
+          this.logger.info("Skipped removed account:", current.account.id);
           return;
         }
 
         /** A terminated instance was aborted deliberately so it is not a farming failure to report */
-        if (instance.signal.aborted) {
-          this.logger.info("Aborted farming account:", instance.account.id);
+        if (current.signal.aborted) {
+          this.logger.info("Aborted farming account:", current.account.id);
           return;
         }
 
@@ -362,9 +390,9 @@ export default function createRunner(FarmerClass) {
         const transient = this.isTransientError(error);
 
         if (this.deactivateOnError && !transient) {
-          await instance.disconnect();
+          await current.disconnect();
         }
-        this.logger.error("Error farming account:", instance.account.id, error);
+        this.logger.error("Error farming account:", current.account.id, error);
 
         /** Transient errors are only logged */
         if (transient) {
@@ -375,11 +403,42 @@ export default function createRunner(FarmerClass) {
         await bot?.sendFarmerErrorMessage(
           this.id,
           this.title,
-          instance.account.id,
-          instance.currentTask,
+          current.account.id,
+          current.currentTask,
           error.message || "Unknown error!",
         );
       }
+    }
+
+    /** Prepare and start an instance once
+     * @param {Runner} instance
+     */
+    static async bootstrap(instance, skipExecution = false) {
+      /** Configure the startup link for the instance */
+      instance.configureStartupLink(this.getInstanceReferralLink());
+
+      /** Prepare instance */
+      await instance.prepare();
+
+      /** Start instance */
+      if (!skipExecution) {
+        await instance.start();
+      }
+    }
+
+    /** A fresh instance for the account of a failed one, fetching new auth
+     * @param {Runner} previous
+     */
+    static rebootstrap(previous) {
+      const instance = new this({
+        account: previous.account,
+        scheduled: previous.scheduled,
+      });
+
+      instance.forceAuth = true;
+      this.runners.set(instance.account.id, instance);
+
+      return instance;
     }
 
     /** Get instance referral link */

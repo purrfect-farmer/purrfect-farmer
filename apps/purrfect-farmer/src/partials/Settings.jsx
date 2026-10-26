@@ -129,6 +129,7 @@ export default memo(function Settings({ tabs }) {
                       <FarmerOptionsGroup
                         account={account}
                         settings={settings}
+                        defaultSettings={defaultSettings}
                         sharedSettings={sharedSettings}
                         farmerMode={farmerMode}
                         telegramClient={telegramClient}

@@ -9,6 +9,7 @@ import useDropFarmerCookiesRestore from "./useDropFarmerCookiesRestore";
 import useDropFarmerInstance from "./useDropFarmerInstance";
 import useDropFarmerMeta from "./useDropFarmerMeta";
 import useDropFarmerQueryHelper from "./useDropFarmerQueryHelper";
+import useDropFarmerRetry from "./useDropFarmerRetry";
 import useDropFarmerState from "./useDropFarmerState";
 import useDropFarmerToast from "./useDropFarmerToast";
 import useDropFarmerZoomies from "./useDropFarmerZoomies";
@@ -158,6 +159,9 @@ export default function useDropFarmer() {
   /** Whether tasks may change the Telegram profile */
   const allowProfileUpdates = Boolean(settings.allowProfileUpdates);
 
+  /** How many times a failed task is retried */
+  const taskRetries = settings.taskRetries;
+
   /** Update Profile */
   const updateProfile = useRefCallback(
     async (...args) => {
@@ -188,6 +192,7 @@ export default function useDropFarmer() {
     joinTelegramLink,
     updateProfile,
     allowProfileUpdates,
+    taskRetries,
   });
 
   /** Data Query */
@@ -267,6 +272,9 @@ export default function useDropFarmer() {
     await resetInit();
   }, [resetTelegramWebApp, resetInit]);
 
+  /** Re-bootstraps of a failed run */
+  const farmerRetry = useDropFarmerRetry(settings.farmerRetries);
+
   /** Request for primary farmer link */
   useLayoutEffect(() => {
     if (!primaryFarmerLink) {
@@ -329,6 +337,7 @@ export default function useDropFarmer() {
     farmer,
     FarmerClass,
     reset,
+    farmerRetry,
     resetInit,
     resetTelegramWebApp,
     removeQueries,
