@@ -1,6 +1,6 @@
 import {
   AutoMasterCardButton,
-  AutoMasterCardButtonGrid,
+  AutoMasterCardButtonRow,
 } from "./AutoMasterCardButton";
 import { MdCancel, MdCheckCircle, MdCloudUpload } from "react-icons/md";
 import { LuArrowDownUp, LuMerge, LuRefreshCw } from "react-icons/lu";
@@ -26,9 +26,9 @@ function ActionsSection({ title, children }) {
       >
         {title}
       </h3>
-      <AutoMasterCardButtonGrid className="grid-cols-[repeat(auto-fill,minmax(3.25rem,1fr))]">
+      <AutoMasterCardButtonRow className="justify-start">
         {children}
-      </AutoMasterCardButtonGrid>
+      </AutoMasterCardButtonRow>
     </section>
   );
 }

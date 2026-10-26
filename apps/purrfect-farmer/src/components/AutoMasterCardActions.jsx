@@ -1,6 +1,6 @@
 import {
   AutoMasterCardButton,
-  AutoMasterCardButtonGrid,
+  AutoMasterCardButtonRow,
 } from "./AutoMasterCardButton";
 import { LiaDollarSignSolid, LiaFireAltSolid } from "react-icons/lia";
 
@@ -33,7 +33,7 @@ export function AutoMasterCardActions() {
   return (
     <>
       {/* Daily actions */}
-      <AutoMasterCardButtonGrid>
+      <AutoMasterCardButtonRow>
         <AutoMasterCardButton
           title="Boost accounts in Cloud"
           icon={LiaFireAltSolid}
@@ -76,7 +76,7 @@ export function AutoMasterCardActions() {
         >
           More
         </AutoMasterCardButton>
-      </AutoMasterCardButtonGrid>
+      </AutoMasterCardButtonRow>
 
       <Dialog.Root {...rootOf(AUTO_ACTION_DIALOG.MORE)}>
         <AutoMoreActionsSheet

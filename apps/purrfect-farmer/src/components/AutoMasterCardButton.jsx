@@ -19,7 +19,7 @@ export function AutoMasterCardButton({
       {...props}
       className={cn(
         "flex flex-col justify-center items-center gap-1",
-        "min-w-0 text-center text-xs",
+        "w-14 shrink-0 text-center text-xs",
         "disabled:opacity-50",
         props.className,
       )}
@@ -41,13 +41,13 @@ export function AutoMasterCardButton({
   );
 }
 
-/** A grid of action buttons that fits as many per row as there is room for */
-export function AutoMasterCardButtonGrid(props) {
+/** A wrapping row of action buttons, each line centered */
+export function AutoMasterCardButtonRow(props) {
   return (
     <div
       {...props}
       className={cn(
-        "grid grid-cols-[repeat(auto-fit,minmax(3.25rem,1fr))]",
+        "flex flex-wrap justify-center",
         "gap-x-1 gap-y-3",
         props.className,
       )}
