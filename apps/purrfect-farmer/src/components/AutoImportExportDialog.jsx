@@ -1,3 +1,4 @@
+import { IMPORT_TAB } from "@/constants/autoImportTab";
 import AutoExportForm from "./AutoExportForm";
 import AutoImportForm from "./AutoImportForm";
 import AutoWhiskersImportForm from "./AutoWhiskersImportForm";
@@ -5,13 +6,6 @@ import CenteredDialog from "./CenteredDialog";
 import { LuArrowDownUp } from "react-icons/lu";
 import Tabs from "./Tabs";
 import { useMemo } from "react";
-
-/** The tabs of the import dialog */
-export const IMPORT_TAB = Object.freeze({
-  IMPORT: "import",
-  WHISKERS: "whiskers",
-  EXPORT: "export",
-});
 
 /** Moves wallets between Autos or in and out of a bundle file, and builds accounts from a Whiskers backup */
 export default function AutoImportExportDialog({
