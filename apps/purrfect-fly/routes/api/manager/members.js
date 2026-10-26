@@ -2,6 +2,7 @@ import {
   MAX_ACCOUNT_TITLE_LENGTH,
   MAX_ACCOUNT_TITLE_UPDATES,
 } from "@purrfect/shared/lib/account/titles.js";
+import { naturalCompare } from "@purrfect/shared/lib/naturalCompare.js";
 import { updateAccountTitles } from "../../../services/account-titles.js";
 import { accountAttributes } from "../../../lib/account-attributes.js";
 import { setAccountFarming } from "../../../services/farming.js";
@@ -22,11 +23,12 @@ export default async function (fastify) {
 
     return accounts.sort((a, b) => {
       if (fastify.app.displayAccountTitle) {
-        return (a.title || "TGUser").localeCompare(b.title || "TGUser");
+        return naturalCompare(a.title || "TGUser", b.title || "TGUser");
       } else {
-        return (a.user?.username || a.id)
-          .toString()
-          .localeCompare((b.user?.username || b.id).toString());
+        return naturalCompare(
+          a.user?.username || a.id,
+          b.user?.username || b.id,
+        );
       }
     });
   });

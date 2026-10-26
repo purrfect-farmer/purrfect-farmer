@@ -2,6 +2,7 @@ import app from "../config/app.js";
 import base64url from "base64url";
 import { createRequire } from "node:module";
 import crypto from "crypto";
+import { naturalCompare } from "@purrfect/shared/lib/naturalCompare.js";
 import sharedUtils from "@purrfect/shared/utils/bundle.js";
 import tweetnacl from "tweetnacl";
 
@@ -94,7 +95,7 @@ function formatUsers(collection) {
 
   /** Sort By Title or Username */
   const sortKey = app.displayAccountTitle ? "title" : "username";
-  list.sort((a, b) => a[sortKey].localeCompare(b[sortKey]));
+  list.sort((a, b) => naturalCompare(a[sortKey], b[sortKey]));
 
   /** Retrieve Links */
   const links = list

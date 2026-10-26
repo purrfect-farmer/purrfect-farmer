@@ -1,3 +1,5 @@
+import { naturalCompare } from "@purrfect/shared/lib/naturalCompare.js";
+
 /**
  * @param {import("commander").Command} program
  * @param {typeof import("inquirer").default} inquirer
@@ -14,9 +16,7 @@ export default (program, inquirer, chalk) => {
       console.log(chalk.bold.green(`Accounts (${accounts.length})`));
       console.table(
         accounts
-          .sort((a, b) => {
-            return a["title"].localeCompare(b["title"]);
-          })
+          .sort((a, b) => naturalCompare(a["title"], b["title"]))
           .map((account) => ({
             id: account.id,
             title: account.title,
