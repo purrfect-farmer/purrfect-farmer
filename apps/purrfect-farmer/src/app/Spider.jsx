@@ -7,9 +7,11 @@ import SpiderCountries from "@/components/SpiderCountries";
 import { useMemo } from "react";
 import { getCountryData } from "countries-list";
 import { getEmojiFlag } from "countries-list";
+import { naturalCompare } from "@purrfect/shared/lib/naturalCompare";
 import { useQuery } from "@tanstack/react-query";
 import Spider from "@/lib/Spider";
 import useMirroredState from "@/hooks/useMirroredState";
+import { SPIDER_SORT_DIRECTION, SPIDER_SORT_KEY } from "@/constants/spiderSort";
 
 export default function SpiderManager() {
   const { sharedSettings } = useAppContext();
@@ -19,6 +21,14 @@ export default function SpiderManager() {
     useMirroredState("spider.search-term", "");
   const [selectedCountry, setSelectedCountry, dispatchAndSetSelectedCountry] =
     useMirroredState("spider.selected-country", null);
+  const [sortKey, setSortKey, dispatchAndSetSortKey] = useMirroredState(
+    "spider.sort-key",
+    SPIDER_SORT_KEY.NAME,
+  );
+  const [sortDir, setSortDir, dispatchAndSetSortDir] = useMirroredState(
+    "spider.sort-dir",
+    SPIDER_SORT_DIRECTION.ASC,
+  );
 
   /* Balance Query */
   const balanceQuery = useQuery({
@@ -80,17 +90,34 @@ export default function SpiderManager() {
 
   /* Available Countries (Group 1) */
   const availableCountries = useMemo(() => {
-    return allCountries
-      .filter((item) => item.group === "1")
-      .sort((a, b) => a.name.localeCompare(b.name));
+    return allCountries.filter((item) => item.group === "1");
   }, [allCountries]);
 
-  /* Filtered Countries */
+  /* Filtered Countries, sorted by name or price */
   const filteredCountries = useMemo(() => {
-    return availableCountries.filter((item) =>
-      item.name.toLowerCase().includes(searchTerm.toLowerCase())
+    const term = searchTerm.toLowerCase();
+    const direction = sortDir === SPIDER_SORT_DIRECTION.DESC ? -1 : 1;
+
+    return availableCountries
+      .filter((item) => item.name.toLowerCase().includes(term))
+      .sort((a, b) => {
+        const comparison =
+          sortKey === SPIDER_SORT_KEY.PRICE
+            ? a.price - b.price
+            : naturalCompare(a.name, b.name);
+
+        return comparison * direction;
+      });
+  }, [availableCountries, searchTerm, sortKey, sortDir]);
+
+  /** Toggle the sort direction */
+  const toggleSortDir = () => {
+    dispatchAndSetSortDir(
+      sortDir === SPIDER_SORT_DIRECTION.ASC
+        ? SPIDER_SORT_DIRECTION.DESC
+        : SPIDER_SORT_DIRECTION.ASC,
     );
-  }, [availableCountries, searchTerm]);
+  };
 
   /** Select Country */
   const selectCountry = (item) => {
@@ -123,6 +150,10 @@ export default function SpiderManager() {
               filteredCountries={filteredCountries}
               searchTerm={searchTerm}
               setSearchTerm={dispatchAndSetSearchTerm}
+              sortKey={sortKey}
+              setSortKey={dispatchAndSetSortKey}
+              sortDir={sortDir}
+              toggleSortDir={toggleSortDir}
             />
           ) : countriesQuery.isPending ? (
             <p className="text-center">Loading countries...</p>
