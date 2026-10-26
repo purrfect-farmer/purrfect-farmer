@@ -198,5 +198,37 @@
         "withdraw|withdraw|Withdraw|false"
       ]
     ]
+  ],
+  "pickaxe": [
+    [
+      "Wallet",
+      [
+        "connect-wallet|wallet|Connect Wallet|false",
+        "connect-derived-wallet|key|Connect Derived Wallet|false",
+        "connect-auto-wallet|auto|Connect Auto Wallet|false",
+        "disconnect-wallet|disconnect|Disconnect Wallet|false",
+        "refresh-holding|search|Refresh Holding|false"
+      ]
+    ],
+    [
+      "Ancient Pass",
+      ["pass-status|search|Pass Status|false", "mint-pass|key|Mint Pass|false"]
+    ],
+    [
+      "Mining",
+      [
+        "claim-mining|check|Claim Mining|false",
+        "check-in|check|Check In|false",
+        "complete-tasks|check|Complete Tasks|false",
+        "claim-friends-reward|user|Claim Friends Reward|false"
+      ]
+    ],
+    [
+      "Withdrawal",
+      [
+        "withdrawal-status|history|Withdrawal Status|false",
+        "withdraw|withdraw|Withdraw|false"
+      ]
+    ]
   ]
 }

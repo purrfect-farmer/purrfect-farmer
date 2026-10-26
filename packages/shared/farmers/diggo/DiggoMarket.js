@@ -1,5 +1,6 @@
 import FarmerModule from "../../lib/farmer/FarmerModule.js";
 import { formatAmount } from "../../lib/farmer/format.js";
+import { sendTonConnectTransaction } from "../../lib/ton/tonConnect.js";
 import {
   MINIMUM_BUY_TON,
   MINING_LEVELS_URL,
@@ -8,8 +9,6 @@ import {
   PAYMENT_GAS_TON,
   SETTLED_ORDER_STATUSES,
 } from "./constants.js";
-import { Address, Cell } from "@ton/core";
-import Decimal from "decimal.js";
 
 /** Buying, selling and depositing through the game's market */
 export default class DiggoMarket extends FarmerModule {
@@ -48,41 +47,11 @@ export default class DiggoMarket extends FarmerModule {
   }
 
   /** Send the server's TonConnect transaction from the bound wallet, checking it can be afforded */
-  async payTonTransaction(signer, transaction) {
-    const messages = transaction?.["messages"] || [];
-
-    if (!messages.length) {
-      throw new Error("The order carries no transaction");
-    }
-
-    const total = messages.reduce(
-      (sum, message) => sum + BigInt(message["amount"]),
-      0n,
-    );
-    const totalTon = new Decimal(total.toString()).div(1e9);
-    const balance = await signer.wallet
-      .getBalance({ signal: this.signal })
-      .catch(() => new Decimal(0));
-
-    if (balance.lessThan(totalTon.plus(PAYMENT_GAS_TON))) {
-      throw new Error(
-        `Needs ${totalTon.plus(PAYMENT_GAS_TON)} TON, the wallet holds ${balance}`,
-      );
-    }
-
-    const seqno = await signer.wallet.send(
-      messages.map((message) => ({
-        to: Address.parse(message["address"]),
-        value: BigInt(message["amount"]),
-        body: message["payload"]
-          ? Cell.fromBase64(message["payload"])
-          : undefined,
-      })),
-    );
-
-    await signer.wallet.waitForConfirmation(seqno);
-
-    return totalTon;
+  payTonTransaction(signer, transaction) {
+    return sendTonConnectTransaction(signer.wallet, transaction, {
+      gasTon: PAYMENT_GAS_TON,
+      signal: this.signal,
+    });
   }
 
   /** Buy DIGGO with TON from the bound wallet, which raises the holding and with it the level */
