@@ -1,3 +1,8 @@
+import {
+  MAX_ACCOUNT_TITLE_LENGTH,
+  MAX_ACCOUNT_TITLE_UPDATES,
+} from "@purrfect/shared/lib/account/titles.js";
+import { updateAccountTitles } from "../../../services/account-titles.js";
 import { accountAttributes } from "../../../lib/account-attributes.js";
 import { setAccountFarming } from "../../../services/farming.js";
 import { subscribeAccount } from "../../../services/subscriptions.js";
@@ -87,6 +92,37 @@ export default async function (fastify) {
 
       return reply.send({ id: account.id, farming });
     },
+  );
+
+  /** Update the titles of many members at once */
+  fastify.post(
+    "/members/titles",
+    {
+      schema: {
+        body: {
+          type: "object",
+          required: ["titles"],
+          properties: {
+            titles: {
+              type: "array",
+              maxItems: MAX_ACCOUNT_TITLE_UPDATES,
+              items: {
+                type: "object",
+                required: ["id", "title"],
+                properties: {
+                  id: { type: "integer", minimum: 1 },
+                  title: {
+                    type: "string",
+                    maxLength: MAX_ACCOUNT_TITLE_LENGTH,
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+    (request) => updateAccountTitles(request.body.titles),
   );
 
   /** Kick Member */

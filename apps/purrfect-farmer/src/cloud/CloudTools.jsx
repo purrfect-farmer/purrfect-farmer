@@ -7,6 +7,7 @@ import {
   HiOutlineWifi,
 } from "react-icons/hi2";
 import { LiaPlaySolid, LiaUserNinjaSolid } from "react-icons/lia";
+import { LuRefreshCw } from "react-icons/lu";
 
 import BottomDialog from "@/components/BottomDialog";
 import BottomDialogTools from "@/partials/BottomDialogTools";
@@ -24,6 +25,7 @@ import { useCallback } from "react";
 import useCloudManagerActivateAllFarmersMutation from "@/hooks/useCloudManagerActivateAllFarmersMutation";
 import useCloudManagerUpdateProxiesMutation from "@/hooks/useCloudManagerUpdateProxiesMutation";
 import useCloudManagerKickAllMembersMutation from "@/hooks/useCloudManagerKickAllMembersMutation";
+import useCloudManagerWhiskersResyncMutation from "@/hooks/useCloudManagerWhiskersResyncMutation";
 import { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 
@@ -34,6 +36,7 @@ export default function CloudTools() {
     useCloudManagerActivateAllFarmersMutation();
   const updateProxiesMutation = useCloudManagerUpdateProxiesMutation();
   const kickAllMembersMutation = useCloudManagerKickAllMembersMutation();
+  const whiskersResyncMutation = useCloudManagerWhiskersResyncMutation();
 
   const [openPasswordUpdate, setOpenPasswordUpdate] = useState(false);
   const [openServerUpdate, setOpenServerUpdate] = useState(false);
@@ -59,15 +62,29 @@ export default function CloudTools() {
     });
   };
 
+  /** Resync Names from Whiskers */
+  const resyncNamesFromWhiskers = () => {
+    toast.promise(whiskersResyncMutation.mutateAsync(), {
+      loading: "Resyncing...",
+      success: ({ updated, missing }) =>
+        `Renamed ${updated} member(s)` +
+        (missing ? `, ${missing} not in Whiskers` : "") +
+        ".",
+      error: (error) => error.message,
+    });
+  };
+
   /** Kick All Members */
   const kickAllMembers = () => {
-    toast.promise(kickAllMembersMutation.mutateAsync(), {
-      loading: "Kicking all members...",
-      success: "Successfully kicked all members!",
-      error: "Failed to kick all members!",
-    }).finally(() => {
-      queryClient.refetchQueries({ queryKey: ["app", "cloud"] });
-    });
+    toast
+      .promise(kickAllMembersMutation.mutateAsync(), {
+        loading: "Kicking all members...",
+        success: "Successfully kicked all members!",
+        error: "Failed to kick all members!",
+      })
+      .finally(() => {
+        queryClient.refetchQueries({ queryKey: ["app", "cloud"] });
+      });
   };
 
   /** Logout */
@@ -138,6 +155,17 @@ export default function CloudTools() {
               Update Proxies
             </BottomDialogTools.Button>
 
+            {/* Resync names from Whiskers */}
+            {import.meta.env.VITE_WHISKER && (
+              <BottomDialogTools.Button
+                icon={LuRefreshCw}
+                onClick={resyncNamesFromWhiskers}
+                disabled={whiskersResyncMutation.isPending}
+              >
+                Resync names from Whiskers
+              </BottomDialogTools.Button>
+            )}
+
             {/* Clean Profiles */}
             <BottomDialogTools.Button
               icon={HiOutlineSparkles}
@@ -147,10 +175,7 @@ export default function CloudTools() {
             </BottomDialogTools.Button>
 
             {/* Kick all members */}
-            <BottomDialogTools.Button
-              icon={FaBan}
-              onClick={kickAllMembers}
-            >
+            <BottomDialogTools.Button icon={FaBan} onClick={kickAllMembers}>
               Kick all members
             </BottomDialogTools.Button>
 
