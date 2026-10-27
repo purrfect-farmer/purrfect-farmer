@@ -13,6 +13,11 @@ import logger from "../logger.js";
 import utils from "../utils.js";
 
 export default class GroupBot extends Bot {
+  /** Whether a chat id is the server admin's */
+  isAdmin(id) {
+    return String(id) === String(app.admin.telegramId);
+  }
+
   /** Append the server name line when one is configured */
   withServerName(messages) {
     if (!app.name) return messages;
@@ -24,7 +29,7 @@ export default class GroupBot extends Bot {
   async sendGroupMessage(cacheKey, message, options = {}) {
     try {
       const previous = await cache.get(cacheKey);
-      const html = this.withServerName(message).join("\n");
+      const html = message.join("\n");
 
       const sent = await this.api.sendMessage(app.chat.id, html, {
         ...options,
@@ -143,7 +148,7 @@ export default class GroupBot extends Bot {
     }
 
     try {
-      const html = this.withServerName(messages).join("\n");
+      const html = messages.join("\n");
 
       await this.api.sendMessage(app.chat.id, html, {
         ["parse_mode"]: "HTML",
@@ -155,10 +160,12 @@ export default class GroupBot extends Bot {
     }
   }
 
-  /** Send Private Message */
+  /** Send a private message, with the server name when it goes to the admin */
   async sendPrivateMessage(id, messages, options = {}) {
     try {
-      await this.api.sendMessage(id, messages.join("\n"), {
+      const lines = this.isAdmin(id) ? this.withServerName(messages) : messages;
+
+      await this.api.sendMessage(id, lines.join("\n"), {
         ["parse_mode"]: "HTML",
         ...options,
       });
@@ -173,11 +180,7 @@ export default class GroupBot extends Bot {
       return;
     }
 
-    return this.sendPrivateMessage(
-      app.admin.telegramId,
-      this.withServerName(messages),
-      options,
-    );
+    return this.sendPrivateMessage(app.admin.telegramId, messages, options);
   }
 
   /** Send a private message to an account's own Telegram user; no-op when messages are off */
@@ -186,6 +189,6 @@ export default class GroupBot extends Bot {
       return;
     }
 
-    return this.sendPrivateMessage(id, this.withServerName(messages), options);
+    return this.sendPrivateMessage(id, messages, options);
   }
 }
