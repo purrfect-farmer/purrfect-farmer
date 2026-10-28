@@ -4,7 +4,8 @@ import { TelegramClient } from "telegram";
 import {
   TELEGRAM_API_HASH,
   TELEGRAM_API_ID,
-} from "@purrfect/shared/utils/loginToken.js";
+  TELEGRAM_CLIENT_OPTIONS,
+} from "@purrfect/shared/utils/telegramClient.js";
 
 /** Thrown when an account has no Telegram Web K entry to build a client from */
 export class NoTelegramWebAccountError extends Error {
@@ -23,9 +24,7 @@ export async function connectTelegramWebClient(details) {
     TELEGRAM_API_ID,
     TELEGRAM_API_HASH,
     {
-      appVersion: "2.2 K",
-      systemLangCode: "en-US",
-      langCode: "en",
+      ...TELEGRAM_CLIENT_OPTIONS,
       deviceModel: navigator.userAgent,
       systemVersion: navigator.platform,
       useWSS: true,

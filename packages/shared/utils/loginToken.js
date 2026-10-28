@@ -1,9 +1,6 @@
 import { Api } from "telegram";
 import { computeCheck } from "telegram/Password.js";
-
-/** Telegram API credentials (must match BaseTelegramWebClient) */
-export const TELEGRAM_API_ID = 2496;
-export const TELEGRAM_API_HASH = "8da85b0d5bfe62527e5b244c209159c3";
+import { TELEGRAM_API_HASH, TELEGRAM_API_ID } from "./telegramClient.js";
 
 /** How many times to re-export while waiting for the token to be accepted */
 const FINALIZE_ATTEMPTS = 5;

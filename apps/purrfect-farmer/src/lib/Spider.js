@@ -6,6 +6,9 @@ import { NewMessage, NewMessageEvent } from "telegram/events";
 import {
   TELEGRAM_API_HASH,
   TELEGRAM_API_ID,
+  TELEGRAM_CLIENT_OPTIONS,
+} from "@purrfect/shared/utils/telegramClient.js";
+import {
   acceptLoginToken,
   finalizeLoginToken,
   requestLoginToken,
@@ -70,9 +73,7 @@ export default class Spider {
   /** Create Telegram Client */
   createTelegramClient(session) {
     return new TelegramClient(session, TELEGRAM_API_ID, TELEGRAM_API_HASH, {
-      appVersion: "2.2 K",
-      systemLangCode: "en-US",
-      langCode: "en",
+      ...TELEGRAM_CLIENT_OPTIONS,
       deviceModel: navigator.userAgent,
       systemVersion: navigator.platform,
     });

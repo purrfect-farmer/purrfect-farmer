@@ -10,6 +10,11 @@ import {
 
 import EventEmitter from "events";
 import { StringSession } from "telegram/sessions/index.js";
+import {
+  TELEGRAM_API_HASH,
+  TELEGRAM_API_ID,
+  TELEGRAM_CLIENT_OPTIONS,
+} from "../utils/telegramClient.js";
 import { UpdateConnectionState } from "telegram/network/index.js";
 import { delayForSeconds } from "../utils/delay.js";
 
@@ -20,12 +25,10 @@ export default class BaseTelegramWebClient extends TelegramClient {
   constructor(session, options = {}) {
     super(
       typeof session === "string" ? new StringSession(session) : session,
-      2496,
-      "8da85b0d5bfe62527e5b244c209159c3",
+      TELEGRAM_API_ID,
+      TELEGRAM_API_HASH,
       {
-        appVersion: "2.2 K",
-        systemLangCode: "en-US",
-        langCode: "en",
+        ...TELEGRAM_CLIENT_OPTIONS,
         ...options,
       },
     );
