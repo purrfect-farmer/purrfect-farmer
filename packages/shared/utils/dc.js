@@ -1,9 +1,11 @@
 import BaseTelegramWebClient from "../lib/BaseTelegramWebClient.js";
 import { MemorySession } from "telegram/sessions/index.js";
+import {
+  TELEGRAM_DEVICE_MODEL as DEVICE_MODEL,
+  TELEGRAM_SYSTEM_VERSION as SYSTEM_VERSION,
+} from "./telegramClient.js";
 
-export const DEVICE_MODEL =
-  "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36";
-export const SYSTEM_VERSION = "Linux x86_64";
+export { DEVICE_MODEL, SYSTEM_VERSION };
 
 export function getTelegramDcManager() {
   if (!globalThis.TelegramDcManager) {

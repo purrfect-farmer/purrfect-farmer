@@ -8,13 +8,13 @@ import {
 
 import BaseTelegramWebClient from "@purrfect/shared/lib/BaseTelegramWebClient.js";
 import LoginFlow from "./LoginFlow.js";
+import {
+  TELEGRAM_DEVICE_MODEL,
+  TELEGRAM_SYSTEM_VERSION,
+} from "@purrfect/shared/utils/telegramClient.js";
 import { cloneSession } from "./clone-session.js";
 import fsp from "node:fs/promises";
 import { parseProxy } from "./parse-proxy.js";
-
-const DEVICE_MODEL =
-  "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36";
-const SYSTEM_VERSION = "Linux x86_64";
 
 /** An idle client is destroyed after this long */
 const IDLE_TIMEOUT = 15 * 60 * 1000;
@@ -32,8 +32,8 @@ class GramClient extends BaseTelegramWebClient {
 
   constructor({ name, session, proxy, sessionFilePath, sessionFileExists }) {
     super(session, {
-      deviceModel: DEVICE_MODEL,
-      systemVersion: SYSTEM_VERSION,
+      deviceModel: TELEGRAM_DEVICE_MODEL,
+      systemVersion: TELEGRAM_SYSTEM_VERSION,
       proxy,
       ...(process.env.NODE_ENV === "production" && {
         baseLogger: new Logger("error"),
