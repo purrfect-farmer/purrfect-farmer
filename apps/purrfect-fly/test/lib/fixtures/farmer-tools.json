@@ -230,5 +230,16 @@
         "withdraw|withdraw|Withdraw|false"
       ]
     ]
+  ],
+  "miaoushi": [
+    [
+      "Entry",
+      [
+        "show-wallet|wallet|Show Wallet|false",
+        "show-private-key|key|Show Private Key|false",
+        "check-entry|search|Check Entry|false"
+      ]
+    ],
+    ["Mining", ["start-mining|check|Start Mining|false"]]
   ]
 }

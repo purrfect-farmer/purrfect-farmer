@@ -1,28 +1,44 @@
-import { fakerEN as faker } from "@faker-js/faker";
+import { Faker, base, en, fakerEN as faker } from "@faker-js/faker";
 
 export const generateFirstName = () => faker.person.firstName();
 
 export const generateLastName = () => faker.person.lastName();
 
-/** Faker username sanitized to Telegram rules (5-32 chars, starts with a letter) */
-export function generateUsername(
-  firstName = generateFirstName(),
-  lastName = generateLastName(),
-) {
-  let username = faker.internet
+/** Faker username sanitized to start with a letter and fit within maxLength */
+function buildUsername(instance, firstName, lastName, maxLength) {
+  let username = instance.internet
     .username({ firstName, lastName })
     .replace(/[^a-zA-Z0-9_]/g, "_")
     .replace(/_+/g, "_")
     .replace(/^[^a-zA-Z]+/, "")
     .replace(/_+$/, "");
 
-  if (!username) username = faker.word.noun().replace(/[^a-zA-Z]/g, "");
+  if (!username) username = instance.word.noun().replace(/[^a-zA-Z]/g, "");
 
   while (username.length < 5) {
-    username += faker.number.int(9);
+    username += instance.number.int(9);
   }
 
-  return username.slice(0, 32).replace(/_+$/, "");
+  return username.slice(0, maxLength).replace(/_+$/, "");
+}
+
+/** Faker username sanitized to Telegram rules (5-32 chars, starts with a letter) */
+export function generateUsername(
+  firstName = generateFirstName(),
+  lastName = generateLastName(),
+) {
+  return buildUsername(faker, firstName, lastName, 32);
+}
+
+/** Username that is always the same for a numeric seed, at most maxLength chars */
+export function deriveUsername(seed, maxLength = 32) {
+  const seeded = new Faker({ locale: [en, base] });
+  seeded.seed(Number(seed));
+
+  const firstName = seeded.person.firstName();
+  const lastName = seeded.person.lastName();
+
+  return buildUsername(seeded, firstName, lastName, maxLength);
 }
 
 export function generateProfile() {

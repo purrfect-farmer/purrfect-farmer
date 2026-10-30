@@ -42,6 +42,10 @@ export default function createFarmerCore(farmer) {
     get autoWalletProvider() {
       return farmer.autoWalletProvider;
     },
+    /** The logged-in Telegram client, when the host has one */
+    get client() {
+      return farmer.client;
+    },
     /** The web app the farmer launched with: initData, platform, version and theme */
     get telegramWebApp() {
       return farmer.telegramWebApp;

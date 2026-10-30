@@ -85,6 +85,10 @@ for (const id of FARMER_IDS) {
 
     assert.ok(Object.isFrozen(ctx), "ctx is frozen");
     assert.ok(Object.isFrozen(core), "core is frozen");
+
+    /** Only an Auto farmer carries the Auto modules */
+    if (!FarmerClass.auto) return;
+
     assert.ok(ctx.auto instanceof AutoModule, "ctx.auto is an AutoModule");
 
     for (const name of ["flow", "snapshot", "walletVersion", "withdrawals"]) {

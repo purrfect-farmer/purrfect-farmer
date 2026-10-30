@@ -315,7 +315,7 @@ export default class BaseFarmer {
 
   /** Load data, including the wallet version an Auto connected with */
   async load() {
-    await this.ctx.walletVersion.load();
+    await this.ctx.walletVersion?.load();
   }
 
   /** Persist data */
