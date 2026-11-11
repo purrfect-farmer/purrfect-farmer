@@ -241,5 +241,31 @@
       ]
     ],
     ["Mining", ["start-mining|check|Start Mining|false"]]
+  ],
+  "myage": [
+    [
+      "Wallet",
+      [
+        "connect-wallet|wallet|Connect Wallet|false",
+        "connect-derived-wallet|key|Connect Derived Wallet|false",
+        "connect-auto-wallet|auto|Connect Auto Wallet|false",
+        "disconnect-wallet|disconnect|Disconnect Wallet|false"
+      ]
+    ],
+    [
+      "Rewards",
+      [
+        "claim-vault|check|Claim Vault|false",
+        "spin-wheel|check|Spin Wheel|false",
+        "complete-tasks|check|Complete Tasks|false"
+      ]
+    ],
+    [
+      "Withdrawal",
+      [
+        "withdrawal-status|history|Withdrawal Status|false",
+        "withdraw|withdraw|Withdraw|false"
+      ]
+    ]
   ]
 }

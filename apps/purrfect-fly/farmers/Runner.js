@@ -292,6 +292,9 @@ export default function createRunner(FarmerClass) {
 
       this.farmer.initData = initData;
 
+      /** Hand the new initData to the running farmer too */
+      this.configureTelegramWebApp();
+
       this.logger.success("Successfully updated init data!");
     }
 

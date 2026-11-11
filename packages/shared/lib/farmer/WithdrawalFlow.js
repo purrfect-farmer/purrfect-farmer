@@ -53,8 +53,8 @@ export default class WithdrawalFlow {
     return null;
   }
 
-  /** The amount to request: capped, shaved by a random `difference` percent, then floored at the minimum */
-  pickAmount({ balance, minimum, max, difference = 0, ceiling }) {
+  /** The amount to request: capped, shaved by a random `difference` percent, floored at the minimum, then rounded down to `decimals` places */
+  pickAmount({ balance, minimum, max, difference = 0, ceiling, decimals = 0 }) {
     let amount = new Decimal(balance);
 
     /** Cap to the drop's ceiling */
@@ -78,7 +78,10 @@ export default class WithdrawalFlow {
     }
 
     /** Reset amount to minimum, never past the balance */
-    return Decimal.min(Decimal.max(amount, minimum), balance).floor();
+    return Decimal.min(Decimal.max(amount, minimum), balance).toDecimalPlaces(
+      decimals,
+      Decimal.ROUND_FLOOR,
+    );
   }
 
   /** Tell the admin about a withdrawal, but only when the run was initiated by the scheduler

@@ -82,6 +82,7 @@ export default function createFarmerCore(farmer) {
       tryToUpdateProfile: (options) => farmer.tryToUpdateProfile(options),
       openTaskLink: (url, dwellSeconds) =>
         farmer.openTaskLink(url, dwellSeconds),
+      refreshWebApp: () => farmer.updateWebAppData(),
     }),
   });
 }
