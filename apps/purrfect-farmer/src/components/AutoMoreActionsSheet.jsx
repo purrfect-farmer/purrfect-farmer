@@ -13,6 +13,7 @@ import { HiCog6Tooth } from "react-icons/hi2";
 import { LiaUserNinjaSolid } from "react-icons/lia";
 import { PiBroom } from "react-icons/pi";
 import { cn } from "@/utils";
+import useAuto from "@/hooks/useAuto";
 
 /** A titled group of actions in the sheet */
 function ActionsSection({ title, children }) {
@@ -39,6 +40,8 @@ export default function AutoMoreActionsSheet({
   onOpenDialog,
   onClose,
 }) {
+  const { config } = useAuto();
+
   /** The handler for a one-tap action, which closes the sheet */
   const runAndClose = (action) => () => {
     onClose();
@@ -69,14 +72,16 @@ export default function AutoMoreActionsSheet({
             >
               Collect
             </AutoMasterCardButton>
-            <AutoMasterCardButton
-              title="Get accounts status"
-              icon={MdCheckCircle}
-              onClick={runAndClose(actions.status)}
-              disabled={actions.status.isPending}
-            >
-              Status
-            </AutoMasterCardButton>
+            {!config.retired && (
+              <AutoMasterCardButton
+                title="Get accounts status"
+                icon={MdCheckCircle}
+                onClick={runAndClose(actions.status)}
+                disabled={actions.status.isPending}
+              >
+                Status
+              </AutoMasterCardButton>
+            )}
             <AutoMasterCardButton
               title="Cancel Cloud Operation"
               icon={MdCancel}
@@ -90,14 +95,16 @@ export default function AutoMoreActionsSheet({
 
           {/* Accounts */}
           <ActionsSection title="Accounts">
-            <AutoMasterCardButton
-              title="Sweep inactive accounts"
-              icon={PiBroom}
-              onClick={runAndClose(actions.sweep)}
-              disabled={actions.sweep.isPending}
-            >
-              Sweep
-            </AutoMasterCardButton>
+            {!config.retired && (
+              <AutoMasterCardButton
+                title="Sweep inactive accounts"
+                icon={PiBroom}
+                onClick={runAndClose(actions.sweep)}
+                disabled={actions.sweep.isPending}
+              >
+                Sweep
+              </AutoMasterCardButton>
+            )}
             <AutoMasterCardButton
               title="Rotate Wallets"
               icon={LiaUserNinjaSolid}

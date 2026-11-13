@@ -8,7 +8,7 @@ import {
 } from "./constants.js";
 
 /** The Turnstile human pass and how long it is trusted */
-export default class VictorsHumanPass extends FarmerModule {
+export default class Victors2HumanPass extends FarmerModule {
   /** The pass the drop signed, sent with every call */
   pass = null;
 

@@ -1,5 +1,6 @@
 import FarmerModule from "../../lib/farmer/FarmerModule.js";
 import {
+  AD_PATHS,
   WITHDRAWAL_HISTORY_LIMIT,
   API_URL,
   BANNED_CODE,
@@ -7,7 +8,7 @@ import {
 } from "./constants.js";
 
 /** The drop's API: its transport and one method per endpoint */
-export default class VictorsApi extends FarmerModule {
+export default class Victors2Api extends FarmerModule {
   /* --------------------------------------------------------------------- */
   /* Transport                                                             */
   /* --------------------------------------------------------------------- */
@@ -203,14 +204,34 @@ export default class VictorsApi extends FarmerModule {
     return this.postToApi("/wallet/refresh");
   }
 
-  /** Get the verification transfer the drop expects */
-  startVerification() {
-    return this.postToApi("/wallet/verify/start");
+  /** Order the Mine Pass, getting the transaction that pays for it */
+  orderPass() {
+    return this.postToApi("/pass/order");
   }
 
-  /** Ask the drop whether the verification transfer has landed */
-  checkVerification() {
-    return this.postToApi("/wallet/verify/check");
+  /** Ask the drop whether the pass payment has landed */
+  checkPass() {
+    return this.postToApi("/pass/check");
+  }
+
+  /** An ad reward's block, payout and state */
+  fetchAd(kind) {
+    return this.getFromApi(AD_PATHS[kind]);
+  }
+
+  /** Claim an ad reward AdsGram has reported as watched */
+  claimAd(kind) {
+    return this.postToApi(`${AD_PATHS[kind]}/claim`);
+  }
+
+  /** Collect the thank-you gift the wallet was granted */
+  claimThanksGift() {
+    return this.postToApi("/thanks-gift/claim");
+  }
+
+  /** Claim the second part of a cashed-out loss voucher */
+  claimVoucherCashout() {
+    return this.postToApi("/loss-voucher/cashout-claim");
   }
 
   /** A fresh payload for the TON proof a wallet is bound with */

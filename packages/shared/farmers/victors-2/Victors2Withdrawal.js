@@ -1,21 +1,25 @@
 import FarmerModule from "../../lib/farmer/FarmerModule.js";
 import { formatAmount, logCurrentUser } from "../../lib/farmer/format.js";
-import { MINIMUM_WITHDRAWAL, WITHDRAWAL_FEE } from "./constants.js";
+import {
+  MINIMUM_WITHDRAWAL,
+  TOKEN_SYMBOL,
+  WITHDRAWAL_FEE,
+} from "./constants.js";
 import Decimal from "decimal.js";
 
 /** Withdrawal rules, payouts and the pending queue */
-export default class VictorsWithdrawal extends FarmerModule {
+export default class Victors2Withdrawal extends FarmerModule {
   /** The drop publishes its minimum in its config */
   getMinimumWithdrawal() {
     return Number(this.ctx.state.config()["withdrawMin"]) || MINIMUM_WITHDRAWAL;
   }
 
-  /** The on-chain VIC the drop wants held before it pays out */
+  /** The on-chain holding the drop wants before it pays out */
   getMinimumHolding() {
     return Number(this.ctx.state.config()["withdrawMinHolding"]) || 0;
   }
 
-  /** Whether the on-chain holding clears the minimum, with the page's 1 VIC slack */
+  /** Whether the on-chain holding clears the minimum, with the page's slack of 1 */
   hasMinimumHolding() {
     return (
       Number(this.ctx.state.user()["walletBalance"] || 0) >=
@@ -28,13 +32,45 @@ export default class VictorsWithdrawal extends FarmerModule {
     return Number(this.ctx.state.config()["withdrawFee"] ?? WITHDRAWAL_FEE);
   }
 
+  /** Whether payouts are open, which the drop closes until its token is live */
+  isTokenLive() {
+    return this.ctx.state.config()["tokenLive"] !== false;
+  }
+
+  /** What stops the account from withdrawing, in the order the page checks it */
+  getIneligibleReason() {
+    const verify = this.ctx.state.verify();
+    const ageDays = verify["walletAgeDays"];
+    const minimumAgeDays = Number(verify["minWalletAgeDays"] || 0);
+
+    if (!this.isTokenLive()) return "Withdrawals are not open yet!";
+    if (!this.ctx.state.isPassActive()) return "Mine Pass is not active!";
+
+    if (ageDays === null || ageDays === undefined) {
+      return "Wallet age is still being checked!";
+    }
+
+    if (Number(ageDays) < minimumAgeDays) {
+      return `Wallet is younger than ${minimumAgeDays} days!`;
+    }
+
+    if (verify["underReview"]) return "Wallet is under review!";
+
+    const held = Math.floor(
+      Number(this.ctx.state.user()["walletBalance"] || 0),
+    );
+
+    return `Wallet holds ${held} ${TOKEN_SYMBOL} on-chain, needs ${this.getMinimumHolding()}!`;
+  }
+
   /** Whether the drop will let this account withdraw */
   isWithdrawalEligible() {
     const verify = this.ctx.state.verify();
     const ageDays = verify["walletAgeDays"];
 
     return (
-      Boolean(verify["verified"]) &&
+      this.isTokenLive() &&
+      this.ctx.state.isPassActive() &&
       !verify["underReview"] &&
       ageDays !== null &&
       ageDays !== undefined &&
@@ -67,17 +103,7 @@ export default class VictorsWithdrawal extends FarmerModule {
     }
 
     if (!this.isWithdrawalEligible()) {
-      const verify = this.ctx.state.verify();
-      const message = !verify["verified"]
-        ? "Wallet is not verified!"
-        : Number(verify["walletAgeDays"] ?? -1) <
-            Number(verify["minWalletAgeDays"] || 0)
-          ? `Wallet is younger than ${verify["minWalletAgeDays"]} days!`
-          : verify["underReview"]
-            ? "Wallet is under review!"
-            : `Wallet holds ${Math.floor(Number(user["walletBalance"] || 0))} VIC on-chain, needs ${this.getMinimumHolding()}!`;
-
-      return this.ctx.flow.skip(message, { log: "warn" });
+      return this.ctx.flow.skip(this.getIneligibleReason(), { log: "warn" });
     }
 
     if ((await this.getPendingWithdrawals()).length > 0) {
@@ -111,8 +137,9 @@ export default class VictorsWithdrawal extends FarmerModule {
       this.ctx.state.apply(result);
 
       this.logger.success(
-        `Requested ${amount.toString()} VIC${result["autoApproved"] ? ", auto-approved" : ""}.`,
+        `Requested ${amount.toString()} ${TOKEN_SYMBOL}${result["autoApproved"] ? ", auto-approved" : ""}.`,
       );
+      this.logSplit(result);
       this.logger.keyValue("Destination", destinationAddress);
       this.logger.keyValue(
         "To be received",
@@ -135,6 +162,17 @@ export default class VictorsWithdrawal extends FarmerModule {
       skipped: false,
       amount: amount.toString(),
     };
+  }
+
+  /** Log how a payout was split: mined tokens are paid at once, the rest waits for review */
+  logSplit(result) {
+    if (Number(result["instantAmount"]) > 0) {
+      this.logger.keyValue("Paid Instantly", result["instantAmount"]);
+    }
+
+    if (Number(result["reviewAmount"]) > 0) {
+      this.logger.keyValue("In Review", result["reviewAmount"]);
+    }
   }
 
   /** Warn when a payout takes the holding below the active level, as the page does */
@@ -168,6 +206,7 @@ export default class VictorsWithdrawal extends FarmerModule {
       "Balance",
       formatAmount(this.ctx.state.user()["inAppBalance"]),
     );
+    this.logger.keyValue("Mine Pass", this.ctx.pass.describe());
     this.logger.keyValue("Minimum", this.getMinimumWithdrawal());
     this.logger.keyValue("Fee", this.getWithdrawalFee());
     this.logger.keyValue(

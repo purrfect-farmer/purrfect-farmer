@@ -1,6 +1,6 @@
 import BaseFarmer from "../../lib/BaseFarmer.js";
 import { createContext } from "./context.js";
-import { GRAM_CURRENCY, MINIMUM_WITHDRAWAL } from "./constants.js";
+import auto from "../../autos/myage-auto.js";
 
 export default class MyAgeFarmer extends BaseFarmer {
   static id = "myage";
@@ -15,16 +15,7 @@ export default class MyAgeFarmer extends BaseFarmer {
   static published = true;
 
   /** Payouts are native TON (the drop calls it GRAM), so the Auto has no jetton */
-  static auto = {
-    id: "myage-auto",
-    title: "My Age Auto",
-    token: "TON",
-    currency: GRAM_CURRENCY,
-    jettonAddress: null,
-    storagePrefix: "myage-auto",
-    minWithdrawal: MINIMUM_WITHDRAWAL,
-    connectWithPhrase: true,
-  };
+  static auto = auto;
 
   /** The modules the farmer works through */
   ctx = createContext(this.core);

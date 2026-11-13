@@ -1,3 +1,5 @@
+import auto from "../../autos/monsterland-auto.js";
+
 /** The game's backend, served from the mini app's own origin */
 export const API_URL = "https://lets.playmonsterland.com/api";
 
@@ -208,7 +210,7 @@ export const MISSION_SKIP_REASONS = [
 ];
 
 /** Fallback minimum in lumis, used until the game's config has been read */
-export const MINIMUM_WITHDRAWAL = 500000;
+export const MINIMUM_WITHDRAWAL = auto.minWithdrawal;
 
 /** The page's fallback cap on one withdrawal, used when the config leaves it out */
 export const MAXIMUM_WITHDRAWAL = 1e7;

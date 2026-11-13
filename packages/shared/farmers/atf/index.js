@@ -1,5 +1,6 @@
 import BaseFarmer from "../../lib/BaseFarmer.js";
 import { createContext } from "./context.js";
+import auto from "../../autos/atf-auto.js";
 
 export default class ATFFarmer extends BaseFarmer {
   static published = true;
@@ -22,15 +23,7 @@ export default class ATFFarmer extends BaseFarmer {
       },
     ],
   };
-  static auto = {
-    id: "atf-auto",
-    title: "ATF Auto",
-    token: "ATF",
-    jettonAddress: "EQANcW45W0Tp91bzvHayaPO6-6hf1Lm4XlWZ4rN6L5ofPWdb",
-    storagePrefix: "atf-auto",
-    minWithdrawal: 500,
-    connectWithPhrase: true,
-  };
+  static auto = auto;
 
   /** The drop answers the entry risk challenge with a 403, which the extension would reset the farmer over */
   static RISK_CHALLENGE_CONFIG = { ignoreUnauthorizedError: true };

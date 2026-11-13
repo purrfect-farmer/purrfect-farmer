@@ -1,6 +1,6 @@
 import BaseFarmer from "../../lib/BaseFarmer.js";
 import { createContext } from "./context.js";
-import { DIGGO_JETTON_ADDRESS, DIGGO_TOKEN } from "./constants.js";
+import auto from "../../autos/diggo-auto.js";
 
 export default class DiggoFarmer extends BaseFarmer {
   static id = "diggo";
@@ -17,16 +17,7 @@ export default class DiggoFarmer extends BaseFarmer {
   static published = true;
 
   /** DIGGO is a STON.fi jetton, withdrawn on-chain once the wallet pays its activation */
-  static auto = {
-    id: "diggo-auto",
-    title: "Diggo Auto",
-    token: DIGGO_TOKEN,
-    jettonAddress: DIGGO_JETTON_ADDRESS,
-    storagePrefix: "diggo-auto",
-    minWithdrawal: 800,
-    verifiable: true,
-    connectWithPhrase: true,
-  };
+  static auto = auto;
 
   /** The modules the farmer works through */
   ctx = createContext(this.core);

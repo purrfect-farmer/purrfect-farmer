@@ -19,6 +19,18 @@ import { useMemo } from "react";
 /** Tabs a native TON drop hides, having no jetton to swap into */
 const SWAP_TABS = ["swap", "swapper"];
 
+/** Tabs a retired Auto hides, each one working the drop its farmer used to run */
+const DROP_TABS = [
+  "boost",
+  "withdraw",
+  "flip",
+  "rescue",
+  "load",
+  "cultivate",
+  "status",
+  "verify",
+];
+
 /** Every drop gets these, a verifiable one also gets the verify tab, and a native TON one has nothing to swap */
 const baseTabs = {
   rootProps: { defaultValue: "dashboard" },
@@ -44,14 +56,13 @@ export default function AutoPanel() {
   const tabs = useMemo(
     () => ({
       ...baseTabs,
-      list: [
-        ...baseTabs.list.filter(
-          (tab) => !(config.native && SWAP_TABS.includes(tab)),
-        ),
-        ...(config.verifiable ? ["verify"] : []),
-      ],
+      list: [...baseTabs.list, ...(config.verifiable ? ["verify"] : [])].filter(
+        (tab) =>
+          !(config.native && SWAP_TABS.includes(tab)) &&
+          !(config.retired && DROP_TABS.includes(tab)),
+      ),
     }),
-    [config.verifiable, config.native],
+    [config.verifiable, config.native, config.retired],
   );
 
   return (
@@ -64,18 +75,26 @@ export default function AutoPanel() {
       <Tabs.Content value="dashboard">
         <AutoDashboardTab />
       </Tabs.Content>
-      <Tabs.Content value="boost">
-        <AutoBoostTab />
-      </Tabs.Content>
-      <Tabs.Content value="withdraw">
-        <AutoWithdrawTab />
-      </Tabs.Content>
-      <Tabs.Content value="flip">
-        <AutoFlipTab />
-      </Tabs.Content>
-      <Tabs.Content value="rescue">
-        <AutoRescueTab />
-      </Tabs.Content>
+      {!config.retired && (
+        <Tabs.Content value="boost">
+          <AutoBoostTab />
+        </Tabs.Content>
+      )}
+      {!config.retired && (
+        <Tabs.Content value="withdraw">
+          <AutoWithdrawTab />
+        </Tabs.Content>
+      )}
+      {!config.retired && (
+        <Tabs.Content value="flip">
+          <AutoFlipTab />
+        </Tabs.Content>
+      )}
+      {!config.retired && (
+        <Tabs.Content value="rescue">
+          <AutoRescueTab />
+        </Tabs.Content>
+      )}
       {!config.native && (
         <Tabs.Content value="swap">
           <AutoSwapTab />
@@ -92,19 +111,25 @@ export default function AutoPanel() {
       <Tabs.Content value="collect">
         <AutoCloudCollectTab />
       </Tabs.Content>
-      <Tabs.Content value="load">
-        <AutoLoadTab />
-      </Tabs.Content>
-      <Tabs.Content value="cultivate">
-        <AutoCultivateTab />
-      </Tabs.Content>
-      <Tabs.Content value="status">
-        <AutoStatusTab />
-      </Tabs.Content>
+      {!config.retired && (
+        <Tabs.Content value="load">
+          <AutoLoadTab />
+        </Tabs.Content>
+      )}
+      {!config.retired && (
+        <Tabs.Content value="cultivate">
+          <AutoCultivateTab />
+        </Tabs.Content>
+      )}
+      {!config.retired && (
+        <Tabs.Content value="status">
+          <AutoStatusTab />
+        </Tabs.Content>
+      )}
       <Tabs.Content value="wallets">
         <AutoWalletsTab />
       </Tabs.Content>
-      {config.verifiable && (
+      {config.verifiable && !config.retired && (
         <Tabs.Content value="verify">
           <AutoVerifyTab />
         </Tabs.Content>

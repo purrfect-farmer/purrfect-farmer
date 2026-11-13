@@ -16,10 +16,12 @@ import { Dialog } from "radix-ui";
 import { LuEllipsis, LuSend } from "react-icons/lu";
 import { MdOutlineDoubleArrow } from "react-icons/md";
 import useAutoActionDialogs from "@/hooks/useAutoActionDialogs";
+import useAuto from "@/hooks/useAuto";
 import useAutoCloudActions from "@/hooks/useAutoCloudActions";
 
 /** The Auto dashboard's actions: the daily ones in a row, the rest in a sheet */
 export function AutoMasterCardActions() {
+  const { config } = useAuto();
   const actions = useAutoCloudActions();
   const { openDialog, importTab, open, close, openChangeOf } =
     useAutoActionDialogs();
@@ -34,23 +36,28 @@ export function AutoMasterCardActions() {
     <>
       {/* Daily actions */}
       <AutoMasterCardButtonRow>
-        <AutoMasterCardButton
-          title="Boost accounts in Cloud"
-          icon={LiaFireAltSolid}
-          onClick={actions.boost.run}
-          disabled={actions.boost.isPending}
-        >
-          {actions.boost.isPending ? "Requesting..." : "Boost"}
-        </AutoMasterCardButton>
+        {/* Drop actions, gone once the Auto is retired */}
+        {!config.retired && (
+          <>
+            <AutoMasterCardButton
+              title="Boost accounts in Cloud"
+              icon={LiaFireAltSolid}
+              onClick={actions.boost.run}
+              disabled={actions.boost.isPending}
+            >
+              {actions.boost.isPending ? "Requesting..." : "Boost"}
+            </AutoMasterCardButton>
 
-        <AutoMasterCardButton
-          title="Withdraw accounts in Cloud"
-          icon={LiaDollarSignSolid}
-          onClick={actions.withdraw.run}
-          disabled={actions.withdraw.isPending}
-        >
-          {actions.withdraw.isPending ? "Requesting..." : "Withdraw"}
-        </AutoMasterCardButton>
+            <AutoMasterCardButton
+              title="Withdraw accounts in Cloud"
+              icon={LiaDollarSignSolid}
+              onClick={actions.withdraw.run}
+              disabled={actions.withdraw.isPending}
+            >
+              {actions.withdraw.isPending ? "Requesting..." : "Withdraw"}
+            </AutoMasterCardButton>
+          </>
+        )}
 
         <AutoMasterCardButton
           title="Send tokens"

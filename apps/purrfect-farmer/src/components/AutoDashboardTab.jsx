@@ -81,11 +81,18 @@ export default function AutoDashboardTab() {
       {/* Actions */}
       <AutoMasterCardActions />
 
-      {/* Rotation Alert */}
-      <Alert variant={"danger"}>
-        Rotate wallets once before boosting, and only after every account is
-        withdrawn.
-      </Alert>
+      {/* Retired notice, or the rotation alert a live drop needs */}
+      {config.retired ? (
+        <Alert variant={"info"}>
+          This drop is retired. Its wallets stay here to collect, send, swap and
+          export.
+        </Alert>
+      ) : (
+        <Alert variant={"danger"}>
+          Rotate wallets once before boosting, and only after every account is
+          withdrawn.
+        </Alert>
+      )}
 
       {/* Requests Alert */}
       <Alert variant={"warning"}>

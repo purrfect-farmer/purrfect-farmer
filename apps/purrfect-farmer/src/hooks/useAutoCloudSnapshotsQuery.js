@@ -6,13 +6,13 @@ import useCloudQueryOptions from "./useCloudQueryOptions";
 /** Index the rows by Telegram user id, so a row looks its own snapshot up */
 const indexSnapshots = (rows) => new Map(rows.map((row) => [row.id, row]));
 
-/** What every account the server farms for this drop last looked like, in one query */
+/** What every account the server farms for this drop last looked like, in one query, never asked for a retired Auto */
 export default function useAutoCloudSnapshotsQuery() {
   const { config } = useAuto();
   const { enabled, auth, cloudBackend, cloudServer } = useCloudQueryOptions();
 
   return useQuery({
-    enabled,
+    enabled: enabled && !config.retired,
     select: indexSnapshots,
     refetchInterval: 30_000,
     queryKey: [config.id, "cloud", "snapshots", enabled, cloudServer],

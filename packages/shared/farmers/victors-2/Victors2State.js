@@ -1,7 +1,8 @@
 import FarmerModule from "../../lib/farmer/FarmerModule.js";
+import { PASS_STATUS } from "./constants.js";
 
 /** The account state as the drop last returned it */
-export default class VictorsState extends FarmerModule {
+export default class Victors2State extends FarmerModule {
   /** The full account state */
   data = null;
 
@@ -49,9 +50,22 @@ export default class VictorsState extends FarmerModule {
     return this.data?.mining || {};
   }
 
-  /** The wallet verification as the drop reports it */
+  /** The wallet's age and review, as the drop reports them */
   verify() {
     return this.data?.verify || {};
+  }
+
+  /** The Mine Pass as the drop reports it */
+  pass() {
+    return this.data?.pass || {};
+  }
+
+  /** Whether claims and payouts are open: the pass is active, or the drop asks for none */
+  isPassActive() {
+    return (
+      this.data?.["passRequired"] === false ||
+      this.pass()["status"] === PASS_STATUS.ACTIVE
+    );
   }
 
   /** The drop's live config */

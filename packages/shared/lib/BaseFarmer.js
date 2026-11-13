@@ -37,7 +37,7 @@ export default class BaseFarmer {
   static autoStart = false;
   static skipExecutionOfNewAccount = false;
 
-  /** Auto descriptor, declared by farmers opting into the Auto wallet system
+  /** Auto descriptor, imported from `autos/<auto id>.js` by farmers that run an Auto's drop
    * `verifiable` drops answer `verifyAutoWallet`, which the Auto runs on demand
    * `connectWithPhrase` drops sign with the phrase to connect, so the Auto password is asked
    * A null `jettonAddress` makes a native Auto, which boosts, collects and transfers TON itself

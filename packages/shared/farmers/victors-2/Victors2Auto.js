@@ -1,8 +1,8 @@
 import AutoModule from "../../lib/farmer/AutoModule.js";
 
 /** The account as the Auto system drives it */
-export default class VictorsAuto extends AutoModule {
-  /** Pay the one-time verification from the wallet's phrase, connecting the wallet first when the account has none */
+export default class Victors2Auto extends AutoModule {
+  /** Pay for the Mine Pass from the wallet's phrase, connecting the wallet first when the account has none */
   verifyWallet(wallet) {
     return this.ctx.verifier.verify(wallet);
   }
@@ -52,7 +52,7 @@ export default class VictorsAuto extends AutoModule {
       holding: user["walletBalance"],
       balance: user["inAppBalance"],
       minWithdrawal: this.ctx.withdrawal.getMinimumWithdrawal(),
-      verified: Boolean(this.ctx.state.verify()["verified"]),
+      verified: this.ctx.state.isPassActive(),
       wallet: address
         ? { address, version: this.ctx.walletVersion.current }
         : null,

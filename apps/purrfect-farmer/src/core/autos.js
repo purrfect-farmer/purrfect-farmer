@@ -10,7 +10,16 @@ import {
 import { encryption } from "@/services/encryption";
 import { sharedStorageKey } from "@/lib/storageKeys";
 
-/** Auto drops: wallet managers built on a farmer, opted into with `static auto` and iconed by auto id */
+/** Every Auto's descriptor, one file each, kept after its drop's farmer is removed */
+const autosGlob = import.meta.glob(
+  "../../node_modules/@purrfect/shared/autos/*.js",
+  {
+    eager: true,
+    import: "default",
+  },
+);
+
+/** The farmers, each naming the Auto it runs in `static auto` */
 const farmersGlob = import.meta.glob(
   "../../node_modules/@purrfect/shared/farmers/*/index.js",
   {
@@ -56,22 +65,31 @@ const tokenIcons = indexIcons(
   ),
 );
 
-const autos = Object.values(farmersGlob)
-  .filter((Farmer) => Farmer.auto)
-  .map((Farmer) => {
-    /** A native Auto moves TON, so its token is TON's own logo */
-    const native = isNativeAuto(Farmer.auto);
+/** The farmer running each Auto's drop, keyed by auto id */
+const autoFarmers = Object.values(farmersGlob).reduce((result, Farmer) => {
+  if (Farmer.auto) result.set(Farmer.auto.id, Farmer);
+  return result;
+}, new Map());
 
-    return {
-      ...Farmer.auto,
-      native,
-      currency: getAutoCurrency(Farmer.auto),
-      farmerId: Farmer.id,
-      icon: autoIcons.get(Farmer.auto.id),
-      largeIcon: autoLargeIcons.get(Farmer.auto.id),
-      tokenIcon: native ? tonLogo : tokenIcons.get(Farmer.id),
-    };
-  });
+/** An Auto whose farmer is gone is retired: its wallets stay, its drop actions do not */
+const autos = Object.values(autosGlob).map((auto) => {
+  const Farmer = autoFarmers.get(auto.id);
+
+  /** A native Auto moves TON, so its token is TON's own logo */
+  const native = isNativeAuto(auto);
+  const icon = autoIcons.get(auto.id);
+
+  return {
+    ...auto,
+    native,
+    currency: getAutoCurrency(auto),
+    farmerId: Farmer?.id ?? null,
+    retired: !Farmer,
+    icon,
+    largeIcon: autoLargeIcons.get(auto.id),
+    tokenIcon: native ? tonLogo : (tokenIcons.get(Farmer?.id) ?? icon),
+  };
+});
 
 const autosMap = autos.reduce((result, auto) => {
   result.set(auto.id, auto);

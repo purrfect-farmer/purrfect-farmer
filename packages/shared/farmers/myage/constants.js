@@ -1,3 +1,5 @@
+import auto from "../../autos/myage-auto.js";
+
 /** The drop's backend, which the mini app talks to for everything */
 export const API_URL = "https://myageapp.xyz/api";
 
@@ -11,13 +13,13 @@ export const HEADER = Object.freeze({
 });
 
 /** The in-game name of the TON the drop pays out */
-export const GRAM_CURRENCY = "GRAM";
+export const GRAM_CURRENCY = auto.currency;
 
 /** The points the drop pays toward its airdrop */
 export const AGE_POINTS = "AGE";
 
 /** The drop's withdrawal minimum, used until the live one has been read */
-export const MINIMUM_WITHDRAWAL = 0.5;
+export const MINIMUM_WITHDRAWAL = auto.minWithdrawal;
 
 /** The decimal places a GRAM withdrawal is sent with, as the page fills its amount */
 export const WITHDRAWAL_DECIMALS = 4;

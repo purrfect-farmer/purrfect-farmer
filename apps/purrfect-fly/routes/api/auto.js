@@ -37,6 +37,15 @@ export default async function (fastify) {
     }
   };
 
+  /** Refuse an operation that works the drop when no farmer runs it any more */
+  const requireDrop = async function (request, reply) {
+    if (request.auto.retired) {
+      return reply.badRequest(
+        `${request.auto.title} is retired, only its wallets can be worked`,
+      );
+    }
+  };
+
   /** Dispatches an Auto operation for the drop named in the path, fire-and-forget over the bot */
   const dispatchAutoOperation = (operation) =>
     async function (request) {
@@ -120,10 +129,12 @@ export default async function (fastify) {
 
   const autoPreHandler = [...memberPreHandler, resolveAuto];
 
-  /** Auto - Boost / Collect / Withdraw / Status / Flip / Rescue */
+  /** The handlers of a route that works the drop, so a retired Auto is refused */
+  const dropPreHandler = [...autoPreHandler, requireDrop];
+
+  /** Auto - Boost / Withdraw / Status / Flip / Rescue */
   for (const operation of [
     AUTO_OPERATION.BOOST,
-    AUTO_OPERATION.COLLECT,
     AUTO_OPERATION.WITHDRAW,
     AUTO_OPERATION.STATUS,
     AUTO_OPERATION.FLIP,
@@ -131,15 +142,22 @@ export default async function (fastify) {
   ]) {
     fastify.post(
       `/auto/:drop/${operation}`,
-      { preHandler: autoPreHandler, schema: autoSchema },
+      { preHandler: dropPreHandler, schema: autoSchema },
       dispatchAutoOperation(operation),
     );
   }
 
+  /** Auto - Collect, which only moves the wallets' tokens and so outlives the drop */
+  fastify.post(
+    `/auto/:drop/${AUTO_OPERATION.COLLECT}`,
+    { preHandler: autoPreHandler, schema: autoSchema },
+    dispatchAutoOperation(AUTO_OPERATION.COLLECT),
+  );
+
   /** Auto - Verify, only for drops with a one-time wallet verification */
   fastify.post(
     "/auto/:drop/verify",
-    { preHandler: autoPreHandler, schema: autoSchema },
+    { preHandler: dropPreHandler, schema: autoSchema },
     async function (request, reply) {
       const Auto = request.auto;
 
@@ -175,13 +193,13 @@ export default async function (fastify) {
   );
 
   /** Auto - Single account Boost / Collect, awaited so the caller gets the result back */
-  for (const [path, operation] of [
-    ["single-boost", "singleBoost"],
-    ["single-collect", "singleCollect"],
+  for (const [path, operation, preHandler] of [
+    ["single-boost", "singleBoost", dropPreHandler],
+    ["single-collect", "singleCollect", autoPreHandler],
   ]) {
     fastify.post(
       `/auto/:drop/${path}`,
-      { preHandler: autoPreHandler, schema: autoSchema },
+      { preHandler, schema: autoSchema },
       runSingleAutoOperation(operation),
     );
   }
@@ -190,7 +208,7 @@ export default async function (fastify) {
   for (const operation of [AUTO_OPERATION.LOAD, "assist", "cultivate"]) {
     fastify.post(
       `/auto/:drop/${operation}`,
-      { preHandler: autoPreHandler, schema: autoSchema },
+      { preHandler: dropPreHandler, schema: autoSchema },
       dispatchAutoOperation(operation),
     );
   }
@@ -327,7 +345,7 @@ export default async function (fastify) {
   /** Auto - Get Active List */
   fastify.post(
     "/auto/:drop/get-active-list",
-    { preHandler: autoPreHandler, schema: authSchema },
+    { preHandler: dropPreHandler, schema: authSchema },
     getAutoActiveList,
   );
 
@@ -359,7 +377,7 @@ export default async function (fastify) {
   ]) {
     fastify.post(
       `/auto/:drop/farmer/${path}`,
-      { preHandler: autoPreHandler, schema: autoFarmerSchema },
+      { preHandler: dropPreHandler, schema: autoFarmerSchema },
       setAutoFarmerStatus(status),
     );
   }

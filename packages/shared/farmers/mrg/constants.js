@@ -1,9 +1,10 @@
+import auto from "../../autos/mrg-auto.js";
+
 /** The drop's backend, which the mini app talks to for everything */
 export const API_URL = "https://mrg.up.railway.app/api";
 
 /** Mine Rare Gram, the jetton whose holding sets the miner level */
-export const MRG_JETTON_ADDRESS =
-  "EQDj-zlSvj4Au154XjsU7ATzt13p8JjYEs0weVv1rVbCJSn0";
+export const MRG_JETTON_ADDRESS = auto.jettonAddress;
 
 /** The domain the page signs its TON proof for */
 export const TON_PROOF_DOMAIN = "app.mrgtoken.xyz";
@@ -61,7 +62,7 @@ export const NFT_BUNDLE_SIZE = 3;
 export const NFT_BUNDLE_DISCOUNT = 50;
 
 /** The drop's withdrawal rules */
-export const MINIMUM_WITHDRAWAL = 1000;
+export const MINIMUM_WITHDRAWAL = auto.minWithdrawal;
 
 export const WITHDRAWAL_FEE = 70;
 

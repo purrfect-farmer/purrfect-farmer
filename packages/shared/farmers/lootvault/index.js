@@ -1,10 +1,6 @@
 import BaseFarmer from "../../lib/BaseFarmer.js";
 import { createContext } from "./context.js";
-import {
-  LOOT_JETTON_ADDRESS,
-  LOOT_TOKEN,
-  MINIMUM_WITHDRAWAL,
-} from "./constants.js";
+import auto from "../../autos/lootvault-auto.js";
 
 export default class LootVaultFarmer extends BaseFarmer {
   static id = "lootvault";
@@ -17,14 +13,7 @@ export default class LootVaultFarmer extends BaseFarmer {
   static interval = "0 */6 * * *";
   static apiDelay = 500;
   static published = true;
-  static auto = {
-    id: "lootvault-auto",
-    title: "LootVault Auto",
-    token: LOOT_TOKEN,
-    jettonAddress: LOOT_JETTON_ADDRESS,
-    storagePrefix: "lootvault-auto",
-    minWithdrawal: MINIMUM_WITHDRAWAL,
-  };
+  static auto = auto;
 
   /** The modules the farmer works through */
   ctx = createContext(this.core);

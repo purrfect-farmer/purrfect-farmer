@@ -110,7 +110,7 @@
       ]
     ]
   ],
-  "victors": [
+  "victors-2": [
     [
       "Wallet",
       [
@@ -119,8 +119,8 @@
         "connect-auto-wallet|auto|Connect Auto Wallet|false",
         "disconnect-wallet|disconnect|Disconnect Wallet|false",
         "refresh-holding|search|Refresh Holding|false",
-        "verify-wallet|kyc|Verify Wallet|false",
-        "check-verification|kyc|Check Verification|false"
+        "mint-pass|kyc|Mint Mine Pass|false",
+        "check-pass|kyc|Check Mine Pass|false"
       ]
     ],
     [

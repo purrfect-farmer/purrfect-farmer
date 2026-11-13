@@ -1,9 +1,16 @@
 import FarmerModule from "../../lib/farmer/FarmerModule.js";
 import { formatAmount } from "../../lib/farmer/format.js";
-import { TASK_DWELL_SECONDS } from "./constants.js";
+import {
+  MANUAL_TASK_KINDS,
+  PROFILE_PROPAGATION_SECONDS,
+  PROFILE_TASK_KIND,
+  TASK_DWELL_SECONDS,
+  TOKEN_SYMBOL,
+  VISIT_TASK_KINDS,
+} from "./constants.js";
 
 /** Tasks and crew rewards */
-export default class VictorsTasks extends FarmerModule {
+export default class Victors2Tasks extends FarmerModule {
   /** How many of the drop's NFTs the account owns, read when an NFT task is open */
   ownedNftCount = 0;
 
@@ -40,8 +47,50 @@ export default class VictorsTasks extends FarmerModule {
         );
 
       default:
-        return true;
+        return !MANUAL_TASK_KINDS.includes(task["kind"]);
     }
+  }
+
+  /** Whether the Telegram name already carries a tag */
+  hasNameTag(tag) {
+    return this.core.userFullName().toLowerCase().includes(tag.toLowerCase());
+  }
+
+  /** Put what a profile task checks for into the Telegram profile, when settings allow it, returning whether it was changed */
+  async prepareProfile(task) {
+    const update =
+      task["kind"] === PROFILE_TASK_KIND.NAME_TAG
+        ? this.getNameTagUpdate(task["nameTag"])
+        : this.getBioLinkUpdate();
+
+    if (!update) return false;
+
+    this.logger.info(`Updating the Telegram profile for "${task["title"]}"...`);
+
+    if (!(await this.core.telegram.tryToUpdateProfile(update))) return false;
+
+    await this.utils.delayForSeconds(PROFILE_PROPAGATION_SECONDS, {
+      signal: this.signal,
+    });
+
+    /** The name travels in initData, so the app is reopened for one that has it */
+    await this.core.telegram.refreshWebApp();
+
+    return true;
+  }
+
+  /** The last name with the tag added, or nothing when the name already carries it */
+  getNameTagUpdate(tag) {
+    if (!tag || this.hasNameTag(tag)) return null;
+
+    return { lastName: `${this.core.userLastName()} ${tag}`.trim() };
+  }
+
+  /** The referral link as the bio, or nothing when the account has no link yet */
+  getBioLinkUpdate() {
+    const link = this.ctx.state.data.referral?.["link"];
+
+    return link ? { about: link } : null;
   }
 
   /** Claim every open task the account qualifies for */
@@ -79,9 +128,18 @@ export default class VictorsTasks extends FarmerModule {
     const isPartnerVisit =
       task["kind"] === "partner_api" && Boolean(task["url"]);
     const isVisitTask =
-      task["kind"] === "link_visit" ||
-      task["kind"] === "telegram_channel" ||
-      isPartnerVisit;
+      VISIT_TASK_KINDS.includes(task["kind"]) || isPartnerVisit;
+
+    if (Object.values(PROFILE_TASK_KIND).includes(task["kind"])) {
+      const changed = await this.prepareProfile(task);
+      const isNameTask = task["kind"] === PROFILE_TASK_KIND.NAME_TAG;
+
+      /** A name without the tag is known to fail, a bio cannot be read so its claim is always tried */
+      if (isNameTask && !changed && !this.hasNameTag(task["nameTag"] || "")) {
+        this.logger.warn(`"${task["title"].trim()}" needs a profile update.`);
+        return;
+      }
+    }
 
     await this.core.telegram.openTaskLink(
       task["url"],
@@ -95,7 +153,7 @@ export default class VictorsTasks extends FarmerModule {
     } else {
       this.ctx.state.apply(result);
       this.logger.success(
-        `Claimed "${task["title"].trim()}" for ${task["reward"]} VIC.`,
+        `Claimed "${task["title"].trim()}" for ${result["reward"] ?? task["reward"]} ${TOKEN_SYMBOL}.`,
       );
     }
 
@@ -104,6 +162,11 @@ export default class VictorsTasks extends FarmerModule {
 
   /** Claim the hiring bonus and crew commission */
   async claimSquadRewards() {
+    if (!this.ctx.state.isPassActive()) {
+      this.logger.info("Crew rewards need the Mine Pass.");
+      return;
+    }
+
     const referral = this.ctx.state.data.referral || {};
     const claims = [
       [
@@ -131,7 +194,7 @@ export default class VictorsTasks extends FarmerModule {
       } else {
         this.ctx.state.apply(result);
         this.logger.success(
-          `Claimed ${formatAmount(result["claimed"] ?? amount)} VIC ${label}.`,
+          `Claimed ${formatAmount(result["claimed"] ?? amount)} ${TOKEN_SYMBOL} ${label}.`,
         );
       }
 

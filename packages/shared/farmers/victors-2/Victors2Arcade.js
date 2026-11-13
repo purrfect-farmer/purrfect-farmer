@@ -7,13 +7,15 @@ import {
   pickTool,
 } from "./deepMine.js";
 import {
+  LAST_LAMP_GAME,
   MINE_DAILY_LOSS_LIMIT,
   MINE_MOVE_DELAY_SECONDS,
+  TOKEN_SYMBOL,
   UNDERGROUND_GAMES,
 } from "./constants.js";
 
 /** Deep Mine runs and the Underground report */
-export default class VictorsArcade extends FarmerModule {
+export default class Victors2Arcade extends FarmerModule {
   /** Play Deep Mine's daily runs, finishing any run left open first */
   async playArcade() {
     const arcade = await this.ctx.api.fetchArcade();
@@ -25,6 +27,7 @@ export default class VictorsArcade extends FarmerModule {
       if (
         item["id"] !== "mine" &&
         !UNDERGROUND_GAMES.includes(item["id"]) &&
+        item["id"] !== LAST_LAMP_GAME &&
         !item["test"]
       ) {
         this.logger.warn(`Unknown arcade game "${item["id"]}" is public.`);
@@ -43,6 +46,11 @@ export default class VictorsArcade extends FarmerModule {
 
     if (!game) {
       this.logger.info("Deep Mine is not open.");
+      return;
+    }
+
+    if (!this.ctx.state.isPassActive()) {
+      this.logger.info("Deep Mine needs the Mine Pass.");
       return;
     }
 
@@ -65,7 +73,9 @@ export default class VictorsArcade extends FarmerModule {
       const net = await this.getArcadeNet(arcade["resetsAt"]);
 
       if (net <= -MINE_DAILY_LOSS_LIMIT) {
-        this.logger.warn(`Deep Mine lost ${net.toFixed(1)} VIC today, done.`);
+        this.logger.warn(
+          `Deep Mine lost ${net.toFixed(1)} ${TOKEN_SYMBOL} today, done.`,
+        );
         break;
       }
 
@@ -155,7 +165,7 @@ export default class VictorsArcade extends FarmerModule {
     const log = net >= 0 ? "success" : "warn";
 
     this.logger[log](
-      `Deep Mine ended (${result["reason"]}): paid ${result["paid"]} for ${result["spent"]}, net ${net >= 0 ? "+" : ""}${net}, today ${total.toFixed(1)} VIC.`,
+      `Deep Mine ended (${result["reason"]}): paid ${result["paid"]} for ${result["spent"]}, net ${net >= 0 ? "+" : ""}${net}, today ${total.toFixed(1)} ${TOKEN_SYMBOL}.`,
     );
   }
 

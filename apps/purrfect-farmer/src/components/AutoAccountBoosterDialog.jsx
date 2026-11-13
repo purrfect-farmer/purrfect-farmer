@@ -117,7 +117,7 @@ function BoosterHeader({ account }) {
 
 export default function AutoAccountBooster({ account }) {
   const { config } = useAuto();
-  const [tab, setTab] = useState("boost");
+  const [tab, setTab] = useState(config.retired ? "collect" : "boost");
 
   return (
     <Dialog.Portal>
@@ -151,9 +151,13 @@ export default function AutoAccountBooster({ account }) {
             className="flex flex-col size-full overflow-hidden"
           >
             <Tabs.List className="flex shrink-0 overflow-x-auto">
-              <BoosterTabTrigger title="Boost" value="boost" />
+              {!config.retired && (
+                <BoosterTabTrigger title="Boost" value="boost" />
+              )}
               <BoosterTabTrigger title="Collect" value="collect" />
-              <BoosterTabTrigger title="Withdraw" value="withdraw" />
+              {!config.retired && (
+                <BoosterTabTrigger title="Withdraw" value="withdraw" />
+              )}
               <BoosterTabTrigger title="Send" value="send" />
               {!config.native && (
                 <BoosterTabTrigger title="Swap" value="swap" />
@@ -163,19 +167,23 @@ export default function AutoAccountBooster({ account }) {
 
             {/* Keyed so no tab state carries over to the next account */}
             <div key={account.id} className="grow overflow-auto p-4">
-              <Tabs.Content value="boost">
-                <AutoBoosterBoostTab account={account} />
-              </Tabs.Content>
+              {!config.retired && (
+                <Tabs.Content value="boost">
+                  <AutoBoosterBoostTab account={account} />
+                </Tabs.Content>
+              )}
               <Tabs.Content value="collect">
                 <AutoBoosterCollectTab account={account} />
               </Tabs.Content>
-              <Tabs.Content
-                forceMount
-                value="withdraw"
-                className="data-[state=inactive]:hidden"
-              >
-                <AutoBoosterWithdrawTab account={account} />
-              </Tabs.Content>
+              {!config.retired && (
+                <Tabs.Content
+                  forceMount
+                  value="withdraw"
+                  className="data-[state=inactive]:hidden"
+                >
+                  <AutoBoosterWithdrawTab account={account} />
+                </Tabs.Content>
+              )}
               <Tabs.Content value="send">
                 <AutoBoosterSendTab account={account} />
               </Tabs.Content>

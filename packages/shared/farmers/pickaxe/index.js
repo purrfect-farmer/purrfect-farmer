@@ -1,10 +1,6 @@
 import BaseFarmer from "../../lib/BaseFarmer.js";
 import { createContext } from "./context.js";
-import {
-  MINIMUM_WITHDRAWAL,
-  PXE_JETTON_ADDRESS,
-  PXE_TOKEN,
-} from "./constants.js";
+import auto from "../../autos/pickaxe-auto.js";
 
 export default class PickaxeFarmer extends BaseFarmer {
   static id = "pickaxe";
@@ -20,16 +16,7 @@ export default class PickaxeFarmer extends BaseFarmer {
   static published = true;
 
   /** PXE is withdrawn on-chain; mining opens once the linked wallet pays for the Ancient Pass, which Verify does */
-  static auto = {
-    id: "pickaxe-auto",
-    title: "Pickaxe Auto",
-    token: PXE_TOKEN,
-    jettonAddress: PXE_JETTON_ADDRESS,
-    storagePrefix: "pickaxe-auto",
-    minWithdrawal: MINIMUM_WITHDRAWAL,
-    verifiable: true,
-    connectWithPhrase: true,
-  };
+  static auto = auto;
 
   /** The modules the farmer works through */
   ctx = createContext(this.core);

@@ -6,12 +6,13 @@ import {
 } from "../../lib/farmer/format.js";
 import { readOnChainHolding } from "../../lib/farmer/onChain.js";
 import { keyPairFromPhraseOrSecretKey } from "../../lib/ton/wallet.js";
+import { TOKEN_SYMBOL } from "./constants.js";
 import Decimal from "decimal.js";
 import createAutoWalletTools from "../../lib/farmer/autoWalletTools.js";
 import { promptAmount, promptWalletVersion } from "../../lib/farmer/prompts.js";
 
 /** The interactive tools the farmer offers */
-export default class VictorsTools extends FarmerModule {
+export default class Victors2Tools extends FarmerModule {
   /** Reset a banned account after confirming, which wipes its progress */
   async resetAccountInteractive() {
     if (!this.ctx.session.banInfo) {
@@ -68,17 +69,17 @@ export default class VictorsTools extends FarmerModule {
             dispatch: false,
           },
           {
-            id: "verify-wallet",
+            id: "mint-pass",
             icon: "kyc",
-            title: "Verify Wallet",
-            action: () => this.verifyWalletInteractive(),
+            title: "Mint Mine Pass",
+            action: () => this.ctx.pass.mintInteractive(),
             dispatch: false,
           },
           {
-            id: "check-verification",
+            id: "check-pass",
             icon: "kyc",
-            title: "Check Verification",
-            action: () => this.checkVerificationInteractive(),
+            title: "Check Mine Pass",
+            action: () => this.ctx.pass.checkInteractive(),
             dispatch: false,
           },
         ],
@@ -242,7 +243,7 @@ export default class VictorsTools extends FarmerModule {
 
     const address = value;
     this.logger.warn(
-      "Bound by address only, its VIC will not count until proven.",
+      `Bound by address only, its ${TOKEN_SYMBOL} will not count until proven.`,
     );
 
     const { status } = await this.ctx.wallet.connectWalletAddress(address);
@@ -250,7 +251,7 @@ export default class VictorsTools extends FarmerModule {
     if (!status) return;
 
     this.logger.keyValue(
-      "On-chain VIC",
+      `On-chain ${TOKEN_SYMBOL}`,
       formatAmount(await readOnChainHolding(this.core, address)),
     );
   }
@@ -277,77 +278,13 @@ export default class VictorsTools extends FarmerModule {
     await this.ctx.wallet.refreshHolding();
   }
 
-  /** Pay the verification from a wallet phrase, connecting that wallet first when the account has none */
-  async verifyWalletInteractive() {
-    const phrase = ((await this.core.prompt("Enter the wallet phrase:")) || "")
-      .trim()
-      .split(/\s+/)
-      .join(" ");
-
-    if (!phrase) {
-      this.logger.warn("No phrase provided.");
-      return;
-    }
-
-    const version = await promptWalletVersion(this.core);
-
-    if (!version) {
-      this.logger.warn("No wallet version selected.");
-      return;
-    }
-
-    const { status, message } = await this.ctx.auto.verifyWallet({
-      phrase,
-      version,
-    });
-
-    if (status) {
-      this.logger.success(message);
-    } else {
-      this.logger.error("Verification failed:", message);
-    }
-  }
-
-  /** A derived wallet's phrase is known, so its verification is paid right after it is bound */
+  /** A derived wallet's phrase is known, so its Mine Pass is paid for right after it is bound */
   async afterDerivedWalletConnected({ phrase, version }) {
-    const { status, message } = await this.ctx.wallet.verifyWalletIfNeeded({
-      phrase,
-      version,
-    });
+    const { status, message } = await this.ctx.pass.pay({ phrase, version });
 
     if (!status) {
-      this.logger.warn("Wallet not verified:", message || "not confirmed yet");
+      this.logger.warn("Mine Pass not active:", message);
     }
-  }
-
-  /** Show what the verification needs and ask the drop whether it has landed */
-  async checkVerificationInteractive() {
-    await this.ctx.state.ensureLoaded();
-
-    const verify = this.ctx.state.verify();
-
-    this.logger.newline();
-    this.logger.keyValue("Verified", verify["verified"] ? "Yes" : "No");
-    this.logger.keyValue("Pending", verify["pending"] ? "Yes" : "No");
-    this.logger.keyValue("Treasury", verify["treasury"]);
-    this.logger.keyValue("Amount", `${verify["amountTon"]} TON`);
-    this.logger.keyValue("Comment", verify["comment"]);
-    this.logger.keyValue(
-      "Wallet Age",
-      `${verify["walletAgeDays"] ?? "?"} / ${verify["minWalletAgeDays"]} days`,
-    );
-
-    if (verify["verified"]) {
-      this.logger.success("Wallet is already verified.");
-      return;
-    }
-
-    if (!this.ctx.wallet.getConnectedWalletAddress()) {
-      this.logger.warn("Connect a wallet first.");
-      return;
-    }
-
-    await this.ctx.wallet.pollVerification(1);
   }
 
   /** List the crew and claim what it has earned */
@@ -422,7 +359,7 @@ export default class VictorsTools extends FarmerModule {
     /** Reported rather than refused, so a level can be tried whatever the holding reads */
     if (holding < required) {
       this.logger.warn(
-        `${formatAmount(required - holding)} VIC short of level ${level}, asking anyway.`,
+        `${formatAmount(required - holding)} ${TOKEN_SYMBOL} short of level ${level}, asking anyway.`,
       );
     }
 
@@ -432,8 +369,8 @@ export default class VictorsTools extends FarmerModule {
   /** Report what a holding would mine, prompting for it */
   async estimateMining() {
     const holding = await promptAmount(this.core, {
-      question: "How much VIC?",
-      token: "VIC",
+      question: `How much ${TOKEN_SYMBOL}?`,
+      token: TOKEN_SYMBOL,
     });
 
     if (!holding) return;
@@ -441,7 +378,7 @@ export default class VictorsTools extends FarmerModule {
     const level = this.ctx.mining.findLevelForHolding(holding.toNumber());
 
     this.logger.newline();
-    this.logger.keyValue("VIC Holding", formatAmount(holding));
+    this.logger.keyValue(`${TOKEN_SYMBOL} Holding`, formatAmount(holding));
     this.logger.keyValue("Reachable Level", level);
     this.logger.keyValue(
       "Level Requirement",

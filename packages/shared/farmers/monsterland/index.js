@@ -1,6 +1,6 @@
 import BaseFarmer from "../../lib/BaseFarmer.js";
 import { createContext } from "./context.js";
-import { MINIMUM_WITHDRAWAL } from "./constants.js";
+import auto from "../../autos/monsterland-auto.js";
 
 export default class MonsterlandFarmer extends BaseFarmer {
   static id = "monsterland";
@@ -29,15 +29,7 @@ export default class MonsterlandFarmer extends BaseFarmer {
   static cookies = true;
 
   /** Payouts are native TON (the game calls it GRAM), so the Auto has no jetton */
-  static auto = {
-    id: "monsterland-auto",
-    title: "Monsterland Auto",
-    token: "TON",
-    currency: "LUMIS",
-    jettonAddress: null,
-    storagePrefix: "monsterland-auto",
-    minWithdrawal: MINIMUM_WITHDRAWAL,
-  };
+  static auto = auto;
 
   /** The modules the farmer works through */
   ctx = createContext(this.core);

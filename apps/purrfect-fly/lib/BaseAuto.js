@@ -17,8 +17,11 @@ import { summarizeVault } from "./AutoVault.js";
 
 /** The static entry points the routes call; each drop subclasses this with its own descriptor (see autos.js) */
 class BaseAuto {
-  /** @type {string} id of the farmer this drop farms */
+  /** @type {string|null} id of the farmer this drop farms, null once the Auto is retired */
   static farmerId = null;
+
+  /** @type {boolean} whether no farmer runs the drop any more, leaving only the wallet operations */
+  static retired = false;
 
   /** @type {string} id of the auto itself, e.g. "atf-auto" */
   static id = null;
@@ -192,7 +195,7 @@ class BaseAuto {
 
   /** What every account this server farms for the drop last looked like, from the stored snapshots */
   static snapshots() {
-    return readSnapshots(this.farmerId);
+    return this.retired ? [] : readSnapshots(this.farmerId);
   }
 }
 

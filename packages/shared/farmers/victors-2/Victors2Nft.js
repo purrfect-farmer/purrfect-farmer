@@ -10,7 +10,7 @@ import Decimal from "decimal.js";
 import { promptWalletVersion } from "../../lib/farmer/prompts.js";
 
 /** Viewing and minting the drop's NFTs */
-export default class VictorsNft extends FarmerModule {
+export default class Victors2Nft extends FarmerModule {
   /** Log the collection and the account's own NFTs */
   async nftStatusInteractive() {
     await this.ctx.state.ensureLoaded();

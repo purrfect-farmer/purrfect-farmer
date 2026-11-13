@@ -10,11 +10,12 @@ import {
   MINIMUM_CLAIMABLE_MINING,
   MINING_CLAIM_ATTEMPTS,
   MINING_CLAIM_RETRY_SECONDS,
+  TOKEN_SYMBOL,
 } from "./constants.js";
 import Decimal from "decimal.js";
 
 /** Levels, mining claims, the tutorial and the daily check-in */
-export default class VictorsMining extends FarmerModule {
+export default class Victors2Mining extends FarmerModule {
   /** Dismiss the tutorial the way the page does on first launch */
   async completeTutorialIfNeeded() {
     if (this.ctx.state.user()["tutorialDone"]) return;
@@ -46,11 +47,11 @@ export default class VictorsMining extends FarmerModule {
 
     this.ctx.state.apply(result);
     this.logger.success(
-      `Checked in for day ${result["streak"]}, +${result["reward"]} VIC.`,
+      `Checked in for day ${result["streak"]}, +${result["reward"]} ${TOKEN_SYMBOL}.`,
     );
   }
 
-  /** The VIC holding a level is hired with, priced exactly as the page does */
+  /** The holding a level is hired with, priced exactly as the page does */
   getRequiredHoldingForLevel(level) {
     return getMinerRequiredHolding(level);
   }
@@ -60,7 +61,7 @@ export default class VictorsMining extends FarmerModule {
     return getMinerSpeed(level);
   }
 
-  /** The VIC a level mines per day */
+  /** The tokens a level mines per day */
   getDailyOutputForLevel(level) {
     return getMinerDailyOutput(level);
   }
@@ -83,7 +84,7 @@ export default class VictorsMining extends FarmerModule {
 
     if (targetLevel <= activeLevel) {
       this.logger.info(
-        `Level ${activeLevel} is the highest ${formatAmount(holding)} VIC covers.`,
+        `Level ${activeLevel} is the highest ${formatAmount(holding)} ${TOKEN_SYMBOL} covers.`,
       );
       return;
     }
@@ -172,7 +173,14 @@ export default class VictorsMining extends FarmerModule {
 
     if (pending.lessThan(MINIMUM_CLAIMABLE_MINING)) {
       this.logger.info(
-        `Only ${formatAmount(pending)} VIC mined, waiting for ${MINIMUM_CLAIMABLE_MINING}.`,
+        `Only ${formatAmount(pending)} ${TOKEN_SYMBOL} mined, waiting for ${MINIMUM_CLAIMABLE_MINING}.`,
+      );
+      return;
+    }
+
+    if (!this.ctx.state.isPassActive()) {
+      this.logger.warn(
+        `${formatAmount(pending)} ${TOKEN_SYMBOL} mined, claiming needs the Mine Pass.`,
       );
       return;
     }
@@ -186,7 +194,11 @@ export default class VictorsMining extends FarmerModule {
 
     this.ctx.state.apply(result);
     this.logger.success(
-      `Claimed ${formatAmount(result["claimed"] ?? pending)} VIC.`,
+      `Claimed ${formatAmount(result["claimed"] ?? pending)} ${TOKEN_SYMBOL}.`,
     );
+
+    if (result["voucherUsedUp"]) {
+      this.logger.info("The held loss voucher is now fully used.");
+    }
   }
 }

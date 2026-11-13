@@ -1,8 +1,9 @@
 import FarmerModule from "../../lib/farmer/FarmerModule.js";
 import { formatAmount, logCurrentUser } from "../../lib/farmer/format.js";
+import { TOKEN_SYMBOL } from "./constants.js";
 
 /** What the account looks like, as logged before a pass */
-export default class VictorsAccount extends FarmerModule {
+export default class Victors2Account extends FarmerModule {
   /** Log what the account looks like before the pass starts */
   logInfo() {
     const user = this.ctx.state.user();
@@ -13,6 +14,7 @@ export default class VictorsAccount extends FarmerModule {
     this.logger.newline();
     logCurrentUser(this.logger, this.core.telegramUser());
     this.logger.keyValue("Balance", formatAmount(user["inAppBalance"]));
+    this.logger.keyValue("Mined Balance", formatAmount(user["pureBalance"]));
     this.logger.keyValue(
       "Holding",
       formatAmount(this.ctx.state.data["holding"]),
@@ -47,7 +49,10 @@ export default class VictorsAccount extends FarmerModule {
         ? this.logger.c.greenBright
         : this.logger.c.yellowBright,
     });
-    this.logger.keyValue("On-chain VIC", formatAmount(user["walletBalance"]));
+    this.logger.keyValue(
+      `On-chain ${TOKEN_SYMBOL}`,
+      formatAmount(user["walletBalance"]),
+    );
 
     if (this.ctx.withdrawal.getMinimumHolding()) {
       this.logger.keyValue(
@@ -69,8 +74,8 @@ export default class VictorsAccount extends FarmerModule {
       });
     }
 
-    this.logger.keyValue("Verified", verify["verified"] ? "Yes" : "No", {
-      valueStyle: verify["verified"]
+    this.logger.keyValue("Mine Pass", this.ctx.pass.describe(), {
+      valueStyle: this.ctx.state.isPassActive()
         ? this.logger.c.greenBright
         : this.logger.c.yellowBright,
     });

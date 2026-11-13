@@ -1,8 +1,9 @@
 import FarmerModule from "../../lib/farmer/FarmerModule.js";
 import { escapeHtml, formatAccountLink } from "../../lib/farmer/format.js";
+import { BOT_USERNAME } from "./constants.js";
 
 /** Sign-in, bans and the referral link */
-export default class VictorsSession extends FarmerModule {
+export default class Victors2Session extends FarmerModule {
   /** The ban the drop last reported, with whether it may be reset */
   banInfo = null;
 
@@ -71,7 +72,7 @@ export default class VictorsSession extends FarmerModule {
       `<b>Account</b>: ${formatAccountLink(this.core.userId())}`,
       `<b>Ban</b>: ${escapeHtml(error)}`,
       `<b>Terms</b>: ${escapeHtml(terms)}`,
-      `<i>The balance and progress were wiped, so the wallet must be connected and verified again.</i>`,
+      `<i>The balance and progress were wiped, so the wallet must be connected again.</i>`,
     ];
 
     try {
@@ -113,7 +114,7 @@ export default class VictorsSession extends FarmerModule {
   getReferralLink() {
     return (
       this.ctx.state.data?.referral?.["link"] ||
-      `https://t.me/VictorsCompanybot/app?startapp=ref_${this.ctx.state.data?.referral?.["code"] || ""}`
+      `https://t.me/${BOT_USERNAME}/app?startapp=ref_${this.ctx.state.data?.referral?.["code"] || ""}`
     );
   }
 

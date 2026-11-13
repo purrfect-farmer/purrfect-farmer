@@ -1,3 +1,5 @@
+import auto from "../../autos/diggo-auto.js";
+
 /** The game's backend, served from the page's own origin */
 export const API_URL = "https://diggo.linkpc.net/api";
 
@@ -19,10 +21,9 @@ export const AD_CHECK_ATTEMPTS = 10;
 export const AD_CHECK_INTERVAL_SECONDS = 1.5;
 
 /** The on-chain DIGGO jetton the Auto boosts, swaps and collects */
-export const DIGGO_TOKEN = "DIGGO";
+export const DIGGO_TOKEN = auto.token;
 
-export const DIGGO_JETTON_ADDRESS =
-  "EQD3jHVnwB6upXRphFb-PrWlmiFe6ofGs5pUCDSd-dEVGHNX";
+export const DIGGO_JETTON_ADDRESS = auto.jettonAddress;
 
 /** The page the risk challenge's Turnstile is rendered on */
 export const PAGE_URL = "https://diggo.linkpc.net/";

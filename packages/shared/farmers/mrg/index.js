@@ -1,6 +1,6 @@
 import BaseFarmer from "../../lib/BaseFarmer.js";
 import { createContext } from "./context.js";
-import { MINIMUM_WITHDRAWAL, MRG_JETTON_ADDRESS } from "./constants.js";
+import auto from "../../autos/mrg-auto.js";
 
 export default class MRGFarmer extends BaseFarmer {
   static id = "mrg";
@@ -14,16 +14,7 @@ export default class MRGFarmer extends BaseFarmer {
   static apiDelay = 500;
   static rating = 5;
   static published = true;
-  static auto = {
-    id: "mrg-auto",
-    title: "MRG Auto",
-    token: "MRG",
-    jettonAddress: MRG_JETTON_ADDRESS,
-    storagePrefix: "mrg-auto",
-    minWithdrawal: MINIMUM_WITHDRAWAL,
-    connectWithPhrase: true,
-    verifiable: true,
-  };
+  static auto = auto;
 
   /** The modules the farmer works through */
   ctx = createContext(this.core);

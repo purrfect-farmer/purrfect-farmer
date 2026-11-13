@@ -1,3 +1,5 @@
+import auto from "../../autos/pickaxe-auto.js";
+
 /** The drop's backend, which the mini app talks to for everything */
 export const API_URL = "https://pxe.up.railway.app/api";
 
@@ -15,13 +17,12 @@ export const HEADER = Object.freeze({
 });
 
 /** The PXE jetton the drop pays out and levels against */
-export const PXE_TOKEN = "PXE";
+export const PXE_TOKEN = auto.token;
 
-export const PXE_JETTON_ADDRESS =
-  "EQC6jshzJS1bL0hKVtMfmfcHruJGJPMK7m5A4Oi-EMk6aR5h";
+export const PXE_JETTON_ADDRESS = auto.jettonAddress;
 
 /** The drop's withdrawal minimum, used until the live one has been read */
-export const MINIMUM_WITHDRAWAL = 500;
+export const MINIMUM_WITHDRAWAL = auto.minWithdrawal;
 
 /** The withdrawal fee, by the smallest amount each one applies from */
 export const WITHDRAWAL_FEES = Object.freeze([

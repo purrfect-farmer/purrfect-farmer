@@ -1,3 +1,4 @@
+import AdClients from "../../lib/farmer/AdClients.js";
 import AutoSnapshot from "../../lib/farmer/AutoSnapshot.js";
 import AutoWalletConnector from "../../lib/farmer/AutoWalletConnector.js";
 import {
@@ -5,20 +6,23 @@ import {
   FLAGGED_WITHDRAWAL_STATUSES,
   PENDING_WITHDRAWAL_STATUSES,
 } from "./constants.js";
-import VictorsAccount from "./VictorsAccount.js";
-import VictorsApi from "./VictorsApi.js";
-import VictorsArcade from "./VictorsArcade.js";
-import VictorsAuto from "./VictorsAuto.js";
-import VictorsDevice from "./VictorsDevice.js";
-import VictorsHumanPass from "./VictorsHumanPass.js";
-import VictorsMining from "./VictorsMining.js";
-import VictorsNft from "./VictorsNft.js";
-import VictorsSession from "./VictorsSession.js";
-import VictorsState from "./VictorsState.js";
-import VictorsTasks from "./VictorsTasks.js";
-import VictorsTools from "./VictorsTools.js";
-import VictorsWallet from "./VictorsWallet.js";
-import VictorsWithdrawal from "./VictorsWithdrawal.js";
+import Victors2Account from "./Victors2Account.js";
+import Victors2Ads from "./Victors2Ads.js";
+import Victors2Api from "./Victors2Api.js";
+import Victors2Arcade from "./Victors2Arcade.js";
+import Victors2Auto from "./Victors2Auto.js";
+import Victors2Device from "./Victors2Device.js";
+import Victors2Gifts from "./Victors2Gifts.js";
+import Victors2HumanPass from "./Victors2HumanPass.js";
+import Victors2Mining from "./Victors2Mining.js";
+import Victors2Nft from "./Victors2Nft.js";
+import Victors2Pass from "./Victors2Pass.js";
+import Victors2Session from "./Victors2Session.js";
+import Victors2State from "./Victors2State.js";
+import Victors2Tasks from "./Victors2Tasks.js";
+import Victors2Tools from "./Victors2Tools.js";
+import Victors2Wallet from "./Victors2Wallet.js";
+import Victors2Withdrawal from "./Victors2Withdrawal.js";
 import WalletConnectPrompts from "../../lib/farmer/WalletConnectPrompts.js";
 import WalletVerifier from "../../lib/farmer/WalletVerifier.js";
 import WalletVersion from "../../lib/farmer/WalletVersion.js";
@@ -32,22 +36,27 @@ export function createContext(core) {
   const ctx = {};
   const deps = { core, ctx };
 
-  ctx.state = new VictorsState(deps);
-  ctx.api = new VictorsApi(deps);
-  ctx.device = new VictorsDevice(deps);
-  ctx.session = new VictorsSession(deps);
-  ctx.humanPass = new VictorsHumanPass(deps);
-  ctx.wallet = new VictorsWallet(deps);
-  ctx.mining = new VictorsMining(deps);
-  ctx.tasks = new VictorsTasks(deps);
-  ctx.arcade = new VictorsArcade(deps);
-  ctx.withdrawal = new VictorsWithdrawal(deps);
-  ctx.account = new VictorsAccount(deps);
-  ctx.auto = new VictorsAuto(deps);
-  ctx.nft = new VictorsNft(deps);
-  ctx.tools = new VictorsTools(deps);
+  ctx.state = new Victors2State(deps);
+  ctx.api = new Victors2Api(deps);
+  ctx.device = new Victors2Device(deps);
+  ctx.session = new Victors2Session(deps);
+  ctx.humanPass = new Victors2HumanPass(deps);
+  ctx.wallet = new Victors2Wallet(deps);
+  ctx.pass = new Victors2Pass(deps);
+  ctx.mining = new Victors2Mining(deps);
+  ctx.tasks = new Victors2Tasks(deps);
+  ctx.adWatcher = new Victors2Ads(deps);
+  ctx.gifts = new Victors2Gifts(deps);
+  ctx.arcade = new Victors2Arcade(deps);
+  ctx.withdrawal = new Victors2Withdrawal(deps);
+  ctx.account = new Victors2Account(deps);
+  ctx.auto = new Victors2Auto(deps);
+  ctx.nft = new Victors2Nft(deps);
+  ctx.tools = new Victors2Tools(deps);
 
   ctx.walletVersion = new WalletVersion(() => core.storage);
+
+  ctx.ads = new AdClients(() => core.adClientOptions());
 
   ctx.withdrawals = new WithdrawalQueue({
     read: () => ctx.withdrawal.getWithdrawals(),
@@ -84,10 +93,10 @@ export function createContext(core) {
 
   ctx.verifier = new WalletVerifier({
     ensureLoaded: () => ctx.state.ensureLoaded(),
-    isVerified: () => Boolean(ctx.state.verify()["verified"]),
+    isVerified: () => ctx.state.isPassActive(),
     hasWallet: () => Boolean(ctx.wallet.getConnectedWalletAddress()),
     connect: (wallet) => ctx.auto.connectWallet(wallet),
-    pay: (wallet) => ctx.wallet.verifyWalletIfNeeded(wallet),
+    pay: (wallet) => ctx.pass.pay(wallet),
     summary: () => ctx.auto.summary(),
     refreshSummary: () => ctx.auto.refreshSummary(),
     notConfirmedMessage: "Not confirmed yet, check again",

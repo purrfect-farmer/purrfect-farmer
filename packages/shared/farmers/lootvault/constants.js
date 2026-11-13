@@ -1,3 +1,5 @@
+import auto from "../../autos/lootvault-auto.js";
+
 /** The drop's backend, which the mini app talks to for everything */
 export const API_URL = "https://lootvault.lol/vx";
 
@@ -5,10 +7,9 @@ export const API_URL = "https://lootvault.lol/vx";
 export const INIT_DATA_HEADER = "X-TG-Init";
 
 /** The LOOT jetton the drop pays out and levels against */
-export const LOOT_TOKEN = "LOOT";
+export const LOOT_TOKEN = auto.token;
 
-export const LOOT_JETTON_ADDRESS =
-  "EQCM4DEzDVFLq7kaSodQX-8-u_aF9M9DDe1EePWsuMozqGkt";
+export const LOOT_JETTON_ADDRESS = auto.jettonAddress;
 
 /** LOOT amounts travel in nano, at 9 decimals */
 export const LOOT_DECIMALS = 9;
@@ -26,7 +27,7 @@ export const MINIMUM_COLLECT = 1e9;
 export const MINIMUM_TOWER_COLLECT = 0.001;
 
 /** The drop's withdrawal rules, used until the live ones have been read */
-export const MINIMUM_WITHDRAWAL = 10000;
+export const MINIMUM_WITHDRAWAL = auto.minWithdrawal;
 
 /** The error codes the backend answers with */
 export const ERROR_CODE = Object.freeze({
