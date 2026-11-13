@@ -84,21 +84,28 @@ export const telegramWeb = [
   },
 ];
 
-export const utils = [
-  /** Extra */
+/** The tab of one Auto's wallet manager */
+const createAutoTab = (config) => ({
+  id: config.id,
+  title: config.title,
+  icon: config.icon,
+  tabType: "auto",
+  component: createElement(Auto, { config }),
+});
+
+/** One wallet manager per Auto (ATF Auto, Pika Bolt, ...), the retired ones listed apart */
+export const autoGroups = [
   {
-    name: "Extra",
-    list: [
-      /** One wallet manager per Auto drop (ATF Auto, Pika Bolt, ...) */
-      ...autos.map((config) => ({
-        id: config.id,
-        title: config.title,
-        icon: config.icon,
-        tabType: "auto",
-        component: createElement(Auto, { config }),
-      })),
-    ],
+    name: "Active",
+    list: autos.filter((config) => !config.retired).map(createAutoTab),
   },
+  {
+    name: "Retired",
+    list: autos.filter((config) => config.retired).map(createAutoTab),
+  },
+].filter((group) => group.list.length > 0);
+
+export const utils = [
   /** Account */
   {
     name: "Account",
@@ -273,6 +280,7 @@ export { farmers };
 export default [
   ...app,
   ...telegramWeb,
+  ...autoGroups.map((group) => group.list).flat(),
   ...utils.map((u) => u.list).flat(),
   ...farmers,
 ];

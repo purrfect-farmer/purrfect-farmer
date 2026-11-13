@@ -1,4 +1,4 @@
-import { HiBolt, HiOutlineArrowPath, HiOutlineXMark } from "react-icons/hi2";
+import { HiOutlineArrowPath, HiOutlineXMark, HiWallet } from "react-icons/hi2";
 import { memo, useCallback, useRef } from "react";
 
 import BrowserIcon from "@/assets/images/browser.png?w=80&format=webp";
@@ -78,7 +78,7 @@ export default memo(function TabButton({
               "border-2 border-white dark:border-neutral-800",
             )}
           >
-            <HiBolt className="size-2.5" />
+            <HiWallet className="size-2.5" />
           </span>
         ) : null}
         {showMirrorStatus ? (

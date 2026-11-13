@@ -18,7 +18,7 @@ export default function useApp() {
   /** Utils Panel Tabs */
   const utilsPanelTabs = useMirroredTabs(
     "app.utils-panel-tabs",
-    ["utils", "system"],
+    ["utils", "autos", "system"],
     "utils",
   );
 

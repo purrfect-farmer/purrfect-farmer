@@ -14,8 +14,43 @@ import Input from "@/components/Input";
 import LabelToggle from "@/components/LabelToggle";
 import Tabs from "@/components/Tabs";
 import useAppContext from "@/hooks/useAppContext";
-import { utils } from "@/core/tabs";
+import { autoGroups, utils } from "@/core/tabs";
 import useMirroredState from "@/hooks/useMirroredState";
+
+/** A list of launchable tabs under their group names, each closing the panel as it opens */
+const TabGroups = memo(function TabGroups({ groups, onLaunch }) {
+  return groups.map((group) => (
+    <Fragment key={group.name}>
+      {/* Group name */}
+      <h2
+        className={cn(
+          "text-neutral-500 dark:text-neutral-400",
+          "font-bold px-4",
+        )}
+      >
+        {group.name}
+      </h2>
+
+      {/* Group tabs */}
+      {group.list.map((tab) => (
+        <Dialog.Close
+          onClick={() => onLaunch(tab)}
+          key={tab.id}
+          className={cn(
+            "bg-neutral-100 dark:bg-neutral-700",
+            "flex items-center gap-2 p-2 cursor-pointer rounded-xl",
+            "text-left",
+          )}
+        >
+          <img src={tab.icon} className={cn("w-6 h-6 rounded-full shrink-0")} />
+          <h3 className={cn("min-w-0 truncate w-full", "font-bold")}>
+            {tab.title}
+          </h3>
+        </Dialog.Close>
+      ))}
+    </Fragment>
+  ));
+});
 
 export default memo(function UtilsPanel() {
   const {
@@ -133,39 +168,14 @@ export default memo(function UtilsPanel() {
           </div>
         </Tabs.Content>
 
+        {/* Autos */}
+        <Tabs.Content value="autos" className="flex flex-col gap-2">
+          <TabGroups groups={autoGroups} onLaunch={launchTab} />
+        </Tabs.Content>
+
         {/* System */}
         <Tabs.Content value="system" className="flex flex-col gap-2">
-          {utils.map((group) => (
-            <Fragment key={group.name}>
-              <h2
-                className={cn(
-                  "text-neutral-500 dark:text-neutral-400",
-                  "font-bold px-4",
-                )}
-              >
-                {group.name}
-              </h2>
-              {group.list.map((tab) => (
-                <Dialog.Close
-                  onClick={() => launchTab(tab)}
-                  key={tab.id}
-                  className={cn(
-                    "bg-neutral-100 dark:bg-neutral-700",
-                    "flex items-center gap-2 p-2 cursor-pointer rounded-xl",
-                    "text-left",
-                  )}
-                >
-                  <img
-                    src={tab.icon}
-                    className={cn("w-6 h-6 rounded-full shrink-0")}
-                  />
-                  <h3 className={cn("min-w-0 truncate w-full", "font-bold")}>
-                    {tab.title}
-                  </h3>
-                </Dialog.Close>
-              ))}
-            </Fragment>
-          ))}
+          <TabGroups groups={utils} onLaunch={launchTab} />
         </Tabs.Content>
       </Tabs>
     </BottomDialog>

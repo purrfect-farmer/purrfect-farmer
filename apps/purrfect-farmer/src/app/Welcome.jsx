@@ -10,6 +10,7 @@ import {
   HiOutlineGlobeAlt,
   HiOutlinePower,
   HiOutlinePuzzlePiece,
+  HiOutlineWallet,
 } from "react-icons/hi2";
 import { cn, isExtension } from "@/utils";
 import { forwardRef, memo } from "react";
@@ -220,6 +221,13 @@ export default memo(function Welcome() {
                 icon={HiOutlineArrowUpRight}
               />
             ) : null}
+
+            {/* Open Autos */}
+            <ToolbarButton
+              title="Open Autos"
+              onClick={() => dispatchAndOpenUtilsPanel("autos")}
+              icon={HiOutlineWallet}
+            />
 
             {/* Open System Utils */}
             <ToolbarButton
