@@ -30,6 +30,13 @@ export const HUMAN_REQUIRED_CODE = "HUMAN_REQUIRED";
 /** The error code a banned account gets, with whether it may reset and the terms it must accept */
 export const BANNED_CODE = "BANNED";
 
+/** The status the drop answers with while its server is crowded, asking for a retry in a few seconds */
+export const SERVER_BUSY_STATUS = 503;
+
+export const SERVER_BUSY_ATTEMPTS = 5;
+
+export const SERVER_BUSY_RETRY_SECONDS = 4;
+
 /** The Mine Pass statuses, as the account state reports them */
 export const PASS_STATUS = Object.freeze({
   NONE: "none",

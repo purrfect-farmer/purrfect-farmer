@@ -5,6 +5,9 @@ import {
   API_URL,
   BANNED_CODE,
   HUMAN_REQUIRED_CODE,
+  SERVER_BUSY_ATTEMPTS,
+  SERVER_BUSY_RETRY_SECONDS,
+  SERVER_BUSY_STATUS,
 } from "./constants.js";
 
 /** The drop's API: its transport and one method per endpoint */
@@ -32,6 +35,32 @@ export default class Victors2Api extends FarmerModule {
     };
   }
 
+  /** Send one call, waiting out the busy answer the drop gives when its server is crowded */
+  async request(method, path, data) {
+    for (let attempt = 1; ; attempt++) {
+      const response = await this.api.request({
+        method,
+        url: `${API_URL}${path}`,
+        data: method === "post" ? data || {} : undefined,
+        signal: this.signal,
+        validateStatus: () => true,
+      });
+
+      const isBusy = response.status === SERVER_BUSY_STATUS;
+
+      if (!isBusy || attempt >= SERVER_BUSY_ATTEMPTS || this.signal.aborted) {
+        return response;
+      }
+
+      this.logger.warn(
+        `The drop is busy, retrying in ${SERVER_BUSY_RETRY_SECONDS}s...`,
+      );
+      await this.utils.delayForSeconds(SERVER_BUSY_RETRY_SECONDS, {
+        signal: this.signal,
+      });
+    }
+  }
+
   /** Call the drop's API, re-passing the human check or resetting a ban, then replaying the call once */
   async callApi(
     method,
@@ -44,14 +73,7 @@ export default class Victors2Api extends FarmerModule {
       readServerRefusal = false,
     } = {},
   ) {
-    const response = await this.api.request({
-      method,
-      url: `${API_URL}${path}`,
-      data: method === "post" ? data || {} : undefined,
-      signal: this.signal,
-      validateStatus: () => true,
-    });
-
+    const response = await this.request(method, path, data);
     const payload = response.data || {};
 
     if (payload["code"] === BANNED_CODE) {
