@@ -7,4 +7,5 @@ export default Object.freeze({
   storagePrefix: "victors-2-auto",
   minWithdrawal: 1500,
   verifiable: true,
+  connectWithPhrase: true,
 });

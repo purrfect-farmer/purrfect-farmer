@@ -5,8 +5,8 @@ export const DEEP_MINE = {
   layerRows: 8,
   safeRows: 2,
   hearts: 3,
-  bagCap: 1.15,
-  refundRate: 0.9,
+  bagCap: 1.12,
+  refundRate: 0.6,
 };
 
 /** Hardness, treasure multiplier, hazard rate per mille and the hazard kinds each layer draws from */
@@ -37,8 +37,8 @@ const DRINK_COST = 10;
 /** The server's coin multiplier on top of the layer's, before the payout dial */
 const COIN_FACTOR = 1.08;
 
-/** Below this payout dial even the shovel loses (break-even is near 73) */
-export const MINIMUM_PAYOUT_DIAL = 80;
+/** Below this payout dial even the shovel loses (break-even is between 80 and 85) */
+export const MINIMUM_PAYOUT_DIAL = 90;
 
 /** Average base coins of each loot tier, and the tier odds per 10000 */
 const LOOT_TIERS = [
@@ -124,8 +124,8 @@ export function pickTool(balance) {
   );
 }
 
-/** The most a run can pay out, as the server rounds it */
-function getPayoutCap(spent) {
+/** The most the bag can hold, as the server rounds it */
+function getBagLimit(spent) {
   return round1(spent * DEEP_MINE.bagCap);
 }
 
@@ -138,14 +138,27 @@ function getRefund(tool, energy, drinks) {
   );
 }
 
+/** The most a run pays out at a refund: the refund plus the bag cap over the rest of the spend */
+function getPayoutLimit(spent, refund) {
+  return round1(refund + DEEP_MINE.bagCap * Math.max(0, spent - refund));
+}
+
+/** What climbing out pays: the bag, topped up with the refund until the payout limit */
+function getQuitValue(spent, bag, refund) {
+  const topUp = Math.min(
+    refund,
+    Math.max(0, round1(getPayoutLimit(spent, refund) - bag)),
+  );
+
+  return round1(bag + topUp);
+}
+
 /** The `cap` a fresh run with no extra gear reports, which changes whenever the cap or refund rules do */
 export function getStartCap(toolName) {
   const tool = TOOLS[toolName];
+  const refund = getRefund(tool, tool.energy, 0);
 
-  return Math.max(
-    0,
-    round1(getPayoutCap(tool.cost) - getRefund(tool, tool.energy, 0)),
-  );
+  return Math.max(0, round1(getPayoutLimit(tool.cost, refund) - refund));
 }
 
 /** Read the run's strings into a grid helper */
@@ -234,11 +247,13 @@ export function chooseMove(run, { dial = 100 } = {}) {
   const grid = readRun(run);
   const items = run.items || {};
   const drinks = items.drink || 0;
-  const payoutCap = getPayoutCap(run.spent ?? tool.cost);
+  const spent = run.spent ?? tool.cost;
+  const bagLimit = getBagLimit(spent);
   const refundPerEnergy = (DEEP_MINE.refundRate * tool.cost) / tool.energy;
-  const quitValue = Math.min(
-    run.bag + getRefund(tool, run.energy, drinks),
-    payoutCap,
+  const quitValue = getQuitValue(
+    spent,
+    run.bag,
+    getRefund(tool, run.energy, drinks),
   );
 
   /** A found scanner shows what lies around the deepest tunnel */
@@ -284,8 +299,8 @@ export function chooseMove(run, { dial = 100 } = {}) {
         ? getRefund(tool, run.energy - cost, drinks)
         : drinks * DEEP_MINE.refundRate * DRINK_COST;
     const safeCoins = hazard < 1 ? (loot / (1 - hazard)) * coins : 0;
-    const safeGain =
-      Math.min(run.bag + safeCoins + refundAfter, payoutCap) - quitValue;
+    const safeBag = Math.min(run.bag + safeCoins, bagLimit);
+    const safeGain = getQuitValue(spent, safeBag, refundAfter) - quitValue;
     const hitLoss =
       lethal * quitValue +
       (1 - lethal) * (cost * refundPerEnergy + HEART_PENALTY);
