@@ -87,6 +87,18 @@ export async function deriveMnemonicFromTelegramId(id, passphrase = "") {
   }
 }
 
+/** The wallet derived from a Telegram ID, or null without a numeric ID or a passphrase to keep it private */
+export async function deriveWalletFromTelegramId(id, passphrase, version = 5) {
+  /* Refuse what anyone could rebuild from a public ID */
+  if (!/^\d+$/.test(String(id ?? "")) || !passphrase) return null;
+
+  /* Derive the phrase and its address */
+  const words = await deriveMnemonicFromTelegramId(String(id), passphrase);
+  const address = await getWalletAddressFromMnemonic(words, Number(version));
+
+  return { phrase: words.join(" "), address, version: Number(version) };
+}
+
 /** Non-bounceable addresses of every common wallet version, newest first */
 export function getWalletAddressesFromPublicKey(publicKey) {
   return [

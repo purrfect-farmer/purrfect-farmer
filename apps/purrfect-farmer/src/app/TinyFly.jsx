@@ -5,6 +5,7 @@ import BrowserLogger from "@purrfect/shared/lib/BrowserLogger";
 import CronRunner from "@purrfect/shared/lib/CronRunner.js";
 import TerminalArea from "@/components/TerminalArea";
 import axios from "axios";
+import { createAutoWalletProvider } from "@/core/autos";
 import { memo } from "react";
 import storage from "@/lib/storage";
 import useAppContext from "@/hooks/useAppContext";
@@ -51,6 +52,7 @@ const createInstance = ({
         client,
         allowProfileUpdates,
         taskRetries,
+        autoWalletProvider: createAutoWalletProvider(this),
       });
 
       this.registerDelayInterceptor();

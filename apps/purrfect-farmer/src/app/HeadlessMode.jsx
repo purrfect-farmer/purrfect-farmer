@@ -8,6 +8,7 @@ import TelegramWebClient from "@/lib/TelegramWebClient";
 import TerminalArea from "@/components/TerminalArea";
 import { accountStorageKey } from "@/lib/storageKeys";
 import axios from "axios";
+import { createAutoWalletProvider } from "@/core/autos";
 import farmers from "@/core/farmers";
 import storage from "@/lib/storage";
 import { useEffect } from "react";
@@ -69,6 +70,7 @@ const createRunner = ({ FarmerClass, logger, captcha, controller }) => {
         controller,
         allowProfileUpdates: Boolean(settings.allowProfileUpdates),
         taskRetries: settings.taskRetries,
+        autoWalletProvider: createAutoWalletProvider(this),
       });
 
       this.registerDelayInterceptor();

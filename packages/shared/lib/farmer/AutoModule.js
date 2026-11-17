@@ -17,9 +17,9 @@ export default class AutoModule extends FarmerModule {
     return this.ctx.wallet.getConnectedWalletAddress() || null;
   }
 
-  /** Whether the host keeps wallets and the drop has none connected yet */
-  canConnectStoredWallet() {
-    if (!this.core.autoWalletProvider?.getStoredWallet) return false;
+  /** Whether the host keeps or derives wallets and the drop has none connected yet */
+  canConnectAccountWallet() {
+    if (!this.core.autoWalletProvider?.getAccountWallet) return false;
 
     /** A drop whose state can't be read yet has nothing to connect to */
     try {
@@ -29,10 +29,10 @@ export default class AutoModule extends FarmerModule {
     }
   }
 
-  /** Connect the wallet the host keeps for this account and drop, never failing the run */
-  async connectStoredWallet() {
+  /** Connect the wallet the host keeps or derives for this account and drop, never failing the run */
+  async connectAccountWallet() {
     try {
-      const wallet = await this.core.autoWalletProvider.getStoredWallet();
+      const wallet = await this.core.autoWalletProvider.getAccountWallet();
 
       if (!wallet) return;
 
@@ -40,14 +40,14 @@ export default class AutoModule extends FarmerModule {
       const result = await this.connectWallet({ ...wallet, refresh: false });
 
       if (result?.status) {
-        this.logger.success(`Connected the stored wallet ${wallet.address}`);
+        this.logger.success(`Connected the account wallet ${wallet.address}`);
       } else {
         const reason = result?.message || "Unknown error";
 
-        this.logger.warn(`Stored wallet not connected: ${reason}`);
+        this.logger.warn(`Account wallet not connected: ${reason}`);
       }
     } catch (error) {
-      this.logger.warn(`Stored wallet not connected: ${error.message}`);
+      this.logger.warn(`Account wallet not connected: ${error.message}`);
     }
   }
 

@@ -17,7 +17,7 @@ import { getRunResult, runFarmer } from "./runner/run.js";
 import { logRunnerConfig, resolveRunnerConfig } from "./runner/config.js";
 import { REFERRER_MODE } from "../enums/referrer-mode.js";
 import { createFarmerStorage } from "./runner/storage.js";
-import { getStoredAutoWallet } from "./runner/stored-wallet.js";
+import { getAccountAutoWallet } from "./runner/account-wallet.js";
 import { saveSerialized } from "../lib/db-write.js";
 import { AccountRemovedError, isTransientError } from "./runner/errors.js";
 import { withRetries } from "@purrfect/shared/utils/retry.js";
@@ -103,12 +103,12 @@ export default function createRunner(FarmerClass) {
       /** Farmer row storage */
       this.configure({ storage: createFarmerStorage(this) });
 
-      /** An Auto drop connects the wallet pushed for this account when it has none */
+      /** An Auto drop connects the account's pushed or derived wallet when it has none */
       if (this.constructor.auto) {
         this.configure({
           autoWalletProvider: {
-            getStoredWallet: () =>
-              getStoredAutoWallet(this.account.id, this.constructor.auto.id),
+            getAccountWallet: () =>
+              getAccountAutoWallet(this.account.id, this.constructor.auto.id),
           },
         });
       }

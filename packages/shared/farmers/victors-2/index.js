@@ -39,7 +39,7 @@ export default class VictorsCompany2Farmer extends BaseFarmer {
     account.logInfo();
     checkTokenContract(this.core, state.config()["jettonMaster"]);
 
-    await this.connectStoredAutoWallet();
+    await this.connectAccountAutoWallet();
     await this.executeTask("Tutorial", () => mining.completeTutorialIfNeeded());
     await this.executeTask("Check-in", () => mining.claimCheckIn());
     await this.executeTask("Level", () => mining.unlockAffordableLevel());

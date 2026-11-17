@@ -8,6 +8,10 @@ import {
   isNativeAuto,
 } from "@purrfect/shared/lib/auto/native.js";
 import { encryption } from "@/services/encryption";
+import {
+  getDerivedWallet,
+  getDerivedWalletSettings,
+} from "@/lib/derivedWallet";
 import { sharedStorageKey } from "@/lib/storageKeys";
 
 /** Every Auto's descriptor, one file each, kept after its drop's farmer is removed */
@@ -135,6 +139,19 @@ export function getAutoWalletSources(farmerId) {
     })
     .filter((source) => source.master && source.accounts.length > 0)
     .sort((a, b) => Number(b.own) - Number(a.own));
+}
+
+/** The Auto wallet provider a farmer is configured with, in every run mode */
+export function createAutoWalletProvider(farmer) {
+  return {
+    getSources: () => getAutoWalletSources(farmer.constructor.id),
+
+    /** The derived wallet, when auto-connect is on */
+    getAccountWallet: () =>
+      getDerivedWalletSettings().autoConnect
+        ? getDerivedWallet(farmer.getUserId())
+        : null,
+  };
 }
 
 customLogger("AUTOS", autos);

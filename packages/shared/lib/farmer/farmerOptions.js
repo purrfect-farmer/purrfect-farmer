@@ -51,7 +51,7 @@ export const FARMER_OPTIONS = Object.freeze({
     farmer.promptAnswer = promptAnswer;
     farmer.promptCancel = promptCancel;
   },
-  /** { getSources(): Array<{ id, title, own, accounts, decryptPhrase(account, password) }> } */
+  /** { getSources(): Array<{ id, title, own, accounts, decryptPhrase(account, password) }>, getAccountWallet?(): Promise<{ phrase, address, version } | null> } */
   autoWalletProvider: (farmer, autoWalletProvider) => {
     farmer.autoWalletProvider = autoWalletProvider;
   },

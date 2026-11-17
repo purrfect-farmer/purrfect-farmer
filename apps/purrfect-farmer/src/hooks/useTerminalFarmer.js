@@ -1,7 +1,7 @@
 import { useLayoutEffect, useRef, useState } from "react";
 
 import { customLogger } from "@/utils";
-import { getAutoWalletSources } from "@/core/autos";
+import { createAutoWalletProvider } from "@/core/autos";
 import toast from "react-hot-toast";
 import useAppContext from "./useAppContext";
 import { useEffect } from "react";
@@ -209,11 +209,9 @@ export default function useTerminalFarmer() {
   /** Configure Auto Wallets */
   useLayoutEffect(() => {
     instance.configure({
-      autoWalletProvider: {
-        getSources: () => getAutoWalletSources(FarmerClass.id),
-      },
+      autoWalletProvider: createAutoWalletProvider(instance),
     });
-  }, [instance, FarmerClass.id]);
+  }, [instance]);
 
   /** Initialize Logger */
   useLayoutEffect(() => {

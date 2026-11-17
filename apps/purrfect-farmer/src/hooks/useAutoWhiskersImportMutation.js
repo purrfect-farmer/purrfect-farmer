@@ -1,6 +1,6 @@
 import { encryption } from "@/services/encryption";
+import { generateAccountPhrase } from "@/lib/derivedWallet";
 import { getWalletAddressFromMnemonic } from "@purrfect/shared/lib/ton/wallet";
-import { mnemonicNew } from "@ton/crypto";
 import useAuto from "./useAuto";
 import useAutoProgress from "./useAutoProgress";
 import useAutoStateBackup from "./useAutoStateBackup";
@@ -43,8 +43,8 @@ export default function useAutoWhiskersImportMutation() {
         if (candidate.existingId) {
           updatedTitles.set(candidate.existingId, candidate.title);
         } else {
-          const mnemonic = await mnemonicNew();
-          const phrase = mnemonic.join(" ");
+          /* Derive the wallet from the Telegram ID when possible */
+          const { phrase } = await generateAccountPhrase(candidate.userId);
 
           const [address, encryptedPhrase] = await Promise.all([
             getWalletAddressFromMnemonic(phrase, candidate.version),

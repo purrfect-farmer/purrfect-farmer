@@ -34,7 +34,7 @@ export default class DiggoFarmer extends BaseFarmer {
 
     account.logInfo();
 
-    await this.connectStoredAutoWallet();
+    await this.connectAccountAutoWallet();
     await this.executeTask("Security Check", () => risk.clear());
     await this.executeTask("Mining", () => tasks.claimPendingMining());
     await this.executeTask("Tasks", () => tasks.completeTasks());

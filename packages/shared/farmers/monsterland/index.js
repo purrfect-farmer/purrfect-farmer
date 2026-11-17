@@ -46,7 +46,7 @@ export default class MonsterlandFarmer extends BaseFarmer {
 
     account.logInfo();
 
-    await this.connectStoredAutoWallet();
+    await this.connectAccountAutoWallet();
     await this.executeTask("Streak", () => rewards.claimStreak());
     await this.executeTask("Referrals", () => rewards.claimReferrals());
     await this.executeTask("Eggs", () => eggs.manageEggs());

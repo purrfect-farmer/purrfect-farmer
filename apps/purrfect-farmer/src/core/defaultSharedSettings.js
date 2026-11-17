@@ -21,6 +21,8 @@ const defaultSharedSettings = {
   shareCloudProxy: true,
   telegramClient: "purrfect-gram",
   preferredTelegramWebVersion: "k",
+  autoConnectDerivedWallet: false,
+  derivedWalletPassphrase: "",
 };
 
 export default defaultSharedSettings;

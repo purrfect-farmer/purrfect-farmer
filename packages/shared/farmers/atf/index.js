@@ -38,7 +38,7 @@ export default class ATFFarmer extends BaseFarmer {
     await session.login();
 
     try {
-      await this.connectStoredAutoWallet();
+      await this.connectAccountAutoWallet();
       await this.executeTask("Presence", () => activity.syncPresence());
       await account.logUserInfo(state.data.user);
       await this.executeTask("Daily Interaction", () =>

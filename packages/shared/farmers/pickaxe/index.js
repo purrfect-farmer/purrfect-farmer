@@ -32,7 +32,7 @@ export default class PickaxeFarmer extends BaseFarmer {
     await state.load();
 
     if (state.isPlayable()) {
-      await this.connectStoredAutoWallet();
+      await this.connectAccountAutoWallet();
     }
 
     const reason = state.unplayableReason();

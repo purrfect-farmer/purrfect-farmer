@@ -271,6 +271,23 @@ export const ENV_FIELDS = [
     help: "Farmer tasks may change account names or bios.",
   },
   {
+    key: "AUTO_CONNECT_DERIVED_WALLET",
+    group: "cron",
+    label: "Auto-connect derived wallets",
+    type: "boolean",
+    default: false,
+    help: "Auto farmers without a pushed wallet connect the one derived from the account's Telegram ID.",
+  },
+  {
+    key: "DERIVED_WALLET_PASSPHRASE",
+    group: "cron",
+    label: "Derived wallet passphrase",
+    type: "secret",
+    requiredWhen: "AUTO_CONNECT_DERIVED_WALLET",
+    warning: "Changing this derives different wallets for every account.",
+    help: "Keeps derived wallets private. Use the same passphrase as the TON Wallet Deriver.",
+  },
+  {
     key: "TASK_RETRY_COUNT",
     group: "cron",
     label: "Task retries",
@@ -463,14 +480,17 @@ export function isFieldRequired(field, values = {}) {
 
 /** Validate one value, with the other env values for fields required by a switch */
 export function validateField(field, value, values = {}) {
-  const text = value === null || value === undefined ? "" : String(value).trim();
+  const text =
+    value === null || value === undefined ? "" : String(value).trim();
 
   if (/[\r\n]/.test(String(value ?? ""))) {
     return "Must be a single line.";
   }
 
   if (text === "") {
-    return isFieldRequired(field, values) ? `${field.label} is required.` : null;
+    return isFieldRequired(field, values)
+      ? `${field.label} is required.`
+      : null;
   }
 
   switch (field.type) {
@@ -506,7 +526,9 @@ export function validateField(field, value, values = {}) {
     case "url":
       try {
         const url = new URL(text);
-        return /^https?:$/.test(url.protocol) ? null : "Must start with https://";
+        return /^https?:$/.test(url.protocol)
+          ? null
+          : "Must start with https://";
       } catch {
         return "Must be a full link starting with https://";
       }

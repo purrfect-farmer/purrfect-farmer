@@ -9,8 +9,8 @@ import PrimaryButton from "./PrimaryButton";
 import Select from "./Select";
 import Textarea from "./Textarea";
 import { cn } from "@/utils";
+import { generateAccountPhrase } from "@/lib/derivedWallet";
 import { getWalletAddressFromMnemonic } from "@purrfect/shared/lib/ton/wallet";
-import { mnemonicNew } from "@ton/crypto";
 import toast from "react-hot-toast";
 import { yup } from "@/lib/yup";
 import { yupResolver } from "@hookform/resolvers/yup";
@@ -56,10 +56,15 @@ export default function AutoAccountForm({
   const phrase = form.watch("phrase");
   const version = form.watch("version");
 
+  /** The handler for generating a wallet, derived from the Telegram User ID when possible */
   const generatePhrase = async () => {
-    const mnemonic = await mnemonicNew();
-    form.setValue("phrase", mnemonic.join(" "));
-    toast.success("New wallet generated!");
+    const userId = String(form.getValues("userId") ?? "").trim();
+    const { phrase, derived } = await generateAccountPhrase(userId);
+
+    form.setValue("phrase", phrase);
+    toast.success(
+      derived ? "Derived wallet generated!" : "New wallet generated!",
+    );
   };
 
   useEffect(() => {

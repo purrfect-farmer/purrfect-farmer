@@ -31,7 +31,7 @@ export default class MRGFarmer extends BaseFarmer {
     await session.updatePresence(true);
 
     await account.logInfo();
-    await this.connectStoredAutoWallet();
+    await this.connectAccountAutoWallet();
     await this.executeTask("Human Check", () => humanCheck.ensure());
     await this.executeTask("Check-In", () => mining.checkInDaily());
     await this.executeTask("Level", () => mining.unlockAffordableLevel());

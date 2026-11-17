@@ -58,6 +58,13 @@ export default {
   disableTelegramMessages: env("DISABLE_TELEGRAM_MESSAGES", false),
   allowProfileUpdates: env("ALLOW_PROFILE_UPDATES", false),
 
+  /** Derived wallets for Auto farmers */
+  derivedWallet: {
+    autoConnect: env("AUTO_CONNECT_DERIVED_WALLET", false),
+    /** Raw text, since typed parsing would turn a numeric passphrase into a number */
+    passphrase: process.env.DERIVED_WALLET_PASSPHRASE || "",
+  },
+
   /** Server admin (private notifications) */
   admin: {
     telegramId: env("SERVER_ADMIN_TELEGRAM_ID", ""),

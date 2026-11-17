@@ -31,7 +31,7 @@ export default class MyAgeFarmer extends BaseFarmer {
     await state.load();
 
     if (state.isPlayable()) {
-      await this.connectStoredAutoWallet();
+      await this.connectAccountAutoWallet();
     }
 
     const reason = state.unplayableReason();

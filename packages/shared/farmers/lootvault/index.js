@@ -30,7 +30,7 @@ export default class LootVaultFarmer extends BaseFarmer {
 
     /** Connecting a wallet is how an unregistered account registers, which reloads the state */
     if (!state.isBlocked() && !state.isMaintenance()) {
-      await this.connectStoredAutoWallet();
+      await this.connectAccountAutoWallet();
     }
 
     const reason = state.unplayableReason();

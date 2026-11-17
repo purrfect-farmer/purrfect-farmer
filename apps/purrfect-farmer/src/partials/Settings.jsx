@@ -23,6 +23,7 @@ import Seeker from "./Seeker";
 import SeekerOptionsGroup from "./Settings/SeekerOptionsGroup";
 import SettingsActions from "./Settings/SettingsActions";
 import UserAgentOptionsGroup from "./Settings/UserAgentOptionsGroup";
+import WalletOptionsGroup from "./Settings/WalletOptionsGroup";
 import { SettingsContainer } from "./Settings/SettingsComponents";
 
 export default memo(function Settings({ tabs }) {
@@ -63,7 +64,7 @@ export default memo(function Settings({ tabs }) {
       /** Resize Page */
       resizeSettingsPage();
     },
-    [configureSharedSettings, resizeSettingsPage]
+    [configureSharedSettings, resizeSettingsPage],
   );
 
   /** Set Farmer Position */
@@ -73,8 +74,11 @@ export default memo(function Settings({ tabs }) {
         "farmerPosition",
         Math.max(
           1,
-          Math.min(sharedSettings.farmersPerWindow, Number(farmerPosition) || 1)
-        )
+          Math.min(
+            sharedSettings.farmersPerWindow,
+            Number(farmerPosition) || 1,
+          ),
+        ),
       );
 
       resizeSettingsPage();
@@ -83,7 +87,7 @@ export default memo(function Settings({ tabs }) {
       resizeSettingsPage,
       configureSharedSettings,
       sharedSettings.farmersPerWindow,
-    ]
+    ],
   );
 
   /** Toggle Drop */
@@ -94,7 +98,7 @@ export default memo(function Settings({ tabs }) {
         [id]: enabled,
       });
     },
-    [dropsStatus, dispatchAndConfigureSettings]
+    [dropsStatus, dispatchAndConfigureSettings],
   );
 
   return (
@@ -174,6 +178,14 @@ export default memo(function Settings({ tabs }) {
                       />
 
                       <ProxyOptionsGroup
+                        sharedSettings={sharedSettings}
+                        configureSharedSettings={configureSharedSettings}
+                        dispatchAndConfigureSharedSettings={
+                          dispatchAndConfigureSharedSettings
+                        }
+                      />
+
+                      <WalletOptionsGroup
                         sharedSettings={sharedSettings}
                         configureSharedSettings={configureSharedSettings}
                         dispatchAndConfigureSharedSettings={
