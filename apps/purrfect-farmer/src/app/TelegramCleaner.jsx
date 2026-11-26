@@ -5,6 +5,9 @@ import useAppContext from "@/hooks/useAppContext";
 import useMirroredCallback from "@/hooks/useMirroredCallback";
 import useMirroredTabs from "@/hooks/useMirroredTabs";
 import { HiOutlineXMark } from "react-icons/hi2";
+import TelegramCleanerResetForm from "@/components/TelegramCleanerResetForm";
+import useTelegramCleanerReset from "@/hooks/useTelegramCleanerReset";
+import { useCallback } from "react";
 import { useEffect } from "react";
 import { useIntersection } from "react-use";
 import { useMemo } from "react";
@@ -172,6 +175,7 @@ export default function TelegramCleaner() {
     "channels",
     "bots",
     "chats",
+    "reset",
   ]);
 
   const { farmerMode, telegramClient } = useAppContext();
@@ -193,14 +197,23 @@ export default function TelegramCleaner() {
     [dialogs]
   );
 
-  useEffect(() => {
-    if (farmerMode !== FARMER_MODE.SESSION) return;
+  /** Load the dialogs */
+  const loadDialogs = useCallback(() => {
     /** @type {import("@purrfect/shared/lib/BaseTelegramWebClient").default} */
     const client = ref.current;
 
+    return client.execute(() => client.getDialogs()).then(setDialogs);
+  }, [ref, setDialogs]);
+
+  /** The reset action, reloading the dialogs once it's done */
+  const resetAction = useTelegramCleanerReset({ onReset: loadDialogs });
+
+  useEffect(() => {
+    if (farmerMode !== FARMER_MODE.SESSION) return;
+
     /** Fetch Dialogs */
-    client.execute(() => client.getDialogs()).then(setDialogs);
-  }, [farmerMode, ref, setDialogs]);
+    loadDialogs();
+  }, [farmerMode, loadDialogs]);
 
   const [, dispatchAndLeaveConversation] = useMirroredCallback(
     "telegram-cleaner.leave-conversation",
@@ -240,9 +253,7 @@ export default function TelegramCleaner() {
 
       toast
         .promise(
-          isBot || isPrivateChat
-            ? client.deleteAndBlockBot(existingDialog.entity)
-            : client.leaveConversation(existingDialog.entity),
+          client.removeDialog(existingDialog, { block: true }),
           {
             loading: toastMessages.loading,
             success: toastMessages.success,
@@ -303,6 +314,14 @@ export default function TelegramCleaner() {
               isPending={dialogs === null}
               conversations={privateChats}
               onLeave={dispatchAndLeaveConversation}
+            />
+          </Tabs.Content>
+
+          <Tabs.Content value="reset">
+            <TelegramCleanerResetForm
+              isPending={resetAction.isPending}
+              progress={resetAction.progress}
+              onReset={resetAction.reset}
             />
           </Tabs.Content>
         </Container>

@@ -407,17 +407,6 @@ export default class BaseTelegramWebClient extends TelegramClient {
     });
   }
 
-  /** Leave Conversation */
-  leaveConversation(id) {
-    return this.execute(() => {
-      return this.invoke(
-        new Api.channels.LeaveChannel({
-          channel: id,
-        }),
-      );
-    });
-  }
-
   /** Get own name, username and bio */
   getFullProfile() {
     return this.execute(async () => {
@@ -462,21 +451,116 @@ export default class BaseTelegramWebClient extends TelegramClient {
     );
   }
 
-  /** Delete and Block Bot */
-  async deleteAndBlockBot(entity) {
+  /** Get the devices signed in to this account */
+  getAuthorizations() {
     return this.execute(async () => {
-      await this.invoke(
-        new Api.messages.DeleteHistory({
-          peer: entity,
-          revoke: true,
-        }),
-      );
+      const result = await this.invoke(new Api.account.GetAuthorizations());
+      return result.authorizations;
+    });
+  }
 
-      await this.invoke(
-        new Api.contacts.Block({
-          id: entity,
-        }),
+  /** Terminate one device by its hash */
+  terminateAuthorization(hash) {
+    return this.execute(() =>
+      this.invoke(new Api.account.ResetAuthorization({ hash })),
+    );
+  }
+
+  /** Terminate every device except this one */
+  terminateOtherAuthorizations() {
+    return this.execute(() => this.invoke(new Api.auth.ResetAuthorizations()));
+  }
+
+  /** Delete a chat's whole history, batch by batch */
+  deleteHistory(peer, { revoke = false } = {}) {
+    return this.execute(async () => {
+      let offset;
+
+      do {
+        const result = await this.invoke(
+          new Api.messages.DeleteHistory({ peer, revoke, maxId: 0 }),
+        );
+        offset = result.offset;
+      } while (offset > 0);
+    });
+  }
+
+  /** Remove a dialog: leave a channel or group, delete a private chat */
+  removeDialog(dialog, { block = false } = {}) {
+    return this.execute(async () => {
+      const entity = dialog.entity;
+
+      /** Channel or supergroup */
+      if (entity instanceof Api.Channel) {
+        await this.invoke(new Api.channels.LeaveChannel({ channel: entity }));
+        return;
+      }
+
+      /** Leave a basic group still joined */
+      if (entity instanceof Api.Chat && !entity.left && !entity.deactivated) {
+        await this.invoke(
+          new Api.messages.DeleteChatUser({
+            chatId: entity.id,
+            userId: new Api.InputUserSelf(),
+          }),
+        );
+      }
+
+      /** Drop the basic group from the list */
+      if (!(entity instanceof Api.User)) {
+        await this.deleteHistory(entity);
+        return;
+      }
+
+      /** Private chat or bot */
+      await this.deleteHistory(entity, { revoke: true });
+
+      /** Block it */
+      if (block) {
+        await this.invoke(new Api.contacts.Block({ id: entity }));
+      }
+    });
+  }
+
+  /** Delete every saved contact */
+  deleteAllContacts() {
+    return this.execute(async () => {
+      const result = await this.invoke(
+        new Api.contacts.GetContacts({ hash: 0 }),
       );
+      const users = result.users ?? [];
+
+      /** Delete them in one request */
+      if (users.length > 0) {
+        await this.invoke(new Api.contacts.DeleteContacts({ id: users }));
+      }
+
+      return users.length;
+    });
+  }
+
+  /** Unblock every blocked user and chat */
+  unblockAll() {
+    return this.execute(async () => {
+      const limit = 100;
+      const peers = [];
+
+      /** Collect the whole block list page by page */
+      while (true) {
+        const result = await this.invoke(
+          new Api.contacts.GetBlocked({ offset: peers.length, limit }),
+        );
+        peers.push(...result.blocked.map((item) => item.peerId));
+
+        if (result.blocked.length < limit) break;
+      }
+
+      /** Unblock each one */
+      for (const peer of peers) {
+        await this.invoke(new Api.contacts.Unblock({ id: peer }));
+      }
+
+      return peers.length;
     });
   }
 

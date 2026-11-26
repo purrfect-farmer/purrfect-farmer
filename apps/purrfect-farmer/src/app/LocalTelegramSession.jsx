@@ -1,63 +1,19 @@
 import Alert from "@/components/Alert";
 import LocalTelegramSessionIcon from "@/assets/images/local-telegram-session.png?format=webp&w=192";
 import TelegramLogin from "@/partials/TelegramLogin";
-import TelegramWebClient from "@/lib/TelegramWebClient";
-import toast from "react-hot-toast";
 import useAppContext from "@/hooks/useAppContext";
+import useLocalTelegramSessionLogout from "@/hooks/useLocalTelegramSessionLogout";
 import { cn } from "@/utils";
-import { createTelegramClient } from "@/lib/createTelegramClient";
 import { useCallback } from "react";
 import Container from "@/components/Container";
 import { FARMER_MODE } from "@/constants/farmerMode";
 
 export default function LocalTelegramSession() {
-  const {
-    telegramClient,
-    configureSettings,
-    localTelegramSession,
-    setLocalTelegramSession,
-  } = useAppContext();
+  const { configureSettings, localTelegramSession, setLocalTelegramSession } =
+    useAppContext();
 
-  const handleLogoutButtonClick = () => {
-    toast
-      .promise(
-        (async function () {
-          /** @type {TelegramWebClient} */
-          const client =
-            telegramClient.ref.current ||
-            createTelegramClient(localTelegramSession);
-
-          /** Remove Session */
-          setLocalTelegramSession(null);
-
-          /** Reset Farmer Mode */
-          configureSettings("farmerMode", FARMER_MODE.WEB, false);
-
-          try {
-            /** Try to reconnect */
-            if (!client.connected) {
-              await client.connect();
-            }
-
-            /** Logout */
-            await client.logout();
-
-            /** Destroy */
-            await client.destroy();
-          } catch (e) {
-            console.error(e);
-          }
-        })(),
-        {
-          success: "Successfully logged out...",
-          error: "Error...",
-          loading: "Logging out...",
-        }
-      )
-      .catch((e) => {
-        console.error(e);
-      });
-  };
+  /** The handler for logging out */
+  const handleLogoutButtonClick = useLocalTelegramSessionLogout();
 
   /** Login Success */
   const handleLoginSuccess = useCallback(

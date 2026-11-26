@@ -10,6 +10,7 @@ import ReorderTelegramWebIcon from "@/assets/images/reorder-telegram-web.png?for
 import SpiderIcon from "@/assets/images/spider-logo.png?format=webp&w=80";
 import TelegramCleanerIcon from "@/assets/images/telegram-cleaner.png?format=webp&w=80";
 import TelegramToPurrfectGramIcon from "@/assets/images/telegram-to-purrfect-gram.png?format=webp&w=80";
+import TelegramDevicesIcon from "@/assets/images/telegram-logo.svg";
 import TelegramWebAIcon from "@/assets/images/telegram-web-a.png?format=webp&w=80";
 import TelegramWebSessionIcon from "@/assets/images/telegram-web-session.png?format=webp&w=80";
 import TelegramWebKIcon from "@/assets/images/telegram-web-k.png?format=webp&w=80";
@@ -26,6 +27,7 @@ export const Browser = lazy(() => import("@/app/Browser"));
 export const TelegramWeb = lazy(() => import("@/app/TelegramWeb"));
 export const TelegramCleaner = lazy(() => import("@/app/TelegramCleaner"));
 export const ProfileEditor = lazy(() => import("@/app/ProfileEditor"));
+export const TelegramDevices = lazy(() => import("@/app/TelegramDevices"));
 export const TonWalletDeriver = lazy(() => import("@/app/TonWalletDeriver"));
 export const QuickLogin = lazy(() => import("@/app/QuickLogin"));
 export const TinyFly = lazy(() => import("@/app/TinyFly"));
@@ -124,6 +126,14 @@ export const utils = [
         title: "Profile Editor",
         icon: ProfileEditorIcon,
         component: createElement(ProfileEditor),
+      },
+
+      /** Telegram Devices */
+      {
+        id: "telegram-devices",
+        title: "Telegram Devices",
+        icon: TelegramDevicesIcon,
+        component: createElement(TelegramDevices),
       },
 
       /** TON Wallet Deriver */

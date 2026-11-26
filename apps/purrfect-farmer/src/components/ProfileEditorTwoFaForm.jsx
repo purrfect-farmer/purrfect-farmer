@@ -10,6 +10,7 @@ import PrimaryButton from "./PrimaryButton";
 import toast from "react-hot-toast";
 import useMirroredCallback from "@/hooks/useMirroredCallback";
 import useProfileEditorTwoFa from "@/hooks/useProfileEditorTwoFa";
+import { getTwoFaErrorMessage } from "@purrfect/shared/utils/telegram.js";
 import { useEffect } from "react";
 import { yup } from "@/lib/yup";
 import { yupResolver } from "@hookform/resolvers/yup";
@@ -57,12 +58,6 @@ const PASSWORD_FIELDS = [
   },
 ];
 
-/** Friendly 2FA error */
-const getTwoFaError = (err) =>
-  err.errorMessage === "PASSWORD_HASH_INVALID"
-    ? "Current password is incorrect"
-    : err.errorMessage || err.message;
-
 export default function ProfileEditorTwoFaForm() {
   const { state, mutation } = useProfileEditorTwoFa();
   const hasPassword = Boolean(state?.hasPassword);
@@ -90,7 +85,7 @@ export default function ProfileEditorTwoFaForm() {
         {
           loading: "Updating 2FA...",
           success: "2FA password updated!",
-          error: (err) => `Error updating 2FA: ${getTwoFaError(err)}`,
+          error: (err) => `Error updating 2FA: ${getTwoFaErrorMessage(err)}`,
         },
       ),
     [mutation.mutateAsync],
@@ -103,7 +98,7 @@ export default function ProfileEditorTwoFaForm() {
       toast.promise(mutation.mutateAsync({ currentPassword }), {
         loading: "Removing 2FA...",
         success: "2FA password removed!",
-        error: (err) => `Error removing 2FA: ${getTwoFaError(err)}`,
+        error: (err) => `Error removing 2FA: ${getTwoFaErrorMessage(err)}`,
       }),
     [mutation.mutateAsync],
   );

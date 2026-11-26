@@ -8,6 +8,18 @@ export const DEFAULT_WEB_APP_PLATFORM = "android";
 
 export const DEFAULT_WEB_APP_VERSION = "10.3";
 
+/** Telegram's own service account, which sends login codes */
+export const TELEGRAM_SERVICE_USER_ID = "777000";
+
+/** The @SpamBot account, which reports spam restrictions */
+export const TELEGRAM_SPAM_BOT_ID = "178220800";
+
+/** A readable message for a failed 2FA change */
+export const getTwoFaErrorMessage = (error) =>
+  error?.errorMessage === "PASSWORD_HASH_INVALID"
+    ? "Current password is incorrect"
+    : error?.errorMessage || error?.message;
+
 /** The light theme every mini app is opened with */
 export const DEFAULT_THEME_PARAMS = Object.freeze({
   bg_color: "#ffffff",
